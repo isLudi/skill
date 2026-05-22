@@ -1,0 +1,4 @@
+interface:
+  display_name: "青橙看板 SQL"
+  short_description: "青橙项目部独立看板 SQL、指标和临时表知识库专用入口"
+  default_prompt: "Use $qingcheng-dashboard-sql to generate or maintain Qingcheng dashboard Presto SQL from its isolated knowledge base."

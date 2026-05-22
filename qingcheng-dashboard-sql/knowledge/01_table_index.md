@@ -1,0 +1,38 @@
+# 表索引
+
+本文件只记录青橙项目部 Skill 已核对或待核对的表。不要从其他部门 skill 自动复制表索引。
+
+## 1. 物理表
+
+| 表名 | 中文名称 | 主要用途 | 分区字段 | 小时字段 | 状态 | 详情 |
+|---|---|---|---|---|---|---|
+| `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df` | 线索成本 GMV 沟通学习全链路表 | 青橙有效线索主表 | `dt` | `hour` | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md` |
+| `service_dw.dm_crm_lead_stats_detail_hf` | 线索统计明细小时表 | 首次接通时间差 | `dt` | `hour` | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/service_dw.dm_crm_lead_stats_detail_hf.md` |
+| `service_dw.app_h_crm_lead_employee_workload_detail_hf` | CRM 线索员工工作量明细小时表 | 外呼次数、接通、通时 | `dt` | `hour` | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/service_dw.app_h_crm_lead_employee_workload_detail_hf.md` |
+| `service_dw.dws_service_user_learn_detail_hf` | 用户学习明细小时表 | 首节到课、有效到课 | `dt` | `hour` | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/service_dw.dws_service_user_learn_detail_hf.md` |
+| `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` | CRM 订单线索归因收入退款明细小时表 | 青橙转化、收入、退款、净营收 | `dt` | `hour` | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md` |
+| `dw.dim_cstm_active_user_c_appliction_mb_df` | 用户应用活跃天级维表 | 近 7 天 APP/PC 登录 | `dt` | 无 | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/dw.dim_cstm_active_user_c_appliction_mb_df.md` |
+| `dw.dws_user_active_user_c_appliction_hf` | 用户应用活跃小时表 | 近 2 小时 APP/PC 登录 | `dt` | `hour` | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/dw.dws_user_active_user_c_appliction_hf.md` |
+
+## 2. 青橙临时表
+
+| 表名 | 用途 | 刷新方式 | 适用看板 | 状态 | 详情 |
+|---|---|---|---|---|---|
+| `temp_table.dingxi01_qing_daoke` | 青橙课次映射表，支持第 1 至第 6 讲 | 待人工确认 | 青橙过程数据 raw、青橙到课 raw | 已从 SQL 入库，来源待确认 | `knowledge/temp_tables/temp_table.dingxi01_qing_daoke.md` |
+| `temp_table.dingxi01_jiagou_db` | 青橙架构映射表 | 待人工确认 | 青橙过程数据 raw、青橙到课 raw | 已从 SQL 入库，来源待确认；员工 join key 待确认 | `knowledge/temp_tables/temp_table.dingxi01_jiagou_db.md` |
+| `temp_table.dingxi01_qing_team_jg` | 青橙最新团队架构表 | 待人工确认 | 青橙转化 raw | 已从 SQL 入库，来源待确认；是否应用最新架构待确认 | `knowledge/temp_tables/temp_table.dingxi01_qing_team_jg.md` |
+
+## 3. 看板入口
+
+| 看板 | 来源 SQL | 指标文档 | 状态 |
+|---|---|---|---|
+| 青橙过程数据 raw | `resources/raw_sql/qingcheng_process_data_raw_20260522.sql` | `knowledge/metrics/qingcheng_process_data_metrics.md` | 已入库，部分口径待确认 |
+| 青橙到课 raw | `resources/raw_sql/qingcheng_daoke_raw_20260522.sql` | `knowledge/metrics/qingcheng_daoke_metrics.md` | 已入库，部分口径待确认 |
+| 青橙转化 raw | `resources/raw_sql/qingcheng_conversion_raw_20260522.sql` | `knowledge/metrics/qingcheng_conversion_metrics.md` | 已入库，raw SQL 存在尾逗号和平台函数风险 |
+
+## 4. 入库规则
+
+- 新表必须先写入 `knowledge/tables/<库名.表名>.md` 或 `knowledge/temp_tables/<库名.表名>.md`。
+- 表索引只做入口导航，不承载完整字段说明。
+- 如果表来自历史 SQL 解析但尚未核对字段，状态写“字段待表结构确认”。
+- 不得把市场顾问部专属临时表写入本索引，除非用户明确确认青橙项目部也复用且口径一致。

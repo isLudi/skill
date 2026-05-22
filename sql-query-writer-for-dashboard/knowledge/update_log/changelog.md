@@ -297,3 +297,13 @@
 - 明确新 SQL 禁止使用 `service_dw.app_h_crm_lead_task_process_info_detail_hf.call_answer_lead_count` 作为首 call 任务来源；该旧过程表仅保留双表发送/回收、任务过程和电话接通等非首 call 任务用途。
 - 新增 `knowledge/sql_patterns/first_call_task_metric_pattern.md`，沉淀首 call 任务标准 CTE、join key、部门范围、前端聚合方式和待确认口径。
 - 更新 `knowledge/01_table_index.md`、`knowledge/metrics/outbound_call_process_metrics.md`、`knowledge/dashboards/outbound_call_process_dashboard.md`、`knowledge/joins/table_relationships.md` 以及两张相关表文档，确保后续生成新 SQL 默认走首 call 任务表 + 员工维表口径。
+
+## 2026-05-22 渠道 CASE 0522 版本更新
+
+- 使用用户提供的 `D:\Feishu\0522.txt` 新增归档 `resources/raw_sql/market_channel_case_when_0522.sql`。
+- 相比 `market_channel_case_when_0515.sql` 的变更：
+  - **新增**：`when flow_pool_name like '%星义大大%' then '赵星义'` 渠道规则（1 条）。
+  - **修改**：「进校私域合作」（`third_department_name = '私域运营部'` 分支）的 `source_manager_name` 名单追加 `'王绍阳'`。
+  - **移位**：「信息流-抖音私信」（`channel_name_1='信息流' and put_plan_name like ...`）从原第 72 位移至倒数第 3 位（`途途私域` 之前），CASE WHEN 优先级大幅降低。此规则在 0515 版本位于 `APP` 规则之前，0522 版本移至近末尾，可能影响同时命中 `APP` 和其他条件的记录的渠道归类。
+- 当前片段：199 行、198 个 `then` 分支、130 个去重渠道输出值；输出字段仍为 `qudao`。
+- 注意：`0522.txt` 首部新增的 `qici`（当期/非当期）和 `xiansuo`（0/1）CASE WHEN 块暂未入库存档，留待后续转化看板修改任务中处理。

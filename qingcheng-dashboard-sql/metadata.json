@@ -1,0 +1,32 @@
+{
+  "name": "qingcheng-dashboard-sql",
+  "description": "Generate Presto SQL for Qingcheng project department dashboards and maintain an isolated knowledge base of Qingcheng metrics, temp tables, field matching rules, and historical dashboard SQL.",
+  "version": "0.1.0",
+  "language": "zh-CN",
+  "query_engine": "Presto",
+  "business_domain": "青橙项目部",
+  "entrypoint": "SKILL.md",
+  "isolated_from": [
+    "sql-query-writer-for-dashboard",
+    "市场顾问部",
+    "市场顾问部评优口径"
+  ],
+  "knowledge_dirs": [
+    "knowledge/tables",
+    "knowledge/temp_tables",
+    "knowledge/dashboards",
+    "knowledge/metrics",
+    "knowledge/joins",
+    "knowledge/sql_patterns"
+  ],
+  "docs": [
+    "docs/USAGE_PROMPTS.md"
+  ],
+  "healthcheck": "scripts/check_skill_integrity.py",
+  "sql_validator": "scripts/validate_sql_rules.py",
+  "dashboard_ingest": "scripts/ingest_dashboard_sql.py",
+  "update_policy": "appendable",
+  "requires_full_table_name": true,
+  "forbid_cross_domain_defaulting": true
+}
+

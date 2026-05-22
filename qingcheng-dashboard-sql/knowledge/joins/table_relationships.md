@@ -1,0 +1,37 @@
+# 表关系
+
+本文件记录青橙项目部看板中表与表、表与临时表、CTE 与 CTE 的关系。
+
+## 1. 已确认或已入库关系
+
+| 主表/CTE | 关联表/CTE | 关联条件 | 关系类型 | 数据粒度影响 | 来源 |
+|---|---|---|---|---|---|
+| `data` | `service_dw.dm_crm_lead_stats_detail_hf jt` | `data.lead_id = jt.lead_id` | 线索补充 | 若 `jt` 一线索多行会放大，需确认唯一性 | `qingcheng_process_data_raw_20260522.sql` |
+| `data` | `temp_table.dingxi01_jiagou_db jg` | `data.employee_email_name = jg.employee_email_name and data.qici = jg.qici` | 架构补充 | `jg.department is not null` 会过滤未匹配架构的线索 | `qingcheng_process_data_raw_20260522.sql` |
+| `data` | `temp_table.dingxi01_jiagou_db jg` | `data.employee_email_prefix = jg.employee_email_prefix and data.qici = jg.qici` | 架构补充 | `jg.department is not null` 会过滤未匹配架构的线索；与过程数据 raw 的姓名 join key 不一致 | `qingcheng_daoke_raw_20260522.sql` |
+| `data` | `call_c` | `call_c.user_number = data.user_id and call_c.section_assign_employee_email_prefix = data.employee_email_prefix` | 外呼补充 | `call_c` 已按用户、线索、员工聚合；join 未使用 `lead_id`，是否可能串线索待确认 | `qingcheng_process_data_raw_20260522.sql` |
+| `data` | `denglu_app` | `denglu_app.user_number = data.user_id` | 登录补充 | 用户级登录标记按线索汇总可能放大 | `qingcheng_process_data_raw_20260522.sql` |
+| `data` | `daoke` | `data.employee_email_prefix = daoke.employee_email_prefix and data.qici = daoke.qici and data.lead_id = daoke.lead_id` | 到课补充 | `daoke` 内部按用户上课明细匹配，可能一线索多课 | `qingcheng_process_data_raw_20260522.sql` |
+| `daoke` | `temp_table.dingxi01_qing_daoke ke` | `qici + channel_map_2/qudao + grade_1/grade + begin_time` | 课次标记 | 临时表唯一性影响第 1 至第 6 讲到课指标 | `qingcheng_process_data_raw_20260522.sql`, `qingcheng_daoke_raw_20260522.sql` |
+| `gmv` | `ld` | `gmv.lead_id = ld.lead_id and ld.employee_email_name = gmv.performance_employee_email_name` | 订单补充线索属性 | 订单明细补充青橙渠道、年级和主管；未匹配时渠道为空 | `qingcheng_conversion_raw_20260522.sql` |
+| `dd` | `prc` | `prc.lead_id = dd.lead_id and prc.employee_email_name = dd.performance_employee_email_name and prc.rn = 1` | 订单补充线索期次 | `prc` 取每个 lead 最新线索期次，用于 `is_on_period` | `qingcheng_conversion_raw_20260522.sql` |
+| `bb_dedup` | `ud` | `ud.name = bb1.employee_email_name and ud.qici = bb1.qici and ud.qudao = bb1.channel_map_2` | 线索量和业绩合并 | full outer join；线索侧先按顾问-期次-渠道去重，可能丢年级 | `qingcheng_conversion_raw_20260522.sql` |
+| `mm` | `temp_table.dingxi01_qing_team_jg jg` | `mm.employee_email_name = jg.employee_email_name` | 团队架构补充 | 使用最新 `qici` 架构补历史转化数据，可能产生历史架构漂移 | `qingcheng_conversion_raw_20260522.sql` |
+
+## 2. 待确认关系
+
+| 主表 | 关联表 | 关联条件 | 疑问 |
+|---|---|---|---|
+| `data` | `call_c` | `user_id + employee_email_prefix` | `call_c` 聚合含 `lead_id`，但 join 未带 `lead_id`；是否会把同用户同顾问多线索外呼复制到多条线索待确认 |
+| `data` | `denglu_app` | `user_id = user_number` | APP 登录是用户级，最终按线索汇总可能不是去重用户数 |
+| `data` | `temp_table.dingxi01_jiagou_db` | `employee_email_name + qici` | 架构表是否一人一期唯一待确认 |
+| `data` | `temp_table.dingxi01_jiagou_db` | `employee_email_prefix + qici` | 到课 raw 使用邮箱前缀 join；需确认和 `employee_email_name` 哪个是标准架构 key |
+| `daoke` | `temp_table.dingxi01_qing_daoke` | `qici + channel_map_2 + grade_1 + begin_time` | 首节课映射表是否唯一待确认 |
+| `bb_dedup` | `ud` | `employee_email_name + qici + channel_map_2` | 线索量按 `employee_email_name, qici, channel_map_1, channel_map_2` 去重，但和订单 join 不含 `channel_map_1`、`grade_1`，是否符合转化看板口径待确认 |
+| `mm` | `temp_table.dingxi01_qing_team_jg` | `employee_email_name` | 是否应该使用最新架构还是期次架构待确认 |
+
+## 3. 维护规则
+
+- 如果 join 后改变数据粒度，必须说明是否需要去重、窗口函数或先聚合后 join。
+- 如果 join 到临时表，必须同步检查 `knowledge/temp_tables/` 的适用边界。
+- 用户后续提供修正版 SQL 时，应优先核对本文件中的待确认关系。
