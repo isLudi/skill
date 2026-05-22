@@ -19,6 +19,14 @@
 | `mm` | `temp_table.dingxi01_qing_team_jg` | `employee_email_name` | left join | 补充最新团队架构 | 已从 SQL 入库 |
 | `finance_dw.app_finance_performance_extend_details_hf dd_0` | `dw.dim_employee_chain org_t` | `name + trade_time between begin_time and end_time` | left join 后 where 过滤 | 确认交易发生时员工属于青橙项目部 | 已从 SQL 入库，是否应改用 `email_prefix` 待确认 |
 | `rd` | `temp_table.dingxi01_qing_zz` | `name = employee_email_name` | left join | 补充青橙直属主管、大主管和学部 | 已从 SQL 入库 |
+| `finance_dw.dm_finance_order_refund_detail_df ord` | `finance_dw.dim_finance_order_change_df order_change` | `order_number = parent_order_number` | left join | 补充退款订单调课调班类型 | 已从 SQL 入库 |
+| `rd` | `re_ke` | `order_number + qici = qici_re` | left join | 给财务交易补充全退时调课链路完课课节数 | 已从 SQL 入库 |
+| `rd_0` | `temp_table.dingxi01_qing_qi_moth` | `qici` | left join | 期次映射月份 | 已从 SQL 入库 |
+| `wa` | `temp_table.dingxi01_qing_team_jg` | `name = employee_email_name` | left join | 补充最新直属主管 | 已从 SQL 入库 |
+| `temp_table.dingxi01_qing_team_goal` | `renchan` | `xiaozu = leader_employee_email_name + month = moth` | left join | 月目标与实际业绩合并 | 已从 SQL 入库 |
+| `temp_table.dingxi01_qing_team_g_qi` | `renchan` | `xiaozu = leader_employee_email_name + qici` | left join | 期次目标与实际业绩合并 | 已从 SQL 入库 |
+| `temp_table.dingxi01_qing_team_jg` | `wa` | `employee_email_name + qici = name + qici` | left join | 个人转化以团队架构为主合并个人业绩 | 已从 SQL 入库，架构唯一性待确认 |
+| `temp_table.dingxi01_qing_team_jg` | `temp_table.dingxi01_qing_qi_moth` | `qici` | left join | 个人转化按架构期次补充月份 | 已从 SQL 入库 |
 
 ## 维护规则
 

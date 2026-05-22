@@ -2,7 +2,7 @@
 
 ## 1. 临时表用途
 
-青橙最新团队架构表。当前在 `qingcheng_conversion_raw_20260522.sql` 最终层按员工姓名补充学部、小组、大组和经理。
+青橙团队架构表。当前在 `qingcheng_conversion_raw_20260522.sql` 最终层按员工姓名补充学部、小组、大组和经理；在 `qingcheng_team_completion_month_raw_20260522.sql` 和 `qingcheng_team_completion_period_raw_20260522.sql` 中补充直属主管，用于和团队目标表合并；在 `qingcheng_personal_conversion_raw_20260522.sql` 中作为个人期次输出骨架。
 
 ## 2. 来源和刷新方式
 
@@ -37,6 +37,9 @@ qici + employee_email_name
 ## 5. 适用看板
 
 - `qingcheng_conversion_raw_20260522`
+- `qingcheng_team_completion_month_raw_20260522`
+- `qingcheng_team_completion_period_raw_20260522`
+- `qingcheng_personal_conversion_raw_20260522`
 
 ## 6. join key
 
@@ -50,10 +53,28 @@ mm.employee_email_name = jg.employee_email_name
 where qici = (select max(qici) from temp_table.dingxi01_qing_team_jg)
 ```
 
+团队完成度【月/期】使用：
+
+```sql
+qtg.employee_email_name = wa.name
+```
+
+并取最新 `qici` 下的 `leader_employee_email_name`。
+
+个人转化使用：
+
+```sql
+qtg.employee_email_name = wa.name
+and qtg.qici = wa.qici
+```
+
+该 SQL 以 `temp_table.dingxi01_qing_team_jg` 为主表，保留没有业绩匹配的架构人员。
+
 ## 7. 不可复用边界
 
-- 默认只作为青橙转化看板的最新团队架构表。
+- 默认只作为青橙转化、青橙团队完成度【月/期】和青橙个人转化看板的团队架构表。
 - 使用最新期次架构回填历史期次转化数据，可能造成历史架构漂移；如果需要历史归属，应改为按 `mm.qici = jg.qici` join。
+- 个人转化按 `qtg.qici = wa.qici` 使用期次架构，不应与转化 raw 的最新架构回填口径混用。
 - 不得与 `temp_table.dingxi01_jiagou_db` 默认等同；两者字段和 join key 不同。
 
 ## 8. 待确认事项
@@ -61,4 +82,4 @@ where qici = (select max(qici) from temp_table.dingxi01_qing_team_jg)
 - 表来源、维护人和刷新频率。
 - `xuebu`、`leader_employee_email_name`、`dazu`、`jingli` 的组织层级含义。
 - 是否应使用最新架构还是交易期次/线索期次对应架构。
-
+- 个人转化场景下是否一人一期唯一；若不唯一会放大个人业绩。

@@ -92,3 +92,28 @@
 - 该口径不同于转化 SQL 的 `performance_second_level_department_name = '青橙项目部'`。
 - 该口径不同于只按最新架构表回填的看板；它会剔除交易时间不在青橙任职窗口内的记录。
 - 如果 `dw.dim_employee_chain` 里 `end_time` 为空或未来时间处理不一致，可能影响在职员工记录，需确认。
+
+## 7. 团队完成度【月/期】和个人转化 SQL 范围口径
+
+来源：`resources/raw_sql/qingcheng_team_completion_month_raw_20260522.sql`。
+期次版来源：`resources/raw_sql/qingcheng_team_completion_period_raw_20260522.sql`。
+个人转化来源：`resources/raw_sql/qingcheng_personal_conversion_raw_20260522.sql`。
+
+这些 SQL 与年季月营收类似，也使用“员工组织链 + 财务员工部门”双重限制，但组织路径更宽：
+
+| 场景 | 字段/表达式 | 取值 |
+|---|---|---|
+| 员工组织链 | `path_name` | `like '高途-H业务线-青橙项目部%'` |
+| 财务业绩表 | `employee_first_level_department_name` | `'H业务线'` |
+| 财务业绩表 | `employee_second_level_department_name` | `'青橙项目部'` |
+| 任职期间 | `trade_time >= begin_time and (end_time is null or trade_time <= end_time)` | 交易发生在员工属于青橙期间 |
+| 退款课节表 | `course_first_level_department_name` | `'H业务线'` |
+| 退款课节表 | `course_second_level_department_name` | `('精品班学部','菁英班学部','一对一学部')` |
+
+注意：
+
+- `path_name like '高途-H业务线-青橙项目部%'` 会包含青橙项目部下更多层级。
+- 月度团队目标来自 `temp_table.dingxi01_qing_team_goal`，按 `month = moth` 对齐。
+- 期次团队目标来自 `temp_table.dingxi01_qing_team_g_qi`，按 `qici = qici` 对齐。
+- 月份来自 `temp_table.dingxi01_qing_qi_moth.moth`，不是直接从 `trade_time` 自然月截取；期次版保留该字段但最终目标 join 不依赖月份。
+- 个人转化不 join 目标表，而是以 `temp_table.dingxi01_qing_team_jg` 为主表，按 `employee_email_name + qici` 合并个人业绩。

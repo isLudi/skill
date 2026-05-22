@@ -63,10 +63,10 @@ when third_department_name  in ('图书营销部') and rule_name like '%亚飞%'
 	when ad_account_name like '%肖晗%' and channel_name_1 = '信息流' then '信息流-肖晗'
 	when channel_name_1 = '信息流' and channel_name_2='B站' and (page_id_name like '%亚飞%' or source_put_plan_name like '%亚飞%'  or rule_name like '%亚飞%' or page_id_name like '%初中-0元%') then 'B站信息流-亚飞'
 	when channel_name_1 = '信息流' and (page_id_name like '%亚飞%' or ad_account_name like '%亚飞%') then '信息流-亚飞'
-	when (flow_pool_name like '%朱博士%' or flow_pool_name like '%双博士%' or flow_pool_name like '%教育规划%') and third_department_name <> '线上商务部' and period_name not like '%多学科拓展%' and rule_name not like '%张杰%' and sku_id_name not like '%马凯鹏IP%' and third_department_name='直播部' then '朱博士29'
+	when (flow_pool_name like '%朱博士%' or flow_pool_name like '%双博士%' or flow_pool_name like '%教育规划%') and period_name not like '%多学科拓展%' and rule_name not like '%张杰%' and sku_id_name not like '%马凯鹏IP%' then '朱博士29'
 	when put_plan_name like '%朱博士说教育%' and period_name not like '%多学科拓展%' and flow_pool_name not like '%高分讲堂%' and  flow_pool_name not like '%总裁%' and third_department_name='直播部' then '朱博士29'
 	when flow_pool_name like '%朱博士讲英语%' and sku_id_name like '%马凯鹏IP%' and third_department_name='直播部' then '马凯鹏29'
-	when (flow_pool_name like '%朱博士讲英语%' or flow_pool_name like '%朱博士英语%' or flow_pool_name like '%朱汉祺说英语%' or flow_pool_name like '%朱博士说英语%' or flow_pool_name like '%教育规划%' or flow_pool_name like '%双博士英语规划%' or flow_pool_name like '%朱博士满分英语%' or flow_pool_name like '%英语教父朱博士%' or (flow_pool_name like '%中考决胜天团%' and lead_purchase_intention_level1_category_name = '规划系统')) and third_department_name = '直播部' and period_name not like '%多学科拓展%' and sku_id_name not like '%马凯鹏IP%' and third_department_name='直播部' then '朱博士29'
+	when (flow_pool_name like '%朱博士讲英语%' or flow_pool_name like '%朱博士英语%' or flow_pool_name like '%朱汉祺说英语%' or flow_pool_name like '%朱博士说英语%' or flow_pool_name like '%教育规划%' or flow_pool_name like '%双博士英语规划%' or flow_pool_name like '%朱博士满分英语%' or flow_pool_name like '%英语教父朱博士%' or (flow_pool_name like '%中考决胜天团%' and lead_purchase_intention_level1_category_name = '规划系统')) and third_department_name = '直播部' and period_name not like '%多学科拓展%' and sku_id_name not like '%马凯鹏IP%' then '朱博士29'
 	when (flow_pool_name like '%汤哥%' or flow_pool_name like '%汤老师%') and period_name not like '%多学科拓展%' and third_department_name in ('直播部','新媒体内容运营部')  then '汤老师'
 	when (flow_pool_name like '%中考百日冲刺%') and period_name not like '%多学科拓展%' and third_department_name='直播部'  then '曹忆9.9纯课'
 	when (flow_pool_name like '%马总%' or  flow_pool_name = '减法化学马老师' or flow_pool_name like '%总裁讲化学%' or flow_pool_name like '%高分讲堂%') and period_name not like '%多学科拓展%' and sku_id_name  like '%99%' and third_department_name='直播部'  then '马凯鹏99'
@@ -77,8 +77,8 @@ when third_department_name  in ('图书营销部') and rule_name like '%亚飞%'
 	when (flow_pool_name like '%孟帝%' or flow_pool_name like '%孟老师%' or flow_pool_name like '%中考数学冲刺%' or flow_pool_name like '%8升9数学%' or flow_pool_name like '%孟亚飞讲数学%' or flow_pool_name like '%中考冲刺%' or flow_pool_name like '%中考满分冲刺%' or flow_pool_name like '%押题王孟亚飞%' or flow_pool_name like '%中考数学大通关%' or flow_pool_name like '%中考数学规划%' or flow_pool_name like '%亚飞数学%')  and period_name not like '%多学科拓展%' and channel_name_2 not like '%KOL%' and third_department_name='直播部' and rule_name like '%99%'  then '孟亚飞99-1组'
 	when (flow_pool_name like '%孟帝%' or flow_pool_name like '%孟老师%' or flow_pool_name like '%中考数学冲刺%' or flow_pool_name like '%8升9数学%' or flow_pool_name like '%孟亚飞讲数学%' or flow_pool_name like '%中考冲刺%' or flow_pool_name like '%中考满分冲刺%' or flow_pool_name like '%押题王孟亚飞%' or flow_pool_name like '%中考数学大通关%' or flow_pool_name like '%中考数学规划%' or flow_pool_name like '%亚飞数学%')  and period_name not like '%多学科拓展%' and channel_name_2 not like '%KOL%' and third_department_name='直播部' and channel_name_2 = '百度'  then '孟亚飞百度数字人'
 	when (flow_pool_name like '%孟帝%' or flow_pool_name like '%孟老师%' or flow_pool_name like '%中考数学冲刺%' or flow_pool_name like '%8升9数学%' or flow_pool_name like '%孟亚飞讲数学%' or flow_pool_name like '%中考冲刺%' or flow_pool_name like '%中考满分冲刺%' or flow_pool_name like '%押题王孟亚飞%' or flow_pool_name like '%中考数学大通关%' or flow_pool_name like '%中考数学规划%' or flow_pool_name like '%亚飞数学%')  and period_name not like '%多学科拓展%' and channel_name_2 not like '%KOL%' and third_department_name='直播部'  then '孟亚飞9元'
-	when put_plan_name like '%刘家晋讲图文%' or put_plan_name like '%孟帝数学%' and third_department_name='直播部' and rule_name like '%99%'  then '孟亚飞99-1组'
-	when put_plan_name like '%刘家晋讲图文%' or put_plan_name like '%孟帝数学%' and third_department_name='直播部' then '孟亚飞9元'
+	when (put_plan_name like '%刘家晋讲图文%' or put_plan_name like '%孟帝数学%') and third_department_name='直播部' and rule_name like '%99%' then '孟亚飞99-1组'
+	when (put_plan_name like '%刘家晋讲图文%' or put_plan_name like '%孟帝数学%') and third_department_name='直播部' then '孟亚飞9元'
 	when (flow_pool_name like '%肖晗%' or sku_id_name like '%肖晗%') and third_department_name='直播部'  then '肖晗'
 	when flow_pool_name like '%峥峥%' and period_name not like '%多学科拓展%' and third_department_name='直播部'  then '何峥峥'
 	when flow_pool_name like '%汐子%' and period_name not like '%多学科拓展%' and sku_id_name not like '%亚飞%' and third_department_name='直播部'  then '王汐子'
@@ -221,13 +221,14 @@ when third_department_name  in ('图书营销部') and rule_name like '%亚飞%'
 	when rule_name like '%途途私域%' or (rule_name like '%私域%' and first_department_name = 'TT') then '途途私域'
 	else '其他未知流量' end as channel_map,
 case 
-            when rule_name like '%高一%' then '高一'
-            when rule_name like '%高二%' then '高二'
-            when rule_name like '%高三%' then '高三'
-            when rule_name like '%初二%' then '初二'
-            when rule_name like '%初三%' then '初三'
-            else '未知' 
-        end as grade_1,
+	            when rule_name like '%高一%' then '高一'
+	            when rule_name like '%高二%' then '高二'
+	            when rule_name like '%高三%' then '高三'
+	            when rule_name like '%初一%' then '初一'
+	            when rule_name like '%初二%' then '初二'
+	            when rule_name like '%初三%' then '初三'
+	            else '未知' 
+	        end as grade_1,
     coalesce(lead_count,0) lead_count,
     coalesce(valid_lead_count,0) valid_lead_count,
     coalesce(merge_assign_lead_count,0) merge_assign_lead_count,
@@ -312,7 +313,7 @@ coalesce(ct.cost,0) cb_cb,
 coalesce(ct.goal,0) gl_gl
 from zhuanhua zz
 left join (select * from temp_table.dingxi01_channel_group) channel_grp on channel_grp.channel=zz.channel_map
-left join (select * from temp_table.dingxi01_cost) ct on ct.channel =zz.channel_map and ct.grade=zz.grade_1 and zz.period_name=ct.qici
+left join (select * from temp_table.dingxi01_cost) ct on ct.channel =zz.channel_map and (ct.grade = zz.grade_1 or ct.grade = '0') and zz.period_name=ct.qici
 left join temp_table.dingxi01_jiagou_db jg on jg.qici = zz.period_name and jg.department = zz.depart and zz.zhuguan = jg.xiaozu and zz.employee_email_name = jg.employee_email_name
 left join temp_table.dingxi01_jiagou_zx zx on zx.employee_email_name = zz.employee_email_name
 where zz.period_name > '20260424期'

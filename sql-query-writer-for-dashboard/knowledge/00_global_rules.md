@@ -49,3 +49,8 @@
 - 范围限定；
 - 指标口径；
 - 待确认项。
+
+## 8. 临时表 grade 通配约定
+
+- `temp_table.dingxi01_cost.grade = '0'` 表示全年级通配（该渠道成本/目标适用于所有年级）。生成 LEFT JOIN 时必须使用 `(ct.grade = zz.grade_1 or ct.grade = '0')`，否则仅 `grade = '0'` 的行无法匹配任何具体年级值。
+- `temp_table.dingxi01_daoke_1_6_t` 无 grade 通配约定，`grade` 必须精确匹配。

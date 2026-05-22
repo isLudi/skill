@@ -14,7 +14,9 @@
 | `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` | CRM 订单线索归因收入退款明细小时表 | 青橙转化、收入、退款、净营收 | `dt` | `hour` | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md` |
 | `dw.dim_cstm_active_user_c_appliction_mb_df` | 用户应用活跃天级维表 | 近 7 天 APP/PC 登录 | `dt` | 无 | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/dw.dim_cstm_active_user_c_appliction_mb_df.md` |
 | `dw.dws_user_active_user_c_appliction_hf` | 用户应用活跃小时表 | 近 2 小时 APP/PC 登录 | `dt` | `hour` | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/dw.dws_user_active_user_c_appliction_hf.md` |
-| `finance_dw.app_finance_performance_extend_details_hf` | 财务业绩扩展明细小时表 | 年季月营收、退款、净营收 | `dt` | `hour` | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/finance_dw.app_finance_performance_extend_details_hf.md` |
+| `finance_dw.app_finance_performance_extend_details_hf` | 财务业绩扩展明细小时表 | 年季月营收、团队完成度、个人转化 | `dt` | `hour` | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/finance_dw.app_finance_performance_extend_details_hf.md` |
+| `finance_dw.dm_finance_order_refund_detail_df` | 财务订单退款明细日表 | 全退订单行课节数、退 4 阈值 | `dt` | 无 | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/finance_dw.dm_finance_order_refund_detail_df.md` |
+| `finance_dw.dim_finance_order_change_df` | 财务订单调课调班维表 | 退款订单调课调班类型 | `dt` | 无 | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/finance_dw.dim_finance_order_change_df.md` |
 
 ## 2. 青橙临时表
 
@@ -22,8 +24,11 @@
 |---|---|---|---|---|---|
 | `temp_table.dingxi01_qing_daoke` | 青橙课次映射表，支持第 1 至第 6 讲 | 待人工确认 | 青橙过程数据 raw、青橙到课 raw | 已从 SQL 入库，来源待确认 | `knowledge/temp_tables/temp_table.dingxi01_qing_daoke.md` |
 | `temp_table.dingxi01_jiagou_db` | 青橙架构映射表 | 待人工确认 | 青橙过程数据 raw、青橙到课 raw | 已从 SQL 入库，来源待确认；员工 join key 待确认 | `knowledge/temp_tables/temp_table.dingxi01_jiagou_db.md` |
-| `temp_table.dingxi01_qing_team_jg` | 青橙最新团队架构表 | 待人工确认 | 青橙转化 raw | 已从 SQL 入库，来源待确认；是否应用最新架构待确认 | `knowledge/temp_tables/temp_table.dingxi01_qing_team_jg.md` |
+| `temp_table.dingxi01_qing_team_jg` | 青橙团队架构表 | 待人工确认 | 青橙转化 raw、青橙团队完成度【月/期】raw、青橙个人转化 raw | 已从 SQL 入库，来源待确认；不同看板是否使用最新架构或期次架构需区分 | `knowledge/temp_tables/temp_table.dingxi01_qing_team_jg.md` |
 | `temp_table.dingxi01_qing_zz` | 青橙组织架构补充表 | 待人工确认 | 青橙年季月营收 raw | 已从 SQL 入库，来源待确认；是否有历史期次待确认 | `knowledge/temp_tables/temp_table.dingxi01_qing_zz.md` |
+| `temp_table.dingxi01_qing_qi_moth` | 青橙期次到月份映射表 | 待人工确认 | 青橙团队完成度【月】raw、青橙团队完成度【期】raw、青橙个人转化 raw | 已从 SQL 入库，来源待确认 | `knowledge/temp_tables/temp_table.dingxi01_qing_qi_moth.md` |
+| `temp_table.dingxi01_qing_team_goal` | 青橙团队月目标表 | 待人工确认 | 青橙团队完成度【月】raw | 已从 SQL 入库，目标单位和层级待确认 | `knowledge/temp_tables/temp_table.dingxi01_qing_team_goal.md` |
+| `temp_table.dingxi01_qing_team_g_qi` | 青橙团队期次目标表 | 待人工确认 | 青橙团队完成度【期】raw | 已从 SQL 入库，目标单位和层级待确认 | `knowledge/temp_tables/temp_table.dingxi01_qing_team_g_qi.md` |
 
 ## 3. 看板入口
 
@@ -33,6 +38,9 @@
 | 青橙到课 raw | `resources/raw_sql/qingcheng_daoke_raw_20260522.sql` | `knowledge/metrics/qingcheng_daoke_metrics.md` | 已入库，部分口径待确认 |
 | 青橙转化 raw | `resources/raw_sql/qingcheng_conversion_raw_20260522.sql` | `knowledge/metrics/qingcheng_conversion_metrics.md` | 已入库，raw SQL 存在尾逗号和平台函数风险 |
 | 青橙年季月营收 raw | `resources/raw_sql/qingcheng_revenue_year_quarter_month_raw_20260522.sql` | `knowledge/metrics/qingcheng_revenue_year_quarter_month_metrics.md` | 已入库，raw SQL 存在平台函数风险 |
+| 青橙团队完成度【月】raw | `resources/raw_sql/qingcheng_team_completion_month_raw_20260522.sql` | `knowledge/metrics/qingcheng_team_completion_month_metrics.md` | 已入库，raw SQL 存在平台函数风险 |
+| 青橙团队完成度【期】raw | `resources/raw_sql/qingcheng_team_completion_period_raw_20260522.sql` | `knowledge/metrics/qingcheng_team_completion_period_metrics.md` | 已入库，raw SQL 存在平台函数风险 |
+| 青橙个人转化 raw | `resources/raw_sql/qingcheng_personal_conversion_raw_20260522.sql` | `knowledge/metrics/qingcheng_personal_conversion_metrics.md` | 已入库，raw SQL 存在平台函数风险 |
 
 ## 4. 入库规则
 

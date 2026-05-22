@@ -6,7 +6,7 @@
 
 ## 2. 表用途
 
-在青橙年季月营收 SQL 中作为财务业绩来源，提供订单、用户、交易、课程、员工、金额和部门归属字段。
+在青橙年季月营收、团队完成度【月/期】和个人转化 SQL 中作为财务业绩来源，提供订单、用户、交易、课程、员工、金额和部门归属字段。
 
 ## 3. 数据粒度
 
@@ -79,6 +79,7 @@ where dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
 
 - `employee_email_name = org_t.name`
 - `employee_email_name = temp_table.dingxi01_qing_zz.employee_email_name`
+- `employee_email_name + qici = temp_table.dingxi01_qing_team_jg.employee_email_name + qici`
 - `trade_time between org_t.begin_time and org_t.end_time`
 
 ## 10. 常用 SQL 片段
@@ -96,4 +97,3 @@ end as trade_status
 - 当前 SQL 直接使用 `price` 计算营收，没有除以 100；与其他订单表金额单位不同，需确认。
 - `real_price_0` 计算后未参与后续营收指标。
 - 期次计算使用三参数 `date_add`，后续生成新 SQL 时需改为 `interval` 写法。
-
