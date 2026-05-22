@@ -1,0 +1,63 @@
+# Default to ignoring generated files and non-text assets. Explicit
+# allow rules below keep skill docs, configs, scripts, and schemas tracked.
+*
+!*/
+
+# Skill text, config, source, and schema files
+!.gitignore
+!.system/.codex-system-skills.marker
+!*.cfg
+!*.ini
+!*.js
+!*.json
+!*.md
+!*.ps1
+!*.py
+!*.sql
+!*.toml
+!*.txt
+!*.xml
+!*.xsd
+!*.yaml
+!*.yml
+!*.svg
+
+# Environment and secrets
+.env
+*.env
+.env.*
+*.log
+logs/
+tmp/
+temp/
+.cache/
+.DS_Store
+Thumbs.db
+
+# Dependencies and Python caches
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Local databases
+*.sqlite
+*.db
+*.duckdb
+
+# Profiles, accounts, cookies, tokens, and credentials
+profile/
+profiles/
+account/
+accounts/
+cookies/
+cookie*
+token*
+secret*
+credentials*
+storageState*
+*.key
+*.pem
+*.p12
+*.crt

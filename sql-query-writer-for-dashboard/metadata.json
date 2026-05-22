@@ -1,0 +1,22 @@
+{
+  "name": "sql-query-writer-for-dashboard",
+  "description": "Generate Presto SQL for dashboard and exploratory queries based on internal table schema, metric definitions, dashboard SQL logic, and query-platform constraints.",
+  "version": "0.2.0",
+  "language": "zh-CN",
+  "query_engine": "Presto",
+  "entrypoint": "SKILL.md",
+  "knowledge_dirs": [
+    "knowledge/tables",
+    "knowledge/dashboards",
+    "knowledge/metrics",
+    "knowledge/joins",
+    "knowledge/sql_patterns"
+  ],
+  "docs": [
+    "README.md",
+    "docs/USAGE_PROMPTS.md"
+  ],
+  "healthcheck": "scripts/check_skill_integrity.py",
+  "update_policy": "appendable",
+  "requires_full_table_name": true
+}

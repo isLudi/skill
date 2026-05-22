@@ -1,0 +1,33 @@
+# dashboards 知识库
+
+存放历史看板 SQL 解析结果。每个看板一个 Markdown 文件，记录：
+
+- 看板名称
+- SQL 来源文件
+- 使用表
+- CTE 列表
+- join key
+- where 条件
+- group by 维度
+- 聚合指标
+- 待确认口径
+
+新增 SQL 放入 `resources/raw_sql/` 后运行：
+
+```bash
+python scripts/ingest_dashboard_sql.py
+```
+
+## 已入库看板
+
+- `market_consultant_conversion.md`：市场顾问转化看板，来源 `resources/raw_sql/market_consultant_conversion.sql`。
+- `market_consultant_lead_conversion_attendance.md`：市场顾问线索转化到课看板，来源 `resources/raw_sql/market_consultant_lead_conversion_attendance.sql`。
+- `traffic_profile.md`：流量画像看板，来源 `resources/raw_sql/traffic_profile.sql`；2026-05-15 已按 `city_channel.txt` 更新为省份/城市维度版本。
+- `refund_multi_subject_user_ratio.md`：多科用户退费占比看板，来源 `resources/raw_sql/refund_multi_subject_user_ratio.sql`。
+- `refund_subject_product.md`：退费科目产品看板，来源 `resources/raw_sql/refund_subject_product.sql`。
+- `refund_reason_analysis.md`：退费原因分析看板，来源 `resources/raw_sql/refund_reason_analysis.sql`。
+- `outbound_call_process_dashboard.md`：外呼过程数据看板，来源 `resources/raw_sql/outbound_call_process_dashboard.sql`。
+- `lead_assign_plan_actual_valid_count.md`：线索分配计划与实际有效量看板，来源 `resources/raw_sql/lead_assign_plan_actual_valid_count.sql`。
+- `consultant_sales_ranking_evaluation.md`：顾问销售评优看板，来源 `resources/raw_sql/consultant_sales_ranking_evaluation.sql`。
+- `consultant_sales_department_tenure.md`：顾问部门任职期销售统计，来源 `resources/raw_sql/consultant_sales_department_tenure.sql`。
+- `consultant_sales_department_tenure_period_20260424.md`：顾问部门任职期销售统计 20260424 期过滤版本，来源 `resources/raw_sql/consultant_sales_department_tenure_period_20260424.sql`。
