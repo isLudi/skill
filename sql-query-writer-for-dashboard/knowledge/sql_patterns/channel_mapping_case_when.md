@@ -6,12 +6,12 @@
 
 ## 2. 最新来源
 
-- 原始文件：`D:\Feishu\0515.txt`
-- Skill 归档：`resources/raw_sql/market_channel_case_when_0515.sql`
-- 来源文件最后修改时间：2026-05-21 18:10:45
+- 原始文件：`D:\Feishu\0522.txt`
+- Skill 归档：`resources/raw_sql/market_channel_case_when_0522.sql`
+- 来源文件最后修改时间：2026-05-22 19:10:28
 - 入库日期：2026-05-09
-- 最近更新日期：2026-05-21
-- 代码规模：198 行，197 个 `then` 分支，129 个去重后的渠道输出值
+- 最近更新日期：2026-05-22
+- 代码规模：199 行，198 个 `then` 分支，130 个去重后的渠道输出值
 - 输出字段：`qudao`
 
 ## 3. 适用范围
@@ -22,7 +22,7 @@
 - `channel_map_1`
 - `qudao`
 
-生成或改写市场顾问转化、线索转化到课、外呼过程、分配计划实际有效量等看板 SQL 时，如果需要“最新渠道 CASE”，优先引用 `resources/raw_sql/market_channel_case_when_0515.sql`，不要直接照抄旧看板中的长 CASE。
+生成或改写市场顾问转化、线索转化到课、外呼过程、分配计划实际有效量等看板 SQL 时，如果需要“最新渠道 CASE”，优先引用 `resources/raw_sql/market_channel_case_when_0522.sql`，不要直接照抄旧看板中的长 CASE。
 
 ## 4. 主要依赖字段
 
@@ -84,7 +84,7 @@ with base as (
         t.user_id,
         t.employee_email_name,
         t.rule_name,
-        -- 粘贴 resources/raw_sql/market_channel_case_when_0515.sql
+        -- 粘贴 resources/raw_sql/market_channel_case_when_0522.sql
         -- 并按需要将输出别名 qudao 改为 channel_map
         <latest_channel_case_when>
     from bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df t

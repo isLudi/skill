@@ -14,6 +14,7 @@
 |---|---|---|
 | lead_count | `sum(case when channel_map = '抖音私域' then merge_assign_lead_count else lead_count end)` | 线索数，抖音私域用合并口径 |
 | can_renew_ds_count_a | `sum(case when channel_map = '抖音私域' then merge_valid_lead_count else valid_lead_count end)` | 有效线索数，抖音私域用合并口径 |
+| xiansuo | `sum(xiansuo)` | `D:\Feishu\0522.txt` 的 `xiansuo` 0/1 规则聚合值 |
 | pay_users | `sum(conversion_lead_count)` | 转化人数 |
 | pay_users_on_period | `sum(same_lead_period_conversion_lead_count)` | 当期转化人数 |
 | pay_users_not_on_period | `sum(conversion_lead_count - same_lead_period_conversion_lead_count)` | 跨期转化人数 |
@@ -30,6 +31,8 @@
 | xb_trade_profit | `sum(same_lead_period_income_amount / 100 - same_lead_period_refund_amount / 100)` | 当期线索当期净营收，分转元 |
 | kk_trade_income | `sum(income_amount / 100 - same_lead_period_income_amount / 100)` | 跨期收款，分转元 |
 | pre_refund | `sum(non_pay_period_refund_amount / 100)` | 往期支付当期退款，分转元 |
+| pp_pmit | `sum(case when d_w = '当期' then lead_period_income_amount / 100 - lead_period_refund_amount / 100 else 0 end)` | 当期 GMV；`D:\Feishu\0522.txt` 中 `qici` 规则在本看板落为 `d_w` |
+| ww_pmit | `sum(case when d_w = '非当期' then income_amount / 100 - in_pay_period_refund_amount / 100 - non_pay_period_refund_amount / 100 else 0 end)` | 非当期 GMV；`D:\Feishu\0522.txt` 中 `qici` 规则在本看板落为 `d_w` |
 | s_lead | `case when can_renew_ds_count_a >= 5 then can_renew_ds_count_a else 0 end` | 达标有效线索数 |
 | podan | `case when can_renew_ds_count_a >= 5 and trade_profit > 0 then 1 else 0 end` | 破单标记 |
 | cb_cb | `coalesce(ct.cost, 0)` | 单例子成本 |
@@ -61,7 +64,7 @@ and hour = format_datetime(now() - interval '3' hour, 'HH')
 最终过滤：
 
 ```sql
-period_name > '20260403期'
+period_name > '20260424期'
 ```
 
 ## 7. 范围限定
@@ -75,4 +78,4 @@ and period_mapping_first_level_department_name = 'H业务线'
 
 ## 8. 待人工确认
 
-是。需要确认金额单位、抖音私域合并口径、`>= 5` 阈值、成本表维护口径、时间偏移口径，以及渠道映射 CASE 是否仍为最新规则。最新渠道 CASE 维护入口见 `knowledge/sql_patterns/channel_mapping_case_when.md`，归档片段为 `resources/raw_sql/market_channel_case_when_0515.sql`。
+是。需要确认金额单位、抖音私域合并口径、`>= 5` 阈值、成本表维护口径、时间偏移口径、`xiansuo` 是否只作为聚合指标输出，以及渠道映射 CASE 是否仍为最新规则。最新渠道 CASE 维护入口见 `knowledge/sql_patterns/channel_mapping_case_when.md`，归档片段为 `resources/raw_sql/market_channel_case_when_0522.sql`。

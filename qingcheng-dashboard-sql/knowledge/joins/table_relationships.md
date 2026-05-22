@@ -17,6 +17,8 @@
 | `dd` | `prc` | `prc.lead_id = dd.lead_id and prc.employee_email_name = dd.performance_employee_email_name and prc.rn = 1` | 订单补充线索期次 | `prc` 取每个 lead 最新线索期次，用于 `is_on_period` | `qingcheng_conversion_raw_20260522.sql` |
 | `bb_dedup` | `ud` | `ud.name = bb1.employee_email_name and ud.qici = bb1.qici and ud.qudao = bb1.channel_map_2` | 线索量和业绩合并 | full outer join；线索侧先按顾问-期次-渠道去重，可能丢年级 | `qingcheng_conversion_raw_20260522.sql` |
 | `mm` | `temp_table.dingxi01_qing_team_jg jg` | `mm.employee_email_name = jg.employee_email_name` | 团队架构补充 | 使用最新 `qici` 架构补历史转化数据，可能产生历史架构漂移 | `qingcheng_conversion_raw_20260522.sql` |
+| `dd_0` | `org_t` | `ot.name = dd_0.name and dd_0.trade_time >= ot.begin_time and dd_0.trade_time <= ot.end_time` | 员工任职期间过滤 | left join 后 where 限定组织时间，未匹配组织链的交易被剔除 | `qingcheng_revenue_year_quarter_month_raw_20260522.sql` |
+| `rd` | `temp_table.dingxi01_qing_zz zz` | `zz.employee_email_name = rd.name` | 组织架构补充 | 未按期次 join，若架构表多行会放大 | `qingcheng_revenue_year_quarter_month_raw_20260522.sql` |
 
 ## 2. 待确认关系
 
@@ -29,6 +31,8 @@
 | `daoke` | `temp_table.dingxi01_qing_daoke` | `qici + channel_map_2 + grade_1 + begin_time` | 首节课映射表是否唯一待确认 |
 | `bb_dedup` | `ud` | `employee_email_name + qici + channel_map_2` | 线索量按 `employee_email_name, qici, channel_map_1, channel_map_2` 去重，但和订单 join 不含 `channel_map_1`、`grade_1`，是否符合转化看板口径待确认 |
 | `mm` | `temp_table.dingxi01_qing_team_jg` | `employee_email_name` | 是否应该使用最新架构还是期次架构待确认 |
+| `dd_0` | `org_t` | `name + trade_time between begin_time and end_time` | 是否应使用 `email_prefix` 代替 `name`，避免重名误匹配 |
+| `rd` | `temp_table.dingxi01_qing_zz` | `employee_email_name` | 架构表是否一员工唯一、是否需要期次/日期字段待确认 |
 
 ## 3. 维护规则
 

@@ -73,3 +73,22 @@
 - 转化 SQL 的青橙业绩归属核心过滤是 `performance_second_level_department_name = '青橙项目部'`。
 - 课程部门白名单非常长，复用时优先从 raw SQL 拷贝，不要手工删减。
 - 如果只分析青橙线索量，应优先使用线索表的 `section_assign_employee_*` 和 `period_mapping_*` 范围；如果分析订单业绩，应同时确认业绩归属和课程范围。
+
+## 6. 年季月营收 SQL 范围口径
+
+来源：`resources/raw_sql/qingcheng_revenue_year_quarter_month_raw_20260522.sql`。
+
+该 SQL 使用“员工当前/历史组织链 + 财务员工部门”双重限制：
+
+| 场景 | 字段/表达式 | 取值 |
+|---|---|---|
+| 员工组织链 | `array_join(slice(split(path_name, '-'), 1, 3), '-')` | `'高途-H业务线-青橙项目部'` |
+| 财务业绩表 | `employee_first_level_department_name` | `'H业务线'` |
+| 财务业绩表 | `employee_second_level_department_name` | `'青橙项目部'` |
+| 任职期间 | `trade_time >= begin_time and trade_time <= end_time` | 交易发生在员工属于青橙期间 |
+
+注意：
+
+- 该口径不同于转化 SQL 的 `performance_second_level_department_name = '青橙项目部'`。
+- 该口径不同于只按最新架构表回填的看板；它会剔除交易时间不在青橙任职窗口内的记录。
+- 如果 `dw.dim_employee_chain` 里 `end_time` 为空或未来时间处理不一致，可能影响在职员工记录，需确认。

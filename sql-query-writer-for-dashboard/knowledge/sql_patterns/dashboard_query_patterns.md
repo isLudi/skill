@@ -287,7 +287,7 @@ limit 20
 市场顾问渠道映射长 CASE 已独立维护在：
 
 - `knowledge/sql_patterns/channel_mapping_case_when.md`
-- `resources/raw_sql/market_channel_case_when_0515.sql`
+- `resources/raw_sql/market_channel_case_when_0522.sql`
 
 生成或改写市场顾问相关看板 SQL 时，如果需要最新渠道归因口径，优先使用该 CASE 片段。不要直接复用旧看板中的历史 `channel_map` 长 CASE，除非用户明确要求沿用旧口径。
 

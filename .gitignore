@@ -6,6 +6,7 @@
 # Skill text, config, source, and schema files
 !.gitignore
 !.system/.codex-system-skills.marker
+!LICENSE
 !*.cfg
 !*.ini
 !*.js

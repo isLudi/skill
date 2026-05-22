@@ -17,6 +17,8 @@
 | `dd` | `prc` | `lead_id + performance_employee_email_name = employee_email_name + rn = 1` | left join | 判断订单是否属于线索期次 | 已从 SQL 入库 |
 | `bb_dedup` | `ud` | `employee_email_name/name + qici + channel_map_2/qudao` | full outer join | 合并线索量和业绩指标 | 已从 SQL 入库，去重规则待确认 |
 | `mm` | `temp_table.dingxi01_qing_team_jg` | `employee_email_name` | left join | 补充最新团队架构 | 已从 SQL 入库 |
+| `finance_dw.app_finance_performance_extend_details_hf dd_0` | `dw.dim_employee_chain org_t` | `name + trade_time between begin_time and end_time` | left join 后 where 过滤 | 确认交易发生时员工属于青橙项目部 | 已从 SQL 入库，是否应改用 `email_prefix` 待确认 |
+| `rd` | `temp_table.dingxi01_qing_zz` | `name = employee_email_name` | left join | 补充青橙直属主管、大主管和学部 | 已从 SQL 入库 |
 
 ## 维护规则
 

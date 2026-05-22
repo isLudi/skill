@@ -6,6 +6,8 @@
 
 入库时间：2026-05-01
 
+最近更新：2026-05-22
+
 ## 2. 查询目标
 
 按期次、渠道映射、规则、年级、虚拟部门、经理、主管、小组长和员工聚合线索、有效线索、转化、科目人次、联报、收款、退款、净营收、成本和目标成本，用于市场顾问转化类看板。
@@ -24,7 +26,7 @@
 
 | CTE | 用途 | 关键字段 |
 |---|---|---|
-| data | 从全链路明细表抽取基础字段，计算 `period_name`、`channel_map`、`grade_1`，并将指标空值转为 0 | `period_name`, `channel_map`, `grade_1`, `lead_count`, `valid_lead_count`, `income_amount` |
+| data | 从全链路明细表抽取基础字段，计算 `period_name`、`d_w`、`xiansuo`、`channel_map`、`grade_1`，并将指标空值转为 0 | `period_name`, `d_w`, `xiansuo`, `channel_map`, `grade_1`, `lead_count`, `valid_lead_count`, `income_amount` |
 | zhuanhua | 按看板维度聚合转化和收入指标 | `period_name`, `channel_map`, `rule_name`, `grade_1`, `depart_1`, `depart`, `jingli`, `zhuguan`, `employee_email_name` |
 | final select | 补充破单、有效线索门槛、架构、渠道组、成本和目标 | `s_lead`, `podan`, `name1`, `channel_group`, `cb_cb`, `gl_gl` |
 
@@ -58,7 +60,7 @@ and period_mapping_first_level_department_name = 'H业务线'
 最终结果过滤：
 
 ```sql
-zz.period_name > '20260403期'
+zz.period_name > '20260424期'
 ```
 
 ## 7. group by 维度
@@ -79,6 +81,7 @@ zz.period_name > '20260403期'
 |---|---|---|---|
 | lead_count | `sum(case when channel_map = '抖音私域' then merge_assign_lead_count else lead_count end)` | 抖音私域使用合并分配线索数，其他渠道使用原始线索数 | 来自看板 SQL，待业务确认 |
 | can_renew_ds_count_a | `sum(case when channel_map = '抖音私域' then merge_valid_lead_count else valid_lead_count end)` | 抖音私域使用合并有效线索数，其他渠道使用原始有效线索数 | 来自看板 SQL，待业务确认 |
+| xiansuo | `sum(xiansuo)` | 按 `D:\Feishu\0522.txt` 的 `xiansuo` 0/1 规则聚合后的线索标记数 | 2026-05-22 新增 |
 | pay_users | `sum(conversion_lead_count)` | 转化人数 | 来自看板 SQL |
 | pay_users_on_period | `sum(same_lead_period_conversion_lead_count)` | 当期线索当期转化人数 | 来自看板 SQL |
 | pay_users_not_on_period | `sum(conversion_lead_count - same_lead_period_conversion_lead_count)` | 跨期转化人数 | 来自看板 SQL |
@@ -95,6 +98,8 @@ zz.period_name > '20260403期'
 | xb_trade_profit | `sum(same_lead_period_income_amount / 100 - same_lead_period_refund_amount / 100)` | 当期线索当期净营收，分转元 | 来自看板 SQL |
 | kk_trade_income | `sum(income_amount / 100 - same_lead_period_income_amount / 100)` | 跨期收款，分转元 | 来自看板 SQL |
 | pre_refund | `sum(non_pay_period_refund_amount / 100)` | 往期支付当期退款，分转元 | 来自看板 SQL |
+| pp_pmit | `sum(case when d_w = '当期' then lead_period_income_amount / 100 - lead_period_refund_amount / 100 else 0 end)` | `D:\Feishu\0522.txt` 中 `qici` 规则在本看板落为 `d_w` 后的当期 GMV | 2026-05-22 更新 |
+| ww_pmit | `sum(case when d_w = '非当期' then income_amount / 100 - in_pay_period_refund_amount / 100 - non_pay_period_refund_amount / 100 else 0 end)` | `D:\Feishu\0522.txt` 中 `qici` 规则在本看板落为 `d_w` 后的非当期 GMV | 2026-05-22 更新 |
 | s_lead | `case when can_renew_ds_count_a >= 5 then can_renew_ds_count_a else 0 end` | 有效线索数达到 5 才计入 | 来自看板 SQL，阈值待业务确认 |
 | podan | `case when can_renew_ds_count_a >= 5 and trade_profit > 0 then 1 else 0 end` | 有效线索达 5 且净营收为正则破单 | 来自看板 SQL，阈值待业务确认 |
 | cb_cb | `coalesce(ct.cost, 0)` | 单例子成本，来自成本临时表 | 待确认成本表维护口径 |
@@ -102,7 +107,8 @@ zz.period_name > '20260403期'
 
 ## 9. 可复用 SQL 模式
 
-- `data` CTE：全链路明细表中做渠道 CASE 映射、年级识别和基础指标空值处理。渠道 CASE 有独立最新来源：`resources/raw_sql/market_channel_case_when_0515.sql`，说明见 `knowledge/sql_patterns/channel_mapping_case_when.md`。
+- `data` CTE：全链路明细表中做 `d_w`、`xiansuo`、渠道 CASE 映射、年级识别和基础指标空值处理。`D:\Feishu\0522.txt` 中输出别名为 `qici` 的当期/非当期 CASE，在本看板中沿用历史字段名 `d_w`。
+- 渠道 CASE 有独立最新来源：`resources/raw_sql/market_channel_case_when_0522.sql`，说明见 `knowledge/sql_patterns/channel_mapping_case_when.md`。
 - `zhuanhua` CTE：按期次、渠道、规则、年级、部门和员工聚合转化/收入指标。
 - final select：补充成本、目标和架构信息，并派生 `s_lead`、`podan`。
 
@@ -113,5 +119,6 @@ zz.period_name > '20260403期'
 - SQL 在 `channel_map` CASE 中使用 `third_department_name`、`first_department_name`、`second_department_name`、`virtual_third_department_name`、`virtual_fourth_department_name`、`virtual_fifth_department_name` 等部门字段，但 where 中只显式限定了截面分配部门和期次映射一级部门；复用时需确认这是否满足公司范围限定规范。
 - `temp_table.dingxi01_channel_group`、`temp_table.dingxi01_cost`、`temp_table.dingxi01_jiagou_zx` 的真实字段类型和维护来源待补充。
 - `temp_table.dingxi01_jiagou_db` join 后未在最终 select 直接使用字段，但可能造成重复行；需确认该表在 join key 下是否唯一。
-- `channel_map` 是超长 CASE 规则，历史完整规则以原始 SQL 为准；最新渠道 CASE 已归档为 `resources/raw_sql/market_channel_case_when_0515.sql`。后续改写 SQL 时应优先使用该独立渠道映射知识，除非用户明确要求沿用本看板历史口径。
+- `channel_map` 是超长 CASE 规则，历史完整规则以原始 SQL 为准；最新渠道 CASE 已归档为 `resources/raw_sql/market_channel_case_when_0522.sql`。后续改写 SQL 时应优先使用该独立渠道映射知识，除非用户明确要求沿用本看板历史口径。
+- `xiansuo` 当前按底层 0/1 标记求和输出；如前端需要作为维度筛选，应另行确认是否改为明细维度，不能直接把当前聚合字段放入 group by。
 - 所有指标口径来自历史看板 SQL，尚未经过业务口径文档确认。

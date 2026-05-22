@@ -306,4 +306,13 @@
   - **修改**：「进校私域合作」（`third_department_name = '私域运营部'` 分支）的 `source_manager_name` 名单追加 `'王绍阳'`。
   - **移位**：「信息流-抖音私信」（`channel_name_1='信息流' and put_plan_name like ...`）从原第 72 位移至倒数第 3 位（`途途私域` 之前），CASE WHEN 优先级大幅降低。此规则在 0515 版本位于 `APP` 规则之前，0522 版本移至近末尾，可能影响同时命中 `APP` 和其他条件的记录的渠道归类。
 - 当前片段：199 行、198 个 `then` 分支、130 个去重渠道输出值；输出字段仍为 `qudao`。
-- 注意：`0522.txt` 首部新增的 `qici`（当期/非当期）和 `xiansuo`（0/1）CASE WHEN 块暂未入库存档，留待后续转化看板修改任务中处理。
+- 注意：`0522.txt` 首部新增的 `qici`（当期/非当期）和 `xiansuo`（0/1）CASE WHEN 块已在后续“市场顾问转化看板 0522 口径更新”中落入转化看板。
+
+## 2026-05-22 市场顾问转化看板 0522 口径更新
+
+- 根据用户指定的 `D:\Feishu\0522.txt` 更新 `resources/raw_sql/market_consultant_conversion.sql`；当前 raw_sql 目录中该文件缺失，本次按既有看板结构重新落回完整 SQL。
+- 将 `0522.txt` 中输出别名为 `qici` 的当期/非当期 CASE 落到转化看板历史字段 `d_w`，并按表字段类型将 `assign_lead_count`、`valid_lead_count`、`merge_valid_lead_count` 的 `'1'` 比较改为数字 `1`。
+- 新增 `xiansuo` 底层 0/1 标记，并在 `zhuanhua` CTE 中以 `sum(xiansuo) as xiansuo` 聚合后通过最终 `zz.*` 输出；未把 `xiansuo` 放入 group by，避免拆分既有维度。
+- 渠道映射使用 `resources/raw_sql/market_channel_case_when_0522.sql`，仅将片段输出别名从 `qudao` 改为转化看板使用的 `channel_map`。
+- 将期次计算中的三参数 `date_add` 改为 `interval` 写法，将最终 `sx_qi` 中的 `substring_index` 改为 Presto `split_part`，并将 `nvl` 改为 `coalesce`。
+- 更新 `knowledge/dashboards/market_consultant_conversion.md`、`knowledge/metrics/market_consultant_conversion_metrics.md` 和 `knowledge/sql_patterns/channel_mapping_case_when.md`，同步 `xiansuo`、`pp_pmit`、`ww_pmit`、0522 渠道 CASE 和最终期次过滤口径。

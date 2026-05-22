@@ -14,9 +14,9 @@
 |---|---|---|
 | 业务部门名称 | 青橙项目部 | 已知 |
 | 查询引擎 | Presto | 已知 |
-| 核心看板 | 青橙过程数据 raw、青橙到课 raw、青橙转化 raw | 已入库 |
+| 核心看板 | 青橙过程数据 raw、青橙到课 raw、青橙转化 raw、青橙年季月营收 raw | 已入库 |
 | 核心事实表 | `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df` | 已从 SQL 入库，字段待确认 |
-| 核心临时表 | `temp_table.dingxi01_qing_daoke`, `temp_table.dingxi01_jiagou_db`, `temp_table.dingxi01_qing_team_jg` | 已从 SQL 入库，来源/刷新方式待确认 |
+| 核心临时表 | `temp_table.dingxi01_qing_daoke`, `temp_table.dingxi01_jiagou_db`, `temp_table.dingxi01_qing_team_jg`, `temp_table.dingxi01_qing_zz` | 已从 SQL 入库，来源/刷新方式待确认 |
 | 核心范围字段 | `section_assign_employee_second_level_department_name`, `virtual_second_department_name` | 已从 SQL 入库 |
 | 核心范围取值 | `青橙项目部` | 已从 SQL 入库 |
 
@@ -72,7 +72,21 @@
 | 渠道/成本映射 | `knowledge/sql_patterns/qingcheng_channel_grade_mapping.md` |
 | join 关系 | `knowledge/joins/table_relationships.md` |
 
-## 9. 入库资料优先级
+## 9. 已入库年季月营收口径
+
+来源：`resources/raw_sql/qingcheng_revenue_year_quarter_month_raw_20260522.sql`
+
+| 口径 | 文档 |
+|---|---|
+| 看板结构 | `knowledge/dashboards/qingcheng_revenue_year_quarter_month_raw_20260522.md` |
+| 指标集合 | `knowledge/metrics/qingcheng_revenue_year_quarter_month_metrics.md` |
+| 财务业绩表 | `knowledge/tables/finance_dw.app_finance_performance_extend_details_hf.md` |
+| 员工组织链表 | `knowledge/tables/dw.dim_employee_chain.md` |
+| 青橙组织临时表 | `knowledge/temp_tables/temp_table.dingxi01_qing_zz.md` |
+| 范围口径 | `knowledge/03_range_limit_rules.md` |
+| join 关系 | `knowledge/joins/table_relationships.md` |
+
+## 10. 入库资料优先级
 
 1. 用户明确提供的青橙看板 SQL。
 2. 用户明确提供的青橙指标说明。
