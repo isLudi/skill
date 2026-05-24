@@ -15,6 +15,7 @@ description: Generate governed Presto SQL for internal dashboard and exploratory
 2. `knowledge/01_table_index.md`：先定位相关表，不要直接全量读取所有表文档。
 3. 相关 `knowledge/tables/*.md`、`knowledge/metrics/*.md`、`knowledge/dashboards/*.md`、`knowledge/joins/*.md`：只读取与当前需求相关的文件。
 4. `knowledge/sql_patterns/*.md`：生成或修复 SQL 时参考模板。
+5. 当用户要求在 Python 中直接调用接口查数、验证 SQL、排查数据代码或替代线上平台下载数据流程时，读取 `knowledge/sql_patterns/usql_rest_api_python.md`，并默认从 `E:\2000_work\GAOTU\20002_市场顾问部看板维护表格\usql_api.env` 加载 `USQL_TOKEN`、`USQL_APP_ID`、`USQL_API_URL` 等接口参数。
 
 文件编码规则：
 

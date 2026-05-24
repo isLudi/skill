@@ -316,3 +316,20 @@
 - 渠道映射使用 `resources/raw_sql/market_channel_case_when_0522.sql`，仅将片段输出别名从 `qudao` 改为转化看板使用的 `channel_map`。
 - 将期次计算中的三参数 `date_add` 改为 `interval` 写法，将最终 `sx_qi` 中的 `substring_index` 改为 Presto `split_part`，并将 `nvl` 改为 `coalesce`。
 - 更新 `knowledge/dashboards/market_consultant_conversion.md`、`knowledge/metrics/market_consultant_conversion_metrics.md` 和 `knowledge/sql_patterns/channel_mapping_case_when.md`，同步 `xiansuo`、`pp_pmit`、`ww_pmit`、0522 渠道 CASE 和最终期次过滤口径。
+
+## 2026-05-24 USQL RestAPI Python 调用规则入库
+
+- 新增 `knowledge/sql_patterns/usql_rest_api_python.md`，记录 USQL RestAPI 的方法、线上 host、测试 host、路径、header、body/param、成功响应状态和异常规则。
+- 明确 Python 直接取数优先使用 `POST http://bdg-da-gateway.baijia.com/usql/api/execute`，header 传 `token`，body 传 `sql` 与 `appId`。
+- 补充标准库 `urllib.request` 调用模板，支持后续直接在 Python 中执行 Presto SQL 并读取响应数据。
+- 明确不将真实 token 写入 Skill，运行时从环境变量、本地配置或用户指定文件读取。
+- 更新 `SKILL.md` 加载入口，要求 Python API 查数、SQL 验证和数据代码排查场景读取该 RestAPI 文档。
+- 将 `metadata.json` 版本更新为 `0.2.1`。
+
+## 2026-05-24 USQL RestAPI 本地 env 配置
+
+- 在本地目录 `E:\2000_work\GAOTU\20002_市场顾问部看板维护表格` 新增 `usql_api.env`，集中维护 `USQL_API_URL`、`USQL_APP_ID`、`USQL_TOKEN`、`USQL_TIMEOUT_SECONDS` 等 Python 接口调用参数。
+- 更新 `knowledge/sql_patterns/usql_rest_api_python.md`，明确 Python 调用 USQL 接口时默认读取 `E:\2000_work\GAOTU\20002_市场顾问部看板维护表格\usql_api.env`。
+- 补充 env 文件变量清单和 `load_env_file` 标准库读取模板，避免后续代码硬编码 token。
+- 更新 `SKILL.md` RestAPI 入口说明，使后续直接查数、SQL 验证和数据代码排查场景可定位默认 env 文件。
+- 将 `metadata.json` 版本更新为 `0.2.2`。
