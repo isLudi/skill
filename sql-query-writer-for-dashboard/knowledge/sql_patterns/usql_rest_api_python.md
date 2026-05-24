@@ -222,6 +222,6 @@ df = pd.DataFrame(rows)
 - 不要在新代码中硬编码真实 token；默认读取 `E:\2000_work\GAOTU\20002_市场顾问部看板维护表格\usql_api.env`，也可以读取用户指定的本地配置文件。
 - SQL 必须按 UTF-8 发送：`json.dumps(payload, ensure_ascii=False).encode("utf-8")`。
 - 对响应必须同时检查 HTTP 状态和业务 `code`。
-- 输出结果时优先输出 `code`、`msg`、`row_count`、`columns`、少量样例行，避免一次性打印大结果集。
+- 输出结果时优先输出 `code`、`msg`、`row_count`、`columns`、少量样例行。但是，当用户要求探查数据错误时，需要打印全量结果集进行比对，根据输出数据集结果找到错误原因。
 - 如果用户只是要验证接口连通性，先执行 `select 1 as smoke_test`。
 - 如果用户要求“直接查数”，先生成遵守 Skill 规则的 Presto SQL，再通过本接口执行。
