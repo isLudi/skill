@@ -387,3 +387,11 @@
   - **新增指标**：`natural_month`、`qici_list`、`target_completion_rate`、`target_completion_period_dept_rank_no`、`target_completion_need_rate_to_previous`、`receive_target`、`tuoke_rate`。
 - 更新 `knowledge/dashboards/consultant_sales_ranking_evaluation.md`，新增 §12 变体 SQL 章节，记录 CTE 结构、差异指标和待确认事项。
 - 待确认：channel_map 版本未同步 0524、`period_mapping_* is null` 放宽条件、`conversion_base` 使用 `select fl.*`、`temp_table.dingxi01_cost` 中 `cost` 字段为字符串需 `try_cast`、`jiagou_zx_active` 部门优先级去重逻辑、`20260731期 → 202608` 硬编码、`day_of_week` 期次公式与业务周五对齐口径。
+
+## 2026-05-28 转化与过程看板前端展示公式补充
+
+- 根据用户确认截图和本地数据集校验结果，更新 `knowledge/metrics/market_consultant_conversion_metrics.md` 与 `knowledge/dashboards/market_consultant_conversion.md`，补充前端展示派生公式：人头转化率、订单转化率、单效、破蛋率、拓科率、退费率、mroi、smroi、gmv完成度、人产。
+- 明确 `cb_cb` 为单例子成本、`gl_gl` 为单例子目标，mroi 使用 `trade_profit / (lead_count * cb_cb)`，gmv完成度使用 `trade_profit / (lead_count * gl_gl)`。
+- 明确 smroi 公式为 `trade_profit / (lead_count * cb_cb + 人力成本)`，但当前数据集未维护人力成本字段。
+- 更新 `knowledge/metrics/outbound_call_process_metrics.md` 与 `knowledge/dashboards/outbound_call_process_dashboard.md`，补充过程看板派生公式：6h/12h/24h外呼率、外呼频次、首call率、5min比例、深沟率、双沟率、好友率、40min占比、40min转化率。
+- 明确 5min比例使用 `is_long_call / valid_lead_count`，不要误用 `first_call_in_5min`；40min占比/转化率依赖转化数据侧补充 `is_40m_call`、`call_40m_z` 字段，当前外呼过程 SQL 和过程数据集未直接输出。

@@ -106,14 +106,34 @@ zz.period_name > '20260424期'
 | cb_cb | `coalesce(ct.cost, 0)` | 单例子成本，来自成本临时表 | 待确认成本表维护口径 |
 | gl_gl | `coalesce(ct.goal, 0)` | 单例子目标，来自成本临时表 | 待确认成本表维护口径 |
 
-## 9. 可复用 SQL 模式
+## 9. 前端展示派生公式
+
+以下公式为 2026-05-28 根据看板截图和 `D:\Feishu\task_1370386373_1779954054145.xlsx` 数据集校验后维护的展示口径。生成 SQL 或配置看板指标时应使用聚合后的 `sum(...)` / `count(distinct ...)` 口径。
+
+| 展示指标 | 公式 | 说明 |
+|---|---|---|
+| 人头转化率（当期） | `ifnull(sum(${pay_users_on_period}) / sum(${can_renew_ds_count_a}), 0)` | 当期支付人数 / 退后线索 |
+| 人头转化率（截面） | `ifnull(sum(${pay_users}) / sum(${can_renew_ds_count_a}), 0)` | 截面支付人数 / 退后线索 |
+| 订单转化率（当期） | `ifnull(sum(${pay_user_subs_on_period}) / sum(${can_renew_ds_count_a}), 0)` | 当期科目人次 / 退后线索 |
+| 订单转化率（截面） | `ifnull(sum(${pay_user_subs}) / sum(${can_renew_ds_count_a}), 0)` | 截面科目人次 / 退后线索 |
+| 单效（当期） | `ifnull(sum(${xb_trade_profit}) / sum(${can_renew_ds_count_a}), 0)` | 当期净收款 / 退后线索 |
+| 单效（截面） | `ifnull(sum(${trade_profit}) / sum(${can_renew_ds_count_a}), 0)` | 截面净收款 / 退后线索 |
+| 破蛋率 | `ifnull(sum(${podan}) / count(distinct ${employee_email_name}), 0)` | 破蛋顾问数 / 接量人力 |
+| 拓科率（截面） | `ifnull(sum(${pay_user_subs}) / sum(${pay_users}), 0)` | 科目人次 / 支付用户数 |
+| 退费率 | `ifnull(sum(${trade_refund}) / sum(${trade_income}), 0)` | 退款 / 总收款 |
+| roi1（mroi） | `ifnull(sum(${trade_profit}) / sum(${lead_count} * ${cb_cb}), 0)` | 净收款 / 市场成本 |
+| roi2（smroi） | `ifnull(sum(${trade_profit}) / (sum(${lead_count} * ${cb_cb}) + ${人力成本}), 0)` | 净收款 /（市场成本 + 人力成本）；当前数据集未维护人力成本字段 |
+| gmv完成度 | `ifnull(sum(${trade_profit}) / sum(${lead_count} * ${gl_gl}), 0)` | 净收款 / GMV目标 |
+| 人产 | `ifnull(sum(${trade_profit}) / count(distinct ${employee_email_name}), 0)` | 净收款 / 接量人力 |
+
+## 10. 可复用 SQL 模式
 
 - `data` CTE：全链路明细表中做 `d_w`、`xiansuo`、渠道 CASE 映射、年级识别和基础指标空值处理。`D:\Feishu\0524.txt` 中输出别名为 `qici` 的当期/非当期 CASE，在本看板中沿用历史字段名 `d_w`。
 - 渠道 CASE 有独立最新来源：`resources/raw_sql/market_channel_case_when_0524.sql`（基于 0522 新增 周帅-百度数字人、途途私域，B站信息流-亚飞条件补充），说明见 `knowledge/sql_patterns/channel_mapping_case_when.md`。
 - `zhuanhua` CTE：按期次、渠道、规则、年级、部门和员工聚合转化/收入指标。2026-05-24 起分组增加 `rule_name`，输出粒度细化到规则级别。
 - final select：补充成本、目标和架构信息，并派生 `s_lead`、`podan`、`sx_qi`、`jingli_1`。
 
-## 10. 待确认事项
+## 11. 待确认事项
 
 - `data` CTE 内部同时生成 `period_name`，又在部分 CASE 条件中引用 `period_name`；需确认 Presto 环境是否允许同层 select 引用别名，或主表是否本身已有 `period_name` 字段。
 - `dt` 使用最近 2 小时，`hour` 使用最近 3 小时，存在时间偏移不一致；需确认是否为平台产出延迟口径。

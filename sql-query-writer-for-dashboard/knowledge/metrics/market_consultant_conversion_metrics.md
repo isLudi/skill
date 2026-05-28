@@ -48,9 +48,30 @@
 
 ## 5. 分母/分子口径
 
-- 当前 SQL 为聚合指标，没有显式比例分母。
+- 当前 SQL 先输出聚合指标，前端展示比例类指标时按下表二次计算。
 - `s_lead` 和 `podan` 使用 `can_renew_ds_count_a >= 5` 阈值。
 - 金额类字段均除以 100，推断主表金额字段单位为“分”，需人工确认。
+- `cb_cb` 为单例子成本，`gl_gl` 为单例子目标；成本/目标类指标应使用 `lead_count * cb_cb`、`lead_count * gl_gl` 聚合。
+
+### 5.1 前端展示派生公式
+
+以下公式为 2026-05-28 根据看板截图和 `D:\Feishu\task_1370386373_1779954054145.xlsx` 数据集校验后维护的展示口径；生成 SQL 或配置看板指标时应使用聚合后的 `sum(...)` / `count(distinct ...)` 口径，避免先行级相除再汇总。
+
+| 展示指标 | 公式 | 说明 |
+|---|---|---|
+| 人头转化率（当期） | `ifnull(sum(${pay_users_on_period}) / sum(${can_renew_ds_count_a}), 0)` | 当期支付人数 / 退后线索 |
+| 人头转化率（截面） | `ifnull(sum(${pay_users}) / sum(${can_renew_ds_count_a}), 0)` | 截面支付人数 / 退后线索 |
+| 订单转化率（当期） | `ifnull(sum(${pay_user_subs_on_period}) / sum(${can_renew_ds_count_a}), 0)` | 当期科目人次 / 退后线索 |
+| 订单转化率（截面） | `ifnull(sum(${pay_user_subs}) / sum(${can_renew_ds_count_a}), 0)` | 截面科目人次 / 退后线索 |
+| 单效（当期） | `ifnull(sum(${xb_trade_profit}) / sum(${can_renew_ds_count_a}), 0)` | 当期净收款 / 退后线索 |
+| 单效（截面） | `ifnull(sum(${trade_profit}) / sum(${can_renew_ds_count_a}), 0)` | 截面净收款 / 退后线索 |
+| 破蛋率 | `ifnull(sum(${podan}) / count(distinct ${employee_email_name}), 0)` | 破蛋顾问数 / 接量人力 |
+| 拓科率（截面） | `ifnull(sum(${pay_user_subs}) / sum(${pay_users}), 0)` | 科目人次 / 支付用户数 |
+| 退费率 | `ifnull(sum(${trade_refund}) / sum(${trade_income}), 0)` | 退款 / 总收款 |
+| roi1（mroi） | `ifnull(sum(${trade_profit}) / sum(${lead_count} * ${cb_cb}), 0)` | 净收款 / 市场成本 |
+| roi2（smroi） | `ifnull(sum(${trade_profit}) / (sum(${lead_count} * ${cb_cb}) + ${人力成本}), 0)` | 净收款 /（市场成本 + 人力成本）；当前数据集未维护人力成本字段 |
+| gmv完成度 | `ifnull(sum(${trade_profit}) / sum(${lead_count} * ${gl_gl}), 0)` | 净收款 / GMV目标 |
+| 人产 | `ifnull(sum(${trade_profit}) / count(distinct ${employee_email_name}), 0)` | 净收款 / 接量人力 |
 
 ## 6. 时间口径
 

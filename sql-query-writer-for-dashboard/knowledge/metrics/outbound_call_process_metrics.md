@@ -37,6 +37,8 @@
 | `is_f_call` | `sum(case when valid_lead_count = 1 then completed_first_call_flag else 0 end)` | CRM 首 call 任务数；`completed_first_call_flag` 来自首 call 任务表按 `user_id + employee_email_name` 聚合后的已完成任务标记 |
 | `daoke1` | `count(distinct case when duf.has_daoke = 1 then prc.user_id end)` | 首节到课人数；曹忆IP99元按第 3 节，其余按第 1 节 |
 | `v_daoke1` | `count(distinct case when duf.has_v_daoke = 1 then prc.user_id end)` | 首节有效到课人数；曹忆IP99元按第 3 节，其余按第 1 节 |
+| `is_40m_call` | `sum(is_40m_call)` | 40min 档位线索数；当前外呼过程 SQL 和 `D:\Feishu\task_1370400195_1779954508285.xlsx` 未输出，需从转化数据侧补充 |
+| `call_40m_z` | `sum(call_40m_z)` | 40min 档位转化数；当前外呼过程 SQL 和 `D:\Feishu\task_1370400195_1779954508285.xlsx` 未输出，需从转化数据侧补充 |
 
 ## 4. 适用表
 
@@ -64,6 +66,25 @@
 - 加好友率可用 `is_friend_lead / valid_lead_count`。
 - APP 登录率可用 `is_app_denglu / valid_lead_count` 或按业务指定线索分母计算。
 - 深沟率、双沟率、已双沟方式率、双表回收率、异常率、首节到课率、有效到课率的分母未在 SQL 中显式输出，复用时需按看板展示口径选择 `lead_count` 或 `valid_lead_count`。
+- 40min占比/40min转化率不是当前外呼过程 SQL 直接产出字段，需从转化数据侧补充 `is_40m_call`、`call_40m_z` 后再计算。
+
+### 5.1 前端展示派生公式
+
+以下公式为 2026-05-28 根据看板截图和 `D:\Feishu\task_1370400195_1779954508285.xlsx` 数据集校验后维护的展示口径；生成 SQL 或配置看板指标时应使用聚合后的 `sum(...)` 口径。
+
+| 展示指标 | 公式 | 说明 |
+|---|---|---|
+| 6h外呼率 | `ifnull(sum(${first_call_in_6h}) / sum(${valid_lead_count}), 0)` | 6小时内首呼有效线索数 / 有效线索数 |
+| 12h外呼率 | `ifnull(sum(${first_call_in_12h}) / sum(${valid_lead_count}), 0)` | 12小时内首呼有效线索数 / 有效线索数 |
+| 24h外呼率 | `ifnull(sum(${first_call_in_24h}) / sum(${valid_lead_count}), 0)` | 24小时内首呼有效线索数 / 有效线索数 |
+| 外呼频次 | `ifnull(sum(${zong_call_ci}) / sum(${valid_lead_count}), 0)` | 总外呼次数 / 有效线索数 |
+| 首call率 | `ifnull(sum(${is_f_call}) / sum(${valid_lead_count}), 0)` | CRM 首call任务数 / 有效线索数 |
+| 5min比例 | `ifnull(sum(${is_long_call}) / sum(${valid_lead_count}), 0)` | 300秒以上长通话线索数 / 有效线索数；不要使用 `first_call_in_5min` |
+| 深沟率 | `ifnull(sum(${is_shengou}) / sum(${valid_lead_count}), 0)` | 深沟或已双沟线索数 / 有效线索数 |
+| 双沟率 | `ifnull(sum(${is_shuanggou}) / sum(${valid_lead_count}), 0)` | 已双沟线索数 / 有效线索数 |
+| 好友率 | `ifnull(sum(${is_friend_lead}) / sum(${valid_lead_count}), 0)` | 加好友线索数 / 有效线索数 |
+| 40min占比 | `ifnull(sum(${is_40m_call}) / sum(${can_renew_ds_count_a}), 0)` | 40min 档位线索数 / 退后线索；字段需从转化数据侧补充 |
+| 40min转化率 | `ifnull(sum(${call_40m_z}) / sum(${is_40m_call}), 0)` | 40min 档位转化数 / 40min 档位线索数；字段需从转化数据侧补充 |
 
 ## 6. 时间口径
 
