@@ -143,3 +143,75 @@ and pg.is_emp = '是'
 - 期次特殊日期映射硬编码到 2026 年部分日期，后续新增期次需确认是否继续维护。
 - 校验脚本提示 `course_first_level_department_name`、`course_second_level_department_name`、`course_top_level_department_name` 被选出但未单独过滤；原始 SQL 只限定了员工部门，复用时需确认是否也要限定课程部门。
 - 所有指标口径来自历史 SQL，尚未与正式指标文档核对。
+
+## 12. 变体 SQL：自然月份排名（month_clean）
+
+来源：`resources/raw_sql/consultant_sales_ranking_evaluation_month_clean.sql`
+
+最近更新：2026-05-24（覆盖为暑期激励按月排名版本）
+
+### 与主 SQL 的核心差异
+
+| 维度 | 主 SQL (evaluation) | month_clean 变体 |
+|---|---|---|
+| 聚合周期 | 期次/月/季/半年分层聚合 | **自然月份**聚合（多期次合并为一个自然月） |
+| 顾问名单来源 | `temp_table.dingxi01_pingyou_jg` | `temp_table.dingxi01_jiagou_zx`（`zaizhi='1'`，郑州/西安部门优先级去重） |
+| 组织链过滤 | 无 | `dw.dim_employee_chain` 取 `高途-H业务线-市场部-市场顾问部` 路径，按 `email_prefix` 内连接任职期间流水 |
+| 期次计算 | 硬编码 2026 年特殊日期 + `day_of_week` | 统一 `day_of_week` 公式（无硬编码特殊日期） |
+| 自然月 | 无 | `trade_qici = '20260731期' → '202608'` 特殊处理；其余取 `substr(qici, 1, 6)` |
+| 渠道 CASE | 使用 `channel` 字段（来自评优临时表） | 完整 200 分支 CASE（pre-0524 版本，不含 王绍阳/途途私域/周帅-百度数字人，信息流-抖音私信 位于旧位置） |
+| 转化侧 | 无 | 包含完整的线索→转化→渠道成本→目标完成率链路 |
+| 成本维度 | 无 | `temp_table.dingxi01_cost` 按 `channel` 取 `cost`，计算 `receive_target = leads_count * cost` |
+| 排名指标 | ROI 排名 + 退费排名 | pmit 排名 + 目标完成率排名（双排名体系） |
+| 拓科率 | 无 | `tuoke_rate = pay_user_subs / pay_users` |
+| qici_list | 无 | 自然月内所有期次的去重排序拼接 |
+
+### CTE 结构
+
+| CTE | 侧 | 用途 |
+|---|---|---|
+| org_t | 财务侧 | 组织链过滤，取在职顾问在 `市场顾问部` 路径下的任职时间范围 |
+| finance_base | 财务侧 | 从财务业绩表推导 `trade_qici` |
+| dd_0 / dd | 财务侧 | 退款处理 + 组织链内连接（仅保留任职期间流水） |
+| gmv_t / gmv_z | 财务侧 | 调课调班去重 / 正常订单聚合 |
+| rd | 财务侧 | 合并 gmv_z 和 gmv_t |
+| jiagou_zx_active | 共享 | 在职顾问名单，按 `zaizhi='1'` + 郑州/西安部门优先去重 |
+| rd_0 / base_result | 财务侧 | 按人-期次聚合 income/refund/pmit |
+| month_agg → month_ranked | 财务侧 | 自然月聚合 + pmit 排名 |
+| eligible_consultant_name | 共享 | 仅在职顾问名单用于过滤转化侧数据 |
+| cost_dim | 转化侧 | 渠道成本（`try_cast(cost as double) > 0` 过滤） |
+| conversion_base | 转化侧 | 从全链路表推导 `period_name_calc`（`regexp_like` 校验 8 位日期格式） |
+| conversion_data | 转化侧 | 渠道映射 + 指标空值处理 |
+| conversion_by_channel → conversion_with_target | 转化侧 | 按人-渠道聚合并附加 `receive_target` |
+| conversion_agg → conversion_metric_base | 转化侧 | 按人-自然月聚合，派生 `s_lead/podan/target_completion_rate/tuoke_rate` |
+| target_completion_rank_raw → target_completion_ranked | 转化侧 | 目标完成率排名 |
+| combined | 合并 | 财务侧 pmit + 转化侧指标 + 目标完成率排名的最终合并 |
+
+### 新增/差异指标
+
+| 指标名 | 说明 | 状态 |
+|---|---|---|
+| natural_month | 自然月（YYYYMM），`20260731期` 特殊映射为 `202608` | 待确认 |
+| qici_list | 自然月内去重排序期次列表 | 来自 SQL |
+| pmit | `sum(name_total_price)` = 净收（正负合计），与旧 `pt` 同口径 | 来自 SQL |
+| period_dept_rank_no | 自然月-部门内按 pmit 降序排名 | 来自 SQL |
+| period_dept_need_pmit_to_previous | 距前一名 pmit 差值 | 来自 SQL |
+| target_completion_rate | `trade_profit / receive_target` | 待确认 |
+| target_completion_period_dept_rank_no | 目标完成率排名 | 来自 SQL |
+| target_completion_need_rate_to_previous | 距前一名目标完成率差值 | 来自 SQL |
+| receive_target | `leads_count * cost` | 待确认成本表口径 |
+| tuoke_rate | `pay_user_subs / pay_users` | 待确认 |
+| leads_count | `sum(merge_assign_lead_count for 抖音私域 else lead_count)` | 来自 SQL |
+| s_lead / podan | 有效线索 >=5 门槛 / 破单标记 | 来自 SQL |
+
+### 待确认事项
+
+- channel_map CASE 版本未同步 0524（缺少 王绍阳、途途私域、周帅-百度数字人），如与转化看板在同一前端展示会出现渠道口径不一致。
+- `period_mapping_first_level_department_name is null` 和 `period_mapping_second_level_department_name is null` 的放宽条件。
+- `conversion_base` 使用 `select fl.*`（全字段扫描宽表 283 列），违反知识库规则。
+- `temp_table.dingxi01_cost` 中 `cost` 字段为字符串，需 `try_cast` 且 `> 0` 过滤；`trim(channel)` 后 `max(cost)` 取最大唯一值，如存在同一渠道多行不同成本值会丢失信息。
+- `jiagou_zx_active` 的部门优先级去重逻辑（郑州>西安一部>西安二部）为非标准顺序，如果顾问同时在多部门兼职取第一条。
+- `finance_dw.dim_finance_employee_df` 未在财务侧使用，财务侧顾问范围完全由 `dw.dim_employee_chain` + `jiagou_zx_active` 控制。
+- `day_of_week` 期次公式的 `trade_dt - interval '1' day` 后 weekday 1=周日对应的 `+3 day` 逻辑需与业务周五对齐的期次口径确认。
+- `20260731期 → 202608` 自然月映射是否为特例硬编码需确认。
+- 最终 `combined` 仅通过 `eligible_consultant_name` 内连接限定在职架构顾问，未对财务侧 `name` 做在职过滤（已在 `dd` 的 `org_t` join 中间接过滤）。

@@ -333,3 +333,57 @@
 - 补充 env 文件变量清单和 `load_env_file` 标准库读取模板，避免后续代码硬编码 token。
 - 更新 `SKILL.md` RestAPI 入口说明，使后续直接查数、SQL 验证和数据代码排查场景可定位默认 env 文件。
 - 将 `metadata.json` 版本更新为 `0.2.2`。
+
+## 2026-05-24 市场顾问转化看板 0524 口径更新
+
+- 使用用户提供的最新 SQL 覆盖 `resources/raw_sql/market_consultant_conversion.sql`，来源为 `D:\Feishu\0524.txt`。
+- 渠道 CASE 同步更新到 `resources/raw_sql/market_channel_case_when_0524.sql`，201 行、200 个 `then` 分支、132 个去重渠道输出值。
+- 相比 0522 的渠道 CASE 变更：
+  - **新增** `周帅-百度数字人`：`when third_department_name = '直播部' and sku_id_name like '%周帅%' and channel_name_2 in ('百度','B站') then '周帅-百度数字人'`。
+  - **新增** `途途私域`：`when rule_name like '%途途私域%' or (rule_name like '%私域%' and first_department_name = 'TT') then '途途私域'`。
+  - **修改** `B站信息流-亚飞`：条件追加 `or rule_name like '%亚飞%' or page_id_name like '%初中-0元%'`。
+- 转化看板 SQL 结构变更：
+  - `zhuanhua` CTE 的 `group by` 新增 `rule_name`，输出粒度从渠道级别细化到规则级别。
+  - `data` CTE 新增字段 `merge_assign_lead_count`、`merge_valid_lead_count`、`lead_period_income_amount`、`lead_period_refund_amount`。
+  - `lead_count` 和 `can_renew_ds_count_a` 对抖音私域使用合并字段口径。
+  - 新增 `sx_qi` 字段，从 `rule_name` 中用 `split_part` 提取筛选期次标签。
+  - 新增 `jingli_1` 字段，从 `temp_table.dingxi01_jiagou_zx.jingli` 补充经理维度。
+  - `cost` join 条件从 `ct.grade = zz.grade_1` 放宽为 `(ct.grade = zz.grade_1 or ct.grade = '0')`，年级无匹配时回退到通配 `'0'`。
+  - 最终期次过滤更新为 `zz.period_name > '20260424期'`。
+- 更新 `knowledge/dashboards/market_consultant_conversion.md`、`knowledge/sql_patterns/channel_mapping_case_when.md`，同步 0524 版本号、CASE 变更、新增字段和粒度变化。
+- 待确认：`rule_name` 加入 `group by` 后导致输出行数增加，前端看板是否需要同步调整聚合逻辑；`jingli_1` 与既有 `jingli` 字段是否含义一致；成本表 `grade = '0'` 通配逻辑是否覆盖所有未匹配年级。
+
+## 2026-05-24 H业务线二级部门转化看板 SQL 入库
+
+- 新增原始 SQL：`resources/raw_sql/h_biz_line_department_conversion.sql`，来源为平台数据集最新查询，用于查询整个 H业务线二级部门的转化数据。
+- 新增看板文档：`knowledge/dashboards/h_biz_line_department_conversion.md`。
+- 新增指标集合：`knowledge/metrics/h_biz_line_department_conversion_metrics.md`。
+- 看板特点：
+  - 覆盖四个二级部门：`section_assign_employee_second_level_department_name in ('市场部','精品班学部','青橙项目部','菁英班学部')`，虚拟三级部门限制 `学习顾问部/市场顾问部/中价产品项目部`。
+  - 聚合粒度为**部门级别**（`depart_1 + dept_name + depart`），无顾问个体维度（不含 `employee_email_name` / `jingli` / `zhuguan`）。
+  - 主表 `dt/hour` 均使用 `now - 3h`（一致偏移），与市场顾问转化看板的 `2h/3h` 偏移不同。
+  - 期次映射一级部门允许 `null`（`period_mapping_first_level_department_name = 'H业务线' or is null`）。
+  - 首 call 任务使用 `gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf` → `finance_dw.dim_finance_employee_df` 桥接模式，与 2026-05-22 强制口径一致；但首 call 表未限定 `task_generate_rule_type = 2`。
+  - 渠道分组使用 `temp_table.shenbaoxin_channel_group`（而非市场顾问转化看板的 `dingxi01_channel_group`）。
+  - 不含 `d_w`（当期/非当期）、`xiansuo`、`pp_pmit`/`ww_pmit`、`merge_*`、`sx_qi`、`jingli_1` 等市场顾问转化看板独有字段。
+  - 使用 `nvl` 做空值处理（Hive 兼容，Presto 标准版为 `coalesce`）。
+- CTE 结构：`data_base`（`select t1.*`）→ `data` → `first_call_task` + `employee_map` + `f_call0` → `data_with_process` → `zhuanhua` → final select。
+- 更新 `knowledge/dashboards/README.md`、`knowledge/metrics/README.md`、`knowledge/joins/common_join_keys.md`、`knowledge/joins/table_relationships.md`、`knowledge/03_range_limit_rules.md`。
+- 更新 `temp_table.shenbaoxin_channel_group` 表文档，补充该看板的使用场景。
+- 待确认：`data_base` 使用 `select t1.*`、双层 `select distinct`、首 call 未限定 `task_generate_rule_type = 2`、`valid_lead_count`/`can_renew_ds_count_a` 重复输出为同一聚合、员工维表 `account_id` 去重逻辑（取字典序第一个 `employee_email_name`）、`channel_group` 字段是否真实存在、`period_mapping_first_level_department_name is null` 放宽条件、渠道 CASE 同层引用 `period_name` 是否可解析。
+
+## 2026-05-24 顾问销售评优-自然月份排名 SQL 覆盖更新
+
+- 使用平台数据集最新查询覆盖 `resources/raw_sql/consultant_sales_ranking_evaluation_month_clean.sql`，SQL 标题含 `-- 更新时间：2026-05-24`。
+- 该变体与主 `consultant_sales_ranking_evaluation.sql` 的核心差异：
+  - **聚合周期**：按自然月份聚合（多期次合并为一个自然月），而非按期次/月/季/半年分层。
+  - **顾问名单来源**：使用 `temp_table.dingxi01_jiagou_zx`（`zaizhi='1'`，郑州/西安部门优先级去重），而非 `temp_table.dingxi01_pingyou_jg`。
+  - **组织链过滤**：新增 `dw.dim_employee_chain` 取 `高途-H业务线-市场部-市场顾问部` 路径，按 `email_prefix` 内连接任职期间流水（`org_t.begin_time <= trade_time <= org_t.end_time`）。
+  - **自然月派生**：统一 `day_of_week` 公式推导 `trade_qici`（无硬编码特殊日期）；`20260731期` 特殊映射为自然月 `202608`。
+  - **转化侧完整链路**：包含 `conversion_base` → `conversion_data` → `conversion_by_channel` → `conversion_with_target` → `conversion_agg` → `conversion_metric_base` 全链路，补充线索、转化、成本目标、目标完成率和拓科率指标。
+  - **渠道 CASE**：完整 200 分支 CASE，但版本为 pre-0524（不含 王绍阳/途途私域/周帅-百度数字人，信息流-抖音私信 位于旧位置 APP 之前）。
+  - **成本维度**：`temp_table.dingxi01_cost` 按 `trim(channel)` 取 `try_cast(cost as double) > 0` 的 `max(cost)`，计算 `receive_target = leads_count * cost`。
+  - **双排名体系**：pmit 排名 + 目标完成率排名，各带 lag 差值。
+  - **新增指标**：`natural_month`、`qici_list`、`target_completion_rate`、`target_completion_period_dept_rank_no`、`target_completion_need_rate_to_previous`、`receive_target`、`tuoke_rate`。
+- 更新 `knowledge/dashboards/consultant_sales_ranking_evaluation.md`，新增 §12 变体 SQL 章节，记录 CTE 结构、差异指标和待确认事项。
+- 待确认：channel_map 版本未同步 0524、`period_mapping_* is null` 放宽条件、`conversion_base` 使用 `select fl.*`、`temp_table.dingxi01_cost` 中 `cost` 字段为字符串需 `try_cast`、`jiagou_zx_active` 部门优先级去重逻辑、`20260731期 → 202608` 硬编码、`day_of_week` 期次公式与业务周五对齐口径。

@@ -6,9 +6,13 @@
 
 ## 2. 表用途
 
-用于市场顾问线索转化到课看板，将看板 SQL 派生出的 `channel_map` 与渠道分组口径关联。
+用于市场顾问线索转化到课看板和 H业务线二级部门转化看板，将看板 SQL 派生出的 `channel_map` 与渠道分组口径关联。
 
-当前仅从 `resources/raw_sql/market_consultant_lead_conversion_attendance.sql` 中确认该表被使用，真实维护来源、完整字段清单和唯一性待人工确认。
+当前从以下 SQL 中确认该表被使用：
+- `resources/raw_sql/market_consultant_lead_conversion_attendance.sql`（线索转化到课看板，未输出 `channel_group` 字段）
+- `resources/raw_sql/h_biz_line_department_conversion.sql`（二级部门转化看板，输出 `channel_group as channel_1`）
+
+真实维护来源、完整字段清单和唯一性待人工确认。
 
 ## 3. 数据粒度
 

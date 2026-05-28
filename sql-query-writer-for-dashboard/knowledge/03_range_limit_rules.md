@@ -130,3 +130,22 @@
 | `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` | `performance_third_level_department_name` | `'市场顾问部'` |
 
 注意：三份退费分析 SQL 的财务主表选出了课程部门字段，但主表层只过滤员工部门；生成新 SQL 时如果以课程维度分析，需要确认是否补充 `course_*_department_name` 范围。
+
+## 历史看板范围补充：H业务线二级部门转化看板
+
+来源：`resources/raw_sql/h_biz_line_department_conversion.sql`。
+
+该 SQL 覆盖 H业务线下四个二级部门的全量转化数据，部门范围比市场顾问转化看板更宽：
+
+| 表/CTE | 范围字段 | 历史取值 |
+|---|---|---|
+| `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df` | `section_assign_employee_first_level_department_name` | `'H业务线'` |
+| `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df` | `section_assign_employee_second_level_department_name` | `'市场部','精品班学部','青橙项目部','菁英班学部'` |
+| `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df` | `virtual_third_department_name` | `'学习顾问部','市场顾问部','中价产品项目部'` |
+| `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df` | `period_mapping_first_level_department_name` | `'H业务线'` 或 `null`（放宽条件） |
+| `finance_dw.dim_finance_employee_df` | `first_level_department_name` | `'H业务线'` |
+| `finance_dw.dim_finance_employee_df` | `second_level_department_name` | `'市场部','精品班学部','青橙项目部','菁英班学部'` |
+
+注意：
+- `period_mapping_first_level_department_name is null` 的放宽条件可能导致期次映射缺失的线索也被纳入；生成类似跨部门 SQL 时需确认是否同样放宽或还原为严格匹配。
+- 首 call 任务表 `gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf` 只通过 `account_id` 桥接到员工维表间接获取部门范围，未直接在首 call 表上限定部门字段。

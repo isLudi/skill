@@ -19,3 +19,4 @@
 - `consultant_sales_ranking_evaluation_metrics.md`：顾问销售评优指标集合。
 - `consultant_sales_department_tenure_metrics.md`：顾问部门任职期销售指标集合。
 - `consultant_sales_department_tenure_period_20260424_metrics.md`：顾问部门任职期销售 20260424 期指标集合。
+- `h_biz_line_department_conversion_metrics.md`：H业务线二级部门转化指标集合。
