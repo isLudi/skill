@@ -23,6 +23,7 @@
 |---|---|---|
 | `finance_dw.app_finance_performance_extend_details_hf` | `dd` 来源表 | 财务业绩扩展明细，提供订单流水、交易状态、交易类型、价格、顾问、交易时间和课程信息 |
 | `temp_table.dingxi01_pingyou_jg` | `pg` | 评优架构人产临时表，提供顾问期次、架构、渠道、人产、年级、在职和是否参与评优 |
+| `temp_table.dingxi01_jiagou_zx` | `jiagou_zx_active` | 当前在职架构顾问名单；季度和半年度 clean 脚本用它额外剔除已离职顾问 |
 
 ## 4. SQL 结构
 
@@ -43,6 +44,7 @@
 | `gmv_t` | 处理 `调课调班`，按 `name + user_id1` 汇总并去重，排除总金额为 0 的记录 | `name_total_price`, `dup_rn` |
 | `gmv_z` | 处理 `正常订单`，按订单、用户、顾问、期次等维度汇总 `price` | `name_total_price` |
 | `rd` | 合并正常订单和调课调班结果 | `name`, `qici`, `name_total_price` |
+| `jiagou_zx_active` | 当前在职架构顾问名单，按顾问姓名去重 | `employee_email_name` |
 | `process` | 将评优架构人产表与财务流水按顾问和期次关联，计算净收、总收、退款 | `pt`, `inc`, `ref`, `renchan` |
 | `rank` | 计算或保留测试渠道标记，并在期次段直接计算 `roi`、`refd` | `ceshi`, `roi`, `refd` |
 | `rank_h` | 月度/季度/半年段聚合到周期-顾问粒度，并计算 `roi`、`refd` | `moth`/`quarter`/`half_year`, `roi`, `refd` |
@@ -54,6 +56,7 @@
 
 | 左表/CTE | 右表/CTE | join key | join 类型 | 说明 |
 |---|---|---|---|---|
+| `temp_table.dingxi01_pingyou_jg pg` | `jiagou_zx_active zx` | `pg.employee_email_name = zx.employee_email_name` | inner join | 季度和半年度 clean 脚本额外限定当前在职顾问，避免历史期次聚合展示已离职顾问 |
 | `temp_table.dingxi01_pingyou_jg pg` | `rd` | `pg.employee_email_name = rd.name` + `pg.qici = rd.qici` | left join | 将顾问期次架构人产信息与财务流水结果关联 |
 
 ## 7. where 条件
@@ -82,9 +85,18 @@ qici >= '20260320期'
 评优临时表范围：
 
 ```sql
-pg.zaizhi = '1'
+cast(pg.zaizhi as varchar) = '1'
 and pg.is_emp = '是'
 ```
+
+季度和半年度 clean 脚本额外使用当前在职架构名单：
+
+```sql
+inner join jiagou_zx_active zx
+  on zx.employee_email_name = pg.employee_email_name
+```
+
+`jiagou_zx_active` 取 `temp_table.dingxi01_jiagou_zx` 中 `cast(zaizhi as varchar) = '1'` 且部门为 `郑州顾问部`、`西安一部`、`西安二部` 的顾问，并按 `employee_email_name` 去重。
 
 ## 8. group by 维度
 
@@ -130,7 +142,8 @@ and pg.is_emp = '是'
 - 财务流水正负金额：正向流水计入 `inc`，负向流水计入 `ref`，正负合计为 `pt`。
 - 调课调班去重：对 `trade_type = '调课调班'` 按 `name + user_id1` 汇总 `price`，总额不为 0 后取第一条。
 - 正常订单聚合：对 `trade_type = '正常订单'` 按订单和顾问明细维度汇总 `price`。
-- 评优人群范围：`pg.zaizhi = '1' and pg.is_emp = '是'`。
+- 评优人群范围：`cast(pg.zaizhi as varchar) = '1' and pg.is_emp = '是'`。
+- 季度/半年度当前在职过滤：在 `process` 中 `inner join jiagou_zx_active`，剔除已不在当前架构表的离职顾问。
 - 周期排名：ROI 使用降序 `rank()`，退费使用自定义 `row_number()` 排序。
 
 ## 11. 待确认事项

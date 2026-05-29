@@ -282,6 +282,62 @@ limit 20
 
 如果目标期次事实数据为 0，而架构表有名单，结论应写为“名单已维护，事实主表当前分区尚未产出该期数据”。若业务要求提前展示未来期次名单且指标为 0，需要改为名单/架构表驱动 left join 指标，并调整最终层 `valid_lead_count > 0` 等过滤；这是展示口径变更，必须人工确认。
 
+## 调试字符串与权限解析误拦截
+
+公司查询平台的权限解析器可能会扫描 SQL 文本中的字符串字面量。排查 SQL 中若使用 `concat('jingli=', coalesce(jingli, '<null>'))`、`concat('zhuguan=', ...)` 等 `字段名=字段值` 调试拼接，可能触发“你没有操作权限，sql[jingli=', coalesce(jingli, '<null>'), ']”一类权限校验误拦截。
+
+生成排查 SQL 时不要把字段名和值拼成调试文本，也不要使用 `'<null>'` 作为空值占位。应把每个待观察字段拆成独立输出列，并用普通中文占位值：
+
+```sql
+-- 避免：可能触发权限解析误拦截
+concat('jingli=', coalesce(cast(jingli as varchar), '<null>')) as sample_detail
+
+-- 推荐：拆字段输出
+coalesce(cast(jingli as varchar), '空值') as sample_jingli
+```
+
+适用场景包括经理、主管、顾问、部门、渠道等字段排查。若需要定位异常来源，使用 `sample_jingli`、`sample_zhuguan`、`sample_employee_email_name`、`sample_xiaozu` 等独立列，不要使用 `key=value` 形式的拼接字符串。
+
+## 多检查项排查 SQL 的执行计划控制
+
+公司查询平台对 Presto 查询计划 stage 数有上限。排查 SQL 如果把一个重 CTE 在多个 `union all` 分支中反复引用，Presto 可能展开该 CTE 多次并报错：
+
+```text
+Number of stages in the query (...) exceeds the allowed maximum (...)
+```
+
+生成多检查项排查 SQL 时，不要写成：
+
+```sql
+select '01_检查项' as check_stage, * from heavy_joined where ...
+union all
+select '02_检查项' as check_stage, * from heavy_joined where ...
+```
+
+推荐先在一次扫描中为每行计算多个 `flag_*` 字段，再用 `cross join unnest` 将检查项转成长表：
+
+```sql
+with flagged as (
+    select
+        *,
+        case when ... then 1 else 0 end as flag_01,
+        case when ... then 1 else 0 end as flag_02
+    from heavy_joined
+)
+select
+    u.check_stage,
+    count(*) as row_cnt
+from flagged f
+cross join unnest(
+    array['01_检查项', '02_检查项'],
+    array[f.flag_01, f.flag_02]
+) as u(check_stage, hit_flag)
+where u.hit_flag = 1
+group by u.check_stage
+```
+
+同时尽量减少同一查询中的多个 `distinct` 聚合；能用 `min(path) <> max(path)` 判断多架构时，不要优先使用 `count(distinct path)`。
+
 ## 渠道 CASE 映射
 
 市场顾问渠道映射长 CASE 已独立维护在：

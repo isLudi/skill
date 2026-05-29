@@ -16,14 +16,14 @@ with dd as (
         talent_type_name, city_name as city, department,
         biz_number, course_grade as grade_list,
         course_subject as subject,
- 	 case
- 			when substr(trade_time, 1, 10) >= '2026-02-25' and substr(trade_time, 1, 10) <= '2026-03-02' then '20260227期'
- 			when substr(trade_time, 1, 10) >= '2026-02-17' and substr(trade_time, 1, 10) <= '2026-02-24' then '20260220期'
- 			when substr(trade_time, 1, 10) >= '2026-02-09' and substr(trade_time, 1, 10) <= '2026-02-16' then '20260213期'
- 			when substr(trade_time, 1, 10) >= '2026-02-03' and substr(trade_time, 1, 10) <= '2026-02-08' then '20260206期'
- 			when substr(trade_time, 1, 10) >= '2026-01-27' and substr(trade_time, 1, 10) <= '2026-02-02' then '20260130期'
- 			when substr(trade_time, 1, 10) >= '2026-01-20' and substr(trade_time, 1, 10) <= '2026-01-26' then '20260123期'
- 		else concat(date_format(date_add('day', 4, date_trunc('week', date_add('day', -1, cast(trade_time as timestamp)))), '%Y%m%d'), '期') end as qici,
+        case
+            when substr(trade_time, 1, 10) >= '2026-02-25' and substr(trade_time, 1, 10) <= '2026-03-02' then '20260227期'
+            when substr(trade_time, 1, 10) >= '2026-02-17' and substr(trade_time, 1, 10) <= '2026-02-24' then '20260220期'
+            when substr(trade_time, 1, 10) >= '2026-02-09' and substr(trade_time, 1, 10) <= '2026-02-16' then '20260213期'
+            when substr(trade_time, 1, 10) >= '2026-02-03' and substr(trade_time, 1, 10) <= '2026-02-08' then '20260206期'
+            when substr(trade_time, 1, 10) >= '2026-01-27' and substr(trade_time, 1, 10) <= '2026-02-02' then '20260130期'
+            when substr(trade_time, 1, 10) >= '2026-01-20' and substr(trade_time, 1, 10) <= '2026-01-26' then '20260123期'
+            else concat(date_format(date_trunc('week', cast(trade_time as timestamp) - interval '1' day) + interval '4' day, '%Y%m%d'), '期') end as qici,
         leader_employee_email_name, teacher_name,
         case course_term_id
             when 'C' then '春季'
@@ -88,6 +88,31 @@ with dd as (
         name_total_price
     from gmv_t
 )
+,jiagou_zx_active as (
+    select
+        employee_email_name
+    from (
+        select
+            zx.*,
+            row_number() over (
+                partition by zx.employee_email_name
+                order by
+                    case
+                        when zx.department = '郑州顾问部' then 1
+                        when zx.department = '西安一部' then 2
+                        when zx.department = '西安二部' then 3
+                        else 9
+                    end,
+                    zx.employee_email_prefix,
+                    zx.xiaozu,
+                    zx.jingli
+            ) as rn
+        from temp_table.dingxi01_jiagou_zx zx
+        where cast(zx.zaizhi as varchar) = '1'
+          and zx.department in ('郑州顾问部', '西安一部', '西安二部')
+    ) t
+    where rn = 1
+)
 ,process as (select
     case
         when cast(substring(pg.qici, 5, 2) as int) between 4 and 9 then
@@ -104,8 +129,9 @@ with dd as (
     sum(case when name_total_price > 0 then name_total_price else 0 end) as inc,
     sum(case when name_total_price < 0 then name_total_price else 0 end) as ref
 from temp_table.dingxi01_pingyou_jg pg
+inner join jiagou_zx_active zx on zx.employee_email_name = pg.employee_email_name
 left join rd on pg.employee_email_name = rd.name and pg.qici = rd.qici
-where pg.zaizhi = '1' and pg.is_emp = '是'
+where cast(pg.zaizhi as varchar) = '1' and pg.is_emp = '是'
 and pg.qici >= '20260320期'
 group by
     case

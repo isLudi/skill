@@ -395,3 +395,23 @@
 - 明确 smroi 公式为 `trade_profit / (lead_count * cb_cb + 人力成本)`，但当前数据集未维护人力成本字段。
 - 更新 `knowledge/metrics/outbound_call_process_metrics.md` 与 `knowledge/dashboards/outbound_call_process_dashboard.md`，补充过程看板派生公式：6h/12h/24h外呼率、外呼频次、首call率、5min比例、深沟率、双沟率、好友率、40min占比、40min转化率。
 - 明确 5min比例使用 `is_long_call / valid_lead_count`，不要误用 `first_call_in_5min`；40min占比/转化率依赖转化数据侧补充 `is_40m_call`、`call_40m_z` 字段，当前外呼过程 SQL 和过程数据集未直接输出。
+
+## 2026-05-28 查询平台权限解析误拦截规则补充
+
+- 更新 `knowledge/sql_patterns/dashboard_query_patterns.md`，新增“调试字符串与权限解析误拦截”规则。
+- 明确排查 SQL 中不要使用 `concat('jingli=', coalesce(jingli, '<null>'))`、`concat('zhuguan=', ...)` 等 `字段名=字段值` 字符串拼接，避免查询平台权限解析器误判为无权限 SQL。
+- 建议排查字段拆成独立列输出，例如 `coalesce(cast(jingli as varchar), '空值') as sample_jingli`，并使用中文空值占位替代 `'<null>'`。
+
+## 2026-05-28 多检查项排查 SQL stage 超限规则补充
+
+- 根据查询平台报错 `Number of stages in the query exceeds the allowed maximum`，更新 `knowledge/sql_patterns/dashboard_query_patterns.md`，新增“多检查项排查 SQL 的执行计划控制”规则。
+- 明确不要在多个 `union all` 分支中反复引用重 CTE；应先计算 `flag_*` 字段，再用 `cross join unnest` 将检查项转成长表。
+- 补充减少多个 `distinct` 聚合的建议，优先用 `min(path) <> max(path)` 判断多架构。
+
+## 2026-05-29 顾问销售评优季度/半年度离职顾问过滤
+
+- 更新 `resources/raw_sql/consultant_sales_ranking_evaluation_quarter_clean.sql` 与 `resources/raw_sql/consultant_sales_ranking_evaluation_year_clean.sql`。
+- 在季度和半年度 clean 脚本中新增 `jiagou_zx_active` CTE，从 `temp_table.dingxi01_jiagou_zx` 取 `cast(zaizhi as varchar) = '1'` 且部门为 `郑州顾问部`、`西安一部`、`西安二部` 的当前在职顾问，并按 `employee_email_name` 去重。
+- 在 `process` CTE 中增加 `inner join jiagou_zx_active`，保留原 `temp_table.dingxi01_pingyou_jg` 参评口径的同时，额外剔除当前已离职顾问，避免跨季度/半年度聚合把历史期次曾在职顾问带入看板。
+- 将两处三参 `date_add('day', ...)` 改为等价 `interval` 日期偏移写法，规避查询平台按 Hive 两参函数解析导致的校验风险。
+- 更新 `knowledge/dashboards/consultant_sales_ranking_evaluation.md`，补充季度/半年度 clean 脚本的当前在职过滤口径。
