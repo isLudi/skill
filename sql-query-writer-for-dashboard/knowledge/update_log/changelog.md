@@ -415,3 +415,10 @@
 - 在 `process` CTE 中增加 `inner join jiagou_zx_active`，保留原 `temp_table.dingxi01_pingyou_jg` 参评口径的同时，额外剔除当前已离职顾问，避免跨季度/半年度聚合把历史期次曾在职顾问带入看板。
 - 将两处三参 `date_add('day', ...)` 改为等价 `interval` 日期偏移写法，规避查询平台按 Hive 两参函数解析导致的校验风险。
 - 更新 `knowledge/dashboards/consultant_sales_ranking_evaluation.md`，补充季度/半年度 clean 脚本的当前在职过滤口径。
+
+## 2026-05-31 全链路主表最新分区产出排查模板
+
+- 更新 `knowledge/sql_patterns/dashboard_query_patterns.md`，在“结果缺失与未来期次排查”中新增 `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df` 最新分区产出排查模板。
+- 明确当涉及 join 该主表的看板整体查不到数据、结果集为空或核心指标突然大面积为 0 时，应优先按 `dt/hour` 汇总最近分区行数和 `lead_count`，判断最近 2-3 小时是否无数据产出。
+- 模板中的 `dt >= '<排查起始日期YYYYMMDD>'` 必须按用户提问当天或排查当天动态替换，通常取当天或往前 1 天，跨零点或怀疑延迟时扩大到最近 2 天；不得固定沿用历史日期。
+- 更新 `knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md`，在主表历史备注中增加该排查模板入口。

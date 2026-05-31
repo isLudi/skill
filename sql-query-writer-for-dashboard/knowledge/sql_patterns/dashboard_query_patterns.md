@@ -219,13 +219,40 @@ eligible_consultant_name as (
 排查顺序：
 
 1. 查名单/架构表目标期次和目标经理是否存在。
-2. 查事实主表当前分区的最大派生期次。
-3. 查事实主表在目标期次是否有数据。
-4. 查事实主表目标期次 + 目标顾问名单是否有数据。
-5. 逐步叠加部门范围、虚拟部门、期归属部门过滤。
-6. 最后检查结果层过滤，例如 `valid_lead_count > 0`、`jg.department is not null`、渠道黑名单等。
+2. 如果看板 join `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df` 后整体无数据或大面积为空，优先查该主表最近分区是否产出。
+3. 查事实主表当前分区的最大派生期次。
+4. 查事实主表在目标期次是否有数据。
+5. 查事实主表目标期次 + 目标顾问名单是否有数据。
+6. 逐步叠加部门范围、虚拟部门、期归属部门过滤。
+7. 最后检查结果层过滤，例如 `valid_lead_count > 0`、`jg.department is not null`、渠道黑名单等。
 
 查最新期次时不要使用 `order by qici asc limit N`，这会返回最早的 N 个期次并截断最新期次。应使用 `order by qici desc limit N`，或直接显式过滤目标期次。
+
+全链路主表最新分区产出排查模板：
+
+当涉及 join `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df` 的看板整体查不到数据、结果集为空、或核心指标突然为 0 时，先用该模板判断最新分区在最近 2-3 小时内是否没有数据产出。`dt` 起始日期必须按用户提问当天或排查当天动态替换，不要固定沿用历史日期；通常取当天或往前 1 天，跨零点或怀疑延迟时扩大到最近 2 天。
+
+```sql
+select
+    t.dt,
+    t.hour,
+    count(*) as row_cnt,
+    sum(coalesce(t.lead_count, 0)) as total_lead
+from bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df t
+where t.dt >= '<排查起始日期YYYYMMDD>'
+  and t.section_assign_employee_first_level_department_name = 'H业务线'
+  and t.section_assign_employee_second_level_department_name = '市场部'
+  and t.section_assign_employee_third_level_department_name = '市场顾问部'
+group by
+    t.dt,
+    t.hour
+order by
+    t.dt desc,
+    t.hour desc
+limit 10
+```
+
+示例：如果用户在 2026-05-31 询问最近看板崩溃，可先用 `where t.dt >= '20260530'` 覆盖最近两天；如果用户在其他日期询问，必须替换为对应的最近日期窗口。若最近 2-3 个小时无行或 `total_lead` 明显为 0，而更早小时正常，优先判断为主表分区产出延迟或异常，再继续排查下游 join。
 
 错误模式：
 
