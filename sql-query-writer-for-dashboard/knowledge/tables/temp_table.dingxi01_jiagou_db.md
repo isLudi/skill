@@ -129,3 +129,17 @@ limit 20;
 
 - `traffic_profile.sql` 最终层通过 `qici + department + xiaozu + employee_email_name` 关联该表，其中 `department = zz.depart`、`xiaozu = zz.zhuguan`。
 - 当前结果未输出 `jg` 字段，该 join 可能只是历史遗留；如该 join key 不唯一，仍可能放大结果行。
+
+## 12. 反向联动速查
+
+被以下看板使用：
+
+- `../dashboards/market_consultant_conversion.md`：期次内架构映射。
+- `../dashboards/lead_assign_plan_actual_valid_count.md`：按规则名期次尾号补小组和经理。
+- `../dashboards/outbound_call_process_dashboard.md`：按期次和顾问邮箱前缀补架构。
+- `../dashboards/traffic_profile.md`：历史遗留 join，可能影响行数。
+
+已知风险：
+
+- USQL RestAPI 当前可读；市场顾问场景必须同时限定 `qici` 和目标部门。
+- 本表存在未来期次架构不代表事实主表已有该期数据，排查缺失先读 `../sql_patterns/dashboard_query_patterns.md`。

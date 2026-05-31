@@ -40,7 +40,7 @@
 
 | CTE | 作用 |
 |---|---|
-| data | 读取主全链路表，派生 `period_name`、`channel_map`、`grade_1`，补充最新私海阶段和基础指标；渠道 CASE 最新来源见 `resources/raw_sql/market_channel_case_when_0522.sql` |
+| data | 读取主全链路表，派生 `period_name`、`channel_map`、`grade_1`，补充最新私海阶段和基础指标；渠道 CASE 最新来源见 `resources/raw_sql/market_channel_case_when_0524.sql` |
 | daoke | 将线索用户与行课记录、到课课次映射表关联，得到候选到课课次 |
 | base | 按渠道计算 `daoke1`；`曹忆` 看第 3 节，其他渠道看第 1 节 |
 | zhuanhua | 按期次、渠道、规则、年级、架构、顾问聚合转化和金额指标 |
@@ -142,5 +142,5 @@ and is_need_attend = 1
 - `temp_table.dingxi01_jiagou_db` 在最终 SQL 中被 join 但未输出字段，需确认是否仅用于过滤/防止脏架构，还是应输出 `jg` 字段。
 - `temp_table.dingxi01_daoke_1_6_t` 本 SQL 使用 `channel` 字段关联，历史外呼看板存在使用 `qudao` 的口径；需确认当前看板应使用哪个字段。
 - `AB_zhuanhua` 中 `conversion_lead_count = '1'` 存在数值/字符串混用风险，建议确认字段类型后统一为 `conversion_lead_count = 1` 或显式 cast。
-- `channel_map` CASE 规则非常长，属于看板核心业务口径；后续改写 SQL 时不得简化或遗漏规则，除非用户明确要求。最新渠道 CASE 已归档为 `resources/raw_sql/market_channel_case_when_0522.sql`，说明见 `knowledge/sql_patterns/channel_mapping_case_when.md`。
+- `channel_map` CASE 规则非常长，属于看板核心业务口径；后续改写 SQL 时不得简化或遗漏规则，除非用户明确要求。最新渠道 CASE 已归档为 `resources/raw_sql/market_channel_case_when_0524.sql`，说明见 `knowledge/sql_patterns/channel_mapping_case_when.md`。
 - 金额字段除以 100 的口径沿用历史 SQL，是否均为“分”单位需结合字段文档和财务口径确认。

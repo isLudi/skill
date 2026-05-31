@@ -9,13 +9,17 @@ description: Generate governed Presto SQL for internal dashboard and exploratory
 
 当用户明确要求加载 `sql-query-writer-for-dashboard`、`sql-query-writer-for-dashboard.skill`、`.codex/skills/sql-query-writer-for-dashboard`，或需求属于公司内部看板取数 SQL、表结构知识库、指标口径、SQL 报错修复时，必须按本 Skill 执行。
 
-加载后先确认 Skill 根目录，再按需读取以下入口：
+加载后先确认 Skill 根目录，再按需读取以下入口。优先读取轻量路由和强制规则，不要直接全量读取所有表文档、看板文档或原始 SQL：
 
 1. `metadata.json`：确认版本、查询引擎、知识库目录和健康检查脚本。
-2. `knowledge/01_table_index.md`：先定位相关表，不要直接全量读取所有表文档。
-3. 相关 `knowledge/tables/*.md`、`knowledge/metrics/*.md`、`knowledge/dashboards/*.md`、`knowledge/joins/*.md`：只读取与当前需求相关的文件。
-4. `knowledge/sql_patterns/*.md`：生成或修复 SQL 时参考模板。
-5. 当用户要求在 Python 中直接调用接口查数、验证 SQL、排查数据代码或替代线上平台下载数据流程时，读取 `knowledge/sql_patterns/usql_rest_api_python.md`，并默认从 `E:\2000_work\GAOTU\20002_市场顾问部看板维护表格\usql_api.env` 加载 `USQL_TOKEN`、`USQL_APP_ID`、`USQL_API_URL` 等接口参数。
+2. `knowledge/quick_reference.md`：快速定位高频场景、高频表、USQL 状态和常用 join 入口。
+3. `knowledge/00_global_rules.md`：先确认强制全局规则。
+4. `knowledge/03_range_limit_rules.md`：先读文件顶部“必读核心规则”，范围限定必须在选表和选字段阶段介入。
+5. `knowledge/decision_tree.md`：按用户需求路由到具体表、指标、看板、join、权限或踩坑文档。
+6. `knowledge/01_table_index.md`：确认候选表、分区和 USQL 权限状态。
+7. 相关 `knowledge/tables/*.md`、`knowledge/metrics/*.md`、`knowledge/dashboards/*.md`、`knowledge/joins/*.md`、`knowledge/pitfalls/*.md`、`knowledge/sql_patterns/*.md`：只读取与当前需求相关的文件。
+8. 当用户要求在 Python 中直接调用接口查数、验证 SQL、排查数据代码或替代线上平台下载数据流程时，读取 `knowledge/sql_patterns/usql_rest_api_python.md`，并默认从 `E:\2000_work\GAOTU\20002_市场顾问部看板维护表格\usql_api.env` 加载 `USQL_TOKEN`、`USQL_APP_ID`、`USQL_API_URL` 等接口参数。
+9. 涉及 API 执行、权限失败、表可读性判断、字段或部门范围不可见时，读取 `knowledge/sql_patterns/usql_permission_boundaries.md`；不要把权限失败简单归因为 SQL 语法。
 
 文件编码规则：
 
@@ -103,13 +107,16 @@ description: Generate governed Presto SQL for internal dashboard and exploratory
 
 优先读取顺序：
 
-1. `knowledge/01_table_index.md`
-2. 相关 `knowledge/tables/*.md`
-3. 相关 `knowledge/metrics/*.md`
-4. 相关 `knowledge/dashboards/*.md`
-5. `knowledge/joins/*.md`
-6. `knowledge/sql_patterns/*.md`
-7. `knowledge/00_global_rules.md` 和 `knowledge/03_range_limit_rules.md`
+1. `knowledge/quick_reference.md`
+2. `knowledge/00_global_rules.md`
+3. `knowledge/03_range_limit_rules.md` 顶部“必读核心规则”
+4. `knowledge/decision_tree.md`
+5. `knowledge/01_table_index.md`
+6. 相关 `knowledge/tables/*.md`
+7. 相关 `knowledge/metrics/*.md` 和 `knowledge/dashboards/*.md`
+8. 相关 `knowledge/joins/*.md` 和 `knowledge/pitfalls/*.md`
+9. 相关 `knowledge/sql_patterns/*.md`
+10. 涉及 API 执行、权限失败或表可读性判断时再读 `knowledge/sql_patterns/usql_permission_boundaries.md`
 
 ### C. 生成 SQL
 

@@ -67,5 +67,5 @@
 - 三份 SQL 均使用历史三参数 `date_add`，作为原始 SQL 归档；生成新 SQL 时需改写。
 - 金额单位沿用财务业绩扩展表 `price/real_price`，与归因流水分单位口径不同，不应直接混合。
 - 退费科目产品 SQL 中 `refund_total` 为负数，多科和退费原因 SQL 中退款金额为正数，前端展示需统一口径。
-- 分配规则渠道 CASE 来自历史 SQL，不等同于 `market_channel_case_when_0522.sql` 的最新渠道映射。
+- 分配规则渠道 CASE 来自历史 SQL，不等同于 `market_channel_case_when_0524.sql` 的最新渠道映射。
 - `finance_dw.dwd_finance_order_refund_df` 表结构待确认。

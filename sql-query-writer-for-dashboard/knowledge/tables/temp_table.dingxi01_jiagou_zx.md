@@ -167,3 +167,16 @@ eligible_consultant_name as (
 
 - `refund_multi_subject_user_ratio.sql`、`refund_subject_product.sql`、`refund_reason_analysis.sql` 均通过 `employee_email_name = name` 关联该表，补充 `xiaozu`、`jingli`。
 - 该表无 `qici` 字段，因此三份退费分析 SQL 的架构是当前专项架构口径，不是订单发生期的历史架构。
+
+## 13. 反向联动速查
+
+被以下看板使用：
+
+- `../dashboards/market_consultant_conversion.md`、`../dashboards/traffic_profile.md`：补充当前小组或经理。
+- `../dashboards/consultant_sales_ranking_evaluation.md`：季度/半年 clean 脚本用作当前在职顾问名单。
+- `../dashboards/refund_multi_subject_user_ratio.md`、`../dashboards/refund_subject_product.md`、`../dashboards/refund_reason_analysis.md`：退费分析当前架构补充。
+
+已知风险：
+
+- USQL RestAPI 当前可读；作为在职名单时必须限定 `cast(zaizhi as varchar) = '1'` 和目标部门，并按 `employee_email_name` 去重。
+- 该表无 `qici`，不能替代期次历史架构或严格参评名单。

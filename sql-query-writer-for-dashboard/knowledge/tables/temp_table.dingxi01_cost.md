@@ -98,3 +98,16 @@ limit 200;
 
 - `traffic_profile.sql` 使用 `ct.channel = channel_map`、`ct.grade = grade_1`、`ct.qici = period_name` 补充 `cb_cb = cost` 和 `gl_gl = goal`。
 - 成本目标在结果层用 `coalesce(..., 0)`，无法区分真实 0 和未维护缺失，复用时可额外输出命中标记。
+
+## 12. 反向联动速查
+
+被以下看板使用：
+
+- `../dashboards/market_consultant_conversion.md`：成本 `cb_cb` 和目标 `gl_gl`。
+- `../dashboards/market_consultant_lead_conversion_attendance.md`：线索转化到课成本目标。
+- `../dashboards/traffic_profile.md`：流量画像成本目标。
+
+已知风险：
+
+- `grade='0'` 是全年级通配，生成 join 时必须使用 `(ct.grade = grade_1 or ct.grade = '0')`，详见 `../pitfalls/common_join_failures.md`。
+- USQL RestAPI 当前可读，但必须按 `qici` 收窄。

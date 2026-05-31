@@ -429,3 +429,17 @@
 - 明确 USQL RestAPI 可调用不等于具备全部表、字段、部门、业务线或行级范围权限；后续探查时必须拆分判断接口连通、表可读、字段可读、部门/范围可见。
 - 补充权限探查顺序、结果分类和权限边界记录模板，用于沉淀哪些表可通过 API 查询、哪些范围受限，以及后续申请表/字段/部门权限所需证据。
 - 强调不得盲扫全库或暴力枚举部门，只探查用户指定、知识库已有或用户明确批准的候选表和范围；不得记录真实 token、账号、cookie、env 原文或敏感响应全文。
+
+## 2026-05-31 USQL 高频表权限边界首轮探查
+
+- 新增 `knowledge/sql_patterns/usql_permission_boundaries.md`，记录按知识库调用频率分层的 USQL RestAPI 表权限探查结果。
+- 完成 27 张候选表最小安全探查：13 张最小读成功，13 张明确提示当前账号无表权限，1 张触发权限校验器 SQL 解析错误。
+- 标记当前可通过 API 使用的临时维护表、CRM 分配/线索表和 APP 小时活跃表，并记录 `qici`、`department`、`assign_employee_*`、`mapping_*` 等已验证边界。
+- 标记优先申请或排查权限的表，包括 `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df`、`finance_dw.app_finance_performance_extend_details_hf`、`dw.dim_employee_chain` 等高频依赖表。
+- 文档未记录真实 token、env 原文、完整 DAS 申请 URL 或员工姓名样例。
+
+## 2026-05-31 全链路主表 USQL 权限校验器复测
+
+- 复测 `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df`，包括 `where 1=0`、字面量 `dt/hour`、alias、双引号标识符、`desc`、`show columns` 和字段抽样等最小写法，均返回“权限校验时遇到错误 SQL”。
+- 使用 `finance_dw.app_finance_performance_extend_details_hf` 做无权限对照，确认标准无表权限会返回“账号没权限/申请权限”类错误；全链路主表当前失败特征不同。
+- 更新 `knowledge/sql_patterns/usql_permission_boundaries.md`，将该表归类为 USQL 权限校验器或 DAS 资源映射异常待平台确认，而不是已确认的普通 SQL 语法错误或标准无表权限。

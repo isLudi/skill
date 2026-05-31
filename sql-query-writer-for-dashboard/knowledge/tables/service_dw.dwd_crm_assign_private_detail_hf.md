@@ -169,3 +169,15 @@ limit 20;
 - `traffic_profile.sql` 通过 `user_id = user_number` 关联该表，并按 `private_sea_update_time desc` 取每个用户最新私海阶段。
 - 阶段映射在 SQL 内硬编码：`450 = 深沟`、`470 = 已双沟`，其他阶段归为 `其他`，同时保留了完整 `sale_flow_stage_sequence` 到阶段名映射。
 - 范围限定为 `assign_employee_first_level_department_name = 'H业务线'`、`assign_employee_second_level_department_name = '市场部'`、`assign_employee_third_level_department_name = '市场顾问部'`。
+
+## 12. 反向联动速查
+
+被以下看板高频使用：
+
+- `../dashboards/traffic_profile.md`：最新私海阶段、深沟、已双沟。
+- `../dashboards/outbound_call_process_dashboard.md`：外呼过程中的深沟、双沟和阶段补充。
+
+已知风险：
+
+- USQL RestAPI 当前可读，但市场顾问场景必须继续限定 `assign_employee_first_level_department_name = 'H业务线'`、`assign_employee_second_level_department_name = '市场部'`、`assign_employee_third_level_department_name = '市场顾问部'`。
+- 与主线索表常用 `user_id = user_number` 关联，使用前确认类型和去重粒度。

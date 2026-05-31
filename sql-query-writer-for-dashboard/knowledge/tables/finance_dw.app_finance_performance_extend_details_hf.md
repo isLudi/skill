@@ -322,3 +322,17 @@ limit 100;
 - 多科用户退费占比和退费原因分析使用 `price <> 0`，并按 `zong_price < 0` 判断退款、`zong_price > 0` 判断收款。
 - 退费科目产品 SQL 使用 `case when trade_status in ('全部退款','部分退款') then -real_price else real_price end as real_price_0`，同时保留 `price`；金额正负口径与其他两份 SQL 不完全一致。
 - 三份 SQL 均选出 `course_first_level_department_name`、`course_second_level_department_name`、`course_top_level_department_name`，但未在财务主表层单独过滤课程部门，复用时需确认是否补充。
+
+## 12. 反向联动速查
+
+被以下看板高频使用：
+
+- `../dashboards/consultant_sales_ranking_evaluation.md`：顾问销售评优和人产排名。
+- `../dashboards/traffic_profile.md`：成交科目档位 `sub`。
+- `../dashboards/refund_multi_subject_user_ratio.md`、`../dashboards/refund_subject_product.md`、`../dashboards/refund_reason_analysis.md`：退费分析财务主表。
+
+已知风险：
+
+- USQL RestAPI 当前为“无表权限”，执行验证前先读 `../sql_patterns/usql_permission_boundaries.md`。
+- 原表文档中的历史 SQL 片段含三参数 `date_add` 示例；生成新 SQL 时按 `../sql_patterns/dashboard_query_patterns.md` 改成 interval 写法。
+- 顾问评优只在明确要求评优/参评名单/人产时使用 `temp_table.dingxi01_pingyou_jg`。

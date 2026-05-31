@@ -21,6 +21,8 @@ REQUIRED_FILES = [
     "knowledge/01_table_index.md",
     "knowledge/02_query_engine_presto.md",
     "knowledge/03_range_limit_rules.md",
+    "knowledge/quick_reference.md",
+    "knowledge/decision_tree.md",
     "knowledge/joins/common_join_keys.md",
     "knowledge/joins/table_relationships.md",
     "knowledge/update_log/changelog.md",
@@ -117,6 +119,8 @@ def check_table_docs(failures: list[str]) -> None:
 
 def check_index_coverage(failures: list[str]) -> None:
     index_text = read_text(ROOT / "knowledge" / "01_table_index.md")
+    if "USQL状态" not in index_text and "USQL权限状态" not in index_text:
+        fail("knowledge/01_table_index.md must include a USQL status column", failures)
     table_dir = ROOT / "knowledge" / "tables"
     missing = []
     for path in table_dir.glob("*.md"):
@@ -129,6 +133,27 @@ def check_index_coverage(failures: list[str]) -> None:
         fail(f"tables missing from knowledge/01_table_index.md: {', '.join(sorted(missing))}", failures)
     else:
         ok("table index coverage")
+
+
+def check_channel_case_latest(failures: list[str]) -> None:
+    stale_refs: list[str] = []
+    knowledge_dir = ROOT / "knowledge"
+    for path in knowledge_dir.rglob("*.md"):
+        rel = path.relative_to(ROOT).as_posix()
+        if rel.startswith("knowledge/update_log/"):
+            continue
+        for line_no, line in enumerate(read_text(path).splitlines(), start=1):
+            if "market_channel_case_when_0522.sql" in line:
+                stale_refs.append(f"{rel}:{line_no}")
+
+    if stale_refs:
+        fail(
+            "non-changelog knowledge docs still reference market_channel_case_when_0522.sql; "
+            f"use 0524 or explicitly mark historical old-version usage: {', '.join(stale_refs)}",
+            failures,
+        )
+    else:
+        ok("latest channel CASE references")
 
 
 def check_changelog_order(failures: list[str]) -> None:
@@ -189,6 +214,7 @@ def main() -> int:
     check_metadata(failures)
     check_table_docs(failures)
     check_index_coverage(failures)
+    check_channel_case_latest(failures)
     check_changelog_order(failures)
 
     if failures:

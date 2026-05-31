@@ -125,3 +125,16 @@ limit 20;
 - `traffic_profile.sql` 使用 `qici + channel + grade + begin_time` 关联，而不是 `qudao` 字段。
 - `曹忆` 渠道使用 `ke_1 = '3'` 判断到课/有效到课，其他渠道使用 `ke_1 = '1'`。
 - 普通到课判断来自行课表 `live_learn_duration > 0`，有效到课判断来自行课表 `is_valid_live_learn = '1'`；该临时表只提供课次映射。
+
+## 12. 反向联动速查
+
+被以下看板使用：
+
+- `../dashboards/market_consultant_lead_conversion_attendance.md`：首节/有效到课映射。
+- `../dashboards/traffic_profile.md`：流量画像到课映射。
+- `../dashboards/outbound_call_process_dashboard.md`：外呼过程到课补充。
+
+已知风险：
+
+- 到课率全为 0 时先读 `../pitfalls/common_join_failures.md`，重点检查 `(qici, channel/qudao, grade, begin_time)`。
+- USQL RestAPI 当前可读，但必须按期次收窄。

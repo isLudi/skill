@@ -116,7 +116,7 @@ limit 20;
 ### 退费分析 SQL 使用备注
 
 - 三份退费分析 SQL 通过 `lead_id + account_domain` 关联该表，其中 `account_domain` 对应财务业绩明细的 `email_prefix`。
-- SQL 按 `rule_name` 长 CASE 派生 `channel_1`，该渠道口径来自退费分析历史 SQL，不等同于 `market_channel_case_when_0522.sql`。
+- SQL 按 `rule_name` 长 CASE 派生 `channel_1`，该渠道口径来自退费分析历史 SQL，不等同于 `market_channel_case_when_0524.sql` 的最新渠道映射。
 - `group_period_term` 从 `rule_name` 前 4 位数字提取，再推导 `friday_period`；规则名前缀格式不符合 MMDD 时会得到 null。
 - 该表在退费分析 SQL 中只限定 `dt/hour`，没有独立部门字段过滤，依赖 `lead_id` 来源范围。
 

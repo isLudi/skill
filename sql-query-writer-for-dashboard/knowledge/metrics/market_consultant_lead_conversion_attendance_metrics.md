@@ -26,7 +26,7 @@
 | 字段 | 口径 |
 |---|---|
 | period_name | 由 `group_period_year + group_period_term` 去掉“期”后按周五规则推导 |
-| channel_map | 基于 `flow_pool_name`、`rule_name`、渠道、投放计划、部门等字段的长 CASE 渠道归因；最新 CASE 归档见 `resources/raw_sql/market_channel_case_when_0522.sql` |
+| channel_map | 基于 `flow_pool_name`、`rule_name`、渠道、投放计划、部门等字段的长 CASE 渠道归因；最新 CASE 归档见 `resources/raw_sql/market_channel_case_when_0524.sql` |
 | grade_1 | `rule_name` 中包含高一/高二/高三/初二/初三则取对应年级，否则为 `未知` |
 | is_friend_lead | `valid_lead_count = 1` 时取 `friend_lead_count`，否则 0 |
 | is_shengou | 最新私海阶段为 `深沟` 或 `已双沟` 时为 1 |

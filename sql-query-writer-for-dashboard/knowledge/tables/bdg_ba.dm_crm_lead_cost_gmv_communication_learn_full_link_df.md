@@ -445,3 +445,19 @@ limit 20;
 - `province_name`、`city_name`、`city_level_name` 字段已在字段目录中存在，但省市归属和城市等级口径未由独立指标文档确认，需标记待人工确认。
 - `first_call_time_diff_hour` 来自 `date_diff('hour', section_assign_time, first_call_time)`，再派生 24/48 小时首呼指标；使用前需确认两个时间字段格式可直接 cast 为 timestamp。
 - `channel_map` 在该 SQL 中仍为超长 CASE，且部分分支同层引用派生 `period_name`，生成新 SQL 时建议先拆出 `period_name` CTE 后再引用。
+
+## 12. 反向联动速查
+
+被以下看板高频使用：
+
+- `../dashboards/market_consultant_conversion.md`：市场顾问转化主表。
+- `../dashboards/market_consultant_lead_conversion_attendance.md`：线索转化到课主表。
+- `../dashboards/traffic_profile.md`：流量画像主表。
+- `../dashboards/h_biz_line_department_conversion.md`：H 业务线二级部门转化主表。
+- `../dashboards/lead_assign_plan_actual_valid_count.md`：实际线索量和有效线索量来源。
+
+已知风险：
+
+- USQL RestAPI 当前为“权限校验器解析错误”，执行验证前先读 `../sql_patterns/usql_permission_boundaries.md`。
+- 渠道归因使用最新 `../sql_patterns/channel_mapping_case_when.md`，完整片段为 `../../resources/raw_sql/market_channel_case_when_0524.sql`。
+- 成本和到课 join 断裂先读 `../pitfalls/common_join_failures.md`。
