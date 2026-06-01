@@ -1,4 +1,4 @@
-# bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df
+﻿# bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df
 
 ## 1. 中文名称
 
@@ -458,6 +458,6 @@ limit 20;
 
 已知风险：
 
-- USQL RestAPI 当前为“权限校验器解析错误”，执行验证前先读 `../sql_patterns/usql_permission_boundaries.md`。
+- Web 查询环境正常可用。
 - 渠道归因使用最新 `../sql_patterns/channel_mapping_case_when.md`，完整片段为 `../../resources/raw_sql/market_channel_case_when_0524.sql`。
 - 成本和到课 join 断裂先读 `../pitfalls/common_join_failures.md`。

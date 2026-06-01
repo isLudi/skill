@@ -17,9 +17,9 @@ description: Generate governed Presto SQL for internal dashboard and exploratory
 4. `knowledge/03_range_limit_rules.md`：先读文件顶部“必读核心规则”，范围限定必须在选表和选字段阶段介入。
 5. `knowledge/decision_tree.md`：按用户需求路由到具体表、指标、看板、join、权限或踩坑文档。
 6. `knowledge/01_table_index.md`：确认候选表、分区和 USQL 权限状态。
-7. 相关 `knowledge/tables/*.md`、`knowledge/metrics/*.md`、`knowledge/dashboards/*.md`、`knowledge/joins/*.md`、`knowledge/pitfalls/*.md`、`knowledge/sql_patterns/*.md`：只读取与当前需求相关的文件。
-8. 当用户要求在 Python 中直接调用接口查数、验证 SQL、排查数据代码或替代线上平台下载数据流程时，读取 `knowledge/sql_patterns/usql_rest_api_python.md`，并默认从 `E:\2000_work\GAOTU\20002_市场顾问部看板维护表格\usql_api.env` 加载 `USQL_TOKEN`、`USQL_APP_ID`、`USQL_API_URL` 等接口参数。
-9. 涉及 API 执行、权限失败、表可读性判断、字段或部门范围不可见时，读取 `knowledge/sql_patterns/usql_permission_boundaries.md`；不要把权限失败简单归因为 SQL 语法。
+7. 相关 `knowledge/tables/*.md`、`knowledge/metrics/*.md`、`knowledge/dashboards/*.md`、`knowledge/dashboard_web_profiles/*.md`、`knowledge/joins/*.md`、`knowledge/pitfalls/*.md`、`knowledge/sql_patterns/*.md`：只读取与当前需求相关的文件。
+8. 当用户要求执行 SQL 并下载结果、或需要将查询结果用于 Python 分析时，通过 `usql-web-query-operator` Skill 调用 Playwright Web 自动化执行查询并下载 xlsx。具体流程参考 `knowledge/sql_patterns/web_query_playwright.md`。凭证使用 `E:\2000_work\GAOTU\20002_市场顾问部看板维护表格\usql_api.env` 中的 `BAIJIA_USERNAME` 和 `BAIJIA_PASSWORD`，浏览器登录状态保存在 `C:\Users\Ludim\.codex\runtime\usql-web-query-operator\state.json`。
+9. 涉及表可读性判断、权限失败、或某些表无法通过 Web 查询时，读取 `knowledge/sql_patterns/web_permission_guide.md`；不要把权限问题简单归因为 SQL 语法。
 
 文件编码规则：
 
@@ -113,10 +113,10 @@ description: Generate governed Presto SQL for internal dashboard and exploratory
 4. `knowledge/decision_tree.md`
 5. `knowledge/01_table_index.md`
 6. 相关 `knowledge/tables/*.md`
-7. 相关 `knowledge/metrics/*.md` 和 `knowledge/dashboards/*.md`
+7. 相关 `knowledge/metrics/*.md`、`knowledge/dashboards/*.md` 和 `knowledge/dashboard_web_profiles/*.md`
 8. 相关 `knowledge/joins/*.md` 和 `knowledge/pitfalls/*.md`
 9. 相关 `knowledge/sql_patterns/*.md`
-10. 涉及 API 执行、权限失败或表可读性判断时再读 `knowledge/sql_patterns/usql_permission_boundaries.md`
+10. 涉及表可读性、权限失败或 Web 查询异常时再读 `knowledge/sql_patterns/web_permission_guide.md`
 
 ### C. 生成 SQL
 

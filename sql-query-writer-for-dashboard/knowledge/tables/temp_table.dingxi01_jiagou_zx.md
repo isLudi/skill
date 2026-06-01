@@ -1,4 +1,4 @@
-# temp_table.dingxi01_jiagou_zx
+﻿# temp_table.dingxi01_jiagou_zx
 
 ## 1. 中文名称
 
@@ -178,5 +178,5 @@ eligible_consultant_name as (
 
 已知风险：
 
-- USQL RestAPI 当前可读；作为在职名单时必须限定 `cast(zaizhi as varchar) = '1'` 和目标部门，并按 `employee_email_name` 去重。
+- Web 查询环境正常可用。作为在职名单时必须限定 `cast(zaizhi as varchar) = '1'` 和目标部门，并按 `employee_email_name` 去重。
 - 该表无 `qici`，不能替代期次历史架构或严格参评名单。

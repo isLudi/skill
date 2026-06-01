@@ -1,4 +1,4 @@
-# finance_dw.app_finance_performance_extend_details_hf
+﻿# finance_dw.app_finance_performance_extend_details_hf
 
 ## 1. 中文名称
 
@@ -333,6 +333,6 @@ limit 100;
 
 已知风险：
 
-- USQL RestAPI 当前为“无表权限”，执行验证前先读 `../sql_patterns/usql_permission_boundaries.md`。
+- Web 查询环境正常可用。
 - 原表文档中的历史 SQL 片段含三参数 `date_add` 示例；生成新 SQL 时按 `../sql_patterns/dashboard_query_patterns.md` 改成 interval 写法。
 - 顾问评优只在明确要求评优/参评名单/人产时使用 `temp_table.dingxi01_pingyou_jg`。

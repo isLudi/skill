@@ -1,4 +1,4 @@
-# temp_table.dingxi01_cost
+﻿# temp_table.dingxi01_cost
 
 ## 1. 中文名称
 
@@ -110,4 +110,4 @@ limit 200;
 已知风险：
 
 - `grade='0'` 是全年级通配，生成 join 时必须使用 `(ct.grade = grade_1 or ct.grade = '0')`，详见 `../pitfalls/common_join_failures.md`。
-- USQL RestAPI 当前可读，但必须按 `qici` 收窄。
+- Web 查询环境正常可用。必须按 `qici` 收窄。

@@ -1,4 +1,4 @@
-# temp_table.dingxi01_daoke_1_6_t
+﻿# temp_table.dingxi01_daoke_1_6_t
 
 ## 1. 中文名称
 
@@ -137,4 +137,4 @@ limit 20;
 已知风险：
 
 - 到课率全为 0 时先读 `../pitfalls/common_join_failures.md`，重点检查 `(qici, channel/qudao, grade, begin_time)`。
-- USQL RestAPI 当前可读，但必须按期次收窄。
+- Web 查询环境正常可用。必须按期次收窄。

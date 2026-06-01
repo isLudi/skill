@@ -1,4 +1,4 @@
-# temp_table.dingxi01_jiagou_db
+﻿# temp_table.dingxi01_jiagou_db
 
 ## 1. 中文名称
 
@@ -141,5 +141,5 @@ limit 20;
 
 已知风险：
 
-- USQL RestAPI 当前可读；市场顾问场景必须同时限定 `qici` 和目标部门。
+- Web 查询环境正常可用。市场顾问场景必须同时限定 `qici` 和目标部门。
 - 本表存在未来期次架构不代表事实主表已有该期数据，排查缺失先读 `../sql_patterns/dashboard_query_patterns.md`。

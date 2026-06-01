@@ -317,23 +317,6 @@
 - 将期次计算中的三参数 `date_add` 改为 `interval` 写法，将最终 `sx_qi` 中的 `substring_index` 改为 Presto `split_part`，并将 `nvl` 改为 `coalesce`。
 - 更新 `knowledge/dashboards/market_consultant_conversion.md`、`knowledge/metrics/market_consultant_conversion_metrics.md` 和 `knowledge/sql_patterns/channel_mapping_case_when.md`，同步 `xiansuo`、`pp_pmit`、`ww_pmit`、0522 渠道 CASE 和最终期次过滤口径。
 
-## 2026-05-24 USQL RestAPI Python 调用规则入库
-
-- 新增 `knowledge/sql_patterns/usql_rest_api_python.md`，记录 USQL RestAPI 的方法、线上 host、测试 host、路径、header、body/param、成功响应状态和异常规则。
-- 明确 Python 直接取数优先使用 `POST http://bdg-da-gateway.baijia.com/usql/api/execute`，header 传 `token`，body 传 `sql` 与 `appId`。
-- 补充标准库 `urllib.request` 调用模板，支持后续直接在 Python 中执行 Presto SQL 并读取响应数据。
-- 明确不将真实 token 写入 Skill，运行时从环境变量、本地配置或用户指定文件读取。
-- 更新 `SKILL.md` 加载入口，要求 Python API 查数、SQL 验证和数据代码排查场景读取该 RestAPI 文档。
-- 将 `metadata.json` 版本更新为 `0.2.1`。
-
-## 2026-05-24 USQL RestAPI 本地 env 配置
-
-- 在本地目录 `E:\2000_work\GAOTU\20002_市场顾问部看板维护表格` 新增 `usql_api.env`，集中维护 `USQL_API_URL`、`USQL_APP_ID`、`USQL_TOKEN`、`USQL_TIMEOUT_SECONDS` 等 Python 接口调用参数。
-- 更新 `knowledge/sql_patterns/usql_rest_api_python.md`，明确 Python 调用 USQL 接口时默认读取 `E:\2000_work\GAOTU\20002_市场顾问部看板维护表格\usql_api.env`。
-- 补充 env 文件变量清单和 `load_env_file` 标准库读取模板，避免后续代码硬编码 token。
-- 更新 `SKILL.md` RestAPI 入口说明，使后续直接查数、SQL 验证和数据代码排查场景可定位默认 env 文件。
-- 将 `metadata.json` 版本更新为 `0.2.2`。
-
 ## 2026-05-24 市场顾问转化看板 0524 口径更新
 
 - 使用用户提供的最新 SQL 覆盖 `resources/raw_sql/market_consultant_conversion.sql`，来源为 `D:\Feishu\0524.txt`。
@@ -423,23 +406,24 @@
 - 模板中的 `dt >= '<排查起始日期YYYYMMDD>'` 必须按用户提问当天或排查当天动态替换，通常取当天或往前 1 天，跨零点或怀疑延迟时扩大到最近 2 天；不得固定沿用历史日期。
 - 更新 `knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md`，在主表历史备注中增加该排查模板入口。
 
-## 2026-05-31 USQL 权限边界探查规则补充
+## 2026-05-31 删除 USQL RestAPI 调用路径
 
-- 更新 `knowledge/sql_patterns/usql_rest_api_python.md`，新增“USQL 权限边界探查规则”。
-- 明确 USQL RestAPI 可调用不等于具备全部表、字段、部门、业务线或行级范围权限；后续探查时必须拆分判断接口连通、表可读、字段可读、部门/范围可见。
-- 补充权限探查顺序、结果分类和权限边界记录模板，用于沉淀哪些表可通过 API 查询、哪些范围受限，以及后续申请表/字段/部门权限所需证据。
-- 强调不得盲扫全库或暴力枚举部门，只探查用户指定、知识库已有或用户明确批准的候选表和范围；不得记录真实 token、账号、cookie、env 原文或敏感响应全文。
+- **删除** `knowledge/sql_patterns/usql_rest_api_python.md`：USQL RestAPI Python 调用规则文档。
+- **删除** `knowledge/sql_patterns/usql_permission_boundaries.md`：USQL RestAPI 权限边界探查记录。
+- **原因**：查询执行路径已完全迁移至 Playwright Web 自动化（`usql-web-query-operator` Skill），Web 路径覆盖所有表的完整用户权限，不再需要 RestAPI 路径。RestAPI 权限覆盖率仅 27 张表中 13 张可读，关键表无法使用，不具备作为备选路径的价值。
+- **关联变更**：
+  - `SKILL.md`：§0、§3.B 不再引用 RestAPI 文档。
+  - `knowledge/sql_patterns/web_query_playwright.md`：移除 RestAPI 对比章节。
+  - `knowledge/sql_patterns/web_permission_guide.md`：简化为纯 Web 权限指南。
+  - `knowledge/quick_reference.md`、`knowledge/decision_tree.md`：移除 RestAPI 入口。
+  - `knowledge/01_table_index.md`：移除 `USQL状态` 列。
+  - 所有表文档：移除 USQL RestAPI 备注。
+  - `scripts/check_skill_integrity.py`：移除 USQL 列强制检查。
 
-## 2026-05-31 USQL 高频表权限边界首轮探查
+## 2026-06-01 自助 BI 看板结构快照入库
 
-- 新增 `knowledge/sql_patterns/usql_permission_boundaries.md`，记录按知识库调用频率分层的 USQL RestAPI 表权限探查结果。
-- 完成 27 张候选表最小安全探查：13 张最小读成功，13 张明确提示当前账号无表权限，1 张触发权限校验器 SQL 解析错误。
-- 标记当前可通过 API 使用的临时维护表、CRM 分配/线索表和 APP 小时活跃表，并记录 `qici`、`department`、`assign_employee_*`、`mapping_*` 等已验证边界。
-- 标记优先申请或排查权限的表，包括 `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df`、`finance_dw.app_finance_performance_extend_details_hf`、`dw.dim_employee_chain` 等高频依赖表。
-- 文档未记录真实 token、env 原文、完整 DAS 申请 URL 或员工姓名样例。
-
-## 2026-05-31 全链路主表 USQL 权限校验器复测
-
-- 复测 `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df`，包括 `where 1=0`、字面量 `dt/hour`、alias、双引号标识符、`desc`、`show columns` 和字段抽样等最小写法，均返回“权限校验时遇到错误 SQL”。
-- 使用 `finance_dw.app_finance_performance_extend_details_hf` 做无权限对照，确认标准无表权限会返回“账号没权限/申请权限”类错误；全链路主表当前失败特征不同。
-- 更新 `knowledge/sql_patterns/usql_permission_boundaries.md`，将该表归类为 USQL 权限校验器或 DAS 资源映射异常待平台确认，而不是已确认的普通 SQL 语法错误或标准无表权限。
+- 通过 `usql-web-query-operator/scripts/read_dashboard.py profile-folder` 逐个打开 `市场顾问数据` 文件夹下 7 个重点看板，并等待页面刷新后抽取 Web BI 结构。
+- 新增 `knowledge/dashboard_web_profiles/`，保存自助 BI 页面结构摘要：dashboard_id、打开入口、全局筛选器、组件单元、字段 ID、指标/序列名、刷新 task_id、行数/序列计数。
+- 已入库看板：外呼过程数据看板、市场顾问部_行课报表、运营侧数据看板、转化数据、市场顾问-进量节奏、市场顾问--评优看板、昆仑山战役-暑期激励数据看板。
+- 更新 `knowledge/dashboards/README.md`、`knowledge/quick_reference.md`、`knowledge/decision_tree.md`，将“页面筛选器/字段 ID/组件结构”路由到 `knowledge/dashboard_web_profiles/README.md` 和对应快照。
+- 结构快照只保存字段和刷新元数据，不保存返回结果明细行；业务口径仍以 `knowledge/dashboards/*.md` 与 `knowledge/metrics/*.md` 为准。

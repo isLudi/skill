@@ -1,4 +1,4 @@
-# service_dw.dwd_crm_assign_private_detail_hf
+﻿# service_dw.dwd_crm_assign_private_detail_hf
 
 ## 1. 中文名称
 
@@ -179,5 +179,5 @@ limit 20;
 
 已知风险：
 
-- USQL RestAPI 当前可读，但市场顾问场景必须继续限定 `assign_employee_first_level_department_name = 'H业务线'`、`assign_employee_second_level_department_name = '市场部'`、`assign_employee_third_level_department_name = '市场顾问部'`。
+- Web 查询环境正常可用。市场顾问场景必须继续限定部门范围。
 - 与主线索表常用 `user_id = user_number` 关联，使用前确认类型和去重粒度。

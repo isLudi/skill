@@ -23,6 +23,7 @@ REQUIRED_FILES = [
     "knowledge/03_range_limit_rules.md",
     "knowledge/quick_reference.md",
     "knowledge/decision_tree.md",
+    "knowledge/dashboard_web_profiles/README.md",
     "knowledge/joins/common_join_keys.md",
     "knowledge/joins/table_relationships.md",
     "knowledge/update_log/changelog.md",
@@ -36,6 +37,7 @@ REQUIRED_DIRS = [
     "examples",
     "knowledge/tables",
     "knowledge/dashboards",
+    "knowledge/dashboard_web_profiles",
     "knowledge/metrics",
     "knowledge/joins",
     "knowledge/sql_patterns",
@@ -119,8 +121,10 @@ def check_table_docs(failures: list[str]) -> None:
 
 def check_index_coverage(failures: list[str]) -> None:
     index_text = read_text(ROOT / "knowledge" / "01_table_index.md")
-    if "USQL状态" not in index_text and "USQL权限状态" not in index_text:
-        fail("knowledge/01_table_index.md must include a USQL status column", failures)
+    # 2026-05-31: USQL status column removed in favor of Playwright Web automation.
+    # The index no longer needs a per-table API-readability column.
+    if "完整表名" not in index_text:
+        fail("knowledge/01_table_index.md missing required table header column", failures)
     table_dir = ROOT / "knowledge" / "tables"
     missing = []
     for path in table_dir.glob("*.md"):
