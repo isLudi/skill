@@ -42,6 +42,17 @@ class RunSummary:
     result_preview: dict[str, Any] | None = None
     download_path: str | None = None
 
+    def to_json(self) -> str:
+        return json.dumps({
+            "ok": self.ok,
+            "status": self.status,
+            "message": self.message,
+            "artifacts_dir": self.artifacts_dir,
+            "query_id": self.query_id,
+            "result_preview": self.result_preview,
+            "download_path": self.download_path,
+        }, ensure_ascii=False, indent=2)
+
 
 def import_playwright() -> Any:
     try:
