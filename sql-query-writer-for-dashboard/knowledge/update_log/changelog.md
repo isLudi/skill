@@ -442,3 +442,9 @@
 - 更新 `knowledge/joins/table_relationships.md`，明确当前到课映射使用 `qici + channel_map_1 + grade_1 + begin_time` 关联 `temp_table.dingxi01_daoke_1_6_t`，且渠道字段使用 `qudao` 而不是 `channel`。
 - 更新 `knowledge/01_table_index.md` 和 `knowledge/tables/temp_table.shenbaoxin_channel_group.md`，说明最新到课 raw SQL 已不再 join `temp_table.shenbaoxin_channel_group`。
 - 记录渠道 CASE 顺序风险：`孟亚飞IP99元` 等特例必须放在泛化的 `孟亚飞9元`、`信息流` 等规则之前；后续排查“某渠道从某期开始消失”应优先检查 rule_name 变化和 CASE 顺序。
+
+## 2026-06-05 外呼过程期次导出模板补充
+
+- 新增 `knowledge/sql_patterns/outbound_call_process_export_template.md`，保存用户提供的外呼过程查询为模板取数格式，不覆盖 `resources/raw_sql/outbound_call_process_dashboard.sql`。
+- 增加 `${period_name1}`、`${period_name2}` 参数，分别在 `jg_market` 架构 CTE 和 `prc` 线索宽表 CTE 中限制 `qici` 半开区间：`qici >= ${period_name1}` 且 `qici < ${period_name2}`。
+- 更新 `knowledge/quick_reference.md`、`knowledge/decision_tree.md`、`knowledge/sql_patterns/dashboard_query_patterns.md`，将外呼过程期次导出和模板取数需求路由到该模板文档。

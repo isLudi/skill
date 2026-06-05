@@ -386,6 +386,14 @@ group by u.check_stage
 
 不要使用 `service_dw.app_h_crm_lead_task_process_info_detail_hf.call_answer_lead_count` 作为首 call 任务来源。该旧过程表只保留双表发送/回收、任务过程、电话接通等非首 call 任务用途。
 
+## 外呼过程期次导出模板
+
+外呼过程数据需要按期次导出时，优先读取：
+
+- `knowledge/sql_patterns/outbound_call_process_export_template.md`
+
+该模板不覆盖 `resources/raw_sql/outbound_call_process_dashboard.sql`，只作为导出取数模板。期次范围使用 `qici >= ${period_name1}` 且 `qici < ${period_name2}` 的半开区间；执行前必须替换为带引号的期次字符串。
+
 ## 流量画像增强模式
 
 流量画像类 SQL 可参考 `resources/raw_sql/traffic_profile.sql` 和 `knowledge/dashboards/traffic_profile.md`，在市场顾问主全链路表基础上增加画像/过程维度：

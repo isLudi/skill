@@ -36,7 +36,7 @@
 | 流量画像/城市渠道 | `knowledge/dashboards/traffic_profile.md` | `knowledge/metrics/traffic_profile_metrics.md` |
 | 退费分析 | `knowledge/metrics/refund_analysis_metrics.md` | 相关 `knowledge/dashboards/refund_*.md` |
 | 分配计划实际有效量 | `knowledge/dashboards/lead_assign_plan_actual_valid_count.md` | `knowledge/joins/common_join_keys.md` |
-| 外呼过程/首 call | `knowledge/dashboards/outbound_call_process_dashboard.md` | `knowledge/sql_patterns/first_call_task_metric_pattern.md` |
+| 外呼过程/首 call | `knowledge/dashboards/outbound_call_process_dashboard.md` | `knowledge/sql_patterns/first_call_task_metric_pattern.md`；期次导出模板看 `knowledge/sql_patterns/outbound_call_process_export_template.md` |
 | 顾问销售评优/人产 | `knowledge/dashboards/consultant_sales_ranking_evaluation.md` | `knowledge/metrics/consultant_sales_ranking_evaluation_metrics.md` |
 | 自助 BI 页面筛选器/字段 ID/组件结构 | `knowledge/dashboard_web_profiles/README.md` | 对应 `knowledge/dashboard_web_profiles/*_web_profile.md` |
 | JOIN 断裂/指标为 0 | `knowledge/pitfalls/common_join_failures.md` | 相关表文档 |
