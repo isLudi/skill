@@ -24,7 +24,7 @@
 | service_dw.dws_service_wechat_call_detail_df | 沟通电话微信明细表 | 待确认；字段目录未提供数据粒度 | dt | 否 | 已确认 | 字段目录已补全，口径需人工校验 |
 | service_dw.dim_crm_assign_rule_plan_item_info_hf | 分配规则计划 item 信息表 | 待确认；根据 SQL 推断为 rule_id + plan_id + employee_email_name 或计划 item 小时快照粒度 | dt, hour | 是 | 已确认 | 根据 `resources/raw_sql/lead_assign_plan_actual_valid_count.sql` 补充最小字段，真实 DDL 待确认 |
 | temp_table.dingxi01_channel_group | 渠道分组映射表 | 渠道映射粒度，待确认。理论上一行对应一个 `channel`。 | 无 | 否 | 已确认 | 保留原整理 |
-| temp_table.shenbaoxin_channel_group | 渠道分组映射表（申保鑫） | 渠道映射粒度，字段来自 SQL 使用字段推断，待确认 | 无 | 否 | 已确认 | 根据 `resources/raw_sql/market_consultant_lead_conversion_attendance.sql` 补充使用字段，真实字段类型和维护来源待确认 |
+| temp_table.shenbaoxin_channel_group | 渠道分组映射表（申保鑫） | 渠道映射粒度，字段来自 SQL 使用字段推断，待确认 | 无 | 否 | 已确认 | 根据 `resources/raw_sql/h_biz_line_department_conversion.sql` 补充使用字段；2026-06-05 后不再用于到课 raw SQL，真实字段类型和维护来源待确认 |
 | temp_table.dingxi01_cost | 渠道成本目标表 | 渠道-年级-期次粒度，待确认。 | 无 | 否 | 已确认 | 保留原整理 |
 | temp_table.dingxi01_daoke_1_6_t | 到课课次映射表 | 渠道-期次-年级-开课时间-课次粒度。来自 `daoke_t_one_six.xlsx`，数据行 2862 行、字段 7 个，存在 1 条空行；join key 存在重复，使用前建议去重。 | 无 | 否 | 已确认 | 已按 Excel 补全字段、样例和 key 重复检查 |
 | temp_table.dingxi01_jiagou_db | 架构映射表 | 顾问-期次-架构映射粒度。来自 `jiagou_xian_zhengzhou.xlsx`，数据行 5017 行、字段 10 个，存在 7 条空行；join key 存在少量重复。 | 无 | 否 | 已确认 | 已按 Excel 补全字段、样例和 key 重复检查 |

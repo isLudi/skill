@@ -434,3 +434,11 @@
 - 更新 `knowledge/pitfalls/common_join_failures.md`，新增“daoke 表有渠道，但看板渠道消失”排查项：当临时到课表已维护渠道但看板缺失时，优先模拟现有 CASE 输出，检查是否被前序分支归到相邻渠道。
 - 更新 `knowledge/decision_tree.md`，将“某渠道某期次消失”和到课指标异常路由到渠道 CASE 顺序排查。
 - 已验证案例：`0529期/0605期-孟亚飞ip99元-孟亚飞ip99元-*` 被前序 `孟亚飞9元` 宽泛规则抢先命中；修复应将 `when lower(f.rule_name) like '%孟亚飞ip99%' then '孟亚飞IP99元'` 放在 `孟亚飞9元` 宽泛规则之前。
+
+## 2026-06-05 市场顾问线索转化到课 raw SQL 覆盖
+
+- 使用用户提供的最新到课 SQL 覆盖 `resources/raw_sql/market_consultant_lead_conversion_attendance.sql`。
+- 同步更新 `knowledge/dashboards/market_consultant_lead_conversion_attendance.md` 和 `knowledge/metrics/market_consultant_lead_conversion_attendance_metrics.md`，将旧版“转化 + GMV + 成本目标 + 首节到课”口径改为“有效线索 + 第 1-6 节到课 + 第 1-6 节有效到课”口径。
+- 更新 `knowledge/joins/table_relationships.md`，明确当前到课映射使用 `qici + channel_map_1 + grade_1 + begin_time` 关联 `temp_table.dingxi01_daoke_1_6_t`，且渠道字段使用 `qudao` 而不是 `channel`。
+- 更新 `knowledge/01_table_index.md` 和 `knowledge/tables/temp_table.shenbaoxin_channel_group.md`，说明最新到课 raw SQL 已不再 join `temp_table.shenbaoxin_channel_group`。
+- 记录渠道 CASE 顺序风险：`孟亚飞IP99元` 等特例必须放在泛化的 `孟亚飞9元`、`信息流` 等规则之前；后续排查“某渠道从某期开始消失”应优先检查 rule_name 变化和 CASE 顺序。

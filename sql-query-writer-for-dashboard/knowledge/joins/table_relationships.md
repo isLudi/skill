@@ -163,14 +163,14 @@
 
 - 来源：`resources/raw_sql/market_consultant_lead_conversion_attendance.sql`
 - 主表：`bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df`
-- 主表范围：`section_assign_employee_first_level_department_name = 'H业务线'`、`section_assign_employee_second_level_department_name = '市场部'`、`period_mapping_first_level_department_name = 'H业务线'`，期次映射二级部门允许 `精品班学部`、`青橙项目部`、`一对一学部`、`本地化大班学部`、`市场部`、`菁英班学部`。
+- 主表范围：`section_assign_employee_first_level_department_name = 'H业务线'`、`section_assign_employee_second_level_department_name = '市场部'`、`period_mapping_first_level_department_name = 'H业务线'`、`valid_lead_count = '1'`。
 - 私海阶段：通过 `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.user_id = service_dw.dwd_crm_assign_private_detail_hf.user_number` 关联，并按 `private_sea_update_time desc` 取最新阶段；`sale_flow_stage_sequence in ('450','470')` 分别映射为深沟、已双沟。
-- 到课数据：通过 `data.user_id = service_dw.dws_service_user_learn_detail_hf.user_number` 和 `data.period_name = 行课派生 qici` 关联，再通过 `period_name + channel_map + grade_1 + begin_time` 关联 `temp_table.dingxi01_daoke_1_6_t`。
-- 到课课次：`channel_map = '曹忆'` 使用 `ke_1 = '3'` 且 `live_learn_duration > 0`；其他渠道使用 `ke_1 = '1'` 且 `live_learn_duration > 0`。`is_valid_live_learn` 已被保留但当前结果层未聚合。
-- 成本目标：`temp_table.dingxi01_cost` 通过 `channel = channel_map`、`grade = grade_1`、`qici = period_name` 补充 `cost` 和 `goal`。
-- 渠道分组：`temp_table.shenbaoxin_channel_group` 通过 `channel = channel_map` 关联，当前未输出字段；如后续使用 `channel_group`，必须先确认字段存在和 `channel` 唯一性。
-- 架构补充：`temp_table.dingxi01_jiagou_db` 通过 `qici + department + xiaozu + employee_email_name` 关联，当前未输出字段；`temp_table.dingxi01_jiagou_zx` 通过 `employee_email_name` 补充 `xiaozu`。
-- 状态：历史 SQL 口径已入库；`channel_map` 长 CASE、AB 意向字段类型、到课映射使用 `channel` 还是 `qudao`、成本目标表唯一性和 `shenbaoxin_channel_group` 字段结构需人工确认。
+- 首呼统计：通过 `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.user_id = service_dw.dm_crm_lead_stats_detail_hf.user_number` 关联，当前 raw SQL 仅保留 `first_call_connect_diff_hour` 派生字段，结果层未输出。
+- 到课数据：通过 `data.user_id = service_dw.dws_service_user_learn_detail_hf.user_number` 和 `data.qici = 行课派生 qici` 关联，再通过 `qici + channel_map_1 + grade_1 + begin_time` 关联 `temp_table.dingxi01_daoke_1_6_t`。
+- 到课课次：当前 raw SQL 输出第 1-6 节到课和第 1-6 节有效到课；普通到课使用 `live_learn_duration > 0`，有效到课使用 `is_valid_live_learn = '1'`。
+- 课次映射：`temp_table.dingxi01_daoke_1_6_t` 使用 `qudao` 字段与 `channel_map_1` 关联，不使用 `channel`。
+- 架构补充：`temp_table.dingxi01_jiagou_db` 通过 `employee_email_prefix + qici` 关联，输出 `xiaozu`、`department`、`jingli`，并用 `jg.department is not null` 过滤。
+- 状态：2026-06-05 已用最新到课 SQL 覆盖 raw SQL；该版本不再 join 成本目标表或 `temp_table.shenbaoxin_channel_group`。渠道 CASE 顺序是核心风险，`孟亚飞IP99元` 等特例必须放在泛化规则之前。
 
 ## 流量画像看板关系
 
