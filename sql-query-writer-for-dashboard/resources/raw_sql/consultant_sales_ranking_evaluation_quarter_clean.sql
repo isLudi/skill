@@ -16,14 +16,14 @@ with dd as (
         talent_type_name, city_name as city, department,
         biz_number, course_grade as grade_list,
         course_subject as subject,
-        case
-            when substr(trade_time, 1, 10) >= '2026-02-25' and substr(trade_time, 1, 10) <= '2026-03-02' then '20260227期'
-            when substr(trade_time, 1, 10) >= '2026-02-17' and substr(trade_time, 1, 10) <= '2026-02-24' then '20260220期'
-            when substr(trade_time, 1, 10) >= '2026-02-09' and substr(trade_time, 1, 10) <= '2026-02-16' then '20260213期'
-            when substr(trade_time, 1, 10) >= '2026-02-03' and substr(trade_time, 1, 10) <= '2026-02-08' then '20260206期'
-            when substr(trade_time, 1, 10) >= '2026-01-27' and substr(trade_time, 1, 10) <= '2026-02-02' then '20260130期'
-            when substr(trade_time, 1, 10) >= '2026-01-20' and substr(trade_time, 1, 10) <= '2026-01-26' then '20260123期'
-            else concat(date_format(date_trunc('week', cast(trade_time as timestamp) - interval '1' day) + interval '4' day, '%Y%m%d'), '期') end as qici,
+         case
+             when substr(trade_time, 1, 10) >= '2026-02-25' and substr(trade_time, 1, 10) <= '2026-03-02' then '20260227期'
+             when substr(trade_time, 1, 10) >= '2026-02-17' and substr(trade_time, 1, 10) <= '2026-02-24' then '20260220期'
+             when substr(trade_time, 1, 10) >= '2026-02-09' and substr(trade_time, 1, 10) <= '2026-02-16' then '20260213期'
+             when substr(trade_time, 1, 10) >= '2026-02-03' and substr(trade_time, 1, 10) <= '2026-02-08' then '20260206期'
+             when substr(trade_time, 1, 10) >= '2026-01-27' and substr(trade_time, 1, 10) <= '2026-02-02' then '20260130期'
+             when substr(trade_time, 1, 10) >= '2026-01-20' and substr(trade_time, 1, 10) <= '2026-01-26' then '20260123期'
+         else concat(date_format(date_trunc('week', cast(trade_time as timestamp) - interval '1' day) + interval '4' day, '%Y%m%d'), '期') end as qici,
         leader_employee_email_name, teacher_name,
         case course_term_id
             when 'C' then '春季'
@@ -37,7 +37,7 @@ with dd as (
     where dt = FORMAT_DATETIME(NOW() - INTERVAL '2' HOUR, 'YYYYMMdd')
         and hour = FORMAT_DATETIME(NOW() - INTERVAL '2' HOUR, 'HH')
         and employee_first_level_department_name = 'H业务线'
- 	    and employee_second_level_department_name = '市场部'
+         and employee_second_level_department_name = '市场部'
         and employee_third_level_department_name = '市场顾问部'
     ) base
     where base.qici >= '20260320期'
@@ -173,10 +173,64 @@ from rank_h)
                 case when inc = 0 and ref < 0 then abs(ref) else null end) as rank_in_ref
     from rk_r
 )
+,attendance_base as (
+    select distinct
+        case
+        when substring(pg.qici, 1, 6) between '202601' and '202603' then '2026Q1'
+        when substring(pg.qici, 1, 6) between '202604' and '202606' then '2026Q2'
+        when substring(pg.qici, 1, 6) between '202607' and '202609' then '2026Q3'
+        when substring(pg.qici, 1, 6) between '202610' and '202612' then '2026Q4'
+        when substring(pg.qici, 1, 6) between '202701' and '202703' then '2027Q1'
+        else concat(substring(pg.qici, 1, 4), 'Q',
+                    cast((cast(substring(pg.qici, 5, 2) as int) - 1) / 3 + 1 as varchar))
+    end as quarter,
+        pg.qici,
+        pg.employee_email_name
+    from temp_table.dingxi01_pingyou_jg pg
+    inner join jiagou_zx_active zx
+      on zx.employee_email_name = pg.employee_email_name
+    where cast(pg.zaizhi as varchar) = '1'
+      and pg.is_emp = '是'
+      and pg.qici >= '20260320期'
+)
+,attendance_metric as (
+    select
+        cp.quarter,
+        cp.employee_email_name,
+        cp.consultant_period_count,
+        pt.total_period_count
+    from (
+        select
+            quarter,
+            employee_email_name,
+            count(distinct qici) as consultant_period_count
+        from attendance_base
+        group by quarter, employee_email_name
+    ) cp
+    left join (
+        select
+            quarter,
+            count(distinct qici) as total_period_count
+        from attendance_base
+        group by quarter
+    ) pt
+      on pt.quarter = cp.quarter
+)
+,final_result as (
+    select
+        rr.*,
+        coalesce(am.consultant_period_count, 0) as consultant_period_count,
+        coalesce(am.total_period_count, 0) as total_period_count
+    from ref_rank rr
+    left join attendance_metric am
+      on am.quarter = rr.quarter
+     and am.employee_email_name = rr.employee_email_name
+)
+
 select
 *,
     round(rank_in_roi * 1.0 / nullif(count(*) over (partition by quarter), 0), 5) as rank_position_roi,
     round(rank_in_ref * 1.0 / nullif(count(*) over (partition by quarter), 0), 5) as rank_position_ref,
     case when channel like '%抖音私域%' or channel like '%抖音私信%' then 10 else 0 end as cs_channel_rank,
     case when (channel like '%抖音私域%' or channel like '%抖音私信%') and roi >= 0.8 then 2 else 0 end as cs_80_rank
-from ref_rank;
+from final_result

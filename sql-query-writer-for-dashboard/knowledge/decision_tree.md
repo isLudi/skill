@@ -5,7 +5,7 @@
 | 用户说法 | 先读 | 再读 | 必要规则/踩坑 |
 |---|---|---|---|
 | 市场顾问转化、线索转化、GMV、净收、破单 | `knowledge/dashboards/market_consultant_conversion.md` | `knowledge/metrics/market_consultant_conversion_metrics.md`、`knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md` | `knowledge/sql_patterns/channel_mapping_case_when.md`、`knowledge/pitfalls/common_join_failures.md` |
-| 线索转化到课、首节到课、AB 意向 | `knowledge/dashboards/market_consultant_lead_conversion_attendance.md` | `knowledge/metrics/market_consultant_lead_conversion_attendance_metrics.md`、`knowledge/tables/temp_table.dingxi01_daoke_1_6_t.md` | 到课表 key 和 `曹忆` 课次规则 |
+| 线索转化到课、首节到课、AB 意向 | `knowledge/dashboards/market_consultant_lead_conversion_attendance.md` | `knowledge/metrics/market_consultant_lead_conversion_attendance_metrics.md`、`knowledge/tables/temp_table.dingxi01_daoke_1_6_t.md` | 到课表 key、渠道 CASE 顺序和 `曹忆` 课次规则 |
 | 流量画像、城市渠道、APP 登录、成交科目档位 | `knowledge/dashboards/traffic_profile.md` | `knowledge/metrics/traffic_profile_metrics.md`、`knowledge/sql_patterns/dashboard_query_patterns.md` | 外呼 join 未带 `lead_id`、财务成交科目 join 粒度 |
 | 退费分析、多科退费、退费原因、科目产品退费 | `knowledge/metrics/refund_analysis_metrics.md` | `knowledge/dashboards/refund_multi_subject_user_ratio.md`、`knowledge/dashboards/refund_subject_product.md`、`knowledge/dashboards/refund_reason_analysis.md` | 财务表权限、退款正负号、三参数 `date_add` 改写 |
 | 分配计划、计划分配量、实际有效量 | `knowledge/dashboards/lead_assign_plan_actual_valid_count.md` | `knowledge/tables/service_dw.dim_crm_assign_rule_lead_detail_hf.md`、`knowledge/tables/temp_table.dingxi01_plan_id.md` | `group_id` 不全局唯一，规则名拆期次风险 |
@@ -20,7 +20,7 @@
 | 昆仑山战役、暑期激励数据看板页面结构 | `knowledge/dashboard_web_profiles/kunlun_summer_incentive_web_profile.md` | `knowledge/dashboard_web_profiles/operation_side_dashboard_web_profile.md`、相关 dashboards/metrics | 激励看板以页面结构快照为主，业务奖励规则需人工确认 |
 | H 业务线二级部门转化、跨二级部门对比 | `knowledge/dashboards/h_biz_line_department_conversion.md` | `knowledge/metrics/h_biz_line_department_conversion_metrics.md`、`knowledge/sql_patterns/first_call_task_metric_pattern.md` | 市场顾问看板和跨部门看板范围不同 |
 | 某期次/经理/顾问查不到 | `knowledge/sql_patterns/dashboard_query_patterns.md` | 事实主表文档、名单/架构表文档、`knowledge/sql_patterns/web_permission_guide.md` | 先判断事实主表驱动还是名单/架构表驱动 |
-| JOIN 后指标为 0、行数放大、年级断裂 | `knowledge/pitfalls/common_join_failures.md` | `knowledge/joins/common_join_keys.md`、相关表文档 | `grade='0'` 通配、到课映射缺失、架构截面错位 |
+| JOIN 后指标为 0、行数放大、年级断裂、某渠道某期次消失 | `knowledge/pitfalls/common_join_failures.md` | `knowledge/joins/common_join_keys.md`、`knowledge/sql_patterns/channel_mapping_case_when.md`、相关表文档 | `grade='0'` 通配、到课映射缺失、渠道 CASE 顺序抢先命中、架构截面错位 |
 | Web 查询执行、SQL 下载、权限问题 | `knowledge/sql_patterns/web_query_playwright.md` | `knowledge/sql_patterns/web_permission_guide.md`、`usql-web-query-operator` Skill | 区分 Web 登录态过期、SQL 语法、部门范围、表级不可见 |
 
 ## 路由原则

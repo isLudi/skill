@@ -427,3 +427,10 @@
 - 已入库看板：外呼过程数据看板、市场顾问部_行课报表、运营侧数据看板、转化数据、市场顾问-进量节奏、市场顾问--评优看板、昆仑山战役-暑期激励数据看板。
 - 更新 `knowledge/dashboards/README.md`、`knowledge/quick_reference.md`、`knowledge/decision_tree.md`，将“页面筛选器/字段 ID/组件结构”路由到 `knowledge/dashboard_web_profiles/README.md` 和对应快照。
 - 结构快照只保存字段和刷新元数据，不保存返回结果明细行；业务口径仍以 `knowledge/dashboards/*.md` 与 `knowledge/metrics/*.md` 为准。
+
+## 2026-06-05 渠道 CASE 顺序抢先命中规则补充
+
+- 更新 `knowledge/sql_patterns/channel_mapping_case_when.md`，新增“超长 CASE 顺序风险”，明确维护 `channel_map` / `channel_map_1` / `qudao` 时，特异规则必须先于宽泛规则。
+- 更新 `knowledge/pitfalls/common_join_failures.md`，新增“daoke 表有渠道，但看板渠道消失”排查项：当临时到课表已维护渠道但看板缺失时，优先模拟现有 CASE 输出，检查是否被前序分支归到相邻渠道。
+- 更新 `knowledge/decision_tree.md`，将“某渠道某期次消失”和到课指标异常路由到渠道 CASE 顺序排查。
+- 已验证案例：`0529期/0605期-孟亚飞ip99元-孟亚飞ip99元-*` 被前序 `孟亚飞9元` 宽泛规则抢先命中；修复应将 `when lower(f.rule_name) like '%孟亚飞ip99%' then '孟亚飞IP99元'` 放在 `孟亚飞9元` 宽泛规则之前。
