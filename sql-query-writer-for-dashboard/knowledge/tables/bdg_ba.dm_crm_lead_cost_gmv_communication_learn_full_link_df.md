@@ -446,6 +446,15 @@ limit 20;
 - `first_call_time_diff_hour` 来自 `date_diff('hour', section_assign_time, first_call_time)`，再派生 24/48 小时首呼指标；使用前需确认两个时间字段格式可直接 cast 为 timestamp。
 - `channel_map` 在该 SQL 中仍为超长 CASE，且部分分支同层引用派生 `period_name`，生成新 SQL 时建议先拆出 `period_name` CTE 后再引用。
 
+### 市场渠道用户画像分析使用备注
+
+- `market_channel_conversion_profile_call_duration_dataset.sql`、`market_channel_conversion_profile_learn_duration_dataset.sql`、`market_channel_conversion_profile_deep_stage_dataset.sql` 均以该表为主表，基础业务指标来自 `lead_count`、`valid_lead_count`、`conversion_lead_count`、`order_count`、`income_amount`、`in_pay_period_refund_amount`、`non_pay_period_refund_amount`。
+- 三份 SQL 的主表范围限定为 `section_assign_employee_* = H业务线/市场部/市场顾问部`、`virtual_third_department_name = '市场顾问部'`，期次映射二级部门允许 `市场部/精品班学部/null`；`null` 放宽条件是否保留待人工确认。
+- 首 call 通时数据集会单独从该表抽取 `section_assign_all_call_duration`，按 `period_name + lead_id + user_id` 取 `max` 后回连分桶；不要把该通时字段放入携带业务指标的 `select distinct`，否则可能因通时快照差异改变分桶粒度。
+- 深沟阶段数据集使用该表 `friend_lead_count` 作为已建联兜底标记，具体好友关系口径待人工确认。
+- 该数据集输出的 `head_conversion_rate`、`order_conversion_rate`、`section_unit_efficiency` 为行级比率，透视表总计必须使用 `conversion_user_cnt/order_cnt/section_profit_amt` 与 `bucket_user_cnt` 重算。
+- 待人工确认：`bucket_user_cnt` 使用 `lead_count`，字段名中的“人数”是否等同线索量；金额字段 `/100` 的单位；`conversion_lead_count` 和 `order_count` 是否均为正价课口径。
+
 ## 12. 反向联动速查
 
 被以下看板高频使用：
@@ -453,6 +462,7 @@ limit 20;
 - `../dashboards/market_consultant_conversion.md`：市场顾问转化主表。
 - `../dashboards/market_consultant_lead_conversion_attendance.md`：线索转化到课主表。
 - `../dashboards/traffic_profile.md`：流量画像主表。
+- `../dashboards/market_channel_conversion_profile.md`：市场渠道用户画像分析三数据集主表。
 - `../dashboards/h_biz_line_department_conversion.md`：H 业务线二级部门转化主表。
 - `../dashboards/lead_assign_plan_actual_valid_count.md`：实际线索量和有效线索量来源。
 

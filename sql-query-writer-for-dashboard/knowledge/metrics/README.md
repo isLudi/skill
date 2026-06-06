@@ -20,3 +20,4 @@
 - `consultant_sales_department_tenure_metrics.md`：顾问部门任职期销售指标集合。
 - `consultant_sales_department_tenure_period_20260424_metrics.md`：顾问部门任职期销售 20260424 期指标集合。
 - `h_biz_line_department_conversion_metrics.md`：H业务线二级部门转化指标集合。
+- `market_channel_conversion_profile_metrics.md`：市场渠道用户画像分析指标集合，覆盖首 call 通时、上课时长、深沟阶段三个过程分桶数据集；比例/单效类总计必须在透视表用可加和字段重算。

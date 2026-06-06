@@ -64,6 +64,19 @@
 - 维度：`period_name`、`channel_map`、`rule_name`、`grade_1`、`depart_1`、`depart`、`jingli`、`zhuguan`、`employee_email_name`
 - 状态：历史 SQL 口径已入库，字段类型和部分业务口径待人工确认。
 
+## 市场渠道用户画像分析关系
+
+- 来源：`resources/raw_sql/market_channel_conversion_profile_call_duration_dataset.sql`、`resources/raw_sql/market_channel_conversion_profile_learn_duration_dataset.sql`、`resources/raw_sql/market_channel_conversion_profile_deep_stage_dataset.sql`。
+- 主表：`bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df`。
+- 主表范围：`section_assign_employee_first_level_department_name = 'H业务线'`、`section_assign_employee_second_level_department_name = '市场部'`、`section_assign_employee_third_level_department_name = '市场顾问部'`、`virtual_third_department_name = '市场顾问部'`；期次映射一级为 `H业务线` 或空，二级为 `市场部/精品班学部` 或空。
+- 三数据集共同粒度：`period_name + channel_map + channel_group + grade_name + analysis_type + bucket_name + bucket_sort`。
+- 首 call 通时：同一主表单独抽取 `section_assign_all_call_duration`，按 `period_name + lead_id + user_id` 取 `max` 后回连 `lead_base` 分桶。该字段只用于分桶，不参与业务指标 `select distinct`，避免同一线索因通时快照差异放大指标。
+- 上课时长：`service_dw.dws_service_user_learn_detail_hf` 按 `begin_time` 派生 `period_name`，按 `period_name + user_id` 汇总 `live_learn_duration` 后回连主表分桶。行课表范围限定 `course_first_level_department_name = 'H业务线'`、`course_second_level_department_name in ('精品班学部','市场部')`、`is_need_attend = 1`。
+- 深沟阶段：`service_dw.dwd_crm_assign_private_detail_hf` 按 `user_number + lead_id` 取最新 `private_sea_update_time`，`sale_flow_stage_sequence = 450/470` 分别映射深沟/双沟；非深沟双沟时用主表 `friend_lead_count > 0` 兜底为已建联。
+- 渠道组：`temp_table.shenbaoxin_channel_group` 通过 `channel = channel_map` 关联，字段结构、维护来源和唯一性待人工确认。
+- 指标使用：`bucket_user_cnt`、`conversion_user_cnt`、`order_cnt`、`section_profit_amt` 可加和；`head_conversion_rate`、`order_conversion_rate`、`section_unit_efficiency` 是行级比率，透视表总计必须用可加和字段重算，不得直接 `sum` 或 `avg`。
+- 状态：2026-06-06 Web 查询已验证三份 SQL 可执行，且 20260522期、20260529期、20260605期在总计层面核心可加和指标一致；字段业务含义、金额单位、通时 max 口径和 null 映射部门放宽条件仍需人工确认。
+
 ## 线索分配计划与实际有效量看板关系
 
 - 来源：`resources/raw_sql/lead_assign_plan_actual_valid_count.sql`

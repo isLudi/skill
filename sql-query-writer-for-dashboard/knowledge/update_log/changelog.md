@@ -448,3 +448,24 @@
 - 新增 `knowledge/sql_patterns/outbound_call_process_export_template.md`，保存用户提供的外呼过程查询为模板取数格式，不覆盖 `resources/raw_sql/outbound_call_process_dashboard.sql`。
 - 增加 `${period_name1}`、`${period_name2}` 参数，分别在 `jg_market` 架构 CTE 和 `prc` 线索宽表 CTE 中限制 `qici` 半开区间：`qici >= ${period_name1}` 且 `qici < ${period_name2}`。
 - 更新 `knowledge/quick_reference.md`、`knowledge/decision_tree.md`、`knowledge/sql_patterns/dashboard_query_patterns.md`，将外呼过程期次导出和模板取数需求路由到该模板文档。
+
+## 2026-06-06 市场渠道用户画像分析三数据集入库
+
+- 新增三份原始 SQL：
+  - `resources/raw_sql/market_channel_conversion_profile_call_duration_dataset.sql`
+  - `resources/raw_sql/market_channel_conversion_profile_learn_duration_dataset.sql`
+  - `resources/raw_sql/market_channel_conversion_profile_deep_stage_dataset.sql`
+- 新增看板文档：`knowledge/dashboards/market_channel_conversion_profile.md`。
+- 新增指标集合：`knowledge/metrics/market_channel_conversion_profile_metrics.md`。
+- 更新 `knowledge/dashboards/README.md` 与 `knowledge/metrics/README.md`，补充市场渠道用户画像分析入口。
+- 更新 `knowledge/joins/common_join_keys.md`，新增：
+  - `period_name + lead_id + user_id`：首 call 通时字段独立聚合后回连分桶。
+  - `period_name + user_id`：上课时长按用户期次汇总后回连分桶。
+  - `user_number + lead_id`：私海阶段按用户线索取最新阶段。
+- 更新 `knowledge/joins/table_relationships.md`，记录三数据集共同主表、范围限定、分桶逻辑、渠道组 join 和透视表指标使用风险。
+- 更新 `knowledge/01_table_index.md` 与 `knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md`，补充该主表在市场渠道用户画像分析中的使用方式。
+- 关键口径：
+  - 三份数据集基础指标均来自 `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df`，分桶差异分别来自首 call 通时、上课时长和私海阶段。
+  - 首 call 通时字段 `section_assign_all_call_duration` 单独在 `call_duration_raw` 中按 `period_name + lead_id + user_id` 取 `max` 后回连，不参与业务指标底表 `select distinct`。
+  - 透视表总计必须使用 `sum(conversion_user_cnt) / sum(bucket_user_cnt)`、`sum(order_cnt) / sum(bucket_user_cnt)`、`sum(section_profit_amt) / sum(bucket_user_cnt)` 重算人头转化率、订单转化率和截面单效；不得直接聚合 SQL 行级 `head_conversion_rate`、`order_conversion_rate`、`section_unit_efficiency`。
+- 待人工确认：`section_assign_all_call_duration` 取 `max` 是否代表最终总通时；`bucket_user_cnt` 用 `lead_count` 是否可称为人数；金额字段 `/100` 单位；`conversion_lead_count`/`order_count` 是否均为正价课口径；`period_mapping_second_level_department_name is null` 放宽条件；`temp_table.shenbaoxin_channel_group` 字段结构和唯一性。

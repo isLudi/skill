@@ -4,7 +4,7 @@
 
 | 完整表名 | 中文名 | 数据粒度 | 分区字段 | 小时表 | 库名前缀状态 | 字段校验状态 |
 |---|---|---|---|---|---|---|
-| bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df | 线索成本转化沟通行课全链路数据 | 线索-渠道-转化全链路明细，小时快照粒度待确认。 | dt, hour | 是 | 已确认 | 字段目录已补全；已记录流量画像 `city_channel` 省市维度，口径需人工校验 |
+| bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df | 线索成本转化沟通行课全链路数据 | 线索-渠道-转化全链路明细，小时快照粒度待确认。 | dt, hour | 是 | 已确认 | 字段目录已补全；已记录流量画像 `city_channel` 省市维度和市场渠道用户画像分析三数据集，口径需人工校验 |
 | dw.dim_employee_chain | 员工信息表 | 员工-部门路径-任职时间段粒度，字段来自 Word 文档 | dt | 否 | 已确认 | 已根据 `E:\2000_work\GAOTU\员工信息表.docx` 补全 33 个非分区字段，主键唯一性待确认 |
 | dw.dim_cstm_active_user_c_appliction_mb_df | c端用户全量表应用粒度 | 用户-应用粒度，待确认 | dt | 否 | 已确认 | 字段目录已补全，口径需人工校验 |
 | dw.dws_user_active_user_c_appliction_hf | c端用户活跃表应用粒度_当日小时全量 | 用户-应用-小时粒度，待确认 | dt, hour | 是 | 已确认 | 字段目录已补全，口径需人工校验 |
