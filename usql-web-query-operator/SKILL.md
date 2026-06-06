@@ -19,6 +19,7 @@ This skill does not bypass permissions. It only automates actions that the authe
 - Do not download result sets unless the SQL visibly limits output to 1000 rows or fewer, or the successful result page proves there are no more than 1000 rows.
 - Prefer preview/exploration SQL with `limit <= 1000`.
 - If the page reports permission, platform, or SQL errors, preserve the error text and optionally save debug screenshots only when `--debug-artifacts` is explicitly set.
+- If `run` returns `ok=false`, read `error_details.detail`, then `error_details.raw_snippet`, then `error_details.title`; repair the SQL from that captured reason before retrying.
 
 ## Workflow
 
@@ -54,7 +55,11 @@ D:\anaconda3\python.exe scripts\usql_web_query.py run --sql-file C:\path\to\quer
 ```
 
 6. Inspect the returned JSON summary. Successful runs include the query status, query id when detected, and a small visible-table preview when the page exposes one.
-7. If the run succeeds and the result is within the download policy, rerun with `--download` or include `--download` on the original run.
+7. If `status=Failed`, read `error_details` before changing SQL:
+   - `notification` / `message` / `alert`: the page rejected the SQL before or during submission, often without a query id.
+   - `log_area`: a query was created; use the execution log, especially `VALIDATE_SQL_ERROR`, line/column, table, and column names.
+   - See `references/query_error_handling.md` for verified cases and repair rules.
+8. If the run succeeds and the result is within the download policy, rerun with `--download` or include `--download` on the original run.
 
 ## Dashboard Folder Scan
 
@@ -83,7 +88,7 @@ Use `scripts/usql_web_query.py` only for SQL取数:
 
 - `doctor`: check Python Playwright availability and show install commands if missing.
 - `login`: open the CAS login flow, authenticate, and save browser storage state outside the repo.
-- `run`: open SQL取数, create or reuse a query tab, insert SQL into the CodeMirror editor, click run, wait for query-history status, extract a small visible result-table preview, and optionally download when the local row-limit policy allows it.
+- `run`: open SQL取数, create or reuse a query tab, insert SQL into the CodeMirror editor, submit with `Ctrl+E` first and run-button fallbacks second, wait for query-history/result-tab status, capture `error_details` on platform failures, extract a small visible result-table preview when available, and optionally download xlsx when the local row-limit policy allows it.
 
 Use `scripts/read_dashboard.py` only for 自助BI/dashboard operations:
 
@@ -91,7 +96,7 @@ Use `scripts/read_dashboard.py` only for 自助BI/dashboard operations:
 - `profile-dashboard`: open one dashboard by ID, wait for refresh, and store its component/filter/value structure outside the repo.
 - `profile-folder`: find selected dashboard names under a folder and profile them one by one.
 
-The first implementation is a POC runner. If selectors drift, inspect `references/platform_profile.md`, update the selector list or fallback strategy in the script, and rerun with `--headed --debug-artifacts`. Debug artifacts may include SQL text or visible results, so delete them after troubleshooting.
+If selectors drift, inspect `references/platform_profile.md`, update the selector list or fallback strategy in the script, and rerun with `--headed --debug-artifacts`. Debug artifacts may include SQL text or visible results, so delete them after troubleshooting.
 
 ## Integration With SQL Skill
 

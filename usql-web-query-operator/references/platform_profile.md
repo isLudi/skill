@@ -32,7 +32,7 @@ The local env file `E:\2000_work\GAOTU\20002_市场顾问部看板维护表格\u
 11. The download button is the small down-arrow icon at the left above the result table.
 12. Do not download if the result can exceed 1000 rows.
 
-## Selector Strategy (verified 2026-05-31 smoke test)
+## Selector Strategy (verified 2026-06-06)
 
 ### Page architecture
 
@@ -45,10 +45,17 @@ The platform uses **CodeMirror** (NOT Monaco). The editor is inside the `/sql/` 
 - Set SQL: use `document.querySelector('.CodeMirror').CodeMirror.setValue(sql)` via `frame_obj.evaluate()`.
 - Fallback: click `.CodeMirror` → Ctrl+A → paste.
 
-### Run button
+### Run
 
-Inside the iframe editor toolbar:
-- Primary: `[aria-label='play-circle']` (anticon `anticon-play-circle` in `.antd-pro-src-components-editor-index-editorBtn`)
+Preferred submission path:
+- Focus CodeMirror.
+- Select the current SQL.
+- Press `Ctrl+E`.
+
+Run-button fallback inside the iframe editor toolbar:
+- `[aria-label='play-circle']`
+- `.anticon-play-circle`
+- visible toolbar button near the editor run area
 
 ### NPS satisfaction survey
 
@@ -59,26 +66,33 @@ An NPS (Net Promoter Score) modal may appear on page load. Dismiss it via:
 
 ### Status detection
 
-After clicking run, poll both the outer page and iframe body text for `Success` / `Failed`. The status appears in the query history table inside the iframe.
+Before clicking run, record existing query ids from both the query-history table and open result tabs. After submission, only treat a status/result as current when it belongs to a new query id or the history row SQL text matches the submitted SQL fingerprint.
+
+Do not rely on whole-page `Success` text alone. Old successful result tabs can remain open and must not be treated as the current run.
+
+Failure details are captured from:
+- Ant notification/message/alert text.
+- Failed query log (`log_area`) after opening the row's `日志`.
+- Whole-page keyword fallback only when no structured source exists.
 
 ### Result extraction
 
-The result panel does NOT open automatically after query success. The query history row shows "Success" but result data is NOT in the DOM until explicitly opened. This needs `--headed` debugging to determine the correct trigger. Candidates:
-- Click the history row or the Success tag
-- Click action buttons in the "操作" column
+Successful runs can open a lower result tab named like `查询1388196115`. A result area is current only when a new `查询<id>` tab exists after the run and the page shows `结果` / `表格` plus a result table, result field text, or download icon.
 
-Once the result panel opens, expected sub-tabs: "结果" → "表格".
+`已无更多` is useful for proving a small result page, but it is not required for detecting that the result area exists.
 
 ### Download
 
-The download button is inside the iframe result area. Selectors to try:
-- `[title*='下载']`, `[aria-label*='下载']`, `.anticon-download`
-- Fallback: buttons in the 350-650 x-range near the result area
+The download button is the down-arrow icon inside the iframe result area. Verified flow:
+
+1. Click the result-area `.anticon-download` / download-labelled icon.
+2. If the click opens a dropdown, select `excel` / `Excel` / `xlsx`.
+3. If the icon immediately starts a browser download, save that file directly.
+
+The verified xlsx filename pattern is like `task_<query_id>_<timestamp>.xlsx`.
 
 ## Open Questions
 
-- How to reliably open the result panel after query success (needs `--headed` debugging).
-- Whether the download button exposes a stable aria-label/title or only an icon.
 - Whether the page exposes a reliable total row count before download.
 - Whether the platform blocks automated login for some sessions and requires manual SSO/MFA (current automated CAS login works headless).
 - Exact dashboard page query/result APIs after opening a specific dashboard still need profiling. Folder names and dashboard IDs can be read from `read_dashboard.py scan-folder`, which posts `{"menuType":"HOME_AND_DASHBOARD"}` to the dashboard menu API.
