@@ -469,3 +469,18 @@
   - 首 call 通时字段 `section_assign_all_call_duration` 单独在 `call_duration_raw` 中按 `period_name + lead_id + user_id` 取 `max` 后回连，不参与业务指标底表 `select distinct`。
   - 透视表总计必须使用 `sum(conversion_user_cnt) / sum(bucket_user_cnt)`、`sum(order_cnt) / sum(bucket_user_cnt)`、`sum(section_profit_amt) / sum(bucket_user_cnt)` 重算人头转化率、订单转化率和截面单效；不得直接聚合 SQL 行级 `head_conversion_rate`、`order_conversion_rate`、`section_unit_efficiency`。
 - 待人工确认：`section_assign_all_call_duration` 取 `max` 是否代表最终总通时；`bucket_user_cnt` 用 `lead_count` 是否可称为人数；金额字段 `/100` 单位；`conversion_lead_count`/`order_count` 是否均为正价课口径；`period_mapping_second_level_department_name is null` 放宽条件；`temp_table.shenbaoxin_channel_group` 字段结构和唯一性。
+
+## 2026-06-06 16:37 市场渠道用户画像整体数据集入库
+
+- 新增原始 SQL：`resources/raw_sql/market_channel_conversion_profile_overall_dataset_fixed.sql`。
+- 该 SQL 属于 `market_channel_conversion_profile` 市场渠道用户画像分析看板的整体画像数据集，不是独立看板；与首 call 通时、上课时长、深沟阶段三份分桶数据集共同服务同一看板。
+- 更新 `knowledge/dashboards/market_channel_conversion_profile.md`，补充整体画像数据集的 CTE 结构、输出粒度、修复点和待人工确认事项。
+- 更新 `knowledge/metrics/market_channel_conversion_profile_metrics.md`，补充整体画像字段口径和透视表建议公式。
+- 更新 `knowledge/joins/common_join_keys.md`，记录整体画像 `src` 阶段使用 `period_name + lead_id + user_id` 防止多线索被 `select distinct` 折叠，并记录 `period_name + channel_map + grade_name + manager_name` 为整体画像最终聚合键；该聚合键不是跨表 join key。
+- 更新 `knowledge/joins/table_relationships.md`，补充整体画像数据集仅使用全链路主表、不做外部 join，并记录有效线索数修复口径。
+- 更新 `knowledge/01_table_index.md` 与 `knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md`，补充该主表在整体画像数据集中的使用方式。
+- 关键修复：
+  - 主表范围新增 `virtual_third_department_name = '市场顾问部'`，与三份分桶画像数据集保持一致。
+  - 整体画像有效线索数使用标准 `valid_lead_count`，不再对 `抖音私域`/`抖音私信` 切换 `merge_valid_lead_count`。
+  - `src` 阶段新增 `lead_id` 防止同一用户多线索被 `select distinct` 折叠；最终结果不输出 `lead_id`。
+- 待人工确认：整体画像中 `pay_user_head_count` 与 `regular_course_user_count` 的业务区别；科目档位 `subject_*` 是否按用户层 `sum(subject_count)` 分层；整体画像有效线索是否所有组件都应禁用 merge 口径；金额 `/100` 单位；`manager_name` 来自 `virtual_leader_email_name` 是否为经理展示最终口径。

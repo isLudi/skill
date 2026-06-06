@@ -66,7 +66,7 @@
 
 ## 市场渠道用户画像分析关系
 
-- 来源：`resources/raw_sql/market_channel_conversion_profile_call_duration_dataset.sql`、`resources/raw_sql/market_channel_conversion_profile_learn_duration_dataset.sql`、`resources/raw_sql/market_channel_conversion_profile_deep_stage_dataset.sql`。
+- 来源：`resources/raw_sql/market_channel_conversion_profile_call_duration_dataset.sql`、`resources/raw_sql/market_channel_conversion_profile_learn_duration_dataset.sql`、`resources/raw_sql/market_channel_conversion_profile_deep_stage_dataset.sql`、`resources/raw_sql/market_channel_conversion_profile_overall_dataset_fixed.sql`。
 - 主表：`bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df`。
 - 主表范围：`section_assign_employee_first_level_department_name = 'H业务线'`、`section_assign_employee_second_level_department_name = '市场部'`、`section_assign_employee_third_level_department_name = '市场顾问部'`、`virtual_third_department_name = '市场顾问部'`；期次映射一级为 `H业务线` 或空，二级为 `市场部/精品班学部` 或空。
 - 三数据集共同粒度：`period_name + channel_map + channel_group + grade_name + analysis_type + bucket_name + bucket_sort`。
@@ -75,7 +75,9 @@
 - 深沟阶段：`service_dw.dwd_crm_assign_private_detail_hf` 按 `user_number + lead_id` 取最新 `private_sea_update_time`，`sale_flow_stage_sequence = 450/470` 分别映射深沟/双沟；非深沟双沟时用主表 `friend_lead_count > 0` 兜底为已建联。
 - 渠道组：`temp_table.shenbaoxin_channel_group` 通过 `channel = channel_map` 关联，字段结构、维护来源和唯一性待人工确认。
 - 指标使用：`bucket_user_cnt`、`conversion_user_cnt`、`order_cnt`、`section_profit_amt` 可加和；`head_conversion_rate`、`order_conversion_rate`、`section_unit_efficiency` 是行级比率，透视表总计必须用可加和字段重算，不得直接 `sum` 或 `avg`。
-- 状态：2026-06-06 Web 查询已验证三份 SQL 可执行，且 20260522期、20260529期、20260605期在总计层面核心可加和指标一致；字段业务含义、金额单位、通时 max 口径和 null 映射部门放宽条件仍需人工确认。
+- 整体画像数据集：`market_channel_conversion_profile_overall_dataset_fixed.sql` 不做外部 join，仅使用全链路主表，按 `period_name + channel_map + grade_name + manager_name` 输出整体线索、有效线索、成交用户、科目档位、收入和订单指标。
+- 整体画像修复点：新增 `virtual_third_department_name = '市场顾问部'` 与三个分桶数据集保持范围一致；`valid_lead_count` 使用标准宽表字段汇总，不再对 `抖音私域`/`抖音私信` 切换 `merge_valid_lead_count`；`lead_id` 仅用于 `src` 阶段防止 `select distinct` 折叠多线索，最终不输出。
+- 状态：2026-06-06 Web 查询已验证三份分桶 SQL 可执行，且 20260522期、20260529期、20260605期在总计层面核心可加和指标一致；整体画像 SQL 已在 Web 端跑出结果预览，但三期期次汇总下载受页面权限/下载控件限制未完成，字段业务含义、金额单位、通时 max 口径、整体画像有效线索 merge 禁用口径和 null 映射部门放宽条件仍需人工确认。
 
 ## 线索分配计划与实际有效量看板关系
 

@@ -7,6 +7,7 @@
 - `resources/raw_sql/market_channel_conversion_profile_call_duration_dataset.sql`
 - `resources/raw_sql/market_channel_conversion_profile_learn_duration_dataset.sql`
 - `resources/raw_sql/market_channel_conversion_profile_deep_stage_dataset.sql`
+- `resources/raw_sql/market_channel_conversion_profile_overall_dataset_fixed.sql`
 
 入库时间：2026-06-06
 
@@ -14,11 +15,12 @@
 
 ## 2. 查询目标
 
-按期次、渠道、渠道组、年级和过程分桶展示市场渠道用户成单过程画像。当前拆为三个数据集：
+按期次、渠道、渠道组、年级和过程分桶展示市场渠道用户成单过程画像。当前过程画像拆为三个分桶数据集，并另有一个整体画像数据集：
 
 - 成单用户首 call 通时占比：按总通时分桶。
 - 成单用户上课时长占比：按总出勤时长分桶。
 - 深沟成单用户占比：按私海销售阶段/好友关系分桶。
+- 成单用户画像整体数据：不按过程分桶，按期次、渠道、年级和经理展示整体线索、有效线索、成交用户、科目数、订单数、收入和科目档位。
 
 三个数据集的总计口径应一致：相同期次、渠道、年级筛选下，`bucket_user_cnt`、`conversion_user_cnt`、`order_cnt`、`section_profit_amt` 的总计应一致；差异只应体现在 `bucket_name` 分桶分布上。
 
@@ -94,6 +96,28 @@ where a.period_name > '20260417期'
 | `profile_base` | 按阶段生成 `deep_communication_bucket` | `bucket_name`, `bucket_sort` |
 | `dim_totals` / `profile_union` / `profile_agg` | 计算分母和分桶聚合 | 同首 call |
 
+### 5.4 整体画像数据集
+
+来源：`resources/raw_sql/market_channel_conversion_profile_overall_dataset_fixed.sql`
+
+| CTE | 用途 | 关键字段 |
+|---|---|---|
+| `src` | 从全链路表抽取整体画像基础字段和业务指标；已补充 `lead_id` 保留线索粒度，避免 `select distinct` 在用户维度折叠多线索 | `period_name`, `lead_id`, `user_id`, `lead_count`, `valid_lead_count`, `conversion_lead_count`, `subject_count`, `order_count` |
+| `data` | 生成 `channel_map`、`grade_name`、`manager_name`，并透传业务指标 | `channel_map`, `grade_name`, `manager_name` |
+| `user_base` | 按 `period_name + channel_map + grade_name + manager_name + user_id` 聚合用户层指标 | `lead_count`, `valid_lead_count`, `regular_course_user_count`, `regular_course_order_count`, `pay_subject_person_count` |
+| `agg` | 按 `period_name + channel_map + grade_name + manager_name` 输出整体画像 | `pay_user_head_count`, `subject_*_user_count`, `subject_*_gmv`, `valid_lead_count`, `regular_course_order_count` |
+
+重要修复口径：
+
+- 主表范围增加 `virtual_third_department_name = '市场顾问部'`，与三个分桶数据集保持一致。
+- `lead_count` 和 `valid_lead_count` 使用标准宽表字段直接汇总，不再对 `抖音私域`/`抖音私信` 切换到 `merge_assign_lead_count`/`merge_valid_lead_count`。
+- `lead_id` 仅作为 `src` 阶段防折叠字段保留，最终不输出。
+
+待人工确认：
+
+- 整体画像 `pay_user_head_count` 当前使用 `regular_course_user_count > 0` 后按用户计 1，是否与所有看板正价课转化人头口径完全一致。
+- 科目档位 `subject_1/subject_2_3/subject_3_plus/subject_0` 是否应按用户层 `sum(subject_count)` 分层；多订单、多科目退款后的档位归属需人工确认。
+
 ## 6. join 关系
 
 | 左表/CTE | 右表/CTE | join key | join 类型 | 说明 |
@@ -103,6 +127,7 @@ where a.period_name > '20260417期'
 | `lead_base b` | `private_stage ps` | `user_id = user_number` + `lead_id` | left join | 深沟阶段按用户线索最新私海阶段分桶 |
 | `profile_agg a` | `temp_table.shenbaoxin_channel_group cg` | `cg.channel = a.channel_map` | left join | 补充渠道组 |
 | `profile_agg a` | `dim_totals dt` | `period_name + channel_map + grade_name` | left join | 补充分桶前总线索和总有效线索 |
+| 整体画像数据集 | 无外部 join | 无 | 无 | `market_channel_conversion_profile_overall_dataset_fixed.sql` 仅使用全链路主表；如后续补渠道组或架构表，需另行确认 join key 和唯一性 |
 
 ## 7. 输出粒度
 
@@ -117,6 +142,14 @@ period_name + channel_map + channel_group + grade_name + analysis_type + bucket_
 - `不同通时成单用户占比（总通时）`
 - `不同上课时长成单用户占比（总出勤时长）`
 - `是否深沟成单用户占比`
+
+整体画像数据集最终输出粒度：
+
+```text
+period_name + channel_map + grade_name + manager_name
+```
+
+整体画像数据集不输出 `analysis_type`、`bucket_name`、`bucket_sort`、`channel_group`。如果看板需要渠道组，需要额外 join `temp_table.shenbaoxin_channel_group`，字段和唯一性待人工确认。
 
 ## 8. 输出字段和看板使用
 
@@ -164,5 +197,6 @@ period_name + channel_map + channel_group + grade_name + analysis_type + bucket_
 - 上课时长按 `period_name + user_id` 汇总后回连，若同一用户同一期有多条线索，是否应共享同一上课时长。
 - 私海阶段 `sale_flow_stage_sequence = 450/470` 对应深沟/双沟的业务口径是否稳定。
 - `bucket_user_cnt` 当前沿用 `lead_count > 0` 的线索量口径，并非 `count(distinct user_id)`；业务是否称为“人数”需人工确认。
+- 整体画像数据集中 `pay_user_head_count`、`pay_subject_person_count`、`subject_*` 档位是否完全等同 CRM 画像口径需人工确认。
 - 金额字段统一 `/100`，推断原始单位为分，需人工确认。
 - `temp_table.shenbaoxin_channel_group` 的字段结构、唯一性和维护来源待人工确认。
