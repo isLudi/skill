@@ -444,12 +444,7 @@ SELECT
     CAST(a.section_trade_profit AS double) AS section_profit_amt,
     ROUND(CAST(a.conversion_user_count AS double) / NULLIF(a.bucket_user_count, 0), 6) AS head_conversion_rate,
     ROUND(CAST(a.positive_course_order_count AS double) / NULLIF(a.bucket_user_count, 0), 6) AS order_conversion_rate,
-    ROUND(CAST(a.section_trade_profit AS double) / NULLIF(a.bucket_user_count, 0), 6) AS section_unit_efficiency,
-    ROUND(
-        CAST(a.bucket_user_count AS double)
-        / NULLIF(SUM(a.bucket_user_count) OVER (PARTITION BY a.period_name, a.channel_map, a.grade_name, a.analysis_type), 0),
-        6
-    ) AS bucket_user_share
+    ROUND(CAST(a.section_trade_profit AS double) / NULLIF(a.bucket_user_count, 0), 6) AS section_unit_efficiency
 FROM profile_agg a
 LEFT JOIN channel_group cg ON cg.channel = a.channel_map
 LEFT JOIN dim_totals dt
