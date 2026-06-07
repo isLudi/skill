@@ -1,0 +1,4 @@
+interface:
+  display_name: "XLSX Spreadsheet Handler"
+  short_description: "Create, edit, and analyze .xlsx/.csv/.tsv spreadsheets with formulas, formatting, and charts."
+  default_prompt: "Use xlsx to create or edit a spreadsheet file with proper Excel formulas, formatting, and professional styling."

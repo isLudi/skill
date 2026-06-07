@@ -1,0 +1,4 @@
+interface:
+  display_name: "Data Analysis Validator"
+  short_description: "QA an analysis for methodology, accuracy, bias, and presentation readiness."
+  default_prompt: "Use validate-data to review an analysis for methodology issues, calculation accuracy, bias, and whether conclusions are supported by the data."

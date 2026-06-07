@@ -1,0 +1,4 @@
+interface:
+  display_name: "PDF Handler"
+  short_description: "Read, create, merge, split, rotate, OCR, and manipulate PDF documents."
+  default_prompt: "Use pdf to read, extract, create, merge, split, rotate, fill forms, or OCR a PDF file."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "DOCX Word Document Handler"
+  short_description: "Create, edit, and manipulate Word .docx documents with professional formatting and tracked changes."
+  default_prompt: "Use docx to create or edit a Word document with headings, tables, tracked changes, comments, and professional formatting."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Data Explorer & Profiler"
+  short_description: "Profile datasets, tables, SQL results, and files to understand shape, quality, and structure."
+  default_prompt: "Use explore-data to profile a dataset or table, check null rates, distributions, duplicates, and understand data quality before analysis."

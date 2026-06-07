@@ -1,0 +1,4 @@
+interface:
+  display_name: "Git Commit Commands"
+  short_description: "Streamline Git commits, pushes, pull requests, and stale branch cleanup."
+  default_prompt: "Use commit-commands to commit changes, push to remote, open a pull request, or clean up stale local branches."

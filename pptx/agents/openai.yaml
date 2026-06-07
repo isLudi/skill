@@ -1,0 +1,4 @@
+interface:
+  display_name: "PPTX Presentation Handler"
+  short_description: "Create, edit, and manipulate PowerPoint .pptx presentations and slide decks."
+  default_prompt: "Use pptx to create or edit a PowerPoint presentation with slides, layouts, templates, and speaker notes."
