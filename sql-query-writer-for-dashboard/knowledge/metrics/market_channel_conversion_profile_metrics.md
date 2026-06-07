@@ -10,6 +10,7 @@
 - `resources/raw_sql/market_channel_conversion_profile_learn_duration_dataset.sql`
 - `resources/raw_sql/market_channel_conversion_profile_deep_stage_dataset.sql`
 - `resources/raw_sql/market_channel_conversion_profile_overall_dataset_fixed.sql`
+- `resources/raw_sql/refund_rate_multidim.sql`
 
 ## 3. 指标粒度
 
@@ -29,6 +30,14 @@ period_name + channel_map + grade_name + manager_name
 
 整体画像数据集不按过程分桶，不输出 `bucket_*` 字段；用于展示整体有效线索、成交用户、成交科目、收入和科目档位。
 
+多维退费率数据集输出粒度：
+
+```text
+period_name + channel_map + grade_name + jingli + zhuguan + employee_email_name
+```
+
+多维退费率数据集不按过程分桶，输出 GMV 退费率、人头退费率和单科/多科退费率所需的分子、分母字段；看板数据透视表必须自行计算比率。
+
 ## 4. SQL 输出指标
 
 | 字段 | SQL 口径 | 说明 | 聚合规则 |
@@ -46,7 +55,6 @@ period_name + channel_map + grade_name + manager_name
 | `head_conversion_rate` | `conversion_user_cnt / bucket_user_cnt` | SQL 行级人头转化率 | 不可 sum/avg；透视表需重算 |
 | `order_conversion_rate` | `order_cnt / bucket_user_cnt` | SQL 行级订单转化率 | 不可 sum/avg；透视表需重算 |
 | `section_unit_efficiency` | `section_profit_amt / bucket_user_cnt` | SQL 行级截面单效 | 不可 sum/avg；透视表需重算 |
-| `bucket_user_share` | `bucket_user_cnt / 当前 period + channel + grade + analysis_type 分桶总人数` | 当前桶人数占比 | 仅单组内参考；跨组汇总需重算 |
 
 ## 5. 看板透视表公式
 
@@ -59,6 +67,8 @@ period_name + channel_map + grade_name + manager_name
 | 人头转化率 | `ifnull(sum(${conversion_user_cnt}) / sum(${bucket_user_cnt}), 0)` |
 | 订单转化率 | `ifnull(sum(${order_cnt}) / sum(${bucket_user_cnt}), 0)` |
 | 单效（截面） | `ifnull(sum(${section_profit_amt}) / sum(${bucket_user_cnt}), 0)` |
+
+人数占比、退费率等占比类指标应使用分子/分母字段重算。若使用 SQL 行级比率字段，在渠道、年级、期次或顾问维度折叠时会出现二次聚合失真。
 
 不要将以下 SQL 行级字段直接放入透视表总计指标：
 
@@ -99,6 +109,40 @@ period_name + channel_map + grade_name + manager_name
 | 正价课人头转化率 | `ifnull(sum(${regular_course_user_count}) / sum(${valid_lead_count}), 0)`；分母口径待人工确认 |
 | 正价课订单转化率 | `ifnull(sum(${regular_course_order_count}) / sum(${valid_lead_count}), 0)`；分母口径待人工确认 |
 | 人均收款 | `ifnull(sum(${trade_income}) / sum(${regular_course_user_count}), 0)` |
+
+## 5.2 多维退费率数据集指标
+
+适用 SQL：`resources/raw_sql/refund_rate_multidim.sql`
+
+| 字段 | SQL 口径 | 说明 | 聚合规则 |
+|---|---|---|---|
+| `valid_lead_cnt` | `count(distinct case when valid_lead_count > 0 then lead_id end)` | 有效线索数 | 可 sum；跨维度重复用户/线索风险待人工确认 |
+| `total_headcount` | `count(distinct case when valid_lead_count > 0 then user_id end)` | 有效线索对应用户数/人头退费率分母 | 可 sum；字段是否应称为人数待人工确认 |
+| `refund_current_gmv` | `sum(same_lead_period_refund_amount) / 100` | 当期 GMV 退费率分子 | 可 sum；金额单位待人工确认 |
+| `net_income_current_gmv` | `sum(same_lead_period_income_amount - same_lead_period_refund_amount) / 100` | 当期 GMV 退费率分母 | 可 sum；字段名称和业务含义待人工确认 |
+| `refund_section_gmv` | `sum(in_pay_period_refund_amount + non_pay_period_refund_amount) / 100` | 截面 GMV 退费率分子 | 可 sum；金额单位待人工确认 |
+| `net_income_section_gmv` | `sum(income_amount - in_pay_period_refund_amount - non_pay_period_refund_amount) / 100` | 截面 GMV 退费率分母 | 可 sum；字段名称和业务含义待人工确认 |
+| `refund_headcount_section` | `count(distinct case when in_pay_period_refund_amount + non_pay_period_refund_amount > 0 then user_id end)` | 截面人头退费率分子 | 可 sum；跨顾问/渠道重复用户风险待人工确认 |
+| `refund_1_subject_gmv` | `subject_count = 1` 时截面退款金额 `/100` | 1科 GMV 退费率分子 | 可 sum |
+| `net_income_1_subject_gmv` | `subject_count = 1` 时截面净收入 `/100` | 1科 GMV 退费率分母 | 可 sum；分母含义待人工确认 |
+| `refund_1_subject_headcount` | `subject_count = 1` 且截面退款金额 > 0 的去重用户数 | 1科人头退费分子 | 可 sum；分母是否应另设 1科用户数待人工确认 |
+| `refund_2_3_subject_gmv` | `subject_count between 2 and 3` 时截面退款金额 `/100` | 2-3科 GMV 退费率分子 | 可 sum |
+| `net_income_2_3_subject_gmv` | `subject_count between 2 and 3` 时截面净收入 `/100` | 2-3科 GMV 退费率分母 | 可 sum；分母含义待人工确认 |
+| `refund_2_3_subject_headcount` | `subject_count between 2 and 3` 且截面退款金额 > 0 的去重用户数 | 2-3科人头退费分子 | 可 sum；分母是否应另设 2-3科用户数待人工确认 |
+| `refund_3plus_subject_gmv` | `subject_count > 3` 时截面退款金额 `/100` | 3科以上 GMV 退费率分子；实际为 4科及以上还是 3科以上取决于 `subject_count` 口径，待人工确认 | 可 sum |
+| `net_income_3plus_subject_gmv` | `subject_count > 3` 时截面净收入 `/100` | 3科以上 GMV 退费率分母 | 可 sum；分母含义待人工确认 |
+| `refund_3plus_subject_headcount` | `subject_count > 3` 且截面退款金额 > 0 的去重用户数 | 3科以上人头退费分子 | 可 sum；分母是否应另设 3科以上用户数待人工确认 |
+
+多维退费率透视表推荐公式：
+
+| 展示指标 | 公式 |
+|---|---|
+| 当期 GMV 退费率 | `ifnull(sum(${refund_current_gmv}) / sum(${net_income_current_gmv}), 0)` |
+| 截面 GMV 退费率 | `ifnull(sum(${refund_section_gmv}) / sum(${net_income_section_gmv}), 0)` |
+| 截面人头退费率 | `ifnull(sum(${refund_headcount_section}) / sum(${total_headcount}), 0)` |
+| 1科 GMV 退费率 | `ifnull(sum(${refund_1_subject_gmv}) / sum(${net_income_1_subject_gmv}), 0)` |
+| 2-3科 GMV 退费率 | `ifnull(sum(${refund_2_3_subject_gmv}) / sum(${net_income_2_3_subject_gmv}), 0)` |
+| 3科以上 GMV 退费率 | `ifnull(sum(${refund_3plus_subject_gmv}) / sum(${net_income_3plus_subject_gmv}), 0)` |
 
 ## 6. 分桶口径
 

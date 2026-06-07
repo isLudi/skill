@@ -315,9 +315,9 @@ limit 100;
 - 2026-05-15 `city_channel.txt` 版本最终在 `base` CTE 使用 `${period_name1}`、`${period_name2}` 控制主线索期次范围；`dd` CTE 自身没有单独期次过滤，依赖后续 join 和最终范围过滤。
 - `dd` 最终 join 到主线索只使用 `qici + user_id`，未带 `employee_email_name`，用户跨顾问成交时可能放大或错配。
 
-### 退费分析 SQL 使用备注
+### 退费分析 SQL 使用备注（历史入口）
 
-- `refund_multi_subject_user_ratio.sql`、`refund_subject_product.sql`、`refund_reason_analysis.sql` 均以该表为财务业绩主表，按 `trade_time` 推导 `qici`。
+- `refund_multi_subject_user_ratio.sql`、`refund_subject_product.sql`、`refund_reason_analysis.sql` 均以该表为财务业绩主表，按 `trade_time` 推导 `qici`；这三份退费看板入口已合并到 `market_channel_conversion_profile.md`，当前新多维退费率 SQL `refund_rate_multidim.sql` 不使用该表。
 - 常用范围限定为 `employee_first_level_department_name = 'H业务线'`、`employee_second_level_department_name = '市场部'`、`employee_third_level_department_name = '市场顾问部'`。
 - 多科用户退费占比和退费原因分析使用 `price <> 0`，并按 `zong_price < 0` 判断退款、`zong_price > 0` 判断收款。
 - 退费科目产品 SQL 使用 `case when trade_status in ('全部退款','部分退款') then -real_price else real_price end as real_price_0`，同时保留 `price`；金额正负口径与其他两份 SQL 不完全一致。
@@ -329,7 +329,7 @@ limit 100;
 
 - `../dashboards/consultant_sales_ranking_evaluation.md`：顾问销售评优和人产排名。
 - `../dashboards/traffic_profile.md`：成交科目档位 `sub`。
-- `../dashboards/refund_multi_subject_user_ratio.md`、`../dashboards/refund_subject_product.md`、`../dashboards/refund_reason_analysis.md`：退费分析财务主表。
+- `../dashboards/refund_multi_subject_user_ratio.md`、`../dashboards/refund_subject_product.md`、`../dashboards/refund_reason_analysis.md`：历史退费分析财务主表入口，当前默认路由到 `../dashboards/market_channel_conversion_profile.md` 的多维退费率数据集。
 
 已知风险：
 

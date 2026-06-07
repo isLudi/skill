@@ -450,10 +450,13 @@ limit 20;
 
 - `market_channel_conversion_profile_call_duration_dataset.sql`、`market_channel_conversion_profile_learn_duration_dataset.sql`、`market_channel_conversion_profile_deep_stage_dataset.sql` 均以该表为主表，基础业务指标来自 `lead_count`、`valid_lead_count`、`conversion_lead_count`、`order_count`、`income_amount`、`in_pay_period_refund_amount`、`non_pay_period_refund_amount`。
 - `market_channel_conversion_profile_overall_dataset_fixed.sql` 同属市场渠道用户画像分析看板的整体画像数据集，以该表为唯一物理表，输出 `period_name + channel_map + grade_name + manager_name` 粒度整体指标。
+- `refund_rate_multidim.sql` 同属市场渠道用户画像分析看板的多维退费率数据集，以该表为唯一物理表，输出 `period_name + channel_map + grade_name + jingli + zhuguan + employee_email_name` 粒度退费分子/分母指标。
 - 三份 SQL 的主表范围限定为 `section_assign_employee_* = H业务线/市场部/市场顾问部`、`virtual_third_department_name = '市场顾问部'`，期次映射二级部门允许 `市场部/精品班学部/null`；`null` 放宽条件是否保留待人工确认。
 - 整体画像数据集已同步补充 `virtual_third_department_name = '市场顾问部'`，与三份分桶数据集范围一致；如果未来整体画像有效线索数与分桶画像不一致，应优先检查是否遗漏该虚拟三级部门过滤。
 - 整体画像数据集中 `valid_lead_count` 使用标准宽表字段汇总，不再对 `抖音私域`/`抖音私信` 使用 `merge_valid_lead_count`；该禁用 merge 口径是否适用于所有整体画像组件待人工确认。
 - 整体画像 `src` 阶段保留 `lead_id`，用于避免 `select distinct` 在同一 `user_id` 多线索场景下折叠明细；最终结果不输出 `lead_id`。
+- 多维退费率数据集使用 `same_lead_period_refund_amount`、`same_lead_period_income_amount`、`income_amount`、`in_pay_period_refund_amount`、`non_pay_period_refund_amount` 计算当期和截面 GMV 退费率分子/分母；金额统一 `/100`，单位待人工确认。
+- 多维退费率数据集使用 `subject_count` 做 1科、2-3科、3科以上分层；该字段是否代表用户最终购买科目数待人工确认。
 - 首 call 通时数据集会单独从该表抽取 `section_assign_all_call_duration`，按 `period_name + lead_id + user_id` 取 `max` 后回连分桶；不要把该通时字段放入携带业务指标的 `select distinct`，否则可能因通时快照差异改变分桶粒度。
 - 深沟阶段数据集使用该表 `friend_lead_count` 作为已建联兜底标记，具体好友关系口径待人工确认。
 - 该数据集输出的 `head_conversion_rate`、`order_conversion_rate`、`section_unit_efficiency` 为行级比率，透视表总计必须使用 `conversion_user_cnt/order_cnt/section_profit_amt` 与 `bucket_user_cnt` 重算。
@@ -466,7 +469,7 @@ limit 20;
 - `../dashboards/market_consultant_conversion.md`：市场顾问转化主表。
 - `../dashboards/market_consultant_lead_conversion_attendance.md`：线索转化到课主表。
 - `../dashboards/traffic_profile.md`：流量画像主表。
-- `../dashboards/market_channel_conversion_profile.md`：市场渠道用户画像分析三数据集主表。
+- `../dashboards/market_channel_conversion_profile.md`：市场渠道用户画像分析三分桶、整体画像和多维退费率数据集主表。
 - `../dashboards/h_biz_line_department_conversion.md`：H 业务线二级部门转化主表。
 - `../dashboards/lead_assign_plan_actual_valid_count.md`：实际线索量和有效线索量来源。
 

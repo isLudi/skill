@@ -6,7 +6,7 @@
 
 ## 2. 表用途
 
-用于通过订单号补充退款原因。当前仅在 `resources/raw_sql/refund_reason_analysis.sql` 中出现。
+用于通过订单号补充退款原因。当前仅在历史退费 SQL `resources/raw_sql/refund_reason_analysis.sql` 中出现。`refund_reason_analysis.md` 已合并到 `market_channel_conversion_profile.md` 作为历史入口；新多维退费率 SQL `resources/raw_sql/refund_rate_multidim.sql` 不使用该表。
 
 ## 3. 数据粒度
 

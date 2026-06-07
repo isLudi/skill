@@ -163,9 +163,9 @@ eligible_consultant_name as (
 - `traffic_profile.sql` 最终层通过 `zx.employee_email_name = zz.employee_email_name` 补充 `xiaozu`。
 - 该表无 `qici` 字段，流量画像中得到的是当前专项架构口径，不代表某期次历史架构；跨期复盘时需确认是否改用 `temp_table.dingxi01_jiagou_db`。
 
-### 退费分析 SQL 使用备注
+### 退费分析 SQL 使用备注（历史入口）
 
-- `refund_multi_subject_user_ratio.sql`、`refund_subject_product.sql`、`refund_reason_analysis.sql` 均通过 `employee_email_name = name` 关联该表，补充 `xiaozu`、`jingli`。
+- `refund_multi_subject_user_ratio.sql`、`refund_subject_product.sql`、`refund_reason_analysis.sql` 均通过 `employee_email_name = name` 关联该表，补充 `xiaozu`、`jingli`；这三份退费看板入口已合并到 `market_channel_conversion_profile.md`，当前新多维退费率 SQL `refund_rate_multidim.sql` 不使用该表。
 - 该表无 `qici` 字段，因此三份退费分析 SQL 的架构是当前专项架构口径，不是订单发生期的历史架构。
 
 ## 13. 反向联动速查
@@ -174,7 +174,7 @@ eligible_consultant_name as (
 
 - `../dashboards/market_consultant_conversion.md`、`../dashboards/traffic_profile.md`：补充当前小组或经理。
 - `../dashboards/consultant_sales_ranking_evaluation.md`：季度/半年 clean 脚本用作当前在职顾问名单。
-- `../dashboards/refund_multi_subject_user_ratio.md`、`../dashboards/refund_subject_product.md`、`../dashboards/refund_reason_analysis.md`：退费分析当前架构补充。
+- `../dashboards/refund_multi_subject_user_ratio.md`、`../dashboards/refund_subject_product.md`、`../dashboards/refund_reason_analysis.md`：历史退费分析当前架构补充入口；当前默认路由到 `../dashboards/market_channel_conversion_profile.md` 的多维退费率数据集。
 
 已知风险：
 

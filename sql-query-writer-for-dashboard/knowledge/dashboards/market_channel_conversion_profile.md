@@ -8,10 +8,11 @@
 - `resources/raw_sql/market_channel_conversion_profile_learn_duration_dataset.sql`
 - `resources/raw_sql/market_channel_conversion_profile_deep_stage_dataset.sql`
 - `resources/raw_sql/market_channel_conversion_profile_overall_dataset_fixed.sql`
+- `resources/raw_sql/refund_rate_multidim.sql`
 
 入库时间：2026-06-06
 
-最近更新：2026-06-06
+最近更新：2026-06-07
 
 ## 2. 查询目标
 
@@ -21,6 +22,7 @@
 - 成单用户上课时长占比：按总出勤时长分桶。
 - 深沟成单用户占比：按私海销售阶段/好友关系分桶。
 - 成单用户画像整体数据：不按过程分桶，按期次、渠道、年级和经理展示整体线索、有效线索、成交用户、科目数、订单数、收入和科目档位。
+- 多维退费率数据：不按过程分桶，按期次、渠道、年级、经理、主管、顾问输出 GMV 退费率、人头退费率和单科/多科退费分子分母字段；看板数据透视表自行计算比率。
 
 三个数据集的总计口径应一致：相同期次、渠道、年级筛选下，`bucket_user_cnt`、`conversion_user_cnt`、`order_cnt`、`section_profit_amt` 的总计应一致；差异只应体现在 `bucket_name` 分桶分布上。
 
@@ -33,6 +35,7 @@
 | `service_dw.dws_service_user_learn_detail_hf` | `learn_duration` | 仅在上课时长数据集中按 `period_name + user_id` 汇总 `live_learn_duration`，用于出勤时长分桶 | 行课口径待人工确认 |
 | `service_dw.dwd_crm_assign_private_detail_hf` | `private_stage` | 仅在深沟阶段数据集中按 `user_number + lead_id` 取最新 `sale_flow_stage_sequence`，用于深沟/双沟分桶 | 私海阶段口径待人工确认 |
 | `temp_table.shenbaoxin_channel_group` | `channel_group` | 按 `channel = channel_map` 补充渠道组 | 字段结构、唯一性和维护来源待人工确认 |
+| `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df` | `refund_rate_multidim` 的 `lead_raw`, `lead_base`, `agg` | 多维退费率数据集唯一物理表，提供线索、有效线索、成交科目数、当期/截面收入和退款金额、经理/主管/顾问字段 | 退费率分子分母口径来自用户提供 SQL；金额单位、科目数和人头口径待人工确认 |
 
 ## 4. 范围限定
 
@@ -118,6 +121,20 @@ where a.period_name > '20260417期'
 - 整体画像 `pay_user_head_count` 当前使用 `regular_course_user_count > 0` 后按用户计 1，是否与所有看板正价课转化人头口径完全一致。
 - 科目档位 `subject_1/subject_2_3/subject_3_plus/subject_0` 是否应按用户层 `sum(subject_count)` 分层；多订单、多科目退款后的档位归属需人工确认。
 
+### 5.5 多维退费率数据集
+
+来源：`resources/raw_sql/refund_rate_multidim.sql`
+
+该数据集属于市场渠道用户画像分析看板的退费模块，替代原独立退费看板入口中的多科用户退费占比、退费科目产品和退费原因分析的拆散调用。当前 SQL 只使用全链路主表，不再 join 财务业绩明细、退款原因表或架构临时表。
+
+| CTE | 用途 | 关键字段 |
+|---|---|---|
+| `lead_raw` | 从全链路表抽取市场顾问部主表字段、业务指标和退款金额字段 | `period_name`, `lead_id`, `user_id`, `valid_lead_count`, `subject_count`, `income_amount`, `in_pay_period_refund_amount`, `non_pay_period_refund_amount`, `same_lead_period_income_amount`, `same_lead_period_refund_amount` |
+| `lead_base` | 生成 `channel_map`、`grade_name`，透传经理、主管、顾问和退款指标 | `channel_map`, `grade_name`, `jingli`, `zhuguan`, `employee_email_name` |
+| `agg` | 按 `period_name + channel_map + grade_name + jingli + zhuguan + employee_email_name` 汇总分子/分母 | `refund_current_gmv`, `net_income_current_gmv`, `refund_section_gmv`, `net_income_section_gmv`, `refund_headcount_section`, `total_headcount` |
+
+输出为分子/分母字段，不直接输出退费率。看板数据透视表必须用 `sum(分子) / sum(分母)` 自行计算，避免行级比率在多维汇总时失真。
+
 ## 6. join 关系
 
 | 左表/CTE | 右表/CTE | join key | join 类型 | 说明 |
@@ -128,6 +145,7 @@ where a.period_name > '20260417期'
 | `profile_agg a` | `temp_table.shenbaoxin_channel_group cg` | `cg.channel = a.channel_map` | left join | 补充渠道组 |
 | `profile_agg a` | `dim_totals dt` | `period_name + channel_map + grade_name` | left join | 补充分桶前总线索和总有效线索 |
 | 整体画像数据集 | 无外部 join | 无 | 无 | `market_channel_conversion_profile_overall_dataset_fixed.sql` 仅使用全链路主表；如后续补渠道组或架构表，需另行确认 join key 和唯一性 |
+| 多维退费率数据集 | 无外部 join | 无 | 无 | `refund_rate_multidim.sql` 仅使用全链路主表；经理/主管/顾问均来自主表虚拟架构字段，字段最终展示口径待人工确认 |
 
 ## 7. 输出粒度
 
@@ -151,6 +169,14 @@ period_name + channel_map + grade_name + manager_name
 
 整体画像数据集不输出 `analysis_type`、`bucket_name`、`bucket_sort`、`channel_group`。如果看板需要渠道组，需要额外 join `temp_table.shenbaoxin_channel_group`，字段和唯一性待人工确认。
 
+多维退费率数据集最终输出粒度：
+
+```text
+period_name + channel_map + grade_name + jingli + zhuguan + employee_email_name
+```
+
+多维退费率数据集不输出 `analysis_type`、`bucket_name`、`bucket_sort`、`channel_group`。如果看板需要渠道组或退费原因/科目产品明细，需要另行确认是否回退到历史退费 SQL 或新增明细数据集。
+
 ## 8. 输出字段和看板使用
 
 | 字段 | 说明 | 是否可直接 sum | 备注 |
@@ -168,7 +194,6 @@ period_name + channel_map + grade_name + manager_name
 | `head_conversion_rate` | SQL 行级人头转化率 | 否 | 不能在透视表 sum/avg；仅作单行参考，建议隐藏 |
 | `order_conversion_rate` | SQL 行级订单转化率 | 否 | 不能在透视表 sum/avg；仅作单行参考，建议隐藏 |
 | `section_unit_efficiency` | SQL 行级截面单效 | 否 | 不能在透视表 sum/avg；仅作单行参考，建议隐藏 |
-| `bucket_user_share` | 当前桶人数占同组分桶总人数比例 | 否 | 饼图可在单一分组下使用；跨渠道/年级汇总需重算 |
 
 ## 9. 透视表推荐公式
 
@@ -181,7 +206,25 @@ period_name + channel_map + grade_name + manager_name
 | 人头转化率 | `ifnull(sum(${conversion_user_cnt}) / sum(${bucket_user_cnt}), 0)` |
 | 订单转化率 | `ifnull(sum(${order_cnt}) / sum(${bucket_user_cnt}), 0)` |
 | 单效（截面） | `ifnull(sum(${section_profit_amt}) / sum(${bucket_user_cnt}), 0)` |
-| 当前桶占比 | `ifnull(sum(${bucket_user_cnt}) / sum(${bucket_user_cnt}) over 当前透视分组, 0)`；具体窗口/总计写法取决于看板能力，待人工确认 |
+| 当前桶占比 | 优先使用 `sum(${bucket_user_cnt}) / sum(${total_lead_cnt})` 或看板“占总计”能力；总计行展示方式待人工确认 |
+
+### 9.1 多维退费率透视表公式
+
+适用 SQL：`resources/raw_sql/refund_rate_multidim.sql`
+
+| 展示指标 | 推荐公式 |
+|---|---|
+| 当期 GMV 退费率 | `ifnull(sum(${refund_current_gmv}) / sum(${net_income_current_gmv}), 0)` |
+| 截面 GMV 退费率 | `ifnull(sum(${refund_section_gmv}) / sum(${net_income_section_gmv}), 0)` |
+| 截面人头退费率 | `ifnull(sum(${refund_headcount_section}) / sum(${total_headcount}), 0)` |
+| 1科 GMV 退费率 | `ifnull(sum(${refund_1_subject_gmv}) / sum(${net_income_1_subject_gmv}), 0)` |
+| 1科人头退费率 | `ifnull(sum(${refund_1_subject_headcount}) / sum(${total_headcount}), 0)`；1科分母是否应使用 1科用户数待人工确认 |
+| 2-3科 GMV 退费率 | `ifnull(sum(${refund_2_3_subject_gmv}) / sum(${net_income_2_3_subject_gmv}), 0)` |
+| 2-3科人头退费率 | `ifnull(sum(${refund_2_3_subject_headcount}) / sum(${total_headcount}), 0)`；2-3科分母是否应使用 2-3科用户数待人工确认 |
+| 3科以上 GMV 退费率 | `ifnull(sum(${refund_3plus_subject_gmv}) / sum(${net_income_3plus_subject_gmv}), 0)` |
+| 3科以上人头退费率 | `ifnull(sum(${refund_3plus_subject_headcount}) / sum(${total_headcount}), 0)`；3科以上分母是否应使用 3科以上用户数待人工确认 |
+
+注意：该 SQL 输出的 `net_income_*` 字段是用户提供 SQL 中的分母字段名称，真实业务含义是否应称为“净营收”或“GMV分母”待人工确认。
 
 ## 10. 已验证现象
 
@@ -198,5 +241,7 @@ period_name + channel_map + grade_name + manager_name
 - 私海阶段 `sale_flow_stage_sequence = 450/470` 对应深沟/双沟的业务口径是否稳定。
 - `bucket_user_cnt` 当前沿用 `lead_count > 0` 的线索量口径，并非 `count(distinct user_id)`；业务是否称为“人数”需人工确认。
 - 整体画像数据集中 `pay_user_head_count`、`pay_subject_person_count`、`subject_*` 档位是否完全等同 CRM 画像口径需人工确认。
+- 多维退费率数据集中 `subject_count` 直接来自全链路主表，是否能代表用户最终购买科目数分层待人工确认。
+- 多维退费率数据集的人头退费率分母当前使用 `total_headcount = count(distinct valid_lead_count > 0 的 user_id)`；单科/多科人头退费率是否应改用对应科目分层用户数做分母待人工确认。
 - 金额字段统一 `/100`，推断原始单位为分，需人工确认。
 - `temp_table.shenbaoxin_channel_group` 的字段结构、唯一性和维护来源待人工确认。

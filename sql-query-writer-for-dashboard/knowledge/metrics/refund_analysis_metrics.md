@@ -1,5 +1,16 @@
 # 退费分析指标
 
+## 0. 当前维护状态
+
+该指标集合为历史退费看板口径归档。`refund_multi_subject_user_ratio.md`、`refund_subject_product.md`、`refund_reason_analysis.md` 三个退费看板入口已合并到 `knowledge/dashboards/market_channel_conversion_profile.md` 的“多维退费率数据集”章节。
+
+当前市场渠道用户画像分析中的退费率优先使用：
+
+- `resources/raw_sql/refund_rate_multidim.sql`
+- `knowledge/metrics/market_channel_conversion_profile_metrics.md`
+
+本文件仅用于追溯旧财务流水/退费原因/科目产品 SQL 口径。旧口径与新全链路主表退费率口径不完全一致，复用前需人工确认。
+
 ## 1. 指标集合名称
 
 退费分析指标集合

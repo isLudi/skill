@@ -162,6 +162,25 @@ left join target_completion_ranked tr
 
 输出说明中必须提示：日维度结果中的期次排名、目标、比率、差值类字段前端应使用 `max`、`min` 或“不聚合”，不要使用 `sum`；若前端无法控制聚合，使用 `*_once` 字段。
 
+## 数据透视表比值指标分子分母输出
+
+当产出的 SQL 用于看板中的数据透视表展示，并且指标属于比值、率、占比、单效、人均、客单价等需要分子和分母的计算时，默认不要只输出行级计算结果。应优先输出英文命名的分子字段和分母字段，由看板透视表使用可加和字段重算。
+
+推荐输出模式：
+
+```sql
+sum(<numerator_expr>) as refund_section_gmv,
+sum(<denominator_expr>) as net_income_section_gmv
+```
+
+看板公式：
+
+```text
+ifnull(sum(${refund_section_gmv}) / sum(${net_income_section_gmv}), 0)
+```
+
+如果同时输出行级比值，例如 `refund_rate`、`head_conversion_rate`、`section_unit_efficiency`，必须在文档或说明中标注：该字段只适合单行参考，不适合在透视表中 `sum` 或 `avg`。跨 bucket、渠道、年级、顾问、期次汇总时，必须用分子分母字段重算。
+
 ## 评优名单与在职架构名单
 
 `temp_table.dingxi01_pingyou_jg` 只用于用户明确要求“评优/参评名单/评优架构/人产”时。该表含 `qici`，按 `qici + employee_email_name` 关联会限制结果只能落在该临时表已维护期次内。

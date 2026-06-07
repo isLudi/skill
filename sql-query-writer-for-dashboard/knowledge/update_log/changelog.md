@@ -484,3 +484,14 @@
   - 整体画像有效线索数使用标准 `valid_lead_count`，不再对 `抖音私域`/`抖音私信` 切换 `merge_valid_lead_count`。
   - `src` 阶段新增 `lead_id` 防止同一用户多线索被 `select distinct` 折叠；最终结果不输出 `lead_id`。
 - 待人工确认：整体画像中 `pay_user_head_count` 与 `regular_course_user_count` 的业务区别；科目档位 `subject_*` 是否按用户层 `sum(subject_count)` 分层；整体画像有效线索是否所有组件都应禁用 merge 口径；金额 `/100` 单位；`manager_name` 来自 `virtual_leader_email_name` 是否为经理展示最终口径。
+
+## 2026-06-07 市场渠道用户画像多维退费率数据集入库
+
+- 新增原始 SQL：`resources/raw_sql/refund_rate_multidim.sql`，来源 `c:\Users\Ludim\.codex\runtime\refund_rate_multidim.sql`。
+- 该 SQL 属于 `market_channel_conversion_profile` 市场渠道用户画像分析看板的多维退费率数据集，不是独立看板；用于输出当期/截面 GMV 退费率、人头退费率、1科/2-3科/3科以上退费率所需分子和分母字段。
+- 更新 `knowledge/dashboards/market_channel_conversion_profile.md`，补充多维退费率数据集的来源、CTE、输出粒度、透视表公式和待人工确认事项。
+- 将 `refund_multi_subject_user_ratio.md`、`refund_reason_analysis.md`、`refund_subject_product.md` 调整为历史合并入口，默认路由到市场渠道用户画像分析看板；旧 raw SQL 仅保留追溯。
+- 更新 `knowledge/metrics/market_channel_conversion_profile_metrics.md` 与 `knowledge/metrics/refund_analysis_metrics.md`，将退费率口径维护到画像指标集合，旧退费指标集合标记为历史。
+- 更新 `knowledge/joins/common_join_keys.md`、`knowledge/joins/table_relationships.md`、`knowledge/01_table_index.md` 和相关表文档，记录该数据集仅使用 `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df`，不再使用历史财务流水/退费原因/架构表 join。
+- 新增通用规则：当 SQL 用于看板数据透视表且涉及比值指标时，优先输出英文分子和分母字段，透视表用 `sum(分子) / sum(分母)` 重算，不默认只输出行级比值。
+- 待人工确认：金额字段 `/100` 单位、`subject_count` 是否代表最终购买科目数、单科/多科人头退费率分母是否应使用对应科目分层用户数、经理/主管/顾问字段最终展示口径。
