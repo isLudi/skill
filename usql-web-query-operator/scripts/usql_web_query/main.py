@@ -1,5 +1,4 @@
-#!/usr/bin/env python3
-"""Thin wrapper: delegates to the usql_web_query package."""
+"""Compatibility module for package execution."""
 
 from __future__ import annotations
 

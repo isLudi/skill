@@ -9,9 +9,7 @@ This script is intentionally separate from usql_web_query.py:
 from __future__ import annotations
 
 import argparse
-import getpass
 import json
-import os
 import re
 import sys
 import time
@@ -19,23 +17,21 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from _shared.auth import ensure_authenticated, fill_login_if_present
+from _shared.browser import import_playwright, launch_browser, launch_context
+from _shared.config import DEFAULT_ARTIFACTS, DEFAULT_BROWSER_CHANNEL, DEFAULT_ENV_FILE, DEFAULT_STATE
+from _shared.debug import save_debug_artifacts
+from _shared.env import load_env_file
+from _shared.errors import UsageError
+from _shared.fs_utils import ensure_runtime, safe_artifact_dir
 
-QUERY_URL = "https://uanalysis.baijia.com/getDataSql"
+
 DASHBOARD_MARKET_URL = "https://uanalysis.baijia.com/dashboard-market"
 DASHBOARD_MENU_API = "https://uanalysis.baijia.com/uanalysis-intelligence/data/menu/manage"
 DASHBOARD_CONFIG_API = "https://uanalysis.baijia.com/uanalysis-intelligence/config/dashBoard"
 UNIT_DETAIL_API = "https://uanalysis.baijia.com/uanalysis-intelligence/value/unit/consumer/detail"
 PUBLIC_FILTER_DETAIL_API = "https://uanalysis.baijia.com/uanalysis-intelligence/value/public/unit/relation/detail"
 UNIT_VALUE_API = "https://uanalysis.baijia.com/uanalysis-intelligence/value/unit"
-RUNTIME_DIR = Path.home() / ".codex" / "runtime" / "usql-web-query-operator"
-DEFAULT_STATE = RUNTIME_DIR / "state.json"
-DEFAULT_ARTIFACTS = RUNTIME_DIR / "artifacts"
-DEFAULT_BROWSER_CHANNEL = "msedge"
-DEFAULT_ENV_FILE = Path(r"E:\2000_work\GAOTU\20002_市场顾问部看板维护表格\usql_api.env")
-
-
-class UsageError(RuntimeError):
-    """User-actionable script error."""
 
 
 @dataclass
@@ -72,97 +68,6 @@ class DashboardProfileSummary:
     value_unit_count: int
     data_ready_unit_count: int
     message: str
-
-
-def import_playwright() -> Any:
-    try:
-        from playwright.sync_api import sync_playwright
-    except ModuleNotFoundError as exc:
-        raise UsageError(
-            "Python Playwright is not installed. Install with:\n"
-            "D:\\anaconda3\\python.exe -m pip install playwright"
-        ) from exc
-    return sync_playwright
-
-
-def load_env_file(path: Path | None) -> None:
-    if not path or not path.exists():
-        return
-    for raw_line in path.read_text(encoding="utf-8").splitlines():
-        line = raw_line.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-        key, value = line.split("=", 1)
-        key = key.strip()
-        value = value.strip().strip('"').strip("'")
-        if key and key not in os.environ:
-            os.environ[key] = value
-
-
-def ensure_runtime(paths: list[Path]) -> None:
-    for path in paths:
-        path.mkdir(parents=True, exist_ok=True)
-
-
-def safe_artifact_dir(root: Path) -> Path:
-    timestamp = time.strftime("%Y%m%d-%H%M%S")
-    path = root / timestamp
-    path.mkdir(parents=True, exist_ok=False)
-    return path
-
-
-def launch_browser(playwright: Any, headed: bool, browser_channel: str | None, executable_path: str | None):
-    launch_kwargs: dict[str, Any] = {"headless": not headed}
-    if executable_path:
-        launch_kwargs["executable_path"] = executable_path
-    elif browser_channel:
-        launch_kwargs["channel"] = browser_channel
-    return playwright.chromium.launch(**launch_kwargs)
-
-
-def launch_context(playwright: Any, state_path: Path, headed: bool, browser_channel: str | None, executable_path: str | None):
-    browser = launch_browser(playwright, headed, browser_channel, executable_path)
-    context_kwargs: dict[str, Any] = {
-        "viewport": {"width": 1600, "height": 1000},
-        "accept_downloads": True,
-    }
-    if state_path.exists():
-        context_kwargs["storage_state"] = str(state_path)
-    context = browser.new_context(**context_kwargs)
-    return browser, context
-
-
-def fill_login_if_present(page: Any, username: str | None, password: str | None) -> bool:
-    if "cas.baijia.com" not in page.url and "login" not in page.url.lower():
-        return False
-
-    username = username or os.environ.get("BAIJIA_USERNAME")
-    password = password or os.environ.get("BAIJIA_PASSWORD")
-    if not username:
-        username = input("Baijia username: ").strip()
-    if not password:
-        password = getpass.getpass("Baijia password: ")
-
-    inputs = page.locator("input")
-    if inputs.count() < 2:
-        raise UsageError("Login page detected, but username/password inputs were not found.")
-    inputs.nth(0).fill(username)
-    inputs.nth(1).fill(password)
-    page.get_by_text("登录", exact=True).click()
-    return True
-
-
-def ensure_authenticated(page: Any, args: argparse.Namespace, context: Any | None = None) -> None:
-    page.goto(QUERY_URL, wait_until="domcontentloaded", timeout=45_000)
-    page.wait_for_timeout(1500)
-    if "cas.baijia.com" in page.url or "login" in page.url.lower():
-        fill_login_if_present(page, getattr(args, "username", None), getattr(args, "password", None))
-        page.wait_for_load_state("domcontentloaded", timeout=45_000)
-        page.wait_for_timeout(3000)
-        if context is not None:
-            context.storage_state(path=str(args.state_path))
-    if "cas.baijia.com" in page.url or "login" in page.url.lower():
-        raise UsageError("Login failed or requires manual verification.")
 
 
 def extract_numeric_id(value: str | None) -> str | None:
@@ -254,11 +159,6 @@ def collect_dashboard_records(menu_data: dict[str, Any], folder_name: str) -> li
             if _is_dashboard_file(node):
                 records.append(_record_from_menu_node(node, path))
     return unique_dashboard_records(records)
-
-
-def save_debug_artifacts(page: Any, artifacts_dir: Path, prefix: str = "dashboard") -> None:
-    page.screenshot(path=str(artifacts_dir / f"{prefix}.png"), full_page=True)
-    (artifacts_dir / f"{prefix}.html").write_text(page.content(), encoding="utf-8")
 
 
 def dashboard_url(dashboard_id: str) -> str:

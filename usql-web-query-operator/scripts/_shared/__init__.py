@@ -1,0 +1,1 @@
+"""Shared Playwright automation infrastructure."""
