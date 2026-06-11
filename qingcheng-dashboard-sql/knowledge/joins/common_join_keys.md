@@ -27,6 +27,8 @@
 | `temp_table.dingxi01_qing_team_g_qi` | `renchan` | `xiaozu = leader_employee_email_name + qici` | left join | 期次目标与实际业绩合并 | 已从 SQL 入库 |
 | `temp_table.dingxi01_qing_team_jg` | `wa` | `employee_email_name + qici = name + qici` | left join | 个人转化以团队架构为主合并个人业绩 | 已从 SQL 入库，架构唯一性待确认 |
 | `temp_table.dingxi01_qing_team_jg` | `temp_table.dingxi01_qing_qi_moth` | `qici` | left join | 个人转化按架构期次补充月份 | 已从 SQL 入库 |
+| `data` (CTE) | `f_call0` (CTE, from service_dw.app_h_crm_lead_task_process_info_detail_hf) | `period_name + assign_employee_email_name = employee_email_name + user_id + lead_id = call_answer_lead_count` | left join | 补充线索是否有 F 类首次外呼 | 已从 SQL 入库，`call_answer_lead_count` 作为 `lead_id` 使用语义待确认 |
+| `zhuanhua` (CTE) | `temp_table.shenbaoxin_channel_group` | `channel = channel_map` | left join | 补充渠道大类 `channel_group` | 已从 SQL 入库，临时表唯一性待确认 |
 
 ## 维护规则
 

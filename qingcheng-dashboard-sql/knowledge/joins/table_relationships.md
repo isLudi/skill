@@ -29,6 +29,8 @@
 | `temp_table.dingxi01_qing_team_g_qi qg` | `renchan rc` | `qg.xiaozu = rc.leader_employee_email_name and qg.qici = rc.qici` | 期次目标与实际合并 | 以期目标表为主，即使无实际也保留目标行 | `qingcheng_team_completion_period_raw_20260522.sql` |
 | `temp_table.dingxi01_qing_team_jg qtg` | `wa` | `qtg.employee_email_name = wa.name and qtg.qici = wa.qici` | 个人架构合并业绩 | 以架构表为主，未匹配业绩的人员保留 0 指标；若架构表一人一期多行会放大 | `qingcheng_personal_conversion_raw_20260522.sql` |
 | `temp_table.dingxi01_qing_team_jg qtg` | `temp_table.dingxi01_qing_qi_moth qm` | `qm.qici = qtg.qici` | 架构期次补充月份 | 缺少月份映射时 `moth` 为空，但人员行仍保留 | `qingcheng_personal_conversion_raw_20260522.sql` |
+| `data` (CTE) | `f_call0` (CTE, from `service_dw.app_h_crm_lead_task_process_info_detail_hf`) | `period_name + employee_email_name = assign_employee_email_name + user_id + lead_id = call_answer_lead_count` | 线索补充 F 类外呼 | join 未使用 `lead_id` 精确匹配（`call_answer_lead_count` 语义非 ID），可能放大；若 `call_answer_lead_count` 不是唯一标识符，同一线索可能匹配多条 F 类外呼 | `qingcheng_conversion_wide_table_market_channel_20260611.sql` |
+| `zhuanhua` (CTE) | `temp_table.shenbaoxin_channel_group` | `channel = channel_map` | 渠道大类补充 | 若临时表 channel 不唯一会放大聚合结果 | `qingcheng_conversion_wide_table_market_channel_20260611.sql` |
 
 ## 2. 待确认关系
 
@@ -47,6 +49,8 @@
 | `qg` | `renchan` | `xiaozu = leader_employee_email_name and month = moth` | `qg.xiaozu` 字段是否存主管邮箱而非小组名称待确认 |
 | `qg` | `renchan` | `xiaozu = leader_employee_email_name and qici = qici` | 期目标表 `xiaozu` 字段是否存主管邮箱而非小组名称待确认 |
 | `qtg` | `wa` | `employee_email_name + qici` | 个人转化要求架构表一人一期唯一，否则个人业绩可能被重复计算 |
+| `data` | `f_call0` | `period_name + employee_email_name + user_id + lead_id` | `call_answer_lead_count` 字段名为"计数"但作为 `lead_id` 使用，语义矛盾；join 是否精准匹配待确认 |
+| `zhuanhua` | `shenbaoxin_channel_group` | `channel = channel_map` | 临时表的 `channel` 字段枚举值是否全覆盖 CASE WHEN 输出的 `channel_map` 值待确认；未匹配时 `channel_1` 为 null |
 
 ## 3. 维护规则
 

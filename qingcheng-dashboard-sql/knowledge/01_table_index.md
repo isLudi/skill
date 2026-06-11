@@ -17,6 +17,7 @@
 | `finance_dw.app_finance_performance_extend_details_hf` | 财务业绩扩展明细小时表 | 年季月营收、团队完成度、个人转化 | `dt` | `hour` | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/finance_dw.app_finance_performance_extend_details_hf.md` |
 | `finance_dw.dm_finance_order_refund_detail_df` | 财务订单退款明细日表 | 全退订单行课节数、退 4 阈值 | `dt` | 无 | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/finance_dw.dm_finance_order_refund_detail_df.md` |
 | `finance_dw.dim_finance_order_change_df` | 财务订单调课调班维表 | 退款订单调课调班类型 | `dt` | 无 | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/finance_dw.dim_finance_order_change_df.md` |
+| `service_dw.app_h_crm_lead_task_process_info_detail_hf` | CRM 线索任务处理信息明细小时表 | F 类首次外呼标记 | `dt` | `hour` | 新入库，字段待表结构确认 | `knowledge/tables/service_dw.app_h_crm_lead_task_process_info_detail_hf.md` |
 
 ## 2. 青橙临时表
 
@@ -29,6 +30,7 @@
 | `temp_table.dingxi01_qing_qi_moth` | 青橙期次到月份映射表 | 待人工确认 | 青橙团队完成度【月】raw、青橙团队完成度【期】raw、青橙个人转化 raw | 已从 SQL 入库，来源待确认 | `knowledge/temp_tables/temp_table.dingxi01_qing_qi_moth.md` |
 | `temp_table.dingxi01_qing_team_goal` | 青橙团队月目标表 | 待人工确认 | 青橙团队完成度【月】raw | 已从 SQL 入库，目标单位和层级待确认 | `knowledge/temp_tables/temp_table.dingxi01_qing_team_goal.md` |
 | `temp_table.dingxi01_qing_team_g_qi` | 青橙团队期次目标表 | 待人工确认 | 青橙团队完成度【期】raw | 已从 SQL 入库，目标单位和层级待确认 | `knowledge/temp_tables/temp_table.dingxi01_qing_team_g_qi.md` |
+| `temp_table.shenbaoxin_channel_group` | 市场渠道分组映射表 | 待人工确认 | 青橙转化宽表-市场渠道 raw | 新入库，来源/刷新/唯一性待确认 | `knowledge/temp_tables/temp_table.shenbaoxin_channel_group.md` |
 
 ## 3. 看板入口
 
@@ -41,6 +43,7 @@
 | 青橙团队完成度【月】raw | `resources/raw_sql/qingcheng_team_completion_month_raw_20260522.sql` | `knowledge/metrics/qingcheng_team_completion_month_metrics.md` | 已入库，raw SQL 存在平台函数风险 |
 | 青橙团队完成度【期】raw | `resources/raw_sql/qingcheng_team_completion_period_raw_20260522.sql` | `knowledge/metrics/qingcheng_team_completion_period_metrics.md` | 已入库，raw SQL 存在平台函数风险 |
 | 青橙个人转化 raw | `resources/raw_sql/qingcheng_personal_conversion_raw_20260522.sql` | `knowledge/metrics/qingcheng_personal_conversion_metrics.md` | 已入库，raw SQL 存在平台函数风险 |
+| 青橙转化宽表-市场渠道 raw | `resources/raw_sql/qingcheng_conversion_wide_table_market_channel_20260611.sql` | `knowledge/metrics/qingcheng_conversion_wide_table_market_channel_metrics.md` | 已入库，100+ 分支 CASE WHEN 渠道映射，含 AND/OR 优先级风险 |
 
 ## 4. 入库规则
 
