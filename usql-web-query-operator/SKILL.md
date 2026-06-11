@@ -115,3 +115,45 @@ If selectors drift, inspect `references/platform_profile.md`, update the selecto
 Use `sql-query-writer-for-dashboard` for SQL generation, table/field validation, permission reasoning, and result interpretation. Use this skill only for the web UI execution path.
 
 When a user asks to "run this SQL through the page", first check whether this skill should be used; do not attempt USQL RestAPI unless the user explicitly requests API execution.
+
+## Image Reading via mineru-converter
+
+When this skill captures screenshots during debugging, error analysis, script execution verification, or code inspection — and the content of those images is needed — delegate to `mineru-converter` instead of trying to visually interpret pixels.
+
+### When to invoke mineru-converter
+
+| Scenario | Example |
+|---|---|
+| **Error diagnosis** | Playwright captured a platform error popup / notification — extract the exact error text |
+| **Script verification** | Need to confirm the page rendered correctly after a script change — read the rendered data in the screenshot |
+| **Login/state issues** | Login page shows an unexpected challenge (CAPTCHA, risk control, MFA prompt) — extract the message |
+| **Dashboard profiling** | read_dashboard.py captured a chart/metric screenshot — extract visible metric names and values |
+| **Selector debugging** | The page structure changed — read the screenshot to understand the new layout |
+
+### How to invoke
+
+```powershell
+# Step 1: Load token from env file
+$env:MINERU_TOKEN = (Get-Content "E:\2000_work\GAOTU\20002_市场顾问部看板维护表格\usql_api.env" | Select-String '^MINERU_TOKEN=(.+)$').Matches.Groups[1].Value
+
+# Step 2: Extract image content (flash-extract for quick reads, extract for detailed analysis)
+mineru-open-api flash-extract <screenshot_path>.png -o C:\Users\Ludim\.codex\runtime\tmp\<descriptive_name>.md
+# OR for detailed analysis (auth required):
+mineru-open-api extract <screenshot_path>.png -o C:\Users\Ludim\.codex\runtime\tmp\<descriptive_name>.md
+```
+
+### Output policy
+
+- **NEVER** write mineru-converter output to `.codex/skills/` or any skill directory.
+- Use `C:\Users\Ludim\.codex\runtime\tmp\` for temporary extracted Markdown files.
+- Delete temp files after the information has been consumed and the task is complete.
+- For stdout-only reads (no persistent output needed): omit `-o` and consume the Markdown directly.
+- `flash-extract` is preferred for quick text reads of screenshots; use `extract` only when the screenshot contains complex tables or formulas that need precise preservation.
+
+### Cross-skill coordination
+
+When both this skill and `mineru-converter` are needed, follow this sequence:
+
+1. **usql-web-query-operator** — Execute the script, capture screenshot on error or for verification
+2. **mineru-converter** — Read the screenshot, return extracted text/data
+3. **usql-web-query-operator** or **sql-query-writer-for-dashboard** — Use the extracted content for diagnosis, repair, or verification
