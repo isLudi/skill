@@ -20,6 +20,7 @@ This skill does not bypass permissions. It only automates actions that the authe
 - Prefer preview/exploration SQL with `limit <= 1000`.
 - If the page reports permission, platform, or SQL errors, preserve the error text and optionally save debug screenshots only when `--debug-artifacts` is explicitly set.
 - If `run` returns `ok=false`, read `error_details.detail`, then `error_details.raw_snippet`, then `error_details.title`; repair the SQL from that captured reason before retrying.
+- Also read `error_category`, `error_category_label`, and `repair_guidance` from the final JSON summary. Treat `即时错误` and `日志区错误` as different repair paths.
 
 ## Workflow
 
@@ -54,10 +55,16 @@ If automated login is blocked by SSO, MFA, QR code, or risk control, rerun `logi
 D:\anaconda3\python.exe scripts\usql_web_query.py run --sql-file C:\path\to\query.sql --headed --no-download
 ```
 
+The script now switches the query engine before writing SQL. Default: `doris-presto`.
+Use `--engine presto` when you need a baseline comparison or when Doris-Presto behavior must be ruled out.
+
 6. Inspect the returned JSON summary. Successful runs include the query status, query id when detected, and a small visible-table preview when the page exposes one.
 7. If `status=Failed`, read `error_details` before changing SQL:
+   - `error_category=immediate_platform_error` / `error_category_label=即时错误`: the page rejected the SQL before a stable query row was created, often through a top-right notification. Stop retrying and fix the SQL first.
+   - `error_category=query_log_error` / `error_category_label=日志区错误`: a query row was created; use the execution log, especially `VALIDATE_SQL_ERROR`, line/column, table, and column names.
    - `notification` / `message` / `alert`: the page rejected the SQL before or during submission, often without a query id.
    - `log_area`: a query was created; use the execution log, especially `VALIDATE_SQL_ERROR`, line/column, table, and column names.
+   - `repair_guidance`: use the script-provided repair suggestion before guessing from raw page text.
    - See `references/query_error_handling.md` for verified cases and repair rules.
 8. If the run succeeds and the result is within the download policy, rerun with `--download` or include `--download` on the original run.
 
@@ -88,7 +95,12 @@ Use `scripts/usql_web_query.py` only for SQL取数:
 
 - `doctor`: check Python Playwright availability and show install commands if missing.
 - `login`: open the CAS login flow, authenticate, and save browser storage state outside the repo.
-- `run`: open SQL取数, create or reuse a query tab, insert SQL into the CodeMirror editor, submit with `Ctrl+E` first and run-button fallbacks second, wait for query-history/result-tab status, capture `error_details` on platform failures, extract a small visible result-table preview when available, and optionally download xlsx when the local row-limit policy allows it.
+- `run`: open SQL取数, create or reuse a query tab, switch the engine before writing SQL, insert SQL into the CodeMirror editor, submit with `Ctrl+E` first and run-button fallbacks second, wait for query-history/result-tab status, capture `error_details` on platform failures, extract a small visible result-table preview when available, and optionally download xlsx when the local row-limit policy allows it.
+
+Relevant `run` options:
+- Failure summaries now explicitly classify `即时错误` versus `日志区错误` and emit `repair_guidance` for the next SQL edit.
+- `--engine doris-presto`: select `Doris-Presto -> doris内测加速版` before query execution. This is the default.
+- `--engine presto`: force the original Presto engine for baseline checks and engine-difference troubleshooting.
 
 Use `scripts/read_dashboard.py` only for 自助BI/dashboard operations:
 

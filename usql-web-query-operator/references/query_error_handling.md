@@ -14,6 +14,22 @@ Use this order:
 
 Do not retry the same SQL blindly. Repair the SQL according to the captured error, then rerun.
 
+Also read these summary fields first when present:
+
+1. `error_category`
+2. `error_category_label`
+3. `repair_guidance`
+
+These fields are the script's final classification layer and should be preferred over ad hoc guessing from the page state.
+
+## Final Output Categories
+
+| `error_category` | `error_category_label` | Meaning | Required response |
+|---|---|---|---|
+| `immediate_platform_error` | `即时错误` | The page rejected the SQL before a query history row was reliably created. This is usually a top-right notification/message/alert. | Stop retrying immediately. Fix the SQL from the popup text first, then rerun. |
+| `query_log_error` | `日志区错误` | A query task was created and the failure is in the query history/log area. | Read the query log and repair from `VALIDATE_SQL_ERROR`, line/column, table, column, or runtime error text before rerunning. |
+| `other_platform_error` | `其他平台错误` | The page exposed an error, but it does not match the two main verified routes above. | Preserve the raw text and inspect page state or debug artifacts before changing business logic. |
+
 ## Error Sources
 
 | source | Meaning | Typical next step |
@@ -26,10 +42,24 @@ Do not retry the same SQL blindly. Repair the SQL according to the captured erro
 
 | Case | Observed status | Source | Repair rule |
 |---|---|---|---|
-| Missing department/range boundary | `Failed` | `notification` | Add required department or architecture filters from the SQL skill rules; if user did not give a value, use a placeholder instead of inventing one. |
-| Invalid column | `Failed` | `log_area` | Read the `VALIDATE_SQL_ERROR(code=1017)` detail, then check the table doc/schema and replace or remove the bad field. |
-| Presto syntax error | `Failed` | `notification` | Fix the reported line/column and Presto syntax before retrying. |
-| No query permission / unknown table | `Failed` | `notification` | Do not interpret this as empty data. Switch to a readable table, reduce scope to a known permitted table, or ask the user to confirm permission/table availability. |
+| Missing department/range boundary | `Failed` | `notification` -> `immediate_platform_error` | Add required department or architecture filters from the SQL skill rules; if user did not give a value, use a placeholder instead of inventing one. Do not click run again on the unchanged SQL. |
+| Invalid column | `Failed` | `log_area` -> `query_log_error` | Read the `VALIDATE_SQL_ERROR(code=1017)` detail, then check the table doc/schema and replace or remove the bad field. |
+| Presto syntax error | `Failed` | `notification` -> `immediate_platform_error` | Fix the reported line/column and Presto syntax before retrying. |
+| No query permission / unknown table | `Failed` | `notification` -> `immediate_platform_error` | Do not interpret this as empty data. Switch to a readable table, reduce scope to a known permitted table, or ask the user to confirm permission/table availability. |
+| Runtime type/cast/join mismatch after task creation | `Failed` | `log_area` -> `query_log_error` | Read the log detail for cast/type/join mismatch text, then fix the field type conversion, aggregation grain, or join keys before rerunning. |
+
+## Repair Guidance Rules
+
+Use `repair_guidance` from the JSON summary directly when it is present.
+
+- For `即时错误`:
+  - First suspect missing department/architecture range filters, permission scope, or a submission-time syntax problem.
+  - The SQL was rejected before a stable query row was created, so repeated retries waste time and resources.
+  - Repair the SQL first, then rerun once.
+- For `日志区错误`:
+  - The platform already accepted the submission and created a query task.
+  - The next action is to read the log, not to guess from the SQL text alone.
+  - Prioritize `VALIDATE_SQL_ERROR`, line/column, missing column/table, type conversion, and runtime join/aggregation issues.
 
 Encoding note: some Chinese platform notifications currently arrive as mojibake in Playwright text extraction. Keep the raw snippet because it still preserves table names, field names, and SQL text, and the notification title/source is enough to classify the run as `Failed`.
 

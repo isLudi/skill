@@ -23,7 +23,9 @@ The local env file `E:\2000_work\GAOTU\20002_市场顾问部看板维护表格\u
 2. If redirected to CAS login, enter username and password and click `登录`.
 3. On the query page, click top navigation `SQL取数`.
 4. Click `+` to create a new query tab when needed.
-5. Choose/keep engine `Presto`.
+5. Choose the engine before writing SQL.
+   - Default automation path: `Doris-Presto` -> `doris内测加速版`
+   - Baseline path: `Presto`
 6. Paste SQL into the Monaco editor.
 7. Click the run icon near the editor toolbar.
 8. Wait for query history status to become `Success` or `Failed`.
@@ -44,6 +46,18 @@ The platform uses **CodeMirror** (NOT Monaco). The editor is inside the `/sql/` 
 
 - Set SQL: use `document.querySelector('.CodeMirror').CodeMirror.setValue(sql)` via `frame_obj.evaluate()`.
 - Fallback: click `.CodeMirror` → Ctrl+A → paste.
+
+### Engine selector
+
+The engine selector is also inside the `/sql/` iframe, in `.antd-pro-src-components-editor-index-changeModeBox`.
+
+Verified on 2026-06-11:
+
+1. Click `.antd-pro-src-components-editor-index-changeModeBox .ant-select-selector`
+2. Click `Doris-Presto`
+3. Click `doris内测加速版`
+
+After the Doris switch, the selector text changes from `Presto` to an internal engine label such as `PRESTO_817034371362430977`. Do not verify Doris selection by waiting for the literal child label to remain visible in the selector; it does not.
 
 ### Run
 

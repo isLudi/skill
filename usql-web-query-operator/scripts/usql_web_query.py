@@ -26,10 +26,25 @@ DEFAULT_STATE = RUNTIME_DIR / "state.json"
 DEFAULT_ARTIFACTS = RUNTIME_DIR / "artifacts"
 DEFAULT_BROWSER_CHANNEL = "msedge"
 DEFAULT_ENV_FILE = Path(r"E:\2000_work\GAOTU\20002_市场顾问部看板维护表格\usql_api.env")
+DEFAULT_QUERY_ENGINE = "doris-presto"
 
 
 class UsageError(RuntimeError):
     """User-actionable script error."""
+
+
+class ImmediatePlatformError(UsageError):
+    """A submission-time platform error shown before a query row is created."""
+
+    def __init__(self, error_details: dict[str, Any]):
+        self.error_details = error_details
+        message = (
+            error_details.get("detail")
+            or error_details.get("raw_snippet")
+            or error_details.get("title")
+            or "Platform reported an error before creating a query history row."
+        )
+        super().__init__(message)
 
 
 @dataclass
@@ -42,6 +57,15 @@ class RunSummary:
     result_preview: dict[str, Any] | None = None
     download_path: str | None = None
     error_details: dict[str, Any] | None = None
+    requested_engine: str | None = None
+    selected_engine_label: str | None = None
+    history_engine: str | None = None
+    query_duration_text: str | None = None
+    query_duration_seconds: float | None = None
+    elapsed_seconds: float | None = None
+    error_category: str | None = None
+    error_category_label: str | None = None
+    repair_guidance: str | None = None
 
     def to_json(self) -> str:
         return json.dumps({
@@ -53,6 +77,15 @@ class RunSummary:
             "result_preview": self.result_preview,
             "download_path": self.download_path,
             "error_details": self.error_details,
+            "requested_engine": self.requested_engine,
+            "selected_engine_label": self.selected_engine_label,
+            "history_engine": self.history_engine,
+            "query_duration_text": self.query_duration_text,
+            "query_duration_seconds": self.query_duration_seconds,
+            "elapsed_seconds": self.elapsed_seconds,
+            "error_category": self.error_category,
+            "error_category_label": self.error_category_label,
+            "repair_guidance": self.repair_guidance,
         }, ensure_ascii=False, indent=2)
 
 
@@ -265,6 +298,57 @@ def create_query_tab(page: Any) -> None:
             continue
 
 
+def get_query_engine_selector(page: Any) -> Any:
+    frame = get_sql_frame(page)
+    selector = frame.locator(".antd-pro-src-components-editor-index-changeModeBox .ant-select-selector").first
+    selector.wait_for(state="visible", timeout=15_000)
+    return selector
+
+
+def get_query_engine_label(page: Any) -> str:
+    try:
+        text = get_query_engine_selector(page).inner_text(timeout=5000)
+        return text.strip()
+    except Exception:
+        return ""
+
+
+def _click_engine_menu_item(page: Any, pattern: str) -> None:
+    frame = get_sql_frame(page)
+    locator = frame.locator(".ant-cascader-menu-item").filter(has_text=re.compile(pattern)).last
+    if locator.count() == 0:
+        raise UsageError(f"Could not find engine menu item matching {pattern!r}.")
+    locator.click(timeout=5000)
+
+
+def switch_query_engine(page: Any, engine: str) -> str:
+    """Switch the SQL query engine before writing SQL into the editor."""
+    normalized = (engine or DEFAULT_QUERY_ENGINE).strip().lower()
+    if normalized not in {"presto", "doris-presto"}:
+        raise UsageError(f"Unsupported query engine: {engine}")
+
+    selector = get_query_engine_selector(page)
+    selector.click(timeout=5000)
+    page.wait_for_timeout(500)
+
+    if normalized == "presto":
+        _click_engine_menu_item(page, r"^Presto$")
+    else:
+        _click_engine_menu_item(page, r"^Doris-Presto$")
+        page.wait_for_timeout(400)
+        _click_engine_menu_item(page, r"^doris内测加速版$")
+
+    page.wait_for_timeout(1200)
+    selected_label = get_query_engine_label(page)
+    if normalized == "presto":
+        if selected_label != "Presto":
+            raise UsageError(f"Expected Presto after engine switch, got: {selected_label or '<empty>'}")
+    else:
+        if selected_label == "Presto":
+            raise UsageError("Engine switch to Doris-Presto did not take effect; selector still shows Presto.")
+    return selected_label
+
+
 def set_monaco_sql(page: Any, sql: str) -> None:
     """Set SQL text in the CodeMirror editor inside the /sql/ iframe and select all.
 
@@ -310,6 +394,27 @@ def _compact_sql_text(text: str | None) -> str:
     return re.sub(r"\s+", "", text).lower()
 
 
+def parse_duration_seconds(text: str | None) -> float | None:
+    if not text:
+        return None
+    raw = str(text).strip()
+    if not raw:
+        return None
+    total = 0.0
+    matched = False
+    for pattern, factor in ((r"(\d+(?:\.\d+)?)\s*小时", 3600), (r"(\d+(?:\.\d+)?)\s*分", 60), (r"(\d+(?:\.\d+)?)\s*秒", 1)):
+        match = re.search(pattern, raw)
+        if match:
+            total += float(match.group(1)) * factor
+            matched = True
+    if matched:
+        return total
+    plain_seconds = re.fullmatch(r"(\d+(?:\.\d+)?)\s*s", raw, flags=re.I)
+    if plain_seconds:
+        return float(plain_seconds.group(1))
+    return None
+
+
 def _history_matches_sql(row_text: str, sql: str | None) -> bool:
     if not sql:
         return True
@@ -338,8 +443,21 @@ def _after_click_submitted(
     expected_sql: str | None = None,
     wait_ms: int = 3000,
 ) -> bool:
-    page.wait_for_timeout(wait_ms)
-    return _query_submission_detected(page, existing_query_ids, expected_sql)
+    deadline = time.monotonic() + max(wait_ms, 0) / 1000
+    poll_ms = 250
+    while True:
+        if _query_submission_detected(page, existing_query_ids, expected_sql):
+            return True
+        error_details = extract_error_from_page(page)
+        if _is_immediate_platform_error(error_details):
+            raise ImmediatePlatformError(error_details)
+        if time.monotonic() >= deadline:
+            break
+        page.wait_for_timeout(poll_ms)
+    final_error_details = extract_error_from_page(page)
+    if _is_immediate_platform_error(final_error_details):
+        raise ImmediatePlatformError(final_error_details)
+    return False
 
 
 def _submit_with_shortcut(page: Any, existing_query_ids: set[str] | None, expected_sql: str | None = None) -> bool:
@@ -377,8 +495,6 @@ def click_run(page: Any, existing_query_ids: set[str] | None = None, expected_sq
 
     if _submit_with_shortcut(page, existing_query_ids, expected_sql):
         return
-    if _is_immediate_platform_error(extract_error_from_page(page)):
-        raise UsageError("Platform reported an error before creating a query history row.")
 
     preferred_button_selectors = [
         ".antd-pro-src-components-editor-index-optBtnGroup button:has(.anticon-play-circle)",
@@ -586,6 +702,47 @@ def _is_platform_failure_details(error_details: dict[str, Any] | None) -> bool:
     return error_details.get("source") in {"notification", "message", "alert", "log_area"}
 
 
+def classify_error_details(error_details: dict[str, Any] | None) -> tuple[str | None, str | None]:
+    if not _has_error_details(error_details):
+        return None, None
+    source = str((error_details or {}).get("source") or "")
+    if source in {"notification", "message", "alert"}:
+        return "immediate_platform_error", "即时错误"
+    if source == "log_area":
+        return "query_log_error", "日志区错误"
+    return "other_platform_error", "其他平台错误"
+
+
+def build_repair_guidance(error_details: dict[str, Any] | None) -> str | None:
+    category, _ = classify_error_details(error_details)
+    if not category:
+        return None
+    detail = _clean_error_text(
+        "\n".join(
+            part for part in (
+                (error_details or {}).get("detail"),
+                (error_details or {}).get("raw_snippet"),
+                (error_details or {}).get("title"),
+            )
+            if part
+        ),
+        limit=2000,
+    ).lower()
+    if category == "immediate_platform_error":
+        if "范围限定" in detail or "department" in detail or "部门" in detail:
+            return "这是提交前即时错误。先补齐必需的部门/业务线/架构范围限定；如果用户没有给出具体取值，保留占位符并回到 SQL 知识库确认允许字段后再重跑。"
+        if "权限" in detail or "permission" in detail:
+            return "这是提交前即时错误。不要把它当成空数据；先改用已确认可读的表，或缩小到已知有权限的范围，再决定是否需要用户确认表权限。"
+        return "这是提交前即时错误。先按右上角提示修复 SQL，再重跑；不要对同一份未修改 SQL 继续重复点击执行。"
+    if category == "query_log_error":
+        if "validate_sql_error" in detail or "code=1017" in detail or "column" in detail or "字段" in detail:
+            return "这是已创建任务后的日志区错误。优先按日志里的表名、字段名、行列号修复字段引用或 SQL 校验错误，再重新执行。"
+        if "cannot cast" in detail or "cast" in detail or "type" in detail or "类型" in detail:
+            return "这是已创建任务后的日志区错误。优先检查类型转换、聚合口径和 join 后字段类型是否匹配，再重新执行。"
+        return "这是已创建任务后的日志区错误。打开并读取查询日志，按日志中的 VALIDATE_SQL_ERROR、行列号、表名、字段名或运行时报错修复 SQL 后再重跑。"
+    return "平台返回了错误信息，但不属于已验证的两类主路径。先保留原始错误文本，再结合页面状态或 debug artifacts 排查。"
+
+
 def _scan_error_candidates_in_document(scope: Any, scope_name: str) -> list[dict[str, str]]:
     """Return possible error text candidates from one document context."""
     try:
@@ -753,9 +910,9 @@ def extract_query_history_rows(page: Any) -> list[dict[str, str]]:
                             style.display !== 'none';
                     }
                     return Array.from(document.querySelectorAll('tr'))
-                        .filter(visible)
                         .map((row) => {
                             const cells = Array.from(row.querySelectorAll('td,th'))
+                                .filter(visible)
                                 .map((cell) => (cell.innerText || cell.textContent || '').trim())
                                 .filter(Boolean);
                             const text = cells.join('\\n');
@@ -765,9 +922,13 @@ def extract_query_history_rows(page: Any) -> list[dict[str, str]]:
                             else if (/\\bFail(?:ed)?\\b|失败/.test(text)) status = 'Failed';
                             else if (/\\bRunning\\b|运行中|执行中|查询中/.test(text)) status = 'Running';
                             else if (/\\bQueued\\b|等待|排队/.test(text)) status = 'Queued';
+                            const engine = cells.length >= 4 ? cells[cells.length - 4] : '';
+                            const duration_text = cells.length >= 3 ? cells[cells.length - 3] : '';
                             return {
                                 query_id: idMatch ? idMatch[1] : '',
                                 status,
+                                engine,
+                                duration_text,
                                 text,
                             };
                         })
@@ -785,6 +946,42 @@ def extract_query_history_ids(page: Any) -> set[str]:
         {row["query_id"] for row in extract_query_history_rows(page) if row.get("query_id")}
         | extract_open_query_tab_ids(page)
     )
+
+
+def lookup_query_history_row_by_text(page: Any, query_id: str | None) -> dict[str, str] | None:
+    if not query_id:
+        return None
+    for frame_obj in getattr(page, "frames", []):
+        try:
+            if not frame_obj.url.startswith("https://uanalysis.baijia.com/sql/"):
+                continue
+            body_text = frame_obj.locator("body").inner_text(timeout=5000)
+        except Exception:
+            continue
+        for raw_line in body_text.splitlines():
+            line = raw_line.strip()
+            if not line.startswith(query_id):
+                continue
+            cells = line.split("\t")
+            if len(cells) < 5:
+                continue
+            status = ""
+            if re.search(r"\bSuccess\b", line):
+                status = "Success"
+            elif re.search(r"\bFail(?:ed)?\b|失败", line):
+                status = "Failed"
+            elif re.search(r"\bRunning\b|运行中|执行中|查询中", line):
+                status = "Running"
+            elif re.search(r"\bQueued\b|等待|排队", line):
+                status = "Queued"
+            return {
+                "query_id": query_id,
+                "status": status,
+                "engine": cells[-5] if len(cells) >= 5 else "",
+                "duration_text": cells[-4] if len(cells) >= 4 else "",
+                "text": line,
+            }
+    return None
 
 
 def extract_open_query_tab_ids(page: Any) -> set[str]:
@@ -922,10 +1119,10 @@ def wait_for_status(
             current_text = current.get("text", "")
             last_text = current_text[-2000:]
             if status == "Success":
-                return "Success", current_text, None
+                return "Success", current_text, None, current
             if status == "Failed":
                 open_query_log(page, current.get("query_id"))
-                return "Failed", current_text, extract_error_from_page(page)
+                return "Failed", current_text, extract_error_from_page(page), current
 
         # Check both outer page and iframe for status text.
         body_text = page.locator("body").inner_text(timeout=5000)
@@ -938,29 +1135,29 @@ def wait_for_status(
         last_text = combined[-2000:]
         new_tab_ids = extract_open_query_tab_ids(page) - existing_query_ids
         if new_tab_ids and ("已无更多" in combined or result_area_visible(page)):
-            return "Success", combined, None
+            return "Success", combined, None, None
         if new_tab_ids:
             error_details = extract_error_from_page(page)
             if _is_platform_failure_details(error_details):
-                return "Failed", combined, error_details
+                return "Failed", combined, error_details, None
             try:
                 if extract_result_preview(page, max_rows=1):
-                    return "Success", combined, None
+                    return "Success", combined, None, None
             except Exception:
                 pass
         # Only use whole-page text as a fallback when no pre-run history IDs
         # were supplied. Otherwise old history rows can produce stale statuses.
         if not existing_query_ids:
             if "Success" in combined:
-                return "Success", combined, None
+                return "Success", combined, None, None
             if "Failed" in combined or "Fail" in combined or "失败" in combined:
-                return "Failed", combined, extract_error_from_page(page)
+                return "Failed", combined, extract_error_from_page(page), None
         page.wait_for_timeout(2000)
     page.wait_for_timeout(3000)
     new_tab_ids = extract_open_query_tab_ids(page) - existing_query_ids
     if new_tab_ids and result_area_visible(page):
-        return "Success", last_text, None
-    return "Timeout", last_text, None
+        return "Success", last_text, None, None
+    return "Timeout", last_text, None, None
 
 
 def extract_query_id(text: str) -> str | None:
@@ -1308,23 +1505,24 @@ def cmd_run(args: argparse.Namespace) -> int:
         browser, context = launch_context(playwright, args.state_path, args.headed, args.browser_channel, args.executable_path)
         page = context.new_page()
         try:
+            run_started_at = time.monotonic()
             page.goto(QUERY_URL, wait_until="domcontentloaded", timeout=45_000)
             if "cas.baijia.com" in page.url or "login" in page.url.lower():
                 raise UsageError("Login state expired. Run the login command again.")
             wait_for_query_page(page)
             if args.new_tab:
                 create_query_tab(page)
+            selected_engine_label = switch_query_engine(page, args.engine)
             set_monaco_sql(page, sql)
             if args.debug_artifacts:
                 save_debug_artifacts(page, artifacts_dir, "before_run")
             existing_query_ids = extract_query_history_ids(page)
+            current_row = None
             try:
                 click_run(page, existing_query_ids, sql)
-                status, text, error_details = wait_for_status(page, args.timeout_ms, existing_query_ids, sql)
-            except UsageError:
-                error_details = extract_error_from_page(page)
-                if not _is_immediate_platform_error(error_details):
-                    raise
+                status, text, error_details, current_row = wait_for_status(page, args.timeout_ms, existing_query_ids, sql)
+            except ImmediatePlatformError as exc:
+                error_details = exc.error_details
                 status = "Failed"
                 text = (error_details.get("detail") or error_details.get("raw_snippet") or "")
             if status == "Timeout":
@@ -1344,11 +1542,21 @@ def cmd_run(args: argparse.Namespace) -> int:
                 if args.debug_artifacts:
                     save_debug_artifacts(page, artifacts_dir, "after_result_panel")
 
-            query_id = extract_query_id(text)
+            query_id = (current_row or {}).get("query_id") or extract_query_id(text)
             if status == "Success" and not query_id:
                 new_open_query_ids = extract_open_query_tab_ids(page) - existing_query_ids
                 if new_open_query_ids:
                     query_id = sorted(new_open_query_ids)[-1]
+            if query_id and not current_row:
+                current_row = next(
+                    (row for row in extract_query_history_rows(page) if row.get("query_id") == query_id),
+                    None,
+                )
+            if query_id and not current_row:
+                current_row = lookup_query_history_row_by_text(page, query_id)
+            history_engine = (current_row or {}).get("engine") or None
+            query_duration_text = (current_row or {}).get("duration_text") or None
+            query_duration_seconds = parse_duration_seconds(query_duration_text)
             result_preview = extract_result_preview(page) if status == "Success" else None
             download_path = None
             if status == "Success" and args.download:
@@ -1358,12 +1566,24 @@ def cmd_run(args: argparse.Namespace) -> int:
                 download_path = click_download_button(page, artifacts_dir)
             if status == "Failed":
                 error_details = error_details or extract_error_from_page(page)
+                error_category, error_category_label = classify_error_details(error_details)
+                repair_guidance = build_repair_guidance(error_details)
                 error_title = (error_details or {}).get("title") or "unknown error"
-                message = f"Query failed: {error_title}"
+                if error_category_label:
+                    message = f"Query failed ({error_category_label}): {error_title}"
+                else:
+                    message = f"Query failed: {error_title}"
             elif status == "Success":
                 message = "Query finished."
+                error_category = None
+                error_category_label = None
+                repair_guidance = None
             else:
                 message = "Timed out waiting for query status."
+                error_category = None
+                error_category_label = None
+                repair_guidance = None
+            elapsed_seconds = round(time.monotonic() - run_started_at, 3)
             summary = RunSummary(
                 ok=status == "Success",
                 status=status,
@@ -1373,6 +1593,15 @@ def cmd_run(args: argparse.Namespace) -> int:
                 result_preview=result_preview,
                 download_path=download_path,
                 error_details=error_details,
+                requested_engine=args.engine,
+                selected_engine_label=selected_engine_label,
+                history_engine=history_engine,
+                query_duration_text=query_duration_text,
+                query_duration_seconds=query_duration_seconds,
+                elapsed_seconds=elapsed_seconds,
+                error_category=error_category,
+                error_category_label=error_category_label,
+                repair_guidance=repair_guidance,
             )
         except Exception as exc:
             if args.debug_artifacts:
@@ -1382,13 +1611,18 @@ def cmd_run(args: argparse.Namespace) -> int:
                     pass
             error_details = extract_error_from_page(page)
             if _is_platform_failure_details(error_details):
+                error_category, error_category_label = classify_error_details(error_details)
+                repair_guidance = build_repair_guidance(error_details)
                 error_title = error_details.get("title") or "unknown error"
                 summary = RunSummary(
                     ok=False,
                     status="Failed",
-                    message=f"Query failed: {error_title}",
+                    message=f"Query failed ({error_category_label}): {error_title}" if error_category_label else f"Query failed: {error_title}",
                     artifacts_dir=str(artifacts_dir),
                     error_details=error_details,
+                    error_category=error_category,
+                    error_category_label=error_category_label,
+                    repair_guidance=repair_guidance,
                 )
             else:
                 summary = RunSummary(
@@ -1432,6 +1666,7 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--env-file", type=Path, default=DEFAULT_ENV_FILE)
     run.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL, help="Installed browser channel, e.g. msedge or chrome.")
     run.add_argument("--executable-path", default=None, help="Explicit browser executable path; overrides --browser-channel.")
+    run.add_argument("--engine", choices=["doris-presto", "presto"], default=DEFAULT_QUERY_ENGINE, help="Query engine to select before writing SQL. Default: doris-presto.")
     run.add_argument("--timeout-ms", type=int, default=10 * 60 * 1000)
     run.add_argument("--new-tab", action=argparse.BooleanOptionalAction, default=True)
     run.add_argument("--download", action="store_true", help="Download the result when local row-limit policy allows it.")
