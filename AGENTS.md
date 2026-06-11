@@ -42,6 +42,18 @@ When a user request matches any scenario below, automatically load and orchestra
 
 **Scope:** Excel creation, editing, formatting, and formula calculation. Does NOT generate SQL or execute queries.
 
+#### mineru-converter
+**Load when ANY of the following is true:**
+- User wants to read, parse, extract, or summarize content from a PDF, image, or Office document
+- User shares a document file path and asks about its content
+- User needs OCR on scanned documents or screenshots
+- User wants to extract tables, formulas, or structured data from a document
+- User says "read this PDF/image" (读一下这个PDF/图片), "what does this screenshot say" (这个截图里有什么), "extract tables from this document" (提取文档中的表格)
+- User wants to convert a document between formats (PDF→Markdown, PDF→Word, etc.)
+- **OR**: another skill (especially usql-web-query-operator) needs to interpret image/screenshot content during debugging, error analysis, or code inspection
+
+**Scope:** Document-to-Markdown extraction via MinerU Open API. Two modes: `flash-extract` (free, ≤10MB/20pp) and `extract` (auth required, ≤200MB/600pp, full fidelity). Output can be consumed inline (stdout) or saved to file.
+
 ### Composite Workflows (Auto-Orchestrated)
 
 When a task spans multiple skills, chain them in the order specified below.
@@ -88,6 +100,19 @@ When a task spans multiple skills, chain them in the order specified below.
 2. **usql-web-query-operator** — Execute SQL and download xlsx
 3. **xlsx** — Load data with pandas, perform analysis/visualization
 
+#### Workflow H: Document Reading & Extraction
+> "Read this PDF and summarize" (读一下这个PDF并总结) / "What does this screenshot contain?" (这个截图里有什么)
+
+1. **mineru-converter** — Extract document/image content to Markdown
+2. Parse extracted Markdown and respond to the user's specific request (summarize, find tables, extract data, etc.)
+
+#### Workflow I: Debug Screenshot Analysis
+> Agent encounters an error screenshot during USQL script execution and needs to understand its content
+
+1. **usql-web-query-operator** — Captures debug screenshot from Playwright session
+2. **mineru-converter** — Reads screenshot via `flash-extract`, returns text/error content
+3. **usql-web-query-operator** or **sql-query-writer-for-dashboard** — Uses extracted text to diagnose and repair
+
 ### Execution Rules
 
 1. **Auto-detect**: On receiving a user request, determine which skill(s) are needed based on the trigger conditions above, then execute in workflow order. Never wait for the user to say "please load skill X."
@@ -97,4 +122,6 @@ When a task spans multiple skills, chain them in the order specified below.
    - sql-query-writer's read-only constraint: do not modify skill files unless the user explicitly requests knowledge base maintenance
    - usql-web-query-operator's safety policy: no downloads exceeding 1000 rows without confirmation; never expose credentials
    - xlsx formula rule: use Excel formulas, not hardcoded Python-computed values
-5. **Credentials**: usql-web-query-operator reads login credentials from `E:\2000_work\GAOTU\20002_市场顾问部看板维护表格\usql_api.env` (`BAIJIA_USERNAME` / `BAIJIA_PASSWORD`). Never hardcode them. Browser login state is stored at `C:\Users\Ludim\.codex\runtime\usql-web-query-operator\state.json`.
+5. **Credentials**: 
+   - usql-web-query-operator reads login credentials from `E:\2000_work\GAOTU\20002_市场顾问部看板维护表格\usql_api.env` (`BAIJIA_USERNAME` / `BAIJIA_PASSWORD`). Never hardcode them. Browser login state is stored at `C:\Users\Ludim\.codex\runtime\usql-web-query-operator\state.json`.
+   - mineru-converter reads `MINERU_TOKEN` from the same env file `E:\2000_work\GAOTU\20002_市场顾问部看板维护表格\usql_api.env`. Token expires 2026-09-09. Load with: `$env:MINERU_TOKEN = (Get-Content "<env_file_path>" | Select-String '^MINERU_TOKEN=(.+)$').Matches.Groups[1].Value`
