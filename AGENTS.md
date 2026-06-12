@@ -32,6 +32,15 @@ When a user request matches any scenario below, automatically load and orchestra
 
 **Scope:** Playwright web automation for SQL execution, xlsx result downloads, BI dashboard scanning/profiling. Does NOT generate SQL.
 
+#### playwright
+**Load only when ANY of the following is true:**
+- User asks for generic browser automation outside company SQL/BI workflows
+- User asks to inspect, click, type, screenshot, snapshot, or debug a non-USQL web page
+- A `usql-web-query-operator` script has a selector drift or UI-flow problem and needs one-off DOM/screenshot exploration after the USQL script has already captured or reproduced the issue
+- A local web app or ordinary website needs browser interaction that is not covered by a more specific skill
+
+**Scope:** Generic browser CLI automation and UI debugging. It is a supporting tool, not the entrypoint for SQL取数, BI dashboard scanning, dashboard profiling, login-state refresh, or result downloads.
+
 #### xlsx
 **Load when ANY of the following is true:**
 - User references a .xlsx / .xlsm / .csv / .tsv file by path or name
@@ -113,6 +122,14 @@ When a task spans multiple skills, chain them in the order specified below.
 2. **mineru-converter** — Reads screenshot via `flash-extract`, returns text/error content
 3. **usql-web-query-operator** or **sql-query-writer-for-dashboard** — Uses extracted text to diagnose and repair
 
+#### Workflow J: USQL Selector Drift & Browser Fallback
+> A SQL/BI automation script fails because the page structure, selector, popup, or interaction flow appears to have changed
+
+1. **usql-web-query-operator** - Reproduce with the relevant script and `--headed --debug-artifacts`; keep artifacts under the runtime directory, not in skill directories
+2. **mineru-converter** - If screenshots contain needed text, extract the visible message or page labels
+3. **playwright** - Only if DOM-level or one-off browser exploration is still needed, inspect the page with snapshot/screenshot/click/type commands
+4. **usql-web-query-operator** - Update the selector list, fallback strategy, or documentation, then rerun the USQL script to verify
+
 ### Execution Rules
 
 1. **Auto-detect**: On receiving a user request, determine which skill(s) are needed based on the trigger conditions above, then execute in workflow order. Never wait for the user to say "please load skill X."
@@ -121,7 +138,9 @@ When a task spans multiple skills, chain them in the order specified below.
 4. **Boundary enforcement**:
    - sql-query-writer's read-only constraint: do not modify skill files unless the user explicitly requests knowledge base maintenance
    - usql-web-query-operator's safety policy: no downloads exceeding 1000 rows without confirmation; never expose credentials
+   - playwright boundary: do not use generic Playwright directly for SQL取数 execution, BI dashboard scanning/profiling, authenticated SQL-platform downloads, or login-state management; route those through usql-web-query-operator
    - xlsx formula rule: use Excel formulas, not hardcoded Python-computed values
 5. **Credentials**: 
+   - Generic playwright must not read, write, copy, or replace the USQL browser storage state. Keep SQL/BI login state owned by `usql-web-query-operator` at `C:\Users\Ludim\.codex\runtime\usql-web-query-operator\state.json`.
    - usql-web-query-operator reads login credentials from `E:\2000_work\GAOTU\20002_市场顾问部看板维护表格\usql_api.env` (`BAIJIA_USERNAME` / `BAIJIA_PASSWORD`). Never hardcode them. Browser login state is stored at `C:\Users\Ludim\.codex\runtime\usql-web-query-operator\state.json`.
    - mineru-converter reads `MINERU_TOKEN` from the same env file `E:\2000_work\GAOTU\20002_市场顾问部看板维护表格\usql_api.env`. Token expires 2026-09-09. Load with: `$env:MINERU_TOKEN = (Get-Content "<env_file_path>" | Select-String '^MINERU_TOKEN=(.+)$').Matches.Groups[1].Value`
