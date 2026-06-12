@@ -14,7 +14,7 @@ from .commands.profile_all import cmd_profile_all
 from .commands.profile_dashboard import cmd_profile_dashboard
 from .commands.profile_folder import cmd_profile_folder
 from .commands.scan_folder import cmd_scan_folder
-from .constants import DEFAULT_CHANGELOG, DEFAULT_DASHBOARDS_README, DEFAULT_PROFILE_ALL_FOLDERS, DEFAULT_WEB_PROFILE_DIR, DEFAULT_WEB_PROFILE_README
+from .constants import DEFAULT_PROFILE_ALL_FOLDERS
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -73,10 +73,10 @@ def build_parser() -> argparse.ArgumentParser:
     profile_all = subparsers.add_parser("profile-all", help="Scan configured folders, profile all dashboards, and sync markdown web profiles.")
     profile_all.add_argument("--folders", action="append", help="Folder names to scan. Repeat or separate with | or comma. Defaults to 市场顾问数据 and 青橙项目部.")
     profile_all.add_argument("--output-dir", type=Path, default=None)
-    profile_all.add_argument("--knowledge-dir", type=Path, default=DEFAULT_WEB_PROFILE_DIR)
-    profile_all.add_argument("--readme-path", type=Path, default=DEFAULT_WEB_PROFILE_README)
-    profile_all.add_argument("--dashboards-readme-path", type=Path, default=DEFAULT_DASHBOARDS_README)
-    profile_all.add_argument("--changelog-path", type=Path, default=DEFAULT_CHANGELOG)
+    profile_all.add_argument("--knowledge-dir", type=Path, default=None, help="Override the target dashboard_web_profiles directory when profiling exactly one folder.")
+    profile_all.add_argument("--readme-path", type=Path, default=None, help="Override the target dashboard_web_profiles README when profiling exactly one folder.")
+    profile_all.add_argument("--dashboards-readme-path", type=Path, default=None, help="Override the target dashboards README when profiling exactly one folder.")
+    profile_all.add_argument("--changelog-path", type=Path, default=None, help="Override the target changelog when profiling exactly one folder.")
     profile_all.add_argument("--headed", action="store_true", help="Show browser window.")
     profile_all.add_argument("--state-path", type=Path, default=DEFAULT_STATE)
     profile_all.add_argument("--artifacts-dir", type=Path, default=DEFAULT_ARTIFACTS)

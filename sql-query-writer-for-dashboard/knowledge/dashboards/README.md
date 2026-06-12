@@ -36,12 +36,4 @@ python scripts/ingest_dashboard_sql.py
 
 当问题涉及自助 BI 页面上的筛选器、组件、字段 ID、下载按钮、刷新任务 ID 或行数/序列计数时，读取 `knowledge/dashboard_web_profiles/README.md` 及对应看板快照。该目录只记录 Web 前端结构，不替代本目录中的 SQL 业务口径。
 
-已通过 `usql-web-query-operator/scripts/read_dashboard.py profile-folder` 刷新并入库的市场顾问数据看板：
-
-- `knowledge/dashboard_web_profiles/outbound_call_process_dashboard_web_profile.md`：外呼过程数据看板。
-- `knowledge/dashboard_web_profiles/market_consultant_attendance_report_web_profile.md`：市场顾问部_行课报表。
-- `knowledge/dashboard_web_profiles/operation_side_dashboard_web_profile.md`：运营侧数据看板。
-- `knowledge/dashboard_web_profiles/market_consultant_conversion_web_profile.md`：转化数据。
-- `knowledge/dashboard_web_profiles/market_consultant_volume_pace_web_profile.md`：市场顾问-进量节奏。
-- `knowledge/dashboard_web_profiles/market_consultant_evaluation_web_profile.md`：市场顾问--评优看板。
-- `knowledge/dashboard_web_profiles/kunlun_summer_incentive_web_profile.md`：昆仑山战役-暑期激励数据看板。
+`knowledge/dashboard_web_profiles/README.md` 由 `usql-web-query-operator/scripts/read_dashboard.py profile-all` 统一重建，覆盖`市场顾问数据` 文件夹内当前已同步的看板清单。

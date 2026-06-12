@@ -8,12 +8,20 @@
 
 ## 已入库快照
 
-| 看板 | 文件 | dashboard_id |
-|---|---|---|
-| 外呼过程数据看板 | `outbound_call_process_dashboard_web_profile.md` | `dashboard_3730722176629411841` |
-| 市场顾问--评优看板 | `market_consultant_evaluation_web_profile.md` | `dashboard_3822396843512627200` |
-| 市场顾问-进量节奏 | `market_consultant_volume_pace_web_profile.md` | `dashboard_3791961955008733184` |
-| 市场顾问部_行课报表 | `market_consultant_attendance_report_web_profile.md` | `dashboard_3748410696516800512` |
-| 昆仑山战役-暑期激励数据看板 | `kunlun_summer_incentive_web_profile.md` | `dashboard_3881610656431284224` |
-| 转化数据 | `market_consultant_conversion_web_profile.md` | `dashboard_3767151344579387392` |
-| 运营侧数据看板 | `operation_side_dashboard_web_profile.md` | `dashboard_3759973841100165121` |
+| 文件夹 | 看板 | 文件 | dashboard_id | 状态 |
+|---|---|---|---|---|
+| 市场顾问数据 | 11老板_运营侧数据看板 | `boss11_operation_side_dashboard_web_profile.md` | `dashboard_3833805337379700736` | ✅ 成功 |
+| 市场顾问数据 | 【新人】前期过程转化数据 | `newcomer_early_stage_process_conversion_web_profile.md` | `dashboard_3874439982521286657` | ✅ 成功 |
+| 市场顾问数据 | 到课数据-顾问维度 | `consultant_attendance_data_dimension_web_profile.md` | `dashboard_3706108893345009664` | ✅ 成功 |
+| 市场顾问数据 | 外呼过程数据看板 | `outbound_call_process_dashboard_web_profile.md` | `dashboard_3730722176629411841` | ✅ 成功 |
+| 市场顾问数据 | 多维度时效分析-抖咨 | `multi_dimensional_timeliness_analysis_douzi_web_profile.md` | `dashboard_3861041931986931712` | ✅ 成功 |
+| 市场顾问数据 | 市场顾问--评优看板 | `market_consultant_evaluation_web_profile.md` | `dashboard_3822396843512627200` | ✅ 成功 |
+| 市场顾问数据 | 市场顾问-用户画像分析 | `market_consultant_user_profile_analysis_web_profile.md` | `dashboard_3804681042591760385` | ✅ 成功 |
+| 市场顾问数据 | 市场顾问-进量节奏 | `market_consultant_volume_pace_web_profile.md` | `dashboard_3791961955008733184` | ✅ 成功 |
+| 市场顾问数据 | 市场顾问部_行课报表 | `market_consultant_attendance_report_web_profile.md` | `dashboard_3748410696516800512` | ✅ 成功 |
+| 市场顾问数据 | 昆仑山战役-暑期激励数据看板 | `kunlun_summer_incentive_web_profile.md` | `dashboard_3881610656431284224` | ✅ 成功 |
+| 市场顾问数据 | 评优文字播报 | `evaluation_broadcast_text_web_profile.md` | `dashboard_3839499028752805888` | ✅ 成功 |
+| 市场顾问数据 | 转化数据 | `market_consultant_conversion_web_profile.md` | `dashboard_3767151344579387392` | ✅ 成功 |
+| 市场顾问数据 | 过程播报文字 | `process_broadcast_text_web_profile.md` | `dashboard_3845252580183867393` | ✅ 成功 |
+| 市场顾问数据 | 过程数据--顾问维度 | `consultant_process_data_dimension_web_profile.md` | `dashboard_3699054046816116737` | ✅ 成功 |
+| 市场顾问数据 | 运营侧数据看板 | `operation_side_dashboard_web_profile.md` | `dashboard_3759973841100165121` | ✅ 成功 |

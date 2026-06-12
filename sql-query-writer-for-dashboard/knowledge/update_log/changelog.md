@@ -495,3 +495,9 @@
 - 更新 `knowledge/joins/common_join_keys.md`、`knowledge/joins/table_relationships.md`、`knowledge/01_table_index.md` 和相关表文档，记录该数据集仅使用 `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df`，不再使用历史财务流水/退费原因/架构表 join。
 - 新增通用规则：当 SQL 用于看板数据透视表且涉及比值指标时，优先输出英文分子和分母字段，透视表用 `sum(分子) / sum(分母)` 重算，不默认只输出行级比值。
 - 待人工确认：金额字段 `/100` 单位、`subject_count` 是否代表最终购买科目数、单科/多科人头退费率分母是否应使用对应科目分层用户数、经理/主管/顾问字段最终展示口径。
+
+## 2026-06-12 16:59:59
+
+- 通过 `usql-web-query-operator/scripts/read_dashboard.py profile-all` 扫描 `市场顾问数据` 文件夹，并将原始 `profile.json` 写入本地 runtime 目录。
+- 刷新 `knowledge/dashboard_web_profiles/README.md`，当前索引 15 个看板快照。
+- 本次 profile 结果：成功 15 个，失败 0 个。

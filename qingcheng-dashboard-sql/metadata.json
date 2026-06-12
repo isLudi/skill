@@ -15,6 +15,7 @@
     "knowledge/tables",
     "knowledge/temp_tables",
     "knowledge/dashboards",
+    "knowledge/dashboard_web_profiles",
     "knowledge/metrics",
     "knowledge/joins",
     "knowledge/sql_patterns"
@@ -29,4 +30,3 @@
   "requires_full_table_name": true,
   "forbid_cross_domain_defaulting": true
 }
-

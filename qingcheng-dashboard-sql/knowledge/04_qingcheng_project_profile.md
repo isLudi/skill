@@ -19,6 +19,7 @@
 | 核心临时表 | `temp_table.dingxi01_qing_daoke`, `temp_table.dingxi01_jiagou_db`, `temp_table.dingxi01_qing_team_jg`, `temp_table.dingxi01_qing_zz`, `temp_table.dingxi01_qing_qi_moth`, `temp_table.dingxi01_qing_team_goal`, `temp_table.dingxi01_qing_team_g_qi` | 已从 SQL 入库，来源/刷新方式待确认 |
 | 核心范围字段 | `section_assign_employee_second_level_department_name`, `virtual_second_department_name` | 已从 SQL 入库 |
 | 核心范围取值 | `青橙项目部` | 已从 SQL 入库 |
+| Web BI 结构快照 | `knowledge/dashboard_web_profiles/README.md` | 执行 `profile-all` 后维护；只允许写入本 Skill |
 
 ## 4. 临时表策略
 
@@ -27,7 +28,13 @@
 - 临时表数量较多时，优先保持“一表一文档”，不要把多个临时表混写到同一文件。
 - 如果临时表是某个看板专用表，必须写明“仅限该看板复用”。
 
-## 5. 指标冲突处理
+## 5. Web BI 结构快照边界
+
+- 青橙项目部的筛选器、组件、字段 ID、下载按钮、刷新任务 ID 和选择器漂移排查记录，统一维护在 `knowledge/dashboard_web_profiles/`。
+- 这些 Web BI 结构快照属于青橙知识库资产，不得混写到市场顾问侧 skill。
+- Web BI 快照只补充前端结构，不替代本 Skill 已入库的 SQL、指标、临时表和 join 口径。
+
+## 6. 指标冲突处理
 
 当青橙指标与其他部门指标同名但口径不同：
 
@@ -36,7 +43,7 @@
 3. 不从其他部门 Skill 自动迁移定义。
 4. 输出 SQL 时说明指标计算粒度和最终输出粒度。
 
-## 6. 已入库过程数据口径
+## 7. 已入库过程数据口径
 
 来源：`resources/raw_sql/qingcheng_process_data_raw_20260522.sql`
 
@@ -47,7 +54,7 @@
 | 渠道/年级映射 | `knowledge/sql_patterns/qingcheng_channel_grade_mapping.md` |
 | join 关系 | `knowledge/joins/table_relationships.md` |
 
-## 7. 已入库到课口径
+## 8. 已入库到课口径
 
 来源：`resources/raw_sql/qingcheng_daoke_raw_20260522.sql`
 
@@ -59,7 +66,7 @@
 | 临时表课次语义 | `knowledge/temp_tables/temp_table.dingxi01_qing_daoke.md` |
 | join 关系 | `knowledge/joins/table_relationships.md` |
 
-## 8. 已入库转化口径
+## 9. 已入库转化口径
 
 来源：`resources/raw_sql/qingcheng_conversion_raw_20260522.sql`
 
@@ -72,7 +79,7 @@
 | 渠道/成本映射 | `knowledge/sql_patterns/qingcheng_channel_grade_mapping.md` |
 | join 关系 | `knowledge/joins/table_relationships.md` |
 
-## 9. 已入库年季月营收口径
+## 10. 已入库年季月营收口径
 
 来源：`resources/raw_sql/qingcheng_revenue_year_quarter_month_raw_20260522.sql`
 
@@ -86,7 +93,7 @@
 | 范围口径 | `knowledge/03_range_limit_rules.md` |
 | join 关系 | `knowledge/joins/table_relationships.md` |
 
-## 10. 已入库团队完成度【月】口径
+## 11. 已入库团队完成度【月】口径
 
 来源：`resources/raw_sql/qingcheng_team_completion_month_raw_20260522.sql`
 
@@ -101,7 +108,7 @@
 | 范围口径 | `knowledge/03_range_limit_rules.md` |
 | join 关系 | `knowledge/joins/table_relationships.md` |
 
-## 11. 已入库团队完成度【期】口径
+## 12. 已入库团队完成度【期】口径
 
 来源：`resources/raw_sql/qingcheng_team_completion_period_raw_20260522.sql`
 
@@ -115,7 +122,7 @@
 | 范围口径 | `knowledge/03_range_limit_rules.md` |
 | join 关系 | `knowledge/joins/table_relationships.md` |
 
-## 12. 已入库个人转化口径
+## 13. 已入库个人转化口径
 
 来源：`resources/raw_sql/qingcheng_personal_conversion_raw_20260522.sql`
 
@@ -130,7 +137,7 @@
 | 范围口径 | `knowledge/03_range_limit_rules.md` |
 | join 关系 | `knowledge/joins/table_relationships.md` |
 
-## 13. 入库资料优先级
+## 14. 入库资料优先级
 
 1. 用户明确提供的青橙看板 SQL。
 2. 用户明确提供的青橙指标说明。

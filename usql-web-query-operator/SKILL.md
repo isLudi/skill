@@ -91,6 +91,12 @@ D:\anaconda3\python.exe scripts\read_dashboard.py profile-folder --folder 市场
 
 Profile output records dashboard render status, component units, global filters, field IDs, metric names, task IDs, row counts, and chart series counts. It intentionally avoids storing returned result rows.
 
+For a full sync of the current market-consultant and Qingcheng dashboard folders into their isolated SQL skill knowledge bases, run:
+
+```powershell
+D:\anaconda3\python.exe scripts\read_dashboard.py profile-all --dashboard-wait-ms 15000
+```
+
 ## Script Capabilities
 
 Use `scripts/usql_web_query.py` only for SQL取数:
@@ -109,6 +115,7 @@ Use `scripts/read_dashboard.py` only for 自助BI/dashboard operations:
 - `scan-folder`: open 自助BI, read the dashboard menu, find a named folder such as `市场顾问数据`, and extract dashboard Chinese names plus IDs for later quick calls.
 - `profile-dashboard`: open one dashboard by ID, wait for refresh, and store its component/filter/value structure outside the repo.
 - `profile-folder`: find selected dashboard names under a folder and profile them one by one.
+- `profile-all`: scan `市场顾问数据` and `青橙项目部` by default, profile every discovered dashboard, write raw `profile.json` artifacts under the runtime directory, route market markdown web profiles to `sql-query-writer-for-dashboard/knowledge/dashboard_web_profiles/`, route Qingcheng markdown web profiles to `qingcheng-dashboard-sql/knowledge/dashboard_web_profiles/`, and rebuild each target README/changelog without mixing the two knowledge bases.
 
 If selectors drift, inspect `references/platform_profile.md`, update the selector list or fallback strategy in the script, and rerun with `--headed --debug-artifacts`. Debug artifacts may include SQL text or visible results, so delete them after troubleshooting.
 

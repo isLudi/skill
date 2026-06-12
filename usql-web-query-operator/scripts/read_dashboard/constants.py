@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from pathlib import Path
 
 
@@ -15,10 +16,39 @@ UNIT_VALUE_API = "https://uanalysis.baijia.com/uanalysis-intelligence/value/unit
 DEFAULT_PROFILE_ALL_FOLDERS = ("市场顾问数据", "青橙项目部")
 
 SKILLS_ROOT = Path(__file__).resolve().parents[3]
-DEFAULT_WEB_PROFILE_DIR = SKILLS_ROOT / "sql-query-writer-for-dashboard" / "knowledge" / "dashboard_web_profiles"
+MARKET_KNOWLEDGE_ROOT = SKILLS_ROOT / "sql-query-writer-for-dashboard" / "knowledge"
+QINGCHENG_KNOWLEDGE_ROOT = SKILLS_ROOT / "qingcheng-dashboard-sql" / "knowledge"
+
+DEFAULT_WEB_PROFILE_DIR = MARKET_KNOWLEDGE_ROOT / "dashboard_web_profiles"
 DEFAULT_WEB_PROFILE_README = DEFAULT_WEB_PROFILE_DIR / "README.md"
-DEFAULT_DASHBOARDS_README = SKILLS_ROOT / "sql-query-writer-for-dashboard" / "knowledge" / "dashboards" / "README.md"
-DEFAULT_CHANGELOG = SKILLS_ROOT / "sql-query-writer-for-dashboard" / "knowledge" / "update_log" / "changelog.md"
+DEFAULT_DASHBOARDS_README = MARKET_KNOWLEDGE_ROOT / "dashboards" / "README.md"
+DEFAULT_CHANGELOG = MARKET_KNOWLEDGE_ROOT / "update_log" / "changelog.md"
+
+
+@dataclass(frozen=True)
+class DashboardKnowledgeTarget:
+    skill_name: str
+    knowledge_dir: Path
+    readme_path: Path
+    dashboards_readme_path: Path | None = None
+    changelog_path: Path | None = None
+
+
+FOLDER_KNOWLEDGE_TARGETS = {
+    "市场顾问数据": DashboardKnowledgeTarget(
+        skill_name="sql-query-writer-for-dashboard",
+        knowledge_dir=MARKET_KNOWLEDGE_ROOT / "dashboard_web_profiles",
+        readme_path=MARKET_KNOWLEDGE_ROOT / "dashboard_web_profiles" / "README.md",
+        dashboards_readme_path=MARKET_KNOWLEDGE_ROOT / "dashboards" / "README.md",
+        changelog_path=MARKET_KNOWLEDGE_ROOT / "update_log" / "changelog.md",
+    ),
+    "青橙项目部": DashboardKnowledgeTarget(
+        skill_name="qingcheng-dashboard-sql",
+        knowledge_dir=QINGCHENG_KNOWLEDGE_ROOT / "dashboard_web_profiles",
+        readme_path=QINGCHENG_KNOWLEDGE_ROOT / "dashboard_web_profiles" / "README.md",
+        changelog_path=QINGCHENG_KNOWLEDGE_ROOT / "update_log" / "changelog.md",
+    ),
+}
 
 DASHBOARD_FILENAME_OVERRIDES = {
     "dashboard_3699054046816116737": "consultant_process_data_dimension_web_profile.md",

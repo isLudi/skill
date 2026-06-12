@@ -287,13 +287,25 @@ def write_readme(entries: list[DashboardKnowledgeEntry], output_path: Path) -> N
     output_path.write_text(build_readme(entries), encoding="utf-8")
 
 
-def update_dashboards_readme(readme_path: Path) -> None:
+def _format_folder_scope(folder_names: list[str] | tuple[str, ...]) -> str:
+    scoped = [name for name in folder_names if name]
+    if not scoped:
+        return "目标文件夹内"
+    quoted = [f"`{name}`" for name in scoped]
+    if len(quoted) == 1:
+        return f"{quoted[0]} 文件夹内"
+    if len(quoted) == 2:
+        return f"{quoted[0]} 和 {quoted[1]} 两个文件夹内"
+    return f"{'、'.join(quoted)} 等 {len(quoted)} 个文件夹内"
+
+
+def update_dashboards_readme(readme_path: Path, folder_names: list[str] | tuple[str, ...]) -> None:
     original = readme_path.read_text(encoding="utf-8")
-    replacement = """## Web BI 结构快照
+    replacement = f"""## Web BI 结构快照
 
 当问题涉及自助 BI 页面上的筛选器、组件、字段 ID、下载按钮、刷新任务 ID 或行数/序列计数时，读取 `knowledge/dashboard_web_profiles/README.md` 及对应看板快照。该目录只记录 Web 前端结构，不替代本目录中的 SQL 业务口径。
 
-`knowledge/dashboard_web_profiles/README.md` 由 `usql-web-query-operator/scripts/read_dashboard.py profile-all` 统一重建，覆盖 `市场顾问数据` 和 `青橙项目部` 文件夹下当前已同步的看板清单。
+`knowledge/dashboard_web_profiles/README.md` 由 `usql-web-query-operator/scripts/read_dashboard.py profile-all` 统一重建，覆盖{_format_folder_scope(folder_names)}当前已同步的看板清单。
 """
     updated = DASHBOARDS_README_SECTION_RE.sub(replacement, original)
     if updated == original:

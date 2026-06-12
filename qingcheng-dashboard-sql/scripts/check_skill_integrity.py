@@ -19,6 +19,7 @@ REQUIRED_DIRS = [
     "knowledge/tables",
     "knowledge/temp_tables",
     "knowledge/dashboards",
+    "knowledge/dashboard_web_profiles",
     "knowledge/metrics",
     "knowledge/joins",
     "knowledge/sql_patterns",
@@ -42,6 +43,7 @@ REQUIRED_FILES = [
     "knowledge/tables/_table_template.md",
     "knowledge/temp_tables/_temp_table_template.md",
     "knowledge/dashboards/_dashboard_template.md",
+    "knowledge/dashboard_web_profiles/README.md",
     "knowledge/metrics/_metric_template.md",
     "knowledge/joins/common_join_keys.md",
     "knowledge/joins/table_relationships.md",
@@ -210,4 +212,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
-

@@ -17,7 +17,8 @@ description: Generate and maintain governed Presto SQL for Qingcheng project dep
 2. `knowledge/04_qingcheng_project_profile.md`：确认青橙业务域、隔离规则、临时表策略和待确认基础口径。
 3. `knowledge/01_table_index.md`：定位相关表；不要直接全量读取所有表文档。
 4. 相关 `knowledge/tables/*.md`、`knowledge/temp_tables/*.md`、`knowledge/metrics/*.md`、`knowledge/dashboards/*.md`、`knowledge/joins/*.md`。
-5. `knowledge/sql_patterns/*.md`：生成或修复 SQL 时参考模板。
+5. `knowledge/dashboard_web_profiles/README.md` 及对应快照：当问题涉及青橙自助 BI 页面上的筛选器、组件、字段 ID、下载按钮、刷新任务 ID、选择器漂移或前端结构排查时读取。
+6. `knowledge/sql_patterns/*.md`：生成或修复 SQL 时参考模板。
 
 文件编码规则：
 
@@ -30,6 +31,7 @@ description: Generate and maintain governed Presto SQL for Qingcheng project dep
 - 只服务青橙项目部相关 SQL 和知识库维护。
 - 不把本 Skill 当通用 SQL 生成器使用。
 - 不脱离本 Skill 知识库编造表、字段、join key、临时表语义或指标口径。
+- 青橙相关 Web BI 结构快照、README 索引和调试结论只写入本 Skill 的 `knowledge/dashboard_web_profiles/`，不得写回 `sql-query-writer-for-dashboard`。
 - 不在缺少 `dt`、必要 `hour`、部门/项目范围限定或必要 `limit` 时直接给出生产查询。
 - 如果 SQL 或用户材料中出现市场顾问部、评优架构、参评名单、市场顾问专属临时表或市场顾问专属渠道 CASE，默认视为跨域污染；除非用户明确说明这是青橙也复用的逻辑，否则必须标注“待人工确认”，不得直接入库为青橙口径。
 - 若用户只要求“给参考 SQL，不修改 Skill”，不得改写 `resources/raw_sql/` 或 `knowledge/`。
@@ -83,9 +85,10 @@ description: Generate and maintain governed Presto SQL for Qingcheng project dep
 5. 相关 `knowledge/temp_tables/*.md`
 6. 相关 `knowledge/metrics/*.md`
 7. 相关 `knowledge/dashboards/*.md`
-8. `knowledge/joins/*.md`
-9. `knowledge/sql_patterns/*.md`
-10. `knowledge/00_global_rules.md` 和 `knowledge/03_range_limit_rules.md`
+8. `knowledge/dashboard_web_profiles/README.md` 及对应快照（仅当问题涉及 Web BI 前端结构时）
+9. `knowledge/joins/*.md`
+10. `knowledge/sql_patterns/*.md`
+11. `knowledge/00_global_rules.md` 和 `knowledge/03_range_limit_rules.md`
 
 ### C. 生成 SQL
 
@@ -155,3 +158,8 @@ description: Generate and maintain governed Presto SQL for Qingcheng project dep
 - 表结构入库时只写入本 Skill 的 `knowledge/tables/`。
 - 不从其他 skill 自动复制表文档；若确实需要复用公共表结构，必须在更新日志中标明来源和核对结果。
 
+新增或刷新青橙 Web BI 结构快照：
+
+- 通过 `usql-web-query-operator/scripts/read_dashboard.py profile-all` 或对应单看板/文件夹命令采集。
+- 所有青橙快照、README 索引和相关说明只写入本 Skill 的 `knowledge/dashboard_web_profiles/`。
+- 不得把 `青橙项目部` 文件夹下的结构快照写入 `sql-query-writer-for-dashboard`。

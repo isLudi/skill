@@ -5,10 +5,11 @@
 
 ## 1. 来源
 
+- 文件夹：`市场顾问数据`
 - dashboard_id：`dashboard_3881610656431284224`
 - 打开入口：`https://uanalysis.baijia.com/dashboard-market?id=dashboard_3881610656431284224&sourceType=1`
-- profile 时间：2026-06-01 09:34:47
-- 原始结构 profile：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\dashboard_profiles\market_consultant_20260601\昆仑山战役-暑期激励数据看板\profile.json`
+- profile 时间：2026-06-12 16:56:28
+- 原始结构 profile：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\artifacts\20260612-164827\市场顾问数据\昆仑山战役-暑期激励数据看板\profile.json`
 - 页面渲染：成功
 
 ## 2. 刷新验证
@@ -25,68 +26,58 @@
 
 ## 3. 全局筛选器
 
-无全局筛选器结构。
+| 筛选器 | 字段/展示名 | field_id | 默认/动态值样例 | 作用单元数 |
+|---|---|---|---|---|
+|  |  |  |  |  |
 
 ## 4. 组件和单元
 
 | 单元 | unit_id | 类型 | 模型 | 分页/下载 | 刷新状态 | task_id / 行数 |
 |---|---|---|---|---|---|---|
 | 标题图 | unit_3881611004233035777 | u_material | 1 主题分析 |  | loaded_empty | rows=0 |
-| 文本框 | unit_3881612212014751744 | u_text | 1 | page=5<br>download=0 | data_ready | rows=0 |
-| 文本框_副本 | unit_3890428705223966720 | u_text | 1 | page=5<br>download=0 | data_ready | rows=0 |
-| 天级数据-西安 | unit_3890409769709219842 | u_pivot | 2727 暑期激励看板 | page=500<br>download=0 | data_ready | task=1378413999,1378413998<br>rows=318<br>total=318 |
-| 天级数据-郑州 | unit_3890469963619188736 | u_pivot | 2727 暑期激励看板 | page=500<br>download=0 | data_ready | task=1378414007,1378414006<br>rows=318<br>total=318 |
-| 期次数据-西安 | unit_3913361199684935681 | u_pivot | 2751 暑期激励v2 | page=100<br>download=0 | data_ready | task=1378414020,1378414018<br>rows=100<br>total=250 |
-| 月度数据-西安 | unit_3913379858514313219 | u_pivot | 2842 暑期激励v3-月份 | page=100<br>download=0 | data_ready | task=1378414026,1378414025<br>rows=100<br>total=226 |
-| 月度数据-郑州 | unit_3913387360440238081 | u_pivot | 2842 暑期激励v3-月份 | page=100<br>download=0 | data_ready | task=1378414028,1378414027<br>rows=100<br>total=226 |
-| 期次数据-郑州 | unit_3913378722861166595 | u_pivot | 2751 暑期激励v2 | page=100<br>download=0 | data_ready | task=1378414051,1378414050<br>rows=100<br>total=250 |
+| 文本框 | unit_3881612212014751744 | u_text | 1 None | download=0 | data_ready | rows=0 |
+| 文本框_副本 | unit_3890428705223966720 | u_text | 1 None | download=0 | data_ready | rows=0 |
+| 天级数据-西安 | unit_3890409769709219842 | u_pivot | 2727 暑期激励看板 | page=500<br>download=0 | data_ready | task=1396390149,1396390147<br>rows=329<br>total=329 |
+| 天级数据-郑州 | unit_3890469963619188736 | u_pivot | 2727 暑期激励看板 | page=500<br>download=0 | data_ready | task=1396390160,1396390159<br>rows=329<br>total=329 |
+| 期次数据-西安 | unit_3913361199684935681 | u_pivot | 2751 暑期激励v2 | page=100<br>download=0 | data_ready | task=1396390191,1396390192<br>rows=100<br>total=264 |
+| 月度数据-西安 | unit_3913379858514313219 | u_pivot | 2842 暑期激励v3-月份 | page=100<br>download=0 | data_ready | task=1396390198,1396390197<br>rows=100<br>total=233 |
+| 月度数据-郑州 | unit_3913387360440238081 | u_pivot | 2842 暑期激励v3-月份 | page=100<br>download=0 | data_ready | task=1396390221,1396390220<br>rows=100<br>total=233 |
+| 期次数据-郑州 | unit_3913378722861166595 | u_pivot | 2751 暑期激励v2 | page=100<br>download=0 | data_ready | task=1396390267,1396390266<br>rows=100<br>total=264 |
 
 ## 5. 分析单元字段结构
 
 ### 天级数据-西安
 
 - unit_id：`unit_3890409769709219842`；类型：`u_pivot`；模型：`2727` / 暑期激励看板
-- 刷新：data_ready；task_ids：`1378413999,1378413998`；行数：318；序列：0 / 0 点
-- 维度/表头字段：顾问（id=427429）、主管（id=427431）、经理（id=427432）、排名（id=8727943220193282）、与上一名差值（id=8727943220193283）、trade_date（id=427435）、dept（id=427433）、jingli（id=427432）
-- 指标/序列字段：排名、与上一名差值
+- 刷新：data_ready；task_ids：`1396390149,1396390147`；行数：329；序列：0 / 0 点
+- 单元筛选字段：trade_date（id=427435）、dept（id=427433）、jingli（id=427432）
 
 ### 天级数据-郑州
 
 - unit_id：`unit_3890469963619188736`；类型：`u_pivot`；模型：`2727` / 暑期激励看板
-- 刷新：data_ready；task_ids：`1378414007,1378414006`；行数：318；序列：0 / 0 点
-- 维度/表头字段：顾问（id=427429）、主管（id=427431）、经理（id=427432）、排名（id=8727943220193282）、与上一名差值（id=8727943220193283）、trade_date（id=427435）、dept（id=427433）、jingli（id=427432）
-- 指标/序列字段：排名、与上一名差值
+- 刷新：data_ready；task_ids：`1396390160,1396390159`；行数：329；序列：0 / 0 点
+- 单元筛选字段：trade_date（id=427435）、dept（id=427433）、jingli（id=427432）
 
 ### 期次数据-西安
 
 - unit_id：`unit_3913361199684935681`；类型：`u_pivot`；模型：`2751` / 暑期激励v2
-- 刷新：data_ready；task_ids：`1378414020,1378414018`；行数：100；序列：0 / 0 点
-- 维度/表头字段：顾问（id=435531）、主管（id=463253）、收款目标（id=8817105288980484）、目标完成度（id=8817105288980501）、排名（id=8817105288980502）、差值（id=8817105288980503）、拓课率（id=8817105288980504）、dept（id=435530）、jingli（id=435533）、qici（id=463215）
-- 指标/序列字段：收款目标、目标完成度、排名、差值、拓课率
+- 刷新：data_ready；task_ids：`1396390191,1396390192`；行数：100；序列：0 / 0 点
+- 单元筛选字段：dept（id=435530）、jingli（id=435533）、qici（id=463215）
 
 ### 月度数据-西安
 
 - unit_id：`unit_3913379858514313219`；类型：`u_pivot`；模型：`2842` / 暑期激励v3-月份
-- 刷新：data_ready；task_ids：`1378414026,1378414025`；行数：100；序列：0 / 0 点
-- 维度/表头字段：顾问（id=462994）、主管（id=462995）、收款目标（id=8817002150389772）、目标完成度（id=8817002150389789）、排名（id=8817002150389790）、拓课率（id=8817002150389792）、dept（id=462993）、natural_month（id=462990）、jingli（id=462996）
-- 指标/序列字段：收款目标、目标完成度、排名、差值、拓课率
+- 刷新：data_ready；task_ids：`1396390198,1396390197`；行数：100；序列：0 / 0 点
+- 单元筛选字段：dept（id=462993）、natural_month（id=462990）、jingli（id=462996）
 
 ### 月度数据-郑州
 
 - unit_id：`unit_3913387360440238081`；类型：`u_pivot`；模型：`2842` / 暑期激励v3-月份
-- 刷新：data_ready；task_ids：`1378414028,1378414027`；行数：100；序列：0 / 0 点
-- 维度/表头字段：顾问（id=462994）、主管（id=462995）、收款目标（id=8817002150389772）、目标完成度（id=8817002150389789）、排名（id=8817002150389790）、拓课率（id=8817002150389792）、dept（id=462993）、natural_month（id=462990）、jingli（id=462996）
-- 指标/序列字段：收款目标、目标完成度、排名、差值、拓课率
+- 刷新：data_ready；task_ids：`1396390221,1396390220`；行数：100；序列：0 / 0 点
+- 单元筛选字段：dept（id=462993）、natural_month（id=462990）、jingli（id=462996）
 
 ### 期次数据-郑州
 
 - unit_id：`unit_3913378722861166595`；类型：`u_pivot`；模型：`2751` / 暑期激励v2
-- 刷新：data_ready；task_ids：`1378414051,1378414050`；行数：100；序列：0 / 0 点
-- 维度/表头字段：顾问（id=435531）、主管（id=463253）、收款目标（id=8817105288980484）、目标完成度（id=8817105288980501）、排名（id=8817105288980502）、差值（id=8817105288980503）、拓课率（id=8817105288980504）、dept（id=435530）、jingli（id=435533）、qici（id=463215）
-- 指标/序列字段：收款目标、目标完成度、排名、差值、拓课率
-
-## 6. 维护注意事项
-
-- `u_text`、`u_material` 等非分析单元可能返回空数据，这是展示素材，不按刷新失败处理。
-- 生成 SQL 或排查指标时，应回到对应 `knowledge/dashboards/*.md` 和 `knowledge/metrics/*.md` 确认业务口径；本文件只说明 Web BI 当前配置结构。
-- 看板筛选器存在动态默认值时，应优先读取本文件中的字段 ID、默认值样例和作用单元，再按业务需求替换。
+- 刷新：data_ready；task_ids：`1396390267,1396390266`；行数：100；序列：0 / 0 点
+- 单元筛选字段：dept（id=435530）、jingli（id=435533）、qici（id=463215）
