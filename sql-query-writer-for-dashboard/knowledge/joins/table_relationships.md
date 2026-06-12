@@ -1,4 +1,4 @@
-# 表关系
+﻿# 表关系
 
 ## CRM 私海与线索统计
 
@@ -215,7 +215,7 @@
 - 首 call 任务桥接：`gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf` 通过 `account_id` 关联 `finance_dw.dim_finance_employee_df`，再用员工维表的 `employee_email_name + user_id` 关联主数据的 `employee_email_name + user_id`。
 - 渠道分组：`temp_table.shenbaoxin_channel_group` 通过 `channel = channel_map` 补充 `channel_group`（输出别名 `channel_1`）。
 - 粒度：部门级别聚合，无顾问个体维度。`zhuanhua` 按 `period_name + channel_map + rule_name + lead_purchase_intention_level2_category_name + depart_1 + dept_name + depart` 分组。
-- 渠道 CASE 使用 `resources/raw_sql/market_channel_case_when_0524.sql`。
+- 渠道 CASE 使用 `resources/raw_sql/market_channel_case_when_0612.sql`。
 - 主表 `dt/hour` 均使用 `now - 3h`（一致偏移）；首 call 表使用 `now - 2h`。
 - 状态：SQL 口径已入库；`data_base` 使用 `select t1.*`、双层 `select distinct`、首 call 未限定 `task_generate_rule_type = 2`、`valid_lead_count`/`can_renew_ds_count_a` 重复输出、员工维表 `account_id` 去重逻辑、`shenbaoxin_channel_group` 字段存在性、`period_mapping_first_level_department_name is null` 放宽条件需人工确认。
 

@@ -1,4 +1,4 @@
-# 市场顾问转化看板
+﻿# 市场顾问转化看板
 
 ## 1. 来源
 
@@ -129,7 +129,7 @@ zz.period_name > '20260424期'
 ## 10. 可复用 SQL 模式
 
 - `data` CTE：全链路明细表中做 `d_w`、`xiansuo`、渠道 CASE 映射、年级识别和基础指标空值处理。`D:\Feishu\0524.txt` 中输出别名为 `qici` 的当期/非当期 CASE，在本看板中沿用历史字段名 `d_w`。
-- 渠道 CASE 有独立最新来源：`resources/raw_sql/market_channel_case_when_0524.sql`（基于 0522 新增 周帅-百度数字人、途途私域，B站信息流-亚飞条件补充），说明见 `knowledge/sql_patterns/channel_mapping_case_when.md`。
+- 渠道 CASE 有独立最新来源：`resources/raw_sql/market_channel_case_when_0612.sql`（0612 版本新增/细分孟亚飞 1 组/2 组、B站信息流细分、进校直推等输出，并移除或合并一批旧渠道输出值），说明见 `knowledge/sql_patterns/channel_mapping_case_when.md`。
 - `zhuanhua` CTE：按期次、渠道、规则、年级、部门和员工聚合转化/收入指标。2026-05-24 起分组增加 `rule_name`，输出粒度细化到规则级别。
 - final select：补充成本、目标和架构信息，并派生 `s_lead`、`podan`、`sx_qi`、`jingli_1`。
 
@@ -140,6 +140,6 @@ zz.period_name > '20260424期'
 - SQL 在 `channel_map` CASE 中使用 `third_department_name`、`first_department_name`、`second_department_name`、`virtual_third_department_name`、`virtual_fourth_department_name`、`virtual_fifth_department_name` 等部门字段，但 where 中只显式限定了截面分配部门和期次映射一级部门；复用时需确认这是否满足公司范围限定规范。
 - `temp_table.dingxi01_channel_group`、`temp_table.dingxi01_cost`、`temp_table.dingxi01_jiagou_zx` 的真实字段类型和维护来源待补充。
 - `temp_table.dingxi01_jiagou_db` join 后未在最终 select 直接使用字段，但可能造成重复行；需确认该表在 join key 下是否唯一。
-- `channel_map` 是超长 CASE 规则，历史完整规则以原始 SQL 为准；最新渠道 CASE 已归档为 `resources/raw_sql/market_channel_case_when_0524.sql`。后续改写 SQL 时应优先使用该独立渠道映射知识，除非用户明确要求沿用本看板历史口径。
+- `channel_map` 是超长 CASE 规则，历史完整规则以原始 SQL 为准；最新渠道 CASE 已归档为 `resources/raw_sql/market_channel_case_when_0612.sql`。后续改写 SQL 时应优先使用该独立渠道映射知识，除非用户明确要求沿用本看板历史口径。
 - `xiansuo` 当前按底层 0/1 标记求和输出；如前端需要作为维度筛选，应另行确认是否改为明细维度，不能直接把当前聚合字段放入 group by。
 - 所有指标口径来自历史看板 SQL，尚未经过业务口径文档确认。

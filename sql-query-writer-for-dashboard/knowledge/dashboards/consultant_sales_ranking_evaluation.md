@@ -172,7 +172,7 @@ inner join jiagou_zx_active zx
 | 组织链过滤 | 无 | `dw.dim_employee_chain` 取 `高途-H业务线-市场部-市场顾问部` 路径，按 `email_prefix` 内连接任职期间流水 |
 | 期次计算 | 硬编码 2026 年特殊日期 + `day_of_week` | 统一 `day_of_week` 公式（无硬编码特殊日期） |
 | 自然月 | 无 | `trade_qici = '20260731期' → '202608'` 特殊处理；其余取 `substr(qici, 1, 6)` |
-| 渠道 CASE | 使用 `channel` 字段（来自评优临时表） | 完整 200 分支 CASE（pre-0524 版本，不含 王绍阳/途途私域/周帅-百度数字人，信息流-抖音私信 位于旧位置） |
+| 渠道 CASE | 使用 `channel` 字段（来自评优临时表） | 历史 CASE（pre-0524 版本，不含后续 0524/0612 渠道细分，信息流-抖音私信 位于旧位置） |
 | 转化侧 | 无 | 包含完整的线索→转化→渠道成本→目标完成率链路 |
 | 成本维度 | 无 | `temp_table.dingxi01_cost` 按 `channel` 取 `cost`，计算 `receive_target = leads_count * cost` |
 | 排名指标 | ROI 排名 + 退费排名 | pmit 排名 + 目标完成率排名（双排名体系） |
@@ -219,7 +219,7 @@ inner join jiagou_zx_active zx
 
 ### 待确认事项
 
-- channel_map CASE 版本未同步 0524（缺少 王绍阳、途途私域、周帅-百度数字人），如与转化看板在同一前端展示会出现渠道口径不一致。
+- channel_map CASE 版本未同步最新 `market_channel_case_when_0612.sql`；如与转化看板在同一前端展示，会出现渠道口径不一致。
 - `period_mapping_first_level_department_name is null` 和 `period_mapping_second_level_department_name is null` 的放宽条件。
 - `conversion_base` 使用 `select fl.*`（全字段扫描宽表 283 列），违反知识库规则。
 - `temp_table.dingxi01_cost` 中 `cost` 字段为字符串，需 `try_cast` 且 `> 0` 过滤；`trim(channel)` 后 `max(cost)` 取最大唯一值，如存在同一渠道多行不同成本值会丢失信息。

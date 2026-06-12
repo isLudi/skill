@@ -1,4 +1,4 @@
-# 用户需求到知识库路由
+﻿# 用户需求到知识库路由
 
 > 先用本文件判断要读哪些知识，再进入具体表、指标、看板、join 或踩坑文档。不要把本文件当完整口径来源。
 
@@ -30,4 +30,4 @@
 - 简单表结构或字段问题：读 `quick_reference.md`、`01_table_index.md`、相关 `tables/*.md` 即可。
 - 指标或看板口径问题：先读对应 `dashboards/*.md` 和 `metrics/*.md`，再补 join 或 SQL pattern。
 - SQL 报错或结果异常：先读全局规则、范围限定、权限边界，再读相关 pitfalls。
-- 生成新市场顾问渠道归因 SQL：默认使用 `resources/raw_sql/market_channel_case_when_0524.sql`，除非用户明确要求沿用历史 SQL 旧口径。
+- 生成新市场顾问渠道归因 SQL：默认使用 `resources/raw_sql/market_channel_case_when_0612.sql`，除非用户明确要求沿用历史 SQL 旧口径。

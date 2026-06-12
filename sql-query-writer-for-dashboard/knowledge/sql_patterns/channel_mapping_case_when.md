@@ -1,4 +1,4 @@
-# 渠道 CASE 映射口径
+﻿# 渠道 CASE 映射口径
 
 ## 1. 口径名称
 
@@ -6,19 +6,20 @@
 
 ## 2. 最新来源
 
-- 原始文件：`D:\Feishu\0524.txt`
-- Skill 归档：`resources/raw_sql/market_channel_case_when_0524.sql`
-- 来源文件最后修改时间：2026-05-24
+- 原始文件：`D:\Feishu\0612.txt`
+- Skill 归档：`resources/raw_sql/market_channel_case_when_0612.sql`
+- 来源文件最后修改时间：2026-06-12 21:54:25
 - 入库日期：2026-05-09
-- 最近更新日期：2026-05-24
-- 代码规模：201 行，200 个 `then` 分支，132 个去重后的渠道输出值
+- 最近更新日期：2026-06-12
+- 代码规模：源码 176 行；排除注释后 172 个 `then` 分支，107 个去重后的渠道输出值
 - 输出字段：`qudao`
 
-### 0522 → 0524 增量变更
+### 0524 → 0612 增量变更
 
-- **新增** `周帅-百度数字人`：`when third_department_name = '直播部' and sku_id_name like '%周帅%' and channel_name_2 in ('百度','B站') then '周帅-百度数字人'`（1 条）
-- **新增** `途途私域`：`when rule_name like '%途途私域%' or (rule_name like '%私域%' and first_department_name = 'TT') then '途途私域'`（1 条）
-- **修改** `B站信息流-亚飞`：条件追加 `or rule_name like '%亚飞%' or page_id_name like '%初中-0元%'`
+- **新增/细分**孟亚飞 1 组与 2 组渠道：`孟亚飞-1组-抖音`、`孟亚飞-1组-视频号`、`孟亚飞-1组-B站`、`孟亚飞-1组-百度`、`孟亚飞-2组-百度`、`孟亚飞-2组-抖音`。
+- **新增/细分** B 站信息流渠道：`B站信息流-曹忆`、`B站信息流-汤学健`、`B站信息流-亚飞(1元)`。
+- **新增** `进校直推`、`信息流-陈瑞春`。
+- **移除或合并**一批旧输出值，例如 `周帅-百度数字人`、`孟亚飞百度数字人`、`孟亚飞99-2组`、`信息流-肖晗`、`市场私域小红书`、`正价课判单补录`、`转介绍` 等；排查历史看板时如需要旧口径，应回看 `market_channel_case_when_0524.sql`。
 
 ## 3. 适用范围
 
@@ -28,7 +29,7 @@
 - `channel_map_1`
 - `qudao`
 
-生成或改写市场顾问转化、线索转化到课、外呼过程、分配计划实际有效量等看板 SQL 时，如果需要“最新渠道 CASE”，优先引用 `resources/raw_sql/market_channel_case_when_0524.sql`，不要直接照抄旧看板中的长 CASE。
+生成或改写市场顾问转化、线索转化到课、外呼过程、分配计划实际有效量等看板 SQL 时，如果需要“最新渠道 CASE”，优先引用 `resources/raw_sql/market_channel_case_when_0612.sql`，不要直接照抄旧看板中的长 CASE。
 
 ## 4. 主要依赖字段
 
@@ -115,7 +116,7 @@ with base as (
         t.user_id,
         t.employee_email_name,
         t.rule_name,
-        -- 粘贴 resources/raw_sql/market_channel_case_when_0524.sql
+        -- 粘贴 resources/raw_sql/market_channel_case_when_0612.sql
         -- 并按需要将输出别名 qudao 改为 channel_map
         <latest_channel_case_when>
     from bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df t

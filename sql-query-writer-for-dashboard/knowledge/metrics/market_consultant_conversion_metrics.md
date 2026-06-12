@@ -1,4 +1,4 @@
-# 市场顾问转化看板指标
+﻿# 市场顾问转化看板指标
 
 ## 1. 中文名称
 
@@ -99,4 +99,4 @@ and period_mapping_first_level_department_name = 'H业务线'
 
 ## 8. 待人工确认
 
-是。需要确认金额单位、抖音私域合并口径、`>= 5` 阈值、成本表维护口径、时间偏移口径、`xiansuo` 是否只作为聚合指标输出，以及渠道映射 CASE 是否仍为最新规则。最新渠道 CASE 维护入口见 `knowledge/sql_patterns/channel_mapping_case_when.md`，归档片段为 `resources/raw_sql/market_channel_case_when_0524.sql`。
+是。需要确认金额单位、抖音私域合并口径、`>= 5` 阈值、成本表维护口径、时间偏移口径、`xiansuo` 是否只作为聚合指标输出，以及渠道映射 CASE 是否仍为最新规则。最新渠道 CASE 维护入口见 `knowledge/sql_patterns/channel_mapping_case_when.md`，归档片段为 `resources/raw_sql/market_channel_case_when_0612.sql`。

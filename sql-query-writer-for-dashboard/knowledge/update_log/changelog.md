@@ -508,3 +508,10 @@
 - 更新 `knowledge/sql_patterns/dashboard_query_patterns.md`，补充运营侧个人数据、退前/退后线索、顾问流量归属排查时的 CRM 状态记录边界。
 - 更新 `knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md`，记录线索转移必须在当期开课前完成才会被数据库记录；开课后退费或转移顾问可能导致 CRM 当前状态与看板/数据集结果不一致。
 - 待人工确认：是否存在可记录开课后转移顾问或退费后状态变化的独立明细表；未确认前不得直接用 SQL join 改写该业务事实。
+
+## 2026-06-12 22:14:50 市场顾问渠道 CASE 0612 版本归档
+
+- 使用用户提供的 `D:\Feishu\0612.txt` 新增归档 `resources/raw_sql/market_channel_case_when_0612.sql`，并在文件头记录来源和统计信息。
+- 更新 `knowledge/sql_patterns/channel_mapping_case_when.md`，将最新渠道 CASE 来源从 0524 切换为 0612；排除注释后当前版本为 172 个 `then` 分支、107 个去重渠道输出值。
+- 0612 相比 0524 新增/细分 `孟亚飞-1组-抖音`、`孟亚飞-1组-视频号`、`孟亚飞-1组-B站`、`孟亚飞-1组-百度`、`孟亚飞-2组-百度`、`孟亚飞-2组-抖音`、`B站信息流-曹忆`、`B站信息流-汤学健`、`B站信息流-亚飞(1元)`、`进校直推`、`信息流-陈瑞春` 等输出值。
+- 同步更新 `knowledge/quick_reference.md`、`knowledge/decision_tree.md`、`knowledge/joins/table_relationships.md`、相关 dashboards/metrics/table/pattern 文档中的最新渠道 CASE 活跃引用；历史 changelog 和旧 raw SQL 保留追溯。
