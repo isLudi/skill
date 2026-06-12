@@ -433,6 +433,7 @@ limit 20;
 - 部分历史 SQL 使用 `dt = now() - 2 hour` 且 `hour = now() - 3 hour`，时间偏移不一致，复用时必须确认原因。
 - `lead_assign_plan_actual_valid_count.sql` 也使用 `dt = now() - 2 hour` 且 `hour = now() - 3 hour` 汇总实际 `lead_count`、`valid_lead_count`；同一查询的计划侧小时为 `now() - 2 hour`，复用时需确认分区延迟口径。
 - 当涉及 join 本表的看板整体查不到数据、结果集为空或指标突然大面积为 0 时，优先按 `knowledge/sql_patterns/dashboard_query_patterns.md` 的“全链路主表最新分区产出排查模板”检查最近分区产出。模板中的 `dt >= '<排查起始日期YYYYMMDD>'` 必须按用户提问当天或排查当天动态替换，通常取当天或往前 1 天，不能固定沿用历史日期。
+- CRM 线索转移操作必须在当期开课前完成，数据库侧才能记录该转移状态；当期开课后发生退费、转移顾问或状态变化时，本表及运营侧相关看板可能仍保留原顾问/原期次/原架构口径下的退前线索、退后线索或线索量。排查顾问当前 CRM 状态与本表结果不一致时，应先核对操作时间是否晚于开课时间，不要直接判定为 join 错误。
 - `period_name` 是否为原始字段或仅为 select 别名存在歧义，生成 SQL 时如需同层引用应改成 CTE 后再引用。
 - `channel_map` 规则非常长，完整逻辑见 `resources/raw_sql/market_consultant_conversion.sql`。
 - 待人工确认：字段类型、主键唯一性、金额单位、转化指标和合并线索指标口径。

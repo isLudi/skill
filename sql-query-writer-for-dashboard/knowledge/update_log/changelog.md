@@ -501,3 +501,10 @@
 - 通过 `usql-web-query-operator/scripts/read_dashboard.py profile-all` 扫描 `市场顾问数据` 文件夹，并将原始 `profile.json` 写入本地 runtime 目录。
 - 刷新 `knowledge/dashboard_web_profiles/README.md`，当前索引 15 个看板快照。
 - 本次 profile 结果：成功 15 个，失败 0 个。
+
+## 2026-06-12 18:16:48 CRM 开课后转移状态记录边界补充
+
+- 更新 `knowledge/pitfalls/common_join_failures.md`，新增“CRM 开课后转移/退费状态无法回写导致顾问仍有退前/退后线索”排查规则。
+- 更新 `knowledge/sql_patterns/dashboard_query_patterns.md`，补充运营侧个人数据、退前/退后线索、顾问流量归属排查时的 CRM 状态记录边界。
+- 更新 `knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md`，记录线索转移必须在当期开课前完成才会被数据库记录；开课后退费或转移顾问可能导致 CRM 当前状态与看板/数据集结果不一致。
+- 待人工确认：是否存在可记录开课后转移顾问或退费后状态变化的独立明细表；未确认前不得直接用 SQL join 改写该业务事实。
