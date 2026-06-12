@@ -22,6 +22,8 @@ This skill does not bypass permissions. It only automates actions that the authe
 - If `run` returns `ok=false`, read `error_details.detail`, then `error_details.raw_snippet`, then `error_details.title`; repair the SQL from that captured reason before retrying.
 - Also read `error_category`, `error_category_label`, and `repair_guidance` from the final JSON summary. Treat `即时错误` and `日志区错误` as different repair paths.
 
+- Keep SQL/BI browser login state owned by this skill. Do not use the generic `playwright` skill to read, write, copy, refresh, or replace `C:\Users\Ludim\.codex\runtime\usql-web-query-operator\state.json`.
+
 ## Workflow
 
 1. Generate and validate SQL with `sql-query-writer-for-dashboard`.
@@ -109,6 +111,29 @@ Use `scripts/read_dashboard.py` only for 自助BI/dashboard operations:
 - `profile-folder`: find selected dashboard names under a folder and profile them one by one.
 
 If selectors drift, inspect `references/platform_profile.md`, update the selector list or fallback strategy in the script, and rerun with `--headed --debug-artifacts`. Debug artifacts may include SQL text or visible results, so delete them after troubleshooting.
+
+## Selector Drift and Generic Playwright Fallback
+
+Default to this skill's scripts for SQL取数 and BI dashboard flows. Use the generic `playwright` skill only after a `usql-web-query-operator` command has reproduced the issue and the captured JSON, screenshot, or HTML artifact is not enough to identify the changed UI.
+
+Selector drift triage order:
+
+1. Rerun the failing command with `--headed --debug-artifacts` and the same `--browser-channel` / `--state-path` used by the USQL script.
+2. Read the JSON summary first. For SQL runs, use `error_details`, `error_category`, and `repair_guidance` before assuming selector drift.
+3. Inspect runtime artifacts under the configured artifacts directory. Do not copy screenshots, HTML, SQL text, result previews, cookies, or downloads into `.codex/skills/`.
+4. If screenshot text is needed, use `mineru-converter` to extract it into `C:\Users\Ludim\.codex\runtime\tmp\` or stdout.
+5. If DOM-level exploration is still needed, use the generic `playwright` skill for one-off snapshot/screenshot/click/type inspection only.
+6. Move the durable fix back into this skill: update selectors, fallback logic, `references/platform_profile.md`, or repair guidance, then rerun the USQL script to verify.
+
+Do not use generic Playwright as a replacement for:
+
+- SQL execution or result downloads.
+- BI folder scanning or dashboard profiling.
+- Login-state refresh or credential handling.
+- Row-limit enforcement.
+- Persisting debug artifacts for SQL/BI tasks.
+
+When generic Playwright reveals a useful selector or interaction pattern, treat it as diagnostic evidence. The production path remains `scripts/usql_web_query.py` or `scripts/read_dashboard.py`.
 
 ## Integration With SQL Skill
 
