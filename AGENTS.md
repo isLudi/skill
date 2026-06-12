@@ -18,9 +18,18 @@ When a user request matches any scenario below, automatically load and orchestra
 - User provides a SQL error message and asks for a fix
 - User mentions company-specific business concepts: consultant (顾问), lead (线索), conversion (转化), outbound call (外呼), department/org structure (部门/架构), channel (渠道), refund (退款), traffic (流量), etc.
 - User says "query/ fetch/ pull/ run XX data" (查/取/跑/拉 XX 数据)
-- User asks to maintain or update the skill knowledge base (tables, metrics, dashboard docs, etc.)
+- User asks to maintain or update the skill knowledge base (tables, metrics, dashboard docs, etc.), unless the request is explicitly for 青橙项目部 / Qingcheng project department
 
 **Scope:** SQL generation, validation, and repair; knowledge base lookups; metric definition explanations. Does NOT execute SQL or manipulate Excel files.
+
+#### qingcheng-dashboard-sql
+**Load when ANY of the following is true:**
+- User explicitly mentions 青橙项目部 / Qingcheng project department
+- User asks to write, modify, explain, or fix SQL for 青橙 dashboards, metrics, temp tables, joins, or range rules
+- User asks to ingest, maintain, or correct 青橙 dashboard docs, metric docs, table docs, temp-table docs, join docs, changelog entries, or Web BI structure snapshots
+- User asks to profile or document 青橙 dashboard front-end structure for later SQL/BI maintenance
+
+**Scope:** Qingcheng-only SQL generation and isolated knowledge-base maintenance. All 青橙 artifacts, including Web BI profile markdown and README indexes, must stay inside `skills/qingcheng-dashboard-sql`.
 
 #### usql-web-query-operator
 **Load when ANY of the following is true:**
@@ -66,6 +75,8 @@ When a user request matches any scenario below, automatically load and orchestra
 ### Composite Workflows (Auto-Orchestrated)
 
 When a task spans multiple skills, chain them in the order specified below.
+
+If the business domain is explicitly 青橙项目部, replace step 1's SQL-writing skill with `qingcheng-dashboard-sql` and keep every generated knowledge artifact under that skill only.
 
 #### Workflow A: Data Query & Fetch (highest frequency)
 > "Query last week's outbound call conversion data" (查一下上周外呼转化数据)
@@ -137,6 +148,7 @@ When a task spans multiple skills, chain them in the order specified below.
 3. **Failure recovery**: If a stage fails (e.g., SQL error, expired web login), auto-repair in the next stage (SQL error → fall back to sql-query-writer for a fix and retry; login expired → prompt user for manual login).
 4. **Boundary enforcement**:
    - sql-query-writer's read-only constraint: do not modify skill files unless the user explicitly requests knowledge base maintenance
+   - Qingcheng isolation: any 青橙 dashboard docs, metrics, temp tables, joins, changelog entries, or `dashboard_web_profiles` content must be written only to `skills/qingcheng-dashboard-sql`; never mix them into `sql-query-writer-for-dashboard`
    - usql-web-query-operator's safety policy: no downloads exceeding 1000 rows without confirmation; never expose credentials
    - playwright boundary: do not use generic Playwright directly for SQL取数 execution, BI dashboard scanning/profiling, authenticated SQL-platform downloads, or login-state management; route those through usql-web-query-operator
    - xlsx formula rule: use Excel formulas, not hardcoded Python-computed values
