@@ -44,7 +44,24 @@
 
 如果用户提供的青橙历史 SQL 中包含疑似其他部门逻辑，先标记“待人工确认”，不要直接沉淀为青橙标准口径。
 
-## 8. SQL 输出规则
+## 8. 知识库写入控制规则
+
+**禁止直接写入知识库。** 所有对知识库的新增、修改、删除操作，必须先经过用户确认审核。
+
+具体包括：
+
+- 禁止直接新增或修改 `resources/raw_sql/` 下的 SQL 文件
+- 禁止直接新增或修改 `knowledge/tables/`、`knowledge/temp_tables/`、`knowledge/metrics/`、`knowledge/dashboards/`、`knowledge/joins/`、`knowledge/sql_patterns/` 下的知识文档
+- 禁止直接更新 `knowledge/01_table_index.md`、`knowledge/update_log/changelog.md`
+- 禁止直接运行 `scripts/ingest_dashboard_sql.py` 做自动入库
+
+**正确流程：**
+
+1. 生成 SQL 或知识文档后，先输出给用户审阅
+2. 用户明确确认（如"可以入库"、"写入知识库"）后，再执行写入
+3. 临时 SQL 文件可写入 `C:\Users\Ludim\.codex\runtime\` 目录
+
+## 9. SQL 输出规则
 
 必须输出 SQL + 解释。解释必须包括：
 

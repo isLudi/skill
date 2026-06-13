@@ -10,6 +10,7 @@ from pathlib import Path
 from _shared.config import DEFAULT_ARTIFACTS, DEFAULT_BROWSER_CHANNEL, DEFAULT_ENV_FILE, DEFAULT_STATE
 from _shared.errors import UsageError
 
+from .commands.capture_dashboard import cmd_capture_dashboard
 from .commands.profile_all import cmd_profile_all
 from .commands.profile_dashboard import cmd_profile_dashboard
 from .commands.profile_folder import cmd_profile_folder
@@ -35,6 +36,28 @@ def build_parser() -> argparse.ArgumentParser:
     scan.add_argument("--wait-ms", type=int, default=3_000, help="Extra wait for lazy BI page refresh.")
     scan.add_argument("--debug-artifacts", action="store_true", help="Save screenshots and HTML under the runtime artifacts directory.")
     scan.set_defaults(func=cmd_scan_folder)
+
+    capture = subparsers.add_parser("capture-dashboard", help="Apply a period filter to one dashboard and save a focused screenshot.")
+    capture.add_argument("--dashboard-id", required=True)
+    capture.add_argument("--dashboard-name", default=None)
+    capture.add_argument("--folder", default=None)
+    capture.add_argument("--period", required=True, help="Target period, for example 20260612 or 20260612期.")
+    capture.add_argument("--output-dir", type=Path, default=None)
+    capture.add_argument("--headed", action="store_true", help="Show browser window.")
+    capture.add_argument("--state-path", type=Path, default=DEFAULT_STATE)
+    capture.add_argument("--artifacts-dir", type=Path, default=DEFAULT_ARTIFACTS)
+    capture.add_argument("--env-file", type=Path, default=DEFAULT_ENV_FILE)
+    capture.add_argument("--username", default=os.environ.get("BAIJIA_USERNAME"))
+    capture.add_argument("--password", default=os.environ.get("BAIJIA_PASSWORD"))
+    capture.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL, help="Installed browser channel, e.g. msedge or chrome.")
+    capture.add_argument("--executable-path", default=None, help="Explicit browser executable path; overrides --browser-channel.")
+    capture.add_argument("--wait-ms", type=int, default=12_000, help="Wait after opening the dashboard before interacting with filters.")
+    capture.add_argument("--apply-wait-ms", type=int, default=12_000, help="Wait after changing the period filter before capturing.")
+    capture.add_argument("--viewport-width", type=int, default=1_600, help="Browser viewport width used for the dashboard capture.")
+    capture.add_argument("--viewport-height", type=int, default=1_000, help="Browser viewport height used for the dashboard capture.")
+    capture.add_argument("--device-scale-factor", type=float, default=2.0, help="Device scale factor used for sharper screenshots.")
+    capture.add_argument("--debug-artifacts", action="store_true", help="Save before/after full-page screenshots and HTML under the runtime artifacts directory.")
+    capture.set_defaults(func=cmd_capture_dashboard)
 
     profile = subparsers.add_parser("profile-dashboard", help="Open one dashboard and store its component/filter/value structure.")
     profile.add_argument("--dashboard-id", required=True)

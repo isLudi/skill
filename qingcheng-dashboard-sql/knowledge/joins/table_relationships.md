@@ -13,7 +13,7 @@
 | `data` | `denglu_app` | `denglu_app.user_number = data.user_id` | 登录补充 | 用户级登录标记按线索汇总可能放大 | `qingcheng_process_data_raw_20260522.sql` |
 | `data` | `daoke` | `data.employee_email_prefix = daoke.employee_email_prefix and data.qici = daoke.qici and data.lead_id = daoke.lead_id` | 到课补充 | `daoke` 内部按用户上课明细匹配，可能一线索多课 | `qingcheng_process_data_raw_20260522.sql` |
 | `daoke` | `temp_table.dingxi01_qing_daoke ke` | `qici + channel_map_2/qudao + grade_1/grade + begin_time` | 课次标记 | 临时表唯一性影响第 1 至第 6 讲到课指标 | `qingcheng_process_data_raw_20260522.sql`, `qingcheng_daoke_raw_20260522.sql` |
-| `gmv` | `ld` | `gmv.lead_id = ld.lead_id and ld.employee_email_name = gmv.performance_employee_email_name` | 订单补充线索属性 | 订单明细补充青橙渠道、年级和主管；未匹配时渠道为空 | `qingcheng_conversion_raw_20260522.sql` |
+| `gmv` | `ld` | `gmv.lead_id = ld.lead_id and ld.employee_email_name = gmv.performance_employee_email_name` | 订单补充线索属性 | 订单明细补充青橙渠道、年级、投放计划、分配规则和主管；若 `ld` 同一 `lead_id + employee_email_name` 多行，则渠道订单明细和转化订单明细都可能被放大 | `qingcheng_conversion_raw_20260522.sql`, `qingcheng_channel_order_detail_raw_20260613.sql` |
 | `dd` | `prc` | `prc.lead_id = dd.lead_id and prc.employee_email_name = dd.performance_employee_email_name and prc.rn = 1` | 订单补充线索期次 | `prc` 取每个 lead 最新线索期次，用于 `is_on_period` | `qingcheng_conversion_raw_20260522.sql` |
 | `bb_dedup` | `ud` | `ud.name = bb1.employee_email_name and ud.qici = bb1.qici and ud.qudao = bb1.channel_map_2` | 线索量和业绩合并 | full outer join；线索侧先按顾问-期次-渠道去重，可能丢年级 | `qingcheng_conversion_raw_20260522.sql` |
 | `mm` | `temp_table.dingxi01_qing_team_jg jg` | `mm.employee_email_name = jg.employee_email_name` | 团队架构补充 | 使用最新 `qici` 架构补历史转化数据，可能产生历史架构漂移 | `qingcheng_conversion_raw_20260522.sql` |
@@ -46,6 +46,7 @@
 | `dd_0` | `org_t` | `name + trade_time between begin_time and end_time` | 是否应使用 `email_prefix` 代替 `name`，避免重名误匹配 |
 | `rd` | `temp_table.dingxi01_qing_zz` | `employee_email_name` | 架构表是否一员工唯一、是否需要期次/日期字段待确认 |
 | `rd` | `re_ke` | `order_number + qici/qici_re` | 全退期次按 `full_refund_timestamp` 计算，和交易期次 `rd.qici` 相等时才匹配；是否符合退费归属口径待确认 |
+| `gmv` | `ld` | `lead_id + performance_employee_email_name = employee_email_name` | `ld` 子查询只按 `dt/hour` 过滤，没有显式 `青橙项目部` 范围限定；是否完全安全依赖订单侧业绩部门过滤待确认 |
 | `qg` | `renchan` | `xiaozu = leader_employee_email_name and month = moth` | `qg.xiaozu` 字段是否存主管邮箱而非小组名称待确认 |
 | `qg` | `renchan` | `xiaozu = leader_employee_email_name and qici = qici` | 期目标表 `xiaozu` 字段是否存主管邮箱而非小组名称待确认 |
 | `qtg` | `wa` | `employee_email_name + qici` | 个人转化要求架构表一人一期唯一，否则个人业绩可能被重复计算 |
