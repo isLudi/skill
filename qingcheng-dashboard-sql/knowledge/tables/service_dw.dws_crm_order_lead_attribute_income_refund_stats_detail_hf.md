@@ -63,7 +63,7 @@ where dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
   and (income_amount <> 0 or refund_amount <> 0)
 ```
 
-课程部门白名单来自 `qingcheng_conversion_raw_20260522.sql`，非常长；复用时优先从原始 SQL 拷贝，不要手工删减。
+课程部门白名单来自 `qingcheng_conversion_raw_20260614.sql`，非常长；复用时优先从原始 SQL 拷贝，不要手工删减。
 
 ## 9. 常用 join key
 
@@ -84,4 +84,3 @@ coalesce(income_amount / 100, 0) - coalesce(refund_amount / 100, 0) as promit_am
 - 金额字段在原表疑似以分为单位，SQL 除以 100 转为元。
 - `promit_amount` 为历史 SQL 字段名，含义为净营收。
 - 交易期次 `qici` 由 `trade_timestamp` 按周五期次规则计算，原 SQL 使用三参数 `date_add`，后续生成新 SQL 时需改为 `interval`。
-

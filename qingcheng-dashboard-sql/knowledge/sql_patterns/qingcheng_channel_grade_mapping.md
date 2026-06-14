@@ -117,7 +117,7 @@ f.lead_purchase_intention_level2_category_name
 
 ## 7. 转化 raw 版本差异
 
-来源：`resources/raw_sql/qingcheng_conversion_raw_20260522.sql`。
+来源：`resources/raw_sql/qingcheng_conversion_raw_20260614.sql`。
 
 转化 SQL 中存在两套渠道映射：
 
@@ -129,6 +129,7 @@ f.lead_purchase_intention_level2_category_name
 | 匹配规则 | 输出 |
 |---|---|
 | `%私域表单%` | `私域表单` |
+| `%私域会话%` | `私域会话` |
 | `%私域图书%` | `私域图书` |
 | `%私域裂变%` | `私域裂变` |
 | `%私域品效%` | `私域品效` |
@@ -173,9 +174,8 @@ f.lead_purchase_intention_level2_category_name
 
 | 匹配规则 | 输出 |
 |---|---|
-| `%私域%` | `私域` |
+| `%私域%`、`%公域%` | `私域` |
 | `%IP%` | `IP` |
-| `%公域%` | `公域` |
 | `%图书%` | `图书` |
 | `%SEC未加好友%`、`%SEC首期掉海%`、`%公海%`、`%顾问未加好友%` | `公海` |
 | `%抖音私信%` | `抖音私信` |
@@ -185,12 +185,14 @@ f.lead_purchase_intention_level2_category_name
 
 ## 8. 转化成本映射
 
-来源：`resources/raw_sql/qingcheng_conversion_raw_20260522.sql`。
+来源：`resources/raw_sql/qingcheng_conversion_raw_20260614.sql`。
 
 | 条件 | `cost_lead` |
 |---|---|
 | `channel_map_2 = '亚飞IP'` | `120` |
-| `channel_map_2 = '武汉图书'` | `5` |
+| `channel_map_2 = '武汉图书'` | `20` |
+| `channel_map_2 = '抖音私信'` | `130` |
+| `channel_map_2 = '进校'` | `70` |
 | 其他 | `0` |
 
 成本为硬编码，不来自成本表；更新成本口径时必须同步更新 SQL 和 `knowledge/metrics/qingcheng_conversion_metrics.md`。

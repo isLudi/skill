@@ -55,7 +55,7 @@
 
 ## 5. 转化 SQL 范围口径
 
-来源：`resources/raw_sql/qingcheng_conversion_raw_20260522.sql`。
+来源：`resources/raw_sql/qingcheng_conversion_raw_20260614.sql`。
 
 青橙转化 SQL 使用两类范围：
 

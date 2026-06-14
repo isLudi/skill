@@ -2,13 +2,13 @@
 
 ## 1. 来源
 
-`resources/raw_sql/qingcheng_conversion_raw_20260522.sql`
+`resources/raw_sql/qingcheng_conversion_raw_20260614.sql`
 
-入库时间：2026-05-22
+入库时间：2026-06-14
 
 ## 2. 查询目标
 
-沉淀青橙项目部转化数据 SQL。该 SQL 将订单业绩明细、线索期次、青橙有效线索量和最新团队架构合并，输出顾问/主管/渠道/年级维度的支付用户、支付科目、营收、退款、净营收、当期收入、破单、退款用户、成单周期和线索成本等指标。
+沉淀青橙项目部转化数据 SQL。该 SQL 将订单业绩明细、线索期次、青橙有效线索量和最新团队架构合并，输出顾问/主管/渠道/年级维度的支付用户、支付科目、营收、退款、净营收、当期收入、破单、退款用户、成单周期、截量标记和线索成本等指标。
 
 ## 3. 最终输出粒度
 
@@ -22,7 +22,7 @@
 | 主管 | `virtual_direct_leader_email_name` |
 | 团队架构 | `dept_2`, `xiaozu`, `dazu`, `jingli` |
 
-该 SQL 已经在 `bb_dedup` 中对线索量做过顾问-期次-渠道去重，再与订单聚合 `ud` 做 full outer join。最终不是订单明细粒度。
+该版本将线索侧与订单侧的对齐键扩展为顾问 + 期次 + 二级渠道 + 年级 + 主管，不再通过缺少年级的去重逻辑吞掉某个年级的例子数。
 
 ## 4. 使用表
 
@@ -35,7 +35,7 @@
 
 | 表名 | 用途 | 口径状态 |
 |---|---|---|
-| `temp_table.dingxi01_qing_team_jg` | 最新青橙团队架构表，按员工补充学部、小组、大组、经理 | 已从 SQL 入库，来源/刷新方式待人工确认 |
+| `temp_table.dingxi01_qing_team_jg` | 最新青橙团队架构表，按员工补充学部、小组、大组和经理 | 已从 SQL 入库，来源/刷新方式待人工确认 |
 
 ## 6. CTE 结构
 
@@ -45,9 +45,9 @@
 | `prc` | 取青橙线索期次和分配时间，按 `lead_id` 取最新 `qici_lead` | `lead_id`, `employee_email_name`, `qici_lead`, `section_assign_time`, `rn` |
 | `gmv` | 将业绩明细与线索期次合并，标记是否当期成交 | `is_on_period`, `uid`, `name`, `zhuguan`, `sub`, `income_amount`, `refund_amount`, `promit_amount` |
 | `udd` | 先按用户聚合订单 | `pay_sub`, `p_pay_sub`, `income`, `refund`, `promit`, `p_income`, `sc` |
-| `ud` | 再按顾问聚合订单指标 | `pay_user`, `p_pay_user`, `pay_sub`, `income`, `refund`, `promit`, `podan`, `sc` |
+| `ud` | 再按顾问 + 期次 + 二级渠道 + 年级 + 主管聚合订单指标 | `pay_user`, `p_pay_user`, `pay_sub`, `income`, `refund`, `promit`, `podan`, `sc` |
 | `bb` | 青橙有效线索量，按期次、渠道、年级、主管、顾问聚合 | `v_lead`, `channel_map_1`, `channel_map_2`, `grade_1` |
-| `bb_dedup` | 线索量去重，按顾问-期次-一级渠道-二级渠道保留一条 | `rn` |
+| `bb_dedup` | 保留年级维度的线索对齐层，并生成 `if_jieliang` | `rn`, `if_jieliang` |
 | `mm` | 线索量与业绩指标 full outer join | 合并后的核心转化指标 |
 | 最终查询 | 补充硬编码线索成本、渠道大类和最新团队架构 | `cost_lead`, `channel_1`, `dept_2`, `xiaozu`, `dazu`, `jingli` |
 
@@ -71,7 +71,7 @@
 
 | 表/CTE | dt 条件 | hour 条件 | 说明 |
 |---|---|---|---|
-| `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` | `format_datetime(now() - interval '2' hour, 'YYYYMMdd')` | `format_datetime(now() - interval '2' hour, 'HH')` | 订单业绩明细 |
+| `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` | `format_datetime(now() - interval '2' hour, 'YYYYMMdd')` | `format_datetime(now() - interval '3' hour, 'HH')` | 订单业绩明细 |
 | `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df` | `format_datetime(now() - interval '2' hour, 'YYYYMMdd')` | `format_datetime(now() - interval '3' hour, 'HH')` | 线索补充、线索期次、线索量 |
 | `temp_table.dingxi01_qing_team_jg` | 无 `dt/hour` | `qici = (select max(qici) ...)` | 最新青橙团队架构 |
 
@@ -81,22 +81,20 @@
 |---|---|---|---|
 | `gmv` | `ld` | `gmv.lead_id = ld.lead_id and ld.employee_email_name = gmv.performance_employee_email_name` | 给订单明细补充青橙规则渠道、年级和主管 |
 | `dd` | `prc` | `prc.lead_id = dd.lead_id and prc.employee_email_name = dd.performance_employee_email_name and prc.rn = 1` | 判断订单期次是否等于最新线索期次 |
-| `bb_dedup` | `ud` | `ud.name = bb1.employee_email_name and ud.qici = bb1.qici and ud.qudao = bb1.channel_map_2` | 合并线索量和顾问业绩指标 |
+| `bb_dedup` | `ud` | `employee_email_name + qici + channel_map_2 + grade_1 + virtual_direct_leader_email_name` 对 `name + qici + qudao + grade_0 + zhuguan` | 合并线索量和顾问业绩指标，并保留年级维度 |
 | `mm` | `temp_table.dingxi01_qing_team_jg jg` | `mm.employee_email_name = jg.employee_email_name` | 补充最新团队架构 |
 
-## 10. 渠道、年级和成本映射
+## 10. 渠道、年级、截量和成本映射
 
 转化 SQL 的渠道/年级映射已追加到 `knowledge/sql_patterns/qingcheng_channel_grade_mapping.md`。
 
-线索成本硬编码规则：
+硬编码字段：
 
-| 条件 | `cost_lead` |
+| 字段 | 规则 |
 |---|---|
-| `channel_map_2 = '亚飞IP'` | `120` |
-| `channel_map_2 = '武汉图书'` | `5` |
-| 其他 | `0` |
-
-渠道大类 `channel_1` 使用最终 `channel_map_2` 归类：私域、IP、公域、图书、公海、抖音私信、青橙训练营、进校、未知。
+| `if_jieliang` | `case when v_lead > 5 then employee_email_name else '0' end` |
+| `cost_lead` | `亚飞IP = 120`、`武汉图书 = 20`、`抖音私信 = 130`、`进校 = 70`、其他 `0` |
+| `channel_1` | `%私域%` 或 `%公域%` -> `私域`；`%IP%` -> `IP`；`%图书%` -> `图书`；`%SEC未加好友%/%SEC首期掉海%/%公海%/%顾问未加好友%` -> `公海`；`%抖音私信%` -> `抖音私信`；`%训练营%` -> `青橙训练营`；`%进校%` -> `进校` |
 
 ## 11. 转化指标
 
@@ -120,11 +118,9 @@
 
 ## 12. 已知风险和待确认事项
 
-- 原始 SQL 末尾 `jg.dazu,jg.jingli, from mm` 存在尾逗号，作为可执行 SQL 前必须删除。
-- SQL 中存在 Presto 三参数 `date_add('day', n, expr)`，公司查询平台可能按 Hive 两参数函数解析；后续生成新 SQL 时必须改为 `interval` 写法。
-- 订单表 `course_second_level_department_name` 使用超长白名单，虽然包含青橙项目部，但真正青橙归属主要靠 `performance_second_level_department_name = '青橙项目部'`；复用时不要随意删减课程白名单。
-- `bb_dedup` 按顾问-期次-一级渠道-二级渠道去重，没有把年级纳入 partition，可能只保留某个年级的线索量。
-- `full outer join ud` 后条件 `where bb1.rn = 1 or bb1.rn is null` 会保留无 bb 的业绩记录，但线索侧去重规则需确认。
+- SQL 中存在 Presto 三参数 `date_add('day', n, expr)`，公司查询平台可能按 Hive 两参数函数解析；后续生成新 SQL 时建议逐步改为 `interval` 写法。
+- `bb_dedup` 已补上年级和主管维度，解决同顾问同渠道跨年级吞数问题；但如果同顾问同一期次同渠道同年级同主管仍有多行，仍由 `row_number()` 保留一条，具体业务语义待人工确认。
+- `full outer join ud` 会保留无 `bb` 的业绩记录；如果只分析例子数，需明确是否过滤掉纯订单侧行。
 - `sc` 是用户层成单周期 `date(max(section_assign_time))` 到首个收入订单日期的差值，再在顾问层 `sum(sc)`；是否应取平均或中位数待确认。
 - `promit` 疑似为 `profit`/净营收拼写，保留历史 SQL 字段名。
-
+- `if_jieliang` 的业务语义仅能从历史 SQL 推断为截量标记，最终含义待人工确认。

@@ -2,9 +2,9 @@
 
 ## 1. 来源
 
-`resources/raw_sql/qingcheng_conversion_raw_20260522.sql`
+`resources/raw_sql/qingcheng_conversion_raw_20260614.sql`
 
-适用看板：`knowledge/dashboards/qingcheng_conversion_raw_20260522.md`
+适用看板：`knowledge/dashboards/qingcheng_conversion_raw_20260614.md`
 
 ## 2. 指标计算粒度
 
@@ -14,7 +14,7 @@
 2. `udd`：用户层，按 `qici + qudao + grade_0 + zhuguan + name + uid` 汇总。
 3. `ud`：顾问层，按 `qici + qudao + grade_0 + zhuguan + name` 汇总。
 
-最终 `mm` 再与线索量 `bb_dedup` 合并，输出顾问-期次-渠道-年级粒度指标。
+最终 `mm` 再与线索量 `bb_dedup` 合并，输出顾问-期次-渠道-年级粒度指标。当前版本已将线索侧和订单侧对齐键扩展到年级和主管，避免同顾问同渠道跨年级吞数。
 
 ## 3. 收入和退款指标
 
@@ -50,14 +50,14 @@
 
 | 指标 | SQL 口径 | 说明 | 状态 |
 |---|---|---|---|
-| `v_lead` | 线索表中 `valid_lead_count = '1'` 计 1，按顾问-期次-渠道聚合并去重 | 青橙有效线索量 | 已从 SQL 入库 |
-| `cost_lead` | `亚飞IP = 120`、`武汉图书 = 5`、其他 `0` | 二级渠道线索成本硬编码 | 已从 SQL 入库，待确认是否最新 |
+| `v_lead` | 线索表中 `valid_lead_count = '1'` 计 1，按顾问-期次-渠道-年级-主管聚合；`bb_dedup` 只在完全同维度重复时保留 `rn = 1` | 青橙有效线索量 | 已从 SQL 入库，当前版本用于保留真实年级例子数 |
+| `cost_lead` | `亚飞IP = 120`、`武汉图书 = 20`、`抖音私信 = 130`、`进校 = 70`、其他 `0` | 二级渠道线索成本硬编码 | 已从 SQL 入库，来源于 2026-06-14 最新 SQL |
 
 ## 7. 待确认事项
 
-- `bb_dedup` 未按年级去重，可能导致同顾问同渠道多年级线索量只保留一个年级。
+- 当前版本已修复 `bb_dedup` 未按年级对齐导致的吞数问题；若同顾问同一期次同渠道同年级同主管仍有多行，保留 `rn = 1` 是否合理待人工确认。
 - `pay_sub` 和 `p_pay_sub` 在用户层计 distinct 科目，顾问层直接求和；如果同一用户跨渠道/顾问重复，需确认是否符合口径。
 - `sc` 顾问层求和是否应改为平均周期、有效用户平均周期或中位数待确认。
 - `p_` 前缀当前表示当期，即 `dd.qici = prc.qici_lead`。
 - `cost_lead` 是硬编码，不依赖成本表；后续如果成本口径变化必须更新 SQL 和本文档。
-
+- `jieliang` 为 `case when v_lead > 5 then employee_email_name else '0' end` 的输出标记，业务含义待人工确认。
