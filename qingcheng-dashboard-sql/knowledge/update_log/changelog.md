@@ -122,3 +122,8 @@
   - `if_jieliang` 的业务含义。
   - `bb_dedup` 在完全同维度重复时保留 `rn = 1` 是否仍符合业务预期。
   - `channel_1` 将 `%公域%` 并入 `私域` 是否为最新正式口径。
+
+## 2026-06-14 14:58:17
+
+- 将 `resources/raw_sql/qingcheng_conversion_raw_20260614.sql` 中 9 处裸分隔线改为正式 SQL 注释，修复网页端执行时报错 `Statement.executeQuery() cannot issue statements that do not produce result sets.`。
+- 使用网页端再次验证最新版转化 raw SQL，可成功提交并执行，查询 ID 为 `1400562499`。

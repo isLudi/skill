@@ -1,4 +1,4 @@
------------------------业绩明细
+-- 业绩明细
 with dd as (
 select
 GMV.lead_id,original_order_user_number,
@@ -61,7 +61,7 @@ and period_mapping_first_level_department_name = 'H业务线') ld on gmv.lead_id
 where performance_second_level_department_name='青橙项目部'
 and (income_amount <>0 or refund_amount <> 0)
 and qici >= '20260424期' )
------------------------lead期次+分配时间
+-- lead期次+分配时间
 ,prc as (
 select *,row_number() over (partition by lead_id order by qici_lead desc) as rn
 from (
@@ -73,7 +73,7 @@ where dt=format_datetime(NOW()-interval '2' hour,'YYYYMMdd') and hour=format_dat
 and section_assign_employee_first_level_department_name = 'H业务线'
 and section_assign_employee_second_level_department_name = '青橙项目部'
 and period_mapping_first_level_department_name = 'H业务线'))
------------------------成单周期
+-- 成单周期
 ,gmv as (select
 dd.qici,dd.rule_name as qudao,
 case when dd.qici = prc.qici_lead then 1 else 0 end as is_on_period,
@@ -83,7 +83,7 @@ dd.mapping_school_subject_name as sub,dd.income_amount,dd.refund_amount,dd.promi
 prc.section_assign_time,dd.trade_timestamp
 from dd
 left join prc on prc.lead_id = dd.lead_id and prc.employee_email_name = dd.performance_employee_email_name and prc.rn = 1)
----------------先汇总uid订单
+-- 先汇总uid订单
 ,udd as (select
 qici,qudao,grade_0,zhuguan,name,uid,
 date_diff('day',
@@ -98,7 +98,7 @@ sum(promit_amount) as promit,
 sum(case when is_on_period = 1 then income_amount else 0 end) as p_income
 from gmv
 group by qici,qudao,grade_0,zhuguan,name,uid)
-----------------------汇总订单至顾问
+-- 汇总订单至顾问
 ,ud as (select
 qici,qudao,grade_0,zhuguan,name,
 count(distinct case when income > 0 then uid end) as pay_user,
@@ -114,7 +114,7 @@ count(distinct case when promit > 0 then uid end) as podan,
 sum(sc) as sc
 from udd
 group by qici,qudao,grade_0,zhuguan,name)
----------------------线索量
+-- 线索量
 ,bb as (
 select qici,channel_map_1,channel_map_2,grade_1,virtual_direct_leader_email_name,employee_email_name,sum(v_lead) as v_lead
 from(
@@ -173,7 +173,7 @@ and f.period_mapping_first_level_department_name = 'H业务线'
 and f.valid_lead_count = '1' )
 where qici >= '20260424期'
 group by qici,channel_map_1,channel_map_2,grade_1,virtual_direct_leader_email_name,employee_email_name)
---------------------------保留年级维度的对齐层
+-- 保留年级维度的对齐层
 ,bb_dedup as (
     select *,
     case when v_lead > 5 then employee_email_name else '0' end as if_jieliang,
@@ -183,7 +183,7 @@ group by qici,channel_map_1,channel_map_2,grade_1,virtual_direct_leader_email_na
     ) as rn
     from bb
 )
-----------------------------合并
+-- 合并
 ,mm as (select
 coalesce(bb1.qici, ud.qici) as qici,
 coalesce(bb1.channel_map_2, ud.qudao, '未知') as channel_map_2,
@@ -212,7 +212,7 @@ full outer join ud
    and ud.zhuguan = bb1.virtual_direct_leader_email_name
 where bb1.rn = 1 or bb1.rn is null
 )
--------------------------例子成本
+-- 例子成本
 select distinct
 mm.*,
 case when channel_map_2 = '亚飞IP' then 120
