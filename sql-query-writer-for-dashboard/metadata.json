@@ -11,13 +11,15 @@
     "knowledge/dashboard_web_profiles",
     "knowledge/metrics",
     "knowledge/joins",
-    "knowledge/sql_patterns"
+    "knowledge/sql_patterns",
+    "knowledge/reverse_index"
   ],
   "docs": [
     "README.md",
     "docs/USAGE_PROMPTS.md"
   ],
   "healthcheck": "scripts/check_skill_integrity.py",
+  "reverse_index_builder": "scripts/build_reverse_indexes.py",
   "update_policy": "appendable",
   "requires_full_table_name": true
 }

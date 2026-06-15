@@ -127,3 +127,24 @@
 
 - 将 `resources/raw_sql/qingcheng_conversion_raw_20260614.sql` 中 9 处裸分隔线改为正式 SQL 注释，修复网页端执行时报错 `Statement.executeQuery() cannot issue statements that do not produce result sets.`。
 - 使用网页端再次验证最新版转化 raw SQL，可成功提交并执行，查询 ID 为 `1400562499`。
+
+## 2026-06-15
+
+- 入库青橙转化 SQL 20260615 版 `qingcheng_conversion_raw_20260615.sql`，替换 `qingcheng_conversion_raw_20260614.sql`。
+- **期次对齐机制重构**（核心变更）：
+  - 新增 `qici0 = regexp_extract(rule_name, '(\d{4}期)', 1)`，从原始 rule_name 提取期次（如 `0612期`）。
+  - 新增 `period = regexp_extract(qici, '\d{4}(\d{4}期)', 1)`，从交易时间周对齐 qici 提取期次。
+  - `is_on_period` 改为 `dd.qici0 = dd.period`（旧版为 `dd.qici = prc.qici_lead`）。
+  - `prc.qici_lead` 改为 `regexp_extract(rule_name, '(\d{4}期)', 1)`（旧版为 `group_period_year+group_period_term` 复杂周对齐计算）。
+  - `dd` CTE 输出列新增 `rule_name0`（CASE 映射渠道名，区分于原始 `rule_name`）。
+- **渠道映射更新**：`rule_name0` 和 `channel_map_2` CASE WHEN 新增 `%青橙IP% → '青橙IP'` 作为第一优先级分支。
+- **hour 偏移调整**：dd(gmv)/ld/bb 从 `-3h` 改为 `-2h`，prc 保持 `-3h`。
+- 新增看板知识文档 `knowledge/dashboards/qingcheng_conversion_raw_20260615.md`，删除旧版 0614 文档。
+- 新增待确认风险：`regexp_extract` 对 rule_name 格式的依赖、`period` 正则假设、跨年误匹配风险、跨 CTE hour 不一致。
+
+## 2026-06-15 知识路由和反向索引最小改造
+
+- 新增 `knowledge/quick_reference.md` 和 `knowledge/decision_tree.md`，补齐青橙高频看板、表、临时表、debug 场景和反向定位入口。
+- 新增 `scripts/build_reverse_indexes.py`，自动生成 `knowledge/reverse_index/field_to_metrics.md`、`metric_to_raw_sql.md`、`table_to_dashboards.md` 和 `join_risk_index.md`。
+- 更新 `SKILL.md`、`metadata.json` 和 `scripts/check_skill_integrity.py`，将反向索引纳入加载顺序、维护流程和结构自检。
+- 本次只增加检索和路由层，不改写既有指标口径、表语义或 raw SQL。

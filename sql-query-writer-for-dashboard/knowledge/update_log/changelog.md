@@ -515,3 +515,9 @@
 - 更新 `knowledge/sql_patterns/channel_mapping_case_when.md`，将最新渠道 CASE 来源从 0524 切换为 0612；排除注释后当前版本为 172 个 `then` 分支、107 个去重渠道输出值。
 - 0612 相比 0524 新增/细分 `孟亚飞-1组-抖音`、`孟亚飞-1组-视频号`、`孟亚飞-1组-B站`、`孟亚飞-1组-百度`、`孟亚飞-2组-百度`、`孟亚飞-2组-抖音`、`B站信息流-曹忆`、`B站信息流-汤学健`、`B站信息流-亚飞(1元)`、`进校直推`、`信息流-陈瑞春` 等输出值。
 - 同步更新 `knowledge/quick_reference.md`、`knowledge/decision_tree.md`、`knowledge/joins/table_relationships.md`、相关 dashboards/metrics/table/pattern 文档中的最新渠道 CASE 活跃引用；历史 changelog 和旧 raw SQL 保留追溯。
+
+## 2026-06-15 知识反向索引最小改造
+
+- 新增 `scripts/build_reverse_indexes.py`，自动生成 `knowledge/reverse_index/field_to_metrics.md`、`metric_to_raw_sql.md`、`table_to_dashboards.md` 和 `join_risk_index.md`。
+- 更新 `SKILL.md`、`metadata.json` 和 `scripts/check_skill_integrity.py`，将反向索引纳入加载顺序、维护流程和结构自检。
+- 本次只增加字段/表/指标/debug 的反向定位层，不改写既有市场顾问指标口径、表语义或 raw SQL。

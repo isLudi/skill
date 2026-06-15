@@ -14,11 +14,14 @@ description: Generate and maintain governed Presto SQL for Qingcheng project dep
 加载后先确认 Skill 根目录，再按需读取以下入口：
 
 1. `metadata.json`：确认版本、查询引擎、知识库目录、隔离策略和健康检查脚本。
-2. `knowledge/04_qingcheng_project_profile.md`：确认青橙业务域、隔离规则、临时表策略和待确认基础口径。
-3. `knowledge/01_table_index.md`：定位相关表；不要直接全量读取所有表文档。
-4. 相关 `knowledge/tables/*.md`、`knowledge/temp_tables/*.md`、`knowledge/metrics/*.md`、`knowledge/dashboards/*.md`、`knowledge/joins/*.md`。
-5. `knowledge/dashboard_web_profiles/README.md` 及对应快照：当问题涉及青橙自助 BI 页面上的筛选器、组件、字段 ID、下载按钮、刷新任务 ID、选择器漂移或前端结构排查时读取。
-6. `knowledge/sql_patterns/*.md`：生成或修复 SQL 时参考模板。
+2. `knowledge/quick_reference.md`：快速定位高频看板、表、临时表和反向索引入口。
+3. `knowledge/04_qingcheng_project_profile.md`：确认青橙业务域、隔离规则、临时表策略和待确认基础口径。
+4. `knowledge/decision_tree.md`：按用户需求路由到具体表、指标、看板、join、反向索引或 SQL 模板。
+5. `knowledge/01_table_index.md`：定位相关表；不要直接全量读取所有表文档。
+6. 相关 `knowledge/tables/*.md`、`knowledge/temp_tables/*.md`、`knowledge/metrics/*.md`、`knowledge/dashboards/*.md`、`knowledge/joins/*.md`。
+7. `knowledge/reverse_index/*.md`：当只知道字段、表、指标、raw SQL 或 debug 线索时先读，用于反向定位候选文档。
+8. `knowledge/dashboard_web_profiles/README.md` 及对应快照：当问题涉及青橙自助 BI 页面上的筛选器、组件、字段 ID、下载按钮、刷新任务 ID、选择器漂移或前端结构排查时读取。
+9. `knowledge/sql_patterns/*.md`：生成或修复 SQL 时参考模板。
 
 文件编码规则：
 
@@ -79,16 +82,19 @@ description: Generate and maintain governed Presto SQL for Qingcheng project dep
 优先读取顺序：
 
 1. `metadata.json`
-2. `knowledge/04_qingcheng_project_profile.md`
-3. `knowledge/01_table_index.md`
-4. 相关 `knowledge/tables/*.md`
-5. 相关 `knowledge/temp_tables/*.md`
-6. 相关 `knowledge/metrics/*.md`
-7. 相关 `knowledge/dashboards/*.md`
-8. `knowledge/dashboard_web_profiles/README.md` 及对应快照（仅当问题涉及 Web BI 前端结构时）
-9. `knowledge/joins/*.md`
-10. `knowledge/sql_patterns/*.md`
-11. `knowledge/00_global_rules.md` 和 `knowledge/03_range_limit_rules.md`
+2. `knowledge/quick_reference.md`
+3. `knowledge/04_qingcheng_project_profile.md`
+4. `knowledge/decision_tree.md`
+5. `knowledge/01_table_index.md`
+6. 相关 `knowledge/reverse_index/*.md`（字段、表、指标或 debug 反向定位场景）
+7. 相关 `knowledge/tables/*.md`
+8. 相关 `knowledge/temp_tables/*.md`
+9. 相关 `knowledge/metrics/*.md`
+10. 相关 `knowledge/dashboards/*.md`
+11. `knowledge/dashboard_web_profiles/README.md` 及对应快照（仅当问题涉及 Web BI 前端结构时）
+12. `knowledge/joins/*.md`
+13. `knowledge/sql_patterns/*.md`
+14. `knowledge/00_global_rules.md` 和 `knowledge/03_range_limit_rules.md`
 
 ### C. 生成 SQL
 
@@ -144,7 +150,8 @@ description: Generate and maintain governed Presto SQL for Qingcheng project dep
 3. 人工核对自动解析结果，把“待人工确认”补齐为青橙真实口径。
 4. 更新 `knowledge/01_table_index.md`、`knowledge/joins/common_join_keys.md`、`knowledge/joins/table_relationships.md`。
 5. 更新 `knowledge/update_log/changelog.md`，按时间正序追加在文件末尾。
-6. 运行 `scripts/check_skill_integrity.py`。
+6. 运行 `scripts/build_reverse_indexes.py` 刷新 `knowledge/reverse_index/`。
+7. 运行 `scripts/check_skill_integrity.py`。
 
 新增青橙临时表：
 

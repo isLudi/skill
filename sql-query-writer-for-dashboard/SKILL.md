@@ -17,9 +17,10 @@ description: Generate governed Presto SQL for internal dashboard and exploratory
 4. `knowledge/03_range_limit_rules.md`：先读文件顶部“必读核心规则”，范围限定必须在选表和选字段阶段介入。
 5. `knowledge/decision_tree.md`：按用户需求路由到具体表、指标、看板、join、权限或踩坑文档。
 6. `knowledge/01_table_index.md`：确认候选表、分区和 USQL 权限状态。
-7. 相关 `knowledge/tables/*.md`、`knowledge/metrics/*.md`、`knowledge/dashboards/*.md`、`knowledge/dashboard_web_profiles/*.md`、`knowledge/joins/*.md`、`knowledge/pitfalls/*.md`、`knowledge/sql_patterns/*.md`：只读取与当前需求相关的文件。
-8. 当用户要求执行 SQL 并下载结果、或需要将查询结果用于 Python 分析时，通过 `usql-web-query-operator` Skill 调用 Playwright Web 自动化执行查询并下载 xlsx。具体流程参考 `knowledge/sql_patterns/web_query_playwright.md`。凭证使用 `E:\2000_work\GAOTU\20002_市场顾问部看板维护表格\usql_api.env` 中的 `BAIJIA_USERNAME` 和 `BAIJIA_PASSWORD`，浏览器登录状态保存在 `C:\Users\Ludim\.codex\runtime\usql-web-query-operator\state.json`。
-9. 涉及表可读性判断、权限失败、或某些表无法通过 Web 查询时，读取 `knowledge/sql_patterns/web_permission_guide.md`；不要把权限问题简单归因为 SQL 语法。
+7. `knowledge/reverse_index/*.md`：当只知道字段、表、指标、raw SQL 或 debug 线索时先读，用于反向定位候选文档。
+8. 相关 `knowledge/tables/*.md`、`knowledge/metrics/*.md`、`knowledge/dashboards/*.md`、`knowledge/dashboard_web_profiles/*.md`、`knowledge/joins/*.md`、`knowledge/pitfalls/*.md`、`knowledge/sql_patterns/*.md`：只读取与当前需求相关的文件。
+9. 当用户要求执行 SQL 并下载结果、或需要将查询结果用于 Python 分析时，通过 `usql-web-query-operator` Skill 调用 Playwright Web 自动化执行查询并下载 xlsx。具体流程参考 `knowledge/sql_patterns/web_query_playwright.md`。凭证使用 `E:\2000_work\GAOTU\20002_市场顾问部看板维护表格\usql_api.env` 中的 `BAIJIA_USERNAME` 和 `BAIJIA_PASSWORD`，浏览器登录状态保存在 `C:\Users\Ludim\.codex\runtime\usql-web-query-operator\state.json`。
+10. 涉及表可读性判断、权限失败、或某些表无法通过 Web 查询时，读取 `knowledge/sql_patterns/web_permission_guide.md`；不要把权限问题简单归因为 SQL 语法。
 
 文件编码规则：
 
@@ -112,11 +113,12 @@ description: Generate governed Presto SQL for internal dashboard and exploratory
 3. `knowledge/03_range_limit_rules.md` 顶部“必读核心规则”
 4. `knowledge/decision_tree.md`
 5. `knowledge/01_table_index.md`
-6. 相关 `knowledge/tables/*.md`
-7. 相关 `knowledge/metrics/*.md`、`knowledge/dashboards/*.md` 和 `knowledge/dashboard_web_profiles/*.md`
-8. 相关 `knowledge/joins/*.md` 和 `knowledge/pitfalls/*.md`
-9. 相关 `knowledge/sql_patterns/*.md`
-10. 涉及表可读性、权限失败或 Web 查询异常时再读 `knowledge/sql_patterns/web_permission_guide.md`
+6. 相关 `knowledge/reverse_index/*.md`（字段、表、指标或 debug 反向定位场景）
+7. 相关 `knowledge/tables/*.md`
+8. 相关 `knowledge/metrics/*.md`、`knowledge/dashboards/*.md` 和 `knowledge/dashboard_web_profiles/*.md`
+9. 相关 `knowledge/joins/*.md` 和 `knowledge/pitfalls/*.md`
+10. 相关 `knowledge/sql_patterns/*.md`
+11. 涉及表可读性、权限失败或 Web 查询异常时再读 `knowledge/sql_patterns/web_permission_guide.md`
 
 ### C. 生成 SQL
 
@@ -164,7 +166,7 @@ description: Generate governed Presto SQL for internal dashboard and exploratory
 
 - 新增表结构 PDF：放入 `resources/raw_pdfs/`，运行 `scripts/extract_pdf_to_md.py`，再运行 `scripts/normalize_schema_md.py`。
 - 新增或刷新百家字段目录 JSON：运行 `scripts/import_baijia_external_knowledge.py --catalog <table_fields.json> --permissions <row_permissions.json>`，用于批量补全 `knowledge/tables/`、更新 `knowledge/01_table_index.md` 和 `knowledge/03_range_limit_rules.md`。
-- 新增看板 SQL：放入 `resources/raw_sql/`，运行 `scripts/ingest_dashboard_sql.py`。
+- 新增看板 SQL：放入 `resources/raw_sql/`，运行 `scripts/ingest_dashboard_sql.py`，人工核对后运行 `scripts/build_reverse_indexes.py` 刷新 `knowledge/reverse_index/`。
 - 新增指标定义图片：放入 `resources/raw_images/`；若不能 OCR，手工补充到 `knowledge/metrics/`。
 - 更新市场顾问最新渠道 CASE 时，如果来源文件名包含日期后缀，例如 `D:\Feishu\0515.txt`，归档 SQL 文件名必须同步使用相同后缀：`resources/raw_sql/market_channel_case_when_0515.sql`。后续若来源变为 `D:\Feishu\MMDD.txt`，应将旧归档重命名或替换为 `market_channel_case_when_MMDD.sql`，同步更新所有知识库引用、`knowledge/sql_patterns/channel_mapping_case_when.md` 和更新日志；不得保留过期日期后缀作为最新入口。
 - 更新记录写入 `knowledge/update_log/changelog.md`，必须按时间正序追加在文件末尾；不要把新记录插到文件顶部。同一天多次维护按发生顺序继续向后追加，必要时使用 `YYYY-MM-DD HH:mm:ss` 标题区分顺序。
