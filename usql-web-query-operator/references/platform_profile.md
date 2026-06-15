@@ -105,6 +105,31 @@ The download button is the down-arrow icon inside the iframe result area. Verifi
 
 The verified xlsx filename pattern is like `task_<query_id>_<timestamp>.xlsx`.
 
+### Temporary Table Upload
+
+Verified on 2026-06-15:
+
+The temporary-table UI also lives inside the `/sql/` iframe. The stable automation path is:
+
+1. Click the left tab text `临时表`.
+2. Click `.anticon-cloud-upload`.
+3. Click menu item `建表向导`.
+4. In step 1, select radio `excel` or `csv`, then click `下一步`.
+5. In step 2, use the hidden `input[type=file]` under the active `.ant-modal`; for Excel it advertises `accept=".xls, .xlsx"`. Keep `头行作为字段名行` checked when the first row contains field names.
+6. Wait for the uploaded filename to appear, then click `下一步`.
+7. In step 3, choose `新建表` or `复用现有表`.
+   - For `复用现有表`, use the Ant Design searchable select: click `.ant-select-selector`, fill `.ant-select-selection-search-input`, then click the visible `.ant-select-item-option-content` exact table name.
+   - After selecting an existing table, explicitly choose `覆盖` or `追加`; the page can default back to `追加`.
+8. Click `下一步` to reach field mapping. All fields are checked by default.
+9. Click `开始导入`.
+10. Wait for `导入历史` and parse the top matching row. `状态=成功` plus `临时表名` and `数据量` are the upload success signal.
+
+Observed validation for `E:\2000_work\GAOTU\20003_青橙项目部看板维护表格\qing_team_jg.xlsx`:
+
+| 导入时间 | 文件类型 | 源文件 | 临时表名 | 数据量 | 状态 |
+|---|---|---|---|---:|---|
+| 2026-06-15 12:48:22 | excel | qing_team_jg2026061512480017.xlsx | dingxi01_qing_team_jg | 916 | 成功 |
+
 ## Open Questions
 
 - Whether the page exposes a reliable total row count before download.

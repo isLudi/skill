@@ -70,6 +70,24 @@ Use `--engine presto` when you need a baseline comparison or when Doris-Presto b
    - See `references/query_error_handling.md` for verified cases and repair rules.
 8. If the run succeeds and the result is within the download policy, rerun with `--download` or include `--download` on the original run.
 
+## Temporary Table Upload
+
+Use `scripts/usql_web_query.py upload-temp-table` when the user explicitly wants to upload a local CSV/Excel manual table through the SQL取数 temporary-table UI.
+
+Example:
+
+```powershell
+D:\anaconda3\python.exe scripts\usql_web_query.py upload-temp-table `
+  --file E:\path\to\manual_table.xlsx `
+  --target-table dingxi01_qing_team_jg `
+  --target-mode reuse `
+  --import-mode overwrite
+```
+
+The command opens the SQL取数 page, switches to `临时表`, runs `建表向导`, uploads the local file via the hidden file input, maps all detected fields, starts the import, and waits until `导入历史` reports `成功`. Successful summaries include the import-history row, including `临时表名` and `数据量`.
+
+Keep uploads user-authorized and file-specific. Do not upload arbitrary local files without an explicit user request. Debug artifacts stay under the runtime artifacts directory.
+
 ## Dashboard Folder Scan
 
 Do not use `usql_web_query.py` for dashboard folders or dashboard data. That script is only for SQL取数 execution and result downloads.
@@ -104,6 +122,7 @@ Use `scripts/usql_web_query.py` only for SQL取数:
 - `doctor`: check Python Playwright availability and show install commands if missing.
 - `login`: open the CAS login flow, authenticate, and save browser storage state outside the repo.
 - `run`: open SQL取数, create or reuse a query tab, switch the engine before writing SQL, insert SQL into the CodeMirror editor, submit with `Ctrl+E` first and run-button fallbacks second, wait for query-history/result-tab status, capture `error_details` on platform failures, extract a small visible result-table preview when available, and optionally download xlsx when the local row-limit policy allows it.
+- `upload-temp-table`: upload a local `.csv`, `.xls`, or `.xlsx` into the `临时表` area. It supports `--target-mode new|reuse`, `--import-mode overwrite|append`, `--header-row|--no-header-row`, and emits a JSON summary from `导入历史`.
 
 Relevant `run` options:
 - Failure summaries now explicitly classify `即时错误` versus `日志区错误` and emit `repair_guidance` for the next SQL edit.
