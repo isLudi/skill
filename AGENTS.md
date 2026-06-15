@@ -20,7 +20,7 @@ When a user request matches any scenario below, automatically load and orchestra
 - User says "query/ fetch/ pull/ run XX data" (查/取/跑/拉 XX 数据)
 - User asks to maintain or update the skill knowledge base (tables, metrics, dashboard docs, etc.), unless the request is explicitly for 青橙项目部 / Qingcheng project department
 
-**Scope:** SQL generation, validation, and repair; knowledge base lookups; metric definition explanations. Does NOT execute SQL or manipulate Excel files.
+**Scope:** SQL generation, validation, and repair; knowledge base lookups; reverse lookup across fields, tables, metrics, raw SQL, and debug clues; metric definition explanations. Does NOT execute SQL or manipulate Excel files.
 
 #### qingcheng-dashboard-sql
 **Load when ANY of the following is true:**
@@ -29,7 +29,7 @@ When a user request matches any scenario below, automatically load and orchestra
 - User asks to ingest, maintain, or correct 青橙 dashboard docs, metric docs, table docs, temp-table docs, join docs, changelog entries, or Web BI structure snapshots
 - User asks to profile or document 青橙 dashboard front-end structure for later SQL/BI maintenance
 
-**Scope:** Qingcheng-only SQL generation and isolated knowledge-base maintenance. All 青橙 artifacts, including Web BI profile markdown and README indexes, must stay inside `skills/qingcheng-dashboard-sql`.
+**Scope:** Qingcheng-only SQL generation and isolated knowledge-base maintenance. All 青橙 artifacts, including Web BI profile markdown, README indexes, quick references, decision trees, and reverse indexes, must stay inside `skills/qingcheng-dashboard-sql`.
 
 #### usql-web-query-operator
 **Load when ANY of the following is true:**
@@ -149,6 +149,7 @@ If the business domain is explicitly 青橙项目部, replace step 1's SQL-writi
 4. **Boundary enforcement**:
    - sql-query-writer's read-only constraint: do not modify skill files unless the user explicitly requests knowledge base maintenance
    - Qingcheng isolation: any 青橙 dashboard docs, metrics, temp tables, joins, changelog entries, or `dashboard_web_profiles` content must be written only to `skills/qingcheng-dashboard-sql`; never mix them into `sql-query-writer-for-dashboard`
+   - SQL skill index maintenance: after modifying dashboards, metrics, tables, temp tables, joins, or raw SQL for either `sql-query-writer-for-dashboard` or `qingcheng-dashboard-sql`, run that skill's `scripts/build_reverse_indexes.py` before `scripts/check_skill_integrity.py`
    - usql-web-query-operator's safety policy: no downloads exceeding 1000 rows without confirmation; never expose credentials
    - playwright boundary: do not use generic Playwright directly for SQL取数 execution, BI dashboard scanning/profiling, authenticated SQL-platform downloads, or login-state management; route those through usql-web-query-operator
    - xlsx formula rule: use Excel formulas, not hardcoded Python-computed values
