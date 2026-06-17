@@ -46,5 +46,6 @@
 ## 强制前置规则
 
 - 先读 `knowledge/00_global_rules.md` 和 `knowledge/03_range_limit_rules.md` 顶部核心规则，再写生产 SQL。
+- 生成平台模板取数 SQL 时，日期/时间区间必须使用 `字段名 >= ${字段名:1} and 字段名 < ${字段名:2}`，参数名和过滤列名一致，不能加 `cast()`，详见 `knowledge/sql_patterns/template_parameter_rules.md`。
 - 需要最新渠道归因时，读 `knowledge/sql_patterns/channel_mapping_case_when.md`，完整 CASE 用 `resources/raw_sql/market_channel_case_when_0612.sql`。
 - 涉及 Web 查询执行、下载、权限问题时，读 `knowledge/sql_patterns/web_permission_guide.md`。

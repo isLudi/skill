@@ -20,9 +20,8 @@ Presto
 
 | 字段名 | 类型 | 说明 |
 |---|---|---|
-| `dt` | 待人工确认 | 日期分区 |
-| `hour` | 待人工确认 | 小时分区 |
-
+| `dt` | string | 日期分区 |
+| `hour` | string | 小时分区 |
 ## 6. 强制范围限定字段
 
 | 字段名 | 默认取值/占位符 | 说明 |
@@ -33,9 +32,22 @@ Presto
 
 | 字段名 | 类型 | 中文含义 | 备注 |
 |---|---|---|---|
-| `user_number` | 待人工确认 | 用户编号 | join `data.user_id` |
-| `application_name` | 待人工确认 | 应用名称 | `PC客户端`,`APP`,`PC` 计登录 |
-| `product_name` | 待人工确认 | 产品名称 | 过滤 `高途`,`规划精品` |
+| `user_number` | string | 用户编号 | join `data.user_id` |
+| `application_name` | string | 应用名称 | `PC客户端`,`APP`,`PC` 计登录 |
+| `product_name` | string | 产品名称 | 过滤 `高途`,`规划精品` |
+
+### 7.1 数据地图字段补充（2026-06-17）
+
+> 来源：天工2数据地图字段信息。该补充段只补齐平台已登记字段、类型和字段说明；具体业务口径仍以本 Skill 已沉淀的 SQL 和指标规则为准。
+
+| 字段名 | 类型 | 中文含义 | 备注 |
+|---|---|---|---|
+| `dt_first_active_time` | string | 当日首次活跃时间 | 数据地图补充，业务口径需结合青橙 SQL 使用场景确认 |
+| `tid` | string | 当日首次活跃设备编号 | 数据地图补充，业务口径需结合青橙 SQL 使用场景确认 |
+| `is_reatin_1d` | bigint | 是否次日留存 | 数据地图补充，业务口径需结合青橙 SQL 使用场景确认 |
+| `dt_last_active_time` | string | 当日末次活跃时间 | 数据地图补充，业务口径需结合青橙 SQL 使用场景确认 |
+| `is_learn_plan_show` | bigint | 是否有规划师曝光 | 数据地图补充，业务口径需结合青橙 SQL 使用场景确认 |
+| `is_course_details_page_show` | bigint | 是否有课程详情页曝光 | 数据地图补充，业务口径需结合青橙 SQL 使用场景确认 |
 
 ## 8. 常用过滤条件
 
@@ -58,4 +70,3 @@ case when application_name in ('PC客户端','APP','PC') then 1 else 0 end as is
 ## 11. 注意事项
 
 - 与天级表字段名不同：本表使用 `application_name`。
-

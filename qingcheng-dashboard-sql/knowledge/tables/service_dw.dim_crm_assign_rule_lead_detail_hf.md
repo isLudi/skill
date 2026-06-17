@@ -28,7 +28,6 @@ Presto
 |---|---|---|---|
 | dt | string | 天级别分区 yyyyMMdd | 是 |
 | hour | string | 小时级分区 HH | 是 |
-
 ## 6. 强制范围限定字段
 
 | 字段名 | 类型 | 推荐取值 | 是否必填 | 说明 | 来源 |
@@ -67,7 +66,6 @@ Presto
 | scenario_type | int | 0 未知 1 原线下 2 线上 3 线下校区 | 待按需求确认 | 否 |
 | assign_way | int | 分配方式 1 权重平均 2 完全平均 3 顺序分配 | 待按需求确认 | 否 |
 | assign_way_name | string | 分配方式 1 权重平均 2 完全平均 3 顺序分配 | 待按需求确认 | 否 |
-
 ## 8. 常用过滤条件
 
 - `t.dt = 'YYYYMMDD'`

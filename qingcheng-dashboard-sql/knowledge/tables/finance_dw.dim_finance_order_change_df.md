@@ -20,8 +20,7 @@ Presto
 
 | 字段名 | 类型 | 说明 |
 |---|---|---|
-| `dt` | 待人工确认 | 日期分区 |
-
+| `dt` | string | 日期分区 |
 ## 6. 强制范围限定字段
 
 | 字段名 | 默认取值/占位符 | 说明 |
@@ -32,10 +31,28 @@ Presto
 
 | 字段名 | 类型 | 中文含义 | 备注 |
 |---|---|---|---|
-| `parent_order_number` | 待人工确认 | 父订单编号 | join `ord.order_number` |
-| `order_change_type` | 待人工确认 | 调课调班类型 | 0 调课调班，1 课程转移 |
-| `latest_child_order_status` | 待人工确认 | 最新子订单状态 | 过滤 2、6、7 |
-| `biz_type` | 待人工确认 | 业务类型 | 过滤 2 |
+| `parent_order_number` | bigint | 父订单编号 | join `ord.order_number` |
+| `order_change_type` | bigint | 调课调班类型 | 0 调课调班，1 课程转移 |
+| `latest_child_order_status` | bigint | 最新子订单状态 | 过滤 2、6、7 |
+| `biz_type` | bigint | 业务类型 | 过滤 2 |
+
+### 7.1 数据地图字段补充（2026-06-17）
+
+> 来源：天工2数据地图字段信息。该补充段只补齐平台已登记字段、类型和字段说明；具体业务口径仍以本 Skill 已沉淀的 SQL 和指标规则为准。
+
+| 字段名 | 类型 | 中文含义 | 备注 |
+|---|---|---|---|
+| `order_number` | bigint | 订单编号 | 数据地图补充，业务口径需结合青橙 SQL 使用场景确认 |
+| `original_order_number` | bigint | 原始订单编号 | 数据地图补充，业务口径需结合青橙 SQL 使用场景确认 |
+| `latest_child_order_number` | bigint | 最新子订单编号 | 数据地图补充，业务口径需结合青橙 SQL 使用场景确认 |
+| `transfer_in_amount` | bigint | 调入金额（分） | 数据地图补充，业务口径需结合青橙 SQL 使用场景确认 |
+| `original_order_final_paid_timestamp` | timestamp | 原始订单最后一次支付时间戳 | 数据地图补充，业务口径需结合青橙 SQL 使用场景确认 |
+| `latest_child_order_final_paid_timestamp` | timestamp | 最新子订单最后一次支付时间戳 | 数据地图补充，业务口径需结合青橙 SQL 使用场景确认 |
+| `order_change_chain` | string | 调课链路 | 数据地图补充，业务口径需结合青橙 SQL 使用场景确认 |
+| `is_orginal_order` | string | 是否原始父订单，eg：0-否｜1-是 | 数据地图补充，业务口径需结合青橙 SQL 使用场景确认 |
+| `transfer_in_timestamp` | timestamp | 调入时间戳 | 数据地图补充，业务口径需结合青橙 SQL 使用场景确认 |
+| `transfer_out_amount` | bigint | 调出金额（分） | 数据地图补充，业务口径需结合青橙 SQL 使用场景确认 |
+| `transfer_out_timestamp` | timestamp | 调出时间戳 | 数据地图补充，业务口径需结合青橙 SQL 使用场景确认 |
 
 ## 8. 常用过滤条件
 

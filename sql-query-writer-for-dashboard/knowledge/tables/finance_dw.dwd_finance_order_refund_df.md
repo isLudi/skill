@@ -20,8 +20,7 @@ Presto
 
 | 字段名 | 类型 | 含义 | 是否必填 |
 |---|---|---|---|
-| dt | string，待确认 | 日期分区 YYYYMMdd | 是 |
-
+| dt | string | 日期分区 YYYYMMdd | 是 |
 ## 6. 强制范围限定字段
 
 | 字段名 | 类型 | 推荐取值 | 是否必填 | 说明 |
@@ -32,10 +31,28 @@ Presto
 
 | 字段名 | 类型 | 字段描述 | 常见用途 | 是否常用 |
 |---|---|---|---|---|
-| dt | string，待确认 | 日期分区 | 分区过滤 | 是 |
-| order_number | 待确认 | 订单编号 | 与财务业绩明细按订单关联 | 是 |
-| refund_reason | string，待确认 | 退款原因 | 退费原因分析维度 | 是 |
-| refund_type | string，待确认 | 退款类型 | 过滤退款类型；历史 SQL 使用 `refund_type = '1'` | 是 |
+| dt | string | 日期分区 | 分区过滤 | 是 |
+| order_number | bigint | 订单编号 | 与财务业绩明细按订单关联 | 是 |
+| refund_reason | string | 退款原因 | 退费原因分析维度 | 是 |
+| refund_type | bigint | 退款类型 | 过滤退款类型；历史 SQL 使用 `refund_type = '1'` | 是 |
+
+### 7.1 数据地图字段补充（2026-06-17）
+
+> 来源：天工2数据地图字段信息。该补充段只补齐平台已登记字段、类型和字段说明；具体业务口径仍以本 Skill 已沉淀的 SQL 和指标规则为准。
+
+| 字段名 | 类型 | 字段说明 | 常见用途 | 是否常用 |
+|---|---|---|---|---|
+| biz_type | bigint | 业务类型，eg：1-好课｜7-高途 | 数据地图补充 | 否 |
+| pay_number | bigint | 支付编号 | 数据地图补充 | 否 |
+| op_employ_id | bigint | 操作人的员工号, -1:系统操作 | 数据地图补充 | 否 |
+| pay_type | bigint | 流水类型，0,普通订单 1, 定金; 2, 尾款 | 数据地图补充 | 否 |
+| data_source | bigint | 退款来源： 1:退款表 ods_gaotu_gaotu_refund_record ods_haoke_orders_refund_record 2:优惠券退费 ods_gaotu_coupon_coupon_order_refund | 数据地图补充 | 否 |
+| refund_timestamp | timestamp | 退款成功时间 | 数据地图补充 | 否 |
+| create_timestamp | timestamp | 创建时间 | 数据地图补充 | 否 |
+| update_timestamp | timestamp | 更新时间 | 数据地图补充 | 否 |
+| refund_amount | bigint | 退款金额(分) | 数据地图补充 | 否 |
+| refund_order_number | string | 退款单号 | 数据地图补充 | 否 |
+| goods_type | bigint | 商品类型，2-课程 \| 50-实物 | 数据地图补充 | 否 |
 
 ## 8. 常用过滤条件
 

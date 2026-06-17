@@ -24,7 +24,6 @@ Presto
 |---|---|---|---|
 | dt | string | 天级分区 yyyyMMdd | 是 |
 | hour | string | 小时级分区 HH | 是 |
-
 ## 6. 强制范围限定字段
 
 | 字段名 | 类型 | 推荐取值 | 是否必填 | 说明 |
@@ -35,16 +34,36 @@ Presto
 
 | 字段名 | 类型 | 字段描述 | 常见用途 | 是否常用 |
 |---|---|---|---|---|
-| dt | string（待确认） | 天级分区 yyyyMMdd | 分区过滤 | 是 |
-| hour | string（待确认） | 小时级分区 HH | 分区过滤 | 是 |
-| rule_id | bigint（待确认） | 分配规则 ID | 与规则明细表关联 | 是 |
-| plan_id | bigint（待确认） | 分配计划 ID | 与规则明细表关联 | 是 |
-| employee_email_name | string（待确认） | 顾问姓名/带编号名称 | 顾问维度、与实际量和架构表关联 | 是 |
-| employee_state | string/int（待确认） | 顾问分配状态枚举 | 派生可分配、离职、分配达到上限等状态 | 是 |
-| assign_lead_count | bigint（待确认） | 计划分配数量或已分配数量 | 计划侧数量指标 | 是 |
-| assign_ceiling_count | bigint（待确认） | 分配上限数量 | 计划侧数量指标 | 是 |
-| employee_is_enable | string/int（待确认） | 顾问 item 是否启用枚举 | 派生启用/禁用状态 | 是 |
-| is_del | string/int（待确认） | 删除标记 | 过滤有效 item，历史 SQL 使用 `is_del = '0'` | 是 |
+| dt | string | 天级分区 yyyyMMdd | 分区过滤 | 是 |
+| hour | string | 小时级分区 HH | 分区过滤 | 是 |
+| rule_id | bigint | 分配规则 ID | 与规则明细表关联 | 是 |
+| plan_id | bigint | 分配计划 ID | 与规则明细表关联 | 是 |
+| employee_email_name | string | 顾问姓名/带编号名称 | 顾问维度、与实际量和架构表关联 | 是 |
+| employee_state | int | 顾问分配状态枚举 | 派生可分配、离职、分配达到上限等状态 | 是 |
+| assign_lead_count | int | 计划分配数量或已分配数量 | 计划侧数量指标 | 是 |
+| assign_ceiling_count | int | 分配上限数量 | 计划侧数量指标 | 是 |
+| employee_is_enable | int | 顾问 item 是否启用枚举 | 派生启用/禁用状态 | 是 |
+| is_del | int | 删除标记 | 过滤有效 item，历史 SQL 使用 `is_del = '0'` | 是 |
+
+### 7.1 数据地图字段补充（2026-06-17）
+
+> 来源：天工2数据地图字段信息。该补充段只补齐平台已登记字段、类型和字段说明；具体业务口径仍以本 Skill 已沉淀的 SQL 和指标规则为准。
+
+| 字段名 | 类型 | 字段说明 | 常见用途 | 是否常用 |
+|---|---|---|---|---|
+| plan_item_id | bigint | 分配计划Item主键ID | 数据地图补充 | 否 |
+| account_id | bigint | 顾问ID | 数据地图补充 | 否 |
+| employee_email_prefix | string | 顾问邮箱前缀 | 数据地图补充 | 否 |
+| employee_state_desc | string | 顾问状态描述 | 数据地图补充 | 否 |
+| relation_count | int | U群关联次数 | 数据地图补充 | 否 |
+| is_del_desc | string | 删除状态描述 | 数据地图补充 | 否 |
+| plan_item_create_time | timestamp | Item创建时间 | 数据地图补充 | 否 |
+| plan_item_update_time | timestamp | Item更新时间 | 数据地图补充 | 否 |
+| employee_id | int | 课程顾问employeeId | 数据地图补充 | 否 |
+| employee_is_enable_desc | string | 顾问启用状态描述 | 数据地图补充 | 否 |
+| has_group_state | int | 有群状态（0有群可分 1无群可分） | 数据地图补充 | 否 |
+| has_group_state_desc | string | 有群状态描述 | 数据地图补充 | 否 |
+| assign_priority | int | 人员分配优先级 | 数据地图补充 | 否 |
 
 ## 8. 常用过滤条件
 

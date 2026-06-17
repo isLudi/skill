@@ -25,7 +25,6 @@ Presto
 | 字段名 | 类型 | 含义 | 是否必填 |
 |---|---|---|---|
 | dt | string | 天级别分区 yyyyMMdd | 是 |
-
 ## 6. 强制范围限定字段
 
 | 字段名 | 类型 | 推荐取值 | 是否必填 | 说明 | 来源 |
@@ -113,7 +112,6 @@ Presto
 | robot_task_source_desc | string | 机器人任务来源 | 待按需求确认 | 否 |
 | robot_task_status | bigint | 机器人任务状态 | 待按需求确认 | 否 |
 | employee_email_name | string | 带数字的员工名称 | 常用维度 | 是 |
-
 ## 8. 常用过滤条件
 
 - `t.dt = 'YYYYMMDD'`

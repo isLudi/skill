@@ -1,4 +1,4 @@
 interface:
   display_name: "USQL Web Query Operator"
-  short_description: "Run governed USQL web queries through Playwright."
-  default_prompt: "Use the USQL web query operator to run a safe SQL query through the company web query page, preserving login state and respecting row/download limits."
+  short_description: "Run governed USQL web queries and refresh Data Map field docs."
+  default_prompt: "Use the USQL web query operator to run safe SQL through the company web query page, upload authorized temp tables, or refresh Data Map field docs while preserving login state and local safety gates."

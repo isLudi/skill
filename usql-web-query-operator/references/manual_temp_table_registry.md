@@ -1,57 +1,45 @@
-# Manual Temporary Table Registry
+# 手工临时表 Registry
 
-Updated: 2026-06-17
+更新日期：2026-06-17
 
-This registry records local Excel manual tables and their standard temporary
-table names on the SQL取数 platform. The machine-readable source is
-`references/manual_temp_table_registry.json`; upload scripts read that file.
+本文档记录本地 Excel 手工表与 SQL取数平台标准临时表名之间的对应关系。机器可读源文件是 `references/manual_temp_table_registry.json`，上传脚本读取 JSON 文件，本 Markdown 供人工阅读。
 
-## Mapping Policy
+## 映射策略
 
-- `platform_exact_name`: local filename stem matches an observed platform temp
-  table after the `dingxi01_` prefix is added.
-- `platform_verified_import_history`: mapping is backed by a successful import
-  row observed through the platform.
-- `platform_inferred_semantic` / `platform_inferred_abbreviation`: mapping is
-  inferred from the local business name and the observed platform table list.
-- `review_required_*`: the script can report the candidate table but will not
-  auto-target it unless the caller passes `--target-table` explicitly.
+- `platform_exact_name`：本地文件名 stem 加上 `dingxi01_` 前缀后，能精确匹配已观察到的平台临时表。
+- `platform_verified_import_history`：映射有平台成功导入历史行作为证据。
+- `platform_inferred_semantic` / `platform_inferred_abbreviation`：根据本地业务名和已观察到的平台表列表推断。
+- `review_required_*`：脚本可以报告候选表，但不会自动作为上传目标；调用方必须显式传入 `--target-table`。
 
-## Market Consultant Tables
+## 市场顾问部手工表
 
-| Local file | Standard temp table | Status | Auto target | Main checks |
+| 本地文件 | 标准临时表 | 状态 | 可自动作为目标表 | 主要检查 |
 |---|---|---|---|---|
-| `ceshiqudao_pingyou.xlsx` | `dingxi01_ceshiqudao_pingyou` | exact | yes | required columns |
-| `cost.xlsx` | `dingxi01_cost` | exact | yes | required columns |
-| `daoke_1_6_t.xlsx` | `dingxi01_daoke_1_6_t` | exact | yes | required columns; qudao/grade coverage needs SQL-side check |
-| `jiagou_db.xlsx` | `dingxi01_jiagou_db` | exact | yes | lowercase prefixes; duplicate `qici + employee_email_name`; `xiaozu` variant names |
-| `jiagou_zx.xlsx` | `dingxi01_jiagou_zx` | exact | yes | lowercase prefixes; `jingli` cannot be blank or `-`; infer missing manager suggestions |
-| `jinliang_goal.xlsx` | `dingxi01_jinliang_goal` | exact | yes | required columns |
-| `leads_goal.xlsx` | `dingxi01_goal` candidate | review required | no | platform has no `dingxi01_leads_goal`; confirm before overwrite |
-| `pingyou_jg.xlsx` | `dingxi01_pingyou_jg` | exact | yes | one consultant should not map to multiple supervisor/group values |
-| `plan_id.xlsx` | `dingxi01_plan_id` | exact | yes | required columns |
+| `ceshiqudao_pingyou.xlsx` | `dingxi01_ceshiqudao_pingyou` | 精确匹配 | 是 | 必填列 |
+| `cost.xlsx` | `dingxi01_cost` | 精确匹配 | 是 | 必填列 |
+| `daoke_1_6_t.xlsx` | `dingxi01_daoke_1_6_t` | 精确匹配 | 是 | 必填列；`qudao`/`grade` 覆盖需要 SQL 侧检查 |
+| `jiagou_db.xlsx` | `dingxi01_jiagou_db` | 精确匹配 | 是 | prefix 小写；`qici + employee_email_name` 不能重复；`xiaozu` 名称变体 |
+| `jiagou_zx.xlsx` | `dingxi01_jiagou_zx` | 精确匹配 | 是 | prefix 小写；`jingli` 不能为空或 `-`；推断缺失经理建议 |
+| `jinliang_goal.xlsx` | `dingxi01_jinliang_goal` | 精确匹配 | 是 | 必填列 |
+| `leads_goal.xlsx` | `dingxi01_goal` candidate | 需要复核 | 否 | 平台没有 `dingxi01_leads_goal`；覆盖前需确认 |
+| `pingyou_jg.xlsx` | `dingxi01_pingyou_jg` | 精确匹配 | 是 | 一个顾问不应对应多个主管/分组值 |
+| `plan_id.xlsx` | `dingxi01_plan_id` | 精确匹配 | 是 | 必填列 |
 
-## Qingcheng Tables
+## 青橙项目部手工表
 
-| Local file | Standard temp table | Status | Auto target | Main checks |
+| 本地文件 | 标准临时表 | 状态 | 可自动作为目标表 | 主要检查 |
 |---|---|---|---|---|
-| `daoke_t_one_six_qing.xlsx` | `dingxi01_qing_daoke` | inferred semantic | yes | required columns; no blank headers; qudao/grade coverage needs SQL-side check |
-| `qing_qi_moth.xlsx` | `dingxi01_qing_qi_moth` | exact | yes | required columns |
-| `qing_qici_goal.xlsx` | `dingxi01_qing_goal` | inferred semantic | yes | required columns |
-| `qing_team_goal_qi.xlsx` | `dingxi01_qing_team_g_qi` | inferred abbreviation | yes | required columns |
-| `qing_team_goal_moth.xlsx` | `dingxi01_qing_team_goal` | inferred semantic | yes | required columns |
-| `qing_team_jg.xlsx` | `dingxi01_qing_team_jg` | verified import history | yes | qici required; `dazu` cannot be `0`; lowercase email prefixes |
-| `qing_team_moth_jg.xlsx` | `dingxi01_month_jg` candidate | review required | no | platform name lacks qing/team prefix; confirm before overwrite |
+| `daoke_t_one_six_qing.xlsx` | `dingxi01_qing_daoke` | 语义推断 | 是 | 必填列；不能有空表头；`qudao`/`grade` 覆盖需要 SQL 侧检查 |
+| `qing_qi_moth.xlsx` | `dingxi01_qing_qi_moth` | 精确匹配 | 是 | 必填列 |
+| `qing_qici_goal.xlsx` | `dingxi01_qing_goal` | 语义推断 | 是 | 必填列 |
+| `qing_team_goal_qi.xlsx` | `dingxi01_qing_team_g_qi` | 缩写推断 | 是 | 必填列 |
+| `qing_team_goal_moth.xlsx` | `dingxi01_qing_team_goal` | 语义推断 | 是 | 必填列 |
+| `qing_team_jg.xlsx` | `dingxi01_qing_team_jg` | 导入历史已验证 | 是 | 必须有 `qici`；`dazu` 不能为 `0`；email prefix 小写 |
+| `qing_team_moth_jg.xlsx` | `dingxi01_month_jg` candidate | 需要复核 | 否 | 平台名缺少 qing/team 前缀；覆盖前需确认 |
 
-## Local Data Rules
+## 本地数据规则
 
-- Lowercase prefix rules check the first ASCII letter in configured columns.
-  Chinese names and non-letter prefixes are not flagged by this local check.
-- Name variant checks group names by removing trailing digits and prefer the
-  variant with a numeric suffix when both plain and suffixed forms exist.
-- Missing `jiagou_zx.jingli` values are not filled by the upload command. The
-  validator reports rows where `xiaozu` has a unique existing `jingli`
-  candidate, so the workbook can be reviewed before a manual edit.
-- Coverage of `qudao` and `grade` against current-period inbound-course data is
-  not knowable from the Excel file alone. The validator emits an informational
-  reminder; a SQL-side comparison is still required before critical uploads.
+- 小写 prefix 规则检查配置列中的第一个 ASCII 字母。中文名和非字母前缀不会被该本地检查标记。
+- 名称变体检查会按“移除尾部数字”后的基础名称分组；当同时存在普通名称和带数字后缀名称时，优先建议使用带数字后缀的规范值。
+- `jiagou_zx.jingli` 缺失值不会由上传命令自动回填。validator 会报告那些 `xiaozu` 能唯一推断出已有 `jingli` 候选值的行，供上传前人工审核。
+- `qudao` 和 `grade` 是否覆盖当前期进量课程，无法仅从 Excel 文件判断。validator 会输出提示；关键上传前仍需要 SQL 侧比对。

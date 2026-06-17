@@ -24,7 +24,6 @@ Presto
 |---|---|---|---|
 | dt | string | 天级分区 yyyyMMdd | 是 |
 | hour | string | 小时级分区 | 是 |
-
 ## 6. 强制范围限定字段
 
 | 字段名 | 类型 | 推荐取值 | 是否必填 | 说明 | 来源 |
@@ -40,7 +39,7 @@ Presto
 
 | 字段名 | 类型 | 字段描述 | 常见用途 | 是否常用 |
 |---|---|---|---|---|
-| dt | string | 待确认 | 分区过滤 | 是 |
+| dt | string | 天级别分区 yyyyMMdd | 分区过滤 | 是 |
 | hour | string | 小时级分区 | 分区过滤 | 是 |
 | user_number | bigint | 用户编号 | 主键/关联键 | 是 |
 | clazz_lesson_number | bigint | 班级课节编号 | 待按需求确认 | 否 |
@@ -73,7 +72,6 @@ Presto
 | course_second_level_department_name | string | 课程二级部门名称 | 权限/业务范围限定 | 是 |
 | is_combine_need_attend | int | 是否伴学课合并后应出勤 1-是｜0-否 | 待按需求确认 | 否 |
 | learn_combine_duration | bigint | 用户伴学课合并听课时长（直播+回放去重） | 指标聚合 | 是 |
-
 ## 8. 常用过滤条件
 
 - `t.dt = 'YYYYMMDD'`

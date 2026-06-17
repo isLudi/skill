@@ -24,7 +24,6 @@ Presto
 |---|---|---|---|
 | dt | string | 天级别分区 yyyyMMdd | 是 |
 | hour | string | 小时分区 | 是 |
-
 ## 6. 强制范围限定字段
 
 | 字段名 | 类型 | 推荐取值 | 是否必填 | 说明 |
@@ -63,9 +62,9 @@ Presto
 | performance_last_level_department_code | bigint | 业绩归属末级部门编码 | 关联键 | 否 |
 | performance_department_path_json | string | 业绩归属部门路径 | 范围限定 | 否 |
 | performance_type | int | 业绩类型，eg：21-续班｜22-扩科｜23-召回｜24-拉新 | 状态/类型过滤 | 否 |
-| user_ratio | 待确认（Word 未给出类型） | 业绩归属用户占比 | 指标聚合 | 否 |
-| price_ratio | 待确认（Word 未给出类型） | 业绩归属金额占比 | 指标聚合 | 否 |
-| order_ratio | 待确认（Word 未给出类型） | 业绩归属订单占比 | 指标聚合 | 否 |
+| user_ratio | decimal(20 | 业绩归属用户占比 | 指标聚合 | 否 |
+| price_ratio | decimal(20 | 业绩归属金额占比 | 指标聚合 | 否 |
+| order_ratio | decimal(20 | 业绩归属订单占比 | 指标聚合 | 否 |
 | pay_number | bigint | 支付编号 | 订单/支付维度 | 否 |
 | spu_number | bigint | 商品spu编号 | 订单/支付维度 | 否 |
 | sku_number | bigint | 商品sku编号 | 订单/支付维度 | 否 |
@@ -75,7 +74,7 @@ Presto
 | mark | bigint | 1:赠课) | 状态/类型过滤 | 否 |
 | order_price | bigint | 订单金额(分) | 指标聚合 | 否 |
 | sku_count | bigint | 购买sku数量 | 指标聚合 | 否 |
-| clazz_hour_count | 待确认（Word 未给出类型） | 购买课时数 | 指标聚合 | 否 |
+| clazz_hour_count | decimal(20 | 购买课时数 | 指标聚合 | 否 |
 | activity_number | bigint | 联报活动编号 | 关联键 | 否 |
 | activity_price | bigint | 活动优惠价格（分） | 指标聚合 | 否 |
 | fund_supervision_number | string | 资金所在账户编号 | 订单/支付维度 | 否 |
@@ -146,8 +145,8 @@ Presto
 | is_blacklist_user | string | 是否黑名单用户，eg: Y-黑名单 \| N-非黑名单 | 状态/类型过滤 | 否 |
 | trade_timestamp | timestamp | 订单交易流水时间，每一笔收款退款的时间 | 时间过滤/时间分析 | 是 |
 | pay_refund_type | string | 流水支付退款类型，eg: 支付 \| 退款 | 指标聚合 | 是 |
-| income_amount | 待确认（Word 未给出类型） | 收款金额。单位（分） | 指标聚合 | 是 |
-| refund_amount | 待确认（Word 未给出类型） | 退款金额。单位（分） | 指标聚合 | 是 |
+| income_amount | decimal(20 | 收款金额。单位（分） | 指标聚合 | 是 |
+| refund_amount | decimal(20 | 退款金额。单位（分） | 指标聚合 | 是 |
 | refund_type | bigint | 退款类型，eg：1-全部退款｜2-部分退款｜3-调出 | 指标聚合 | 否 |
 | stats_trade_timestamp | timestamp | 统计口径订单流水时间。如果该笔流水记录为原始父订单首次支付流水时间，则把流水时间改成原始父订单尾款支付时间。其他流水时间保持不变 | 时间过滤/时间分析 | 是 |
 | is_original_order_pay_success | string | 【统计标签】是否为原始父订单支付成功流水，eg: Y-是 \| N-否 | 状态/类型过滤 | 否 |

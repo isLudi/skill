@@ -12,13 +12,21 @@ import os
 import sys
 from pathlib import Path
 
-from _shared.config import DEFAULT_ARTIFACTS, DEFAULT_BROWSER_CHANNEL, DEFAULT_ENV_FILE, DEFAULT_STATE
+from _shared.config import (
+    DEFAULT_ARTIFACTS,
+    DEFAULT_BROWSER_CHANNEL,
+    DEFAULT_DATAMAP_CACHE,
+    DEFAULT_DATAMAP_STATE,
+    DEFAULT_ENV_FILE,
+    DEFAULT_STATE,
+)
 from _shared.errors import UsageError
 
 from .commands.check_manual_table import cmd_check_manual_table
 from .commands.doctor import cmd_doctor
 from .commands.login import cmd_login
 from .commands.run import cmd_run
+from .commands.sync_datamap_fields import cmd_sync_datamap_fields
 from .commands.upload_temp_table import cmd_upload_temp_table
 from .config import DEFAULT_QUERY_ENGINE
 
@@ -89,6 +97,31 @@ def build_parser() -> argparse.ArgumentParser:
     check_manual.add_argument("--registry-path", type=Path, default=None, help="Manual temp-table registry JSON path.")
     check_manual.add_argument("--strict", action="store_true", help="Return non-zero when validation errors or review-required mappings exist.")
     check_manual.set_defaults(func=cmd_check_manual_table)
+
+    sync_datamap = subparsers.add_parser(
+        "sync-datamap-fields",
+        help="Refresh business skill table fields from Data Map.",
+    )
+    sync_datamap.add_argument("--target-skill", choices=["all", "market", "qingcheng"], default="all", help="Built-in business skill target.")
+    sync_datamap.add_argument("--skill-root", type=Path, action="append", help="Custom skill root to update. Repeatable.")
+    sync_datamap.add_argument("--row-style", choices=["market", "qingcheng"], default=None, help="Markdown field-table style for custom --skill-root targets.")
+    sync_datamap.add_argument("--table", action="append", help="Specific full table name to sync. Repeatable; defaults to all physical table docs.")
+    sync_datamap.add_argument("--write", action="store_true", help="Write markdown changes. Default is dry-run.")
+    sync_datamap.add_argument("--run-date", default=None, help="Override changelog/supplement date, format YYYY-MM-DD.")
+    sync_datamap.add_argument("--refresh-datamap", action=argparse.BooleanOptionalAction, default=True, help="Fetch current schema from Data Map before syncing.")
+    sync_datamap.add_argument("--only-missing-cache", action="store_true", help="When refreshing, skip tables already present in the cache.")
+    sync_datamap.add_argument("--cache-file", type=Path, default=DEFAULT_DATAMAP_CACHE, help="Runtime Data Map table schema cache.")
+    sync_datamap.add_argument("--datamap-state-path", type=Path, default=DEFAULT_DATAMAP_STATE, help="Data Map browser storage state path.")
+    sync_datamap.add_argument("--headed", action="store_true", help="Show browser window while authenticating/fetching Data Map.")
+    sync_datamap.add_argument("--env-file", type=Path, default=DEFAULT_ENV_FILE)
+    sync_datamap.add_argument("--username", default=os.environ.get("BAIJIA_USERNAME"))
+    sync_datamap.add_argument("--password", default=os.environ.get("BAIJIA_PASSWORD"))
+    sync_datamap.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL, help="Installed browser channel, e.g. msedge or chrome.")
+    sync_datamap.add_argument("--executable-path", default=None, help="Explicit browser executable path; overrides --browser-channel.")
+    sync_datamap.add_argument("--update-changelog", action=argparse.BooleanOptionalAction, default=True, help="Append changelog entry when writing field changes.")
+    sync_datamap.add_argument("--rebuild-indexes", action=argparse.BooleanOptionalAction, default=True, help="Run target skill build_reverse_indexes.py after writes.")
+    sync_datamap.add_argument("--check-integrity", action=argparse.BooleanOptionalAction, default=True, help="Run target skill check_skill_integrity.py after writes.")
+    sync_datamap.set_defaults(func=cmd_sync_datamap_fields)
 
     return parser
 

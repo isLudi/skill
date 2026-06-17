@@ -26,7 +26,6 @@ Presto
 |---|---|---|---|
 | dt | string | 天级分区 yyyyMMdd | 是 |
 | hour | string | 小时分区 HH | 是 |
-
 ## 6. 强制范围限定字段
 
 | 字段名 | 类型 | 推荐取值 | 是否必填 | 说明 | 来源 |
@@ -55,8 +54,8 @@ Presto
 
 | 字段名 | 类型 | 字段描述 | 常见用途 | 是否常用 |
 |---|---|---|---|---|
-| dt | string | 待确认 | 分区过滤 | 是 |
-| hour | string | 待确认 | 分区过滤 | 是 |
+| dt | string | 天级别分区 yyyyMMdd | 分区过滤 | 是 |
+| hour | string | 小时级分区 HH | 分区过滤 | 是 |
 | lead_id | bigint | 线索id | 主键/关联键 | 是 |
 | lead_purchase_intention_id | bigint | 线索购买意向 | 待按需求确认 | 否 |
 | lead_purchase_intention_name | string | 线索意向name | 待按需求确认 | 否 |
@@ -289,7 +288,6 @@ Presto
 | source_put_plan_name | string | source上的put_plan_name | 待按需求确认 | 否 |
 | live_end_timestamp | timestamp | 直播结束时间戳 | 时间分析 | 否 |
 | live_employee_name | string | 主播名称 | 常用维度 | 是 |
-
 ## 8. 常用过滤条件
 
 - `t.dt = 'YYYYMMDD'`

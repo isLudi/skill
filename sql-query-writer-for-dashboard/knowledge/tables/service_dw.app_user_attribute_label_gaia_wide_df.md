@@ -23,7 +23,6 @@ Presto
 | 字段名 | 类型 | 含义 | 是否必填 |
 |---|---|---|---|
 | dt | string | 天级别分区 yyyyMMdd | 是 |
-
 ## 6. 强制范围限定字段
 
 | 字段名 | 类型 | 推荐取值 | 是否必填 | 说明 | 来源 |
@@ -150,7 +149,6 @@ Presto
 | learning_direction | string | 学习方向 | 待按需求确认 | 否 |
 | age_range | string | 年龄区间 | 待按需求确认 | 否 |
 | admission | string | 录取情况 | 待按需求确认 | 否 |
-
 ## 8. 常用过滤条件
 
 - `t.dt = 'YYYYMMDD'`

@@ -23,7 +23,6 @@ Presto
 | 字段名 | 类型 | 含义 | 是否必填 |
 |---|---|---|---|
 | dt | string | 日期 YYYYDDMM | 是 |
-
 ## 6. 强制范围限定字段
 
 | 字段名 | 类型 | 推荐取值 | 是否必填 | 说明 | 来源 |
@@ -54,7 +53,6 @@ Presto
 | pre_user_type | int | 是否纯新用户 (1 是，0 否) | 待按需求确认 | 否 |
 | first_tid | string | 用户首次出现时的设备tid | 待按需求确认 | 否 |
 | dt_first_active_time | string | 当日首次活跃时间 | 时间分析 | 否 |
-
 ## 8. 常用过滤条件
 
 - `t.dt = 'YYYYMMDD'`

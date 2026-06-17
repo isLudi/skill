@@ -26,7 +26,6 @@ Presto
 |---|---|---|---|
 | dt | string | 天级别分区 yyyyMMdd | 是 |
 | hour | string | 小时级分区 HH | 是 |
-
 ## 6. 强制范围限定字段
 
 | 字段名 | 类型 | 推荐取值 | 是否必填 | 说明 | 来源 |
@@ -342,6 +341,26 @@ Presto
 | merge_assign_lead_count | bigint | 合并分配线索量 | 指标聚合 | 是 |
 | merge_valid_lead_count | bigint | 合并有效线索量 | 指标聚合 | 是 |
 | merge_assign_valid_lead_count | bigint | 合并分配有效线索量 | 指标聚合 | 是 |
+
+### 7.1 数据地图字段补充（2026-06-17）
+
+> 来源：天工2数据地图字段信息。该补充段只补齐平台已登记字段、类型和字段说明；具体业务口径仍以本 Skill 已沉淀的 SQL 和指标规则为准。
+
+| 字段名 | 类型 | 字段说明 | 常见用途 | 是否常用 |
+|---|---|---|---|---|
+| room_id | bigint | 直播间id（直播；信息流=NULL） | 数据地图补充 | 否 |
+| cost_belong_department_code | string | 费用归属部门CODE（信息流空耗专属，从dwd透传） | 数据地图补充 | 否 |
+| cost_belong_department_name | string | 费用归属部门名称（信息流空耗专属） | 数据地图补充 | 否 |
+| data_source_type | bigint | 1-业财主数据，2-信息流空耗，3-直播空耗 | 数据地图补充 | 否 |
+| undertake_lead_count | bigint | 交付线索量 | 数据地图补充 | 否 |
+| undertake_assign_lead_count | bigint | 交付分配线索量 | 数据地图补充 | 否 |
+| undertake_valid_lead_count | bigint | 交付有效线索量 | 数据地图补充 | 否 |
+| undertake_assign_valid_lead_count | bigint | 交付分配有效线索量 | 数据地图补充 | 否 |
+| section_private_sea_clazz_number | bigint | 截面分配-私海分配留痕对应班级编号 | 数据地图补充 | 否 |
+| section_private_sea_clazz_name | string | 截面分配-私海分配留痕对应班级名称 | 数据地图补充 | 否 |
+| section_private_sea_clazz_biz_number | string | 截面分配-私海分配留痕对应班级业务编号 | 数据地图补充 | 否 |
+| channel_third_provider_id | string | 渠道属性-三级渠道商id | 数据地图补充 | 否 |
+| channel_third_provider_name | string | 渠道属性-三级渠道商name | 数据地图补充 | 否 |
 
 ## 8. 常用过滤条件
 

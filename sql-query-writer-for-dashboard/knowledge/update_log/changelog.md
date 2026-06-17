@@ -521,3 +521,18 @@
 - 新增 `scripts/build_reverse_indexes.py`，自动生成 `knowledge/reverse_index/field_to_metrics.md`、`metric_to_raw_sql.md`、`table_to_dashboards.md` 和 `join_risk_index.md`。
 - 更新 `SKILL.md`、`metadata.json` 和 `scripts/check_skill_integrity.py`，将反向索引纳入加载顺序、维护流程和结构自检。
 - 本次只增加字段/表/指标/debug 的反向定位层，不改写既有市场顾问指标口径、表语义或 raw SQL。
+
+## 2026-06-17 模板取数时间区间参数规则补充
+
+- 新增 `knowledge/sql_patterns/template_parameter_rules.md`，记录平台模板取数日期/时间区间参数标准写法：`字段名 >= ${字段名:1} and 字段名 < ${字段名:2}`。
+- 更新 `knowledge/00_global_rules.md`，将模板取数时间参数规则纳入全局时间口径规则。
+- 更新 `knowledge/03_range_limit_rules.md` 顶部必读核心规则，强调参数名必须与过滤列名一致，不得使用 `begin_xxx` / `end_xxx`，不得在模板参数或过滤列外层添加 `cast()`、`date()`、`substr()` 等函数。
+- 更新 `knowledge/quick_reference.md` 强制前置规则，增加模板取数参数规则入口。
+- 验证要求：如需网页端验证，可单独生成实际日期字面量版本执行；交付或写入模板的 SQL 仍必须恢复为无 `cast` 的 `${字段名:1}` / `${字段名:2}` 参数格式。
+
+## 2026-06-17 数据地图字段说明补全
+
+- 登录 `https://tiangong2.baijia.com/dataMap/dataMapNew`，使用数据地图 `tableV2/searchTableList`、`normalColumns`、`partitionColumns` 和 `getDdl` 接口刷新市场顾问 Skill 物理表字段信息。
+- 覆盖 `knowledge/tables` 中 19 张物理表文档；其中 3 张表新增 `数据地图字段补充（2026-06-17）` 小节，追加 40 个数据地图字段。
+- 以数据地图和 DDL 为准回填字段类型和说明占位；复扫结果为字段缺口 0、类型占位 0、说明占位 0。
+- 未覆盖 `temp_table.*` 临时表文档；临时表字段仍以本地 Excel、SQL 使用场景和人工维护规则为准。

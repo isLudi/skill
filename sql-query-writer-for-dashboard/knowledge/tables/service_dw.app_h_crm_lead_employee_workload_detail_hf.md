@@ -24,7 +24,6 @@ Presto
 |---|---|---|---|
 | dt | string | 天级别分区 yyyyMMdd | 是 |
 | hour | string | 小时级分区 HH | 是 |
-
 ## 6. 强制范围限定字段
 
 | 字段名 | 类型 | 推荐取值 | 是否必填 | 说明 | 来源 |
@@ -88,7 +87,6 @@ Presto
 | call_count | string | 通话记录id（电话拨打） | 指标聚合 | 是 |
 | call_answer_count | string | 通话记录id（电话接通） | 指标聚合 | 是 |
 | call_duration_total | bigint | 电话通话时长 | 指标聚合 | 是 |
-
 ## 8. 常用过滤条件
 
 - `t.dt = 'YYYYMMDD'`

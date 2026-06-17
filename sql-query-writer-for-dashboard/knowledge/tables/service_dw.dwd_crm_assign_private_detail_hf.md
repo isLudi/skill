@@ -24,7 +24,6 @@ Presto
 |---|---|---|---|
 | dt | string | 天级别分区 yyyyMMdd | 是 |
 | hour | string | 小时级分区 HH | 是 |
-
 ## 6. 强制范围限定字段
 
 | 字段名 | 类型 | 推荐取值 | 是否必填 | 说明 | 来源 |
@@ -93,7 +92,6 @@ Presto
 | assign_employee_second_level_department_name | string | 顾问最新部门信息，2级name | 权限/业务范围限定 | 是 |
 | assign_employee_third_level_department_name | string | 顾问最新部门信息，3级name | 权限/业务范围限定 | 是 |
 | intention_level_desc | string | 顾问填写的意向度 | 待按需求确认 | 否 |
-
 ## 8. 常用过滤条件
 
 - `t.dt = 'YYYYMMDD'`

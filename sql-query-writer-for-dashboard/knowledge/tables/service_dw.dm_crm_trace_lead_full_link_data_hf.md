@@ -26,7 +26,6 @@ Presto
 |---|---|---|---|
 | dt | string | 天级别分区 yyyyMMdd | 是 |
 | hour | string | 小时级分区 HH | 是 |
-
 ## 6. 强制范围限定字段
 
 | 字段名 | 类型 | 推荐取值 | 是否必填 | 说明 | 来源 |
@@ -306,7 +305,6 @@ Presto
 | page_type_name | string | 页面类型名称 | 待按需求确认 | 否 |
 | source_put_plan_id | string | source上的put_plan_id | 待按需求确认 | 否 |
 | source_put_plan_name | string | source上的put_plan_name | 待按需求确认 | 否 |
-
 ## 8. 常用过滤条件
 
 - `t.dt = 'YYYYMMDD'`

@@ -24,7 +24,6 @@ Presto
 |---|---|---|---|
 | dt | string | 天级别分区 yyyyMMdd | 是 |
 | hour | string | 小时级分区 HH | 是 |
-
 ## 6. 强制范围限定字段
 
 | 字段名 | 类型 | 推荐取值 | 是否必填 | 说明 | 来源 |
@@ -50,7 +49,6 @@ Presto
 | dt_last_active_time | string | 当日末次活跃时间 | 时间分析 | 否 |
 | is_learn_plan_show | bigint | 是否有规划师曝光 | 待按需求确认 | 否 |
 | is_course_details_page_show | bigint | 是否有课程详情页曝光 | 待按需求确认 | 否 |
-
 ## 8. 常用过滤条件
 
 - `t.dt = 'YYYYMMDD'`

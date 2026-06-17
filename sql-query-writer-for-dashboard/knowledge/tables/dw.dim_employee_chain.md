@@ -26,7 +26,6 @@ Presto
 | 字段名 | 类型 | 含义 | 是否必填 |
 |---|---|---|---|
 | dt | string | 天级别分区 yyyyMMdd | 是 |
-
 ## 6. 强制范围限定字段
 
 | 字段名 | 类型 | 推荐取值 | 是否必填 | 说明 |
@@ -75,7 +74,7 @@ Presto
 | source_type | int | 新员工类型，1-正式，2-实习，3-劳务 | 员工类型过滤 | 否 |
 | source_city | int | 工作城市编号 | 城市维度 | 否 |
 | source_city_name | string | 工作城市名称 | 城市维度 | 是 |
-| source_hr_status | int | 新在职状态，0-未知，1-在职，2-离职 | 在职状态过滤 | 是 |
+| source_hr_status | int | 新在职状态0：未知，1：在职，2：离职 | 在职状态过滤 | 是 |
 | resign_reason | string | 员工离职原因 | 离职分析 | 否 |
 | resign_reason_name | string | 员工离职原因名称 | 离职分析 | 否 |
 | leave_time | string | 离职时间 | 离职时间判断 | 是 |

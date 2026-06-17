@@ -96,6 +96,12 @@
 | [knowledge/sql_patterns/outbound_call_process_export_template.md](../sql_patterns/outbound_call_process_export_template.md) | 4. SQL 模板 | and (f.period_mapping_second_level_department_name in ('精品班学部', '市场部') or f.period_mapping_second_level_department_name is null) |
 | [knowledge/sql_patterns/outbound_call_process_export_template.md](../sql_patterns/outbound_call_process_export_template.md) | 4. SQL 模板 | case when denglu_app.user_number is not null then denglu_app.is_app_denglu else 0 end as is_app_denglu, |
 | [knowledge/sql_patterns/outbound_call_process_export_template.md](../sql_patterns/outbound_call_process_export_template.md) | 4. SQL 模板 | and jg.department is not null |
+| [knowledge/sql_patterns/template_parameter_rules.md](../sql_patterns/template_parameter_rules.md) | 禁止写法 | - 同一个过滤列存在多个参数时，必须使用 `:1`、`:2` 区分区间上下界。 |
+| [knowledge/sql_patterns/template_parameter_rules.md](../sql_patterns/template_parameter_rules.md) | 禁止写法 | - 参数名必须与过滤列名一致，例如过滤 `trade_time` 时使用 `${trade_time:1}` 和 `${trade_time:2}`。 |
+| [knowledge/sql_patterns/template_parameter_rules.md](../sql_patterns/template_parameter_rules.md) | 禁止写法 | - 模板版本不能在参数或过滤列外层加 `cast()`、`date()`、`substr()` 等函数，否则平台可能无法添加或识别日期参数。 |
+| [knowledge/sql_patterns/template_parameter_rules.md](../sql_patterns/template_parameter_rules.md) | 派生日期字段 | 如果业务上按某个时间字段的日期部分过滤，可以先在 CTE 中派生同名或明确命名字段，再按该字段维护参数： |
+| [knowledge/sql_patterns/template_parameter_rules.md](../sql_patterns/template_parameter_rules.md) | 派生日期字段 | 如果希望模板参数显示为 `trade_time`，则过滤列也应直接写为 `trade_time`： |
+| [knowledge/sql_patterns/template_parameter_rules.md](../sql_patterns/template_parameter_rules.md) | 派生日期字段 | 不要写成过滤 `day` 但参数名叫 `${trade_time:1}`，也不要写成过滤 `trade_time` 但参数名叫 `${begin_trade_time}`。 |
 | [knowledge/sql_patterns/web_permission_guide.md](../sql_patterns/web_permission_guide.md) | 1. 概述 | 通过 Playwright Web 自动化执行查询时，使用的是**当前登录账号的 Web UI 权限**。Web 登录通过 CAS 认证后具有用户的完整数据访问范围，覆盖所有知识库已登记的表。 |
 | [knowledge/sql_patterns/web_permission_guide.md](../sql_patterns/web_permission_guide.md) | 2. 表可读性判断 | 当查询报错或返回异常时，按以下顺序排查： |
 | [knowledge/sql_patterns/web_permission_guide.md](../sql_patterns/web_permission_guide.md) | 2. 表可读性判断 | 1. **SQL 语法错误**：字段名拼写、表名前缀、分区过滤、函数兼容性。 |

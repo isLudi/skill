@@ -24,7 +24,6 @@ Presto
 |---|---|---|---|
 | dt | string | 天级别分区 yyyyMMdd | 是 |
 | hour | string | 小时级分区 HH | 是 |
-
 ## 6. 强制范围限定字段
 
 | 字段名 | 类型 | 推荐取值 | 是否必填 | 说明 | 来源 |
@@ -146,7 +145,6 @@ Presto
 | l15d_jingpin_active_lead_count | bigint | 近15日规划精品app活跃线索数 | 指标聚合 | 是 |
 | is_refund_before_clazz_begin | bigint | 是否开课前退款 | 待按需求确认 | 否 |
 | is_gy_trace_id | bigint | 是否归因留痕 | 待按需求确认 | 否 |
-
 ## 8. 常用过滤条件
 
 - `t.dt = 'YYYYMMDD'`

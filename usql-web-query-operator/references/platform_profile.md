@@ -1,166 +1,184 @@
-# SQL取数 Web Page Profile
+# SQL取数网页 Profile
 
-## Known URLs
+## 已知 URL
 
-- Query page: `https://uanalysis.baijia.com/getDataSql`
-- Dashboard page: `https://uanalysis.baijia.com/dashboard-market`
-- Dashboard menu API: `https://uanalysis.baijia.com/uanalysis-intelligence/data/menu/manage`
-- CAS login is reached through redirect when the saved login state is missing or expired.
+- SQL取数页面：`https://uanalysis.baijia.com/getDataSql`
+- 自助BI看板页面：`https://uanalysis.baijia.com/dashboard-market`
+- 看板菜单 API：`https://uanalysis.baijia.com/uanalysis-intelligence/data/menu/manage`
+- 保存的登录态缺失或过期时，会重定向到 CAS 登录页。
 
-## Script Boundary
+## 脚本边界
 
-- `scripts/usql_web_query.py`: SQL取数 execution, result preview, and result download only.
-- `scripts/read_dashboard.py`: 自助BI dashboard folder/menu discovery and dashboard page reads only.
-- Do not add dashboard scanning/reading commands back into `usql_web_query.py`.
+- `scripts/usql_web_query.py`：只负责 SQL取数执行、结果预览和结果下载。
+- `scripts/read_dashboard.py`：只负责自助BI看板文件夹/菜单发现，以及看板页面读取。
+- 不要把看板扫描或读取命令重新塞回 `usql_web_query.py`。
 
-## Credential Source
+## 凭据来源
 
-The local env file `E:\2000_work\GAOTU\20002_市场顾问部看板维护表格\usql_api.env` may contain `BAIJIA_USERNAME` and `BAIJIA_PASSWORD`. The script reads this file without printing values.
+本地 env 文件 `E:\2000_work\GAOTU\20002_市场顾问部看板维护表格\usql_api.env` 可以包含 `BAIJIA_USERNAME` 和 `BAIJIA_PASSWORD`。脚本会读取该文件，但不会打印值。
 
-## Known Manual Flow
+## 已知手工流程
 
-1. Open query page.
-2. If redirected to CAS login, enter username and password and click `登录`.
-3. On the query page, click top navigation `SQL取数`.
-4. Click `+` to create a new query tab when needed.
-5. Choose the engine before writing SQL.
-   - Default automation path: `Doris-Presto` -> `doris内测加速版`
-   - Baseline path: `Presto`
-6. Paste SQL into the Monaco editor.
-7. Click the run icon near the editor toolbar.
-8. Wait for query history status to become `Success` or `Failed`.
-9. Successful runs open a lower result tab named like `查询1377529335`.
-10. In the result tab, use `结果` -> `表格` to inspect the table.
-11. The download button is the small down-arrow icon at the left above the result table.
-12. Do not download if the result can exceed 1000 rows.
+1. 打开 SQL取数页面。
+2. 如果跳转到 CAS 登录页，输入用户名和密码并点击 `登录`。
+3. 在查询页面点击顶部导航 `SQL取数`。
+4. 需要时点击 `+` 创建新查询 tab。
+5. 写入 SQL 前选择引擎。
+   - 默认自动化路径：`Doris-Presto` -> `doris内测加速版`
+   - 基线路径：`Presto`
+6. 将 SQL 粘贴到 CodeMirror 编辑器。
+7. 点击编辑器工具栏附近的运行图标。
+8. 等待查询历史状态变为 `Success` 或 `Failed`。
+9. 成功运行会打开底部结果 tab，名称类似 `查询1377529335`。
+10. 在结果 tab 中，通过 `结果` -> `表格` 查看数据。
+11. 下载按钮是结果表上方左侧的小下箭头图标。
+12. 如果结果可能超过 1000 行，不要下载。
 
-## Selector Strategy (verified 2026-06-06)
+## Selector 策略（2026-06-06 验证）
 
-### Page architecture
+### 页面结构
 
-The page at `https://uanalysis.baijia.com/getDataSql` hosts the SQL editor inside an **iframe** (`<iframe src="/sql/?ts=...">`). All editor, run button, and result interactions must target the iframe content via `page.frame_locator('iframe[src^=\"/sql/\"]')`.
+`https://uanalysis.baijia.com/getDataSql` 页面把 SQL 编辑器放在一个 **iframe** 中（`<iframe src="/sql/?ts=...">`）。所有编辑器、运行按钮和结果区交互都必须通过 `page.frame_locator('iframe[src^="/sql/"]')` 定位到 iframe 内容。
 
-### Editor
+### 编辑器
 
-The platform uses **CodeMirror** (NOT Monaco). The editor is inside the `/sql/` iframe.
+平台使用 **CodeMirror**，不是 Monaco。编辑器位于 `/sql/` iframe 内。
 
-- Set SQL: use `document.querySelector('.CodeMirror').CodeMirror.setValue(sql)` via `frame_obj.evaluate()`.
-- Fallback: click `.CodeMirror` → Ctrl+A → paste.
+- 写入 SQL：通过 `frame_obj.evaluate()` 调用 `document.querySelector('.CodeMirror').CodeMirror.setValue(sql)`。
+- fallback：点击 `.CodeMirror` -> Ctrl+A -> 粘贴。
 
-### Engine selector
+### 引擎选择器
 
-The engine selector is also inside the `/sql/` iframe, in `.antd-pro-src-components-editor-index-changeModeBox`.
+引擎选择器也位于 `/sql/` iframe 内，容器是 `.antd-pro-src-components-editor-index-changeModeBox`。
 
-Verified on 2026-06-11:
+2026-06-11 验证的路径：
 
-1. Click `.antd-pro-src-components-editor-index-changeModeBox .ant-select-selector`
-2. Click `Doris-Presto`
-3. Click `doris内测加速版`
+1. 点击 `.antd-pro-src-components-editor-index-changeModeBox .ant-select-selector`
+2. 点击 `Doris-Presto`
+3. 点击 `doris内测加速版`
 
-After the Doris switch, the selector text changes from `Presto` to an internal engine label such as `PRESTO_817034371362430977`. Do not verify Doris selection by waiting for the literal child label to remain visible in the selector; it does not.
+切换 Doris 后，选择器文本会从 `Presto` 变为内部引擎标签，例如 `PRESTO_817034371362430977`。不要通过等待字面值 `doris内测加速版` 留在选择器中来校验切换结果；页面不会这样展示。
 
-### Run
+### 运行
 
-Preferred submission path:
-- Focus CodeMirror.
-- Select the current SQL.
-- Press `Ctrl+E`.
+首选提交路径：
 
-Run-button fallback inside the iframe editor toolbar:
+- 聚焦 CodeMirror。
+- 选中当前 SQL。
+- 按 `Ctrl+E`。
+
+iframe 编辑器工具栏中的运行按钮 fallback：
+
 - `[aria-label='play-circle']`
 - `.anticon-play-circle`
-- visible toolbar button near the editor run area
+- 编辑器运行区域附近的可见 toolbar button
 
-### NPS satisfaction survey
+### NPS 满意度弹窗
 
-An NPS (Net Promoter Score) modal may appear on page load. Dismiss it via:
-- Close icon: `.nps-modal-close-icon` or `.nps-modal-close-icon > svg`
-- Skip button: `.nps-result-button`
-- Must dismiss before interacting with the editor or SQL tab.
+页面加载时可能出现 NPS（Net Promoter Score）弹窗。交互前先关闭：
 
-### Status detection
+- 关闭图标：`.nps-modal-close-icon` 或 `.nps-modal-close-icon > svg`
+- 跳过按钮：`.nps-result-button`
+- 必须在操作编辑器或 SQL tab 前关闭。
 
-Before clicking run, record existing query ids from both the query-history table and open result tabs. After submission, only treat a status/result as current when it belongs to a new query id or the history row SQL text matches the submitted SQL fingerprint.
+### 状态检测
 
-Do not rely on whole-page `Success` text alone. Old successful result tabs can remain open and must not be treated as the current run.
+点击运行前，记录查询历史表和已打开结果 tab 中已有的 query id。提交后，只有当状态/结果属于新的 query id，或查询历史行 SQL 文本与本次提交 SQL fingerprint 匹配时，才认为它是当前运行。
 
-Failure details are captured from:
-- Ant notification/message/alert text.
-- Failed query log (`log_area`) after opening the row's `日志`.
-- Whole-page keyword fallback only when no structured source exists.
+不要只依赖整页里的 `Success` 文本。旧的成功结果 tab 可能仍然打开，不能当作当前运行结果。
 
-### Result extraction
+失败明细来源：
 
-Successful runs can open a lower result tab named like `查询1388196115`. A result area is current only when a new `查询<id>` tab exists after the run and the page shows `结果` / `表格` plus a result table, result field text, or download icon.
+- Ant notification/message/alert 文本。
+- 打开失败行的 `日志` 后读取 `log_area`。
+- 只有没有结构化来源时，才使用整页关键词 fallback。
 
-`已无更多` is useful for proving a small result page, but it is not required for detecting that the result area exists.
+### 结果提取
 
-### Download
+成功运行会打开底部结果 tab，名称类似 `查询1388196115`。只有当本次运行后出现新的 `查询<id>` tab，且页面展示 `结果` / `表格` 以及结果表、结果字段文本或下载图标时，结果区才算当前结果。
 
-The download button is the down-arrow icon inside the iframe result area. Verified flow:
+`已无更多` 可以证明结果页较小，但检测结果区是否存在不依赖它。
 
-1. Click the result-area `.anticon-download` / download-labelled icon.
-2. If the click opens a dropdown, select `excel` / `Excel` / `xlsx`.
-3. If the icon immediately starts a browser download, save that file directly.
+### 下载
 
-The verified xlsx filename pattern is like `task_<query_id>_<timestamp>.xlsx`.
+下载按钮是 iframe 结果区中的下箭头图标。已验证流程：
 
-### Temporary Table Upload
+1. 点击结果区 `.anticon-download` 或带下载语义的 icon。
+2. 如果点击后出现下拉菜单，选择 `excel` / `Excel` / `xlsx`。
+3. 如果图标直接触发浏览器下载，则直接保存该文件。
 
-Verified on 2026-06-15:
+已验证 xlsx 文件名模式类似 `task_<query_id>_<timestamp>.xlsx`。
 
-The temporary-table UI also lives inside the `/sql/` iframe. The stable automation path is:
+### 临时表上传
 
-1. Click the left tab text `临时表`.
-2. Click `.anticon-cloud-upload`.
-3. Click menu item `建表向导`.
-4. In step 1, select radio `excel` or `csv`, then click `下一步`.
-5. In step 2, use the hidden `input[type=file]` under the active `.ant-modal`; for Excel it advertises `accept=".xls, .xlsx"`. Keep `头行作为字段名行` checked when the first row contains field names.
-6. Wait for the uploaded filename to appear, then click `下一步`.
-7. In step 3, choose `新建表` or `复用现有表`.
-   - For `复用现有表`, use the Ant Design searchable select: click `.ant-select-selector`, fill `.ant-select-selection-search-input`, then click the visible `.ant-select-item-option-content` exact table name.
-   - After selecting an existing table, explicitly choose `覆盖` or `追加`; the page can default back to `追加`.
-8. Click `下一步` to reach field mapping. All fields are checked by default.
-9. Click `开始导入`.
-10. Wait for `导入历史` and parse the top matching row. `状态=成功` plus `临时表名` and `数据量` are the upload success signal.
+2026-06-15 验证：
 
-Observed validation for `E:\2000_work\GAOTU\20003_青橙项目部看板维护表格\qing_team_jg.xlsx`:
+临时表 UI 也位于 `/sql/` iframe 内。稳定自动化路径：
+
+1. 点击左侧 tab 文本 `临时表`。
+2. 点击 `.anticon-cloud-upload`。
+3. 点击菜单项 `建表向导`。
+4. 第 1 步选择 radio `excel` 或 `csv`，再点击 `下一步`。
+5. 第 2 步使用当前 `.ant-modal` 下隐藏的 `input[type=file]`；Excel 上传时 accept 会显示 `.xls, .xlsx`。当首行是字段名时，保持 `头行作为字段名行` 选中。
+6. 等待上传文件名出现，再点击 `下一步`。
+7. 第 3 步选择 `新建表` 或 `复用现有表`。
+   - `复用现有表` 使用 Ant Design 可搜索 select：点击 `.ant-select-selector`，填写 `.ant-select-selection-search-input`，再点击可见的 `.ant-select-item-option-content` 精确表名。
+   - 选中已有表后，要显式选择 `覆盖` 或 `追加`；页面可能默认回到 `追加`。
+8. 点击 `下一步` 进入字段映射。所有字段默认勾选。
+9. 点击 `开始导入`。
+10. 等待 `导入历史`，解析顶部匹配行。`状态=成功` 加上 `临时表名` 和 `数据量` 是上传成功信号。
+
+`E:\2000_work\GAOTU\20003_青橙项目部看板维护表格\qing_team_jg.xlsx` 的已观察校验结果：
 
 | 导入时间 | 文件类型 | 源文件 | 临时表名 | 数据量 | 状态 |
 |---|---|---|---|---:|---|
 | 2026-06-15 12:48:22 | excel | qing_team_jg2026061512480017.xlsx | dingxi01_qing_team_jg | 916 | 成功 |
 
-### Manual table registry
+### 手工表 registry
 
-Verified on 2026-06-17:
+2026-06-17 验证：
 
-- Local manual-table directories are recorded in `references/manual_temp_table_registry.json`.
-- The registry stores observed platform temp-table names, file-to-table mappings, confidence, and local validation rules.
-- `upload-temp-table` reads the registry by default and can infer `--target-table` for high-confidence entries.
-- `check-manual-table` performs a browser-free mapping and workbook validation precheck.
-- Entries marked `review_required_*` must be uploaded with an explicit `--target-table` after manual confirmation.
+- 本地手工表目录记录在 `references/manual_temp_table_registry.json`。
+- registry 存储平台临时表名、文件到表映射、置信度和本地校验规则。
+- `upload-temp-table` 默认读取 registry，并可为高置信度条目推断 `--target-table`。
+- `check-manual-table` 执行无浏览器的映射和 workbook 校验预检查。
+- 标记为 `review_required_*` 的条目，必须在人工确认后显式传入 `--target-table` 才能上传。
 
-## Open Questions
+## 数据地图字段 API
 
-- Whether the page exposes a reliable total row count before download.
-- Whether the platform blocks automated login for some sessions and requires manual SSO/MFA (current automated CAS login works headless).
-- Exact dashboard page query/result APIs after opening a specific dashboard still need profiling. Folder names and dashboard IDs can be read from `read_dashboard.py scan-folder`, which posts `{"menuType":"HOME_AND_DASHBOARD"}` to the dashboard menu API.
+2026-06-17 验证：
 
-## Dashboard Profiling APIs
+- 页面 URL：`https://tiangong2.baijia.com/dataMap/dataMapNew`
+- Runtime 登录态/缓存：`C:\Users\Ludim\.codex\runtime\data-map\state.json` 和 `datamap_table_catalog.json`
+- 表搜索：POST `https://tiangong2.baijia.com/md-admin/api/tableV2/searchTableList`，body 为 `{"topicIds":[],"searchContent":"<db.table>","pageNo":1,"pageSize":10}`
+- 表信息：POST `https://tiangong2.baijia.com/md-admin/api/tableV2/getTableInfo`，body 为 `{"tableId":<id>}`
+- 普通字段：POST `https://tiangong2.baijia.com/md-admin/api/tableV2/normalColumns`，body 为 `{"tableId":<id>,"pageNo":1,"pageSize":500}`
+- 分区字段：POST `https://tiangong2.baijia.com/md-admin/api/tableV2/partitionColumns`，body 为 `{"tableId":<id>,"pageNo":1,"pageSize":500}`
+- DDL：POST `https://tiangong2.baijia.com/md-admin/api/tableV2/getDdl`，body 为 `{"tableId":<id>}`
 
-Verified on 2026-06-01:
+该流程使用 `usql_web_query.py sync-datamap-fields`。只有加 `--write` 后才写治理过的 skill markdown/docs；cookie 和 schema cache 始终保存在 runtime 下。
 
-- Direct dashboard URL: `https://uanalysis.baijia.com/dashboard-market?id=<dashboard_id>&sourceType=1`
-- Dashboard config: POST `https://uanalysis.baijia.com/uanalysis-intelligence/config/dashBoard` with `{"dashboardId":"<dashboard_id>","isConfig":false}`
-- Unit detail: POST `https://uanalysis.baijia.com/uanalysis-intelligence/value/unit/consumer/detail` with `{"id":"<unit_id>","isConfig":false}`
-- Public filter detail: POST `https://uanalysis.baijia.com/uanalysis-intelligence/value/public/unit/relation/detail` with `{"id":"<public_filter_relation_id>","isConfig":false}`
-- Unit values / refresh validation: POST `https://uanalysis.baijia.com/uanalysis-intelligence/value/unit` with the target `unit_id`, empty filter lists, and a page object. Table/pivot units return `title`, `data`, `totalData`, `page`, and `taskIds`; chart units can return `xAxis`, `series`, and `taskIds` instead of table `data`.
+## 未确认问题
 
-Use `read_dashboard.py profile-dashboard` or `profile-folder` for this flow. Do not add these dashboard APIs to `usql_web_query.py`.
+- 页面是否能在下载前稳定暴露总行数。
+- 平台是否会在部分会话中阻断自动登录，并要求手工 SSO/MFA；当前自动 CAS 登录在 headless 下可用。
+- 打开特定看板后的 dashboard 查询/结果 API 仍需继续 profile。文件夹名和 dashboard ID 可由 `read_dashboard.py scan-folder` 获取，它会向看板菜单 API POST `{"menuType":"HOME_AND_DASHBOARD"}`。
 
-## Smoke Test SQL
+## 看板 Profile API
 
-Use this query to verify web execution. It aggregates to one output row and does not need download:
+2026-06-01 验证：
+
+- 直接看板 URL：`https://uanalysis.baijia.com/dashboard-market?id=<dashboard_id>&sourceType=1`
+- 看板配置：POST `https://uanalysis.baijia.com/uanalysis-intelligence/config/dashBoard`，body 为 `{"dashboardId":"<dashboard_id>","isConfig":false}`
+- 单元明细：POST `https://uanalysis.baijia.com/uanalysis-intelligence/value/unit/consumer/detail`，body 为 `{"id":"<unit_id>","isConfig":false}`
+- 公共筛选器明细：POST `https://uanalysis.baijia.com/uanalysis-intelligence/value/public/unit/relation/detail`，body 为 `{"id":"<public_filter_relation_id>","isConfig":false}`
+- 单元取值 / 刷新验证：POST `https://uanalysis.baijia.com/uanalysis-intelligence/value/unit`，带目标 `unit_id`、空筛选列表和 page 对象。表格/透视表单元返回 `title`、`data`、`totalData`、`page`、`taskIds`；图表单元可能返回 `xAxis`、`series`、`taskIds`，不一定返回表格 `data`。
+
+该流程使用 `read_dashboard.py profile-dashboard` 或 `profile-folder`。不要把这些 dashboard API 加进 `usql_web_query.py`。
+
+## 冒烟测试 SQL
+
+用下面 SQL 验证网页执行。它聚合成一行输出，不需要下载：
 
 ```sql
 select
@@ -177,7 +195,7 @@ where dt = '20260531'
   and section_assign_employee_third_level_department_name = '市场顾问部'
 ```
 
-Observed manual output on 2026-05-31:
+2026-05-31 手工观察输出：
 
 | row_cnt | lead_cnt | user_cnt | total_lead | total_valid |
 |---:|---:|---:|---:|---:|
