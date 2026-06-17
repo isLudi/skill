@@ -130,6 +130,16 @@ Observed validation for `E:\2000_work\GAOTU\20003_青橙项目部看板维护表
 |---|---|---|---|---:|---|
 | 2026-06-15 12:48:22 | excel | qing_team_jg2026061512480017.xlsx | dingxi01_qing_team_jg | 916 | 成功 |
 
+### Manual table registry
+
+Verified on 2026-06-17:
+
+- Local manual-table directories are recorded in `references/manual_temp_table_registry.json`.
+- The registry stores observed platform temp-table names, file-to-table mappings, confidence, and local validation rules.
+- `upload-temp-table` reads the registry by default and can infer `--target-table` for high-confidence entries.
+- `check-manual-table` performs a browser-free mapping and workbook validation precheck.
+- Entries marked `review_required_*` must be uploaded with an explicit `--target-table` after manual confirmation.
+
 ## Open Questions
 
 - Whether the page exposes a reliable total row count before download.

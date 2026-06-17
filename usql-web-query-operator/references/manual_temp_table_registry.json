@@ -1,0 +1,360 @@
+{
+  "version": 1,
+  "updated_at": "2026-06-17",
+  "default_database": "temp_table",
+  "owner_prefix": "dingxi01_",
+  "roots": {
+    "market_consultant": "E:\\2000_work\\GAOTU\\20002_市场顾问部看板维护表格",
+    "qingcheng": "E:\\2000_work\\GAOTU\\20003_青橙项目部看板维护表格"
+  },
+  "platform_temp_tables_observed_at": "2026-06-17",
+  "platform_temp_tables": [
+    "dingxi01_ceshiqudao_pingyou",
+    "dingxi01_jinliang_goal",
+    "dingxi01_qing_team_jg",
+    "dingxi01_qing_team_g_qi",
+    "dingxi01_qing_qi_moth",
+    "dingxi01_qing_team_goal",
+    "dingxi01_pingyou_jg",
+    "dingxi01_qing_goal",
+    "dingxi01_qing_zz",
+    "dingxi01_xian_2024_2025",
+    "dingxi01_fu_ordernumber",
+    "dingxi01_jiagou_zx",
+    "dingxi01_channel_group",
+    "dingxi01_jiagou_db",
+    "dingxi01_plan_id",
+    "dingxi01_daoke_1_6_t",
+    "dingxi01_cost",
+    "dingxi01_month_jg",
+    "dingxi01_qing_daoke",
+    "dingxi01_renchan",
+    "dingxi01_daoke_t",
+    "dingxi01_linshi_qingcheng",
+    "dingxi01_chaibiao",
+    "dingxi01_dingdan_cl",
+    "dingxi01_uid",
+    "dingxi01_ex_geren",
+    "dingxi01_goal_geren",
+    "dingxi01_panliangbiao",
+    "dingxi01_qi_panliang",
+    "dingxi01_panliang",
+    "dingxi01_goal",
+    "dingxi01_mkt_counsellor_employee"
+  ],
+  "tables": [
+    {
+      "id": "market.ceshiqudao_pingyou",
+      "domain": "market_consultant",
+      "business_name": "测试渠道品优",
+      "local_filename": "ceshiqudao_pingyou.xlsx",
+      "standard_temp_table": "dingxi01_ceshiqudao_pingyou",
+      "mapping_status": "platform_exact_name",
+      "confidence": "high",
+      "auto_target": true,
+      "sheet": "Sheet1",
+      "header_row": true,
+      "headers": ["qici", "qudao", "name", "gmv", "gmv_goal", "gmv_rate"],
+      "validation_rules": [
+        {"type": "required_columns", "columns": ["qici", "qudao", "name", "gmv", "gmv_goal", "gmv_rate"]}
+      ],
+      "notes": ["本地文件名与平台临时表名去掉 dingxi01_ 前缀后一致。"]
+    },
+    {
+      "id": "market.cost",
+      "domain": "market_consultant",
+      "business_name": "成本目标",
+      "local_filename": "cost.xlsx",
+      "standard_temp_table": "dingxi01_cost",
+      "mapping_status": "platform_exact_name",
+      "confidence": "high",
+      "auto_target": true,
+      "sheet": "Sheet1",
+      "header_row": true,
+      "headers": ["channel", "grade", "cost", "goal", "qici"],
+      "validation_rules": [
+        {"type": "required_columns", "columns": ["channel", "grade", "cost", "goal", "qici"]}
+      ],
+      "notes": ["本地文件名与平台临时表名去掉 dingxi01_ 前缀后一致。"]
+    },
+    {
+      "id": "market.daoke_1_6_t",
+      "domain": "market_consultant",
+      "business_name": "到课",
+      "local_filename": "daoke_1_6_t.xlsx",
+      "standard_temp_table": "dingxi01_daoke_1_6_t",
+      "mapping_status": "platform_exact_name",
+      "confidence": "high",
+      "auto_target": true,
+      "sheet": "Sheet1",
+      "header_row": true,
+      "headers": ["qudao", "begin_time", "qici", "dow", "grade", "ke_1", "channel"],
+      "validation_rules": [
+        {"type": "required_columns", "columns": ["qudao", "begin_time", "qici", "dow", "grade", "ke_1", "channel"]},
+        {"type": "external_coverage_check", "columns": ["qudao", "grade"], "scope": "当期进量课程渠道和年级"}
+      ],
+      "notes": ["qudao、grade 的完整覆盖需要和当期进量数据做 SQL 侧比对，本地文件只能做表头和空值预检。"]
+    },
+    {
+      "id": "market.jiagou_db",
+      "domain": "market_consultant",
+      "business_name": "每期带班架构",
+      "upload_schedule": "周五晚",
+      "local_filename": "jiagou_db.xlsx",
+      "standard_temp_table": "dingxi01_jiagou_db",
+      "mapping_status": "platform_exact_name",
+      "confidence": "high",
+      "auto_target": true,
+      "sheet": "zhengzhou",
+      "header_row": true,
+      "headers": ["xiaozu_z", "employee_email_prefix", "xiaozu", "employee_email_name", "department", "zaizhi", "qici", "dept_1", "dept_2", "jingli"],
+      "validation_rules": [
+        {"type": "required_columns", "columns": ["xiaozu_z", "employee_email_prefix", "xiaozu", "employee_email_name", "department", "zaizhi", "qici"]},
+        {"type": "lowercase_ascii_prefix", "columns": ["xiaozu_z", "employee_email_prefix"]},
+        {"type": "unique_key", "columns": ["qici", "employee_email_name"], "ignore_blank": true},
+        {"type": "name_variant_consistency", "column": "xiaozu", "prefer": "numeric_suffix"}
+      ],
+      "notes": [
+        "xiaozu_z、employee_email_prefix 开头必须是小写 ASCII 字母。",
+        "employee_email_name 在同一期 qici 内不能重复。",
+        "xiaozu 需要检查同名无数字后缀和有数字后缀混用，例如 韩玉颖 与 韩玉颖02。"
+      ]
+    },
+    {
+      "id": "market.jiagou_zx",
+      "domain": "market_consultant",
+      "business_name": "中心架构",
+      "local_filename": "jiagou_zx.xlsx",
+      "standard_temp_table": "dingxi01_jiagou_zx",
+      "mapping_status": "platform_exact_name",
+      "confidence": "high",
+      "auto_target": true,
+      "sheet": "Sheet1",
+      "header_row": true,
+      "headers": ["xiaozu_z", "employee_email_prefix", "xiaozu", "employee_email_name", "department", "zaizhi", "jingli"],
+      "validation_rules": [
+        {"type": "required_columns", "columns": ["xiaozu_z", "employee_email_prefix", "xiaozu", "employee_email_name", "department", "zaizhi", "jingli"]},
+        {"type": "lowercase_ascii_prefix", "columns": ["xiaozu_z", "employee_email_prefix"]},
+        {"type": "no_blank_or_dash", "columns": ["jingli"]},
+        {"type": "infer_missing_from_mapping", "source_column": "xiaozu", "target_column": "jingli", "blank_values": ["", "-"]},
+        {"type": "name_variant_consistency", "column": "xiaozu", "prefer": "numeric_suffix"}
+      ],
+      "notes": [
+        "jingli 列不能为空或 -。",
+        "jingli 缺失时，可根据已有 xiaozu -> jingli 的唯一映射生成建议；脚本只提示，不直接改源文件。"
+      ]
+    },
+    {
+      "id": "market.jinliang_goal",
+      "domain": "market_consultant",
+      "business_name": "进量目标",
+      "local_filename": "jinliang_goal.xlsx",
+      "standard_temp_table": "dingxi01_jinliang_goal",
+      "mapping_status": "platform_exact_name",
+      "confidence": "high",
+      "auto_target": true,
+      "sheet": "Sheet1",
+      "header_row": true,
+      "headers": ["channel_2", "grade", "goal", "qici"],
+      "validation_rules": [
+        {"type": "required_columns", "columns": ["channel_2", "grade", "goal", "qici"]}
+      ],
+      "notes": ["本地文件名与平台临时表名去掉 dingxi01_ 前缀后一致。"]
+    },
+    {
+      "id": "market.leads_goal",
+      "domain": "market_consultant",
+      "business_name": "线索目标",
+      "local_filename": "leads_goal.xlsx",
+      "standard_temp_table": "dingxi01_goal",
+      "mapping_status": "review_required_name_mismatch",
+      "confidence": "low",
+      "auto_target": false,
+      "candidate_temp_tables": ["dingxi01_goal", "dingxi01_goal_geren"],
+      "sheet": "Sheet1",
+      "header_row": true,
+      "headers": ["channel_2", "grade", "goal", "qici"],
+      "validation_rules": [
+        {"type": "required_columns", "columns": ["channel_2", "grade", "goal", "qici"]}
+      ],
+      "notes": ["平台没有 dingxi01_leads_goal；候选表需人工确认后再允许覆盖上传。"]
+    },
+    {
+      "id": "market.pingyou_jg",
+      "domain": "market_consultant",
+      "business_name": "品优架构",
+      "local_filename": "pingyou_jg.xlsx",
+      "standard_temp_table": "dingxi01_pingyou_jg",
+      "mapping_status": "platform_exact_name",
+      "confidence": "high",
+      "auto_target": true,
+      "sheet": "Sheet4",
+      "header_row": true,
+      "headers": ["xiaozu_z", "employee_email_prefix", "xiaozu", "employee_email_name", "department", "zaizhi", "qici", "dept", "jingli", "channel", "renchan", "grade", "is_emp", "x_qi_count"],
+      "validation_rules": [
+        {"type": "required_columns", "columns": ["xiaozu_z", "employee_email_prefix", "xiaozu", "employee_email_name", "department", "zaizhi", "qici"]},
+        {"type": "lowercase_ascii_prefix", "columns": ["xiaozu_z", "employee_email_prefix"]},
+        {"type": "one_to_many_mapping", "key_columns": ["employee_email_name"], "value_column": "xiaozu", "message": "检查一个顾问是否对应多个主管/小组。"},
+        {"type": "one_to_many_mapping", "key_columns": ["employee_email_name"], "value_column": "xiaozu_z", "message": "检查一个顾问是否对应多个主管字段 xiaozu_z。"}
+      ],
+      "notes": ["需重点检查一个顾问是否对应多个主管/小组。"]
+    },
+    {
+      "id": "market.plan_id",
+      "domain": "market_consultant",
+      "business_name": "班型计划 ID",
+      "local_filename": "plan_id.xlsx",
+      "standard_temp_table": "dingxi01_plan_id",
+      "mapping_status": "platform_exact_name",
+      "confidence": "high",
+      "auto_target": true,
+      "sheet": "Sheet1",
+      "header_row": true,
+      "headers": ["year", "qici", "group_id", "group_name"],
+      "validation_rules": [
+        {"type": "required_columns", "columns": ["year", "qici", "group_id", "group_name"]}
+      ],
+      "notes": ["本地文件名与平台临时表名去掉 dingxi01_ 前缀后一致。"]
+    },
+    {
+      "id": "qingcheng.daoke_t_one_six_qing",
+      "domain": "qingcheng",
+      "business_name": "到课",
+      "upload_schedule": "周四",
+      "local_filename": "daoke_t_one_six_qing.xlsx",
+      "standard_temp_table": "dingxi01_qing_daoke",
+      "mapping_status": "platform_inferred_semantic",
+      "confidence": "high",
+      "auto_target": true,
+      "sheet": "Sheet1",
+      "header_row": true,
+      "headers": ["qudao", "begin_time", "qici", "dow", "grade", "ke_1", "channel"],
+      "validation_rules": [
+        {"type": "required_columns", "columns": ["qudao", "begin_time", "qici", "dow", "grade", "ke_1"]},
+        {"type": "no_blank_header"},
+        {"type": "external_coverage_check", "columns": ["qudao", "grade"], "scope": "当期进量课程渠道和年级"}
+      ],
+      "notes": [
+        "平台没有 dingxi01_daoke_t_one_six_qing，当前平台标准名按业务语义映射为 dingxi01_qing_daoke。",
+        "qudao、grade 必须完整覆盖当期进量课程渠道和年级；本地预检只能提示该 SQL 侧比对要求。"
+      ]
+    },
+    {
+      "id": "qingcheng.qing_qi_moth",
+      "domain": "qingcheng",
+      "business_name": "期次月份映射",
+      "local_filename": "qing_qi_moth.xlsx",
+      "standard_temp_table": "dingxi01_qing_qi_moth",
+      "mapping_status": "platform_exact_name",
+      "confidence": "high",
+      "auto_target": true,
+      "sheet": "Sheet1",
+      "header_row": true,
+      "headers": ["qici", "moth"],
+      "validation_rules": [
+        {"type": "required_columns", "columns": ["qici", "moth"]}
+      ],
+      "notes": ["本地文件名与平台临时表名去掉 dingxi01_ 前缀后一致。"]
+    },
+    {
+      "id": "qingcheng.qing_qici_goal",
+      "domain": "qingcheng",
+      "business_name": "个人期次目标表",
+      "upload_schedule": "周四",
+      "local_filename": "qing_qici_goal.xlsx",
+      "standard_temp_table": "dingxi01_qing_goal",
+      "mapping_status": "platform_inferred_semantic",
+      "confidence": "high",
+      "auto_target": true,
+      "sheet": "Sheet1",
+      "header_row": true,
+      "headers": ["month", "qici", "xuebu", "jingli", "dazu", "xiaozu", "name", "qudao", "goal"],
+      "validation_rules": [
+        {"type": "required_columns", "columns": ["month", "qici", "xuebu", "jingli", "dazu", "xiaozu", "name", "qudao", "goal"]}
+      ],
+      "notes": ["平台没有 dingxi01_qing_qici_goal；按个人目标业务名映射为 dingxi01_qing_goal。"]
+    },
+    {
+      "id": "qingcheng.qing_team_goal_qi",
+      "domain": "qingcheng",
+      "business_name": "团队期次目标表",
+      "upload_schedule": "周四",
+      "local_filename": "qing_team_goal_qi.xlsx",
+      "standard_temp_table": "dingxi01_qing_team_g_qi",
+      "mapping_status": "platform_inferred_abbreviation",
+      "confidence": "high",
+      "auto_target": true,
+      "sheet": "Sheet1",
+      "header_row": true,
+      "headers": ["month", "qici", "xuebu", "jingli", "dazu", "xiaozu", "emye_c", "goal"],
+      "validation_rules": [
+        {"type": "required_columns", "columns": ["month", "qici", "xuebu", "jingli", "dazu", "xiaozu", "emye_c", "goal"]}
+      ],
+      "notes": ["平台标准名使用 g_qi 缩写，对应本地 qing_team_goal_qi。"]
+    },
+    {
+      "id": "qingcheng.qing_team_goal_moth",
+      "domain": "qingcheng",
+      "business_name": "团队月度目标表",
+      "upload_schedule": "周四",
+      "local_filename": "qing_team_goal_moth.xlsx",
+      "standard_temp_table": "dingxi01_qing_team_goal",
+      "mapping_status": "platform_inferred_semantic",
+      "confidence": "medium",
+      "auto_target": true,
+      "sheet": "Sheet1",
+      "header_row": true,
+      "headers": ["month", "xuebu", "jingli", "dazu", "xiaozu", "emye_c", "goal"],
+      "validation_rules": [
+        {"type": "required_columns", "columns": ["month", "xuebu", "jingli", "dazu", "xiaozu", "emye_c", "goal"]}
+      ],
+      "notes": ["平台没有 dingxi01_qing_team_goal_moth；按团队目标业务名映射为 dingxi01_qing_team_goal。"]
+    },
+    {
+      "id": "qingcheng.qing_team_jg",
+      "domain": "qingcheng",
+      "business_name": "全员结果数据架构",
+      "upload_schedule": "周四",
+      "local_filename": "qing_team_jg.xlsx",
+      "standard_temp_table": "dingxi01_qing_team_jg",
+      "mapping_status": "platform_verified_import_history",
+      "confidence": "high",
+      "auto_target": true,
+      "sheet": "data",
+      "header_row": true,
+      "headers": ["employee_name", "employee_email_name", "email_prefix", "leader_employee_email_name", "leader_email_prefix", "dazu", "jingli", "xuebu", "qici"],
+      "validation_rules": [
+        {"type": "required_columns", "columns": ["employee_name", "employee_email_name", "email_prefix", "leader_employee_email_name", "leader_email_prefix", "dazu", "jingli", "xuebu", "qici"]},
+        {"type": "lowercase_ascii_prefix", "columns": ["email_prefix", "leader_email_prefix"]},
+        {"type": "disallow_values", "column": "dazu", "values": ["0"]},
+        {"type": "no_blank_or_dash", "columns": ["qici"]}
+      ],
+      "notes": [
+        "2026-06-15 已成功导入 dingxi01_qing_team_jg，导入历史数据量 916。",
+        "dazu 只能用 - 或具体名称，不能用 0。",
+        "必须有 qici；email_prefix、leader_email_prefix 开头必须是小写 ASCII 字母。"
+      ]
+    },
+    {
+      "id": "qingcheng.qing_team_moth_jg",
+      "domain": "qingcheng",
+      "business_name": "全员月度结果数据架构",
+      "local_filename": "qing_team_moth_jg.xlsx",
+      "standard_temp_table": "dingxi01_month_jg",
+      "mapping_status": "review_required_semantic_match",
+      "confidence": "medium",
+      "auto_target": false,
+      "candidate_temp_tables": ["dingxi01_month_jg", "dingxi01_qing_team_jg"],
+      "sheet": "data",
+      "header_row": true,
+      "headers": ["employee_name", "employee_email_name", "email_prefix", "leader_employee_email_name", "leader_email_prefix", "dazu", "jingli", "xuebu", "qici"],
+      "validation_rules": [
+        {"type": "required_columns", "columns": ["employee_name", "employee_email_name", "email_prefix", "leader_employee_email_name", "leader_email_prefix", "dazu", "jingli", "xuebu", "qici"]},
+        {"type": "lowercase_ascii_prefix", "columns": ["email_prefix", "leader_email_prefix"]},
+        {"type": "disallow_values", "column": "dazu", "values": ["0"]},
+        {"type": "no_blank_or_dash", "columns": ["qici"]}
+      ],
+      "notes": ["平台有 dingxi01_month_jg，但名称缺少 qing/team 前缀；首次覆盖上传前建议人工确认。"]
+    }
+  ]
+}

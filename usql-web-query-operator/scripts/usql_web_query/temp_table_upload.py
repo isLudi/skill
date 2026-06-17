@@ -44,6 +44,8 @@ class TempTableUploadSummary:
     target_mode: str
     import_mode: str
     header_row: bool
+    manual_table_entry: dict[str, Any] | None = None
+    validation_result: dict[str, Any] | None = None
     import_history_row: dict[str, str] | None = None
     error_details: dict[str, Any] | None = None
     elapsed_seconds: float | None = None
@@ -62,6 +64,8 @@ class TempTableUploadSummary:
                 "target_mode": self.target_mode,
                 "import_mode": self.import_mode,
                 "header_row": self.header_row,
+                "manual_table_entry": self.manual_table_entry,
+                "validation_result": self.validation_result,
                 "import_history_row": self.import_history_row,
                 "error_details": self.error_details,
                 "elapsed_seconds": self.elapsed_seconds,

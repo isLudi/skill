@@ -79,12 +79,25 @@ Example:
 ```powershell
 D:\anaconda3\python.exe scripts\usql_web_query.py upload-temp-table `
   --file E:\path\to\manual_table.xlsx `
-  --target-table dingxi01_qing_team_jg `
   --target-mode reuse `
   --import-mode overwrite
 ```
 
-The command opens the SQL取数 page, switches to `临时表`, runs `建表向导`, uploads the local file via the hidden file input, maps all detected fields, starts the import, and waits until `导入历史` reports `成功`. Successful summaries include the import-history row, including `临时表名` and `数据量`.
+For registered manual tables under:
+
+- `E:\2000_work\GAOTU\20002_市场顾问部看板维护表格`
+- `E:\2000_work\GAOTU\20003_青橙项目部看板维护表格`
+
+the command reads `references/manual_temp_table_registry.json`, infers the standard platform temporary table, and runs local workbook validation before opening the browser. Successful summaries include the matched registry entry, validation result, and import-history row, including `临时表名` and `数据量`.
+
+Use a browser-free precheck before uploads or after workbook edits:
+
+```powershell
+D:\anaconda3\python.exe scripts\usql_web_query.py check-manual-table
+D:\anaconda3\python.exe scripts\usql_web_query.py check-manual-table --file E:\path\to\manual_table.xlsx
+```
+
+If a registered table is marked `review_required_*`, `upload-temp-table` will not auto-target it. Confirm the candidate table first, then pass `--target-table` explicitly. Use `--strict-validation` when uploads must stop on local validation errors; without it, validation issues are returned as warnings/errors in the JSON summary while the upload can continue.
 
 Keep uploads user-authorized and file-specific. Do not upload arbitrary local files without an explicit user request. Debug artifacts stay under the runtime artifacts directory.
 
@@ -123,6 +136,7 @@ Use `scripts/usql_web_query.py` only for SQL取数:
 - `login`: open the CAS login flow, authenticate, and save browser storage state outside the repo.
 - `run`: open SQL取数, create or reuse a query tab, switch the engine before writing SQL, insert SQL into the CodeMirror editor, submit with `Ctrl+E` first and run-button fallbacks second, wait for query-history/result-tab status, capture `error_details` on platform failures, extract a small visible result-table preview when available, and optionally download xlsx when the local row-limit policy allows it.
 - `upload-temp-table`: upload a local `.csv`, `.xls`, or `.xlsx` into the `临时表` area. It supports `--target-mode new|reuse`, `--import-mode overwrite|append`, `--header-row|--no-header-row`, and emits a JSON summary from `导入历史`.
+- `check-manual-table`: read the manual-table registry, resolve local Excel files to platform standard temporary table names, and run local workbook validation without touching the browser.
 
 Relevant `run` options:
 - Failure summaries now explicitly classify `即时错误` versus `日志区错误` and emit `repair_guidance` for the next SQL edit.

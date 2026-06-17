@@ -15,6 +15,7 @@ from pathlib import Path
 from _shared.config import DEFAULT_ARTIFACTS, DEFAULT_BROWSER_CHANNEL, DEFAULT_ENV_FILE, DEFAULT_STATE
 from _shared.errors import UsageError
 
+from .commands.check_manual_table import cmd_check_manual_table
 from .commands.doctor import cmd_doctor
 from .commands.login import cmd_login
 from .commands.run import cmd_run
@@ -64,6 +65,9 @@ def build_parser() -> argparse.ArgumentParser:
     upload.add_argument("--target-mode", choices=["new", "reuse"], default="reuse", help="Create a new table or reuse an existing table.")
     upload.add_argument("--import-mode", choices=["overwrite", "append"], default="overwrite", help="Import mode when reusing an existing table.")
     upload.add_argument("--header-row", action=argparse.BooleanOptionalAction, default=True, help="Treat the first row as field names.")
+    upload.add_argument("--registry-path", type=Path, default=None, help="Manual temp-table registry JSON path.")
+    upload.add_argument("--validate-manual-table", action=argparse.BooleanOptionalAction, default=True, help="Validate registered manual-table rules before upload.")
+    upload.add_argument("--strict-validation", action="store_true", help="Stop before upload when manual-table validation reports errors.")
     upload.add_argument("--timeout-ms", type=int, default=10 * 60 * 1000, help="Maximum wait for import success.")
     upload.add_argument("--keep-history-open", action="store_true", help="Leave the import-history modal open after completion.")
     upload.add_argument("--headed", action="store_true", help="Show browser window.")
@@ -76,6 +80,15 @@ def build_parser() -> argparse.ArgumentParser:
     upload.add_argument("--executable-path", default=None, help="Explicit browser executable path; overrides --browser-channel.")
     upload.add_argument("--debug-artifacts", action="store_true", help="Save screenshots and HTML under the runtime artifacts directory.")
     upload.set_defaults(func=cmd_upload_temp_table)
+
+    check_manual = subparsers.add_parser(
+        "check-manual-table",
+        help="Check local manual Excel files against the temp-table registry without opening the browser.",
+    )
+    check_manual.add_argument("--file", type=Path, action="append", help="Specific local manual table file to check. Repeatable.")
+    check_manual.add_argument("--registry-path", type=Path, default=None, help="Manual temp-table registry JSON path.")
+    check_manual.add_argument("--strict", action="store_true", help="Return non-zero when validation errors or review-required mappings exist.")
+    check_manual.set_defaults(func=cmd_check_manual_table)
 
     return parser
 
