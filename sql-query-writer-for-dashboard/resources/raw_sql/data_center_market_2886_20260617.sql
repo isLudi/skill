@@ -8,15 +8,7 @@ WITH lead_raw AS (
         t1.user_id,
         t1.rule_name,
         t1.lead_purchase_intention_level2_category_name,
-        t1.employee_email_name,
-        t1.employee_email_prefix,
-        t1.virtual_third_department_name,
-        t1.virtual_fourth_department_name,
-        t1.virtual_fifth_department_name,
-        t1.virtual_second_department_name,
-        t1.section_assign_employee_second_level_department_name,
         t1.virtual_leader_email_name,
-        t1.virtual_direct_leader_email_name,
         t1.flow_pool_name,
         t1.third_department_name,
         t1.second_department_name,
@@ -35,50 +27,39 @@ WITH lead_raw AS (
         t1.get_customer_way_name,
         t1.lead_purchase_intention_name,
         t1.lead_purchase_intention_level1_category_name,
+        t1.virtual_second_department_name,
+        t1.virtual_fourth_department_name,
+        t1.virtual_fifth_department_name,
+        t1.lead_create_time,
         cast(t1.flow_original_order_activity_price as varchar) AS flow_original_order_activity_price,
         cast(t1.flow_order_price as varchar) AS flow_order_price,
         cast(t1.flow_orders_income_amount as varchar) AS flow_orders_income_amount,
-        t1.lead_create_time,
         coalesce(t1.lead_count, 0) AS lead_count,
         coalesce(t1.valid_lead_count, 0) AS valid_lead_count,
-        coalesce(t1.conversion_lead_count, 0) AS conversion_lead_count,
-        coalesce(t1.order_count, 0) AS order_count,
         coalesce(t1.income_amount, 0) AS income_amount,
         coalesce(t1.in_pay_period_refund_amount, 0) AS in_pay_period_refund_amount,
-        coalesce(t1.non_pay_period_refund_amount, 0) AS non_pay_period_refund_amount,
-        coalesce(t1.friend_lead_count, 0) AS friend_lead_count
+        coalesce(t1.non_pay_period_refund_amount, 0) AS non_pay_period_refund_amount
     FROM bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df t1
-    WHERE t1.dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
+    WHERE t1.dt = format_datetime(now() - interval '3' hour, 'YYYYMMdd')
       AND t1.hour = format_datetime(now() - interval '3' hour, 'HH')
       AND t1.section_assign_employee_first_level_department_name = 'H业务线'
       AND t1.section_assign_employee_second_level_department_name = '市场部'
       AND t1.section_assign_employee_third_level_department_name = '市场顾问部'
-      AND t1.virtual_third_department_name = '市场顾问部'
       AND (t1.period_mapping_first_level_department_name = 'H业务线' OR t1.period_mapping_first_level_department_name IS NULL)
-      AND (
-            t1.period_mapping_second_level_department_name IN ('市场部', '精品班学部')
-         OR t1.period_mapping_second_level_department_name IS NULL
-      )
 ),
 lead_base AS (
     SELECT
         period_name,
         lead_id,
         user_id,
-        rule_name,
-        employee_email_name,
-        employee_email_prefix,
-        virtual_third_department_name AS depart_1,
-        section_assign_employee_second_level_department_name AS dept_name,
-        virtual_fourth_department_name AS depart,
         virtual_leader_email_name AS jingli,
-        virtual_direct_leader_email_name AS zhuguan,
         CASE WHEN flow_pool_name IN ('高途学习规划','智辉老师讲规划') THEN '市场私域视频号'
 WHEN rule_name LIKE '%语数英%' AND third_department_name = '新媒体内容运营部' THEN '语数英'
+WHEN flow_pool_name LIKE '%星义大大%' THEN '赵星义'
 WHEN third_department_name='图书营销部' AND (sku_id_name LIKE '%孟亚飞99%' OR sku_id_name LIKE '%亚飞%') THEN '孟亚飞99-2组'
 WHEN third_department_name = '投放部' AND ad_account_name LIKE '%周帅%' THEN '信息流-周帅'
 WHEN source_manager_name IN ('韩正卿') THEN '抖音私信'
-WHEN third_department_name = '私域运营部' AND source_manager_name IN ('陈雷19','崔慧敏01','侯佳林01','郑天琪02','杨彬屹','曹义鹏','王硕阳','于超研','岳一帆02','田起帆') THEN '进校私域合作'
+WHEN third_department_name = '私域运营部' AND source_manager_name IN ('陈雷19','崔慧敏01','侯佳林01','郑天琪02','杨彬屹','曹义鹏','王硕阳','于超研','岳一帆02','田起帆','王绍阳') THEN '进校私域合作'
 WHEN channel_name_1='市场私域' AND (virtual_fourth_department_name IN ('郑州学习顾问二部','郑州学习顾问七部','郑州训练营') OR virtual_fifth_department_name IN ('罗江博团队')) THEN '市场私域入群'
 WHEN put_plan_name LIKE '%周司鹏%' THEN '品宣组KOC'
 WHEN put_plan_name LIKE '%公导私%' AND put_plan_name LIKE '%未购课%' THEN '公导私报名失败'
@@ -144,7 +125,6 @@ WHEN put_plan_name LIKE '%私域-信息流%' THEN '市场私域待支付'
 WHEN third_department_name = '私域运营部' AND rule_name NOT LIKE '%训练营%' AND virtual_fifth_department_name NOT IN ('罗江博团队') AND rule_name NOT LIKE '%复用%' AND rule_name NOT LIKE '%未加好友%' AND channel_name_2 <> '内部换量' THEN '市场私域低价单'
 WHEN third_department_name = '私域运营部' AND rule_name NOT LIKE '%训练营%' AND rule_name NOT LIKE '%复用%' AND rule_name NOT LIKE '%未加好友%' AND channel_name_2 <> '内部换量' AND flow_original_order_activity_price = '0.0' THEN '市场私域低价单'
 WHEN third_department_name = '私域运营部' AND channel_name_1 = '信息流获客' THEN '市场私域小红书'
-WHEN channel_name_1= '信息流' AND (put_plan_name LIKE '%抖音私信%' OR put_plan_name LIKE '%初三0元%' OR put_plan_name LIKE '%高中0元%') THEN '信息流-抖音私信'
 WHEN channel_name_2 IN ('APP','M站','PC') AND flow_pool_name NOT LIKE '%途途%' THEN 'APP'
 WHEN source_manager_name IN ('高文羽') AND lead_purchase_intention_name = 'AI定制' THEN '人工外呼-AI'
 WHEN channel_provider_name LIKE '%唐山TMK%' THEN '唐山TMK'
@@ -268,6 +248,7 @@ WHEN flow_pool_name LIKE '%青少-私域%' THEN '青少私域'
 WHEN first_department_name = 'TT业务线' AND third_department_name LIKE '%商务招生%' THEN '途途商务'
 WHEN second_department_name = '战略客户部' THEN '文旅进校'
 WHEN put_plan_name LIKE '%AI名师%' THEN 'AI直播'
+WHEN channel_name_1= '信息流' AND (put_plan_name LIKE '%抖音私信%' OR put_plan_name LIKE '%初三0元%' OR put_plan_name LIKE '%高中0元%') THEN '信息流-抖音私信'
 WHEN rule_name LIKE '%途途私域%' OR (rule_name LIKE '%私域%' AND first_department_name = 'TT') THEN '途途私域'
 ELSE '其他未知流量' END AS channel_map,
         CASE
@@ -280,169 +261,47 @@ ELSE '其他未知流量' END AS channel_map,
         END AS grade_name,
         lead_count,
         valid_lead_count,
-        conversion_lead_count,
-        order_count,
         income_amount,
         in_pay_period_refund_amount,
         non_pay_period_refund_amount,
-        friend_lead_count
+        (coalesce(in_pay_period_refund_amount, 0) + coalesce(non_pay_period_refund_amount, 0)) AS total_refund_amount
     FROM lead_raw
 ),
-private_stage AS (
-    SELECT
-        y.user_id,
-        y.lead_id,
-        y.sale_flow_stage_sequence
-    FROM (
-        SELECT
-            t.user_number AS user_id,
-            t.lead_id,
-            t.sale_flow_stage_sequence,
-            ROW_NUMBER() OVER (
-                PARTITION BY t.user_number, t.lead_id
-                ORDER BY t.private_sea_update_time DESC
-            ) AS rn
-        FROM service_dw.dwd_crm_assign_private_detail_hf t
-        WHERE t.dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
-          AND t.hour = format_datetime(now() - interval '2' hour, 'HH')
-          AND t.assign_employee_first_level_department_name = 'H业务线'
-          AND t.assign_employee_second_level_department_name = '市场部'
-          AND t.assign_employee_third_level_department_name = '市场顾问部'
-    ) y
-    WHERE y.rn = 1
-),
-profile_base AS (
-    SELECT
-        b.period_name,
-        b.channel_map,
-        b.grade_name,
-        b.depart_1,
-        b.dept_name,
-        b.depart,
-        b.jingli,
-        b.zhuguan,
-        b.employee_email_name,
-        b.lead_id,
-        b.user_id,
-        b.lead_count,
-        b.valid_lead_count,
-        b.conversion_lead_count,
-        b.order_count,
-        b.income_amount,
-        b.in_pay_period_refund_amount,
-        b.non_pay_period_refund_amount,
-        CASE
-            WHEN cast(ps.sale_flow_stage_sequence AS varchar) = '470' THEN '双沟'
-            WHEN cast(ps.sale_flow_stage_sequence AS varchar) = '450' THEN '深沟'
-            WHEN coalesce(b.friend_lead_count, 0) > 0 THEN '已建联'
-            ELSE '新线索'
-        END AS deep_communication_bucket,
-        CASE
-            WHEN cast(ps.sale_flow_stage_sequence AS varchar) = '470' THEN 4
-            WHEN cast(ps.sale_flow_stage_sequence AS varchar) = '450' THEN 3
-            WHEN coalesce(b.friend_lead_count, 0) > 0 THEN 2
-            ELSE 1
-        END AS deep_communication_bucket_sort
-    FROM lead_base b
-    LEFT JOIN private_stage ps
-      ON cast(ps.user_id AS varchar) = cast(b.user_id AS varchar)
-     AND cast(ps.lead_id AS varchar) = cast(b.lead_id AS varchar)
-),
--- ============================================================
--- ★ 新增：分母 CTE —— 从 profile_base（UNION ALL 之前）独立计算
---    每个 (period, channel, grade) 的总线索 / 总有效线索
--- ============================================================
-dim_totals AS (
+agg AS (
     SELECT
         period_name,
         channel_map,
         grade_name,
-        SUM(CASE WHEN lead_count > 0 THEN lead_count ELSE 0 END) AS total_leads,
-        SUM(CASE WHEN valid_lead_count > 0 THEN valid_lead_count ELSE 0 END) AS total_valid_leads
-    FROM profile_base
-    GROUP BY period_name, channel_map, grade_name
-),
--- ============================================================
--- 深沟阶段数据集只保留沟通阶段口径，不再混入通时/上课时长口径
--- ============================================================
-profile_union AS (
-    SELECT period_name, channel_map, grade_name,
-        '是否深沟成单用户占比' AS analysis_type,
-        deep_communication_bucket AS bucket_name,
-        deep_communication_bucket_sort AS bucket_sort,
-        user_id, lead_id, lead_count, valid_lead_count, conversion_lead_count,
-        order_count, income_amount, in_pay_period_refund_amount, non_pay_period_refund_amount
-    FROM profile_base
-),
--- ============================================================
--- ★ 核心修改：按沟通阶段 bucket 粒度聚合
--- ============================================================
-profile_agg AS (
-    SELECT
-        period_name,
-        channel_map,
-        grade_name,
-        analysis_type,
-        bucket_name,
-        bucket_sort,
-        -- 对应区间人数：使用宽表可加线索指标，避免 distinct user 预聚合后跨渠道/年级重复相加
-        SUM(CASE WHEN lead_count > 0 THEN lead_count ELSE 0 END) AS bucket_user_count,
-        -- 对应区间有效线索数：保留给需要用有效线索做分母的透视表公式
-        SUM(CASE WHEN valid_lead_count > 0 THEN valid_lead_count ELSE 0 END) AS bucket_valid_lead_count,
-        -- 转化人头：使用宽表可加转化指标，保持与 CRM 归因口径一致
-        SUM(CASE WHEN conversion_lead_count > 0 THEN conversion_lead_count ELSE 0 END) AS conversion_user_count,
-        -- 订单数
-        SUM(CASE WHEN lead_count > 0 THEN order_count ELSE 0 END) AS positive_course_order_count,
-        -- 收款（元）
-        SUM(CASE WHEN lead_count > 0 THEN income_amount ELSE 0 END) / 100.0 AS trade_income,
-        -- 净营收（元）
-        SUM(CASE WHEN lead_count > 0 THEN income_amount - in_pay_period_refund_amount - non_pay_period_refund_amount ELSE 0 END) / 100.0 AS section_trade_profit
-    FROM profile_union
-    GROUP BY period_name, channel_map, grade_name, analysis_type, bucket_name, bucket_sort
-),
-channel_group AS (
-    SELECT channel, MAX(channel_group) AS channel_group
-    FROM temp_table.shenbaoxin_channel_group
-    GROUP BY channel
+        jingli,
+        -- 有效线索量
+        COUNT(DISTINCT CASE WHEN valid_lead_count > 0 THEN lead_id END) AS valid_lead_cnt,
+        -- 收款（分→元）
+        SUM(income_amount) / 100.0 AS trade_income,
+        -- 净收款 = 收款 - 退费（分→元）
+        SUM(income_amount - total_refund_amount) / 100.0 AS net_income,
+        -- GMV退费（分→元）
+        SUM(total_refund_amount) / 100.0 AS gmv_refund,
+        -- 退费人头（去重user_id）
+        COUNT(DISTINCT CASE WHEN total_refund_amount > 0 THEN user_id END) AS refund_headcount,
+        -- 总线索数（用于人头退费率分母）
+        COUNT(DISTINCT CASE WHEN valid_lead_count > 0 THEN lead_id END) AS total_valid_leads
+    FROM lead_base
+    GROUP BY period_name, channel_map, grade_name, jingli
 )
 SELECT
-    a.period_name,
-    a.channel_map,
-    cg.channel_group,
-    a.grade_name,
-    a.analysis_type,
-    a.bucket_name,
-    a.bucket_sort,
-    CAST(a.bucket_user_count AS bigint) AS bucket_user_cnt,
-    CAST(a.bucket_valid_lead_count AS bigint) AS bucket_valid_lead_cnt,
-    CAST(dt.total_leads AS bigint) AS total_lead_cnt,
-    CAST(dt.total_valid_leads AS bigint) AS total_valid_lead_cnt,
-    CAST(
-        CASE
-            WHEN a.bucket_sort = min(a.bucket_sort) OVER (PARTITION BY a.period_name, a.channel_map, a.grade_name, a.analysis_type)
-            THEN dt.total_leads
-            ELSE 0
-        END AS bigint
-    ) AS total_lead_cnt_once,
-    CAST(
-        CASE
-            WHEN a.bucket_sort = min(a.bucket_sort) OVER (PARTITION BY a.period_name, a.channel_map, a.grade_name, a.analysis_type)
-            THEN dt.total_valid_leads
-            ELSE 0
-        END AS bigint
-    ) AS total_valid_lead_cnt_once,
-    CAST(a.conversion_user_count AS bigint) AS conversion_user_cnt,
-    CAST(a.positive_course_order_count AS bigint) AS order_cnt,
-    CAST(a.trade_income AS double) AS trade_income_amt,
-    CAST(a.section_trade_profit AS double) AS section_profit_amt,
-    ROUND(CAST(a.conversion_user_count AS double) / NULLIF(a.bucket_user_count, 0), 6) AS head_conversion_rate,
-    ROUND(CAST(a.positive_course_order_count AS double) / NULLIF(a.bucket_user_count, 0), 6) AS order_conversion_rate,
-    ROUND(CAST(a.section_trade_profit AS double) / NULLIF(a.bucket_user_count, 0), 6) AS section_unit_efficiency
-FROM profile_agg a
-LEFT JOIN channel_group cg ON cg.channel = a.channel_map
-LEFT JOIN dim_totals dt
-    ON dt.period_name = a.period_name
-   AND dt.channel_map  = a.channel_map
-   AND dt.grade_name   = a.grade_name
-WHERE a.period_name > '20260417期'
-  AND a.analysis_type = '是否深沟成单用户占比'
+    period_name,
+    channel_map,
+    grade_name,
+    jingli,
+    valid_lead_cnt                                                           AS "有效线索量",
+    ROUND(CAST(trade_income AS double), 2)                                   AS "收款",
+    ROUND(CAST(net_income AS double), 2)                                     AS "净收款",
+    ROUND(CAST(gmv_refund AS double), 2)                                     AS "GMV退费",
+    -- 人头退费率分子：退费人头
+    refund_headcount                                                         AS "退费人头"
+    -- 看板中自行计算：
+    --   GMV退费率 = GMV退费 / 收款
+    --   人头退费率 = 退费人头 / 有效线索量
+FROM agg
+WHERE period_name > '20260410期'
+ORDER BY period_name, channel_map, grade_name, jingli

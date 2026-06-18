@@ -1,101 +1,72 @@
--------------------APP天级+小时级
-with d_ap as (
-    select distinct
-        user_latest.user_number,
-        user_latest.last_event_time,
-        user_latest.product_name,
-        user_latest.appliction_name,
-        case
-            when user_latest.event_timestamp >= now() - interval '7' day
-             and user_latest.appliction_name in ('PC客户端', 'APP', 'PC')
-            then 1 else 0
-        end as is_app_denglu_d,
-        user_latest.event_timestamp,
-        now() - interval '7' day as seven_days_ago,
-        date_diff('day', cast(user_latest.event_timestamp as date), current_date) as days_diff_simple
-    from (
-        select
-            ul.user_number,
-            ul.last_event_time,
-            ul.product_name,
-            ul.appliction_name,
-            try(date_parse(ul.last_event_time, '%Y-%m-%d %H:%i:%s:%f')) as event_timestamp
-        from (
-            select
-                *,
-                row_number() over (
-                    partition by user_number
-                    order by try(date_parse(last_event_time, '%Y-%m-%d %H:%i:%s:%f')) desc
-                ) as rn
-            from dw.dim_cstm_active_user_c_appliction_mb_df
-            where dt = format_datetime(now() - interval '24' hour, 'YYYYMMdd')
-              and product_name in ('高途', '规划精品')
-        ) ul
-        where rn = 1
-    ) user_latest
-),
-h_ap as (
-    select distinct
-        user_number,
-        case when application_name in ('PC客户端', 'APP', 'PC') then 1 else 0 end as is_app_denglu_h
-    from dw.dws_user_active_user_c_appliction_hf
-    where dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
-      and hour = format_datetime(now() - interval '3' hour, 'HH')
-      and product_name in ('高途', '规划精品')
-),
-denglu_app as (
+with source_data as (
     select
-        d_ap.user_number,
-        case
-            when coalesce(h_ap.is_app_denglu_h, 0) = 1
-              or coalesce(d_ap.is_app_denglu_d, 0) = 1
-            then 1 else 0
-        end as is_app_denglu
-    from d_ap
-    left join h_ap on d_ap.user_number = h_ap.user_number
+        t1.period_name,
+        t1.virtual_leader_email_name as manager_name,
+        t1.lead_id,
+        t1.user_id,
+        t1.employee_email_prefix,
+        t1.stats_grade_name,
+        coalesce(t1.lead_count, 0) as lead_count,
+        coalesce(t1.valid_lead_count, 0) as valid_lead_count,
+        coalesce(t1.friend_lead_count, 0) as friend_lead_count,
+        coalesce(t1.conversion_lead_count, 0) as conversion_lead_count,
+        coalesce(t1.order_count, 0) as order_count,
+        coalesce(t1.subject_count, 0) as subject_count,
+        coalesce(t1.income_amount, 0) / 100.0 as trade_income,
+        (
+            coalesce(t1.income_amount, 0)
+            - coalesce(t1.in_pay_period_refund_amount, 0)
+            - coalesce(t1.non_pay_period_refund_amount, 0)
+        ) / 100.0 as net_income,
+        coalesce(t1.section_assign_call_duration, 0) as section_assign_call_duration,
+        coalesce(t1.section_assign_all_call_duration, 0) as section_assign_all_call_duration,
+        t1.flow_pool_name,
+        t1.rule_name,
+        t1.third_department_name,
+        t1.sku_id_name,
+        t1.ad_account_name,
+        t1.source_manager_name,
+        t1.channel_name_1,
+        t1.channel_name_2,
+        t1.channel_name_3,
+        t1.channel_provider_name,
+        t1.channel_second_provider_name,
+        t1.page_id_name,
+        t1.source_put_plan_name,
+        t1.put_plan_name,
+        t1.virtual_fourth_department_name,
+        t1.virtual_fifth_department_name,
+        t1.virtual_second_department_name,
+        t1.lead_purchase_intention_name,
+        t1.lead_purchase_intention_level1_category_name,
+        t1.lead_purchase_intention_level2_category_name,
+        t1.lead_create_time,
+        cast(t1.flow_original_order_activity_price as varchar) as flow_original_order_activity_price,
+        cast(t1.flow_order_price as varchar) as flow_order_price,
+        cast(t1.flow_orders_income_amount as varchar) as flow_orders_income_amount,
+        t1.get_customer_way_name,
+        t1.second_department_name,
+        t1.first_department_name
+    from bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df t1
+    where t1.dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
+      and t1.hour = format_datetime(now() - interval '3' hour, 'HH')
+      and t1.section_assign_employee_first_level_department_name = 'H业务线'
+      and t1.section_assign_employee_second_level_department_name = '市场部'
+      and t1.section_assign_employee_third_level_department_name = '市场顾问部'
+      and t1.period_mapping_first_level_department_name = 'H业务线'
+      and t1.period_mapping_second_level_department_name in (
+          '精品班学部','青橙项目部','一对一学部','本地化大班学部','市场部','菁英班学部'
+      )
 ),
-jg_market as (
-    select
-        qici,
-        employee_email_prefix,
-        department,
-        jingli,
-        xiaozu
-    from (
-        select
-            jg.*,
-            row_number() over (
-                partition by jg.qici, jg.employee_email_prefix
-                order by jg.department, jg.xiaozu, jg.jingli
-            ) as rn
-        from temp_table.dingxi01_jiagou_db jg
-        where jg.qici > '20260507期'
-          and jg.dept_1 = '市场顾问部'
-          and cast(jg.zaizhi as varchar) = '1'
-    ) t
-    where rn = 1
-),
---------------------------------------基础数据
 data as (
-    select distinct
-        f.*,
-        concat(
-            date_format(
-                date_trunc(
-                    'week',
-                    date_parse(replace(concat(f.group_period_year, f.group_period_term), '期', ''), '%Y%m%d') - interval '1' day
-                ) + interval '4' day,
-                '%Y%m%d'
-            ),
-            '期'
-        ) as qici,
-case when flow_pool_name in ('高途学习规划','智辉老师讲规划') then '市场私域视频号'
+    select
+        period_name,
+        case when flow_pool_name in ('高途学习规划','智辉老师讲规划') then '市场私域视频号'
 when rule_name like '%语数英%' and third_department_name = '新媒体内容运营部' then '语数英'
-when flow_pool_name like '%星义大大%' then '赵星义'
 when third_department_name='图书营销部' and (sku_id_name like '%孟亚飞99%' or sku_id_name like '%亚飞%') then '孟亚飞99-2组'
 when third_department_name = '投放部' and ad_account_name like '%周帅%' then '信息流-周帅'
 when source_manager_name in ('韩正卿') then '抖音私信'
-when third_department_name = '私域运营部' and source_manager_name in ('陈雷19','崔慧敏01','侯佳林01','郑天琪02','杨彬屹','曹义鹏','王硕阳','于超研','岳一帆02','田起帆','王绍阳') then '进校私域合作'
+when third_department_name = '私域运营部' and source_manager_name in ('陈雷19','崔慧敏01','侯佳林01','郑天琪02','杨彬屹','曹义鹏','王硕阳','于超研','岳一帆02','田起帆') then '进校私域合作'
 when channel_name_1='市场私域' and (virtual_fourth_department_name in ('郑州学习顾问二部','郑州学习顾问七部','郑州训练营') or virtual_fifth_department_name in ('罗江博团队')) then '市场私域入群'
 when put_plan_name like '%周司鹏%' then '品宣组KOC'
 when put_plan_name like '%公导私%' and put_plan_name like '%未购课%' then '公导私报名失败'
@@ -129,7 +100,7 @@ when third_department_name = '直播部' and (sku_id_name like '%朱博士99%' o
 when (third_department_name = '直播部' and (sku_id_name like '%朱博士%' or sku_id_name like '%朱汉祺%') and rule_name like '%9%' and rule_name not like '%29%' and sku_id_name not like '%急%' and sku_id_name not like '%礼盒29%') or (third_department_name = '直播部' and sku_id_name like '%朱博士9%') then '朱博士9元'
 when channel_name_1 = '商务' and channel_name_2 = '短信' then '短信'
 when ad_account_name like '%肖晗%' and channel_name_1 = '信息流' then '信息流-肖晗'
-when channel_name_1 = '信息流' and channel_name_2='B站' and (page_id_name like '%亚飞%' or source_put_plan_name like '%亚飞%'  or rule_name like '%亚飞%' or page_id_name like '%初中-0元%') then 'B站信息流-亚飞'
+when channel_name_1 = '信息流' and channel_name_2='B站' and (page_id_name like '%亚飞%' or source_put_plan_name like '%亚飞%') then 'B站信息流-亚飞'
 when channel_name_1 = '信息流' and (page_id_name like '%亚飞%' or ad_account_name like '%亚飞%') then '信息流-亚飞'
 when (flow_pool_name like '%朱博士%' or flow_pool_name like '%双博士%' or flow_pool_name like '%教育规划%') and third_department_name <> '线上商务部' and period_name not like '%多学科拓展%' and rule_name not like '%张杰%' and sku_id_name not like '%马凯鹏IP%' and third_department_name='直播部' then '朱博士29'
 when put_plan_name like '%朱博士说教育%' and period_name not like '%多学科拓展%' and flow_pool_name not like '%高分讲堂%' and  flow_pool_name not like '%总裁%' and third_department_name='直播部' then '朱博士29'
@@ -161,6 +132,7 @@ when put_plan_name like '%私域-信息流%' then '市场私域待支付'
 when third_department_name = '私域运营部' and rule_name not like '%训练营%' and virtual_fifth_department_name not in ('罗江博团队') and rule_name not like '%复用%' and rule_name not like '%未加好友%' and channel_name_2 <> '内部换量' then '市场私域低价单'
 when third_department_name = '私域运营部' and rule_name not like '%训练营%'  and rule_name not like '%复用%' and rule_name not like '%未加好友%' and channel_name_2 <> '内部换量' and flow_original_order_activity_price = '0.0' then '市场私域低价单'
 when third_department_name = '私域运营部' and channel_name_1 = '信息流获客' then '市场私域小红书'
+when channel_name_1= '信息流' and (put_plan_name like '%抖音私信%' or put_plan_name like '%初三0元%' or put_plan_name like '%高中0元%') then '信息流-抖音私信'
 when channel_name_2 in ('APP','M站','PC') and flow_pool_name not like '%途途%' then 'APP'
 when source_manager_name in ('高文羽') and lead_purchase_intention_name = 'AI定制' then '人工外呼-AI'
 when channel_provider_name like '%唐山TMK%' then '唐山TMK'
@@ -245,7 +217,7 @@ when put_plan_name like '%B类%' or put_plan_name like '%b类%' or channel_secon
 when put_plan_name like '%星耀%' or put_plan_name like '%物理展博%' or  put_plan_name like '%物理谢丽荣%' or put_plan_name like '%牟恩伯%' or  put_plan_name like '%王赞%' or put_plan_name like '%张磊老师高中数学%' or put_plan_name like '%雯姐高中物理大讲堂%' then '百度星耀'
 when source_manager_name = '刘福云' and (sku_id_name like '%瑞春%' or sku_id_name like '%春春%') then '陈瑞春'
 when source_manager_name = '刘福云' and sku_id_name like '%周帅%' then '周帅'
-when third_department_name = '直播部' and sku_id_name like '%周帅%' and channel_name_2 in ('百度','B站')  then '周帅-百度数字人'
+when third_department_name = '直播部' and sku_id_name like '%周帅%' then '周帅'
 when third_department_name = '直播部' and sku_id_name like '%孟亚飞%' and sku_id_name like '%199%' then '孟亚飞199'
 when third_department_name = '直播部' and sku_id_name like '%孟亚飞%' and rule_name like '%99%' then '孟亚飞99-1组'
 when third_department_name = '直播部' and sku_id_name like '%孟亚飞%' then '孟亚飞9元'
@@ -284,447 +256,428 @@ when flow_pool_name like '%青少-私域%' then '青少私域'
 when first_department_name = 'TT业务线' and third_department_name like '%商务招生%' then '途途商务'
 when second_department_name = '战略客户部' then '文旅进校'
 when put_plan_name like '%AI名师%' then 'AI直播'
-when channel_name_1= '信息流' and (put_plan_name like '%抖音私信%' or put_plan_name like '%初三0元%' or put_plan_name like '%高中0元%') then '信息流-抖音私信'
 when rule_name like '%途途私域%' or (rule_name like '%私域%' and first_department_name = 'TT') then '途途私域'
-else '其他未知流量' end as channel_map_1,
+else '其他未知流量' end as channel_map,
         case
-            when f.rule_name like '%高一%' then '高一'
-            when f.rule_name like '%高二%' then '高二'
-  				when f.rule_name like '%高三%' then '高三'
-	 			when f.rule_name like '%初一%' then '初一'
-            when f.rule_name like '%初二%' then '初二'
-            when f.rule_name like '%初三%' then '初三'
-            else f.lead_purchase_intention_level2_category_name
+            when rule_name like '%高一%' then '高一'
+            when rule_name like '%高二%' then '高二'
+            when rule_name like '%高三%' then '高三'
+            when rule_name like '%初二%' then '初二'
+            when rule_name like '%初三%' then '初三'
+            else coalesce(stats_grade_name, '未知')
         end as grade_1,
-        date_diff('hour', cast(f.section_assign_time as timestamp), cast(f.first_call_time as timestamp)) as first_call_time_diff_hour,
-        date_diff('minute', cast(f.section_assign_time as timestamp), cast(f.first_call_time as timestamp)) as first_call_time_diff_minute,
-        jt.first_call_connected_time_diff_hour as first_call_connected_time_diff_hour_1,
-        case when f.valid_lead_count = 1 then f.friend_lead_count else 0 end as is_friend_lead,
-        case when t.jieduan in ('深沟', '已双沟') then 1 else 0 end as is_shengou,
-        case when t.jieduan in ('已双沟') then 1 else 0 end as is_shuanggou,
-        case
-            when f.deep_communicate_method is not null
-             and f.deep_communicate_method != ''
-             and f.valid_lead_count = 1
-            then 1 else 0
-        end as yi_shuanggou,
-        case
-            when yc.abnormal_traffic is not null
-             and yc.abnormal_traffic != ''
-             and t.sale_flow_stage_name_1 in ('新线索', '已建联', '未成交')
-            then 1 else 0
-        end as is_yichang,
-        case
-            when sbb.send_double_table = '是'
-             and f.valid_lead_count = 1
-            then 1 else 0
-        end as yi_huishou
-    from bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df f
-    left join (
-        select
-            user_number,
-            sale_flow_stage_sequence,
-            sale_flow_stage_name_1,
-            jieduan_1 as jieduan
-        from (
-            select
-                user_number,
-                sale_flow_stage_sequence,
-                case
-                    when sale_flow_stage_sequence = '50' then '新线索'
-                    when sale_flow_stage_sequence = '60' then '待跟进'
-                    when sale_flow_stage_sequence = '70' then '已接收'
-                    when sale_flow_stage_sequence = '100' then '未接通'
-                    when sale_flow_stage_sequence = '150' then '已建联'
-                    when sale_flow_stage_sequence = '200' then '首call'
-                    when sale_flow_stage_sequence = '250' then '商机'
-                    when sale_flow_stage_sequence = '300' then '学情沟通'
-                    when sale_flow_stage_sequence = '350' then '浅沟'
-                    when sale_flow_stage_sequence = '400' then '已约课'
-                    when sale_flow_stage_sequence = '450' then '深沟'
-                    when sale_flow_stage_sequence = '470' then '已双沟'
-                    when sale_flow_stage_sequence = '500' then '再次建联'
-                    when sale_flow_stage_sequence = '550' then '约课'
-                    when sale_flow_stage_sequence = '600' then '诺访'
-                    when sale_flow_stage_sequence = '650' then '已排课'
-                    when sale_flow_stage_sequence = '660' then '已摸底测'
-                    when sale_flow_stage_sequence = '680' then '促到课'
-                    when sale_flow_stage_sequence = '700' then '已到课'
-                    when sale_flow_stage_sequence = '710' then '中教完课'
-                    when sale_flow_stage_sequence = '720' then '外教完课'
-                    when sale_flow_stage_sequence = '750' then '已完课'
-                    when sale_flow_stage_sequence = '800' then '到访'
-                    when sale_flow_stage_sequence = '820' then '看回放'
-                    when sale_flow_stage_sequence = '850' then '铺课'
-                    when sale_flow_stage_sequence = '900' then '已推课'
-                    when sale_flow_stage_sequence = '920' then '定金'
-                    when sale_flow_stage_sequence = '925' then '已挖需'
-                    when sale_flow_stage_sequence = '930' then '已规划'
-                    when sale_flow_stage_sequence = '935' then '已报价'
-                    when sale_flow_stage_sequence = '950' then '关单'
-                    when sale_flow_stage_sequence = '955' then '追单'
-                    when sale_flow_stage_sequence = '960' then '流转成功'
-                    when sale_flow_stage_sequence = '1000' then '未成交'
-                    when sale_flow_stage_sequence = '1050' then '成单'
-                    else '未知状态'
-                end as sale_flow_stage_name_1,
-                case
-                    when sale_flow_stage_sequence = '450' then '深沟'
-                    when sale_flow_stage_sequence = '470' then '已双沟'
-                    else '其他'
-                end as jieduan_1,
-                row_number() over (
-                    partition by user_number
-                    order by private_sea_update_time desc
-                ) as rn
-            from service_dw.dwd_crm_assign_private_detail_hf
-            where dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
-              and hour = format_datetime(now() - interval '3' hour, 'HH')
-              and assign_employee_first_level_department_name = 'H业务线'
-              and assign_employee_second_level_department_name = '市场部'
-              and assign_employee_third_level_department_name = '市场顾问部'
-        )
-        where rn = 1
-    ) t on f.user_id = t.user_number
-    left join (
-        select
-            lead_id,
-            section_assign_time,
-            section_assign_first_call_time,
-            section_assign_first_call_connected_time,
-            date_diff(
-                'hour',
-                cast(section_assign_time as timestamp),
-                cast(section_assign_first_call_connected_time as timestamp)
-            ) as first_call_connected_time_diff_hour
-        from service_dw.dm_crm_lead_stats_detail_hf cd
-        where dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
-          and hour = format_datetime(now() - interval '3' hour, 'HH')
-          and mapping_first_level_department_name = 'H业务线'
-          and mapping_second_level_department_name in ('精品班学部', '菁英班学部', '市场部', '本地化大班学部')
-    ) jt on f.lead_id = jt.lead_id
-    ------------------------异常率
-    left join (
-        select
-            abnormal_traffic,
-            user_number
-        from service_dw.app_user_attribute_label_gaia_wide_df
-        where dt = format_datetime(now() - interval '24' hour, 'YYYYMMdd')
-          and type = 'key'
-    ) yc on yc.user_number = f.user_id
-    -------双表发送
-    left join (
-        select *
-        from (
-            select
-                send_double_table,
-                user_id,
-                flow_order_period_name,
-                lead_update_time,
-                trace_update_time,
-                assign_time,
-                concat(
-                    date_format(
-                        date_trunc('week', cast(assign_time as timestamp) - interval '1' day) + interval '4' day,
-                        '%Y%m%d'
-                    ),
-                    '期'
-                ) as qici,
-                assign_employee_email_name,
-                virtual_department_name_2,
-                virtual_department_name_3,
-                employee_virtual_department_name,
-                row_number() over (
-                    partition by user_id, assign_employee_email_name
-                    order by trace_update_time desc
-                ) as rn
-            from service_dw.app_h_crm_lead_task_process_info_detail_hf
-            where dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
-              and hour = format_datetime(now() - interval '3' hour, 'HH')
-              and virtual_department_name_2 = 'H业务线'
-              and virtual_department_name_3 = '市场部'
-        )
-        where rn = 1
-    ) sbb on sbb.assign_employee_email_name = f.employee_email_name
-          and sbb.user_id = f.user_id
-    where f.dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
-      and f.hour = format_datetime(now() - interval '3' hour, 'HH')
-      and f.section_assign_employee_first_level_department_name = 'H业务线'
-      and f.section_assign_employee_second_level_department_name = '市场部'
-      and f.section_assign_employee_third_level_department_name = '市场顾问部'
-      and (f.period_mapping_first_level_department_name = 'H业务线' or f.period_mapping_first_level_department_name is null)
-      and (f.period_mapping_second_level_department_name in ('精品班学部', '市场部') or f.period_mapping_second_level_department_name is null)
-),
---------------------------5min比例、外呼次数、外呼接通次数
-call_c as (
-    select
-        sub.user_number as user_number,
-        sub.lead_id,
-        sub.section_assign_employee_email_prefix,
-        max(case when sub.call_duration > 300 then 1 else 0 end) as is_long_call,
-        sum(sub.call_duration) as call_duration_1,
-        sum(case when sub.call_status in ('1', '0') then 1 else 0 end) as zong_call_ci_1,
-        sum(case when sub.call_status = '1' then 1 else 0 end) as call_status_1
-    from (
-        select distinct
-            wf.user_number,
-            wf.lead_id,
-            wf.section_assign_employee_email_prefix,
-            wf.call_duration,
-            wf.call_status,
-            wf.call_time,
-            wf.call_type_name,
-            wf.data_source,
-            wf.msg_type_name
-        from service_dw.app_h_crm_lead_employee_workload_detail_hf wf
-        where wf.dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
-          and wf.hour = format_datetime(now() - interval '3' hour, 'HH')
-    ) sub
-    group by
-        sub.user_number,
-        sub.lead_id,
-        sub.section_assign_employee_email_prefix
-),
----------------------------crm首call任务
-f_call0 as (
-    select
-        a.user_id,
-        a.account_id,
-        b.employee_email_name as assign_employee_email_name,
-        case when sum(if(first_call_status = 3, 1, 0)) > 0 then 1 else 0 end as call_answer_lead_count
-    from (
-        select distinct
-            user_id,
-            first_call_status,
-            expired_time,
-            finished_time,
-            start_time,
-            task_generate_rule_type,
-            task_rule_config,
-            condition_relation,
-            is_del,
-            account_id,
-            task_tag,
-            biz_number,
-            create_time,
-            update_time
-        from gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf
-        where dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
-          and hour = format_datetime(now() - interval '3' hour, 'HH')
-          and start_time > '2026-01-01'
-          and is_del = 0
-    ) a
-    left join (
-        select
-            account_id,
-            employee_email_name
-        from finance_dw.dim_finance_employee_df
-        where dt = format_datetime(now() - interval '24' hour, 'YYYYMMdd')
-          and first_level_department_name = 'H业务线'
-          and second_level_department_name = '市场部'
-          and third_level_department_name = '市场顾问部'
-    ) b on a.account_id = b.account_id
-    group by
-        a.user_id,
-        a.account_id,
-        b.employee_email_name
-),
-------------------------首节到课数据
-daoke as (
-    select
-        qici,
+        manager_name,
+        lead_id,
         user_id,
-        channel_map_1,
-        max(
-            case
-                when channel_map_1 = '曹忆IP99元' then
-                    case when ke_1 = '3' and live_learn_duration > 0 then 1 else 0 end
-                else
-                    case when ke_1 = '1' and live_learn_duration > 0 then 1 else 0 end
-            end
-        ) as has_daoke,
-        max(
-            case
-                when channel_map_1 = '曹忆IP99元' then
-                    case when ke_1 = '3' and is_valid_live_learn = '1' then 1 else 0 end
-                else
-                    case when ke_1 = '1' and is_valid_live_learn = '1' then 1 else 0 end
-            end
-        ) as has_v_daoke
+        employee_email_prefix,
+        lead_count,
+        valid_lead_count,
+        friend_lead_count,
+        conversion_lead_count,
+        order_count,
+        subject_count,
+        trade_income,
+        net_income,
+        section_assign_call_duration,
+        section_assign_all_call_duration
+    from source_data
+),
+attend_c as (
+    select
+        t.user_number,
+        t.qici as period_name,
+        sum(coalesce(t.live_learn_duration, 0)) as total_live_learn_duration_seconds
     from (
         select
-            t2.qici,
-            t2.user_number as user_id,
-            t1.channel_map_1,
-            t2.live_learn_duration,
-            t2.is_valid_live_learn,
-            ke.ke_1,
-            t1.grade_1
-        from (
-            select distinct
-                lead_id,
-                user_id,
-                qici,
-                channel_map_1,
-                grade_1
-            from data
-        ) t1
-        inner join (
-            select
-                user_number,
-                begin_time,
-                case
-                    when cast(begin_time as date) >= date '2026-02-25' and cast(begin_time as date) <= date '2026-03-02' then '20260227期'
-                    when cast(begin_time as date) >= date '2026-02-17' and cast(begin_time as date) <= date '2026-02-24' then '20260220期'
-                    when cast(begin_time as date) >= date '2026-02-09' and cast(begin_time as date) <= date '2026-02-16' then '20260213期'
-                    when cast(begin_time as date) >= date '2026-02-03' and cast(begin_time as date) <= date '2026-02-08' then '20260206期'
-                    else
-                        case
-                            when day_of_week(cast(begin_time as date)) = 2
-                            then date_format(
-                                date_trunc('week', cast(begin_time as timestamp)) - interval '3' day,
-                                '%Y%m%d'
-                            ) || '期'
-                            else date_format(
-                                date_trunc('week', cast(begin_time as timestamp)) + interval '4' day,
-                                '%Y%m%d'
-                            ) || '期'
-                        end
-                end as qici,
-                is_need_attend,
-                live_learn_duration,
-                is_valid_live_learn
-            from service_dw.dws_service_user_learn_detail_hf
-            where dt = date_format(now() - interval '2' hour, '%Y%m%d')
-              and hour = date_format(now() - interval '3' hour, '%H')
-              and course_first_level_department_name = 'H业务线'
-              and course_second_level_department_name in ('精品班学部', '市场部')
-              and is_need_attend = 1
-        ) t2 on t1.qici = t2.qici
-             and t1.user_id = t2.user_number
-        left join temp_table.dingxi01_daoke_1_6_t ke
-          on t2.qici = ke.qici
-         and t1.channel_map_1 = ke.qudao
-         and t1.grade_1 = ke.grade
-         and t2.begin_time = ke.begin_time
-        where ke.ke_1 in ('1', '3')
+            ld.user_number,
+            ld.live_learn_duration,
+            case
+                when cast(substr(ld.begin_time, 1, 10) as date) between date '2026-02-25' and date '2026-03-02' then '20260227期'
+                when cast(substr(ld.begin_time, 1, 10) as date) between date '2026-02-17' and date '2026-02-24' then '20260220期'
+                when cast(substr(ld.begin_time, 1, 10) as date) between date '2026-02-09' and date '2026-02-16' then '20260213期'
+                when cast(substr(ld.begin_time, 1, 10) as date) between date '2026-02-03' and date '2026-02-08' then '20260206期'
+                else case
+                    when day_of_week(cast(substr(ld.begin_time, 1, 10) as date)) = 2
+                        then date_format(
+                            cast(date_trunc('week', cast(substr(ld.begin_time, 1, 10) as date)) - interval '3' day as timestamp),
+                            '%Y%m%d'
+                        ) || '期'
+                    else date_format(
+                            cast(date_trunc('week', cast(substr(ld.begin_time, 1, 10) as date)) + interval '4' day as timestamp),
+                            '%Y%m%d'
+                        ) || '期'
+                end
+            end as qici
+        from service_dw.dws_service_user_learn_detail_hf ld
+        where ld.dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
+          and ld.hour = format_datetime(now() - interval '2' hour, 'HH')
+          and ld.course_first_level_department_name = 'H业务线'
+          and ld.course_second_level_department_name in ('精品班学部','市场部','青橙项目部')
+          and ld.is_need_attend = 1
     ) t
-    group by
-        qici,
-        user_id,
-        channel_map_1
+    group by t.user_number, t.qici
 ),
-----线索维度：期次，渠道，年级，架构
-prc as (
-    select distinct
-        data.qici,
-        data.rule_name,
-        data.channel_map_1,
-        data.grade_1,
-        jg.department,
-        jg.jingli,
-        jg.xiaozu,
-        data.employee_email_name,
-        data.user_id,
-        data.lead_count,
-        data.valid_lead_count,
-        data.first_call_time_diff_hour,
-        data.first_call_time_diff_minute,
-        case when data.first_call_time_diff_minute <= 5 and data.valid_lead_count > 0 then 1 else 0 end as first_call_in_5min,
-        case when data.first_call_time_diff_hour <= 6 and data.valid_lead_count > 0 then 1 else 0 end as first_call_in_6h,
-        case when data.first_call_time_diff_hour <= 12 and data.valid_lead_count > 0 then 1 else 0 end as first_call_in_12h,
-        case when data.first_call_time_diff_hour <= 24 and data.valid_lead_count > 0 then 1 else 0 end as first_call_in_24h,
-        case when data.first_call_time_diff_hour <= 48 and data.valid_lead_count > 0 then 1 else 0 end as first_call_in_48h,
-        case when data.first_call_time_diff_hour <= 168 and data.valid_lead_count > 0 then 1 else 0 end as first_call_cnt,
-        case when data.first_call_connected_time_diff_hour_1 <= 24 and data.valid_lead_count > 0 then 1 else 0 end as first_call_connected_in_24h,
-        case when data.first_call_connected_time_diff_hour_1 <= 48 and data.valid_lead_count > 0 then 1 else 0 end as first_call_connected_in_48h,
-        case when data.first_call_connected_time_diff_hour_1 <= 168 and data.valid_lead_count > 0 then 1 else 0 end as first_call_connected_cnt,
-        round(coalesce(call_c.call_duration_1, 0) / 60.00, 2) as call_duration,
-        coalesce(call_c.zong_call_ci_1, 0) as zong_call_ci,
-        coalesce(call_c.call_status_1, 0) as call_status,
-        case when data.valid_lead_count > 0 then coalesce(call_c.is_long_call, 0) else 0 end as is_long_call,
-        coalesce(data.is_friend_lead, 0) as is_friend_lead,
-        case when denglu_app.user_number is not null then denglu_app.is_app_denglu else 0 end as is_app_denglu,
-        coalesce(data.is_shengou, 0) as is_shengou,
-        coalesce(data.is_shuanggou, 0) as is_shuanggou,
-        coalesce(data.yi_shuanggou, 0) as yi_shuanggou,
-        coalesce(data.is_yichang, 0) as is_yichang,
-        coalesce(data.yi_huishou, 0) as yi_huishou,
-        case
-            when coalesce(f_call0.call_answer_lead_count, 0) > 0
-             and data.valid_lead_count > 0
-            then 1 else 0
-        end as is_f_call,
-        concat(data.dt, ' ', data.hour) as datt
-    from data
-    left join jg_market jg
-      on data.employee_email_prefix = jg.employee_email_prefix
-     and data.qici = jg.qici
-    left join call_c
-      on call_c.user_number = data.user_id
-     and call_c.section_assign_employee_email_prefix = data.employee_email_prefix
-    left join denglu_app
-      on denglu_app.user_number = data.user_id
-    left join f_call0
-      on f_call0.assign_employee_email_name = data.employee_email_name
-     and f_call0.user_id = data.user_id
-    where data.qici > '20260507期'
-      and data.virtual_third_department_name = '市场顾问部'
-      and jg.department is not null
-)
-----------------------汇总
-select *
-from (
+private_stage as (
     select
-        prc.qici,
-        prc.rule_name,
-        prc.channel_map_1,
-        prc.grade_1,
-        prc.department,
-        prc.jingli,
-        prc.xiaozu,
-        prc.employee_email_name,
-        prc.datt,
+        user_number,
+        sale_flow_stage_sequence
+    from (
+        select
+            p.user_number,
+            p.sale_flow_stage_sequence,
+            row_number() over (
+                partition by p.user_number
+                order by p.private_sea_update_time desc
+            ) as rn
+        from service_dw.dwd_crm_assign_private_detail_hf p
+        where p.dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
+          and p.hour = format_datetime(now() - interval '2' hour, 'HH')
+          and p.assign_employee_first_level_department_name = 'H业务线'
+          and p.assign_employee_second_level_department_name = '市场部'
+          and p.assign_employee_third_level_department_name = '市场顾问部'
+    ) x
+    where rn = 1
+),
+base as (
+    select
+        d.*,
+        coalesce(d.section_assign_all_call_duration, 0) as total_call_duration_seconds,
+        coalesce(a.total_live_learn_duration_seconds, 0) as total_live_learn_duration_seconds,
+        case
+            when coalesce(d.section_assign_all_call_duration, 0) <= 300 then '5min以内'
+            when coalesce(d.section_assign_all_call_duration, 0) <= 600 then '5min-10min'
+            when coalesce(d.section_assign_all_call_duration, 0) <= 900 then '10min-15min'
+            when coalesce(d.section_assign_all_call_duration, 0) <= 1200 then '15min-20min'
+            else '20min以上'
+        end as call_duration_bucket,
+        case
+            when coalesce(d.section_assign_all_call_duration, 0) <= 300 then 1
+            when coalesce(d.section_assign_all_call_duration, 0) <= 600 then 2
+            when coalesce(d.section_assign_all_call_duration, 0) <= 900 then 3
+            when coalesce(d.section_assign_all_call_duration, 0) <= 1200 then 4
+            else 5
+        end as call_duration_bucket_sort,
+        case
+            when coalesce(a.total_live_learn_duration_seconds, 0) <= 0 then '没上课'
+            when coalesce(a.total_live_learn_duration_seconds, 0) <= 1800 then '30min以内'
+            when coalesce(a.total_live_learn_duration_seconds, 0) <= 3600 then '30-60min'
+            when coalesce(a.total_live_learn_duration_seconds, 0) <= 7200 then '60-120min'
+            when coalesce(a.total_live_learn_duration_seconds, 0) <= 10800 then '120-180min'
+            else '180min以上'
+        end as attend_duration_bucket,
+        case
+            when coalesce(a.total_live_learn_duration_seconds, 0) <= 0 then 1
+            when coalesce(a.total_live_learn_duration_seconds, 0) <= 1800 then 2
+            when coalesce(a.total_live_learn_duration_seconds, 0) <= 3600 then 3
+            when coalesce(a.total_live_learn_duration_seconds, 0) <= 7200 then 4
+            when coalesce(a.total_live_learn_duration_seconds, 0) <= 10800 then 5
+            else 6
+        end as attend_duration_bucket_sort,
+        case
+            when ps.sale_flow_stage_sequence = '470' then '双沟（全靠顾问手动）'
+            when ps.sale_flow_stage_sequence = '450' then '深沟（全靠顾问手动）'
+            when d.friend_lead_count > 0 then '已建联（加好友未深沟）'
+            else '新线索（未加好友）'
+        end as deep_stage_bucket,
+        case
+            when ps.sale_flow_stage_sequence = '470' then 4
+            when ps.sale_flow_stage_sequence = '450' then 3
+            when d.friend_lead_count > 0 then 2
+            else 1
+        end as deep_stage_bucket_sort
+    from data d
+    left join attend_c a
+        on cast(d.user_id as varchar) = cast(a.user_number as varchar)
+       and d.period_name = a.period_name
+    left join private_stage ps
+        on cast(d.user_id as varchar) = cast(ps.user_number as varchar)
+),
+user_profile as (
+    select
+        period_name,
+        channel_map,
+        grade_1,
+        manager_name,
+        cast(user_id as varchar) as user_id,
         sum(lead_count) as lead_count,
         sum(valid_lead_count) as valid_lead_count,
-        sum(first_call_time_diff_hour) as first_call_time_diff_hour,
-        sum(first_call_in_5min) as first_call_in_5min,
-        sum(first_call_in_6h) as first_call_in_6h,
-        sum(first_call_in_12h) as first_call_in_12h,
-        sum(first_call_in_24h) as first_call_in_24h,
-        sum(first_call_in_48h) as first_call_in_48h,
-        sum(first_call_cnt) as first_call_cnt,
-        sum(first_call_connected_in_24h) as first_call_connected_in_24h,
-        sum(first_call_connected_in_48h) as first_call_connected_in_48h,
-        sum(first_call_connected_cnt) as first_call_connected_cnt,
-        sum(call_duration) as call_duration,
-        sum(zong_call_ci) as zong_call_ci,
-        sum(call_status) as call_status,
-        sum(is_long_call) as is_long_call,
-        sum(is_friend_lead) as is_friend_lead,
-        sum(is_app_denglu) as is_app_denglu,
-        sum(is_shengou) as is_shengou,
-        sum(is_shuanggou) as is_shuanggou,
-        sum(yi_shuanggou) as yi_shuanggou,
-        sum(yi_huishou) as yi_huishou,
-        sum(is_yichang) as is_yichang,
-        sum(is_f_call) as is_f_call,
-        count(distinct case when duf.has_daoke = 1 then prc.user_id end) as daoke1,
-        count(distinct case when duf.has_v_daoke = 1 then prc.user_id end) as v_daoke1
-    from prc
-    left join daoke duf
-      on prc.qici = duf.qici
-     and prc.user_id = duf.user_id
-     and prc.channel_map_1 = duf.channel_map_1
+        max(case when conversion_lead_count > 0 then 1 else 0 end) as is_pay_user,
+        sum(order_count) as order_count,
+        sum(subject_count) as subject_count,
+        sum(trade_income) as trade_income,
+        sum(net_income) as net_income
+    from base
+    group by period_name, channel_map, grade_1, manager_name, cast(user_id as varchar)
+),
+overall_result as (
+    select
+        '1_市场渠道整体数据' as report_section,
+        period_name,
+        channel_map,
+        grade_1,
+        manager_name,
+        cast(null as varchar) as process_type,
+        cast(null as varchar) as process_bucket,
+        cast(null as integer) as process_sort,
+        sum(lead_count) as lead_count,
+        sum(valid_lead_count) as valid_lead_count,
+        sum(is_pay_user) as pay_user_count,
+        sum(order_count) as pay_order_count,
+        sum(trade_income) as trade_income,
+        sum(net_income) as net_income,
+        sum(trade_income) / nullif(cast(sum(is_pay_user) as double), 0.0) as income_per_pay_user,
+        sum(trade_income) / nullif(cast(sum(order_count) as double), 0.0) as income_per_order,
+        cast(null as bigint) as subject_1_user_count,
+        cast(null as double) as subject_1_gmv,
+        cast(null as double) as subject_1_user_ratio,
+        cast(null as double) as subject_1_gmv_ratio,
+        cast(null as bigint) as subject_2_3_user_count,
+        cast(null as double) as subject_2_3_gmv,
+        cast(null as double) as subject_2_3_user_ratio,
+        cast(null as double) as subject_2_3_gmv_ratio,
+        cast(null as bigint) as subject_3_plus_user_count,
+        cast(null as double) as subject_3_plus_gmv,
+        cast(null as double) as subject_3_plus_user_ratio,
+        cast(null as double) as subject_3_plus_gmv_ratio,
+        cast(null as bigint) as bucket_user_count,
+        cast(null as double) as user_conversion_rate,
+        cast(null as double) as order_conversion_rate,
+        cast(null as double) as section_unit_effect,
+        cast(null as double) as avg_first_call_duration_seconds,
+        cast(null as double) as avg_total_call_duration_seconds,
+        cast(null as double) as avg_attend_duration_minutes
+    from user_profile
+    group by period_name, channel_map, grade_1, manager_name
+),
+subject_result as (
+    select
+        '2_成单用户科目画像' as report_section,
+        period_name,
+        channel_map,
+        grade_1,
+        manager_name,
+        cast(null as varchar) as process_type,
+        cast(null as varchar) as process_bucket,
+        cast(null as integer) as process_sort,
+        sum(lead_count) as lead_count,
+        sum(valid_lead_count) as valid_lead_count,
+        sum(is_pay_user) as pay_user_count,
+        sum(order_count) as pay_order_count,
+        sum(trade_income) as trade_income,
+        sum(net_income) as net_income,
+        cast(null as double) as income_per_pay_user,
+        cast(null as double) as income_per_order,
+        sum(case when is_pay_user = 1 and subject_count = 1 then 1 else 0 end) as subject_1_user_count,
+        sum(case when is_pay_user = 1 and subject_count = 1 then net_income else 0 end) as subject_1_gmv,
+        sum(case when is_pay_user = 1 and subject_count = 1 then 1 else 0 end) / nullif(cast(sum(is_pay_user) as double), 0.0) as subject_1_user_ratio,
+        sum(case when is_pay_user = 1 and subject_count = 1 then net_income else 0 end) / nullif(sum(net_income), 0.0) as subject_1_gmv_ratio,
+        sum(case when is_pay_user = 1 and subject_count between 2 and 3 then 1 else 0 end) as subject_2_3_user_count,
+        sum(case when is_pay_user = 1 and subject_count between 2 and 3 then net_income else 0 end) as subject_2_3_gmv,
+        sum(case when is_pay_user = 1 and subject_count between 2 and 3 then 1 else 0 end) / nullif(cast(sum(is_pay_user) as double), 0.0) as subject_2_3_user_ratio,
+        sum(case when is_pay_user = 1 and subject_count between 2 and 3 then net_income else 0 end) / nullif(sum(net_income), 0.0) as subject_2_3_gmv_ratio,
+        sum(case when is_pay_user = 1 and subject_count >= 3 then 1 else 0 end) as subject_3_plus_user_count,
+        sum(case when is_pay_user = 1 and subject_count >= 3 then net_income else 0 end) as subject_3_plus_gmv,
+        sum(case when is_pay_user = 1 and subject_count >= 3 then 1 else 0 end) / nullif(cast(sum(is_pay_user) as double), 0.0) as subject_3_plus_user_ratio,
+        sum(case when is_pay_user = 1 and subject_count >= 3 then net_income else 0 end) / nullif(sum(net_income), 0.0) as subject_3_plus_gmv_ratio,
+        cast(null as bigint) as bucket_user_count,
+        cast(null as double) as user_conversion_rate,
+        cast(null as double) as order_conversion_rate,
+        cast(null as double) as section_unit_effect,
+        cast(null as double) as avg_first_call_duration_seconds,
+        cast(null as double) as avg_total_call_duration_seconds,
+        cast(null as double) as avg_attend_duration_minutes
+    from user_profile
+    group by period_name, channel_map, grade_1, manager_name
+),
+process_result as (
+    select
+        report_section,
+        period_name,
+        channel_map,
+        grade_1,
+        manager_name,
+        process_type,
+        process_bucket,
+        process_sort,
+        sum(lead_count) as lead_count,
+        sum(valid_lead_count) as valid_lead_count,
+        count(distinct case when valid_lead_count > 0 then cast(user_id as varchar) end) as bucket_user_count,
+        count(distinct case when conversion_lead_count > 0 then cast(user_id as varchar) end) as pay_user_count,
+        sum(order_count) as pay_order_count,
+        sum(trade_income) as trade_income,
+        sum(net_income) as net_income,
+        avg(case when valid_lead_count > 0 then cast(section_assign_call_duration as double) end) as avg_first_call_duration_seconds,
+        avg(case when valid_lead_count > 0 then cast(total_call_duration_seconds as double) end) as avg_total_call_duration_seconds,
+        avg(case when valid_lead_count > 0 then total_live_learn_duration_seconds / 60.0 end) as avg_attend_duration_minutes
+    from (
+        select
+            '3.1_总通时过程分析' as report_section,
+            period_name,
+            channel_map,
+            grade_1,
+            manager_name,
+            '总通时' as process_type,
+            call_duration_bucket as process_bucket,
+            call_duration_bucket_sort as process_sort,
+            lead_count,
+            valid_lead_count,
+            user_id,
+            conversion_lead_count,
+            order_count,
+            trade_income,
+            net_income,
+            section_assign_call_duration,
+            total_call_duration_seconds,
+            total_live_learn_duration_seconds
+        from base
+
+        union all
+
+        select
+            '3.2_上课时长过程分析' as report_section,
+            period_name,
+            channel_map,
+            grade_1,
+            manager_name,
+            '总出勤时长' as process_type,
+            attend_duration_bucket as process_bucket,
+            attend_duration_bucket_sort as process_sort,
+            lead_count,
+            valid_lead_count,
+            user_id,
+            conversion_lead_count,
+            order_count,
+            trade_income,
+            net_income,
+            section_assign_call_duration,
+            total_call_duration_seconds,
+            total_live_learn_duration_seconds
+        from base
+
+        union all
+
+        select
+            '3.3_深沟阶段过程分析' as report_section,
+            period_name,
+            channel_map,
+            grade_1,
+            manager_name,
+            '深沟阶段' as process_type,
+            deep_stage_bucket as process_bucket,
+            deep_stage_bucket_sort as process_sort,
+            lead_count,
+            valid_lead_count,
+            user_id,
+            conversion_lead_count,
+            order_count,
+            trade_income,
+            net_income,
+            section_assign_call_duration,
+            total_call_duration_seconds,
+            total_live_learn_duration_seconds
+        from base
+    ) p
     group by
-        prc.qici,
-        prc.rule_name,
-        prc.channel_map_1,
-        prc.grade_1,
-        prc.department,
-        prc.jingli,
-        prc.xiaozu,
-        prc.employee_email_name,
-        prc.datt
+        report_section,
+        period_name,
+        channel_map,
+        grade_1,
+        manager_name,
+        process_type,
+        process_bucket,
+        process_sort
+),
+process_final as (
+    select
+        report_section,
+        period_name,
+        channel_map,
+        grade_1,
+        manager_name,
+        process_type,
+        process_bucket,
+        process_sort,
+        lead_count,
+        valid_lead_count,
+        pay_user_count,
+        pay_order_count,
+        trade_income,
+        net_income,
+        cast(null as double) as income_per_pay_user,
+        cast(null as double) as income_per_order,
+        cast(null as bigint) as subject_1_user_count,
+        cast(null as double) as subject_1_gmv,
+        cast(null as double) as subject_1_user_ratio,
+        cast(null as double) as subject_1_gmv_ratio,
+        cast(null as bigint) as subject_2_3_user_count,
+        cast(null as double) as subject_2_3_gmv,
+        cast(null as double) as subject_2_3_user_ratio,
+        cast(null as double) as subject_2_3_gmv_ratio,
+        cast(null as bigint) as subject_3_plus_user_count,
+        cast(null as double) as subject_3_plus_gmv,
+        cast(null as double) as subject_3_plus_user_ratio,
+        cast(null as double) as subject_3_plus_gmv_ratio,
+        bucket_user_count,
+        cast(pay_user_count as double) / nullif(cast(bucket_user_count as double), 0.0) as user_conversion_rate,
+        cast(pay_order_count as double) / nullif(cast(bucket_user_count as double), 0.0) as order_conversion_rate,
+        net_income / nullif(cast(valid_lead_count as double), 0.0) as section_unit_effect,
+        avg_first_call_duration_seconds,
+        avg_total_call_duration_seconds,
+        avg_attend_duration_minutes
+    from process_result
+),
+final_result as (
+    select * from overall_result
+
+    union all
+
+    select * from subject_result
+
+    union all
+
+    select * from process_final
 )
-where valid_lead_count > 0
+select
+    report_section,
+    period_name,
+    channel_map,
+    grade_1,
+    manager_name,
+    process_type,
+    process_bucket,
+    process_sort,
+    lead_count,
+    valid_lead_count,
+    pay_user_count,
+    pay_order_count,
+    trade_income,
+    net_income,
+    income_per_pay_user,
+    income_per_order,
+    subject_1_user_count,
+    subject_1_gmv,
+    subject_1_user_ratio,
+    subject_1_gmv_ratio,
+    subject_2_3_user_count,
+    subject_2_3_gmv,
+    subject_2_3_user_ratio,
+    subject_2_3_gmv_ratio,
+    subject_3_plus_user_count,
+    subject_3_plus_gmv,
+    subject_3_plus_user_ratio,
+    subject_3_plus_gmv_ratio,
+    bucket_user_count,
+    user_conversion_rate,
+    order_conversion_rate,
+    section_unit_effect,
+    avg_first_call_duration_seconds,
+    avg_total_call_duration_seconds,
+    avg_attend_duration_minutes
+from final_result
+order by
+    report_section,
+    period_name,
+    channel_map,
+    grade_1,
+    manager_name,
+    process_sort

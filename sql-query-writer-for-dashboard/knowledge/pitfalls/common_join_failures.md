@@ -107,6 +107,34 @@ limit 1000;
 
 ---
 
+## 4.1 运营侧个人数据 2293 透视表绑定事实宽表旧架构
+
+**症状**：运营侧个人数据看板中，顾问出现在错误经理/主管下。例如期次架构表和员工维表均显示顾问应归属 `吴志强03`，但看板透视表仍展示在 `薛源02` 下。
+
+**根因**：数据集最终层如果使用 `select zz.*`，会把中间层事实宽表字段 `zz.jingli`、`zz.zhuguan` 原样输出。BI 透视表字段配置通常绑定输出字段名 `jingli` / `zhuguan`，因此即使后面另起别名输出 `zx.jingli as jingli_11`，看板仍会优先使用原 `jingli` 字段，导致展示事实宽表 `virtual_leader_email_name` 的旧架构。
+
+**排查**：
+
+1. 检查 raw SQL 最终层是否出现 `select zz.*`，且又额外输出 `zx.jingli as jingli_11`、`zx.xiaozu` 等字段。
+2. 查询 `temp_table.dingxi01_jiagou_db` 的 `qici + employee_email_name`，确认期次架构。
+3. 查询 `temp_table.dingxi01_jiagou_zx` 的 `employee_email_name`，确认当前在职架构。
+4. 查询 `finance_dw.dim_finance_employee_df` 的 `leader_employee_email_name` 链路，确认 HR 直属上级链路。
+
+**修复**：
+
+最终输出层显式列出字段，不再直接输出 `zz.jingli` / `zz.zhuguan`：
+
+```sql
+coalesce(jg.jingli, zx.jingli, zz.jingli) as jingli,
+coalesce(jg.xiaozu, zx.xiaozu, zz.zhuguan) as zhuguan,
+coalesce(jg.xiaozu, zx.xiaozu, zz.zhuguan) as xiaozu,
+coalesce(jg.jingli, zx.jingli, zz.jingli) as jingli_11
+```
+
+优先级固定为：期次架构表 `temp_table.dingxi01_jiagou_db` > 当前在职架构表 `temp_table.dingxi01_jiagou_zx` > 事实宽表 `virtual_*` 字段。
+
+---
+
 ## 5. CRM 开课后转移/退费状态无法回写导致顾问仍有退前/退后线索
 
 **症状**：CRM 前台显示某顾问当期线索已经全部转移、退费或转移给其他顾问，但运营侧看板、GMV communication 类数据集或全链路宽表仍能按该顾问拉出 `退前线索` / `退后线索` / 线索量。

@@ -6,10 +6,13 @@ from pathlib import Path
 
 
 QUERY_URL = "https://uanalysis.baijia.com/getDataSql"
+DATA_CENTER_DATASET_URL = "https://uanalysis.baijia.com/data-center/data-set"
+DATA_CENTER_API_BASE = "https://uanalysis.baijia.com/uanalysis-intelligence/data"
 DATAMAP_URL = "https://tiangong2.baijia.com/dataMap/dataMapNew"
 DATAMAP_API_BASE = "https://tiangong2.baijia.com/md-admin/api/tableV2"
 RUNTIME_DIR = Path.home() / ".codex" / "runtime" / "usql-web-query-operator"
 DATAMAP_RUNTIME_DIR = Path.home() / ".codex" / "runtime" / "data-map"
+DATA_CENTER_RUNTIME_DIR = RUNTIME_DIR / "data-center"
 DEFAULT_STATE = RUNTIME_DIR / "state.json"
 DEFAULT_DATAMAP_STATE = DATAMAP_RUNTIME_DIR / "state.json"
 DEFAULT_DATAMAP_CACHE = DATAMAP_RUNTIME_DIR / "datamap_table_catalog.json"

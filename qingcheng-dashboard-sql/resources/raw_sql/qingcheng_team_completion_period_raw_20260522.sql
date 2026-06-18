@@ -11,7 +11,14 @@ with org_t as (
     group by email_prefix, name
 )
 -- 订单明细
-,dd_0 as (select *
+,dd_0 as (select         
+		  id,order_number,sub_biz_number,pre_biz_number,clazz_name,
+        user_id1,pre_employee_id,type,trade_status,trade_type, paid_time,trade_time,real_price_0,
+        transfer_price,price,email_prefix,name,talent_type_name, city,
+        department,biz_number,grade_list,subject,qici,
+        leader_employee_email_name,teacher_name,
+        school_term_id,
+        note,course_first_level_department_name,course_second_level_department_name,course_top_level_department_name
 from (
     select
         id,order_number,substring(biz_number, 1, 10) as sub_biz_number,pre_biz_number,clazz_name,
@@ -29,13 +36,15 @@ from (
         concat(date_format(date_add('day', 4, date_trunc('week', date_add('day', -1, cast(trade_time as timestamp)))), '%Y%m%d'), '期') as qici,
         leader_employee_email_name,teacher_name,
         case course_term_id when 'C' then '春季' when 'X' then '夏季' when 'Q' then '秋季' when 'D' then '冬季' else '其他'end as school_term_id,
-        note,course_first_level_department_name,course_second_level_department_name,course_top_level_department_name
+        note,course_first_level_department_name,course_second_level_department_name,course_top_level_department_name,
+	case when clazz_name like '%试听%' then 0 else 1 end as shiting
     from finance_dw.app_finance_performance_extend_details_hf 
     where dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
       and hour = format_datetime(now() - interval '2' hour, 'HH')
       and employee_first_level_department_name = 'H业务线'
       and employee_second_level_department_name = '青橙项目部')
 where qici > '20260424期' 
+		  and shiting = '1'
 )
 -- 只查询员工在当前部门期间产生的营收和退费
 ,dd as (
@@ -44,7 +53,7 @@ where qici > '20260424期'
     from dd_0 a
     inner join org_t ot 
         on ot.name = a.name 
-        and a.trade_time >= ot.begin_time 
+        and a.paid_time >= ot.begin_time 
         and (ot.end_time is null or a.trade_time <= ot.end_time)  
 )
 -- 调课调班（按name和user_id1去重，每个用户保留一条记录）
@@ -212,28 +221,30 @@ sum(
         qici,moth,
         name,qtg.leader_employee_email_name,
         sum(case when course_first_level_department_name = 'H业务线' then promit else 0 end) as H_promit,------H业绩不剔除退4
-        0.5 * (sum(promit) - sum(case when course_first_level_department_name = 'H业务线' then promit else 0 end)) as n_H_promit,---非H
+        sum(case when course_first_level_department_name != 'H业务线' then promit_4 else 0 end) as n_H_promit,---非H
         sum(income) as income,
         sum(refund) as refund,
         sum(promit) as promit, 
         count(distinct case when refund > 0 then user_id1 end) as re_payer,----退费人数
 	----------------------剔除退费4
+sum(case when course_first_level_department_name = 'H业务线' and course_second_level_department_name = '一对一学部' then promit_4 else 0 end) as Y_promit_4,------一对一 净收 
+sum(case when course_first_level_department_name = 'H业务线' and course_second_level_department_name = '一对一学部' then income else 0 end) as Y_income_4,-------一对一 营收 
+sum(case when course_first_level_department_name = 'H业务线' and course_second_level_department_name = '一对一学部' then refund_4 else 0 end) as Y_refund_4,-------一对一 退费 
 	    sum(case when course_first_level_department_name = 'H业务线' then promit_4 else 0 end) as H_promit_4,------H业绩不剔除退4
-        0.5 * (sum(promit_4) - sum(case when course_first_level_department_name = 'H业务线' then promit_4 else 0 end)) as n_H_promit_4,---非H
+        sum(case when course_first_level_department_name != 'H业务线' then promit_4 else 0 end) as n_H_promit_4,---非H
         sum(refund_4) as refund_4,
         sum(promit_4) as promit_4, 
-        count(distinct case when refund_4 > 0 then user_id1 end) as re_payer_4
+        count(distinct case when refund_4 > 500 then user_id1 end) as re_payer_4
     from wa
 		left join 
 	(select distinct employee_email_name,leader_employee_email_name
 	 from temp_table.dingxi01_qing_team_jg
 	where qici = (select max(qici) from temp_table.dingxi01_qing_team_jg)
 	) qtg on qtg.employee_email_name = wa.name
-	where qtg.leader_employee_email_name is not null
     group by qici,moth,name,qtg.leader_employee_email_name
 )
 -- 架构+目标
-select *, case when emye_c != '1' then xiaozu1 else '-' end as xiaozu
+select *, case when xiaozu1 != '-' then xiaozu1 else '-' end as xiaozu
 from (
    select 
 	    qg.qici,qg.xuebu,qg.xiaozu as xiaozu1,qg.dazu,cast(qg.emye_c as decimal) as emye_c,cast(qg.goal as decimal) as goal,
@@ -245,12 +256,14 @@ from (
         coalesce(sum(re_payer),0) as re_payer,
 		count(distinct case when promit > 0 then name end) as podan,
 		---------------------退4
+	    coalesce(sum(Y_promit_4),0) as Y_promit_4,-------H一对一净收
+		 coalesce(sum(Y_income_4),0) as Y_income_4,-------H一对一营收
 		 coalesce(sum(H_promit_4),0) as H_promit_4,
         coalesce(sum(n_H_promit_4),0) as n_H_promit_4,
         coalesce(sum(refund_4),0) as refund_4,
         coalesce(sum(promit_4),0) as promit_4, 
         coalesce(sum(re_payer_4),0) as re_payer_4,
-        count(distinct case when promit_4 > 0 then name end) as podan_4
+        count(distinct case when promit > 0 then name end) as podan_4
     from temp_table.dingxi01_qing_team_g_qi qg 
     left join renchan rc on qg.xiaozu = rc.leader_employee_email_name and qg.qici = rc.qici
 group by qg.qici,qg.xuebu,qg.xiaozu,qg.dazu,leader_employee_email_name,qg.emye_c,qg.goal)

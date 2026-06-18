@@ -1,7 +1,3 @@
--- 市场顾问部 分渠道-年级-经理-主管-顾问 GMV退费率 & 人头退费率
--- 输出：分子/分母对，看板中自行计算比率
--- 指标计算粒度: 期次×渠道×年级×经理×主管×顾问
--- 最终输出粒度: 同上
 WITH lead_raw AS (
     SELECT DISTINCT
         concat(date_format(date_trunc('week', date_parse(replace(concat(t1.group_period_year, t1.group_period_term), '期', ''), '%Y%m%d') - interval '1' day) + interval '4' day, '%Y%m%d'), '期') AS period_name,
@@ -45,7 +41,6 @@ WITH lead_raw AS (
       AND t1.section_assign_employee_first_level_department_name = 'H业务线'
       AND t1.section_assign_employee_second_level_department_name = '市场部'
       AND t1.section_assign_employee_third_level_department_name = '市场顾问部'
-      AND t1.virtual_third_department_name = '市场顾问部'
       AND (t1.period_mapping_first_level_department_name = 'H业务线' OR t1.period_mapping_first_level_department_name IS NULL)
       AND (t1.period_mapping_second_level_department_name IN ('市场部','精品班学部') OR t1.period_mapping_second_level_department_name IS NULL)
 ),

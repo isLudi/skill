@@ -163,6 +163,12 @@ eligible_consultant_name as (
 - `traffic_profile.sql` 最终层通过 `zx.employee_email_name = zz.employee_email_name` 补充 `xiaozu`。
 - 该表无 `qici` 字段，流量画像中得到的是当前专项架构口径，不代表某期次历史架构；跨期复盘时需确认是否改用 `temp_table.dingxi01_jiagou_db`。
 
+### 运营侧个人数据 2293 使用备注
+
+- `resources/raw_sql/data_center_market_2293_20260617.sql` 中本表只作为当前在职架构兜底，不能优先替代 `temp_table.dingxi01_jiagou_db` 的期次架构。
+- 该 SQL 使用 `zx_active` 先按 `employee_email_name` 去重，并限定 `cast(zaizhi as varchar) = '1'`、`department in ('郑州顾问部', '西安一部', '西安二部')`，避免当前架构表重复 key 放大运营侧个人数据。
+- 展示经理/主管字段的优先级为：`temp_table.dingxi01_jiagou_db` 期次架构 > 本表当前在职架构 > 事实宽表 `virtual_*` 字段。
+
 ### 退费分析 SQL 使用备注（历史入口）
 
 - `refund_multi_subject_user_ratio.sql`、`refund_subject_product.sql`、`refund_reason_analysis.sql` 均通过 `employee_email_name = name` 关联该表，补充 `xiaozu`、`jingli`；这三份退费看板入口已合并到 `market_channel_conversion_profile.md`，当前新多维退费率 SQL `refund_rate_multidim.sql` 不使用该表。
@@ -175,6 +181,7 @@ eligible_consultant_name as (
 - `../dashboards/market_consultant_conversion.md`、`../dashboards/traffic_profile.md`：补充当前小组或经理。
 - `../dashboards/consultant_sales_ranking_evaluation.md`：季度/半年 clean 脚本用作当前在职顾问名单。
 - `../dashboards/refund_multi_subject_user_ratio.md`、`../dashboards/refund_subject_product.md`、`../dashboards/refund_reason_analysis.md`：历史退费分析当前架构补充入口；当前默认路由到 `../dashboards/market_channel_conversion_profile.md` 的多维退费率数据集。
+- `../dashboards/data_center_market_datasets.md`：运营侧个人数据 2293 当前架构兜底和去重来源。
 
 已知风险：
 

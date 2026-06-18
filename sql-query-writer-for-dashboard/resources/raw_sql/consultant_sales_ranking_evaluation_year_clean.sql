@@ -1,4 +1,3 @@
-
 with params as (
     select '2026' as qici_year
 ),

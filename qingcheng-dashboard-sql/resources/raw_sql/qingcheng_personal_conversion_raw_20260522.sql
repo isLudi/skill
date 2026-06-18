@@ -1,6 +1,6 @@
 -- 伙伴在部门开始时间
 with org_t as (
-    select 
+    select
         email_prefix,
         name,
         min(begin_time) as begin_time,
@@ -11,188 +11,362 @@ with org_t as (
     group by email_prefix, name
 )
 -- 订单明细
-,dd_0 as (select *
-from (
+,dd_0 as (
     select
-        id,order_number,substring(biz_number, 1, 10) as sub_biz_number,pre_biz_number,clazz_name,
-        user_id as user_id1,pre_employee_id,type,trade_status,trade_type, order_paid_time as paid_time,trade_time,
-        case when trade_status in ('全部退款', '部分退款') then -real_price else real_price end as real_price_0,
-        transfer_price,price,email_prefix,employee_email_name as name,talent_type_name, city_name as city,
-        department,biz_number,course_grade as grade_list,
-	    case when course_subject like '%英语%' or course_subject like '%英文%' then '英语' 
-	           when course_subject like '%语文%'  then '语文'  when course_subject like '%数学%'  then '数学' 
-	           when course_subject like '%物理%'  then '物理' when course_subject like '%化学%'  then '化学'
-	           when course_subject like '%历史%'  then '历史' when course_subject like '%政治%'  then '政治'
-	           when course_subject like '%生物%'  then '生物' when course_subject like '%地理%'  then '地理'
-	           when course_subject like '%日语%'  then '日语' else course_subject end 
-	     as subject,
-        concat(date_format(date_add('day', 4, date_trunc('week', date_add('day', -1, cast(trade_time as timestamp)))), '%Y%m%d'), '期') as qici,
-        leader_employee_email_name,teacher_name,
-        case course_term_id when 'C' then '春季' when 'X' then '夏季' when 'Q' then '秋季' when 'D' then '冬季' else '其他'end as school_term_id,
-        note,course_first_level_department_name,course_second_level_department_name,course_top_level_department_name
-    from finance_dw.app_finance_performance_extend_details_hf 
-    where dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
-      and hour = format_datetime(now() - interval '2' hour, 'HH')
-      and employee_first_level_department_name = 'H业务线'
-      and employee_second_level_department_name = '青橙项目部')
-where qici > '20260424期' 
+        id,
+        order_number,
+        sub_biz_number,
+        pre_biz_number,
+        clazz_name,
+        user_id1,
+        pre_employee_id,
+        type,
+        trade_status,
+        trade_type,
+        paid_time,
+        trade_time,
+        real_price_0,
+        transfer_price,
+        price,
+        email_prefix,
+        name,
+        talent_type_name,
+        city,
+        department,
+        biz_number,
+        grade_list,
+        subject,
+        qici,
+        leader_employee_email_name,
+        teacher_name,
+        school_term_id,
+        note,
+        course_first_level_department_name,
+        course_second_level_department_name,
+        course_top_level_department_name
+    from (
+        select
+            id,
+            order_number,
+            substring(biz_number, 1, 10) as sub_biz_number,
+            pre_biz_number,
+            clazz_name,
+            user_id as user_id1,
+            pre_employee_id,
+            type,
+            trade_status,
+            trade_type,
+            order_paid_time as paid_time,
+            trade_time,
+            case when trade_status in ('全部退款', '部分退款') then -real_price else real_price end as real_price_0,
+            transfer_price,
+            price,
+            email_prefix,
+            employee_email_name as name,
+            talent_type_name,
+            city_name as city,
+            department,
+            biz_number,
+            course_grade as grade_list,
+            case
+                when course_subject like '%英语%' or course_subject like '%英文%' then '英语'
+                when course_subject like '%语文%' then '语文'
+                when course_subject like '%数学%' then '数学'
+                when course_subject like '%物理%' then '物理'
+                when course_subject like '%化学%' then '化学'
+                when course_subject like '%历史%' then '历史'
+                when course_subject like '%政治%' then '政治'
+                when course_subject like '%生物%' then '生物'
+                when course_subject like '%地理%' then '地理'
+                when course_subject like '%日语%' then '日语'
+                else course_subject
+            end as subject,
+            concat(date_format(date_add('day', 4, date_trunc('week', date_add('day', -1, cast(trade_time as timestamp)))), '%Y%m%d'), '期') as qici,
+            leader_employee_email_name,
+            teacher_name,
+            case course_term_id
+                when 'C' then '春季'
+                when 'X' then '夏季'
+                when 'Q' then '秋季'
+                when 'D' then '冬季'
+                else '其他'
+            end as school_term_id,
+            note,
+            course_first_level_department_name,
+            course_second_level_department_name,
+            course_top_level_department_name,
+            case when clazz_name like '%试听%' then 0 else 1 end as shiting
+        from finance_dw.app_finance_performance_extend_details_hf
+        where dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
+          and hour = format_datetime(now() - interval '2' hour, 'HH')
+          and employee_first_level_department_name = 'H业务线'
+          and employee_second_level_department_name = '青橙项目部'
+    )
+    where qici > '20260424期'
+      and shiting = '1'
 )
 -- 只查询员工在当前部门期间产生的营收和退费
 ,dd as (
-    select 
+    select
         a.*
     from dd_0 a
-    inner join org_t ot 
-        on ot.name = a.name 
-        and a.trade_time >= ot.begin_time 
-        and (ot.end_time is null or a.trade_time <= ot.end_time)  
+    inner join org_t ot
+        on ot.name = a.name
+       and a.paid_time >= ot.begin_time
+       and (ot.end_time is null or a.trade_time <= ot.end_time)
 )
 -- 调课调班（按name和user_id1去重，每个用户保留一条记录）
 ,gmv_t as (
-    select id,order_number,clazz_name,user_id1,
-        trade_status,trade_time,trade_type,email_prefix,name,
-        grade_list,subject,qici,
-        school_term_id,teacher_name,
-        course_first_level_department_name,course_second_level_department_name,name_total_price
-    from (
-        select *,
-            row_number() over (partition by name, user_id1 order by id) as dup_rn
-        from (
-            select dd.*,
-                round(sum(price) over (partition by name, user_id1), 3) as name_total_price
-            from dd where trade_type = '调课调班'
-        ) t1
-        where abs(name_total_price) > 0.001  
-    ) t2
-    where dup_rn = 1
-)
--- 正常订单
-,gmv_z as (
-    select 
-        id,order_number,clazz_name,user_id1,
-        trade_status,trade_time,
+    select
+        id,
+        order_number,
+        clazz_name,
+        user_id1,
+        trade_status,
+        trade_time,
         trade_type,
         email_prefix,
         name,
         grade_list,
         subject,
         qici,
-        school_term_id,teacher_name,
-        course_first_level_department_name,course_second_level_department_name,
+        school_term_id,
+        teacher_name,
+        course_first_level_department_name,
+        course_second_level_department_name,
+        name_total_price
+    from (
+        select
+            *,
+            row_number() over (partition by name, user_id1 order by id) as dup_rn
+        from (
+            select
+                dd.*,
+                round(sum(price) over (partition by name, user_id1), 3) as name_total_price
+            from dd
+            where trade_type = '调课调班'
+        ) t1
+        where abs(name_total_price) > 0.001
+    ) t2
+    where dup_rn = 1
+)
+-- 正常订单
+,gmv_z as (
+    select
+        id,
+        order_number,
+        clazz_name,
+        user_id1,
+        trade_status,
+        trade_time,
+        trade_type,
+        email_prefix,
+        name,
+        grade_list,
+        subject,
+        qici,
+        school_term_id,
+        teacher_name,
+        course_first_level_department_name,
+        course_second_level_department_name,
         sum(price) as name_total_price
     from dd
     where trade_type = '正常订单'
-    group by id,order_number,clazz_name,user_id1,trade_status,trade_time,
-             trade_type,email_prefix,name,grade_list,subject,
-             qici,school_term_id,teacher_name,
-             course_first_level_department_name,course_second_level_department_name
+    group by
+        id,
+        order_number,
+        clazz_name,
+        user_id1,
+        trade_status,
+        trade_time,
+        trade_type,
+        email_prefix,
+        name,
+        grade_list,
+        subject,
+        qici,
+        school_term_id,
+        teacher_name,
+        course_first_level_department_name,
+        course_second_level_department_name
 )
 -- 整合结果
 ,rd as (
-    select 
-        id, order_number, clazz_name, user_id1, trade_status, trade_time,
-        trade_type, email_prefix, name, grade_list, subject, 
-        qici, school_term_id, teacher_name,
-        course_first_level_department_name, course_second_level_department_name,
+    select
+        id,
+        order_number,
+        clazz_name,
+        user_id1,
+        trade_status,
+        trade_time,
+        trade_type,
+        email_prefix,
+        name,
+        grade_list,
+        subject,
+        qici,
+        school_term_id,
+        teacher_name,
+        course_first_level_department_name,
+        course_second_level_department_name,
         name_total_price
     from gmv_z
+
     union all
-    select 
-        id, order_number, clazz_name, user_id1, trade_status, trade_time,
-        trade_type, email_prefix, name, grade_list, subject, 
-        qici, school_term_id, teacher_name,
-        course_first_level_department_name, course_second_level_department_name,
+
+    select
+        id,
+        order_number,
+        clazz_name,
+        user_id1,
+        trade_status,
+        trade_time,
+        trade_type,
+        email_prefix,
+        name,
+        grade_list,
+        subject,
+        qici,
+        school_term_id,
+        teacher_name,
+        course_first_level_department_name,
+        course_second_level_department_name,
         name_total_price
     from gmv_t
 )
 -----------------退费行课节数
 ,ord as (
-	SELECT
-          order_number,user_number,final_paid_timestamp,full_refund_timestamp,total_refund_amount,talent_type_name,
-          employee_email_name,email_prefix,
-		  full_refund_finish_lesson_count,-----完全退款时已完课课节数(直播课，不包含类直播赠课)
-          full_refund_chain_finish_lesson_count,---完全退款时调课链路总完课课节数
-		  original_order_pay_success_clazz_remain_lesson_count,-----原始父订单下单时剩余课节数
-          clazz_number,clazz_biz_number,clazz_name,school_year,school_term_name,school_department_name,school_subject_name,
-		concat(date_format(date_add('day', 4, date_trunc('week', date_add('day', -1, cast(full_refund_timestamp as timestamp)))), '%Y%m%d'), '期') as qici_re,
-          CASE
-            WHEN course_category_code = 10 THEN '公开课'
-            WHEN course_category_code = 20 THEN '体验课'
-            WHEN course_category_code = 30 THEN '专题课'
-            WHEN course_category_code = 40 THEN '系列课'
-            ELSE course_category_code
-          END AS course_category,
-          course_first_level_department_name,course_second_level_department_name,course_third_level_department_name
-        FROM
-          finance_dw.dm_finance_order_refund_detail_df
-        WHERE dt = format_datetime(now() - interval '24' hour, 'YYYYMMdd')
-          AND course_first_level_department_name = 'H业务线'
-		  and course_second_level_department_name in ( '精品班学部','菁英班学部','一对一学部')
-          AND is_full_refund_order = 1------------------是否全部退款
-          AND total_refund_amount IS NOT NULL
-          AND total_refund_amount <> 0)
+    select
+        order_number,
+        user_number,
+        final_paid_timestamp,
+        full_refund_timestamp,
+        total_refund_amount,
+        talent_type_name,
+        employee_email_name,
+        email_prefix,
+        full_refund_finish_lesson_count,
+        full_refund_chain_finish_lesson_count,
+        original_order_pay_success_clazz_remain_lesson_count,
+        clazz_number,
+        clazz_biz_number,
+        clazz_name,
+        school_year,
+        school_term_name,
+        school_department_name,
+        school_subject_name,
+        concat(date_format(date_add('day', 4, date_trunc('week', date_add('day', -1, cast(full_refund_timestamp as timestamp)))), '%Y%m%d'), '期') as qici_re,
+        case
+            when course_category_code = 10 then '公开课'
+            when course_category_code = 20 then '体验课'
+            when course_category_code = 30 then '专题课'
+            when course_category_code = 40 then '系列课'
+            else course_category_code
+        end as course_category,
+        course_first_level_department_name,
+        course_second_level_department_name,
+        course_third_level_department_name
+    from finance_dw.dm_finance_order_refund_detail_df
+    where dt = format_datetime(now() - interval '24' hour, 'YYYYMMdd')
+      and course_first_level_department_name = 'H业务线'
+      and course_second_level_department_name in ('精品班学部', '菁英班学部', '一对一学部')
+      and is_full_refund_order = 1
+      and total_refund_amount is not null
+      and total_refund_amount <> 0
+)
 --------------调课调班
 ,order_change as (
-	SELECT
-      parent_order_number,------父订单编号
-      CASE WHEN order_change_type = 0 THEN '调课调班' WHEN order_change_type = 1 THEN '课程转移' ELSE order_change_type
-      END AS refund_type ---------调课调班类型
-    FROM finance_dw.dim_finance_order_change_df
-    WHERE dt = format_datetime(now() - interval '24' hour, 'YYYYMMdd')
-      AND latest_child_order_status IN (2, 6, 7)
-      AND biz_type = 2)
+    select
+        parent_order_number,
+        case
+            when order_change_type = 0 then '调课调班'
+            when order_change_type = 1 then '课程转移'
+            else order_change_type
+        end as refund_type
+    from finance_dw.dim_finance_order_change_df
+    where dt = format_datetime(now() - interval '24' hour, 'YYYYMMdd')
+      and latest_child_order_status in (2, 6, 7)
+      and biz_type = 2
+)
 ---------------合并退费行课节数
-,re_ke as (select   
-  ord.qici_re,
-  ord.order_number,
-  ord.user_number,
-  ord.final_paid_timestamp,
-  ord.full_refund_timestamp,
-  ord.total_refund_amount,
-  ord.talent_type_name,
-  ord.employee_email_name,
-  ord.full_refund_finish_lesson_count,-----完全退款时已完课课节数(直播课，不包含类直播赠课)
-  ord.full_refund_chain_finish_lesson_count,---完全退款时调课链路总完课课节数
-  ord.original_order_pay_success_clazz_remain_lesson_count,-----原始父订单下单时剩余课节数
-  ord.clazz_number,
-  ord.clazz_name,
-  COALESCE(order_change.refund_type, '非调课调班') AS refund_type
-  from ord 
-  left join order_change on ord.order_number = order_change.parent_order_number)
+,re_ke as (
+    select
+        ord.qici_re,
+        ord.order_number,
+        ord.user_number,
+        ord.final_paid_timestamp,
+        ord.full_refund_timestamp,
+        ord.total_refund_amount,
+        ord.talent_type_name,
+        ord.employee_email_name,
+        ord.full_refund_finish_lesson_count,
+        ord.full_refund_chain_finish_lesson_count,
+        ord.original_order_pay_success_clazz_remain_lesson_count,
+        ord.clazz_number,
+        ord.clazz_name,
+        coalesce(order_change.refund_type, '非调课调班') as refund_type
+    from ord
+    left join order_change
+        on ord.order_number = order_change.parent_order_number
+)
 ------------------------连接各订单退费行课节数
-,t4 as (select rd.*,coalesce(re_ke.full_refund_chain_finish_lesson_count,0) as re_lc
-from rd
-left join re_ke on re_ke.qici_re = rd.qici and re_ke.order_number = rd.order_number)
+,t4 as (
+    select
+        rd.*,
+        coalesce(re_ke.full_refund_chain_finish_lesson_count, 0) as re_lc
+    from rd
+    left join re_ke
+        on re_ke.qici_re = rd.qici
+       and re_ke.order_number = rd.order_number
+)
 --------------------
 ,rd_0 as (
-    select 
+    select
         qici,
         course_first_level_department_name,
         course_second_level_department_name,
         name,
         user_id1,
-        case when trade_status like '%退款%' then '退款' when trade_status like '%支付%' then '支付' else '未知' end as trade_status,
+        case
+            when trade_status like '%退款%' then '退款'
+            when trade_status like '%支付%' then '支付'
+            else '未知'
+        end as trade_status,
         grade_list,
         sum(case when name_total_price >= 0 then name_total_price else 0 end) as income,
-sum(
-    case 
-        when course_second_level_department_name = '一对一学部' and course_first_level_department_name = 'H业务线' 
-        then case when name_total_price < 0 then abs(name_total_price) else 0 end ---------一对一
-        else 
-	case when clazz_name like '%点睛%' and name_total_price < 0 and re_lc < 2 then abs(name_total_price) when (clazz_name not like '%点睛%' or clazz_name is null) and name_total_price < 0 and re_lc < 4 then abs(name_total_price) else 0 end-------------班课
-    end ) as refund_4,----行课退费4
-	    sum(case when name_total_price < 0  then abs(name_total_price) else 0 end) as refund,---全部退费
-     count(distinct case when subject not in ('选科志愿','定制方案') and name_total_price > 0 then subject end) as p_sub,--支付科目
-	 count(distinct case when subject not in ('选科志愿','定制方案') and name_total_price < 0 then subject end) as r_sub----退款科目
+        sum(
+            case
+                when course_second_level_department_name = '一对一学部'
+                 and course_first_level_department_name = 'H业务线'
+                then case when name_total_price < 0 then abs(name_total_price) else 0 end
+                else case
+                    when clazz_name like '%点睛%' and name_total_price < 0 and re_lc < 2 then abs(name_total_price)
+                    when (clazz_name not like '%点睛%' or clazz_name is null) and name_total_price < 0 and re_lc < 4 then abs(name_total_price)
+                    else 0
+                end
+            end
+        ) as refund_4,
+        sum(case when name_total_price < 0 then abs(name_total_price) else 0 end) as refund,
+        count(distinct case when subject not in ('选科志愿', '定制方案') and name_total_price > 0 then subject end) as p_sub,
+        count(distinct case when subject not in ('选科志愿', '定制方案') and name_total_price < 0 then subject end) as r_sub
     from t4
-    group by qici,course_first_level_department_name,course_second_level_department_name,name,user_id1,
-             case when trade_status like '%退款%' then '退款' when trade_status like '%支付%' then '支付' else '未知' end,
-             grade_list
+    group by
+        qici,
+        course_first_level_department_name,
+        course_second_level_department_name,
+        name,
+        user_id1,
+        case
+            when trade_status like '%退款%' then '退款'
+            when trade_status like '%支付%' then '支付'
+            else '未知'
+        end,
+        grade_list
 )
 ------------
 ,wa as (
-    select  
-        qici, 
+    select
+        qici,
         course_first_level_department_name,
         course_second_level_department_name,
         name,
@@ -201,60 +375,184 @@ sum(
         grade_list,
         income,
         refund_4,
-	    refund,
-        (income - refund_4) as promit_4,----剔除行课4节课退费净收
-	    (income - refund) as promit,
-	   p_sub as jing_sub
+        refund,
+        (income - refund_4) as promit_4,
+        (income - refund) as promit,
+        p_sub as jing_sub
     from rd_0
 )
 -- 聚合人维度
 ,renchan as (
-    select 
-        qtg.qici,qm.moth,        
-	    qtg.employee_email_name,qtg.leader_employee_email_name,qtg.dazu,qtg.jingli,qtg.xuebu,
-        sum(case when course_first_level_department_name = 'H业务线' then promit else 0 end) as H_promit,------H业绩不剔除退4
-        0.5 * (sum(promit) - sum(case when course_first_level_department_name = 'H业务线' then promit else 0 end)) as n_H_promit,---非H
+    select
+        qtg.qici,
+        qm.moth,
+        qtg.employee_email_name,
+        qtg.leader_employee_email_name,
+        qtg.dazu,
+        qtg.jingli,
+        qtg.xuebu,
+        sum(case when course_first_level_department_name = 'H业务线' then promit else 0 end) as H_promit,
+        sum(case when course_first_level_department_name != 'H业务线' then promit else 0 end) as n_H_promit,
         sum(income) as income,
         sum(refund) as refund,
-        sum(promit) as promit, 
-        count(distinct case when refund > 0 then user_id1 end) as re_payer,----退费人数
-	----------------------剔除退费4
-	sum(case when course_first_level_department_name = 'H业务线' and course_second_level_department_name = '一对一学部' then promit_4 else 0 end) as Y_promit_4,------一对一 净收 
-	sum(case when course_first_level_department_name = 'H业务线' and course_second_level_department_name = '一对一学部' then income else 0 end) as Y_income_4,-------一对一 营收 
-	sum(case when course_first_level_department_name = 'H业务线' and course_second_level_department_name = '一对一学部' then refund_4 else 0 end) as Y_refund_4,-------一对一 退费 
-	    sum(case when course_first_level_department_name = 'H业务线' then promit_4 else 0 end) as H_promit_4,------H净收剔除退4
-	   sum(case when course_first_level_department_name = 'H业务线' then income else 0 end) as H_income_4,------H营收剔除退4
-	sum(case when course_first_level_department_name = 'H业务线' then refund_4 else 0 end) as H_refund_4,------H退费剔除退4
-        0.5 * (sum(promit_4) - sum(case when course_first_level_department_name = 'H业务线' then promit_4 else 0 end)) as n_H_promit_4,---非H即小初按50%
+        sum(promit) as promit,
+        count(distinct case when refund > 500 then user_id1 end) as re_payer,
+        sum(case when course_first_level_department_name = 'H业务线' and course_second_level_department_name = '一对一学部' then promit_4 else 0 end) as Y_promit_4,
+        sum(case when course_first_level_department_name = 'H业务线' and course_second_level_department_name = '一对一学部' then income else 0 end) as Y_income_4,
+        sum(case when course_first_level_department_name = 'H业务线' and course_second_level_department_name = '一对一学部' then refund_4 else 0 end) as Y_refund_4,
+        sum(case when course_first_level_department_name = 'H业务线' then promit_4 else 0 end) as H_promit_4,
+        sum(case when course_first_level_department_name = 'H业务线' then income else 0 end) as H_income_4,
+        sum(case when course_first_level_department_name = 'H业务线' then refund_4 else 0 end) as H_refund_4,
+        sum(case when course_first_level_department_name != 'H业务线' then promit_4 else 0 end) as n_H_promit_4,
         count(distinct case when refund_4 > 0 then user_id1 end) as re_payer_4,
-	 count(distinct case when promit_4 > 0 then user_id1 end) as in_payer_4,----净收>0用户数
-	sum(jing_sub) as j_sub--------净科目数
-    from temp_table.dingxi01_qing_team_jg qtg
-  left join wa on qtg.employee_email_name = wa.name and qtg.qici = wa.qici
-left join temp_table.dingxi01_qing_qi_moth qm on qm.qici = qtg.qici
-	where qtg.leader_employee_email_name is not null
-    group by qtg.qici,qm.moth,qtg.employee_email_name,qtg.leader_employee_email_name,qtg.dazu,qtg.jingli,qtg.xuebu
+        count(distinct case when promit > 0 then user_id1 end) as in_payer_4,
+        sum(jing_sub) as j_sub
+    from (
+        select qici, employee_email_name, leader_employee_email_name, dazu, jingli, xuebu,
+            row_number() over (partition by qici, employee_email_name order by leader_employee_email_name) as rn
+        from temp_table.dingxi01_qing_team_jg
+        where leader_employee_email_name is not null
+    ) qtg
+    left join wa
+        on qtg.employee_email_name = wa.name
+       and qtg.qici = wa.qici
+    left join temp_table.dingxi01_qing_qi_moth qm
+        on qm.qici = qtg.qici
+    where qtg.rn = 1
+    group by
+        qtg.qici,
+        qm.moth,
+        qtg.employee_email_name,
+        qtg.leader_employee_email_name,
+        qtg.dazu,
+        qtg.jingli,
+        qtg.xuebu
 )
--- 架构+目标
-   select 
-	    qici,moth,        
-	    employee_email_name as name,leader_employee_email_name,dazu,jingli,xuebu,
-	    coalesce(sum(H_promit),0) as H_promit,
-        coalesce(sum(n_H_promit),0) as n_H_promit,
-        coalesce(sum(income),0) as income,
-        coalesce(sum(refund),0) as refund,
-        coalesce(sum(promit),0) as promit, 
-        coalesce(sum(re_payer),0) as re_payer,
-		coalesce(sum(in_payer_4),0) as in_payer_4,---------净支付用户数
-		coalesce(sum(j_sub),0) as j_sub,-------净科目数
-		count(distinct case when promit > 0 then employee_email_name end) as podan,
-		---------------------退4
-		coalesce(sum(Y_promit_4),0) as Y_promit_4,-------H一对一净收
-		 coalesce(sum(H_promit_4),0) as H_promit_4,--------H净收
-		 coalesce(sum(Y_income_4),0) as Y_income_4,-------H一对一营收
-		 coalesce(sum(H_income_4),0) as H_income_4,--------H营收
-		 coalesce(sum(Y_refund_4),0) as Y_refund_4,-------H一对一退费
-		 coalesce(sum(H_refund_4),0) as H_refund_4,--------H退费
-        coalesce(sum(n_H_promit_4),0) as n_H_promit_4-----非H净收
-    from renchan 
-group by 1,2,3,4,5,6,7
+-- 目标字段
+,goal_qici as (
+    select
+        name as employee_email_name,
+        qici,
+        max(cast(goal as decimal(18, 2))) as qici_goal
+    from temp_table.dingxi01_qing_goal
+    group by name, qici
+)
+,goal_moth as (
+    select
+        month as moth,
+        name as employee_email_name,
+        sum(cast(goal as decimal(18, 2))) as moth_goal
+    from temp_table.dingxi01_qing_goal
+    group by month, name
+)
+,final_base as (
+    select
+        r.qici,
+        r.moth,
+        r.employee_email_name as name,
+        r.leader_employee_email_name,
+        r.dazu,
+        r.jingli,
+        r.xuebu,
+        max(gq.qici_goal) as qici_goal,
+        max(gm.moth_goal) as moth_goal,
+        coalesce(sum(r.H_promit), 0) as H_promit,
+        coalesce(sum(r.n_H_promit), 0) as n_H_promit,
+        coalesce(sum(r.income), 0) as income,
+        coalesce(sum(r.refund), 0) as refund,
+        coalesce(sum(r.promit), 0) as promit,
+        coalesce(sum(r.re_payer), 0) as re_payer,
+        coalesce(sum(r.in_payer_4), 0) as in_payer_4,
+        coalesce(sum(r.j_sub), 0) as j_sub,
+        count(distinct case when r.promit > 0 then r.employee_email_name end) as podan,
+        coalesce(sum(r.Y_promit_4), 0) as Y_promit_4,
+        coalesce(sum(r.H_promit_4), 0) as H_promit_4,
+        coalesce(sum(r.Y_income_4), 0) as Y_income_4,
+        coalesce(sum(r.H_income_4), 0) as H_income_4,
+        coalesce(sum(r.Y_refund_4), 0) as Y_refund_4,
+        coalesce(sum(r.H_refund_4), 0) as H_refund_4,
+        coalesce(sum(r.n_H_promit_4), 0) as n_H_promit_4
+    from renchan r
+    left join goal_qici gq
+        on gq.qici = r.qici
+       and gq.employee_email_name = r.employee_email_name
+    left join goal_moth gm
+        on gm.moth = r.moth
+       and gm.employee_email_name = r.employee_email_name
+    group by
+        r.qici,
+        r.moth,
+        r.employee_email_name,
+        r.leader_employee_email_name,
+        r.dazu,
+        r.jingli,
+        r.xuebu
+)
+-- ============================================================
+-- 双粒度输出：qici 粒度 + moth 粒度
+-- data_level = 'qici' → 期产出单元使用
+-- data_level = 'moth' → 月度产出单元使用
+-- ============================================================
+select
+    'qici' as data_level,
+    qici,
+    moth,
+    name,
+    leader_employee_email_name,
+    dazu,
+    jingli,
+    xuebu,
+    qici_goal,
+    case
+        when row_number() over (partition by name, moth order by qici) = 1 then moth_goal
+        else cast(0 as decimal(18, 2))
+    end as moth_goal,
+    H_promit,
+    n_H_promit,
+    income,
+    refund,
+    promit,
+    re_payer,
+    in_payer_4,
+    j_sub,
+    podan,
+    Y_promit_4,
+    H_promit_4,
+    Y_income_4,
+    H_income_4,
+    Y_refund_4,
+    H_refund_4,
+    n_H_promit_4
+from final_base
+
+union all
+
+select
+    'moth' as data_level,
+    cast(null as varchar) as qici,
+    moth,
+    name,
+    leader_employee_email_name,
+    max(dazu) as dazu,
+    max(jingli) as jingli,
+    max(xuebu) as xuebu,
+    cast(null as decimal(18, 2)) as qici_goal,
+    max(moth_goal) as moth_goal,
+    sum(H_promit) as H_promit,
+    sum(n_H_promit) as n_H_promit,
+    sum(income) as income,
+    sum(refund) as refund,
+    sum(promit) as promit,
+    sum(re_payer) as re_payer,
+    sum(in_payer_4) as in_payer_4,
+    sum(j_sub) as j_sub,
+    max(podan) as podan,
+    sum(Y_promit_4) as Y_promit_4,
+    sum(H_promit_4) as H_promit_4,
+    sum(Y_income_4) as Y_income_4,
+    sum(H_income_4) as H_income_4,
+    sum(Y_refund_4) as Y_refund_4,
+    sum(H_refund_4) as H_refund_4,
+    sum(n_H_promit_4) as n_H_promit_4
+from final_base
+group by moth, name, leader_employee_email_name

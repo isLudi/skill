@@ -1,62 +1,62 @@
 with dd as (select *
 from (
     select
-        id, order_number,
+        id, order_number, 
         substring(biz_number, 1, 10) AS sub_biz_number,
         pre_biz_number, clazz_name, user_id AS user_id1,
         pre_employee_id, type, trade_status, trade_type,
         order_paid_time as paid_time, trade_time,
-        case
-            when trade_status in ('全部退款','部分退款') then -real_price
-            else real_price
+        case 
+            when trade_status in ('全部退款','部分退款') then -real_price 
+            else real_price 
         end as real_price_0,
         transfer_price, price, email_prefix,
         employee_email_name as name,
         talent_type_name, city_name as city, department,
         biz_number, course_grade as grade_list,
         course_subject as subject,
-     case
-            when substr(trade_time, 1, 10) >= '2026-02-25' and substr(trade_time, 1, 10) <= '2026-03-02' then '20260227期'
-            when substr(trade_time, 1, 10) >= '2026-02-17' and substr(trade_time, 1, 10) <= '2026-02-24' then '20260220期'
-            when substr(trade_time, 1, 10) >= '2026-02-09' and substr(trade_time, 1, 10) <= '2026-02-16' then '20260213期'
-            when substr(trade_time, 1, 10) >= '2026-02-03' and substr(trade_time, 1, 10) <= '2026-02-08' then '20260206期'
-            when substr(trade_time, 1, 10) >= '2026-01-27' and substr(trade_time, 1, 10) <= '2026-02-02' then '20260130期'
-            when substr(trade_time, 1, 10) >= '2026-01-20' and substr(trade_time, 1, 10) <= '2026-01-26' then '20260123期'
-        else concat(date_format(date_trunc('week', cast(trade_time as timestamp) - interval '1' day) + interval '4' day, '%Y%m%d'), '期') end as qici,
+	 case 
+			when substr(trade_time, 1, 10) >= '2026-02-25' and substr(trade_time, 1, 10) <= '2026-03-02' then '20260227期'
+			when substr(trade_time, 1, 10) >= '2026-02-17' and substr(trade_time, 1, 10) <= '2026-02-24' then '20260220期'
+			when substr(trade_time, 1, 10) >= '2026-02-09' and substr(trade_time, 1, 10) <= '2026-02-16' then '20260213期'
+			when substr(trade_time, 1, 10) >= '2026-02-03' and substr(trade_time, 1, 10) <= '2026-02-08' then '20260206期'
+			when substr(trade_time, 1, 10) >= '2026-01-27' and substr(trade_time, 1, 10) <= '2026-02-02' then '20260130期'
+			when substr(trade_time, 1, 10) >= '2026-01-20' and substr(trade_time, 1, 10) <= '2026-01-26' then '20260123期'
+		else concat(date_format(date_trunc('week', cast(trade_time as timestamp) - interval '1' day) + interval '4' day, '%Y%m%d'), '期') end as qici,
         leader_employee_email_name, teacher_name,
-        case course_term_id
-            when 'C' then '春季'
-            when 'X' then '夏季'
-            when 'Q' then '秋季'
-            when 'D' then '冬季'
+        case course_term_id 
+            when 'C' then '春季' 
+            when 'X' then '夏季' 
+            when 'Q' then '秋季' 
+            when 'D' then '冬季' 
             else '其他'
         end as school_term_id,
         note, course_first_level_department_name,
         course_second_level_department_name,
         course_top_level_department_name
-    from finance_dw.app_finance_performance_extend_details_hf
+    from finance_dw.app_finance_performance_extend_details_hf 
     where dt = FORMAT_DATETIME(NOW() - INTERVAL '2' HOUR, 'YYYYMMdd')
         and hour = FORMAT_DATETIME(NOW() - INTERVAL '2' HOUR, 'HH')
         and employee_first_level_department_name = 'H业务线'
-        and employee_second_level_department_name = '市场部'
+	    and employee_second_level_department_name = '市场部'
         and employee_third_level_department_name = '市场顾问部')
-        where qici >= '20260320期'
+		where qici >= '20260320期'
 )
 -- 调课调班（按name和user_id1去重，每个用户保留一条记录）
 ,gmv_t as (
-    select
-        id, order_number, clazz_name, user_id1, trade_status, trade_time,
-        trade_type, email_prefix, name, grade_list, subject,
+    select 
+        id, order_number, clazz_name, user_id1, trade_status, trade_time,  
+        trade_type, email_prefix, name, grade_list, subject, 
         qici, school_term_id, teacher_name,
 course_first_level_department_name,course_second_level_department_name,
         name_total_price
     from (
-        select
+        select 
             *,row_number() over (partition by name, user_id1 order by id) as dup_rn
         from (
-            select
+            select 
                 *,round(sum(price) over (partition by name, user_id1), 3) as name_total_price
-            from dd
+            from dd 
             where trade_type = '调课调班'
         ) t1
         where name_total_price != 0
@@ -65,7 +65,7 @@ course_first_level_department_name,course_second_level_department_name,
 )
 -- 正常订单
 ,gmv_z as (
-    select
+    select 
         id, order_number, clazz_name, user_id1, trade_status, trade_time,  -- 这里加了逗号
         trade_type, email_prefix, name, grade_list, subject,
         qici, school_term_id, teacher_name,
@@ -82,18 +82,18 @@ course_first_level_department_name,course_second_level_department_name,
 )
 -- --------------------------------------------整合流水结果
 ,rd as (
-    select
+    select 
         id, order_number, clazz_name, user_id1, trade_status, trade_time,
-        trade_type, email_prefix, name, grade_list, subject,
+        trade_type, email_prefix, name, grade_list, subject, 
         qici, school_term_id, teacher_name,
         course_first_level_department_name,
         course_second_level_department_name,
         name_total_price
     from gmv_z
     union all
-    select
+    select 
         id, order_number, clazz_name, user_id1, trade_status, trade_time,
-        trade_type, email_prefix, name, grade_list, subject,
+        trade_type, email_prefix, name, grade_list, subject, 
         qici, school_term_id, teacher_name,
         course_first_level_department_name,
         course_second_level_department_name,
@@ -101,7 +101,7 @@ course_first_level_department_name,course_second_level_department_name,
     from gmv_t
 )
 -------------------------计算净收，总收，退费
-,process as (select
+,process as (select 
 pg.qici, substring(pg.qici, 1, 6) as moth,  pg.employee_email_name,pg.dept,pg.jingli,pg.xiaozu,pg.channel,cast(pg.renchan as decimal) as renchan,pg.grade,pg.is_emp,
 sum(name_total_price) as pt,
 sum(case when name_total_price >0 then name_total_price else 0 end) as inc,
@@ -129,7 +129,7 @@ from rank_h )
 -----------------------------退费排序
 ,ref_rank as (
     select *,
-        row_number() over (partition by moth order by
+        row_number() over (partition by moth order by 
                 -- 第一类：有营收的，按退费率升序
                 case when inc > 0 then 1 else 2 end,
                 case when inc > 0 then refd else null end,
@@ -184,11 +184,11 @@ from rank_h )
 )
 
 -------------------------增加排名百分比
-select
+select 
 *,
     -- 计算排名位置百分比（处理分母为0的情况）
     round(rank_in_roi * 1.0 / nullif(count(*) over (partition by moth), 0), 5) as rank_position_roi,
     round(rank_in_ref * 1.0 / nullif(count(*) over (partition by moth), 0), 5) as rank_position_ref,
     case when channel like '%抖音私域%' or channel like '%抖音私信%' then 10 else 0 end as cs_channel_rank,
-    case when (channel like '%抖音私域%' or channel like '%抖音私信%') and roi >= 0.8  then 2 else 0 end as cs_80_rank
+	case when (channel like '%抖音私域%' or channel like '%抖音私信%') and roi >= 0.8  then 2 else 0 end as cs_80_rank
 from final_result

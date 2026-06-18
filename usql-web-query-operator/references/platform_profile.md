@@ -3,13 +3,14 @@
 ## 已知 URL
 
 - SQL取数页面：`https://uanalysis.baijia.com/getDataSql`
+- 数据中心数据集页面：`https://uanalysis.baijia.com/data-center/data-set`
 - 自助BI看板页面：`https://uanalysis.baijia.com/dashboard-market`
 - 看板菜单 API：`https://uanalysis.baijia.com/uanalysis-intelligence/data/menu/manage`
 - 保存的登录态缺失或过期时，会重定向到 CAS 登录页。
 
 ## 脚本边界
 
-- `scripts/usql_web_query.py`：只负责 SQL取数执行、结果预览和结果下载。
+- `scripts/usql_web_query.py`：负责 SQL取数执行、结果预览、结果下载、临时表上传、数据地图字段同步，以及数据中心数据集源 SQL 同步。
 - `scripts/read_dashboard.py`：只负责自助BI看板文件夹/菜单发现，以及看板页面读取。
 - 不要把看板扫描或读取命令重新塞回 `usql_web_query.py`。
 
@@ -157,6 +158,24 @@ iframe 编辑器工具栏中的运行按钮 fallback：
 - DDL：POST `https://tiangong2.baijia.com/md-admin/api/tableV2/getDdl`，body 为 `{"tableId":<id>}`
 
 该流程使用 `usql_web_query.py sync-datamap-fields`。只有加 `--write` 后才写治理过的 skill markdown/docs；cookie 和 schema cache 始终保存在 runtime 下。
+
+## 数据中心数据集源 SQL API
+
+2026-06-17 验证：
+
+- 页面 URL：`https://uanalysis.baijia.com/data-center/data-set`
+- 共享登录态：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\state.json`
+- Runtime 摘要目录：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\data-center\`
+- 数据集菜单：POST `https://uanalysis.baijia.com/uanalysis-intelligence/data/menu/manage`，body 为 `{"menuType":"DATA_SET"}`
+- 数据集详情：POST `https://uanalysis.baijia.com/uanalysis-intelligence/data/set/detail`，body 为 `{"id":"menu_set_<id>"}`。必须使用菜单节点 ID，不是 `fileValue` 或 `subjectId`。
+- 详情响应中的 `executeSql` 是数据中心编辑页左下角 SQL 语句的完整源 SQL；`dataSourceId`、`subjectId`、`openExternal` 等字段可作为数据集元数据记录。
+- 打开 `https://uanalysis.baijia.com/data-center/data-set?selectId=<menu_set_id>` 可以在 UI 中选中指定数据集，但脚本同步源 SQL 时优先使用详情接口，避免触发数据预览执行。
+
+目标范围规则：
+
+- 青橙项目部：目录路径以 `市场顾问部/青橙项目部/<数据集名>` 结尾的 SQL 数据集全部同步到 `qingcheng-dashboard-sql`。
+- 市场顾问部：目录路径以 `市场顾问部/市场顾问部/<数据集名>` 结尾的 SQL 数据集，从 `(内部渠道)外呼过程数据` 开始同步到末尾，写入 `sql-query-writer-for-dashboard`。
+- 同步命令是 `usql_web_query.py sync-data-center-sql`。默认 dry-run；只有加 `--write` 后才写 raw SQL、数据集清单和 changelog，并运行目标 skill 的索引与完整性检查。
 
 ## 未确认问题
 

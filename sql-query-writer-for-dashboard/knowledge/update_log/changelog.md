@@ -536,3 +536,22 @@
 - 覆盖 `knowledge/tables` 中 19 张物理表文档；其中 3 张表新增 `数据地图字段补充（2026-06-17）` 小节，追加 40 个数据地图字段。
 - 以数据地图和 DDL 为准回填字段类型和说明占位；复扫结果为字段缺口 0、类型占位 0、说明占位 0。
 - 未覆盖 `temp_table.*` 临时表文档；临时表字段仍以本地 Excel、SQL 使用场景和人工维护规则为准。
+
+## 2026-06-17 数据中心数据集源 SQL 同步
+
+- 从数据中心 `https://uanalysis.baijia.com/data-center/data-set` 同步数据集源 SQL，范围：市场顾问部目录下从 `(内部渠道)外呼过程数据` 开始到末尾的 SQL 数据集。
+- 保存 37 个数据集源 SQL 到 `resources/raw_sql`，更新清单 `knowledge/dashboards/data_center_market_datasets.md`。
+- 未改写 SQL 语义；后续字段、指标或临时表口径仍需基于源 SQL 和业务规则单独维护。
+
+## 2026-06-17 数据中心源 SQL 对比与 canonical raw_sql 更新
+
+- 将市场顾问部数据中心中已确认同源的 20 份源 SQL 映射并覆盖到现有 canonical raw_sql，包括外呼过程、到课衰减、转化、进量节奏、评优、退费和画像类数据集。
+- 保留未能确认同源的数据中心 SQL 为 `data_center_market_*_20260617.sql`，不强行覆盖既有知识库口径。
+- 更新 `knowledge/dashboards/data_center_market_datasets.md`，记录每份数据中心 SQL 的用途、主要依赖和冲突处理原则。
+
+## 2026-06-17 运营侧个人数据 2293 架构展示修正
+
+- 使用 runtime 修正版覆盖 `resources/raw_sql/data_center_market_2293_20260617.sql`。
+- 修正原因：原最终层 `select zz.*` 会把事实宽表 `zz.jingli` / `zz.zhuguan` 原样输出；BI 透视表绑定 `jingli` 时会使用事实宽表 `virtual_leader_email_name`，导致顾问展示在旧经理或旧主管下。
+- 修正逻辑：新增 `zx_active` 对 `temp_table.dingxi01_jiagou_zx` 做在职和部门过滤并按 `employee_email_name` 去重；最终层显式输出 `jingli`、`zhuguan`、`xiaozu`、`jingli_11`，优先级为 `temp_table.dingxi01_jiagou_db` 期次架构 > `temp_table.dingxi01_jiagou_zx` 当前在职架构 > 事实宽表 `virtual_*` 字段。
+- 更新 `knowledge/dashboards/data_center_market_datasets.md`、`knowledge/tables/temp_table.dingxi01_jiagou_db.md`、`knowledge/tables/temp_table.dingxi01_jiagou_zx.md`、`knowledge/pitfalls/common_join_failures.md`、`knowledge/sql_patterns/dashboard_query_patterns.md`，记录 2293 同类架构错位的排查路径和修复模板。

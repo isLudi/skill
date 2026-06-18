@@ -1,6 +1,368 @@
-with data as (
+with org_t as (
+    select
+        dep_path,
+        email_prefix,
+        name,
+        min(begin_time) as begin_time,
+        max(end_time) as end_time
+    from (
+        select distinct
+            email_prefix,
+            path_name,
+            array_join(slice(split(path_name, '-'), 1, 3), '-') as dep_path,
+            name,
+            talent_type_name,
+            position_name,
+            source_hr_status,
+            leave_time,
+            execute_time,
+            begin_time,
+            end_time
+        from dw.dim_employee_chain
+        where dt = format_datetime(now() - interval '24' hour, 'YYYYMMdd')
+          and array_join(slice(split(path_name, '-'), 1, 4), '-') = '高途-H业务线-市场部-市场顾问部'
+    ) t
+    group by
+        dep_path,
+        email_prefix,
+        name
+),
+finance_base as (
+    select
+        x.*,
+        concat(
+            date_format(
+                cast(
+                    case day_of_week(x.trade_dt - interval '1' day)
+                        when 1 then x.trade_dt + interval '3' day
+                        when 2 then x.trade_dt + interval '2' day
+                        when 3 then x.trade_dt + interval '1' day
+                        when 4 then x.trade_dt
+                        when 5 then x.trade_dt - interval '1' day
+                        when 6 then x.trade_dt - interval '2' day
+                        when 7 then x.trade_dt - interval '3' day
+                    end as timestamp
+                ),
+                '%Y%m%d'
+            ),
+            '期'
+        ) as trade_qici
+    from (
+        select
+            fe.*,
+            cast(cast(fe.trade_time as timestamp) as date) as trade_dt
+        from finance_dw.app_finance_performance_extend_details_hf fe
+        where fe.dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
+          and fe.hour = format_datetime(now() - interval '2' hour, 'HH')
+          and fe.employee_first_level_department_name = 'H业务线'
+          and fe.employee_second_level_department_name = '市场部'
+          and fe.employee_third_level_department_name = '市场顾问部'
+    ) x
+),
+dd_0 as (
+    select
+        id,
+        order_number,
+        substring(biz_number, 1, 10) as sub_biz_number,
+        pre_biz_number,
+        clazz_name,
+        user_id as user_id1,
+        pre_employee_id,
+        type,
+        trade_status,
+        trade_type,
+        order_paid_time as paid_time,
+        trade_time,
+        case
+            when trade_status in ('全部退款', '部分退款') then -real_price
+            else real_price
+        end as real_price_0,
+        transfer_price,
+        price,
+        email_prefix,
+        employee_email_name as name,
+        talent_type_name,
+        city_name as city,
+        department,
+        biz_number,
+        course_grade as grade_list,
+        course_subject as subject,
+        trade_qici as qici,
+        leader_employee_email_name,
+        teacher_name,
+        case course_term_id
+            when 'C' then '春季'
+            when 'X' then '夏季'
+            when 'Q' then '秋季'
+            when 'D' then '冬季'
+            else '其他'
+        end as school_term_id,
+        note
+    from finance_base
+    where trade_qici >= '20260403期'
+),
+dd as (
+    select dd_0.*
+    from dd_0
+    inner join org_t ot
+      on ot.email_prefix = dd_0.email_prefix
+    where dd_0.trade_time >= ot.begin_time
+      and dd_0.trade_time <= ot.end_time
+),
+gmv_t as (
+    select
+        id,
+        order_number,
+        clazz_name,
+        user_id1,
+        trade_status,
+        trade_time,
+        trade_type,
+        email_prefix,
+        name,
+        grade_list,
+        subject,
+        qici,
+        school_term_id,
+        teacher_name,
+        name_total_price
+    from (
+        select
+            *,
+            row_number() over (
+                partition by name, user_id1
+                order by id
+            ) as dup_rn
+        from (
+            select
+                *,
+                round(sum(price) over (partition by name, user_id1), 3) as name_total_price
+            from dd
+            where trade_type = '调课调班'
+        ) t1
+        where name_total_price != 0
+    ) t2
+    where dup_rn = 1
+),
+gmv_z as (
+    select
+        id,
+        order_number,
+        clazz_name,
+        user_id1,
+        trade_status,
+        trade_time,
+        trade_type,
+        email_prefix,
+        name,
+        grade_list,
+        subject,
+        qici,
+        school_term_id,
+        teacher_name,
+        sum(price) as name_total_price
+    from dd
+    where trade_type = '正常订单'
+    group by
+        id,
+        order_number,
+        clazz_name,
+        user_id1,
+        trade_status,
+        trade_time,
+        trade_type,
+        email_prefix,
+        name,
+        grade_list,
+        subject,
+        qici,
+        school_term_id,
+        teacher_name
+),
+rd as (
+    select
+        id,
+        order_number,
+        clazz_name,
+        user_id1,
+        trade_status,
+        trade_time,
+        trade_type,
+        email_prefix,
+        name,
+        grade_list,
+        subject,
+        qici,
+        school_term_id,
+        teacher_name,
+        name_total_price
+    from gmv_z
+
+    union all
+
+    select
+        id,
+        order_number,
+        clazz_name,
+        user_id1,
+        trade_status,
+        trade_time,
+        trade_type,
+        email_prefix,
+        name,
+        grade_list,
+        subject,
+        qici,
+        school_term_id,
+        teacher_name,
+        name_total_price
+    from gmv_t
+),
+jiagou_zx_active as (
+    select
+        employee_email_name,
+        employee_email_prefix,
+        xiaozu,
+        jingli,
+        department
+    from (
+        select
+            zx.*,
+            row_number() over (
+                partition by zx.employee_email_name
+                order by
+                    case
+                        when zx.department = '郑州顾问部' then 1
+                        when zx.department = '西安一部' then 2
+                        when zx.department = '西安二部' then 3
+                        else 9
+                    end,
+                    zx.employee_email_prefix,
+                    zx.xiaozu,
+                    zx.jingli
+            ) as rn
+        from temp_table.dingxi01_jiagou_zx zx
+        where cast(zx.zaizhi as varchar) = '1'
+          and zx.department in ('郑州顾问部', '西安一部', '西安二部')
+    ) x
+    where rn = 1
+),
+finance_period as (
+    select
+        rd.qici,
+        case
+            when zz.department like '%西安%' then '西安'
+            when zz.department like '%郑州%' then '郑州'
+            else '未知'
+        end as dept,
+        rd.name,
+        zz.xiaozu,
+        zz.jingli,
+        sum(case when rd.name_total_price >= 0 then rd.name_total_price else 0 end) as period_income,
+        sum(case when rd.name_total_price < 0 then abs(rd.name_total_price) else 0 end) as period_refund,
+        sum(rd.name_total_price) as period_pmit
+    from rd
+    inner join jiagou_zx_active zz
+      on zz.employee_email_name = rd.name
+    group by
+        rd.qici,
+        case
+            when zz.department like '%西安%' then '西安'
+            when zz.department like '%郑州%' then '郑州'
+            else '未知'
+        end,
+        rd.name,
+        zz.xiaozu,
+        zz.jingli
+),
+eligible_consultant_name as (
     select distinct
-  f.*,  concat(cast(date_format(date_trunc('week', date_parse(replace(concat(f.group_period_year,f.group_period_term),'期',''),'%Y%m%d') - interval '1' day) + interval '4' day, '%Y%m%d') as varchar),'期') as qici,
+        employee_email_name as name
+    from jiagou_zx_active
+),
+cost_dim as (
+    select
+        cast(qici as varchar) as qici,
+        trim(cast(channel as varchar)) as channel,
+        trim(cast(grade as varchar)) as grade,
+        max(try_cast(goal as double)) as goal
+    from temp_table.dingxi01_cost
+    where try_cast(goal as double) > 0
+      and cast(qici as varchar) >= '20260403期'
+    group by
+        cast(qici as varchar),
+        trim(cast(channel as varchar)),
+        trim(cast(grade as varchar))
+),
+conversion_base_stage as (
+    select
+        fl.*,
+        concat(coalesce(fl.group_period_year, ''), coalesce(fl.group_period_term, '')) as period_raw,
+        case
+            when regexp_like(
+                replace(concat(coalesce(fl.group_period_year, ''), coalesce(fl.group_period_term, '')), '期', ''),
+                '^[0-9]{8}$'
+            )
+            then cast(
+                date_parse(
+                    replace(concat(coalesce(fl.group_period_year, ''), coalesce(fl.group_period_term, '')), '期', ''),
+                    '%Y%m%d'
+                ) as date
+            )
+        end as group_period_date
+    from bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df fl
+    where fl.dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
+      and fl.hour = format_datetime(now() - interval '3' hour, 'HH')
+      and fl.section_assign_employee_first_level_department_name = 'H业务线'
+      and fl.section_assign_employee_second_level_department_name = '市场部'
+      and fl.section_assign_employee_third_level_department_name = '市场顾问部'
+      and (
+            fl.period_mapping_first_level_department_name = 'H业务线'
+            or fl.period_mapping_first_level_department_name is null
+          )
+      and (
+            fl.period_mapping_second_level_department_name in ('精品班学部', '青橙项目部', '一对一学部', '本地化大班学部', '市场部', '菁英班学部')
+            or fl.period_mapping_second_level_department_name is null
+          )
+),
+conversion_base as (
+    select
+        x.*,
+        case
+            when x.period_raw = '20240930期' then '20240927期'
+            when x.group_period_date is not null then concat(
+                date_format(
+                    cast(
+                        case day_of_week(x.group_period_date - interval '1' day)
+                            when 1 then x.group_period_date + interval '3' day
+                            when 2 then x.group_period_date + interval '2' day
+                            when 3 then x.group_period_date + interval '1' day
+                            when 4 then x.group_period_date
+                            when 5 then x.group_period_date - interval '1' day
+                            when 6 then x.group_period_date - interval '2' day
+                            when 7 then x.group_period_date - interval '3' day
+                        end as timestamp
+                    ),
+                    '%Y%m%d'
+                ),
+                '期'
+            )
+            else x.period_raw
+        end as period_name_calc
+    from conversion_base_stage x
+    where nullif(replace(x.period_raw, '期', ''), '') is not null
+),
+conversion_data as (
+    select distinct
+        period_name_calc as period_name,
+        virtual_third_department_name as depart_1,
+        virtual_fourth_department_name as depart,
+        virtual_leader_email_name as jingli,
+        virtual_direct_leader_email_name as zhuguan,
+        employee_email_name,
+        rule_name,
+        t1.lead_id,
+        user_id,
 case when flow_pool_name in ('高途学习规划','智辉老师讲规划') then '市场私域视频号'
 when rule_name like '%语数英%' and third_department_name = '新媒体内容运营部' then '语数英'
 when flow_pool_name like '%星义大大%' or flow_pool_name like '%星义物理%' then '赵星义'
@@ -176,332 +538,377 @@ when flow_pool_name like '%青少-私域%' then '青少私域'
 when put_plan_name like '%AI名师%' then 'AI直播'
 when channel_name_1= '信息流' and (put_plan_name like '%抖音私信%' or put_plan_name like '%初三0元%' or put_plan_name like '%高中0元%') then '信息流-抖音私信'
 when rule_name like '%途途私域%' or (rule_name like '%私域%' and first_department_name = 'TT') then '途途私域'
-else '其他未知流量' end as channel_map_1,
+else '其他未知流量' end as channel_map,
         case
-            when f.rule_name like '%高一%' then '高一'
-            when f.rule_name like '%高二%' then '高二'
-                    when f.rule_name like '%高三%' then '高三'
-            when f.rule_name like '%初一%' then '初一'
-            when f.rule_name like '%初二%' then '初二'
-            when f.rule_name like '%初三%' then '初三'
-            else f.lead_purchase_intention_level2_category_name
+            when rule_name like '%高一%' then '高一'
+            when rule_name like '%高二%' then '高二'
+            when rule_name like '%高三%' then '高三'
+            when rule_name like '%初二%' then '初二'
+            when rule_name like '%初三%' then '初三'
+            else '未知'
         end as grade_1,
-        case when f.valid_lead_count = '1' then f.friend_lead_count else 0 end as is_friend_lead,
-        case when t.jieduan in ('深沟','已双沟') then 1 else 0 end as is_shengou,
-        case when t.jieduan in ('已双沟') then 1 else 0 end as is_shuanggou
-    from bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df f
-    left join
-    (
-        select
-            user_number,
-            sale_flow_stage_sequence,
-            sale_flow_stage_name_1,
-            jieduan_1 as jieduan
-        from (
-            select
-                user_number,
-                sale_flow_stage_sequence,
-                CASE
-                    WHEN sale_flow_stage_sequence = '50' THEN '新线索'
-                    WHEN sale_flow_stage_sequence = '60' THEN '待跟进'
-                    WHEN sale_flow_stage_sequence = '70' THEN '已接收'
-                    WHEN sale_flow_stage_sequence = '100' THEN '未接通'
-                    WHEN sale_flow_stage_sequence = '150' THEN '已建联'
-                    WHEN sale_flow_stage_sequence = '200' THEN '首call'
-                    WHEN sale_flow_stage_sequence = '250' THEN '商机'
-                    WHEN sale_flow_stage_sequence = '300' THEN '学情沟通'
-                    WHEN sale_flow_stage_sequence = '350' THEN '浅沟'
-                    WHEN sale_flow_stage_sequence = '400' THEN '已约课'
-                    WHEN sale_flow_stage_sequence = '450' THEN '深沟'
-                    WHEN sale_flow_stage_sequence = '470' THEN '已双沟'
-                    WHEN sale_flow_stage_sequence = '500' THEN '再次建联'
-                    WHEN sale_flow_stage_sequence = '550' THEN '约课'
-                    WHEN sale_flow_stage_sequence = '600' THEN '诺访'
-                    WHEN sale_flow_stage_sequence = '650' THEN '已排课'
-                    WHEN sale_flow_stage_sequence = '660' THEN '已摸底测'
-                    WHEN sale_flow_stage_sequence = '680' THEN '促到课'
-                    WHEN sale_flow_stage_sequence = '700' THEN '已到课'
-                    WHEN sale_flow_stage_sequence = '710' THEN '中教完课'
-                    WHEN sale_flow_stage_sequence = '720' THEN '外教完课'
-                    WHEN sale_flow_stage_sequence = '750' THEN '已完课'
-                    WHEN sale_flow_stage_sequence = '800' THEN '到访'
-                    WHEN sale_flow_stage_sequence = '820' THEN '看回放'
-                    WHEN sale_flow_stage_sequence = '850' THEN '铺课'
-                    WHEN sale_flow_stage_sequence = '900' THEN '已推课'
-                    WHEN sale_flow_stage_sequence = '920' THEN '定金'
-                    WHEN sale_flow_stage_sequence = '925' THEN '已挖需'
-                    WHEN sale_flow_stage_sequence = '930' THEN '已规划'
-                    WHEN sale_flow_stage_sequence = '935' THEN '已报价'
-                    WHEN sale_flow_stage_sequence = '950' THEN '关单'
-                    WHEN sale_flow_stage_sequence = '955' THEN '追单'
-                    WHEN sale_flow_stage_sequence = '960' THEN '流转成功'
-                    WHEN sale_flow_stage_sequence = '1000' THEN '未成交'
-                    WHEN sale_flow_stage_sequence = '1050' THEN '成单'
-                    ELSE '未知状态'
-                END AS sale_flow_stage_name_1,
-                CASE
-                    WHEN sale_flow_stage_sequence = '450' THEN '深沟'
-                    WHEN sale_flow_stage_sequence = '470' THEN '已双沟'
-                    ELSE '其他'
-                END AS jieduan_1,
-                ROW_NUMBER() OVER (PARTITION BY user_number ORDER BY private_sea_update_time DESC) as rn
-            from service_dw.dwd_crm_assign_private_detail_hf
-            where dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
-                and hour = format_datetime(now() - interval '2' hour, 'HH')
-                and assign_employee_first_level_department_name = 'H业务线'
-                and assign_employee_second_level_department_name = '市场部'
-                and assign_employee_third_level_department_name = '市场顾问部'
-        )
-        where rn = 1
-    ) t on f.user_id = t.user_number
-    left join
-    (
-        select
-            lead_id,
-            section_assign_time,
-            section_assign_first_call_time,
-            section_assign_first_call_connected_time,
-            date_diff('hour', cast(section_assign_time as timestamp), cast(section_assign_first_call_connected_time as timestamp)) as first_call_connected_time_diff_hour
-        from service_dw.dm_crm_lead_stats_detail_hf
-        where dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
-            and hour = format_datetime(now() - interval '2' hour, 'HH')
-            and mapping_first_level_department_name = 'H业务线'
-            and mapping_second_level_department_name in ('精品班学部','菁英班学部','市场部','本地化大班学部')
-    ) jt on f.lead_id = jt.lead_id
-    where f.dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
-        and f.hour = format_datetime(now() - interval '3' hour, 'HH')
-        and f.section_assign_employee_first_level_department_name = 'H业务线'
-        and f.section_assign_employee_second_level_department_name = '市场部'
-        and f.period_mapping_first_level_department_name ='H业务线'
-        and f.valid_lead_count = '1'
+        coalesce(lead_count, 0) as lead_count,
+        coalesce(valid_lead_count, 0) as valid_lead_count,
+        coalesce(merge_assign_lead_count, 0) as merge_assign_lead_count,
+        coalesce(merge_valid_lead_count, 0) as merge_valid_lead_count,
+        coalesce(conversion_lead_count, 0) as conversion_lead_count,
+        coalesce(subject_count, 0) as subject_count,
+        coalesce(same_lead_period_subject_count, 0) as same_lead_period_subject_count,
+        coalesce(lb_subject_count, 0) as lb_subject_count,
+        coalesce(same_lead_period_lb_subject_count, 0) as same_lead_period_lb_subject_count,
+        coalesce(order_count, 0) as order_count,
+        coalesce(income_amount, 0) as income_amount,
+        coalesce(in_pay_period_refund_amount, 0) as in_pay_period_refund_amount,
+        coalesce(non_pay_period_refund_amount, 0) as non_pay_period_refund_amount,
+        coalesce(jp_cross_department_refund_amount, 0) as jp_cross_department_refund_amount,
+        coalesce(same_lead_period_order_count, 0) as same_lead_period_order_count,
+        coalesce(same_lead_period_conversion_lead_count, 0) as same_lead_period_conversion_lead_count,
+        coalesce(same_lead_period_income_amount, 0) as same_lead_period_income_amount,
+        coalesce(same_lead_period_refund_amount, 0) as same_lead_period_refund_amount
+    from conversion_base t1
+    where period_name_calc >= '20260403期'
 ),
-ke_manual as (
+conversion_by_channel as (
     select
-        qudao,
-        begin_time,
-        qici,
-        grade,
-        cast(ke_1 as varchar) as manual_ke_1,
-        channel
-    from (
-        select
-            ke.*,
-            row_number() over (
-                partition by ke.qici, ke.qudao, ke.grade, ke.begin_time
-                order by cast(ke.ke_1 as varchar), ke.channel
-            ) as rn
-        from temp_table.dingxi01_daoke_1_6_t ke
-    ) t
-    where rn = 1
-),
-learn_raw as (
-    select
-        t.user_number,
-        t.clazz_number,
-        t.clazz_lesson_number,
-        t.lesson_index,
-        t.lesson_index_add,
-        t.begin_time,
-        substr(t.begin_time, 12, 5) as ke_time,
-        case
-            when cast(t.begin_time as date) >= date '2026-02-25' and cast(t.begin_time as date) <= date '2026-03-02' then '20260227期'
-            when cast(t.begin_time as date) >= date '2026-02-17' and cast(t.begin_time as date) <= date '2026-02-24' then '20260220期'
-            when cast(t.begin_time as date) >= date '2026-02-09' and cast(t.begin_time as date) <= date '2026-02-16' then '20260213期'
-            when cast(t.begin_time as date) >= date '2026-02-03' and cast(t.begin_time as date) <= date '2026-02-08' then '20260206期'
-            else
-                case
-                    when day_of_week(cast(t.begin_time as date)) = 2
-                        then date_format(date_trunc('week', cast(t.begin_time as date)) - interval '3' day, '%Y%m%d') || '期'
-                    else date_format(date_trunc('week', cast(t.begin_time as date)) + interval '4' day, '%Y%m%d') || '期'
-                end
-        end as qici,
-        t.is_need_attend,
-        t.live_learn_duration,
-        t.is_valid_live_learn
-    from service_dw.dws_service_user_learn_detail_hf t
-    where t.dt = date_format(now() - interval '2' hour, '%Y%m%d')
-      and t.hour = date_format(now() - interval '2' hour, '%H')
-      and t.course_first_level_department_name = 'H业务线'
-      and t.course_second_level_department_name in ('精品班学部','市场部','青橙项目部')
-      and t.is_need_attend = 1
-),
-learn_ranked as (
-    select
-        lr.*,
-        row_number() over (
-            partition by lr.qici, lr.user_number, lr.clazz_number
-            order by cast(lr.begin_time as timestamp), lr.clazz_lesson_number
-        ) as lesson_rank_in_class,
-        cast(
+        cd.period_name as qici,
+        cd.employee_email_name as name,
+        max(cd.jingli) as jingli,
+        max(cd.zhuguan) as zhuguan,
+        cd.channel_map,
+        cd.grade_1,
+        sum(
             case
-                when lr.lesson_index between 1 and 6 then lr.lesson_index
-                when lr.lesson_index_add between 1 and 6 then lr.lesson_index_add
-                else row_number() over (
-                    partition by lr.qici, lr.user_number, lr.clazz_number
-                    order by cast(lr.begin_time as timestamp), lr.clazz_lesson_number
-                )
-            end as varchar
-        ) as auto_ke_1
-    from learn_raw lr
+                when cd.channel_map = '抖音私域' then cd.merge_assign_lead_count
+                else cd.lead_count
+            end
+        ) as leads_count,
+        sum(
+            case
+                when cd.channel_map = '抖音私域' then cd.merge_valid_lead_count
+                else cd.valid_lead_count
+            end
+        ) as can_renew_ds_count_a,
+        sum(cd.conversion_lead_count) as pay_users,
+        sum(cd.same_lead_period_conversion_lead_count) as pay_users_on_period,
+        sum(cd.conversion_lead_count - cd.same_lead_period_conversion_lead_count) as pay_users_not_on_period,
+        sum(cd.subject_count) as pay_user_subs,
+        sum(cd.same_lead_period_subject_count) as pay_user_subs_on_period,
+        sum(cd.subject_count - cd.same_lead_period_subject_count) as pay_user_subs_not_on_period,
+        sum(cd.lb_subject_count) as pay_user_subs_joint,
+        sum(cd.same_lead_period_lb_subject_count) as pay_user_subs_joint_onp,
+        sum(cd.lb_subject_count - cd.same_lead_period_lb_subject_count) as pay_user_subs_joint_nonp,
+        sum(cd.income_amount / 100) as trade_income,
+        sum(cd.in_pay_period_refund_amount / 100 + cd.non_pay_period_refund_amount / 100) as trade_refund,
+        sum(cd.income_amount / 100 - cd.in_pay_period_refund_amount / 100 - cd.non_pay_period_refund_amount / 100) as trade_profit,
+        sum(cd.same_lead_period_income_amount / 100) as xb_trade_income,
+        sum(cd.same_lead_period_income_amount / 100 - cd.same_lead_period_refund_amount / 100) as xb_trade_profit,
+        sum(cd.income_amount / 100 - cd.same_lead_period_income_amount / 100) as kk_trade_income,
+        sum(cd.non_pay_period_refund_amount / 100) as pre_refund
+    from conversion_data cd
+    inner join eligible_consultant_name ec
+      on ec.name = cd.employee_email_name
+    group by
+        cd.period_name,
+        cd.employee_email_name,
+        cd.channel_map,
+        cd.grade_1
 ),
-daoke as (
+conversion_with_target as (
     select
-        dk.qici,
-        dk.employee_email_prefix,
-        dk.lead_id,
-        dk.user_id,
-        dk.channel_map_1,
-        dk.grade_1,
-        dk.begin_time,
-        dk.clazz_number,
-        dk.clazz_lesson_number,
-        dk.lesson_index,
-        dk.lesson_index_add,
-        dk.lesson_rank_in_class,
-        dk.live_learn_duration,
-        dk.is_valid_live_learn,
-        ke.manual_ke_1,
-        dk.auto_ke_1,
-        case
-            when ke.manual_ke_1 is null and dk.auto_ke_1 is null then 'both_missing'
-            when ke.manual_ke_1 is null and dk.auto_ke_1 is not null then 'manual_missing'
-            when ke.manual_ke_1 is not null and dk.auto_ke_1 is null then 'auto_missing'
-            when ke.manual_ke_1 = dk.auto_ke_1 then 'same'
-            else 'diff'
-        end as ke_compare_status
-    from (
-        select distinct
-            t1.qici,
-            t1.employee_email_prefix,
-            t1.lead_id,
-            t1.user_id,
-            t1.channel_map_1,
-            t1.grade_1,
-            t2.begin_time,
-            t2.clazz_number,
-            t2.clazz_lesson_number,
-            t2.lesson_index,
-            t2.lesson_index_add,
-            t2.lesson_rank_in_class,
-            t2.live_learn_duration,
-            t2.is_valid_live_learn,
-            t2.auto_ke_1
-        from (
-            select
-                lead_id,
-                user_id,
-                employee_email_prefix,
-                qici,
-                channel_map_1,
-                grade_1
-            from data
-            group by lead_id, user_id, employee_email_prefix, qici, channel_map_1, grade_1
-        ) t1
-        left join learn_ranked t2
-          on t1.qici = t2.qici
-         and cast(t1.user_id as varchar) = cast(t2.user_number as varchar)
-    ) dk
-    left join ke_manual ke
-      on dk.qici = ke.qici
-     and dk.channel_map_1 = ke.qudao
-     and dk.grade_1 = ke.grade
-     and dk.begin_time = ke.begin_time
+        cc.qici,
+        cc.name,
+        cc.jingli,
+        cc.zhuguan,
+        cc.channel_map,
+        cc.grade_1,
+        cc.leads_count,
+        cc.can_renew_ds_count_a,
+        cc.pay_users,
+        cc.pay_users_on_period,
+        cc.pay_users_not_on_period,
+        cc.pay_user_subs,
+        cc.pay_user_subs_on_period,
+        cc.pay_user_subs_not_on_period,
+        cc.pay_user_subs_joint,
+        cc.pay_user_subs_joint_onp,
+        cc.pay_user_subs_joint_nonp,
+        cc.trade_income,
+        cc.trade_refund,
+        cc.trade_profit,
+        cc.xb_trade_income,
+        cc.xb_trade_profit,
+        cc.kk_trade_income,
+        cc.pre_refund,
+        cc.leads_count * coalesce(cd.goal, 0) as receive_target
+    from conversion_by_channel cc
+    left join cost_dim cd
+      on cd.qici = cc.qici
+     and cd.channel = trim(cc.channel_map)
+     and (cd.grade = cc.grade_1 or cd.grade = '0')
 ),
-prc as (
-    select distinct
-        data.qici,
-        data.channel_map_1,
-        data.rule_name,
-        data.grade_1,
-        jg.xiaozu,
-        jg.department,
-        jg.jingli,
-        coalesce(data.valid_lead_count, 0) as lead,
-        data.employee_email_prefix,
-        data.employee_email_name,
-        data.user_id,
-        case when sum(case when daoke.auto_ke_1 = '1' and daoke.live_learn_duration > 0 then 1 else 0 end) > 0 then 1 else 0 end as ke_1,
-        case when sum(case when daoke.auto_ke_1 = '2' and daoke.live_learn_duration > 0 then 1 else 0 end) > 0 then 1 else 0 end as ke_2,
-        case when sum(case when daoke.auto_ke_1 = '3' and daoke.live_learn_duration > 0 then 1 else 0 end) > 0 then 1 else 0 end as ke_3,
-        case when sum(case when daoke.auto_ke_1 = '4' and daoke.live_learn_duration > 0 then 1 else 0 end) > 0 then 1 else 0 end as ke_4,
-        case when sum(case when daoke.auto_ke_1 = '5' and daoke.live_learn_duration > 0 then 1 else 0 end) > 0 then 1 else 0 end as ke_5,
-        case when sum(case when daoke.auto_ke_1 = '6' and daoke.live_learn_duration > 0 then 1 else 0 end) > 0 then 1 else 0 end as ke_6,
-        case when sum(case when daoke.auto_ke_1 = '1' and cast(daoke.is_valid_live_learn as varchar) = '1' then 1 else 0 end) > 0 then 1 else 0 end as v_ke_1,
-        case when sum(case when daoke.auto_ke_1 = '2' and cast(daoke.is_valid_live_learn as varchar) = '1' then 1 else 0 end) > 0 then 1 else 0 end as v_ke_2,
-        case when sum(case when daoke.auto_ke_1 = '3' and cast(daoke.is_valid_live_learn as varchar) = '1' then 1 else 0 end) > 0 then 1 else 0 end as v_ke_3,
-        case when sum(case when daoke.auto_ke_1 = '4' and cast(daoke.is_valid_live_learn as varchar) = '1' then 1 else 0 end) > 0 then 1 else 0 end as v_ke_4,
-        case when sum(case when daoke.auto_ke_1 = '5' and cast(daoke.is_valid_live_learn as varchar) = '1' then 1 else 0 end) > 0 then 1 else 0 end as v_ke_5,
-        case when sum(case when daoke.auto_ke_1 = '6' and cast(daoke.is_valid_live_learn as varchar) = '1' then 1 else 0 end) > 0 then 1 else 0 end as v_ke_6,
-        case when sum(case when daoke.manual_ke_1 = '1' and daoke.live_learn_duration > 0 then 1 else 0 end) > 0 then 1 else 0 end as manual_ke_1,
-        case when sum(case when daoke.manual_ke_1 = '2' and daoke.live_learn_duration > 0 then 1 else 0 end) > 0 then 1 else 0 end as manual_ke_2,
-        case when sum(case when daoke.manual_ke_1 = '3' and daoke.live_learn_duration > 0 then 1 else 0 end) > 0 then 1 else 0 end as manual_ke_3,
-        case when sum(case when daoke.manual_ke_1 = '4' and daoke.live_learn_duration > 0 then 1 else 0 end) > 0 then 1 else 0 end as manual_ke_4,
-        case when sum(case when daoke.manual_ke_1 = '5' and daoke.live_learn_duration > 0 then 1 else 0 end) > 0 then 1 else 0 end as manual_ke_5,
-        case when sum(case when daoke.manual_ke_1 = '6' and daoke.live_learn_duration > 0 then 1 else 0 end) > 0 then 1 else 0 end as manual_ke_6,
-        case when sum(case when daoke.manual_ke_1 = '1' and cast(daoke.is_valid_live_learn as varchar) = '1' then 1 else 0 end) > 0 then 1 else 0 end as manual_v_ke_1,
-        case when sum(case when daoke.manual_ke_1 = '2' and cast(daoke.is_valid_live_learn as varchar) = '1' then 1 else 0 end) > 0 then 1 else 0 end as manual_v_ke_2,
-        case when sum(case when daoke.manual_ke_1 = '3' and cast(daoke.is_valid_live_learn as varchar) = '1' then 1 else 0 end) > 0 then 1 else 0 end as manual_v_ke_3,
-        case when sum(case when daoke.manual_ke_1 = '4' and cast(daoke.is_valid_live_learn as varchar) = '1' then 1 else 0 end) > 0 then 1 else 0 end as manual_v_ke_4,
-        case when sum(case when daoke.manual_ke_1 = '5' and cast(daoke.is_valid_live_learn as varchar) = '1' then 1 else 0 end) > 0 then 1 else 0 end as manual_v_ke_5,
-        case when sum(case when daoke.manual_ke_1 = '6' and cast(daoke.is_valid_live_learn as varchar) = '1' then 1 else 0 end) > 0 then 1 else 0 end as manual_v_ke_6,
-        sum(case when daoke.auto_ke_1 in ('1','2','3','4','5','6') then 1 else 0 end) as auto_matched_lesson_row_cnt,
-        sum(case when daoke.manual_ke_1 is not null then 1 else 0 end) as manual_matched_lesson_row_cnt,
-        sum(case when daoke.manual_ke_1 is not null and daoke.auto_ke_1 in ('1','2','3','4','5','6') and daoke.manual_ke_1 = daoke.auto_ke_1 then 1 else 0 end) as manual_auto_same_lesson_row_cnt,
-        sum(case when daoke.manual_ke_1 is not null and daoke.auto_ke_1 in ('1','2','3','4','5','6') and daoke.manual_ke_1 <> daoke.auto_ke_1 then 1 else 0 end) as manual_auto_diff_lesson_row_cnt,
-        sum(case when daoke.manual_ke_1 is null and daoke.auto_ke_1 in ('1','2','3','4','5','6') then 1 else 0 end) as manual_missing_auto_present_row_cnt,
-        sum(case when daoke.manual_ke_1 is not null and (daoke.auto_ke_1 is null or daoke.auto_ke_1 not in ('1','2','3','4','5','6')) then 1 else 0 end) as auto_missing_manual_present_row_cnt
-    from data
-    left join daoke
-      on data.employee_email_prefix = daoke.employee_email_prefix
-     and data.qici = daoke.qici
-     and data.lead_id = daoke.lead_id
-    left join temp_table.dingxi01_jiagou_db jg
-      on data.employee_email_prefix = jg.employee_email_prefix
-     and data.qici = jg.qici
-    where data.qici > '20260410期'
-      and jg.department is not null
-    group by 1,2,3,4,5,6,7,8,9,10,11
+conversion_agg as (
+    select
+        qici,
+        name,
+        max(jingli) as jingli,
+        max(zhuguan) as zhuguan,
+        sum(leads_count) as leads_count,
+        sum(can_renew_ds_count_a) as can_renew_ds_count_a,
+        case
+            when sum(can_renew_ds_count_a) >= 5 then sum(can_renew_ds_count_a)
+            else 0
+        end as s_lead,
+        case
+            when sum(can_renew_ds_count_a) >= 5
+             and sum(trade_profit) > 0 then 1
+            else 0
+        end as podan,
+        sum(receive_target) as receive_target,
+        sum(pay_users) as pay_users,
+        sum(pay_users_on_period) as pay_users_on_period,
+        sum(pay_users_not_on_period) as pay_users_not_on_period,
+        sum(pay_user_subs) as pay_user_subs,
+        sum(pay_user_subs_on_period) as pay_user_subs_on_period,
+        sum(pay_user_subs_not_on_period) as pay_user_subs_not_on_period,
+        sum(pay_user_subs_joint) as pay_user_subs_joint,
+        sum(pay_user_subs_joint_onp) as pay_user_subs_joint_onp,
+        sum(pay_user_subs_joint_nonp) as pay_user_subs_joint_nonp,
+        sum(trade_income) as trade_income,
+        sum(trade_refund) as trade_refund,
+        sum(trade_profit) as trade_profit,
+        sum(xb_trade_income) as xb_trade_income,
+        sum(xb_trade_profit) as xb_trade_profit,
+        sum(kk_trade_income) as kk_trade_income,
+        sum(pre_refund) as pre_refund
+    from conversion_with_target
+    group by
+        qici,
+        name
+),
+conversion_metric_base as (
+    select
+        qici,
+        name,
+        jingli,
+        zhuguan,
+        leads_count,
+        can_renew_ds_count_a,
+        s_lead,
+        podan,
+        receive_target,
+        pay_users,
+        pay_users_on_period,
+        pay_users_not_on_period,
+        pay_user_subs,
+        pay_user_subs_on_period,
+        pay_user_subs_not_on_period,
+        pay_user_subs_joint,
+        pay_user_subs_joint_onp,
+        pay_user_subs_joint_nonp,
+        trade_income,
+        trade_refund,
+        trade_profit,
+        xb_trade_income,
+        xb_trade_profit,
+        kk_trade_income,
+        pre_refund,
+        case
+            when receive_target is null or receive_target = 0 then cast(0 as double)
+            else trade_profit / receive_target
+        end as target_completion_rate,
+        case
+            when pay_users is null or pay_users = 0 then cast(0 as double)
+            else cast(pay_user_subs as double) / pay_users
+        end as tuoke_rate
+    from conversion_agg
+),
+period_driver_keys as (
+    select
+        qici,
+        name
+    from finance_period
+
+    union
+
+    select
+        qici,
+        name
+    from conversion_metric_base
+),
+consultant_period_metric as (
+    select
+        k.qici,
+        case
+            when zx.department like '%西安%' then '西安'
+            when zx.department like '%郑州%' then '郑州'
+            else '未知'
+        end as dept,
+        k.name,
+        zx.xiaozu,
+        coalesce(fp.jingli, zx.jingli, cm.jingli) as jingli,
+        coalesce(cm.zhuguan, '未知') as zhuguan,
+        coalesce(fp.period_income, 0) as period_income,
+        coalesce(fp.period_refund, 0) as period_refund,
+        coalesce(fp.period_pmit, 0) as period_pmit,
+        coalesce(cm.leads_count, 0) as leads_count,
+        coalesce(cm.can_renew_ds_count_a, 0) as can_renew_ds_count_a,
+        coalesce(cm.s_lead, 0) as s_lead,
+        coalesce(cm.podan, 0) as podan,
+        coalesce(cm.receive_target, 0) as receive_target,
+        coalesce(cm.pay_users, 0) as pay_users,
+        coalesce(cm.pay_users_on_period, 0) as pay_users_on_period,
+        coalesce(cm.pay_users_not_on_period, 0) as pay_users_not_on_period,
+        coalesce(cm.pay_user_subs, 0) as pay_user_subs,
+        coalesce(cm.pay_user_subs_on_period, 0) as pay_user_subs_on_period,
+        coalesce(cm.pay_user_subs_not_on_period, 0) as pay_user_subs_not_on_period,
+        coalesce(cm.pay_user_subs_joint, 0) as pay_user_subs_joint,
+        coalesce(cm.pay_user_subs_joint_onp, 0) as pay_user_subs_joint_onp,
+        coalesce(cm.pay_user_subs_joint_nonp, 0) as pay_user_subs_joint_nonp,
+        coalesce(cm.trade_income, 0) as trade_income,
+        coalesce(cm.trade_refund, 0) as trade_refund,
+        coalesce(cm.trade_profit, 0) as trade_profit,
+        coalesce(cm.xb_trade_income, 0) as xb_trade_income,
+        coalesce(cm.xb_trade_profit, 0) as xb_trade_profit,
+        coalesce(cm.kk_trade_income, 0) as kk_trade_income,
+        coalesce(cm.pre_refund, 0) as pre_refund,
+        coalesce(cm.target_completion_rate, 0) as target_completion_rate,
+        coalesce(cm.tuoke_rate, 0) as tuoke_rate
+    from period_driver_keys k
+    inner join jiagou_zx_active zx
+      on zx.employee_email_name = k.name
+    left join finance_period fp
+      on fp.qici = k.qici
+     and fp.name = k.name
+    left join conversion_metric_base cm
+      on cm.qici = k.qici
+     and cm.name = k.name
+    where case
+            when zx.department like '%西安%' then '西安'
+            when zx.department like '%郑州%' then '郑州'
+            else '未知'
+          end in ('西安', '郑州')
+),
+target_completion_rank_raw as (
+    select
+        qici,
+        dept,
+        name,
+        xiaozu,
+        jingli,
+        zhuguan,
+        period_income,
+        period_refund,
+        period_pmit,
+        leads_count,
+        can_renew_ds_count_a,
+        s_lead,
+        podan,
+        receive_target,
+        pay_users,
+        pay_users_on_period,
+        pay_users_not_on_period,
+        pay_user_subs,
+        pay_user_subs_on_period,
+        pay_user_subs_not_on_period,
+        pay_user_subs_joint,
+        pay_user_subs_joint_onp,
+        pay_user_subs_joint_nonp,
+        trade_income,
+        trade_refund,
+        trade_profit,
+        xb_trade_income,
+        xb_trade_profit,
+        kk_trade_income,
+        pre_refund,
+        target_completion_rate,
+        tuoke_rate,
+        '期次-部门' as target_completion_period_rank_scope,
+        row_number() over (
+            partition by qici, dept
+            order by target_completion_rate desc, name
+        ) as target_completion_period_dept_rank_no,
+        lag(target_completion_rate) over (
+            partition by qici, dept
+            order by target_completion_rate desc, name
+        ) as previous_target_completion_rate
+    from consultant_period_metric
+),
+target_completion_ranked as (
+    select
+        qici,
+        dept,
+        name,
+        xiaozu,
+        jingli,
+        zhuguan,
+        receive_target,
+        target_completion_rate,
+        target_completion_period_rank_scope,
+        target_completion_period_dept_rank_no,
+        case
+            when previous_target_completion_rate is null then cast(0 as double)
+            else previous_target_completion_rate - target_completion_rate
+        end as target_completion_gap_to_previous,
+        tuoke_rate,
+        period_income,
+        period_refund,
+        period_pmit,
+        leads_count,
+        can_renew_ds_count_a,
+        s_lead,
+        podan,
+        pay_users,
+        pay_users_on_period,
+        pay_users_not_on_period,
+        pay_user_subs,
+        pay_user_subs_on_period,
+        pay_user_subs_not_on_period,
+        pay_user_subs_joint,
+        pay_user_subs_joint_onp,
+        pay_user_subs_joint_nonp,
+        trade_income,
+        trade_refund,
+        trade_profit,
+        xb_trade_income,
+        xb_trade_profit,
+        kk_trade_income,
+        pre_refund
+    from target_completion_rank_raw
 )
 select
     qici,
-    channel_map_1,
-    rule_name,
-    grade_1,
+    dept,
+    name,
     xiaozu,
-    department,
     jingli,
-    employee_email_prefix,
-    employee_email_name,
-    sum(lead) as lead,
-    sum(ke_1) as ke_1,
-    sum(ke_2) as ke_2,
-    sum(ke_3) as ke_3,
-    sum(ke_4) as ke_4,
-    sum(ke_5) as ke_5,
-    sum(ke_6) as ke_6,
-    sum(v_ke_1) as v_ke_1,
-    sum(v_ke_2) as v_ke_2,
-    sum(v_ke_3) as v_ke_3,
-    sum(v_ke_4) as v_ke_4,
-    sum(v_ke_5) as v_ke_5,
-    sum(v_ke_6) as v_ke_6,
-    sum(manual_ke_1) as manual_ke_1,
-    sum(manual_ke_2) as manual_ke_2,
-    sum(manual_ke_3) as manual_ke_3,
-    sum(manual_ke_4) as manual_ke_4,
-    sum(manual_ke_5) as manual_ke_5,
-    sum(manual_ke_6) as manual_ke_6,
-    sum(manual_v_ke_1) as manual_v_ke_1,
-    sum(manual_v_ke_2) as manual_v_ke_2,
-    sum(manual_v_ke_3) as manual_v_ke_3,
-    sum(manual_v_ke_4) as manual_v_ke_4,
-    sum(manual_v_ke_5) as manual_v_ke_5,
-    sum(manual_v_ke_6) as manual_v_ke_6,
-    sum(auto_matched_lesson_row_cnt) as auto_matched_lesson_row_cnt,
-    sum(manual_matched_lesson_row_cnt) as manual_matched_lesson_row_cnt,
-    sum(manual_auto_same_lesson_row_cnt) as manual_auto_same_lesson_row_cnt,
-    sum(manual_auto_diff_lesson_row_cnt) as manual_auto_diff_lesson_row_cnt,
-    sum(manual_missing_auto_present_row_cnt) as manual_missing_auto_present_row_cnt,
-    sum(auto_missing_manual_present_row_cnt) as auto_missing_manual_present_row_cnt
-from prc
-group by qici, channel_map_1, rule_name, grade_1, xiaozu, department, jingli, employee_email_prefix, employee_email_name
+    zhuguan,
+    receive_target,
+    target_completion_rate,
+    target_completion_period_rank_scope,
+    target_completion_period_dept_rank_no,
+    target_completion_gap_to_previous,
+    tuoke_rate,
+    period_income,
+    period_refund,
+    period_pmit,
+    leads_count,
+    can_renew_ds_count_a,
+    s_lead,
+    podan,
+    pay_users,
+    pay_users_on_period,
+    pay_users_not_on_period,
+    pay_user_subs,
+    pay_user_subs_on_period,
+    pay_user_subs_not_on_period,
+    pay_user_subs_joint,
+    pay_user_subs_joint_onp,
+    pay_user_subs_joint_nonp,
+    trade_income,
+    trade_refund,
+    trade_profit,
+    xb_trade_income,
+    xb_trade_profit,
+    kk_trade_income,
+    pre_refund
+from target_completion_ranked

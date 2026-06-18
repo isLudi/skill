@@ -13,6 +13,7 @@ import sys
 from pathlib import Path
 
 from _shared.config import (
+    DATA_CENTER_RUNTIME_DIR,
     DEFAULT_ARTIFACTS,
     DEFAULT_BROWSER_CHANNEL,
     DEFAULT_DATAMAP_CACHE,
@@ -26,9 +27,11 @@ from .commands.check_manual_table import cmd_check_manual_table
 from .commands.doctor import cmd_doctor
 from .commands.login import cmd_login
 from .commands.run import cmd_run
+from .commands.sync_data_center_sql import cmd_sync_data_center_sql
 from .commands.sync_datamap_fields import cmd_sync_datamap_fields
 from .commands.upload_temp_table import cmd_upload_temp_table
 from .config import DEFAULT_QUERY_ENGINE
+from .data_center import DEFAULT_MARKET_START_DATASET
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -122,6 +125,28 @@ def build_parser() -> argparse.ArgumentParser:
     sync_datamap.add_argument("--rebuild-indexes", action=argparse.BooleanOptionalAction, default=True, help="Run target skill build_reverse_indexes.py after writes.")
     sync_datamap.add_argument("--check-integrity", action=argparse.BooleanOptionalAction, default=True, help="Run target skill check_skill_integrity.py after writes.")
     sync_datamap.set_defaults(func=cmd_sync_datamap_fields)
+
+    sync_data_center = subparsers.add_parser(
+        "sync-data-center-sql",
+        help="Refresh business skill raw SQL from Data Center datasets.",
+    )
+    sync_data_center.add_argument("--target-skill", choices=["all", "market", "qingcheng"], default="all", help="Built-in business skill target.")
+    sync_data_center.add_argument("--dataset-name", action="append", help="Specific Data Center dataset name to sync. Repeatable; defaults to the configured scope.")
+    sync_data_center.add_argument("--market-start-name", default=DEFAULT_MARKET_START_DATASET, help="First market-consultant dataset to include.")
+    sync_data_center.add_argument("--write", action="store_true", help="Write raw SQL and markdown changes. Default is dry-run.")
+    sync_data_center.add_argument("--run-date", default=None, help="Override changelog/snapshot date, format YYYY-MM-DD.")
+    sync_data_center.add_argument("--state-path", type=Path, default=DEFAULT_STATE, help="Shared Baijia browser storage state path.")
+    sync_data_center.add_argument("--artifacts-dir", type=Path, default=DATA_CENTER_RUNTIME_DIR, help="Runtime summary output directory.")
+    sync_data_center.add_argument("--env-file", type=Path, default=DEFAULT_ENV_FILE)
+    sync_data_center.add_argument("--username", default=os.environ.get("BAIJIA_USERNAME"))
+    sync_data_center.add_argument("--password", default=os.environ.get("BAIJIA_PASSWORD"))
+    sync_data_center.add_argument("--headed", action="store_true", help="Show browser window while authenticating/fetching Data Center.")
+    sync_data_center.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL, help="Installed browser channel, e.g. msedge or chrome.")
+    sync_data_center.add_argument("--executable-path", default=None, help="Explicit browser executable path; overrides --browser-channel.")
+    sync_data_center.add_argument("--update-changelog", action=argparse.BooleanOptionalAction, default=True, help="Append changelog entry when writing SQL snapshots.")
+    sync_data_center.add_argument("--rebuild-indexes", action=argparse.BooleanOptionalAction, default=True, help="Run target skill build_reverse_indexes.py after writes.")
+    sync_data_center.add_argument("--check-integrity", action=argparse.BooleanOptionalAction, default=True, help="Run target skill check_skill_integrity.py after writes.")
+    sync_data_center.set_defaults(func=cmd_sync_data_center_sql)
 
     return parser
 

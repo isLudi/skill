@@ -54,7 +54,9 @@ when f.rule_name like '%抖音私信%' then '抖音私信'
 when f.rule_name like '%进校%' then '进校'
 when f.rule_name like '%训练营%' then '青橙训练营'
 end as channel_map_1
-,case 
+  ,case
+when f.rule_name like '%青橙IP%' then '青橙IP' 
+when f.rule_name like '%私域会话%' then '私域会话'
 when f.rule_name like '%私域表单%' then '私域表单'
 when f.rule_name like '%私域图书%' then '私域图书'
 when f.rule_name like '%私域裂变%' then '私域裂变'
@@ -228,7 +230,7 @@ left join  temp_table.dingxi01_jiagou_db jg on  data.employee_email_name = jg.em
 left join daoke on data.employee_email_prefix = daoke.employee_email_prefix and data.qici = daoke.qici and data.lead_id = daoke.lead_id
 left join call_c on  call_c.user_number = data.user_id and call_c.section_assign_employee_email_prefix = data.employee_email_prefix
 left join denglu_app on denglu_app.user_number = data.user_id
-where data.qici >= '20260501期'
+where data.qici >= '20260427期'
 and data.virtual_second_department_name = '青橙项目部'
 and jg.department is not null
 and data.channel_map_1 is not null

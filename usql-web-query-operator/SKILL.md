@@ -104,6 +104,48 @@ D:\anaconda3\python.exe scripts\usql_web_query.py sync-datamap-fields `
 - 使用 `--write` 且确实产生字段变更时，会追加 changelog，并默认运行目标 skill 的 `scripts/build_reverse_indexes.py` 和 `scripts/check_skill_integrity.py`。
 - 使用 `--no-refresh-datamap` 可只从本地 runtime 缓存同步；使用 `--only-missing-cache` 可只刷新新增表。
 
+## 数据中心源 SQL 同步
+
+当用户要求把 `https://uanalysis.baijia.com/data-center/data-set` 中的数据集源 SQL 写入业务 SQL skill 知识库时，使用：
+
+```powershell
+D:\anaconda3\python.exe scripts\usql_web_query.py sync-data-center-sql --target-skill all
+```
+
+默认是 dry-run：脚本使用本 skill 的共享登录态打开数据中心，通过目录和数据集详情接口读取目标范围，打印 JSON summary，不写业务 skill 文件。
+确认范围后再加 `--write`：
+
+```powershell
+D:\anaconda3\python.exe scripts\usql_web_query.py sync-data-center-sql `
+  --target-skill all `
+  --write
+```
+
+内置目标和范围：
+
+- `qingcheng`：写入 `qingcheng-dashboard-sql`，同步父目录为 `市场顾问部/青橙项目部` 的全部 SQL 数据集。
+- `market`：写入 `sql-query-writer-for-dashboard`，同步父目录为 `市场顾问部/市场顾问部` 且从 `(内部渠道)外呼过程数据` 开始到末尾的 SQL 数据集。
+- `all`：按上述规则同步两个业务 skill；两个知识库保持隔离。
+
+写入规则：
+
+- 完整源 SQL 保存到目标 skill 的 `resources/raw_sql/data_center_<target>_<fileValue>_<YYYYMMDD>.sql`。
+- 数据集清单保存到目标 skill 的 `knowledge/dashboards/data_center_<target>_datasets.md`，记录数据集名称、菜单 ID、`fileValue`、`subjectId`、数据源 ID、平台路径和 raw SQL 文件。
+- 脚本只保存数据中心接口返回的 `executeSql`，不改写 SQL 语义，不推断字段或指标口径。
+- 加 `--write` 且发生文件变更时，会追加 changelog，并默认运行目标 skill 的 `scripts/build_reverse_indexes.py` 和 `scripts/check_skill_integrity.py`。
+- 运行摘要保存到 `C:\Users\Ludim\.codex\runtime\usql-web-query-operator\data-center\`，不会把 cookie 或账号密码写入 skill 目录。
+
+常用增量参数：
+
+```powershell
+D:\anaconda3\python.exe scripts\usql_web_query.py sync-data-center-sql `
+  --target-skill market `
+  --dataset-name 市场渠道用户成单分析3 `
+  --write
+```
+
+`--market-start-name` 可覆盖市场顾问目录的起始数据集名；`--dataset-name` 可重复传入，用于只刷新指定数据集。
+
 ## 临时表上传
 
 当用户明确要求把本地 CSV/Excel 手工表上传到 `SQL取数` 的临时表 UI 时，使用：
@@ -168,6 +210,7 @@ D:\anaconda3\python.exe scripts\read_dashboard.py profile-all --dashboard-wait-m
 - `login`：打开 CAS 登录流程，认证后把浏览器 storage state 保存到 repo 外。
 - `run`：打开 `SQL取数`，创建或复用查询 tab，写入 SQL 前切换引擎，将 SQL 写入 CodeMirror，优先用 `Ctrl+E` 提交、再用运行按钮 fallback，等待查询历史/结果 tab 状态，平台失败时捕获 `error_details`，可用时提取小范围可见结果预览，并在本地行数限制允许时下载 xlsx。
 - `sync-datamap-fields`：使用数据地图页面和接口刷新 `sql-query-writer-for-dashboard` 和/或 `qingcheng-dashboard-sql` 中的物理表字段说明。默认 dry-run，只有 `--write` 才写文档。
+- `sync-data-center-sql`：使用数据中心页面和接口刷新 `sql-query-writer-for-dashboard` 和/或 `qingcheng-dashboard-sql` 中的数据集源 SQL。默认 dry-run，只有 `--write` 才写 raw SQL、清单文档和 changelog。
 - `upload-temp-table`：把本地 `.csv`、`.xls` 或 `.xlsx` 上传到 `临时表` 区域。支持 `--target-mode new|reuse`、`--import-mode overwrite|append`、`--header-row|--no-header-row`，并从 `导入历史` 输出 JSON summary。
 - `check-manual-table`：读取手工表 registry，将本地 Excel 文件解析到平台标准临时表名，并在不触碰浏览器的情况下执行 workbook 校验。
 

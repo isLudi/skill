@@ -155,3 +155,15 @@
 - 覆盖 `knowledge/tables` 中 17 张物理表文档；其中 13 张表新增 `数据地图字段补充（2026-06-17）` 小节，追加 1034 个数据地图字段。
 - 以数据地图和 DDL 为准回填字段类型和说明占位；复扫结果为字段缺口 0、类型占位 0、说明占位 0。
 - 本次维护严格限定在 `qingcheng-dashboard-sql` 内，未同步到市场顾问 Skill；未覆盖 `temp_table.*` 临时表文档，临时表字段仍以本地 Excel、SQL 使用场景和人工维护规则为准。
+
+## 2026-06-17 数据中心数据集源 SQL 同步
+
+- 从数据中心 `https://uanalysis.baijia.com/data-center/data-set` 同步数据集源 SQL，范围：青橙项目部目录下的全部 SQL 数据集。
+- 保存 9 个数据集源 SQL 到 `resources/raw_sql`，更新清单 `knowledge/dashboards/data_center_qingcheng_datasets.md`。
+- 未改写 SQL 语义；后续字段、指标或临时表口径仍需基于源 SQL 和业务规则单独维护。
+
+## 2026-06-17 数据中心源 SQL 对比与 canonical raw_sql 更新
+
+- 将青橙数据中心已确认同源的 8 份源 SQL 映射到现有 canonical raw_sql，其中过程数据、到课、转化、团队完成度、个人转化等以数据中心版本作为最新版本。
+- 保留 `data_center_qingcheng_2740_20260617.sql` 作为抖私-转化新增数据中心源 SQL，待后续确认是否进入正式专题口径。
+- 更新 `knowledge/dashboards/data_center_qingcheng_datasets.md`，记录每份数据中心 SQL 的用途、主要依赖和冲突处理原则。

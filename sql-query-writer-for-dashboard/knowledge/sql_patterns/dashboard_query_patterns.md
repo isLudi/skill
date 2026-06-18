@@ -394,6 +394,76 @@ group by u.check_stage
 
 结论表述应区分“CRM 当前前台状态”和“数据库可记录状态”。若用户要求用开课后实际状态重算，需要先确认是否存在独立的开课后转移/退费状态明细表；当前知识库未确认该替代表，不得直接改 join 伪造口径。
 
+## 运营侧个人数据 2293 架构错位排查
+
+当用户反馈“运营侧个人数据”中某顾问出现在错误经理/主管下，例如期次为 `20260619期` 时顾问实际应归属 `吴志强03`，但看板展示在 `薛源02` 下，优先检查最终输出层的字段绑定，而不是只看中间 join 是否能查到正确架构。
+
+### 典型错误
+
+```sql
+select
+    zz.*,
+    zx.xiaozu,
+    zx.jingli as jingli_11
+from zhuanhua zz
+left join temp_table.dingxi01_jiagou_zx zx
+  on zx.employee_email_name = zz.employee_email_name
+```
+
+上述写法会保留 `zz.jingli` / `zz.zhuguan`。如果看板透视表字段绑定的是 `jingli`，展示结果仍来自事实宽表 `virtual_leader_email_name`，不会使用 `jingli_11`。
+
+### 排查顺序
+
+1. 查 raw SQL 最终层是否 `select zz.*`。
+2. 查输出字段列表中是否同时存在 `jingli` 和 `jingli_11`。
+3. 用 `temp_table.dingxi01_jiagou_db` 按 `qici + employee_email_name` 查期次架构。
+4. 用 `temp_table.dingxi01_jiagou_zx` 按 `employee_email_name` 查当前在职架构，并确认是否按 `employee_email_name` 去重。
+5. 如仍不一致，再用 `finance_dw.dim_finance_employee_df` 的 `leader_employee_email_name` 递归查 +1/+2 链路。
+
+### 修复模板
+
+最终层显式输出经理/主管字段，优先级为期次架构 > 当前在职架构 > 事实宽表：
+
+```sql
+coalesce(jg.jingli, zx.jingli, zz.jingli) as jingli,
+coalesce(jg.xiaozu, zx.xiaozu, zz.zhuguan) as zhuguan,
+coalesce(jg.xiaozu, zx.xiaozu, zz.zhuguan) as xiaozu,
+coalesce(jg.jingli, zx.jingli, zz.jingli) as jingli_11
+```
+
+若使用 `temp_table.dingxi01_jiagou_zx`，建议先构造 `zx_active`：
+
+```sql
+zx_active as (
+    select
+        employee_email_name,
+        xiaozu,
+        jingli,
+        department
+    from (
+        select
+            zx.*,
+            row_number() over (
+                partition by zx.employee_email_name
+                order by
+                    case
+                        when zx.department = '郑州顾问部' then 1
+                        when zx.department = '西安一部' then 2
+                        when zx.department = '西安二部' then 3
+                        else 9
+                    end,
+                    zx.employee_email_prefix,
+                    zx.xiaozu,
+                    zx.jingli
+            ) as rn
+        from temp_table.dingxi01_jiagou_zx zx
+        where cast(zx.zaizhi as varchar) = '1'
+          and zx.department in ('郑州顾问部', '西安一部', '西安二部')
+    ) t
+    where rn = 1
+)
+```
+
 ## 渠道 CASE 映射
 
 市场顾问渠道映射长 CASE 已独立维护在：

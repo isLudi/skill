@@ -389,15 +389,12 @@ select
     d.income,
     d.refund,
     d.pmit,
-
     d.day_dept_period_rank_scope,
     d.day_dept_period_rank_no,
     d.day_dept_period_need_pmit_to_previous,
-
     p.period_dept_rank_scope,
     p.period_dept_rank_no,
     p.period_dept_need_pmit_to_previous,
-
     p.period_income,
     p.period_refund,
     p.period_pmit

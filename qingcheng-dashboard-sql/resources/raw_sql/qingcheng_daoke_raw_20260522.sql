@@ -10,7 +10,8 @@ when f.rule_name like '%青橙图书%' then '青橙图书'
 when f.rule_name like '%青橙公域%' then '青橙公域'
 when f.rule_name like '%进校%' then '进校'
 end as channel_map_1
-,case 
+  ,case 
+when f.rule_name like '%私域会话%' then '私域会话'
 when f.rule_name like '%私域表单%' then '私域表单'
 when f.rule_name like '%私域图书%' then '私域图书'
 when f.rule_name like '%私域裂变%' then '私域裂变'
@@ -33,7 +34,7 @@ when f.rule_name like '%初三%' then '初三'
 else '未知' end as grade_1
     from bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df f 
     where f.dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd') 
-        and f.hour = format_datetime(now() - interval '2' hour, 'HH')    
+        and f.hour = format_datetime(now() - interval '3' hour, 'HH')    
         and f.section_assign_employee_first_level_department_name = 'H业务线'
         and f.section_assign_employee_second_level_department_name = '青橙项目部'
         and f.period_mapping_first_level_department_name in ('H业务线')
@@ -116,7 +117,7 @@ case when sum(case when daoke.ke_1 = '6' and daoke.is_valid_live_learn = '1' the
 from data
 left join daoke on data.employee_email_prefix = daoke.employee_email_prefix and data.qici = daoke.qici and data.lead_id = daoke.lead_id
 left join temp_table.dingxi01_jiagou_db jg on data.employee_email_prefix = jg.employee_email_prefix and data.qici = jg.qici
-where data.qici > '20260403期'
+where data.qici > '20260501期'
 and jg.department is not null
 and data.channel_map_1 is not null
 and data.channel_map_2 is not null
