@@ -118,13 +118,19 @@ limit 20;
 - 字段类型来自 Excel 内容推断，若查询平台中实际 DDL 不同，以平台为准。
 - 所有探索查询必须加 `limit`；涉及架构或部门字段时必须加范围限定。
 - 如果 join key 存在重复，生成 SQL 时需使用 `row_number`、`distinct` 或先聚合，避免主表行数被放大。
-- 到课看板中：一般渠道首节到课取 `ke_1 = 1`，`曹忆IP99元` 取 `ke_1 = 3`；需与行课表 `begin_time` 严格匹配。
+- 市场顾问线索转化到课最新 raw SQL 中，本表只补充手工课次 `manual_ke_1`；最终主指标 `ke_*` / `v_ke_*` 使用行课明细自动派生的 `auto_ke_1`。
 
 ### 流量画像 SQL 使用备注
 
 - `traffic_profile.sql` 使用 `qici + channel + grade + begin_time` 关联，而不是 `qudao` 字段。
 - `曹忆` 渠道使用 `ke_1 = '3'` 判断到课/有效到课，其他渠道使用 `ke_1 = '1'`。
 - 普通到课判断来自行课表 `live_learn_duration > 0`，有效到课判断来自行课表 `is_valid_live_learn = '1'`；该临时表只提供课次映射。
+
+### 市场顾问线索转化到课 SQL 使用备注
+
+- `market_consultant_lead_conversion_attendance.sql` 使用 `qici + channel_map_1 + grade_1 + begin_time` 关联本表的 `qici + qudao + grade + begin_time`，并先按该 key 去重。
+- 该 SQL 的最终主到课字段 `ke_1` ~ `ke_6`、`v_ke_1` ~ `v_ke_6` 使用 `auto_ke_1`；手工映射字段输出为 `manual_ke_1` ~ `manual_ke_6`、`manual_v_ke_1` ~ `manual_v_ke_6`。
+- 同一 SQL 保留自动/手工课次对照计数，用于检查临时表课次维护与行课自动课次是否一致。
 
 ## 12. 反向联动速查
 

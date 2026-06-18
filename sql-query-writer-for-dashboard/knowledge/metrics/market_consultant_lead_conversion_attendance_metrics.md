@@ -9,11 +9,11 @@
 - 看板 SQL：`resources/raw_sql/market_consultant_lead_conversion_attendance.sql`
 - 看板文档：`knowledge/dashboards/market_consultant_lead_conversion_attendance.md`
 - 入库日期：2026-05-08
-- 最近覆盖：2026-06-05
+- 最近覆盖：2026-06-18
 
 ## 3. 适用范围
 
-适用于 H 业务线市场部市场顾问到课衰减分析，默认统计有效线索在第 1-6 节课的普通到课和有效到课。
+适用于 H 业务线市场部市场顾问到课衰减分析，默认统计有效线索在第 1-6 节自动课次的普通到课和有效到课，同时保留手工课次映射到课、手工课次有效到课，以及自动/手工课次对照计数。
 
 默认范围来自 SQL：
 
@@ -42,18 +42,30 @@
 
 | 指标 | 中文含义 | SQL 口径 |
 |---|---|---|
-| ke_1 | 第 1 节到课 | `sum(case when ke_1 = '1' and live_learn_duration > 0 then 1 else 0 end) > 0` |
-| ke_2 | 第 2 节到课 | `sum(case when ke_1 = '2' and live_learn_duration > 0 then 1 else 0 end) > 0` |
-| ke_3 | 第 3 节到课 | `sum(case when ke_1 = '3' and live_learn_duration > 0 then 1 else 0 end) > 0` |
-| ke_4 | 第 4 节到课 | `sum(case when ke_1 = '4' and live_learn_duration > 0 then 1 else 0 end) > 0` |
-| ke_5 | 第 5 节到课 | `sum(case when ke_1 = '5' and live_learn_duration > 0 then 1 else 0 end) > 0` |
-| ke_6 | 第 6 节到课 | `sum(case when ke_1 = '6' and live_learn_duration > 0 then 1 else 0 end) > 0` |
-| v_ke_1 | 第 1 节有效到课 | `sum(case when ke_1 = '1' and is_valid_live_learn = '1' then 1 else 0 end) > 0` |
-| v_ke_2 | 第 2 节有效到课 | `sum(case when ke_1 = '2' and is_valid_live_learn = '1' then 1 else 0 end) > 0` |
-| v_ke_3 | 第 3 节有效到课 | `sum(case when ke_1 = '3' and is_valid_live_learn = '1' then 1 else 0 end) > 0` |
-| v_ke_4 | 第 4 节有效到课 | `sum(case when ke_1 = '4' and is_valid_live_learn = '1' then 1 else 0 end) > 0` |
-| v_ke_5 | 第 5 节有效到课 | `sum(case when ke_1 = '5' and is_valid_live_learn = '1' then 1 else 0 end) > 0` |
-| v_ke_6 | 第 6 节有效到课 | `sum(case when ke_1 = '6' and is_valid_live_learn = '1' then 1 else 0 end) > 0` |
+| ke_1 | 自动课次第 1 节到课 | `sum(case when auto_ke_1 = '1' and live_learn_duration > 0 then 1 else 0 end) > 0` |
+| ke_2 | 自动课次第 2 节到课 | `sum(case when auto_ke_1 = '2' and live_learn_duration > 0 then 1 else 0 end) > 0` |
+| ke_3 | 自动课次第 3 节到课 | `sum(case when auto_ke_1 = '3' and live_learn_duration > 0 then 1 else 0 end) > 0` |
+| ke_4 | 自动课次第 4 节到课 | `sum(case when auto_ke_1 = '4' and live_learn_duration > 0 then 1 else 0 end) > 0` |
+| ke_5 | 自动课次第 5 节到课 | `sum(case when auto_ke_1 = '5' and live_learn_duration > 0 then 1 else 0 end) > 0` |
+| ke_6 | 自动课次第 6 节到课 | `sum(case when auto_ke_1 = '6' and live_learn_duration > 0 then 1 else 0 end) > 0` |
+| v_ke_1 | 自动课次第 1 节有效到课 | `sum(case when auto_ke_1 = '1' and is_valid_live_learn = '1' then 1 else 0 end) > 0` |
+| v_ke_2 | 自动课次第 2 节有效到课 | `sum(case when auto_ke_1 = '2' and is_valid_live_learn = '1' then 1 else 0 end) > 0` |
+| v_ke_3 | 自动课次第 3 节有效到课 | `sum(case when auto_ke_1 = '3' and is_valid_live_learn = '1' then 1 else 0 end) > 0` |
+| v_ke_4 | 自动课次第 4 节有效到课 | `sum(case when auto_ke_1 = '4' and is_valid_live_learn = '1' then 1 else 0 end) > 0` |
+| v_ke_5 | 自动课次第 5 节有效到课 | `sum(case when auto_ke_1 = '5' and is_valid_live_learn = '1' then 1 else 0 end) > 0` |
+| v_ke_6 | 自动课次第 6 节有效到课 | `sum(case when auto_ke_1 = '6' and is_valid_live_learn = '1' then 1 else 0 end) > 0` |
+| manual_ke_1 | 手工课次第 1 节到课 | `sum(case when manual_ke_1 = '1' and live_learn_duration > 0 then 1 else 0 end) > 0` |
+| manual_ke_2 | 手工课次第 2 节到课 | `sum(case when manual_ke_1 = '2' and live_learn_duration > 0 then 1 else 0 end) > 0` |
+| manual_ke_3 | 手工课次第 3 节到课 | `sum(case when manual_ke_1 = '3' and live_learn_duration > 0 then 1 else 0 end) > 0` |
+| manual_ke_4 | 手工课次第 4 节到课 | `sum(case when manual_ke_1 = '4' and live_learn_duration > 0 then 1 else 0 end) > 0` |
+| manual_ke_5 | 手工课次第 5 节到课 | `sum(case when manual_ke_1 = '5' and live_learn_duration > 0 then 1 else 0 end) > 0` |
+| manual_ke_6 | 手工课次第 6 节到课 | `sum(case when manual_ke_1 = '6' and live_learn_duration > 0 then 1 else 0 end) > 0` |
+| manual_v_ke_1 | 手工课次第 1 节有效到课 | `sum(case when manual_ke_1 = '1' and is_valid_live_learn = '1' then 1 else 0 end) > 0` |
+| manual_v_ke_2 | 手工课次第 2 节有效到课 | `sum(case when manual_ke_1 = '2' and is_valid_live_learn = '1' then 1 else 0 end) > 0` |
+| manual_v_ke_3 | 手工课次第 3 节有效到课 | `sum(case when manual_ke_1 = '3' and is_valid_live_learn = '1' then 1 else 0 end) > 0` |
+| manual_v_ke_4 | 手工课次第 4 节有效到课 | `sum(case when manual_ke_1 = '4' and is_valid_live_learn = '1' then 1 else 0 end) > 0` |
+| manual_v_ke_5 | 手工课次第 5 节有效到课 | `sum(case when manual_ke_1 = '5' and is_valid_live_learn = '1' then 1 else 0 end) > 0` |
+| manual_v_ke_6 | 手工课次第 6 节有效到课 | `sum(case when manual_ke_1 = '6' and is_valid_live_learn = '1' then 1 else 0 end) > 0` |
 
 ## 6. 结果层聚合指标
 
@@ -72,6 +84,24 @@
 | v_ke_4 | 第 4 节有效到课人数 | `sum(v_ke_4)` |
 | v_ke_5 | 第 5 节有效到课人数 | `sum(v_ke_5)` |
 | v_ke_6 | 第 6 节有效到课人数 | `sum(v_ke_6)` |
+| manual_ke_1 | 手工课次第 1 节到课人数 | `sum(manual_ke_1)` |
+| manual_ke_2 | 手工课次第 2 节到课人数 | `sum(manual_ke_2)` |
+| manual_ke_3 | 手工课次第 3 节到课人数 | `sum(manual_ke_3)` |
+| manual_ke_4 | 手工课次第 4 节到课人数 | `sum(manual_ke_4)` |
+| manual_ke_5 | 手工课次第 5 节到课人数 | `sum(manual_ke_5)` |
+| manual_ke_6 | 手工课次第 6 节到课人数 | `sum(manual_ke_6)` |
+| manual_v_ke_1 | 手工课次第 1 节有效到课人数 | `sum(manual_v_ke_1)` |
+| manual_v_ke_2 | 手工课次第 2 节有效到课人数 | `sum(manual_v_ke_2)` |
+| manual_v_ke_3 | 手工课次第 3 节有效到课人数 | `sum(manual_v_ke_3)` |
+| manual_v_ke_4 | 手工课次第 4 节有效到课人数 | `sum(manual_v_ke_4)` |
+| manual_v_ke_5 | 手工课次第 5 节有效到课人数 | `sum(manual_v_ke_5)` |
+| manual_v_ke_6 | 手工课次第 6 节有效到课人数 | `sum(manual_v_ke_6)` |
+| auto_matched_lesson_row_cnt | 自动课次命中 1-6 节的行课记录数 | `sum(auto_matched_lesson_row_cnt)` |
+| manual_matched_lesson_row_cnt | 手工课次映射非空的行课记录数 | `sum(manual_matched_lesson_row_cnt)` |
+| manual_auto_same_lesson_row_cnt | 手工课次与自动课次一致的行课记录数 | `sum(manual_auto_same_lesson_row_cnt)` |
+| manual_auto_diff_lesson_row_cnt | 手工课次与自动课次不一致的行课记录数 | `sum(manual_auto_diff_lesson_row_cnt)` |
+| manual_missing_auto_present_row_cnt | 手工课次缺失但自动课次存在的行课记录数 | `sum(manual_missing_auto_present_row_cnt)` |
+| auto_missing_manual_present_row_cnt | 自动课次缺失或不在 1-6 节、但手工课次存在的行课记录数 | `sum(auto_missing_manual_present_row_cnt)` |
 
 ## 7. 输出粒度
 
@@ -91,7 +121,12 @@
 
 ## 8. 到课映射口径
 
-到课课次来自 `temp_table.dingxi01_daoke_1_6_t`，当前 SQL 关联条件为：
+当前主到课课次来自行课明细自动派生：
+
+- `auto_ke_1` 优先取 `lesson_index` / `lesson_index_add` 的 1-6 节值。
+- 当上述字段没有 1-6 节值时，用 `row_number() over(partition by qici, user_number, clazz_number order by begin_time, clazz_lesson_number)` 作为班级内自动课次兜底。
+
+手工课次来自 `temp_table.dingxi01_daoke_1_6_t`，当前 SQL 关联条件为：
 
 ```sql
 dk.qici = ke.qici
@@ -100,11 +135,11 @@ and dk.grade_1 = ke.grade
 and dk.begin_time = ke.begin_time
 ```
 
-其中 `qudao` 是当前 raw SQL 确认使用的渠道映射字段；不要默认改成 `channel`。
+其中 `qudao` 是当前 raw SQL 确认使用的手工渠道映射字段；不要默认改成 `channel`。最终 `ke_*` / `v_ke_*` 使用 `auto_ke_1`，`manual_*` / `manual_v_*` 使用 `manual_ke_1`。
 
 ## 9. 待确认事项
 
 - `lead` 实际来自 `valid_lead_count`，展示文案若叫“线索数”需确认是否应改名为“有效线索数”。
-- `ke_1` 字段名同时被用作到课映射表中的课次字段和最终第 1 节到课指标，阅读 SQL 时需要区分 CTE 层级。
+- `ke_1` 字段名同时被用作到课映射表中的手工课次字段和最终第 1 节到课指标，阅读 SQL 时需要区分 CTE 层级。
 - `valid_lead_count = '1'`、`is_valid_live_learn = '1'` 为历史 SQL 字符串比较写法，生成新 SQL 时建议按字段类型统一。
-- 渠道 CASE 顺序会直接影响到课临时表的渠道匹配，新增或修复渠道时应先确认特例是否被更靠前的泛化规则截走。
+- 渠道 CASE 顺序会直接影响到课临时表的渠道匹配，新增或修复渠道时应先确认特例是否被更靠前的泛化规则截走；2026-06-18 起 `孟亚飞-1组-视频号` 已合并为 `孟亚飞9元`。

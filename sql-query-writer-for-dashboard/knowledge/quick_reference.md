@@ -25,7 +25,7 @@
 | `user_id` / `user_number` | 主线索、私海、学习、APP 活跃关联 | `knowledge/joins/common_join_keys.md` |
 | `lead_id` | 线索、规则、收入退费闭环 | `knowledge/joins/common_join_keys.md` |
 | `employee_email_prefix` / `employee_email_name` | 顾问、架构、财务流水 | `knowledge/joins/common_join_keys.md` |
-| `qici + channel + grade` | 成本、到课、期次映射 | `knowledge/pitfalls/common_join_failures.md` |
+| `qici + channel_map_1/qudao + grade_1/grade + begin_time` | 到课手工课次映射 | `knowledge/dashboards/market_consultant_lead_conversion_attendance.md` |
 | `rule_id + plan_id` / `group_id` | 分配计划与实际量 | `knowledge/dashboards/lead_assign_plan_actual_valid_count.md` |
 
 ## 常见需求入口

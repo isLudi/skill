@@ -182,11 +182,12 @@
 - 主表范围：`section_assign_employee_first_level_department_name = 'H业务线'`、`section_assign_employee_second_level_department_name = '市场部'`、`period_mapping_first_level_department_name = 'H业务线'`、`valid_lead_count = '1'`。
 - 私海阶段：通过 `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.user_id = service_dw.dwd_crm_assign_private_detail_hf.user_number` 关联，并按 `private_sea_update_time desc` 取最新阶段；`sale_flow_stage_sequence in ('450','470')` 分别映射为深沟、已双沟。
 - 首呼统计：通过 `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.user_id = service_dw.dm_crm_lead_stats_detail_hf.user_number` 关联，当前 raw SQL 仅保留 `first_call_connect_diff_hour` 派生字段，结果层未输出。
-- 到课数据：通过 `data.user_id = service_dw.dws_service_user_learn_detail_hf.user_number` 和 `data.qici = 行课派生 qici` 关联，再通过 `qici + channel_map_1 + grade_1 + begin_time` 关联 `temp_table.dingxi01_daoke_1_6_t`。
-- 到课课次：当前 raw SQL 输出第 1-6 节到课和第 1-6 节有效到课；普通到课使用 `live_learn_duration > 0`，有效到课使用 `is_valid_live_learn = '1'`。
-- 课次映射：`temp_table.dingxi01_daoke_1_6_t` 使用 `qudao` 字段与 `channel_map_1` 关联，不使用 `channel`。
+- 到课数据：通过 `data.user_id = service_dw.dws_service_user_learn_detail_hf.user_number` 和 `data.qici = 行课派生 qici` 关联；当前主口径用 `lesson_index` / `lesson_index_add` / 班级内开课顺序派生 `auto_ke_1`。
+- 到课课次：当前 raw SQL 输出自动课次第 1-6 节到课和第 1-6 节有效到课；普通到课使用 `live_learn_duration > 0`，有效到课使用 `is_valid_live_learn = '1'`。
+- 手工课次映射：`temp_table.dingxi01_daoke_1_6_t` 使用 `qici + qudao + grade + begin_time` 与 `qici + channel_map_1 + grade_1 + begin_time` 关联，补充 `manual_ke_1`，不使用 `channel`。
+- 对照计数：最终层保留 `auto_matched_lesson_row_cnt`、`manual_matched_lesson_row_cnt`、`manual_auto_same_lesson_row_cnt`、`manual_auto_diff_lesson_row_cnt`、`manual_missing_auto_present_row_cnt`、`auto_missing_manual_present_row_cnt`。
 - 架构补充：`temp_table.dingxi01_jiagou_db` 通过 `employee_email_prefix + qici` 关联，输出 `xiaozu`、`department`、`jingli`，并用 `jg.department is not null` 过滤。
-- 状态：2026-06-05 已用最新到课 SQL 覆盖 raw SQL；该版本不再 join 成本目标表或 `temp_table.shenbaoxin_channel_group`。渠道 CASE 顺序是核心风险，`孟亚飞IP99元` 等特例必须放在泛化规则之前。
+- 状态：2026-06-18 已用用户提供的最新到课 SQL 覆盖 raw SQL；该版本不再 join 成本目标表或 `temp_table.shenbaoxin_channel_group`。渠道 CASE 顺序是核心风险，`孟亚飞IP99元` 等特例必须放在泛化规则之前；`孟亚飞-1组-视频号` 已合并为 `孟亚飞9元`。
 
 ## 流量画像看板关系
 

@@ -555,3 +555,15 @@
 - 修正原因：原最终层 `select zz.*` 会把事实宽表 `zz.jingli` / `zz.zhuguan` 原样输出；BI 透视表绑定 `jingli` 时会使用事实宽表 `virtual_leader_email_name`，导致顾问展示在旧经理或旧主管下。
 - 修正逻辑：新增 `zx_active` 对 `temp_table.dingxi01_jiagou_zx` 做在职和部门过滤并按 `employee_email_name` 去重；最终层显式输出 `jingli`、`zhuguan`、`xiaozu`、`jingli_11`，优先级为 `temp_table.dingxi01_jiagou_db` 期次架构 > `temp_table.dingxi01_jiagou_zx` 当前在职架构 > 事实宽表 `virtual_*` 字段。
 - 更新 `knowledge/dashboards/data_center_market_datasets.md`、`knowledge/tables/temp_table.dingxi01_jiagou_db.md`、`knowledge/tables/temp_table.dingxi01_jiagou_zx.md`、`knowledge/pitfalls/common_join_failures.md`、`knowledge/sql_patterns/dashboard_query_patterns.md`，记录 2293 同类架构错位的排查路径和修复模板。
+
+## 2026-06-18 市场顾问渠道 CASE 孟亚飞视频号合并
+
+- 按业务反馈修正 `resources/raw_sql/market_channel_case_when_0612.sql`：孟亚飞 1 组且 `channel_name_2 = '视频号'` 的分支不再输出 `孟亚飞-1组-视频号`，统一输出 `孟亚飞9元`。
+- 更新 `knowledge/sql_patterns/channel_mapping_case_when.md`，记录 `孟亚飞-1组-视频号` 与 `孟亚飞9元` 为同一渠道，后续看板不应再把 `孟亚飞-1组-视频号` 作为独立展示渠道。
+- 注意：已复制 0612 CASE 的数据集 SQL 需要单独同步该分支输出，否则不会自动继承独立 CASE 片段的修正。
+
+## 2026-06-18 到课数据查询最新 SQL 覆盖
+
+- 使用用户提供的粘贴 SQL 覆盖 `resources/raw_sql/market_consultant_lead_conversion_attendance.sql`，作为到课数据查询最新 canonical 代码。
+- 与 2026-06-17 数据中心版本相比，SQL 内容差异为孟亚飞 1 组视频号分支从 `孟亚飞-1组-视频号` 合并为 `孟亚飞9元`；到课 CTE、自动/手工课次指标和输出粒度保持一致。
+- 同步更新 `knowledge/dashboards/market_consultant_lead_conversion_attendance.md`、`knowledge/metrics/market_consultant_lead_conversion_attendance_metrics.md`、`knowledge/joins/table_relationships.md`、`knowledge/joins/common_join_keys.md`、`knowledge/tables/temp_table.dingxi01_daoke_1_6_t.md` 和 `knowledge/dashboards/data_center_market_datasets.md`，明确最终输出包含自动课次 `ke_*` / `v_ke_*`、手工课次 `manual_*` / `manual_v_*` 以及自动/手工课次对照计数。
