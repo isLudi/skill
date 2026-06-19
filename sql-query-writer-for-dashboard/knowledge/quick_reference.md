@@ -35,6 +35,7 @@
 | 市场顾问转化/线索转化 | `knowledge/dashboards/market_consultant_conversion.md` | `knowledge/metrics/market_consultant_conversion_metrics.md` |
 | 流量画像/城市渠道 | `knowledge/dashboards/traffic_profile.md` | `knowledge/metrics/traffic_profile_metrics.md` |
 | 市场渠道用户画像/成单过程/多维退费率 | `knowledge/dashboards/market_channel_conversion_profile.md` | `knowledge/metrics/market_channel_conversion_profile_metrics.md` |
+| 市场顾问部模板取数最新代码/AI分析模板 | `knowledge/dashboards/template_query_market_datasets.md` | 读取清单中对应 raw SQL；使用口径必须说明为“模板取数” |
 | 历史退费分析 | `knowledge/metrics/refund_analysis_metrics.md` | 旧 `knowledge/dashboards/refund_*.md` 仅作追溯入口，默认改读市场渠道用户画像 |
 | 分配计划实际有效量 | `knowledge/dashboards/lead_assign_plan_actual_valid_count.md` | `knowledge/joins/common_join_keys.md` |
 | 外呼过程/首 call | `knowledge/dashboards/outbound_call_process_dashboard.md` | `knowledge/sql_patterns/first_call_task_metric_pattern.md`；期次导出模板看 `knowledge/sql_patterns/outbound_call_process_export_template.md` |
@@ -46,6 +47,7 @@
 ## 强制前置规则
 
 - 先读 `knowledge/00_global_rules.md` 和 `knowledge/03_range_limit_rules.md` 顶部核心规则，再写生产 SQL。
+- 排查平台“模板取数”中存储的最新 SQL 时，先读 `knowledge/dashboards/template_query_market_datasets.md`，不要默认用数据中心或 Web BI canonical SQL 替代；回答时说明使用口径为“模板取数”。
 - 生成平台模板取数 SQL 时，日期/时间区间必须使用 `字段名 >= ${字段名:1} and 字段名 < ${字段名:2}`，参数名和过滤列名一致，不能加 `cast()`，详见 `knowledge/sql_patterns/template_parameter_rules.md`。
 - 需要最新渠道归因时，读 `knowledge/sql_patterns/channel_mapping_case_when.md`，完整 CASE 用 `resources/raw_sql/market_channel_case_when_0612.sql`。
 - 涉及 Web 查询执行、下载、权限问题时，读 `knowledge/sql_patterns/web_permission_guide.md`。

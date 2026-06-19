@@ -567,3 +567,10 @@
 - 使用用户提供的粘贴 SQL 覆盖 `resources/raw_sql/market_consultant_lead_conversion_attendance.sql`，作为到课数据查询最新 canonical 代码。
 - 与 2026-06-17 数据中心版本相比，SQL 内容差异为孟亚飞 1 组视频号分支从 `孟亚飞-1组-视频号` 合并为 `孟亚飞9元`；到课 CTE、自动/手工课次指标和输出粒度保持一致。
 - 同步更新 `knowledge/dashboards/market_consultant_lead_conversion_attendance.md`、`knowledge/metrics/market_consultant_lead_conversion_attendance_metrics.md`、`knowledge/joins/table_relationships.md`、`knowledge/joins/common_join_keys.md`、`knowledge/tables/temp_table.dingxi01_daoke_1_6_t.md` 和 `knowledge/dashboards/data_center_market_datasets.md`，明确最终输出包含自动课次 `ke_*` / `v_ke_*`、手工课次 `manual_*` / `manual_v_*` 以及自动/手工课次对照计数。
+
+## 2026-06-19 市场顾问部模板取数源 SQL 同步
+
+- 使用 `usql-web-query-operator` 的 `fetch-template-sql` 命令从模板取数页面抓取 8 个已发布模板的最新 `sqlDetail`：多科用户成单、分周期转化、每天转化、转化、过程、到课、员工架构和进量数据。
+- 新增 8 份 `template_query_market_` 前缀的模板取数 raw SQL，完整保存平台模板 SQL 原文，不改写 SQL 语义，不覆盖现有 canonical 看板或数据中心 SQL。
+- 新增 `knowledge/dashboards/template_query_market_datasets.md`，记录模板 id、更新时间、raw SQL 路径、主要依赖表、模板参数和用途，并统一标记使用口径为“模板取数”。
+- 更新 `knowledge/quick_reference.md` 与 `knowledge/decision_tree.md`，后续用户明确提到模板取数最新代码或 AI 分析市场顾问部模板时优先路由到模板取数清单，回答时必须说明口径来源。
