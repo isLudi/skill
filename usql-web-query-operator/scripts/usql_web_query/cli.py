@@ -20,11 +20,13 @@ from _shared.config import (
     DEFAULT_DATAMAP_STATE,
     DEFAULT_ENV_FILE,
     DEFAULT_STATE,
+    TEMPLATE_QUERY_RUNTIME_DIR,
 )
 from _shared.errors import UsageError
 
 from .commands.check_manual_table import cmd_check_manual_table
 from .commands.doctor import cmd_doctor
+from .commands.fetch_template_sql import cmd_fetch_template_sql
 from .commands.login import cmd_login
 from .commands.run import cmd_run
 from .commands.sync_data_center_sql import cmd_sync_data_center_sql
@@ -147,6 +149,27 @@ def build_parser() -> argparse.ArgumentParser:
     sync_data_center.add_argument("--rebuild-indexes", action=argparse.BooleanOptionalAction, default=True, help="Run target skill build_reverse_indexes.py after writes.")
     sync_data_center.add_argument("--check-integrity", action=argparse.BooleanOptionalAction, default=True, help="Run target skill check_skill_integrity.py after writes.")
     sync_data_center.set_defaults(func=cmd_sync_data_center_sql)
+
+    fetch_template = subparsers.add_parser(
+        "fetch-template-sql",
+        help="Fetch stored SQL for a template in Template Query > My created templates.",
+    )
+    fetch_template.add_argument("--template-name", required=True, help="Template name to search in my created templates.")
+    fetch_template.add_argument("--match", choices=["exact", "contains"], default="exact", help="Name match mode. Default: exact.")
+    fetch_template.add_argument("--status", choices=["unpublished", "published", "offline", "1", "2", "3"], default=None, help="Optional template status filter.")
+    fetch_template.add_argument("--output-file", type=Path, default=None, help="Where to save the fetched SQL. Defaults to the runtime template-query directory.")
+    fetch_template.add_argument("--include-sql", action="store_true", help="Also include the full SQL text in the JSON summary.")
+    fetch_template.add_argument("--page-size", type=int, default=100, help="API page size for template discovery.")
+    fetch_template.add_argument("--max-pages", type=int, default=20, help="Maximum pages to scan when needed.")
+    fetch_template.add_argument("--state-path", type=Path, default=DEFAULT_STATE, help="Shared Baijia browser storage state path.")
+    fetch_template.add_argument("--artifacts-dir", type=Path, default=TEMPLATE_QUERY_RUNTIME_DIR, help="Runtime output directory for fetched template SQL.")
+    fetch_template.add_argument("--env-file", type=Path, default=DEFAULT_ENV_FILE)
+    fetch_template.add_argument("--username", default=os.environ.get("BAIJIA_USERNAME"))
+    fetch_template.add_argument("--password", default=os.environ.get("BAIJIA_PASSWORD"))
+    fetch_template.add_argument("--headed", action="store_true", help="Show browser window while authenticating/fetching templates.")
+    fetch_template.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL, help="Installed browser channel, e.g. msedge or chrome.")
+    fetch_template.add_argument("--executable-path", default=None, help="Explicit browser executable path; overrides --browser-channel.")
+    fetch_template.set_defaults(func=cmd_fetch_template_sql)
 
     return parser
 

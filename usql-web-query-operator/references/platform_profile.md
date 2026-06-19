@@ -219,3 +219,16 @@ where dt = '20260531'
 | row_cnt | lead_cnt | user_cnt | total_lead | total_valid |
 |---:|---:|---:|---:|---:|
 | 1430177 | 1349091 | 1232028 | 1310953 | 1242942 |
+
+## Template Query stored SQL API
+
+2026-06-19 verified:
+
+- Page URL: `https://uanalysis.baijia.com/templateGetData/templateQueries/myTemplate/myCreate`
+- Shared login state: `C:\Users\Ludim\.codex\runtime\usql-web-query-operator\state.json`
+- Runtime output directory: `C:\Users\Ludim\.codex\runtime\usql-web-query-operator\template-query\`
+- Created-template list API: `POST https://uanalysis.baijia.com/uanalysis-template/template/createList`
+- Request body shape: `{"name":"<optional template name>","status":2,"pager":{"pageSize":100,"pageNo":1}}`
+- The response rows include `sqlDetail`; this is the same SQL surfaced by the UI flow `View template -> View SQL`.
+- Production command: `D:\anaconda3\python.exe scripts\usql_web_query.py fetch-template-sql --template-name "<template name>"`
+- The command is read-only. It fetches stored template SQL only; it does not create a template query, run SQL, or download results.

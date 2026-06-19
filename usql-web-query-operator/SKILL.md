@@ -292,6 +292,17 @@ mineru-open-api extract <screenshot_path>.png -o C:\Users\Ludim\.codex\runtime\t
 - 只需要 stdout 时，省略 `-o`，直接消费 Markdown。
 - 截图快速读字优先用 `flash-extract`；只有截图包含复杂表格或公式且需要高保真时才用 `extract`。
 
+## Template Query stored SQL
+
+When the user needs to inspect the latest SQL stored in a Template Query template under `Template Query -> My templates -> My created`, use:
+
+```powershell
+D:\anaconda3\python.exe scripts\usql_web_query.py fetch-template-sql `
+  --template-name "<template name>"
+```
+
+The command opens the My Created templates page with the shared Baijia login state, calls the page-backed `template/createList` API, and saves the selected row's `sqlDetail` to `C:\Users\Ludim\.codex\runtime\usql-web-query-operator\template-query\` unless `--output-file` is provided. It is read-only: it does not create a query, execute SQL, or download results. Use `--include-sql` only when the full SQL should also be printed in the JSON summary.
+
 ### 跨 skill 顺序
 
 同时需要本 skill 和 `mineru-converter` 时，按以下顺序：
