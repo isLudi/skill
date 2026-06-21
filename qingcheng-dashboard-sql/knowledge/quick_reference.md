@@ -15,11 +15,17 @@
 | 青橙个人转化 | `knowledge/dashboards/qingcheng_personal_conversion_raw_20260522.md` | `knowledge/metrics/qingcheng_personal_conversion_metrics.md`、`knowledge/temp_tables/temp_table.dingxi01_qing_team_jg.md` | 架构表一人一期唯一性和个人业绩重复计算风险 |
 | 青橙转化宽表-市场渠道 | `knowledge/dashboards/qingcheng_conversion_wide_table_market_channel_20260611.md` | `knowledge/metrics/qingcheng_conversion_wide_table_market_channel_metrics.md`、`knowledge/temp_tables/temp_table.shenbaoxin_channel_group.md` | 大 CASE 顺序、F 类外呼 join 语义和渠道分组唯一性待确认 |
 
+## 高频排查入口
+
+| 用户需求 | 先读 | 再读 | 关键风险 |
+|---|---|---|---|
+| 追溯某批 `lead_id` 的原始来源 / 原始分配线索 | `knowledge/sql_patterns/qingcheng_lead_origin_trace.md` | `knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md`、`knowledge/tables/service_dw.dm_crm_lead_stats_detail_hf.md` | 不要把 `rule_name` 当原始来源；`rule_name like '%公开课%'` 可能为 0；窗口别名不要写成 `rn` |
+
 ## 高频表与临时表
 
 | 表 | 常见场景 | 优先动作 |
 |---|---|---|
-| `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df` | 青橙线索、渠道、转化主表 | 先确认 `dt/hour`、青橙范围字段和最新分区 |
+| `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df` | 青橙线索、渠道、转化主表 | 先确认 `dt/hour`、青橙范围字段和最新分区；若是追溯原始来源，先读 `knowledge/sql_patterns/qingcheng_lead_origin_trace.md` |
 | `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` | 青橙订单、收入、退款、净营收 | 用订单侧业绩部门过滤时，说明是否依赖订单侧范围兜底 |
 | `finance_dw.app_finance_performance_extend_details_hf` | 年季月营收、团队完成度、个人转化 | 先确认金额单位、交易类型和任职期间 join |
 | `temp_table.dingxi01_qing_team_jg` | 青橙团队架构 | 区分最新架构和期次架构，不默认补历史数据 |

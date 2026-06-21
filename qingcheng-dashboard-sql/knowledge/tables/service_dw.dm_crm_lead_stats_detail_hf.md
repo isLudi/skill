@@ -299,3 +299,5 @@ date_diff(
 ## 11. 注意事项
 
 - 映射二级部门包含多个学部和市场部，是否必须包含这些部门才能支撑青橙线索待确认。
+- `lead_period_name`、`lead_group_period_name`、`lead_period_conversion_begin_time`、`lead_period_conversion_end_time` 更适合回答“系统给 lead 打的期次标签是什么”“保护期窗口落在哪个桶里”，不适合作为原始来源追溯主字段。
+- 需要追溯某批青橙 `lead_id` 的原始来源时，优先回到 `knowledge/sql_patterns/qingcheng_lead_origin_trace.md` 和 `knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md`；本表主要承担期次标签和保护期窗口校验。

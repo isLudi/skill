@@ -167,3 +167,12 @@
 - 将青橙数据中心已确认同源的 8 份源 SQL 映射到现有 canonical raw_sql，其中过程数据、到课、转化、团队完成度、个人转化等以数据中心版本作为最新版本。
 - 保留 `data_center_qingcheng_2740_20260617.sql` 作为抖私-转化新增数据中心源 SQL，待后续确认是否进入正式专题口径。
 - 更新 `knowledge/dashboards/data_center_qingcheng_datasets.md`，记录每份数据中心 SQL 的用途、主要依赖和冲突处理原则。
+
+## 2026-06-21 青橙 lead_id 原始来源追溯模式补充
+
+- 新增 `knowledge/sql_patterns/qingcheng_lead_origin_trace.md`，沉淀青橙某批 `lead_id` 的原始来源/原始分配线索追溯方法，区分当前归因字段与更接近原始来源的候选字段。
+- 文档中补充 3 段可复用 SQL 模板：20-50 条 `lead_id` 抽样分布、一行一 `lead_id` 全量导出、以及 `rule_name like '%公开课%'` 为 0 的诊断 SQL。
+- 更新 `knowledge/quick_reference.md` 和 `knowledge/decision_tree.md`，新增“追溯某批 lead_id 原始来源”路由入口。
+- 更新 `knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md`，增加来源追溯提示，并记录物理字段 `rn` 会与窗口别名冲突。
+- 更新 `knowledge/tables/service_dw.dm_crm_lead_stats_detail_hf.md`，明确 `lead_period_name / lead_group_period_name / lead_period_conversion_begin_time / end_time` 更适合期次标签和保护期窗口校验，而非原始来源追溯。
+- 本次知识沉淀基于 2026-06-21 已验证样例：`20260619期 + 青橙IP + 公开课` 切片共 2230 条 `lead_id`，`rule_name like '%公开课%'` 为 0，但 `period_name / lead_period_name` 可命中 `公开课`。

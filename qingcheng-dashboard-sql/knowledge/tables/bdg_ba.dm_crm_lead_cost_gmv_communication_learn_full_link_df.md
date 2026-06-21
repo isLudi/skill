@@ -75,6 +75,14 @@ Presto
 | `flow_order_price` | string | 订单价格 | 市场渠道 CASE WHEN |
 | `flow_orders_income_amount` | double | 订单收入金额 | 市场渠道 CASE WHEN |
 
+### 7.3A lead_id 来源追溯提示（2026-06-21）
+
+- 对某批 `lead_id` 做“原始来源 / 原始分配线索”排查时，优先区分两类字段：
+  - 当前归因/展示结果：`rule_name`、`period_name`、`group_period_name`、`sku_id_name`
+  - 更接近原始来源的候选字段：`trace_type_name`、`final_new_source`、`channel_name_1/2/3`、`flow_pool_name`、`put_plan_name`、`source_put_plan_name`、`source_manager_name`、`get_customer_way_name`
+- 已验证样例：`20260619期 + 青橙IP + 公开课` 切片共 2230 条 `lead_id`，其中 `rule_name like '%公开课%'` 为 0，但 `period_name` / `lead_period_name` 可命中 `公开课`。
+- 因此不能只依赖 `rule_name` 或 `sku_id_name` 判断线索原始来源。优先走 `knowledge/sql_patterns/qingcheng_lead_origin_trace.md` 的“抽样 20-50 条 → 一行一 lead_id 全量导出”流程。
+
 ### 7.4 部门和架构字段
 
 | 字段名 | 类型 | 中文含义 | 备注 |
@@ -419,6 +427,8 @@ case when f.valid_lead_count = '1' then 1 else 0 end as v_lead
 - 宽表市场渠道 SQL 使用 `select distinct t1.*`，若宽表本身有重复行，distinct 可能掩盖数据质量问题。
 - 宽表市场渠道 SQL 未加 `valid_lead_count = '1'` 过滤，输出全量线索（含无效线索）。
 - 宽表市场渠道 SQL 未加 `period_mapping_second_level_department_name` 过滤，是否会引入非青橙期次数据待确认。
+- 本表存在物理字段 `rn`。后续写窗口函数时不要再把别名命名为 `rn`，否则容易触发 `Column 'rn' is ambiguous`。
+- 若业务问“某批 lead 最原始从哪里来”，优先查看 `trace_type_name`、`final_new_source`、`channel_name_1/2/3`、`flow_pool_name`、`put_plan_name`、`source_put_plan_name`、`source_manager_name`、`get_customer_way_name`，不要先拿 `rule_name` 当结论。
 - 后续生成新 SQL 时不得使用三参数 `date_add` 计算期次，应改为 `interval` 写法。
 - 本表字段清单已大幅扩充（从 19 个增至 50+），新增字段均来自 `qingcheng_conversion_wide_table_market_channel_20260611.sql` 实际使用，完整字段含义待表结构确认。
 - CRM 线索转移操作必须在当期开课前完成，数据库侧才能记录该转移状态；当期开课后发生退费、转移顾问或状态变化时，本表相关看板可能仍保留原顾问/原期次/原架构口径下的数据。该规则来自用户补充的 CRM 系统限制，青橙具体看板适用性待人工确认。
