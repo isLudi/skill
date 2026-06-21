@@ -31,6 +31,7 @@ from .commands.login import cmd_login
 from .commands.run import cmd_run
 from .commands.sync_data_center_sql import cmd_sync_data_center_sql
 from .commands.sync_datamap_fields import cmd_sync_datamap_fields
+from .commands.template_download import cmd_template_download
 from .commands.upload_temp_table import cmd_upload_temp_table
 from .config import DEFAULT_QUERY_ENGINE
 from .data_center import DEFAULT_MARKET_START_DATASET
@@ -170,6 +171,31 @@ def build_parser() -> argparse.ArgumentParser:
     fetch_template.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL, help="Installed browser channel, e.g. msedge or chrome.")
     fetch_template.add_argument("--executable-path", default=None, help="Explicit browser executable path; overrides --browser-channel.")
     fetch_template.set_defaults(func=cmd_fetch_template_sql)
+
+    template_download = subparsers.add_parser(
+        "template-download",
+        help="Create a temporary Template Query, run it, download the result, and clean up the template.",
+    )
+    template_download.add_argument("--sql-file", type=Path, required=True, help="Concrete SQL file to run through Template Query.")
+    template_download.add_argument("--template-name", default=None, help="Temporary template name. Must be 20 characters or fewer.")
+    template_download.add_argument("--template-description", default=None, help="Temporary template description.")
+    template_download.add_argument("--query-name", default=None, help="Override the generated Template Query query name.")
+    template_download.add_argument("--download-format", choices=["csv", "xls"], default="csv", help="Download format exposed by Template Query. Default: csv.")
+    template_download.add_argument("--output-file", type=Path, default=None, help="Where to save the downloaded result. Defaults to the runtime template-query directory.")
+    template_download.add_argument("--timeout-ms", type=int, default=20 * 60 * 1000, help="Maximum wait for query completion.")
+    template_download.add_argument("--poll-interval-ms", type=int, default=2000, help="Polling interval for Template Query status checks.")
+    template_download.add_argument("--include-preview", action="store_true", help="Include a small query-result preview in the JSON summary.")
+    template_download.add_argument("--keep-template", action="store_true", help="Skip offline/delete cleanup for debugging.")
+    template_download.add_argument("--headed", action="store_true", help="Show browser window while authenticating.")
+    template_download.add_argument("--debug-artifacts", action="store_true", help="Save screenshots and HTML under a timestamped runtime directory.")
+    template_download.add_argument("--state-path", type=Path, default=DEFAULT_STATE, help="Shared Baijia browser storage state path.")
+    template_download.add_argument("--artifacts-dir", type=Path, default=TEMPLATE_QUERY_RUNTIME_DIR / "downloads", help="Runtime output directory for downloads and optional debug artifacts.")
+    template_download.add_argument("--env-file", type=Path, default=DEFAULT_ENV_FILE)
+    template_download.add_argument("--username", default=os.environ.get("BAIJIA_USERNAME"))
+    template_download.add_argument("--password", default=os.environ.get("BAIJIA_PASSWORD"))
+    template_download.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL, help="Installed browser channel, e.g. msedge or chrome.")
+    template_download.add_argument("--executable-path", default=None, help="Explicit browser executable path; overrides --browser-channel.")
+    template_download.set_defaults(func=cmd_template_download)
 
     return parser
 

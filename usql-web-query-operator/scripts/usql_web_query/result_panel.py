@@ -23,6 +23,8 @@ def _wait_for_result_panel(page: Any) -> None:
 
     scroll_script = "el => { el.scrollTop = el.scrollHeight; }"
     prev_url = ""
+    result_seen_at = None
+    empty_result_seen_at = None
 
     while time.monotonic() < deadline:
         # Scroll to keep the bottom (log / result area) visible.
@@ -43,6 +45,17 @@ def _wait_for_result_panel(page: Any) -> None:
                 prev_url = cur_url
 
             check = frame_obj.evaluate("""() => {
+                function visible(el) {
+                    const rect = el.getBoundingClientRect();
+                    const style = window.getComputedStyle(el);
+                    return rect.width > 0 && rect.height > 0 &&
+                        style.visibility !== 'hidden' && style.display !== 'none';
+                }
+                function isHistoryTable(headers) {
+                    const needles = ['查询ID', '查询时间', '主要内容', '引擎', '持续时间', '状态', '下载状态', '操作'];
+                    return headers.some(h => needles.some(n => h.includes(n)));
+                }
+
                 // 1. Is the log loading spinner still active?
                 const loadingIcons = document.querySelectorAll('.anticon-loading');
                 for (const icon of loadingIcons) {
@@ -54,9 +67,10 @@ def _wait_for_result_panel(page: Any) -> None:
                 // 2. Check for a result data table (not the query-history table).
                 const tables = document.querySelectorAll('.ant-table');
                 for (const t of tables) {
+                    if (!visible(t)) continue;
                     const headers = Array.from(t.querySelectorAll('th')).map(h => h.innerText.trim());
-                    if (headers.some(h => h.includes('查询ID') || h.includes('主要内容'))) continue;
-                    const rows = t.querySelectorAll('.ant-table-row');
+                    if (!headers.some(Boolean) || isHistoryTable(headers)) continue;
+                    const rows = Array.from(t.querySelectorAll('tbody tr.ant-table-row')).filter(visible);
                     if (rows.length > 0) {
                         return 'result-table:' + rows.length + 'rows';
                     }
@@ -66,19 +80,45 @@ def _wait_for_result_panel(page: Any) -> None:
                 const bt = document.body.innerText;
                 if (bt.includes('row_cnt') || bt.includes('lead_cnt')) return 'result-text';
 
-                // 4. Check for collapsed/expandable result panel.
+                // 4. Check for a visible empty result table. This can be transient,
+                // so Python waits for it to remain stable before returning.
+                for (const t of tables) {
+                    if (!visible(t)) continue;
+                    const headers = Array.from(t.querySelectorAll('th')).map(h => h.innerText.trim());
+                    if (isHistoryTable(headers)) continue;
+                    const placeholder = t.querySelector('.ant-table-placeholder, .ant-empty-description');
+                    if (placeholder && visible(placeholder) && (placeholder.innerText || '').includes('暂无数据')) {
+                        return 'result-empty';
+                    }
+                }
+
+                // 5. Check for collapsed/expandable result panel.
                 const collapses = document.querySelectorAll('.ant-collapse-item');
                 if (collapses.length > 0) return 'collapse-panels:' + collapses.length;
 
-                // 5. "结果"/"表格" tabs present?
+                // 6. "结果"/"表格" tabs present?
                 if (bt.includes('结果') && bt.includes('表格')) return 'result-tabs';
 
                 return 'waiting';
             }""")
 
-            if check.startswith('result-') or check.startswith('collapse-'):
+            if check.startswith('result-table') or check == 'result-text' or check.startswith('collapse-'):
                 page.wait_for_timeout(1000)
                 return
+            if check in {'result-tabs', 'result-empty'}:
+                now = time.monotonic()
+                if result_seen_at is None:
+                    result_seen_at = now
+                if check == 'result-empty':
+                    if empty_result_seen_at is None:
+                        empty_result_seen_at = now
+                    if now - empty_result_seen_at >= 30.0:
+                        return
+                try:
+                    open_result_table(page)
+                except Exception:
+                    pass
+                continue
             if check == 'log-loading':
                 continue
 
@@ -172,8 +212,25 @@ def result_page_has_no_data(page: Any) -> bool:
                 continue
             if frame_obj.evaluate(
                 """() => {
+                    function visible(el) {
+                        const rect = el.getBoundingClientRect();
+                        const style = window.getComputedStyle(el);
+                        return rect.width > 0 && rect.height > 0 &&
+                            style.visibility !== 'hidden' && style.display !== 'none';
+                    }
+                    function isHistoryTable(headers) {
+                        const needles = ['查询ID', '查询时间', '主要内容', '引擎', '持续时间', '状态', '下载状态', '操作'];
+                        return headers.some(h => needles.some(n => h.includes(n)));
+                    }
                     const text = document.body.innerText || '';
-                    return text.includes('结果') && text.includes('表格') && text.includes('暂无数据');
+                    if (!text.includes('结果') || !text.includes('表格')) return false;
+                    return Array.from(document.querySelectorAll('.ant-table')).some((table) => {
+                        if (!visible(table)) return false;
+                        const headers = Array.from(table.querySelectorAll('th')).map(h => h.innerText.trim());
+                        if (isHistoryTable(headers)) return false;
+                        const placeholder = table.querySelector('.ant-table-placeholder, .ant-empty-description');
+                        return placeholder && visible(placeholder) && (placeholder.innerText || '').includes('暂无数据');
+                    });
                 }"""
             ):
                 return True

@@ -1,4 +1,4 @@
 interface:
   display_name: "USQL Web Query Operator"
-  short_description: "Run governed USQL web queries, upload temp tables, fetch Template Query SQL, and sync Data Map or Data Center knowledge."
-  default_prompt: "Use the USQL web query operator to run safe SQL through the company web query page, upload authorized temp tables, fetch stored SQL from Template Query templates, refresh Data Map field docs, or sync Data Center dataset source SQL while preserving login state and local safety gates."
+  short_description: "Run governed USQL web queries, use Template Query for stored-SQL fetch or large-result downloads, upload temp tables, and sync Data Map or Data Center knowledge."
+  default_prompt: "Use the USQL web query operator to run safe SQL through the company web query page, fetch stored SQL from Template Query templates, create temporary Template Query jobs for large-result downloads with cleanup, upload authorized temp tables, or sync Data Map and Data Center knowledge while preserving login state and local safety gates."

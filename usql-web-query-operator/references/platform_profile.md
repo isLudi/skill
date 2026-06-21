@@ -232,3 +232,28 @@ where dt = '20260531'
 - The response rows include `sqlDetail`; this is the same SQL surfaced by the UI flow `View template -> View SQL`.
 - Production command: `D:\anaconda3\python.exe scripts\usql_web_query.py fetch-template-sql --template-name "<template name>"`
 - The command is read-only. It fetches stored template SQL only; it does not create a template query, run SQL, or download results.
+
+## Template Query temporary download workflow
+
+2026-06-21 verified:
+
+- Create page URL: `https://uanalysis.baijia.com/templateGetData/templateQueries/createTemplate`
+- Query page URL after create-query: `https://uanalysis.baijia.com/templateGetData/templateQueries/myQuery`
+- Template lifecycle APIs:
+  - `POST https://uanalysis.baijia.com/uanalysis-template/template/sqlParser`
+  - `POST https://uanalysis.baijia.com/uanalysis-template/template/saveAndUpdate`
+  - `POST https://uanalysis.baijia.com/uanalysis-template/template/publish`
+  - `POST https://uanalysis.baijia.com/uanalysis-template/template/offline`
+  - `POST https://uanalysis.baijia.com/uanalysis-template/template/delete`
+- Query lifecycle APIs:
+  - `POST https://uanalysis.baijia.com/uanalysis-template/query/detail`
+  - `POST https://uanalysis.baijia.com/uanalysis-template/query/create`
+  - `POST https://uanalysis.baijia.com/uanalysis-template/query/list`
+  - `GET https://uanalysis.baijia.com/uanalysis-template/query/log?queryId=<id>`
+  - `POST https://uanalysis.baijia.com/uanalysis-template/query/result`
+  - `GET https://uanalysis.baijia.com/uanalysis-template/query/download?queryId=<id>&type=1|2`
+- Download type mapping:
+  - `type=1`: csv
+  - `type=2`: Excel artifact, observed filename `*.xlsx`
+- Production command: `D:\anaconda3\python.exe scripts\usql_web_query.py template-download --sql-file C:\path\to\query.sql`
+- The validated cleanup sequence is `publish -> query -> download -> offline -> delete`. Query-history rows are not part of the cleanup scope.

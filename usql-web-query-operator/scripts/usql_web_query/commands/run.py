@@ -34,7 +34,7 @@ from usql_web_query.query_history import (
 )
 from usql_web_query.result_panel import _wait_for_result_panel, extract_result_preview
 from usql_web_query.sql_utils import enforce_download_policy_before_run, parse_duration_seconds, read_sql
-from usql_web_query.status_poller import result_area_visible, wait_for_status
+from usql_web_query.status_poller_api import wait_for_status
 
 
 def cmd_run(args: argparse.Namespace) -> int:
@@ -71,11 +71,6 @@ def cmd_run(args: argparse.Namespace) -> int:
                 text = (error_details.get("detail") or error_details.get("raw_snippet") or "")
             if status == "Timeout":
                 page.wait_for_timeout(3000)
-                new_open_query_ids = extract_open_query_tab_ids(page) - existing_query_ids
-                if new_open_query_ids and result_area_visible(page):
-                    status = "Success"
-                    text = text or ""
-                    error_details = None
             if args.debug_artifacts:
                 save_debug_artifacts(page, artifacts_dir, "after_run")
 
@@ -107,7 +102,7 @@ def cmd_run(args: argparse.Namespace) -> int:
                 allowed, reason = download_allowed(sql, result_preview)
                 if not allowed:
                     raise UsageError(f"Download blocked by local policy: {reason}")
-                download_path = click_download_button(page, artifacts_dir)
+                download_path = click_download_button(page, artifacts_dir, query_id=query_id)
             if status == "Failed":
                 error_details = error_details or extract_error_from_page(page)
                 error_category, error_category_label = classify_error_details(error_details)

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import Any
 
@@ -20,13 +21,63 @@ def download_allowed(sql: str, result_preview: dict[str, Any] | None) -> tuple[b
         return (True, "result page indicates no more rows and visible rows <= 1000")
     return (False, "no SQL limit and result page did not prove <= 1000 rows")
 
-def click_download_button(page: Any, artifacts_dir: Path):
+def _filename_from_disposition(value: str | None, fallback: str) -> str:
+    if not value:
+        return fallback
+    match = re.search(r"filename\*=UTF-8''([^;]+)|filename=\"?([^\";]+)", value)
+    if not match:
+        return fallback
+    filename = match.group(1) or match.group(2) or fallback
+    filename = re.sub(r'[<>:"/\\|?*]+', "_", filename).strip()
+    return filename or fallback
+
+def _download_via_result_api(page: Any, artifacts_dir: Path, query_id: str | None) -> str | None:
+    if not query_id:
+        return None
+    request = page.context.request
+    check_url = "https://uanalysis.baijia.com/uanalysis-sql/api/result/download/check"
+    download_url = "https://uanalysis.baijia.com/uanalysis-sql/api/result/download"
+    try:
+        check_resp = request.get(check_url, params={"id": query_id}, timeout=60_000)
+        check_body = check_resp.json()
+        if not check_resp.ok or check_body.get("errorCode") != 0 or not check_body.get("data"):
+            return None
+
+        # The platform's Excel artifact can be header-only while the raw CSV
+        # artifact contains the full result. Prefer CSV for correctness.
+        result_resp = request.get(download_url, params={"id": query_id, "type": "1"}, timeout=60_000)
+        result_body = result_resp.json()
+        if not result_resp.ok or result_body.get("errorCode") != 0:
+            return None
+        signed_url = result_body.get("data")
+        if not signed_url:
+            return None
+
+        file_resp = request.get(signed_url, timeout=120_000)
+        content = file_resp.body()
+        if not file_resp.ok or not content:
+            return None
+        fallback = f"usql_result_{query_id}.csv"
+        filename = _filename_from_disposition(file_resp.headers.get("content-disposition"), fallback)
+        if not filename.lower().endswith(".csv"):
+            filename = f"{filename}.csv"
+        target = artifacts_dir / filename
+        target.write_bytes(content)
+        return str(target)
+    except Exception:
+        return None
+
+def click_download_button(page: Any, artifacts_dir: Path, query_id: str | None = None):
     """Click the download button and select Excel format from the dropdown.
 
     The platform shows a dropdown with CSV and Excel options after clicking
     the download icon. We select the Excel (.xlsx) option.
     """
     frame = get_sql_frame(page)
+    direct_download = _download_via_result_api(page, artifacts_dir, query_id)
+    if direct_download:
+        return direct_download
+
     if result_page_has_no_data(page):
         raise UsageError("Result page shows no data; the platform did not expose a downloadable xlsx result.")
 
