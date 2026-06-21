@@ -1,4 +1,4 @@
-# SQL取数网页 Profile
+# SQL取数网页画像
 
 ## 已知 URL
 
@@ -46,7 +46,7 @@
 平台使用 **CodeMirror**，不是 Monaco。编辑器位于 `/sql/` iframe 内。
 
 - 写入 SQL：通过 `frame_obj.evaluate()` 调用 `document.querySelector('.CodeMirror').CodeMirror.setValue(sql)`。
-- fallback：点击 `.CodeMirror` -> Ctrl+A -> 粘贴。
+- 回退方案：点击 `.CodeMirror` -> Ctrl+A -> 粘贴。
 
 ### 引擎选择器
 
@@ -68,7 +68,7 @@
 - 选中当前 SQL。
 - 按 `Ctrl+E`。
 
-iframe 编辑器工具栏中的运行按钮 fallback：
+iframe 编辑器工具栏中的运行按钮回退方案：
 
 - `[aria-label='play-circle']`
 - `.anticon-play-circle`
@@ -92,7 +92,7 @@ iframe 编辑器工具栏中的运行按钮 fallback：
 
 - Ant notification/message/alert 文本。
 - 打开失败行的 `日志` 后读取 `log_area`。
-- 只有没有结构化来源时，才使用整页关键词 fallback。
+- 只有没有结构化来源时，才使用整页关键词回退。
 
 ### 结果提取
 
@@ -181,9 +181,9 @@ iframe 编辑器工具栏中的运行按钮 fallback：
 
 - 页面是否能在下载前稳定暴露总行数。
 - 平台是否会在部分会话中阻断自动登录，并要求手工 SSO/MFA；当前自动 CAS 登录在 headless 下可用。
-- 打开特定看板后的 dashboard 查询/结果 API 仍需继续 profile。文件夹名和 dashboard ID 可由 `read_dashboard.py scan-folder` 获取，它会向看板菜单 API POST `{"menuType":"HOME_AND_DASHBOARD"}`。
+- 打开特定看板后的 dashboard 查询/结果 API 仍需继续生成画像。文件夹名和 dashboard ID 可由 `read_dashboard.py scan-folder` 获取，它会向看板菜单 API POST `{"menuType":"HOME_AND_DASHBOARD"}`。
 
-## 看板 Profile API
+## 看板画像 API
 
 2026-06-01 验证：
 
@@ -220,40 +220,40 @@ where dt = '20260531'
 |---:|---:|---:|---:|---:|
 | 1430177 | 1349091 | 1232028 | 1310953 | 1242942 |
 
-## Template Query stored SQL API
+## 模板取数已保存 SQL 接口
 
-2026-06-19 verified:
+2026-06-19 已验证：
 
-- Page URL: `https://uanalysis.baijia.com/templateGetData/templateQueries/myTemplate/myCreate`
-- Shared login state: `C:\Users\Ludim\.codex\runtime\usql-web-query-operator\state.json`
-- Runtime output directory: `C:\Users\Ludim\.codex\runtime\usql-web-query-operator\template-query\`
-- Created-template list API: `POST https://uanalysis.baijia.com/uanalysis-template/template/createList`
-- Request body shape: `{"name":"<optional template name>","status":2,"pager":{"pageSize":100,"pageNo":1}}`
-- The response rows include `sqlDetail`; this is the same SQL surfaced by the UI flow `View template -> View SQL`.
-- Production command: `D:\anaconda3\python.exe scripts\usql_web_query.py fetch-template-sql --template-name "<template name>"`
-- The command is read-only. It fetches stored template SQL only; it does not create a template query, run SQL, or download results.
+- 页面 URL：`https://uanalysis.baijia.com/templateGetData/templateQueries/myTemplate/myCreate`
+- 共享登录态：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\state.json`
+- 运行时输出目录：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\template-query\`
+- 我创建的模板列表接口：`POST https://uanalysis.baijia.com/uanalysis-template/template/createList`
+- 请求体结构：`{"name":"<可选模板名>","status":2,"pager":{"pageSize":100,"pageNo":1}}`
+- 返回行包含 `sqlDetail` 字段，对应页面“查看模板 -> 查看SQL”展示的同一份 SQL。
+- 生产命令：`D:\anaconda3\python.exe scripts\usql_web_query.py fetch-template-sql --template-name "<模板名称>"`
+- 该命令是只读的，只读取已保存模板 SQL，不会创建模板、执行 SQL 或下载结果。
 
-## Template Query temporary download workflow
+## 模板取数临时下载流程
 
-2026-06-21 verified:
+2026-06-21 已验证：
 
-- Create page URL: `https://uanalysis.baijia.com/templateGetData/templateQueries/createTemplate`
-- Query page URL after create-query: `https://uanalysis.baijia.com/templateGetData/templateQueries/myQuery`
-- Template lifecycle APIs:
+- 创建模板页面 URL：`https://uanalysis.baijia.com/templateGetData/templateQueries/createTemplate`
+- 创建查询后的页面 URL：`https://uanalysis.baijia.com/templateGetData/templateQueries/myQuery`
+- 模板生命周期接口：
   - `POST https://uanalysis.baijia.com/uanalysis-template/template/sqlParser`
   - `POST https://uanalysis.baijia.com/uanalysis-template/template/saveAndUpdate`
   - `POST https://uanalysis.baijia.com/uanalysis-template/template/publish`
   - `POST https://uanalysis.baijia.com/uanalysis-template/template/offline`
   - `POST https://uanalysis.baijia.com/uanalysis-template/template/delete`
-- Query lifecycle APIs:
+- 查询生命周期接口：
   - `POST https://uanalysis.baijia.com/uanalysis-template/query/detail`
   - `POST https://uanalysis.baijia.com/uanalysis-template/query/create`
   - `POST https://uanalysis.baijia.com/uanalysis-template/query/list`
   - `GET https://uanalysis.baijia.com/uanalysis-template/query/log?queryId=<id>`
   - `POST https://uanalysis.baijia.com/uanalysis-template/query/result`
   - `GET https://uanalysis.baijia.com/uanalysis-template/query/download?queryId=<id>&type=1|2`
-- Download type mapping:
-  - `type=1`: csv
-  - `type=2`: Excel artifact, observed filename `*.xlsx`
-- Production command: `D:\anaconda3\python.exe scripts\usql_web_query.py template-download --sql-file C:\path\to\query.sql`
-- The validated cleanup sequence is `publish -> query -> download -> offline -> delete`. Query-history rows are not part of the cleanup scope.
+- 下载类型映射：
+  - `type=1`：`csv`
+  - `type=2`：Excel 制品，实测文件名为 `*.xlsx`
+- 生产命令：`D:\anaconda3\python.exe scripts\usql_web_query.py template-download --sql-file C:\path\to\query.sql`
+- 当前已验证的清理顺序为 `publish -> query -> download -> offline -> delete`。查询历史记录不在清理范围内。

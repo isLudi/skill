@@ -1,42 +1,42 @@
-# Template Query automation
+# 模板取数自动化
 
-Use Template Query automation in two distinct cases.
+模板取数自动化目前分为两类场景，分别对应“读取平台中已保存的模板 SQL”和“用临时模板完成大结果下载”。
 
-## Fetch stored SQL
+## 读取模板中已保存的 SQL
 
-Use `scripts/usql_web_query.py fetch-template-sql` when the user wants the latest SQL stored in a template under:
+当用户要查看 `模板取数 -> 模板查询 -> 我的模板 -> 我创建的` 中某个模板当前保存的最新 SQL 时，使用 `scripts/usql_web_query.py fetch-template-sql`：
 
 `https://uanalysis.baijia.com/templateGetData/templateQueries/myTemplate/myCreate`
 
 ```powershell
 D:\anaconda3\python.exe scripts\usql_web_query.py fetch-template-sql `
-  --template-name "<template name>"
+  --template-name "<模板名称>"
 ```
 
-Useful options:
+常用参数：
 
-- `--match exact|contains`: exact is the default. `contains` scans templates and picks the most recently updated match.
-- `--status unpublished|published|offline`: optional status filter.
-- `--output-file <path>`: save SQL to a specific file. Without this, output is written to `C:\Users\Ludim\.codex\runtime\usql-web-query-operator\template-query\`.
-- `--include-sql`: include the full SQL in the JSON summary in addition to writing the SQL file.
-- `--headed`: show the browser if login state needs inspection.
+- `--match exact|contains`：默认 `exact`。`contains` 会扫描模板列表，并选择最近更新的匹配项。
+- `--status unpublished|published|offline`：可选状态过滤。
+- `--output-file <path>`：把 SQL 保存到指定文件。不传时，输出会写到 `C:\Users\Ludim\.codex\runtime\usql-web-query-operator\template-query\`。
+- `--include-sql`：除了写出 SQL 文件，也把完整 SQL 放进 JSON 摘要。
+- `--headed`：需要检查登录态或页面行为时显示浏览器。
 
-Verified API profile:
+已验证的接口画像：
 
-- Page URL: `https://uanalysis.baijia.com/templateGetData/templateQueries/myTemplate/myCreate`
-- Shared state: `C:\Users\Ludim\.codex\runtime\usql-web-query-operator\state.json`
-- Runtime output: `C:\Users\Ludim\.codex\runtime\usql-web-query-operator\template-query\`
-- List API: `POST https://uanalysis.baijia.com/uanalysis-template/template/createList`
-- Request body: `{"name":"<optional template name>","status":2,"pager":{"pageSize":100,"pageNo":1}}`
-- Response rows include `sqlDetail`, which is the SQL shown by the UI flow `View template -> View SQL`.
+- 页面 URL：`https://uanalysis.baijia.com/templateGetData/templateQueries/myTemplate/myCreate`
+- 共享登录态：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\state.json`
+- 运行时输出目录：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\template-query\`
+- 列表接口：`POST https://uanalysis.baijia.com/uanalysis-template/template/createList`
+- 请求体结构：`{"name":"<可选模板名>","status":2,"pager":{"pageSize":100,"pageNo":1}}`
+- 返回行包含 `sqlDetail` 字段，它与页面上“查看模板 -> 查看SQL”展示的是同一份 SQL。
 
-The command is read-only. It does not create a template query, execute SQL, or download results.
+该命令是只读的：不会创建模板、不会执行 SQL、也不会下载结果。
 
-## Temporary large-result download
+## 临时模板大结果下载
 
-Use `scripts/usql_web_query.py template-download` when the user has a concrete SQL file and needs to bypass the `SQL取数` download approval path for results larger than 1000 rows.
+当用户已经有一份可直接执行的 SQL，并且结果量超过 1000 行、想绕开 `SQL取数` 页面下载审批链路时，使用 `scripts/usql_web_query.py template-download`。
 
-The command creates a temporary template, publishes it, creates an immediate query, waits for completion, downloads the result, then offlines and deletes the template by default.
+该命令会创建临时模板、发布模板、立即创建查询、等待结果完成、下载结果，然后默认执行下线和删除清理。
 
 ```powershell
 D:\anaconda3\python.exe scripts\usql_web_query.py template-download `
@@ -44,23 +44,23 @@ D:\anaconda3\python.exe scripts\usql_web_query.py template-download `
   --download-format csv
 ```
 
-Useful options:
+常用参数：
 
-- `--template-name <name>`: optional temporary template name, 20 characters or fewer.
-- `--query-name <name>`: override the generated query name in `My Query`.
-- `--download-format csv|xls`: `csv` is the default; `xls` returns the Excel-format artifact exposed by the page.
-- `--output-file <path>`: save the downloaded file to a fixed path.
-- `--include-preview`: include a small result preview in the JSON summary.
-- `--keep-template`: skip offline/delete cleanup for debugging.
-- `--debug-artifacts`: save screenshots and HTML in a timestamped runtime directory.
+- `--template-name <name>`：可选的临时模板名，长度不超过 20 个字符。
+- `--query-name <name>`：覆盖自动生成的“我的查询”名称。
+- `--download-format csv|xls`：默认 `csv`；`xls` 对应页面暴露的 Excel 格式下载分支。
+- `--output-file <path>`：把下载文件写到固定路径。
+- `--include-preview`：在 JSON 摘要中附带小规模结果预览。
+- `--keep-template`：调试时跳过下线和删除清理。
+- `--debug-artifacts`：把截图和 HTML 保存到带时间戳的 runtime 目录。
 
-Current scope and safety boundary:
+当前范围与安全边界：
 
-- Input SQL must already be concrete. This command currently rejects template parameters or unresolved query conditions.
-- Cleanup is part of the production path. After a successful or failed run, the command attempts `offline -> delete` for the temporary template unless `--keep-template` is set.
-- Query history entries under `My Query` are not cleaned by this command. The validated cleanup scope is the temporary template itself.
+- 输入 SQL 必须已经是可直接执行的具体 SQL。当前实现会拒绝仍包含模板参数或未解析查询条件的 SQL。
+- 清理是生产默认路径。无论成功或失败，只要未传 `--keep-template`，命令都会尝试执行 `offline -> delete` 清理临时模板。
+- `我的查询` 下的查询历史记录不在该命令清理范围内；当前已验证的清理范围仅覆盖临时模板本身。
 
-Verified API sequence on 2026-06-21:
+2026-06-21 已验证的接口顺序：
 
 1. `POST https://uanalysis.baijia.com/uanalysis-template/template/sqlParser`
 2. `POST https://uanalysis.baijia.com/uanalysis-template/template/saveAndUpdate`
@@ -74,7 +74,7 @@ Verified API sequence on 2026-06-21:
 10. `POST https://uanalysis.baijia.com/uanalysis-template/template/offline`
 11. `POST https://uanalysis.baijia.com/uanalysis-template/template/delete`
 
-Download type mapping:
+下载类型映射：
 
-- `type=1`: `csv`
-- `type=2`: Excel artifact, observed filename `*.xlsx`
+- `type=1`：`csv`
+- `type=2`：Excel 制品，实测文件名为 `*.xlsx`

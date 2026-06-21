@@ -1,9 +1,9 @@
 ---
 name: usql-web-query-operator
-description: Automate governed USQL web-query execution through the company SQL取数 page with Playwright, preserving browser login state and enforcing local safety checks such as row/download limits. Use when Codex needs to run, verify, or download results from https://uanalysis.baijia.com/getDataSql because API permissions are insufficient but the authenticated web UI can perform the same user-authorized operation.
+description: 通过 Playwright 自动化执行受控的 USQL 网页取数流程，复用浏览器登录态并执行本地安全检查，例如行数和下载限制。当 Codex 因 API 权限不足而无法直接取数，但当前认证用户可以在 https://uanalysis.baijia.com/getDataSql 网页完成同等操作时，使用本 skill。
 ---
 
-# usql-web-query-operator
+# usql-web-query-operator 技能说明
 
 ## 用途
 
@@ -194,7 +194,7 @@ D:\anaconda3\python.exe scripts\read_dashboard.py profile-dashboard --dashboard-
 D:\anaconda3\python.exe scripts\read_dashboard.py profile-folder --folder 市场顾问数据 --names '外呼过程数据看板|转化数据' --dashboard-wait-ms 45000
 ```
 
-profile 输出记录看板渲染状态、组件单元、全局筛选器、字段 ID、指标名、task ID、行数和图表 series 数量。它有意不保存返回的结果行。
+画像输出记录看板渲染状态、组件单元、全局筛选器、字段 ID、指标名、task ID、行数和图表 series 数量。它有意不保存返回的结果行。
 
 如果要把当前市场顾问和青橙看板文件夹完整同步到各自隔离的 SQL skill 知识库，运行：
 
@@ -208,7 +208,7 @@ D:\anaconda3\python.exe scripts\read_dashboard.py profile-all --dashboard-wait-m
 
 - `doctor`：检查 Python Playwright 可用性，缺失时给出安装命令。
 - `login`：打开 CAS 登录流程，认证后把浏览器 storage state 保存到 repo 外。
-- `run`：打开 `SQL取数`，创建或复用查询 tab，写入 SQL 前切换引擎，将 SQL 写入 CodeMirror，优先用 `Ctrl+E` 提交、再用运行按钮 fallback，等待查询历史/结果 tab 状态，平台失败时捕获 `error_details`，可用时提取小范围可见结果预览，并在本地行数限制允许时下载 xlsx。
+- `run`：打开 `SQL取数`，创建或复用查询 tab，写入 SQL 前切换引擎，将 SQL 写入 CodeMirror，优先用 `Ctrl+E` 提交，再用运行按钮回退，等待查询历史/结果 tab 状态，平台失败时捕获 `error_details`，可用时提取小范围可见结果预览，并在本地行数限制允许时下载 xlsx。
 - `sync-datamap-fields`：使用数据地图页面和接口刷新 `sql-query-writer-for-dashboard` 和/或 `qingcheng-dashboard-sql` 中的物理表字段说明。默认 dry-run，只有 `--write` 才写文档。
 - `sync-data-center-sql`：使用数据中心页面和接口刷新 `sql-query-writer-for-dashboard` 和/或 `qingcheng-dashboard-sql` 中的数据集源 SQL。默认 dry-run，只有 `--write` 才写 raw SQL、清单文档和 changelog。
 - `upload-temp-table`：把本地 `.csv`、`.xls` 或 `.xlsx` 上传到 `临时表` 区域。支持 `--target-mode new|reuse`、`--import-mode overwrite|append`、`--header-row|--no-header-row`，并从 `导入历史` 输出 JSON summary。
@@ -224,12 +224,12 @@ D:\anaconda3\python.exe scripts\read_dashboard.py profile-all --dashboard-wait-m
 
 - `scan-folder`：打开自助BI，读取看板菜单，查找 `市场顾问数据` 等文件夹，并提取中文看板名和 ID。
 - `profile-dashboard`：按 ID 打开单个看板，等待刷新，把组件/筛选器/值结构保存到 repo 外。
-- `profile-folder`：在某个文件夹下查找指定看板名并逐个 profile。
-- `profile-all`：默认扫描 `市场顾问数据` 和 `青橙项目部`，profile 每个发现的看板，将原始 `profile.json` artifact 写到 runtime 目录，把市场顾问 markdown web profile 路由到 `sql-query-writer-for-dashboard/knowledge/dashboard_web_profiles/`，把青橙 markdown web profile 路由到 `qingcheng-dashboard-sql/knowledge/dashboard_web_profiles/`，并重建各自 README/changelog，避免混用两个知识库。
+- `profile-folder`：在某个文件夹下查找指定看板名并逐个生成画像。
+- `profile-all`：默认扫描 `市场顾问数据` 和 `青橙项目部`，为每个发现的看板生成画像，将原始 `profile.json` artifact 写到 runtime 目录，把市场顾问 markdown web 画像路由到 `sql-query-writer-for-dashboard/knowledge/dashboard_web_profiles/`，把青橙 markdown web 画像路由到 `qingcheng-dashboard-sql/knowledge/dashboard_web_profiles/`，并重建各自 README/changelog，避免混用两个知识库。
 
-如果 selector 漂移，先看 `references/platform_profile.md`，更新脚本里的 selector 列表或 fallback 策略，再用 `--headed --debug-artifacts` 重跑。调试 artifact 可能包含 SQL 文本或可见结果，排查后应删除。
+如果选择器发生漂移，先看 `references/platform_profile.md`，更新脚本里的 selector 列表或回退策略，再用 `--headed --debug-artifacts` 重跑。调试 artifact 可能包含 SQL 文本或可见结果，排查后应删除。
 
-## Selector 漂移与通用 Playwright fallback
+## 选择器漂移与通用 Playwright 回退
 
 `SQL取数` 和 BI 看板流程默认使用本 skill 的脚本。只有当 `usql-web-query-operator` 命令已经复现问题，且捕获到的 JSON、截图或 HTML artifact 仍不足以判断 UI 变化时，才使用通用 `playwright` skill。
 
@@ -240,12 +240,12 @@ D:\anaconda3\python.exe scripts\read_dashboard.py profile-all --dashboard-wait-m
 3. 检查配置的 runtime artifact 目录。不要把截图、HTML、SQL 文本、结果预览、cookie 或下载文件复制到 `.codex/skills/`。
 4. 如果需要读取截图文字，用 `mineru-converter` 提取到 `C:\Users\Ludim\.codex\runtime\tmp\` 或 stdout。
 5. 如果仍需要 DOM 级探索，再用通用 `playwright` skill 做一次性 snapshot/screenshot/click/type 检查。
-6. 持久修复必须回到本 skill：更新 selector、fallback 逻辑、`references/platform_profile.md` 或修复建议，然后重跑 USQL 脚本验证。
+6. 持久修复必须回到本 skill：更新 selector、回退逻辑、`references/platform_profile.md` 或修复建议，然后重跑 USQL 脚本验证。
 
 不要用通用 Playwright 替代以下能力：
 
 - SQL 执行或结果下载。
-- BI 文件夹扫描或看板 profile。
+- BI 文件夹扫描或看板画像。
 - 登录态刷新或凭据处理。
 - 行数限制 enforcement。
 - SQL/BI 任务的调试 artifact 持久化。
@@ -269,7 +269,7 @@ D:\anaconda3\python.exe scripts\read_dashboard.py profile-all --dashboard-wait-m
 | 错误诊断 | Playwright 捕获到平台错误弹窗 / notification，需要提取准确错误文本 |
 | 脚本验证 | 需要确认脚本修改后页面是否正确渲染，读取截图中的可见数据 |
 | 登录/状态问题 | 登录页出现 CAPTCHA、风控、MFA 等异常挑战，需要提取页面消息 |
-| 看板 profile | `read_dashboard.py` 捕获图表/指标截图，需要提取可见指标名和值 |
+| 看板画像 | `read_dashboard.py` 捕获图表/指标截图，需要提取可见指标名和值 |
 | selector 调试 | 页面结构变化，需要从截图判断新布局 |
 
 ### 调用方式
@@ -292,20 +292,20 @@ mineru-open-api extract <screenshot_path>.png -o C:\Users\Ludim\.codex\runtime\t
 - 只需要 stdout 时，省略 `-o`，直接消费 Markdown。
 - 截图快速读字优先用 `flash-extract`；只有截图包含复杂表格或公式且需要高保真时才用 `extract`。
 
-## Template Query stored SQL
+## 模板取数已保存 SQL
 
-When the user needs to inspect the latest SQL stored in a Template Query template under `Template Query -> My templates -> My created`, use:
+当用户要查看 `模板取数 -> 模板查询 -> 我的模板 -> 我创建的` 下某个模板当前保存的最新 SQL 时，使用：
 
 ```powershell
 D:\anaconda3\python.exe scripts\usql_web_query.py fetch-template-sql `
-  --template-name "<template name>"
+  --template-name "<模板名称>"
 ```
 
-The command opens the My Created templates page with the shared Baijia login state, calls the page-backed `template/createList` API, and saves the selected row's `sqlDetail` to `C:\Users\Ludim\.codex\runtime\usql-web-query-operator\template-query\` unless `--output-file` is provided. It is read-only: it does not create a query, execute SQL, or download results. Use `--include-sql` only when the full SQL should also be printed in the JSON summary.
+该命令会使用共享的百家登录态打开“我创建的模板”页面，调用页面背后的 `template/createList` 接口，并把选中行的 `sqlDetail` 保存到 `C:\Users\Ludim\.codex\runtime\usql-web-query-operator\template-query\`；如果传入 `--output-file`，则写到指定位置。该命令是只读的：不会创建查询、不会执行 SQL、也不会下载结果。只有在需要把完整 SQL 一并打印到 JSON 摘要时，才使用 `--include-sql`。
 
-## Template Query large-result download
+## 模板取数大结果下载
 
-When the user needs to download a concrete SQL result that would otherwise hit the `SQL取数` approval flow for results larger than 1000 rows, use:
+当用户已经有一份可直接执行的具体 SQL，并且结果量超过 1000 行、若走 `SQL取数` 页面会进入下载审批链路时，使用：
 
 ```powershell
 D:\anaconda3\python.exe scripts\usql_web_query.py template-download `
@@ -313,22 +313,27 @@ D:\anaconda3\python.exe scripts\usql_web_query.py template-download `
   --download-format csv
 ```
 
-The command uses the shared Baijia login state and runs an API-backed lifecycle:
+该命令会复用共享的百家登录态，并执行一条由接口驱动的完整链路：
 
-1. Parse SQL and create a temporary template.
-2. Publish the template.
-3. Create an immediate query from the template.
-4. Poll `My Query` until the query leaves the running state.
-5. Download the result through Template Query's own download API.
-6. Offline the temporary template.
-7. Delete the temporary template.
+1. 解析 SQL 并创建临时模板。
+2. 发布模板。
+3. 基于模板立即创建查询。
+4. 轮询 `我的查询`，直到查询离开运行中状态。
+5. 通过模板取数自己的下载接口下载结果。
+6. 下线临时模板。
+7. 删除临时模板。
 
-Production notes:
+生产说明：
 
-- This path is for concrete SQL, not parameterized template SQL. If the parser finds unresolved template conditions, the command stops before query creation.
-- Cleanup is the default behavior. Use `--keep-template` only for debugging.
-- `--download-format csv|xls` maps to the two download types exposed by the page. The observed `xls` branch returns an Excel-format artifact with an `.xlsx` filename.
-- Query-history rows under `Template Query -> My Query` are not cleaned by this command. The validated cleanup scope is the temporary template itself.
+- 该路径只适用于具体 SQL，不适用于仍带参数的模板 SQL。如果解析器发现还有未解析的模板条件，命令会在创建查询之前停止。
+- 清理是默认行为。`--keep-template` 仅用于调试。
+- `--download-format csv|xls` 对应页面暴露的两种下载类型。实测 `xls` 分支返回的是 `.xlsx` 文件名的 Excel 制品。
+- `模板取数 -> 我的查询` 下的查询历史记录不在该命令清理范围内；当前已验证的清理范围仅覆盖临时模板本身。
+
+### 文档维护约定
+
+- 后续维护本 skill 的说明类 Markdown 文档时，默认使用中文撰写。
+- 命令名、参数名、字段名、接口名、路径、状态值以及必要的英文技术术语保留原文，避免影响识别和执行。
 
 ### 跨 skill 顺序
 
