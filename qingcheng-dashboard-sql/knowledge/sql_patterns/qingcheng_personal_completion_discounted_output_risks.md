@@ -110,6 +110,22 @@ cast(coalesce(refund_amount, 0) + coalesce(transfer_out_amount, 0) as double) / 
 
 如果 service 侧仍缺少完整流水，应以 `finance_dw.app_finance_performance_extend_details_hf` 作为金额事实源补齐缺失事件。个人完成度、团队完成度【期】和团队完成度【月】的看板 SQL 不使用 `where f.trade_timestamp > ${begin_trade_time} and f.trade_timestamp < ${end_trade_time}` 这类模板时间参数；看板 SQL 继续通过 `qici > '20260424期'`、期次映射表和目标/架构表控制展示范围。
 
+### 3.5 调课调班链路只接退款明细层会误算主交易调出退款
+
+2026-06-22 排查发现，`dim_finance_order_change_df` 如果只在 `re_ke/ord` 退款明细层按 `parent_order_number` 关联，主交易层 `rd/t4` 中的 `trade_type='调课调班'`、`trade_status='调出退款'` 仍可能因为没有行课节数匹配而得到 `re_lc=0`，进而被当作 4 节内外部退费计入 `refund_4`。
+
+当前修复规则：
+
+- `dim_finance_order_change_df` 必须把 `order_number`、`parent_order_number`、`original_order_number`、`latest_child_order_number` 展开成订单号映射，聚合后同时接到 `rd/t4` 主交易层和 `re_ke` 退款行课层。
+- `biz_type` 不能只过滤 `2`，至少覆盖 `biz_type in (2, 7)`；`谷锦茜` 的 `20260619期` 调课调班样例即为 `biz_type=7`。
+- `re_ke` 需要按 `qici_re + order_number` 聚合后再回连主交易，避免订单变更维表或退款明细多行导致金额放大。
+- 主交易层识别为内部调课调班调入/调出后，从 `income`、`refund`、`refund_4` 和科目数中排除，不按外部支付/退款入桶。
+
+已验证样例：
+
+- `谷锦茜`，`20260619期`：旧口径 `income=9400`、`refund_4=5100`、折算后产出 `4300`；修复后 `income=9200`、`refund=4800`、`H_promit_4=4400`、折算后产出 `4400`。
+- 对应调课调班订单 `418179396287335895` 在 `dim_finance_order_change_df` 中存在 `biz_type=7` 链路，原订单行 `transfer_out_amount_yuan=100`，子订单行 `transfer_in_amount_yuan=100`。
+
 ## 4. 快速诊断 SQL 片段
 
 ### 4.1 查空课程部门金额
@@ -177,5 +193,6 @@ group by 1, 2
 - `宋青蔓`：历史折算后产出 `8206.34`，修复后 `7132.73`；差异来自调课调班退款 `1073.61` 被历史 `gmv_t` 聚合吃掉。
 - `李孟笛06`：历史折算后产出 `4600.00`，修复后 `9150.00`；差异来自空课程部门流水 `4600` 被兜底进 H 班课，同时 `50` 退款进入剔除逻辑。
 - `许世杰05`：历史折算后产出 `12400.00`，修复后 `17000.00`；差异来自空课程部门流水 `4600` 被兜底进 H 班课。
+- `谷锦茜`：历史折算后产出 `4300.00`，2026-06-22 修复后 `4400.00`；差异来自 `biz_type=7` 的内部调课调班 `调出退款 -100` 被旧 SQL 当作 4 节内外部退费。
 
 验证时应同时看订单明细和聚合结果，不要只看前端自定义字段公式。

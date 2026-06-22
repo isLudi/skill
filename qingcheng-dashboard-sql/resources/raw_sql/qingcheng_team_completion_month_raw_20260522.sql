@@ -47,7 +47,7 @@ from (
 	           when course_subject like '%生物%'  then '生物' when course_subject like '%地理%'  then '地理'
 	           when course_subject like '%日语%'  then '日语' else course_subject end 
 	     as subject,
-        concat(date_format(date_add('day', 4, date_trunc('week', date_add('day', -1, cast(trade_time as timestamp)))), '%Y%m%d'), '期') as qici,
+        concat(date_format(date_trunc('week', cast(trade_time as timestamp) - interval '1' day) + interval '4' day, '%Y%m%d'), '期') as qici,
         leader_employee_email_name,teacher_name,
         case course_term_id when 'C' then '春季' when 'X' then '夏季' when 'Q' then '秋季' when 'D' then '冬季' else '其他'end as school_term_id,
         note,course_first_level_department_name,course_second_level_department_name,course_top_level_department_name,
@@ -67,7 +67,7 @@ where qici > '20260424期'
     from dd_0 a
     inner join org_t ot 
         on ot.name = a.name 
-        and a.paid_time >= ot.begin_time 
+        and a.trade_time >= ot.begin_time 
         and (ot.end_time is null or a.trade_time <= ot.end_time)  
 )
 -- 调课调班（按订单/课程维度汇总，避免把同一顾问同一用户的多笔调课调班揉成一条）
@@ -158,7 +158,7 @@ where qici > '20260424期'
           full_refund_chain_finish_lesson_count,---完全退款时调课链路总完课课节数
 		  original_order_pay_success_clazz_remain_lesson_count,-----原始父订单下单时剩余课节数
           clazz_number,clazz_biz_number,clazz_name,school_year,school_term_name,school_department_name,school_subject_name,
-		concat(date_format(date_add('day', 4, date_trunc('week', date_add('day', -1, cast(full_refund_timestamp as timestamp)))), '%Y%m%d'), '期') as qici_re,
+		concat(date_format(date_trunc('week', cast(full_refund_timestamp as timestamp) - interval '1' day) + interval '4' day, '%Y%m%d'), '期') as qici_re,
           CASE
             WHEN course_category_code = 10 THEN '公开课'
             WHEN course_category_code = 20 THEN '体验课'
@@ -175,38 +175,85 @@ where qici > '20260424期'
           AND is_full_refund_order = 1------------------是否全部退款
           AND total_refund_amount IS NOT NULL
           AND total_refund_amount <> 0)
---------------调课调班
+--------------调课调班/课程转移主链路
+,order_change_raw as (
+    select
+        order_number,
+        parent_order_number,
+        original_order_number,
+        latest_child_order_number,
+        case
+            when order_change_type = 0 then '调课调班'
+            when order_change_type = 1 then '课程转移'
+            else cast(order_change_type as varchar)
+        end as refund_type,
+        case when cast(is_orginal_order as varchar) = '1' then 1 else 0 end as is_original_order,
+        case when cast(is_orginal_order as varchar) = '0' then 1 else 0 end as is_child_order,
+        cast(coalesce(transfer_in_amount, 0) as double) / 100.0 as transfer_in_amount_yuan,
+        cast(coalesce(transfer_out_amount, 0) as double) / 100.0 as transfer_out_amount_yuan
+    from finance_dw.dim_finance_order_change_df
+    where dt = format_datetime(now() - interval '24' hour, 'YYYYMMdd')
+      and latest_child_order_status in (2, 6, 7)
+      and biz_type in (2, 7)
+)
+,order_change_order_map as (
+    select order_number as join_order_number, refund_type, is_original_order, is_child_order, transfer_in_amount_yuan, transfer_out_amount_yuan
+    from order_change_raw
+    where order_number is not null
+    union all
+    select parent_order_number as join_order_number, refund_type, is_original_order, is_child_order, transfer_in_amount_yuan, transfer_out_amount_yuan
+    from order_change_raw
+    where parent_order_number is not null
+    union all
+    select original_order_number as join_order_number, refund_type, is_original_order, is_child_order, transfer_in_amount_yuan, transfer_out_amount_yuan
+    from order_change_raw
+    where original_order_number is not null
+    union all
+    select latest_child_order_number as join_order_number, refund_type, is_original_order, is_child_order, transfer_in_amount_yuan, transfer_out_amount_yuan
+    from order_change_raw
+    where latest_child_order_number is not null
+)
 ,order_change as (
-	SELECT
-      parent_order_number,------父订单编号
-      CASE WHEN order_change_type = 0 THEN '调课调班' WHEN order_change_type = 1 THEN '课程转移' ELSE order_change_type
-      END AS refund_type ---------调课调班类型
-    FROM finance_dw.dim_finance_order_change_df
-    WHERE dt = format_datetime(now() - interval '24' hour, 'YYYYMMdd')
-      AND latest_child_order_status IN (2, 6, 7)
-      AND biz_type = 2)
+    select
+        join_order_number as order_number,
+        1 as has_order_change,
+        max(is_original_order) as is_original_order,
+        max(is_child_order) as is_child_order,
+        max(transfer_in_amount_yuan) as transfer_in_amount_yuan,
+        max(transfer_out_amount_yuan) as transfer_out_amount_yuan,
+        array_join(array_distinct(array_agg(coalesce(refund_type, '未知'))), ',') as refund_type
+    from order_change_order_map
+    group by join_order_number
+)
 ---------------合并退费行课节数
-,re_ke as (select   
-  ord.qici_re,
-  ord.order_number,
-  ord.user_number,
-  ord.final_paid_timestamp,
-  ord.full_refund_timestamp,
-  ord.total_refund_amount,
-  ord.talent_type_name,
-  ord.employee_email_name,
-  ord.full_refund_finish_lesson_count,-----完全退款时已完课课节数(直播课，不包含类直播赠课)
-  ord.full_refund_chain_finish_lesson_count,---完全退款时调课链路总完课课节数
-  ord.original_order_pay_success_clazz_remain_lesson_count,-----原始父订单下单时剩余课节数
-  ord.clazz_number,
-  ord.clazz_name,
-  COALESCE(order_change.refund_type, '非调课调班') AS refund_type
-  from ord 
-  left join order_change on ord.order_number = order_change.parent_order_number)
-------------------------连接各订单退费行课节数
-,t4 as (select rd.*,coalesce(re_ke.full_refund_chain_finish_lesson_count,0) as re_lc
-from rd
-left join re_ke on re_ke.qici_re = rd.qici and re_ke.order_number = rd.order_number)
+,re_ke as (
+    select
+        ord.qici_re,
+        ord.order_number,
+        max(ord.full_refund_chain_finish_lesson_count) as full_refund_chain_finish_lesson_count,
+        array_join(array_distinct(array_agg(coalesce(order_change.refund_type, '非调课调班'))), ',') as refund_type
+    from ord
+    left join order_change
+        on ord.order_number = order_change.order_number
+    group by
+        ord.qici_re,
+        ord.order_number
+)
+------------------------连接各订单退费行课节数和主交易调课调班链路
+,t4 as (
+    select
+        rd.*,
+        coalesce(re_ke.full_refund_chain_finish_lesson_count, 0) as re_lc,
+        coalesce(order_change.has_order_change, 0) as main_has_order_change,
+        coalesce(order_change.is_original_order, 0) as main_is_original_order,
+        coalesce(order_change.is_child_order, 0) as main_is_child_order,
+        coalesce(order_change.transfer_in_amount_yuan, 0) as main_transfer_in_amount_yuan,
+        coalesce(order_change.transfer_out_amount_yuan, 0) as main_transfer_out_amount_yuan,
+        coalesce(order_change.refund_type, '非调课调班') as main_order_change_type
+    from rd
+    left join re_ke on re_ke.qici_re = rd.qici and re_ke.order_number = rd.order_number
+    left join order_change on rd.order_number = order_change.order_number
+)
 --------------------
 ,rd_0 as (
     select 
@@ -217,16 +264,44 @@ left join re_ke on re_ke.qici_re = rd.qici and re_ke.order_number = rd.order_num
         user_id1,
         case when trade_status like '%退款%' then '退款' when trade_status like '%支付%' then '支付' else '未知' end as trade_status,
         grade_list,
-        sum(case when name_total_price >= 0 then name_total_price else 0 end) as income,
+        sum(
+            case
+                when main_has_order_change = 1
+                 and trade_type = '调课调班'
+                 and (main_transfer_in_amount_yuan > 0 or main_transfer_out_amount_yuan > 0)
+                then 0
+                when name_total_price >= 0 then name_total_price
+                else 0
+            end
+        ) as income,
 sum(
     case 
+        when main_has_order_change = 1
+         and trade_type = '调课调班'
+         and (main_transfer_in_amount_yuan > 0 or main_transfer_out_amount_yuan > 0)
+        then 0
         when course_second_level_department_name = '一对一学部' and course_first_level_department_name = 'H业务线' 
         then case when name_total_price < 0 then abs(name_total_price) else 0 end ---------一对一
         else 
 	case when clazz_name like '%点睛%' and name_total_price < 0 and re_lc < 2 then abs(name_total_price) when (clazz_name not like '%点睛%' or clazz_name is null) and name_total_price < 0 and re_lc < 4 then abs(name_total_price) else 0 end-------------班课
     end ) as refund_4,----行课退费4
-	    sum(case when name_total_price < 0  then abs(name_total_price) else 0 end) as refund,---全部退费
-        count(distinct case when subject not in ('选科志愿','定制方案') then subject end) as sub
+	    sum(
+            case
+                when main_has_order_change = 1
+                 and trade_type = '调课调班'
+                 and (main_transfer_in_amount_yuan > 0 or main_transfer_out_amount_yuan > 0)
+                then 0
+                when name_total_price < 0 then abs(name_total_price)
+                else 0
+            end
+        ) as refund,---全部退费
+        count(distinct case
+            when main_has_order_change = 1
+             and trade_type = '调课调班'
+             and (main_transfer_in_amount_yuan > 0 or main_transfer_out_amount_yuan > 0)
+            then null
+            when subject not in ('选科志愿','定制方案') then subject
+        end) as sub
     from t4
     group by qici,course_first_level_department_name,course_second_level_department_name,name,user_id1,
              case when trade_status like '%退款%' then '退款' when trade_status like '%支付%' then '支付' else '未知' end,

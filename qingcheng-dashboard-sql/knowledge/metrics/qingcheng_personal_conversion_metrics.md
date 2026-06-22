@@ -108,3 +108,5 @@ ifnull(sum(${n_H_promit_4}) * 0.5 + (sum(${H_promit_4}) - sum(${Y_promit_4})), 0
 - `refund_4`：按班课 4 节、点睛班 2 节、一对一全额规则计入的退款。
 
 若支付订单流水与看板不一致，优先排查 `course_first_level_department_name` / `course_second_level_department_name` 空值兜底和 `gmv_t` 调课调班聚合粒度。详细风险、诊断 SQL 和已验证样例见 `knowledge/sql_patterns/qingcheng_personal_completion_discounted_output_risks.md`。
+
+2026-06-22 后补充：`income`、`refund`、`refund_4` 和科目数会先排除主交易层命中的内部调课调班调入/调出流水。该识别来自 `dim_finance_order_change_df` 订单号映射，覆盖 `biz_type in (2,7)`，用于避免把内部 `调出退款` 当外部退费计入。

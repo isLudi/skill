@@ -134,7 +134,7 @@ where dt = format_datetime(now() - interval '24' hour, 'YYYYMMdd')
 ## 9. 常用 join key
 
 - `order_number = rd.order_number`
-- `order_number = finance_dw.dim_finance_order_change_df.parent_order_number`
+- 当前完成度 SQL 中，`finance_dw.dim_finance_order_change_df` 会先展开并聚合为订单号映射，再按 `order_number = order_change.order_number` 关联；不要回退为只按 `parent_order_number` 单点关联。
 
 ## 10. 常用 SQL 片段
 

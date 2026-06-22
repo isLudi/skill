@@ -20,7 +20,8 @@
 | `dd_0` | `org_t` | `ot.name = dd_0.name and dd_0.trade_time >= ot.begin_time and dd_0.trade_time <= ot.end_time` | 员工任职期间过滤 | left join 后 where 限定组织时间，未匹配组织链的交易被剔除 | `qingcheng_revenue_year_quarter_month_raw_20260522.sql` |
 | `rd` | `temp_table.dingxi01_qing_zz zz` | `zz.employee_email_name = rd.name` | 组织架构补充 | 未按期次 join，若架构表多行会放大 | `qingcheng_revenue_year_quarter_month_raw_20260522.sql` |
 | `dd_0` | `org_t` | `ot.name = a.name and a.trade_time >= ot.begin_time and (ot.end_time is null or a.trade_time <= ot.end_time)` | 员工任职期间过滤 | inner join，仅保留交易发生时员工属于青橙项目部的记录 | `qingcheng_team_completion_month_raw_20260522.sql` |
-| `ord` | `order_change` | `ord.order_number = order_change.parent_order_number` | 退款订单补充调课调班类型 | 当前只生成 `refund_type`，后续未直接参与退款阈值计算 | `qingcheng_team_completion_month_raw_20260522.sql` |
+| `ord` | `order_change` | `ord.order_number = order_change.order_number` | 退款订单补充调课调班类型 | `order_change` 已从订单号、父订单号、原始订单号、最新子订单号展开并按订单号聚合 | `qingcheng_team_completion_month_raw_20260522.sql` |
+| `rd` | `order_change` | `rd.order_number = order_change.order_number` | 主交易层识别内部调课调班调入/调出 | 命中内部调课调班链路后不进入 `income`、`refund`、`refund_4` 和科目数，避免 `调出退款` 被误算为外部退费 | `qingcheng_personal_conversion_raw_20260522.sql`, `qingcheng_team_completion_month_raw_20260522.sql`, `qingcheng_team_completion_period_raw_20260522.sql` |
 | `rd` | `re_ke` | `re_ke.qici_re = rd.qici and re_ke.order_number = rd.order_number` | 交易补充退款行课节数 | 用 `full_refund_chain_finish_lesson_count` 影响 `refund_4` | `qingcheng_team_completion_month_raw_20260522.sql` |
 | `rd_0` | `temp_table.dingxi01_qing_qi_moth qm` | `qm.qici = rd_0.qici` | 期次映射月份 | 若期次缺少月份映射，实际业绩无法匹配月目标 | `qingcheng_team_completion_month_raw_20260522.sql` |
 | `wa` | `temp_table.dingxi01_qing_team_jg qtg` | `qtg.employee_email_name = wa.name`，取最新 `qici` | 员工补充直属主管 | 使用最新团队架构，可能产生历史架构漂移 | `qingcheng_team_completion_month_raw_20260522.sql` |

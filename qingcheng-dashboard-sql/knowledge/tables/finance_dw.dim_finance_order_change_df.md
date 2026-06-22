@@ -6,11 +6,11 @@
 
 ## 2. 表用途
 
-在青橙团队完成度【月/期】和个人转化 SQL 中识别父订单是否发生调课调班或课程转移，用于补充退款行课链路类型。
+在青橙团队完成度【月/期】和个人转化 SQL 中识别订单是否发生调课调班或课程转移。当前用途包括：补充退款行课链路类型，以及在主交易层识别内部调课调班调入/调出流水，避免将其误算为外部支付或外部退款。
 
 ## 3. 数据粒度
 
-待人工确认。当前 SQL 按 `parent_order_number` 关联退款订单。
+待人工确认。当前 SQL 会把 `order_number`、`parent_order_number`、`original_order_number`、`latest_child_order_number` 展开成订单号映射，再按订单号聚合后关联主交易层和退款订单层。
 
 ## 4. 查询引擎
 
@@ -34,7 +34,7 @@ Presto
 | `parent_order_number` | bigint | 父订单编号 | join `ord.order_number` |
 | `order_change_type` | bigint | 调课调班类型 | 0 调课调班，1 课程转移 |
 | `latest_child_order_status` | bigint | 最新子订单状态 | 过滤 2、6、7 |
-| `biz_type` | bigint | 业务类型 | 过滤 2 |
+| `biz_type` | bigint | 业务类型 | 当前完成度 SQL 覆盖 2 和 7 |
 
 ### 7.1 数据地图字段补充（2026-06-17）
 
@@ -59,12 +59,13 @@ Presto
 ```sql
 where dt = format_datetime(now() - interval '24' hour, 'YYYYMMdd')
   and latest_child_order_status in (2, 6, 7)
-  and biz_type = 2
+  and biz_type in (2, 7)
 ```
 
 ## 9. 常用 join key
 
-- `parent_order_number = ord.order_number`
+- 主交易层：将 `order_number`、`parent_order_number`、`original_order_number`、`latest_child_order_number` 展开为 `join_order_number` 后，按 `rd.order_number = order_change.order_number` 关联。
+- 退款行课层：按 `ord.order_number = order_change.order_number` 补充调课调班/课程转移类型。
 
 ## 10. 常用 SQL 片段
 
@@ -78,5 +79,7 @@ end as refund_type
 
 ## 11. 注意事项
 
-- 当前 SQL 只补充 `refund_type`，后续未直接用于 `refund_4` 计算，但可用于排查调课链路。
+- 完成度 SQL 不应只把本表接在退款明细层。若只接 `re_ke/ord`，主交易层的 `调出退款` 会在 `re_lc=0` 时被误算为 4 节内退费。
+- `biz_type=7` 也可能承载青橙调课调班链路；后续生成个人/团队完成度 SQL 时不得回退为只过滤 `biz_type=2`。
+- 主交易层识别为内部调课调班调入/调出后，应从 `income`、`refund`、`refund_4` 和科目数中排除，不按外部支付/退款入桶。
 - 个人完成度/个人转化中的 `gmv_t` 调课调班聚合必须保留订单、课程、期次、科目和课程部门粒度；不要按 `name + user_id1` 粗粒度汇总，否则同一顾问同一用户多笔调课调班可能吃掉退款或错配课程部门。

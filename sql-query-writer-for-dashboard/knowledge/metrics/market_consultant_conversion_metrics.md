@@ -29,6 +29,7 @@
 | trade_profit | `sum(income_amount / 100 - in_pay_period_refund_amount / 100 - non_pay_period_refund_amount / 100)` | 净营收，分转元 |
 | xb_trade_income | `sum(same_lead_period_income_amount / 100)` | 当期线索当期收款，分转元 |
 | xb_trade_profit | `sum(same_lead_period_income_amount / 100 - same_lead_period_refund_amount / 100)` | 当期线索当期净营收，分转元 |
+| kk_trade_profit | `sum(income_amount / 100 - in_pay_period_refund_amount / 100 - non_pay_period_refund_amount / 100 - same_lead_period_income_amount / 100 + same_lead_period_refund_amount / 100)` | 跨期净营收，即截面净营收减当期线索当期净营收，分转元 |
 | kk_trade_income | `sum(income_amount / 100 - same_lead_period_income_amount / 100)` | 跨期收款，分转元 |
 | pre_refund | `sum(non_pay_period_refund_amount / 100)` | 往期支付当期退款，分转元 |
 | pp_pmit | `sum(case when d_w = '当期' then lead_period_income_amount / 100 - lead_period_refund_amount / 100 else 0 end)` | 当期 GMV；`D:\Feishu\0522.txt` 中 `qici` 规则在本看板落为 `d_w` |
@@ -65,6 +66,7 @@
 | 订单转化率（截面） | `ifnull(sum(${pay_user_subs}) / sum(${can_renew_ds_count_a}), 0)` | 截面科目人次 / 退后线索 |
 | 单效（当期） | `ifnull(sum(${xb_trade_profit}) / sum(${can_renew_ds_count_a}), 0)` | 当期净收款 / 退后线索 |
 | 单效（截面） | `ifnull(sum(${trade_profit}) / sum(${can_renew_ds_count_a}), 0)` | 截面净收款 / 退后线索 |
+| 跨期单效桥接 | `ifnull(sum(${kk_trade_profit}) / sum(${can_renew_ds_count_a}), 0)` | 截面单效与当期单效的差额桥接；当期线索后续跨期支付/退款会沉淀到这里 |
 | 破蛋率 | `ifnull(sum(${podan}) / count(distinct ${employee_email_name}), 0)` | 破蛋顾问数 / 接量人力 |
 | 拓科率（截面） | `ifnull(sum(${pay_user_subs}) / sum(${pay_users}), 0)` | 科目人次 / 支付用户数 |
 | 退费率 | `ifnull(sum(${trade_refund}) / sum(${trade_income}), 0)` | 退款 / 总收款 |

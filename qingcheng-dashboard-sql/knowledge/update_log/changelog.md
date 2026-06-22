@@ -189,5 +189,21 @@
 
 - 将 runtime 中已验证的团队完成度【月】和团队完成度【期】SQL 同步覆盖到 canonical raw SQL：`qingcheng_team_completion_month_raw_20260522.sql`、`qingcheng_team_completion_period_raw_20260522.sql`。
 - 团队完成度同步个人完成度修复口径：课程部门空值按年级兜底，`gmv_t` 调课调班按订单/课程/用户/期次/科目/课程部门粒度汇总，避免 `name + user_id1` 粗粒度去重吃掉退款或吞掉明细。
+- 任职窗口同步个人完成度口径，使用 `trade_time >= begin_time` 和 `trade_time <= end_time`，避免团队完成度用 `paid_time >= begin_time` 时纳入支付时间与交易/退款发生时间不一致的记录。
 - 补充订单明细侧核对风险：service 表原始 `income_amount/refund_amount` 在部分调课调班链路可能缺失或为 0，核对时需叠加 `transfer_in_amount/transfer_out_amount`，并用 finance 明细补齐 service 缺失事件。
 - 看板型 SQL 不引入 `${begin_trade_time}` / `${end_trade_time}` 模板时间参数，继续通过期次、目标表和架构表控制展示范围。
+
+## 2026-06-22 数据中心数据集源 SQL 同步
+
+- 从数据中心 `https://uanalysis.baijia.com/data-center/data-set` 同步数据集源 SQL，范围：青橙项目部目录下的全部 SQL 数据集。
+- 保存 1 个数据集源 SQL 到 `resources/raw_sql`，更新清单 `knowledge/dashboards/data_center_qingcheng_datasets.md`。
+- 未改写 SQL 语义；后续字段、指标或临时表口径仍需基于源 SQL 和业务规则单独维护。
+
+## 2026-06-22 青橙完成度调课调班主交易层修复
+
+- 同步修改个人完成度、团队完成度【期】、团队完成度【月】三份 SQL：`dim_finance_order_change_df` 从只接退款明细层改为同时接入 `rd/t4` 主交易层。
+- `order_change` 链路从 `parent_order_number` 单点关联改为展开 `order_number`、`parent_order_number`、`original_order_number`、`latest_child_order_number`，按订单号聚合后复用。
+- `biz_type` 覆盖范围从 `biz_type = 2` 改为 `biz_type in (2, 7)`，避免漏掉青橙 `biz_type=7` 的调课调班链路。
+- 主交易层命中内部调课调班调入/调出后，不进入 `income`、`refund`、`refund_4` 和科目数，避免把调出退款误算为 4 节内外部退费。
+- 期次推导同步改为 `interval` 写法，避免平台将 Presto 三参数 `date_add` 解析为 Hive 两参数函数。
+- 网页端验证：`谷锦茜` `20260619期` 修复后 `income=9200`、`refund=4800`、`H_promit_4=4400`、折算后产出 `4400`；团队期次和月度小范围验证 SQL 均执行成功。

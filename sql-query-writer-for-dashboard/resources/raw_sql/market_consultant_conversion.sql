@@ -260,6 +260,13 @@ zhuanhua as
     sum(income_amount/100-in_pay_period_refund_amount/100-non_pay_period_refund_amount/100) trade_profit,
     sum(same_lead_period_income_amount/100) xb_trade_income,
     sum(same_lead_period_income_amount/100-same_lead_period_refund_amount/100) xb_trade_profit,
+    sum(
+        income_amount/100
+        - in_pay_period_refund_amount/100
+        - non_pay_period_refund_amount/100
+        - same_lead_period_income_amount/100
+        + same_lead_period_refund_amount/100
+    ) kk_trade_profit,
     sum(income_amount/100-same_lead_period_income_amount/100) kk_trade_income,
     sum(non_pay_period_refund_amount/100) pre_refund,
     sum(case when d_w = '当期' then lead_period_income_amount/100-lead_period_refund_amount/100 else 0 end) as pp_pmit,

@@ -37,7 +37,7 @@
 | `dw.dim_employee_chain` | `org_t` | 确认员工在青橙项目部路径下的任职起止时间 |
 | `finance_dw.app_finance_performance_extend_details_hf` | `dd_0` / `dd` | 财务业绩扩展明细，计算收入、退款和净收 |
 | `finance_dw.dm_finance_order_refund_detail_df` | `ord` | 全退订单明细，提供完全退款时已完课课节数 |
-| `finance_dw.dim_finance_order_change_df` | `order_change` | 识别调课调班/课程转移父订单 |
+| `finance_dw.dim_finance_order_change_df` | `order_change_raw` / `order_change` | 识别调课调班/课程转移主链路订单，覆盖订单号、父订单号、原始订单号和最新子订单号 |
 
 ## 6. 使用临时表
 
@@ -58,8 +58,8 @@
 | `gmv_z` | 正常订单，按订单和课程维度汇总金额 | `name_total_price` |
 | `rd` | 合并正常订单和调课调班结果 | `union all` |
 | `ord` | 全退订单课节明细 | `full_refund_chain_finish_lesson_count`, `qici_re` |
-| `order_change` | 父订单调课调班类型 | `parent_order_number`, `refund_type` |
-| `re_ke` | 合并全退课节和调课调班类型 | `refund_type`, `full_refund_chain_finish_lesson_count` |
+| `order_change_raw` / `order_change_order_map` / `order_change` | 调课调班/课程转移主链路订单映射，按订单号聚合后供主交易层和退款层复用 | `order_number`, `has_order_change`, `transfer_in_amount_yuan`, `transfer_out_amount_yuan`, `refund_type` |
+| `re_ke` | 合并全退课节和调课调班类型，按 `qici_re + order_number` 聚合避免回连放大 | `refund_type`, `full_refund_chain_finish_lesson_count` |
 | `t4` | 将退款课节数回连到财务交易 | `re_lc` |
 | `rd_0` | 用户/交易状态层收入、退款、剔除退 4 退款和科目数 | `income`, `refund_4`, `refund`, `sub` |
 | `wa` | 补充月份和净收 | `moth`, `promit_4`, `promit` |
@@ -81,7 +81,8 @@
 | 左侧 | 右侧 | join key | 用途 |
 |---|---|---|---|
 | `dd_0 a` | `org_t ot` | `ot.name = a.name and a.trade_time >= ot.begin_time and (ot.end_time is null or a.trade_time <= ot.end_time)` | 只保留员工在青橙期间产生的营收/退款 |
-| `ord` | `order_change` | `ord.order_number = order_change.parent_order_number` | 补充调课调班/课程转移类型 |
+| `ord` | `order_change` | `ord.order_number = order_change.order_number` | 补充调课调班/课程转移类型 |
+| `rd` | `order_change` | `rd.order_number = order_change.order_number` | 主交易层识别内部调课调班调入/调出流水，避免误入外部收入/退款桶 |
 | `rd` | `re_ke` | `re_ke.qici_re = rd.qici and re_ke.order_number = rd.order_number` | 给交易补充全退时行课节数 |
 | `rd_0` | `temp_table.dingxi01_qing_qi_moth qm` | `qm.qici = rd_0.qici` | 保留期次到月份映射 |
 | `wa` | `temp_table.dingxi01_qing_team_jg qtg` | `qtg.employee_email_name = wa.name`，取最新 `qici` | 补充员工主管 |
@@ -102,8 +103,9 @@
 
 ## 11. 已知风险和待确认事项
 
-- SQL 中存在 Presto 三参数 `date_add('day', n, expr)`，公司查询平台可能按 Hive 两参数函数解析；后续生成新 SQL 时必须改为 `interval` 写法。
+- 期次推导已改为 `interval` 写法；后续生成新 SQL 不得回退为 Presto 三参数 `date_add('day', n, expr)`。
+- 任职窗口必须使用 `trade_time >= begin_time` 和 `trade_time <= end_time`，与期次计算和退款发生时间保持一致；不要改回 `paid_time >= begin_time`，否则会纳入少量支付时间与交易/退款发生时间不一致的记录。
 - 期次版仍保留 `temp_table.dingxi01_qing_qi_moth` 的 `moth` 字段，但最终 join 目标表不使用月份，是否保留该 join 待确认。
 - `temp_table.dingxi01_qing_team_g_qi.xiaozu` 与 `renchan.leader_employee_email_name` join，需确认 `xiaozu` 字段是否存主管邮箱。
 - `qg.emye_c != '1'` 时才展示小组，否则小组置为 `'-'`；`emye_c` 业务含义待确认。
-- 其他订单处理、调课调班粒度、退费行课阈值风险同团队完成度【月】。
+- 其他订单处理、调课调班粒度、退费行课阈值风险同团队完成度【月】。`dim_finance_order_change_df` 必须接到 `rd/t4` 主交易层，并覆盖 `biz_type in (2,7)`。

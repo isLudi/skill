@@ -66,4 +66,4 @@
 - `temp_table.dingxi01_qing_team_g_qi.xiaozu` 是否存主管邮箱，而不是小组名称。
 - 期次版是否仍需要 `temp_table.dingxi01_qing_qi_moth` join 待确认。
 - 退款阈值、H/非 H 折算、调课调班去重与月度版一致，所有待确认事项同样适用。
-
+- 2026-06-22 后，`income`、`refund`、`refund_4` 和科目数会先排除主交易层命中的内部调课调班调入/调出流水；识别来自 `dim_finance_order_change_df` 订单号映射，覆盖 `biz_type in (2,7)`。

@@ -64,7 +64,7 @@
 
 - `price` 是否已经是元，当前 SQL 直接使用。
 - `refund_4` 名称虽然含 “4”，但点睛阈值是 2 节，非点睛是 4 节，一对一全部计入。
+- 2026-06-22 后，`income`、`refund`、`refund_4` 和科目数会先排除主交易层命中的内部调课调班调入/调出流水；识别来自 `dim_finance_order_change_df` 订单号映射，覆盖 `biz_type in (2,7)`。
 - 非 H 业绩按 0.5 折算是否适用于所有非 H 课程部门待确认。
 - `temp_table.dingxi01_qing_team_goal.goal` 的目标单位需确认是否与 `promit` 同单位。
 - `moth` 字段拼写保留历史 SQL，语义为月份。
-
