@@ -12,7 +12,7 @@
 | 青橙渠道订单明细 | `knowledge/dashboards/qingcheng_channel_order_detail_raw_20260613.md` | `knowledge/metrics/qingcheng_channel_order_detail_metrics.md`、`knowledge/joins/table_relationships.md` | `ld` 子查询范围限定和 `lead_id + employee` 唯一性待确认 |
 | 青橙年季月营收 | `knowledge/dashboards/qingcheng_revenue_year_quarter_month_raw_20260522.md` | `knowledge/metrics/qingcheng_revenue_year_quarter_month_metrics.md`、`knowledge/tables/finance_dw.app_finance_performance_extend_details_hf.md` | 组织链姓名匹配、调课调班去重和平台函数风险 |
 | 青橙团队完成度月/期 | `knowledge/dashboards/qingcheng_team_completion_month_raw_20260522.md` 或 `knowledge/dashboards/qingcheng_team_completion_period_raw_20260522.md` | 对应 metrics、`knowledge/temp_tables/temp_table.dingxi01_qing_team_goal.md`、`knowledge/temp_tables/temp_table.dingxi01_qing_team_g_qi.md` | 目标表层级、期次月份映射和 H/非 H 折算待确认 |
-| 青橙个人转化 | `knowledge/dashboards/qingcheng_personal_conversion_raw_20260522.md` | `knowledge/metrics/qingcheng_personal_conversion_metrics.md`、`knowledge/temp_tables/temp_table.dingxi01_qing_team_jg.md` | 架构表一人一期唯一性和个人业绩重复计算风险 |
+| 青橙个人转化、个人完成度、折算后产出 | `knowledge/dashboards/qingcheng_personal_conversion_raw_20260522.md` | `knowledge/metrics/qingcheng_personal_conversion_metrics.md`、`knowledge/sql_patterns/qingcheng_personal_completion_discounted_output_risks.md`、`knowledge/temp_tables/temp_table.dingxi01_qing_team_jg.md` | 课程部门空值兜底、调课调班聚合粒度、架构表一人一期唯一性 |
 | 青橙转化宽表-市场渠道 | `knowledge/dashboards/qingcheng_conversion_wide_table_market_channel_20260611.md` | `knowledge/metrics/qingcheng_conversion_wide_table_market_channel_metrics.md`、`knowledge/temp_tables/temp_table.shenbaoxin_channel_group.md` | 大 CASE 顺序、F 类外呼 join 语义和渠道分组唯一性待确认 |
 
 ## 高频排查入口
@@ -20,6 +20,7 @@
 | 用户需求 | 先读 | 再读 | 关键风险 |
 |---|---|---|---|
 | 追溯某批 `lead_id` 的原始来源 / 原始分配线索 | `knowledge/sql_patterns/qingcheng_lead_origin_trace.md` | `knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md`、`knowledge/tables/service_dw.dm_crm_lead_stats_detail_hf.md` | 不要把 `rule_name` 当原始来源；`rule_name like '%公开课%'` 可能为 0；窗口别名不要写成 `rn` |
+| 个人完成度 `折算后产出` 与订单流水不一致 | `knowledge/sql_patterns/qingcheng_personal_completion_discounted_output_risks.md` | `knowledge/dashboards/qingcheng_personal_conversion_raw_20260522.md`、`knowledge/metrics/qingcheng_personal_conversion_metrics.md`、`knowledge/tables/finance_dw.app_finance_performance_extend_details_hf.md` | 不要只看前端公式；先查空课程部门、调课调班聚合和任职窗口时间字段 |
 
 ## 高频表与临时表
 

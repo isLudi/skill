@@ -47,7 +47,7 @@
 | `org_t` | 员工在青橙项目部路径下的任职时间窗口 | `email_prefix`, `name`, `begin_time`, `end_time` |
 | `dd_0` | 财务业绩原始层，生成标准科目、期次和基础订单字段 | `order_number`, `user_id1`, `trade_status`, `trade_type`, `trade_time`, `price`, `subject`, `qici` |
 | `dd` | 只保留员工在青橙任职期间产生的交易 | `trade_time >= begin_time and (end_time is null or trade_time <= end_time)` |
-| `gmv_t` | 调课调班订单，按 `name + user_id1` 汇总并保留一条 | `name_total_price`, `dup_rn` |
+| `gmv_t` | 调课调班订单，按订单/课程/用户/期次/科目/课程部门粒度汇总，避免同一顾问同一用户多笔调课调班被揉成一条 | `order_number`, `qici`, `subject`, `course_first_level_department_name`, `name_total_price` |
 | `gmv_z` | 正常订单，按订单和课程维度汇总金额 | `name_total_price` |
 | `rd` | 合并正常订单和调课调班结果 | `union all` |
 | `ord` | 全退订单课节明细 | `full_refund_chain_finish_lesson_count`, `qici_re` |
@@ -116,8 +116,16 @@
 
 - SQL 中存在 Presto 三参数 `date_add('day', n, expr)`，公司查询平台可能按 Hive 两参数函数解析；后续生成新 SQL 时必须改为 `interval` 写法。
 - `org_t` 和财务表按 `name` join，若重名可能误匹配；是否应改用 `email_prefix` 待确认。
-- `gmv_t` 调课调班按 `name + user_id1` 去重，可能弱化课程/期次维度。
+- 历史版本 `gmv_t` 曾按 `name + user_id1` 去重，可能弱化课程/期次维度；2026-06-21 已改为订单/课程粒度，后续生成新 SQL 不得回退。
 - `rd_0` 计算了 `r_sub`，但后续未输出；是否需要净科目抵扣退款科目待确认。
 - `wa.jing_sub` 直接取 `p_sub`，当前 `j_sub` 实际为支付科目求和，不扣减退款科目；“净科目数”命名待确认。
 - `renchan` 以 `temp_table.dingxi01_qing_team_jg` 为主表，未匹配业绩的架构人员会保留并输出 0 指标。
 - `temp_table.dingxi01_qing_team_jg` 是否一人一期唯一待确认；若不唯一，会放大个人业绩。
+
+## 13. 2026-06-21 折算后产出修复记录
+
+- 当前生产 SQL 与 `resources/raw_sql/qingcheng_personal_conversion_raw_20260522.sql` 已对齐到 573 行版本，数据中心数据集为 `青橙个人转化`，`fileValue=2769`。
+- 修复点 1：`dd_0` 对空 `course_first_level_department_name` / `course_second_level_department_name` 增加兜底。`grade_list` 命中小学或初中时归为 `小初业务线`，否则兜底为 `H业务线`；H 业务线二级部门为空时兜底为 `精品班学部`。
+- 修复点 2：`gmv_t` 调课调班不再按 `name + user_id1` 粗粒度去重，改为订单、课程、用户、交易时间、科目、期次和课程部门粒度汇总。
+- 修复点 3：青橙任职窗口统一使用 `trade_time >= begin_time` 且 `trade_time <= end_time`，避免开始/结束边界混用支付时间和交易时间。
+- 已验证风险样例与诊断 SQL 见 `knowledge/sql_patterns/qingcheng_personal_completion_discounted_output_risks.md`。

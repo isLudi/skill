@@ -45,7 +45,7 @@
 | `org_t` | 员工在青橙项目部路径下的任职时间窗口 | `email_prefix`, `name`, `begin_time`, `end_time` |
 | `dd_0` | 财务业绩原始层，生成标准科目、期次和基础订单字段 | `order_number`, `user_id1`, `trade_status`, `trade_type`, `trade_time`, `price`, `subject`, `qici` |
 | `dd` | 只保留员工在青橙任职期间产生的交易 | `trade_time >= begin_time and (end_time is null or trade_time <= end_time)` |
-| `gmv_t` | 调课调班订单，按 `name + user_id1` 汇总并保留一条 | `name_total_price`, `dup_rn` |
+| `gmv_t` | 调课调班订单，按订单/课程/用户/期次/科目/课程部门粒度汇总，避免同一顾问同一用户多笔调课调班被揉成一条 | `order_number`, `qici`, `subject`, `course_first_level_department_name`, `name_total_price` |
 | `gmv_z` | 正常订单，按订单和课程维度汇总金额 | `name_total_price` |
 | `rd` | 合并正常订单和调课调班结果 | `union all` |
 | `ord` | 全退订单课节明细 | `full_refund_chain_finish_lesson_count`, `qici_re` |
@@ -119,8 +119,8 @@
 - SQL 中存在 Presto 三参数 `date_add('day', n, expr)`，公司查询平台可能按 Hive 两参数函数解析；后续生成新 SQL 时必须改为 `interval` 写法。
 - `org_t` 使用 `path_name like '高途-H业务线-青橙项目部%'`，比年季月营收 SQL 的前三层精确匹配更宽。
 - `org_t` 和财务表按 `name` join，若重名可能误匹配；是否应改用 `email_prefix` 待确认。
-- `gmv_t` 调课调班按 `name + user_id1` 去重，可能弱化课程/期次维度。
+- `gmv_t` 调课调班已改为订单/课程粒度；后续生成新 SQL 不得回退为 `name + user_id1` 粗粒度去重。
+- 与订单明细核对时，不要只使用 service 订单明细表原始 `income_amount/refund_amount`，该表部分调课调班链路金额可能缺失或为 0；若做明细侧核对，需要按 `transfer_in_amount/transfer_out_amount` 补充，并用 finance 明细补齐 service 缺失事件。
 - `temp_table.dingxi01_qing_qi_moth` 字段名为 `moth`，疑似 month 拼写，保留历史 SQL 口径。
 - `qg.emye_c != '1'` 时才展示小组，否则小组置为 `'-'`；`emye_c` 业务含义待确认。
 - 最终查询中 `group by` 包含 `leader_employee_email_name`，但该字段不在最终 select 明确输出，仅影响聚合粒度；待确认是否必要。
-

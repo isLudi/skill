@@ -11,14 +11,28 @@ with org_t as (
     group by email_prefix, name
 )
 -- 订单明细
-,dd_0 as (select         
-		  id,order_number,sub_biz_number,pre_biz_number,clazz_name,
+,dd_0 as (
+    select
+        id,order_number,sub_biz_number,pre_biz_number,clazz_name,
         user_id1,pre_employee_id,type,trade_status,trade_type, paid_time,trade_time,real_price_0,
         transfer_price,price,email_prefix,name,talent_type_name, city,
         department,biz_number,grade_list,subject,qici,
         leader_employee_email_name,teacher_name,
         school_term_id,
-        note,course_first_level_department_name,course_second_level_department_name,course_top_level_department_name
+        note,
+        case
+            when course_first_level_department_name is not null then course_first_level_department_name
+            when grade_list like '%小学%' or grade_list like '%初%' then '小初业务线'
+            else 'H业务线'
+        end as course_first_level_department_name,
+        case
+            when course_second_level_department_name is not null then course_second_level_department_name
+            when course_first_level_department_name = 'H业务线' then '精品班学部'
+            when course_first_level_department_name is null
+             and not (grade_list like '%小学%' or grade_list like '%初%') then '精品班学部'
+            else course_second_level_department_name
+        end as course_second_level_department_name,
+        course_top_level_department_name
 from (
     select
         id,order_number,substring(biz_number, 1, 10) as sub_biz_number,pre_biz_number,clazz_name,
@@ -56,24 +70,45 @@ where qici > '20260424期'
         and a.paid_time >= ot.begin_time 
         and (ot.end_time is null or a.trade_time <= ot.end_time)  
 )
--- 调课调班（按name和user_id1去重，每个用户保留一条记录）
+-- 调课调班（按订单/课程维度汇总，避免把同一顾问同一用户的多笔调课调班揉成一条）
 ,gmv_t as (
-    select id,order_number,clazz_name,user_id1,
-        trade_status,trade_time,trade_type,email_prefix,name,
-        grade_list,subject,qici,
-        school_term_id,teacher_name,
-        course_first_level_department_name,course_second_level_department_name,name_total_price
-    from (
-        select *,
-            row_number() over (partition by name, user_id1 order by id) as dup_rn
-        from (
-            select dd.*,
-                round(sum(price) over (partition by name, user_id1), 3) as name_total_price
-            from dd where trade_type = '调课调班'
-        ) t1
-        where abs(name_total_price) > 0.001  
-    ) t2
-    where dup_rn = 1
+    select
+        min(id) as id,
+        order_number,
+        clazz_name,
+        user_id1,
+        trade_status,
+        trade_time,
+        trade_type,
+        email_prefix,
+        name,
+        grade_list,
+        subject,
+        qici,
+        school_term_id,
+        teacher_name,
+        course_first_level_department_name,
+        course_second_level_department_name,
+        round(sum(price), 3) as name_total_price
+    from dd
+    where trade_type = '调课调班'
+    group by
+        order_number,
+        clazz_name,
+        user_id1,
+        trade_status,
+        trade_time,
+        trade_type,
+        email_prefix,
+        name,
+        grade_list,
+        subject,
+        qici,
+        school_term_id,
+        teacher_name,
+        course_first_level_department_name,
+        course_second_level_department_name
+    having abs(round(sum(price), 3)) > 0.001
 )
 -- 正常订单
 ,gmv_z as (

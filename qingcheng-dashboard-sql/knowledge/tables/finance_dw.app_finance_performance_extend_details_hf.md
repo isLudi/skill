@@ -217,3 +217,4 @@ end as trade_status
 - 当前 SQL 直接使用 `price` 计算营收，没有除以 100；与其他订单表金额单位不同，需确认。
 - `real_price_0` 计算后未参与后续营收指标。
 - 期次计算使用三参数 `date_add`，后续生成新 SQL 时需改为 `interval` 写法。
+- 个人完成度/个人转化中，`course_first_level_department_name` 和 `course_second_level_department_name` 可能为空；生成折算后产出相关 SQL 时必须按 `grade_list` 兜底课程部门，否则空部门流水不会进入 H/非 H/一对一桶。

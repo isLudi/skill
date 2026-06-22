@@ -54,7 +54,7 @@
 | `org_t` | 员工在青橙项目部路径下的任职时间窗口 | `email_prefix`, `name`, `begin_time`, `end_time` |
 | `dd_0` | 财务业绩原始层，生成标准科目、期次和基础订单字段 | `order_number`, `user_id1`, `trade_status`, `trade_type`, `trade_time`, `price`, `subject`, `qici` |
 | `dd` | 只保留员工在青橙任职期间产生的交易 | `trade_time >= begin_time and (end_time is null or trade_time <= end_time)` |
-| `gmv_t` | 调课调班订单，按 `name + user_id1` 汇总并保留一条 | `name_total_price`, `dup_rn` |
+| `gmv_t` | 调课调班订单，按订单/课程/用户/期次/科目/课程部门粒度汇总，避免同一顾问同一用户多笔调课调班被揉成一条 | `order_number`, `qici`, `subject`, `course_first_level_department_name`, `name_total_price` |
 | `gmv_z` | 正常订单，按订单和课程维度汇总金额 | `name_total_price` |
 | `rd` | 合并正常订单和调课调班结果 | `union all` |
 | `ord` | 全退订单课节明细 | `full_refund_chain_finish_lesson_count`, `qici_re` |
@@ -106,5 +106,4 @@
 - 期次版仍保留 `temp_table.dingxi01_qing_qi_moth` 的 `moth` 字段，但最终 join 目标表不使用月份，是否保留该 join 待确认。
 - `temp_table.dingxi01_qing_team_g_qi.xiaozu` 与 `renchan.leader_employee_email_name` join，需确认 `xiaozu` 字段是否存主管邮箱。
 - `qg.emye_c != '1'` 时才展示小组，否则小组置为 `'-'`；`emye_c` 业务含义待确认。
-- 其他订单处理、调课调班去重、退费行课阈值风险同团队完成度【月】。
-
+- 其他订单处理、调课调班粒度、退费行课阈值风险同团队完成度【月】。

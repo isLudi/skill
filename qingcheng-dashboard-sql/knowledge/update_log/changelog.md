@@ -176,3 +176,18 @@
 - 更新 `knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md`，增加来源追溯提示，并记录物理字段 `rn` 会与窗口别名冲突。
 - 更新 `knowledge/tables/service_dw.dm_crm_lead_stats_detail_hf.md`，明确 `lead_period_name / lead_group_period_name / lead_period_conversion_begin_time / end_time` 更适合期次标签和保护期窗口校验，而非原始来源追溯。
 - 本次知识沉淀基于 2026-06-21 已验证样例：`20260619期 + 青橙IP + 公开课` 切片共 2230 条 `lead_id`，`rule_name like '%公开课%'` 为 0，但 `period_name / lead_period_name` 可命中 `公开课`。
+
+## 2026-06-21 青橙个人完成度折算后产出修复
+
+- 将数据中心 `青橙个人转化` 数据集当前生产 SQL 同步到 `resources/raw_sql/qingcheng_personal_conversion_raw_20260522.sql`，并保存同源快照 `resources/raw_sql/data_center_qingcheng_2769_20260621.sql`。
+- 新增 `knowledge/sql_patterns/qingcheng_personal_completion_discounted_output_risks.md`，沉淀 `折算后产出` 与订单流水不一致时的排查路径、诊断 SQL 和已验证样例。
+- 更新个人转化 dashboard/metrics 文档，明确 `折算后产出` 前端公式依赖 `H_promit_4`、`n_H_promit_4`、`Y_promit_4` 和 `refund_4` 源指标正确入桶。
+- 记录 3 个关键风险点：课程部门空值必须按年级兜底，`gmv_t` 调课调班必须保留订单/课程粒度，任职窗口开始/结束边界必须使用一致的交易时间字段。
+- 本次验证样例：`宋青蔓` 差异来自调课调班退款 `1073.61`，`李孟笛06` 和 `许世杰05` 差异来自空课程部门流水未进入 H 班课桶。
+
+## 2026-06-22 青橙团队完成度调课调班链路修复
+
+- 将 runtime 中已验证的团队完成度【月】和团队完成度【期】SQL 同步覆盖到 canonical raw SQL：`qingcheng_team_completion_month_raw_20260522.sql`、`qingcheng_team_completion_period_raw_20260522.sql`。
+- 团队完成度同步个人完成度修复口径：课程部门空值按年级兜底，`gmv_t` 调课调班按订单/课程/用户/期次/科目/课程部门粒度汇总，避免 `name + user_id1` 粗粒度去重吃掉退款或吞掉明细。
+- 补充订单明细侧核对风险：service 表原始 `income_amount/refund_amount` 在部分调课调班链路可能缺失或为 0，核对时需叠加 `transfer_in_amount/transfer_out_amount`，并用 finance 明细补齐 service 缺失事件。
+- 看板型 SQL 不引入 `${begin_trade_time}` / `${end_trade_time}` 模板时间参数，继续通过期次、目标表和架构表控制展示范围。

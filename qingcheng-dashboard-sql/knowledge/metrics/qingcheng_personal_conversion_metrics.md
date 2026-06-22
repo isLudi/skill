@@ -91,3 +91,20 @@ qici + moth + name + leader_employee_email_name + dazu + jingli + xuebu
 - H 一对一拆分字段名称使用 `Y_` 前缀，当前按 SQL 理解为“一对一”，命名来源待确认。
 - `price` 是否已经是元，当前 SQL 直接使用。
 - 非 H 业绩按 0.5 折算是否适用于所有非 H 课程部门待确认。
+
+## 10. 折算后产出前端公式与源指标风险
+
+看板自定义字段 `折算后产出` 当前公式为：
+
+```text
+ifnull(sum(${n_H_promit_4}) * 0.5 + (sum(${H_promit_4}) - sum(${Y_promit_4})), 0)
+```
+
+该公式本身只做前端聚合，准确性依赖源 SQL 中以下字段已经正确入桶：
+
+- `H_promit_4`：H 业务线剔除行课阈值退款后的净收。
+- `n_H_promit_4`：非 H 业务线剔除行课阈值退款后的净收，前端再乘 0.5。
+- `Y_promit_4`：H 一对一剔除行课阈值退款后的净收，前端从 H 中扣除。
+- `refund_4`：按班课 4 节、点睛班 2 节、一对一全额规则计入的退款。
+
+若支付订单流水与看板不一致，优先排查 `course_first_level_department_name` / `course_second_level_department_name` 空值兜底和 `gmv_t` 调课调班聚合粒度。详细风险、诊断 SQL 和已验证样例见 `knowledge/sql_patterns/qingcheng_personal_completion_discounted_output_risks.md`。
