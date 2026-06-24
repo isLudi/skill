@@ -12,6 +12,7 @@
 | 写青橙营收、团队完成度、个人转化 SQL | 对应 `knowledge/dashboards/qingcheng_*_raw_*.md` | 对应 `knowledge/metrics/*.md`、`knowledge/temp_tables/*.md` | 先区分目标表驱动、架构表驱动和事实主表驱动 |
 | 排查个人完成度 `折算后产出` 与订单流水不一致 | `knowledge/sql_patterns/qingcheng_personal_completion_discounted_output_risks.md` | `knowledge/dashboards/qingcheng_personal_conversion_raw_20260522.md`、`knowledge/metrics/qingcheng_personal_conversion_metrics.md`、`knowledge/tables/finance_dw.app_finance_performance_extend_details_hf.md` | 先查课程部门空值兜底，再查 `gmv_t` 调课调班聚合粒度，最后核对前端公式 |
 | 追溯某批青橙 `lead_id` 最原始的来源线索 | `knowledge/sql_patterns/qingcheng_lead_origin_trace.md` | `knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md`、`knowledge/tables/service_dw.dm_crm_lead_stats_detail_hf.md` | 先抽样 20-50 条，再做全量导出；不要只看 `rule_name`；别把窗口别名写成 `rn` |
+| 解释看板某个指标的前端公式、计算字段或与数据中心 SQL 的关系 | `knowledge/dashboard_web_profiles/edit_metrics/README.md` | `knowledge/metrics/qingcheng_dashboard_metric_formula_linkage.md`、对应 `resources/raw_sql/data_center_qingcheng_*_20260624.sql` | 先确认看板组件和 BI 模型，再解析前端自定义公式，最后回到源 SQL 字段；不要把 `${指标}` 当物理字段 |
 | 用户只给字段名、指标名或别名 | `knowledge/reverse_index/field_to_metrics.md` | `knowledge/reverse_index/metric_to_raw_sql.md`、对应 metrics/dashboard 文档 | 反向索引只定位候选文档，最终口径回到 metrics/dashboard |
 | 用户只给表名，问哪些看板用到 | `knowledge/reverse_index/table_to_dashboards.md` | `knowledge/01_table_index.md`、对应 dashboard 文档 | 表被引用不代表所有看板可复用同一范围或 join |
 | SQL 结果为空、某期次/顾问/渠道查不到 | `knowledge/reverse_index/join_risk_index.md` | `knowledge/joins/table_relationships.md`、对应表文档 | 先排查主表有无数据、范围过滤、join anti-check，再判断业务无数据 |
@@ -21,7 +22,7 @@
 ## 路由原则
 
 - 简单字段或表结构问题：读 `quick_reference.md`、`01_table_index.md`、相关 `tables/*.md` 或 `temp_tables/*.md`。
-- 指标或看板口径问题：先读对应 `dashboards/*.md` 和 `metrics/*.md`，再补 join 或 SQL pattern。
+- 指标或看板口径问题：先读对应 `dashboards/*.md` 和 `metrics/*.md`；如果问题涉及看板自定义公式、字段展示名或透视表聚合，再读 `knowledge/dashboard_web_profiles/edit_metrics/` 和 `knowledge/metrics/qingcheng_dashboard_metric_formula_linkage.md`。
 - 反向排查问题：先读 `knowledge/reverse_index/`，再进入具体文档，不要全量读取知识库。
 - 结果异常或 debug：优先构造分层诊断 SQL，顺序为分区新鲜度、范围过滤、主表驱动、join anti-check、聚合粒度、前端聚合。
 - 任何跨域来源都必须标注 `待人工确认`，除非用户明确确认青橙复用。

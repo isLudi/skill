@@ -14,6 +14,7 @@
 | 青橙团队完成度月/期 | `knowledge/dashboards/qingcheng_team_completion_month_raw_20260522.md` 或 `knowledge/dashboards/qingcheng_team_completion_period_raw_20260522.md` | 对应 metrics、`knowledge/temp_tables/temp_table.dingxi01_qing_team_goal.md`、`knowledge/temp_tables/temp_table.dingxi01_qing_team_g_qi.md` | 目标表层级、期次月份映射和 H/非 H 折算待确认 |
 | 青橙个人转化、个人完成度、折算后产出 | `knowledge/dashboards/qingcheng_personal_conversion_raw_20260522.md` | `knowledge/metrics/qingcheng_personal_conversion_metrics.md`、`knowledge/sql_patterns/qingcheng_personal_completion_discounted_output_risks.md`、`knowledge/temp_tables/temp_table.dingxi01_qing_team_jg.md` | 课程部门空值兜底、调课调班聚合粒度、架构表一人一期唯一性 |
 | 青橙转化宽表-市场渠道 | `knowledge/dashboards/qingcheng_conversion_wide_table_market_channel_20260611.md` | `knowledge/metrics/qingcheng_conversion_wide_table_market_channel_metrics.md`、`knowledge/temp_tables/temp_table.shenbaoxin_channel_group.md` | 大 CASE 顺序、F 类外呼 join 语义和渠道分组唯一性待确认 |
+| 青橙看板前端指标公式、字段配置、公式与 SQL 联动 | `knowledge/dashboard_web_profiles/edit_metrics/README.md` | `knowledge/metrics/qingcheng_dashboard_metric_formula_linkage.md`、`knowledge/dashboards/data_center_qingcheng_datasets.md` | 前端 `${指标}` 是 BI 模型指标引用，不能直接等同物理 SQL 字段；先查 edit metrics，再回到数据中心源 SQL |
 
 ## 高频排查入口
 
@@ -21,6 +22,7 @@
 |---|---|---|---|
 | 追溯某批 `lead_id` 的原始来源 / 原始分配线索 | `knowledge/sql_patterns/qingcheng_lead_origin_trace.md` | `knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md`、`knowledge/tables/service_dw.dm_crm_lead_stats_detail_hf.md` | 不要把 `rule_name` 当原始来源；`rule_name like '%公开课%'` 可能为 0；窗口别名不要写成 `rn` |
 | 个人完成度 `折算后产出` 与订单流水不一致 | `knowledge/sql_patterns/qingcheng_personal_completion_discounted_output_risks.md` | `knowledge/dashboards/qingcheng_personal_conversion_raw_20260522.md`、`knowledge/metrics/qingcheng_personal_conversion_metrics.md`、`knowledge/tables/finance_dw.app_finance_performance_extend_details_hf.md` | 不要只看前端公式；先查空课程部门、调课调班聚合和任职窗口时间字段 |
+| 看板展示值与 SQL 输出字段看似一致但仍对不上 | `knowledge/metrics/qingcheng_dashboard_metric_formula_linkage.md` | 对应 `knowledge/dashboard_web_profiles/edit_metrics/<dashboard_id>_edit_metrics.md` 和 `resources/raw_sql/data_center_qingcheng_*_20260624.sql` | 先判断差异来自 SQL 输出、前端自定义公式、透视表维度聚合，还是转化口径与 finance 完成度口径不同 |
 
 ## 高频表与临时表
 

@@ -8,8 +8,8 @@
 - 文件夹：`市场顾问数据`
 - dashboard_id：`dashboard_3804681042591760385`
 - 打开入口：`https://uanalysis.baijia.com/dashboard-market?id=dashboard_3804681042591760385&sourceType=1`
-- profile 时间：2026-06-12 16:53:55
-- 原始结构 profile：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\artifacts\20260612-164827\市场顾问数据\市场顾问-用户画像分析\profile.json`
+- profile 时间：2026-06-24 19:22:59
+- 原始结构 profile：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\artifacts\20260624-191824\市场顾问数据\市场顾问-用户画像分析\profile.json`
 - 页面渲染：成功
 
 ## 2. 刷新验证
@@ -18,11 +18,11 @@
 |---|---:|
 | `unit_count` | 25 |
 | `value_unit_count` | 21 |
-| `data_ready_unit_count` | 13 |
+| `data_ready_unit_count` | 16 |
 | `analytic_unit_count` | 16 |
-| `analytic_data_ready_unit_count` | 13 |
+| `analytic_data_ready_unit_count` | 16 |
 | `error_count` | 0 |
-| `all_analytic_units_ready` | False |
+| `all_analytic_units_ready` | True |
 
 ## 3. 全局筛选器
 
@@ -49,109 +49,109 @@
 |---|---|---|---|---|---|---|
 | 标题图 | unit_3804755797370580993 | u_material | 1 主题分析 |  | loaded_empty | rows=0 |
 | 标题图 | unit_3833864070902894593 | u_material | 1 主题分析 |  | loaded_empty | rows=0 |
-| 流量用户画像 | unit_3874154854137556993 | u_pivot | 2683 前期流量画像-城市 | page=100<br>download=1 | data_ready | task=1396381994,1396381989<br>rows=28<br>total=28 |
+| 流量用户画像 | unit_3874154854137556993 | u_pivot | 2683 前期流量画像-城市 | page=100<br>download=1 | data_ready | task=1424637537,1424637535<br>rows=36<br>total=36 |
 | 标题图_副本 | unit_3874151640555405313 | u_material | 1 主题分析 |  | loaded_empty | rows=0 |
 | 全局筛选器 | public_filter_relation_3901640697883406336 | public_filter_relation |  |  | filter_relation |  |
-| 指标卡组 | unit_3901639638629822464 | card | 2809 成单用户画像整体数据 | download=0 | data_ready | task=1396382071<br>rows=6 |
-| 多科用户成单表 | unit_3901691404520521729 | u_pivot | 2809 成单用户画像整体数据 | page=200<br>download=1 | data_ready | task=1396382112,1396382113<br>rows=32<br>total=32 |
-| 透视表_副本 | unit_3901885938907897856 | u_pivot | 2812 用户画像成单用户城市标签 | page=100<br>download=0 | data_ready | task=1396382145,1396382144<br>rows=7<br>total=7 |
-| 成单用户城市占比 | unit_3901733362643238912 | u_pie | 2812 用户画像成单用户城市标签 | download=0 | data_ready | task=1396382167<br>rows=0 |
-| 成单用户首call通时占比 | unit_3911763282149220353 | u_pie | 2836 市场渠道用户成单分析 | download=0 | data_ready | task=1396382183<br>rows=0 |
-| 成单用户上课时长占比 | unit_3913644842373492738 | u_pie | 2885 市场渠道用户成单分析3 | download=0 | data_ready | task=1396382208<br>rows=0 |
-| 深沟成单用户占比 | unit_3913651535506427905 | u_pie | 2883 市场渠道用户成单分析2 | download=0 | data_ready | task=1396382229<br>rows=0 |
+| 指标卡组 | unit_3901639638629822464 | card | 2809 成单用户画像整体数据 | download=0 | data_ready | task=1424637624<br>rows=6 |
+| 多科用户成单表 | unit_3901691404520521729 | u_pivot | 2809 成单用户画像整体数据 | page=200<br>download=1 | data_ready | task=1424637665,1424637663<br>rows=39<br>total=39 |
+| 透视表_副本 | unit_3901885938907897856 | u_pivot | 2812 用户画像成单用户城市标签 | page=100<br>download=0 | data_ready | task=1424637695,1424637694<br>rows=8<br>total=8 |
+| 成单用户城市占比 | unit_3901733362643238912 | u_pie | 2812 用户画像成单用户城市标签 | download=0 | data_ready | task=1424637742<br>rows=0 |
+| 成单用户首call通时占比 | unit_3911763282149220353 | u_pie | 2836 市场渠道用户成单分析 | download=0 | data_ready | task=1424637769<br>rows=0 |
+| 成单用户上课时长占比 | unit_3913644842373492738 | u_pie | 2885 市场渠道用户成单分析3 | download=0 | data_ready | task=1424637796<br>rows=0 |
+| 深沟成单用户占比 | unit_3913651535506427905 | u_pie | 2883 市场渠道用户成单分析2 | download=0 | data_ready | task=1424637822<br>rows=0 |
 | 标题图 | unit_3833856102394322945 | u_material | 1 主题分析 |  | loaded_empty | rows=0 |
 | 标题图_副本 | unit_3911760818112954369 | u_material | 1 主题分析 |  | loaded_empty | rows=0 |
-| 1 | unit_3913632965000523776 | u_pivot | 2836 市场渠道用户成单分析 | page=100<br>download=0 | data_ready | task=1396382277,1396382275<br>rows=5<br>total=5 |
-| 1_副本 | unit_3913648004741677057 | u_pivot | 2885 市场渠道用户成单分析3 | page=100<br>download=0 | data_ready | task=1396382318,1396382317<br>rows=6<br>total=6 |
-| 1_副本_副本 | unit_3913653568806137857 | u_pivot | 2883 市场渠道用户成单分析2 | page=100<br>download=0 | data_ready | task=1396382330,1396382329<br>rows=4<br>total=4 |
+| 1 | unit_3913632965000523776 | u_pivot | 2836 市场渠道用户成单分析 | page=100<br>download=0 | data_ready | task=1424637881,1424637879<br>rows=5<br>total=5 |
+| 1_副本 | unit_3913648004741677057 | u_pivot | 2885 市场渠道用户成单分析3 | page=100<br>download=0 | data_ready | task=1424637909,1424637908<br>rows=6<br>total=6 |
+| 1_副本_副本 | unit_3913653568806137857 | u_pivot | 2883 市场渠道用户成单分析2 | page=100<br>download=0 | data_ready | task=1424637934,1424637935<br>rows=4<br>total=4 |
 | 全局筛选器 | public_filter_relation_3804782665266020352 | public_filter_relation |  |  | filter_relation |  |
 | 全局筛选器_副本 | public_filter_relation_3874159861500256261 | public_filter_relation |  |  | filter_relation |  |
 | 全局筛选器_副本_副本 | public_filter_relation_3922299105533534211 | public_filter_relation |  |  | filter_relation |  |
-| 不同科目退费占比 | unit_3804745414220034049 | u_bar | 2349 退费_科目_产品 | download=0 | loaded_empty | rows=0 |
-| 指标卡组 | unit_3933611388482850816 | card | 2886 退费整体数据 | download=0 | data_ready | task=1396383316<br>rows=6 |
-| 多科用户退费占比 | unit_3935197018570850305 | u_pivot | 2890 多科用户退费 | page=100<br>download=1 | data_ready | task=1396383335,1396383334<br>rows=27<br>total=27 |
-| 退费原因占比 | unit_3804774188543500288 | u_pie | 2353 退费原因分析 | download=0 | loaded_empty | rows=0 |
-| 不同产品退费占比 | unit_3804761632267427840 | u_bar | 2349 退费_科目_产品 | download=0 | loaded_empty | rows=0 |
+| 不同科目退费占比 | unit_3804745414220034049 | u_bar | 2349 退费_科目_产品 | download=0 | data_ready | task=1424638140<br>rows=0 |
+| 指标卡组 | unit_3933611388482850816 | card | 2886 退费整体数据 | download=0 | data_ready | task=1424638157<br>rows=6 |
+| 多科用户退费占比 | unit_3935197018570850305 | u_pivot | 2890 多科用户退费 | page=100<br>download=1 | data_ready | task=1424638184,1424638182<br>rows=28<br>total=28 |
+| 退费原因占比 | unit_3804774188543500288 | u_pie | 2353 退费原因分析 | download=0 | data_ready | task=1424638411<br>rows=0 |
+| 不同产品退费占比 | unit_3804761632267427840 | u_bar | 2349 退费_科目_产品 | download=0 | data_ready | task=1424638579<br>rows=0 |
 
 ## 5. 分析单元字段结构
 
 ### 流量用户画像
 
 - unit_id：`unit_3874154854137556993`；类型：`u_pivot`；模型：`2683` / 前期流量画像-城市
-- 刷新：data_ready；task_ids：`1396381994,1396381989`；行数：28；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1424637537,1424637535`；行数：36；序列：0 / 0 点
 
 ### 指标卡组
 
 - unit_id：`unit_3901639638629822464`；类型：`card`；模型：`2809` / 成单用户画像整体数据
-- 刷新：data_ready；task_ids：`1396382071`；行数：6；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1424637624`；行数：6；序列：0 / 0 点
 
 ### 多科用户成单表
 
 - unit_id：`unit_3901691404520521729`；类型：`u_pivot`；模型：`2809` / 成单用户画像整体数据
-- 刷新：data_ready；task_ids：`1396382112,1396382113`；行数：32；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1424637665,1424637663`；行数：39；序列：0 / 0 点
 
 ### 透视表_副本
 
 - unit_id：`unit_3901885938907897856`；类型：`u_pivot`；模型：`2812` / 用户画像成单用户城市标签
-- 刷新：data_ready；task_ids：`1396382145,1396382144`；行数：7；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1424637695,1424637694`；行数：8；序列：0 / 0 点
 
 ### 成单用户城市占比
 
 - unit_id：`unit_3901733362643238912`；类型：`u_pie`；模型：`2812` / 用户画像成单用户城市标签
-- 刷新：data_ready；task_ids：`1396382167`；行数：0；序列：1 / 5 点
+- 刷新：data_ready；task_ids：`1424637742`；行数：0；序列：1 / 5 点
 
 ### 成单用户首call通时占比
 
 - unit_id：`unit_3911763282149220353`；类型：`u_pie`；模型：`2836` / 市场渠道用户成单分析
-- 刷新：data_ready；task_ids：`1396382183`；行数：0；序列：1 / 5 点
+- 刷新：data_ready；task_ids：`1424637769`；行数：0；序列：1 / 5 点
 - 单元筛选字段：analysis_type（id=461593）
 
 ### 成单用户上课时长占比
 
 - unit_id：`unit_3913644842373492738`；类型：`u_pie`；模型：`2885` / 市场渠道用户成单分析3
-- 刷新：data_ready；task_ids：`1396382208`；行数：0；序列：1 / 5 点
+- 刷新：data_ready；task_ids：`1424637796`；行数：0；序列：1 / 5 点
 
 ### 深沟成单用户占比
 
 - unit_id：`unit_3913651535506427905`；类型：`u_pie`；模型：`2883` / 市场渠道用户成单分析2
-- 刷新：data_ready；task_ids：`1396382229`；行数：0；序列：1 / 4 点
+- 刷新：data_ready；task_ids：`1424637822`；行数：0；序列：1 / 4 点
 
 ### 1
 
 - unit_id：`unit_3913632965000523776`；类型：`u_pivot`；模型：`2836` / 市场渠道用户成单分析
-- 刷新：data_ready；task_ids：`1396382277,1396382275`；行数：5；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1424637881,1424637879`；行数：5；序列：0 / 0 点
 
 ### 1_副本
 
 - unit_id：`unit_3913648004741677057`；类型：`u_pivot`；模型：`2885` / 市场渠道用户成单分析3
-- 刷新：data_ready；task_ids：`1396382318,1396382317`；行数：6；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1424637909,1424637908`；行数：6；序列：0 / 0 点
 
 ### 1_副本_副本
 
 - unit_id：`unit_3913653568806137857`；类型：`u_pivot`；模型：`2883` / 市场渠道用户成单分析2
-- 刷新：data_ready；task_ids：`1396382330,1396382329`；行数：4；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1424637934,1424637935`；行数：4；序列：0 / 0 点
 
 ### 不同科目退费占比
 
 - unit_id：`unit_3804745414220034049`；类型：`u_bar`；模型：`2349` / 退费_科目_产品
-- 刷新：loaded_empty；task_ids：``；行数：0；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1424638140`；行数：0；序列：1 / 5 点
 
 ### 指标卡组
 
 - unit_id：`unit_3933611388482850816`；类型：`card`；模型：`2886` / 退费整体数据
-- 刷新：data_ready；task_ids：`1396383316`；行数：6；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1424638157`；行数：6；序列：0 / 0 点
 
 ### 多科用户退费占比
 
 - unit_id：`unit_3935197018570850305`；类型：`u_pivot`；模型：`2890` / 多科用户退费
-- 刷新：data_ready；task_ids：`1396383335,1396383334`；行数：27；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1424638184,1424638182`；行数：28；序列：0 / 0 点
 
 ### 退费原因占比
 
 - unit_id：`unit_3804774188543500288`；类型：`u_pie`；模型：`2353` / 退费原因分析
-- 刷新：loaded_empty；task_ids：``；行数：0；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1424638411`；行数：0；序列：1 / 5 点
 
 ### 不同产品退费占比
 
 - unit_id：`unit_3804761632267427840`；类型：`u_bar`；模型：`2349` / 退费_科目_产品
-- 刷新：loaded_empty；task_ids：``；行数：0；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1424638579`；行数：0；序列：1 / 4 点

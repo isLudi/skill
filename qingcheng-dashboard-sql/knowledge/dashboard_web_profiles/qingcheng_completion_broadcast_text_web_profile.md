@@ -8,8 +8,8 @@
 - 文件夹：`青橙项目部`
 - dashboard_id：`dashboard_3893277592797257728`
 - 打开入口：`https://uanalysis.baijia.com/dashboard-market?id=dashboard_3893277592797257728&sourceType=1`
-- profile 时间：2026-06-12 16:59:39
-- 原始结构 profile：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\artifacts\20260612-164827\青橙项目部\完成度文字播报_青\profile.json`
+- profile 时间：2026-06-24 18:47:18
+- 原始结构 profile：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\artifacts\20260624-184137\青橙项目部\完成度文字播报_青\profile.json`
 - 页面渲染：成功
 
 ## 2. 刷新验证
@@ -34,7 +34,7 @@
 
 | 单元 | unit_id | 类型 | 模型 | 分页/下载 | 刷新状态 | task_id / 行数 |
 |---|---|---|---|---|---|---|
-| 青橙完成度文字 | unit_3893277603098468352 | u_text | 2680 团队完成度【期】 | download=0 | data_ready | task=1396397244,1396397245<br>rows=0 |
+| 青橙完成度文字 | unit_3893277603098468352 | u_text | 2680 团队完成度【期】 | download=0 | data_ready | task=1424552860,1424552861<br>rows=0 |
 
 ## 5. 分析单元字段结构
 

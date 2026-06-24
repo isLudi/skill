@@ -21,3 +21,4 @@
 - `consultant_sales_department_tenure_period_20260424_metrics.md`：顾问部门任职期销售 20260424 期指标集合。
 - `h_biz_line_department_conversion_metrics.md`：H业务线二级部门转化指标集合。
 - `market_channel_conversion_profile_metrics.md`：市场渠道用户画像分析指标集合，覆盖首 call 通时、上课时长、深沟阶段、整体画像和多维退费率数据集；比例/单效/退费率类总计必须在透视表用可加和分子分母字段重算。
+- `market_consultant_dashboard_metric_formula_linkage.md`：2026-06-24 从市场顾问数据文件夹看板编辑页抽取的前端指标公式、透视表维度、看板组件和数据中心 SQL 的联动索引；用于把看板指标说明关联到唯一 `data_center_market_*_20260624.sql`。

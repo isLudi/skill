@@ -207,3 +207,30 @@
 - 主交易层命中内部调课调班调入/调出后，不进入 `income`、`refund`、`refund_4` 和科目数，避免把调出退款误算为 4 节内外部退费。
 - 期次推导同步改为 `interval` 写法，避免平台将 Presto 三参数 `date_add` 解析为 Hive 两参数函数。
 - 网页端验证：`谷锦茜` `20260619期` 修复后 `income=9200`、`refund=4800`、`H_promit_4=4400`、折算后产出 `4400`；团队期次和月度小范围验证 SQL 均执行成功。
+
+## 2026-06-24 18:47:53
+
+- 通过 `usql-web-query-operator/scripts/read_dashboard.py profile-all` 扫描 `青橙项目部` 文件夹，并将原始 `profile.json` 写入本地 runtime 目录。
+- 刷新 `knowledge/dashboard_web_profiles/README.md`，当前索引 10 个看板快照。
+- 本次 profile 结果：成功 10 个，失败 0 个。
+
+## 2026-06-24 数据中心数据集源 SQL 同步
+
+- 从数据中心 `https://uanalysis.baijia.com/data-center/data-set` 同步数据集源 SQL，范围：青橙项目部目录下的全部 SQL 数据集。
+- 保存 9 个数据集源 SQL 到 `resources/raw_sql`，更新清单 `knowledge/dashboards/data_center_qingcheng_datasets.md`。
+- 未改写 SQL 语义；后续字段、指标或临时表口径仍需基于源 SQL 和业务规则单独维护。
+
+## 2026-06-24 青橙看板编辑页指标公式与 SQL 联动补充
+
+- 使用 `usql-web-query-operator/scripts/read_dashboard.py profile-edit-dashboard` 只读抽取青橙项目部 10 个看板的编辑页配置，生成 `knowledge/dashboard_web_profiles/edit_metrics/`。
+- 新增 `knowledge/metrics/qingcheng_dashboard_metric_formula_linkage.md`，把看板前端自定义公式、BI 模型指标、数据中心源 SQL 和已知排查顺序串联起来。
+- 更新 `knowledge/dashboard_web_profiles/README.md`、`knowledge/quick_reference.md` 和 `knowledge/decision_tree.md`，新增“看板前端公式/字段配置/SQL 联动”的路由入口。
+- 清理已被 20260624 最新数据中心快照替代的旧快照：`data_center_qingcheng_2740_20260617.sql`、`data_center_qingcheng_2769_20260621.sql`、`data_center_qingcheng_2769_20260622.sql`。
+- 本次维护不修改生产看板、不发布看板、不执行 SQL 结果下载；编辑页 profile 仅调用读取类接口。
+
+## 2026-06-24 raw SQL 重复快照收敛
+
+- 按 SQL 正文哈希比对 `resources/raw_sql`，确认 6 个 20260624 数据中心快照与既有 canonical raw SQL 完全一致，删除重复副本，仅保留 canonical 文件。
+- 数据中心清单、编辑页指标快照和指标-SQL 联动文档已改为引用单一 SQL 文件，避免同一 SQL 因文件名不同被误识别为两个数据集。
+- 保留映射：`青橙到课` -> `qingcheng_daoke_raw_20260522.sql`；`年季月营收情况` -> `qingcheng_revenue_year_quarter_month_raw_20260522.sql`；`团队完成度【月】` -> `qingcheng_team_completion_month_raw_20260522.sql`；`团队完成度【期】` -> `qingcheng_team_completion_period_raw_20260522.sql`；`青橙个人转化` -> `qingcheng_personal_conversion_raw_20260522.sql`；`转化-宽表-市场渠道` -> `qingcheng_conversion_wide_table_market_channel_20260611.sql`。
+- `青橙-过程数据`、`转化数据`、`抖私-转化` 的 20260624 数据中心 SQL 与现有历史 SQL 不完全一致，暂保留 20260624 快照作为当前数据中心版本。

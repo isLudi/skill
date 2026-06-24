@@ -8,8 +8,8 @@
 - 文件夹：`市场顾问数据`
 - dashboard_id：`dashboard_3839499028752805888`
 - 打开入口：`https://uanalysis.baijia.com/dashboard-market?id=dashboard_3839499028752805888&sourceType=1`
-- profile 时间：2026-06-12 16:55:03
-- 原始结构 profile：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\artifacts\20260612-164827\市场顾问数据\评优文字播报\profile.json`
+- profile 时间：2026-06-24 19:24:34
+- 原始结构 profile：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\artifacts\20260624-191824\市场顾问数据\评优文字播报\profile.json`
 - 页面渲染：成功
 
 ## 2. 刷新验证
@@ -34,7 +34,7 @@
 
 | 单元 | unit_id | 类型 | 模型 | 分页/下载 | 刷新状态 | task_id / 行数 |
 |---|---|---|---|---|---|---|
-| 文本框 | unit_3839505972048355328 | u_text | 2421 评优看板 | download=0 | data_ready | task=1396387557,1396387556<br>rows=0 |
+| 文本框 | unit_3839505972048355328 | u_text | 2421 评优看板 | download=0 | data_ready | task=1424642512,1424642478<br>rows=0 |
 
 ## 5. 分析单元字段结构
 

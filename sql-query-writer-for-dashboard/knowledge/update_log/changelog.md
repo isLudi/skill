@@ -546,12 +546,12 @@
 ## 2026-06-17 数据中心源 SQL 对比与 canonical raw_sql 更新
 
 - 将市场顾问部数据中心中已确认同源的 20 份源 SQL 映射并覆盖到现有 canonical raw_sql，包括外呼过程、到课衰减、转化、进量节奏、评优、退费和画像类数据集。
-- 保留未能确认同源的数据中心 SQL 为 `data_center_market_*_20260617.sql`，不强行覆盖既有知识库口径。
+- 当时保留未能确认同源的数据中心 SQL 为 20260617 快照，不强行覆盖既有知识库口径；2026-06-24 刷新后旧快照已按最新数据中心 SQL 去重替换。
 - 更新 `knowledge/dashboards/data_center_market_datasets.md`，记录每份数据中心 SQL 的用途、主要依赖和冲突处理原则。
 
 ## 2026-06-17 运营侧个人数据 2293 架构展示修正
 
-- 使用 runtime 修正版覆盖 `resources/raw_sql/data_center_market_2293_20260617.sql`。
+- 使用 runtime 修正版覆盖当日的 2293 运营侧个人数据快照；该架构修正后续已由 `resources/raw_sql/data_center_market_2293_20260624.sql` 继承，旧快照去重删除。
 - 修正原因：原最终层 `select zz.*` 会把事实宽表 `zz.jingli` / `zz.zhuguan` 原样输出；BI 透视表绑定 `jingli` 时会使用事实宽表 `virtual_leader_email_name`，导致顾问展示在旧经理或旧主管下。
 - 修正逻辑：新增 `zx_active` 对 `temp_table.dingxi01_jiagou_zx` 做在职和部门过滤并按 `employee_email_name` 去重；最终层显式输出 `jingli`、`zhuguan`、`xiaozu`、`jingli_11`，优先级为 `temp_table.dingxi01_jiagou_db` 期次架构 > `temp_table.dingxi01_jiagou_zx` 当前在职架构 > 事实宽表 `virtual_*` 字段。
 - 更新 `knowledge/dashboards/data_center_market_datasets.md`、`knowledge/tables/temp_table.dingxi01_jiagou_db.md`、`knowledge/tables/temp_table.dingxi01_jiagou_zx.md`、`knowledge/pitfalls/common_join_failures.md`、`knowledge/sql_patterns/dashboard_query_patterns.md`，记录 2293 同类架构错位的排查路径和修复模板。
@@ -574,3 +574,23 @@
 - 新增 8 份 `template_query_market_` 前缀的模板取数 raw SQL，完整保存平台模板 SQL 原文，不改写 SQL 语义，不覆盖现有 canonical 看板或数据中心 SQL。
 - 新增 `knowledge/dashboards/template_query_market_datasets.md`，记录模板 id、更新时间、raw SQL 路径、主要依赖表、模板参数和用途，并统一标记使用口径为“模板取数”。
 - 更新 `knowledge/quick_reference.md` 与 `knowledge/decision_tree.md`，后续用户明确提到模板取数最新代码或 AI 分析市场顾问部模板时优先路由到模板取数清单，回答时必须说明口径来源。
+
+## 2026-06-24 数据中心数据集源 SQL 同步
+
+- 从数据中心 `https://uanalysis.baijia.com/data-center/data-set` 同步数据集源 SQL，范围：市场顾问部目录下从 `(内部渠道)外呼过程数据` 开始到末尾的 SQL 数据集。
+- 保存 38 个数据集源 SQL 到 `resources/raw_sql`，更新清单 `knowledge/dashboards/data_center_market_datasets.md`。
+- 未改写 SQL 语义；后续字段、指标或临时表口径仍需基于源 SQL 和业务规则单独维护。
+
+## 2026-06-24 19:26:35
+
+- 通过 `usql-web-query-operator/scripts/read_dashboard.py profile-all` 扫描 `市场顾问数据` 文件夹，并将原始 `profile.json` 写入本地 runtime 目录。
+- 刷新 `knowledge/dashboard_web_profiles/README.md`，当前索引 17 个看板快照。
+- 本次 profile 结果：成功 17 个，失败 0 个。
+
+## 2026-06-24 市场顾问看板指标公式与数据集 SQL 联动
+
+- 使用 `read_dashboard.py profile-edit-dashboard` 读取 `市场顾问数据` 文件夹下 16 个 dashboard 看板的编辑页配置，补充 `knowledge/dashboard_web_profiles/edit_metrics/`。
+- 新增 `knowledge/metrics/market_consultant_dashboard_metric_formula_linkage.md`，按看板、透视表、`model_id`、前端指标公式和唯一数据中心 raw SQL 建立联动关系。
+- 与 2026-06-24 数据中心同步结果对齐，联动文档默认指向 `resources/raw_sql/data_center_market_*_20260624.sql`；文本播报看板保留为 text-only，不强行绑定 SQL。
+- 更新 `knowledge/quick_reference.md`、`knowledge/decision_tree.md`、`knowledge/metrics/README.md` 和 `knowledge/dashboard_web_profiles/README.md`，后续排查看板指标含义或公式时优先从联动索引进入。
+- 完成 raw SQL 去重：删除 17 个 20260617 数据中心旧快照；对 14 个与 canonical SQL 完全一致的 20260624 数据中心副本，改由清单和联动文档指向 canonical 文件后删除副本；另将 2 个与数据中心/canonical 完全一致的模板取数 raw SQL 改为清单指向唯一 SQL 文件后删除副本。

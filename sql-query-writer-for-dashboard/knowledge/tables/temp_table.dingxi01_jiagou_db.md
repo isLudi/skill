@@ -132,7 +132,7 @@ limit 20;
 
 ### 运营侧个人数据 2293 使用备注
 
-- `resources/raw_sql/data_center_market_2293_20260617.sql` 的最终层用于修正运营侧个人数据的展示架构：优先使用本表按 `qici + department + xiaozu + employee_email_name` 匹配出来的 `jg.jingli`、`jg.xiaozu`，其次才使用 `temp_table.dingxi01_jiagou_zx` 和事实宽表字段。
+- `resources/raw_sql/data_center_market_2293_20260624.sql` 的最终层用于修正运营侧个人数据的展示架构：优先使用本表按 `qici + department + xiaozu + employee_email_name` 匹配出来的 `jg.jingli`、`jg.xiaozu`，其次才使用 `temp_table.dingxi01_jiagou_zx` 和事实宽表字段。
 - 典型错误：事实宽表 `virtual_leader_email_name` / `virtual_direct_leader_email_name` 与期次架构表不一致，BI 透视表又绑定最终输出的 `jingli` 字段，导致主管或经理展示到旧架构下。
 - 修复原则：最终输出层不要 `select zz.*` 后原样暴露 `zz.jingli`、`zz.zhuguan`；应显式输出 `coalesce(jg.jingli, zx.jingli, zz.jingli) as jingli` 和 `coalesce(jg.xiaozu, zx.xiaozu, zz.zhuguan) as zhuguan`。
 

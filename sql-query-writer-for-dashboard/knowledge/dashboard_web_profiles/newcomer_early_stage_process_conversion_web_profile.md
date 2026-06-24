@@ -8,8 +8,8 @@
 - 文件夹：`市场顾问数据`
 - dashboard_id：`dashboard_3874439982521286657`
 - 打开入口：`https://uanalysis.baijia.com/dashboard-market?id=dashboard_3874439982521286657&sourceType=1`
-- profile 时间：2026-06-12 16:56:06
-- 原始结构 profile：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\artifacts\20260612-164827\市场顾问数据\【新人】前期过程转化数据\profile.json`
+- profile 时间：2026-06-24 19:25:39
+- 原始结构 profile：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\artifacts\20260624-191824\市场顾问数据\【新人】前期过程转化数据\profile.json`
 - 页面渲染：成功
 
 ## 2. 刷新验证
@@ -40,11 +40,11 @@
 |---|---|---|---|---|---|---|
 | 标题图 | unit_3874440144128913408 | u_material | 1 主题分析 |  | loaded_empty | rows=0 |
 | 全局筛选器 | public_filter_relation_3874444624579076097 | public_filter_relation |  |  | filter_relation |  |
-| 新人过程-转化 | unit_3874462234150735872 | u_pivot | 2688 新人过程转化数据 | page=100<br>download=0 | data_ready | task=1396389640,1396389638<br>rows=100<br>total=223 |
+| 新人过程-转化 | unit_3874462234150735872 | u_pivot | 2688 新人过程转化数据 | page=100<br>download=0 | data_ready | task=1424645484,1424645485<br>rows=100<br>total=284 |
 
 ## 5. 分析单元字段结构
 
 ### 新人过程-转化
 
 - unit_id：`unit_3874462234150735872`；类型：`u_pivot`；模型：`2688` / 新人过程转化数据
-- 刷新：data_ready；task_ids：`1396389640,1396389638`；行数：100；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1424645484,1424645485`；行数：100；序列：0 / 0 点

@@ -36,6 +36,7 @@
 | 流量画像/城市渠道 | `knowledge/dashboards/traffic_profile.md` | `knowledge/metrics/traffic_profile_metrics.md` |
 | 市场渠道用户画像/成单过程/多维退费率 | `knowledge/dashboards/market_channel_conversion_profile.md` | `knowledge/metrics/market_channel_conversion_profile_metrics.md` |
 | 市场顾问部模板取数最新代码/AI分析模板 | `knowledge/dashboards/template_query_market_datasets.md` | 读取清单中对应 raw SQL；使用口径必须说明为“模板取数” |
+| 市场顾问看板指标含义/前端公式/数据集 SQL 联动 | `knowledge/metrics/market_consultant_dashboard_metric_formula_linkage.md` | 再读 `knowledge/dashboard_web_profiles/edit_metrics/` 中对应看板明细和 `resources/raw_sql/data_center_market_*_20260624.sql` |
 | 历史退费分析 | `knowledge/metrics/refund_analysis_metrics.md` | 旧 `knowledge/dashboards/refund_*.md` 仅作追溯入口，默认改读市场渠道用户画像 |
 | 分配计划实际有效量 | `knowledge/dashboards/lead_assign_plan_actual_valid_count.md` | `knowledge/joins/common_join_keys.md` |
 | 外呼过程/首 call | `knowledge/dashboards/outbound_call_process_dashboard.md` | `knowledge/sql_patterns/first_call_task_metric_pattern.md`；期次导出模板看 `knowledge/sql_patterns/outbound_call_process_export_template.md` |

@@ -8,8 +8,8 @@
 - 文件夹：`青橙项目部`
 - dashboard_id：`dashboard_3873038327756636161`
 - 打开入口：`https://uanalysis.baijia.com/dashboard-market?id=dashboard_3873038327756636161&sourceType=1`
-- profile 时间：2026-06-12 16:58:40
-- 原始结构 profile：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\artifacts\20260612-164827\青橙项目部\个人转化数据-青橙\profile.json`
+- profile 时间：2026-06-24 18:45:34
+- 原始结构 profile：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\artifacts\20260624-184137\青橙项目部\个人转化数据-青橙\profile.json`
 - 页面渲染：成功
 
 ## 2. 刷新验证
@@ -36,19 +36,19 @@
 |---|---|---|---|---|---|---|
 | 标题图 | unit_3873038340305993730 | u_material | 1 主题分析 |  | loaded_empty | rows=0 |
 | 文本框 | unit_3893236780015427585 | u_text | 1 None | download=0 | data_ready | rows=0 |
-| 期产出 | unit_3873038340305993729 | u_pivot | 2769 青橙个人转化 | page=500<br>download=1 | data_ready | task=1396395014,1396395009<br>rows=187<br>total=187 |
-| 月度产出 | unit_3893056410852823041 | u_pivot | 2769 青橙个人转化 | page=500<br>download=1 | data_ready | task=1396395091,1396395087<br>rows=153<br>total=153 |
+| 期产出 | unit_3873038340305993729 | u_pivot | 2769 青橙个人转化 | page=500<br>download=1 | data_ready | task=1424548625,1424548624<br>rows=187<br>total=187 |
+| 月度产出 | unit_3893056410852823041 | u_pivot | 2769 青橙个人转化 | page=500<br>download=1 | data_ready | task=1424548667,1424548666<br>rows=158<br>total=158 |
 
 ## 5. 分析单元字段结构
 
 ### 期产出
 
 - unit_id：`unit_3873038340305993729`；类型：`u_pivot`；模型：`2769` / 青橙个人转化
-- 刷新：data_ready；task_ids：`1396395014,1396395009`；行数：187；序列：0 / 0 点
-- 单元筛选字段：qici（id=437989）、xuebu（id=437995）、dazu（id=437993）、leader_employee_email_name（id=437992）
+- 刷新：data_ready；task_ids：`1424548625,1424548624`；行数：187；序列：0 / 0 点
+- 单元筛选字段：qici（id=437989）、xuebu（id=437995）、dazu（id=437993）、leader_employee_email_name（id=437992）、data_level（id=496578）
 
 ### 月度产出
 
 - unit_id：`unit_3893056410852823041`；类型：`u_pivot`；模型：`2769` / 青橙个人转化
-- 刷新：data_ready；task_ids：`1396395091,1396395087`；行数：153；序列：0 / 0 点
-- 单元筛选字段：moth（id=437990）、xuebu（id=437995）、dazu（id=437993）、leader_employee_email_name（id=437992）
+- 刷新：data_ready；task_ids：`1424548667,1424548666`；行数：158；序列：0 / 0 点
+- 单元筛选字段：moth（id=437990）、xuebu（id=437995）、dazu（id=437993）、leader_employee_email_name（id=437992）、qici（id=437989）、data_level（id=496578）

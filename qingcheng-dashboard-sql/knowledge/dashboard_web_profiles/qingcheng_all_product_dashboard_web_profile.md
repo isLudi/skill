@@ -8,8 +8,8 @@
 - 文件夹：`青橙项目部`
 - dashboard_id：`dashboard_3852445620602875904`
 - 打开入口：`https://uanalysis.baijia.com/dashboard-market?id=dashboard_3852445620602875904&sourceType=1`
-- profile 时间：2026-06-12 16:57:37
-- 原始结构 profile：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\artifacts\20260612-164827\青橙项目部\青橙-全域产品数据看板\profile.json`
+- profile 时间：2026-06-24 18:43:46
+- 原始结构 profile：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\artifacts\20260624-184137\青橙项目部\青橙-全域产品数据看板\profile.json`
 - 页面渲染：成功
 
 ## 2. 刷新验证
@@ -36,54 +36,54 @@
 |---|---|---|---|---|---|---|
 | 标题图 | unit_3852445866631221248 | u_material | 1 主题分析 |  | loaded_empty | rows=0 |
 | 文本框 | unit_3852612515549360128 | u_text | 1 None | download=0 | data_ready | rows=0 |
-| 月度同环比 | unit_3852731598764421121 | card | 2576 年季月营收情况 | download=0 | data_ready | task=1396392215<br>rows=5 |
-| 分学部-日度同环比 | unit_3853811811253604352 | u_table | 2576 年季月营收情况 | page=500<br>download=1 | data_ready | task=1396392241,1396392240<br>rows=19<br>total=19 |
-| 期次同环比 | unit_3852748093415362561 | card | 2576 年季月营收情况 | download=0 | data_ready | task=1396392262<br>rows=5 |
-| 期次数据 | unit_3852450245030936577 | u_pivot | 2576 年季月营收情况 | page=100<br>download=1 | data_ready | task=1396392297,1396392296<br>rows=100<br>total=460 |
-| 月度数据 | unit_3852623536924274690 | u_pivot | 2576 年季月营收情况 | page=100<br>download=1 | data_ready | task=1396392325,1396392324<br>rows=100<br>total=117 |
-| 季度数据 | unit_3852642117420830723 | u_pivot | 2576 年季月营收情况 | page=100<br>download=1 | data_ready | task=1396392373,1396392369<br>rows=52<br>total=52 |
-| 年度数据 | unit_3852643066481041410 | u_pivot | 2576 年季月营收情况 | page=100<br>download=1 | data_ready | task=1396392392,1396392393<br>rows=32<br>total=32 |
+| 月度同环比 | unit_3852731598764421121 | card | 2576 年季月营收情况 | download=0 | data_ready | task=1424543645<br>rows=5 |
+| 分学部-日度同环比 | unit_3853811811253604352 | u_table | 2576 年季月营收情况 | page=500<br>download=1 | data_ready | task=1424543661,1424543660<br>rows=18<br>total=18 |
+| 期次同环比 | unit_3852748093415362561 | card | 2576 年季月营收情况 | download=0 | data_ready | task=1424543685<br>rows=5 |
+| 期次数据 | unit_3852450245030936577 | u_pivot | 2576 年季月营收情况 | page=100<br>download=1 | data_ready | task=1424543720,1424543719<br>rows=100<br>total=473 |
+| 月度数据 | unit_3852623536924274690 | u_pivot | 2576 年季月营收情况 | page=100<br>download=1 | data_ready | task=1424543789,1424543787<br>rows=100<br>total=117 |
+| 季度数据 | unit_3852642117420830723 | u_pivot | 2576 年季月营收情况 | page=100<br>download=1 | data_ready | task=1424543824,1424543823<br>rows=51<br>total=51 |
+| 年度数据 | unit_3852643066481041410 | u_pivot | 2576 年季月营收情况 | page=100<br>download=1 | data_ready | task=1424543873,1424543874<br>rows=31<br>total=31 |
 
 ## 5. 分析单元字段结构
 
 ### 月度同环比
 
 - unit_id：`unit_3852731598764421121`；类型：`card`；模型：`2576` / 年季月营收情况
-- 刷新：data_ready；task_ids：`1396392215`；行数：5；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1424543645`；行数：5；序列：0 / 0 点
 - 单元筛选字段：max_trade_date（id=395131）、xuebu（id=396625）
 
 ### 分学部-日度同环比
 
 - unit_id：`unit_3853811811253604352`；类型：`u_table`；模型：`2576` / 年季月营收情况
-- 刷新：data_ready；task_ids：`1396392241,1396392240`；行数：19；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1424543661,1424543660`；行数：18；序列：0 / 0 点
 - 单元筛选字段：max_trade_date（id=395131）、xuebu（id=396625）、dazhuguan（id=396624）
 
 ### 期次同环比
 
 - unit_id：`unit_3852748093415362561`；类型：`card`；模型：`2576` / 年季月营收情况
-- 刷新：data_ready；task_ids：`1396392262`；行数：5；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1424543685`；行数：5；序列：0 / 0 点
 - 单元筛选字段：max_trade_date（id=395131）、xuebu（id=396625）
 
 ### 期次数据
 
 - unit_id：`unit_3852450245030936577`；类型：`u_pivot`；模型：`2576` / 年季月营收情况
-- 刷新：data_ready；task_ids：`1396392297,1396392296`；行数：100；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1424543720,1424543719`；行数：100；序列：0 / 0 点
 - 单元筛选字段：qici（id=395130）、xuebu（id=396625）、dazhuguan（id=396624）
 
 ### 月度数据
 
 - unit_id：`unit_3852623536924274690`；类型：`u_pivot`；模型：`2576` / 年季月营收情况
-- 刷新：data_ready；task_ids：`1396392325,1396392324`；行数：100；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1424543789,1424543787`；行数：100；序列：0 / 0 点
 - 单元筛选字段：max_year（id=395242）、max_month（id=395244）、xuebu（id=396625）、dazhuguan（id=396624）
 
 ### 季度数据
 
 - unit_id：`unit_3852642117420830723`；类型：`u_pivot`；模型：`2576` / 年季月营收情况
-- 刷新：data_ready；task_ids：`1396392373,1396392369`；行数：52；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1424543824,1424543823`；行数：51；序列：0 / 0 点
 - 单元筛选字段：max_year（id=395242）、max_quarter（id=395243）、xuebu（id=396625）、dazhuguan（id=396624）
 
 ### 年度数据
 
 - unit_id：`unit_3852643066481041410`；类型：`u_pivot`；模型：`2576` / 年季月营收情况
-- 刷新：data_ready；task_ids：`1396392392,1396392393`；行数：32；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1424543873,1424543874`；行数：31；序列：0 / 0 点
 - 单元筛选字段：max_year（id=395242）、xuebu（id=396625）、dazhuguan（id=396624）

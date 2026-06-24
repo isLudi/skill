@@ -8,8 +8,8 @@
 - 文件夹：`市场顾问数据`
 - dashboard_id：`dashboard_3861041931986931712`
 - 打开入口：`https://uanalysis.baijia.com/dashboard-market?id=dashboard_3861041931986931712&sourceType=1`
-- profile 时间：2026-06-12 16:55:50
-- 原始结构 profile：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\artifacts\20260612-164827\市场顾问数据\多维度时效分析-抖咨\profile.json`
+- profile 时间：2026-06-24 19:25:22
+- 原始结构 profile：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\artifacts\20260624-191824\市场顾问数据\多维度时效分析-抖咨\profile.json`
 - 页面渲染：成功
 
 ## 2. 刷新验证
@@ -36,61 +36,61 @@
 |---|---|---|---|---|---|---|
 | 标题图 | unit_3861068961718165504 | u_material | 1 主题分析 |  | loaded_empty | rows=0 |
 | 全局筛选器 | public_filter_relation_3861067180758081537 | public_filter_relation |  |  | filter_relation |  |
-| 部门 | unit_3861063716424466433 | u_pivot | 2623 抖音私信- 分时间段 | page=300<br>download=0 | data_ready | task=1396388717,1396388718<br>rows=12<br>total=2 |
-| 经理 | unit_3861063388582449154 | u_pivot | 2623 抖音私信- 分时间段 | page=300<br>download=0 | data_ready | task=1396388792,1396388791<br>rows=18<br>total=3 |
-| 顾问_副本 | unit_3861061473331204097 | u_pivot | 2623 抖音私信- 分时间段 | page=300<br>download=0 | data_ready | task=1396388849,1396388851<br>rows=54<br>total=9 |
-| 顾问 | unit_3861044167111950336 | u_pivot | 2623 抖音私信- 分时间段 | page=300<br>download=0 | data_ready | task=1396388928,1396388926<br>rows=198<br>total=33 |
-| 部门 | unit_3861107228588707841 | u_pivot | 2625 分触达时间段--抖音咨询 | page=300<br>download=0 | data_ready | task=1396388963,1396388962<br>rows=16<br>total=2 |
-| 经理 | unit_3861108524580036608 | u_pivot | 2625 分触达时间段--抖音咨询 | page=300<br>download=0 | data_ready | task=1396389006,1396389007<br>rows=24<br>total=3 |
-| 主管 | unit_3861106694555324416 | u_pivot | 2625 分触达时间段--抖音咨询 | page=300<br>download=0 | data_ready | task=1396389052,1396389050<br>rows=72<br>total=9 |
-| 顾问 | unit_3861088496817307649 | u_pivot | 2625 分触达时间段--抖音咨询 | page=300<br>download=0 | data_ready | task=1396389114,1396389113<br>rows=264<br>total=33 |
+| 部门 | unit_3861063716424466433 | u_pivot | 2623 抖音私信- 分时间段 | page=300<br>download=0 | data_ready | task=1424644571,1424644570<br>rows=2<br>total=2 |
+| 经理 | unit_3861063388582449154 | u_pivot | 2623 抖音私信- 分时间段 | page=300<br>download=0 | data_ready | task=1424644606,1424644605<br>rows=3<br>total=3 |
+| 顾问_副本 | unit_3861061473331204097 | u_pivot | 2623 抖音私信- 分时间段 | page=300<br>download=0 | data_ready | task=1424644655,1424644652<br>rows=4<br>total=4 |
+| 顾问 | unit_3861044167111950336 | u_pivot | 2623 抖音私信- 分时间段 | page=300<br>download=0 | data_ready | task=1424644696,1424644697<br>rows=7<br>total=7 |
+| 部门 | unit_3861107228588707841 | u_pivot | 2625 分触达时间段--抖音咨询 | page=300<br>download=0 | data_ready | task=1424644722,1424644721<br>rows=2<br>total=2 |
+| 经理 | unit_3861108524580036608 | u_pivot | 2625 分触达时间段--抖音咨询 | page=300<br>download=0 | data_ready | task=1424644827,1424644828<br>rows=3<br>total=3 |
+| 主管 | unit_3861106694555324416 | u_pivot | 2625 分触达时间段--抖音咨询 | page=300<br>download=0 | data_ready | task=1424644847,1424644848<br>rows=4<br>total=4 |
+| 顾问 | unit_3861088496817307649 | u_pivot | 2625 分触达时间段--抖音咨询 | page=300<br>download=0 | data_ready | task=1424644878,1424644877<br>rows=7<br>total=7 |
 
 ## 5. 分析单元字段结构
 
 ### 部门
 
 - unit_id：`unit_3861063716424466433`；类型：`u_pivot`；模型：`2623` / 抖音私信- 分时间段
-- 刷新：data_ready；task_ids：`1396388717,1396388718`；行数：12；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1424644571,1424644570`；行数：2；序列：0 / 0 点
 - 维度/表头字段：时间段（id=405161）
 
 ### 经理
 
 - unit_id：`unit_3861063388582449154`；类型：`u_pivot`；模型：`2623` / 抖音私信- 分时间段
-- 刷新：data_ready；task_ids：`1396388792,1396388791`；行数：18；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1424644606,1424644605`；行数：3；序列：0 / 0 点
 - 维度/表头字段：时间段（id=405161）
 
 ### 顾问_副本
 
 - unit_id：`unit_3861061473331204097`；类型：`u_pivot`；模型：`2623` / 抖音私信- 分时间段
-- 刷新：data_ready；task_ids：`1396388849,1396388851`；行数：54；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1424644655,1424644652`；行数：4；序列：0 / 0 点
 - 维度/表头字段：时间段（id=405161）
 
 ### 顾问
 
 - unit_id：`unit_3861044167111950336`；类型：`u_pivot`；模型：`2623` / 抖音私信- 分时间段
-- 刷新：data_ready；task_ids：`1396388928,1396388926`；行数：198；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1424644696,1424644697`；行数：7；序列：0 / 0 点
 - 维度/表头字段：时间段（id=405161）
 
 ### 部门
 
 - unit_id：`unit_3861107228588707841`；类型：`u_pivot`；模型：`2625` / 分触达时间段--抖音咨询
-- 刷新：data_ready；task_ids：`1396388963,1396388962`；行数：16；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1424644722,1424644721`；行数：2；序列：0 / 0 点
 - 维度/表头字段：触达时间（id=405279）
 
 ### 经理
 
 - unit_id：`unit_3861108524580036608`；类型：`u_pivot`；模型：`2625` / 分触达时间段--抖音咨询
-- 刷新：data_ready；task_ids：`1396389006,1396389007`；行数：24；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1424644827,1424644828`；行数：3；序列：0 / 0 点
 - 维度/表头字段：触达时间（id=405279）
 
 ### 主管
 
 - unit_id：`unit_3861106694555324416`；类型：`u_pivot`；模型：`2625` / 分触达时间段--抖音咨询
-- 刷新：data_ready；task_ids：`1396389052,1396389050`；行数：72；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1424644847,1424644848`；行数：4；序列：0 / 0 点
 - 维度/表头字段：触达时间（id=405279）
 
 ### 顾问
 
 - unit_id：`unit_3861088496817307649`；类型：`u_pivot`；模型：`2625` / 分触达时间段--抖音咨询
-- 刷新：data_ready；task_ids：`1396389114,1396389113`；行数：264；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1424644878,1424644877`；行数：7；序列：0 / 0 点
 - 维度/表头字段：触达时间（id=405279）
