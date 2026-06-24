@@ -40,8 +40,9 @@ When a user request matches any scenario below, automatically load and orchestra
 - User asks to scan dashboard folders or retrieve dashboard ID lists
 - User says "run this SQL" (跑一下这个 SQL), "execute this query" (执行这个查询), "download results" (下载结果)
 - User wants to profile BI dashboard structures
+- User wants to read Taitan dashboard edit-page pivot-table fields, metric meanings, or custom metric formulas without modifying the dashboard
 
-**Scope:** Playwright web automation for SQL execution, direct xlsx result downloads, Template Query stored-SQL fetch and large-result download, BI dashboard scanning/profiling. Does NOT generate SQL.
+**Scope:** Playwright web automation for SQL execution, direct xlsx result downloads, Template Query stored-SQL fetch and large-result download, BI dashboard scanning/profiling, and read-only Taitan edit-page metric/formula profiling. Does NOT generate SQL or modify dashboards.
 
 #### playwright
 **Load only when ANY of the following is true:**
@@ -111,6 +112,12 @@ If the business domain is explicitly 青橙项目部, replace step 1's SQL-writi
 
 - **usql-web-query-operator** only (read_dashboard.py scan-folder / profile-dashboard)
 
+#### Workflow E2: Dashboard Edit-Page Metric Formula Profiling
+> "Read each pivot table's metric meaning and custom formula from this dashboard edit page" (读取这个看板编辑页每个透视表的指标含义和自定义公式)
+
+- **usql-web-query-operator** only (`read_dashboard.py profile-edit-dashboard`)
+- Boundary: read-only. Do not save, publish, delete, create, update, or otherwise modify dashboard metrics.
+
 #### Workflow F: Excel-Only Operations
 > "Clean up this CSV and turn it into a formatted Excel file" (把这个CSV整理成格式化的Excel)
 
@@ -166,7 +173,7 @@ If the business domain is explicitly 青橙项目部, replace step 1's SQL-writi
    - Qingcheng isolation: any 青橙 dashboard docs, metrics, temp tables, joins, changelog entries, or `dashboard_web_profiles` content must be written only to `skills/qingcheng-dashboard-sql`; never mix them into `sql-query-writer-for-dashboard`
    - SQL skill index maintenance: after modifying dashboards, metrics, tables, temp tables, joins, or raw SQL for either `sql-query-writer-for-dashboard` or `qingcheng-dashboard-sql`, run that skill's `scripts/build_reverse_indexes.py` before `scripts/check_skill_integrity.py`
    - usql-web-query-operator's safety policy: no direct `SQL取数` downloads exceeding 1000 rows without confirmation; when the user explicitly needs a large-result export and the SQL is already concrete, prefer the Template Query temporary-download path with enforced cleanup (`offline -> delete`); never expose credentials
-   - playwright boundary: do not use generic Playwright directly for SQL取数 execution, BI dashboard scanning/profiling, authenticated SQL-platform downloads, or login-state management; route those through usql-web-query-operator
+   - playwright boundary: do not use generic Playwright directly for SQL取数 execution, BI dashboard scanning/profiling, Taitan edit-page metric/formula profiling, authenticated SQL-platform downloads, or login-state management; route those through usql-web-query-operator
    - xlsx formula rule: use Excel formulas, not hardcoded Python-computed values
 5. **Credentials**:
    - Generic playwright must not read, write, copy, or replace the USQL browser storage state. Keep SQL/BI login state owned by `usql-web-query-operator` at `C:\Users\Ludim\.codex\runtime\usql-web-query-operator\state.json`.
