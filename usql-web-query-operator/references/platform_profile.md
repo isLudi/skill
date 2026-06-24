@@ -5,6 +5,7 @@
 - SQL取数页面：`https://uanalysis.baijia.com/getDataSql`
 - 数据中心数据集页面：`https://uanalysis.baijia.com/data-center/data-set`
 - 自助BI看板页面：`https://uanalysis.baijia.com/dashboard-market`
+- Taitan 看板编辑页：`https://udata.baijia.com/taitan/?dashboardId=<dashboard_id>&htmlId=<html_id>`
 - 看板菜单 API：`https://uanalysis.baijia.com/uanalysis-intelligence/data/menu/manage`
 - 保存的登录态缺失或过期时，会重定向到 CAS 登录页。
 
@@ -194,6 +195,40 @@ iframe 编辑器工具栏中的运行按钮回退方案：
 - 单元取值 / 刷新验证：POST `https://uanalysis.baijia.com/uanalysis-intelligence/value/unit`，带目标 `unit_id`、空筛选列表和 page 对象。表格/透视表单元返回 `title`、`data`、`totalData`、`page`、`taskIds`；图表单元可能返回 `xAxis`、`series`、`taskIds`，不一定返回表格 `data`。
 
 该流程使用 `read_dashboard.py profile-dashboard` 或 `profile-folder`。不要把这些 dashboard API 加进 `usql_web_query.py`。
+
+## Taitan 编辑页指标公式 API
+
+2026-06-24 验证：
+
+- 编辑页 URL：`https://udata.baijia.com/taitan/?dashboardId=<dashboard_id>&htmlId=<html_id>`
+- 共享登录态：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\state.json`
+- 生产命令：`D:\anaconda3\python.exe scripts\read_dashboard.py profile-edit-dashboard --edit-url "<edit_url>"`
+- 默认读取版本：`draft`，可用 `--version-id <version>` 覆盖。
+- 输出位置：runtime artifact 目录，默认文件名为 `<dashboard_id>_edit_metrics_profile.json`。
+
+只读接口：
+
+- 编辑页配置：POST `https://udata.baijia.com/uanalysis-intelligence/config/dashBoard`，body 为 `{"dashboardId":"<dashboard_id>","isConfig":true,"versionId":"draft"}`。
+- 透视表单元配置：POST `https://udata.baijia.com/uanalysis-intelligence/value/unit/detail`，body 为 `{"id":"<unit_id>","dashboardId":"<dashboard_id>","versionId":"draft"}`。该接口会返回 `unitDimensionList`、`unitColumnDimensionList`、`unitMeasureList`、`unitAideMeasureList`、`unitFilterList`，比 view page 的 `consumer/detail` 更适合读取编辑页字段配置。
+- 公共筛选器关系：POST `https://udata.baijia.com/uanalysis-intelligence/value/public/unit/relation/detail`，body 为 `{"id":"<public_filter_relation_id>","isConfig":true,"versionId":"draft"}`。
+- 维度详情：POST `https://udata.baijia.com/uanalysis-intelligence/model/detail/dim`，body 为 `{"id":"<field_id>","modelType":2}`。
+- 普通指标详情：POST `https://udata.baijia.com/uanalysis-intelligence/model/detail/metric`，body 为 `{"id":"<metric_id>","modelType":2}`。
+- 自定义指标公式：POST `https://udata.baijia.com/uanalysis-intelligence/model/customized/column/list`，body 为 `{"id":"customized_<id>"}`。响应中的 `formula` 和 `dependencyIndicators` 是自定义指标计算公式和依赖来源。
+- 数据集字段树：POST `https://udata.baijia.com/uanalysis-intelligence/model/subject/paramList`，body 为 `{"modelType":2,"dashboardId":"<dashboard_id>","subjectId":<subject_id>,"selected":[...]}`。`subjectId` 可从公共筛选器关系或自定义指标详情中推断；识别不到时不阻断透视表字段采集。
+
+输出结构重点：
+
+- `pivot_units[]`：每个透视表的单元 ID、名称、模型、组件信息和字段列表。
+- `pivot_units[].fields[]`：实际配置字段，包含 `group`、`show_name`、`field_id`、`business_name`、`formula`、`detail`、`dependencies`。
+- 普通指标的 `formula` 来自字段配置中的聚合定义，例如 `sum(<metric_id>)`；自定义指标的 `formula` 来自 `model/customized/column/list`，例如 `sum(${is_friend_lead})/sum(${v_lead})`。
+- `text_notes[]`：从富文本组件和文本单元中提取的指标说明、口径说明。
+- `dataset_fields[]`：可识别 `subjectId` 时补充的数据集字段树摘要；如只需要实际使用字段，可加 `--skip-dataset-fields`。
+
+边界：
+
+- `profile-edit-dashboard` 只用于了解指标含义、字段配置和公式，不修改看板。
+- 不调用保存、发布、删除、新建、更新接口，也不点击 `保存并发布`、`保存到草稿箱` 等按钮。
+- UI selector 或坐标点击只允许作为 selector 漂移排查的临时验证；生产脚本优先走只读 API。
 
 ## 冒烟测试 SQL
 

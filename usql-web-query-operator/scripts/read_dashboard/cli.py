@@ -13,6 +13,7 @@ from _shared.errors import UsageError
 from .commands.capture_dashboard import cmd_capture_dashboard
 from .commands.profile_all import cmd_profile_all
 from .commands.profile_dashboard import cmd_profile_dashboard
+from .commands.profile_edit_dashboard import cmd_profile_edit_dashboard
 from .commands.profile_folder import cmd_profile_folder
 from .commands.scan_folder import cmd_scan_folder
 from .constants import DEFAULT_PROFILE_ALL_FOLDERS
@@ -75,6 +76,28 @@ def build_parser() -> argparse.ArgumentParser:
     profile.add_argument("--wait-ms", type=int, default=45_000, help="Wait after opening the dashboard so its data can refresh.")
     profile.add_argument("--debug-artifacts", action="store_true", help="Save screenshots and HTML under the runtime artifacts directory.")
     profile.set_defaults(func=cmd_profile_dashboard)
+
+    profile_edit = subparsers.add_parser(
+        "profile-edit-dashboard",
+        help="Read metric meanings and formulas from a Taitan dashboard edit page without modifying the dashboard.",
+    )
+    profile_edit.add_argument("--edit-url", default=None, help="Taitan edit URL containing dashboardId and optional htmlId.")
+    profile_edit.add_argument("--dashboard-id", default=None, help="Dashboard ID. Required when --edit-url is omitted.")
+    profile_edit.add_argument("--html-id", default=None, help="Optional htmlId used to build the edit URL.")
+    profile_edit.add_argument("--version-id", default="draft", help="Dashboard version id to read; defaults to draft.")
+    profile_edit.add_argument("--output", type=Path, default=None)
+    profile_edit.add_argument("--headed", action="store_true", help="Show browser window.")
+    profile_edit.add_argument("--state-path", type=Path, default=DEFAULT_STATE)
+    profile_edit.add_argument("--artifacts-dir", type=Path, default=DEFAULT_ARTIFACTS)
+    profile_edit.add_argument("--env-file", type=Path, default=DEFAULT_ENV_FILE)
+    profile_edit.add_argument("--username", default=os.environ.get("BAIJIA_USERNAME"))
+    profile_edit.add_argument("--password", default=os.environ.get("BAIJIA_PASSWORD"))
+    profile_edit.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL, help="Installed browser channel, e.g. msedge or chrome.")
+    profile_edit.add_argument("--executable-path", default=None, help="Explicit browser executable path; overrides --browser-channel.")
+    profile_edit.add_argument("--wait-ms", type=int, default=3_000, help="Wait after opening the edit page before reading APIs.")
+    profile_edit.add_argument("--skip-dataset-fields", action="store_true", help="Skip the optional model field tree snapshot.")
+    profile_edit.add_argument("--debug-artifacts", action="store_true", help="Save screenshot and HTML under the runtime artifacts directory.")
+    profile_edit.set_defaults(func=cmd_profile_edit_dashboard)
 
     profile_folder = subparsers.add_parser("profile-folder", help="Profile selected dashboards under a folder.")
     profile_folder.add_argument("--folder", default="市场顾问数据")
