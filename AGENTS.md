@@ -75,6 +75,19 @@ When a user request matches any scenario below, automatically load and orchestra
 
 **Scope:** Document-to-Markdown extraction via MinerU Open API. Two modes: `flash-extract` (free, ≤10MB/20pp) and `extract` (auth required, ≤200MB/600pp, full fidelity). Output can be consumed inline (stdout) or saved to file.
 
+#### lark-* (Feishu CLI Skills)
+**Load when ANY of the following is true:**
+- User wants to configure `lark-cli`, authenticate, switch `user`/`bot` identity, fix Feishu scope errors, or handle permission-denied responses -> `lark-shared`
+- User wants to read or edit Feishu docs or wiki content, or gives a recognizable `/docx/` or `/wiki/` URL/token -> `lark-doc` or `lark-wiki`
+- User wants to upload, download, search, move, copy, import, export, inspect, or organize Feishu Drive files/folders -> `lark-drive`
+- User wants to read or edit Feishu online sheets, formulas, pivot tables, charts, or workbook structure -> `lark-sheets`
+- User wants to work with Feishu Base/bitable tables, records, views, dashboards, forms, or workflows -> `lark-base`
+- User wants to send/search chat messages, manage chats, download chat files, or reply in Feishu IM -> `lark-im`
+- User wants calendar, contacts, mail, slides, tasks, approvals, OKRs, minutes, notes, VC, whiteboard, or other Feishu domain operations -> use the matching `lark-*` skill by domain
+- User gives a Feishu/Lark/OpenLark URL or token and the resource type is recognizable from the path -> route to the matching `lark-*` skill instead of generic web fetch
+
+**Scope:** `lark-*` skills are the preferred path for Feishu data and operations. Keep setup/auth, identity repair, and scope recovery in `lark-shared`, then hand off to the most specific domain skill.
+
 ### Composite Workflows (Auto-Orchestrated)
 
 When a task spans multiple skills, chain them in the order specified below.
@@ -163,6 +176,13 @@ If the business domain is explicitly 青橙项目部, replace step 1's SQL-writi
 2. **usql-web-query-operator** — Use `template-download` to create a temporary Template Query template, publish it, create the query, download the result, then run `offline -> delete`
 3. If a formatted deliverable is needed → **xlsx**
 
+#### Workflow M: Feishu CLI Setup, Auth, and Domain Handoff
+> "Set up Feishu CLI / log in / fix Feishu permissions / operate a Feishu resource"
+
+1. **lark-shared** - Initialize config, start the auth flow, or repair identity/scope issues
+2. **Matching `lark-*` domain skill** - Execute the requested Feishu task once config/auth is ready
+3. If the task fails because of missing scope or wrong identity - return to **lark-shared**, repair auth/identity, then retry the domain skill
+
 ### Execution Rules
 
 1. **Auto-detect**: On receiving a user request, determine which skill(s) are needed based on the trigger conditions above, then execute in workflow order. Never wait for the user to say "please load skill X."
@@ -172,6 +192,8 @@ If the business domain is explicitly 青橙项目部, replace step 1's SQL-writi
    - sql-query-writer's read-only constraint: do not modify skill files unless the user explicitly requests knowledge base maintenance
    - Qingcheng isolation: any 青橙 dashboard docs, metrics, temp tables, joins, changelog entries, or `dashboard_web_profiles` content must be written only to `skills/qingcheng-dashboard-sql`; never mix them into `sql-query-writer-for-dashboard`
    - SQL skill index maintenance: after modifying dashboards, metrics, tables, temp tables, joins, or raw SQL for either `sql-query-writer-for-dashboard` or `qingcheng-dashboard-sql`, run that skill's `scripts/build_reverse_indexes.py` before `scripts/check_skill_integrity.py`
+   - Feishu skill location: install and maintain Feishu CLI skills under `C:\Users\Ludim\.codex\skills\lark-*`; do not treat `C:\Users\Ludim\.codex\.agents\skills` as the long-term home for these skills
+   - Feishu skill discovery: every installed `lark-*` skill must keep `agents/openai.yaml`; if a new skill does not appear in the callable skill list, inspect its registration metadata and restart Codex after install/update
    - usql-web-query-operator's safety policy: no direct `SQL取数` downloads exceeding 1000 rows without confirmation; when the user explicitly needs a large-result export and the SQL is already concrete, prefer the Template Query temporary-download path with enforced cleanup (`offline -> delete`); never expose credentials
    - playwright boundary: do not use generic Playwright directly for SQL取数 execution, BI dashboard scanning/profiling, Taitan edit-page metric/formula profiling, authenticated SQL-platform downloads, or login-state management; route those through usql-web-query-operator
    - xlsx formula rule: use Excel formulas, not hardcoded Python-computed values
