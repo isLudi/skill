@@ -55,7 +55,7 @@
 
 ## 5. 转化 SQL 范围口径
 
-来源：`resources/raw_sql/qingcheng_conversion_raw_20260614.sql`。
+来源：`resources/raw_sql/qingcheng_conversion_raw_20260615.sql`。
 
 青橙转化 SQL 使用两类范围：
 
@@ -72,6 +72,7 @@
 
 - 转化 SQL 的青橙业绩归属核心过滤是 `performance_second_level_department_name = '青橙项目部'`。
 - 课程部门白名单非常长，复用时优先从 raw SQL 拷贝，不要手工删减。
+- 2026-06-25 已补充课程部门白名单：一级部门新增 `CA业务线`、`创新中心`；二级部门新增 `创新学部`、`升学规划中心`、`线上考研学部`。
 - 如果只分析青橙线索量，应优先使用线索表的 `section_assign_employee_*` 和 `period_mapping_*` 范围；如果分析订单业绩，应同时确认业绩归属和课程范围。
 
 ## 6. 年季月营收 SQL 范围口径

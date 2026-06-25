@@ -2,9 +2,9 @@
 
 ## 1. 来源
 
-`resources/raw_sql/qingcheng_conversion_raw_20260614.sql`
+`resources/raw_sql/qingcheng_conversion_raw_20260615.sql`
 
-适用看板：`knowledge/dashboards/qingcheng_conversion_raw_20260614.md`
+适用看板：`knowledge/dashboards/qingcheng_conversion_raw_20260615.md`
 
 ## 2. 指标计算粒度
 
@@ -43,7 +43,7 @@
 
 | 指标 | SQL 口径 | 说明 | 状态 |
 |---|---|---|---|
-| `is_on_period` | `case when dd.qici = prc.qici_lead then 1 else 0 end` | 订单交易期次等于最新线索期次 | 已从 SQL 入库 |
+| `is_on_period` | `case when dd.qici0 = dd.period then 1 else 0 end` | `rule_name` 提取期次等于交易时间周对齐提取期次 | 已从 SQL 入库 |
 | `sc` | 用户层 `date_diff('day', date(max(section_assign_time)), date(min(case when income_amount > 0 then trade_timestamp end)))`，顾问层 `sum(sc)` | 成单周期天数汇总 | 待人工确认聚合方式 |
 
 ## 6. 线索量和成本
@@ -51,13 +51,14 @@
 | 指标 | SQL 口径 | 说明 | 状态 |
 |---|---|---|---|
 | `v_lead` | 线索表中 `valid_lead_count = '1'` 计 1，按顾问-期次-渠道-年级-主管聚合；`bb_dedup` 只在完全同维度重复时保留 `rn = 1` | 青橙有效线索量 | 已从 SQL 入库，当前版本用于保留真实年级例子数 |
-| `cost_lead` | `亚飞IP = 120`、`武汉图书 = 20`、`抖音私信 = 130`、`进校 = 70`、其他 `0` | 二级渠道线索成本硬编码 | 已从 SQL 入库，来源于 2026-06-14 最新 SQL |
+| `cost_lead` | `亚飞IP = 120`、`武汉图书 = 20`、`抖音私信 = 130`、`进校 = 70`、其他 `0` | 二级渠道线索成本硬编码 | 已从 SQL 入库，来源于 2026-06-15 最新 SQL |
 
 ## 7. 待确认事项
 
 - 当前版本已修复 `bb_dedup` 未按年级对齐导致的吞数问题；若同顾问同一期次同渠道同年级同主管仍有多行，保留 `rn = 1` 是否合理待人工确认。
 - `pay_sub` 和 `p_pay_sub` 在用户层计 distinct 科目，顾问层直接求和；如果同一用户跨渠道/顾问重复，需确认是否符合口径。
 - `sc` 顾问层求和是否应改为平均周期、有效用户平均周期或中位数待确认。
-- `p_` 前缀当前表示当期，即 `dd.qici = prc.qici_lead`。
+- `p_` 前缀当前表示当期，即 `dd.qici0 = dd.period`。
+- 2026-06-25 已同步转化课程部门白名单扩容：一级部门新增 `CA业务线`、`创新中心`，二级部门新增 `创新学部`、`升学规划中心`、`线上考研学部`。
 - `cost_lead` 是硬编码，不依赖成本表；后续如果成本口径变化必须更新 SQL 和本文档。
 - `jieliang` 为 `case when v_lead > 5 then employee_email_name else '0' end` 的输出标记，业务含义待人工确认。

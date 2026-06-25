@@ -234,3 +234,18 @@
 - 数据中心清单、编辑页指标快照和指标-SQL 联动文档已改为引用单一 SQL 文件，避免同一 SQL 因文件名不同被误识别为两个数据集。
 - 保留映射：`青橙到课` -> `qingcheng_daoke_raw_20260522.sql`；`年季月营收情况` -> `qingcheng_revenue_year_quarter_month_raw_20260522.sql`；`团队完成度【月】` -> `qingcheng_team_completion_month_raw_20260522.sql`；`团队完成度【期】` -> `qingcheng_team_completion_period_raw_20260522.sql`；`青橙个人转化` -> `qingcheng_personal_conversion_raw_20260522.sql`；`转化-宽表-市场渠道` -> `qingcheng_conversion_wide_table_market_channel_20260611.sql`。
 - `青橙-过程数据`、`转化数据`、`抖私-转化` 的 20260624 数据中心 SQL 与现有历史 SQL 不完全一致，暂保留 20260624 快照作为当前数据中心版本。
+
+## 2026-06-25 青橙转化数据集课程部门名单扩充
+
+- 根据 `D:\Feishu\task_1426616138_1782372877570.xlsx` 订单明细补充青橙转化数据集课程部门白名单。
+- 在 `data_center_qingcheng_2460_20260624.sql` 和 `qingcheng_conversion_raw_20260615.sql` 的 `gmv` 过滤中新增一级部门 `CA业务线`、`创新中心`。
+- 同步新增二级部门 `创新学部`、`升学规划中心`、`线上考研学部`，保持数据中心源 SQL 与青橙历史转化 raw SQL 的课程部门范围一致。
+- 网页端验证通过：`Presto` 引擎下用精确部门组合 probe 成功返回并下载 17 行结果，命中 `创新中心-Theta智学项目部`、`H业务线-升学规划中心`、`CA业务线-线上考研学部`、`CA业务线-创新学部`。
+- 同一 probe 在 `doris-presto` 下出现 `PRESTO_817034371362430977 - Connection is not available` 连接池超时，属于引擎连接问题，不是权限或 SQL 语义问题。
+
+## 2026-06-25 青橙转化 canonical raw SQL 与知识文档对齐
+
+- 将 `runtime/tmp/qingcheng_conversion_raw_aligned_20260625.sql` 回写覆盖到 canonical raw SQL `resources/raw_sql/qingcheng_conversion_raw_20260615.sql`。
+- 同步修正文档引用，清理仍指向 `qingcheng_conversion_raw_20260614.sql` / `qingcheng_conversion_raw_20260614.md` 的旧入口，统一到 0615 版本文档。
+- 更新 `knowledge/metrics/qingcheng_conversion_metrics.md` 的当期判断口径为 `dd.qici0 = dd.period`，不再沿用旧版 `dd.qici = prc.qici_lead` 描述。
+- 在转化 raw 看板说明、范围规则、表文档和临时表文档中补充 2026-06-25 课程部门白名单扩容说明，保证 raw SQL、数据中心 2460 SQL 与知识文档一致。

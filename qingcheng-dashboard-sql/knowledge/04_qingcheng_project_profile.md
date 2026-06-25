@@ -68,11 +68,11 @@
 
 ## 9. 已入库转化口径
 
-来源：`resources/raw_sql/qingcheng_conversion_raw_20260614.sql`
+来源：`resources/raw_sql/qingcheng_conversion_raw_20260615.sql`
 
 | 口径 | 文档 |
 |---|---|
-| 看板结构 | `knowledge/dashboards/qingcheng_conversion_raw_20260614.md` |
+| 看板结构 | `knowledge/dashboards/qingcheng_conversion_raw_20260615.md` |
 | 指标集合 | `knowledge/metrics/qingcheng_conversion_metrics.md` |
 | 订单业绩表 | `knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md` |
 | 团队架构临时表 | `knowledge/temp_tables/temp_table.dingxi01_qing_team_jg.md` |

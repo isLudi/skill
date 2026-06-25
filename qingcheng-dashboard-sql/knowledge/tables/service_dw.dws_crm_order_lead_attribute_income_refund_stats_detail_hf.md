@@ -235,7 +235,7 @@ where dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
   and (income_amount <> 0 or refund_amount <> 0)
 ```
 
-课程部门白名单来自 `qingcheng_conversion_raw_20260614.sql`，非常长；复用时优先从原始 SQL 拷贝，不要手工删减。
+课程部门白名单来自 `qingcheng_conversion_raw_20260615.sql`，非常长；复用时优先从原始 SQL 拷贝，不要手工删减。2026-06-25 已确认新增一级部门 `CA业务线`、`创新中心`，以及二级部门 `创新学部`、`升学规划中心`、`线上考研学部`。
 
 ## 9. 常用 join key
 

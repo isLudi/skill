@@ -43,7 +43,7 @@
 |---|---|---|---|
 | 青橙过程数据 raw | `resources/raw_sql/qingcheng_process_data_raw_20260522.sql` | `knowledge/metrics/qingcheng_process_data_metrics.md` | 已入库，部分口径待确认 |
 | 青橙到课 raw | `resources/raw_sql/qingcheng_daoke_raw_20260522.sql` | `knowledge/metrics/qingcheng_daoke_metrics.md` | 已入库，部分口径待确认 |
-| 青橙转化 raw | `resources/raw_sql/qingcheng_conversion_raw_20260614.sql` | `knowledge/metrics/qingcheng_conversion_metrics.md` | 已入库，已切换到最新版本并修复年级吞数；平台函数和部分业务语义待确认 |
+| 青橙转化 raw | `resources/raw_sql/qingcheng_conversion_raw_20260615.sql` | `knowledge/metrics/qingcheng_conversion_metrics.md` | 已入库，已切换到 0615 期次对齐版本；2026-06-25 已补充课程部门白名单 `CA业务线/创新中心/创新学部/升学规划中心/线上考研学部` |
 | 青橙渠道订单明细 raw | `resources/raw_sql/qingcheng_channel_order_detail_raw_20260613.sql` | `knowledge/metrics/qingcheng_channel_order_detail_metrics.md` | 已入库，明细抽取 SQL；`ld` 范围限定和明细粒度稳定性待确认 |
 | 青橙年季月营收 raw | `resources/raw_sql/qingcheng_revenue_year_quarter_month_raw_20260522.sql` | `knowledge/metrics/qingcheng_revenue_year_quarter_month_metrics.md` | 已入库，raw SQL 存在平台函数风险 |
 | 青橙团队完成度【月】raw | `resources/raw_sql/qingcheng_team_completion_month_raw_20260522.sql` | `knowledge/metrics/qingcheng_team_completion_month_metrics.md` | 已入库，raw SQL 存在平台函数风险 |

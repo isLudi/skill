@@ -88,9 +88,9 @@
 | 渠道粒度 | 单一 `channel_map` + 临时表补 `channel_1` | 两级渠道 `channel_map_1` + `channel_map_2` + 最终 `channel_1` 归类 |
 | 年级来源 | rule_name 匹配初二/初三/高一/高二/高三，兜底 lead_purchase_intention_level2_category_name | 同 |
 | 收入口径 | 直接从宽表取 income_amount/100，退款含 in_pay + non_pay | 从订单业绩表 dws_crm_order_lead_attribute 取，income_amount/100，退款含 pay + non_pay |
-| 当期判断 | 使用 `same_lead_period_*` 系列字段（宽表已预计算） | 使用 `dd.qici = prc.qici_lead` 自行判断 |
+| 当期判断 | 使用 `same_lead_period_*` 系列字段（宽表已预计算） | 使用 `dd.qici0 = dd.period` 自行判断 |
 | 破单 | `can_renew_ds_count_a >= 5 and trade_profit > 0` | `promit > 0`（净营收 > 0） |
-| 线索成本 | 无 | 硬编码：亚飞IP=120，武汉图书=5 |
+| 线索成本 | 无 | 硬编码：亚飞IP=120，武汉图书=20，抖音私信=130，进校=70 |
 | 退款用户 | 无 | `refund > 500` 的用户数 |
 | 成单周期 | 无 | `sum(sc)` 聚合 |
 

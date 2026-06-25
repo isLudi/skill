@@ -6,11 +6,14 @@
 
 入库时间：2026-06-15
 
+最近同步：2026-06-25（已与 `runtime/tmp/qingcheng_conversion_raw_aligned_20260625.sql` 对齐）
+
 ## 2. 查询目标
 
 沉淀青橙项目部转化数据 SQL。该 SQL 将订单业绩明细、线索期次、青橙有效线索量和最新团队架构合并，输出顾问/主管/渠道/年级维度的支付用户、支付科目、营收、退款、净营收、当期收入、破单、退款用户、成单周期、截量标记和线索成本等指标。
 
 20260615 版本核心变更：期次对齐机制从"交易时间周对齐 vs 线索期次"改为"rule_name 前 4 位提取 vs 交易时间周对齐提取"，渠道映射新增"青橙IP"分支，并调整 hour 偏移。
+20260625 对齐补充：`gmv` 课程部门白名单扩充，一级部门新增 `CA业务线`、`创新中心`，二级部门新增 `创新学部`、`升学规划中心`、`线上考研学部`。
 
 ## 3. 最终输出粒度
 
@@ -71,8 +74,8 @@
 | 位置 | 范围字段 | 取值 |
 |---|---|---|
 | 订单表 `gmv` | `performance_second_level_department_name` | `'青橙项目部'` |
-| 订单表 `gmv` | `course_first_level_department_name` | 多业务线白名单，包含 `H业务线` 等 |
-| 订单表 `gmv` | `course_second_level_department_name` | 长白名单，包含 `青橙项目部` |
+| 订单表 `gmv` | `course_first_level_department_name` | 多业务线白名单，包含 `H业务线`、`CA业务线`、`创新中心` 等 |
+| 订单表 `gmv` | `course_second_level_department_name` | 长白名单，包含 `青橙项目部`、`创新学部`、`升学规划中心`、`线上考研学部` |
 | 线索补充 `ld` | `section_assign_employee_first_level_department_name` | `'H业务线'` |
 | 线索补充 `ld` | `section_assign_employee_second_level_department_name` | `'青橙项目部'` |
 | 线索补充 `ld` | `period_mapping_first_level_department_name` | `'H业务线'` |
@@ -156,3 +159,4 @@
 - **0615 新增风险**：`period` 通过 `regexp_extract(qici, '\d{4}(\d{4}期)', 1)` 从周对齐 qici 提取，正则假设 qici 格式为 `YYYYMMDD期`。
 - **0615 新增风险**：`is_on_period` 比较 `qici0 = period`，两个字段都只取后 4 位数字+期（如"0612期"），如果年月跨年（如"0101期"），可能误匹配。
 - **0615 新增风险**：dd/ld/bb 的 hour 偏移改为 `-2h`，但 prc 保持 `-3h`。跨 CTE 的 hour 不一致可能导致数据快照时间点不同。
+- **20260625 同步说明**：课程部门白名单已按订单明细实测扩容；后续若再补部门，必须同时更新 canonical raw SQL、数据中心 2460 SQL 与本说明文档。
