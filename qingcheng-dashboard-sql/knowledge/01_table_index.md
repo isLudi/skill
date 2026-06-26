@@ -1,4 +1,4 @@
-# 表索引
+﻿# 表索引
 
 本文件只记录青橙项目部 Skill 已核对或待核对的表。不要从其他部门 skill 自动复制表索引。
 
@@ -30,7 +30,7 @@
 |---|---|---|---|---|---|
 | `temp_table.dingxi01_qing_daoke` | 青橙课次映射表，支持第 1 至第 6 讲 | 待人工确认 | 青橙过程数据 raw、青橙到课 raw | 已从 SQL 入库，来源待确认 | `knowledge/temp_tables/temp_table.dingxi01_qing_daoke.md` |
 | `temp_table.dingxi01_jiagou_db` | 青橙架构映射表 | 待人工确认 | 青橙过程数据 raw、青橙到课 raw | 已从 SQL 入库，来源待确认；员工 join key 待确认 | `knowledge/temp_tables/temp_table.dingxi01_jiagou_db.md` |
-| `temp_table.dingxi01_qing_team_jg` | 青橙团队架构表 | 待人工确认 | 青橙转化 raw、青橙团队完成度【月/期】raw、青橙个人转化 raw | 已从 SQL 入库，来源待确认；不同看板是否使用最新架构或期次架构需区分 | `knowledge/temp_tables/temp_table.dingxi01_qing_team_jg.md` |
+| `temp_table.dingxi01_qing_team_jg` | 青橙团队架构表 | 待人工确认 | 青橙转化 raw、青橙团队完成度【月/期】raw、青橙个人转化 raw | 已从 SQL 入库，来源待确认；转化 raw / 个人转化按 `employee_email_name + qici`，团队完成度仍需区分是否取最新架构 | `knowledge/temp_tables/temp_table.dingxi01_qing_team_jg.md` |
 | `temp_table.dingxi01_qing_zz` | 青橙组织架构补充表 | 待人工确认 | 青橙年季月营收 raw | 已从 SQL 入库，来源待确认；是否有历史期次待确认 | `knowledge/temp_tables/temp_table.dingxi01_qing_zz.md` |
 | `temp_table.dingxi01_qing_qi_moth` | 青橙期次到月份映射表 | 待人工确认 | 青橙团队完成度【月】raw、青橙团队完成度【期】raw、青橙个人转化 raw | 已从 SQL 入库，来源待确认 | `knowledge/temp_tables/temp_table.dingxi01_qing_qi_moth.md` |
 | `temp_table.dingxi01_qing_team_goal` | 青橙团队月目标表 | 待人工确认 | 青橙团队完成度【月】raw | 已从 SQL 入库，目标单位和层级待确认 | `knowledge/temp_tables/temp_table.dingxi01_qing_team_goal.md` |
@@ -43,7 +43,7 @@
 |---|---|---|---|
 | 青橙过程数据 raw | `resources/raw_sql/qingcheng_process_data_raw_20260522.sql` | `knowledge/metrics/qingcheng_process_data_metrics.md` | 已入库，部分口径待确认 |
 | 青橙到课 raw | `resources/raw_sql/qingcheng_daoke_raw_20260522.sql` | `knowledge/metrics/qingcheng_daoke_metrics.md` | 已入库，部分口径待确认 |
-| 青橙转化 raw | `resources/raw_sql/qingcheng_conversion_raw_20260615.sql` | `knowledge/metrics/qingcheng_conversion_metrics.md` | 已入库，已切换到 0615 期次对齐版本；2026-06-25 已补充课程部门白名单 `CA业务线/创新中心/创新学部/升学规划中心/线上考研学部` |
+| 青橙转化 raw | `resources/raw_sql/data_center_qingcheng_2460_20260626.sql` | `knowledge/metrics/qingcheng_conversion_metrics.md` | 已入库；当前 canonical 版本按 `trade_timestamp` 映射结果期次、按 `employee_email_name + qici` 回填团队架构，并统一为 service 主明细 + 调课调班剔除 + 折算破蛋口径 |
 | 青橙渠道订单明细 raw | `resources/raw_sql/qingcheng_channel_order_detail_raw_20260613.sql` | `knowledge/metrics/qingcheng_channel_order_detail_metrics.md` | 已入库，明细抽取 SQL；`ld` 范围限定和明细粒度稳定性待确认 |
 | 青橙年季月营收 raw | `resources/raw_sql/qingcheng_revenue_year_quarter_month_raw_20260522.sql` | `knowledge/metrics/qingcheng_revenue_year_quarter_month_metrics.md` | 已入库，raw SQL 存在平台函数风险 |
 | 青橙团队完成度【月】raw | `resources/raw_sql/qingcheng_team_completion_month_raw_20260522.sql` | `knowledge/metrics/qingcheng_team_completion_month_metrics.md` | 已入库，raw SQL 存在平台函数风险 |

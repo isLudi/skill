@@ -249,3 +249,27 @@
 - 同步修正文档引用，清理仍指向 `qingcheng_conversion_raw_20260614.sql` / `qingcheng_conversion_raw_20260614.md` 的旧入口，统一到 0615 版本文档。
 - 更新 `knowledge/metrics/qingcheng_conversion_metrics.md` 的当期判断口径为 `dd.qici0 = dd.period`，不再沿用旧版 `dd.qici = prc.qici_lead` 描述。
 - 在转化 raw 看板说明、范围规则、表文档和临时表文档中补充 2026-06-25 课程部门白名单扩容说明，保证 raw SQL、数据中心 2460 SQL 与知识文档一致。
+
+## 2026-06-25 数据中心数据集源 SQL 同步
+
+- 从数据中心 `https://uanalysis.baijia.com/data-center/data-set` 同步数据集源 SQL，范围：青橙项目部目录下的全部 SQL 数据集。
+- 保存 1 个数据集源 SQL 到 `resources/raw_sql`，更新清单 `knowledge/dashboards/data_center_qingcheng_datasets.md`。
+- 未改写 SQL 语义；后续字段、指标或临时表口径仍需基于源 SQL 和业务规则单独维护。
+
+## 2026-06-25 青橙-过程数据 2064 快照与文档对齐
+
+- 数据中心 `青橙-过程数据` 最新快照已同步为 `resources/raw_sql/data_center_qingcheng_2064_20260625.sql`，替换 20260624 版作为当前数据中心 retained snapshot。
+- `channel_map_1` 新增 `%抖音正价退费% -> 抖音复用`。
+- `channel_map_2` 针对青橙 IP 新增高优先级细分：`%赠失-星义% -> IP星义`、`%赠失-朱博士% -> IP朱博士`、`%赠失-春春% -> IP春春`、`%赠失-郭艺% -> IP郭艺`、`%赠失-亚飞% -> IP亚飞`。
+- 同步更新 `knowledge/metrics/qingcheng_dashboard_metric_formula_linkage.md`、两个 2064 看板 edit-metrics profile，以及 `knowledge/sql_patterns/qingcheng_channel_grade_mapping.md`，避免知识库继续引用 20260624 旧快照或遗漏新的二级渠道分支。
+
+## 2026-06-26 青橙转化 canonical raw SQL 收敛与营收逻辑统一
+
+- 将 runtime 最新已验证版本 `runtime/tmp/qingcheng_conversion_raw_discounted_podan_final_20260625.sql` 回写为唯一 canonical 转化 SQL：`resources/raw_sql/data_center_qingcheng_2460_20260626.sql`。
+- 删除旧版本转化 SQL / 文档：`resources/raw_sql/qingcheng_conversion_raw_20260615.sql`、`resources/raw_sql/data_center_qingcheng_2460_20260624.sql`、`knowledge/dashboards/qingcheng_conversion_raw_20260615.md`。
+- 转化结果期次统一为 `trade_timestamp` 周五期次映射：周二到周日归当周周五，周一回拨到上一周周五。
+- 转化营收逻辑统一为 service 主明细 + `transfer_in_amount / transfer_out_amount` 内部调课调班剔除；`order_change` / `re_ke` 仅用于调课调班识别和 `refund_4` / 点睛退 2 节口径。
+- `podan` 统一为折算净收口径：`((H_promit_4 - Y_promit_4) + n_H_promit_4 * 0.5) > 0`，不再使用简单 `promit > 0`。
+- 团队架构补充统一为 `employee_email_name + qici`，不再用最新 `qici` 回填历史转化结果期次。
+- 同步更新转化指标文档、表索引、范围规则、团队架构临时表文档、表关系文档、数据中心数据集映射和 dashboard metric linkage。
+- 课程一级部门白名单以 0626 canonical SQL 为准，当前包含 `H业务线`、`LL业务线`、`TUTU`、`TT`、`A业务线`、`EM业务线`、`KA业务线`、`TT业务线`、`创新中心`；历史文档中 `CA业务线` 记载不再作为当前 canonical 口径。

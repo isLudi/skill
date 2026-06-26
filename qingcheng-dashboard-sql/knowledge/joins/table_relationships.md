@@ -1,4 +1,4 @@
-# 表关系
+﻿# 表关系
 
 本文件记录青橙项目部看板中表与表、表与临时表、CTE 与 CTE 的关系。
 
@@ -13,10 +13,12 @@
 | `data` | `denglu_app` | `denglu_app.user_number = data.user_id` | 登录补充 | 用户级登录标记按线索汇总可能放大 | `qingcheng_process_data_raw_20260522.sql` |
 | `data` | `daoke` | `data.employee_email_prefix = daoke.employee_email_prefix and data.qici = daoke.qici and data.lead_id = daoke.lead_id` | 到课补充 | `daoke` 内部按用户上课明细匹配，可能一线索多课 | `qingcheng_process_data_raw_20260522.sql` |
 | `daoke` | `temp_table.dingxi01_qing_daoke ke` | `qici + channel_map_2/qudao + grade_1/grade + begin_time` | 课次标记 | 临时表唯一性影响第 1 至第 6 讲到课指标 | `qingcheng_process_data_raw_20260522.sql`, `qingcheng_daoke_raw_20260522.sql` |
-| `gmv` | `ld` | `gmv.lead_id = ld.lead_id and ld.employee_email_name = gmv.performance_employee_email_name` | 订单补充线索属性 | 订单明细补充青橙渠道、年级、投放计划、分配规则和主管；若 `ld` 同一 `lead_id + employee_email_name` 多行，则渠道订单明细和转化订单明细都可能被放大 | `qingcheng_conversion_raw_20260615.sql`, `qingcheng_channel_order_detail_raw_20260613.sql` |
-| `dd` | `prc` | `prc.lead_id = dd.lead_id and prc.employee_email_name = dd.performance_employee_email_name and prc.rn = 1` | 订单补充线索期次 | `prc` 取每个 lead 最新线索期次，0615 起主要用于补充分配时间；当期判断改为 `dd.qici0 = dd.period` | `qingcheng_conversion_raw_20260615.sql` |
-| `bb_dedup` | `ud` | `ud.name = bb1.employee_email_name and ud.qici = bb1.qici and ud.qudao = bb1.channel_map_2 and ud.grade_0 = bb1.grade_1 and ud.zhuguan = bb1.virtual_direct_leader_email_name` | 线索量和业绩合并 | full outer join；当前版本已补上年级和主管维度，修复同顾问同渠道跨年级吞数问题 | `qingcheng_conversion_raw_20260615.sql` |
-| `mm` | `temp_table.dingxi01_qing_team_jg jg` | `mm.employee_email_name = jg.employee_email_name` | 团队架构补充 | 使用最新 `qici` 架构补历史转化数据，可能产生历史架构漂移 | `qingcheng_conversion_raw_20260615.sql` |
+| `gmv` | `ld` | `gmv.lead_id = ld.lead_id and ld.employee_email_name = gmv.performance_employee_email_name` | 订单补充线索属性 | 订单明细补充青橙渠道、年级、投放计划、分配规则和主管；若 `ld` 同一 `lead_id + employee_email_name` 多行，则渠道订单明细和转化订单明细都可能被放大 | `data_center_qingcheng_2460_20260626.sql`, `qingcheng_channel_order_detail_raw_20260613.sql` |
+| `dd` | `prc` | `prc.lead_id = dd.lead_id and prc.employee_email_name = dd.performance_employee_email_name and prc.rn = 1` | 订单补充线索期次 | `prc` 取每个 lead 最新线索期次，0615 起主要用于补充分配时间；当期判断改为 `dd.qici0 = dd.period` | `data_center_qingcheng_2460_20260626.sql` |
+| `dd` | `order_change` | `dd.order_number = order_change.order_number` | 调课调班识别 | 用于识别内部调课调班/转课链路，配合 service 明细 `transfer_in_amount / transfer_out_amount` 排除内部金额 | `data_center_qingcheng_2460_20260626.sql` |
+| `dd` | `re_ke` | `re_ke.order_number = dd.order_number` | 退款节次补充 | 用于计算 `refund_4` 和点睛 2 节退费口径，不替代主营收来源 | `data_center_qingcheng_2460_20260626.sql` |
+| `bb_dedup` | `ud` | `ud.name = bb1.employee_email_name and ud.qici = bb1.qici and ud.qudao = bb1.channel_map_2 and ud.grade_0 = bb1.grade_1 and ud.zhuguan = bb1.virtual_direct_leader_email_name` | 线索量和业绩合并 | full outer join；当前版本已补上年级和主管维度，修复同顾问同渠道跨年级吞数问题 | `data_center_qingcheng_2460_20260626.sql` |
+| `mm` | `temp_table.dingxi01_qing_team_jg jg` | `mm.employee_email_name = jg.employee_email_name and mm.qici = jg.qici` | 团队架构补充 | 按结果期次回填历史团队架构，避免未来上传新架构后覆盖历史期次归属 | `data_center_qingcheng_2460_20260626.sql` |
 | `dd_0` | `org_t` | `ot.name = dd_0.name and dd_0.trade_time >= ot.begin_time and dd_0.trade_time <= ot.end_time` | 员工任职期间过滤 | left join 后 where 限定组织时间，未匹配组织链的交易被剔除 | `qingcheng_revenue_year_quarter_month_raw_20260522.sql` |
 | `rd` | `temp_table.dingxi01_qing_zz zz` | `zz.employee_email_name = rd.name` | 组织架构补充 | 未按期次 join，若架构表多行会放大 | `qingcheng_revenue_year_quarter_month_raw_20260522.sql` |
 | `dd_0` | `org_t` | `ot.name = a.name and a.trade_time >= ot.begin_time and (ot.end_time is null or a.trade_time <= ot.end_time)` | 员工任职期间过滤 | inner join，仅保留交易发生时员工属于青橙项目部的记录 | `qingcheng_team_completion_month_raw_20260522.sql` |
@@ -43,7 +45,6 @@
 | `data` | `temp_table.dingxi01_jiagou_db` | `employee_email_prefix + qici` | 到课 raw 使用邮箱前缀 join；需确认和 `employee_email_name` 哪个是标准架构 key |
 | `daoke` | `temp_table.dingxi01_qing_daoke` | `qici + channel_map_2 + grade_1 + begin_time` | 首节课映射表是否唯一待确认 |
 | `bb_dedup` | `ud` | `employee_email_name + qici + channel_map_2 + grade_1 + virtual_direct_leader_email_name` | 当前版本已补齐年级和主管维度；若同一维度组合仍有多行，`row_number()` 保留一条是否合理待确认 |
-| `mm` | `temp_table.dingxi01_qing_team_jg` | `employee_email_name` | 是否应该使用最新架构还是期次架构待确认 |
 | `dd_0` | `org_t` | `name + trade_time between begin_time and end_time` | 是否应使用 `email_prefix` 代替 `name`，避免重名误匹配 |
 | `rd` | `temp_table.dingxi01_qing_zz` | `employee_email_name` | 架构表是否一员工唯一、是否需要期次/日期字段待确认 |
 | `rd` | `re_ke` | `order_number + qici/qici_re` | 全退期次按 `full_refund_timestamp` 计算，和交易期次 `rd.qici` 相等时才匹配；是否符合退费归属口径待确认 |

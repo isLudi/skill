@@ -1,8 +1,10 @@
-# 青橙渠道和年级映射
+﻿# 青橙渠道和年级映射
 
 ## 1. 来源
 
-`resources/raw_sql/qingcheng_process_data_raw_20260522.sql`
+当前过程数据数据中心快照：`resources/raw_sql/data_center_qingcheng_2064_20260625.sql`
+
+历史已入库过程数据 raw：`resources/raw_sql/qingcheng_process_data_raw_20260522.sql`
 
 ## 2. 一级渠道 channel_map_1
 
@@ -10,6 +12,7 @@
 
 | 匹配规则 | 输出 |
 |---|---|
+| `%抖音正价退费%` | `抖音复用` |
 | `%私域%` | `青橙私域` |
 | `%青橙IP%` | `青橙IP` |
 | `%青橙公海%` | `青橙公海` |
@@ -26,6 +29,12 @@
 
 | 匹配规则 | 输出 |
 |---|---|
+| `%赠失-星义%` | `IP星义` |
+| `%赠失-朱博士%` | `IP朱博士` |
+| `%赠失-春春%` | `IP春春` |
+| `%赠失-郭艺%` | `IP郭艺` |
+| `%赠失-亚飞%` | `IP亚飞` |
+| `%私域会话%` | `私域会话` |
 | `%私域表单%` | `私域表单` |
 | `%私域图书%` | `私域图书` |
 | `%私域裂变%` | `私域裂变` |
@@ -67,6 +76,7 @@ f.lead_purchase_intention_level2_category_name
 ## 5. 维护注意事项
 
 - CASE 顺序会影响命中结果，新增规则必须检查是否被上游更宽泛的规则吞掉。
+- 2026-06-25 数据中心 2064 快照已把青橙 IP 二级渠道细分到 `IP星义/IP朱博士/IP春春/IP郭艺/IP亚飞`，不再只保留宽泛的 `%青橙IP%` 二级归类；维护时必须先核对这些高优先级分支是否仍在最前。
 - 当前 `channel_map_1` 中 `%私域%` 位于多条私域细分规则之前，但它只生成一级渠道，暂未与 `channel_map_2` 冲突。
 - 当前映射只作为青橙过程数据口径，不得默认复用到其他部门。
 - 如果 `temp_table.dingxi01_qing_daoke.qudao` 的取值变化，必须同步核对 `channel_map_2`。
@@ -117,7 +127,7 @@ f.lead_purchase_intention_level2_category_name
 
 ## 7. 转化 raw 版本差异
 
-来源：`resources/raw_sql/qingcheng_conversion_raw_20260615.sql`。
+来源：`resources/raw_sql/data_center_qingcheng_2460_20260626.sql`。
 
 转化 SQL 中存在两套渠道映射：
 
@@ -185,7 +195,7 @@ f.lead_purchase_intention_level2_category_name
 
 ## 8. 转化成本映射
 
-来源：`resources/raw_sql/qingcheng_conversion_raw_20260615.sql`。
+来源：`resources/raw_sql/data_center_qingcheng_2460_20260626.sql`。
 
 | 条件 | `cost_lead` |
 |---|---|

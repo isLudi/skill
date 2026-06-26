@@ -1,4 +1,4 @@
-# service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf
+﻿# service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf
 
 ## 1. 中文名称
 
@@ -235,7 +235,7 @@ where dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
   and (income_amount <> 0 or refund_amount <> 0)
 ```
 
-课程部门白名单来自 `qingcheng_conversion_raw_20260615.sql`，非常长；复用时优先从原始 SQL 拷贝，不要手工删减。2026-06-25 已确认新增一级部门 `CA业务线`、`创新中心`，以及二级部门 `创新学部`、`升学规划中心`、`线上考研学部`。
+课程部门白名单来自 `data_center_qingcheng_2460_20260626.sql`，非常长；复用时优先从原始 SQL 拷贝，不要手工删减。2026-06-26 canonical 版本的一级部门白名单包含 `H业务线`、`LL业务线`、`TUTU`、`TT`、`A业务线`、`EM业务线`、`KA业务线`、`TT业务线`、`创新中心`，二级部门白名单包含 `创新学部`、`升学规划中心`、`线上考研学部`。
 
 ## 9. 常用 join key
 
@@ -256,4 +256,5 @@ coalesce(income_amount / 100, 0) - coalesce(refund_amount / 100, 0) as promit_am
 - 金额字段在原表疑似以分为单位，SQL 除以 100 转为元。
 - `promit_amount` 为历史 SQL 字段名，含义为净营收。
 - 交易期次 `qici` 由 `trade_timestamp` 按周五期次规则计算，原 SQL 使用三参数 `date_add`，后续生成新 SQL 时需改为 `interval`。
+- 转化 raw 当前把本表作为主营收来源，并使用本表自带 `transfer_in_amount` / `transfer_out_amount` 排除已在 service 明细中体现的内部调课调班金额。
 - 订单明细侧核对个人/团队完成度时，不要只用原始 `income_amount` / `refund_amount`；部分调课调班链路金额可能体现在 `transfer_in_amount` / `transfer_out_amount`，甚至 service 明细缺失，需要用 `finance_dw.app_finance_performance_extend_details_hf` 补齐缺失事件。

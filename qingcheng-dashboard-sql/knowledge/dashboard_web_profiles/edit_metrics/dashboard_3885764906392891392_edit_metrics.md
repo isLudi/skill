@@ -1,4 +1,4 @@
-# 转化数据看板 edit-page metrics profile
+﻿# 转化数据看板 edit-page metrics profile
 
 ## Snapshot
 
@@ -13,7 +13,7 @@
 
 | model_id | model_name | source SQL |
 |---:|---|---|
-| 2460 | `转化数据` | [data_center_qingcheng_2460_20260624.sql](../../../resources/raw_sql/data_center_qingcheng_2460_20260624.sql) |
+| 2460 | `转化数据` | [data_center_qingcheng_2460_20260626.sql](../../../resources/raw_sql/data_center_qingcheng_2460_20260626.sql) |
 
 ## Pivot Units
 

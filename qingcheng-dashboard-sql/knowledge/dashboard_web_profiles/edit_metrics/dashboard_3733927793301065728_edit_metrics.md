@@ -13,7 +13,7 @@
 
 | model_id | model_name | source SQL |
 |---:|---|---|
-| 2064 | `青橙-过程数据` | [data_center_qingcheng_2064_20260624.sql](../../../resources/raw_sql/data_center_qingcheng_2064_20260624.sql) |
+| 2064 | `青橙-过程数据` | [data_center_qingcheng_2064_20260625.sql](../../../resources/raw_sql/data_center_qingcheng_2064_20260625.sql) |
 
 ## Pivot Units
 

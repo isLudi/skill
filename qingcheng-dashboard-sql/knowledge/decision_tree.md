@@ -1,4 +1,4 @@
-# 用户需求到知识库路由
+﻿# 用户需求到知识库路由
 
 > 先用本文件判断要读哪些知识，再进入具体表、指标、看板、join、反向索引或 SQL 模板。不要把本文件当完整口径来源。
 
@@ -7,12 +7,12 @@
 | 青橙有哪些表、某表能不能用于青橙 | `knowledge/04_qingcheng_project_profile.md` | `knowledge/01_table_index.md`、对应 `knowledge/tables/*.md` 或 `knowledge/temp_tables/*.md` | 不从市场顾问 skill 自动迁移表语义；公共表也要确认青橙范围字段 |
 | 写青橙过程数据 SQL | `knowledge/dashboards/qingcheng_process_data_raw_20260522.md` | `knowledge/metrics/qingcheng_process_data_metrics.md`、`knowledge/joins/table_relationships.md` | 外呼、APP 登录、到课补充会改变粒度，先查 join 风险 |
 | 写青橙到课 SQL | `knowledge/dashboards/qingcheng_daoke_raw_20260522.md` | `knowledge/metrics/qingcheng_daoke_metrics.md`、`knowledge/temp_tables/temp_table.dingxi01_qing_daoke.md` | 到课表 `qici + qudao + grade + begin_time` 唯一性待确认 |
-| 写青橙转化 SQL、修复转化 SQL | `knowledge/dashboards/qingcheng_conversion_raw_20260615.md` | `knowledge/metrics/qingcheng_conversion_metrics.md`、`knowledge/sql_patterns/qingcheng_channel_grade_mapping.md` | 先确认期次正则、`hour` 偏移和 `bb_dedup ↔ ud` join 粒度 |
+| 写青橙转化 SQL、修复转化 SQL | `knowledge/dashboards/qingcheng_conversion_raw_20260626.md` | `knowledge/metrics/qingcheng_conversion_metrics.md`、`knowledge/sql_patterns/qingcheng_channel_grade_mapping.md` | 先确认期次正则、`hour` 偏移和 `bb_dedup ↔ ud` join 粒度 |
 | 写青橙渠道订单明细 SQL | `knowledge/dashboards/qingcheng_channel_order_detail_raw_20260613.md` | `knowledge/metrics/qingcheng_channel_order_detail_metrics.md`、`knowledge/joins/table_relationships.md` | 明细 SQL 必须说明 `ld` 范围限定和订单粒度 |
 | 写青橙营收、团队完成度、个人转化 SQL | 对应 `knowledge/dashboards/qingcheng_*_raw_*.md` | 对应 `knowledge/metrics/*.md`、`knowledge/temp_tables/*.md` | 先区分目标表驱动、架构表驱动和事实主表驱动 |
 | 排查个人完成度 `折算后产出` 与订单流水不一致 | `knowledge/sql_patterns/qingcheng_personal_completion_discounted_output_risks.md` | `knowledge/dashboards/qingcheng_personal_conversion_raw_20260522.md`、`knowledge/metrics/qingcheng_personal_conversion_metrics.md`、`knowledge/tables/finance_dw.app_finance_performance_extend_details_hf.md` | 先查课程部门空值兜底，再查 `gmv_t` 调课调班聚合粒度，最后核对前端公式 |
 | 追溯某批青橙 `lead_id` 最原始的来源线索 | `knowledge/sql_patterns/qingcheng_lead_origin_trace.md` | `knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md`、`knowledge/tables/service_dw.dm_crm_lead_stats_detail_hf.md` | 先抽样 20-50 条，再做全量导出；不要只看 `rule_name`；别把窗口别名写成 `rn` |
-| 解释看板某个指标的前端公式、计算字段或与数据中心 SQL 的关系 | `knowledge/dashboard_web_profiles/edit_metrics/README.md` | `knowledge/metrics/qingcheng_dashboard_metric_formula_linkage.md`、对应 `resources/raw_sql/data_center_qingcheng_*_20260624.sql` | 先确认看板组件和 BI 模型，再解析前端自定义公式，最后回到源 SQL 字段；不要把 `${指标}` 当物理字段 |
+| 解释看板某个指标的前端公式、计算字段或与数据中心 SQL 的关系 | `knowledge/dashboard_web_profiles/edit_metrics/README.md` | `knowledge/metrics/qingcheng_dashboard_metric_formula_linkage.md`、对应当前 retained snapshot（如 `resources/raw_sql/data_center_qingcheng_2064_20260625.sql`） | 先确认看板组件和 BI 模型，再解析前端自定义公式，最后回到源 SQL 字段；不要把 `${指标}` 当物理字段 |
 | 用户只给字段名、指标名或别名 | `knowledge/reverse_index/field_to_metrics.md` | `knowledge/reverse_index/metric_to_raw_sql.md`、对应 metrics/dashboard 文档 | 反向索引只定位候选文档，最终口径回到 metrics/dashboard |
 | 用户只给表名，问哪些看板用到 | `knowledge/reverse_index/table_to_dashboards.md` | `knowledge/01_table_index.md`、对应 dashboard 文档 | 表被引用不代表所有看板可复用同一范围或 join |
 | SQL 结果为空、某期次/顾问/渠道查不到 | `knowledge/reverse_index/join_risk_index.md` | `knowledge/joins/table_relationships.md`、对应表文档 | 先排查主表有无数据、范围过滤、join anti-check，再判断业务无数据 |

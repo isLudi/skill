@@ -1,4 +1,4 @@
-# 青橙项目部业务域档案
+﻿# 青橙项目部业务域档案
 
 ## 1. 业务域
 
@@ -68,16 +68,23 @@
 
 ## 9. 已入库转化口径
 
-来源：`resources/raw_sql/qingcheng_conversion_raw_20260615.sql`
+来源：`resources/raw_sql/data_center_qingcheng_2460_20260626.sql`
 
 | 口径 | 文档 |
 |---|---|
-| 看板结构 | `knowledge/dashboards/qingcheng_conversion_raw_20260615.md` |
+| 看板结构 | `knowledge/dashboards/qingcheng_conversion_raw_20260626.md` |
 | 指标集合 | `knowledge/metrics/qingcheng_conversion_metrics.md` |
 | 订单业绩表 | `knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md` |
 | 团队架构临时表 | `knowledge/temp_tables/temp_table.dingxi01_qing_team_jg.md` |
 | 渠道/成本映射 | `knowledge/sql_patterns/qingcheng_channel_grade_mapping.md` |
 | join 关系 | `knowledge/joins/table_relationships.md` |
+
+当前 retained snapshot 的关键特点：
+
+- 结果期次 `qici` 由 `trade_timestamp` 按“周二到下周一归当周周五期次、周一回拨到上周周五期次”生成。
+- 营收以 `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` 为主明细来源，并剔除已落在 service 明细 `transfer_in_amount / transfer_out_amount` 的内部调课调班链路。
+- `podan` 不再按简单 `promit > 0` 统计，而是按折算净收 `((H_promit_4 - Y_promit_4) + n_H_promit_4 * 0.5) > 0` 统计。
+- 团队架构补充改为 `employee_email_name + qici`，避免未来架构表覆盖历史结果期次归属。
 
 ## 10. 已入库年季月营收口径
 

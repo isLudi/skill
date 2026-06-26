@@ -1,4 +1,4 @@
-# 快速参考卡
+﻿# 快速参考卡
 
 > 80% 高频青橙取数入口。只用于快速定位，生成 SQL 前仍需读取对应表、指标、看板、join、范围或反向索引文档。
 
@@ -8,7 +8,7 @@
 |---|---|---|---|
 | 青橙过程数据、有效线索、外呼、APP 登录 | `knowledge/dashboards/qingcheng_process_data_raw_20260522.md` | `knowledge/metrics/qingcheng_process_data_metrics.md`、`knowledge/joins/table_relationships.md` | 外呼和 APP 登录补充可能按用户粒度放大线索 |
 | 青橙到课、第 1-6 讲到课、有效到课 | `knowledge/dashboards/qingcheng_daoke_raw_20260522.md` | `knowledge/metrics/qingcheng_daoke_metrics.md`、`knowledge/temp_tables/temp_table.dingxi01_qing_daoke.md` | 课次映射表唯一性和渠道/年级/开课时间匹配待确认 |
-| 青橙转化、青橙订单、净营收、破单 | `knowledge/dashboards/qingcheng_conversion_raw_20260615.md` | `knowledge/metrics/qingcheng_conversion_metrics.md`、`knowledge/sql_patterns/qingcheng_channel_grade_mapping.md` | `rule_name` 正则期次、跨 CTE hour 偏移、最新团队架构补历史数据 |
+| 青橙转化、青橙订单、净营收、破单 | `knowledge/dashboards/qingcheng_conversion_raw_20260626.md` | `knowledge/metrics/qingcheng_conversion_metrics.md`、`knowledge/sql_patterns/qingcheng_channel_grade_mapping.md` | `trade_timestamp` 周五期次映射、service 调课调班链路剔除、团队架构按 `employee_email_name + qici` 回填 |
 | 青橙渠道订单明细 | `knowledge/dashboards/qingcheng_channel_order_detail_raw_20260613.md` | `knowledge/metrics/qingcheng_channel_order_detail_metrics.md`、`knowledge/joins/table_relationships.md` | `ld` 子查询范围限定和 `lead_id + employee` 唯一性待确认 |
 | 青橙年季月营收 | `knowledge/dashboards/qingcheng_revenue_year_quarter_month_raw_20260522.md` | `knowledge/metrics/qingcheng_revenue_year_quarter_month_metrics.md`、`knowledge/tables/finance_dw.app_finance_performance_extend_details_hf.md` | 组织链姓名匹配、调课调班去重和平台函数风险 |
 | 青橙团队完成度月/期 | `knowledge/dashboards/qingcheng_team_completion_month_raw_20260522.md` 或 `knowledge/dashboards/qingcheng_team_completion_period_raw_20260522.md` | 对应 metrics、`knowledge/temp_tables/temp_table.dingxi01_qing_team_goal.md`、`knowledge/temp_tables/temp_table.dingxi01_qing_team_g_qi.md` | 目标表层级、期次月份映射和 H/非 H 折算待确认 |
@@ -22,7 +22,7 @@
 |---|---|---|---|
 | 追溯某批 `lead_id` 的原始来源 / 原始分配线索 | `knowledge/sql_patterns/qingcheng_lead_origin_trace.md` | `knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md`、`knowledge/tables/service_dw.dm_crm_lead_stats_detail_hf.md` | 不要把 `rule_name` 当原始来源；`rule_name like '%公开课%'` 可能为 0；窗口别名不要写成 `rn` |
 | 个人完成度 `折算后产出` 与订单流水不一致 | `knowledge/sql_patterns/qingcheng_personal_completion_discounted_output_risks.md` | `knowledge/dashboards/qingcheng_personal_conversion_raw_20260522.md`、`knowledge/metrics/qingcheng_personal_conversion_metrics.md`、`knowledge/tables/finance_dw.app_finance_performance_extend_details_hf.md` | 不要只看前端公式；先查空课程部门、调课调班聚合和任职窗口时间字段 |
-| 看板展示值与 SQL 输出字段看似一致但仍对不上 | `knowledge/metrics/qingcheng_dashboard_metric_formula_linkage.md` | 对应 `knowledge/dashboard_web_profiles/edit_metrics/<dashboard_id>_edit_metrics.md` 和 `resources/raw_sql/data_center_qingcheng_*_20260624.sql` | 先判断差异来自 SQL 输出、前端自定义公式、透视表维度聚合，还是转化口径与 finance 完成度口径不同 |
+| 看板展示值与 SQL 输出字段看似一致但仍对不上 | `knowledge/metrics/qingcheng_dashboard_metric_formula_linkage.md` | 对应 `knowledge/dashboard_web_profiles/edit_metrics/<dashboard_id>_edit_metrics.md` 和当前 retained snapshot（如 `resources/raw_sql/data_center_qingcheng_2064_20260625.sql`） | 先判断差异来自 SQL 输出、前端自定义公式、透视表维度聚合，还是转化口径与 finance 完成度口径不同 |
 
 ## 高频表与临时表
 
@@ -31,7 +31,7 @@
 | `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df` | 青橙线索、渠道、转化主表 | 先确认 `dt/hour`、青橙范围字段和最新分区；若是追溯原始来源，先读 `knowledge/sql_patterns/qingcheng_lead_origin_trace.md` |
 | `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` | 青橙订单、收入、退款、净营收 | 用订单侧业绩部门过滤时，说明是否依赖订单侧范围兜底 |
 | `finance_dw.app_finance_performance_extend_details_hf` | 年季月营收、团队完成度、个人转化 | 先确认金额单位、交易类型和任职期间 join |
-| `temp_table.dingxi01_qing_team_jg` | 青橙团队架构 | 区分最新架构和期次架构，不默认补历史数据 |
+| `temp_table.dingxi01_qing_team_jg` | 青橙团队架构 | 转化 raw / 个人转化使用期次架构；团队完成度月/期是否取最新架构要单独确认 |
 | `temp_table.dingxi01_jiagou_db` | 过程/到课架构补充 | 姓名 key 和邮箱前缀 key 不一致时先查 join 风险 |
 | `temp_table.dingxi01_qing_daoke` | 到课课次映射 | 检查 `qici + qudao + grade + begin_time` 唯一性 |
 | `temp_table.shenbaoxin_channel_group` | 青橙转化宽表渠道大类 | 来源、字段结构和 `channel` 唯一性均待确认 |
