@@ -46,7 +46,7 @@
 |---|---|---|
 | `org_t` | 员工在青橙项目部路径下的任职时间窗口 | `email_prefix`, `name`, `begin_time`, `end_time` |
 | `dd_0` | 财务业绩原始层，生成标准科目、期次和基础订单字段 | `order_number`, `user_id1`, `trade_status`, `trade_type`, `trade_time`, `price`, `subject`, `qici` |
-| `dd` | 只保留员工在青橙任职期间产生的交易 | `trade_time >= begin_time and (end_time is null or trade_time <= end_time)` |
+| `dd` | 只保留员工原始成交时间落在青橙任职期间的交易；退款晚发生但原单早于入组时间的记录要排除 | `coalesce(paid_time, trade_time) >= begin_time and (end_time is null or coalesce(paid_time, trade_time) <= end_time)` |
 | `gmv_t` | 调课调班订单，按订单/课程/用户/期次/科目/课程部门粒度汇总，避免同一顾问同一用户多笔调课调班被揉成一条 | `order_number`, `qici`, `subject`, `course_first_level_department_name`, `name_total_price` |
 | `gmv_z` | 正常订单，按订单和课程维度汇总金额 | `name_total_price` |
 | `rd` | 合并正常订单和调课调班结果 | `union all` |
@@ -82,7 +82,7 @@
 
 | 左侧 | 右侧 | join key | 用途 |
 |---|---|---|---|
-| `dd_0 a` | `org_t ot` | `ot.name = a.name and a.trade_time >= ot.begin_time and (ot.end_time is null or a.trade_time <= ot.end_time)` | 只保留员工在青橙期间产生的营收/退款 |
+| `dd_0 a` | `org_t ot` | `ot.name = a.name and coalesce(a.paid_time, a.trade_time) between ot.begin_time and ot.end_time` | 只保留原始成交时间落在青橙期间的营收/退款，避免历史订单在转岗后退款被误计入青橙 |
 | `ord` | `order_change` | `ord.order_number = order_change.order_number` | 补充调课调班/课程转移类型 |
 | `rd` | `re_ke` | `re_ke.qici_re = rd.qici and re_ke.order_number = rd.order_number` | 给交易补充全退时行课节数 |
 | `rd` | `order_change` | `rd.order_number = order_change.order_number` | 主交易层识别内部调课调班调入/调出流水，避免误入外部收入/退款桶 |
@@ -128,7 +128,8 @@
 - 当前生产 SQL 与 `resources/raw_sql/qingcheng_personal_conversion_raw_20260522.sql` 已对齐到 573 行版本，数据中心数据集为 `青橙个人转化`，`fileValue=2769`。
 - 修复点 1：`dd_0` 对空 `course_first_level_department_name` / `course_second_level_department_name` 增加兜底。`grade_list` 命中小学或初中时归为 `小初业务线`，否则兜底为 `H业务线`；H 业务线二级部门为空时兜底为 `精品班学部`。
 - 修复点 2：`gmv_t` 调课调班不再按 `name + user_id1` 粗粒度去重，改为订单、课程、用户、交易时间、科目、期次和课程部门粒度汇总。
-- 修复点 3：青橙任职窗口统一使用 `trade_time >= begin_time` 且 `trade_time <= end_time`，避免开始/结束边界混用支付时间和交易时间。
+- 修复点 3：青橙任职窗口统一使用 `coalesce(paid_time, trade_time)` 作为开始/结束边界锚点，优先按原始支付时间归属组织窗口，兜底退回 `trade_time`。
+- 修复点 4：新增排错样例：`user_id=1606647` 的历史订单在 2026-06-25 退款，但原始支付时间在 2023-10，且顾问 `陈贺新` 于 2025-05-26 才进入青橙；旧口径会误把该退款计入青橙，现已修正。
 - 已验证风险样例与诊断 SQL 见 `knowledge/sql_patterns/qingcheng_personal_completion_discounted_output_risks.md`。
 
 ## 14. 2026-06-22 调课调班主交易链路修复记录

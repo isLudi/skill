@@ -11,7 +11,7 @@ from typing import Any, Iterable
 from urllib.parse import parse_qs, unquote, urlparse
 
 from _shared.auth import fill_login_if_present
-from _shared.config import TEMPLATE_QUERY_API_BASE, TEMPLATE_QUERY_MY_CREATE_URL
+from _shared.config import TEMPLATE_QUERY_API_BASE, TEMPLATE_QUERY_MARKET_URL, TEMPLATE_QUERY_MY_CREATE_URL
 from _shared.errors import UsageError
 
 
@@ -164,6 +164,13 @@ class TemplateQueryClient:
         if _is_login_url(self.page.url):
             raise UsageError("Template Query login failed or requires manual verification.")
 
+    def ensure_market_authenticated(self, username: str | None, password: str | None) -> None:
+        self.ensure_authenticated(username, password)
+        self.page.goto(TEMPLATE_QUERY_MARKET_URL, wait_until="domcontentloaded", timeout=45_000)
+        self.page.wait_for_timeout(1500)
+        if _is_login_url(self.page.url):
+            raise UsageError("Template Query market login failed or requires manual verification.")
+
     def post_json(self, endpoint: str, payload: dict[str, Any] | None = None) -> dict[str, Any]:
         url = f"{TEMPLATE_QUERY_API_BASE}/{endpoint}"
         request_kwargs: dict[str, Any] = {"timeout": 45_000}
@@ -277,6 +284,27 @@ class TemplateQueryClient:
                 break
         return templates
 
+    def fetch_market_templates(
+        self,
+        *,
+        name: str | None = None,
+        page_size: int = 100,
+        max_pages: int = 20,
+    ) -> list[TemplateQuery]:
+        templates: list[TemplateQuery] = []
+        for page_no in range(1, max_pages + 1):
+            payload: dict[str, Any] = {"pager": {"pageSize": page_size, "pageNo": page_no}}
+            if name:
+                payload["name"] = name
+            data = self.post_json("market/search", payload)
+            rows = data.get("data") or []
+            if not isinstance(rows, list):
+                raise UsageError("Template Query market/search returned non-list data.")
+            templates.extend(parse_template_rows(rows))
+            if len(rows) < page_size:
+                break
+        return templates
+
     def find_template(
         self,
         *,
@@ -304,6 +332,36 @@ class TemplateQueryClient:
         selected = sorted(matches, key=lambda item: (item.update_time, item.id), reverse=True)[0]
         if not selected.sql_detail.strip():
             raise UsageError(f"Template Query template has empty SQL detail: {selected.name} ({selected.id})")
+        return selected, matches
+
+    def find_market_template(
+        self,
+        *,
+        name: str,
+        match: str = "exact",
+        creator: str | None = None,
+        page_size: int = 100,
+        max_pages: int = 20,
+    ) -> tuple[TemplateQuery, list[TemplateQuery]]:
+        candidates = self.fetch_market_templates(
+            name=name,
+            page_size=page_size,
+            max_pages=max_pages,
+        )
+        if match == "exact":
+            matches = [template for template in candidates if template.name == name]
+        elif match == "contains":
+            matches = [template for template in candidates if name in template.name]
+        else:
+            raise UsageError(f"Unsupported template market match mode: {match}")
+        if creator:
+            matches = [template for template in matches if template.creator == creator]
+        if not matches:
+            suffix = f" by creator {creator}" if creator else ""
+            raise UsageError(f"Template Query market template was not found: {name}{suffix}")
+        selected = sorted(matches, key=lambda item: (item.publish_time, item.update_time, item.id), reverse=True)[0]
+        if not selected.sql_detail.strip():
+            raise UsageError(f"Template Query market template has empty SQL detail: {selected.name} ({selected.id})")
         return selected, matches
 
     def fetch_query_detail(self, *, template_id: int, query_type: int = 1) -> dict[str, Any]:

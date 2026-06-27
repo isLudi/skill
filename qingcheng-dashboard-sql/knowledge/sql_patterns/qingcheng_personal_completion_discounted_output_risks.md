@@ -89,15 +89,33 @@ group by
 
 ### 3.3 任职窗口时间字段要一致
 
-历史口径混用 `paid_time >= begin_time` 和 `trade_time <= end_time`。个人完成度当前按交易发生时间归属青橙任职窗口，使用：
+历史口径曾混用 `paid_time >= begin_time` 和 `trade_time <= end_time`，后续又统一成纯 `trade_time`。这两种写法都不稳，因为完成度看板要解决的是“这笔订单原始归属哪个组织窗口”，而不是“退款今天发生在哪个组织窗口”。当前统一使用 `coalesce(paid_time, trade_time)` 归属青橙任职窗口，使用：
 
 ```sql
 ot.name = a.name
-and a.trade_time >= ot.begin_time
-and (ot.end_time is null or a.trade_time <= ot.end_time)
+and cast(coalesce(a.paid_time, a.trade_time) as timestamp) >= cast(ot.begin_time as timestamp)
+and (
+    ot.end_time is null
+    or cast(coalesce(a.paid_time, a.trade_time) as timestamp) <= cast(ot.end_time as timestamp)
+)
 ```
 
 如果业务要求按支付时间归属，需要整体切换为同一个时间字段，不要只改开始或结束边界的一侧。
+
+2026-06-27 已验证高风险样例：
+
+- 顾问 `陈贺新` 于 `2025-05-26 00:00:00` 进入青橙项目部。
+- `user_id=1606647` 的历史订单在 `2023-10` 已支付，`2026-06-25 21:12:20` 才发生退款。
+- 旧口径按 `trade_time` 过滤时，这笔退款会因为发生在青橙任职期内而被误计入青橙个人/团队完成度。
+- 新口径按 `coalesce(paid_time, trade_time)` 过滤后，该笔订单回到原始支付时点所属组织，不再串入青橙。
+
+排查这类问题时，要先核对三组时间：
+
+1. `org_t.begin_time / end_time`
+2. `paid_time`
+3. `trade_time`
+
+只看到退款发生时间晚于入组时间，并不能说明它应该计入青橙。
 
 ### 3.4 订单明细侧 service 表不完整保留调课调班链路金额
 

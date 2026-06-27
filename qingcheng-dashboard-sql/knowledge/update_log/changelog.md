@@ -273,3 +273,20 @@
 - 团队架构补充统一为 `employee_email_name + qici`，不再用最新 `qici` 回填历史转化结果期次。
 - 同步更新转化指标文档、表索引、范围规则、团队架构临时表文档、表关系文档、数据中心数据集映射和 dashboard metric linkage。
 - 课程一级部门白名单以 0626 canonical SQL 为准，当前包含 `H业务线`、`LL业务线`、`TUTU`、`TT`、`A业务线`、`EM业务线`、`KA业务线`、`TT业务线`、`创新中心`；历史文档中 `CA业务线` 记载不再作为当前 canonical 口径。
+
+## 2026-06-27 青橙完成度任职窗口归属修正
+
+- 将三份 canonical raw SQL 同步修正为按 `coalesce(paid_time, trade_time)` 过滤青橙任职窗口：
+  - `resources/raw_sql/qingcheng_personal_conversion_raw_20260522.sql`
+  - `resources/raw_sql/qingcheng_team_completion_period_raw_20260522.sql`
+  - `resources/raw_sql/qingcheng_team_completion_month_raw_20260522.sql`
+- 修复原因：旧口径只按 `trade_time` 过滤 `org_t`，会把历史订单在顾问转入青橙后发生的退款误计入青橙个人/团队完成度。
+- 已验证样例：顾问 `陈贺新` 于 `2025-05-26` 进入青橙，`user_id=1606647` 的原单支付在 `2023-10`、退款发生在 `2026-06-25`。旧口径命中，修正后排除。
+- 同步更新个人/团队完成度 dashboard 文档、join key 文档和风险排查文档，后续排查完成度异常时必须先比对 `paid_time`、`trade_time` 和 `org_t.begin_time/end_time`，不能只看退款发生时间。
+
+## 2026-06-27 青橙渠道订单明细模板升级
+
+- 将模板取数 SQL `template_market_sql_2689_20260627-154011.sql` 升级为新的青橙渠道订单明细 canonical raw SQL：`resources/raw_sql/qingcheng_channel_order_detail_raw_20260627.sql`。
+- 旧版 `qingcheng_channel_order_detail_raw_20260613.sql` 已不再作为当前 canonical 版本保留；相关 dashboard 文档入口统一切换到 `knowledge/dashboards/qingcheng_channel_order_detail_raw_20260627.md`。
+- 与 2026-06-13 版相比，本次模板版新增 `province_name`、`city_name`、`city_level_name` 三个线索侧地域字段；`gmv ↔ ld` join 逻辑、时间占位符和青橙范围限定保持不变。
+- 同步更新订单明细 dashboard 文档、字段说明、快速入口、决策树、无临时表清单和 join 文档，避免继续按旧版字段集合理解该模板 SQL。

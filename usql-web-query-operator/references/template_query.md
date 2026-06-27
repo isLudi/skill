@@ -1,6 +1,6 @@
 # 模板取数自动化
 
-模板取数自动化目前分为两类场景，分别对应“读取平台中已保存的模板 SQL”和“用临时模板完成大结果下载”。
+模板取数自动化目前分为三类场景，分别对应“读取我创建的模板 SQL”“读取模板市场中的模板 SQL”和“用临时模板完成大结果下载”。
 
 ## 读取模板中已保存的 SQL
 
@@ -31,6 +31,33 @@ D:\anaconda3\python.exe scripts\usql_web_query.py fetch-template-sql `
 - 返回行包含 `sqlDetail` 字段，它与页面上“查看模板 -> 查看SQL”展示的是同一份 SQL。
 
 该命令是只读的：不会创建模板、不会执行 SQL、也不会下载结果。
+
+## 读取模板市场中的模板 SQL
+
+当用户要查看 `模板取数 -> 模板市场` 中某个模板当前保存的 SQL 时，使用 `scripts/usql_web_query.py fetch-market-template-sql`：
+`https://uanalysis.baijia.com/templateGetData/templateMarket`
+
+```powershell
+D:\anaconda3\python.exe scripts\usql_web_query.py fetch-market-template-sql `
+  --template-name "<模板名称>"
+```
+
+常用参数：
+- `--match exact|contains`：默认 `exact`。`contains` 会在模板市场搜索结果中选择最近发布/更新的匹配项。
+- `--creator <creator>`：可选创建人精确过滤，用于模板名不唯一时收窄结果。
+- `--output-file <path>`：把 SQL 保存到指定文件。不传时，输出写到 `C:\Users\Ludim\.codex\runtime\usql-web-query-operator\template-query\`。
+- `--include-sql`：除了写出 SQL 文件，也把完整 SQL 放进 JSON 摘要。
+- `--headed`：需要检查登录态或页面行为时显示浏览器。
+
+已验证的接口画像：
+- 页面 URL：`https://uanalysis.baijia.com/templateGetData/templateMarket`
+- 共享登录态：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\state.json`
+- 运行时输出目录：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\template-query\`
+- 模板市场搜索接口：`POST https://uanalysis.baijia.com/uanalysis-template/market/search`
+- 请求体结构：`{"name":"<可选模板名>","pager":{"pageSize":100,"pageNo":1}}`
+- 返回行包含 `sqlDetail` 字段，它与页面上“查看模板 -> 模板SQL -> 查看SQL”展示的是同一份 SQL。
+
+该命令是只读的：不会创建模板、不会执行 SQL、不会下载结果，也不会修改模板市场中的任何内容。
 
 ## 临时模板大结果下载
 

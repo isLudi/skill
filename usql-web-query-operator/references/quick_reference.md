@@ -15,7 +15,8 @@
 |---|---|---|---|
 | SQL 页面执行、小结果预览、<=1000 行下载 | `SKILL.md` 中“安全边界”“标准流程” | `scripts\usql_web_query.py run` | 失败时再读 `references/query_error_handling.md`；若怀疑 UI 变化再读 `references/platform_profile.md` |
 | SQL 执行失败、需要分类错误 | `references/query_error_handling.md` | `scripts\usql_web_query.py run` | 只有错误信息不足或页面结构变了，才看 `references/platform_profile.md` 或相关命令实现 |
-| 模板取数中读取已保存 SQL | `references/template_query.md` | `scripts\usql_web_query.py fetch-template-sql` | 只有模板匹配或页面状态异常时，才看 `references/platform_profile.md` 或相关实现 |
+| 模板取数中读取我创建的模板 SQL | `references/template_query.md` | `scripts\usql_web_query.py fetch-template-sql` | 只有模板匹配或页面状态异常时，才看 `references/platform_profile.md` 或相关实现 |
+| 模板市场中按模板名读取 SQL | `references/template_query.md` | `scripts\usql_web_query.py fetch-market-template-sql` | 只有市场搜索、模板匹配或页面状态异常时，才看 `references/platform_profile.md` 或相关实现 |
 | 结果超过 1000 行，需要绕开 `SQL取数` 直接下载审批 | `references/template_query.md` | `scripts\usql_web_query.py template-download` | 只有 SQL 仍带模板参数、下载链路异常、或清理逻辑异常时，才看相关命令实现 |
 | 看板文件夹扫描 / 看板画像 | `SKILL.md` 中“看板文件夹扫描”“脚本能力” + `references/platform_profile.md` | `scripts\read_dashboard.py scan-folder` / `profile-dashboard` / `profile-folder` / `profile-all` | 只有菜单、组件、筛选器或页面结构异常时，才继续看 `read_dashboard/commands/*.py` |
 | Taitan 编辑页透视表字段、指标含义、自定义公式读取 | `SKILL.md` 中“看板文件夹扫描” + `references/platform_profile.md` 的“Taitan 编辑页指标公式 API” | `scripts\read_dashboard.py profile-edit-dashboard` | 只有字段详情接口变化、公式缺失或 selector 回退验证失败时，才看 `read_dashboard/edit_profile.py` 和对应命令实现 |

@@ -2,15 +2,17 @@
 
 ## 1. 来源
 
-`resources/raw_sql/qingcheng_channel_order_detail_raw_20260613.sql`
+`resources/raw_sql/qingcheng_channel_order_detail_raw_20260627.sql`
 
-适用文档：`knowledge/dashboards/qingcheng_channel_order_detail_raw_20260613.md`
+适用文档：`knowledge/dashboards/qingcheng_channel_order_detail_raw_20260627.md`
 
 ## 2. 查询性质
 
 该 SQL 主要用于订单明细抽取，不是聚合指标看板。
 
 本文档只沉淀该 SQL 中有明确派生逻辑或常被当作口径字段使用的金额字段、状态标记和期次标记；其余原样透出的维度字段应以源表字段语义为准，待人工确认。
+
+2026-06-27 模板版新增 `province_name`、`city_name`、`city_level_name` 三个原样透出的地域维度字段；它们不属于派生指标，因此不在本文档单独维护公式。
 
 ## 3. 计算粒度
 

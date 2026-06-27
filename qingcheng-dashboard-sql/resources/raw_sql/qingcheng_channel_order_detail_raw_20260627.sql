@@ -1,4 +1,4 @@
-select  
+select 
 GMV.lead_id,original_order_user_number,
 pay_group_period_name,
 trade_group_period_name,
@@ -18,7 +18,12 @@ trade_timestamp,pay_refund_type,
 income_amount/100 income_amount,
 refund_amount/100 refund_amount,
 (income_amount-refund_amount)/100 promit_amount,
-lead_period_name,trade_period_name,trade_period_conversion_begin_time,trade_period_conversion_end_time,trade_period_mapping_first_level_department_name,trade_period_mapping_second_level_department_name,pay_period_name,pay_period_conversion_begin_time,pay_period_conversion_end_time,pay_period_mapping_first_level_department_name,pay_period_mapping_second_level_department_name,pay_period_first_level_course_project_name,pay_period_second_level_course_project_name,is_same_trade_lead_period,virtual_direct_leader_email_name,rule_name
+lead_period_name,trade_period_name,trade_period_conversion_begin_time,trade_period_conversion_end_time,trade_period_mapping_first_level_department_name,trade_period_mapping_second_level_department_name,pay_period_name,pay_period_conversion_begin_time,pay_period_conversion_end_time,pay_period_mapping_first_level_department_name,pay_period_mapping_second_level_department_name,pay_period_first_level_course_project_name,pay_period_second_level_course_project_name,is_same_trade_lead_period,
+virtual_direct_leader_email_name,
+rule_name,
+province_name,
+city_name,
+city_level_name
 FROM
 (
 select * from service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf
@@ -26,7 +31,8 @@ where  dt=format_datetime(NOW()-interval '2' hour,'YYYYMMdd') and hour=format_da
 ) gmv
 left JOIN
 (
-select distinct lead_id,put_plan_name,employee_email_name,channel_name_1,channel_name_2,channel_name_3,flow_pool_name,get_customer_way_name,rule_name,virtual_direct_leader_email_name from
+select distinct lead_id,put_plan_name,employee_email_name,channel_name_1,channel_name_2,channel_name_3,flow_pool_name,get_customer_way_name,rule_name,virtual_direct_leader_email_name,province_name,city_name,city_level_name
+ from
 bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df  where  dt=format_datetime(NOW()-interval '2' hour,'YYYYMMdd') and hour=format_datetime(NOW()-interval '2' hour,'HH')
 ) ld on gmv.lead_id=ld.lead_id and ld.employee_email_name=gmv.performance_employee_email_name
 where 

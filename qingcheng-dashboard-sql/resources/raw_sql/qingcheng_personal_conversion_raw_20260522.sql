@@ -122,8 +122,11 @@ with org_t as (
     from dd_0 a
     inner join org_t ot
         on ot.name = a.name
-       and a.trade_time >= ot.begin_time
-       and (ot.end_time is null or a.trade_time <= ot.end_time)
+       and cast(coalesce(a.paid_time, a.trade_time) as timestamp) >= cast(ot.begin_time as timestamp)
+       and (
+            ot.end_time is null
+            or cast(coalesce(a.paid_time, a.trade_time) as timestamp) <= cast(ot.end_time as timestamp)
+       )
 )
 -- 调课调班（按订单/课程维度汇总，避免把同一顾问同一用户的多笔调课调班揉成一条）
 ,gmv_t as (

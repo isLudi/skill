@@ -13,11 +13,11 @@
 | `denglu_app` | `data` | `user_number = user_id` | left join | 匹配 APP/PC 登录 | 已从 SQL 入库 |
 | `data` 子集 `t1` | `service_dw.dws_service_user_learn_detail_hf t2` | `qici + user_id = user_number` | left join | 匹配上课明细 | 已从 SQL 入库 |
 | `daoke dk` | `temp_table.dingxi01_qing_daoke ke` | `qici + channel_map_2 = qudao + grade_1 = grade + begin_time` | left join | 标记课次，支持第 1 至第 6 讲 | 已从 SQL 入库，唯一性待确认 |
-| `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf gmv` | `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df ld` | `lead_id + performance_employee_email_name = employee_email_name` | left join | 订单业绩补充青橙渠道、年级和主管；青橙渠道订单明细 raw 复用该 join | 已从 SQL 入库，`ld` 唯一性和范围完整性待确认 |
+| `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf gmv` | `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df ld` | `lead_id + performance_employee_email_name = employee_email_name` | left join | 订单业绩补充青橙渠道、投放计划、分配规则、直属主管和地域字段；青橙渠道订单明细 raw 复用该 join | 已从 SQL 入库，`ld` 唯一性和范围完整性待确认 |
 | `dd` | `prc` | `lead_id + performance_employee_email_name = employee_email_name + rn = 1` | left join | 判断订单是否属于线索期次 | 已从 SQL 入库 |
 | `bb_dedup` | `ud` | `employee_email_name/name + qici + channel_map_2/qudao + grade_1/grade_0 + virtual_direct_leader_email_name/zhuguan` | full outer join | 合并线索量和业绩指标，并保留年级维度 | 已从 SQL 入库，若同维度仍多行则保留 `rn = 1` |
 | `mm` | `temp_table.dingxi01_qing_team_jg` | `employee_email_name` | left join | 补充最新团队架构 | 已从 SQL 入库 |
-| `finance_dw.app_finance_performance_extend_details_hf dd_0` | `dw.dim_employee_chain org_t` | `name + trade_time between begin_time and end_time` | left join 后 where 过滤 | 确认交易发生时员工属于青橙项目部 | 已从 SQL 入库，是否应改用 `email_prefix` 待确认 |
+| `finance_dw.app_finance_performance_extend_details_hf dd_0` | `dw.dim_employee_chain org_t` | `name + coalesce(paid_time, trade_time) between begin_time and end_time` | left join 后 where / inner join 过滤 | 确认原始成交时间落在员工属于青橙项目部的任职窗口内，避免历史订单在转岗后退款被误计入青橙 | 已从 SQL 入库，是否应改用 `email_prefix` 待确认 |
 | `rd` | `temp_table.dingxi01_qing_zz` | `name = employee_email_name` | left join | 补充青橙直属主管、大主管和学部 | 已从 SQL 入库 |
 | `finance_dw.dm_finance_order_refund_detail_df ord` | `finance_dw.dim_finance_order_change_df order_change` | `order_number = order_change.order_number` | left join | 补充退款订单调课调班类型；`order_change` 先展开订单号/父订单号/原始订单号/最新子订单号并按订单号聚合 | 已从 SQL 入库 |
 | `rd` 主交易层 | `finance_dw.dim_finance_order_change_df order_change` | `rd.order_number = order_change.order_number` | left join | 识别内部调课调班调入/调出，避免误入外部收入/退款桶；覆盖 `biz_type in (2,7)` | 已从 SQL 入库 |

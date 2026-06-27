@@ -53,7 +53,7 @@
 |---|---|---|
 | `org_t` | 员工在青橙项目部路径下的任职时间窗口 | `email_prefix`, `name`, `begin_time`, `end_time` |
 | `dd_0` | 财务业绩原始层，生成标准科目、期次和基础订单字段 | `order_number`, `user_id1`, `trade_status`, `trade_type`, `trade_time`, `price`, `subject`, `qici` |
-| `dd` | 只保留员工在青橙任职期间产生的交易 | `trade_time >= begin_time and (end_time is null or trade_time <= end_time)` |
+| `dd` | 只保留员工原始成交时间落在青橙任职期间的交易；退款晚发生但原单早于入组时间的记录要排除 | `coalesce(paid_time, trade_time) >= begin_time and (end_time is null or coalesce(paid_time, trade_time) <= end_time)` |
 | `gmv_t` | 调课调班订单，按订单/课程/用户/期次/科目/课程部门粒度汇总，避免同一顾问同一用户多笔调课调班被揉成一条 | `order_number`, `qici`, `subject`, `course_first_level_department_name`, `name_total_price` |
 | `gmv_z` | 正常订单，按订单和课程维度汇总金额 | `name_total_price` |
 | `rd` | 合并正常订单和调课调班结果 | `union all` |
@@ -80,7 +80,7 @@
 
 | 左侧 | 右侧 | join key | 用途 |
 |---|---|---|---|
-| `dd_0 a` | `org_t ot` | `ot.name = a.name and a.trade_time >= ot.begin_time and (ot.end_time is null or a.trade_time <= ot.end_time)` | 只保留员工在青橙期间产生的营收/退款 |
+| `dd_0 a` | `org_t ot` | `ot.name = a.name and coalesce(a.paid_time, a.trade_time) between ot.begin_time and ot.end_time` | 只保留原始成交时间落在青橙期间的营收/退款，避免历史订单在转岗后退款被误计入青橙 |
 | `ord` | `order_change` | `ord.order_number = order_change.order_number` | 补充调课调班/课程转移类型 |
 | `rd` | `order_change` | `rd.order_number = order_change.order_number` | 主交易层识别内部调课调班调入/调出流水，避免误入外部收入/退款桶 |
 | `rd` | `re_ke` | `re_ke.qici_re = rd.qici and re_ke.order_number = rd.order_number` | 给交易补充全退时行课节数 |
@@ -104,7 +104,8 @@
 ## 11. 已知风险和待确认事项
 
 - 期次推导已改为 `interval` 写法；后续生成新 SQL 不得回退为 Presto 三参数 `date_add('day', n, expr)`。
-- 任职窗口必须使用 `trade_time >= begin_time` 和 `trade_time <= end_time`，与期次计算和退款发生时间保持一致；不要改回 `paid_time >= begin_time`，否则会纳入少量支付时间与交易/退款发生时间不一致的记录。
+- 任职窗口必须使用 `coalesce(paid_time, trade_time)` 作为组织归属锚点，优先按原始支付时间归属，兜底退回 `trade_time`；不要只按退款/交易发生时间过滤，否则会把历史订单在转岗后发生的退款误计入青橙。
+- 2026-06-27 已验证样例：顾问 `陈贺新` 于 2025-05-26 进入青橙，`user_id=1606647` 的原单支付在 2023-10、退款发生在 2026-06-25。旧口径按 `trade_time` 会误入团队完成度，现已修正。
 - 期次版仍保留 `temp_table.dingxi01_qing_qi_moth` 的 `moth` 字段，但最终 join 目标表不使用月份，是否保留该 join 待确认。
 - `temp_table.dingxi01_qing_team_g_qi.xiaozu` 与 `renchan.leader_employee_email_name` join，需确认 `xiaozu` 字段是否存主管邮箱。
 - `qg.emye_c != '1'` 时才展示小组，否则小组置为 `'-'`；`emye_c` 业务含义待确认。

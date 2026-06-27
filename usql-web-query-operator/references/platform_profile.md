@@ -268,6 +268,19 @@ where dt = '20260531'
 - 生产命令：`D:\anaconda3\python.exe scripts\usql_web_query.py fetch-template-sql --template-name "<模板名称>"`
 - 该命令是只读的，只读取已保存模板 SQL，不会创建模板、执行 SQL 或下载结果。
 
+## 模板市场 SQL 接口
+
+2026-06-27 已验证：
+
+- 页面 URL：`https://uanalysis.baijia.com/templateGetData/templateMarket`
+- 共享登录态：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\state.json`
+- 运行时输出目录：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\template-query\`
+- 模板市场搜索接口：`POST https://uanalysis.baijia.com/uanalysis-template/market/search`
+- 请求体结构：`{"name":"<可选模板名>","pager":{"pageSize":100,"pageNo":1}}`
+- 返回行包含 `id`、`name`、`creator`、`publishTime`、`sqlDetail` 等字段，其中 `sqlDetail` 对应页面“查看模板 -> 模板SQL -> 查看SQL”展示的 SQL。
+- 生产命令：`D:\anaconda3\python.exe scripts\usql_web_query.py fetch-market-template-sql --template-name "<模板名称>"`
+- 该命令是只读的，只读取模板市场已发布模板 SQL，不会创建模板、执行 SQL、下载结果或修改模板。
+
 ## 模板取数临时下载流程
 
 2026-06-21 已验证：
