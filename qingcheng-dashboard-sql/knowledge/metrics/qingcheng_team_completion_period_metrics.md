@@ -39,9 +39,9 @@
 | 指标 | SQL 口径 | 说明 | 状态 |
 |---|---|---|---|
 | `H_promit` | `sum(case when course_first_level_department_name = 'H业务线' then promit else 0 end)` | H 业务线净收，不剔除退 4 | 已从 SQL 入库 |
-| `n_H_promit` | `0.5 * (sum(promit) - H_promit)` | 非 H 净收按 0.5 折算，不剔除退 4 | 已从 SQL 入库 |
+| `n_H_promit` | `sum(case when course_first_level_department_name = 'H业务线' then 0 else promit end)` | 非 H 原始净收，不剔除退 4；前端折算净收款再按 0.5 计算 | 已从 SQL 入库 |
 | `H_promit_4` | `sum(case when course_first_level_department_name = 'H业务线' then promit_4 else 0 end)` | H 业务线净收，剔除退 4 | 已从 SQL 入库 |
-| `n_H_promit_4` | `0.5 * (sum(promit_4) - H_promit_4)` | 非 H 净收按 0.5 折算，剔除退 4 | 已从 SQL 入库 |
+| `n_H_promit_4` | `sum(case when course_first_level_department_name = 'H业务线' then 0 else promit_4 end)` | 非 H 原始净收，剔除退 4；前端折算净收款再按 0.5 计算 | 已从 SQL 入库 |
 
 ## 6. 用户和破单指标
 
@@ -67,3 +67,5 @@
 - 期次版是否仍需要 `temp_table.dingxi01_qing_qi_moth` join 待确认。
 - 退款阈值、H/非 H 折算、调课调班去重与月度版一致，所有待确认事项同样适用。
 - 2026-06-22 后，`income`、`refund`、`refund_4` 和科目数会先排除主交易层命中的内部调课调班调入/调出流水；识别来自 `dim_finance_order_change_df` 订单号映射，覆盖 `biz_type in (2,7)`。
+- 业务已确认 `H业务线` 按 100% 计入、所有 `非H业务线` 统一按 50% 折算；SQL 输出保留非 H 原始净收，前端公式再乘 0.5。
+- 2026-06-28 起，任职窗口优先按 `order_attr.original_paid_time` 判定，并允许 `team_hist` 期次兜底；团队架构必须按 `qtg.qici = wa.qici` 回连，不能再固定取 `max(qici)`。

@@ -11,7 +11,7 @@
 | 创建来源 | 待人工确认 |
 | 刷新方式 | 待人工确认 |
 | 刷新频率 | 待人工确认 |
-| 有效期 | 表内疑似覆盖多个 `qici`；转化 raw / 个人转化按结果期次 join，团队完成度月/期仍可能取 `max(qici)` |
+| 有效期 | 表内覆盖多个 `qici`；当前 canonical 转化 raw、个人转化和团队完成度月/期都按结果期次/交易期次 join |
 
 ## 3. 数据粒度
 
@@ -27,7 +27,7 @@ qici + employee_email_name
 
 | 字段名 | 类型 | 中文含义 | 备注 |
 |---|---|---|---|
-| `qici` | 待人工确认 | 期次 | 转化 raw / 个人转化按结果期次 join，团队完成度月/期仍可能取最大期次 |
+| `qici` | 待人工确认 | 期次 | 当前 canonical 转化 raw、个人转化和团队完成度月/期都按 `qici` 回连 |
 | `employee_email_name` | 待人工确认 | 员工姓名/邮箱名 | join `mm.employee_email_name` |
 | `xuebu` | 待人工确认 | 学部 | 最终别名 `dept_2` |
 | `leader_employee_email_name` | 待人工确认 | 直属主管/小组负责人 | 最终别名 `xiaozu` |
@@ -48,14 +48,6 @@ mm.employee_email_name = jg.employee_email_name
 and mm.qici = jg.qici
 ```
 
-团队完成度【月/期】仍使用：
-
-```sql
-where qici = (select max(qici) from temp_table.dingxi01_qing_team_jg)
-```
-
-并以最新 `qici` 下的 `leader_employee_email_name` 补当前主管。
-
 个人转化使用：
 
 ```sql
@@ -69,18 +61,19 @@ and qtg.qici = wa.qici
 
 ```sql
 qtg.employee_email_name = wa.name
+and qtg.qici = wa.qici
 ```
 
 ## 7. 不可复用边界
 
 - 默认只作为青橙转化、青橙团队完成度【月/期】和青橙个人转化看板的团队架构表。
 - 当前 canonical 转化 raw 已按 `mm.qici = jg.qici` 使用期次架构；如果后续改回最新架构，会重新引入历史期次漂移风险。
-- 个人转化按 `qtg.qici = wa.qici` 使用期次架构；团队完成度月/期如果继续取最新架构，不能与转化 raw / 个人转化直接视为同口径。
+- 个人转化和团队完成度月/期当前都按 `qtg.qici = wa.qici` 使用期次架构；如果后续改回最新架构，会重新引入跨期漂移风险。
 - 不得与 `temp_table.dingxi01_jiagou_db` 默认等同；两者字段和 join key 不同。
 
 ## 8. 待确认事项
 
 - 表来源、维护人和刷新频率。
 - `xuebu`、`leader_employee_email_name`、`dazu`、`jingli` 的组织层级含义。
-- 团队完成度月/期是否应继续使用最新架构，还是也切到交易期次/结果期次架构。
+- 团队完成度月/期与个人转化当前都已切到交易期次/结果期次架构；若未来调整，需要同步回归三份完成度 SQL。
 - 个人转化场景下是否一人一期唯一；若不唯一会放大个人业绩。

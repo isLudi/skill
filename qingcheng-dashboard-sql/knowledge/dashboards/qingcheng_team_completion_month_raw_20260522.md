@@ -26,6 +26,7 @@
 | 表名 | 别名/CTE | 用途 |
 |---|---|---|
 | `dw.dim_employee_chain` | `org_t` | 确认员工在青橙项目部路径下的任职起止时间 |
+| `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` | `order_attr` | 提供订单原始支付时间 `original_paid_time`，辅助完成度按原始成交窗口归属 |
 | `finance_dw.app_finance_performance_extend_details_hf` | `dd_0` / `dd` | 财务业绩扩展明细，计算收入、退款和净收 |
 | `finance_dw.dm_finance_order_refund_detail_df` | `ord` | 全退订单明细，提供完全退款时已完课课节数 |
 | `finance_dw.dim_finance_order_change_df` | `order_change_raw` / `order_change` | 识别调课调班/课程转移主链路订单，覆盖订单号、父订单号、原始订单号和最新子订单号 |
@@ -37,21 +38,24 @@
 | `temp_table.dingxi01_qing_qi_moth` | 期次到月份映射表，按 `qici` 补充 `moth` | 已从 SQL 入库，来源/刷新方式待人工确认 |
 | `temp_table.dingxi01_qing_team_jg` | 青橙最新团队架构表，按员工补充主管 | 已从 SQL 入库，来源/刷新方式待人工确认 |
 | `temp_table.dingxi01_qing_team_goal` | 青橙团队月目标表，提供月度目标和组织层级 | 已从 SQL 入库，来源/刷新方式待人工确认 |
+| `temp_table.dingxi01_qing_team_jg`（`team_hist`） | 组织链时间滞后时，按期次兜底保留已在青橙架构中的顾问订单 | 仅用于完成度任职窗口兜底，不替代正式组织链 |
 
 ## 6. CTE 结构
 
 | CTE | 用途 | 关键字段 |
 |---|---|---|
 | `org_t` | 员工在青橙项目部路径下的任职时间窗口 | `email_prefix`, `name`, `begin_time`, `end_time` |
+| `order_attr` | 从订单明细侧取原始支付时间 | `original_order_pay_success_timestamp`, `pay_success_timestamp`, `trade_timestamp` |
+| `team_hist` | 组织链时间滞后时，按期次保留已在青橙架构中的顾问 | `qici`, `employee_email_name` |
 | `dd_0` | 财务业绩原始层，生成标准科目、期次和基础订单字段 | `order_number`, `user_id1`, `trade_status`, `trade_type`, `trade_time`, `price`, `subject`, `qici` |
-| `dd` | 只保留员工原始成交时间落在青橙任职期间的交易；退款晚发生但原单早于入组时间的记录要排除 | `coalesce(paid_time, trade_time) >= begin_time and (end_time is null or coalesce(paid_time, trade_time) <= end_time)` |
+| `dd` | 优先按 `original_paid_time` 判定原始成交是否落在青橙任职期间；若组织链滞后，则允许 `team_hist` 期次命中兜底保留 | `coalesce(oa.original_paid_time, paid_time, trade_time)` |
 | `gmv_t` | 调课调班订单，按订单/课程/用户/期次/科目/课程部门粒度汇总，避免同一顾问同一用户多笔调课调班被揉成一条 | `order_number`, `qici`, `subject`, `course_first_level_department_name`, `name_total_price` |
-| `gmv_z` | 正常订单，按订单和课程维度汇总金额 | `name_total_price` |
+| `gmv_z` | 非调课调班订单，按订单和课程维度汇总金额 | `trade_type <> '调课调班'`, `name_total_price` |
 | `rd` | 合并正常订单和调课调班结果 | `union all` |
 | `ord` | 全退订单课节明细 | `full_refund_chain_finish_lesson_count`, `qici_re` |
 | `order_change_raw` / `order_change_order_map` / `order_change` | 调课调班/课程转移主链路订单映射，按订单号聚合后供主交易层和退款层复用 | `order_number`, `has_order_change`, `transfer_in_amount_yuan`, `transfer_out_amount_yuan`, `refund_type` |
 | `re_ke` | 合并全退课节和调课调班类型，按 `qici_re + order_number` 聚合避免回连放大 | `refund_type`, `full_refund_chain_finish_lesson_count` |
-| `t4` | 将退款课节数回连到财务交易 | `re_lc` |
+| `t4` | 将退款课节数和主交易调课调班链路回连到财务交易，只把调课调班流水本身标记为内部变更 | `re_lc`, `is_internal_order_change` |
 | `rd_0` | 用户/交易状态层收入、退款、剔除退 4 退款和科目数 | `income`, `refund_4`, `refund`, `sub` |
 | `wa` | 补充月份和净收 | `moth`, `promit_4`, `promit` |
 | `renchan` | 人维度月度业绩 | `H_promit`, `n_H_promit`, `promit`, `H_promit_4`, `n_H_promit_4`, `promit_4` |
@@ -80,7 +84,7 @@
 
 | 左侧 | 右侧 | join key | 用途 |
 |---|---|---|---|
-| `dd_0 a` | `org_t ot` | `ot.name = a.name and coalesce(a.paid_time, a.trade_time) between ot.begin_time and ot.end_time` | 只保留原始成交时间落在青橙期间的营收/退款，避免历史订单在转岗后退款被误计入青橙 |
+| `dd_0 a` | `order_attr oa` + `org_t ot` + `team_hist th` | `oa.order_number = a.order_number and oa.performance_employee_email_name = a.name`，再用 `coalesce(oa.original_paid_time, a.paid_time, a.trade_time)` 匹配任职窗口；若 `team_hist.qici` 命中则兜底保留 | 只保留原始成交时间落在青橙期间的营收/退款，同时避免组织链起始时间滞后误删当前有效订单 |
 | `ord` | `order_change` | `ord.order_number = order_change.order_number` | 补充调课调班/课程转移类型 |
 | `rd` | `order_change` | `rd.order_number = order_change.order_number` | 主交易层识别内部调课调班调入/调出流水，避免误入外部收入/退款桶 |
 | `rd` | `re_ke` | `re_ke.qici_re = rd.qici and re_ke.order_number = rd.order_number` | 给交易补充全退时行课节数 |
@@ -107,10 +111,10 @@
 | 指标 | 口径简述 |
 |---|---|
 | `H_promit` | H 业务线净收，不剔除退 4 |
-| `n_H_promit` | 非 H 净收按 0.5 折算，不剔除退 4 |
+| `n_H_promit` | 非 H 原始净收，不剔除退 4；前端折算净收款再按 0.5 计算 |
 | `promit` | 总净收，不剔除退 4 |
 | `H_promit_4` | H 业务线净收，剔除行课阈值退款 |
-| `n_H_promit_4` | 非 H 净收按 0.5 折算，剔除行课阈值退款 |
+| `n_H_promit_4` | 非 H 原始净收，剔除行课阈值退款；前端折算净收款再按 0.5 计算 |
 | `promit_4` | 总净收，剔除行课阈值退款 |
 | `goal` | 团队月目标 |
 | `podan` / `podan_4` | 净收/剔除退 4 净收大于 0 的伙伴数 |
@@ -125,6 +129,15 @@
 - `gmv_t` 调课调班已改为订单/课程粒度；后续生成新 SQL 不得回退为 `name + user_id1` 粗粒度去重。
 - 与订单明细核对时，不要只使用 service 订单明细表原始 `income_amount/refund_amount`，该表部分调课调班链路金额可能缺失或为 0；若做明细侧核对，需要按 `transfer_in_amount/transfer_out_amount` 补充，并用 finance 明细补齐 service 缺失事件。
 - `dim_finance_order_change_df` 必须接到 `rd/t4` 主交易层，并覆盖 `biz_type in (2,7)`；不要只接到退款明细层，否则 `调出退款` 可能在 `re_lc=0` 时误入 4 节内退款。
+- `temp_table.dingxi01_qing_team_jg` 必须按 `qtg.qici = wa.qici` 回连，不能固定取 `max(qici)`，否则不同期次会套用同一套最新架构。
+- 业务已确认 `H业务线` 按 100% 计入、所有 `非H业务线` 统一按 50% 折算；文档中不再保留“是否所有非 H 都 50% 待确认”。
 - `temp_table.dingxi01_qing_qi_moth` 字段名为 `moth`，疑似 month 拼写，保留历史 SQL 口径。
 - `qg.emye_c != '1'` 时才展示小组，否则小组置为 `'-'`；`emye_c` 业务含义待确认。
 - 最终查询中 `group by` 包含 `leader_employee_email_name`，但该字段不在最终 select 明确输出，仅影响聚合粒度；待确认是否必要。
+
+## 13. 2026-06-28 最终修复补充
+
+- 新增 `order_attr.original_paid_time`，优先按原始成交时间回连组织窗口。
+- 增加 `team_hist` 期次兜底，避免组织链开始时间滞后导致当前有效订单被切掉。
+- `gmv_z` 改为保留所有非调课调班交易，而不再限制 `trade_type='正常订单'`。
+- `is_internal_order_change` 只剔除调课调班流水本身，不再把命中变更链路的正常订单整体剔除。

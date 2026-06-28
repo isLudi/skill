@@ -39,9 +39,9 @@
 | 指标 | SQL 口径 | 说明 | 状态 |
 |---|---|---|---|
 | `H_promit` | `sum(case when course_first_level_department_name = 'H业务线' then promit else 0 end)` | H 业务线净收，不剔除退 4 | 已从 SQL 入库 |
-| `n_H_promit` | `0.5 * (sum(promit) - H_promit)` | 非 H 净收按 0.5 折算，不剔除退 4 | 已从 SQL 入库 |
+| `n_H_promit` | `sum(case when course_first_level_department_name = 'H业务线' then 0 else promit end)` | 非 H 原始净收，不剔除退 4；前端折算净收款再按 0.5 计算 | 已从 SQL 入库 |
 | `H_promit_4` | `sum(case when course_first_level_department_name = 'H业务线' then promit_4 else 0 end)` | H 业务线净收，剔除退 4 | 已从 SQL 入库 |
-| `n_H_promit_4` | `0.5 * (sum(promit_4) - H_promit_4)` | 非 H 净收按 0.5 折算，剔除退 4 | 已从 SQL 入库 |
+| `n_H_promit_4` | `sum(case when course_first_level_department_name = 'H业务线' then 0 else promit_4 end)` | 非 H 原始净收，剔除退 4；前端折算净收款再按 0.5 计算 | 已从 SQL 入库 |
 
 ## 6. 用户和破单指标
 
@@ -65,6 +65,7 @@
 - `price` 是否已经是元，当前 SQL 直接使用。
 - `refund_4` 名称虽然含 “4”，但点睛阈值是 2 节，非点睛是 4 节，一对一全部计入。
 - 2026-06-22 后，`income`、`refund`、`refund_4` 和科目数会先排除主交易层命中的内部调课调班调入/调出流水；识别来自 `dim_finance_order_change_df` 订单号映射，覆盖 `biz_type in (2,7)`。
-- 非 H 业绩按 0.5 折算是否适用于所有非 H 课程部门待确认。
+- 业务已确认 `H业务线` 按 100% 计入、所有 `非H业务线` 统一按 50% 折算；SQL 输出保留非 H 原始净收，前端公式再乘 0.5。
 - `temp_table.dingxi01_qing_team_goal.goal` 的目标单位需确认是否与 `promit` 同单位。
 - `moth` 字段拼写保留历史 SQL，语义为月份。
+- 2026-06-28 起，任职窗口优先按 `order_attr.original_paid_time` 判定，并允许 `team_hist` 期次兜底；同时 `is_internal_order_change` 只剔除调课调班流水本身。

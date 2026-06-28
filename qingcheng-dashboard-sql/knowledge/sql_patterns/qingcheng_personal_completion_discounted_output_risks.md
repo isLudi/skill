@@ -15,7 +15,8 @@
 
 - 剔除 4 节课之后的班课退费。
 - 点睛班 2 节课后退费不再剔除，2 节课前退费计入剔除。
-- 小初业务线按 50% 折算。
+- `H业务线` 按 100% 计入。
+- 所有 `非H业务线` 统一按 50% 折算，不再只限于小初。
 
 个人完成度前端计算字段当前为：
 
@@ -87,20 +88,28 @@ group by
 
 生成新 SQL 时不得把 `gmv_t` 合并回 `name + user_id1` 粒度，也不要为了去重删除 `order_number`、`qici`、`subject`、课程部门字段。
 
-### 3.3 任职窗口时间字段要一致
+### 3.3 任职窗口必须优先看原始支付时间
 
-历史口径曾混用 `paid_time >= begin_time` 和 `trade_time <= end_time`，后续又统一成纯 `trade_time`。这两种写法都不稳，因为完成度看板要解决的是“这笔订单原始归属哪个组织窗口”，而不是“退款今天发生在哪个组织窗口”。当前统一使用 `coalesce(paid_time, trade_time)` 归属青橙任职窗口，使用：
+历史口径曾混用 `paid_time >= begin_time` 和 `trade_time <= end_time`，后续又统一成纯 `trade_time`。这两种写法都不稳，因为完成度看板要解决的是“这笔订单原始归属哪个组织窗口”，而不是“退款今天发生在哪个组织窗口”。
+
+2026-06-28 起，稳定口径升级为先取订单侧原始支付时间，再回到组织窗口：
+
+```sql
+cast(coalesce(original_order_pay_success_timestamp, pay_success_timestamp, trade_timestamp) as timestamp) as original_paid_time
+```
+
+完成度 SQL 中通过 `order_attr` 回连后，使用：
 
 ```sql
 ot.name = a.name
-and cast(coalesce(a.paid_time, a.trade_time) as timestamp) >= cast(ot.begin_time as timestamp)
+and cast(coalesce(oa.original_paid_time, a.paid_time, a.trade_time) as timestamp) >= cast(ot.begin_time as timestamp)
 and (
     ot.end_time is null
-    or cast(coalesce(a.paid_time, a.trade_time) as timestamp) <= cast(ot.end_time as timestamp)
+    or cast(coalesce(oa.original_paid_time, a.paid_time, a.trade_time) as timestamp) <= cast(ot.end_time as timestamp)
 )
 ```
 
-如果业务要求按支付时间归属，需要整体切换为同一个时间字段，不要只改开始或结束边界的一侧。
+如果订单侧拿不到原始支付时间，才兜底回退到 `paid_time` / `trade_time`。
 
 2026-06-27 已验证高风险样例：
 
@@ -117,7 +126,7 @@ and (
 
 只看到退款发生时间晚于入组时间，并不能说明它应该计入青橙。
 
-### 3.4 订单明细侧 service 表不完整保留调课调班链路金额
+### 3.4 订单明细侧 service 表不能当完成度金额唯一事实源
 
 `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` 的原始 `income_amount`、`refund_amount` 在部分调课调班链路上可能直接缺失或为 0。用订单明细侧反查个人/团队完成度时，不能只按 service 原始金额核对，应采用以下补偿口径：
 
@@ -143,6 +152,56 @@ cast(coalesce(refund_amount, 0) + coalesce(transfer_out_amount, 0) as double) / 
 
 - `谷锦茜`，`20260619期`：旧口径 `income=9400`、`refund_4=5100`、折算后产出 `4300`；修复后 `income=9200`、`refund=4800`、`H_promit_4=4400`、折算后产出 `4400`。
 - 对应调课调班订单 `418179396287335895` 在 `dim_finance_order_change_df` 中存在 `biz_type=7` 链路，原订单行 `transfer_out_amount_yuan=100`，子订单行 `transfer_in_amount_yuan=100`。
+
+### 3.6 只剔除调课调班流水本身，不能把整条变更链路正常订单一起剔掉
+
+2026-06-28 再次排查发现，如果把 `dim_finance_order_change_df` 命中的所有订单都标记为内部订单，会把链路上的正常绩效订单一起排除，直接导致营收被少算。
+
+当前稳定规则：
+
+```sql
+case
+    when rd.trade_type = '调课调班'
+     and (
+            (
+                coalesce(order_change.has_order_change, 0) = 1
+                and (
+                    coalesce(order_change.transfer_in_amount_yuan, 0) > 0
+                    or coalesce(order_change.transfer_out_amount_yuan, 0) > 0
+                )
+            )
+            or rd.name_total_price < 0
+         )
+    then 1
+    else 0
+end as is_internal_order_change
+```
+
+含义：
+
+- 只剔除 `trade_type='调课调班'` 的内部变更流水；
+- 命中课程转移链路但本身是正常成交的订单，绩效仍要保留。
+
+已验证样例：
+
+- `李孟笛06`：错误版本会把 `20260626期` 多笔正常订单一起排除，个人看板累计净营收被压到 `9150`；修复后该期恢复到 `22550`，李嘉诚06 团队期次净收恢复到 `75244`。
+
+### 3.7 团队架构必须按期次 join，不能固定取最新期次
+
+团队完成度【月/期】和个人完成度都不能再使用：
+
+```sql
+where qici = (select max(qici) from temp_table.dingxi01_qing_team_jg)
+```
+
+当前稳定规则：
+
+```sql
+qtg.employee_email_name = wa.name
+and qtg.qici = wa.qici
+```
+
+否则顾问在 `20260619期` 和 `20260626期` 会套到同一套最新架构，造成跨期数据看起来一样。
 
 ## 4. 快速诊断 SQL 片段
 
@@ -210,6 +269,7 @@ group by 1, 2
 
 - `宋青蔓`：历史折算后产出 `8206.34`，修复后 `7132.73`；差异来自调课调班退款 `1073.61` 被历史 `gmv_t` 聚合吃掉。
 - `李孟笛06`：历史折算后产出 `4600.00`，修复后 `9150.00`；差异来自空课程部门流水 `4600` 被兜底进 H 班课，同时 `50` 退款进入剔除逻辑。
+- `李孟笛06`：2026-06-28 最终版再修复后，`20260626期` 不再误删命中调课调班链路的正常订单，个人该期累计净营收恢复到 `22550.00`。
 - `许世杰05`：历史折算后产出 `12400.00`，修复后 `17000.00`；差异来自空课程部门流水 `4600` 被兜底进 H 班课。
 - `谷锦茜`：历史折算后产出 `4300.00`，2026-06-22 修复后 `4400.00`；差异来自 `biz_type=7` 的内部调课调班 `调出退款 -100` 被旧 SQL 当作 4 节内外部退费。
 

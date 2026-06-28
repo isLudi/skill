@@ -45,9 +45,9 @@ qici + moth + name + leader_employee_email_name + dazu + jingli + xuebu
 | 指标 | SQL 口径 | 说明 | 状态 |
 |---|---|---|---|
 | `H_promit` | `sum(case when course_first_level_department_name = 'H业务线' then promit else 0 end)` | H 业务线净收，不剔除退 4 | 已从 SQL 入库 |
-| `n_H_promit` | `0.5 * (sum(promit) - H_promit)` | 非 H 净收按 0.5 折算，不剔除退 4 | 已从 SQL 入库 |
+| `n_H_promit` | `sum(case when course_first_level_department_name = 'H业务线' then 0 else promit end)` | 非 H 原始净收，不剔除退 4；前端/下游再按 0.5 折算 | 已从 SQL 入库 |
 | `H_promit_4` | `sum(case when course_first_level_department_name = 'H业务线' then promit_4 else 0 end)` | H 业务线净收，剔除退 4 | 已从 SQL 入库 |
-| `n_H_promit_4` | `0.5 * (sum(promit_4) - H_promit_4)` | 非 H 净收按 0.5 折算，剔除退 4 | 已从 SQL 入库 |
+| `n_H_promit_4` | `sum(case when course_first_level_department_name = 'H业务线' then 0 else promit_4 end)` | 非 H 原始净收，剔除退 4；前端/下游再按 0.5 折算 | 已从 SQL 入库 |
 
 ## 6. H 一对一拆分指标
 
@@ -90,7 +90,7 @@ qici + moth + name + leader_employee_email_name + dazu + jingli + xuebu
 - `podan` 在个人粒度下通常等价于个人是否净收大于 0 的 0/1 标记，是否需要保留 `count(distinct ...)` 形式待确认。
 - H 一对一拆分字段名称使用 `Y_` 前缀，当前按 SQL 理解为“一对一”，命名来源待确认。
 - `price` 是否已经是元，当前 SQL 直接使用。
-- 非 H 业绩按 0.5 折算是否适用于所有非 H 课程部门待确认。
+- 业务已确认 `H业务线` 按 100% 计入、所有 `非H业务线` 统一按 50% 折算；SQL 输出保留非 H 原始净收，前端公式再乘 0.5。
 
 ## 10. 折算后产出前端公式与源指标风险
 
@@ -103,10 +103,16 @@ ifnull(sum(${n_H_promit_4}) * 0.5 + (sum(${H_promit_4}) - sum(${Y_promit_4})), 0
 该公式本身只做前端聚合，准确性依赖源 SQL 中以下字段已经正确入桶：
 
 - `H_promit_4`：H 业务线剔除行课阈值退款后的净收。
-- `n_H_promit_4`：非 H 业务线剔除行课阈值退款后的净收，前端再乘 0.5。
+- `n_H_promit_4`：非 H 业务线剔除行课阈值退款后的原始净收，前端再乘 0.5。
 - `Y_promit_4`：H 一对一剔除行课阈值退款后的净收，前端从 H 中扣除。
 - `refund_4`：按班课 4 节、点睛班 2 节、一对一全额规则计入的退款。
 
 若支付订单流水与看板不一致，优先排查 `course_first_level_department_name` / `course_second_level_department_name` 空值兜底和 `gmv_t` 调课调班聚合粒度。详细风险、诊断 SQL 和已验证样例见 `knowledge/sql_patterns/qingcheng_personal_completion_discounted_output_risks.md`。
 
 2026-06-22 后补充：`income`、`refund`、`refund_4` 和科目数会先排除主交易层命中的内部调课调班调入/调出流水。该识别来自 `dim_finance_order_change_df` 订单号映射，覆盖 `biz_type in (2,7)`，用于避免把内部 `调出退款` 当外部退费计入。
+
+2026-06-28 后补充：
+
+- 任职窗口优先按 `order_attr.original_paid_time` 判定，避免历史订单退款串入青橙。
+- 若组织链 `begin_time` 滞后，允许 `team_hist` 期次命中兜底保留当前有效订单。
+- 命中订单变更链路但本身是正常成交的订单不得排除；`is_internal_order_change` 只用于剔除 `trade_type='调课调班'` 的内部变更流水本身。

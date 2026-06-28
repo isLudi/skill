@@ -10,12 +10,13 @@
 
 沉淀青橙个人转化 SQL。该 SQL 使用财务业绩扩展明细计算员工在青橙任职期间产生的收入、退款和净收，结合全退订单行课节数计算“剔除行课阈值退款”后的净收，再以青橙团队架构表为人员期次骨架输出个人维度的转化和产出指标。
 
-该 SQL 与团队完成度【月/期】共用订单处理、调课调班去重、全退课节和 H/非 H 折算口径，但最终不 join 团队目标表，输出粒度是个人。
+该 SQL 与团队完成度【月/期】共用订单处理、调课调班去重、全退课节和 H/非 H 折算口径，但最终不 join 团队目标表，而是 join 个人目标表，输出个人的期次粒度和月度汇总粒度。
 
 ## 3. 最终输出粒度
 
 | 维度 | 字段 |
 |---|---|
+| 粒度标记 | `data_level`，`qici` / `moth` |
 | 期次 | `qici` |
 | 月份 | `moth`，来自 `temp_table.dingxi01_qing_qi_moth` |
 | 个人 | `name`，来自 `employee_email_name` |
@@ -29,6 +30,7 @@
 | 表名 | 别名/CTE | 用途 |
 |---|---|---|
 | `dw.dim_employee_chain` | `org_t` | 确认员工在青橙项目部路径下的任职起止时间 |
+| `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` | `order_attr` | 提供订单原始支付时间 `original_paid_time`，辅助完成度按原始成交窗口归属 |
 | `finance_dw.app_finance_performance_extend_details_hf` | `dd_0` / `dd` | 财务业绩扩展明细，计算收入、退款和净收 |
 | `finance_dw.dm_finance_order_refund_detail_df` | `ord` | 全退订单明细，提供完全退款时已完课课节数 |
 | `finance_dw.dim_finance_order_change_df` | `order_change_raw` / `order_change` | 识别调课调班/课程转移主链路订单，覆盖订单号、父订单号、原始订单号和最新子订单号 |
@@ -39,25 +41,31 @@
 |---|---|---|
 | `temp_table.dingxi01_qing_team_jg` | 青橙团队架构表，作为个人期次输出骨架 | 已从 SQL 入库，来源/刷新方式待人工确认 |
 | `temp_table.dingxi01_qing_qi_moth` | 期次到月份映射表，按 `qtg.qici` 补充 `moth` | 已从 SQL 入库，来源/刷新方式待人工确认 |
+| `temp_table.dingxi01_qing_goal` | 青橙个人目标表，提供 `qici_goal` 和 `moth_goal` | 已从 SQL 入库，来源/刷新方式待人工确认 |
+| `temp_table.dingxi01_qing_team_jg`（`team_hist`） | 组织链生效时间滞后时，按期次兜底保留已在青橙架构中的人员订单 | 仅用于完成度任职窗口兜底，不替代正式组织链 |
 
 ## 6. CTE 结构
 
 | CTE | 用途 | 关键字段 |
 |---|---|---|
 | `org_t` | 员工在青橙项目部路径下的任职时间窗口 | `email_prefix`, `name`, `begin_time`, `end_time` |
+| `order_attr` | 从订单明细侧取原始支付时间 | `original_order_pay_success_timestamp`, `pay_success_timestamp`, `trade_timestamp` |
+| `team_hist` | 组织链时间滞后时，按期次保留已在青橙架构中的顾问 | `qici`, `employee_email_name` |
 | `dd_0` | 财务业绩原始层，生成标准科目、期次和基础订单字段 | `order_number`, `user_id1`, `trade_status`, `trade_type`, `trade_time`, `price`, `subject`, `qici` |
-| `dd` | 只保留员工原始成交时间落在青橙任职期间的交易；退款晚发生但原单早于入组时间的记录要排除 | `coalesce(paid_time, trade_time) >= begin_time and (end_time is null or coalesce(paid_time, trade_time) <= end_time)` |
+| `dd` | 优先按 `original_paid_time` 判定原始成交是否落在青橙任职期间；若组织链滞后，则允许 `team_hist` 期次命中兜底保留 | `coalesce(oa.original_paid_time, paid_time, trade_time)` |
 | `gmv_t` | 调课调班订单，按订单/课程/用户/期次/科目/课程部门粒度汇总，避免同一顾问同一用户多笔调课调班被揉成一条 | `order_number`, `qici`, `subject`, `course_first_level_department_name`, `name_total_price` |
-| `gmv_z` | 正常订单，按订单和课程维度汇总金额 | `name_total_price` |
+| `gmv_z` | 非调课调班订单，按订单和课程维度汇总金额 | `trade_type <> '调课调班'`, `name_total_price` |
 | `rd` | 合并正常订单和调课调班结果 | `union all` |
 | `ord` | 全退订单课节明细 | `full_refund_chain_finish_lesson_count`, `qici_re` |
 | `order_change_raw` / `order_change_order_map` / `order_change` | 调课调班/课程转移主链路订单映射，按订单号聚合后供主交易层和退款层复用 | `order_number`, `has_order_change`, `transfer_in_amount_yuan`, `transfer_out_amount_yuan`, `refund_type` |
 | `re_ke` | 合并全退课节和调课调班类型，按 `qici_re + order_number` 聚合避免回连放大 | `refund_type`, `full_refund_chain_finish_lesson_count` |
-| `t4` | 将退款课节数和主交易调课调班链路回连到财务交易 | `re_lc`, `main_has_order_change`, `main_transfer_in_amount_yuan`, `main_transfer_out_amount_yuan` |
+| `t4` | 将退款课节数和主交易调课调班链路回连到财务交易，只把调课调班流水本身标记为内部变更 | `re_lc`, `main_has_order_change`, `main_transfer_in_amount_yuan`, `main_transfer_out_amount_yuan`, `is_internal_order_change` |
 | `rd_0` | 用户/交易状态层收入、退款、剔除退 4 退款和支付/退款科目数 | `income`, `refund_4`, `refund`, `p_sub`, `r_sub` |
 | `wa` | 计算净收、剔除退 4 净收和净科目基础字段 | `promit`, `promit_4`, `jing_sub` |
 | `renchan` | 以团队架构表为主，聚合个人期次指标 | `employee_email_name`, `leader_employee_email_name`, `H_promit`, `Y_promit_4`, `in_payer_4`, `j_sub` |
-| 最终查询 | 输出个人期次/月度转化指标 | `qici`, `moth`, `name`, `leader_employee_email_name`, `dazu`, `jingli`, `xuebu` |
+| `goal_qici` / `goal_moth` | 从个人目标表聚合期次目标和月目标 | `qici_goal`, `moth_goal` |
+| `final_base` | 汇总个人期次基础指标并回连目标 | `qici_goal`, `moth_goal` |
+| 最终查询 | 双粒度输出个人期次/月度转化指标 | `data_level`, `qici`, `moth`, `name`, `leader_employee_email_name`, `dazu`, `jingli`, `xuebu` |
 
 ## 7. 青橙范围限定
 
@@ -82,7 +90,7 @@
 
 | 左侧 | 右侧 | join key | 用途 |
 |---|---|---|---|
-| `dd_0 a` | `org_t ot` | `ot.name = a.name and coalesce(a.paid_time, a.trade_time) between ot.begin_time and ot.end_time` | 只保留原始成交时间落在青橙期间的营收/退款，避免历史订单在转岗后退款被误计入青橙 |
+| `dd_0 a` | `order_attr oa` + `org_t ot` + `team_hist th` | `oa.order_number = a.order_number and oa.performance_employee_email_name = a.name`，再用 `coalesce(oa.original_paid_time, a.paid_time, a.trade_time)` 匹配任职窗口；若 `team_hist.qici` 命中则兜底保留 | 只保留原始成交时间落在青橙期间的营收/退款，同时避免组织链起始时间滞后误删当前有效订单 |
 | `ord` | `order_change` | `ord.order_number = order_change.order_number` | 补充调课调班/课程转移类型 |
 | `rd` | `re_ke` | `re_ke.qici_re = rd.qici and re_ke.order_number = rd.order_number` | 给交易补充全退时行课节数 |
 | `rd` | `order_change` | `rd.order_number = order_change.order_number` | 主交易层识别内部调课调班调入/调出流水，避免误入外部收入/退款桶 |
@@ -122,6 +130,8 @@
 - `wa.jing_sub` 直接取 `p_sub`，当前 `j_sub` 实际为支付科目求和，不扣减退款科目；“净科目数”命名待确认。
 - `renchan` 以 `temp_table.dingxi01_qing_team_jg` 为主表，未匹配业绩的架构人员会保留并输出 0 指标。
 - `temp_table.dingxi01_qing_team_jg` 是否一人一期唯一待确认；若不唯一，会放大个人业绩。
+- 业务已确认 `H业务线` 按 100% 计入、所有 `非H业务线` 统一按 50% 折算；后续文档和 SQL 不得再回退成“仅小初 50%”。
+- 命中 `dim_finance_order_change_df` 的正常订单绩效必须保留；只能剔除 `trade_type='调课调班'` 的内部变更流水本身。
 
 ## 13. 2026-06-21 折算后产出修复记录
 
@@ -139,3 +149,12 @@
 - `re_ke` 按 `qici_re + order_number` 聚合后再回连，避免一笔交易被多条退款/调课链路行放大。
 - 主交易层识别为内部调课调班调入/调出时，不进入 `income`、`refund`、`refund_4` 和科目数，避免把调出退款误算为 4 节内外部退费。
 - 已验证样例：`谷锦茜` 在 `20260619期` 修复后 `income=9200`、`refund=4800`、`H_promit_4=4400`、前端折算后产出 `4400`。
+
+## 15. 2026-06-28 任职窗口和内部调课调班最终修复
+
+- 新增 `order_attr`：从 `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` 提取 `original_order_pay_success_timestamp / pay_success_timestamp / trade_timestamp`，生成 `original_paid_time`。
+- `dd` 不再只按 `coalesce(paid_time, trade_time)` 判定组织窗口，而是优先按 `coalesce(oa.original_paid_time, paid_time, trade_time)`。
+- 新增 `team_hist` 兜底：组织链开始时间滞后时，只要顾问已在该期次青橙架构中出现，就允许该期订单保留。
+- `gmv_z` 从 `trade_type = '正常订单'` 调整为 `coalesce(trade_type, '') <> '调课调班'`，避免误排除应保留的正常绩效订单。
+- `is_internal_order_change` 调整为“只剔除调课调班流水本身”；命中订单变更链路但本身是正常成交的订单不再排除。
+- 已验证样例：`李孟笛06` 在错误版本中 `20260626期` 被压到 `9150`；修复后该期恢复到 `22550`。

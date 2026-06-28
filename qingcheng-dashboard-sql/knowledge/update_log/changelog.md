@@ -323,3 +323,23 @@
   - `runtime/tmp/validate_qingcheng_personal_completion_order_change_20260627.sql`，query id `1434324030`。
   - `runtime/tmp/validate_qingcheng_team_month_order_change_20260627.sql`，query id `1434328550`。
   - `runtime/tmp/validate_qingcheng_team_period_order_change_20260627.sql`，query id `1434332703`。
+## 2026-06-28 青橙完成度三份 SQL 与经验沉淀同步
+
+- 用 runtime 最终验证版覆盖三份 canonical raw SQL：
+  - `resources/raw_sql/qingcheng_personal_conversion_raw_20260522.sql`
+  - `resources/raw_sql/qingcheng_team_completion_period_raw_20260522.sql`
+  - `resources/raw_sql/qingcheng_team_completion_month_raw_20260522.sql`
+- 同步落地 2026-06-28 最终修复点：
+  - 新增 `order_attr`，优先使用 `original_order_pay_success_timestamp / pay_success_timestamp / trade_timestamp` 生成 `original_paid_time`，完成度按原始成交窗口归属组织。
+  - 新增 `team_hist` 期次兜底，解决组织链 `begin_time` 滞后导致当前有效订单被误删。
+  - `gmv_z` 从 `trade_type = '正常订单'` 调整为 `coalesce(trade_type, '') <> '调课调班'`，避免误排除应保留的正常绩效订单。
+  - `is_internal_order_change` 从“命中变更链路就剔除”修正为“只剔除调课调班流水本身”；命中变更链路但本身是正常成交的订单不再排除。
+  - 团队架构回连统一改为 `qtg.qici = wa.qici`，不再固定取 `max(qici)`。
+  - 业务确认：`H业务线` 按 100% 计入，所有 `非H业务线` 统一按 50% 折算；SQL 输出保留非 H 原始净收，前端公式再乘 0.5。
+- 新增经验清单文档：`knowledge/sql_patterns/qingcheng_completion_sql_repair_checklist.md`。
+- 更新完成度相关 dashboard、metrics、risk、quick_reference、decision_tree 文档，沉淀以下高频误区：
+  - 不要只看 `trade_time` 或只看 `paid_time` 判定组织归属；
+  - 不要把 service 订单明细当完成度金额唯一事实源；
+  - 不要把命中 `dim_finance_order_change_df` 的所有订单都当内部流水；
+  - 不要在团队完成度中继续固定取 `temp_table.dingxi01_qing_team_jg.max(qici)`；
+  - 不要再写“仅小初 50% 折算”或“非 H 是否全部 50% 待确认”。
