@@ -1,4 +1,4 @@
-﻿interface:
+interface:
   display_name: "Lark Shared"
   short_description: "Use when first setting up lark-cli, running auth login, switching user/bot identity (--as), handling permission denied or scope errors, needing to update lark-cli, or seeing _notice in JSON output."
   default_prompt: "Use lark-shared for tasks that match its documented Feishu/Lark scope and workflows."
