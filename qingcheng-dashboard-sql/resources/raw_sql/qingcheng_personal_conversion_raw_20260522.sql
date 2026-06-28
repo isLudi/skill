@@ -366,7 +366,15 @@ with org_t as (
         coalesce(order_change.is_child_order, 0) as main_is_child_order,
         coalesce(order_change.transfer_in_amount_yuan, 0) as main_transfer_in_amount_yuan,
         coalesce(order_change.transfer_out_amount_yuan, 0) as main_transfer_out_amount_yuan,
-        coalesce(order_change.refund_type, '非调课调班') as main_order_change_type
+        coalesce(order_change.refund_type, '非调课调班') as main_order_change_type,
+        case
+            when rd.trade_type = '调课调班' then 1
+            when coalesce(order_change.has_order_change, 0) = 1
+             and (coalesce(order_change.transfer_in_amount_yuan, 0) > 0
+               or coalesce(order_change.transfer_out_amount_yuan, 0) > 0)
+            then 1
+            else 0
+        end as is_internal_order_change
     from rd
     left join re_ke
         on re_ke.qici_re = rd.qici
@@ -390,9 +398,7 @@ with org_t as (
         grade_list,
         sum(
             case
-                when main_has_order_change = 1
-                 and trade_type = '调课调班'
-                 and (main_transfer_in_amount_yuan > 0 or main_transfer_out_amount_yuan > 0)
+                when is_internal_order_change = 1
                 then 0
                 when name_total_price >= 0 then name_total_price
                 else 0
@@ -400,9 +406,7 @@ with org_t as (
         ) as income,
         sum(
             case
-                when main_has_order_change = 1
-                 and trade_type = '调课调班'
-                 and (main_transfer_in_amount_yuan > 0 or main_transfer_out_amount_yuan > 0)
+                when is_internal_order_change = 1
                 then 0
                 when course_second_level_department_name = '一对一学部'
                  and course_first_level_department_name = 'H业务线'
@@ -416,25 +420,19 @@ with org_t as (
         ) as refund_4,
         sum(
             case
-                when main_has_order_change = 1
-                 and trade_type = '调课调班'
-                 and (main_transfer_in_amount_yuan > 0 or main_transfer_out_amount_yuan > 0)
+                when is_internal_order_change = 1
                 then 0
                 when name_total_price < 0 then abs(name_total_price)
                 else 0
             end
         ) as refund,
         count(distinct case
-            when main_has_order_change = 1
-             and trade_type = '调课调班'
-             and (main_transfer_in_amount_yuan > 0 or main_transfer_out_amount_yuan > 0)
+            when is_internal_order_change = 1
             then null
             when subject not in ('选科志愿', '定制方案') and name_total_price > 0 then subject
         end) as p_sub,
         count(distinct case
-            when main_has_order_change = 1
-             and trade_type = '调课调班'
-             and (main_transfer_in_amount_yuan > 0 or main_transfer_out_amount_yuan > 0)
+            when is_internal_order_change = 1
             then null
             when subject not in ('选科志愿', '定制方案') and name_total_price < 0 then subject
         end) as r_sub

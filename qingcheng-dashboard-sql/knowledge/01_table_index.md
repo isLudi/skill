@@ -23,6 +23,7 @@
 | `service_dw.app_user_attribute_label_gaia_wide_df` | 盖亚系统用户标签数据宽表 | 用户标签、画像和学习意向补充 | `dt` | 无 | 公共表结构复用，字段待表结构确认 | `knowledge/tables/service_dw.app_user_attribute_label_gaia_wide_df.md` |
 | `service_dw.dim_crm_assign_rule_lead_detail_hf` | 线索分配规则记录 | 分配规则明细和分配记录排查 | `dt` | `hour` | 公共表结构复用，字段待表结构确认 | `knowledge/tables/service_dw.dim_crm_assign_rule_lead_detail_hf.md` |
 | `service_dw.dim_crm_assign_rule_plan_item_info_hf` | 分配规则计划 item 信息表 | 分配计划下的顾问配置 | `dt` | `hour` | 公共表结构复用，字段待表结构确认 | `knowledge/tables/service_dw.dim_crm_assign_rule_plan_item_info_hf.md` |
+| `data_lake_fuwu.dwd_crm_leads_rt` | 线索统计表 | CRM 原始线索状态、模型阶段和来源回查 | 无显式分区 | 无 | 数据地图已确认；`crm_leads_id -> lead_id` live SQL 补验待补 | `knowledge/tables/data_lake_fuwu.dwd_crm_leads_rt.md` |
 
 ## 2. 青橙临时表
 

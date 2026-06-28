@@ -290,3 +290,36 @@
 - 旧版 `qingcheng_channel_order_detail_raw_20260613.sql` 已不再作为当前 canonical 版本保留；相关 dashboard 文档入口统一切换到 `knowledge/dashboards/qingcheng_channel_order_detail_raw_20260627.md`。
 - 与 2026-06-13 版相比，本次模板版新增 `province_name`、`city_name`、`city_level_name` 三个线索侧地域字段；`gmv ↔ ld` join 逻辑、时间占位符和青橙范围限定保持不变。
 - 同步更新订单明细 dashboard 文档、字段说明、快速入口、决策树、无临时表清单和 join 文档，避免继续按旧版字段集合理解该模板 SQL。
+## 2026-06-27 青橙原始线索表入库补充
+
+- 使用 `usql-web-query-operator` 的数据地图同步脚本查询 `data_lake_fuwu.dwd_crm_leads_rt`，确认中文名为“线索统计表”，数据地图登记字段 51 个，`partitionColumns` 为空。
+- 新增表文档 `knowledge/tables/data_lake_fuwu.dwd_crm_leads_rt.md`，沉淀表用途、字段清单、常用 join key 和风险说明。
+- 更新 `knowledge/01_table_index.md`、`knowledge/joins/common_join_keys.md`、`knowledge/joins/table_relationships.md`，补充 `crm_leads_id = lead_id` 的原始线索回查关系。
+- 记录结论边界：
+  - `crm_leads_id` 可按字段语义理解为线索 ID；
+  - `previous_model_id` 先按“上一阶段模型 ID / 潜客 ID 候选字段”记录；
+  - 2026-06-27 网页 SQL live 补验遇到 `ERR_PROXY_CONNECTION_FAILED` 和执行超时，join 结果样本待网络恢复后补验。
+
+## 2026-06-27 青橙原始线索表 join 小样本补验
+
+- 使用 `usql-web-query-operator` 追加小样本验证 SQL：
+  - `verify_lead_to_crm_leads_id_fixed_20260627_16.sql`，query id `1433250612`，验证 `cast(f.lead_id as bigint) = lrt.crm_leads_id`，青橙主宽表 `dt='20260627' and hour='16'` 样本 30 行命中 30 行。
+  - `verify_previous_model_id_positive_self_join_20260627.sql`，query id `1433259664`，验证 `lrt.previous_model_id = prev.crm_leads_id`，在 `previous_model_id > 0` 条件下样本 30 行命中 30 行。
+- 同步更新 `knowledge/tables/data_lake_fuwu.dwd_crm_leads_rt.md`、`knowledge/joins/common_join_keys.md` 和 `knowledge/joins/table_relationships.md`，将 `crm_leads_id` 关联状态从“待补验”改为“已小样本验证”。
+- 风险说明：`previous_model_id is not null` 会抽到大量 `0`，不能直接代表有效上一阶段；追溯上阶段模型时必须加 `previous_model_id > 0`。
+
+## 2026-06-27 青橙完成度调课调班识别修复
+
+- 同步修复个人完成度、团队完成度期次、团队完成度月度三份 canonical raw SQL：
+  - `resources/raw_sql/qingcheng_personal_conversion_raw_20260522.sql`
+  - `resources/raw_sql/qingcheng_team_completion_period_raw_20260522.sql`
+  - `resources/raw_sql/qingcheng_team_completion_month_raw_20260522.sql`
+- 修复原因：旧逻辑只有在主交易层订单命中 `finance_dw.dim_finance_order_change_df` 且存在调入/调出金额时，才从 `income`、`refund`、`refund_4`、科目统计中排除调课调班。实际排查发现部分主交易层已标记 `trade_type='调课调班'` 的正负流水没有命中该维表，导致正数误入班课营收、负数误入班课退费。
+- 修复方式：在 `t4` 增加 `is_internal_order_change`，只要 `rd.trade_type='调课调班'` 即识别为内部调课调班；保留原有 `dim_finance_order_change_df` 命中逻辑作为补充。后续 `income`、`refund`、`refund_4`、`sub/p_sub/r_sub` 统一优先使用 `is_internal_order_change = 1` 排除。
+- 已验证样例：
+  - 张宁晴 `20260626期`：订单 `417613649250092004` 为 `调出退款/调课调班`，对应调入订单 `421483326725423588`；修复后个人完成度 `refund=0`，不再展示 `1190` 班课退费。
+  - 许多03 `20260626期`：订单 `419661531526992745` 为 `调出退款/调课调班`，对应调入订单 `421495436394627433`；修复后个人完成度只保留真实退款约 `3400`，不再把该调课调班负流水计入班课退费。
+- 验证 SQL 输出到 runtime：
+  - `runtime/tmp/validate_qingcheng_personal_completion_order_change_20260627.sql`，query id `1434324030`。
+  - `runtime/tmp/validate_qingcheng_team_month_order_change_20260627.sql`，query id `1434328550`。
+  - `runtime/tmp/validate_qingcheng_team_period_order_change_20260627.sql`，query id `1434332703`。

@@ -14,6 +14,7 @@
 | `data` 子集 `t1` | `service_dw.dws_service_user_learn_detail_hf t2` | `qici + user_id = user_number` | left join | 匹配上课明细 | 已从 SQL 入库 |
 | `daoke dk` | `temp_table.dingxi01_qing_daoke ke` | `qici + channel_map_2 = qudao + grade_1 = grade + begin_time` | left join | 标记课次，支持第 1 至第 6 讲 | 已从 SQL 入库，唯一性待确认 |
 | `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf gmv` | `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df ld` | `lead_id + performance_employee_email_name = employee_email_name` | left join | 订单业绩补充青橙渠道、投放计划、分配规则、直属主管和地域字段；青橙渠道订单明细 raw 复用该 join | 已从 SQL 入库，`ld` 唯一性和范围完整性待确认 |
+| `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df f` | `data_lake_fuwu.dwd_crm_leads_rt lrt` | `lead_id = crm_leads_id` | left join | 回查 CRM 原始线索状态、source、模型阶段和 `previous_model_id` | 2026-06-27 小样本验证命中 30/30；`previous_model_id > 0` 自关联命中 30/30 |
 | `dd` | `prc` | `lead_id + performance_employee_email_name = employee_email_name + rn = 1` | left join | 判断订单是否属于线索期次 | 已从 SQL 入库 |
 | `bb_dedup` | `ud` | `employee_email_name/name + qici + channel_map_2/qudao + grade_1/grade_0 + virtual_direct_leader_email_name/zhuguan` | full outer join | 合并线索量和业绩指标，并保留年级维度 | 已从 SQL 入库，若同维度仍多行则保留 `rn = 1` |
 | `mm` | `temp_table.dingxi01_qing_team_jg` | `employee_email_name` | left join | 补充最新团队架构 | 已从 SQL 入库 |
