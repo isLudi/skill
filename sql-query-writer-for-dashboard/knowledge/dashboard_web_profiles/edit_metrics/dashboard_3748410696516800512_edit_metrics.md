@@ -1,4 +1,4 @@
-# 市场顾问部_行课报表 edit metrics
+﻿# 市场顾问部_行课报表 edit metrics
 
 > Source: Taitan dashboard edit-page read-only API. Use together with the web profile and the Data Center SQL file for the same model_id.
 
@@ -20,7 +20,7 @@
 
 | model_id | model_name | one SQL file | pivot unit count |
 |---|---|---|---:|
-| `2132` | (内部)到课衰减情况 | [data_center_market_2132_20260624.sql](../../../resources/raw_sql/data_center_market_2132_20260624.sql) | 3 |
+| `2132` | (内部)到课衰减情况 | [data_center_market_2132_20260628.sql](../../../resources/raw_sql/data_center_market_2132_20260628.sql) | 3 |
 
 ## Pivot units
 

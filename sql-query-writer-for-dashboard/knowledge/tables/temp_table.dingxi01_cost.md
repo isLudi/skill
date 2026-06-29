@@ -8,7 +8,7 @@
 
 稳定临时表，用于按渠道、年级和期次补充单例子成本 `cost` 与目标 `goal`。
 
-字段来源：`resources/raw_sql/market_consultant_conversion.sql`。
+字段来源：`resources/raw_sql/data_center_market_2253_20260628.sql`。
 
 ## 3. 数据粒度
 

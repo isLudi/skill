@@ -1,26 +1,6 @@
-with data as
-(select distinct
-concat(cast(date_format(date_trunc('week', date_parse(replace(concat(group_period_year, group_period_term), '期', ''), '%Y%m%d') - interval '1' day) + interval '4' day, '%Y%m%d') as varchar), '期') period_name,
- virtual_third_department_name  depart_1,
-virtual_fourth_department_name  depart,
-    virtual_leader_email_name  jingli,
-    virtual_direct_leader_email_name  zhuguan,
-    employee_email_name,
-    rule_name,
-    t1.lead_id,
-    user_id,
-case 
-when (assign_lead_count = 1 or valid_lead_count = 1) and third_department_name  in ('直播部','新媒体内容运营部','市场一组') THEN '当期'
-when (assign_lead_count = 1 or valid_lead_count = 1) and third_department_name  in ('图书营销部') and rule_name like '%亚飞%' THEN '当期'
-when third_department_name is null and valid_lead_count = 1 then '当期'
-when source_manager_name in ('韩正卿') and merge_valid_lead_count = 1 and channel_name_1='市场私域' then '当期'
-when third_department_name  not in ('直播部','新媒体内容运营部','市场一组') and valid_lead_count = 1 then '当期'
- else '非当期' end as d_w,
-case when (assign_lead_count = 1 or valid_lead_count = 1) and third_department_name  in ('直播部','新媒体内容运营部','市场一组') THEN 1
-when third_department_name is null and valid_lead_count = 1 then 1
-when third_department_name  not in ('直播部','新媒体内容运营部','市场一组') and valid_lead_count = 1 then 1
-when third_department_name  in ('图书营销部') and rule_name like '%亚飞%' and (assign_lead_count = 1 or valid_lead_count = 1)  then 1
- else 0 end as xiansuo,
+with data as (
+    select distinct
+  f.*,  concat(cast(date_format(date_trunc('week', date_parse(replace(concat(f.group_period_year,f.group_period_term),'期',''),'%Y%m%d') - interval '1' day) + interval '4' day, '%Y%m%d') as varchar),'期') as qici,
 case when flow_pool_name in ('高途学习规划','智辉老师讲规划') then '市场私域视频号'
 when rule_name like '%语数英%' and third_department_name = '新媒体内容运营部' then '语数英'
 when flow_pool_name like '%星义大大%' or flow_pool_name like '%星义物理%' then '赵星义'
@@ -69,7 +49,7 @@ when (flow_pool_name like '%汤哥%' or flow_pool_name like '%汤老师%') and p
 when (flow_pool_name like '%中考百日冲刺%') and period_name not like '%多学科拓展%' and third_department_name='直播部'  then '曹忆9.9纯课'	
 when source_manager_name = '陈晓菁04' and channel_provider_name not like '%开拓%' and put_plan_name not like '%九学%' then '商务低价'	
 when (flow_pool_name like '%孟帝%' or flow_pool_name like '%孟老师%' or flow_pool_name like '%中考数学冲刺%' or flow_pool_name like '%8升9数学%' or flow_pool_name like '%孟亚飞讲数学%' or flow_pool_name like '%中考冲刺%' or flow_pool_name like '%中考满分冲刺%' or flow_pool_name like '%押题王孟亚飞%' or flow_pool_name like '%中考数学大通关%' or flow_pool_name like '%中考数学规划%' or flow_pool_name like '%亚飞数学%' or flow_pool_name like '%孟帝数学%' or flow_pool_name like '%亚飞秒解思维%')  and period_name not like '%多学科拓展%' and channel_name_2 not like '%KOL%' and third_department_name='直播部' and channel_name_2 = '抖音'  then '孟亚飞-1组-抖音'
-when (flow_pool_name like '%孟帝%' or flow_pool_name like '%孟老师%' or flow_pool_name like '%中考数学冲刺%' or flow_pool_name like '%8升9数学%' or flow_pool_name like '%孟亚飞讲数学%' or flow_pool_name like '%中考冲刺%' or flow_pool_name like '%中考满分冲刺%' or flow_pool_name like '%押题王孟亚飞%' or flow_pool_name like '%中考数学大通关%' or flow_pool_name like '%中考数学规划%' or flow_pool_name like '%亚飞数学%' or flow_pool_name like '%孟帝数学%')  and period_name not like '%多学科拓展%' and channel_name_2 not like '%KOL%' and third_department_name='直播部' and channel_name_2 = '视频号'  then '孟亚飞-1组-视频号'
+when (flow_pool_name like '%孟帝%' or flow_pool_name like '%孟老师%' or flow_pool_name like '%中考数学冲刺%' or flow_pool_name like '%8升9数学%' or flow_pool_name like '%孟亚飞讲数学%' or flow_pool_name like '%中考冲刺%' or flow_pool_name like '%中考满分冲刺%' or flow_pool_name like '%押题王孟亚飞%' or flow_pool_name like '%中考数学大通关%' or flow_pool_name like '%中考数学规划%' or flow_pool_name like '%亚飞数学%' or flow_pool_name like '%孟帝数学%')  and period_name not like '%多学科拓展%' and channel_name_2 not like '%KOL%' and third_department_name='直播部' and channel_name_2 = '视频号'  then '孟亚飞9元'
 when (flow_pool_name like '%孟帝%' or flow_pool_name like '%孟老师%' or flow_pool_name like '%中考数学冲刺%' or flow_pool_name like '%8升9数学%' or flow_pool_name like '%孟亚飞讲数学%' or flow_pool_name like '%中考冲刺%' or flow_pool_name like '%中考满分冲刺%' or flow_pool_name like '%押题王孟亚飞%' or flow_pool_name like '%中考数学大通关%' or flow_pool_name like '%中考数学规划%' or flow_pool_name like '%亚飞数学%' or flow_pool_name like '%孟帝数学%')  and period_name not like '%多学科拓展%' and channel_name_2 not like '%KOL%' and third_department_name='直播部' and channel_name_2 = 'B站'  then '孟亚飞-1组-B站'
 when (flow_pool_name like '%孟帝%' or flow_pool_name like '%孟老师%' or flow_pool_name like '%中考数学冲刺%' or flow_pool_name like '%8升9数学%' or flow_pool_name like '%孟亚飞讲数学%' or flow_pool_name like '%中考冲刺%' or flow_pool_name like '%中考满分冲刺%' or flow_pool_name like '%押题王孟亚飞%' or flow_pool_name like '%中考数学大通关%' or flow_pool_name like '%中考数学规划%' or flow_pool_name like '%亚飞数学%' or flow_pool_name like '%孟帝数学%')  and period_name not like '%多学科拓展%' and channel_name_2 not like '%KOL%' and third_department_name='直播部' and channel_name_2 not like '%百度%'  then '孟亚飞99-1组'
 when (flow_pool_name like '%孟帝%' or flow_pool_name like '%孟老师%' or flow_pool_name like '%中考数学冲刺%' or flow_pool_name like '%8升9数学%' or flow_pool_name like '%孟亚飞讲数学%' or flow_pool_name like '%中考冲刺%' or flow_pool_name like '%中考满分冲刺%' or flow_pool_name like '%押题王孟亚飞%' or flow_pool_name like '%中考数学大通关%' or flow_pool_name like '%中考数学规划%' or flow_pool_name like '%亚飞数学%')  and period_name not like '%多学科拓展%' and channel_name_2 not like '%KOL%' and third_department_name='直播部' and channel_name_2 = '百度'  then '孟亚飞-1组-百度'
@@ -196,192 +176,391 @@ when flow_pool_name like '%青少-私域%' then '青少私域'
 when put_plan_name like '%AI名师%' then 'AI直播'
 when channel_name_1= '信息流' and (put_plan_name like '%抖音私信%' or put_plan_name like '%初三0元%' or put_plan_name like '%高中0元%') then '信息流-抖音私信'
 when rule_name like '%途途私域%' or (rule_name like '%私域%' and first_department_name = 'TT') then '途途私域'
-else '其他未知流量' end as channel_map,
-case 
-    when rule_name like '%高一%' then '高一'
-    when rule_name like '%高二%' then '高二'
-    when rule_name like '%高三%' then '高三'
-    when rule_name like '%初二%' then '初二'
-    when rule_name like '%初三%' then '初三'
-    when rule_name like '%初一%' then '初一'
-    else lead_purchase_intention_level2_category_name
-end as grade_1,
-    coalesce(lead_count,0) lead_count,
-    coalesce(valid_lead_count,0) valid_lead_count,
-    coalesce(merge_assign_lead_count,0) merge_assign_lead_count,
-    coalesce(merge_valid_lead_count,0) merge_valid_lead_count,
-    coalesce(conversion_lead_count,0) conversion_lead_count,
-    coalesce(subject_count,0) subject_count,
-    coalesce(same_lead_period_subject_count,0) same_lead_period_subject_count,
-    coalesce(lb_subject_count,0)  lb_subject_count,
-    coalesce(same_lead_period_lb_subject_count,0) same_lead_period_lb_subject_count,
-    coalesce(order_count,0) order_count,
-    coalesce(income_amount,0) income_amount,
-    coalesce(in_pay_period_refund_amount,0) in_pay_period_refund_amount,
-    coalesce(non_pay_period_refund_amount,0) non_pay_period_refund_amount,
-    coalesce(jp_cross_department_refund_amount,0) jp_cross_department_refund_amount,
-    coalesce(lead_period_income_amount,0) lead_period_income_amount,
-    coalesce(lead_period_refund_amount,0) lead_period_refund_amount,
-    coalesce(same_lead_period_order_count,0) same_lead_period_order_count,
-    coalesce(same_lead_period_conversion_lead_count,0) same_lead_period_conversion_lead_count,
-    coalesce(same_lead_period_income_amount,0) same_lead_period_income_amount,
-    coalesce(same_lead_period_refund_amount,0) same_lead_period_refund_amount
-from bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df t1
-where dt=format_datetime(NOW()-interval '2' hour,'YYYYMMdd') and hour=format_datetime(NOW()-interval '3' hour,'HH' )
-and section_assign_employee_first_level_department_name = 'H业务线'
-and section_assign_employee_second_level_department_name = '市场部'
-and section_assign_employee_third_level_department_name = '市场顾问部'
-and period_mapping_first_level_department_name = 'H业务线'),
-zhuanhua as
-(select
-    period_name,
-    channel_map,
-    rule_name,
-    grade_1,
-    depart_1,
-    depart,
-    jingli,
-    zhuguan,
-    employee_email_name,
-    sum(xiansuo) xiansuo,
-    sum(lead_count) as  lead_count,
-    sum(valid_lead_count)as can_renew_ds_count_a,
-    sum(conversion_lead_count) pay_users,
-    sum(same_lead_period_conversion_lead_count)  pay_users_on_period,
-    sum(conversion_lead_count-same_lead_period_conversion_lead_count) pay_users_not_on_period,
-    sum(subject_count) pay_user_subs,
-    sum(same_lead_period_subject_count) pay_user_subs_on_period,
-    sum(subject_count-same_lead_period_subject_count) pay_user_subs_not_on_period,
-    sum(lb_subject_count) pay_user_subs_joint,
-    sum(same_lead_period_lb_subject_count) pay_user_subs_joint_onp,
-    sum(lb_subject_count-same_lead_period_lb_subject_count) pay_user_subs_joint_nonp,
-    sum(income_amount/100) trade_income,
-    sum(in_pay_period_refund_amount/100+non_pay_period_refund_amount/100) trade_refund,
-    sum(income_amount/100-in_pay_period_refund_amount/100-non_pay_period_refund_amount/100) trade_profit,
-    sum(same_lead_period_income_amount/100) xb_trade_income,
-    sum(same_lead_period_income_amount/100-same_lead_period_refund_amount/100) xb_trade_profit,
-    sum(
-        income_amount/100
-        - in_pay_period_refund_amount/100
-        - non_pay_period_refund_amount/100
-        - same_lead_period_income_amount/100
-        + same_lead_period_refund_amount/100
-    ) kk_trade_profit,
-    sum(income_amount/100-same_lead_period_income_amount/100) kk_trade_income,
-    sum(non_pay_period_refund_amount/100) pre_refund,
-    sum(case when d_w = '当期' then lead_period_income_amount/100-lead_period_refund_amount/100 else 0 end) as pp_pmit,
-    sum(case when d_w = '非当期' then income_amount/100-in_pay_period_refund_amount/100-non_pay_period_refund_amount/100 else 0 end) as ww_pmit
-from data
-group by
-    period_name,
-    channel_map,
-    rule_name,
-    grade_1,
-    depart_1,
-    depart,
-    jingli,
-    zhuguan,
-    employee_email_name
-)
-,
-zx_active as (
+else '其他未知流量' end as channel_map_1,
+        case
+            when f.rule_name like '%高一%' then '高一'
+            when f.rule_name like '%高二%' then '高二'
+                    when f.rule_name like '%高三%' then '高三'
+            when f.rule_name like '%初一%' then '初一'
+            when f.rule_name like '%初二%' then '初二'
+            when f.rule_name like '%初三%' then '初三'
+            else f.lead_purchase_intention_level2_category_name
+        end as grade_1,
+        case when f.valid_lead_count = '1' then f.friend_lead_count else 0 end as is_friend_lead,
+        case when t.jieduan in ('深沟','已双沟') then 1 else 0 end as is_shengou,
+        case when t.jieduan in ('已双沟') then 1 else 0 end as is_shuanggou
+    from bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df f
+    left join
+    (
+        select
+            user_number,
+            sale_flow_stage_sequence,
+            sale_flow_stage_name_1,
+            jieduan_1 as jieduan
+        from (
+            select
+                user_number,
+                sale_flow_stage_sequence,
+                CASE
+                    WHEN sale_flow_stage_sequence = '50' THEN '新线索'
+                    WHEN sale_flow_stage_sequence = '60' THEN '待跟进'
+                    WHEN sale_flow_stage_sequence = '70' THEN '已接收'
+                    WHEN sale_flow_stage_sequence = '100' THEN '未接通'
+                    WHEN sale_flow_stage_sequence = '150' THEN '已建联'
+                    WHEN sale_flow_stage_sequence = '200' THEN '首call'
+                    WHEN sale_flow_stage_sequence = '250' THEN '商机'
+                    WHEN sale_flow_stage_sequence = '300' THEN '学情沟通'
+                    WHEN sale_flow_stage_sequence = '350' THEN '浅沟'
+                    WHEN sale_flow_stage_sequence = '400' THEN '已约课'
+                    WHEN sale_flow_stage_sequence = '450' THEN '深沟'
+                    WHEN sale_flow_stage_sequence = '470' THEN '已双沟'
+                    WHEN sale_flow_stage_sequence = '500' THEN '再次建联'
+                    WHEN sale_flow_stage_sequence = '550' THEN '约课'
+                    WHEN sale_flow_stage_sequence = '600' THEN '诺访'
+                    WHEN sale_flow_stage_sequence = '650' THEN '已排课'
+                    WHEN sale_flow_stage_sequence = '660' THEN '已摸底测'
+                    WHEN sale_flow_stage_sequence = '680' THEN '促到课'
+                    WHEN sale_flow_stage_sequence = '700' THEN '已到课'
+                    WHEN sale_flow_stage_sequence = '710' THEN '中教完课'
+                    WHEN sale_flow_stage_sequence = '720' THEN '外教完课'
+                    WHEN sale_flow_stage_sequence = '750' THEN '已完课'
+                    WHEN sale_flow_stage_sequence = '800' THEN '到访'
+                    WHEN sale_flow_stage_sequence = '820' THEN '看回放'
+                    WHEN sale_flow_stage_sequence = '850' THEN '铺课'
+                    WHEN sale_flow_stage_sequence = '900' THEN '已推课'
+                    WHEN sale_flow_stage_sequence = '920' THEN '定金'
+                    WHEN sale_flow_stage_sequence = '925' THEN '已挖需'
+                    WHEN sale_flow_stage_sequence = '930' THEN '已规划'
+                    WHEN sale_flow_stage_sequence = '935' THEN '已报价'
+                    WHEN sale_flow_stage_sequence = '950' THEN '关单'
+                    WHEN sale_flow_stage_sequence = '955' THEN '追单'
+                    WHEN sale_flow_stage_sequence = '960' THEN '流转成功'
+                    WHEN sale_flow_stage_sequence = '1000' THEN '未成交'
+                    WHEN sale_flow_stage_sequence = '1050' THEN '成单'
+                    ELSE '未知状态'
+                END AS sale_flow_stage_name_1,
+                CASE
+                    WHEN sale_flow_stage_sequence = '450' THEN '深沟'
+                    WHEN sale_flow_stage_sequence = '470' THEN '已双沟'
+                    ELSE '其他'
+                END AS jieduan_1,
+                ROW_NUMBER() OVER (PARTITION BY user_number ORDER BY private_sea_update_time DESC) as rn
+            from service_dw.dwd_crm_assign_private_detail_hf
+            where dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
+                and hour = format_datetime(now() - interval '2' hour, 'HH')
+                and assign_employee_first_level_department_name = 'H业务线'
+                and assign_employee_second_level_department_name = '市场部'
+                and assign_employee_third_level_department_name = '市场顾问部'
+        )
+        where rn = 1
+    ) t on f.user_id = t.user_number
+    left join
+    (
+        select
+            lead_id,
+            section_assign_time,
+            section_assign_first_call_time,
+            section_assign_first_call_connected_time,
+            date_diff('hour', cast(section_assign_time as timestamp), cast(section_assign_first_call_connected_time as timestamp)) as first_call_connected_time_diff_hour
+        from service_dw.dm_crm_lead_stats_detail_hf
+        where dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
+            and hour = format_datetime(now() - interval '2' hour, 'HH')
+            and mapping_first_level_department_name = 'H业务线'
+            and mapping_second_level_department_name in ('精品班学部','菁英班学部','市场部','本地化大班学部')
+    ) jt on f.lead_id = jt.lead_id
+    where f.dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
+        and f.hour = format_datetime(now() - interval '3' hour, 'HH')
+        and f.section_assign_employee_first_level_department_name = 'H业务线'
+        and f.section_assign_employee_second_level_department_name = '市场部'
+        and f.period_mapping_first_level_department_name ='H业务线'
+        and f.valid_lead_count = '1'
+),
+ke_manual as (
     select
-        employee_email_name,
-        xiaozu,
-        jingli,
-        department
+        qudao,
+        begin_time,
+        qici,
+        grade,
+        cast(ke_1 as varchar) as manual_ke_1,
+        channel
     from (
         select
-            zx.*,
+            ke.*,
             row_number() over (
-                partition by zx.employee_email_name
-                order by
-                    case
-                        when zx.department = '郑州顾问部' then 1
-                        when zx.department = '西安一部' then 2
-                        when zx.department = '西安二部' then 3
-                        else 9
-                    end,
-                    zx.employee_email_prefix,
-                    zx.xiaozu,
-                    zx.jingli
+                partition by ke.qici, ke.qudao, ke.grade, ke.begin_time
+                order by cast(ke.ke_1 as varchar), ke.channel
             ) as rn
-        from temp_table.dingxi01_jiagou_zx zx
-        where cast(zx.zaizhi as varchar) = '1'
-          and zx.department in ('郑州顾问部', '西安一部', '西安二部')
+        from temp_table.dingxi01_daoke_1_6_t ke
     ) t
     where rn = 1
-)
-,
-channel_group_dedup as (
-    select
-        channel,
-        max(channel_group) as channel_group
-    from temp_table.dingxi01_channel_group
-    group by channel
 ),
-cost_exact as (
+learn_raw as (
     select
-        qici,
-        channel,
-        grade,
-        max(coalesce(cost, 0)) as cost,
-        max(coalesce(goal, 0)) as goal
-    from temp_table.dingxi01_cost
-    where grade <> '0'
-    group by
-        qici,
-        channel,
-        grade
+        t.user_number,
+        t.clazz_number,
+        t.clazz_lesson_number,
+        t.lesson_index,
+        t.lesson_index_add,
+        t.lesson_name,
+        t.begin_time,
+        substr(t.begin_time, 12, 5) as ke_time,
+        case
+            when cast(t.begin_time as date) >= date '2026-02-25' and cast(t.begin_time as date) <= date '2026-03-02' then '20260227期'
+            when cast(t.begin_time as date) >= date '2026-02-17' and cast(t.begin_time as date) <= date '2026-02-24' then '20260220期'
+            when cast(t.begin_time as date) >= date '2026-02-09' and cast(t.begin_time as date) <= date '2026-02-16' then '20260213期'
+            when cast(t.begin_time as date) >= date '2026-02-03' and cast(t.begin_time as date) <= date '2026-02-08' then '20260206期'
+            else
+                case
+                    when day_of_week(cast(t.begin_time as date)) = 2
+                        then date_format(date_trunc('week', cast(t.begin_time as date)) - interval '3' day, '%Y%m%d') || '期'
+                    else date_format(date_trunc('week', cast(t.begin_time as date)) + interval '4' day, '%Y%m%d') || '期'
+                end
+        end as qici,
+        t.is_need_attend,
+        t.live_learn_duration,
+        t.is_valid_live_learn
+    from service_dw.dws_service_user_learn_detail_hf t
+    where t.dt = date_format(now() - interval '2' hour, '%Y%m%d')
+      and t.hour = date_format(now() - interval '2' hour, '%H')
+      and t.course_first_level_department_name = 'H业务线'
+      and t.course_second_level_department_name in ('精品班学部','市场部','青橙项目部')
+      and t.is_need_attend = 1
 ),
-cost_zero as (
+learn_ranked as (
     select
-        qici,
-        channel,
-        max(coalesce(cost, 0)) as cost,
-        max(coalesce(goal, 0)) as goal
-    from temp_table.dingxi01_cost
-    where grade = '0'
-    group by
-        qici,
-        channel
+        lr.*,
+        row_number() over (
+            partition by lr.qici, lr.user_number, lr.clazz_number
+            order by cast(lr.begin_time as timestamp), lr.clazz_lesson_number
+        ) as lesson_rank_in_class,
+        cast(
+            case
+                when lr.lesson_index between 1 and 6 then lr.lesson_index
+                when lr.lesson_index_add between 1 and 6 then lr.lesson_index_add
+                else row_number() over (
+                    partition by lr.qici, lr.user_number, lr.clazz_number
+                    order by cast(lr.begin_time as timestamp), lr.clazz_lesson_number
+                )
+            end as varchar
+        ) as auto_ke_1
+    from learn_raw lr
+),
+daoke_base as (
+    select
+        dk.qici,
+        dk.employee_email_prefix,
+        dk.lead_id,
+        dk.user_id,
+        dk.rule_name,
+        dk.channel_map_1,
+        dk.grade_1,
+        dk.begin_time,
+        dk.clazz_number,
+        dk.clazz_lesson_number,
+        dk.lesson_index,
+        dk.lesson_index_add,
+        dk.lesson_name,
+        dk.lesson_rank_in_class,
+        dk.live_learn_duration,
+        dk.is_valid_live_learn,
+        dk.auto_ke_1 as legacy_auto_ke_1
+    from (
+        select distinct
+            t1.qici,
+            t1.employee_email_prefix,
+            t1.lead_id,
+            t1.user_id,
+            t1.rule_name,
+            t1.channel_map_1,
+            t1.grade_1,
+            t2.begin_time,
+            t2.clazz_number,
+            t2.clazz_lesson_number,
+            t2.lesson_index,
+            t2.lesson_index_add,
+            t2.lesson_name,
+            t2.lesson_rank_in_class,
+            t2.live_learn_duration,
+            t2.is_valid_live_learn,
+            t2.auto_ke_1
+        from (
+            select
+                lead_id,
+                user_id,
+                employee_email_prefix,
+                qici,
+                rule_name,
+                channel_map_1,
+                grade_1
+            from data
+            group by lead_id, user_id, employee_email_prefix, qici, rule_name, channel_map_1, grade_1
+        ) t1
+        left join learn_ranked t2
+          on t1.qici = t2.qici
+         and cast(t1.user_id as varchar) = cast(t2.user_number as varchar)
+    ) dk
+),
+daoke_ranked as (
+    select
+        db.*,
+        case
+            when db.channel_map_1 in ('西安图书直播间-挂链', '西安图书直播间-直播')
+             and regexp_like(coalesce(db.lesson_name, ''), '(规划诊断-|诊断规划-)')
+                then cast(
+                    sum(
+                        case
+                            when db.channel_map_1 in ('西安图书直播间-挂链', '西安图书直播间-直播')
+                             and regexp_like(coalesce(db.lesson_name, ''), '(规划诊断-|诊断规划-)') then 1
+                            else 0
+                        end
+                    ) over (
+                        partition by db.qici,
+                                     db.user_id,
+                                     regexp_extract(coalesce(db.lesson_name, ''), '^(.*(?:规划诊断-|诊断规划-))', 1)
+                        order by cast(db.begin_time as timestamp), db.clazz_lesson_number, db.lesson_name
+                        rows between unbounded preceding and current row
+                    ) as varchar
+                )
+            else null
+        end as business_ke_1
+    from daoke_base db
+),
+daoke as (
+    select
+        dr.qici,
+        dr.employee_email_prefix,
+        dr.lead_id,
+        dr.user_id,
+        dr.rule_name,
+        dr.channel_map_1,
+        dr.grade_1,
+        dr.begin_time,
+        dr.clazz_number,
+        dr.clazz_lesson_number,
+        dr.lesson_index,
+        dr.lesson_index_add,
+        dr.lesson_name,
+        dr.lesson_rank_in_class,
+        dr.live_learn_duration,
+        dr.is_valid_live_learn,
+        ke.manual_ke_1,
+        coalesce(
+            case
+                when dr.channel_map_1 in ('西安图书直播间-挂链', '西安图书直播间-直播')
+                 and regexp_like(coalesce(dr.lesson_name, ''), '(规划诊断-|诊断规划-)') then dr.business_ke_1
+                else null
+            end,
+            dr.legacy_auto_ke_1
+        ) as auto_ke_1,
+        case
+            when ke.manual_ke_1 is null and coalesce(case when dr.channel_map_1 in ('西安图书直播间-挂链', '西安图书直播间-直播') and regexp_like(coalesce(dr.lesson_name, ''), '(规划诊断-|诊断规划-)') then dr.business_ke_1 else null end, dr.legacy_auto_ke_1) is null then 'both_missing'
+            when ke.manual_ke_1 is null and coalesce(case when dr.channel_map_1 in ('西安图书直播间-挂链', '西安图书直播间-直播') and regexp_like(coalesce(dr.lesson_name, ''), '(规划诊断-|诊断规划-)') then dr.business_ke_1 else null end, dr.legacy_auto_ke_1) is not null then 'manual_missing'
+            when ke.manual_ke_1 is not null and coalesce(case when dr.channel_map_1 in ('西安图书直播间-挂链', '西安图书直播间-直播') and regexp_like(coalesce(dr.lesson_name, ''), '(规划诊断-|诊断规划-)') then dr.business_ke_1 else null end, dr.legacy_auto_ke_1) is null then 'auto_missing'
+            when ke.manual_ke_1 = coalesce(case when dr.channel_map_1 in ('西安图书直播间-挂链', '西安图书直播间-直播') and regexp_like(coalesce(dr.lesson_name, ''), '(规划诊断-|诊断规划-)') then dr.business_ke_1 else null end, dr.legacy_auto_ke_1) then 'same'
+            else 'diff'
+        end as ke_compare_status
+    from daoke_ranked dr
+    left join ke_manual ke
+      on dr.qici = ke.qici
+     and dr.channel_map_1 = ke.qudao
+     and dr.grade_1 = ke.grade
+     and dr.begin_time = ke.begin_time
+),
+prc as (
+    select distinct
+        data.qici,
+        data.channel_map_1,
+        data.rule_name,
+        data.grade_1,
+        jg.xiaozu,
+        jg.department,
+        jg.jingli,
+        coalesce(data.valid_lead_count, 0) as lead,
+        data.employee_email_prefix,
+        data.employee_email_name,
+        data.user_id,
+        case when sum(case when daoke.auto_ke_1 = '1' and daoke.live_learn_duration > 0 then 1 else 0 end) > 0 then 1 else 0 end as ke_1,
+        case when sum(case when daoke.auto_ke_1 = '2' and daoke.live_learn_duration > 0 then 1 else 0 end) > 0 then 1 else 0 end as ke_2,
+        case when sum(case when daoke.auto_ke_1 = '3' and daoke.live_learn_duration > 0 then 1 else 0 end) > 0 then 1 else 0 end as ke_3,
+        case when sum(case when daoke.auto_ke_1 = '4' and daoke.live_learn_duration > 0 then 1 else 0 end) > 0 then 1 else 0 end as ke_4,
+        case when sum(case when daoke.auto_ke_1 = '5' and daoke.live_learn_duration > 0 then 1 else 0 end) > 0 then 1 else 0 end as ke_5,
+        case when sum(case when daoke.auto_ke_1 = '6' and daoke.live_learn_duration > 0 then 1 else 0 end) > 0 then 1 else 0 end as ke_6,
+        case when sum(case when daoke.auto_ke_1 = '1' and cast(daoke.is_valid_live_learn as varchar) = '1' then 1 else 0 end) > 0 then 1 else 0 end as v_ke_1,
+        case when sum(case when daoke.auto_ke_1 = '2' and cast(daoke.is_valid_live_learn as varchar) = '1' then 1 else 0 end) > 0 then 1 else 0 end as v_ke_2,
+        case when sum(case when daoke.auto_ke_1 = '3' and cast(daoke.is_valid_live_learn as varchar) = '1' then 1 else 0 end) > 0 then 1 else 0 end as v_ke_3,
+        case when sum(case when daoke.auto_ke_1 = '4' and cast(daoke.is_valid_live_learn as varchar) = '1' then 1 else 0 end) > 0 then 1 else 0 end as v_ke_4,
+        case when sum(case when daoke.auto_ke_1 = '5' and cast(daoke.is_valid_live_learn as varchar) = '1' then 1 else 0 end) > 0 then 1 else 0 end as v_ke_5,
+        case when sum(case when daoke.auto_ke_1 = '6' and cast(daoke.is_valid_live_learn as varchar) = '1' then 1 else 0 end) > 0 then 1 else 0 end as v_ke_6,
+        case when sum(case when daoke.manual_ke_1 = '1' and daoke.live_learn_duration > 0 then 1 else 0 end) > 0 then 1 else 0 end as manual_ke_1,
+        case when sum(case when daoke.manual_ke_1 = '2' and daoke.live_learn_duration > 0 then 1 else 0 end) > 0 then 1 else 0 end as manual_ke_2,
+        case when sum(case when daoke.manual_ke_1 = '3' and daoke.live_learn_duration > 0 then 1 else 0 end) > 0 then 1 else 0 end as manual_ke_3,
+        case when sum(case when daoke.manual_ke_1 = '4' and daoke.live_learn_duration > 0 then 1 else 0 end) > 0 then 1 else 0 end as manual_ke_4,
+        case when sum(case when daoke.manual_ke_1 = '5' and daoke.live_learn_duration > 0 then 1 else 0 end) > 0 then 1 else 0 end as manual_ke_5,
+        case when sum(case when daoke.manual_ke_1 = '6' and daoke.live_learn_duration > 0 then 1 else 0 end) > 0 then 1 else 0 end as manual_ke_6,
+        case when sum(case when daoke.manual_ke_1 = '1' and cast(daoke.is_valid_live_learn as varchar) = '1' then 1 else 0 end) > 0 then 1 else 0 end as manual_v_ke_1,
+        case when sum(case when daoke.manual_ke_1 = '2' and cast(daoke.is_valid_live_learn as varchar) = '1' then 1 else 0 end) > 0 then 1 else 0 end as manual_v_ke_2,
+        case when sum(case when daoke.manual_ke_1 = '3' and cast(daoke.is_valid_live_learn as varchar) = '1' then 1 else 0 end) > 0 then 1 else 0 end as manual_v_ke_3,
+        case when sum(case when daoke.manual_ke_1 = '4' and cast(daoke.is_valid_live_learn as varchar) = '1' then 1 else 0 end) > 0 then 1 else 0 end as manual_v_ke_4,
+        case when sum(case when daoke.manual_ke_1 = '5' and cast(daoke.is_valid_live_learn as varchar) = '1' then 1 else 0 end) > 0 then 1 else 0 end as manual_v_ke_5,
+        case when sum(case when daoke.manual_ke_1 = '6' and cast(daoke.is_valid_live_learn as varchar) = '1' then 1 else 0 end) > 0 then 1 else 0 end as manual_v_ke_6,
+        sum(case when daoke.auto_ke_1 in ('1','2','3','4','5','6') then 1 else 0 end) as auto_matched_lesson_row_cnt,
+        sum(case when daoke.manual_ke_1 is not null then 1 else 0 end) as manual_matched_lesson_row_cnt,
+        sum(case when daoke.manual_ke_1 is not null and daoke.auto_ke_1 in ('1','2','3','4','5','6') and daoke.manual_ke_1 = daoke.auto_ke_1 then 1 else 0 end) as manual_auto_same_lesson_row_cnt,
+        sum(case when daoke.manual_ke_1 is not null and daoke.auto_ke_1 in ('1','2','3','4','5','6') and daoke.manual_ke_1 <> daoke.auto_ke_1 then 1 else 0 end) as manual_auto_diff_lesson_row_cnt,
+        sum(case when daoke.manual_ke_1 is null and daoke.auto_ke_1 in ('1','2','3','4','5','6') then 1 else 0 end) as manual_missing_auto_present_row_cnt,
+        sum(case when daoke.manual_ke_1 is not null and (daoke.auto_ke_1 is null or daoke.auto_ke_1 not in ('1','2','3','4','5','6')) then 1 else 0 end) as auto_missing_manual_present_row_cnt
+    from data
+    left join daoke
+      on data.employee_email_prefix = daoke.employee_email_prefix
+     and data.qici = daoke.qici
+     and data.lead_id = daoke.lead_id
+    left join temp_table.dingxi01_jiagou_db jg
+      on data.employee_email_prefix = jg.employee_email_prefix
+     and data.qici = jg.qici
+    where data.qici > '20260410期'
+      and jg.department is not null
+    group by 1,2,3,4,5,6,7,8,9,10,11
 )
-
 select
-    zz.*,
-    case
-        when rule_name like '2026年-%' then split_part(rule_name, '-', 2)
-        else split_part(rule_name, '-', 1)
-    end as sx_qi,
-    case
-        when zz.can_renew_ds_count_a >= 5 then zz.can_renew_ds_count_a
-        else 0
-    end as s_lead,
-    case
-        when zz.can_renew_ds_count_a >= 5
-         and zz.trade_profit > 0 then 1
-        else 0
-    end as podan,
-    -- 修复点1：顾问展示不再按 >=5 门槛置为“未知”
-    zz.employee_email_name as name1,
-    -- 修复点2：主管优先用主表虚拟直属主管，避免 zx 未过滤架构带来拼音主管
-    coalesce(zz.zhuguan, zx.xiaozu) as xiaozu,
-    -- 修复点3：经理优先用主表虚拟经理，避免 zx 未过滤架构带来 jingli = '1'
-    coalesce(zz.jingli, zx.jingli) as jingli_1,
-    channel_grp.channel_group,
-    coalesce(ce.cost, cz.cost, 0) as cb_cb,
-    coalesce(ce.goal, cz.goal, 0) as gl_gl
-from zhuanhua zz
-left join channel_group_dedup channel_grp
-  on channel_grp.channel = zz.channel_map
-left join cost_exact ce
-  on ce.channel = zz.channel_map
- and ce.grade = zz.grade_1
- and ce.qici = zz.period_name
-left join cost_zero cz
-  on cz.channel = zz.channel_map
- and cz.qici = zz.period_name
- and ce.channel is null
-left join zx_active zx
-  on zx.employee_email_name = zz.employee_email_name
-where zz.period_name > '20260424期'
+    qici,
+    channel_map_1,
+    rule_name,
+    grade_1,
+    xiaozu,
+    department,
+    jingli,
+    employee_email_prefix,
+    employee_email_name,
+    sum(lead) as lead,
+    sum(ke_1) as ke_1,
+    sum(ke_2) as ke_2,
+    sum(ke_3) as ke_3,
+    sum(ke_4) as ke_4,
+    sum(ke_5) as ke_5,
+    sum(ke_6) as ke_6,
+    sum(v_ke_1) as v_ke_1,
+    sum(v_ke_2) as v_ke_2,
+    sum(v_ke_3) as v_ke_3,
+    sum(v_ke_4) as v_ke_4,
+    sum(v_ke_5) as v_ke_5,
+    sum(v_ke_6) as v_ke_6,
+    sum(manual_ke_1) as manual_ke_1,
+    sum(manual_ke_2) as manual_ke_2,
+    sum(manual_ke_3) as manual_ke_3,
+    sum(manual_ke_4) as manual_ke_4,
+    sum(manual_ke_5) as manual_ke_5,
+    sum(manual_ke_6) as manual_ke_6,
+    sum(manual_v_ke_1) as manual_v_ke_1,
+    sum(manual_v_ke_2) as manual_v_ke_2,
+    sum(manual_v_ke_3) as manual_v_ke_3,
+    sum(manual_v_ke_4) as manual_v_ke_4,
+    sum(manual_v_ke_5) as manual_v_ke_5,
+    sum(manual_v_ke_6) as manual_v_ke_6,
+    sum(auto_matched_lesson_row_cnt) as auto_matched_lesson_row_cnt,
+    sum(manual_matched_lesson_row_cnt) as manual_matched_lesson_row_cnt,
+    sum(manual_auto_same_lesson_row_cnt) as manual_auto_same_lesson_row_cnt,
+    sum(manual_auto_diff_lesson_row_cnt) as manual_auto_diff_lesson_row_cnt,
+    sum(manual_missing_auto_present_row_cnt) as manual_missing_auto_present_row_cnt,
+    sum(auto_missing_manual_present_row_cnt) as auto_missing_manual_present_row_cnt
+from prc
+group by qici, channel_map_1, rule_name, grade_1, xiaozu, department, jingli, employee_email_prefix, employee_email_name

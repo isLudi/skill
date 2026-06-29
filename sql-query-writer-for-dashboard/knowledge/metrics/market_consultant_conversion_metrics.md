@@ -6,7 +6,7 @@
 
 ## 2. 指标定义
 
-指标来自 `resources/raw_sql/market_consultant_conversion.sql` 的 `zhuanhua` CTE 和最终 select。当前状态为“历史看板 SQL 口径”，未与业务指标文档核对。
+指标来自 `resources/raw_sql/data_center_market_2253_20260628.sql` 的 `zhuanhua` CTE 和最终 select。当前状态为“历史看板 SQL 口径”，未与业务指标文档核对。
 
 ## 3. SQL 表达式
 

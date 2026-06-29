@@ -1,4 +1,4 @@
-# dashboards 知识库
+﻿# dashboards 知识库
 
 存放历史看板 SQL 解析结果。每个看板一个 Markdown 文件，记录：
 
@@ -20,7 +20,7 @@ python scripts/ingest_dashboard_sql.py
 
 ## 已入库看板
 
-- `market_consultant_conversion.md`：市场顾问转化看板，来源 `resources/raw_sql/market_consultant_conversion.sql`。
+- `market_consultant_conversion.md`：市场顾问转化看板，来源 `resources/raw_sql/data_center_market_2253_20260628.sql`。
 - `market_consultant_lead_conversion_attendance.md`：市场顾问线索转化到课看板，来源 `resources/raw_sql/market_consultant_lead_conversion_attendance.sql`。
 - `traffic_profile.md`：流量画像看板，来源 `resources/raw_sql/traffic_profile.sql`；2026-05-15 已按 `city_channel.txt` 更新为省份/城市维度版本。
 - `refund_multi_subject_user_ratio.md`、`refund_subject_product.md`、`refund_reason_analysis.md`：历史退费看板入口，已合并到 `market_channel_conversion_profile.md`；旧 raw SQL 仅作追溯资料。

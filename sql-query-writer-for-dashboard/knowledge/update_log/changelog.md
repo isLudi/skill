@@ -594,3 +594,15 @@
 - 与 2026-06-24 数据中心同步结果对齐，联动文档默认指向 `resources/raw_sql/data_center_market_*_20260624.sql`；文本播报看板保留为 text-only，不强行绑定 SQL。
 - 更新 `knowledge/quick_reference.md`、`knowledge/decision_tree.md`、`knowledge/metrics/README.md` 和 `knowledge/dashboard_web_profiles/README.md`，后续排查看板指标含义或公式时优先从联动索引进入。
 - 完成 raw SQL 去重：删除 17 个 20260617 数据中心旧快照；对 14 个与 canonical SQL 完全一致的 20260624 数据中心副本，改由清单和联动文档指向 canonical 文件后删除副本；另将 2 个与数据中心/canonical 完全一致的模板取数 raw SQL 改为清单指向唯一 SQL 文件后删除副本。
+
+## 2026-06-28 数据中心数据集源 SQL 同步
+
+- 从数据中心 `https://uanalysis.baijia.com/data-center/data-set` 同步数据集源 SQL，范围：市场顾问部目录下从 `(内部渠道)外呼过程数据` 开始到末尾的 SQL 数据集。
+- 保存 1 个数据集源 SQL 到 `resources/raw_sql`，更新清单 `knowledge/dashboards/data_center_market_datasets.md`。
+- 未改写 SQL 语义；后续字段、指标或临时表口径仍需基于源 SQL 和业务规则单独维护。
+
+## 2026-06-29 raw SQL 最新口径清理
+
+- 删除已被最新版本替代的旧 raw SQL：`data_center_market_2132_20260624.sql`、`data_center_market_2253_20260624.sql`、`data_center_market_2293_20260624.sql`、`market_channel_case_when_0515.sql`、`market_channel_case_when_0522.sql`、`market_channel_case_when_0524.sql`、`market_consultant_conversion.sql`。
+- 保留对应最新口径入口：`data_center_market_2132_20260628.sql`、`data_center_market_2253_20260628.sql`、`data_center_market_2293_20260628.sql`、`market_channel_case_when_0612.sql`。
+- 将活跃知识库引用从旧文件迁移到最新 raw SQL，并重新生成反向索引。

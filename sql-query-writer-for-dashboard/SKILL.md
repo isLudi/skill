@@ -168,5 +168,5 @@ description: Generate governed Presto SQL for internal dashboard and exploratory
 - 新增或刷新百家字段目录 JSON：运行 `scripts/import_baijia_external_knowledge.py --catalog <table_fields.json> --permissions <row_permissions.json>`，用于批量补全 `knowledge/tables/`、更新 `knowledge/01_table_index.md` 和 `knowledge/03_range_limit_rules.md`。
 - 新增看板 SQL：放入 `resources/raw_sql/`，运行 `scripts/ingest_dashboard_sql.py`，人工核对后运行 `scripts/build_reverse_indexes.py` 刷新 `knowledge/reverse_index/`。
 - 新增指标定义图片：放入 `resources/raw_images/`；若不能 OCR，手工补充到 `knowledge/metrics/`。
-- 更新市场顾问最新渠道 CASE 时，如果来源文件名包含日期后缀，例如 `D:\Feishu\0515.txt`，归档 SQL 文件名必须同步使用相同后缀：`resources/raw_sql/market_channel_case_when_0515.sql`。后续若来源变为 `D:\Feishu\MMDD.txt`，应将旧归档重命名或替换为 `market_channel_case_when_MMDD.sql`，同步更新所有知识库引用、`knowledge/sql_patterns/channel_mapping_case_when.md` 和更新日志；不得保留过期日期后缀作为最新入口。
+- 更新市场顾问最新渠道 CASE 时，如果来源文件名包含日期后缀，例如 `D:\Feishu\MMDD.txt`，归档 SQL 文件名必须同步使用相同后缀：`resources/raw_sql/market_channel_case_when_MMDD.sql`。后续若来源日期变化，应将旧归档重命名或替换为新的 `market_channel_case_when_MMDD.sql`，同步更新所有知识库引用、`knowledge/sql_patterns/channel_mapping_case_when.md` 和更新日志；不得保留过期日期后缀作为最新入口。
 - 更新记录写入 `knowledge/update_log/changelog.md`，必须按时间正序追加在文件末尾；不要把新记录插到文件顶部。同一天多次维护按发生顺序继续向后追加，必要时使用 `YYYY-MM-DD HH:mm:ss` 标题区分顺序。
