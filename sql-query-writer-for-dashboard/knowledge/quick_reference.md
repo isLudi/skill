@@ -12,7 +12,7 @@
 | `temp_table.dingxi01_jiagou_db` | 期次架构、小组经理 | 同时限定 `qici` 和目标部门 |
 | `temp_table.dingxi01_pingyou_jg` | 评优/参评名单/人产 | 仅在评优口径使用 |
 | `temp_table.dingxi01_cost` | 渠道成本、GMV 目标 | join 时处理 `grade='0'` 通配 |
-| `temp_table.dingxi01_daoke_1_6_t` | 到课课次映射 | 按期次、渠道、年级、开课时间匹配 |
+| `temp_table.dingxi01_daoke_1_6_t` | 到课手工课次映射 | 最新到课 canonical 仅用于 `manual_*` 和自动/手工对照诊断；主课次按实际开课时间自动排序 |
 | `service_dw.dwd_crm_assign_private_detail_hf` | 私海阶段、深沟、双沟 | 市场顾问场景限定到市场部/市场顾问部 |
 | `service_dw.dim_crm_assign_rule_lead_detail_hf` | 分配规则、计划组 | 按 `rule_id + plan_id` 关联 |
 | `gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf` | 首 call 任务 | 通过 `account_id` 桥接员工维表 |
@@ -25,7 +25,8 @@
 | `user_id` / `user_number` | 主线索、私海、学习、APP 活跃关联 | `knowledge/joins/common_join_keys.md` |
 | `lead_id` | 线索、规则、收入退费闭环 | `knowledge/joins/common_join_keys.md` |
 | `employee_email_prefix` / `employee_email_name` | 顾问、架构、财务流水 | `knowledge/joins/common_join_keys.md` |
-| `qici + channel_map_1/qudao + grade_1/grade + begin_time` | 到课手工课次映射 | `knowledge/dashboards/market_consultant_lead_conversion_attendance.md` |
+| `qici + channel_map_1 + grade_1 + begin_time_slot` | 到课自动课次槽位排序 | `knowledge/dashboards/market_consultant_lead_conversion_attendance.md` |
+| `qici + channel_map_1/qudao + grade_1/grade + begin_time` | 到课手工课次诊断映射 | `knowledge/dashboards/market_consultant_lead_conversion_attendance.md` |
 | `rule_id + plan_id` / `group_id` | 分配计划与实际量 | `knowledge/dashboards/lead_assign_plan_actual_valid_count.md` |
 
 ## 常见需求入口

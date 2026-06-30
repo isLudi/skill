@@ -606,3 +606,11 @@
 - 删除已被最新版本替代的旧 raw SQL：`data_center_market_2132_20260624.sql`、`data_center_market_2253_20260624.sql`、`data_center_market_2293_20260624.sql`、`market_channel_case_when_0515.sql`、`market_channel_case_when_0522.sql`、`market_channel_case_when_0524.sql`、`market_consultant_conversion.sql`。
 - 保留对应最新口径入口：`data_center_market_2132_20260628.sql`、`data_center_market_2253_20260628.sql`、`data_center_market_2293_20260628.sql`、`market_channel_case_when_0612.sql`。
 - 将活跃知识库引用从旧文件迁移到最新 raw SQL，并重新生成反向索引。
+
+## 2026-06-30 市场顾问到课 SQL 自动课次优化
+
+- 使用网页端 Presto 已验证版本覆盖 `resources/raw_sql/market_consultant_lead_conversion_attendance.sql`，作为市场顾问到课 canonical raw SQL。
+- 新口径不再把手工课次表或课程名称作为主课次来源；先以 `data` 中的 `qici + channel_map_1 + grade_1` 为准圈定用户行课候选，再按实际 `begin_time` 在同一期次、渠道、年级内自动排序生成课 1-课 6。
+- 保留原看板最终输出字段，不在 SQL 中输出到课率或有效到课率；比例继续由看板用 `sum(ke_n) / sum(lead)`、`sum(v_ke_n) / sum(lead)` 计算。
+- 清理知识库中旧的 `lesson_index` / `lesson_index_add` / 班级内顺序驱动主课次描述，更新到课看板、指标、join、临时课次表和常见 join 失败排查说明。
+- `template_query_market_attendance_20260619.sql` 仍作为模板取数原文保留，不作为最新 canonical；模板清单已标注 2026-06-30 后 canonical 以 `market_consultant_lead_conversion_attendance.sql` 为准。

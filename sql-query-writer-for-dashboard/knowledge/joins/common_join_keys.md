@@ -24,7 +24,7 @@
 | biz_number | gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf | 顾问首 call 任务期 number | 与 `qici`/`period_name` 不是同一字段，使用前需确认期次映射 |
 | qici | temp_table.dingxi01_jiagou_db, temp_table.dingxi01_daoke_1_6_t, temp_table.dingxi01_pingyou_jg | 期次范围和临时映射表关联 | 临时表无分区，查询时建议必须限定期次 |
 | substr(qici, -5) | temp_table.dingxi01_jiagou_db | 期次尾号关联 | `lead_assign_plan_actual_valid_count.sql` 用规则名拆出的期次片段匹配该字段；跨年份可能重复，优先确认能否改用完整期次 |
-| qici + qudao + grade + begin_time | temp_table.dingxi01_daoke_1_6_t | 到课手工课次映射 | 市场顾问线索转化到课最新 raw SQL 用 `channel_map_1 = qudao` 补充 `manual_ke_1`；最终主到课口径使用行课自动课次 `auto_ke_1` |
+| qici + qudao + grade + begin_time | temp_table.dingxi01_daoke_1_6_t | 到课手工课次映射 | 市场顾问线索转化到课最新 raw SQL 用 `channel_map_1 = qudao` 补充 `manual_ke_1`；该表只作 manual 诊断，最终主到课口径使用按 `qici + channel_map_1 + grade_1` 内实际 `begin_time` 排序得到的自动课次 `auto_ke_1` |
 | channel, grade, begin_time | temp_table.dingxi01_daoke_1_6_t | 历史/其他看板课次映射 | 流量画像等历史 SQL 可能使用 `channel`；不得默认套用到最新到课衰减 SQL |
 | dept_1, dept_2, department | temp_table.dingxi01_jiagou_db | 架构范围映射 | 虽不含 department_name，但属于部门/架构范围字段，必须控制范围 |
 | path_name | dw.dim_employee_chain | 员工组织链路径范围 | 虽不含 department_name，但属于部门/架构字段，必须通过完整路径或层级派生字段限定 |

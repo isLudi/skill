@@ -9,16 +9,17 @@
 - 看板 SQL：`resources/raw_sql/market_consultant_lead_conversion_attendance.sql`
 - 看板文档：`knowledge/dashboards/market_consultant_lead_conversion_attendance.md`
 - 入库日期：2026-05-08
-- 最近覆盖：2026-06-18
+- 最近覆盖：2026-06-30
 
 ## 3. 适用范围
 
-适用于 H 业务线市场部市场顾问到课衰减分析，默认统计有效线索在第 1-6 节自动课次的普通到课和有效到课，同时保留手工课次映射到课、手工课次有效到课，以及自动/手工课次对照计数。
+适用于 H 业务线市场部市场顾问到课衰减分析，默认统计有效线索在第 1-6 节自动课次的普通到课和有效到课。2026-06-30 起，自动课次按同一 `qici + channel_map_1 + grade_1` 下实际行课 `begin_time` 的先后顺序生成，不再依赖手工课次表或课程名称精确匹配；手工课次映射到课、手工课次有效到课和自动/手工课次对照计数仅作为诊断字段保留。
 
 默认范围来自 SQL：
 
 - `section_assign_employee_first_level_department_name = 'H业务线'`
 - `section_assign_employee_second_level_department_name = '市场部'`
+- `section_assign_employee_third_level_department_name = '市场顾问部'`
 - `period_mapping_first_level_department_name = 'H业务线'`
 - `valid_lead_count = '1'`
 - `data.qici > '20260410期'`
@@ -38,7 +39,7 @@
 
 ## 5. 用户级到课标记
 
-在 `prc` CTE 中，先按用户和线索维度去重，再计算每个用户在对应课次是否到课。
+在 `prc` CTE 中，先按用户和线索维度去重，再计算每个用户在对应课次是否到课。`auto_ke_1` 来自 `lesson_ranked_1_6`：先把行课 `begin_time` 规范到分钟级 `begin_time_slot`，再在每个 `qici + channel_map_1 + grade_1` 内按开课时间 `dense_rank` 生成课 1-课 6。
 
 | 指标 | 中文含义 | SQL 口径 |
 |---|---|---|
@@ -123,8 +124,11 @@
 
 当前主到课课次来自行课明细自动派生：
 
-- `auto_ke_1` 优先取 `lesson_index` / `lesson_index_add` 的 1-6 节值。
-- 当上述字段没有 1-6 节值时，用 `row_number() over(partition by qici, user_number, clazz_number order by begin_time, clazz_lesson_number)` 作为班级内自动课次兜底。
+- `lead_user_period` 从 `data` 中抽取 `lead_id + user_id + employee_email_prefix + qici + channel_map_1 + grade_1`，并由 `qici` 派生 `qici_date`。
+- `learn_candidates` 只按用户关联行课表，并用 `qici_date - 3 day` 到 `qici_date + 4 day` 的窗口圈定候选行课；这样以线索期次为准，覆盖周二/周三提前开课和周一补充开课，不把行课表按周五规则派生的期次作为唯一依据。
+- `lesson_slots` 按 `qici + channel_map_1 + grade_1 + begin_time_slot` 聚合真实开课槽位，使用 `lesson_user_cnt` 过滤低覆盖噪声行课。
+- `lesson_ranked_1_6` 对每个 `qici + channel_map_1 + grade_1` 内的开课槽位按 `begin_time` 做 `dense_rank`，生成 `auto_ke_1`，仅保留 1-6。
+- `lesson_index` / `lesson_index_add`、`lesson_name` 当前只保留为诊断字段，不驱动主课次。
 
 手工课次来自 `temp_table.dingxi01_daoke_1_6_t`，当前 SQL 关联条件为：
 
@@ -135,11 +139,12 @@ and dk.grade_1 = ke.grade
 and dk.begin_time = ke.begin_time
 ```
 
-其中 `qudao` 是当前 raw SQL 确认使用的手工渠道映射字段；不要默认改成 `channel`。最终 `ke_*` / `v_ke_*` 使用 `auto_ke_1`，`manual_*` / `manual_v_*` 使用 `manual_ke_1`。
+其中 `qudao` 是当前 raw SQL 确认使用的手工渠道映射字段；不要默认改成 `channel`。最终 `ke_*` / `v_ke_*` 使用自动排序得到的 `auto_ke_1`，`manual_*` / `manual_v_*` 使用 `manual_ke_1`。
 
 ## 9. 待确认事项
 
 - `lead` 实际来自 `valid_lead_count`，展示文案若叫“线索数”需确认是否应改名为“有效线索数”。
 - `ke_1` 字段名同时被用作到课映射表中的手工课次字段和最终第 1 节到课指标，阅读 SQL 时需要区分 CTE 层级。
 - `valid_lead_count = '1'`、`is_valid_live_learn = '1'` 为历史 SQL 字符串比较写法，生成新 SQL 时建议按字段类型统一。
+- 到课率和有效到课率不在 SQL 中输出；看板应基于最终聚合后的 `sum(ke_n) / sum(lead)`、`sum(v_ke_n) / sum(lead)` 计算，避免对行级比率二次聚合。
 - 渠道 CASE 顺序会直接影响到课临时表的渠道匹配，新增或修复渠道时应先确认特例是否被更靠前的泛化规则截走；2026-06-18 起 `孟亚飞-1组-视频号` 已合并为 `孟亚飞9元`。

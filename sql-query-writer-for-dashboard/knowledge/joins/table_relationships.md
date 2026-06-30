@@ -179,15 +179,16 @@
 
 - 来源：`resources/raw_sql/market_consultant_lead_conversion_attendance.sql`
 - 主表：`bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df`
-- 主表范围：`section_assign_employee_first_level_department_name = 'H业务线'`、`section_assign_employee_second_level_department_name = '市场部'`、`period_mapping_first_level_department_name = 'H业务线'`、`valid_lead_count = '1'`。
+- 主表范围：`section_assign_employee_first_level_department_name = 'H业务线'`、`section_assign_employee_second_level_department_name = '市场部'`、`section_assign_employee_third_level_department_name = '市场顾问部'`、`period_mapping_first_level_department_name = 'H业务线'`、`valid_lead_count = '1'`。
 - 私海阶段：通过 `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.user_id = service_dw.dwd_crm_assign_private_detail_hf.user_number` 关联，并按 `private_sea_update_time desc` 取最新阶段；`sale_flow_stage_sequence in ('450','470')` 分别映射为深沟、已双沟。
 - 首呼统计：通过 `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.user_id = service_dw.dm_crm_lead_stats_detail_hf.user_number` 关联，当前 raw SQL 仅保留 `first_call_connect_diff_hour` 派生字段，结果层未输出。
-- 到课数据：通过 `data.user_id = service_dw.dws_service_user_learn_detail_hf.user_number` 和 `data.qici = 行课派生 qici` 关联；当前主口径用 `lesson_index` / `lesson_index_add` / 班级内开课顺序派生 `auto_ke_1`。
+- 到课数据：通过 `lead_user_period.user_id = service_dw.dws_service_user_learn_detail_hf.user_number` 关联，并用 `data.qici` 派生的 `qici_date - 3 day` 到 `qici_date + 4 day` 窗口圈定候选行课；不再把行课表按 `begin_time` 派生的期次作为唯一关联依据。
+- 自动课次：按 `qici + channel_map_1 + grade_1 + begin_time_slot` 聚合真实开课槽位，并在每个 `qici + channel_map_1 + grade_1` 内按 `begin_time` 做 `dense_rank`，生成主口径 `auto_ke_1`。`lesson_index` / `lesson_index_add` 当前仅作诊断字段，不驱动主课次。
 - 到课课次：当前 raw SQL 输出自动课次第 1-6 节到课和第 1-6 节有效到课；普通到课使用 `live_learn_duration > 0`，有效到课使用 `is_valid_live_learn = '1'`。
-- 手工课次映射：`temp_table.dingxi01_daoke_1_6_t` 使用 `qici + qudao + grade + begin_time` 与 `qici + channel_map_1 + grade_1 + begin_time` 关联，补充 `manual_ke_1`，不使用 `channel`。
+- 手工课次映射：`temp_table.dingxi01_daoke_1_6_t` 使用 `qici + qudao + grade + begin_time` 与 `qici + channel_map_1 + grade_1 + begin_time_slot` 关联，补充 `manual_ke_1`，不使用 `channel`；该表只作为 `manual_*` 和自动/手工对照诊断来源，不能作为主课次来源。
 - 对照计数：最终层保留 `auto_matched_lesson_row_cnt`、`manual_matched_lesson_row_cnt`、`manual_auto_same_lesson_row_cnt`、`manual_auto_diff_lesson_row_cnt`、`manual_missing_auto_present_row_cnt`、`auto_missing_manual_present_row_cnt`。
 - 架构补充：`temp_table.dingxi01_jiagou_db` 通过 `employee_email_prefix + qici` 关联，输出 `xiaozu`、`department`、`jingli`，并用 `jg.department is not null` 过滤。
-- 状态：2026-06-18 已用用户提供的最新到课 SQL 覆盖 raw SQL；该版本不再 join 成本目标表或 `temp_table.shenbaoxin_channel_group`。渠道 CASE 顺序是核心风险，`孟亚飞IP99元` 等特例必须放在泛化规则之前；`孟亚飞-1组-视频号` 已合并为 `孟亚飞9元`。
+- 状态：2026-06-30 已用经网页端 Presto 验证的自动课次优化 SQL 覆盖 raw SQL；该版本不再 join 成本目标表或 `temp_table.shenbaoxin_channel_group`，并保持旧最终输出字段。渠道 CASE 顺序仍是核心风险，`孟亚飞IP99元` 等特例必须放在泛化规则之前；`孟亚飞-1组-视频号` 已合并为 `孟亚飞9元`。
 
 ## 流量画像看板关系
 

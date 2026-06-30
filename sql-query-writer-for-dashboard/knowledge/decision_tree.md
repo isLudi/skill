@@ -5,7 +5,7 @@
 | 用户说法 | 先读 | 再读 | 必要规则/踩坑 |
 |---|---|---|---|
 | 市场顾问转化、线索转化、GMV、净收、破单 | `knowledge/dashboards/market_consultant_conversion.md` | `knowledge/metrics/market_consultant_conversion_metrics.md`、`knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md` | `knowledge/sql_patterns/channel_mapping_case_when.md`、`knowledge/pitfalls/common_join_failures.md` |
-| 线索转化到课、首节到课、AB 意向 | `knowledge/dashboards/market_consultant_lead_conversion_attendance.md` | `knowledge/metrics/market_consultant_lead_conversion_attendance_metrics.md`、`knowledge/tables/temp_table.dingxi01_daoke_1_6_t.md` | 自动课次 `auto_ke_1`、手工课次 `manual_ke_1`、到课表 key 和渠道 CASE 顺序 |
+| 线索转化到课、首节到课、AB 意向 | `knowledge/dashboards/market_consultant_lead_conversion_attendance.md` | `knowledge/metrics/market_consultant_lead_conversion_attendance_metrics.md`、`knowledge/tables/temp_table.dingxi01_daoke_1_6_t.md` | 主课次按 `qici + channel_map_1 + grade_1` 内实际开课时间自动排序；`manual_ke_1` 仅诊断；注意到课候选窗口、槽位过滤和渠道 CASE 顺序 |
 | 流量画像、城市渠道、APP 登录、成交科目档位 | `knowledge/dashboards/traffic_profile.md` | `knowledge/metrics/traffic_profile_metrics.md`、`knowledge/sql_patterns/dashboard_query_patterns.md` | 外呼 join 未带 `lead_id`、财务成交科目 join 粒度 |
 | 市场渠道用户画像、成单用户过程分析、多维退费率、人头退费率、GMV 退费率 | `knowledge/dashboards/market_channel_conversion_profile.md` | `knowledge/metrics/market_channel_conversion_profile_metrics.md`、`resources/raw_sql/refund_rate_multidim.sql` | 退费率默认输出分子/分母字段，由透视表重算；旧退费看板文档仅作历史入口 |
 | 模板取数最新代码、AI分析市场顾问部多科/分周期/每天/转化/过程/到课/员工架构/进量模板 | `knowledge/dashboards/template_query_market_datasets.md` | 清单中的对应 raw SQL 文件 | 使用口径必须说明为“模板取数”；不要默认覆盖或替代数据中心/Web BI canonical SQL |

@@ -23,25 +23,30 @@ left join temp_table.dingxi01_cost ct
 
 ---
 
-## 2. daoke 表 → 到课率全为 0
+## 2. 到课表 / 自动课次 → 到课率全为 0
 
 **症状**：应出勤人数 > 0（`lead > 0`），但 `ke_1`~`ke_6`、`v_ke_1`~`v_ke_6` 全为 0。
 
-**根因**：`temp_table.dingxi01_daoke_1_6_t` 未覆盖特定的 `(qudao, grade)` 组合，或 `begin_time` 不匹配。
+**优先根因**：
+
+- 最新 `market_consultant_lead_conversion_attendance.sql` 的主课次不再由 `temp_table.dingxi01_daoke_1_6_t` 决定，而是按 `qici + channel_map_1 + grade_1` 下实际 `begin_time` 自动排序；主到课全 0 时，先检查 `learn_candidates` 是否圈到行课、`lesson_slots` 是否被低覆盖过滤、`lesson_ranked_1_6` 是否生成课 1-课 6。
+- 如果只是 `manual_*` 或自动/手工对照字段异常，再检查 `temp_table.dingxi01_daoke_1_6_t` 是否覆盖特定的 `(qudao, grade, begin_time)` 组合。
 
 **排查**：
-1. 按 `(channel_map_1, grade_1)` LEFT JOIN daoke 表，查 `ke_qici_cnt = 0` 的组合
-2. 对比看板 `begin_time` 与 daoke 表 `begin_time` 格式
+1. 按 `qici + channel_map_1 + grade_1` 检查 `lead_user_period` 的用户数。
+2. 检查 `learn_candidates` 是否有对应用户行课，时间窗口为 `qici_date - 3 day` 到 `qici_date + 4 day`。
+3. 检查 `lesson_slots` 中是否有 `lesson_user_cnt` 达到阈值的开课槽位，并确认 `begin_time_slot` 是否被规范到分钟粒度。
+4. 仅排查 `manual_*` 时，按 `(channel_map_1, grade_1)` LEFT JOIN daoke 手工表，查 `ke_qici_cnt = 0` 的组合，并对比看板 `begin_time` 与 daoke 表 `begin_time` 格式。
 
-**修复**：在 daoke Excel 中补充缺失的 `(qudao, grade, begin_time)` 映射记录，重新导入 temp table。
+**修复**：主口径异常时优先修自动课次候选窗口、槽位过滤阈值或渠道/年级归因；manual 诊断异常时才在 daoke Excel 中补充缺失的 `(qudao, grade, begin_time)` 映射记录并重新导入 temp table。
 
 ---
 
 ## 2.1 daoke 表有渠道，但看板渠道消失
 
-**症状**：`temp_table.dingxi01_daoke_1_6_t` 中目标期次已经维护了某个渠道，例如 `孟亚飞IP99元`，但到课看板从某期开始不再出现该渠道，或该渠道到课指标全为 0。
+**症状**：`temp_table.dingxi01_daoke_1_6_t` 中目标期次已经维护了某个渠道，例如 `孟亚飞IP99元`，但到课看板从某期开始不再出现该渠道，或该渠道 manual 诊断字段全为 0。
 
-**优先根因**：超长渠道 CASE 顺序问题。目标 `rule_name` 仍存在，但先被前面的宽泛分支命中，导致 `channel_map_1` 输出成别的渠道，后续 `dk.channel_map_1 = ke.qudao` 断裂。
+**优先根因**：超长渠道 CASE 顺序问题。目标 `rule_name` 仍存在，但先被前面的宽泛分支命中，导致 `channel_map_1` 输出成别的渠道。最新主课次会按错误渠道分组排序，manual 诊断也会因 `channel_map_1 = ke.qudao` 断裂。
 
 **已验证案例**：
 
