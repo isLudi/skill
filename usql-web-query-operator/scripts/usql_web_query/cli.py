@@ -65,7 +65,7 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--env-file", type=Path, default=DEFAULT_ENV_FILE)
     run.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL, help="Installed browser channel, e.g. msedge or chrome.")
     run.add_argument("--executable-path", default=None, help="Explicit browser executable path; overrides --browser-channel.")
-    run.add_argument("--engine", choices=["doris-presto", "presto"], default=DEFAULT_QUERY_ENGINE, help="Query engine to select before writing SQL. Default: doris-presto.")
+    run.add_argument("--engine", choices=["doris-presto", "presto"], default=DEFAULT_QUERY_ENGINE, help="Query engine to select before writing SQL. Default: presto.")
     run.add_argument("--timeout-ms", type=int, default=10 * 60 * 1000)
     run.add_argument("--new-tab", action=argparse.BooleanOptionalAction, default=True)
     run.add_argument("--download", action="store_true", help="Download the result when local row-limit policy allows it.")

@@ -26,8 +26,8 @@
 3. 在查询页面点击顶部导航 `SQL取数`。
 4. 需要时点击 `+` 创建新查询 tab。
 5. 写入 SQL 前选择引擎。
-   - 默认自动化路径：`Doris-Presto` -> `doris内测加速版`
-   - 基线路径：`Presto`
+   - 默认自动化路径：`Presto`
+   - 备选路径：`Doris-Presto` -> `doris内测加速版`，仅在 Presto 结果疑似为空或需要排查引擎差异时使用
 6. 将 SQL 粘贴到 CodeMirror 编辑器。
 7. 点击编辑器工具栏附近的运行图标。
 8. 等待查询历史状态变为 `Success` 或 `Failed`。
@@ -53,7 +53,12 @@
 
 引擎选择器也位于 `/sql/` iframe 内，容器是 `.antd-pro-src-components-editor-index-changeModeBox`。
 
-2026-06-11 验证的路径：
+2026-06-30 默认路径：
+
+1. 点击 `.antd-pro-src-components-editor-index-changeModeBox .ant-select-selector`
+2. 点击 `Presto`
+
+2026-06-11 验证的 Doris-Presto 备选路径：
 
 1. 点击 `.antd-pro-src-components-editor-index-changeModeBox .ant-select-selector`
 2. 点击 `Doris-Presto`

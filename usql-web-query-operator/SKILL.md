@@ -73,7 +73,7 @@ D:\anaconda3\python.exe scripts\usql_web_query.py login --headed
 D:\anaconda3\python.exe scripts\usql_web_query.py run --sql-file C:\path\to\query.sql --headed --no-download
 ```
 
-脚本会在写入 SQL 前切换查询引擎。默认引擎是 `doris-presto`。当需要基线对比，或需要排除 Doris-Presto 行为差异时，使用 `--engine presto`。
+脚本会在写入 SQL 前切换查询引擎。默认引擎是 `presto`，优先使用平台稳定性更高但耗时更长的原始 Presto。只有当 Presto 成功执行但结果疑似为空、或需要排查引擎差异时，才显式使用 `--engine doris-presto` 做补充验证。
 
 6. 检查返回的 JSON summary。成功运行会包含查询状态、检测到的 query id，以及页面能暴露时的小范围可见表格预览。
 7. 如果 `status=Failed`，修改 SQL 前必须先读 `error_details`：
@@ -247,8 +247,8 @@ D:\anaconda3\python.exe scripts\read_dashboard.py profile-all --dashboard-wait-m
 常用 `run` 选项：
 
 - 失败 summary 会明确区分 `即时错误` 和 `日志区错误`，并输出 `repair_guidance` 供下一轮 SQL 修改使用。
-- `--engine doris-presto`：执行前选择 `Doris-Presto -> doris内测加速版`，这是默认值。
-- `--engine presto`：强制使用原始 Presto，用于基线检查和引擎差异排查。
+- `--engine presto`：执行前选择原始 Presto，这是默认值；平台当前更稳定，但通常耗时更长。
+- `--engine doris-presto`：执行前选择 `Doris-Presto -> doris内测加速版`，仅在 Presto 结果疑似为空、需要更快的补充验证或排查引擎差异时使用。
 
 `scripts/read_dashboard.py` 只用于自助BI / dashboard：
 
