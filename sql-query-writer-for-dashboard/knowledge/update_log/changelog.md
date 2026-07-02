@@ -614,3 +614,20 @@
 - 保留原看板最终输出字段，不在 SQL 中输出到课率或有效到课率；比例继续由看板用 `sum(ke_n) / sum(lead)`、`sum(v_ke_n) / sum(lead)` 计算。
 - 清理知识库中旧的 `lesson_index` / `lesson_index_add` / 班级内顺序驱动主课次描述，更新到课看板、指标、join、临时课次表和常见 join 失败排查说明。
 - `template_query_market_attendance_20260619.sql` 仍作为模板取数原文保留，不作为最新 canonical；模板清单已标注 2026-06-30 后 canonical 以 `market_consultant_lead_conversion_attendance.sql` 为准。
+
+## 2026-07-02 市场顾问年级 `rule_name` 主留痕边界补充
+
+- 更新 `knowledge/pitfalls/grade_extraction_gotchas.md`，明确业财宽表 `rule_name` 只记录主留痕分配规则，不等同于 CRM 当前页面可见的所有分配规则。
+- 更新 `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df` 表文档中 `rule_name` 字段说明：线索进量后经调课调班或后续流转才产生的分配规则可能不回写该字段。
+- 更新市场顾问转化和 H业务线二级部门转化看板文档，记录当宽表 `rule_name` 缺失时，年级会回退到 `lead_purchase_intention_level2_category_name`；如需按 CRM 当前规则修正，应额外对比规则明细表和线索统计留痕表。
+
+## 2026-07-02 数据中心数据集源 SQL 同步
+
+- 从数据中心 `https://uanalysis.baijia.com/data-center/data-set` 同步数据集源 SQL，范围：市场顾问部目录下从 `(内部渠道)外呼过程数据` 开始到末尾的 SQL 数据集。
+- 保存 1 个数据集源 SQL 到 `resources/raw_sql`，更新清单 `knowledge/dashboards/data_center_market_datasets.md`。
+- 未改写 SQL 语义；后续字段、指标或临时表口径仍需基于源 SQL 和业务规则单独维护。
+
+## 2026-07-02 评优临时表 `is_emp` 字段含义确认
+
+- 明确 `temp_table.dingxi01_pingyou_jg.is_emp` 的业务含义为“是否参与评优”：`是` 表示参与，`否` 表示不参与。
+- 更新评优临时表、顾问销售评优看板、评优指标和临时表 join 关系文档，避免将 `is_emp` 误解为是否在职；在职状态仍由 `zaizhi` 表示。

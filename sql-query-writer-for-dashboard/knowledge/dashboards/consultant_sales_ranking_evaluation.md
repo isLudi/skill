@@ -22,7 +22,7 @@
 | 表名 | 别名/CTE | 用途 |
 |---|---|---|
 | `finance_dw.app_finance_performance_extend_details_hf` | `dd` 来源表 | 财务业绩扩展明细，提供订单流水、交易状态、交易类型、价格、顾问、交易时间和课程信息 |
-| `temp_table.dingxi01_pingyou_jg` | `pg` | 评优架构人产临时表，提供顾问期次、架构、渠道、人产、年级、在职和是否参与评优 |
+| `temp_table.dingxi01_pingyou_jg` | `pg` | 评优架构人产临时表，提供顾问期次、架构、渠道、人产、年级、在职和是否参与评优；`is_emp='是'` 表示参与评优，`is_emp='否'` 表示不参与评优 |
 | `temp_table.dingxi01_jiagou_zx` | `jiagou_zx_active` | 当前在职架构顾问名单；季度和半年度 clean 脚本用它额外剔除已离职顾问 |
 
 ## 4. SQL 结构
@@ -89,6 +89,8 @@ cast(pg.zaizhi as varchar) = '1'
 and pg.is_emp = '是'
 ```
 
+其中 `pg.zaizhi = '1'` 表示在职过滤；`pg.is_emp = '是'` 表示只纳入参与评优的人员，`is_emp = '否'` 的人员即使在 `pingyou_jg` 中维护，也不会进入严格参评口径结果。
+
 季度和半年度 clean 脚本额外使用当前在职架构名单：
 
 ```sql
@@ -142,7 +144,7 @@ inner join jiagou_zx_active zx
 - 财务流水正负金额：正向流水计入 `inc`，负向流水计入 `ref`，正负合计为 `pt`。
 - 调课调班去重：对 `trade_type = '调课调班'` 按 `name + user_id1` 汇总 `price`，总额不为 0 后取第一条。
 - 正常订单聚合：对 `trade_type = '正常订单'` 按订单和顾问明细维度汇总 `price`。
-- 评优人群范围：`cast(pg.zaizhi as varchar) = '1' and pg.is_emp = '是'`。
+- 评优人群范围：`cast(pg.zaizhi as varchar) = '1' and pg.is_emp = '是'`，其中 `is_emp='是'` 表示参与评优。
 - 季度/半年度当前在职过滤：在 `process` 中 `inner join jiagou_zx_active`，剔除已不在当前架构表的离职顾问。
 - 周期排名：ROI 使用降序 `rank()`，退费使用自定义 `row_number()` 排序。
 

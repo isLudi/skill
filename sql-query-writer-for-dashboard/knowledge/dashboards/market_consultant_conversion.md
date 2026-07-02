@@ -30,6 +30,8 @@
 | zhuanhua | 按看板维度聚合转化和收入指标，2026-05-24 起分组增加 `rule_name`，输出粒度细化到规则级别 | `period_name`, `channel_map`, `rule_name`, `grade_1`, `depart_1`, `depart`, `jingli`, `zhuguan`, `employee_email_name` |
 | final select | 补充破单、有效线索门槛、架构、渠道组、成本和目标，从 `rule_name` 派生 `sx_qi`，新增 `jingli_1` | `s_lead`, `podan`, `name1`, `sx_qi`, `jingli_1`, `channel_group`, `cb_cb`, `gl_gl` |
 
+年级派生边界：本看板的 `grade_1` 优先从业财宽表 `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.rule_name` 提取；该字段只记录主留痕分配规则。如果线索进量时主留痕无规则，后续调课调班或流转后才产生分配规则，宽表 `rule_name` 仍可能为空，年级会回退到 `lead_purchase_intention_level2_category_name`。
+
 ## 5. join 关系
 
 | 左表/CTE | 右表/CTE | join key | join 类型 | 说明 |
@@ -142,4 +144,5 @@ zz.period_name > '20260424期'
 - `temp_table.dingxi01_jiagou_db` join 后未在最终 select 直接使用字段，但可能造成重复行；需确认该表在 join key 下是否唯一。
 - `channel_map` 是超长 CASE 规则，历史完整规则以原始 SQL 为准；最新渠道 CASE 已归档为 `resources/raw_sql/market_channel_case_when_0612.sql`。后续改写 SQL 时应优先使用该独立渠道映射知识，除非用户明确要求沿用本看板历史口径。
 - `xiansuo` 当前按底层 0/1 标记求和输出；如前端需要作为维度筛选，应另行确认是否改为明细维度，不能直接把当前聚合字段放入 group by。
+- `grade_1` 的 `rule_name` 来源是业财宽表主留痕规则，不等同于 CRM 当前页面能看到的所有分配规则。若 CRM 有规则但看板年级回退为购买意向，需对比 `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.rule_name`、`service_dw.dim_crm_assign_rule_lead_detail_hf.rule_name` 和 `service_dw.dm_crm_lead_stats_detail_hf.trace_rule_name`。
 - 所有指标口径来自历史看板 SQL，尚未经过业务口径文档确认。

@@ -39,6 +39,7 @@
 - 退费率分子：`-ref`，即退款金额绝对值。
 - 退费率分母：`inc`，即总营收。
 - 排名分母：同一周期内参与评优的顾问数，来自 `count(*) over (partition by 周期)`。
+- 参与评优范围由 `temp_table.dingxi01_pingyou_jg.is_emp` 控制：`是` 表示参与评优，`否` 表示不参与评优；在职状态由 `zaizhi` 控制。
 
 ## 6. 时间口径
 
@@ -78,6 +79,8 @@ and employee_third_level_department_name = '市场顾问部'
 pg.zaizhi = '1'
 and pg.is_emp = '是'
 ```
+
+`pg.is_emp = '是'` 是参与评优过滤，不是是否在职过滤。
 
 ## 8. 待人工确认
 

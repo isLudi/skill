@@ -32,6 +32,8 @@
 | zhuanhua | 按看板维度聚合转化和收入指标；年级从 `rule_name` 派生 | `period_name`, `channel_map`, `rule_name`, `lead_purchase_intention_level2_category_name`, `depart_1`, `dept_name`, `depart` |
 | final select | 补充渠道分组、破单和有效线索门槛指标 | `channel_1`, `s_lead`, `podan` |
 
+年级派生边界：本数据集使用业财宽表 `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.rule_name` 识别年级；该字段只记录主留痕分配规则。如果线索进量时主留痕无规则，后续调课调班或流转后才产生分配规则，宽表 `rule_name` 仍可能为空，年级会回退到 `lead_purchase_intention_level2_category_name`。
+
 ## 5. join 关系
 
 | 左表/CTE | 右表/CTE | join key | join 类型 | 说明 |
@@ -137,6 +139,7 @@ zz.period_name > '20260417期'
 - `data_base` 和 `data` 双层 `select distinct` 可能带来不必要的 shuffle；需确认是否有意为之。
 - `valid_lead_count` 和 `can_renew_ds_count_a` 在 `zhuanhua` 中为同一聚合 `sum(valid_lead_count)`，输出两个同名指标；需确认前端是否需要两个字段。
 - `lead_purchase_intention_level2_category_name` 既用作年级维度又保留了原始字段名；如年级是从 `rule_name` 提取的，应考虑更换字段别名。
+- 业财宽表 `rule_name` 只记录主留痕分配规则；调课调班或后续流转后才产生的分配规则可能只存在于 `service_dw.dim_crm_assign_rule_lead_detail_hf.rule_name` 或 `service_dw.dm_crm_lead_stats_detail_hf.trace_rule_name`，当前数据集不会用这些后续规则修正年级。
 - 首 call 任务表分区使用 `now - 2h` 而主表使用 `now - 3h`，存在 1 小时偏移不一致；需确认是否为平台产出延迟口径。
 - 员工维表按 `account_id` 去重时 `order by employee_email_name`，多姓名时取字典序第一个；如一个 account_id 对应多员工（多部门兼职），需确认该逻辑是否正确。
 - 首 call 任务表未限定 `task_generate_rule_type = 2`（顾问首 call），只用了 `is_del = 0` 和 `start_time > '2026-01-01'`；需确认是否需要补充 `task_generate_rule_type = 2`。

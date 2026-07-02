@@ -226,7 +226,7 @@ Presto
 | sku_id | string | 落地页上报，用户进入的页面关联的sku_id | 待按需求确认 | 否 |
 | sku_id_name | string | 落地页上报，用户进入的页面关联的sku_id_name | 待按需求确认 | 否 |
 | promoter_name | string | 推广员姓名 | 待按需求确认 | 否 |
-| rule_name | string | 分配规则 | 待按需求确认 | 否 |
+| rule_name | string | 主留痕分配规则；只记录主留痕上的分配规则，线索进量后经调课调班或后续流转才产生的分配规则可能不回写到该字段 | 年级识别、规则筛选、期次拆分；缺失时看板年级常回退到购买意向二级品类 | 是 |
 | qw_add_time | string | 添加企微时间 | 时间分析 | 否 |
 | gw_add_time | string | 添加个微时间 | 时间分析 | 否 |
 | first_call_time | string | 分配后首call时间 | 时间分析 | 否 |
