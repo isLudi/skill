@@ -1,4 +1,4 @@
-# 顾问销售评优指标
+﻿# 顾问销售评优指标
 
 ## 1. 中文名称
 
@@ -30,7 +30,7 @@
 ## 4. 适用表
 
 - `finance_dw.app_finance_performance_extend_details_hf`
-- `temp_table.dingxi01_pingyou_jg`
+- `temp_table.zhangjunyan01_pingyou_jg`
 
 ## 5. 分母/分子口径
 
@@ -39,7 +39,7 @@
 - 退费率分子：`-ref`，即退款金额绝对值。
 - 退费率分母：`inc`，即总营收。
 - 排名分母：同一周期内参与评优的顾问数，来自 `count(*) over (partition by 周期)`。
-- 参与评优范围由 `temp_table.dingxi01_pingyou_jg.is_emp` 控制：`是` 表示参与评优，`否` 表示不参与评优；在职状态由 `zaizhi` 控制。
+- 参与评优范围由 `temp_table.zhangjunyan01_pingyou_jg.is_emp` 控制：`是` 表示参与评优，`否` 表示不参与评优；在职状态由 `zaizhi` 控制。
 
 ## 6. 时间口径
 

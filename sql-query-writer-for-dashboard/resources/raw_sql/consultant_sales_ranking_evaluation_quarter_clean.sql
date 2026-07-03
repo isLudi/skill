@@ -1,4 +1,4 @@
-with dd as (
+﻿with dd as (
     select *
     from (
     select
@@ -128,7 +128,7 @@ with dd as (
     sum(name_total_price) as pt,
     sum(case when name_total_price > 0 then name_total_price else 0 end) as inc,
     sum(case when name_total_price < 0 then name_total_price else 0 end) as ref
-from temp_table.dingxi01_pingyou_jg pg
+from temp_table.zhangjunyan01_pingyou_jg pg
 inner join jiagou_zx_active zx on zx.employee_email_name = pg.employee_email_name
 left join rd on pg.employee_email_name = rd.name and pg.qici = rd.qici
 where cast(pg.zaizhi as varchar) = '1' and pg.is_emp = '是'
@@ -186,7 +186,7 @@ from rank_h)
     end as quarter,
         pg.qici,
         pg.employee_email_name
-    from temp_table.dingxi01_pingyou_jg pg
+    from temp_table.zhangjunyan01_pingyou_jg pg
     inner join jiagou_zx_active zx
       on zx.employee_email_name = pg.employee_email_name
     where cast(pg.zaizhi as varchar) = '1'

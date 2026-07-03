@@ -1,4 +1,4 @@
----
+﻿---
 name: sql-query-writer-for-dashboard
 description: Generate governed Presto SQL for internal dashboard and exploratory data queries from company table schema PDFs, metric definitions, historical dashboard SQL, join knowledge, and query-platform constraints. Use when asked to create, explain, validate, or fix dashboard取数 SQL.
 ---
@@ -38,7 +38,7 @@ description: Generate governed Presto SQL for internal dashboard and exploratory
 - 复杂 SQL 或 SQL 修复后，优先运行 `scripts/validate_sql_rules.py`；维护 Skill 结构后，运行 `scripts/check_skill_integrity.py`。
 - 若用户只要求“给参考 SQL，不修改 Skill”，不得改写 `resources/raw_sql/` 或 `knowledge/`。
 - 生成排名、比率、目标、差值等非明细粒度指标时，必须先声明“指标计算粒度”和“最终输出粒度”。如果两者不一致，例如指标按 `期次-部门-顾问` 排名而最终输出为 `日-期次-部门-顾问`，必须提示前端聚合风险，并优先给出期次粒度最终查询或 `*_once` 防重复字段方案。
-- `temp_table.dingxi01_pingyou_jg` 只在用户明确要求“评优/参评名单/评优架构/人产”口径时使用。该表含 `qici`，join 后会把结果限制在该临时表已维护期次内；如果最新期次缺失，不得默认用它过滤最新数据。
+- `temp_table.zhangjunyan01_pingyou_jg` 只在用户明确要求“评优/参评名单/评优架构/人产”口径时使用。该表含 `qici`，join 后会把结果限制在该临时表已维护期次内；如果最新期次缺失，不得默认用它过滤最新数据。
 - 当用户不要求严格评优参评名单、只需要市场顾问在职架构范围时，可考虑用 `temp_table.dingxi01_jiagou_zx` 作为顾问名单替代来源。使用时必须限定 `cast(zaizhi as varchar) = '1'`、`department in ('郑州顾问部', '西安一部', '西安二部')`，并用 `row_number()` 按 `employee_email_name` 去重，同时说明口径由“参评顾问”变为“在职架构顾问”。
 - 排查“某期次/经理/顾问查不到”时，先判断 SQL 是事实主表驱动还是名单/架构表驱动；临时架构表有目标期次不代表事实主表已经产出该期数据。详细流程参考 `knowledge/sql_patterns/dashboard_query_patterns.md` 的“结果缺失与未来期次排查”。
 

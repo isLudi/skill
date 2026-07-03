@@ -1,4 +1,4 @@
-﻿# temp_table.dingxi01_jiagou_zx
+# temp_table.dingxi01_jiagou_zx
 
 ## 1. 中文名称
 
@@ -115,7 +115,7 @@ limit 20;
 - 字段类型来自 Excel 内容推断，若查询平台中实际 DDL 不同，以平台为准。
 - 所有探索查询必须加 `limit`；涉及架构或部门字段时必须加范围限定。
 - 如果 join key 存在重复，生成 SQL 时需使用 `row_number`、`distinct` 或先聚合，避免主表行数被放大。
-- 该表无 `qici` 字段，适合作为当前在职架构名单或展示架构补充，不适合表达“某期次参评名单”。用于替代 `temp_table.dingxi01_pingyou_jg` 时，必须说明口径从“参评顾问”变为“在职架构顾问”。
+- 该表无 `qici` 字段，适合作为当前在职架构名单或展示架构补充，不适合表达“某期次参评名单”。用于替代 `temp_table.zhangjunyan01_pingyou_jg` 时，必须说明口径从“参评顾问”变为“在职架构顾问”。
 
 ## 12. 替代评优名单使用模板
 
@@ -165,7 +165,7 @@ eligible_consultant_name as (
 
 ### 运营侧个人数据 2293 使用备注
 
-- `resources/raw_sql/data_center_market_2293_20260628.sql` 中本表只作为当前在职架构兜底，不能优先替代 `temp_table.dingxi01_jiagou_db` 的期次架构。
+- `resources/raw_sql/data_center_market_2293_20260703.sql` 中本表只作为当前在职架构兜底，不能优先替代 `temp_table.dingxi01_jiagou_db` 的期次架构。
 - 该 SQL 使用 `zx_active` 先按 `employee_email_name` 去重，并限定 `cast(zaizhi as varchar) = '1'`、`department in ('郑州顾问部', '西安一部', '西安二部')`，避免当前架构表重复 key 放大运营侧个人数据。
 - 展示经理/主管字段的优先级为：`temp_table.dingxi01_jiagou_db` 期次架构 > 本表当前在职架构 > 事实宽表 `virtual_*` 字段。
 

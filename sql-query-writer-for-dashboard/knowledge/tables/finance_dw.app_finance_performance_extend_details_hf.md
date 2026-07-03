@@ -207,7 +207,7 @@ Presto
 
 ## 9. 常用 join key
 
-- `employee_email_name`：可与评优架构表 `temp_table.dingxi01_pingyou_jg.employee_email_name` 关联。
+- `employee_email_name`：可与评优架构表 `temp_table.zhangjunyan01_pingyou_jg.employee_email_name` 关联。
 - `email_prefix`：员工邮箱前缀，可用于员工维表/架构表关联，关联前需确认对方字段口径。
 - `user_id`：用户维度关联键。
 - `order_number`、`top_order_number`、`refund_order_number`：订单/退款明细关联键。
@@ -303,7 +303,7 @@ limit 100;
 - 使用 `employee_*_department_name`、`course_*_department_name`、`pre_course_*_department_name` 时必须加范围限定。
 - 评优 SQL 中对 `trade_type = '调课调班'` 有单独去重/汇总逻辑，生成新 SQL 时需优先复用历史看板口径。
 - `price` 是按支付金额和调课金额计算后的金额口径，`real_price`、`transfer_price` 也可用于明细校验。
-- 若用于顾问评优，需同时关联 `temp_table.dingxi01_pingyou_jg` 获取顾问期次、架构、人产、渠道等维度。
+- 若用于顾问评优，需同时关联 `temp_table.zhangjunyan01_pingyou_jg` 获取顾问期次、架构、人产、渠道等维度。
 - 字段描述已按 Word 文档补充，指标口径仍需结合历史 SQL 和业务确认。
 
 ### 流量画像 SQL 使用备注
@@ -334,4 +334,4 @@ limit 100;
 
 - Web 查询环境正常可用。
 - 原表文档中的历史 SQL 片段含三参数 `date_add` 示例；生成新 SQL 时按 `../sql_patterns/dashboard_query_patterns.md` 改成 interval 写法。
-- 顾问评优只在明确要求评优/参评名单/人产时使用 `temp_table.dingxi01_pingyou_jg`。
+- 顾问评优只在明确要求评优/参评名单/人产时使用 `temp_table.zhangjunyan01_pingyou_jg`。

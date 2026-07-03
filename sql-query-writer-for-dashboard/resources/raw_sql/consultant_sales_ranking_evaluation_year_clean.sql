@@ -1,4 +1,4 @@
-with params as (
+﻿with params as (
     select '2026' as qici_year
 ),
 dd as (
@@ -224,7 +224,7 @@ pingyou_base as (
                 concat(cast(cast(substring(pg.qici, 1, 4) as int) - 1 as varchar), '下半年')
             else '其他'
         end as half_year
-    from temp_table.dingxi01_pingyou_jg pg
+    from temp_table.zhangjunyan01_pingyou_jg pg
     inner join jiagou_zx_active zx
       on zx.employee_email_name = pg.employee_email_name
     where cast(pg.zaizhi as varchar) = '1'

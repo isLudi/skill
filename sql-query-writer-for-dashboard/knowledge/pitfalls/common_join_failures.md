@@ -140,6 +140,33 @@ coalesce(jg.jingli, zx.jingli, zz.jingli) as jingli_11
 
 ---
 
+## 4.2 运营侧个人数据 2293 指标被 JOIN 放大
+
+**症状**：运营侧数据看板 2293 中，同一期次/经理/主管/顾问的退前线索、退后线索、收款、退款、净收款同步偏高。例如 `20260703期` 下某顾问的运营侧个人退款金额约为转化数据 2253 的 2 倍，且线索数也偏高。
+
+**根因**：
+
+- `base` 层为了补外呼指标，`call_c` 按 `user_number + lead_id + section_assign_employee_email_prefix` 聚合；如果回连主数据只用 `user_id + employee_email_prefix`，同一用户多线索会重复匹配，放大 `data.*` 中已经携带的 `lead_count`、`valid_lead_count`、收款和退款。
+- `f_call0` 如果按 `user_id + account_id + employee_email_name` 聚合，但回连只用 `user_id + employee_email_name`，也会产生重复。
+- `zhuanhua` 已按展示粒度聚合后，最终层如果直接 join 原始 `temp_table.dingxi01_cost` 或 `temp_table.dingxi01_jiagou_db`，这些表 key 不唯一会再次放大所有 `sum` 指标。
+
+**排查**：
+
+1. 分别比较 `data`、`base`、`zhuanhua`、`final_result` 的 `count(*)`、`sum(lead_count)`、`sum(valid_lead_count)`、`sum(trade_refund)`。
+2. 检查 `call_c` 回连是否带 `lead_id`。
+3. 检查 `f_call0` 是否先聚合到 `user_id + employee_email_name`。
+4. 检查 `dingxi01_cost` 是否按 `qici + channel + grade` 去重，并拆出 `grade = '0'` 通配行。
+5. 检查 `dingxi01_jiagou_db` 是否先按 `qici + department + employee_email_name` 去重。
+
+**修复**：参考 `resources/raw_sql/data_center_market_2293_20260703.sql`：
+
+- `call_c` 回连主数据时补充 `and call_c.lead_id = data.lead_id`。
+- `f_call0` 先按 `user_id, employee_email_name` 聚合，不把 `account_id` 留到回连层。
+- `dingxi01_cost` 拆为 `cost_exact` 和 `cost_zero` 去重 CTE，最终用 `coalesce(ce.cost, cz.cost, 0)`。
+- `dingxi01_jiagou_db` 先构造 `jiagou_period`，按 `qici + department + employee_email_name` 去重后再 join。
+
+---
+
 ## 5. CRM 开课后转移/退费状态无法回写导致顾问仍有退前/退后线索
 
 **症状**：CRM 前台显示某顾问当期线索已经全部转移、退费或转移给其他顾问，但运营侧看板、GMV communication 类数据集或全链路宽表仍能按该顾问拉出 `退前线索` / `退后线索` / 线索量。

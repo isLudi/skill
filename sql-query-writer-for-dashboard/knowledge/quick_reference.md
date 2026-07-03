@@ -10,7 +10,7 @@
 | `finance_dw.app_finance_performance_extend_details_hf` | 财务业绩、收款、退款、评优 | Web 查询可用 |
 | `temp_table.dingxi01_jiagou_zx` | 当前在职架构、顾问名单 | 限定 `zaizhi` 和部门，按顾问去重 |
 | `temp_table.dingxi01_jiagou_db` | 期次架构、小组经理 | 同时限定 `qici` 和目标部门 |
-| `temp_table.dingxi01_pingyou_jg` | 评优/参评名单/人产 | 仅在评优口径使用 |
+| `temp_table.zhangjunyan01_pingyou_jg` | 评优/参评名单/人产 | 仅在评优口径使用 |
 | `temp_table.dingxi01_cost` | 渠道成本、GMV 目标 | join 时处理 `grade='0'` 通配 |
 | `temp_table.dingxi01_daoke_1_6_t` | 到课手工课次映射 | 最新到课 canonical 仅用于 `manual_*` 和自动/手工对照诊断；主课次按实际开课时间自动排序 |
 | `service_dw.dwd_crm_assign_private_detail_hf` | 私海阶段、深沟、双沟 | 市场顾问场景限定到市场部/市场顾问部 |

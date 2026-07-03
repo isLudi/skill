@@ -631,3 +631,14 @@
 
 - 明确 `temp_table.dingxi01_pingyou_jg.is_emp` 的业务含义为“是否参与评优”：`是` 表示参与，`否` 表示不参与。
 - 更新评优临时表、顾问销售评优看板、评优指标和临时表 join 关系文档，避免将 `is_emp` 误解为是否在职；在职状态仍由 `zaizhi` 表示。
+
+## 2026-07-03 评优临时表上传人变更
+
+- 评优架构人产临时表后续由 `zhangjunyan01` 维护上传，评优看板相关 SQL 表名从 `temp_table.dingxi01_pingyou_jg` 调整为 `temp_table.zhangjunyan01_pingyou_jg`。
+- 更新评优看板期次、月度、季度、半年度相关 raw SQL，以及表文档、看板文档、指标文档、join 文档和 SQL 生成入口说明。
+
+## 2026-07-03 运营侧个人数据 2293 JOIN 放大修复
+
+- 新增 `resources/raw_sql/data_center_market_2293_20260703.sql`，使用本次排查后的修正版作为 2293 运营侧个人数据最新 raw SQL。
+- 修复点：`call_c` 回连主数据时补充 `lead_id`；`f_call0` 先按 `user_id + employee_email_name` 聚合；`dingxi01_cost` 拆为具体年级与 `grade='0'` 通配两路去重；`dingxi01_jiagou_db` 先按 `qici + department + employee_email_name` 去重后再 join。
+- 更新 2293 相关看板指标联动、编辑页模型引用、临时架构表说明和 JOIN 踩坑文档，明确运营侧个人数据中 `lead_count`、`can_renew_ds_count_a`、收款和退款字段会被最终层 1:N join 同步放大。

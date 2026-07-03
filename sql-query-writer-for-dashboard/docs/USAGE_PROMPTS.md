@@ -1,4 +1,4 @@
-# 新对话调用模板
+﻿# 新对话调用模板
 
 这些模板用于在 Codex 的其他对话框中明确加载本 Skill。推荐直接复制“标准加载模板”，再追加你的具体需求。
 
@@ -21,7 +21,7 @@ C:\Users\Ludim\.codex\skills\sql-query-writer-for-dashboard
 - 涉及 department_name、部门、架构、业务线字段时必须加范围限定；
 - 不得使用知识库不存在的字段；
 - 排名、比率、目标、差值等非明细粒度指标必须说明计算粒度和最终输出粒度；若输出到日维度结果中，需提示前端聚合方式，避免排名或比率被 sum 放大；
-- 只有明确要求评优/参评名单/评优架构/人产口径时才使用 temp_table.dingxi01_pingyou_jg；若只需在职架构顾问，可考虑 temp_table.dingxi01_jiagou_zx，并说明口径变化；
+- 只有明确要求评优/参评名单/评优架构/人产口径时才使用 temp_table.zhangjunyan01_pingyou_jg；若只需在职架构顾问，可考虑 temp_table.dingxi01_jiagou_zx，并说明口径变化；
 - 公司查询平台会将 date_add 解析为 Hive 两参数函数，禁止生成 date_add('day', n, expr) 三参数写法；日期偏移优先使用 interval；
 - SQL 后必须解释使用表、字段、join key、分区条件、范围限定、指标口径、是否加 limit、待确认事项。
 - 除非我特别明确要求“更新/入库/维护 Skill 知识库”，否则不得修改现有 Skill 文件、knowledge 文档或 resources/raw_sql，只在对话中给出 SQL 查询语句参考。

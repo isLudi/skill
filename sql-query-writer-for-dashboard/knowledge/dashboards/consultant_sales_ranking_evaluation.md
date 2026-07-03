@@ -22,7 +22,7 @@
 | 表名 | 别名/CTE | 用途 |
 |---|---|---|
 | `finance_dw.app_finance_performance_extend_details_hf` | `dd` 来源表 | 财务业绩扩展明细，提供订单流水、交易状态、交易类型、价格、顾问、交易时间和课程信息 |
-| `temp_table.dingxi01_pingyou_jg` | `pg` | 评优架构人产临时表，提供顾问期次、架构、渠道、人产、年级、在职和是否参与评优；`is_emp='是'` 表示参与评优，`is_emp='否'` 表示不参与评优 |
+| `temp_table.zhangjunyan01_pingyou_jg` | `pg` | 评优架构人产临时表，提供顾问期次、架构、渠道、人产、年级、在职和是否参与评优；`is_emp='是'` 表示参与评优，`is_emp='否'` 表示不参与评优 |
 | `temp_table.dingxi01_jiagou_zx` | `jiagou_zx_active` | 当前在职架构顾问名单；季度和半年度 clean 脚本用它额外剔除已离职顾问 |
 
 ## 4. SQL 结构
@@ -56,8 +56,8 @@
 
 | 左表/CTE | 右表/CTE | join key | join 类型 | 说明 |
 |---|---|---|---|---|
-| `temp_table.dingxi01_pingyou_jg pg` | `jiagou_zx_active zx` | `pg.employee_email_name = zx.employee_email_name` | inner join | 季度和半年度 clean 脚本额外限定当前在职顾问，避免历史期次聚合展示已离职顾问 |
-| `temp_table.dingxi01_pingyou_jg pg` | `rd` | `pg.employee_email_name = rd.name` + `pg.qici = rd.qici` | left join | 将顾问期次架构人产信息与财务流水结果关联 |
+| `temp_table.zhangjunyan01_pingyou_jg pg` | `jiagou_zx_active zx` | `pg.employee_email_name = zx.employee_email_name` | inner join | 季度和半年度 clean 脚本额外限定当前在职顾问，避免历史期次聚合展示已离职顾问 |
+| `temp_table.zhangjunyan01_pingyou_jg pg` | `rd` | `pg.employee_email_name = rd.name` + `pg.qici = rd.qici` | left join | 将顾问期次架构人产信息与财务流水结果关联 |
 
 ## 7. where 条件
 
@@ -151,7 +151,7 @@ inner join jiagou_zx_active zx
 ## 11. 待确认事项
 
 - `finance_dw.app_finance_performance_extend_details_hf` 字段类型来自 SQL 推断，需用 DDL 校验。
-- `temp_table.dingxi01_pingyou_jg` 来源和唯一键需确认，尤其是 `employee_email_name + qici` 是否唯一。
+- `temp_table.zhangjunyan01_pingyou_jg` 来源和唯一键需确认，尤其是 `employee_email_name + qici` 是否唯一。
 - `renchan` 的业务含义和是否可跨渠道、跨期直接求和需确认。
 - `moth` 是原 SQL 字段名，实际含义为月份。
 - 原始文件含多段独立 SQL，执行时需要单独运行目标段落，不能作为一个单一 SQL 一次性提交。
@@ -170,7 +170,7 @@ inner join jiagou_zx_active zx
 | 维度 | 主 SQL (evaluation) | month_clean 变体 |
 |---|---|---|
 | 聚合周期 | 期次/月/季/半年分层聚合 | **自然月份**聚合（多期次合并为一个自然月） |
-| 顾问名单来源 | `temp_table.dingxi01_pingyou_jg` | `temp_table.dingxi01_jiagou_zx`（`zaizhi='1'`，郑州/西安部门优先级去重） |
+| 顾问名单来源 | `temp_table.zhangjunyan01_pingyou_jg` | `temp_table.dingxi01_jiagou_zx`（`zaizhi='1'`，郑州/西安部门优先级去重） |
 | 组织链过滤 | 无 | `dw.dim_employee_chain` 取 `高途-H业务线-市场部-市场顾问部` 路径，按 `email_prefix` 内连接任职期间流水 |
 | 期次计算 | 硬编码 2026 年特殊日期 + `day_of_week` | 统一 `day_of_week` 公式（无硬编码特殊日期） |
 | 自然月 | 无 | `trade_qici = '20260731期' → '202608'` 特殊处理；其余取 `substr(qici, 1, 6)` |

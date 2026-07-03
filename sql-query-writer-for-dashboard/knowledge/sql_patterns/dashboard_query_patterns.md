@@ -183,7 +183,7 @@ ifnull(sum(${refund_section_gmv}) / sum(${net_income_section_gmv}), 0)
 
 ## 评优名单与在职架构名单
 
-`temp_table.dingxi01_pingyou_jg` 只用于用户明确要求“评优/参评名单/评优架构/人产”时。该表含 `qici`，按 `qici + employee_email_name` 关联会限制结果只能落在该临时表已维护期次内。
+`temp_table.zhangjunyan01_pingyou_jg` 只用于用户明确要求“评优/参评名单/评优架构/人产”时。该表含 `qici`，按 `qici + employee_email_name` 关联会限制结果只能落在该临时表已维护期次内。
 
 当用户不要求严格评优参评名单，只需要市场顾问在职架构范围时，可使用 `temp_table.dingxi01_jiagou_zx` 替代，典型模板如下：
 
@@ -463,6 +463,15 @@ zx_active as (
     where rn = 1
 )
 ```
+
+### 指标放大排查
+
+当用户反馈 2293 运营侧个人数据中的线索、收款、退款、净收款同时偏高时，按层级定位行数是否被 1:N join 放大，不要只对比最终透视表数字。
+
+- `call_c` 从外呼表聚合后回连 `data` 时，必须同时使用 `user_id + lead_id + employee_email_prefix`；缺少 `lead_id` 会把同一用户多线索互相匹配。
+- `f_call0` 必须先聚合到回连粒度 `user_id + employee_email_name`；不要在输出中保留 `account_id` 后再只按 `user_id + employee_email_name` join。
+- `zhuanhua` 已经聚合到展示粒度后，最终层只能 join 去重后的维表或目标表。`temp_table.dingxi01_cost` 应拆成具体年级 `cost_exact` 和 `grade = '0'` 通配 `cost_zero`；`temp_table.dingxi01_jiagou_db` 应先做 `jiagou_period` 去重。
+- 最新修正版参考 `resources/raw_sql/data_center_market_2293_20260703.sql`。如果现场看板退款、线索仍高于 2253 转化数据，先确认数据中心是否已经发布该版本。
 
 ## 渠道 CASE 映射
 

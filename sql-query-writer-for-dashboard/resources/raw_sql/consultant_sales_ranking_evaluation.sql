@@ -1,4 +1,4 @@
------------------------------------------期次数据
+﻿-----------------------------------------期次数据
 with dd as (select *
 from (
     select
@@ -107,7 +107,7 @@ pg.qici, substring(pg.qici, 1, 6) as moth,  pg.employee_email_name,pg.dept,pg.ji
 sum(name_total_price) as pt,
 sum(case when name_total_price >0 then name_total_price else 0 end) as inc,
 sum(case when name_total_price <0 then name_total_price else 0 end) as ref
-from temp_table.dingxi01_pingyou_jg pg
+from temp_table.zhangjunyan01_pingyou_jg pg
 left join rd on pg.employee_email_name = rd.name and pg.qici = rd.qici
 where pg.zaizhi = '1' and pg.is_emp = '是'
 group by pg.qici,substring(pg.qici, 1, 6),
@@ -254,7 +254,7 @@ pg.qici, substring(pg.qici, 1, 6) as moth,  pg.employee_email_name,pg.dept,pg.ji
 sum(name_total_price) as pt,
 sum(case when name_total_price >0 then name_total_price else 0 end) as inc,
 sum(case when name_total_price <0 then name_total_price else 0 end) as ref
-from temp_table.dingxi01_pingyou_jg pg
+from temp_table.zhangjunyan01_pingyou_jg pg
 left join rd on pg.employee_email_name = rd.name and pg.qici = rd.qici
 where pg.zaizhi = '1' and pg.is_emp = '是'
 group by pg.qici,substring(pg.qici, 1, 6),
@@ -415,7 +415,7 @@ from (
     sum(name_total_price) as pt,
     sum(case when name_total_price > 0 then name_total_price else 0 end) as inc,
     sum(case when name_total_price < 0 then name_total_price else 0 end) as ref
-from temp_table.dingxi01_pingyou_jg pg
+from temp_table.zhangjunyan01_pingyou_jg pg
 left join rd on pg.employee_email_name = rd.name and pg.qici = rd.qici
 where pg.zaizhi = '1' and pg.is_emp = '是'
 group by
@@ -593,7 +593,7 @@ from (
     sum(name_total_price) as pt,
     sum(case when name_total_price > 0 then name_total_price else 0 end) as inc,
     sum(case when name_total_price < 0 then name_total_price else 0 end) as ref
-from temp_table.dingxi01_pingyou_jg pg
+from temp_table.zhangjunyan01_pingyou_jg pg
 left join rd on pg.employee_email_name = rd.name and pg.qici = rd.qici
 where pg.zaizhi = '1' and pg.is_emp = '是'
 group by

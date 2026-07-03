@@ -123,12 +123,12 @@
 
 - 来源：`resources/raw_sql/consultant_sales_ranking_evaluation.sql`
 - 主表：`finance_dw.app_finance_performance_extend_details_hf`
-- 评优临时表：`temp_table.dingxi01_pingyou_jg`
+- 评优临时表：`temp_table.zhangjunyan01_pingyou_jg`
 - 财务流水期次：由 `finance_dw.app_finance_performance_extend_details_hf.trade_time` 按周五规则和部分 2026 年硬编码日期推导 `qici`。
 - 订单处理：`trade_type = '正常订单'` 按订单和顾问明细汇总 `price`；`trade_type = '调课调班'` 按 `name + user_id1` 汇总并取第一条非 0 金额记录。
 - 架构人产关联：通过 `pg.employee_email_name = rd.name` 与 `pg.qici = rd.qici` 关联，将顾问期次架构、人产、渠道、年级与财务流水合并。
 - 周期聚合：同一底层口径分别按 `qici`、`moth`、`quarter`、`half_year` 聚合。`moth` 是原 SQL 字段名，含义为月份。
-- 状态：历史 SQL 口径已入库；`temp_table.dingxi01_pingyou_jg` 唯一键、`renchan` 含义和跨周期求和口径需人工确认。
+- 状态：历史 SQL 口径已入库；`temp_table.zhangjunyan01_pingyou_jg` 唯一键、`renchan` 含义和跨周期求和口径需人工确认。
 
 ## 顾问部门任职期销售统计关系
 
@@ -159,7 +159,7 @@
 
 - `temp_table.dingxi01_jiagou_db`：架构映射表，来源 Excel `jiagou_xian_zhengzhou.xlsx`。常用字段包括 `employee_email_prefix`、`qici`、`dept_1`、`dept_2`、`department`、`xiaozu`、`jingli`。常用于按员工邮箱前缀补充期次、部门、小组和经理口径。
 - `temp_table.dingxi01_daoke_1_6_t`：到课课次映射表，来源 Excel `daoke_t_one_six.xlsx`。常用字段包括 `qici`、`qudao`、`grade`、`begin_time`、`ke_1`、`channel`。常用于首节到课或第 1-6 课课次口径。
-- `temp_table.dingxi01_pingyou_jg`：评优架构人产临时表，来源待确认。常用字段包括 `qici`、`employee_email_name`、`dept`、`jingli`、`xiaozu`、`channel`、`renchan`、`grade`、`zaizhi`、`is_emp`。常用于顾问销售评优、人产 ROI 和排名口径；`is_emp` 是是否参与评优字段，`是` 表示参与，`否` 表示不参与。
+- `temp_table.zhangjunyan01_pingyou_jg`：评优架构人产临时表，来源待确认。常用字段包括 `qici`、`employee_email_name`、`dept`、`jingli`、`xiaozu`、`channel`、`renchan`、`grade`、`zaizhi`、`is_emp`。常用于顾问销售评优、人产 ROI 和排名口径；`is_emp` 是是否参与评优字段，`是` 表示参与，`否` 表示不参与。
 
 ### 临时表关联注意事项
 

@@ -1,4 +1,4 @@
-﻿# temp_table.dingxi01_pingyou_jg
+﻿# temp_table.zhangjunyan01_pingyou_jg
 
 ## 1. 中文名称
 
@@ -87,7 +87,7 @@ Presto
 
 ```sql
 select *
-from temp_table.dingxi01_pingyou_jg t
+from temp_table.zhangjunyan01_pingyou_jg t
 where t.qici >= '20260320期'
 limit 20;
 ```
@@ -98,7 +98,7 @@ limit 20;
 select
     t.qici,
     count(*) as cnt
-from temp_table.dingxi01_pingyou_jg t
+from temp_table.zhangjunyan01_pingyou_jg t
 group by t.qici
 order by cnt desc
 limit 50;
@@ -116,7 +116,7 @@ with mapped as (
                 partition by t.qici, t.employee_email_name
                 order by t.qici desc
             ) as rn
-        from temp_table.dingxi01_pingyou_jg t
+        from temp_table.zhangjunyan01_pingyou_jg t
     ) x
     where x.rn = 1
 )
