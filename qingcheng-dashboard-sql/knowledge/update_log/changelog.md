@@ -343,3 +343,18 @@
   - 不要把命中 `dim_finance_order_change_df` 的所有订单都当内部流水；
   - 不要在团队完成度中继续固定取 `temp_table.dingxi01_qing_team_jg.max(qici)`；
   - 不要再写“仅小初 50% 折算”或“非 H 是否全部 50% 待确认”。
+
+## 2026-07-03 青橙完成度 service transfer 补充识别修复
+
+- 同步修复个人完成度、团队完成度期次、团队完成度月度三份 canonical raw SQL：
+  - `resources/raw_sql/qingcheng_personal_conversion_raw_20260522.sql`
+  - `resources/raw_sql/qingcheng_team_completion_period_raw_20260522.sql`
+  - `resources/raw_sql/qingcheng_team_completion_month_raw_20260522.sql`
+- 修复原因：20260703 期顾问 `李兵建` 看板展示班课营收 / 折算后产出约 `2012.34`，但订单明细全为 `trade_type='调课调班'` 的调入流水。两笔订单在 `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` 已有 `transfer_in_amount`，但未命中 `finance_dw.dim_finance_order_change_df`，旧 SQL 只依赖财务订单变更维表和 `trade_type` 聚合路径，导致该类 service transfer 漏链路被当作正向出单。
+- 修复方式：在三份 SQL 的 `order_attr` 汇总 `service_transfer_in_amount_yuan / service_transfer_out_amount_yuan`，一路传递到 `rd`、`t4`，并在 `is_internal_order_change` 中补充 `rd.trade_type='调课调班' and (service_transfer_in_amount_yuan > 0 or service_transfer_out_amount_yuan > 0)` 的兜底识别。保留原有 `dim_finance_order_change_df` 识别逻辑；正常订单命中变更链路但自身不是调课调班流水时仍不剔除。
+- 验证结果：
+  - 个人完成度验证 `query id 1445444633`：李兵建 20260703 期 `class_income=0`、`discounted_output=0`、`income=0`。
+  - 团队完成度期次验证 `query id 1445448835`：李兵建小组 20260703 期 `class_income=16200`、`discounted_output=12569`，已剔除误入的 2012.34，其他顾问正常保留。
+  - 团队完成度月度验证 `query id 1445453872`：李兵建小组 202607 月结果可执行并输出月度聚合。
+  - 正常订单保护验证 `query id 1445458630 / 1445463148 / 1445467414`：三份 SQL 均未把正常订单误判为内部调课调班，错误标记金额均为 `0`。
+- 同步更新 dashboard、metrics、表说明、join 文档、quick reference、decision tree、完成度修复 checklist 和个人完成度风险文档。后续排查个人/团队完成度异常时，必须同时检查 `dim_finance_order_change_df` 和 service 明细的 `transfer_in_amount / transfer_out_amount`。

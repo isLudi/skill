@@ -11,13 +11,13 @@
 | `service_dw.dm_crm_lead_stats_detail_hf` | 线索统计明细小时表 | 首次接通时间差 | `dt` | `hour` | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/service_dw.dm_crm_lead_stats_detail_hf.md` |
 | `service_dw.app_h_crm_lead_employee_workload_detail_hf` | CRM 线索员工工作量明细小时表 | 外呼次数、接通、通时 | `dt` | `hour` | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/service_dw.app_h_crm_lead_employee_workload_detail_hf.md` |
 | `service_dw.dws_service_user_learn_detail_hf` | 用户学习明细小时表 | 首节到课、有效到课 | `dt` | `hour` | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/service_dw.dws_service_user_learn_detail_hf.md` |
-| `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` | CRM 订单线索归因收入退款明细小时表 | 青橙转化、收入、退款、净营收 | `dt` | `hour` | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md` |
+| `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` | CRM 订单线索归因收入退款明细小时表 | 青橙转化、收入、退款、净营收、完成度原始支付归属和 transfer 补充识别 | `dt` | `hour` | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md` |
 | `dw.dim_cstm_active_user_c_appliction_mb_df` | 用户应用活跃天级维表 | 近 7 天 APP/PC 登录 | `dt` | 无 | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/dw.dim_cstm_active_user_c_appliction_mb_df.md` |
 | `dw.dws_user_active_user_c_appliction_hf` | 用户应用活跃小时表 | 近 2 小时 APP/PC 登录 | `dt` | `hour` | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/dw.dws_user_active_user_c_appliction_hf.md` |
 | `finance_dw.app_finance_performance_extend_details_hf` | 财务业绩扩展明细小时表 | 年季月营收、团队完成度、个人转化 | `dt` | `hour` | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/finance_dw.app_finance_performance_extend_details_hf.md` |
 | `finance_dw.dim_finance_employee_df` | 员工维表 | 员工账号、在职状态和组织架构补充 | `dt` | 无 | 公共表结构复用，字段待表结构确认 | `knowledge/tables/finance_dw.dim_finance_employee_df.md` |
 | `finance_dw.dm_finance_order_refund_detail_df` | 财务订单退款明细日表 | 全退订单行课节数、退 4 阈值 | `dt` | 无 | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/finance_dw.dm_finance_order_refund_detail_df.md` |
-| `finance_dw.dim_finance_order_change_df` | 财务订单调课调班维表 | 完成度主交易层和退款层识别调课调班/课程转移链路 | `dt` | 无 | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/finance_dw.dim_finance_order_change_df.md` |
+| `finance_dw.dim_finance_order_change_df` | 财务订单调课调班维表 | 完成度主交易层和退款层识别调课调班/课程转移主链路；service transfer 是兜底补充 | `dt` | 无 | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/finance_dw.dim_finance_order_change_df.md` |
 | `service_dw.app_h_crm_lead_task_process_info_detail_hf` | CRM 线索任务处理信息明细小时表 | F 类首次外呼标记 | `dt` | `hour` | 新入库，字段待表结构确认 | `knowledge/tables/service_dw.app_h_crm_lead_task_process_info_detail_hf.md` |
 | `gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf` | 顾问首call数据分析表 | 首 call 任务状态和任务量 | `dt` | `hour` | 公共表结构复用，字段待表结构确认 | `knowledge/tables/gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf.md` |
 | `service_dw.app_user_attribute_label_gaia_wide_df` | 盖亚系统用户标签数据宽表 | 用户标签、画像和学习意向补充 | `dt` | 无 | 公共表结构复用，字段待表结构确认 | `knowledge/tables/service_dw.app_user_attribute_label_gaia_wide_df.md` |

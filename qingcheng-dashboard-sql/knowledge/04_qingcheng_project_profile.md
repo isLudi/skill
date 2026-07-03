@@ -110,6 +110,7 @@
 | 指标集合 | `knowledge/metrics/qingcheng_team_completion_month_metrics.md` |
 | 退款课节表 | `knowledge/tables/finance_dw.dm_finance_order_refund_detail_df.md` |
 | 调课调班维表 | `knowledge/tables/finance_dw.dim_finance_order_change_df.md` |
+| service 订单明细 | `knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md` |
 | 期次月份映射 | `knowledge/temp_tables/temp_table.dingxi01_qing_qi_moth.md` |
 | 团队月目标 | `knowledge/temp_tables/temp_table.dingxi01_qing_team_goal.md` |
 | 范围口径 | `knowledge/03_range_limit_rules.md` |
@@ -126,6 +127,7 @@
 | 期次团队目标 | `knowledge/temp_tables/temp_table.dingxi01_qing_team_g_qi.md` |
 | 退款课节表 | `knowledge/tables/finance_dw.dm_finance_order_refund_detail_df.md` |
 | 调课调班维表 | `knowledge/tables/finance_dw.dim_finance_order_change_df.md` |
+| service 订单明细 | `knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md` |
 | 范围口径 | `knowledge/03_range_limit_rules.md` |
 | join 关系 | `knowledge/joins/table_relationships.md` |
 
@@ -141,8 +143,11 @@
 | 期次月份映射 | `knowledge/temp_tables/temp_table.dingxi01_qing_qi_moth.md` |
 | 退款课节表 | `knowledge/tables/finance_dw.dm_finance_order_refund_detail_df.md` |
 | 调课调班维表 | `knowledge/tables/finance_dw.dim_finance_order_change_df.md` |
+| service 订单明细 | `knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md` |
 | 范围口径 | `knowledge/03_range_limit_rules.md` |
 | join 关系 | `knowledge/joins/table_relationships.md` |
+
+2026-07-03 起，个人完成度、团队完成度期次、团队完成度月度三份 SQL 共用 service 明细 `transfer_in_amount / transfer_out_amount` 作为内部调课调班补充识别：当 `dim_finance_order_change_df` 漏链路但 service 明细已有调入/调出金额时，仍按内部调课调班流水剔除。
 
 ## 14. 入库资料优先级
 

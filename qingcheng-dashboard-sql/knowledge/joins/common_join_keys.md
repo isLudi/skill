@@ -21,7 +21,7 @@
 | `finance_dw.app_finance_performance_extend_details_hf dd_0` | `dw.dim_employee_chain org_t` | `name + coalesce(paid_time, trade_time) between begin_time and end_time` | left join 后 where / inner join 过滤 | 确认原始成交时间落在员工属于青橙项目部的任职窗口内，避免历史订单在转岗后退款被误计入青橙 | 已从 SQL 入库，是否应改用 `email_prefix` 待确认 |
 | `rd` | `temp_table.dingxi01_qing_zz` | `name = employee_email_name` | left join | 补充青橙直属主管、大主管和学部 | 已从 SQL 入库 |
 | `finance_dw.dm_finance_order_refund_detail_df ord` | `finance_dw.dim_finance_order_change_df order_change` | `order_number = order_change.order_number` | left join | 补充退款订单调课调班类型；`order_change` 先展开订单号/父订单号/原始订单号/最新子订单号并按订单号聚合 | 已从 SQL 入库 |
-| `rd` 主交易层 | `finance_dw.dim_finance_order_change_df order_change` | `rd.order_number = order_change.order_number` | left join | 识别内部调课调班调入/调出，避免误入外部收入/退款桶；覆盖 `biz_type in (2,7)` | 已从 SQL 入库 |
+| `rd` 主交易层 | `finance_dw.dim_finance_order_change_df order_change` + service transfer 标记 | `rd.order_number = order_change.order_number`；service transfer 从 `order_attr` 按 `order_number + performance_employee_email_name` 聚合并随 `dd/gmv/rd` 传递 | left join / 字段传递 | 识别内部调课调班调入/调出，避免误入外部收入/退款桶；覆盖 `biz_type in (2,7)`，并用 service `transfer_in_amount/transfer_out_amount` 补充漏链路 | 已从 SQL 入库，service 明细需先聚合后回连避免放大 |
 | `rd` | `re_ke` | `order_number + qici = qici_re` | left join | 给财务交易补充全退时调课链路完课课节数 | 已从 SQL 入库 |
 | `rd_0` | `temp_table.dingxi01_qing_qi_moth` | `qici` | left join | 期次映射月份 | 已从 SQL 入库 |
 | `wa` | `temp_table.dingxi01_qing_team_jg` | `name = employee_email_name` | left join | 补充最新直属主管 | 已从 SQL 入库 |

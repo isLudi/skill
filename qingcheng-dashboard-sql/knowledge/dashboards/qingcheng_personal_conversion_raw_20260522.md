@@ -30,7 +30,7 @@
 | 表名 | 别名/CTE | 用途 |
 |---|---|---|
 | `dw.dim_employee_chain` | `org_t` | 确认员工在青橙项目部路径下的任职起止时间 |
-| `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` | `order_attr` | 提供订单原始支付时间 `original_paid_time`，辅助完成度按原始成交窗口归属 |
+| `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` | `order_attr` | 提供订单原始支付时间 `original_paid_time`，辅助完成度按原始成交窗口归属；同时提供 `transfer_in_amount/transfer_out_amount` 作为内部调课调班补充识别 |
 | `finance_dw.app_finance_performance_extend_details_hf` | `dd_0` / `dd` | 财务业绩扩展明细，计算收入、退款和净收 |
 | `finance_dw.dm_finance_order_refund_detail_df` | `ord` | 全退订单明细，提供完全退款时已完课课节数 |
 | `finance_dw.dim_finance_order_change_df` | `order_change_raw` / `order_change` | 识别调课调班/课程转移主链路订单，覆盖订单号、父订单号、原始订单号和最新子订单号 |
@@ -49,7 +49,7 @@
 | CTE | 用途 | 关键字段 |
 |---|---|---|
 | `org_t` | 员工在青橙项目部路径下的任职时间窗口 | `email_prefix`, `name`, `begin_time`, `end_time` |
-| `order_attr` | 从订单明细侧取原始支付时间 | `original_order_pay_success_timestamp`, `pay_success_timestamp`, `trade_timestamp` |
+| `order_attr` | 从订单明细侧按订单和顾问聚合原始支付时间及 service 转入/转出金额 | `original_order_pay_success_timestamp`, `pay_success_timestamp`, `trade_timestamp`, `transfer_in_amount`, `transfer_out_amount` |
 | `team_hist` | 组织链时间滞后时，按期次保留已在青橙架构中的顾问 | `qici`, `employee_email_name` |
 | `dd_0` | 财务业绩原始层，生成标准科目、期次和基础订单字段 | `order_number`, `user_id1`, `trade_status`, `trade_type`, `trade_time`, `price`, `subject`, `qici` |
 | `dd` | 优先按 `original_paid_time` 判定原始成交是否落在青橙任职期间；若组织链滞后，则允许 `team_hist` 期次命中兜底保留 | `coalesce(oa.original_paid_time, paid_time, trade_time)` |
@@ -59,7 +59,7 @@
 | `ord` | 全退订单课节明细 | `full_refund_chain_finish_lesson_count`, `qici_re` |
 | `order_change_raw` / `order_change_order_map` / `order_change` | 调课调班/课程转移主链路订单映射，按订单号聚合后供主交易层和退款层复用 | `order_number`, `has_order_change`, `transfer_in_amount_yuan`, `transfer_out_amount_yuan`, `refund_type` |
 | `re_ke` | 合并全退课节和调课调班类型，按 `qici_re + order_number` 聚合避免回连放大 | `refund_type`, `full_refund_chain_finish_lesson_count` |
-| `t4` | 将退款课节数和主交易调课调班链路回连到财务交易，只把调课调班流水本身标记为内部变更 | `re_lc`, `main_has_order_change`, `main_transfer_in_amount_yuan`, `main_transfer_out_amount_yuan`, `is_internal_order_change` |
+| `t4` | 将退款课节数、财务订单变更链路和 service 转入/转出标记回连到财务交易，只把调课调班流水本身标记为内部变更 | `re_lc`, `main_has_order_change`, `main_transfer_in_amount_yuan`, `main_transfer_out_amount_yuan`, `service_transfer_in_amount_yuan`, `service_transfer_out_amount_yuan`, `is_internal_order_change` |
 | `rd_0` | 用户/交易状态层收入、退款、剔除退 4 退款和支付/退款科目数 | `income`, `refund_4`, `refund`, `p_sub`, `r_sub` |
 | `wa` | 计算净收、剔除退 4 净收和净科目基础字段 | `promit`, `promit_4`, `jing_sub` |
 | `renchan` | 以团队架构表为主，聚合个人期次指标 | `employee_email_name`, `leader_employee_email_name`, `H_promit`, `Y_promit_4`, `in_payer_4`, `j_sub` |
@@ -93,7 +93,7 @@
 | `dd_0 a` | `order_attr oa` + `org_t ot` + `team_hist th` | `oa.order_number = a.order_number and oa.performance_employee_email_name = a.name`，再用 `coalesce(oa.original_paid_time, a.paid_time, a.trade_time)` 匹配任职窗口；若 `team_hist.qici` 命中则兜底保留 | 只保留原始成交时间落在青橙期间的营收/退款，同时避免组织链起始时间滞后误删当前有效订单 |
 | `ord` | `order_change` | `ord.order_number = order_change.order_number` | 补充调课调班/课程转移类型 |
 | `rd` | `re_ke` | `re_ke.qici_re = rd.qici and re_ke.order_number = rd.order_number` | 给交易补充全退时行课节数 |
-| `rd` | `order_change` | `rd.order_number = order_change.order_number` | 主交易层识别内部调课调班调入/调出流水，避免误入外部收入/退款桶 |
+| `rd` | `order_change` + service transfer 标记 | `rd.order_number = order_change.order_number`；service 标记来自 `order_attr` 按 `order_number + performance_employee_email_name` 聚合后随 `dd/gmv/rd` 传递 | 主交易层识别内部调课调班调入/调出流水；当 `dim_finance_order_change_df` 漏链路但 service 明细有 `transfer_in_amount/transfer_out_amount` 时也避免误入外部收入/退款桶 |
 | `temp_table.dingxi01_qing_team_jg qtg` | `wa` | `qtg.employee_email_name = wa.name and qtg.qici = wa.qici` | 以架构表为主，合并个人期次业绩 |
 | `temp_table.dingxi01_qing_team_jg qtg` | `temp_table.dingxi01_qing_qi_moth qm` | `qm.qici = qtg.qici` | 给个人期次补充月份 |
 
@@ -132,6 +132,7 @@
 - `temp_table.dingxi01_qing_team_jg` 是否一人一期唯一待确认；若不唯一，会放大个人业绩。
 - 业务已确认 `H业务线` 按 100% 计入、所有 `非H业务线` 统一按 50% 折算；后续文档和 SQL 不得再回退成“仅小初 50%”。
 - 命中 `dim_finance_order_change_df` 的正常订单绩效必须保留；只能剔除 `trade_type='调课调班'` 的内部变更流水本身。
+- 内部调课调班识别不能只依赖 `dim_finance_order_change_df`；若 service 明细同订单存在 `transfer_in_amount/transfer_out_amount`，也应作为 `trade_type='调课调班'` 流水的补充剔除信号。
 
 ## 13. 2026-06-21 折算后产出修复记录
 
@@ -158,3 +159,10 @@
 - `gmv_z` 从 `trade_type = '正常订单'` 调整为 `coalesce(trade_type, '') <> '调课调班'`，避免误排除应保留的正常绩效订单。
 - `is_internal_order_change` 调整为“只剔除调课调班流水本身”；命中订单变更链路但本身是正常成交的订单不再排除。
 - 已验证样例：`李孟笛06` 在错误版本中 `20260626期` 被压到 `9150`；修复后该期恢复到 `22550`。
+
+## 16. 2026-07-03 service transfer 补充识别修复
+
+- 错误原因：部分 `trade_type='调课调班'` 正向调入流水在 `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` 已有 `transfer_in_amount`，但未命中 `finance_dw.dim_finance_order_change_df` 展开的订单号映射。旧 SQL 只按 finance 订单变更维表或负金额剔除，导致调出退款被剔除、正向调入被保留。
+- 修复规则：`order_attr` 按 `order_number + performance_employee_email_name` 聚合 `transfer_in_amount/transfer_out_amount`，随 `dd -> gmv_t/gmv_z -> rd -> t4` 传递；`is_internal_order_change` 在 `trade_type='调课调班'` 且 service 转入/转出金额非 0 时也置 1。
+- 边界：service transfer 只作为内部调课调班识别信号，不替代 `finance_dw.app_finance_performance_extend_details_hf` 作为完成度金额事实源；正常订单即使命中订单变更链路仍保持绩效。
+- 已验证样例：`李兵建` `20260703期` 两笔 service transfer 正向调入 `962.34` 和 `1050.00` 修复前误入个人班课营收/折算后产出，修复后个人 `class_income=0`、`discounted_output=0`。

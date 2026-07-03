@@ -123,6 +123,8 @@ case
                     or coalesce(order_change.transfer_out_amount_yuan, 0) > 0
                 )
             )
+            or coalesce(rd.service_transfer_in_amount_yuan, 0) > 0
+            or coalesce(rd.service_transfer_out_amount_yuan, 0) > 0
             or rd.name_total_price < 0
          )
     then 1
@@ -134,6 +136,17 @@ end as is_internal_order_change
 
 - 只剔除 `trade_type='调课调班'` 的内部变更流水；
 - 命中变更链路但本身是正常成交的订单，绩效仍要保留。
+
+### 2.6.1 service transfer 是内部调课调班补充识别
+
+`dim_finance_order_change_df` 是主链路识别来源，但不是唯一来源。2026-07-03 排查发现，service 订单明细已记录 `transfer_in_amount/transfer_out_amount` 的内部调课调班正向调入，可能没有命中 `dim_finance_order_change_df` 展开的订单号映射。
+
+当前稳定规则：
+
+- `order_attr` 从 `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` 按 `order_number + performance_employee_email_name` 聚合 `transfer_in_amount/transfer_out_amount`，字段单位从分换算为元。
+- 聚合后的 service transfer 标记随 `dd -> gmv_t/gmv_z -> rd -> t4` 传递。
+- 仅当 `rd.trade_type = '调课调班'` 时，service transfer 非 0 才把 `is_internal_order_change` 置 1。
+- service transfer 只作为内部变更识别信号，不替代 `finance_dw.app_finance_performance_extend_details_hf` 的 `price/name_total_price` 金额事实源。
 
 ### 2.7 非 H 折算口径已经确认，不再是待确认项
 

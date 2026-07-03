@@ -137,6 +137,16 @@ cast(coalesce(refund_amount, 0) + coalesce(transfer_out_amount, 0) as double) / 
 
 如果 service 侧仍缺少完整流水，应以 `finance_dw.app_finance_performance_extend_details_hf` 作为金额事实源补齐缺失事件。个人完成度、团队完成度【期】和团队完成度【月】的看板 SQL 不使用 `where f.trade_timestamp > ${begin_trade_time} and f.trade_timestamp < ${end_trade_time}` 这类模板时间参数；看板 SQL 继续通过 `qici > '20260424期'`、期次映射表和目标/架构表控制展示范围。
 
+### 3.4.1 service transfer 已记录但 finance 订单变更维表漏链路
+
+2026-07-03 排查发现，`service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` 中部分调课调班订单已有 `transfer_in_amount/transfer_out_amount`，但同一订单未命中 `finance_dw.dim_finance_order_change_df` 展开的订单号映射。旧 SQL 只依赖 finance 订单变更维表或 `name_total_price < 0` 剔除内部变更，导致调出退款被剔除、正向调入被保留，误入 `income/H_promit_4/折算后产出`。
+
+当前修复规则：
+
+- `order_attr` 聚合 service `transfer_in_amount/transfer_out_amount`，只作为内部调课调班识别信号；
+- `t4.is_internal_order_change` 在 `trade_type='调课调班'` 且 service transfer 非 0 时置 1；
+- 正常订单即使命中 service 或 finance 链路，也不因此被剔除。
+
 ### 3.5 调课调班链路只接退款明细层会误算主交易调出退款
 
 2026-06-22 排查发现，`dim_finance_order_change_df` 如果只在 `re_ke/ord` 退款明细层按 `parent_order_number` 关联，主交易层 `rd/t4` 中的 `trade_type='调课调班'`、`trade_status='调出退款'` 仍可能因为没有行课节数匹配而得到 `re_lc=0`，进而被当作 4 节内外部退费计入 `refund_4`。
@@ -272,5 +282,6 @@ group by 1, 2
 - `李孟笛06`：2026-06-28 最终版再修复后，`20260626期` 不再误删命中调课调班链路的正常订单，个人该期累计净营收恢复到 `22550.00`。
 - `许世杰05`：历史折算后产出 `12400.00`，修复后 `17000.00`；差异来自空课程部门流水 `4600` 被兜底进 H 班课。
 - `谷锦茜`：历史折算后产出 `4300.00`，2026-06-22 修复后 `4400.00`；差异来自 `biz_type=7` 的内部调课调班 `调出退款 -100` 被旧 SQL 当作 4 节内外部退费。
+- `李兵建`：`20260703期` 两笔 service transfer 正向调入 `962.34`、`1050.00` 未命中 `dim_finance_order_change_df`，旧口径误入个人班课营收/折算后产出 `2012.34`；2026-07-03 修复后个人 `class_income=0`、`discounted_output=0`，小组期次折算后产出相应扣减 `2012.34`。
 
 验证时应同时看订单明细和聚合结果，不要只看前端自定义字段公式。

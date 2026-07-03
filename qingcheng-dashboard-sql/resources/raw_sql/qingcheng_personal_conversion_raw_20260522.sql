@@ -10,16 +10,19 @@ with org_t as (
     group by email_prefix, name
 )
 ,order_attr as (
-    select distinct
+    select
         order_number,
         performance_employee_email_name,
-        cast(coalesce(original_order_pay_success_timestamp, pay_success_timestamp, trade_timestamp) as timestamp) as original_paid_time
+        min(cast(coalesce(original_order_pay_success_timestamp, pay_success_timestamp, trade_timestamp) as timestamp)) as original_paid_time,
+        max(cast(coalesce(transfer_in_amount, 0) as double) / 100.0) as service_transfer_in_amount_yuan,
+        max(cast(coalesce(transfer_out_amount, 0) as double) / 100.0) as service_transfer_out_amount_yuan
     from service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf
     where dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
       and hour = format_datetime(now() - interval '2' hour, 'HH')
       and performance_second_level_department_name = '青橙项目部'
       and course_first_level_department_name in ('H业务线', 'LL业务线', 'TUTU', 'TT', 'A业务线', 'EM业务线', 'KA业务线', 'TT业务线', '创新中心')
       and course_second_level_department_name in ('精品班学部', '菁英班学部', '一对一学部', '创新学部', '升学规划中心', '线上考研学部')
+    group by order_number, performance_employee_email_name
 )
 ,team_hist as (
     select distinct
@@ -136,7 +139,9 @@ with org_t as (
 -- 2. 组织链 begin_time 滞后时，当前有效订单不能被误切掉。
 ,dd as (
     select
-        a.*
+        a.*,
+        coalesce(oa.service_transfer_in_amount_yuan, 0) as service_transfer_in_amount_yuan,
+        coalesce(oa.service_transfer_out_amount_yuan, 0) as service_transfer_out_amount_yuan
     from dd_0 a
     left join order_attr oa
         on oa.order_number = a.order_number
@@ -180,6 +185,8 @@ with org_t as (
         teacher_name,
         course_first_level_department_name,
         course_second_level_department_name,
+        max(service_transfer_in_amount_yuan) as service_transfer_in_amount_yuan,
+        max(service_transfer_out_amount_yuan) as service_transfer_out_amount_yuan,
         round(sum(price), 3) as name_total_price
     from dd
     where trade_type = '调课调班'
@@ -220,6 +227,8 @@ with org_t as (
         teacher_name,
         course_first_level_department_name,
         course_second_level_department_name,
+        max(service_transfer_in_amount_yuan) as service_transfer_in_amount_yuan,
+        max(service_transfer_out_amount_yuan) as service_transfer_out_amount_yuan,
         sum(price) as name_total_price
     from dd
     where coalesce(trade_type, '') <> '调课调班'
@@ -260,6 +269,8 @@ with org_t as (
         teacher_name,
         course_first_level_department_name,
         course_second_level_department_name,
+        service_transfer_in_amount_yuan,
+        service_transfer_out_amount_yuan,
         name_total_price
     from gmv_z
 
@@ -282,6 +293,8 @@ with org_t as (
         teacher_name,
         course_first_level_department_name,
         course_second_level_department_name,
+        service_transfer_in_amount_yuan,
+        service_transfer_out_amount_yuan,
         name_total_price
     from gmv_t
 )
@@ -399,9 +412,12 @@ with org_t as (
         coalesce(order_change.is_child_order, 0) as main_is_child_order,
         coalesce(order_change.transfer_in_amount_yuan, 0) as main_transfer_in_amount_yuan,
         coalesce(order_change.transfer_out_amount_yuan, 0) as main_transfer_out_amount_yuan,
+        coalesce(rd.service_transfer_in_amount_yuan, 0) as service_transfer_in_amount_yuan,
+        coalesce(rd.service_transfer_out_amount_yuan, 0) as service_transfer_out_amount_yuan,
         coalesce(order_change.refund_type, '非调课调班') as main_order_change_type,
         case
             -- 只剔除调课调班流水本身；命中课程转移链路的正常订单仍然保留绩效。
+            -- service 订单明细侧有 transfer_in/transfer_out 但 dim_finance_order_change_df 漏链路时，也按内部调课调班剔除。
             when rd.trade_type = '调课调班'
              and (
                     (
@@ -411,6 +427,8 @@ with org_t as (
                             or coalesce(order_change.transfer_out_amount_yuan, 0) > 0
                         )
                     )
+                    or coalesce(rd.service_transfer_in_amount_yuan, 0) > 0
+                    or coalesce(rd.service_transfer_out_amount_yuan, 0) > 0
                     or rd.name_total_price < 0
                  )
             then 1

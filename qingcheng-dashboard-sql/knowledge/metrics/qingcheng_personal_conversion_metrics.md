@@ -107,9 +107,11 @@ ifnull(sum(${n_H_promit_4}) * 0.5 + (sum(${H_promit_4}) - sum(${Y_promit_4})), 0
 - `Y_promit_4`：H 一对一剔除行课阈值退款后的净收，前端从 H 中扣除。
 - `refund_4`：按班课 4 节、点睛班 2 节、一对一全额规则计入的退款。
 
-若支付订单流水与看板不一致，优先排查 `course_first_level_department_name` / `course_second_level_department_name` 空值兜底和 `gmv_t` 调课调班聚合粒度。详细风险、诊断 SQL 和已验证样例见 `knowledge/sql_patterns/qingcheng_personal_completion_discounted_output_risks.md`。
+若支付订单流水与看板不一致，优先排查 `course_first_level_department_name` / `course_second_level_department_name` 空值兜底、`gmv_t` 调课调班聚合粒度，以及 service 明细 `transfer_in_amount/transfer_out_amount` 是否补充命中内部调课调班。详细风险、诊断 SQL 和已验证样例见 `knowledge/sql_patterns/qingcheng_personal_completion_discounted_output_risks.md`。
 
-2026-06-22 后补充：`income`、`refund`、`refund_4` 和科目数会先排除主交易层命中的内部调课调班调入/调出流水。该识别来自 `dim_finance_order_change_df` 订单号映射，覆盖 `biz_type in (2,7)`，用于避免把内部 `调出退款` 当外部退费计入。
+2026-06-22 后补充：`income`、`refund`、`refund_4` 和科目数会先排除主交易层命中的内部调课调班调入/调出流水。该识别以 `dim_finance_order_change_df` 订单号映射为主，覆盖 `biz_type in (2,7)`，用于避免把内部 `调出退款` 当外部退费计入。
+
+2026-07-03 后补充：当 `dim_finance_order_change_df` 漏掉链路，但 service 订单明细同订单已有 `transfer_in_amount/transfer_out_amount` 时，也会作为 `trade_type='调课调班'` 的内部变更补充识别。该规则影响 `income`、`refund`、`refund_4`、`p_sub/r_sub` 及其后续 `promit_4/H_promit_4/n_H_promit_4/Y_promit_4` 入桶。
 
 2026-06-28 后补充：
 

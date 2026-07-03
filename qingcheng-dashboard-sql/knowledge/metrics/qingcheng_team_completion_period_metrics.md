@@ -66,6 +66,7 @@
 - `temp_table.dingxi01_qing_team_g_qi.xiaozu` 是否存主管邮箱，而不是小组名称。
 - 期次版是否仍需要 `temp_table.dingxi01_qing_qi_moth` join 待确认。
 - 退款阈值、H/非 H 折算、调课调班去重与月度版一致，所有待确认事项同样适用。
-- 2026-06-22 后，`income`、`refund`、`refund_4` 和科目数会先排除主交易层命中的内部调课调班调入/调出流水；识别来自 `dim_finance_order_change_df` 订单号映射，覆盖 `biz_type in (2,7)`。
+- 2026-06-22 后，`income`、`refund`、`refund_4` 和科目数会先排除主交易层命中的内部调课调班调入/调出流水；识别以 `dim_finance_order_change_df` 订单号映射为主，覆盖 `biz_type in (2,7)`。
+- 2026-07-03 后，若 `dim_finance_order_change_df` 漏掉链路，但 service 订单明细同订单已有 `transfer_in_amount/transfer_out_amount`，也作为 `trade_type='调课调班'` 的内部变更补充识别；该规则不扩大到正常订单。
 - 业务已确认 `H业务线` 按 100% 计入、所有 `非H业务线` 统一按 50% 折算；SQL 输出保留非 H 原始净收，前端公式再乘 0.5。
 - 2026-06-28 起，任职窗口优先按 `order_attr.original_paid_time` 判定，并允许 `team_hist` 期次兜底；团队架构必须按 `qtg.qici = wa.qici` 回连，不能再固定取 `max(qici)`。
