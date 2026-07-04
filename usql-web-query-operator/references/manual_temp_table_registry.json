@@ -4,8 +4,8 @@
   "default_database": "temp_table",
   "owner_prefix": "dingxi01_",
   "roots": {
-    "market_consultant": "E:\\2000_work\\GAOTU\\20002_市场顾问部看板维护表格",
-    "qingcheng": "E:\\2000_work\\GAOTU\\20003_青橙项目部看板维护表格"
+    "market_consultant": "E:\\1900_work\\GAOTU\\19002_市场顾问部看板维护表格",
+    "qingcheng": "E:\\1900_work\\GAOTU\\19003_青橙项目部看板维护表格"
   },
   "platform_temp_tables_observed_at": "2026-06-17",
   "platform_temp_tables": [

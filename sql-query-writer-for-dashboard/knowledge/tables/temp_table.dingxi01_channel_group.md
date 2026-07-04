@@ -1,4 +1,4 @@
-﻿# temp_table.dingxi01_channel_group
+# temp_table.dingxi01_channel_group
 
 ## 1. 中文名称
 
@@ -8,7 +8,7 @@
 
 稳定临时表，用于将看板派生出的 `channel_map` 映射到渠道组 `channel_group`。
 
-字段来源：`resources/raw_sql/data_center_market_2253_20260628.sql`。
+字段来源：`resources/raw_sql/data_center_market_2253_20260704.sql`。
 
 ## 3. 数据粒度
 

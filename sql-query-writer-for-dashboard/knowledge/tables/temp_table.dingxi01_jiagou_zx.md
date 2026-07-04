@@ -165,7 +165,7 @@ eligible_consultant_name as (
 
 ### 运营侧个人数据 2293 使用备注
 
-- `resources/raw_sql/data_center_market_2293_20260703.sql` 中本表只作为当前在职架构兜底，不能优先替代 `temp_table.dingxi01_jiagou_db` 的期次架构。
+- `resources/raw_sql/data_center_market_2293_20260704.sql` 中本表只作为当前在职架构兜底，不能优先替代 `temp_table.dingxi01_jiagou_db` 的期次架构。
 - 该 SQL 使用 `zx_active` 先按 `employee_email_name` 去重，并限定 `cast(zaizhi as varchar) = '1'`、`department in ('郑州顾问部', '西安一部', '西安二部')`，避免当前架构表重复 key 放大运营侧个人数据。
 - 展示经理/主管字段的优先级为：`temp_table.dingxi01_jiagou_db` 期次架构 > 本表当前在职架构 > 事实宽表 `virtual_*` 字段。
 

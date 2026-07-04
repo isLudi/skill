@@ -642,3 +642,11 @@
 - 新增 `resources/raw_sql/data_center_market_2293_20260703.sql`，使用本次排查后的修正版作为 2293 运营侧个人数据最新 raw SQL。
 - 修复点：`call_c` 回连主数据时补充 `lead_id`；`f_call0` 先按 `user_id + employee_email_name` 聚合；`dingxi01_cost` 拆为具体年级与 `grade='0'` 通配两路去重；`dingxi01_jiagou_db` 先按 `qici + department + employee_email_name` 去重后再 join。
 - 更新 2293 相关看板指标联动、编辑页模型引用、临时架构表说明和 JOIN 踩坑文档，明确运营侧个人数据中 `lead_count`、`can_renew_ds_count_a`、收款和退款字段会被最终层 1:N join 同步放大。
+
+## 2026-07-04 数据中心数据集源 SQL 同步
+
+- 从数据中心 `https://uanalysis.baijia.com/data-center/data-set` 同步数据集源 SQL，范围：市场顾问部目录下从 `(内部渠道)外呼过程数据` 开始到末尾的 SQL 数据集。
+- 保存 2 个数据集源 SQL 到 `resources/raw_sql`，更新清单 `knowledge/dashboards/data_center_market_datasets.md`。
+- 当前最新入口为 `data_center_market_2253_20260704.sql` 和 `data_center_market_2293_20260704.sql`；活跃知识库引用已统一迁移到 20260704 版本。
+- 删除旧 raw SQL 快照：`data_center_market_2253_20260628.sql`、`data_center_market_2293_20260628.sql`、`data_center_market_2293_20260703.sql`。
+- 未改写 SQL 语义；后续字段、指标或临时表口径仍需基于源 SQL 和业务规则单独维护。

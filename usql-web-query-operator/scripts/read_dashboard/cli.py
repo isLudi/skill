@@ -11,6 +11,7 @@ from _shared.config import DEFAULT_ARTIFACTS, DEFAULT_BROWSER_CHANNEL, DEFAULT_E
 from _shared.errors import UsageError
 
 from .commands.capture_dashboard import cmd_capture_dashboard
+from .commands.edit_public_filters import cmd_edit_public_filters
 from .commands.profile_all import cmd_profile_all
 from .commands.profile_dashboard import cmd_profile_dashboard
 from .commands.profile_edit_dashboard import cmd_profile_edit_dashboard
@@ -98,6 +99,40 @@ def build_parser() -> argparse.ArgumentParser:
     profile_edit.add_argument("--skip-dataset-fields", action="store_true", help="Skip the optional model field tree snapshot.")
     profile_edit.add_argument("--debug-artifacts", action="store_true", help="Save screenshot and HTML under the runtime artifacts directory.")
     profile_edit.set_defaults(func=cmd_profile_edit_dashboard)
+
+    edit_filters = subparsers.add_parser(
+        "edit-public-filters",
+        help="Set the first and second public filters to dynamic values, then save and publish dashboards.",
+    )
+    edit_filters.add_argument("--folder", default="青橙播报")
+    edit_filters.add_argument(
+        "--target-set",
+        choices=["qingcheng-required"],
+        default=None,
+        help="Built-in dashboard target set. qingcheng-required covers the six requested Qingcheng broadcast dashboards.",
+    )
+    edit_filters.add_argument("--name", action="append", help="Dashboard name. Repeat or separate with | or comma.")
+    edit_filters.add_argument("--dashboard-id", action="append", help="Dashboard ID. Repeat or separate with | or comma.")
+    edit_filters.add_argument("--html-id", default=None, help="Optional htmlId used to build edit URLs.")
+    edit_filters.add_argument("--first-value", default="1", help="Dynamic filter value for the first public filter.")
+    edit_filters.add_argument("--second-value", default="2", help="Dynamic filter value for the second public filter.")
+    edit_filters.add_argument("--version-description", default="auto update public filters", help="Version description for full publish.")
+    edit_filters.add_argument("--output", type=Path, default=None)
+    edit_filters.add_argument("--headed", action="store_true", help="Show browser window.")
+    edit_filters.add_argument("--state-path", type=Path, default=DEFAULT_STATE)
+    edit_filters.add_argument("--artifacts-dir", type=Path, default=DEFAULT_ARTIFACTS)
+    edit_filters.add_argument("--env-file", type=Path, default=DEFAULT_ENV_FILE)
+    edit_filters.add_argument("--username", default=os.environ.get("BAIJIA_USERNAME"))
+    edit_filters.add_argument("--password", default=os.environ.get("BAIJIA_PASSWORD"))
+    edit_filters.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL, help="Installed browser channel, e.g. msedge or chrome.")
+    edit_filters.add_argument("--executable-path", default=None, help="Explicit browser executable path; overrides --browser-channel.")
+    edit_filters.add_argument("--scan-wait-ms", type=int, default=3_000, help="Wait after opening the BI dashboard list.")
+    edit_filters.add_argument("--wait-ms", type=int, default=3_000, help="Wait after opening each edit page before calling edit APIs.")
+    edit_filters.add_argument("--publish", dest="publish", action="store_true", default=True, help="Publish after updating filters. Default.")
+    edit_filters.add_argument("--no-publish", dest="publish", action="store_false", help="Update draft only; do not save and publish.")
+    edit_filters.add_argument("--dry-run", action="store_true", help="Read and plan changes without calling update or publish APIs.")
+    edit_filters.add_argument("--strict-filter-count", action="store_true", help="Fail when a requested filter index is missing.")
+    edit_filters.set_defaults(func=cmd_edit_public_filters)
 
     profile_folder = subparsers.add_parser("profile-folder", help="Profile selected dashboards under a folder.")
     profile_folder.add_argument("--folder", default="市场顾问数据")

@@ -1,4 +1,4 @@
-﻿# 看板型 SQL 模板
+# 看板型 SQL 模板
 
 ## 多 CTE 看板结构
 
@@ -471,7 +471,7 @@ zx_active as (
 - `call_c` 从外呼表聚合后回连 `data` 时，必须同时使用 `user_id + lead_id + employee_email_prefix`；缺少 `lead_id` 会把同一用户多线索互相匹配。
 - `f_call0` 必须先聚合到回连粒度 `user_id + employee_email_name`；不要在输出中保留 `account_id` 后再只按 `user_id + employee_email_name` join。
 - `zhuanhua` 已经聚合到展示粒度后，最终层只能 join 去重后的维表或目标表。`temp_table.dingxi01_cost` 应拆成具体年级 `cost_exact` 和 `grade = '0'` 通配 `cost_zero`；`temp_table.dingxi01_jiagou_db` 应先做 `jiagou_period` 去重。
-- 最新修正版参考 `resources/raw_sql/data_center_market_2293_20260703.sql`。如果现场看板退款、线索仍高于 2253 转化数据，先确认数据中心是否已经发布该版本。
+- 最新修正版参考 `resources/raw_sql/data_center_market_2293_20260704.sql`。如果现场看板退款、线索仍高于 2253 转化数据，先确认数据中心是否已经发布该版本。
 
 ## 渠道 CASE 映射
 

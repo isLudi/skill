@@ -20,7 +20,7 @@
 
 | model_id | model_name | one SQL file | pivot unit count |
 |---|---|---|---:|
-| `2293` | 运营侧个人数据 | [data_center_market_2293_20260703.sql](../../../resources/raw_sql/data_center_market_2293_20260703.sql) | 1 |
+| `2293` | 运营侧个人数据 | [data_center_market_2293_20260704.sql](../../../resources/raw_sql/data_center_market_2293_20260704.sql) | 1 |
 
 ## Text units
 

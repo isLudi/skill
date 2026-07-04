@@ -1,4 +1,4 @@
-﻿# 表关系
+# 表关系
 
 ## CRM 私海与线索统计
 
@@ -58,7 +58,7 @@
 ## 市场顾问转化看板全链路数据
 
 - 主表：`bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df`
-- 来源：`resources/raw_sql/data_center_market_2253_20260628.sql`
+- 来源：`resources/raw_sql/data_center_market_2253_20260704.sql`
 - 分区：`dt`、`hour`
 - 强制范围：`section_assign_employee_first_level_department_name`、`section_assign_employee_second_level_department_name`、`section_assign_employee_third_level_department_name`、`period_mapping_first_level_department_name`
 - 维度：`period_name`、`channel_map`、`rule_name`、`grade_1`、`depart_1`、`depart`、`jingli`、`zhuguan`、`employee_email_name`

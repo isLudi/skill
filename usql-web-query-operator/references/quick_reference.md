@@ -20,6 +20,7 @@
 | 结果超过 1000 行，需要绕开 `SQL取数` 直接下载审批 | `references/template_query.md` | `scripts\usql_web_query.py template-download` | 只有 SQL 仍带模板参数、下载链路异常、或清理逻辑异常时，才看相关命令实现 |
 | 看板文件夹扫描 / 看板画像 | `SKILL.md` 中“看板文件夹扫描”“脚本能力” + `references/platform_profile.md` | `scripts\read_dashboard.py scan-folder` / `profile-dashboard` / `profile-folder` / `profile-all` | 只有菜单、组件、筛选器或页面结构异常时，才继续看 `read_dashboard/commands/*.py` |
 | Taitan 编辑页透视表字段、指标含义、自定义公式读取 | `SKILL.md` 中“看板文件夹扫描” + `references/platform_profile.md` 的“Taitan 编辑页指标公式 API” | `scripts\read_dashboard.py profile-edit-dashboard` | 只有字段详情接口变化、公式缺失或 selector 回退验证失败时，才看 `read_dashboard/edit_profile.py` 和对应命令实现 |
+| Taitan 编辑页全局筛选器动态默认项修改并发布 | `references/platform_profile.md` 的“公共筛选器编辑与发布 API” | `scripts\read_dashboard.py edit-public-filters` | 只有更新/发布接口返回异常或回读值不一致时，才看 `read_dashboard/filter_edit.py` 和对应命令实现 |
 | 手工临时表上传 | `SKILL.md` 中“临时表上传” + `references/manual_temp_table_registry.md` | `scripts\usql_web_query.py check-manual-table` / `upload-temp-table` | 只有需要确认具体登记项或表名映射时，才打开 `manual_temp_table_registry.json` |
 | 数据地图字段同步 | `SKILL.md` 中“数据地图字段同步” | `scripts\usql_web_query.py sync-datamap-fields` | 只有同步结果异常或需要改写逻辑时，才看相关实现 |
 | 数据中心源 SQL 同步 | `SKILL.md` 中“数据中心源 SQL 同步” | `scripts\usql_web_query.py sync-data-center-sql` | 只有目录范围、写入规则或接口行为异常时，才看相关实现 |
@@ -37,4 +38,5 @@
 - 不要一上来就读全部命令实现。
 - 不要把 `read_dashboard.py` 的问题塞回 `usql_web_query.py`，也不要把 SQL 页面执行逻辑塞进 `read_dashboard.py`。
 - 不要用 `profile-edit-dashboard` 修改、删除、发布或新建看板指标；它只负责读取字段说明和公式。
+- 修改并发布 Taitan 全局筛选器时使用独立的 `edit-public-filters`，不要复用只读画像命令。
 - 不要在未经确认的情况下，对超过 1000 行的结果走 `SQL取数` 直接下载。

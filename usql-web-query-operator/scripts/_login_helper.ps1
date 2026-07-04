@@ -1,7 +1,7 @@
 # Load credentials from .env file and run usql login.
 # Usage: powershell -ExecutionPolicy Bypass -File _login_helper.ps1 [--manual] [--headed]
 
-$envFile = "E:\2000_work\GAOTU\20002_市场顾问部看板维护表格\usql_api.env"
+$envFile = "E:\1900_work\GAOTU\19002_市场顾问部看板维护表格\usql_api.env"
 $script  = "c:\Users\Ludim\.codex\skills\usql-web-query-operator\scripts\usql_web_query.py"
 $python  = "D:\anaconda3\python.exe"
 

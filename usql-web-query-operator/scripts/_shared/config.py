@@ -22,4 +22,4 @@ DEFAULT_DATAMAP_STATE = DATAMAP_RUNTIME_DIR / "state.json"
 DEFAULT_DATAMAP_CACHE = DATAMAP_RUNTIME_DIR / "datamap_table_catalog.json"
 DEFAULT_ARTIFACTS = RUNTIME_DIR / "artifacts"
 DEFAULT_BROWSER_CHANNEL = "msedge"
-DEFAULT_ENV_FILE = Path("E:\\2000_work\\GAOTU\\20002_\u5e02\u573a\u987e\u95ee\u90e8\u770b\u677f\u7ef4\u62a4\u8868\u683c\\usql_api.env")
+DEFAULT_ENV_FILE = Path("E:\\1900_work\\GAOTU\\19002_\u5e02\u573a\u987e\u95ee\u90e8\u770b\u677f\u7ef4\u62a4\u8868\u683c\\usql_api.env")

@@ -21,7 +21,7 @@
 | model_id | model_name | one SQL file | pivot unit count |
 |---|---|---|---:|
 | `2345` | 进量测试(市场渠道) | [data_center_market_2345_20260624.sql](../../../resources/raw_sql/data_center_market_2345_20260624.sql) | 1 |
-| `2293` | 运营侧个人数据 | [data_center_market_2293_20260703.sql](../../../resources/raw_sql/data_center_market_2293_20260703.sql) | 10 |
+| `2293` | 运营侧个人数据 | [data_center_market_2293_20260704.sql](../../../resources/raw_sql/data_center_market_2293_20260704.sql) | 10 |
 | `2310` | 分二级部门转化 | [data_center_market_2310_20260624.sql](../../../resources/raw_sql/data_center_market_2310_20260624.sql) | 1 |
 | `2424` | 每日转化数据表 | [data_center_market_2424_20260624.sql](../../../resources/raw_sql/data_center_market_2424_20260624.sql) | 1 |
 | `2344` | 分析--分周期转化 | [data_center_market_2344_20260624.sql](../../../resources/raw_sql/data_center_market_2344_20260624.sql) | 1 |

@@ -17,7 +17,7 @@
 
 ## 凭据来源
 
-本地 env 文件 `E:\2000_work\GAOTU\20002_市场顾问部看板维护表格\usql_api.env` 可以包含 `BAIJIA_USERNAME` 和 `BAIJIA_PASSWORD`。脚本会读取该文件，但不会打印值。
+本地 env 文件 `E:\1900_work\GAOTU\19002_市场顾问部看板维护表格\usql_api.env` 可以包含 `BAIJIA_USERNAME` 和 `BAIJIA_PASSWORD`。脚本会读取该文件，但不会打印值。
 
 ## 已知手工流程
 
@@ -135,7 +135,7 @@ iframe 编辑器工具栏中的运行按钮回退方案：
 9. 点击 `开始导入`。
 10. 等待 `导入历史`，解析顶部匹配行。`状态=成功` 加上 `临时表名` 和 `数据量` 是上传成功信号。
 
-`E:\2000_work\GAOTU\20003_青橙项目部看板维护表格\qing_team_jg.xlsx` 的已观察校验结果：
+`E:\1900_work\GAOTU\19003_青橙项目部看板维护表格\qing_team_jg.xlsx` 的已观察校验结果：
 
 | 导入时间 | 文件类型 | 源文件 | 临时表名 | 数据量 | 状态 |
 |---|---|---|---|---:|---|
@@ -234,6 +234,26 @@ iframe 编辑器工具栏中的运行按钮回退方案：
 - `profile-edit-dashboard` 只用于了解指标含义、字段配置和公式，不修改看板。
 - 不调用保存、发布、删除、新建、更新接口，也不点击 `保存并发布`、`保存到草稿箱` 等按钮。
 - UI selector 或坐标点击只允许作为 selector 漂移排查的临时验证；生产脚本优先走只读 API。
+
+## 公共筛选器编辑与发布 API
+
+2026-07-04 已验证：
+
+- 生产命令：`D:\anaconda3\python.exe scripts\read_dashboard.py edit-public-filters --target-set qingcheng-required`
+- 默认目标文件夹：`青橙播报`。
+- 内置目标 `qingcheng-required` 覆盖 6 个看板：`主管_过程数据播报-青橙`、`私域-渠道团队`、`私域--伙伴推送`、`图书_SEC伙伴_青橙`、`主管_过程数据-青橙`、`公域--伙伴推送`。
+- 默认修改规则：第 1 个全局筛选器设为动态筛选 `第一项`（`dynamicsFilterValue="1"`），第 2 个全局筛选器设为动态筛选 `第二项`（`dynamicsFilterValue="2"`）。可用 `--first-value`、`--second-value` 覆盖。
+- 如果某个看板没有第 2 个筛选器，默认跳过该项并记录 skipped；需要严格要求两个筛选器都存在时加 `--strict-filter-count`。
+- 公共筛选器更新：POST `https://udata.baijia.com/uanalysis-intelligence/config/update/public/relation/unit`，body 为公共筛选器 relation detail，附加 `dashboardId`、`versionId="draft"` 和当前 `htmlId`。
+- 发布前警告检查：POST `https://udata.baijia.com/uanalysis-intelligence/version/dashboard/publishWarn`，body 为 `{"id":"<dashboard_id>"}`。
+- 保存并发布：POST `https://udata.baijia.com/uanalysis-intelligence/version/dashboard/saveAndPublish`，body 使用编辑页 `config/dashBoard` 的 `dashboardHtmlJson`、`jsPackages`、`clientInfo`、`ownerList` 等元数据，`isGrayscale=0` 表示全量发布，`versionDescription` 必填。
+- 验证路径：更新后回读 `value/public/unit/relation/detail`，确认第 1/第 2 个筛选器的 `dynamicsFilter=true` 且 `dynamicsFilterValue` 符合计划；发布后检查 `saveAndPublish` 返回 `status=success`。
+
+边界：
+
+- 该命令是写入命令，会更新草稿并在默认情况下全量发布。仅检查计划时用 `--dry-run`；只更新草稿不用发布时用 `--no-publish`。
+- 该命令只修改公共筛选器动态默认项，不修改指标、图表字段、SQL、布局或权限配置。
+- 调试产物写入 runtime artifact 目录，不写入业务 SQL skill。
 
 ## 冒烟测试 SQL
 
