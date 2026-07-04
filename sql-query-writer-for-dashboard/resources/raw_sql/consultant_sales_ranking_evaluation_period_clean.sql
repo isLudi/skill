@@ -40,7 +40,7 @@ from (
         and employee_first_level_department_name = 'H业务线'
 	    and employee_second_level_department_name = '市场部'
         and employee_third_level_department_name = '市场顾问部')
-		where qici >= '20260320期'
+		where qici >= '20260101期'
 )
 -- 调课调班（按name和user_id1去重，每个用户保留一条记录）
 ,gmv_t as (

@@ -53,7 +53,7 @@ and hour = format_datetime(now() - interval '2' hour, 'HH')
 评优期次范围：
 
 ```sql
-qici >= '20260320期'
+qici >= '20260101期'
 ```
 
 周期转换：
@@ -61,7 +61,7 @@ qici >= '20260320期'
 - 期次：直接使用 `qici`。
 - 月度：`substring(qici, 1, 6)`，原 SQL 命名为 `moth`。
 - 季度：按 `substring(qici, 1, 6)` 映射到 `YYYYQn`。
-- 半年：4-9 月归上半年，10-12 月归当年下半年，1-3 月归上一年下半年。
+- 半年：1-6 月归上半年，7-12 月归下半年。
 
 ## 7. 范围限定
 

@@ -51,7 +51,7 @@ Presto
 | employee_email_name | string | 顾问/员工姓名，部分值带数字编号 | 顾问 join key | 邱君武；马会龙；梁志华 | 是 |
 | department | string | 架构/部门名称 | 架构范围限定 | 郑州市场顾问部；西安市场顾问部 | 是 |
 | zaizhi | bigint（Excel 推断） | 在职状态标记，常用 1 表示在职 | 在职过滤 | 1；2 | 是 |
-| qici | string | 期次，格式通常为 yyyyMMdd期 | 期次过滤/join | 20260320期；20260327期；20260403期 | 是 |
+| qici | string | 期次，格式通常为 yyyyMMdd期 | 期次过滤/join | 20260101期；20260327期；20260403期 | 是 |
 | dept | string | 看板展示架构/部门 | 评优架构维度 | 郑州顾问部；西安一部；西安二部 | 是 |
 | jingli | string | 经理/主管姓名 | 经理维度 | 薛源02；吴志强03；靳煜08 | 是 |
 | channel | string | 展示/归因渠道名称 | 渠道展示/聚合 | 主动咨询,抖音私域；抖音私域,主动咨询；主动咨询 | 是 |
@@ -62,7 +62,7 @@ Presto
 
 ## 8. 常用过滤条件
 
-- `t.qici >= '20260320期'`
+- `t.qici >= '20260101期'`
 - `t.zaizhi = '1'`
 - `t.is_emp = '是'`
 - `t.dept = '<架构>'`
@@ -88,7 +88,7 @@ Presto
 ```sql
 select *
 from temp_table.zhangjunyan01_pingyou_jg t
-where t.qici >= '20260320期'
+where t.qici >= '20260101期'
 limit 20;
 ```
 

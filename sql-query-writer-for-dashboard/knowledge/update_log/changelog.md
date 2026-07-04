@@ -643,6 +643,11 @@
 - 修复点：`call_c` 回连主数据时补充 `lead_id`；`f_call0` 先按 `user_id + employee_email_name` 聚合；`dingxi01_cost` 拆为具体年级与 `grade='0'` 通配两路去重；`dingxi01_jiagou_db` 先按 `qici + department + employee_email_name` 去重后再 join。
 - 更新 2293 相关看板指标联动、编辑页模型引用、临时架构表说明和 JOIN 踩坑文档，明确运营侧个人数据中 `lead_count`、`can_renew_ds_count_a`、收款和退款字段会被最终层 1:N join 同步放大。
 
+## 2026-07-04 评优看板起始期次修正
+
+- 核查 `temp_table.dingxi01_pingyou_jg` 已维护的 2026 年最早期次为 `20260101期`，不是 `20260102期`。
+- 将评优看板期次、月度、季度、半年度相关 raw SQL 和口径文档中的起始过滤从 `20260320期` 统一调整为 `20260101期`，避免遗漏 2026 年 1-3 月已维护评优期次。
+
 ## 2026-07-04 数据中心数据集源 SQL 同步
 
 - 从数据中心 `https://uanalysis.baijia.com/data-center/data-set` 同步数据集源 SQL，范围：市场顾问部目录下从 `(内部渠道)外呼过程数据` 开始到末尾的 SQL 数据集。
@@ -657,3 +662,8 @@
 - 当前 2349 输出 `analysis_type`、`dim_value`、`refund_amount`、`total_refund_amount` 和 `refund_amount_ratio`，分别支持不同科目、产品、年级退款金额占比。
 - 废弃旧 `refund_total` 负数输出和前端隐式占比口径；旧 `refund_subject_product.sql` 仅保留为历史归档。
 - 更新市场渠道用户画像、退费科目产品、退费指标、表关系、范围规则和相关表文档，后续排查不同科目/产品/年级退费占比优先读取 2349 fixed SQL。
+
+## 2026-07-04 评优看板半年度归属逻辑修正
+
+- 将半年度评优 SQL 中 `half_year` 归属从评优周期口径（4-9 月为上半年、10-次年 3 月为下半年）改为自然半年口径（1-6 月为上半年、7-12 月为下半年）。
+- 同步更新用户粘贴 SQL、顾问销售评优看板文档和评优指标文档，保证出勤率分母按自然半年统计。

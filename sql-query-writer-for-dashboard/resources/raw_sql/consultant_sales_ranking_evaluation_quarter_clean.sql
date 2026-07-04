@@ -40,7 +40,7 @@
  	    and employee_second_level_department_name = '市场部'
         and employee_third_level_department_name = '市场顾问部'
     ) base
-    where base.qici >= '20260320期'
+    where base.qici >= '20260101期'
 )
 ,gmv_t as (
     select
@@ -132,7 +132,7 @@ from temp_table.zhangjunyan01_pingyou_jg pg
 inner join jiagou_zx_active zx on zx.employee_email_name = pg.employee_email_name
 left join rd on pg.employee_email_name = rd.name and pg.qici = rd.qici
 where cast(pg.zaizhi as varchar) = '1' and pg.is_emp = '是'
-and pg.qici >= '20260320期'
+and pg.qici >= '20260101期'
 group by
     case
         when substring(pg.qici, 1, 6) between '202601' and '202603' then '2026Q1'
@@ -191,7 +191,7 @@ from rank_h)
       on zx.employee_email_name = pg.employee_email_name
     where cast(pg.zaizhi as varchar) = '1'
       and pg.is_emp = '是'
-      and pg.qici >= '20260320期'
+      and pg.qici >= '20260101期'
 )
 ,attendance_metric as (
     select

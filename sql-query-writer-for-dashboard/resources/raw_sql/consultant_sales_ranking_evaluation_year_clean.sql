@@ -76,7 +76,7 @@ dd as (
                     '期'
                 )
             end
-          ) >= '20260320期'
+          ) >= '20260101期'
 ),
 gmv_t as (
     select
@@ -216,12 +216,10 @@ pingyou_base as (
     select
         pg.*,
         case
-            when try_cast(substring(pg.qici, 5, 2) as int) between 4 and 9 then
+            when try_cast(substring(pg.qici, 5, 2) as int) between 1 and 6 then
                 concat(substring(pg.qici, 1, 4), '上半年')
-            when try_cast(substring(pg.qici, 5, 2) as int) between 10 and 12 then
+            when try_cast(substring(pg.qici, 5, 2) as int) between 7 and 12 then
                 concat(substring(pg.qici, 1, 4), '下半年')
-            when try_cast(substring(pg.qici, 5, 2) as int) between 1 and 3 then
-                concat(cast(cast(substring(pg.qici, 1, 4) as int) - 1 as varchar), '下半年')
             else '其他'
         end as half_year
     from temp_table.zhangjunyan01_pingyou_jg pg
@@ -229,7 +227,7 @@ pingyou_base as (
       on zx.employee_email_name = pg.employee_email_name
     where cast(pg.zaizhi as varchar) = '1'
       and pg.is_emp = '是'
-      and pg.qici >= '20260320期'
+      and pg.qici >= '20260101期'
 ),
 period_total as (
     select
