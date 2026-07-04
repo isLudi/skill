@@ -650,3 +650,10 @@
 - 当前最新入口为 `data_center_market_2253_20260704.sql` 和 `data_center_market_2293_20260704.sql`；活跃知识库引用已统一迁移到 20260704 版本。
 - 删除旧 raw SQL 快照：`data_center_market_2253_20260628.sql`、`data_center_market_2293_20260628.sql`、`data_center_market_2293_20260703.sql`。
 - 未改写 SQL 语义；后续字段、指标或临时表口径仍需基于源 SQL 和业务规则单独维护。
+
+## 2026-07-04 退费_科目_产品 2349 退款金额占比口径更新
+
+- 将 `resources/raw_sql/data_center_market_2349_refund_amount_share_fixed_20260704.sql` 设为数据中心 2349「退费_科目_产品」当前知识库入口。
+- 当前 2349 输出 `analysis_type`、`dim_value`、`refund_amount`、`total_refund_amount` 和 `refund_amount_ratio`，分别支持不同科目、产品、年级退款金额占比。
+- 废弃旧 `refund_total` 负数输出和前端隐式占比口径；旧 `refund_subject_product.sql` 仅保留为历史归档。
+- 更新市场渠道用户画像、退费科目产品、退费指标、表关系、范围规则和相关表文档，后续排查不同科目/产品/年级退费占比优先读取 2349 fixed SQL。

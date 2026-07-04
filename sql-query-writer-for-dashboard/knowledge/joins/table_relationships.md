@@ -221,17 +221,18 @@
 - 主表 `dt/hour` 均使用 `now - 3h`（一致偏移）；首 call 表使用 `now - 2h`。
 - 状态：SQL 口径已入库；`data_base` 使用 `select t1.*`、双层 `select distinct`、首 call 未限定 `task_generate_rule_type = 2`、`valid_lead_count`/`can_renew_ds_count_a` 重复输出、员工维表 `account_id` 去重逻辑、`shenbaoxin_channel_group` 字段存在性、`period_mapping_first_level_department_name is null` 放宽条件需人工确认。
 
-## 退费分析看板关系（历史入口，已合并）
+## 退费分析看板关系
 
 - 新入口：`knowledge/dashboards/market_channel_conversion_profile.md` 的“多维退费率数据集”，来源 `resources/raw_sql/refund_rate_multidim.sql`。
-- 历史来源：`resources/raw_sql/refund_multi_subject_user_ratio.sql`、`resources/raw_sql/refund_subject_product.sql`、`resources/raw_sql/refund_reason_analysis.sql`。
-- 当前状态：三份独立退费看板文档已改为合并入口说明；旧 SQL 仅作追溯资料。新多维退费率 SQL 改用 `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df` 单表输出分子/分母，不再使用下列财务流水 join。
+- 科目/产品/年级退款金额占比当前入口：`resources/raw_sql/data_center_market_2349_refund_amount_share_fixed_20260704.sql`。
+- 历史来源：`resources/raw_sql/refund_multi_subject_user_ratio.sql`、`resources/raw_sql/refund_subject_product.sql`、`resources/raw_sql/refund_reason_analysis.sql`；旧 `refund_subject_product.sql` 仅作追溯，不作为当前 2349 口径。
+- 当前状态：多维退费率 SQL 改用 `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df` 单表输出分子/分母；2349 科目/产品/年级金额占比仍沿用财务业绩明细链路，但最终统一输出 `refund_amount`、`total_refund_amount` 和 `refund_amount_ratio`。
 - 财务主表：`finance_dw.app_finance_performance_extend_details_hf`，按 `trade_time` 推导 `qici`，并限定业绩归属员工 `H业务线/市场部/市场顾问部`。
-- 订单流水处理：多科用户退费占比和退费原因分析用 `zong_price`；正常订单按 `employee_email_name + user_id + clazz_name + trade_status` 汇总，调课调班按 `employee_email_name + user_id` 汇总。退费科目产品 SQL 拆为 `gmv_z/gmv_t` 后 `union all`，其中调课调班按 `name` 汇总，粒度需确认。
+- 订单流水处理：多科用户退费占比和退费原因分析用 `zong_price`；正常订单按 `employee_email_name + user_id + clazz_name + trade_status` 汇总，调课调班按 `employee_email_name + user_id` 汇总。当前 2349 科目/产品/年级金额占比 SQL 拆为 `gmv_z/gmv_t` 后 `union all`，其中调课调班按 `name` 汇总；最终只保留 `name_total_price < 0` 的退款流水并取绝对值作为 `refund_amount`。
 - lead_id 补充：`service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` 通过 `original_order_user_number + performance_employee_email_name` 关联财务业绩明细的 `user_id1 + name`，并按 `original_order_user_number order by qici desc` 取最新 `lead_id`。
 - 分配规则：`service_dw.dim_crm_assign_rule_lead_detail_hf` 通过 `lead_id + account_domain` 关联，`account_domain` 对应财务表 `email_prefix`，再按 `rule_name` 派生 `channel_1` 和规则期次 `friday_period`。
 - 架构补充：`temp_table.dingxi01_jiagou_zx.employee_email_name = name`，补充 `xiaozu`、`jingli`。该表无 `qici`，跨期历史架构需确认。
 - 多科分层：先在 `qici + name + channel_1 + jingli + xiaozu + grade_list + user_id1` 粒度计算 `count(distinct subject)`，再聚合出 `refund_1/refund_2/refund_3`。
-- 科目产品：按 `subject` CASE 标准化科目，并按 `course_second_level_department_name` 映射 `course_name`。
+- 科目产品：按 `subject` CASE 标准化科目，并按 `course_second_level_department_name` 映射 `course_name`；当前 2349 使用 `analysis_type` 区分 `subject`、`product`、`grade` 三类图表。
 - 退费原因：`finance_dw.dwd_finance_order_refund_df` 通过 `order_number` 关联财务业绩明细，限定 `dt = now() - 24 hour` 与 `refund_type = '1'` 后输出 `refund_reason`。
-- 状态：三份历史 SQL 口径已入库；三参数 `date_add`、订单/用户/顾问去重粒度、退款正负号、`refund_type = '1'` 含义、退款原因表唯一性和课程部门范围均需人工确认。
+- 状态：当前 2349 已使用验证后的退款金额占比口径；历史三份 SQL 仅作追溯。退款原因表唯一性、`refund_type = '1'` 含义和退费原因口径仍需人工确认。

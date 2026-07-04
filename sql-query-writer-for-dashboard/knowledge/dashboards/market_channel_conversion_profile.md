@@ -9,6 +9,7 @@
 - `resources/raw_sql/market_channel_conversion_profile_deep_stage_dataset.sql`
 - `resources/raw_sql/market_channel_conversion_profile_overall_dataset_fixed.sql`
 - `resources/raw_sql/refund_rate_multidim.sql`
+- `resources/raw_sql/data_center_market_2349_refund_amount_share_fixed_20260704.sql`
 
 入库时间：2026-06-06
 
@@ -23,6 +24,7 @@
 - 深沟成单用户占比：按私海销售阶段/好友关系分桶。
 - 成单用户画像整体数据：不按过程分桶，按期次、渠道、年级和经理展示整体线索、有效线索、成交用户、科目数、订单数、收入和科目档位。
 - 多维退费率数据：不按过程分桶，按期次、渠道、年级、经理、主管、顾问输出 GMV 退费率、人头退费率和单科/多科退费分子分母字段；看板数据透视表自行计算比率。
+- 退费金额结构占比数据：按期次、渠道、年级、经理、主管输出科目、产品、年级维度的退款金额占当期筛选范围总退款金额比例。
 
 三个数据集的总计口径应一致：相同期次、渠道、年级筛选下，`bucket_user_cnt`、`conversion_user_cnt`、`order_cnt`、`section_profit_amt` 的总计应一致；差异只应体现在 `bucket_name` 分桶分布上。
 
@@ -36,6 +38,10 @@
 | `service_dw.dwd_crm_assign_private_detail_hf` | `private_stage` | 仅在深沟阶段数据集中按 `user_number + lead_id` 取最新 `sale_flow_stage_sequence`，用于深沟/双沟分桶 | 私海阶段口径待人工确认 |
 | `temp_table.shenbaoxin_channel_group` | `channel_group` | 按 `channel = channel_map` 补充渠道组 | 字段结构、唯一性和维护来源待人工确认 |
 | `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df` | `refund_rate_multidim` 的 `lead_raw`, `lead_base`, `agg` | 多维退费率数据集唯一物理表，提供线索、有效线索、成交科目数、当期/截面收入和退款金额、经理/主管/顾问字段 | 退费率分子分母口径来自用户提供 SQL；金额单位、科目数和人头口径待人工确认 |
+| `finance_dw.app_finance_performance_extend_details_hf` | 2349 `dd`, `gmv_z`, `gmv_t`, `refund_base` | 退费金额结构占比财务业绩明细来源，按 `trade_time` 推导 `qici`，按 `real_price_0/name_total_price` 识别退款金额 | 当前用于科目/产品/年级退款金额占比；不再使用旧负数 `refund_total` 作为前端指标 |
+| `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` | 2349 `n_uid` | 通过 `original_order_user_number + performance_employee_email_name` 补充 `lead_id` | 使用多业务线/二级部门长白名单 |
+| `service_dw.dim_crm_assign_rule_lead_detail_hf` | 2349 `rule` | 通过 `lead_id + account_domain` 补充分配规则并派生 `channel_1` | 渠道 CASE 来自历史退费 SQL |
+| `temp_table.dingxi01_jiagou_zx` | 2349 `base` | 通过 `employee_email_name = name` 补充 `jingli`, `xiaozu` | 当前架构表，不含期次 |
 
 ## 4. 范围限定
 
@@ -135,6 +141,39 @@ where a.period_name > '20260417期'
 
 输出为分子/分母字段，不直接输出退费率。看板数据透视表必须用 `sum(分子) / sum(分母)` 自行计算，避免行级比率在多维汇总时失真。
 
+### 5.6 退费科目/产品/年级金额占比数据集
+
+来源：`resources/raw_sql/data_center_market_2349_refund_amount_share_fixed_20260704.sql`
+
+该数据集对应数据中心模型 `2349` / `退费_科目_产品`，用于看板中的“不同科目退费占比”“不同产品退费占比”“不同年级退费占比”。当前口径已废弃旧 `refund_total` 负数输出，统一输出退款金额、总退款金额和金额占比。
+
+| CTE | 用途 | 关键字段 |
+|---|---|---|
+| `dd` / `gmv_z` / `gmv_t` / `rd` | 处理财务业绩明细、正常订单和调课调班订单 | `qici`, `real_price_0`, `name_total_price`, `grade_list`, `subject`, `course_second_level_department_name` |
+| `n_uid` / `lead_gmv` / `rule` | 补充 `lead_id` 和渠道规则 | `lead_id`, `rule_name`, `channel_1` |
+| `base` | 补充经理、主管并生成周差字段 | `jingli`, `xiaozu`, `week_diff` |
+| `refund_base` | 只保留退款流水，生成标准科目、产品和退款金额 | `subject`, `course_name`, `refund_amount` |
+| `filter_group_with_grade` | 科目/产品图表筛选范围总退款金额 | `qici`, `channel_1`, `jingli`, `xiaozu`, `grade_list`, `total_refund_amount` |
+| `filter_group_without_grade` | 年级图表筛选范围总退款金额 | `qici`, `channel_1`, `jingli`, `xiaozu`, `total_refund_amount` |
+
+最终输出为长表：
+
+```text
+qici + channel_1 + jingli + xiaozu + grade_list + analysis_type + dim_value
+```
+
+其中 `analysis_type` 取值：
+
+- `subject`：科目退款金额占比。
+- `product`：产品退款金额占比。
+- `grade`：年级退款金额占比。
+
+核心指标：
+
+- `refund_amount`：当前维度退款金额，正数。
+- `total_refund_amount`：当前筛选范围总退款金额。
+- `refund_amount_ratio`：`refund_amount / total_refund_amount`。
+
 ## 6. join 关系
 
 | 左表/CTE | 右表/CTE | join key | join 类型 | 说明 |
@@ -146,6 +185,7 @@ where a.period_name > '20260417期'
 | `profile_agg a` | `dim_totals dt` | `period_name + channel_map + grade_name` | left join | 补充分桶前总线索和总有效线索 |
 | 整体画像数据集 | 无外部 join | 无 | 无 | `market_channel_conversion_profile_overall_dataset_fixed.sql` 仅使用全链路主表；如后续补渠道组或架构表，需另行确认 join key 和唯一性 |
 | 多维退费率数据集 | 无外部 join | 无 | 无 | `refund_rate_multidim.sql` 仅使用全链路主表；经理/主管/顾问均来自主表虚拟架构字段，字段最终展示口径待人工确认 |
+| 退费金额结构占比数据集 | `n_uid` / `rr` / `zx` | `user_id1 + name`、`lead_id + account_domain`、`employee_email_name = name` | left join 后部分 CTE 用 `where n_uid.rn = 1` 收窄 | 用于 2349 科目/产品/年级金额占比；历史架构和渠道规则仍沿用退费财务流水链路 |
 
 ## 7. 输出粒度
 
@@ -175,7 +215,7 @@ period_name + channel_map + grade_name + manager_name
 period_name + channel_map + grade_name + jingli + zhuguan + employee_email_name
 ```
 
-多维退费率数据集不输出 `analysis_type`、`bucket_name`、`bucket_sort`、`channel_group`。如果看板需要渠道组或退费原因/科目产品明细，需要另行确认是否回退到历史退费 SQL 或新增明细数据集。
+多维退费率数据集不输出 `analysis_type`、`bucket_name`、`bucket_sort`、`channel_group`。科目/产品/年级退款金额占比使用 2349 fixed SQL；退费原因仍需另行确认是否改造成同样的金额占比长表口径。
 
 ## 8. 输出字段和看板使用
 
@@ -225,6 +265,18 @@ period_name + channel_map + grade_name + jingli + zhuguan + employee_email_name
 | 3科以上人头退费率 | `ifnull(sum(${refund_3plus_subject_headcount}) / sum(${total_headcount}), 0)`；3科以上分母是否应使用 3科以上用户数待人工确认 |
 
 注意：该 SQL 输出的 `net_income_*` 字段是用户提供 SQL 中的分母字段名称，真实业务含义是否应称为“净营收”或“GMV分母”待人工确认。
+
+### 9.2 退费金额结构占比图表公式
+
+适用 SQL：`resources/raw_sql/data_center_market_2349_refund_amount_share_fixed_20260704.sql`
+
+| 图表 | 数据筛选 | 维度 | 指标 |
+|---|---|---|---|
+| 不同科目退费占比 | `analysis_type = 'subject'` | `dim_value` 或 `subject` | 优先使用 `refund_amount_ratio`；跨行聚合时用 `sum(refund_amount) / sum(total_refund_amount)` |
+| 不同产品退费占比 | `analysis_type = 'product'` | `dim_value` 或 `course_name` | 优先使用 `refund_amount_ratio`；跨行聚合时用 `sum(refund_amount) / sum(total_refund_amount)` |
+| 不同年级退费占比 | `analysis_type = 'grade'` | `dim_value` 或 `grade_list` | 优先使用 `refund_amount_ratio`；跨行聚合时用 `sum(refund_amount) / sum(total_refund_amount)` |
+
+注意：旧 `refund_total` 负数口径已废弃，不再作为上述三个图的分子。
 
 ## 10. 已验证现象
 

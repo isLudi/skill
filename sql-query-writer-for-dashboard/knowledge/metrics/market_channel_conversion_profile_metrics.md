@@ -11,6 +11,7 @@
 - `resources/raw_sql/market_channel_conversion_profile_deep_stage_dataset.sql`
 - `resources/raw_sql/market_channel_conversion_profile_overall_dataset_fixed.sql`
 - `resources/raw_sql/refund_rate_multidim.sql`
+- `resources/raw_sql/data_center_market_2349_refund_amount_share_fixed_20260704.sql`
 
 ## 3. 指标粒度
 
@@ -37,6 +38,14 @@ period_name + channel_map + grade_name + jingli + zhuguan + employee_email_name
 ```
 
 多维退费率数据集不按过程分桶，输出 GMV 退费率、人头退费率和单科/多科退费率所需的分子、分母字段；看板数据透视表必须自行计算比率。
+
+退费金额结构占比数据集输出粒度：
+
+```text
+qici + channel_1 + jingli + xiaozu + grade_list + analysis_type + dim_value
+```
+
+该数据集用于科目、产品、年级退款金额占比，输出 `refund_amount`、`total_refund_amount` 和 `refund_amount_ratio`。
 
 ## 4. SQL 输出指标
 
@@ -143,6 +152,31 @@ period_name + channel_map + grade_name + jingli + zhuguan + employee_email_name
 | 1科 GMV 退费率 | `ifnull(sum(${refund_1_subject_gmv}) / sum(${net_income_1_subject_gmv}), 0)` |
 | 2-3科 GMV 退费率 | `ifnull(sum(${refund_2_3_subject_gmv}) / sum(${net_income_2_3_subject_gmv}), 0)` |
 | 3科以上 GMV 退费率 | `ifnull(sum(${refund_3plus_subject_gmv}) / sum(${net_income_3plus_subject_gmv}), 0)` |
+
+## 5.3 退费金额结构占比数据集指标
+
+适用 SQL：`resources/raw_sql/data_center_market_2349_refund_amount_share_fixed_20260704.sql`
+
+| 字段 | SQL 口径 | 说明 | 聚合规则 |
+|---|---|---|---|
+| `analysis_type` | 固定输出 `subject` / `product` / `grade` | 区分科目、产品、年级图表 | 过滤字段 |
+| `dim_value` | 科目名、产品名或年级 | 图表横轴统一维度 | 维度字段 |
+| `subject` | 科目 CASE 标准化结果 | 仅 `analysis_type='subject'` 有值 | 维度字段 |
+| `course_name` | 课程二级部门映射为产品 | 仅 `analysis_type='product'` 有值 | 维度字段 |
+| `grade_list` | 课程年级 | 年级图表中 `dim_value = grade_list` | 维度字段 |
+| `refund_amount` | `sum(abs(name_total_price))`，仅保留 `name_total_price < 0` | 当前维度退款金额，正数 | 可 sum |
+| `total_refund_amount` | 同一筛选范围下 `sum(refund_amount)` | 占比分母 | 可 sum；跨图表不要混合 subject/product/grade |
+| `refund_amount_ratio` | `refund_amount / total_refund_amount` | 单行金额占比 | 单行可直接展示；跨行聚合用 `sum(refund_amount) / sum(total_refund_amount)` |
+
+推荐图表筛选：
+
+| 图表 | 筛选 | 推荐指标 |
+|---|---|---|
+| 不同科目退费占比 | `analysis_type = 'subject'` | `refund_amount_ratio` |
+| 不同产品退费占比 | `analysis_type = 'product'` | `refund_amount_ratio` |
+| 不同年级退费占比 | `analysis_type = 'grade'` | `refund_amount_ratio` |
+
+旧 `refund_total` 负数口径已废弃，不再作为 2349 当前图表分子。
 
 ## 6. 分桶口径
 

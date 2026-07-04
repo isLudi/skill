@@ -279,4 +279,4 @@ limit 100;
 
 - 三份退费分析 SQL 使用该表从财务业绩明细补充 `lead_id`，join key 为 `original_order_user_number + performance_employee_email_name` 对应财务表 `user_id1 + name`。
 - `n_uid` CTE 按 `original_order_user_number` 排序取最新 `qici` 的 `rn = 1`；如果同一用户在多个顾问或多个期次下有订单，可能只保留最新 lead_id。
-- 多科用户退费占比和退费原因分析限定 `course_first_level_department_name = 'H业务线'` 与课程二级部门短名单；退费科目产品 SQL 使用很长的课程一级/二级部门白名单，范围含义待确认。
+- 多科用户退费占比和退费原因分析限定 `course_first_level_department_name = 'H业务线'` 与课程二级部门短名单；当前 2349 科目/产品/年级退款金额占比 SQL 使用多业务线和长课程二级部门白名单。

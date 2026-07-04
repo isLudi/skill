@@ -127,7 +127,7 @@
 
 ## 历史看板范围补充：退费分析
 
-来源：`resources/raw_sql/refund_multi_subject_user_ratio.sql`、`resources/raw_sql/refund_subject_product.sql`、`resources/raw_sql/refund_reason_analysis.sql`。
+来源：`resources/raw_sql/refund_multi_subject_user_ratio.sql`、`resources/raw_sql/refund_subject_product.sql`、`resources/raw_sql/refund_reason_analysis.sql`、`resources/raw_sql/data_center_market_2349_refund_amount_share_fixed_20260704.sql`。
 
 | 表/CTE | 范围字段 | 历史取值 |
 |---|---|---|
@@ -138,7 +138,7 @@
 | `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` | `course_second_level_department_name` | 多科用户退费占比/退费原因分析使用 `'精品班学部','菁英班学部','市场部','本地化大班学部','一对一学部','青橙项目部'`；退费科目产品使用长白名单 |
 | `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` | `performance_third_level_department_name` | `'市场顾问部'` |
 
-注意：三份退费分析 SQL 的财务主表选出了课程部门字段，但主表层只过滤员工部门；生成新 SQL 时如果以课程维度分析，需要确认是否补充 `course_*_department_name` 范围。
+注意：当前 2349 科目/产品/年级退款金额占比 SQL 已作为最新入口，仍沿用财务主表员工部门范围和归因流水课程部门长白名单。历史三份退费分析 SQL 的财务主表选出了课程部门字段，但主表层只过滤员工部门；生成新 SQL 时如果以课程维度分析，需要确认是否补充 `course_*_department_name` 范围。
 
 ## 历史看板范围补充：H业务线二级部门转化看板
 
