@@ -667,3 +667,38 @@
 
 - 将半年度评优 SQL 中 `half_year` 归属从评优周期口径（4-9 月为上半年、10-次年 3 月为下半年）改为自然半年口径（1-6 月为上半年、7-12 月为下半年）。
 - 同步更新用户粘贴 SQL、顾问销售评优看板文档和评优指标文档，保证出勤率分母按自然半年统计。
+
+## 2026-07-05 市场顾问-用户画像分析看板画像刷新
+
+- 使用 `usql-web-query-operator/scripts/read_dashboard.py profile-dashboard` 重新采集 `dashboard_3804681042591760385` 运行态 Web BI 结构，刷新 `knowledge/dashboard_web_profiles/market_consultant_user_profile_analysis_web_profile.md`。
+- 使用 `profile-edit-dashboard` 重新采集 Taitan 编辑态指标配置，当前加载草稿 `html_3975684262305193985`，刷新 `knowledge/dashboard_web_profiles/edit_metrics/dashboard_3804681042591760385_edit_metrics.md`。
+- 删除旧 2026-06-24 快照口径在该看板画像中的主入口，当前记录为 28 个运行态组件、8 个编辑态透视单元、99 个配置字段、52 个自定义公式。
+- 更新 `knowledge/metrics/market_consultant_dashboard_metric_formula_linkage.md`：该看板当前映射 11 个模型，其中透视单元为 `2683/2809/2812/2836/2885/2883/2344/2890`，运行态图表/指标卡另含 `2349/2886/2353`。
+
+## 2026-07-05 2344 分析--分周期转化截面净收款口径修正
+
+- 将已验证的 2344 修正版 SQL 入库为 `resources/raw_sql/data_center_market_2344_period_conversion_aligned_20260705.sql`，删除旧入口 `resources/raw_sql/data_center_market_2344_20260624.sql`。
+- 修正 `gmv_total` 最终输出口径：不再使用财务流水 `bucket_agg.sum(name_total_price)`，改为 `metric_agg.metric_gmv_total = sum(trade_profit)`，与转化看板 2253 和运营侧 2293 的截面净收款口径对齐。
+- 退款分周期字段继续使用财务流水金额口径，`refund_total/refund_7/refund_14/refund_30/refund_n30/refund_7_p` 由 `name_total_price < 0` 的金额按 `week_diff` 分桶生成。
+- 更新 2344 相关编辑页指标映射和 `market_consultant_dashboard_metric_formula_linkage.md`，旧 20260624 SQL 不再作为当前知识库入口。
+
+## 2026-07-05 2344 分析--分周期转化退款分桶归期修正
+
+- 排查发现此前 2344 修正版把 `bucket_agg` 输出期次从原始 `qici` 改成 `coalesce(friday_period, qici)`，并过滤 `friday_period is not null`，导致退款按规则期次重归属且总退款分母变窄，20260703 当期退款占比从原始约 37% 抬升到约 79%。
+- 修正 `resources/raw_sql/data_center_market_2344_period_conversion_aligned_20260705.sql`：退款分桶恢复按财务交易期次 `b.qici` 聚合；`refund_total/refund_7/refund_14/refund_30/refund_n30/refund_7_p` 恢复保留负数金额；未匹配或不可解析的 `friday_period` 不再剔除，统一落入 `week_diff = 3` / 非30天桶。
+- 验证 SQL：`runtime/tmp/validate_2344_refund_bucket_20260705_limit.sql`，USQL query_id=`1449456595`。验证结果：20260703 当期退款占比 37.54%、五个分桶合计占比 100.00%；20260626 当期退款占比 36.12%、五个分桶合计占比 100.00%；20260619 当期退款占比 36.65%、五个分桶合计占比 100.00%。
+
+## 2026-07-05 2886 退费整体数据人头退费率分母修正
+
+- 修正 `resources/raw_sql/data_center_market_2886_20260624.sql`：新增与 2809 成单用户画像整体数据一致的用户层聚合，输出 `正价课人头`、`正价课人次`、`退费人次`、`GMV退费率`、`人头退费率`。
+- `退费人头` 修正为正价课出单用户中的退费去重人数：同一 `period_name + channel_map + grade_name + jingli + user_id` 下 `regular_course_user_count > 0` 且截面退款金额大于 0 计 1；`人头退费率` 分母从旧的有效线索量调整为 `正价课人头`。
+- `退费人次` 修正为发生退费的正价课出单用户对应的正价课科目人次：当前 2886 源表没有实际退款科目数字段，因此不能解释为精确退款科目数。
+- 验证 SQL：`runtime/tmp/validate_2886_refund_head_rate_20260705.sql`，USQL query_id=`1449552739`。20260703 退费人头 41、退费人次 107、正价课人头 365、人头退费率 11.2%；20260626 退费人头 45、退费人次 102、正价课人头 396、人头退费率 11.4%。2809 对照 query_id=`1449489543`，20260703 `pay_user_head_count = 365`、`pay_subject_person_count = 810`，与 2886 正价课分母一致。
+
+## 2026-07-05 2890 多科用户退费人头退费率分母修正
+
+- 修正 `resources/raw_sql/refund_rate_multidim.sql`：新增用户层 `user_base/user_agg`，按 `period_name + channel_map + grade_name + jingli + zhuguan + employee_email_name + user_id` 先聚合，再判断正价课出单与退费用户。
+- 新增 `pay_user_head_count`，作为人头退费率推荐分母；`total_headcount` 保留为有效线索用户历史字段，不再作为人头退费率推荐分母。
+- `refund_headcount_section` 修正为正价课出单用户中的截面退费去重人数；新增 `refund_subject_person_count_section` 表示这些退费正价课用户对应的正价课科目人次。
+- 单科/多科退费人头分子改为用户层 `pay_subject_person_count` 分层后的正价课退费去重人数；GMV 金额类字段保持原金额汇总口径。
+- 验证 SQL：`runtime/tmp/validate_2890_refund_head_person_times_20260705.sql`，USQL query_id=`1449584224`。20260703 正价课人头 365、退费人头 41、退费人次 107、人头退费率 11.2%；20260626 正价课人头 396、退费人头 45、退费人次 102、人头退费率 11.4%；20260619 正价课人头 290、退费人头 43、退费人次 87、人头退费率 14.8%。

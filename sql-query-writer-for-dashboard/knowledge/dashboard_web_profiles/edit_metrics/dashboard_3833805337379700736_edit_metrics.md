@@ -1,4 +1,4 @@
-# 11老板_运营侧数据看板 edit metrics
+﻿# 11老板_运营侧数据看板 edit metrics
 
 > Source: Taitan dashboard edit-page read-only API. Use together with the web profile and the Data Center SQL file for the same model_id.
 
@@ -23,7 +23,7 @@
 | `2345` | 进量测试(市场渠道) | [data_center_market_2345_20260624.sql](../../../resources/raw_sql/data_center_market_2345_20260624.sql) | 1 |
 | `2293` | 运营侧个人数据 | [data_center_market_2293_20260704.sql](../../../resources/raw_sql/data_center_market_2293_20260704.sql) | 9 |
 | `2424` | 每日转化数据表 | [data_center_market_2424_20260624.sql](../../../resources/raw_sql/data_center_market_2424_20260624.sql) | 1 |
-| `2344` | 分析--分周期转化 | [data_center_market_2344_20260624.sql](../../../resources/raw_sql/data_center_market_2344_20260624.sql) | 1 |
+| `2344` | 分析--分周期转化 | [data_center_market_2344_period_conversion_aligned_20260705.sql](../../../resources/raw_sql/data_center_market_2344_period_conversion_aligned_20260705.sql) | 1 |
 | `2132` | (内部)到课衰减情况 | [data_center_market_2132_20260628.sql](../../../resources/raw_sql/data_center_market_2132_20260628.sql) | 1 |
 | `2054` | (内部渠道)外呼过程数据 | [data_center_market_2054_20260624.sql](../../../resources/raw_sql/data_center_market_2054_20260624.sql) | 1 |
 

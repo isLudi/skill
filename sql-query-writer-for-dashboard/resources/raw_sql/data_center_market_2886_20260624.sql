@@ -36,6 +36,9 @@ WITH lead_raw AS (
         cast(t1.flow_orders_income_amount as varchar) AS flow_orders_income_amount,
         coalesce(t1.lead_count, 0) AS lead_count,
         coalesce(t1.valid_lead_count, 0) AS valid_lead_count,
+        coalesce(t1.conversion_lead_count, 0) AS conversion_lead_count,
+        coalesce(t1.subject_count, 0) AS subject_count,
+        coalesce(t1.order_count, 0) AS order_count,
         coalesce(t1.income_amount, 0) AS income_amount,
         coalesce(t1.in_pay_period_refund_amount, 0) AS in_pay_period_refund_amount,
         coalesce(t1.non_pay_period_refund_amount, 0) AS non_pay_period_refund_amount
@@ -261,11 +264,32 @@ ELSE '其他未知流量' END AS channel_map,
         END AS grade_name,
         lead_count,
         valid_lead_count,
+        conversion_lead_count,
+        subject_count,
+        order_count,
         income_amount,
         in_pay_period_refund_amount,
         non_pay_period_refund_amount,
         (coalesce(in_pay_period_refund_amount, 0) + coalesce(non_pay_period_refund_amount, 0)) AS total_refund_amount
     FROM lead_raw
+),
+user_base AS (
+    SELECT
+        period_name,
+        channel_map,
+        grade_name,
+        jingli,
+        user_id,
+        SUM(lead_count) AS lead_count,
+        COUNT(DISTINCT CASE WHEN valid_lead_count > 0 THEN lead_id END) AS valid_lead_count,
+        SUM(conversion_lead_count) AS regular_course_user_count,
+        SUM(subject_count) AS pay_subject_person_count,
+        SUM(order_count) AS regular_course_order_count,
+        SUM(income_amount) AS income_amount,
+        SUM(total_refund_amount) AS total_refund_amount,
+        COUNT(DISTINCT CASE WHEN total_refund_amount > 0 THEN lead_id END) AS refund_lead_count
+    FROM lead_base
+    GROUP BY period_name, channel_map, grade_name, jingli, user_id
 ),
 agg AS (
     SELECT
@@ -274,18 +298,22 @@ agg AS (
         grade_name,
         jingli,
         -- 有效线索量
-        COUNT(DISTINCT CASE WHEN valid_lead_count > 0 THEN lead_id END) AS valid_lead_cnt,
+        SUM(valid_lead_count) AS valid_lead_cnt,
+        -- 正价课人头：对齐成单用户画像整体数据，用户层 regular_course_user_count > 0 计 1
+        SUM(CASE WHEN regular_course_user_count > 0 THEN 1 ELSE 0 END) AS pay_user_head_count,
+        -- 正价课人次：对齐成单用户画像整体数据，用户层 subject_count 汇总
+        SUM(pay_subject_person_count) AS pay_subject_person_count,
         -- 收款（分→元）
         SUM(income_amount) / 100.0 AS trade_income,
         -- 净收款 = 收款 - 退费（分→元）
         SUM(income_amount - total_refund_amount) / 100.0 AS net_income,
         -- GMV退费（分→元）
         SUM(total_refund_amount) / 100.0 AS gmv_refund,
-        -- 退费人头（去重user_id）
-        COUNT(DISTINCT CASE WHEN total_refund_amount > 0 THEN user_id END) AS refund_headcount,
-        -- 总线索数（用于人头退费率分母）
-        COUNT(DISTINCT CASE WHEN valid_lead_count > 0 THEN lead_id END) AS total_valid_leads
-    FROM lead_base
+        -- 退费人头：正价课出单用户中，用户层有截面退款金额则计 1
+        SUM(CASE WHEN total_refund_amount > 0 AND regular_course_user_count > 0 THEN 1 ELSE 0 END) AS refund_headcount,
+        -- 退费人次：当前源表无实际退款科目数字段，用退费正价课用户对应的正价课科目人次表示
+        SUM(CASE WHEN total_refund_amount > 0 AND regular_course_user_count > 0 THEN pay_subject_person_count ELSE 0 END) AS refund_person_count
+    FROM user_base
     GROUP BY period_name, channel_map, grade_name, jingli
 )
 SELECT
@@ -297,11 +325,16 @@ SELECT
     ROUND(CAST(trade_income AS double), 2)                                   AS "收款",
     ROUND(CAST(net_income AS double), 2)                                     AS "净收款",
     ROUND(CAST(gmv_refund AS double), 2)                                     AS "GMV退费",
+    pay_user_head_count                                                      AS "正价课人头",
+    pay_subject_person_count                                                 AS "正价课人次",
     -- 人头退费率分子：退费人头
-    refund_headcount                                                         AS "退费人头"
+    refund_headcount                                                         AS "退费人头",
+    refund_person_count                                                      AS "退费人次",
+    CASE WHEN trade_income = 0 THEN 0 ELSE gmv_refund / trade_income END      AS "GMV退费率",
+    CASE WHEN pay_user_head_count = 0 THEN 0 ELSE CAST(refund_headcount AS double) / pay_user_head_count END AS "人头退费率"
     -- 看板中自行计算：
     --   GMV退费率 = GMV退费 / 收款
-    --   人头退费率 = 退费人头 / 有效线索量
+    --   人头退费率 = 退费人头 / 正价课人头
 FROM agg
 WHERE period_name > '20260410期'
 ORDER BY period_name, channel_map, grade_name, jingli

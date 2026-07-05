@@ -119,28 +119,53 @@ qici + channel_1 + jingli + xiaozu + grade_list + analysis_type + dim_value
 | 正价课订单转化率 | `ifnull(sum(${regular_course_order_count}) / sum(${valid_lead_count}), 0)`；分母口径待人工确认 |
 | 人均收款 | `ifnull(sum(${trade_income}) / sum(${regular_course_user_count}), 0)` |
 
-## 5.2 多维退费率数据集指标
+## 5.2 退费整体数据集指标
+
+适用 SQL：`resources/raw_sql/data_center_market_2886_20260624.sql`
+
+| 字段 | SQL 口径 | 说明 | 聚合规则 |
+|---|---|---|---|
+| `有效线索量` | 用户层先按 `valid_lead_count > 0` 去重 `lead_id`，再汇总 | 指标卡中的有效线索分母参考值，不再用于人头退费率分母 | 可 sum |
+| `正价课人头` | `sum(case when regular_course_user_count > 0 then 1 else 0 end)` | 对齐 2809 成单用户画像整体数据，先按 `period_name + channel_map + grade_name + jingli + user_id` 聚合，再判断用户是否正价课成单 | 可 sum |
+| `正价课人次` | `sum(pay_subject_person_count)` | 对齐 2809，用户层 `sum(subject_count)` 后汇总 | 可 sum |
+| `退费人头` | `sum(case when total_refund_amount > 0 and regular_course_user_count > 0 then 1 else 0 end)` | 正价课出单用户中，用户层截面退款金额大于 0 计 1；这是去重用户数，不是退费记录数 | 可 sum；跨维度重复用户风险与看板维度有关 |
+| `退费人次` | `sum(case when total_refund_amount > 0 and regular_course_user_count > 0 then pay_subject_person_count else 0 end)` | 发生退费的正价课出单用户对应的正价课科目人次；当前源表没有实际退款科目数字段，因此这是退费用户的成单科目人次口径 | 可 sum；不能解释为精确退款科目数 |
+| `GMV退费率` | `gmv_refund / trade_income` | SQL 行级输出；透视表更稳妥公式为 `sum(${GMV退费}) / sum(${收款})` | 不建议直接 sum |
+| `人头退费率` | `refund_headcount / pay_user_head_count` | 核心口径：退费用户数 / 全部正价课出单用户数 | 不建议直接 sum；透视表应使用 `sum(${退费人头}) / sum(${正价课人头})` |
+
+退费整体数据集推荐公式：
+
+| 展示指标 | 公式 |
+|---|---|
+| 退费人头 | `sum(${退费人头})` |
+| 退费人次 | `sum(${退费人次})` |
+| 人头退费率 | `ifnull(sum(${退费人头}) / sum(${正价课人头}), 0)` |
+| GMV退费率 | `ifnull(sum(${GMV退费}) / sum(${收款}), 0)` |
+
+## 5.3 多维退费率数据集指标
 
 适用 SQL：`resources/raw_sql/refund_rate_multidim.sql`
 
 | 字段 | SQL 口径 | 说明 | 聚合规则 |
 |---|---|---|---|
 | `valid_lead_cnt` | `count(distinct case when valid_lead_count > 0 then lead_id end)` | 有效线索数 | 可 sum；跨维度重复用户/线索风险待人工确认 |
-| `total_headcount` | `count(distinct case when valid_lead_count > 0 then user_id end)` | 有效线索对应用户数/人头退费率分母 | 可 sum；字段是否应称为人数待人工确认 |
+| `total_headcount` | `count(distinct case when valid_lead_count > 0 then user_id end)` | 有效线索对应用户数；保留历史字段，不再作为人头退费率推荐分母 | 可 sum；字段是否应称为人数待人工确认 |
+| `pay_user_head_count` | 用户层 `regular_course_user_count = sum(conversion_lead_count) > 0` 计 1 | 正价课出单人头，对齐 2809 成单用户画像整体数据 | 可 sum；推荐作为人头退费率分母 |
 | `refund_current_gmv` | `sum(same_lead_period_refund_amount) / 100` | 当期 GMV 退费率分子 | 可 sum；金额单位待人工确认 |
 | `net_income_current_gmv` | `sum(same_lead_period_income_amount - same_lead_period_refund_amount) / 100` | 当期 GMV 退费率分母 | 可 sum；字段名称和业务含义待人工确认 |
 | `refund_section_gmv` | `sum(in_pay_period_refund_amount + non_pay_period_refund_amount) / 100` | 截面 GMV 退费率分子 | 可 sum；金额单位待人工确认 |
 | `net_income_section_gmv` | `sum(income_amount - in_pay_period_refund_amount - non_pay_period_refund_amount) / 100` | 截面 GMV 退费率分母 | 可 sum；字段名称和业务含义待人工确认 |
-| `refund_headcount_section` | `count(distinct case when in_pay_period_refund_amount + non_pay_period_refund_amount > 0 then user_id end)` | 截面人头退费率分子 | 可 sum；跨顾问/渠道重复用户风险待人工确认 |
+| `refund_headcount_section` | 用户层 `regular_course_user_count > 0` 且 `refund_section_amount > 0` 计 1 | 正价课出单用户中的截面退费去重人数，是人头不是人次 | 可 sum；跨顾问/渠道重复用户风险待人工确认 |
+| `refund_subject_person_count_section` | 用户层 `regular_course_user_count > 0` 且 `refund_section_amount > 0` 时汇总 `pay_subject_person_count = sum(subject_count)` | 退费正价课用户对应的正价课科目人次 | 可 sum；不是退款订单次数 |
 | `refund_1_subject_gmv` | `subject_count = 1` 时截面退款金额 `/100` | 1科 GMV 退费率分子 | 可 sum |
 | `net_income_1_subject_gmv` | `subject_count = 1` 时截面净收入 `/100` | 1科 GMV 退费率分母 | 可 sum；分母含义待人工确认 |
-| `refund_1_subject_headcount` | `subject_count = 1` 且截面退款金额 > 0 的去重用户数 | 1科人头退费分子 | 可 sum；分母是否应另设 1科用户数待人工确认 |
+| `refund_1_subject_headcount` | 用户层正价课出单、截面退款金额 > 0 且 `pay_subject_person_count = 1` 的去重用户数 | 1科人头退费分子 | 可 sum；分母是否应另设 1科用户数待人工确认 |
 | `refund_2_3_subject_gmv` | `subject_count between 2 and 3` 时截面退款金额 `/100` | 2-3科 GMV 退费率分子 | 可 sum |
 | `net_income_2_3_subject_gmv` | `subject_count between 2 and 3` 时截面净收入 `/100` | 2-3科 GMV 退费率分母 | 可 sum；分母含义待人工确认 |
-| `refund_2_3_subject_headcount` | `subject_count between 2 and 3` 且截面退款金额 > 0 的去重用户数 | 2-3科人头退费分子 | 可 sum；分母是否应另设 2-3科用户数待人工确认 |
+| `refund_2_3_subject_headcount` | 用户层正价课出单、截面退款金额 > 0 且 `pay_subject_person_count between 2 and 3` 的去重用户数 | 2-3科人头退费分子 | 可 sum；分母是否应另设 2-3科用户数待人工确认 |
 | `refund_3plus_subject_gmv` | `subject_count > 3` 时截面退款金额 `/100` | 3科以上 GMV 退费率分子；实际为 4科及以上还是 3科以上取决于 `subject_count` 口径，待人工确认 | 可 sum |
 | `net_income_3plus_subject_gmv` | `subject_count > 3` 时截面净收入 `/100` | 3科以上 GMV 退费率分母 | 可 sum；分母含义待人工确认 |
-| `refund_3plus_subject_headcount` | `subject_count > 3` 且截面退款金额 > 0 的去重用户数 | 3科以上人头退费分子 | 可 sum；分母是否应另设 3科以上用户数待人工确认 |
+| `refund_3plus_subject_headcount` | 用户层正价课出单、截面退款金额 > 0 且 `pay_subject_person_count > 3` 的去重用户数 | 3科以上人头退费分子 | 可 sum；分母是否应另设 3科以上用户数待人工确认 |
 
 多维退费率透视表推荐公式：
 
@@ -148,10 +173,13 @@ qici + channel_1 + jingli + xiaozu + grade_list + analysis_type + dim_value
 |---|---|
 | 当期 GMV 退费率 | `ifnull(sum(${refund_current_gmv}) / sum(${net_income_current_gmv}), 0)` |
 | 截面 GMV 退费率 | `ifnull(sum(${refund_section_gmv}) / sum(${net_income_section_gmv}), 0)` |
-| 截面人头退费率 | `ifnull(sum(${refund_headcount_section}) / sum(${total_headcount}), 0)` |
+| 截面人头退费率 | `ifnull(sum(${refund_headcount_section}) / sum(${pay_user_head_count}), 0)` |
 | 1科 GMV 退费率 | `ifnull(sum(${refund_1_subject_gmv}) / sum(${net_income_1_subject_gmv}), 0)` |
+| 1科人头退费率 | `ifnull(sum(${refund_1_subject_headcount}) / sum(${pay_user_head_count}), 0)` |
 | 2-3科 GMV 退费率 | `ifnull(sum(${refund_2_3_subject_gmv}) / sum(${net_income_2_3_subject_gmv}), 0)` |
+| 2-3科人头退费率 | `ifnull(sum(${refund_2_3_subject_headcount}) / sum(${pay_user_head_count}), 0)` |
 | 3科以上 GMV 退费率 | `ifnull(sum(${refund_3plus_subject_gmv}) / sum(${net_income_3plus_subject_gmv}), 0)` |
+| 3科以上人头退费率 | `ifnull(sum(${refund_3plus_subject_headcount}) / sum(${pay_user_head_count}), 0)` |
 
 ## 5.3 退费金额结构占比数据集指标
 

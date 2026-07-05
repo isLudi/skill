@@ -263,7 +263,41 @@ ELSE '其他未知流量' END AS channel_map,
         same_lead_period_conversion_lead_count
     FROM lead_raw
 ),
--- ★ 预聚合：按期次×渠道×年级×经理×主管×顾问 汇总所有分子/分母指标
+-- 用户层：先按展示粒度×用户聚合，再判断正价课出单与退费人头/人次
+user_base AS (
+    SELECT
+        period_name,
+        channel_map,
+        grade_name,
+        jingli,
+        zhuguan,
+        employee_email_name,
+        user_id,
+        SUM(valid_lead_count) AS valid_lead_count,
+        SUM(conversion_lead_count) AS regular_course_user_count,
+        SUM(subject_count) AS pay_subject_person_count,
+        SUM(in_pay_period_refund_amount + non_pay_period_refund_amount) AS refund_section_amount
+    FROM lead_base
+    GROUP BY period_name, channel_map, grade_name, jingli, zhuguan, employee_email_name, user_id
+),
+user_agg AS (
+    SELECT
+        period_name,
+        channel_map,
+        grade_name,
+        jingli,
+        zhuguan,
+        employee_email_name,
+        SUM(CASE WHEN regular_course_user_count > 0 THEN 1 ELSE 0 END) AS pay_user_head_count,
+        SUM(CASE WHEN regular_course_user_count > 0 AND refund_section_amount > 0 THEN 1 ELSE 0 END) AS refund_headcount_section,
+        SUM(CASE WHEN regular_course_user_count > 0 AND refund_section_amount > 0 THEN pay_subject_person_count ELSE 0 END) AS refund_subject_person_count_section,
+        SUM(CASE WHEN regular_course_user_count > 0 AND refund_section_amount > 0 AND pay_subject_person_count = 1 THEN 1 ELSE 0 END) AS refund_1_subject_headcount,
+        SUM(CASE WHEN regular_course_user_count > 0 AND refund_section_amount > 0 AND pay_subject_person_count BETWEEN 2 AND 3 THEN 1 ELSE 0 END) AS refund_2_3_subject_headcount,
+        SUM(CASE WHEN regular_course_user_count > 0 AND refund_section_amount > 0 AND pay_subject_person_count > 3 THEN 1 ELSE 0 END) AS refund_3plus_subject_headcount
+    FROM user_base
+    GROUP BY period_name, channel_map, grade_name, jingli, zhuguan, employee_email_name
+),
+-- ★ 预聚合：按期次×渠道×年级×经理×主管×顾问 汇总金额类分子/分母指标
 agg AS (
     SELECT
         period_name,
@@ -281,56 +315,57 @@ agg AS (
         -- === GMV退费率（截面）分子/分母 ===
         SUM(in_pay_period_refund_amount + non_pay_period_refund_amount) / 100.0 AS refund_section_gmv,
         SUM(income_amount - in_pay_period_refund_amount - non_pay_period_refund_amount) / 100.0 AS net_income_section_gmv,
-        -- === 人头退费率（截面）分子 ===
-        COUNT(DISTINCT CASE WHEN (in_pay_period_refund_amount + non_pay_period_refund_amount) > 0 THEN user_id END) AS refund_headcount_section,
         -- === 1科 GMV分子/分母（截面） ===
         SUM(CASE WHEN subject_count = 1 THEN in_pay_period_refund_amount + non_pay_period_refund_amount ELSE 0 END) / 100.0 AS refund_1_subject_gmv,
         SUM(CASE WHEN subject_count = 1 THEN income_amount - in_pay_period_refund_amount - non_pay_period_refund_amount ELSE 0 END) / 100.0 AS net_income_1_subject_gmv,
-        -- === 1科 人头分子 ===
-        COUNT(DISTINCT CASE WHEN subject_count = 1 AND (in_pay_period_refund_amount + non_pay_period_refund_amount) > 0 THEN user_id END) AS refund_1_subject_headcount,
         -- === 2-3科 GMV分子/分母（截面） ===
         SUM(CASE WHEN subject_count BETWEEN 2 AND 3 THEN in_pay_period_refund_amount + non_pay_period_refund_amount ELSE 0 END) / 100.0 AS refund_2_3_subject_gmv,
         SUM(CASE WHEN subject_count BETWEEN 2 AND 3 THEN income_amount - in_pay_period_refund_amount - non_pay_period_refund_amount ELSE 0 END) / 100.0 AS net_income_2_3_subject_gmv,
-        -- === 2-3科 人头分子 ===
-        COUNT(DISTINCT CASE WHEN subject_count BETWEEN 2 AND 3 AND (in_pay_period_refund_amount + non_pay_period_refund_amount) > 0 THEN user_id END) AS refund_2_3_subject_headcount,
         -- === 3科以上 GMV分子/分母（截面） ===
         SUM(CASE WHEN subject_count > 3 THEN in_pay_period_refund_amount + non_pay_period_refund_amount ELSE 0 END) / 100.0 AS refund_3plus_subject_gmv,
-        SUM(CASE WHEN subject_count > 3 THEN income_amount - in_pay_period_refund_amount - non_pay_period_refund_amount ELSE 0 END) / 100.0 AS net_income_3plus_subject_gmv,
-        -- === 3科以上 人头分子 ===
-        COUNT(DISTINCT CASE WHEN subject_count > 3 AND (in_pay_period_refund_amount + non_pay_period_refund_amount) > 0 THEN user_id END) AS refund_3plus_subject_headcount
+        SUM(CASE WHEN subject_count > 3 THEN income_amount - in_pay_period_refund_amount - non_pay_period_refund_amount ELSE 0 END) / 100.0 AS net_income_3plus_subject_gmv
     FROM lead_base
     GROUP BY period_name, channel_map, grade_name, jingli, zhuguan, employee_email_name
 )
 SELECT
-    period_name,
-    channel_map,
-    grade_name,
-    jingli,
-    zhuguan,
-    employee_email_name,
+    a.period_name,
+    a.channel_map,
+    a.grade_name,
+    a.jingli,
+    a.zhuguan,
+    a.employee_email_name,
     -- 基础
-    valid_lead_cnt,
-    total_headcount,
+    a.valid_lead_cnt,
+    a.total_headcount,
+    COALESCE(u.pay_user_head_count, 0) AS pay_user_head_count,
     -- GMV退费率（当期）= refund_current_gmv / net_income_current_gmv
-    ROUND(CAST(refund_current_gmv AS double), 2)   AS refund_current_gmv,
-    ROUND(CAST(net_income_current_gmv AS double), 2) AS net_income_current_gmv,
+    ROUND(CAST(a.refund_current_gmv AS double), 2)   AS refund_current_gmv,
+    ROUND(CAST(a.net_income_current_gmv AS double), 2) AS net_income_current_gmv,
     -- GMV退费率（截面）= refund_section_gmv / net_income_section_gmv
-    ROUND(CAST(refund_section_gmv AS double), 2)   AS refund_section_gmv,
-    ROUND(CAST(net_income_section_gmv AS double), 2) AS net_income_section_gmv,
-    -- 人头退费率（截面）= refund_headcount_section / total_headcount
-    refund_headcount_section,
+    ROUND(CAST(a.refund_section_gmv AS double), 2)   AS refund_section_gmv,
+    ROUND(CAST(a.net_income_section_gmv AS double), 2) AS net_income_section_gmv,
+    -- 人头退费率（截面）= refund_headcount_section / pay_user_head_count
+    COALESCE(u.refund_headcount_section, 0) AS refund_headcount_section,
+    COALESCE(u.refund_subject_person_count_section, 0) AS refund_subject_person_count_section,
     -- 1科
-    ROUND(CAST(refund_1_subject_gmv AS double), 2)   AS refund_1_subject_gmv,
-    ROUND(CAST(net_income_1_subject_gmv AS double), 2) AS net_income_1_subject_gmv,
-    refund_1_subject_headcount,
+    ROUND(CAST(a.refund_1_subject_gmv AS double), 2)   AS refund_1_subject_gmv,
+    ROUND(CAST(a.net_income_1_subject_gmv AS double), 2) AS net_income_1_subject_gmv,
+    COALESCE(u.refund_1_subject_headcount, 0) AS refund_1_subject_headcount,
     -- 2-3科
-    ROUND(CAST(refund_2_3_subject_gmv AS double), 2)   AS refund_2_3_subject_gmv,
-    ROUND(CAST(net_income_2_3_subject_gmv AS double), 2) AS net_income_2_3_subject_gmv,
-    refund_2_3_subject_headcount,
+    ROUND(CAST(a.refund_2_3_subject_gmv AS double), 2)   AS refund_2_3_subject_gmv,
+    ROUND(CAST(a.net_income_2_3_subject_gmv AS double), 2) AS net_income_2_3_subject_gmv,
+    COALESCE(u.refund_2_3_subject_headcount, 0) AS refund_2_3_subject_headcount,
     -- 3科以上
-    ROUND(CAST(refund_3plus_subject_gmv AS double), 2)   AS refund_3plus_subject_gmv,
-    ROUND(CAST(net_income_3plus_subject_gmv AS double), 2) AS net_income_3plus_subject_gmv,
-    refund_3plus_subject_headcount
-FROM agg
-WHERE period_name > '20260410期'
-ORDER BY period_name, channel_map, grade_name, jingli, zhuguan, employee_email_name
+    ROUND(CAST(a.refund_3plus_subject_gmv AS double), 2)   AS refund_3plus_subject_gmv,
+    ROUND(CAST(a.net_income_3plus_subject_gmv AS double), 2) AS net_income_3plus_subject_gmv,
+    COALESCE(u.refund_3plus_subject_headcount, 0) AS refund_3plus_subject_headcount
+FROM agg a
+LEFT JOIN user_agg u
+  ON COALESCE(a.period_name, '#NULL#') = COALESCE(u.period_name, '#NULL#')
+ AND COALESCE(a.channel_map, '#NULL#') = COALESCE(u.channel_map, '#NULL#')
+ AND COALESCE(a.grade_name, '#NULL#') = COALESCE(u.grade_name, '#NULL#')
+ AND COALESCE(a.jingli, '#NULL#') = COALESCE(u.jingli, '#NULL#')
+ AND COALESCE(a.zhuguan, '#NULL#') = COALESCE(u.zhuguan, '#NULL#')
+ AND COALESCE(a.employee_email_name, '#NULL#') = COALESCE(u.employee_email_name, '#NULL#')
+WHERE a.period_name > '20260410期'
+ORDER BY a.period_name, a.channel_map, a.grade_name, a.jingli, a.zhuguan, a.employee_email_name

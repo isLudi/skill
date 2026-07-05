@@ -137,7 +137,9 @@ where a.period_name > '20260417期'
 |---|---|---|
 | `lead_raw` | 从全链路表抽取市场顾问部主表字段、业务指标和退款金额字段 | `period_name`, `lead_id`, `user_id`, `valid_lead_count`, `subject_count`, `income_amount`, `in_pay_period_refund_amount`, `non_pay_period_refund_amount`, `same_lead_period_income_amount`, `same_lead_period_refund_amount` |
 | `lead_base` | 生成 `channel_map`、`grade_name`，透传经理、主管、顾问和退款指标 | `channel_map`, `grade_name`, `jingli`, `zhuguan`, `employee_email_name` |
-| `agg` | 按 `period_name + channel_map + grade_name + jingli + zhuguan + employee_email_name` 汇总分子/分母 | `refund_current_gmv`, `net_income_current_gmv`, `refund_section_gmv`, `net_income_section_gmv`, `refund_headcount_section`, `total_headcount` |
+| `user_base` | 按 `period_name + channel_map + grade_name + jingli + zhuguan + employee_email_name + user_id` 聚合用户层正价课与退费信息 | `regular_course_user_count`, `pay_subject_person_count`, `refund_section_amount` |
+| `user_agg` | 按展示粒度输出正价课人头、正价课退费人头和正价课退费人次 | `pay_user_head_count`, `refund_headcount_section`, `refund_subject_person_count_section`, `refund_*_subject_headcount` |
+| `agg` | 按 `period_name + channel_map + grade_name + jingli + zhuguan + employee_email_name` 汇总金额类分子/分母 | `refund_current_gmv`, `net_income_current_gmv`, `refund_section_gmv`, `net_income_section_gmv`, `total_headcount` |
 
 输出为分子/分母字段，不直接输出退费率。看板数据透视表必须用 `sum(分子) / sum(分母)` 自行计算，避免行级比率在多维汇总时失真。
 
@@ -256,17 +258,30 @@ period_name + channel_map + grade_name + jingli + zhuguan + employee_email_name
 |---|---|
 | 当期 GMV 退费率 | `ifnull(sum(${refund_current_gmv}) / sum(${net_income_current_gmv}), 0)` |
 | 截面 GMV 退费率 | `ifnull(sum(${refund_section_gmv}) / sum(${net_income_section_gmv}), 0)` |
-| 截面人头退费率 | `ifnull(sum(${refund_headcount_section}) / sum(${total_headcount}), 0)` |
+| 截面人头退费率 | `ifnull(sum(${refund_headcount_section}) / sum(${pay_user_head_count}), 0)` |
 | 1科 GMV 退费率 | `ifnull(sum(${refund_1_subject_gmv}) / sum(${net_income_1_subject_gmv}), 0)` |
-| 1科人头退费率 | `ifnull(sum(${refund_1_subject_headcount}) / sum(${total_headcount}), 0)`；1科分母是否应使用 1科用户数待人工确认 |
+| 1科人头退费率 | `ifnull(sum(${refund_1_subject_headcount}) / sum(${pay_user_head_count}), 0)`；1科分母是否应使用 1科用户数待人工确认 |
 | 2-3科 GMV 退费率 | `ifnull(sum(${refund_2_3_subject_gmv}) / sum(${net_income_2_3_subject_gmv}), 0)` |
-| 2-3科人头退费率 | `ifnull(sum(${refund_2_3_subject_headcount}) / sum(${total_headcount}), 0)`；2-3科分母是否应使用 2-3科用户数待人工确认 |
+| 2-3科人头退费率 | `ifnull(sum(${refund_2_3_subject_headcount}) / sum(${pay_user_head_count}), 0)`；2-3科分母是否应使用 2-3科用户数待人工确认 |
 | 3科以上 GMV 退费率 | `ifnull(sum(${refund_3plus_subject_gmv}) / sum(${net_income_3plus_subject_gmv}), 0)` |
-| 3科以上人头退费率 | `ifnull(sum(${refund_3plus_subject_headcount}) / sum(${total_headcount}), 0)`；3科以上分母是否应使用 3科以上用户数待人工确认 |
+| 3科以上人头退费率 | `ifnull(sum(${refund_3plus_subject_headcount}) / sum(${pay_user_head_count}), 0)`；3科以上分母是否应使用 3科以上用户数待人工确认 |
 
 注意：该 SQL 输出的 `net_income_*` 字段是用户提供 SQL 中的分母字段名称，真实业务含义是否应称为“净营收”或“GMV分母”待人工确认。
 
-### 9.2 退费金额结构占比图表公式
+### 9.2 退费整体数据指标卡公式
+
+适用 SQL：`resources/raw_sql/data_center_market_2886_20260624.sql`
+
+| 展示指标 | 推荐公式 |
+|---|---|
+| 退费人头 | `sum(${退费人头})` |
+| 退费人次 | `sum(${退费人次})` |
+| GMV退费率 | `ifnull(sum(${GMV退费}) / sum(${收款}), 0)` |
+| 人头退费率 | `ifnull(sum(${退费人头}) / sum(${正价课人头}), 0)` |
+
+注意：`退费人头` 是正价课出单用户中的退费去重人数；`退费人次` 是这些退费用户对应的正价课科目人次。当前 2886 源表没有实际退款科目数字段，因此 `退费人次` 不能解释为精确退款科目数。`正价课人头` 对齐 2809 成单用户画像整体数据。
+
+### 9.3 退费金额结构占比图表公式
 
 适用 SQL：`resources/raw_sql/data_center_market_2349_refund_amount_share_fixed_20260704.sql`
 
@@ -294,6 +309,6 @@ period_name + channel_map + grade_name + jingli + zhuguan + employee_email_name
 - `bucket_user_cnt` 当前沿用 `lead_count > 0` 的线索量口径，并非 `count(distinct user_id)`；业务是否称为“人数”需人工确认。
 - 整体画像数据集中 `pay_user_head_count`、`pay_subject_person_count`、`subject_*` 档位是否完全等同 CRM 画像口径需人工确认。
 - 多维退费率数据集中 `subject_count` 直接来自全链路主表，是否能代表用户最终购买科目数分层待人工确认。
-- 多维退费率数据集的人头退费率分母当前使用 `total_headcount = count(distinct valid_lead_count > 0 的 user_id)`；单科/多科人头退费率是否应改用对应科目分层用户数做分母待人工确认。
+- 多维退费率数据集的人头退费率推荐分母已改为 `pay_user_head_count`；`total_headcount = count(distinct valid_lead_count > 0 的 user_id)` 仅保留为历史有效线索用户字段。单科/多科人头退费率是否应改用对应科目分层正价课用户数做分母待人工确认。
 - 金额字段统一 `/100`，推断原始单位为分，需人工确认。
 - `temp_table.shenbaoxin_channel_group` 的字段结构、唯一性和维护来源待人工确认。
