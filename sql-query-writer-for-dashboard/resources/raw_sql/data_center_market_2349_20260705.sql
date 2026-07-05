@@ -16,8 +16,8 @@ note,course_first_level_department_name,course_second_level_department_name,cour
 			when substr(trade_time, 1, 10) >= '2026-01-27' and substr(trade_time, 1, 10) <= '2026-02-02' then '20260130期'
 			when substr(trade_time, 1, 10) >= '2026-01-20' and substr(trade_time, 1, 10) <= '2026-01-26' then '20260123期'
 		else case when day_of_week(cast(trade_time as timestamp)) = 1 
-           then concat(date_format(date_add('day', -3, date_trunc('week', cast(trade_time as timestamp))),'%Y%m%d'),'期')
-           else concat(date_format(date_add('day', 4, date_trunc('week', cast(trade_time as timestamp))), '%Y%m%d'),'期')
+           then concat(date_format(date_trunc('week', cast(trade_time as timestamp)) - interval '3' day,'%Y%m%d'),'期')
+           else concat(date_format(date_trunc('week', cast(trade_time as timestamp)) + interval '4' day, '%Y%m%d'),'期')
         end 
 end as qici
     from finance_dw.app_finance_performance_extend_details_hf 
@@ -51,7 +51,7 @@ select * from gmv_t)
 ------依据期次获取最新uid
 ,n_uid as (
 select aa.*,row_number() over (partition by original_order_user_number order by qici desc) as rn
-from (select lead_id,original_order_user_number,performance_employee_email_name,concat(cast(date_format(date_add('day',4,date_trunc('week',date_add('day',-1,date_parse(replace(concat(trade_group_period_year,trade_group_period_term),'期',''),'%Y%m%d')))),'%Y%m%d')as varchar),'期') qici
+from (select lead_id,original_order_user_number,performance_employee_email_name,concat(cast(date_format(date_trunc('week',date_parse(replace(concat(trade_group_period_year,trade_group_period_term),'期',''),'%Y%m%d') - interval '1' day) + interval '4' day,'%Y%m%d')as varchar),'期') qici
 from service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf 
 where dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
         and hour = format_datetime(now() - interval '2' hour, 'HH')
@@ -125,9 +125,9 @@ else '未知' end as channel_1,
 case 
         -- 如果月份 >= 6，年份为2025
         when cast(substr(rr.group_period_term, 1, 2) as int) >= 6 
-        then date_format(date_add('day', 5 - day_of_week(date_parse('2025' || rr.group_period_term, '%Y%m%d')),date_parse('2025' || rr.group_period_term, '%Y%m%d')), '%Y%m%d') || '期'
+        then date_format(date_parse('2025' || rr.group_period_term, '%Y%m%d') + (5 - day_of_week(date_parse('2025' || rr.group_period_term, '%Y%m%d'))) * interval '1' day, '%Y%m%d') || '期'
         -- 其他月份，年份为2026
-        else date_format(date_add('day', 5 - day_of_week(date_parse('2026' || rr.group_period_term, '%Y%m%d')),date_parse('2026' || rr.group_period_term, '%Y%m%d')), '%Y%m%d') || '期'
+        else date_format(date_parse('2026' || rr.group_period_term, '%Y%m%d') + (5 - day_of_week(date_parse('2026' || rr.group_period_term, '%Y%m%d'))) * interval '1' day, '%Y%m%d') || '期'
     end as friday_period
 from lead_gmv
 left join (
@@ -148,47 +148,174 @@ select rule.*,zx.xiaozu,zx.jingli,
     else 3 end as week_diff
 from rule
 left join temp_table.dingxi01_jiagou_zx zx on zx.employee_email_name = rule.name)
------------------------- 计算总收款
-,gmv_1 as (
-    select 
+------------------------ 退款金额结构占比
+,refund_base as (
+    select
         qici,
-        name,
         channel_1,
         jingli,
         xiaozu,
         grade_list,
-        sum(case when name_total_price < 0 then abs(name_total_price) else 0 end) as refund_amount,
-        sum(case when name_total_price > 0 then name_total_price else 0 end) as income_amount
+        case
+            when subject like '%数学%' then '数学'
+            when subject like '%语文%' then '语文'
+            when subject like '%英语%' then '英语'
+            when subject like '%物理%' then '物理'
+            when subject like '%生物%' then '生物'
+            when subject like '%化学%' then '化学'
+            when subject like '%地理%' then '地理'
+            when subject like '%政治%' then '政治'
+            when subject like '%历史%' then '历史'
+            when subject like '%学习分享%' then '学习分享'
+            when subject like '%定制方案%' then '定制方案'
+            else '其他'
+        end as subject,
+        course_name,
+        abs(name_total_price) as refund_amount
     from base
-    where name_total_price <> 0
-    group by qici, name, channel_1, jingli, xiaozu, grade_list
+    where name_total_price < 0
 )
-----------------聚合到人
-select 
-base.qici,
-base.channel_1,
-base.jingli,
-base.xiaozu,
-base.grade_list,
-case 
-when base.subject like '%数学%' then '数学'
-when base.subject like '%语文%' then '语文'
-when base.subject like '%英语%' then '英语'
-when base.subject like '%物理%' then '物理'
-when base.subject like '%生物%' then '生物'
-when base.subject like '%化学%' then '化学'
-when base.subject like '%地理%' then '地理'
-when base.subject like '%政治%' then '政治'
-when base.subject like '%历史%' then '历史'
-when base.subject like '%学习分享%' then '学习分享'
-when base.subject like '%定制方案%' then '定制方案'
-else '其他' end as subject,
-base.course_name,
-base.name,
-gmv_1.income_amount,
- -- 退款分期汇总
-    sum(case when name_total_price < 0 then name_total_price else 0 end) as refund_total
-from base
-left join gmv_1 on gmv_1.qici =base.qici and gmv_1.name =base.name and gmv_1.channel_1 =base.channel_1 and gmv_1.grade_list =base.grade_list and gmv_1.jingli =base.jingli and gmv_1.xiaozu =base.xiaozu
-where name_total_price <> 0  
-group by 1,2,3,4,5,6,7,8,9
+,subject_dim as (
+    select subject
+    from (
+        values
+            ('数学'), ('语文'), ('英语'), ('物理'), ('生物'), ('化学'),
+            ('地理'), ('政治'), ('历史'), ('学习分享'), ('定制方案'), ('其他')
+    ) as t(subject)
+    union
+    select distinct subject
+    from refund_base
+)
+,product_dim as (
+    select course_name
+    from (
+        values ('大班'), ('小班'), ('一对一'), ('本地化'), ('清北'), ('其他')
+    ) as t(course_name)
+    union
+    select distinct course_name
+    from refund_base
+)
+,grade_dim as (
+    select distinct grade_list
+    from refund_base
+)
+,filter_group_with_grade as (
+    select
+        qici,
+        channel_1,
+        jingli,
+        xiaozu,
+        grade_list,
+        sum(refund_amount) as total_refund_amount
+    from refund_base
+    group by qici, channel_1, jingli, xiaozu, grade_list
+)
+,filter_group_without_grade as (
+    select
+        qici,
+        channel_1,
+        jingli,
+        xiaozu,
+        sum(refund_amount) as total_refund_amount
+    from refund_base
+    group by qici, channel_1, jingli, xiaozu
+)
+,subject_refund as (
+    select
+        qici,
+        channel_1,
+        jingli,
+        xiaozu,
+        grade_list,
+        subject,
+        sum(refund_amount) as refund_amount
+    from refund_base
+    group by qici, channel_1, jingli, xiaozu, grade_list, subject
+)
+,product_refund as (
+    select
+        qici,
+        channel_1,
+        jingli,
+        xiaozu,
+        grade_list,
+        course_name,
+        sum(refund_amount) as refund_amount
+    from refund_base
+    group by qici, channel_1, jingli, xiaozu, grade_list, course_name
+)
+,grade_refund as (
+    select
+        qici,
+        channel_1,
+        jingli,
+        xiaozu,
+        grade_list,
+        sum(refund_amount) as refund_amount
+    from refund_base
+    group by qici, channel_1, jingli, xiaozu, grade_list
+)
+select
+    fg.qici,
+    fg.channel_1,
+    fg.jingli,
+    fg.xiaozu,
+    fg.grade_list,
+    sd.subject,
+    cast(null as varchar) as course_name,
+    'subject' as analysis_type,
+    sd.subject as dim_value,
+    coalesce(sr.refund_amount, 0) as refund_amount,
+    fg.total_refund_amount
+from filter_group_with_grade fg
+cross join subject_dim sd
+left join subject_refund sr
+    on sr.qici = fg.qici
+    and sr.channel_1 = fg.channel_1
+    and coalesce(sr.jingli, '') = coalesce(fg.jingli, '')
+    and coalesce(sr.xiaozu, '') = coalesce(fg.xiaozu, '')
+    and coalesce(sr.grade_list, '') = coalesce(fg.grade_list, '')
+    and sr.subject = sd.subject
+union all
+select
+    fg.qici,
+    fg.channel_1,
+    fg.jingli,
+    fg.xiaozu,
+    fg.grade_list,
+    cast(null as varchar) as subject,
+    pd.course_name,
+    'product' as analysis_type,
+    pd.course_name as dim_value,
+    coalesce(pr.refund_amount, 0) as refund_amount,
+    fg.total_refund_amount
+from filter_group_with_grade fg
+cross join product_dim pd
+left join product_refund pr
+    on pr.qici = fg.qici
+    and pr.channel_1 = fg.channel_1
+    and coalesce(pr.jingli, '') = coalesce(fg.jingli, '')
+    and coalesce(pr.xiaozu, '') = coalesce(fg.xiaozu, '')
+    and coalesce(pr.grade_list, '') = coalesce(fg.grade_list, '')
+    and pr.course_name = pd.course_name
+union all
+select
+    fg.qici,
+    fg.channel_1,
+    fg.jingli,
+    fg.xiaozu,
+    gd.grade_list,
+    cast(null as varchar) as subject,
+    cast(null as varchar) as course_name,
+    'grade' as analysis_type,
+    gd.grade_list as dim_value,
+    coalesce(gr.refund_amount, 0) as refund_amount,
+    fg.total_refund_amount
+from filter_group_without_grade fg
+cross join grade_dim gd
+left join grade_refund gr
+    on gr.qici = fg.qici
+    and gr.channel_1 = fg.channel_1
+    and coalesce(gr.jingli, '') = coalesce(fg.jingli, '')
+    and coalesce(gr.xiaozu, '') = coalesce(fg.xiaozu, '')
+    and coalesce(gr.grade_list, '') = coalesce(gd.grade_list, '')

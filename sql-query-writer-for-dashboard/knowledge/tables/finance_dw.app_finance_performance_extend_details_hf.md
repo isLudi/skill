@@ -308,7 +308,7 @@ limit 100;
 
 ### 流量画像 SQL 使用备注
 
-- `traffic_profile.sql` 的 `dd` CTE 使用该表按 `trade_time` 派生 `qici`，再按 `qici + user_id + employee_email_name` 统计 `count(distinct subject)`，用于输出成交科目档位 `sub`。
+- `data_center_market_2683_20260705.sql` 的 `dd` CTE 使用该表按 `trade_time` 派生 `qici`，再按 `qici + user_id + employee_email_name` 统计 `count(distinct subject)`，用于输出成交科目档位 `sub`。
 - 科目归一化规则覆盖英语/英文、语文、数学、物理、化学、历史、政治、生物、地理、日语，其他保留原 `course_subject`。
 - 范围限定为 `employee_first_level_department_name = 'H业务线'`、`employee_second_level_department_name = '市场部'`、`employee_third_level_department_name = '市场顾问部'`，并过滤 `real_price <> 0`。
 - 2026-05-15 `city_channel.txt` 版本最终在 `base` CTE 使用 `${period_name1}`、`${period_name2}` 控制主线索期次范围；`dd` CTE 自身没有单独期次过滤，依赖后续 join 和最终范围过滤。
@@ -316,8 +316,8 @@ limit 100;
 
 ### 退费分析 SQL 使用备注
 
-- `data_center_market_2349_refund_amount_share_fixed_20260704.sql` 以该表为财务业绩主表，按 `trade_time` 推导 `qici`，用于当前 2349 科目/产品/年级退款金额占比。
-- `refund_multi_subject_user_ratio.sql`、`refund_subject_product.sql`、`refund_reason_analysis.sql` 仍保留为历史归档；旧 `refund_subject_product.sql` 不再作为当前口径。
+- `data_center_market_2349_20260705.sql` 以该表为财务业绩主表，按 `trade_time` 推导 `qici`，用于当前 2349 科目/产品/年级退款金额占比。
+- `data_center_market_2350_20260705.sql`、`data_center_market_2349_20260705.sql`、`data_center_market_2353_20260705.sql` 仍保留为历史归档；旧 `data_center_market_2349_20260705.sql` 不再作为当前口径。
 - 常用范围限定为 `employee_first_level_department_name = 'H业务线'`、`employee_second_level_department_name = '市场部'`、`employee_third_level_department_name = '市场顾问部'`。
 - 多科用户退费占比和退费原因分析使用 `price <> 0`，并按 `zong_price < 0` 判断退款、`zong_price > 0` 判断收款。
 - 当前 2349 使用 `case when trade_status in ('全部退款','部分退款') then -real_price else real_price end as real_price_0`，调课调班按 `name` 汇总 `price` 生成 `name_total_price`，最终只将 `name_total_price < 0` 的记录取绝对值输出为 `refund_amount`。

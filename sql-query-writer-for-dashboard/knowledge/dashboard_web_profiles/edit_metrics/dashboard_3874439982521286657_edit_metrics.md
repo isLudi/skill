@@ -1,4 +1,4 @@
-# 【新人】前期过程转化数据 edit metrics
+﻿# 【新人】前期过程转化数据 edit metrics
 
 > Source: Taitan dashboard edit-page read-only API. Use together with the web profile and the Data Center SQL file for the same model_id.
 
@@ -20,7 +20,7 @@
 
 | model_id | model_name | one SQL file | pivot unit count |
 |---|---|---|---:|
-| `2688` | 新人过程转化数据 | [data_center_market_2688_20260624.sql](../../../resources/raw_sql/data_center_market_2688_20260624.sql) | 1 |
+| `2688` | 新人过程转化数据 | [data_center_market_2688_20260705.sql](../../../resources/raw_sql/data_center_market_2688_20260705.sql) | 1 |
 
 ## Pivot units
 

@@ -1,4 +1,4 @@
-# 外呼过程数据看板 edit metrics
+﻿# 外呼过程数据看板 edit metrics
 
 > Source: Taitan dashboard edit-page read-only API. Use together with the web profile and the Data Center SQL file for the same model_id.
 
@@ -20,7 +20,7 @@
 
 | model_id | model_name | one SQL file | pivot unit count |
 |---|---|---|---:|
-| `2054` | (内部渠道)外呼过程数据 | [data_center_market_2054_20260624.sql](../../../resources/raw_sql/data_center_market_2054_20260624.sql) | 3 |
+| `2054` | (内部渠道)外呼过程数据 | [data_center_market_2054_20260705.sql](../../../resources/raw_sql/data_center_market_2054_20260705.sql) | 3 |
 
 ## Text units
 

@@ -1,4 +1,4 @@
-# 表关系
+﻿# 表关系
 
 ## CRM 私海与线索统计
 
@@ -58,7 +58,7 @@
 ## 市场顾问转化看板全链路数据
 
 - 主表：`bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df`
-- 来源：`resources/raw_sql/data_center_market_2253_20260704.sql`
+- 来源：`resources/raw_sql/data_center_market_2253_20260705.sql`
 - 分区：`dt`、`hour`
 - 强制范围：`section_assign_employee_first_level_department_name`、`section_assign_employee_second_level_department_name`、`section_assign_employee_third_level_department_name`、`period_mapping_first_level_department_name`
 - 维度：`period_name`、`channel_map`、`rule_name`、`grade_1`、`depart_1`、`depart`、`jingli`、`zhuguan`、`employee_email_name`
@@ -66,7 +66,7 @@
 
 ## 市场渠道用户画像分析关系
 
-- 来源：`resources/raw_sql/market_channel_conversion_profile_call_duration_dataset.sql`、`resources/raw_sql/market_channel_conversion_profile_learn_duration_dataset.sql`、`resources/raw_sql/market_channel_conversion_profile_deep_stage_dataset.sql`、`resources/raw_sql/market_channel_conversion_profile_overall_dataset_fixed.sql`、`resources/raw_sql/refund_rate_multidim.sql`。
+- 来源：`resources/raw_sql/data_center_market_2836_20260705.sql`、`resources/raw_sql/data_center_market_2885_20260705.sql`、`resources/raw_sql/data_center_market_2883_20260705.sql`、`resources/raw_sql/data_center_market_2809_20260705.sql`、`resources/raw_sql/data_center_market_2890_20260705.sql`。
 - 主表：`bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df`。
 - 主表范围：`section_assign_employee_first_level_department_name = 'H业务线'`、`section_assign_employee_second_level_department_name = '市场部'`、`section_assign_employee_third_level_department_name = '市场顾问部'`、`virtual_third_department_name = '市场顾问部'`；期次映射一级为 `H业务线` 或空，二级为 `市场部/精品班学部` 或空。
 - 三数据集共同粒度：`period_name + channel_map + channel_group + grade_name + analysis_type + bucket_name + bucket_sort`。
@@ -75,8 +75,8 @@
 - 深沟阶段：`service_dw.dwd_crm_assign_private_detail_hf` 按 `user_number + lead_id` 取最新 `private_sea_update_time`，`sale_flow_stage_sequence = 450/470` 分别映射深沟/双沟；非深沟双沟时用主表 `friend_lead_count > 0` 兜底为已建联。
 - 渠道组：`temp_table.shenbaoxin_channel_group` 通过 `channel = channel_map` 关联，字段结构、维护来源和唯一性待人工确认。
 - 指标使用：`bucket_user_cnt`、`conversion_user_cnt`、`order_cnt`、`section_profit_amt` 可加和；`head_conversion_rate`、`order_conversion_rate`、`section_unit_efficiency` 是行级比率，透视表总计必须用可加和字段重算，不得直接 `sum` 或 `avg`。
-- 整体画像数据集：`market_channel_conversion_profile_overall_dataset_fixed.sql` 不做外部 join，仅使用全链路主表，按 `period_name + channel_map + grade_name + manager_name` 输出整体线索、有效线索、成交用户、科目档位、收入和订单指标。
-- 多维退费率数据集：`refund_rate_multidim.sql` 不做外部 join，仅使用全链路主表，按 `period_name + channel_map + grade_name + jingli + zhuguan + employee_email_name` 输出当期/截面 GMV 退费率、人头退费率、1科/2-3科/3科以上退费率所需的分子和分母字段。该数据集不输出行级退费率，透视表必须用分子分母字段重算。
+- 整体画像数据集：`data_center_market_2809_20260705.sql` 不做外部 join，仅使用全链路主表，按 `period_name + channel_map + grade_name + manager_name` 输出整体线索、有效线索、成交用户、科目档位、收入和订单指标。
+- 多维退费率数据集：`data_center_market_2890_20260705.sql` 不做外部 join，仅使用全链路主表，按 `period_name + channel_map + grade_name + jingli + zhuguan + employee_email_name` 输出当期/截面 GMV 退费率、人头退费率、1科/2-3科/3科以上退费率所需的分子和分母字段。该数据集不输出行级退费率，透视表必须用分子分母字段重算。
 - 整体画像修复点：新增 `virtual_third_department_name = '市场顾问部'` 与三个分桶数据集保持范围一致；`valid_lead_count` 使用标准宽表字段汇总，不再对 `抖音私域`/`抖音私信` 切换 `merge_valid_lead_count`；`lead_id` 仅用于 `src` 阶段防止 `select distinct` 折叠多线索，最终不输出。
 - 状态：2026-06-06 Web 查询已验证三份分桶 SQL 可执行，且 20260522期、20260529期、20260605期在总计层面核心可加和指标一致；整体画像 SQL 已在 Web 端跑出结果预览，但三期期次汇总下载受页面权限/下载控件限制未完成，字段业务含义、金额单位、通时 max 口径、整体画像有效线索 merge 禁用口径和 null 映射部门放宽条件仍需人工确认。
 
@@ -132,7 +132,7 @@
 
 ## 顾问部门任职期销售统计关系
 
-- 来源：`resources/raw_sql/consultant_sales_department_tenure.sql`
+- 来源：`resources/raw_sql/data_center_market_2727_20260705.sql`
 - 主表：`finance_dw.app_finance_performance_extend_details_hf`
 - 组织链表：`dw.dim_employee_chain`
 - 架构临时表：`temp_table.dingxi01_jiagou_zx`
@@ -144,7 +144,7 @@
 - 金额口径：正常订单按明细维度 `sum(price)`；调课调班按 `name + user_id1` 汇总 `price` 并去重；`promit = sum(name_total_price)`，`base_result.pmit = sum(promit)`。
 - 日维度排名：在 `trade_date + dept + qici` 内按 `pmit desc, name` 使用 `row_number()` 排名，并用 `lag(pmit) - pmit` 计算 `day_dept_period_need_pmit_to_previous`。
 - 期次维度排名：先在 `qici + dept + name + xiaozu + jingli` 粒度汇总 `period_pmit`，再在 `qici + dept` 内按 `period_pmit desc, name` 使用 `row_number()` 排名，并用 `lag(period_pmit) - period_pmit` 计算 `period_dept_need_pmit_to_previous`。
-- 期次过滤版本：`resources/raw_sql/consultant_sales_department_tenure_period_20260424.sql` 是旧版固定期次版本，当前未同步本次排名增强逻辑；使用前需确认是否需要按新版通用 SQL 刷新。
+- 期次过滤版本：`resources/raw_sql/data_center_market_2742_20260705.sql` 是旧版固定期次版本，当前未同步本次排名增强逻辑；使用前需确认是否需要按新版通用 SQL 刷新。
 - 状态：`dw.dim_employee_chain` 已根据 `E:\2000_work\GAOTU\员工信息表.docx` 补全字段；`end_time` 为空处理、`temp_table.dingxi01_jiagou_zx` 姓名关联唯一性、排名是否允许并列均需人工确认。
 
 ## 沟通电话微信明细
@@ -192,7 +192,7 @@
 
 ## 流量画像看板关系
 
-- 来源：`resources/raw_sql/traffic_profile.sql`；2026-05-15 已按用户提供的 `D:\Feishu\city_channel.txt` 覆盖为省份/城市维度版本。
+- 来源：`resources/raw_sql/data_center_market_2683_20260705.sql`；2026-05-15 已按用户提供的 `D:\Feishu\city_channel.txt` 覆盖为省份/城市维度版本。
 - 主表：`bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df`
 - 主表范围：截面分配顾问限定 `H业务线/市场部/市场顾问部`；期次映射一级部门限定 `H业务线`，期次映射二级部门允许 `精品班学部`、`青橙项目部`、`一对一学部`、`本地化大班学部`、`市场部`、`菁英班学部`。
 - APP 登录：`dw.dim_cstm_active_user_c_appliction_mb_df` 按 `user_number` 取最新 `last_event_time`，生成近 7 日 `is_app_denglu`；同表再限定 `appliction_name = 'APP'` 取最新 `last_app_channel`。
@@ -223,10 +223,10 @@
 
 ## 退费分析看板关系
 
-- 新入口：`knowledge/dashboards/market_channel_conversion_profile.md` 的“多维退费率数据集”，来源 `resources/raw_sql/refund_rate_multidim.sql`。
-- 科目/产品/年级退款金额占比当前入口：`resources/raw_sql/data_center_market_2349_refund_amount_share_fixed_20260704.sql`。
-- 历史来源：`resources/raw_sql/refund_multi_subject_user_ratio.sql`、`resources/raw_sql/refund_subject_product.sql`、`resources/raw_sql/refund_reason_analysis.sql`；旧 `refund_subject_product.sql` 仅作追溯，不作为当前 2349 口径。
-- 当前状态：多维退费率 SQL 改用 `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df` 单表输出分子/分母；2349 科目/产品/年级金额占比仍沿用财务业绩明细链路，但最终统一输出 `refund_amount`、`total_refund_amount` 和 `refund_amount_ratio`。
+- 新入口：`knowledge/dashboards/market_channel_conversion_profile.md` 的“多维退费率数据集”，来源 `resources/raw_sql/data_center_market_2890_20260705.sql`。
+- 科目/产品/年级退款金额占比当前入口：`resources/raw_sql/data_center_market_2349_20260705.sql`。
+- 历史来源：`resources/raw_sql/data_center_market_2350_20260705.sql`、`resources/raw_sql/data_center_market_2349_20260705.sql`、`resources/raw_sql/data_center_market_2353_20260705.sql`；旧 `data_center_market_2349_20260705.sql` 仅作追溯，不作为当前 2349 口径。
+- 当前状态：多维退费率 SQL 改用 `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df` 单表输出分子/分母；2349 科目/产品/年级金额占比仍沿用财务业绩明细链路，但最终只输出 `refund_amount` 和 `total_refund_amount`，占比由看板自定义指标 `sum(refund_amount) / sum(total_refund_amount)` 计算。
 - 财务主表：`finance_dw.app_finance_performance_extend_details_hf`，按 `trade_time` 推导 `qici`，并限定业绩归属员工 `H业务线/市场部/市场顾问部`。
 - 订单流水处理：多科用户退费占比和退费原因分析用 `zong_price`；正常订单按 `employee_email_name + user_id + clazz_name + trade_status` 汇总，调课调班按 `employee_email_name + user_id` 汇总。当前 2349 科目/产品/年级金额占比 SQL 拆为 `gmv_z/gmv_t` 后 `union all`，其中调课调班按 `name` 汇总；最终只保留 `name_total_price < 0` 的退款流水并取绝对值作为 `refund_amount`。
 - lead_id 补充：`service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` 通过 `original_order_user_number + performance_employee_email_name` 关联财务业绩明细的 `user_id1 + name`，并按 `original_order_user_number order by qici desc` 取最新 `lead_id`。

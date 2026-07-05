@@ -1,4 +1,4 @@
-# 退费科目产品数据集
+﻿# 退费科目产品数据集
 
 ## 状态
 
@@ -7,8 +7,8 @@
 ## 当前入口
 
 - 统一看板文档：`knowledge/dashboards/market_channel_conversion_profile.md`
-- 当前 SQL：`resources/raw_sql/data_center_market_2349_refund_amount_share_fixed_20260704.sql`
-- 历史 SQL 归档：`resources/raw_sql/refund_subject_product.sql`，仅用于追溯，不作为当前口径。
+- 当前 SQL：`resources/raw_sql/data_center_market_2349_20260705.sql`
+- 旧口径 SQL 已清理；当前只保留数据中心 2349 的 20260705 版本。
 
 ## 调用规则
 
@@ -21,6 +21,5 @@
 - `analysis_type = 'grade'`：不同年级退款金额占比。
 - `refund_amount`：当前维度退款金额，正数。
 - `total_refund_amount`：同一筛选范围内总退款金额。
-- `refund_amount_ratio`：`refund_amount / total_refund_amount`。
 
-旧口径中 `refund_total` 保留负数、且前端隐式占比的逻辑已废弃；新看板指标应直接使用 `refund_amount_ratio`，或用 `sum(refund_amount) / sum(total_refund_amount)` 重算。
+旧口径中 `refund_total` 保留负数、且前端隐式占比的逻辑已废弃；当前 SQL 不直接输出行级占比字段，新看板指标应使用 `ifnull(sum(${refund_amount}) / sum(${total_refund_amount}), 0)`。

@@ -1,4 +1,4 @@
-# 流量画像看板
+﻿# 流量画像看板
 
 ## 1. 看板名称
 
@@ -6,7 +6,7 @@
 
 ## 2. SQL 来源
 
-- 原始 SQL：`resources/raw_sql/traffic_profile.sql`
+- 原始 SQL：`resources/raw_sql/data_center_market_2683_20260705.sql`
 - 来源：用户提供的 `D:\Feishu\city_channel.txt` 流量画像城市渠道查询 SQL
 - 入库日期：2026-05-09
 - 最近更新：2026-05-15，按 `city_channel.txt` 覆盖为省份/城市维度版本

@@ -9,7 +9,7 @@
 | dw.dim_cstm_active_user_c_appliction_mb_df | c端用户全量表应用粒度 | 用户-应用粒度，待确认 | dt | 否 | 已确认 | 字段目录已补全，口径需人工校验 |
 | dw.dws_user_active_user_c_appliction_hf | c端用户活跃表应用粒度_当日小时全量 | 用户-应用-小时粒度，待确认 | dt, hour | 是 | 已确认 | 字段目录已补全，口径需人工校验 |
 | finance_dw.app_finance_performance_extend_details_hf | 业绩归属信息扩展表 | 订单/交易明细-小时快照粒度，字段来自 Word 文档，指标口径需结合历史 SQL 校验 | dt, hour | 是 | 已确认 | 已根据 `E:\2000_work\GAOTU\新建 Microsoft Word 文档.docx` 补全 145 个非分区字段 |
-| finance_dw.dwd_finance_order_refund_df | 订单退款明细表 | 待确认；根据退费原因分析 SQL 推断为订单退款记录粒度 | dt | 否 | 已确认 | 根据 `resources/raw_sql/refund_reason_analysis.sql` 补充最小字段，真实 DDL 待确认 |
+| finance_dw.dwd_finance_order_refund_df | 订单退款明细表 | 待确认；根据退费原因分析 SQL 推断为订单退款记录粒度 | dt | 否 | 已确认 | 根据 `resources/raw_sql/data_center_market_2353_20260705.sql` 补充最小字段，真实 DDL 待确认 |
 | finance_dw.dim_finance_employee_df | 员工维表 | 员工-日级快照粒度，字段来自 Word 文档 | dt | 否 | 已确认 | 已根据 `E:\2000_work\GAOTU\员工维表.docx` 补全 42 个非分区字段 |
 | gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf | 顾问首call数据分析表 | 用户-顾问账号-首call任务-小时快照粒度，字段来自 Word 文档 | dt, hour | 是 | 已确认 | 已根据 `E:\2000_work\GAOTU\顾问首call数据分析表.docx` 补全 19 个非分区字段；2026-05-22 起作为 `is_f_call` 首 call 任务强制来源 |
 | service_dw.app_h_crm_lead_employee_workload_detail_hf | 高中顾问工作量看板 | 顾问-小时粒度，待确认 | dt, hour | 是 | 已确认 | 字段目录已补全，口径需人工校验 |

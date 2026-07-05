@@ -1,4 +1,4 @@
-# 常见 JOIN 断裂排查速查表
+﻿# 常见 JOIN 断裂排查速查表
 
 ## 1. cost 表 → GMV 目标全为 0
 
@@ -158,7 +158,7 @@ coalesce(jg.jingli, zx.jingli, zz.jingli) as jingli_11
 4. 检查 `dingxi01_cost` 是否按 `qici + channel + grade` 去重，并拆出 `grade = '0'` 通配行。
 5. 检查 `dingxi01_jiagou_db` 是否先按 `qici + department + employee_email_name` 去重。
 
-**修复**：参考 `resources/raw_sql/data_center_market_2293_20260704.sql`：
+**修复**：参考 `resources/raw_sql/data_center_market_2293_20260705.sql`：
 
 - `call_c` 回连主数据时补充 `and call_c.lead_id = data.lead_id`。
 - `f_call0` 先按 `user_id, employee_email_name` 聚合，不把 `account_id` 留到回连层。

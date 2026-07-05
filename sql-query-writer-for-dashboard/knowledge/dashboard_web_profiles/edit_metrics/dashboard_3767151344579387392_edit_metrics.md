@@ -1,4 +1,4 @@
-# 转化数据 edit metrics
+﻿# 转化数据 edit metrics
 
 > Source: Taitan dashboard edit-page read-only API. Use together with the web profile and the Data Center SQL file for the same model_id.
 
@@ -20,7 +20,7 @@
 
 | model_id | model_name | one SQL file | pivot unit count |
 |---|---|---|---:|
-| `2253` | 转化数据_市场顾问 | [data_center_market_2253_20260704.sql](../../../resources/raw_sql/data_center_market_2253_20260704.sql) | 9 |
+| `2253` | 转化数据_市场顾问 | [data_center_market_2253_20260705.sql](../../../resources/raw_sql/data_center_market_2253_20260705.sql) | 9 |
 
 ## Pivot units
 

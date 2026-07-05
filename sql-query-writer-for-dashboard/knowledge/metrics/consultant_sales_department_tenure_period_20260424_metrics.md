@@ -1,4 +1,4 @@
-# 顾问部门任职期销售指标（20260424期）
+﻿# 顾问部门任职期销售指标（20260424期）
 
 ## 1. 中文名称
 
@@ -6,7 +6,7 @@
 
 ## 2. 指标定义
 
-指标来自 `resources/raw_sql/consultant_sales_department_tenure_period_20260424.sql`。
+指标来自 `resources/raw_sql/data_center_market_2742_20260705.sql`。
 
 该指标集合继承 `consultant_sales_department_tenure_metrics.md` 的全部业务口径，仅在最终输出层限制：
 

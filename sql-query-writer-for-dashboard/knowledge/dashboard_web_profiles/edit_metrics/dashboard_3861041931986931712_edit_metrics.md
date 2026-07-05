@@ -1,4 +1,4 @@
-# 多维度时效分析-抖咨 edit metrics
+﻿# 多维度时效分析-抖咨 edit metrics
 
 > Source: Taitan dashboard edit-page read-only API. Use together with the web profile and the Data Center SQL file for the same model_id.
 
@@ -20,8 +20,8 @@
 
 | model_id | model_name | one SQL file | pivot unit count |
 |---|---|---|---:|
-| `2623` | 抖音私信- 分时间段 | [data_center_market_2623_20260624.sql](../../../resources/raw_sql/data_center_market_2623_20260624.sql) | 4 |
-| `2625` | 分触达时间段--抖音咨询 | [data_center_market_2625_20260624.sql](../../../resources/raw_sql/data_center_market_2625_20260624.sql) | 4 |
+| `2623` | 抖音私信- 分时间段 | [data_center_market_2623_20260705.sql](../../../resources/raw_sql/data_center_market_2623_20260705.sql) | 4 |
+| `2625` | 分触达时间段--抖音咨询 | [data_center_market_2625_20260705.sql](../../../resources/raw_sql/data_center_market_2625_20260705.sql) | 4 |
 
 ## Pivot units
 

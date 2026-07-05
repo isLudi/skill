@@ -20,7 +20,7 @@
 
 | model_id | model_name | one SQL file | pivot unit count |
 |---|---|---|---:|
-| `2132` | (内部)到课衰减情况 | [data_center_market_2132_20260628.sql](../../../resources/raw_sql/data_center_market_2132_20260628.sql) | 3 |
+| `2132` | (内部)到课衰减情况 | [data_center_market_2132_20260705.sql](../../../resources/raw_sql/data_center_market_2132_20260705.sql) | 3 |
 
 ## Pivot units
 

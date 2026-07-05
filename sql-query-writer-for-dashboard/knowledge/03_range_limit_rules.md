@@ -1,4 +1,4 @@
-# 范围限定规则
+﻿# 范围限定规则
 
 ## 必读核心规则
 
@@ -100,7 +100,7 @@
 
 ## 历史看板范围补充：流量画像
 
-来源：`resources/raw_sql/traffic_profile.sql`。2026-05-15 已按 `D:\Feishu\city_channel.txt` 更新为省份/城市维度版本。
+来源：`resources/raw_sql/data_center_market_2683_20260705.sql`。2026-05-15 已按 `D:\Feishu\city_channel.txt` 更新为省份/城市维度版本。
 
 该 SQL 涉及市场顾问流量画像，复用时应优先保持以下范围限制，除非用户明确要求改业务范围：
 
@@ -122,12 +122,12 @@
 
 注意：
 
-- `traffic_profile.sql` 中外呼工作量表 `service_dw.app_h_crm_lead_employee_workload_detail_hf` 只限定 `dt/hour`，未单独限定部门。若后续脱离主表生成外呼明细或外呼聚合 SQL，应补充可用的员工/虚拟部门范围字段或通过主表范围内 join 限定。
+- `data_center_market_2683_20260705.sql` 中外呼工作量表 `service_dw.app_h_crm_lead_employee_workload_detail_hf` 只限定 `dt/hour`，未单独限定部门。若后续脱离主表生成外呼明细或外呼聚合 SQL，应补充可用的员工/虚拟部门范围字段或通过主表范围内 join 限定。
 - 当前 `city_channel.txt` 版本在 `base` CTE 使用 `period_name >= ${period_name1}` 且 `period_name < ${period_name2}` 的半开区间过滤；生成可执行 SQL 前必须替换期次参数，不能保留占位符直接提交。
 
 ## 历史看板范围补充：退费分析
 
-来源：`resources/raw_sql/refund_multi_subject_user_ratio.sql`、`resources/raw_sql/refund_subject_product.sql`、`resources/raw_sql/refund_reason_analysis.sql`、`resources/raw_sql/data_center_market_2349_refund_amount_share_fixed_20260704.sql`。
+来源：`resources/raw_sql/data_center_market_2350_20260705.sql`、`resources/raw_sql/data_center_market_2349_20260705.sql`、`resources/raw_sql/data_center_market_2353_20260705.sql`。
 
 | 表/CTE | 范围字段 | 历史取值 |
 |---|---|---|

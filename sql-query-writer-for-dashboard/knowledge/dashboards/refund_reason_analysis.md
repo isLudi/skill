@@ -1,4 +1,4 @@
-# 退费原因分析看板（已合并）
+﻿# 退费原因分析看板（已合并）
 
 ## 状态
 
@@ -7,8 +7,8 @@
 ## 新入口
 
 - 统一看板文档：`knowledge/dashboards/market_channel_conversion_profile.md`
-- 新多维退费率 SQL：`resources/raw_sql/refund_rate_multidim.sql`
-- 历史 SQL 归档：`resources/raw_sql/refund_reason_analysis.sql`
+- 新多维退费率 SQL：`resources/raw_sql/data_center_market_2890_20260705.sql`
+- 历史 SQL 归档：`resources/raw_sql/data_center_market_2353_20260705.sql`
 
 ## 调用规则
 

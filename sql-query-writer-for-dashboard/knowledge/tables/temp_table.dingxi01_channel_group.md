@@ -1,4 +1,4 @@
-# temp_table.dingxi01_channel_group
+﻿# temp_table.dingxi01_channel_group
 
 ## 1. 中文名称
 
@@ -8,7 +8,7 @@
 
 稳定临时表，用于将看板派生出的 `channel_map` 映射到渠道组 `channel_group`。
 
-字段来源：`resources/raw_sql/data_center_market_2253_20260704.sql`。
+字段来源：`resources/raw_sql/data_center_market_2253_20260705.sql`。
 
 ## 3. 数据粒度
 
@@ -80,5 +80,5 @@ limit 100;
 
 ### 流量画像 SQL 使用备注
 
-- `traffic_profile.sql` 最终层通过 `channel_grp.channel = zz.channel_map` 关联该表，但当前结果没有输出 `channel_grp` 字段。
+- `data_center_market_2683_20260705.sql` 最终层通过 `channel_grp.channel = zz.channel_map` 关联该表，但当前结果没有输出 `channel_grp` 字段。
 - 如后续需要展示 `channel_group`，必须先检查 `channel` 唯一性，避免按渠道放大结果。

@@ -1,19 +1,24 @@
-# 市场渠道用户画像分析
+﻿# 市场渠道用户画像分析
 
 ## 1. 来源
 
 原始 SQL：
 
-- `resources/raw_sql/market_channel_conversion_profile_call_duration_dataset.sql`
-- `resources/raw_sql/market_channel_conversion_profile_learn_duration_dataset.sql`
-- `resources/raw_sql/market_channel_conversion_profile_deep_stage_dataset.sql`
-- `resources/raw_sql/market_channel_conversion_profile_overall_dataset_fixed.sql`
-- `resources/raw_sql/refund_rate_multidim.sql`
-- `resources/raw_sql/data_center_market_2349_refund_amount_share_fixed_20260704.sql`
+- `resources/raw_sql/data_center_market_2836_20260705.sql`
+- `resources/raw_sql/data_center_market_2885_20260705.sql`
+- `resources/raw_sql/data_center_market_2883_20260705.sql`
+- `resources/raw_sql/data_center_market_2683_20260705.sql`
+- `resources/raw_sql/data_center_market_2809_20260705.sql`
+- `resources/raw_sql/data_center_market_2812_20260705.sql`
+- `resources/raw_sql/data_center_market_2890_20260705.sql`
+- `resources/raw_sql/data_center_market_2349_20260705.sql`
+- `resources/raw_sql/data_center_market_2886_20260705.sql`
+- `resources/raw_sql/data_center_market_2344_20260705.sql`
+- `resources/raw_sql/data_center_market_2353_20260705.sql`
 
 入库时间：2026-06-06
 
-最近更新：2026-06-07
+最近更新：2026-07-05
 
 ## 2. 查询目标
 
@@ -107,7 +112,7 @@ where a.period_name > '20260417期'
 
 ### 5.4 整体画像数据集
 
-来源：`resources/raw_sql/market_channel_conversion_profile_overall_dataset_fixed.sql`
+来源：`resources/raw_sql/data_center_market_2809_20260705.sql`
 
 | CTE | 用途 | 关键字段 |
 |---|---|---|
@@ -129,7 +134,7 @@ where a.period_name > '20260417期'
 
 ### 5.5 多维退费率数据集
 
-来源：`resources/raw_sql/refund_rate_multidim.sql`
+来源：`resources/raw_sql/data_center_market_2890_20260705.sql`
 
 该数据集属于市场渠道用户画像分析看板的退费模块，替代原独立退费看板入口中的多科用户退费占比、退费科目产品和退费原因分析的拆散调用。当前 SQL 只使用全链路主表，不再 join 财务业绩明细、退款原因表或架构临时表。
 
@@ -145,9 +150,9 @@ where a.period_name > '20260417期'
 
 ### 5.6 退费科目/产品/年级金额占比数据集
 
-来源：`resources/raw_sql/data_center_market_2349_refund_amount_share_fixed_20260704.sql`
+来源：`resources/raw_sql/data_center_market_2349_20260705.sql`
 
-该数据集对应数据中心模型 `2349` / `退费_科目_产品`，用于看板中的“不同科目退费占比”“不同产品退费占比”“不同年级退费占比”。当前口径已废弃旧 `refund_total` 负数输出，统一输出退款金额、总退款金额和金额占比。
+该数据集对应数据中心模型 `2349` / `退费_科目_产品`，用于看板中的“不同科目退费占比”“不同产品退费占比”“不同年级退费占比”。当前口径已废弃旧 `refund_total` 负数输出，SQL 只输出退款金额分子 `refund_amount` 和同筛选范围分母 `total_refund_amount`；看板自定义指标必须用分子/分母聚合后再计算占比。
 
 | CTE | 用途 | 关键字段 |
 |---|---|---|
@@ -174,7 +179,6 @@ qici + channel_1 + jingli + xiaozu + grade_list + analysis_type + dim_value
 
 - `refund_amount`：当前维度退款金额，正数。
 - `total_refund_amount`：当前筛选范围总退款金额。
-- `refund_amount_ratio`：`refund_amount / total_refund_amount`。
 
 ## 6. join 关系
 
@@ -185,8 +189,8 @@ qici + channel_1 + jingli + xiaozu + grade_list + analysis_type + dim_value
 | `lead_base b` | `private_stage ps` | `user_id = user_number` + `lead_id` | left join | 深沟阶段按用户线索最新私海阶段分桶 |
 | `profile_agg a` | `temp_table.shenbaoxin_channel_group cg` | `cg.channel = a.channel_map` | left join | 补充渠道组 |
 | `profile_agg a` | `dim_totals dt` | `period_name + channel_map + grade_name` | left join | 补充分桶前总线索和总有效线索 |
-| 整体画像数据集 | 无外部 join | 无 | 无 | `market_channel_conversion_profile_overall_dataset_fixed.sql` 仅使用全链路主表；如后续补渠道组或架构表，需另行确认 join key 和唯一性 |
-| 多维退费率数据集 | 无外部 join | 无 | 无 | `refund_rate_multidim.sql` 仅使用全链路主表；经理/主管/顾问均来自主表虚拟架构字段，字段最终展示口径待人工确认 |
+| 整体画像数据集 | 无外部 join | 无 | 无 | `data_center_market_2809_20260705.sql` 仅使用全链路主表；如后续补渠道组或架构表，需另行确认 join key 和唯一性 |
+| 多维退费率数据集 | 无外部 join | 无 | 无 | `data_center_market_2890_20260705.sql` 仅使用全链路主表；经理/主管/顾问均来自主表虚拟架构字段，字段最终展示口径待人工确认 |
 | 退费金额结构占比数据集 | `n_uid` / `rr` / `zx` | `user_id1 + name`、`lead_id + account_domain`、`employee_email_name = name` | left join 后部分 CTE 用 `where n_uid.rn = 1` 收窄 | 用于 2349 科目/产品/年级金额占比；历史架构和渠道规则仍沿用退费财务流水链路 |
 
 ## 7. 输出粒度
@@ -217,7 +221,7 @@ period_name + channel_map + grade_name + manager_name
 period_name + channel_map + grade_name + jingli + zhuguan + employee_email_name
 ```
 
-多维退费率数据集不输出 `analysis_type`、`bucket_name`、`bucket_sort`、`channel_group`。科目/产品/年级退款金额占比使用 2349 fixed SQL；退费原因仍需另行确认是否改造成同样的金额占比长表口径。
+多维退费率数据集不输出 `analysis_type`、`bucket_name`、`bucket_sort`、`channel_group`。科目/产品/年级退款金额占比使用 2349 数据集的 `refund_amount` / `total_refund_amount` 分子分母；退费原因使用 2353 数据集，当前仍按原因维度输出。
 
 ## 8. 输出字段和看板使用
 
@@ -252,7 +256,7 @@ period_name + channel_map + grade_name + jingli + zhuguan + employee_email_name
 
 ### 9.1 多维退费率透视表公式
 
-适用 SQL：`resources/raw_sql/refund_rate_multidim.sql`
+适用 SQL：`resources/raw_sql/data_center_market_2890_20260705.sql`
 
 | 展示指标 | 推荐公式 |
 |---|---|
@@ -270,7 +274,7 @@ period_name + channel_map + grade_name + jingli + zhuguan + employee_email_name
 
 ### 9.2 退费整体数据指标卡公式
 
-适用 SQL：`resources/raw_sql/data_center_market_2886_20260624.sql`
+适用 SQL：`resources/raw_sql/data_center_market_2886_20260705.sql`
 
 | 展示指标 | 推荐公式 |
 |---|---|
@@ -283,15 +287,15 @@ period_name + channel_map + grade_name + jingli + zhuguan + employee_email_name
 
 ### 9.3 退费金额结构占比图表公式
 
-适用 SQL：`resources/raw_sql/data_center_market_2349_refund_amount_share_fixed_20260704.sql`
+适用 SQL：`resources/raw_sql/data_center_market_2349_20260705.sql`
 
 | 图表 | 数据筛选 | 维度 | 指标 |
 |---|---|---|---|
-| 不同科目退费占比 | `analysis_type = 'subject'` | `dim_value` 或 `subject` | 优先使用 `refund_amount_ratio`；跨行聚合时用 `sum(refund_amount) / sum(total_refund_amount)` |
-| 不同产品退费占比 | `analysis_type = 'product'` | `dim_value` 或 `course_name` | 优先使用 `refund_amount_ratio`；跨行聚合时用 `sum(refund_amount) / sum(total_refund_amount)` |
-| 不同年级退费占比 | `analysis_type = 'grade'` | `dim_value` 或 `grade_list` | 优先使用 `refund_amount_ratio`；跨行聚合时用 `sum(refund_amount) / sum(total_refund_amount)` |
+| 不同科目退费占比 | `analysis_type = 'subject'` | `dim_value` 或 `subject` | `ifnull(sum(${refund_amount}) / sum(${total_refund_amount}), 0)` |
+| 不同产品退费占比 | `analysis_type = 'product'` | `dim_value` 或 `course_name` | `ifnull(sum(${refund_amount}) / sum(${total_refund_amount}), 0)` |
+| 不同年级退费占比 | `analysis_type = 'grade'` | `dim_value` 或 `grade_list` | `ifnull(sum(${refund_amount}) / sum(${total_refund_amount}), 0)` |
 
-注意：旧 `refund_total` 负数口径已废弃，不再作为上述三个图的分子。
+注意：旧 `refund_total` 负数口径和 SQL 行级退款金额占比字段均已废弃，不再作为上述三个图的分子或直接指标。
 
 ## 10. 已验证现象
 

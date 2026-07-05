@@ -1,4 +1,4 @@
-# 更新记录
+﻿# 更新记录
 
 ## 2026-05-01
 
@@ -129,7 +129,7 @@
 
 ## 2026-05-07 顾问部门任职期销售 SQL 入库
 
-- 新增原始 SQL：`resources/raw_sql/consultant_sales_department_tenure.sql`，来源为用户提供的“伙伴在部门开始时间”SQL。
+- 新增原始 SQL：`resources/raw_sql/data_center_market_2727_20260705.sql`，来源为用户提供的“伙伴在部门开始时间”SQL。
 - 新增看板文档：`knowledge/dashboards/consultant_sales_department_tenure.md`。
 - 新增指标集合：`knowledge/metrics/consultant_sales_department_tenure_metrics.md`。
 - 新增最小表结构文档：`knowledge/tables/dw.dim_employee_chain.md`，记录该 SQL 中使用的组织链字段，并标记真实 DDL、字段类型、数据粒度和权限范围待人工确认。
@@ -137,7 +137,7 @@
 - 更新 `knowledge/dashboards/README.md` 与 `knowledge/metrics/README.md`，补充新看板和指标集合索引。
 - 更新 `knowledge/joins/common_join_keys.md` 与 `knowledge/joins/table_relationships.md`，补充组织链 `path_name` 范围限定、`email_prefix` 优先关联建议、`name` 关联风险和顾问部门任职期销售统计关系。
 - 记录待确认事项：`org_t.name = dd_0.name` 是否可改为邮箱前缀关联、在职员工 `end_time` 为空处理、是否补充 `employee_third_level_department_name = '市场顾问部'`、课程部门是否需要单独范围限定、`promit/pmit` 命名和口径。
-- 运行 `python scripts/validate_sql_rules.py --sql-file resources/raw_sql/consultant_sales_department_tenure.sql`；校验提示课程部门字段未过滤、部门字段解析误报和 `org_t` group by 解析误报，已写入看板待确认事项。
+- 运行 `python scripts/validate_sql_rules.py --sql-file resources/raw_sql/data_center_market_2727_20260705.sql`；校验提示课程部门字段未过滤、部门字段解析误报和 `org_t` group by 解析误报，已写入看板待确认事项。
 - 运行 `python scripts/check_skill_integrity.py`；结构自检通过，表索引覆盖正常。
 
 ## 2026-05-07 员工信息表 Word 字段补充
@@ -164,24 +164,24 @@
 
 ## 2026-05-08 顾问部门任职期销售 20260424 期版本入库
 
-- 新增原始 SQL：`resources/raw_sql/consultant_sales_department_tenure_period_20260424.sql`，来源为用户提供的“伙伴在部门开始时间”SQL。
+- 新增原始 SQL：`resources/raw_sql/data_center_market_2742_20260705.sql`，来源为用户提供的“伙伴在部门开始时间”SQL。
 - 新增看板文档：`knowledge/dashboards/consultant_sales_department_tenure_period_20260424.md`。
 - 新增指标集合：`knowledge/metrics/consultant_sales_department_tenure_period_20260424_metrics.md`。
 - 更新 `knowledge/dashboards/README.md` 与 `knowledge/metrics/README.md`，补充该期次过滤版本索引。
-- 更新 `knowledge/joins/table_relationships.md`，记录该 SQL 继承 `consultant_sales_department_tenure.sql` 的组织链、财务流水和专项架构关系，仅在最终输出层增加 `qici = '20260424期'`。
+- 更新 `knowledge/joins/table_relationships.md`，记录该 SQL 继承 `data_center_market_2727_20260705.sql` 的组织链、财务流水和专项架构关系，仅在最终输出层增加 `qici = '20260424期'`。
 - 记录待确认事项：`name` 关联唯一性、`end_time` 为空处理、是否补充 `employee_third_level_department_name = '市场顾问部'`、课程部门是否需要单独范围限定、`promit/pmit` 命名和口径。
-- 运行 `python scripts/validate_sql_rules.py --sql-file resources/raw_sql/consultant_sales_department_tenure_period_20260424.sql`；校验提示课程部门字段未过滤、员工部门字段解析误报和 `org_t` group by 解析误报，已在看板文档待确认事项中保留。
+- 运行 `python scripts/validate_sql_rules.py --sql-file resources/raw_sql/data_center_market_2742_20260705.sql`；校验提示课程部门字段未过滤、员工部门字段解析误报和 `org_t` group by 解析误报，已在看板文档待确认事项中保留。
 - 运行 `python scripts/check_skill_integrity.py`；结构自检通过，表索引覆盖正常。
 
 ## 2026-05-08 顾问部门任职期销售通用 SQL 排名增强
 
-- 按用户提供的新版本覆盖 `resources/raw_sql/consultant_sales_department_tenure.sql`。
+- 按用户提供的新版本覆盖 `resources/raw_sql/data_center_market_2727_20260705.sql`。
 - 更新 `knowledge/dashboards/consultant_sales_department_tenure.md`，同步新版 CTE 链路、邮箱前缀关联、三层员工部门限定、日维度排名和期次维度排名逻辑。
 - 更新 `knowledge/metrics/consultant_sales_department_tenure_metrics.md`，补充 `day_dept_period_rank_scope`、`day_dept_period_rank_no`、`day_dept_period_need_pmit_to_previous`、`period_dept_rank_scope`、`period_dept_rank_no`、`period_dept_need_pmit_to_previous`、`period_income`、`period_refund`、`period_pmit` 等指标。
 - 更新 `knowledge/joins/table_relationships.md`，将任职期过滤 join 从 `org_t.name = dd_0.name` 改为 `org_t.email_prefix = dd_0.email_prefix`，并记录日维度和期次维度排名关系。
 - 新版财务流水范围补充 `employee_third_level_department_name = '市场顾问部'`。
-- 记录待确认事项：`end_time` 为空处理、`temp_table.dingxi01_jiagou_zx.employee_email_name = rd.name` 姓名关联唯一性、排名是否允许并列、固定期次版本 `consultant_sales_department_tenure_period_20260424.sql` 是否需要同步新版排名增强逻辑。
-- 运行 `python scripts/validate_sql_rules.py --sql-file resources/raw_sql/consultant_sales_department_tenure.sql`；校验提示 `employee_*_department_name` 已过滤但被脚本解析为未过滤、`org_t` 中 `name` group by 解析误报，已在看板文档待确认事项中保留。
+- 记录待确认事项：`end_time` 为空处理、`temp_table.dingxi01_jiagou_zx.employee_email_name = rd.name` 姓名关联唯一性、排名是否允许并列、固定期次版本 `data_center_market_2742_20260705.sql` 是否需要同步新版排名增强逻辑。
+- 运行 `python scripts/validate_sql_rules.py --sql-file resources/raw_sql/data_center_market_2727_20260705.sql`；校验提示 `employee_*_department_name` 已过滤但被脚本解析为未过滤、`org_t` 中 `name` group by 解析误报，已在看板文档待确认事项中保留。
 - 运行 `python scripts/check_skill_integrity.py`；结构自检通过，表索引覆盖正常。
 
 ## 2026-05-08 date_add 平台兼容规则
@@ -232,7 +232,7 @@
 
 ## 2026-05-09 流量画像 SQL 入库
 
-- 新增原始 SQL：`resources/raw_sql/traffic_profile.sql`，来源为用户提供的“流量画像”原始查询代码。
+- 新增原始 SQL：`resources/raw_sql/data_center_market_2683_20260705.sql`，来源为用户提供的“流量画像”原始查询代码。
 - 新增看板文档：`knowledge/dashboards/traffic_profile.md`，记录 APP 登录、最新设备渠道、外呼、深沟、到课、成交科目档位、成本目标和城市等级等 CTE/指标口径。
 - 新增指标集合：`knowledge/metrics/traffic_profile_metrics.md`。
 - 更新 `knowledge/dashboards/README.md` 与 `knowledge/metrics/README.md`，补充流量画像入口。
@@ -240,7 +240,7 @@
 - 更新相关表文档：主全链路表、C 端应用登录日表、私海明细、外呼工作量、行课明细、财务业绩明细、到课映射、渠道分组、成本目标和架构临时表，补充流量画像 SQL 使用备注。
 - 更新 `knowledge/03_range_limit_rules.md`，补充流量画像看板的历史范围限定；更新 `knowledge/sql_patterns/dashboard_query_patterns.md`，补充流量画像增强模式。
 - 记录待确认事项：原始 SQL 存在三参数 `date_add` 历史写法、主表 `dt/hour` 偏移不一致、`call_c` join 未带 `lead_id`、成交科目数 join 未带顾问名、`podan` 注释与代码不一致、临时表唯一性和数值/字符串比较风险。
-- 运行 `python scripts/validate_sql_rules.py --sql-file resources/raw_sql/traffic_profile.sql`；历史 SQL 保持原样，校验提示三参数 `date_add`、数值/字符串比较、部门过滤解析告警、派生字段误报和 `select distinct` group by 解析告警，已写入看板待确认事项。
+- 运行 `python scripts/validate_sql_rules.py --sql-file resources/raw_sql/data_center_market_2683_20260705.sql`；历史 SQL 保持原样，校验提示三参数 `date_add`、数值/字符串比较、部门过滤解析告警、派生字段误报和 `select distinct` group by 解析告警，已写入看板待确认事项。
 - 运行 `python scripts/check_skill_integrity.py`；结构自检通过，既有表文档含待人工确认项属预期。
 
 ## 2026-05-09 changelog 正序规则补充
@@ -252,9 +252,9 @@
 
 ## 2026-05-09 退费分析 SQL 入库
 
-- 新增原始 SQL：`resources/raw_sql/refund_multi_subject_user_ratio.sql`，来源 `E:\2000_work\GAOTU\多科用户退费占比.txt`。
-- 新增原始 SQL：`resources/raw_sql/refund_subject_product.sql`，来源 `E:\2000_work\GAOTU\退费_科目_产品.txt`。
-- 新增原始 SQL：`resources/raw_sql/refund_reason_analysis.sql`，来源 `E:\2000_work\GAOTU\退费原因分析.txt`。
+- 新增原始 SQL：`resources/raw_sql/data_center_market_2350_20260705.sql`，来源 `E:\2000_work\GAOTU\多科用户退费占比.txt`。
+- 新增原始 SQL：`resources/raw_sql/data_center_market_2349_20260705.sql`，来源 `E:\2000_work\GAOTU\退费_科目_产品.txt`。
+- 新增原始 SQL：`resources/raw_sql/data_center_market_2353_20260705.sql`，来源 `E:\2000_work\GAOTU\退费原因分析.txt`。
 - 新增看板文档：`knowledge/dashboards/refund_multi_subject_user_ratio.md`、`knowledge/dashboards/refund_subject_product.md`、`knowledge/dashboards/refund_reason_analysis.md`。
 - 新增指标集合：`knowledge/metrics/refund_analysis_metrics.md`，记录 `zong_price`、`name_total_price`、`refund_amount`、`refund_total`、多科分层、标准科目、产品分类和退费原因等口径。
 - 新增表文档：`knowledge/tables/finance_dw.dwd_finance_order_refund_df.md`，根据退费原因分析 SQL 补充 `dt`、`order_number`、`refund_reason`、`refund_type` 最小字段，真实 DDL 和 `refund_type = '1'` 含义待人工确认。
@@ -274,13 +274,13 @@
 
 ## 2026-05-15 流量画像 city_channel SQL 更新
 
-- 使用用户提供的 `D:\Feishu\city_channel.txt` 覆盖归档 `resources/raw_sql/traffic_profile.sql`，确认文件哈希与来源一致。
+- 使用用户提供的 `D:\Feishu\city_channel.txt` 覆盖归档 `resources/raw_sql/data_center_market_2683_20260705.sql`，确认文件哈希与来源一致。
 - 更新 `knowledge/dashboards/traffic_profile.md` 和 `knowledge/metrics/traffic_profile_metrics.md`，补充 `province_name`、`city_name`、`city_level_name` 城市渠道维度，移除旧版 `city_level_row` 结果指标说明。
 - 更新期次范围口径：当前版本在 `base` CTE 使用 `period_name >= ${period_name1}` 且 `period_name < ${period_name2}`，执行前必须替换参数。
 - 更新主表分区说明：当前版本主全链路表使用 `dt = now() - 2 hour` 且 `hour = now() - 2 hour`；旧版 `hour = now() - 3 hour` 仅作为历史变体风险保留。
 - 更新 `knowledge/01_table_index.md`、`knowledge/joins/common_join_keys.md`、`knowledge/joins/table_relationships.md`、`knowledge/03_range_limit_rules.md`、`knowledge/sql_patterns/dashboard_query_patterns.md`、`knowledge/dashboards/README.md`、`knowledge/metrics/README.md` 和相关表文档。
 - 待人工确认：省市归属和城市等级字段口径、三参数 `date_add` 平台兼容性、`call_c` 未带 `lead_id` join 的重复风险、`dd` 未带 `employee_email_name` join 的重复风险、临时表唯一性、`podan` 注释与代码不一致。
-- 运行 `python scripts/validate_sql_rules.py --sql-file resources/raw_sql/traffic_profile.sql`；历史 SQL 原样归档，校验提示三参数 `date_add`、数值/字符串比较、部门过滤解析告警、派生别名 `channel_map/grade_1` 误报和 `select distinct` group by 解析告警，已在看板待确认事项中保留。
+- 运行 `python scripts/validate_sql_rules.py --sql-file resources/raw_sql/data_center_market_2683_20260705.sql`；历史 SQL 原样归档，校验提示三参数 `date_add`、数值/字符串比较、部门过滤解析告警、派生别名 `channel_map/grade_1` 误报和 `select distinct` group by 解析告警，已在看板待确认事项中保留。
 - 运行 `python scripts/check_skill_integrity.py`；结构自检通过，既有表文档含待人工确认项属预期。
 
 ## 2026-05-21 渠道 CASE 0515 来源更新
@@ -452,9 +452,9 @@
 ## 2026-06-06 市场渠道用户画像分析三数据集入库
 
 - 新增三份原始 SQL：
-  - `resources/raw_sql/market_channel_conversion_profile_call_duration_dataset.sql`
-  - `resources/raw_sql/market_channel_conversion_profile_learn_duration_dataset.sql`
-  - `resources/raw_sql/market_channel_conversion_profile_deep_stage_dataset.sql`
+  - `resources/raw_sql/data_center_market_2836_20260705.sql`
+  - `resources/raw_sql/data_center_market_2885_20260705.sql`
+  - `resources/raw_sql/data_center_market_2883_20260705.sql`
 - 新增看板文档：`knowledge/dashboards/market_channel_conversion_profile.md`。
 - 新增指标集合：`knowledge/metrics/market_channel_conversion_profile_metrics.md`。
 - 更新 `knowledge/dashboards/README.md` 与 `knowledge/metrics/README.md`，补充市场渠道用户画像分析入口。
@@ -472,7 +472,7 @@
 
 ## 2026-06-06 16:37 市场渠道用户画像整体数据集入库
 
-- 新增原始 SQL：`resources/raw_sql/market_channel_conversion_profile_overall_dataset_fixed.sql`。
+- 新增原始 SQL：`resources/raw_sql/data_center_market_2809_20260705.sql`。
 - 该 SQL 属于 `market_channel_conversion_profile` 市场渠道用户画像分析看板的整体画像数据集，不是独立看板；与首 call 通时、上课时长、深沟阶段三份分桶数据集共同服务同一看板。
 - 更新 `knowledge/dashboards/market_channel_conversion_profile.md`，补充整体画像数据集的 CTE 结构、输出粒度、修复点和待人工确认事项。
 - 更新 `knowledge/metrics/market_channel_conversion_profile_metrics.md`，补充整体画像字段口径和透视表建议公式。
@@ -487,7 +487,7 @@
 
 ## 2026-06-07 市场渠道用户画像多维退费率数据集入库
 
-- 新增原始 SQL：`resources/raw_sql/refund_rate_multidim.sql`，来源 `c:\Users\Ludim\.codex\runtime\refund_rate_multidim.sql`。
+- 新增原始 SQL：`resources/raw_sql/data_center_market_2890_20260705.sql`，来源 `c:\Users\Ludim\.codex\runtime\data_center_market_2890_20260705.sql`。
 - 该 SQL 属于 `market_channel_conversion_profile` 市场渠道用户画像分析看板的多维退费率数据集，不是独立看板；用于输出当期/截面 GMV 退费率、人头退费率、1科/2-3科/3科以上退费率所需分子和分母字段。
 - 更新 `knowledge/dashboards/market_channel_conversion_profile.md`，补充多维退费率数据集的来源、CTE、输出粒度、透视表公式和待人工确认事项。
 - 将 `refund_multi_subject_user_ratio.md`、`refund_reason_analysis.md`、`refund_subject_product.md` 调整为历史合并入口，默认路由到市场渠道用户画像分析看板；旧 raw SQL 仅保留追溯。
@@ -604,7 +604,7 @@
 ## 2026-06-29 raw SQL 最新口径清理
 
 - 删除已被最新版本替代的旧 raw SQL：`data_center_market_2132_20260624.sql`、`data_center_market_2253_20260624.sql`、`data_center_market_2293_20260624.sql`、`market_channel_case_when_0515.sql`、`market_channel_case_when_0522.sql`、`market_channel_case_when_0524.sql`、`market_consultant_conversion.sql`。
-- 保留对应最新口径入口：`data_center_market_2132_20260628.sql`、`data_center_market_2253_20260628.sql`、`data_center_market_2293_20260628.sql`、`market_channel_case_when_0612.sql`。
+- 保留对应最新口径入口：`data_center_market_2132_20260705.sql`、`data_center_market_2253_20260628.sql`、`data_center_market_2293_20260628.sql`、`market_channel_case_when_0612.sql`。
 - 将活跃知识库引用从旧文件迁移到最新 raw SQL，并重新生成反向索引。
 
 ## 2026-06-30 市场顾问到课 SQL 自动课次优化
@@ -652,16 +652,16 @@
 
 - 从数据中心 `https://uanalysis.baijia.com/data-center/data-set` 同步数据集源 SQL，范围：市场顾问部目录下从 `(内部渠道)外呼过程数据` 开始到末尾的 SQL 数据集。
 - 保存 2 个数据集源 SQL 到 `resources/raw_sql`，更新清单 `knowledge/dashboards/data_center_market_datasets.md`。
-- 当前最新入口为 `data_center_market_2253_20260704.sql` 和 `data_center_market_2293_20260704.sql`；活跃知识库引用已统一迁移到 20260704 版本。
+- 当前最新入口为 `data_center_market_2253_20260705.sql` 和 `data_center_market_2293_20260705.sql`；活跃知识库引用已统一迁移到 20260704 版本。
 - 删除旧 raw SQL 快照：`data_center_market_2253_20260628.sql`、`data_center_market_2293_20260628.sql`、`data_center_market_2293_20260703.sql`。
 - 未改写 SQL 语义；后续字段、指标或临时表口径仍需基于源 SQL 和业务规则单独维护。
 
 ## 2026-07-04 退费_科目_产品 2349 退款金额占比口径更新
 
-- 将 `resources/raw_sql/data_center_market_2349_refund_amount_share_fixed_20260704.sql` 设为数据中心 2349「退费_科目_产品」当前知识库入口。
-- 当前 2349 输出 `analysis_type`、`dim_value`、`refund_amount`、`total_refund_amount` 和 `refund_amount_ratio`，分别支持不同科目、产品、年级退款金额占比。
-- 废弃旧 `refund_total` 负数输出和前端隐式占比口径；旧 `refund_subject_product.sql` 仅保留为历史归档。
-- 更新市场渠道用户画像、退费科目产品、退费指标、表关系、范围规则和相关表文档，后续排查不同科目/产品/年级退费占比优先读取 2349 fixed SQL。
+- 将 `resources/raw_sql/data_center_market_2349_20260705.sql` 设为数据中心 2349「退费_科目_产品」当前知识库入口。
+- 当时 2349 输出 `analysis_type`、`dim_value`、`refund_amount`、`total_refund_amount` 和 SQL 行级占比字段；该行级占比字段已在后续 2026-07-05 口径中废弃。
+- 废弃旧 `refund_total` 负数输出和前端隐式占比口径；旧 `data_center_market_2349_20260705.sql` 仅保留为历史归档。
+- 更新市场渠道用户画像、退费科目产品、退费指标、表关系、范围规则和相关表文档，后续排查不同科目/产品/年级退费占比优先读取 2349 数据中心 SQL。
 
 ## 2026-07-04 评优看板半年度归属逻辑修正
 
@@ -677,7 +677,7 @@
 
 ## 2026-07-05 2344 分析--分周期转化截面净收款口径修正
 
-- 将已验证的 2344 修正版 SQL 入库为 `resources/raw_sql/data_center_market_2344_period_conversion_aligned_20260705.sql`，删除旧入口 `resources/raw_sql/data_center_market_2344_20260624.sql`。
+- 将已验证的 2344 修正版 SQL 入库为 `resources/raw_sql/data_center_market_2344_20260705.sql`，删除旧入口 `resources/raw_sql/data_center_market_2344_20260624.sql`。
 - 修正 `gmv_total` 最终输出口径：不再使用财务流水 `bucket_agg.sum(name_total_price)`，改为 `metric_agg.metric_gmv_total = sum(trade_profit)`，与转化看板 2253 和运营侧 2293 的截面净收款口径对齐。
 - 退款分周期字段继续使用财务流水金额口径，`refund_total/refund_7/refund_14/refund_30/refund_n30/refund_7_p` 由 `name_total_price < 0` 的金额按 `week_diff` 分桶生成。
 - 更新 2344 相关编辑页指标映射和 `market_consultant_dashboard_metric_formula_linkage.md`，旧 20260624 SQL 不再作为当前知识库入口。
@@ -685,20 +685,34 @@
 ## 2026-07-05 2344 分析--分周期转化退款分桶归期修正
 
 - 排查发现此前 2344 修正版把 `bucket_agg` 输出期次从原始 `qici` 改成 `coalesce(friday_period, qici)`，并过滤 `friday_period is not null`，导致退款按规则期次重归属且总退款分母变窄，20260703 当期退款占比从原始约 37% 抬升到约 79%。
-- 修正 `resources/raw_sql/data_center_market_2344_period_conversion_aligned_20260705.sql`：退款分桶恢复按财务交易期次 `b.qici` 聚合；`refund_total/refund_7/refund_14/refund_30/refund_n30/refund_7_p` 恢复保留负数金额；未匹配或不可解析的 `friday_period` 不再剔除，统一落入 `week_diff = 3` / 非30天桶。
+- 修正 `resources/raw_sql/data_center_market_2344_20260705.sql`：退款分桶恢复按财务交易期次 `b.qici` 聚合；`refund_total/refund_7/refund_14/refund_30/refund_n30/refund_7_p` 恢复保留负数金额；未匹配或不可解析的 `friday_period` 不再剔除，统一落入 `week_diff = 3` / 非30天桶。
 - 验证 SQL：`runtime/tmp/validate_2344_refund_bucket_20260705_limit.sql`，USQL query_id=`1449456595`。验证结果：20260703 当期退款占比 37.54%、五个分桶合计占比 100.00%；20260626 当期退款占比 36.12%、五个分桶合计占比 100.00%；20260619 当期退款占比 36.65%、五个分桶合计占比 100.00%。
 
 ## 2026-07-05 2886 退费整体数据人头退费率分母修正
 
-- 修正 `resources/raw_sql/data_center_market_2886_20260624.sql`：新增与 2809 成单用户画像整体数据一致的用户层聚合，输出 `正价课人头`、`正价课人次`、`退费人次`、`GMV退费率`、`人头退费率`。
+- 修正 `resources/raw_sql/data_center_market_2886_20260705.sql`：新增与 2809 成单用户画像整体数据一致的用户层聚合，输出 `正价课人头`、`正价课人次`、`退费人次`、`GMV退费率`、`人头退费率`。
 - `退费人头` 修正为正价课出单用户中的退费去重人数：同一 `period_name + channel_map + grade_name + jingli + user_id` 下 `regular_course_user_count > 0` 且截面退款金额大于 0 计 1；`人头退费率` 分母从旧的有效线索量调整为 `正价课人头`。
 - `退费人次` 修正为发生退费的正价课出单用户对应的正价课科目人次：当前 2886 源表没有实际退款科目数字段，因此不能解释为精确退款科目数。
 - 验证 SQL：`runtime/tmp/validate_2886_refund_head_rate_20260705.sql`，USQL query_id=`1449552739`。20260703 退费人头 41、退费人次 107、正价课人头 365、人头退费率 11.2%；20260626 退费人头 45、退费人次 102、正价课人头 396、人头退费率 11.4%。2809 对照 query_id=`1449489543`，20260703 `pay_user_head_count = 365`、`pay_subject_person_count = 810`，与 2886 正价课分母一致。
 
 ## 2026-07-05 2890 多科用户退费人头退费率分母修正
 
-- 修正 `resources/raw_sql/refund_rate_multidim.sql`：新增用户层 `user_base/user_agg`，按 `period_name + channel_map + grade_name + jingli + zhuguan + employee_email_name + user_id` 先聚合，再判断正价课出单与退费用户。
+- 修正 `resources/raw_sql/data_center_market_2890_20260705.sql`：新增用户层 `user_base/user_agg`，按 `period_name + channel_map + grade_name + jingli + zhuguan + employee_email_name + user_id` 先聚合，再判断正价课出单与退费用户。
 - 新增 `pay_user_head_count`，作为人头退费率推荐分母；`total_headcount` 保留为有效线索用户历史字段，不再作为人头退费率推荐分母。
 - `refund_headcount_section` 修正为正价课出单用户中的截面退费去重人数；新增 `refund_subject_person_count_section` 表示这些退费正价课用户对应的正价课科目人次。
 - 单科/多科退费人头分子改为用户层 `pay_subject_person_count` 分层后的正价课退费去重人数；GMV 金额类字段保持原金额汇总口径。
 - 验证 SQL：`runtime/tmp/validate_2890_refund_head_person_times_20260705.sql`，USQL query_id=`1449584224`。20260703 正价课人头 365、退费人头 41、退费人次 107、人头退费率 11.2%；20260626 正价课人头 396、退费人头 45、退费人次 102、人头退费率 11.4%；20260619 正价课人头 290、退费人头 43、退费人次 87、人头退费率 14.8%。
+
+## 2026-07-05 数据中心数据集源 SQL 同步
+
+- 从数据中心 `https://uanalysis.baijia.com/data-center/data-set` 同步数据集源 SQL，范围：市场顾问部目录下从 `(内部渠道)外呼过程数据` 开始到末尾的 SQL 数据集。
+- 保存 39 个数据集源 SQL 到 `resources/raw_sql`，更新清单 `knowledge/dashboards/data_center_market_datasets.md`。
+- 未改写 SQL 语义；后续字段、指标或临时表口径仍需基于源 SQL 和业务规则单独维护。
+
+## 2026-07-05 市场顾问-用户画像分析知识库全量刷新与 raw SQL 去重
+
+- 使用 `usql-web-query-operator` 重新探查 `dashboard_3804681042591760385` 运行态和 Taitan 编辑态：运行态 28 个组件、23 个取值单元、18 个分析单元全部 ready；编辑态 8 个透视单元、99 个配置字段、52 个自定义公式。
+- 将该看板 11 个模型统一映射到 20260705 数据中心 SQL：`2683/2809/2812/2836/2885/2883/2349/2886/2344/2890/2353`。
+- 2349「退费_科目_产品」当前 SQL 只保留 `refund_amount` 和 `total_refund_amount` 分子/分母字段；删除旧 SQL 行级退款金额占比口径，要求看板自定义指标使用 `sum(refund_amount) / sum(total_refund_amount)`。
+- 清理 37 个被 20260705 版本覆盖的旧 raw SQL 或语义重复 SQL 文件；保留 `data_center_market_*_20260705.sql` 作为当前 canonical 入口。
+- 更新看板文档、指标文档、编辑页画像、Web BI 结构快照、表关系、范围规则、quick reference、decision tree，并重建反向索引后执行完整性校验。

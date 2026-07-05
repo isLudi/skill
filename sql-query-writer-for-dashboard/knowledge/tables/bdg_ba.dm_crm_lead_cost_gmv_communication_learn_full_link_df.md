@@ -1,4 +1,4 @@
-# bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df
+﻿# bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df
 
 ## 1. 中文名称
 
@@ -454,12 +454,12 @@ limit 20;
 - 当涉及 join 本表的看板整体查不到数据、结果集为空或指标突然大面积为 0 时，优先按 `knowledge/sql_patterns/dashboard_query_patterns.md` 的“全链路主表最新分区产出排查模板”检查最近分区产出。模板中的 `dt >= '<排查起始日期YYYYMMDD>'` 必须按用户提问当天或排查当天动态替换，通常取当天或往前 1 天，不能固定沿用历史日期。
 - CRM 线索转移操作必须在当期开课前完成，数据库侧才能记录该转移状态；当期开课后发生退费、转移顾问或状态变化时，本表及运营侧相关看板可能仍保留原顾问/原期次/原架构口径下的退前线索、退后线索或线索量。排查顾问当前 CRM 状态与本表结果不一致时，应先核对操作时间是否晚于开课时间，不要直接判定为 join 错误。
 - `period_name` 是否为原始字段或仅为 select 别名存在歧义，生成 SQL 时如需同层引用应改成 CTE 后再引用。
-- `channel_map` 规则非常长，完整逻辑见 `resources/raw_sql/data_center_market_2253_20260704.sql`。
+- `channel_map` 规则非常长，完整逻辑见 `resources/raw_sql/data_center_market_2253_20260705.sql`。
 - 待人工确认：字段类型、主键唯一性、金额单位、转化指标和合并线索指标口径。
 
 ### 流量画像 SQL 使用备注
 
-- `traffic_profile.sql` 继续以该表为主表；2026-05-15 `city_channel.txt` 版本输出粒度包含 `province_name`、`city_name`、`city_level_name`、`last_app_channel` 和成交科目档位 `sub`。
+- `data_center_market_2683_20260705.sql` 继续以该表为主表；2026-05-15 `city_channel.txt` 版本输出粒度包含 `province_name`、`city_name`、`city_level_name`、`last_app_channel` 和成交科目档位 `sub`。
 - 该 SQL 的主表范围为 `section_assign_employee_* = H业务线/市场部/市场顾问部`，期次映射二级部门允许 `精品班学部`、`青橙项目部`、`一对一学部`、`本地化大班学部`、`市场部`、`菁英班学部`。
 - 当前 `city_channel.txt` 版本主表分区使用 `dt = now() - 2 hour` 且 `hour = now() - 2 hour`；旧版曾出现 `hour = now() - 3 hour`，复用时需确认分区延迟口径。
 - `province_name`、`city_name`、`city_level_name` 字段已在字段目录中存在，但省市归属和城市等级口径未由独立指标文档确认，需标记待人工确认。
@@ -468,9 +468,9 @@ limit 20;
 
 ### 市场渠道用户画像分析使用备注
 
-- `market_channel_conversion_profile_call_duration_dataset.sql`、`market_channel_conversion_profile_learn_duration_dataset.sql`、`market_channel_conversion_profile_deep_stage_dataset.sql` 均以该表为主表，基础业务指标来自 `lead_count`、`valid_lead_count`、`conversion_lead_count`、`order_count`、`income_amount`、`in_pay_period_refund_amount`、`non_pay_period_refund_amount`。
-- `market_channel_conversion_profile_overall_dataset_fixed.sql` 同属市场渠道用户画像分析看板的整体画像数据集，以该表为唯一物理表，输出 `period_name + channel_map + grade_name + manager_name` 粒度整体指标。
-- `refund_rate_multidim.sql` 同属市场渠道用户画像分析看板的多维退费率数据集，以该表为唯一物理表，输出 `period_name + channel_map + grade_name + jingli + zhuguan + employee_email_name` 粒度退费分子/分母指标。
+- `data_center_market_2836_20260705.sql`、`data_center_market_2885_20260705.sql`、`data_center_market_2883_20260705.sql` 均以该表为主表，基础业务指标来自 `lead_count`、`valid_lead_count`、`conversion_lead_count`、`order_count`、`income_amount`、`in_pay_period_refund_amount`、`non_pay_period_refund_amount`。
+- `data_center_market_2809_20260705.sql` 同属市场渠道用户画像分析看板的整体画像数据集，以该表为唯一物理表，输出 `period_name + channel_map + grade_name + manager_name` 粒度整体指标。
+- `data_center_market_2890_20260705.sql` 同属市场渠道用户画像分析看板的多维退费率数据集，以该表为唯一物理表，输出 `period_name + channel_map + grade_name + jingli + zhuguan + employee_email_name` 粒度退费分子/分母指标。
 - 三份 SQL 的主表范围限定为 `section_assign_employee_* = H业务线/市场部/市场顾问部`、`virtual_third_department_name = '市场顾问部'`，期次映射二级部门允许 `市场部/精品班学部/null`；`null` 放宽条件是否保留待人工确认。
 - 整体画像数据集已同步补充 `virtual_third_department_name = '市场顾问部'`，与三份分桶数据集范围一致；如果未来整体画像有效线索数与分桶画像不一致，应优先检查是否遗漏该虚拟三级部门过滤。
 - 整体画像数据集中 `valid_lead_count` 使用标准宽表字段汇总，不再对 `抖音私域`/`抖音私信` 使用 `merge_valid_lead_count`；该禁用 merge 口径是否适用于所有整体画像组件待人工确认。

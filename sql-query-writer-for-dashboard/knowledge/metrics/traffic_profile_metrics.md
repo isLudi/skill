@@ -1,4 +1,4 @@
-# 流量画像指标
+﻿# 流量画像指标
 
 ## 1. 指标集合名称
 
@@ -6,7 +6,7 @@
 
 ## 2. 来源
 
-- 看板 SQL：`resources/raw_sql/traffic_profile.sql`
+- 看板 SQL：`resources/raw_sql/data_center_market_2683_20260705.sql`
 - 看板文档：`knowledge/dashboards/traffic_profile.md`
 - 入库日期：2026-05-09
 - 最近更新：2026-05-15，按 `D:\Feishu\city_channel.txt` 同步省份/城市维度和期次参数化过滤

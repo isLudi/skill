@@ -6,12 +6,17 @@
 
 ## 2. 适用 SQL
 
-- `resources/raw_sql/market_channel_conversion_profile_call_duration_dataset.sql`
-- `resources/raw_sql/market_channel_conversion_profile_learn_duration_dataset.sql`
-- `resources/raw_sql/market_channel_conversion_profile_deep_stage_dataset.sql`
-- `resources/raw_sql/market_channel_conversion_profile_overall_dataset_fixed.sql`
-- `resources/raw_sql/refund_rate_multidim.sql`
-- `resources/raw_sql/data_center_market_2349_refund_amount_share_fixed_20260704.sql`
+- `resources/raw_sql/data_center_market_2836_20260705.sql`
+- `resources/raw_sql/data_center_market_2885_20260705.sql`
+- `resources/raw_sql/data_center_market_2883_20260705.sql`
+- `resources/raw_sql/data_center_market_2683_20260705.sql`
+- `resources/raw_sql/data_center_market_2809_20260705.sql`
+- `resources/raw_sql/data_center_market_2812_20260705.sql`
+- `resources/raw_sql/data_center_market_2890_20260705.sql`
+- `resources/raw_sql/data_center_market_2349_20260705.sql`
+- `resources/raw_sql/data_center_market_2886_20260705.sql`
+- `resources/raw_sql/data_center_market_2344_20260705.sql`
+- `resources/raw_sql/data_center_market_2353_20260705.sql`
 
 ## 3. 指标粒度
 
@@ -45,7 +50,7 @@ period_name + channel_map + grade_name + jingli + zhuguan + employee_email_name
 qici + channel_1 + jingli + xiaozu + grade_list + analysis_type + dim_value
 ```
 
-该数据集用于科目、产品、年级退款金额占比，输出 `refund_amount`、`total_refund_amount` 和 `refund_amount_ratio`。
+该数据集用于科目、产品、年级退款金额占比。SQL 只输出 `refund_amount` 和 `total_refund_amount` 两个可加和字段；占比必须在看板自定义指标中使用聚合后的分子/分母计算。
 
 ## 4. SQL 输出指标
 
@@ -89,7 +94,7 @@ qici + channel_1 + jingli + xiaozu + grade_list + analysis_type + dim_value
 
 ## 5.1 整体画像数据集指标
 
-适用 SQL：`resources/raw_sql/market_channel_conversion_profile_overall_dataset_fixed.sql`
+适用 SQL：`resources/raw_sql/data_center_market_2809_20260705.sql`
 
 | 字段 | SQL 口径 | 说明 | 聚合规则 |
 |---|---|---|---|
@@ -121,7 +126,7 @@ qici + channel_1 + jingli + xiaozu + grade_list + analysis_type + dim_value
 
 ## 5.2 退费整体数据集指标
 
-适用 SQL：`resources/raw_sql/data_center_market_2886_20260624.sql`
+适用 SQL：`resources/raw_sql/data_center_market_2886_20260705.sql`
 
 | 字段 | SQL 口径 | 说明 | 聚合规则 |
 |---|---|---|---|
@@ -144,7 +149,7 @@ qici + channel_1 + jingli + xiaozu + grade_list + analysis_type + dim_value
 
 ## 5.3 多维退费率数据集指标
 
-适用 SQL：`resources/raw_sql/refund_rate_multidim.sql`
+适用 SQL：`resources/raw_sql/data_center_market_2890_20260705.sql`
 
 | 字段 | SQL 口径 | 说明 | 聚合规则 |
 |---|---|---|---|
@@ -183,7 +188,7 @@ qici + channel_1 + jingli + xiaozu + grade_list + analysis_type + dim_value
 
 ## 5.3 退费金额结构占比数据集指标
 
-适用 SQL：`resources/raw_sql/data_center_market_2349_refund_amount_share_fixed_20260704.sql`
+适用 SQL：`resources/raw_sql/data_center_market_2349_20260705.sql`
 
 | 字段 | SQL 口径 | 说明 | 聚合规则 |
 |---|---|---|---|
@@ -194,17 +199,16 @@ qici + channel_1 + jingli + xiaozu + grade_list + analysis_type + dim_value
 | `grade_list` | 课程年级 | 年级图表中 `dim_value = grade_list` | 维度字段 |
 | `refund_amount` | `sum(abs(name_total_price))`，仅保留 `name_total_price < 0` | 当前维度退款金额，正数 | 可 sum |
 | `total_refund_amount` | 同一筛选范围下 `sum(refund_amount)` | 占比分母 | 可 sum；跨图表不要混合 subject/product/grade |
-| `refund_amount_ratio` | `refund_amount / total_refund_amount` | 单行金额占比 | 单行可直接展示；跨行聚合用 `sum(refund_amount) / sum(total_refund_amount)` |
 
 推荐图表筛选：
 
 | 图表 | 筛选 | 推荐指标 |
 |---|---|---|
-| 不同科目退费占比 | `analysis_type = 'subject'` | `refund_amount_ratio` |
-| 不同产品退费占比 | `analysis_type = 'product'` | `refund_amount_ratio` |
-| 不同年级退费占比 | `analysis_type = 'grade'` | `refund_amount_ratio` |
+| 不同科目退费占比 | `analysis_type = 'subject'` | `ifnull(sum(${refund_amount}) / sum(${total_refund_amount}), 0)` |
+| 不同产品退费占比 | `analysis_type = 'product'` | `ifnull(sum(${refund_amount}) / sum(${total_refund_amount}), 0)` |
+| 不同年级退费占比 | `analysis_type = 'grade'` | `ifnull(sum(${refund_amount}) / sum(${total_refund_amount}), 0)` |
 
-旧 `refund_total` 负数口径已废弃，不再作为 2349 当前图表分子。
+旧 `refund_total` 负数口径和 SQL 行级退款金额占比字段均已废弃，不再作为 2349 当前图表分子或直接指标。
 
 ## 6. 分桶口径
 

@@ -1,4 +1,4 @@
-# KOC渠道播报数据 edit metrics
+﻿# KOC渠道播报数据 edit metrics
 
 > Source: Taitan dashboard edit-page read-only API. Use together with the web profile and the Data Center SQL file for the same model_id.
 
@@ -20,7 +20,7 @@
 
 | model_id | model_name | one SQL file | pivot unit count |
 |---|---|---|---:|
-| `2293` | 运营侧个人数据 | [data_center_market_2293_20260704.sql](../../../resources/raw_sql/data_center_market_2293_20260704.sql) | 1 |
+| `2293` | 运营侧个人数据 | [data_center_market_2293_20260705.sql](../../../resources/raw_sql/data_center_market_2293_20260705.sql) | 1 |
 
 ## Text units
 

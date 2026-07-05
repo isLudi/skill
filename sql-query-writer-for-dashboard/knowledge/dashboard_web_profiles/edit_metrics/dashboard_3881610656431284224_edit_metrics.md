@@ -1,4 +1,4 @@
-# 昆仑山战役-暑期激励数据看板 edit metrics
+﻿# 昆仑山战役-暑期激励数据看板 edit metrics
 
 > Source: Taitan dashboard edit-page read-only API. Use together with the web profile and the Data Center SQL file for the same model_id.
 
@@ -20,9 +20,9 @@
 
 | model_id | model_name | one SQL file | pivot unit count |
 |---|---|---|---:|
-| `2727` | 暑期激励看板 | [consultant_sales_department_tenure.sql](../../../resources/raw_sql/consultant_sales_department_tenure.sql) | 2 |
-| `2751` | 暑期激励v2 | [data_center_market_2751_20260624.sql](../../../resources/raw_sql/data_center_market_2751_20260624.sql) | 2 |
-| `2842` | 暑期激励v3-月份 | [data_center_market_2842_20260624.sql](../../../resources/raw_sql/data_center_market_2842_20260624.sql) | 2 |
+| `2727` | 暑期激励看板 | [data_center_market_2727_20260705.sql](../../../resources/raw_sql/data_center_market_2727_20260705.sql) | 2 |
+| `2751` | 暑期激励v2 | [data_center_market_2751_20260705.sql](../../../resources/raw_sql/data_center_market_2751_20260705.sql) | 2 |
+| `2842` | 暑期激励v3-月份 | [data_center_market_2842_20260705.sql](../../../resources/raw_sql/data_center_market_2842_20260705.sql) | 2 |
 
 ## Text units
 

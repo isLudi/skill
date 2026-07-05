@@ -4,10 +4,10 @@
 
 该指标集合维护市场顾问-用户画像分析看板退费模块口径。当前保留两类入口：
 
-- 退款金额结构占比：`resources/raw_sql/data_center_market_2349_refund_amount_share_fixed_20260704.sql`，用于科目、产品、年级退款金额占比。
-- GMV/人头退费率：`resources/raw_sql/refund_rate_multidim.sql`，用于多维退费率分子分母。
+- 退款金额结构占比：`resources/raw_sql/data_center_market_2349_20260705.sql`，用于科目、产品、年级退款金额占比；SQL 只输出金额分子/分母，占比由看板自定义指标计算。
+- GMV/人头退费率：`resources/raw_sql/data_center_market_2890_20260705.sql`，用于多维退费率分子分母。
 
-旧 `refund_subject_product.sql` 中 `refund_total` 保留负数、前端隐式计算占比的口径已废弃；仅作为历史归档，不作为当前 2349 口径。
+旧 `refund_total` 负数口径和 SQL 行级退款金额占比口径已废弃，不作为当前 2349 口径。
 
 ## 1. 指标集合名称
 
@@ -15,12 +15,12 @@
 
 ## 2. 来源
 
-- `resources/raw_sql/refund_multi_subject_user_ratio.sql`
-- `resources/raw_sql/refund_subject_product.sql`
-- `resources/raw_sql/refund_reason_analysis.sql`
-- `resources/raw_sql/data_center_market_2349_refund_amount_share_fixed_20260704.sql`
+- `resources/raw_sql/data_center_market_2349_20260705.sql`
+- `resources/raw_sql/data_center_market_2350_20260705.sql`
+- `resources/raw_sql/data_center_market_2353_20260705.sql`
+- `resources/raw_sql/data_center_market_2890_20260705.sql`
 - 入库日期：2026-05-09
-- 2349 当前口径更新日期：2026-07-04
+- 2349 当前口径更新日期：2026-07-05
 
 ## 3. 适用范围
 
@@ -45,7 +45,6 @@
 | income_amount | 收款金额 | `sum(case when 金额字段 > 0 then 金额字段 else 0 end)` | 三份 SQL |
 | refund_amount | 退款金额 | 多数 CTE 使用 `sum(case when 金额字段 < 0 then abs(金额字段) else 0 end)` | 三份 SQL |
 | total_refund_amount | 当前筛选范围总退款金额 | 当前 2349 按筛选粒度汇总 `refund_amount` | 退费科目产品当前 SQL |
-| refund_amount_ratio | 退款金额占比 | `refund_amount / total_refund_amount` | 退费科目产品当前 SQL |
 | total_refund | 总退款 | `sum(refund_amount)` | 多科用户退费占比 SQL |
 | total_income | 总收款 | `sum(income_amount)` | 多科用户退费占比 SQL |
 
@@ -69,7 +68,7 @@
 | dim_value | 当前分析维度名称 | 科目名、产品名或年级 |
 | refund_amount | 按 `analysis_type + dim_value` 聚合退款金额 | 正数 |
 | total_refund_amount | 同一筛选范围总退款金额 | 科目和产品按 `qici + channel_1 + jingli + xiaozu + grade_list`，年级按 `qici + channel_1 + jingli + xiaozu` |
-| refund_amount_ratio | `refund_amount / total_refund_amount` | 当前图表展示占比；聚合时可用 `sum(refund_amount) / sum(total_refund_amount)` 重算 |
+| 退费金额占比 | 看板自定义指标 `sum(${refund_amount}) / sum(${total_refund_amount})` | SQL 不直接输出该字段，避免筛选后行级占比相加不等于 100% |
 
 ## 8. 退费原因指标
 
@@ -80,8 +79,8 @@
 
 ## 9. 待确认事项
 
-- 历史归档 SQL 使用三参数 `date_add`；当前 2349 fixed SQL 已改写为 interval 写法。
+- 历史归档 SQL 使用三参数 `date_add`；当前 2349 数据中心 SQL 已改写为 interval 写法。
 - 金额单位沿用财务业绩扩展表 `price/real_price`，与归因流水分单位口径不同，不应直接混合。
-- 退费原因分析仍使用 `refund_reason` 维度，尚未改造成 `total_refund_amount/refund_amount_ratio` 长表口径。
+- 退费原因分析仍使用 `refund_reason` 维度，尚未改造成 `total_refund_amount` 分母长表口径。
 - 分配规则渠道 CASE 来自历史 SQL，不等同于 `market_channel_case_when_0612.sql` 的最新渠道映射。
 - `finance_dw.dwd_finance_order_refund_df` 表结构待确认。

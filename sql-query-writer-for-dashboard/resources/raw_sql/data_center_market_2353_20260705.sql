@@ -28,7 +28,7 @@ sum(case when trade_type = '调课调班' then price else 0 end) over (partition
 end as qici
     from finance_dw.app_finance_performance_extend_details_hf 
     where dt = FORMAT_DATETIME(NOW() - INTERVAL '2' HOUR,'YYYYMMdd')
-        and hour = FORMAT_DATETIME(NOW() - INTERVAL '2' HOUR,'HH')
+        and hour = FORMAT_DATETIME(NOW() - INTERVAL '3' HOUR,'HH')
         and employee_first_level_department_name = 'H业务线'
 	    and employee_second_level_department_name = '市场部'
         and employee_third_level_department_name = '市场顾问部'

@@ -7,10 +7,10 @@
 
 - dashboard_id: `dashboard_3804681042591760385`
 - dashboard_name: `市场顾问-用户画像分析`
-- captured_at: `2026-07-05 16:48:10`
+- captured_at: `2026-07-05 20:13:32`
 - loaded_url: `https://udata.baijia.com/taitan/?dashboardId=dashboard_3804681042591760385&htmlId=html_3975684262305193985`
 - loaded_html_id: `html_3975684262305193985`
-- runtime_json: `C:\Users\Ludim\.codex\runtime\usql-web-query-operator\artifacts\20260705-164716\dashboard_3804681042591760385_edit_metrics_profile.json`
+- runtime_json: `C:\Users\Ludim\.codex\runtime\usql-web-query-operator\artifacts\20260705-201116-edit\20260705-201237\dashboard_3804681042591760385_edit_metrics_profile.json`
 - pivot_unit_count: `8`
 - configured_field_count: `99`
 - measure_count: `74`
@@ -23,14 +23,14 @@
 
 | model_id | model_name | one SQL file | pivot unit count | pivot units |
 |---|---|---|---:|---|
-| `2683` | 前期流量画像-城市 | [traffic_profile.sql](../../../resources/raw_sql/traffic_profile.sql) | 1 | 流量用户画像 |
-| `2809` | 成单用户画像整体数据 | [market_channel_conversion_profile_overall_dataset_fixed.sql](../../../resources/raw_sql/market_channel_conversion_profile_overall_dataset_fixed.sql) | 1 | 多科用户成单表 |
-| `2812` | 用户画像成单用户城市标签 | [data_center_market_2812_20260624.sql](../../../resources/raw_sql/data_center_market_2812_20260624.sql) | 1 | 透视表_副本 |
-| `2836` | 市场渠道用户成单分析 | [data_center_market_2836_20260624.sql](../../../resources/raw_sql/data_center_market_2836_20260624.sql) | 1 | 1 |
-| `2885` | 市场渠道用户成单分析3 | [data_center_market_2885_20260624.sql](../../../resources/raw_sql/data_center_market_2885_20260624.sql) | 1 | 1_副本 |
-| `2883` | 市场渠道用户成单分析2 | [market_channel_conversion_profile_deep_stage_dataset.sql](../../../resources/raw_sql/market_channel_conversion_profile_deep_stage_dataset.sql) | 1 | 1_副本_副本 |
-| `2344` | 分析--分周期转化 | [data_center_market_2344_period_conversion_aligned_20260705.sql](../../../resources/raw_sql/data_center_market_2344_period_conversion_aligned_20260705.sql) | 1 | 分周期退费数据占比 |
-| `2890` | 多科用户退费 | [refund_rate_multidim.sql](../../../resources/raw_sql/refund_rate_multidim.sql) | 1 | 多科用户退费占比 |
+| `2683` | 前期流量画像-城市 | [data_center_market_2683_20260705.sql](../../../resources/raw_sql/data_center_market_2683_20260705.sql) | 1 | 流量用户画像 |
+| `2809` | 成单用户画像整体数据 | [data_center_market_2809_20260705.sql](../../../resources/raw_sql/data_center_market_2809_20260705.sql) | 1 | 多科用户成单表 |
+| `2812` | 用户画像成单用户城市标签 | [data_center_market_2812_20260705.sql](../../../resources/raw_sql/data_center_market_2812_20260705.sql) | 1 | 透视表_副本 |
+| `2836` | 市场渠道用户成单分析 | [data_center_market_2836_20260705.sql](../../../resources/raw_sql/data_center_market_2836_20260705.sql) | 1 | 1 |
+| `2885` | 市场渠道用户成单分析3 | [data_center_market_2885_20260705.sql](../../../resources/raw_sql/data_center_market_2885_20260705.sql) | 1 | 1_副本 |
+| `2883` | 市场渠道用户成单分析2 | [data_center_market_2883_20260705.sql](../../../resources/raw_sql/data_center_market_2883_20260705.sql) | 1 | 1_副本_副本 |
+| `2344` | 分析--分周期转化 | [data_center_market_2344_20260705.sql](../../../resources/raw_sql/data_center_market_2344_20260705.sql) | 1 | 分周期退费数据占比 |
+| `2890` | 多科用户退费 | [data_center_market_2890_20260705.sql](../../../resources/raw_sql/data_center_market_2890_20260705.sql) | 1 | 多科用户退费占比 |
 
 ## Pivot units
 

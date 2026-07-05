@@ -1,8 +1,8 @@
-# 顾问部门任职期销售统计（20260424期）
+﻿# 顾问部门任职期销售统计（20260424期）
 
 ## 1. 来源
 
-原始 SQL：`resources/raw_sql/consultant_sales_department_tenure_period_20260424.sql`
+原始 SQL：`resources/raw_sql/data_center_market_2742_20260705.sql`
 
 入库时间：2026-05-08
 
@@ -12,7 +12,7 @@
 
 用于统计 `20260424期` 市场顾问在指定部门任职时间范围内产生的销售业绩流水。
 
-该 SQL 是 `consultant_sales_department_tenure.sql` 的期次过滤版本，继承同一套底层业务逻辑：
+该 SQL 是 `data_center_market_2727_20260705.sql` 的期次过滤版本，继承同一套底层业务逻辑：
 
 - 从 `dw.dim_employee_chain` 获取顾问在 `高途-H业务线-市场部-市场顾问部` 路径下的部门任职起止时间。
 - 从 `finance_dw.app_finance_performance_extend_details_hf` 抽取财务业绩流水，按交易时间推导 `qici`。
@@ -126,7 +126,7 @@ and dd_0.trade_time <= ot.end_time
 
 ## 9. 待确认事项
 
-- 该 SQL 与 `consultant_sales_department_tenure.sql` 仅差异在最终 `qici = '20260424期'` 过滤，底层口径未改变。
+- 该 SQL 与 `data_center_market_2727_20260705.sql` 仅差异在最终 `qici = '20260424期'` 过滤，底层口径未改变。
 - `org_t` 使用 `name` 关联财务流水 `employee_email_name as name`，姓名可能不唯一；如可用 `email_prefix`，建议后续确认是否改为 `email_prefix` 关联。
 - `end_time` 对在职员工是否可能为空需确认；若为空，当前 `dd_0.trade_time <= ot.end_time` 会过滤掉该员工流水。
 - 财务流水只限定了 `employee_first_level_department_name` 和 `employee_second_level_department_name`，未限定 `employee_third_level_department_name = '市场顾问部'`；是否需要补充需确认。
