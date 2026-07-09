@@ -716,3 +716,11 @@
 - 2349「退费_科目_产品」当前 SQL 只保留 `refund_amount` 和 `total_refund_amount` 分子/分母字段；删除旧 SQL 行级退款金额占比口径，要求看板自定义指标使用 `sum(refund_amount) / sum(total_refund_amount)`。
 - 清理 37 个被 20260705 版本覆盖的旧 raw SQL 或语义重复 SQL 文件；保留 `data_center_market_*_20260705.sql` 作为当前 canonical 入口。
 - 更新看板文档、指标文档、编辑页画像、Web BI 结构快照、表关系、范围规则、quick reference、decision tree，并重建反向索引后执行完整性校验。
+
+## 2026-07-09 运营侧数据看板暑期期次热修
+
+- 通过 `sync-data-center-sql` dry run 从数据中心确认 8 个运营侧相关数据集仍为当前网页端目标：`2054/2132/2293/2310/2344/2345/2423/2424`。
+- 将 runtime 中已校验的热修 SQL 同步为知识库 canonical raw SQL：`resources/raw_sql/data_center_market_{2054,2132,2293,2310,2344,2345,2423,2424}_20260709.sql`，并更新 `knowledge/dashboards/data_center_market_datasets.md` 的文件映射。
+- 修正原因：暑期运营排期后，期次不再稳定等同自然周周五；`2026-07-14` 至 `2026-07-18` 的业务期次应为 `20260716期`，旧周五推导会误显示为 `20260717期`。
+- `2054 (内部渠道)外呼过程数据` 在本次入库版本中删除末尾 `where valid_lead_count > 0`，保留有效线索为 0 的外呼过程行；字段内部用于指标判定的 `valid_lead_count > 0` 条件不变。
+- 新增 `knowledge/sql_patterns/market_summer_qici_corrections.md`，记录暑期期次改造原因、已修正数据集、短期 `case when 日期范围 then qici` 方案，以及后续用业务日历日期范围 join 统一取 `qici` 的生产改造方向。

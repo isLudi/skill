@@ -100,6 +100,8 @@
 | [knowledge/sql_patterns/first_call_task_metric_pattern.md](../sql_patterns/first_call_task_metric_pattern.md) | 生成规则 | - 若需要严格复刻某个历史运营 SQL 且该 SQL 未过滤 `task_generate_rule_type = 2`，必须在 SQL 说明中标明这是为复刻历史口径而放宽任务类型过滤；默认生成新 SQL 时仍要加 `task_generate_rule_type = 2`。 |
 | [knowledge/sql_patterns/first_call_task_metric_pattern.md](../sql_patterns/first_call_task_metric_pattern.md) | 输出粒度提示 | `is_f_call` 是根字段，输出到期次、渠道、年级、部门、顾问等任意聚合粒度时都应先 `sum(is_f_call)`。首 call 任务率在前端或最终 SQL 中用 `sum(is_f_call) / nullif(sum(valid_lead_count), 0)` 计算，不能直接 sum 已计算好的比例。 |
 | [knowledge/sql_patterns/latest_record_patterns.md](../sql_patterns/latest_record_patterns.md) | 注意 | - 如果存在同一主键多条同一更新时间记录，需增加二级排序字段并标记待确认。 |
+| [knowledge/sql_patterns/market_summer_qici_corrections.md](../sql_patterns/market_summer_qici_corrections.md) | 背景 | 因此，不能继续把“周五日期”当作所有暑期期次的唯一锚点。后续每个暑期期次应优先按业务日历维护的日期范围认定，再回填到数据集 SQL。 |
+| [knowledge/sql_patterns/market_summer_qici_corrections.md](../sql_patterns/market_summer_qici_corrections.md) | 排查提醒 | - 2054 外呼过程数据本次删除末尾 `where valid_lead_count > 0`，目的是保留重分期后有效线索数为 0 的过程行，避免看板筛选期下分母或过程明细被提前过滤。 |
 | [knowledge/sql_patterns/outbound_call_process_export_template.md](../sql_patterns/outbound_call_process_export_template.md) | 4. SQL 模板 | when f.deep_communicate_method is not null |
 | [knowledge/sql_patterns/outbound_call_process_export_template.md](../sql_patterns/outbound_call_process_export_template.md) | 4. SQL 模板 | when yc.abnormal_traffic is not null |
 | [knowledge/sql_patterns/outbound_call_process_export_template.md](../sql_patterns/outbound_call_process_export_template.md) | 4. SQL 模板 | and (f.period_mapping_first_level_department_name = 'H业务线' or f.period_mapping_first_level_department_name is null) |
