@@ -2,13 +2,14 @@
 
 ## 1. 来源
 
-`resources/raw_sql/data_center_qingcheng_2460_20260626.sql`
+`resources/raw_sql/data_center_qingcheng_2460_20260709.sql`
 
-入库时间：2026-06-26
+入库时间：2026-06-26；当前热修版本：2026-07-09
 
 来源说明：
 
 - 本版由 runtime 已验证 SQL `runtime/tmp/qingcheng_conversion_raw_discounted_podan_final_20260625.sql` 回写为 canonical raw SQL。
+- 2026-07-09 将 runtime 热修 SQL `runtime/qingcheng_qici_20260716_patch_20260709/data_center_qingcheng_2460_20260709_qici0716_hotfix.sql` 同步为当前 canonical raw SQL。
 - 该 canonical SQL 同时作为 `转化数据看板` 的当前知识库源 SQL。
 
 ## 2. 查询目标
@@ -22,7 +23,9 @@
 
 本版核心变化：
 
-- `qici` 改为以 `trade_timestamp` 真实交易时间分桶：周二到周日归当周周五期次，周一归上一周周五期次。
+- `qici` 以业务日历优先、历史周五逻辑兜底：2026-07-09 热修将 `2026-07-14` 至 `2026-07-18` 归为 `20260716期`，其他日期仍按 `trade_timestamp` 周五期次逻辑生成。
+- 当结果期次为 `20260716期` 且 `rule_name` 提取短期次为 `0717期` 时，`qici0` 归一为 `0716期`，避免当期指标被误判为往期。
+- 线索侧 `bb.qici` 对 `group_period_year + group_period_term` 也增加同一日期范围优先分支，保证有效线索量和订单结果在 `20260716期` 对齐。
 - `mm -> temp_table.dingxi01_qing_team_jg` 改为 `employee_email_name + qici` join，不再用最新架构回填历史结果期次。
 - 营收逻辑统一到 service 主表，并在 service 已带 `transfer_in_amount/transfer_out_amount` 的行上直接剔除内部调课调班金额。
 - `podan` 改为按折算净收口径统计，不再使用简单的 `promit > 0`。
@@ -82,10 +85,12 @@ qici + channel_map_2/qudao + grade_1/grade_0 + employee_email_name/name + virtua
 
 ### 7.1 结果期次 `qici`
 
-订单结果期次来自 `trade_timestamp`：
+订单结果期次来自 `trade_timestamp`，但暑期期次优先按业务日期范围修正：
 
 ```sql
 case
+    when cast(gmv.trade_timestamp as date) between date '2026-07-14' and date '2026-07-18'
+    then '20260716期'
     when day_of_week(cast(gmv.trade_timestamp as timestamp)) = 1 then
         concat(
             date_format(
@@ -110,6 +115,11 @@ end
 - Presto `day_of_week(...)=1` 表示周一。
 - 周一归上一周周五期次。
 - 周二到周日归当前周周五期次。
+- `2026-07-14` 至 `2026-07-18` 是暑期业务日历修正窗口，优先归 `20260716期`，不能按固定周五显示为 `20260717期`。
+
+### 7.1.1 线索侧期次 `bb.qici`
+
+线索量 CTE `bb` 原本按 `group_period_year + group_period_term` 再推导周五期次。2026-07-09 起，先判断该组合日期是否落入 `2026-07-14` 至 `2026-07-18`，若命中则同样归 `20260716期`。否则再回退历史周五推导逻辑。
 
 ### 7.2 当期判断 `is_on_period`
 
@@ -117,9 +127,11 @@ end
 
 | 字段 | 生成方式 |
 |---|---|
-| `qici0` | `regexp_extract(rule_name, '(\d{4}期)', 1)` |
+| `qici0` | 默认 `regexp_extract(rule_name, '(\d{4}期)', 1)`；当结果期次为 `20260716期` 且提取值为 `0717期` 时归一为 `0716期` |
 | `period` | `regexp_extract(qici, '\d{4}(\d{4}期)', 1)` |
 | `is_on_period` | `case when qici0 = period then 1 else 0 end` |
+
+这一步会影响 `p_pay_user`、`p_pay_sub`、`p_income` 以及前端基于这些字段计算的当期转化率、当期订单转化率和当期单效。
 
 ## 8. 营收和破蛋逻辑
 
@@ -230,8 +242,8 @@ count(distinct case
 
 ## 13. 已知风险
 
-- `qici0` 依赖 `rule_name` 中仍能稳定提取 `\d{4}期`；若 rule_name 格式变化，当期/往期判断会漂移。
-- `bb` 线索侧期次仍使用历史 `group_period_year + group_period_term` 推导，和订单侧 `trade_timestamp` 分桶不是同一来源。
+- `qici0` 依赖 `rule_name` 中仍能稳定提取 `\d{4}期`；暑期期次热修仅覆盖 `20260716期` 对应的 `0717期 -> 0716期` 归一，后续其他期次必须继续按业务日历补充分支。
+- `bb` 线索侧期次仍来自 `group_period_year + group_period_term`，和订单侧 `trade_timestamp` 不是同一来源；当前仅对 `2026-07-14` 至 `2026-07-18` 做一致性修正。
 - `prc` 保持 `hour = now() - 3h`，与 `lead_map` / `bb` 的 `-2h` 存在快照时间差。
 - `bb_dedup` 仅在完全同维度重复时保留一条；如果同顾问同一期次同渠道同年级同主管仍有多条，业务语义需继续确认。
 - `cost_lead` 仍是硬编码，成本变更不会自动从配置表生效。

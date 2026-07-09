@@ -13,7 +13,7 @@
 
 | model_id | model_name | source SQL |
 |---:|---|---|
-| 2460 | `转化数据` | [data_center_qingcheng_2460_20260626.sql](../../../resources/raw_sql/data_center_qingcheng_2460_20260626.sql) |
+| 2460 | `转化数据` | [data_center_qingcheng_2460_20260709.sql](../../../resources/raw_sql/data_center_qingcheng_2460_20260709.sql) |
 
 ## Pivot Units
 

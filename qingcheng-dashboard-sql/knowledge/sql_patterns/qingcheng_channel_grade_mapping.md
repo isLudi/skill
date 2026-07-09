@@ -127,7 +127,7 @@ f.lead_purchase_intention_level2_category_name
 
 ## 7. 转化 raw 版本差异
 
-来源：`resources/raw_sql/data_center_qingcheng_2460_20260626.sql`。
+来源：`resources/raw_sql/data_center_qingcheng_2460_20260709.sql`。
 
 转化 SQL 中存在两套渠道映射：
 
@@ -195,7 +195,7 @@ f.lead_purchase_intention_level2_category_name
 
 ## 8. 转化成本映射
 
-来源：`resources/raw_sql/data_center_qingcheng_2460_20260626.sql`。
+来源：`resources/raw_sql/data_center_qingcheng_2460_20260709.sql`。
 
 | 条件 | `cost_lead` |
 |---|---|

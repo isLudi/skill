@@ -2,7 +2,7 @@
 
 ## 1. 来源
 
-`resources/raw_sql/data_center_qingcheng_2460_20260626.sql`
+`resources/raw_sql/data_center_qingcheng_2460_20260709.sql`
 
 适用看板：`knowledge/dashboards/qingcheng_conversion_raw_20260626.md`
 
@@ -49,13 +49,15 @@
 
 | 指标 | SQL 口径 | 说明 | 状态 |
 |---|---|---|---|
-| `is_on_period` | `case when dd.qici0 = dd.period then 1 else 0 end` | `rule_name` 提取期次等于交易时间周五结果期次 | 已从 SQL 入库 |
+| `is_on_period` | `case when dd.qici0 = dd.period then 1 else 0 end` | `rule_name` 提取短期次等于结果期次短码；20260716 热修中 `0717期` 会在结果期次为 `20260716期` 时归一为 `0716期` | 已从 SQL 入库 |
 | `sc` | 用户层 `date_diff('day', date(max(section_assign_time)), date(min(case when income_amount > 0 then trade_timestamp end)))`，顾问层 `sum(sc)` | 成单周期天数汇总 | 待人工确认聚合方式 |
 
-`qici` 当前按 `trade_timestamp` 生成：
+`qici` 当前按业务日历优先、`trade_timestamp` 周五逻辑兜底生成：
 
+- `2026-07-14` 至 `2026-07-18`：归为 `20260716期`。
 - 周二到周日：归到当周周五期次。
 - 周一：回拨到上一周周五期次。
+- 线索侧 `bb.qici` 对 `group_period_year + group_period_term` 增加同样的 `2026-07-14` 至 `2026-07-18` 优先分支。
 
 ## 6. 线索量和成本
 
@@ -69,7 +71,7 @@
 - 当前版本已修复 `bb_dedup` 未按年级对齐导致的吞数问题；若同顾问同一期次同渠道同年级同主管仍有多行，保留 `rn = 1` 是否合理待人工确认。
 - `pay_sub` 和 `p_pay_sub` 在用户层计 distinct 科目，顾问层直接求和；如果同一用户跨渠道/顾问重复，需确认是否符合口径。
 - `sc` 顾问层求和是否应改为平均周期、有效用户平均周期或中位数待确认。
-- `p_` 前缀当前表示当期，即 `dd.qici0 = dd.period`。
+- `p_` 前缀当前表示当期，即 `dd.qici0 = dd.period`；20260716 热修必须同步修正 `qici0`，否则 `p_pay_user`、`p_pay_sub`、`p_income` 会被误归为往期。
 - 2026-06-26 canonical 版本课程一级部门白名单包含 `H业务线`、`LL业务线`、`TUTU`、`TT`、`A业务线`、`EM业务线`、`KA业务线`、`TT业务线`、`创新中心`；二级部门白名单包含 `创新学部`、`升学规划中心`、`线上考研学部`。
 - `cost_lead` 是硬编码，不依赖成本表；后续如果成本口径变化必须更新 SQL 和本文档。
 - `jieliang` 为 `case when v_lead > 5 then employee_email_name else '0' end` 的输出标记，业务含义待人工确认。

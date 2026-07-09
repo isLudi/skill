@@ -68,7 +68,7 @@
 
 ## 9. 已入库转化口径
 
-来源：`resources/raw_sql/data_center_qingcheng_2460_20260626.sql`
+来源：`resources/raw_sql/data_center_qingcheng_2460_20260709.sql`
 
 | 口径 | 文档 |
 |---|---|
@@ -81,7 +81,7 @@
 
 当前 retained snapshot 的关键特点：
 
-- 结果期次 `qici` 由 `trade_timestamp` 按“周二到下周一归当周周五期次、周一回拨到上周周五期次”生成。
+- 结果期次 `qici` 由业务日历优先、`trade_timestamp` 周五逻辑兜底生成；2026-07-09 热修已将 `2026-07-14` 至 `2026-07-18` 归为 `20260716期`。
 - 营收以 `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` 为主明细来源，并剔除已落在 service 明细 `transfer_in_amount / transfer_out_amount` 的内部调课调班链路。
 - `podan` 不再按简单 `promit > 0` 统计，而是按折算净收 `((H_promit_4 - Y_promit_4) + n_H_promit_4 * 0.5) > 0` 统计。
 - 团队架构补充改为 `employee_email_name + qici`，避免未来架构表覆盖历史结果期次归属。

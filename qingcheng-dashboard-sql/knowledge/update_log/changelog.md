@@ -358,3 +358,10 @@
   - 团队完成度月度验证 `query id 1445453872`：李兵建小组 202607 月结果可执行并输出月度聚合。
   - 正常订单保护验证 `query id 1445458630 / 1445463148 / 1445467414`：三份 SQL 均未把正常订单误判为内部调课调班，错误标记金额均为 `0`。
 - 同步更新 dashboard、metrics、表说明、join 文档、quick reference、decision tree、完成度修复 checklist 和个人完成度风险文档。后续排查个人/团队完成度异常时，必须同时检查 `dim_finance_order_change_df` 和 service 明细的 `transfer_in_amount / transfer_out_amount`。
+
+## 2026-07-09 青橙转化数据看板暑期期次热修
+
+- 将 runtime 热修版 SQL `runtime/qingcheng_qici_20260716_patch_20260709/data_center_qingcheng_2460_20260709_qici0716_hotfix.sql` 同步为当前 canonical raw SQL：`resources/raw_sql/data_center_qingcheng_2460_20260709.sql`。
+- 修正原因：2026 年 7 月后青橙暑期业务排期不再稳定等同自然周周五；`2026-07-14` 至 `2026-07-18` 这 5 天实际业务期次应为 `20260716期`，旧固定周五逻辑会显示为 `20260717期`。
+- 修正范围：订单侧结果期次 `dd.base.qici` 增加日期范围优先分支；线索侧 `bb.qici` 增加同一范围分支；当结果期次为 `20260716期` 且 `rule_name` 提取短期次为 `0717期` 时，将 `qici0` 归一为 `0716期`，避免 `is_on_period` 和当期指标误归为往期。
+- 同步更新 `data_center_qingcheng_datasets.md`、转化 raw 文档、转化指标文档、前端指标联动、业务档案、表说明、quick reference、decision tree，并新增 `knowledge/sql_patterns/qingcheng_summer_qici_corrections.md`，作为后续其他暑期期次继续校正的入口。
