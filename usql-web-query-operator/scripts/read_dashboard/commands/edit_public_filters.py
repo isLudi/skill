@@ -7,6 +7,7 @@ import json
 from _shared.auth import ensure_authenticated
 from _shared.browser import import_playwright, launch_context
 from _shared.env import load_env_file
+from _shared.errors import UsageError
 from _shared.fs_utils import ensure_runtime, safe_artifact_dir
 
 from ..common import write_json
@@ -19,7 +20,17 @@ from ..filter_edit import (
 )
 
 
+def validate_edit_mode(args) -> None:
+    if args.publish and args.dry_run:
+        raise UsageError("--publish requires --apply.")
+    if args.publish and not args.confirm_publish:
+        raise UsageError("--publish requires --confirm-publish.")
+    if args.confirm_publish and not args.publish:
+        raise UsageError("--confirm-publish is only valid together with --publish.")
+
+
 def cmd_edit_public_filters(args) -> int:
+    validate_edit_mode(args)
     load_env_file(args.env_file)
     sync_playwright = import_playwright()
     ensure_runtime([args.state_path.parent, args.artifacts_dir])
@@ -79,6 +90,7 @@ def cmd_edit_public_filters(args) -> int:
         "target_set": args.target_set,
         "folder": args.folder,
         "publish": args.publish,
+        "confirm_publish": args.confirm_publish,
         "dry_run": args.dry_run,
         "filter_plan": plan,
         "count": len(results),

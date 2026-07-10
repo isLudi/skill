@@ -102,7 +102,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     edit_filters = subparsers.add_parser(
         "edit-public-filters",
-        help="Set the first and second public filters to dynamic values, then save and publish dashboards.",
+        help="Plan public-filter changes by default; explicitly apply to draft and optionally publish.",
     )
     edit_filters.add_argument("--folder", default="青橙播报")
     edit_filters.add_argument(
@@ -128,11 +128,27 @@ def build_parser() -> argparse.ArgumentParser:
     edit_filters.add_argument("--executable-path", default=None, help="Explicit browser executable path; overrides --browser-channel.")
     edit_filters.add_argument("--scan-wait-ms", type=int, default=3_000, help="Wait after opening the BI dashboard list.")
     edit_filters.add_argument("--wait-ms", type=int, default=3_000, help="Wait after opening each edit page before calling edit APIs.")
-    edit_filters.add_argument("--publish", dest="publish", action="store_true", default=True, help="Publish after updating filters. Default.")
-    edit_filters.add_argument("--no-publish", dest="publish", action="store_false", help="Update draft only; do not save and publish.")
-    edit_filters.add_argument("--dry-run", action="store_true", help="Read and plan changes without calling update or publish APIs.")
+    edit_mode = edit_filters.add_mutually_exclusive_group()
+    edit_mode.add_argument(
+        "--apply",
+        dest="dry_run",
+        action="store_false",
+        help="Apply the planned public-filter changes to the dashboard draft.",
+    )
+    edit_mode.add_argument(
+        "--dry-run",
+        dest="dry_run",
+        action="store_true",
+        help="Read and plan changes without calling update or publish APIs. This is the default.",
+    )
+    edit_filters.add_argument("--publish", action="store_true", default=False, help="Publish after --apply updates the draft.")
+    edit_filters.add_argument(
+        "--confirm-publish",
+        action="store_true",
+        help="Explicitly confirm full publication. Required together with --apply --publish.",
+    )
     edit_filters.add_argument("--strict-filter-count", action="store_true", help="Fail when a requested filter index is missing.")
-    edit_filters.set_defaults(func=cmd_edit_public_filters)
+    edit_filters.set_defaults(func=cmd_edit_public_filters, dry_run=True)
 
     profile_folder = subparsers.add_parser("profile-folder", help="Profile selected dashboards under a folder.")
     profile_folder.add_argument("--folder", default="市场顾问数据")

@@ -1,4 +1,4 @@
 interface:
   display_name: "SQL Query Writer for Dashboard"
   short_description: "Generate governed Presto SQL for internal dashboard queries from company table/ metric/ join knowledge."
-  default_prompt: "Use sql-query-writer-for-dashboard to generate or fix Presto SQL for company dashboard data queries based on the knowledge base of tables, metrics, dashboards, and join patterns."
+  default_prompt: "Use $sql-query-writer-for-dashboard to generate or fix Presto SQL for company dashboard data queries based on the knowledge base of tables, metrics, dashboards, and join patterns."

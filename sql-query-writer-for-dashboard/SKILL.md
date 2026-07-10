@@ -1,4 +1,4 @@
-﻿---
+---
 name: sql-query-writer-for-dashboard
 description: Generate governed Presto SQL for internal dashboard and exploratory data queries from company table schema PDFs, metric definitions, historical dashboard SQL, join knowledge, and query-platform constraints. Use when asked to create, explain, validate, or fix dashboard取数 SQL.
 ---
@@ -19,7 +19,7 @@ description: Generate governed Presto SQL for internal dashboard and exploratory
 6. `knowledge/01_table_index.md`：确认候选表、分区和 USQL 权限状态。
 7. `knowledge/reverse_index/*.md`：当只知道字段、表、指标、raw SQL 或 debug 线索时先读，用于反向定位候选文档。
 8. 相关 `knowledge/tables/*.md`、`knowledge/metrics/*.md`、`knowledge/dashboards/*.md`、`knowledge/dashboard_web_profiles/*.md`、`knowledge/joins/*.md`、`knowledge/pitfalls/*.md`、`knowledge/sql_patterns/*.md`：只读取与当前需求相关的文件。
-9. 当用户要求执行 SQL 并下载结果、或需要将查询结果用于 Python 分析时，通过 `usql-web-query-operator` Skill 调用 Playwright Web 自动化执行查询并下载 xlsx。具体流程参考 `knowledge/sql_patterns/web_query_playwright.md`。凭证使用 `E:\2000_work\GAOTU\20002_市场顾问部看板维护表格\usql_api.env` 中的 `BAIJIA_USERNAME` 和 `BAIJIA_PASSWORD`，浏览器登录状态保存在 `C:\Users\Ludim\.codex\runtime\usql-web-query-operator\state.json`。
+9. 当用户要求执行 SQL 并下载结果、或需要将查询结果用于 Python 分析时，通过 `usql-web-query-operator` Skill 调用 Playwright Web 自动化执行查询并下载 xlsx。具体流程参考 `knowledge/sql_patterns/web_query_playwright.md`。凭证文件统一通过命令行 `--env-file` 或环境变量 `USQL_ENV_FILE` 指定；未指定时由 operator 使用本机兼容回退路径。浏览器登录状态保存在 `C:\Users\Ludim\.codex\runtime\usql-web-query-operator\state.json`。
 10. 涉及表可读性判断、权限失败、或某些表无法通过 Web 查询时，读取 `knowledge/sql_patterns/web_permission_guide.md`；不要把权限问题简单归因为 SQL 语法。
 
 文件编码规则：

@@ -15,8 +15,8 @@
 
 | 项目 | 位置 |
 |---|---|
-| 百家登录账号 | `E:\2000_work\GAOTU\20002_市场顾问部看板维护表格\usql_api.env` 中的 `BAIJIA_USERNAME` |
-| 百家登录密码 | `E:\2000_work\GAOTU\20002_市场顾问部看板维护表格\usql_api.env` 中的 `BAIJIA_PASSWORD` |
+| 百家登录账号 | `--env-file` 或 `USQL_ENV_FILE` 指向文件中的 `BAIJIA_USERNAME` |
+| 百家登录密码 | `--env-file` 或 `USQL_ENV_FILE` 指向文件中的 `BAIJIA_PASSWORD` |
 | 浏览器登录状态 | `C:\Users\Ludim\.codex\runtime\usql-web-query-operator\state.json` |
 | 脚本入口 | `c:\Users\Ludim\.codex\skills\usql-web-query-operator\scripts\usql_web_query.py` |
 
@@ -27,7 +27,8 @@
 D:\anaconda3\python.exe c:\Users\Ludim\.codex\skills\usql-web-query-operator\scripts\usql_web_query.py doctor
 
 # 首次登录或 state 过期时，刷新登录状态
-powershell -Command "Get-Content -Encoding UTF8 'E:\2000_work\GAOTU\20002_市场顾问部看板维护表格\usql_api.env' | ForEach-Object { ... }; D:\anaconda3\python.exe ... login"
+$env:USQL_ENV_FILE='<本机 usql_api.env 绝对路径>'
+D:\anaconda3\python.exe C:\Users\Ludim\.codex\skills\usql-web-query-operator\scripts\usql_web_query.py login --headed
 # 具体命令参考: c:\Users\Ludim\.codex\skills\usql-web-query-operator\SKILL.md
 
 # 执行查询（headless 不显示浏览器）

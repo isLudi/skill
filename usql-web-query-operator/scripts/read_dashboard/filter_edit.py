@@ -325,7 +325,7 @@ def edit_dashboard_public_filters(
     if not getattr(args, "dry_run", False):
         update_response = update_public_filter_detail(page, dashboard_id, html_id, updated_detail)
         after_config = fetch_edit_config(page, dashboard_id)
-        if getattr(args, "publish", True):
+        if getattr(args, "publish", False):
             publish_response = publish_dashboard(page, after_config, args.version_description, html_id)
 
     after_detail = fetch_public_filter_detail(page, dashboard_id, relation_id)
@@ -342,7 +342,7 @@ def edit_dashboard_public_filters(
             str(item.get("dynamics_filter_value")) == str(applied_plan[item["filter_index"]])
             for item in verification
         )
-    if getattr(args, "publish", True) and not getattr(args, "dry_run", False):
+    if getattr(args, "publish", False) and not getattr(args, "dry_run", False):
         ok = ok and bool(publish_response and publish_response.get("publish_status") == "success")
 
     result = {
@@ -358,7 +358,7 @@ def edit_dashboard_public_filters(
         "plan": plan,
         "applied_plan": applied_plan,
         "dry_run": bool(getattr(args, "dry_run", False)),
-        "published": bool(getattr(args, "publish", True) and not getattr(args, "dry_run", False)),
+        "published": bool(getattr(args, "publish", False) and not getattr(args, "dry_run", False)),
         "changes": changes,
         "verification": verification,
         "update_response": update_response,

@@ -17,7 +17,7 @@
 
 ## 凭据来源
 
-本地 env 文件 `E:\1900_work\GAOTU\19002_市场顾问部看板维护表格\usql_api.env` 可以包含 `BAIJIA_USERNAME` 和 `BAIJIA_PASSWORD`。脚本会读取该文件，但不会打印值。
+统一凭证文件通过命令行 `--env-file` 或环境变量 `USQL_ENV_FILE` 指定，可以包含 `BAIJIA_USERNAME` 和 `BAIJIA_PASSWORD`。未指定时脚本使用本机兼容回退路径；脚本读取凭证但不会打印值。
 
 ## 已知手工流程
 
@@ -239,7 +239,9 @@ iframe 编辑器工具栏中的运行按钮回退方案：
 
 2026-07-04 已验证：
 
-- 生产命令：`D:\anaconda3\python.exe scripts\read_dashboard.py edit-public-filters --target-set qingcheng-required`
+- 计划命令：`D:\anaconda3\python.exe scripts\read_dashboard.py edit-public-filters --target-set qingcheng-required`，默认只 dry-run。
+- 写草稿命令：在计划确认后显式增加 `--apply`。
+- 全量发布命令：在再次确认后显式增加 `--apply --publish --confirm-publish`。
 - 默认目标文件夹：`青橙播报`。
 - 内置目标 `qingcheng-required` 覆盖 6 个看板：`主管_过程数据播报-青橙`、`私域-渠道团队`、`私域--伙伴推送`、`图书_SEC伙伴_青橙`、`主管_过程数据-青橙`、`公域--伙伴推送`。
 - 默认修改规则：第 1 个全局筛选器设为动态筛选 `第一项`（`dynamicsFilterValue="1"`），第 2 个全局筛选器设为动态筛选 `第二项`（`dynamicsFilterValue="2"`）。可用 `--first-value`、`--second-value` 覆盖。
@@ -251,7 +253,7 @@ iframe 编辑器工具栏中的运行按钮回退方案：
 
 边界：
 
-- 该命令是写入命令，会更新草稿并在默认情况下全量发布。仅检查计划时用 `--dry-run`；只更新草稿不用发布时用 `--no-publish`。
+- 该命令默认是只读计划，不调用更新或发布接口。只有 `--apply` 才更新草稿；只有 `--apply --publish --confirm-publish` 才全量发布。
 - 该命令只修改公共筛选器动态默认项，不修改指标、图表字段、SQL、布局或权限配置。
 - 调试产物写入 runtime artifact 目录，不写入业务 SQL skill。
 

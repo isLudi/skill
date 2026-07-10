@@ -1,22 +1,13 @@
-# Load credentials from .env file and run usql login.
+# Run USQL login with the shared environment-file configuration.
 # Usage: powershell -ExecutionPolicy Bypass -File _login_helper.ps1 [--manual] [--headed]
 
-$envFile = "E:\1900_work\GAOTU\19002_市场顾问部看板维护表格\usql_api.env"
 $script  = "c:\Users\Ludim\.codex\skills\usql-web-query-operator\scripts\usql_web_query.py"
 $python  = "D:\anaconda3\python.exe"
 
-Get-Content -Encoding UTF8 $envFile | ForEach-Object {
-    $line = $_.Trim()
-    if ($line -and $line -notmatch '^\s*#') {
-        if ($line -match '^([^=]+)=(.*)$') {
-            $key = $matches[1].Trim()
-            $val = $matches[2].Trim() -replace '^["'']|["'']$', ''
-            [Environment]::SetEnvironmentVariable($key, $val, 'Process')
-        }
-    }
-}
-
 $argsList = @($script, "login")
+if (-not [string]::IsNullOrWhiteSpace($env:USQL_ENV_FILE)) {
+    $argsList += @("--env-file", $env:USQL_ENV_FILE)
+}
 if ($args.Count -gt 0) {
     $argsList += $args
 }

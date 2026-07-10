@@ -724,3 +724,10 @@
 - 修正原因：暑期运营排期后，期次不再稳定等同自然周周五；`2026-07-14` 至 `2026-07-18` 的业务期次应为 `20260716期`，旧周五推导会误显示为 `20260717期`。
 - `2054 (内部渠道)外呼过程数据` 在本次入库版本中删除末尾 `where valid_lead_count > 0`，保留有效线索为 0 的外呼过程行；字段内部用于指标判定的 `valid_lead_count > 0` 条件不变。
 - 新增 `knowledge/sql_patterns/market_summer_qici_corrections.md`，记录暑期期次改造原因、已修正数据集、短期 `case when 日期范围 then qici` 方案，以及后续用业务日历日期范围 join 统一取 `qici` 的生产改造方向。
+
+## 2026-07-10 Text2SQL P0 注册、配置与验证门禁修复
+
+- 移除 `SKILL.md` 文件头 BOM，修正 `agents/openai.yaml` 的 `$sql-query-writer-for-dashboard` 调用入口，并将 metadata 版本更新为 `0.2.4`。
+- 将 SQL 网页执行说明统一改为通过命令行 `--env-file` 或环境变量 `USQL_ENV_FILE` 指定凭证文件，不再在运行入口硬编码易漂移路径。
+- 在 skills 仓库新增统一 Text2SQL 栈验证入口，串行运行三个 Skill 的 `quick_validate`、两个业务 SQL Skill 的 integrity、当前文档引用检查和 USQL P0 安全测试。
+- 本次只修复 Skill 发现、运行配置和安全验证，不修改指标口径、表结构、看板 SQL、Raw SQL 或反向索引。
