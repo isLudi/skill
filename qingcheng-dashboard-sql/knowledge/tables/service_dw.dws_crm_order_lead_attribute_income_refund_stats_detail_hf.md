@@ -242,6 +242,7 @@ where dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
 - `lead_id`
 - `performance_employee_email_name`
 - `original_order_user_number`
+- TMK 潜客转正常线索漏斗中，应使用转移后的正常线索 ID 与本表 `lead_id` 关联；不要用潜客 ID 直接关联本表。
 
 ## 10. 常用 SQL 片段
 
@@ -259,3 +260,4 @@ coalesce(income_amount / 100, 0) - coalesce(refund_amount / 100, 0) as promit_am
 - 转化 raw 当前把本表作为主营收来源，并使用本表自带 `transfer_in_amount` / `transfer_out_amount` 排除已在 service 明细中体现的内部调课调班金额。
 - 订单明细侧核对个人/团队完成度时，不要只用原始 `income_amount` / `refund_amount`；部分调课调班链路金额可能体现在 `transfer_in_amount` / `transfer_out_amount`，甚至 service 明细缺失，需要用 `finance_dw.app_finance_performance_extend_details_hf` 补齐缺失事件。
 - 2026-07-03 起，个人完成度、团队完成度【期】、团队完成度【月】从本表 `order_attr` 聚合 `transfer_in_amount/transfer_out_amount`，用于补充识别 `dim_finance_order_change_df` 漏链路的内部调课调班；该字段只作为识别信号，不替代 finance 明细的金额事实源。
+- 2026-07-09 TMK 转移明细验证中，`desc service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` 成功，query id `1456920675`；小样本验证确认当前可用线索键为 `lead_id`，并可输出 `original_order_user_number`、`performance_employee_email_name`、`income_amount`、`refund_amount`、`grade_name`、`mapping_school_subject_name`、`school_subject_name`、`main_teacher_nickname`，query id `1456926952`。

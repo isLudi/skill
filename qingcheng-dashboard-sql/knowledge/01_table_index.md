@@ -7,6 +7,7 @@
 | 表名 | 中文名称 | 主要用途 | 分区字段 | 小时字段 | 状态 | 详情 |
 |---|---|---|---|---|---|---|
 | `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df` | 线索成本 GMV 沟通学习全链路表 | 青橙有效线索主表 | `dt` | `hour` | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md` |
+| `bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf` | 潜客转线索指标统计表 | 青橙 TMK/规划系统潜客过程数据和潜客转正常线索链路回补 | `dt` | `hour` | 数据地图和 live SQL 已确认；转移承接顾问覆盖待补充来源 | `knowledge/tables/bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf.md` |
 | `dw.dim_employee_chain` | 员工组织链维表 | 员工青橙任职起止时间 | `dt` | 无 | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/dw.dim_employee_chain.md` |
 | `service_dw.dm_crm_lead_stats_detail_hf` | 线索统计明细小时表 | 首次接通时间差 | `dt` | `hour` | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/service_dw.dm_crm_lead_stats_detail_hf.md` |
 | `service_dw.app_h_crm_lead_employee_workload_detail_hf` | CRM 线索员工工作量明细小时表 | 外呼次数、接通、通时 | `dt` | `hour` | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/service_dw.app_h_crm_lead_employee_workload_detail_hf.md` |

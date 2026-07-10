@@ -124,10 +124,14 @@ where crm_leads_id is not null
 - `crm_leads_id = bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.lead_id`
   - 字段语义：两侧均为“线索 ID”。
   - 当前状态：2026-06-27 使用 `dt='20260627' and hour='16'` 的青橙主宽表样本验证，30 行命中 30 行；query id `1433250612`。
+- `crm_leads_id = bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf.lead_id`
+  - 字段语义：当 app 表 `lead_model_type=1` 时，两侧均可作为潜客 ID 使用。
+  - 当前状态：2026-07-09 以 `dwd` 的 TMK/规划系统潜客转移链路回补 app 表潜客字段，最新小时可补到多数 TMK 顾问；query id `1456978632`。
 - `user_id = bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.user_id`
   - 适用于用户级回查；若一个用户对应多条线索，不能替代线索级 join。
 - `previous_model_id = dwd_crm_leads_rt.crm_leads_id`
   - 当前状态：`previous_model_id > 0` 样本 30 行命中 30 行；query id `1433259664`。`previous_model_id = 0` 不能作为有效上一阶段 ID 使用。
+  - 2026-07-09 补充验证：对 `purchase_intention_name in ('高中预科青橙TMK','高一青橙TMK','高二青橙TMK','高三青橙TMK','规划系统高一','规划系统高二','规划系统高三')` 的潜客，使用正常线索 `model_type=0 and previous_model_id>0` 可获得 TMK/规划系统潜客转正常线索明细；query id `1456961079`。
 
 ## 10. 常用 SQL 片段
 
@@ -153,3 +157,4 @@ where f.dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
 - 本表来自数据湖服务域，DDL 显示为 Iceberg 表；数据地图未登记 `dt/hour` 分区，不要想当然套用小时快照表写法。
 - `previous_model_id` 目前稳妥理解为“上一阶段模型 ID”。正数样本可回连到本表 `crm_leads_id`，且上一阶段 `model_type_desc` 多为 `潜客`；但 `previous_model_id = 0` 是无效上阶段标识，写 SQL 时必须过滤。
 - 2026-06-27 已通过数据地图脚本确认表存在、字段共 51 个、无显式分区列；同日通过网页 SQL 小样本补验完成 `lead_id = crm_leads_id` 和 `previous_model_id > 0 = prev.crm_leads_id` 两条关系。
+- 本表不提供 TMK 顾问、承接顾问、渠道和成交金额等完整业务字段。TMK 顾问和渠道需回补 `bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf`；成交需用转移后的正常线索 ID 回连 `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.lead_id`。

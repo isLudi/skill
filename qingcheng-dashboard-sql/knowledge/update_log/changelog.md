@@ -365,3 +365,18 @@
 - 修正原因：2026 年 7 月后青橙暑期业务排期不再稳定等同自然周周五；`2026-07-14` 至 `2026-07-18` 这 5 天实际业务期次应为 `20260716期`，旧固定周五逻辑会显示为 `20260717期`。
 - 修正范围：订单侧结果期次 `dd.base.qici` 增加日期范围优先分支；线索侧 `bb.qici` 增加同一范围分支；当结果期次为 `20260716期` 且 `rule_name` 提取短期次为 `0717期` 时，将 `qici0` 归一为 `0716期`，避免 `is_on_period` 和当期指标误归为往期。
 - 同步更新 `data_center_qingcheng_datasets.md`、转化 raw 文档、转化指标文档、前端指标联动、业务档案、表说明、quick reference、decision tree，并新增 `knowledge/sql_patterns/qingcheng_summer_qici_corrections.md`，作为后续其他暑期期次继续校正的入口。
+
+## 2026-07-09 青橙 TMK 潜客转正常线索链路探查
+
+- 新增表文档 `knowledge/tables/bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf.md`，记录“潜客转线索指标统计表”的用途、分区、核心字段、TMK/规划系统意向过滤和与 `data_lake_fuwu.dwd_crm_leads_rt` 的关联边界。
+- 更新 `knowledge/01_table_index.md`、`knowledge/tables/data_lake_fuwu.dwd_crm_leads_rt.md`、`knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md`、`knowledge/joins/common_join_keys.md`、`knowledge/joins/table_relationships.md`，沉淀以下链路：
+  - 潜客阶段：`bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf.lead_id = data_lake_fuwu.dwd_crm_leads_rt.crm_leads_id`，且 app 表 `lead_model_type=1`；
+  - 转移阶段：正常线索 `data_lake_fuwu.dwd_crm_leads_rt.previous_model_id = 潜客 crm_leads_id`，且正常线索 `model_type=0`；
+  - 成交阶段：用转移后的正常线索 ID 关联 `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.lead_id`，金额字段按分转元。
+- live 验证记录：
+  - `desc bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf`，query id `1456918587`；
+  - `desc service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf`，query id `1456920675`；
+  - service 业财字段样本验证，query id `1456926952`；
+  - `dwd_crm_leads_rt` 自关联 TMK/规划系统潜客转正常线索验证，query id `1456961079`；
+  - 最终明细导出 SQL，query id `1457006107`。
+- 关键限制：当前最新小时快照里，严格按青橙截面范围只能补到极少数历史转移后的承接顾问；`service_dw.dm_crm_lead_stats_detail_hf` 同样只能补到 1 条。后续如业务必须全量补齐“线索承接顾问”，需要继续寻找 CRM 当前 owner / 转移记录明细表，不能从本轮已验证的三张表中强推。

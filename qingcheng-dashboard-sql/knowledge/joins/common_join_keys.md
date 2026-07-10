@@ -15,6 +15,9 @@
 | `daoke dk` | `temp_table.dingxi01_qing_daoke ke` | `qici + channel_map_2 = qudao + grade_1 = grade + begin_time` | left join | 标记课次，支持第 1 至第 6 讲 | 已从 SQL 入库，唯一性待确认 |
 | `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf gmv` | `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df ld` | `lead_id + performance_employee_email_name = employee_email_name` | left join | 订单业绩补充青橙渠道、投放计划、分配规则、直属主管和地域字段；青橙渠道订单明细 raw 复用该 join | 已从 SQL 入库，`ld` 唯一性和范围完整性待确认 |
 | `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df f` | `data_lake_fuwu.dwd_crm_leads_rt lrt` | `lead_id = crm_leads_id` | left join | 回查 CRM 原始线索状态、source、模型阶段和 `previous_model_id` | 2026-06-27 小样本验证命中 30/30；`previous_model_id > 0` 自关联命中 30/30 |
+| `bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf p` | `data_lake_fuwu.dwd_crm_leads_rt prelead` | `p.lead_id = prelead.crm_leads_id and p.lead_model_type = 1` | left join | 回补青橙 TMK/规划系统潜客阶段顾问、渠道、年级和过程字段 | 2026-07-09 live 验证；以 `dwd` 转移链路为主过滤时覆盖率高于严格青橙截面过滤 |
+| `data_lake_fuwu.dwd_crm_leads_rt lead` | `data_lake_fuwu.dwd_crm_leads_rt prelead` | `lead.previous_model_id = prelead.crm_leads_id` | inner/left join | 潜客转正常线索漏斗；`lead.model_type=0`，`prelead.model_type=1` | 2026-07-09 TMK/规划系统意向验证成功，query id `1456961079` |
+| `data_lake_fuwu.dwd_crm_leads_rt lead` | `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf o` | `lead.crm_leads_id = o.lead_id` | left join | 转移后正常线索是否成交、成交年级/科目/主讲、成交金额/退费/净金额 | 使用 service 表课程和业绩范围过滤；2026-07-09 当前样本无成交命中 |
 | `dd` | `prc` | `lead_id + performance_employee_email_name = employee_email_name + rn = 1` | left join | 判断订单是否属于线索期次 | 已从 SQL 入库 |
 | `bb_dedup` | `ud` | `employee_email_name/name + qici + channel_map_2/qudao + grade_1/grade_0 + virtual_direct_leader_email_name/zhuguan` | full outer join | 合并线索量和业绩指标，并保留年级维度 | 已从 SQL 入库，若同维度仍多行则保留 `rn = 1` |
 | `mm` | `temp_table.dingxi01_qing_team_jg` | `employee_email_name` | left join | 补充最新团队架构 | 已从 SQL 入库 |
