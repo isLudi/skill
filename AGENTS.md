@@ -51,17 +51,13 @@ When a user request matches any scenario below, automatically load and orchestra
 
 ### Skill Inventory & Trigger Conditions
 
-#### sql-query-writer-for-dashboard
+#### sql-query-writer-for-dashboard（市场顾问部）
 **Load when ANY of the following is true:**
-- User wants to query, fetch, or export data from the company's internal database
-- User asks to write, modify, explain, or fix SQL (especially Presto SQL)
-- User mentions dashboards (看板), metrics (指标), table schemas (表结构), field meanings (字段含义), or data definitions (口径)
-- User provides a SQL error message and asks for a fix
-- User mentions company-specific business concepts: consultant (顾问), lead (线索), conversion (转化), outbound call (外呼), department/org structure (部门/架构), channel (渠道), refund (退款), traffic (流量), etc.
-- User says "query/ fetch/ pull/ run XX data" (查/取/跑/拉 XX 数据)
-- User asks to maintain or update the skill knowledge base (tables, metrics, dashboard docs, etc.), unless the request is explicitly for 青橙项目部 / Qingcheng project department
+- User explicitly asks about 市场顾问部 / market consultant dashboards, metrics, SQL, tables, joins, ranges, channels, evaluation, attendance, outbound calls, refunds, traffic, or knowledge maintenance
+- A known dashboard, metric, raw SQL, temporary table, or debug clue is registered to the `market_consultant` domain
+- User asks to create, explain, validate, repair, execute, or export SQL after domain resolution selects `market_consultant`
 
-**Scope:** SQL generation, validation, and repair; knowledge base lookups; reverse lookup across fields, tables, metrics, raw SQL, and debug clues; metric definition explanations. Does NOT execute SQL or manipulate Excel files.
+**Scope:** Market-consultant-only semantic-contract resolution, QuerySpec/QueryPlan planning, conservative supported SQL compilation, bounded read-only probes, validation, and repair; isolated knowledge lookups and reverse lookup across fields, tables, metrics, raw SQL, and debug clues. Does NOT execute SQL, manipulate Excel files, or supply Qingcheng semantics.
 
 #### qingcheng-dashboard-sql
 **Load when ANY of the following is true:**
@@ -70,7 +66,7 @@ When a user request matches any scenario below, automatically load and orchestra
 - User asks to ingest, maintain, or correct 青橙 dashboard docs, metric docs, table docs, temp-table docs, join docs, changelog entries, or Web BI structure snapshots
 - User asks to profile or document 青橙 dashboard front-end structure for later SQL/BI maintenance
 
-**Scope:** Qingcheng-only SQL generation and isolated knowledge-base maintenance. All 青橙 artifacts, including Web BI profile markdown, README indexes, quick references, decision trees, and reverse indexes, must stay inside `skills/qingcheng-dashboard-sql`.
+**Scope:** Qingcheng-only semantic-contract resolution, QuerySpec/QueryPlan planning, conservative supported SQL compilation, bounded read-only probes, validation, and isolated knowledge-base maintenance. All 青橙 artifacts, including semantic contracts and manifests, Web BI profile markdown, README indexes, quick references, decision trees, and reverse indexes, must stay inside `skills/qingcheng-dashboard-sql`.
 
 #### usql-web-query-operator
 **Load when ANY of the following is true:**
@@ -84,7 +80,7 @@ When a user request matches any scenario below, automatically load and orchestra
 - User wants to read Taitan dashboard edit-page pivot-table fields, metric meanings, or custom metric formulas without modifying the dashboard
 - User explicitly wants to dry-run, apply, or publish the supported Taitan public-filter dynamic-default edit workflow
 
-**Scope:** Playwright web automation for SQL execution, direct xlsx result downloads, Template Query stored-SQL fetch and large-result download, BI dashboard scanning/profiling, and read-only Taitan edit-page metric/formula profiling. Dashboard operations are read-only by default. The only current dashboard mutation is the explicitly authorized `edit-public-filters` workflow: it defaults to dry-run, requires `--apply` to update a draft, and requires `--apply --publish --confirm-publish` to publish. Does NOT generate SQL or modify dashboard metrics, fields, layout, datasets, or permissions.
+**Scope:** Playwright web automation for SQL execution, optional read-only QueryPlan/hash validation before execution, direct xlsx result downloads, Template Query stored-SQL fetch and large-result download, BI dashboard scanning/profiling, and read-only Taitan edit-page metric/formula profiling. Dashboard operations are read-only by default. The only current dashboard mutation is the explicitly authorized `edit-public-filters` workflow: it defaults to dry-run, requires `--apply` to update a draft, and requires `--apply --publish --confirm-publish` to publish. Does NOT generate SQL or modify dashboard metrics, fields, layout, datasets, or permissions.
 
 #### playwright
 **Load only when ANY of the following is true:**
@@ -130,37 +126,49 @@ When a user request matches any scenario below, automatically load and orchestra
 
 **Scope:** `lark-*` skills are the preferred path for Feishu data and operations. Keep setup/auth, identity repair, and scope recovery in `lark-shared`, then hand off to the most specific domain skill.
 
+### Text2SQL Domain Resolution
+
+Resolve the business domain before selecting a SQL-writing Skill or generating SQL:
+
+1. Explicit 市场顾问部 / market-consultant language, or an artifact registered to `market_consultant`, selects `sql-query-writer-for-dashboard`.
+2. Explicit 青橙项目部 / Qingcheng language, or an artifact registered to `qingcheng`, selects `qingcheng-dashboard-sql`.
+3. If a metric, range, join, dashboard, or business definition could belong to either domain, create a QuerySpec with `domain: unresolved` and resolve the missing domain before generating production SQL. Never default an unresolved request to the market-consultant Skill.
+4. A domain-unresolved request may inspect the neutral shared physical catalog for table names, fields, types, partitions, and candidate keys, but it must not inherit a department metric, range, temporary table, channel mapping, business join, or dashboard definition.
+5. Cross-department comparison requires two independent QuerySpecs, one per domain, each with its own evidence and validation. Combine results only after each side has been computed at an explicitly compatible aggregation grain; never copy one department's semantics into the other.
+
+For either business Skill, the QuerySpec must identify domain, intent, metrics, dimensions, filters, business scope, time range, calculation grain, output grain, candidate tables, join path, evidence, and unresolved slots. A QuerySpec with unresolved required slots is not executable. Only source-backed `confirmed` semantic contracts may enter an executable QueryPlan; ambiguity, pending contracts, scope conflicts, grain mismatch, or an unreviewed multi-table join must remain blocked or require manual SQL review.
+
 ### Composite Workflows (Auto-Orchestrated)
 
 When a task spans multiple skills, chain them in the order specified below.
 
-If the business domain is explicitly 青橙项目部, replace step 1's SQL-writing skill with `qingcheng-dashboard-sql` and keep every generated knowledge artifact under that skill only.
+In the workflows below, **selected business SQL skill** means the Skill chosen by Text2SQL Domain Resolution: `sql-query-writer-for-dashboard` for `market_consultant`, or `qingcheng-dashboard-sql` for `qingcheng`. Keep every generated knowledge artifact inside the selected business Skill.
 
 #### Workflow A: Data Query & Fetch (highest frequency)
 > "Query last week's outbound call conversion data" (查一下上周外呼转化数据)
 
-1. **sql-query-writer-for-dashboard** - Search knowledge base, generate Presto SQL
-2. **usql-web-query-operator** - Execute SQL via Playwright on the SQL platform, preview results
+1. **selected business SQL skill** - Resolve the domain and domain-local contracts, build and validate the QuerySpec/QueryPlan, then generate governed Presto SQL from domain-local evidence
+2. **usql-web-query-operator** - Execute SQL via Playwright on the SQL platform and preview results; when a QueryPlan is supplied, validate its executable status, unresolved slots, and exact SQL hash before browser launch
 3. If download is needed and the result can stay within the normal `SQL取数` safety boundary -> `usql-web-query-operator` downloads xlsx
 4. If the user explicitly needs a large-result export that would trigger the `SQL取数` approval path -> switch to **Workflow L**
 
 #### Workflow B: Query + Export to Excel Report
 > "Export this month's consultant sales ranking to Excel" (导出本月顾问销售排名到 Excel)
 
-1. **sql-query-writer-for-dashboard** - Generate SQL
+1. **selected business SQL skill** - Build the domain-specific QuerySpec/QueryPlan and generate SQL
 2. **usql-web-query-operator** - Execute SQL and download xlsx; if the export would exceed the direct `SQL取数` download boundary, switch to **Workflow L**
 3. **xlsx** - Open the downloaded file, format it, add formulas, and produce the polished report
 
 #### Workflow C: SQL Fix & Re-run
 > "This SQL errored out - fix it" (这个 SQL 报错了，修一下)
 
-1. **sql-query-writer-for-dashboard** - Analyze error details and repair the SQL
+1. **selected business SQL skill** - Analyze and repair the SQL within the original QuerySpec domain
 2. **usql-web-query-operator** - Re-execute the fixed SQL
 
 #### Workflow D: SQL Generation Only
 > "Write a SQL query for XX" (写一个查询 XX 的 SQL)
 
-- **sql-query-writer-for-dashboard** only (no execution)
+- **selected business SQL skill** only: resolve domain contracts, validate QuerySpec/QueryPlan, and generate SQL without execution
 
 #### Workflow E: Dashboard Discovery & Profiling
 > "What dashboards are under the 市场顾问数据 folder?" (看一下市场顾问数据文件夹下有哪些看板)
@@ -189,7 +197,7 @@ If the business domain is explicitly 青橙项目部, replace step 1's SQL-writi
 #### Workflow G: Query + Analyze Results
 > "Query XX data, then analyze the trends" (查询 XX 数据，然后分析趋势)
 
-1. **sql-query-writer-for-dashboard** - Generate SQL
+1. **selected business SQL skill** - Build the domain-specific QuerySpec and generate SQL
 2. **usql-web-query-operator** - Execute SQL and download xlsx; if the export would exceed the direct `SQL取数` download boundary, switch to **Workflow L**
 3. **xlsx** - Load the data with pandas and perform analysis or visualization
 
@@ -204,7 +212,7 @@ If the business domain is explicitly 青橙项目部, replace step 1's SQL-writi
 
 1. **usql-web-query-operator** - Capture the debug screenshot from the Playwright session
 2. **mineru-converter** - Read the screenshot via `flash-extract` and return the text or error content
-3. **usql-web-query-operator** or **sql-query-writer-for-dashboard** - Use the extracted text to diagnose and repair
+3. **usql-web-query-operator** or **selected business SQL skill** - Use the extracted text to diagnose and repair without changing the resolved domain
 
 #### Workflow J: USQL Selector Drift & Browser Fallback
 > A SQL/BI automation script fails because the page structure, selector, popup, or interaction flow appears to have changed
@@ -222,7 +230,7 @@ If the business domain is explicitly 青橙项目部, replace step 1's SQL-writi
 #### Workflow L: Large-Result Download Via Template Query
 > "Download this concrete SQL result even if it exceeds 1000 rows" (这个具体 SQL 的结果超过 1000 行也要下载)
 
-1. **sql-query-writer-for-dashboard** - Generate or finalize a concrete SQL file with no unresolved template parameters
+1. **selected business SQL skill** - Generate or finalize a concrete SQL file whose QuerySpec and template parameters are fully resolved
 2. **usql-web-query-operator** - Use `template-download` to create a temporary Template Query template, publish it, create the query, download the result, then run `offline -> delete`
 3. If a formatted deliverable is needed -> **xlsx**
 
@@ -237,12 +245,19 @@ If the business domain is explicitly 青橙项目部, replace step 1's SQL-writi
 
 1. **Auto-detect**: On receiving a user request, determine which skill(s) are needed based on the trigger conditions above, then execute in workflow order. Never wait for the user to say "please load skill X."
 2. **Progress transparency**: When orchestrating multiple skills, briefly inform the user at each stage transition, for example "Generating SQL -> Executing via web -> Exporting to Excel".
-3. **Failure recovery**: If a stage fails, auto-repair in the next stage when possible. Example: SQL error -> fall back to `sql-query-writer-for-dashboard` for a fix and retry; expired web login -> prompt the user for manual login.
+3. **Failure recovery**: If a stage fails, auto-repair in the next stage when possible. A SQL error must return to the same selected business SQL skill and original domain; never repair it by falling back to the other department. For an expired web login, prompt the user for manual login.
 4. **Global UTF-8 enforcement**: The UTF-8 policy above is not optional. Whenever commands or files involve non-ASCII content, follow the UTF-8 rules before using PowerShell, Python, Node, Playwright wrappers, document tools, or API/debug scripts.
 5. **Boundary enforcement**:
-   - `sql-query-writer-for-dashboard` is read-only with respect to skill content unless the user explicitly requests knowledge-base maintenance
+   - Resolve `market_consultant`, `qingcheng`, or `unresolved` before semantic retrieval. An unresolved business request must not default to `sql-query-writer-for-dashboard`
+   - `sql-query-writer-for-dashboard` is the market-consultant business Skill and is read-only with respect to skill content unless the user explicitly requests market-consultant knowledge-base maintenance
+   - Market-consultant isolation: market metrics, dashboards, temp tables, channel mappings, evaluation/attendance rules, joins, changelog entries, semantic manifests, and `dashboard_web_profiles` must stay inside `skills/sql-query-writer-for-dashboard`; never mix them into `qingcheng-dashboard-sql`
    - Qingcheng isolation: any 青橙 dashboard docs, metrics, temp tables, joins, changelog entries, or `dashboard_web_profiles` content must be written only to `skills/qingcheng-dashboard-sql`; never mix them into `sql-query-writer-for-dashboard`
-   - SQL skill index maintenance: after modifying dashboards, metrics, tables, temp tables, joins, or raw SQL for either `sql-query-writer-for-dashboard` or `qingcheng-dashboard-sql`, run that skill's `scripts/build_reverse_indexes.py` before `scripts/check_skill_integrity.py`
+   - QuerySpec gate: production SQL requires a resolved domain, domain-local evidence, explicit time/range semantics, calculation grain, output grain, candidate tables, and join path; unresolved required slots block execution
+   - Semantic contract gate: only source-hash-bound `confirmed` contracts may enter an executable QueryPlan, and deterministic compilation additionally requires explicit automatic-compile approval. `pending_confirmation`, ambiguous aliases, conflicting or missing scope, incompatible dimensions, grain mismatch, complex recipes, and unreviewed joins must not be silently compiled
+   - QueryPlan execution gate: when a plan is supplied to `usql-web-query-operator`, it must be executable, have no unresolved slots, and match the exact submitted SQL SHA-256. A QueryPlan does not authorize downloads, dashboard writes, template writes, or publication
+   - Cross-department work must maintain two independent QuerySpecs and may combine only validated, grain-compatible results
+   - The shared physical catalog may contain only neutral physical facts. It must not contain department metrics, ranges, temporary tables, channel or period mappings, business joins, dashboard semantics, or raw SQL definitions
+   - SQL skill index maintenance: after modifying dashboards, metrics, tables, temp tables, joins, raw SQL, or semantic contracts, run the selected Skill's `scripts/build_reverse_indexes.py`, then run repository-level `scripts/build_text2sql_catalog.py`, then the selected Skill's `scripts/check_skill_integrity.py`; close the stack with `scripts/validate_text2sql_stack.py`
    - Feishu skill location: install and maintain Feishu CLI skills under `C:\Users\Ludim\.codex\skills\lark-*`; do not treat `C:\Users\Ludim\.codex\.agents\skills` as the long-term home for these skills
    - Feishu skill discovery: every installed `lark-*` skill must keep `agents/openai.yaml`; if a new skill does not appear in the callable skill list, inspect its registration metadata and restart Codex after install or update
    - `usql-web-query-operator` safety policy: no direct `SQL取数` downloads exceeding 1000 rows without confirmation; when the user explicitly needs a large-result export and the SQL is already concrete, prefer the Template Query temporary-download path with enforced cleanup (`offline -> delete`); never expose credentials
