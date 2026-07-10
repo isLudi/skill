@@ -82,8 +82,9 @@ When a user request matches any scenario below, automatically load and orchestra
 - User says "run this SQL" (跑一下这个 SQL), "execute this query" (执行这个查询), "download results" (下载结果)
 - User wants to profile BI dashboard structures
 - User wants to read Taitan dashboard edit-page pivot-table fields, metric meanings, or custom metric formulas without modifying the dashboard
+- User explicitly wants to dry-run, apply, or publish the supported Taitan public-filter dynamic-default edit workflow
 
-**Scope:** Playwright web automation for SQL execution, direct xlsx result downloads, Template Query stored-SQL fetch and large-result download, BI dashboard scanning/profiling, and read-only Taitan edit-page metric/formula profiling. Does NOT generate SQL or modify dashboards.
+**Scope:** Playwright web automation for SQL execution, direct xlsx result downloads, Template Query stored-SQL fetch and large-result download, BI dashboard scanning/profiling, and read-only Taitan edit-page metric/formula profiling. Dashboard operations are read-only by default. The only current dashboard mutation is the explicitly authorized `edit-public-filters` workflow: it defaults to dry-run, requires `--apply` to update a draft, and requires `--apply --publish --confirm-publish` to publish. Does NOT generate SQL or modify dashboard metrics, fields, layout, datasets, or permissions.
 
 #### playwright
 **Load only when ANY of the following is true:**
@@ -172,6 +173,14 @@ If the business domain is explicitly 青橙项目部, replace step 1's SQL-writi
 - **usql-web-query-operator** only (`read_dashboard.py profile-edit-dashboard`)
 - Boundary: read-only. Do not save, publish, delete, create, update, or otherwise modify dashboard metrics.
 
+#### Workflow E3: Authorized Dashboard Public-Filter Edit
+> "Preview or update the supported Taitan public-filter dynamic defaults" (预览或更新已支持的 Taitan 公共筛选器动态默认项)
+
+1. **usql-web-query-operator** - Run `read_dashboard.py edit-public-filters` without `--apply`; this is the mandatory dry-run plan.
+2. Inspect the target dashboards and before/after values. Require explicit user authorization before adding `--apply` to update drafts.
+3. Publishing is a separate production mutation. Require explicit publication confirmation before adding `--publish --confirm-publish`.
+4. Boundary: this workflow does not modify metrics, component fields, layout, datasets, SQL, or permissions.
+
 #### Workflow F: Excel-Only Operations
 > "Clean up this CSV and turn it into a formatted Excel file" (把这个 CSV 整理成格式化的 Excel)
 
@@ -237,13 +246,16 @@ If the business domain is explicitly 青橙项目部, replace step 1's SQL-writi
    - Feishu skill location: install and maintain Feishu CLI skills under `C:\Users\Ludim\.codex\skills\lark-*`; do not treat `C:\Users\Ludim\.codex\.agents\skills` as the long-term home for these skills
    - Feishu skill discovery: every installed `lark-*` skill must keep `agents/openai.yaml`; if a new skill does not appear in the callable skill list, inspect its registration metadata and restart Codex after install or update
    - `usql-web-query-operator` safety policy: no direct `SQL取数` downloads exceeding 1000 rows without confirmation; when the user explicitly needs a large-result export and the SQL is already concrete, prefer the Template Query temporary-download path with enforced cleanup (`offline -> delete`); never expose credentials
+   - Dashboard edit safety: `edit-public-filters` must run as dry-run first. `--apply` requires explicit authorization to update drafts; `--publish --confirm-publish` requires a separate explicit confirmation to publish. Never infer dashboard-write authorization from a read/profile request
    - Playwright boundary: do not use generic Playwright directly for `SQL取数` execution, BI dashboard scanning or profiling, Taitan edit-page metric or formula profiling, authenticated SQL-platform downloads, or login-state management; route those through `usql-web-query-operator`
    - `xlsx` formula rule: use Excel formulas, not hardcoded Python-computed values
 6. **Credentials**:
    - Generic Playwright must not read, write, copy, or replace the USQL browser storage state. Keep SQL/BI login state owned by `usql-web-query-operator` at `C:\Users\Ludim\.codex\runtime\usql-web-query-operator\state.json`
-   - `usql-web-query-operator` reads login credentials from `E:\2000_work\GAOTU\20002_市场顾问部看板维护表格\usql_api.env` (`BAIJIA_USERNAME` / `BAIJIA_PASSWORD`). Never hardcode them. Browser login state is stored at `C:\Users\Ludim\.codex\runtime\usql-web-query-operator\state.json`
-   - `mineru-converter` reads `MINERU_TOKEN` from the same env file `E:\2000_work\GAOTU\20002_市场顾问部看板维护表格\usql_api.env`. Token expires 2026-09-09. Load it with:
+   - Configure the shared credentials file with `USQL_ENV_FILE`, or pass `--env-file` to an operator command. The file contains `BAIJIA_USERNAME` / `BAIJIA_PASSWORD`; never hardcode or print them. Browser login state is stored at `C:\Users\Ludim\.codex\runtime\usql-web-query-operator\state.json`
+   - `mineru-converter` reads `MINERU_TOKEN` from the same `USQL_ENV_FILE`. Token expires 2026-09-09. Load it with:
 
 ```powershell
-$env:MINERU_TOKEN = (Get-Content -LiteralPath "E:\2000_work\GAOTU\20002_市场顾问部看板维护表格\usql_api.env" -Encoding UTF8 | Select-String '^MINERU_TOKEN=(.+)$').Matches.Groups[1].Value
+$envFile = $env:USQL_ENV_FILE
+if ([string]::IsNullOrWhiteSpace($envFile)) { throw 'USQL_ENV_FILE is not configured.' }
+$env:MINERU_TOKEN = (Get-Content -LiteralPath $envFile -Encoding UTF8 | Select-String '^MINERU_TOKEN=(.+)$').Matches.Groups[1].Value
 ```
