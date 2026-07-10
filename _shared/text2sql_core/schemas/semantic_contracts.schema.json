@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.codex/text2sql/semantic_contracts.schema.json",
+  "title": "Domain-local Text2SQL semantic contracts",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "domain", "contracts"],
+  "properties": {
+    "schema_version": {"const": "2.0.0"},
+    "domain": {"enum": ["market_consultant", "qingcheng"]},
+    "contracts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "aliases", "status", "source_path", "source_sha256"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^(market_consultant|qingcheng):(metric|dimension|join|scope):"},
+          "name": {"type": "string", "minLength": 1},
+          "aliases": {"type": "array", "items": {"type": "string", "minLength": 1}},
+          "status": {"enum": ["confirmed", "pending_confirmation"]},
+          "automatic_compile": {"type": "boolean"},
+          "source_path": {"type": "string", "minLength": 1},
+          "source_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        }
+      }
+    }
+  }
+}

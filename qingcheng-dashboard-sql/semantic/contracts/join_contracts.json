@@ -1,0 +1,145 @@
+{
+  "schema_version": "2.0.0",
+  "domain": "qingcheng",
+  "contracts": [
+    {
+      "id": "qingcheng:join:refund_to_order_change",
+      "name": "青橙退款流水关联订单变更链",
+      "aliases": [
+        "退款关联调课调班",
+        "订单变更链",
+        "refund_order_change"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/joins/common_join_keys.md",
+      "source_sha256": "400fc99bbedde07c9f28005b7c70eda7bcf4ce686acbe71989ba4c3ce0f5663d",
+      "left_table": "finance_dw.dm_finance_order_refund_detail_df",
+      "right_table": "finance_dw.dim_finance_order_change_df",
+      "join_type": "left",
+      "keys": [
+        {
+          "left": "order_number",
+          "right": "order_number"
+        }
+      ],
+      "key_pairs": [
+        {
+          "left": "order_number",
+          "right": "order_number"
+        }
+      ],
+      "cardinality": "many_to_one_after_right_preaggregation",
+      "risks": [
+        "右表必须先展开父订单、原始订单和最新子订单号，并按 order_number 聚合；直接关联明细会放大退款。",
+        "仅命中订单变更链不足以排除正常成交，必须结合 trade_type='调课调班' 或既有内部变更标记。"
+      ]
+    },
+    {
+      "id": "qingcheng:join:order_to_lead_attribution",
+      "name": "青橙订单业绩关联线索归因",
+      "aliases": [
+        "订单关联线索",
+        "业绩线索归因",
+        "order_lead_attribution"
+      ],
+      "status": "pending_confirmation",
+      "source_path": "knowledge/joins/common_join_keys.md",
+      "source_sha256": "400fc99bbedde07c9f28005b7c70eda7bcf4ce686acbe71989ba4c3ce0f5663d",
+      "left_table": "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
+      "right_table": "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+      "join_type": "left",
+      "keys": [
+        {
+          "left": "lead_id",
+          "right": "lead_id"
+        },
+        {
+          "left": "performance_employee_email_name",
+          "right": "employee_email_name"
+        }
+      ],
+      "key_pairs": [
+        {
+          "left": "lead_id",
+          "right": "lead_id"
+        },
+        {
+          "left": "performance_employee_email_name",
+          "right": "employee_email_name"
+        }
+      ],
+      "cardinality": "many_to_unknown",
+      "risks": [
+        "线索全链路右表在 lead_id + employee_email_name 上的唯一性尚未确认。",
+        "右表子查询若只有 dt/hour 而没有青橙范围，可能把其他部门归因行带入订单。",
+        "生产使用前应先按 join key 检查重复并验证 join 前后金额守恒。"
+      ]
+    },
+    {
+      "id": "qingcheng:join:team_structure_to_period_month",
+      "name": "青橙期次架构关联月份映射",
+      "aliases": [
+        "期次转月份",
+        "架构期次映射月份",
+        "qici_moth"
+      ],
+      "status": "pending_confirmation",
+      "source_path": "knowledge/joins/common_join_keys.md",
+      "source_sha256": "400fc99bbedde07c9f28005b7c70eda7bcf4ce686acbe71989ba4c3ce0f5663d",
+      "left_table": "temp_table.dingxi01_qing_team_jg",
+      "right_table": "temp_table.dingxi01_qing_qi_moth",
+      "join_type": "left",
+      "keys": [
+        {
+          "left": "qici",
+          "right": "qici"
+        }
+      ],
+      "key_pairs": [
+        {
+          "left": "qici",
+          "right": "qici"
+        }
+      ],
+      "cardinality": "many_to_one_expected",
+      "risks": [
+        "月份映射表 qici 是否唯一尚未确认。",
+        "moth 是业务期次月，不得静默替换为 trade_timestamp 的自然月。",
+        "个人与团队完成度必须保留交易期次/结果期次架构，不能改取最新架构。"
+      ]
+    },
+    {
+      "id": "qingcheng:join:transferred_lead_to_prelead",
+      "name": "青橙转移后正常线索回连潜客",
+      "aliases": [
+        "潜客转正常线索",
+        "转移线索回查潜客",
+        "previous_model_id"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/joins/common_join_keys.md",
+      "source_sha256": "400fc99bbedde07c9f28005b7c70eda7bcf4ce686acbe71989ba4c3ce0f5663d",
+      "left_table": "data_lake_fuwu.dwd_crm_leads_rt",
+      "right_table": "data_lake_fuwu.dwd_crm_leads_rt",
+      "join_type": "inner_or_left",
+      "keys": [
+        {
+          "left": "previous_model_id",
+          "right": "crm_leads_id"
+        }
+      ],
+      "key_pairs": [
+        {
+          "left": "previous_model_id",
+          "right": "crm_leads_id"
+        }
+      ],
+      "cardinality": "many_to_one_expected",
+      "risks": [
+        "左侧必须限定 model_type=0，右侧必须限定 model_type=1。",
+        "该关联只证明转移链路，成交仍需用转移后的正常 lead_id 关联订单表。",
+        "当前已验证的是既有小样本；扩大时间范围时仍应复核重复和覆盖率。"
+      ]
+    }
+  ]
+}

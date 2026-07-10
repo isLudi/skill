@@ -1,0 +1,77 @@
+{
+  "schema_version": "2.0.0",
+  "domain": "qingcheng",
+  "cases": [
+    {
+      "id": "qingcheng:eval:valid_leads_alias",
+      "query": "有效线索",
+      "expected_ids": [
+        "qingcheng:metric:valid_leads"
+      ],
+      "expected_status": "resolved"
+    },
+    {
+      "id": "qingcheng:eval:first_lesson_attendance_alias",
+      "query": "首节到课",
+      "expected_ids": [
+        "qingcheng:metric:first_lesson_attendance"
+      ],
+      "expected_status": "resolved"
+    },
+    {
+      "id": "qingcheng:eval:first_lesson_valid_attendance_alias",
+      "query": "首节有效到课",
+      "expected_ids": [
+        "qingcheng:metric:first_lesson_valid_attendance"
+      ],
+      "expected_status": "resolved"
+    },
+    {
+      "id": "qingcheng:eval:income_alias",
+      "query": "收入金额",
+      "expected_ids": [
+        "qingcheng:metric:income_amount_yuan"
+      ],
+      "expected_status": "resolved"
+    },
+    {
+      "id": "qingcheng:eval:net_revenue_alias",
+      "query": "净营收",
+      "expected_ids": [
+        "qingcheng:metric:net_revenue_yuan"
+      ],
+      "expected_status": "resolved"
+    },
+    {
+      "id": "qingcheng:eval:discounted_output_alias",
+      "query": "折算后产出",
+      "expected_ids": [
+        "qingcheng:metric:discounted_output"
+      ],
+      "expected_status": "resolved"
+    },
+    {
+      "id": "qingcheng:eval:pending_completion_alias",
+      "query": "青橙完成率",
+      "expected_ids": [
+        "qingcheng:metric:team_completion_rate"
+      ],
+      "expected_status": "resolved"
+    },
+    {
+      "id": "qingcheng:eval:consultant_ambiguity",
+      "query": "顾问",
+      "expected_ids": [
+        "qingcheng:dimension:performance_consultant",
+        "qingcheng:dimension:section_consultant"
+      ],
+      "expected_status": "ambiguous"
+    },
+    {
+      "id": "qingcheng:eval:unknown_metric",
+      "query": "不存在的青橙指标",
+      "expected_ids": [],
+      "expected_status": "unknown"
+    }
+  ]
+}

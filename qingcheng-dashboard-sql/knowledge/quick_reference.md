@@ -1,6 +1,31 @@
-﻿# 快速参考卡
+# 快速参考卡
 
 > 80% 高频青橙取数入口。只用于快速定位，生成 SQL 前仍需读取对应表、指标、看板、join、范围或反向索引文档。
+
+## Text2SQL 最短路径
+
+1. 先确认业务域必须为 `qingcheng`；若业务域未决或属于市场顾问部，停止使用本卡，不能默认套用青橙口径。
+2. 读取 `semantic/domain_manifest.json` 定位候选实体和证据位置，再读取 `semantic/generated/contract_index.json` 解析指标、维度、join 与范围别名。
+3. 只打开命中的 `semantic/contracts/*.json` 条目及其 `source_path`；`confirmed` 可进入规划，`pending_confirmation` 必须进入待确认项。
+4. 若用户只说“顾问”，必须区分 `qingcheng:dimension:section_consultant`（线索分配顾问）与 `qingcheng:dimension:performance_consultant`（业绩归属顾问），不能默认选一个。
+5. 使用 `scripts/text2sql.py` 构建并校验 QuerySpec 2.0；至少明确指标契约、维度、过滤、业务范围、时间、计算粒度、输出粒度、候选表、join path、evidence 和 unresolved slots。
+6. 从 QuerySpec 生成 QueryPlan，检查基础表、指标表达式、范围、join 风险和 `executable` 状态。
+7. 仅对全部 confirmed、无未决槽位且单基础表的 QueryPlan 使用 `compile`；多表 join 回到青橙历史 SQL 和 join 文档人工审阅。
+8. 使用 `probe` 生成新鲜度、分布、重复键或 join 风险的有界只读 SQL；probe 不是执行授权，实际运行仍交给 USQL operator。
+9. 只读取本卡或 `knowledge/decision_tree.md` 路由出的具体文档；不要全量加载知识库。共享物理目录只能补充中性物理事实。
+
+跨部门对比必须另建一份 `market_consultant` QuerySpec；两边各用各自证据生成并校验 SQL，只在兼容聚合粒度上合并结果。
+
+### P2 状态速查
+
+| 状态/场景 | 允许动作 | 禁止动作 |
+|---|---|---|
+| 单一 `confirmed` 契约命中 | 读取契约来源，构建 QuerySpec 和 QueryPlan | 跳过来源文档直接把 contract index 当口径正文 |
+| `pending_confirmation` 契约命中 | 输出待确认项；生成有界 probe 或人工 SQL 计划 | 标记 QueryPlan 可执行、自动 compile 或交给 USQL |
+| 同一别名命中多个契约 | 保留 `ambiguous`，要求补充业务语义 | 按表名、历史习惯或另一业务域自动选取 |
+| confirmed 且 `automatic_compile=true` 的单表 QueryPlan | compile 后继续做 AST 与青橙规则校验 | 把 confirmed 或编译成功等同于业务正确或执行授权 |
+| 一级渠道/二级渠道/`channel_map_1`/`channel_map_2` | `semantic/contracts/dimension_contracts.json` | `knowledge/sql_patterns/qingcheng_channel_grade_mapping.md` 与 2064 权威 SQL | 使用青橙过程渠道派生维度；不要退回原始 `channel_name_2`，抖音正价退费必须在两级都输出抖音复用 |
+| 多表 join QueryPlan | 读取 `knowledge/joins/`、对应 Raw SQL 和风险索引，人工审阅 | 让 P2 单表编译器自动拼 join |
 
 ## 高频看板入口
 

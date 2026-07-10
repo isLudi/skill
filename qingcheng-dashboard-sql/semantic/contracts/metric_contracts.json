@@ -1,0 +1,298 @@
+{
+  "schema_version": "2.0.0",
+  "domain": "qingcheng",
+  "contracts": [
+    {
+      "id": "qingcheng:metric:valid_leads",
+      "name": "青橙有效线索量",
+      "aliases": [
+        "有效线索",
+        "有效线索量",
+        "v_lead"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/qingcheng_conversion_metrics.md",
+      "source_sha256": "41b7ccd47cd77897cb7acdeefe142fc683571ce1d05d3ce6b5bf4035938fb006",
+      "description": "在线索明细粒度将 valid_lead_count=1 记为 1，再按目标维度求和。CAST 用于兼容历史 SQL 中字符串比较与表文档中 bigint 类型的差异。",
+      "sql_expression": "SUM(CASE WHEN CAST({base}.valid_lead_count AS VARCHAR) = '1' THEN 1 ELSE 0 END)",
+      "output_alias": "v_lead",
+      "aggregation": "sum",
+      "automatic_compile": true,
+      "candidate_tables": [
+        "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df"
+      ],
+      "calculation_grain": "lead_id",
+      "allowed_dimensions": [
+        "qingcheng:dimension:lead_id",
+        "qingcheng:dimension:period_name",
+        "qingcheng:dimension:channel_name_2",
+        "qingcheng:dimension:process_channel_level_1",
+        "qingcheng:dimension:process_channel_level_2",
+        "qingcheng:dimension:section_consultant"
+      ],
+      "required_scope_fields": [
+        "dt",
+        "hour",
+        "section_assign_employee_first_level_department_name",
+        "section_assign_employee_second_level_department_name",
+        "period_mapping_first_level_department_name",
+        "period_mapping_second_level_department_name"
+      ]
+    },
+    {
+      "id": "qingcheng:metric:first_lesson_attendance",
+      "name": "青橙首节到课标记",
+      "aliases": [
+        "首节到课",
+        "第一讲到课",
+        "daoke1",
+        "ke_1到课"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/qingcheng_process_data_metrics.md",
+      "source_sha256": "5328597cae08b27b1fe37cd601bba018c36db18ccb9df74cce43cadcabb5748c",
+      "description": "同一线索/用户分组中，第 1 讲存在 live_learn_duration>0 的学习明细即记为 1；汇总前必须先压缩为明细标记。",
+      "sql_expression": "MAX(CASE WHEN CAST({base}.ke_1 AS VARCHAR) = '1' AND {base}.live_learn_duration > 0 THEN 1 ELSE 0 END)",
+      "output_alias": "daoke1",
+      "aggregation": "max_then_sum",
+      "automatic_compile": false,
+      "candidate_tables": [
+        "service_dw.dws_service_user_learn_detail_hf",
+        "temp_table.dingxi01_qing_daoke"
+      ],
+      "calculation_grain": "qici + employee_email_prefix + lead_id + user_id",
+      "allowed_dimensions": [
+        "qingcheng:dimension:lead_id",
+        "qingcheng:dimension:user_id",
+        "qingcheng:dimension:period_name",
+        "qingcheng:dimension:channel_name_2",
+        "qingcheng:dimension:section_consultant"
+      ],
+      "required_scope_fields": [
+        "dt",
+        "hour",
+        "section_assign_employee_first_level_department_name",
+        "section_assign_employee_second_level_department_name"
+      ]
+    },
+    {
+      "id": "qingcheng:metric:first_lesson_valid_attendance",
+      "name": "青橙首节有效到课标记",
+      "aliases": [
+        "首节有效到课",
+        "第一讲有效到课",
+        "valid_daoke_1",
+        "v_ke_1"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/qingcheng_process_data_metrics.md",
+      "source_sha256": "5328597cae08b27b1fe37cd601bba018c36db18ccb9df74cce43cadcabb5748c",
+      "description": "同一线索/用户分组中，第 1 讲存在 is_valid_live_learn=1 的学习明细即记为 1；汇总前必须先压缩为明细标记。",
+      "sql_expression": "MAX(CASE WHEN CAST({base}.ke_1 AS VARCHAR) = '1' AND CAST({base}.is_valid_live_learn AS VARCHAR) = '1' THEN 1 ELSE 0 END)",
+      "output_alias": "valid_daoke_1",
+      "aggregation": "max_then_sum",
+      "automatic_compile": false,
+      "candidate_tables": [
+        "service_dw.dws_service_user_learn_detail_hf",
+        "temp_table.dingxi01_qing_daoke"
+      ],
+      "calculation_grain": "qici + employee_email_prefix + lead_id + user_id",
+      "allowed_dimensions": [
+        "qingcheng:dimension:lead_id",
+        "qingcheng:dimension:user_id",
+        "qingcheng:dimension:period_name",
+        "qingcheng:dimension:channel_name_2",
+        "qingcheng:dimension:section_consultant"
+      ],
+      "required_scope_fields": [
+        "dt",
+        "hour",
+        "section_assign_employee_first_level_department_name",
+        "section_assign_employee_second_level_department_name"
+      ]
+    },
+    {
+      "id": "qingcheng:metric:income_amount_yuan",
+      "name": "青橙收入金额（元）",
+      "aliases": [
+        "收入金额",
+        "总收入",
+        "income"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/qingcheng_conversion_metrics.md",
+      "source_sha256": "41b7ccd47cd77897cb7acdeefe142fc683571ce1d05d3ce6b5bf4035938fb006",
+      "description": "service 订单明细的 income_amount 原始单位为分，除以 100 后按查询粒度求和。",
+      "sql_expression": "SUM(COALESCE({base}.income_amount / 100.0, 0))",
+      "output_alias": "income",
+      "aggregation": "sum",
+      "automatic_compile": false,
+      "candidate_tables": [
+        "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf"
+      ],
+      "calculation_grain": "order/lead attribution detail",
+      "allowed_dimensions": [
+        "qingcheng:dimension:lead_id",
+        "qingcheng:dimension:order_user_id",
+        "qingcheng:dimension:trade_timestamp",
+        "qingcheng:dimension:performance_consultant",
+        "qingcheng:dimension:grade_name"
+      ],
+      "required_scope_fields": [
+        "dt",
+        "hour",
+        "performance_second_level_department_name",
+        "course_first_level_department_name",
+        "course_second_level_department_name"
+      ]
+    },
+    {
+      "id": "qingcheng:metric:refund_amount_yuan",
+      "name": "青橙退款金额（元）",
+      "aliases": [
+        "退款金额",
+        "总退款",
+        "refund"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/qingcheng_conversion_metrics.md",
+      "source_sha256": "41b7ccd47cd77897cb7acdeefe142fc683571ce1d05d3ce6b5bf4035938fb006",
+      "description": "service 订单明细的 refund_amount 原始单位为分，除以 100 后按查询粒度求和。内部调课调班必须按既有订单链规则排除，不能只依赖本表达式。",
+      "sql_expression": "SUM(COALESCE({base}.refund_amount / 100.0, 0))",
+      "output_alias": "refund",
+      "aggregation": "sum",
+      "automatic_compile": false,
+      "candidate_tables": [
+        "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf"
+      ],
+      "calculation_grain": "order/lead attribution detail",
+      "allowed_dimensions": [
+        "qingcheng:dimension:lead_id",
+        "qingcheng:dimension:order_user_id",
+        "qingcheng:dimension:trade_timestamp",
+        "qingcheng:dimension:performance_consultant",
+        "qingcheng:dimension:grade_name"
+      ],
+      "required_scope_fields": [
+        "dt",
+        "hour",
+        "performance_second_level_department_name",
+        "course_first_level_department_name",
+        "course_second_level_department_name"
+      ]
+    },
+    {
+      "id": "qingcheng:metric:net_revenue_yuan",
+      "name": "青橙净营收（元）",
+      "aliases": [
+        "净营收",
+        "净收",
+        "promit"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/qingcheng_conversion_metrics.md",
+      "source_sha256": "41b7ccd47cd77897cb7acdeefe142fc683571ce1d05d3ce6b5bf4035938fb006",
+      "description": "收入金额减退款金额，service 明细的两个金额字段均由分换算为元。内部调课调班必须按既有订单链规则排除。",
+      "sql_expression": "SUM(COALESCE({base}.income_amount / 100.0, 0) - COALESCE({base}.refund_amount / 100.0, 0))",
+      "output_alias": "promit",
+      "aggregation": "sum",
+      "automatic_compile": false,
+      "candidate_tables": [
+        "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf"
+      ],
+      "calculation_grain": "order/lead attribution detail",
+      "allowed_dimensions": [
+        "qingcheng:dimension:lead_id",
+        "qingcheng:dimension:order_user_id",
+        "qingcheng:dimension:trade_timestamp",
+        "qingcheng:dimension:performance_consultant",
+        "qingcheng:dimension:grade_name"
+      ],
+      "required_scope_fields": [
+        "dt",
+        "hour",
+        "performance_second_level_department_name",
+        "course_first_level_department_name",
+        "course_second_level_department_name"
+      ]
+    },
+    {
+      "id": "qingcheng:metric:discounted_output",
+      "name": "青橙折算后产出",
+      "aliases": [
+        "折算后产出",
+        "折算净收",
+        "discounted_output"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/qingcheng_personal_conversion_metrics.md",
+      "source_sha256": "9c31b362ee98fd944d6cabfbc744e8882d1e844e5c4642f200d59ad0ac1571bb",
+      "description": "看板已登记公式：非 H 剔除退 4 净收按 50% 折算，加 H 剔除退 4 净收，再扣除 H 一对一剔除退 4 净收。源指标入桶和内部调课调班排除必须先完成。",
+      "sql_expression": "COALESCE(SUM({base}.n_H_promit_4) * 0.5 + (SUM({base}.H_promit_4) - SUM({base}.Y_promit_4)), 0)",
+      "output_alias": "discounted_output",
+      "aggregation": "derived_sum",
+      "automatic_compile": false,
+      "candidate_tables": [
+        "finance_dw.app_finance_performance_extend_details_hf",
+        "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
+        "finance_dw.dm_finance_order_refund_detail_df",
+        "finance_dw.dim_finance_order_change_df",
+        "temp_table.dingxi01_qing_team_jg"
+      ],
+      "calculation_grain": "employee + qici before dashboard aggregation",
+      "allowed_dimensions": [
+        "qingcheng:dimension:performance_consultant",
+        "qingcheng:dimension:grade_name",
+        "qingcheng:dimension:period_name"
+      ],
+      "required_scope_fields": [
+        "dt",
+        "hour",
+        "employee_first_level_department_name",
+        "employee_second_level_department_name",
+        "path_name",
+        "course_first_level_department_name",
+        "course_second_level_department_name"
+      ]
+    },
+    {
+      "id": "qingcheng:metric:team_completion_rate",
+      "name": "青橙团队目标完成度",
+      "aliases": [
+        "团队完成率",
+        "目标完成度",
+        "青橙完成率"
+      ],
+      "status": "pending_confirmation",
+      "source_path": "knowledge/metrics/qingcheng_team_completion_month_metrics.md",
+      "source_sha256": "d2136e2745d8807e9ce0a88c27e2f5d4dba7947ab6fe006212602676e328af2d",
+      "description": "候选公式为折算后产出除以目标；目标单位是否与净收一致尚未确认，因此本契约不可用于生产 SQL 编译。",
+      "sql_expression": "COALESCE((SUM({base}.n_H_promit_4) * 0.5 + (SUM({base}.H_promit_4) - SUM({base}.Y_promit_4))) / NULLIF(SUM({base}.goal), 0), 0)",
+      "output_alias": "team_completion_rate",
+      "aggregation": "ratio_of_sums",
+      "candidate_tables": [
+        "finance_dw.app_finance_performance_extend_details_hf",
+        "temp_table.dingxi01_qing_team_goal",
+        "temp_table.dingxi01_qing_team_jg",
+        "temp_table.dingxi01_qing_qi_moth"
+      ],
+      "calculation_grain": "month + xuebu + xiaozu + dazu + goal",
+      "allowed_dimensions": [
+        "qingcheng:dimension:performance_consultant",
+        "qingcheng:dimension:period_name"
+      ],
+      "required_scope_fields": [
+        "dt",
+        "hour",
+        "employee_first_level_department_name",
+        "employee_second_level_department_name",
+        "path_name"
+      ],
+      "notes": [
+        "目标单位待确认。",
+        "前端是否使用该精确完成度公式待确认。",
+        "pending_confirmation 状态必须阻断生产编译。"
+      ]
+    }
+  ]
+}

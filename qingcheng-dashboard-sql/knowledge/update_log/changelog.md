@@ -380,3 +380,10 @@
   - `dwd_crm_leads_rt` 自关联 TMK/规划系统潜客转正常线索验证，query id `1456961079`；
   - 最终明细导出 SQL，query id `1457006107`。
 - 关键限制：当前最新小时快照里，严格按青橙截面范围只能补到极少数历史转移后的承接顾问；`service_dw.dm_crm_lead_stats_detail_hf` 同样只能补到 1 条。后续如业务必须全量补齐“线索承接顾问”，需要继续寻找 CRM 当前 owner / 转移记录明细表，不能从本轮已验证的三张表中强推。
+
+## 2026-07-10 青橙 2064 抖音复用两级渠道契约对齐
+
+- 修正 `resources/raw_sql/data_center_qingcheng_2064_20260625.sql`：`channel_map_2` 新增高优先级 `%抖音正价退费% -> 抖音复用`，与既有 `channel_map_1` 对齐，避免最终 `channel_map_2 is not null` 门禁过滤该渠道。
+- `knowledge/sql_patterns/qingcheng_channel_grade_mapping.md` 升级为 2064 权威渠道契约，明确两级渠道成对维护、优先级、适用域和 Text2SQL 契约 ID。
+- 新增青橙过程一级、二级渠道派生维度契约；两者均从 `rule_name` 确定性编译，且仅允许在青橙基础表和已确认指标兼容范围内使用。
+- 新增契约/权威 SQL 对齐回归测试，防止后续只修改一级或二级渠道。

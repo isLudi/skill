@@ -1,4 +1,4 @@
-﻿# service_dw.dws_service_user_learn_detail_hf
+# service_dw.dws_service_user_learn_detail_hf
 
 ## 1. 中文名称
 

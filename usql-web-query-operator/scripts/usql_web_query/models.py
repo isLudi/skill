@@ -26,9 +26,11 @@ class RunSummary:
     error_category: str | None = None
     error_category_label: str | None = None
     repair_guidance: str | None = None
+    download_fallback: dict[str, Any] | None = None
+    query_plan_contract: dict[str, Any] | None = None
 
     def to_json(self) -> str:
-        return json.dumps({
+        payload = {
             "ok": self.ok,
             "status": self.status,
             "message": self.message,
@@ -46,4 +48,9 @@ class RunSummary:
             "error_category": self.error_category,
             "error_category_label": self.error_category_label,
             "repair_guidance": self.repair_guidance,
-        }, ensure_ascii=False, indent=2)
+        }
+        if self.query_plan_contract is not None:
+            payload["query_plan_contract"] = self.query_plan_contract
+        if self.download_fallback is not None:
+            payload["download_fallback"] = self.download_fallback
+        return json.dumps(payload, ensure_ascii=False, indent=2)

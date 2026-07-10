@@ -1,0 +1,150 @@
+{
+  "schema_version": "2.0.0",
+  "domain": "market_consultant",
+  "contracts": [
+    {
+      "id": "market_consultant:dimension:period_name",
+      "name": "期次",
+      "aliases": [
+        "线索期次",
+        "期名称",
+        "period",
+        "period_name"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
+      "source_sha256": "591ce03f711a141f064e029da3c6fc1578ed3e8a44025a1c449be9ef6251e1da",
+      "description": "全链路宽表中的线索期名称。",
+      "field": "period_name",
+      "table": "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+      "data_type": "string"
+    },
+    {
+      "id": "market_consultant:dimension:channel_map",
+      "name": "归一化渠道",
+      "aliases": [
+        "渠道",
+        "标准渠道",
+        "渠道映射",
+        "channel_map",
+        "channel_map_1",
+        "qudao"
+      ],
+      "status": "pending_confirmation",
+      "source_path": "knowledge/sql_patterns/channel_mapping_case_when.md",
+      "source_sha256": "df0918f81124ada2a02a80fbbf9352ff7507069f359189e9b3015bc0b1905ebf",
+      "description": "由市场顾问最新渠道 CASE 派生的展示渠道。",
+      "field": "channel_map",
+      "table": "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+      "data_type": "string",
+      "derivation_source": "resources/raw_sql/market_channel_case_when_0612.sql",
+      "notes": "channel_map、channel_map_1 与 qudao 是否在所有看板完全等价仍需按目标看板确认；CASE 顺序不可重排。"
+    },
+    {
+      "id": "market_consultant:dimension:stats_grade_name",
+      "name": "统计年级",
+      "aliases": [
+        "年级",
+        "线索年级",
+        "统计口径年级",
+        "stats_grade_name"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
+      "source_sha256": "591ce03f711a141f064e029da3c6fc1578ed3e8a44025a1c449be9ef6251e1da",
+      "description": "全链路宽表中的统计口径线索年级。",
+      "field": "stats_grade_name",
+      "table": "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+      "data_type": "string"
+    },
+    {
+      "id": "market_consultant:dimension:employee_email_name",
+      "name": "顾问",
+      "aliases": [
+        "顾问姓名",
+        "员工姓名",
+        "接量顾问",
+        "employee_email_name"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
+      "source_sha256": "591ce03f711a141f064e029da3c6fc1578ed3e8a44025a1c449be9ef6251e1da",
+      "description": "全链路宽表中的带数字员工姓名；用于顾问维度展示，不应作为跨表唯一键的首选。",
+      "field": "employee_email_name",
+      "table": "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+      "data_type": "string"
+    },
+    {
+      "id": "market_consultant:dimension:virtual_manager",
+      "name": "虚拟架构经理",
+      "aliases": [
+        "经理",
+        "大组长",
+        "虚拟大组长",
+        "virtual_leader_email_name"
+      ],
+      "status": "pending_confirmation",
+      "source_path": "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
+      "source_sha256": "591ce03f711a141f064e029da3c6fc1578ed3e8a44025a1c449be9ef6251e1da",
+      "description": "宽表最新虚拟架构中的大组长字段。",
+      "field": "virtual_leader_email_name",
+      "table": "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+      "data_type": "string",
+      "notes": "该字段在表文档中标记为待按需求确认，历史期次是否应使用当前虚拟架构需确认。"
+    },
+    {
+      "id": "market_consultant:dimension:virtual_supervisor",
+      "name": "虚拟架构主管",
+      "aliases": [
+        "主管",
+        "小组长",
+        "虚拟小组长",
+        "virtual_direct_leader_email_name"
+      ],
+      "status": "pending_confirmation",
+      "source_path": "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
+      "source_sha256": "591ce03f711a141f064e029da3c6fc1578ed3e8a44025a1c449be9ef6251e1da",
+      "description": "宽表最新虚拟架构中的小组长字段。",
+      "field": "virtual_direct_leader_email_name",
+      "table": "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+      "data_type": "string",
+      "notes": "该字段在表文档中标记为待按需求确认，历史期次是否应使用当前虚拟架构需确认。"
+    },
+    {
+      "id": "market_consultant:dimension:province_name",
+      "name": "省份",
+      "aliases": [
+        "省",
+        "所在省份",
+        "province",
+        "province_name"
+      ],
+      "status": "pending_confirmation",
+      "source_path": "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
+      "source_sha256": "591ce03f711a141f064e029da3c6fc1578ed3e8a44025a1c449be9ef6251e1da",
+      "description": "宽表省份字段。",
+      "field": "province_name",
+      "table": "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+      "data_type": "string",
+      "notes": "字段存在已确认，但省份归属业务口径尚未由独立指标文档确认。"
+    },
+    {
+      "id": "market_consultant:dimension:city_name",
+      "name": "城市",
+      "aliases": [
+        "市",
+        "所在城市",
+        "city",
+        "city_name"
+      ],
+      "status": "pending_confirmation",
+      "source_path": "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
+      "source_sha256": "591ce03f711a141f064e029da3c6fc1578ed3e8a44025a1c449be9ef6251e1da",
+      "description": "宽表城市字段。",
+      "field": "city_name",
+      "table": "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+      "data_type": "string",
+      "notes": "字段存在已确认，但城市归属业务口径尚未由独立指标文档确认。"
+    }
+  ]
+}

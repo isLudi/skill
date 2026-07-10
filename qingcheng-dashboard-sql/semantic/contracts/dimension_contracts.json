@@ -1,0 +1,189 @@
+{
+  "schema_version": "2.0.0",
+  "domain": "qingcheng",
+  "contracts": [
+    {
+      "id": "qingcheng:dimension:lead_id",
+      "name": "青橙线索 ID",
+      "aliases": [
+        "线索ID",
+        "lead_id"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
+      "source_sha256": "ea297289bbf05ad5b909599e458e221c60a664b13321d407f2c6e9f42d3554b1",
+      "field": "lead_id",
+      "table": "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+      "data_type": "bigint",
+      "description": "线索全链路表中的线索主键候选；表整体粒度仍待确认。"
+    },
+    {
+      "id": "qingcheng:dimension:user_id",
+      "name": "青橙线索用户 ID",
+      "aliases": [
+        "线索用户ID",
+        "user_id"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
+      "source_sha256": "ea297289bbf05ad5b909599e458e221c60a664b13321d407f2c6e9f42d3554b1",
+      "field": "user_id",
+      "table": "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+      "data_type": "bigint",
+      "description": "线索侧用户编号，用于关联登录、外呼和上课明细。"
+    },
+    {
+      "id": "qingcheng:dimension:period_name",
+      "name": "青橙线索期次名称",
+      "aliases": [
+        "线索期次",
+        "期次名称",
+        "period_name"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
+      "source_sha256": "ea297289bbf05ad5b909599e458e221c60a664b13321d407f2c6e9f42d3554b1",
+      "field": "period_name",
+      "table": "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+      "data_type": "string",
+      "description": "全链路表登记的期名称。涉及结果期次 qici 时仍须使用对应业务日历规则，不能把两者静默等同。"
+    },
+    {
+      "id": "qingcheng:dimension:channel_name_2",
+      "name": "青橙二级渠道名称",
+      "aliases": [
+        "原始二级渠道",
+        "原始渠道二级",
+        "channel_name_2"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
+      "source_sha256": "ea297289bbf05ad5b909599e458e221c60a664b13321d407f2c6e9f42d3554b1",
+      "field": "channel_name_2",
+      "table": "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+      "data_type": "string",
+      "description": "原始二级渠道名称；它不等同于青橙渠道 CASE 生成的 channel_map_2。"
+    },
+    {
+      "id": "qingcheng:dimension:process_channel_level_1",
+      "name": "青橙过程一级渠道",
+      "aliases": [
+        "一级渠道",
+        "过程一级渠道",
+        "channel_map_1"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/sql_patterns/qingcheng_channel_grade_mapping.md",
+      "source_sha256": "94ebfb5c62ee37f2481f19d463cd9b4f35389072e6faf6e3db7a59275fdb4e96",
+      "field": "channel_map_1",
+      "output_alias": "channel_map_1",
+      "table": "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+      "data_type": "string",
+      "automatic_compile": true,
+      "sql_expression": "CASE WHEN {base}.rule_name LIKE '%抖音正价退费%' THEN '抖音复用' WHEN {base}.rule_name LIKE '%私域%' THEN '青橙私域' WHEN {base}.rule_name LIKE '%青橙IP%' THEN '青橙IP' WHEN {base}.rule_name LIKE '%青橙公海%' THEN '青橙公海' WHEN {base}.rule_name LIKE '%青橙公域%' THEN '青橙公域' WHEN {base}.rule_name LIKE '%青橙图书%' THEN '青橙图书' WHEN {base}.rule_name LIKE '%青橙本地化%' THEN '青橙本地化' WHEN {base}.rule_name LIKE '%抖音私信%' THEN '抖音私信' WHEN {base}.rule_name LIKE '%进校%' THEN '进校' WHEN {base}.rule_name LIKE '%训练营%' THEN '青橙训练营' END",
+      "description": "2064 data CTE 的一级渠道派生维度；规则与权威渠道契约及 2064 retained snapshot 保持一致。"
+    },
+    {
+      "id": "qingcheng:dimension:process_channel_level_2",
+      "name": "青橙过程二级渠道",
+      "aliases": [
+        "二级渠道",
+        "过程二级渠道",
+        "channel_map_2"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/sql_patterns/qingcheng_channel_grade_mapping.md",
+      "source_sha256": "94ebfb5c62ee37f2481f19d463cd9b4f35389072e6faf6e3db7a59275fdb4e96",
+      "field": "channel_map_2",
+      "output_alias": "channel_map_2",
+      "table": "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+      "data_type": "string",
+      "automatic_compile": true,
+      "sql_expression": "CASE WHEN {base}.rule_name LIKE '%抖音正价退费%' THEN '抖音复用' WHEN {base}.rule_name LIKE '%赠失-星义%' THEN 'IP星义' WHEN {base}.rule_name LIKE '%赠失-朱博士%' THEN 'IP朱博士' WHEN {base}.rule_name LIKE '%赠失-春春%' THEN 'IP春春' WHEN {base}.rule_name LIKE '%赠失-郭艺%' THEN 'IP郭艺' WHEN {base}.rule_name LIKE '%赠失-亚飞%' THEN 'IP亚飞' WHEN {base}.rule_name LIKE '%私域会话%' THEN '私域会话' WHEN {base}.rule_name LIKE '%私域表单%' THEN '私域表单' WHEN {base}.rule_name LIKE '%私域图书%' THEN '私域图书' WHEN {base}.rule_name LIKE '%私域裂变%' THEN '私域裂变' WHEN {base}.rule_name LIKE '%私域品效%' THEN '私域品效' WHEN {base}.rule_name LIKE '%私域IE%' THEN '私域IE' WHEN {base}.rule_name LIKE '%私域本地化%' THEN '私域本地化' WHEN {base}.rule_name LIKE '%亚飞IP%' THEN '亚飞IP' WHEN {base}.rule_name LIKE '%SEC未加好友%' THEN 'SEC未加好友' WHEN {base}.rule_name LIKE '%SEC首期掉海%' THEN 'SEC首期掉海' WHEN {base}.rule_name LIKE '%顾问未加好友%' THEN '顾问未加好友' WHEN {base}.rule_name LIKE '%郑州图书%' THEN '郑州图书' WHEN {base}.rule_name LIKE '%武汉图书%' THEN '武汉图书' WHEN {base}.rule_name LIKE '%西安图书%' THEN '西安图书' WHEN {base}.rule_name LIKE '%图书咨询%' THEN '图书咨询' WHEN {base}.rule_name LIKE '%公域学霸%' THEN '公域学霸' WHEN {base}.rule_name LIKE '%南京%' THEN '南京' WHEN {base}.rule_name LIKE '%抖音私信%' THEN '抖音私信' WHEN {base}.rule_name LIKE '%进校9元%' THEN '进校9元' WHEN {base}.rule_name LIKE '%训练营%' THEN '青橙训练营' END",
+      "description": "2064 data CTE 的二级渠道派生维度；抖音正价退费与一级渠道成对输出抖音复用。"
+    },
+    {
+      "id": "qingcheng:dimension:section_consultant",
+      "name": "青橙线索分配顾问",
+      "aliases": [
+        "线索分配顾问",
+        "分配顾问",
+        "顾问",
+        "employee_email_name"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
+      "source_sha256": "ea297289bbf05ad5b909599e458e221c60a664b13321d407f2c6e9f42d3554b1",
+      "field": "employee_email_name",
+      "table": "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+      "data_type": "string",
+      "description": "线索分配侧员工姓名/邮箱名；不得与订单业绩归属顾问静默互换。"
+    },
+    {
+      "id": "qingcheng:dimension:order_user_id",
+      "name": "青橙原始订单用户编号",
+      "aliases": [
+        "订单用户ID",
+        "原始订单用户",
+        "uid",
+        "original_order_user_number"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md",
+      "source_sha256": "386b749b24399bf240306e9c34ad14dff77a01d2d3f8d8a081d4a29af34d4045",
+      "field": "original_order_user_number",
+      "table": "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
+      "data_type": "string",
+      "description": "service 订单业绩明细中的原始订单用户编号，canonical 转化 SQL 中别名为 uid。"
+    },
+    {
+      "id": "qingcheng:dimension:trade_timestamp",
+      "name": "青橙交易时间",
+      "aliases": [
+        "交易时间",
+        "成交时间",
+        "trade_timestamp"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md",
+      "source_sha256": "386b749b24399bf240306e9c34ad14dff77a01d2d3f8d8a081d4a29af34d4045",
+      "field": "trade_timestamp",
+      "table": "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
+      "data_type": "timestamp",
+      "description": "订单明细交易时间，用于交易期次和成单周期计算；特定业务日历优先于普通周五兜底。"
+    },
+    {
+      "id": "qingcheng:dimension:performance_consultant",
+      "name": "青橙业绩归属顾问",
+      "aliases": [
+        "业绩归属顾问",
+        "业绩顾问",
+        "顾问",
+        "performance_employee_email_name"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md",
+      "source_sha256": "386b749b24399bf240306e9c34ad14dff77a01d2d3f8d8a081d4a29af34d4045",
+      "field": "performance_employee_email_name",
+      "table": "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
+      "data_type": "string",
+      "description": "订单业绩归属员工；不得与线索分配顾问静默互换。"
+    },
+    {
+      "id": "qingcheng:dimension:grade_name",
+      "name": "青橙成交年级",
+      "aliases": [
+        "成交年级",
+        "订单年级",
+        "grade_name"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md",
+      "source_sha256": "386b749b24399bf240306e9c34ad14dff77a01d2d3f8d8a081d4a29af34d4045",
+      "field": "grade_name",
+      "table": "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
+      "data_type": "string",
+      "description": "service 订单明细登记的成交年级名称。"
+    }
+  ]
+}

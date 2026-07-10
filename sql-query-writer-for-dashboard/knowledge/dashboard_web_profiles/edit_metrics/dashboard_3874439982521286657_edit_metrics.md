@@ -1,4 +1,4 @@
-﻿# 【新人】前期过程转化数据 edit metrics
+# 【新人】前期过程转化数据 edit metrics
 
 > Source: Taitan dashboard edit-page read-only API. Use together with the web profile and the Data Center SQL file for the same model_id.
 

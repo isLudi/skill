@@ -55,6 +55,7 @@ when f.rule_name like '%进校%' then '进校'
 when f.rule_name like '%训练营%' then '青橙训练营'
 end as channel_map_1
   ,case
+when f.rule_name like '%抖音正价退费%' then '抖音复用'
 when f.rule_name like '%赠失-星义%' then 'IP星义' 
 when f.rule_name like '%赠失-朱博士%' then 'IP朱博士' 
 when f.rule_name like '%赠失-春春%' then 'IP春春' 

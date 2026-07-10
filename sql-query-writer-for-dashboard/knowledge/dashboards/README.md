@@ -1,4 +1,4 @@
-﻿# dashboards 知识库
+# dashboards 知识库
 
 存放历史看板 SQL 解析结果。每个看板一个 Markdown 文件，记录：
 

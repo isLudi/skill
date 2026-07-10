@@ -23,6 +23,12 @@ from pathlib import Path
 
 def get_soffice_env() -> dict:
     env = os.environ.copy()
+
+    # LibreOffice's Unix socket and LD_PRELOAD workarounds are only relevant
+    # on Unix-like systems. Windows uses the Excel COM backend in recalc.py.
+    if os.name == "nt":
+        return env
+
     env["SAL_USE_VCLPLUGIN"] = "svp"
 
     if _needs_shim():
@@ -42,11 +48,14 @@ _SHIM_SO = Path(tempfile.gettempdir()) / "lo_socket_shim.so"
 
 
 def _needs_shim() -> bool:
+    if os.name == "nt" or not hasattr(socket, "AF_UNIX"):
+        return False
+
     try:
         s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         s.close()
         return False
-    except OSError:
+    except (OSError, AttributeError):
         return True
 
 

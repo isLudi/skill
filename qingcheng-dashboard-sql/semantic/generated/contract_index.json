@@ -1,0 +1,381 @@
+{
+  "schema_version": "2.0.0",
+  "domain": "qingcheng",
+  "counts": {
+    "dimension": 11,
+    "join": 4,
+    "metric": 8,
+    "scope": 4
+  },
+  "entries": [
+    {
+      "id": "qingcheng:dimension:channel_name_2",
+      "kind": "dimension",
+      "name": "青橙二级渠道名称",
+      "aliases": [
+        "原始二级渠道",
+        "原始渠道二级",
+        "channel_name_2"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
+      "source_sha256": "ea297289bbf05ad5b909599e458e221c60a664b13321d407f2c6e9f42d3554b1"
+    },
+    {
+      "id": "qingcheng:dimension:grade_name",
+      "kind": "dimension",
+      "name": "青橙成交年级",
+      "aliases": [
+        "成交年级",
+        "订单年级",
+        "grade_name"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md",
+      "source_sha256": "386b749b24399bf240306e9c34ad14dff77a01d2d3f8d8a081d4a29af34d4045"
+    },
+    {
+      "id": "qingcheng:dimension:lead_id",
+      "kind": "dimension",
+      "name": "青橙线索 ID",
+      "aliases": [
+        "线索ID",
+        "lead_id"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
+      "source_sha256": "ea297289bbf05ad5b909599e458e221c60a664b13321d407f2c6e9f42d3554b1"
+    },
+    {
+      "id": "qingcheng:dimension:order_user_id",
+      "kind": "dimension",
+      "name": "青橙原始订单用户编号",
+      "aliases": [
+        "订单用户ID",
+        "原始订单用户",
+        "uid",
+        "original_order_user_number"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md",
+      "source_sha256": "386b749b24399bf240306e9c34ad14dff77a01d2d3f8d8a081d4a29af34d4045"
+    },
+    {
+      "id": "qingcheng:dimension:performance_consultant",
+      "kind": "dimension",
+      "name": "青橙业绩归属顾问",
+      "aliases": [
+        "业绩归属顾问",
+        "业绩顾问",
+        "顾问",
+        "performance_employee_email_name"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md",
+      "source_sha256": "386b749b24399bf240306e9c34ad14dff77a01d2d3f8d8a081d4a29af34d4045"
+    },
+    {
+      "id": "qingcheng:dimension:period_name",
+      "kind": "dimension",
+      "name": "青橙线索期次名称",
+      "aliases": [
+        "线索期次",
+        "期次名称",
+        "period_name"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
+      "source_sha256": "ea297289bbf05ad5b909599e458e221c60a664b13321d407f2c6e9f42d3554b1"
+    },
+    {
+      "id": "qingcheng:dimension:process_channel_level_1",
+      "kind": "dimension",
+      "name": "青橙过程一级渠道",
+      "aliases": [
+        "一级渠道",
+        "过程一级渠道",
+        "channel_map_1"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/sql_patterns/qingcheng_channel_grade_mapping.md",
+      "source_sha256": "94ebfb5c62ee37f2481f19d463cd9b4f35389072e6faf6e3db7a59275fdb4e96",
+      "automatic_compile": true
+    },
+    {
+      "id": "qingcheng:dimension:process_channel_level_2",
+      "kind": "dimension",
+      "name": "青橙过程二级渠道",
+      "aliases": [
+        "二级渠道",
+        "过程二级渠道",
+        "channel_map_2"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/sql_patterns/qingcheng_channel_grade_mapping.md",
+      "source_sha256": "94ebfb5c62ee37f2481f19d463cd9b4f35389072e6faf6e3db7a59275fdb4e96",
+      "automatic_compile": true
+    },
+    {
+      "id": "qingcheng:dimension:section_consultant",
+      "kind": "dimension",
+      "name": "青橙线索分配顾问",
+      "aliases": [
+        "线索分配顾问",
+        "分配顾问",
+        "顾问",
+        "employee_email_name"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
+      "source_sha256": "ea297289bbf05ad5b909599e458e221c60a664b13321d407f2c6e9f42d3554b1"
+    },
+    {
+      "id": "qingcheng:dimension:trade_timestamp",
+      "kind": "dimension",
+      "name": "青橙交易时间",
+      "aliases": [
+        "交易时间",
+        "成交时间",
+        "trade_timestamp"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md",
+      "source_sha256": "386b749b24399bf240306e9c34ad14dff77a01d2d3f8d8a081d4a29af34d4045"
+    },
+    {
+      "id": "qingcheng:dimension:user_id",
+      "kind": "dimension",
+      "name": "青橙线索用户 ID",
+      "aliases": [
+        "线索用户ID",
+        "user_id"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
+      "source_sha256": "ea297289bbf05ad5b909599e458e221c60a664b13321d407f2c6e9f42d3554b1"
+    },
+    {
+      "id": "qingcheng:join:order_to_lead_attribution",
+      "kind": "join",
+      "name": "青橙订单业绩关联线索归因",
+      "aliases": [
+        "订单关联线索",
+        "业绩线索归因",
+        "order_lead_attribution"
+      ],
+      "status": "pending_confirmation",
+      "source_path": "knowledge/joins/common_join_keys.md",
+      "source_sha256": "400fc99bbedde07c9f28005b7c70eda7bcf4ce686acbe71989ba4c3ce0f5663d"
+    },
+    {
+      "id": "qingcheng:join:refund_to_order_change",
+      "kind": "join",
+      "name": "青橙退款流水关联订单变更链",
+      "aliases": [
+        "退款关联调课调班",
+        "订单变更链",
+        "refund_order_change"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/joins/common_join_keys.md",
+      "source_sha256": "400fc99bbedde07c9f28005b7c70eda7bcf4ce686acbe71989ba4c3ce0f5663d"
+    },
+    {
+      "id": "qingcheng:join:team_structure_to_period_month",
+      "kind": "join",
+      "name": "青橙期次架构关联月份映射",
+      "aliases": [
+        "期次转月份",
+        "架构期次映射月份",
+        "qici_moth"
+      ],
+      "status": "pending_confirmation",
+      "source_path": "knowledge/joins/common_join_keys.md",
+      "source_sha256": "400fc99bbedde07c9f28005b7c70eda7bcf4ce686acbe71989ba4c3ce0f5663d"
+    },
+    {
+      "id": "qingcheng:join:transferred_lead_to_prelead",
+      "kind": "join",
+      "name": "青橙转移后正常线索回连潜客",
+      "aliases": [
+        "潜客转正常线索",
+        "转移线索回查潜客",
+        "previous_model_id"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/joins/common_join_keys.md",
+      "source_sha256": "400fc99bbedde07c9f28005b7c70eda7bcf4ce686acbe71989ba4c3ce0f5663d"
+    },
+    {
+      "id": "qingcheng:metric:discounted_output",
+      "kind": "metric",
+      "name": "青橙折算后产出",
+      "aliases": [
+        "折算后产出",
+        "折算净收",
+        "discounted_output"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/qingcheng_personal_conversion_metrics.md",
+      "source_sha256": "9c31b362ee98fd944d6cabfbc744e8882d1e844e5c4642f200d59ad0ac1571bb",
+      "automatic_compile": false
+    },
+    {
+      "id": "qingcheng:metric:first_lesson_attendance",
+      "kind": "metric",
+      "name": "青橙首节到课标记",
+      "aliases": [
+        "首节到课",
+        "第一讲到课",
+        "daoke1",
+        "ke_1到课"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/qingcheng_process_data_metrics.md",
+      "source_sha256": "5328597cae08b27b1fe37cd601bba018c36db18ccb9df74cce43cadcabb5748c",
+      "automatic_compile": false
+    },
+    {
+      "id": "qingcheng:metric:first_lesson_valid_attendance",
+      "kind": "metric",
+      "name": "青橙首节有效到课标记",
+      "aliases": [
+        "首节有效到课",
+        "第一讲有效到课",
+        "valid_daoke_1",
+        "v_ke_1"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/qingcheng_process_data_metrics.md",
+      "source_sha256": "5328597cae08b27b1fe37cd601bba018c36db18ccb9df74cce43cadcabb5748c",
+      "automatic_compile": false
+    },
+    {
+      "id": "qingcheng:metric:income_amount_yuan",
+      "kind": "metric",
+      "name": "青橙收入金额（元）",
+      "aliases": [
+        "收入金额",
+        "总收入",
+        "income"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/qingcheng_conversion_metrics.md",
+      "source_sha256": "41b7ccd47cd77897cb7acdeefe142fc683571ce1d05d3ce6b5bf4035938fb006",
+      "automatic_compile": false
+    },
+    {
+      "id": "qingcheng:metric:net_revenue_yuan",
+      "kind": "metric",
+      "name": "青橙净营收（元）",
+      "aliases": [
+        "净营收",
+        "净收",
+        "promit"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/qingcheng_conversion_metrics.md",
+      "source_sha256": "41b7ccd47cd77897cb7acdeefe142fc683571ce1d05d3ce6b5bf4035938fb006",
+      "automatic_compile": false
+    },
+    {
+      "id": "qingcheng:metric:refund_amount_yuan",
+      "kind": "metric",
+      "name": "青橙退款金额（元）",
+      "aliases": [
+        "退款金额",
+        "总退款",
+        "refund"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/qingcheng_conversion_metrics.md",
+      "source_sha256": "41b7ccd47cd77897cb7acdeefe142fc683571ce1d05d3ce6b5bf4035938fb006",
+      "automatic_compile": false
+    },
+    {
+      "id": "qingcheng:metric:team_completion_rate",
+      "kind": "metric",
+      "name": "青橙团队目标完成度",
+      "aliases": [
+        "团队完成率",
+        "目标完成度",
+        "青橙完成率"
+      ],
+      "status": "pending_confirmation",
+      "source_path": "knowledge/metrics/qingcheng_team_completion_month_metrics.md",
+      "source_sha256": "d2136e2745d8807e9ce0a88c27e2f5d4dba7947ab6fe006212602676e328af2d"
+    },
+    {
+      "id": "qingcheng:metric:valid_leads",
+      "kind": "metric",
+      "name": "青橙有效线索量",
+      "aliases": [
+        "有效线索",
+        "有效线索量",
+        "v_lead"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/qingcheng_conversion_metrics.md",
+      "source_sha256": "41b7ccd47cd77897cb7acdeefe142fc683571ce1d05d3ce6b5bf4035938fb006",
+      "automatic_compile": true
+    },
+    {
+      "id": "qingcheng:scope:completion_employee_window",
+      "kind": "scope",
+      "name": "青橙完成度员工任职范围",
+      "aliases": [
+        "青橙完成度范围",
+        "青橙员工任职窗口",
+        "completion_employee_scope"
+      ],
+      "status": "confirmed",
+      "source_path": "resources/raw_sql/qingcheng_team_completion_month_raw_20260522.sql",
+      "source_sha256": "94e1b87c2a17820b431ad107dc6fa2a9b3d54b3e8ae29cd2d9666e7ebf00d307"
+    },
+    {
+      "id": "qingcheng:scope:conversion_lead_department",
+      "kind": "scope",
+      "name": "青橙转化线索范围",
+      "aliases": [
+        "青橙线索范围",
+        "线索归属青橙",
+        "conversion_lead_scope"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/03_range_limit_rules.md",
+      "source_sha256": "5c4de0f91f4e34a7c708106b5ebf9e763a5671ad3c1da5a8dea774a27bc0b9df"
+    },
+    {
+      "id": "qingcheng:scope:conversion_performance_department",
+      "kind": "scope",
+      "name": "青橙转化业绩归属范围",
+      "aliases": [
+        "青橙转化业绩范围",
+        "业绩归属青橙",
+        "conversion_performance_scope"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/03_range_limit_rules.md",
+      "source_sha256": "5c4de0f91f4e34a7c708106b5ebf9e763a5671ad3c1da5a8dea774a27bc0b9df"
+    },
+    {
+      "id": "qingcheng:scope:unresolved_department_placeholders",
+      "kind": "scope",
+      "name": "青橙未决部门范围占位符",
+      "aliases": [
+        "青橙范围占位符",
+        "未确认青橙部门",
+        "unresolved_qingcheng_scope"
+      ],
+      "status": "pending_confirmation",
+      "source_path": "knowledge/03_range_limit_rules.md",
+      "source_sha256": "5c4de0f91f4e34a7c708106b5ebf9e763a5671ad3c1da5a8dea774a27bc0b9df"
+    }
+  ],
+  "alias_collisions": {
+    "顾问": [
+      "qingcheng:dimension:performance_consultant",
+      "qingcheng:dimension:section_consultant"
+    ]
+  }
+}

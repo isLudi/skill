@@ -59,10 +59,13 @@ def build_parser() -> argparse.ArgumentParser:
 
     run = subparsers.add_parser("run", help="Run SQL in the web UI.")
     run.add_argument("--sql-file", type=Path, required=True)
+    run.add_argument("--query-plan", type=Path, default=None, help="Optional QueryPlan JSON execution contract for this exact SQL file.")
     run.add_argument("--headed", action="store_true", help="Show browser window.")
     run.add_argument("--state-path", type=Path, default=DEFAULT_STATE)
     run.add_argument("--artifacts-dir", type=Path, default=DEFAULT_ARTIFACTS)
     run.add_argument("--env-file", type=Path, default=DEFAULT_ENV_FILE)
+    run.add_argument("--username", default=os.environ.get("BAIJIA_USERNAME"))
+    run.add_argument("--password", default=os.environ.get("BAIJIA_PASSWORD"))
     run.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL, help="Installed browser channel, e.g. msedge or chrome.")
     run.add_argument("--executable-path", default=None, help="Explicit browser executable path; overrides --browser-channel.")
     run.add_argument("--engine", choices=["doris-presto", "presto"], default=DEFAULT_QUERY_ENGINE, help="Query engine to select before writing SQL. Default: presto.")

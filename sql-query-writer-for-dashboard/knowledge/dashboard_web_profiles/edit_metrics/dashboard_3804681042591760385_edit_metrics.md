@@ -1,4 +1,4 @@
-﻿# 市场顾问-用户画像分析 edit metrics
+# 市场顾问-用户画像分析 edit metrics
 
 > Source: Taitan dashboard edit-page read-only API. Use together with the web profile and the Data Center SQL file for the same model_id.
 > This file is regenerated from the latest 2026-07-05 profile and replaces the older 2026-06-24 snapshot for this dashboard.

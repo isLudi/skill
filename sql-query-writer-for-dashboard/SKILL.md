@@ -1,26 +1,32 @@
 ---
 name: sql-query-writer-for-dashboard
-description: Generate governed Presto SQL for internal dashboard and exploratory data queries from company table schema PDFs, metric definitions, historical dashboard SQL, join knowledge, and query-platform constraints. Use when asked to create, explain, validate, or fix dashboard取数 SQL.
+description: Resolve market-consultant semantic contracts, build governed QuerySpec and QueryPlan artifacts, compile supported Presto SQL, generate bounded data probes, and explain, validate, or repair market consultant department (市场顾问部) dashboard queries using its isolated metrics, dashboards, historical SQL, table overlays, joins, channel mappings, and platform constraints. Use for market-consultant conversion, traffic, outbound-call, attendance, refund, evaluation, Text2SQL planning, data-definition exploration, or knowledge maintenance; do not use for Qingcheng/青橙 semantics.
 ---
 
 # sql-query-writer-for-dashboard
 
 ## 0. 加载与封装边界
 
-当用户明确要求加载 `sql-query-writer-for-dashboard`、`sql-query-writer-for-dashboard.skill`、`.codex/skills/sql-query-writer-for-dashboard`，或需求属于公司内部看板取数 SQL、表结构知识库、指标口径、SQL 报错修复时，必须按本 Skill 执行。
+当用户明确要求加载 `sql-query-writer-for-dashboard`、`sql-query-writer-for-dashboard.skill`、`.codex/skills/sql-query-writer-for-dashboard`，或需求经 domain resolution 确认为 `market_consultant`，属于市场顾问部看板取数 SQL、表结构覆盖层、指标口径、SQL 报错修复或知识维护时，必须按本 Skill 执行。
+
+本 Skill 是市场顾问部业务 Skill，与 `qingcheng-dashboard-sql` 独立。若业务域未决，不得默认加载本 Skill 的指标、范围、临时表、渠道 CASE 或 join 语义；若需求属于青橙项目部，必须改用 `qingcheng-dashboard-sql`。
 
 加载后先确认 Skill 根目录，再按需读取以下入口。优先读取轻量路由和强制规则，不要直接全量读取所有表文档、看板文档或原始 SQL：
 
-1. `metadata.json`：确认版本、查询引擎、知识库目录和健康检查脚本。
-2. `knowledge/quick_reference.md`：快速定位高频场景、高频表、USQL 状态和常用 join 入口。
-3. `knowledge/00_global_rules.md`：先确认强制全局规则。
-4. `knowledge/03_range_limit_rules.md`：先读文件顶部“必读核心规则”，范围限定必须在选表和选字段阶段介入。
-5. `knowledge/decision_tree.md`：按用户需求路由到具体表、指标、看板、join、权限或踩坑文档。
-6. `knowledge/01_table_index.md`：确认候选表、分区和 USQL 权限状态。
-7. `knowledge/reverse_index/*.md`：当只知道字段、表、指标、raw SQL 或 debug 线索时先读，用于反向定位候选文档。
-8. 相关 `knowledge/tables/*.md`、`knowledge/metrics/*.md`、`knowledge/dashboards/*.md`、`knowledge/dashboard_web_profiles/*.md`、`knowledge/joins/*.md`、`knowledge/pitfalls/*.md`、`knowledge/sql_patterns/*.md`：只读取与当前需求相关的文件。
-9. 当用户要求执行 SQL 并下载结果、或需要将查询结果用于 Python 分析时，通过 `usql-web-query-operator` Skill 调用 Playwright Web 自动化执行查询并下载 xlsx。具体流程参考 `knowledge/sql_patterns/web_query_playwright.md`。凭证文件统一通过命令行 `--env-file` 或环境变量 `USQL_ENV_FILE` 指定；未指定时由 operator 使用本机兼容回退路径。浏览器登录状态保存在 `C:\Users\Ludim\.codex\runtime\usql-web-query-operator\state.json`。
-10. 涉及表可读性判断、权限失败、或某些表无法通过 Web 查询时，读取 `knowledge/sql_patterns/web_permission_guide.md`；不要把权限问题简单归因为 SQL 语法。
+1. `metadata.json`：确认 `domain_id=market_consultant`、版本、查询引擎、共享 Core、物理目录和健康检查脚本。
+2. `semantic/domain_manifest.json`：读取轻量的市场顾问实体清单、别名、证据路径和隔离声明；它只做机器路由，不替代现有业务文档。
+3. `semantic/generated/contract_index.json`：按 ID、名称和别名定位指标、维度、Join 与 Scope contract；它是确定性生成索引，不是业务事实来源。
+4. `references/quick_reference.md`：读取 P2 渐进披露顺序、confirmed/pending 门禁和 `QuerySpec -> QueryPlan -> compile/probe` 流水线。
+5. `references/decision_tree.md`：在歧义、未知、待确认、探查或编译分支间做选择。
+6. `knowledge/quick_reference.md`：快速定位高频业务场景、高频表、USQL 状态和常用 join 入口。
+7. `knowledge/00_global_rules.md`：先确认强制全局规则。
+8. `knowledge/03_range_limit_rules.md`：先读文件顶部“必读核心规则”，范围限定必须在选表和选字段阶段介入。
+9. `knowledge/decision_tree.md`：按用户需求路由到具体表、指标、看板、join、权限或踩坑文档。
+10. `knowledge/01_table_index.md`：确认候选表、分区和 USQL 权限状态。
+11. `knowledge/reverse_index/*.md`：仅在只知道字段、表、指标、raw SQL 或 debug 线索时读取，用于反向定位候选文档。
+12. 命中的 `semantic/contracts/*.json` 及其 `source_path`：只读取与当前 QuerySpec 相关的 contract、表、指标、看板、join、踩坑或 SQL pattern 文档；复杂实现才继续读取对应 Raw SQL。
+13. 当用户要求执行 SQL 并下载结果、或需要将查询结果用于 Python 分析时，通过 `usql-web-query-operator` Skill 调用 Playwright Web 自动化执行查询并下载 xlsx。具体流程参考 `knowledge/sql_patterns/web_query_playwright.md`。凭证文件统一通过命令行 `--env-file` 或环境变量 `USQL_ENV_FILE` 指定；未指定时由 operator 使用本机兼容回退路径。浏览器登录状态保存在 `C:\Users\Ludim\.codex\runtime\usql-web-query-operator\state.json`。
+14. 涉及表可读性判断、权限失败、或某些表无法通过 Web 查询时，读取 `knowledge/sql_patterns/web_permission_guide.md`；不要把权限问题简单归因为 SQL 语法。
 
 文件编码规则：
 
@@ -32,10 +38,14 @@ description: Generate governed Presto SQL for internal dashboard and exploratory
 
 封装边界：
 
-- 不把本 Skill 当通用 SQL 生成器使用。
+- 只服务市场顾问部业务 SQL 和知识维护，不把本 Skill 当通用 SQL 生成器使用。
+- 不加载、套用或推断青橙指标、范围、临时表、渠道/期次映射、业务 join、看板或 raw SQL。
+- 共享物理目录只能提供表名、字段、类型、分区、物理粒度和候选键；市场顾问范围、指标和 join 仍以本 Skill 文档为准。
 - 不脱离知识库编造表、字段、join key 或指标口径。
 - 不在缺少 `dt`、`hour`、部门范围限定或必要 `limit` 时直接给出生产查询。
-- 复杂 SQL 或 SQL 修复后，优先运行 `scripts/validate_sql_rules.py`；维护 Skill 结构后，运行 `scripts/check_skill_integrity.py`。
+- `confirmed` contract 只有在当前 QuerySpec 同时满足时间、范围、粒度、证据和 Join 门禁后才能进入 QueryPlan；`pending_confirmation` contract 只能用于候选解释、定向取证或只读 Probe，不得编译生产 SQL。
+- 只编译 `status=executable` 且 `unresolved_slots=[]` 的 QueryPlan。P2 确定性编译只覆盖 `automatic_compile=true`、单基础表的已注册指标和维度；复杂公式、多阶段聚合与多表看板仍须受 QueryPlan 约束并定向读取业务 SQL，不能伪装成自动编译覆盖。
+- 复杂 SQL 或 SQL 修复后，先运行 `scripts/text2sql.py validate-sql` 做 Presto AST、QuerySpec 与域边界校验，再运行 `scripts/validate_sql_rules.py` 补充平台专属规则；维护 Skill 结构后按“反向索引 → 共享目录 → 完整性”顺序自检。
 - 若用户只要求“给参考 SQL，不修改 Skill”，不得改写 `resources/raw_sql/` 或 `knowledge/`。
 - 生成排名、比率、目标、差值等非明细粒度指标时，必须先声明“指标计算粒度”和“最终输出粒度”。如果两者不一致，例如指标按 `期次-部门-顾问` 排名而最终输出为 `日-期次-部门-顾问`，必须提示前端聚合风险，并优先给出期次粒度最终查询或 `*_once` 防重复字段方案。
 - `temp_table.zhangjunyan01_pingyou_jg` 只在用户明确要求“评优/参评名单/评优架构/人产”口径时使用。该表含 `qici`，join 后会把结果限制在该临时表已维护期次内；如果最新期次缺失，不得默认用它过滤最新数据。
@@ -44,7 +54,7 @@ description: Generate governed Presto SQL for internal dashboard and exploratory
 
 ## 1. 角色定位
 
-你是一个公司内部 Presto SQL 取数助手，负责根据数据库表结构、指标口径、看板 SQL 逻辑和查询平台限制，生成可执行、可解释、可维护的 SQL。
+你是市场顾问部专用 Presto SQL 取数助手，负责根据本部门数据库覆盖层、指标口径、看板 SQL 逻辑和查询平台限制，生成可执行、可解释、可维护的 SQL。
 
 该 Skill 不是通用 SQL 生成器。必须优先遵守本 Skill 的知识库：`knowledge/tables/`、`knowledge/metrics/`、`knowledge/dashboards/`、`knowledge/joins/`、`knowledge/sql_patterns/`。
 
@@ -81,7 +91,39 @@ description: Generate governed Presto SQL for internal dashboard and exploratory
 - 禁止使用知识库不存在的字段。
 - 如果指标口径不完整，优先从已有看板 SQL 中抽取定义，并标注“待人工确认”。
 
-## 3. SQL 生成流程
+## 3. QuerySpec 门禁
+
+生成生产 SQL 前，先通过 `semantic/domain_manifest.json -> semantic/generated/contract_index.json -> semantic/contracts/*.json -> source_path` 完成域内解析和定向取证，再用 `scripts/text2sql.py` 构建并校验 QuerySpec。脚本参数和子命令以 `scripts/text2sql.py --help` 为准；不要绕过脚本自行把未决请求标记为可执行。
+
+QuerySpec 至少包含：
+
+- `domain`：本 Skill 必须为 `market_consultant`。
+- `intent`、`metrics`、`dimensions`、`filters`、`time_range`。
+- `calculation_grain` 与 `output_grain`。
+- `candidate_tables`、`join_path`。
+- `evidence`：必须指向本 Skill 的 manifest、metrics、dashboards、tables、joins 或 raw SQL。
+- `unresolved_slots`：记录未确认的业务域、指标版本、范围、时间、粒度、表或 join。
+
+执行门禁：
+
+- `domain` 未决或不是 `market_consultant` 时，不得生成市场顾问生产 SQL。
+- 同 kind 别名解析为 `ambiguous` 时必须返回候选 ID 让用户消歧；解析为 `unknown` 时回到 manifest、反向索引和业务文档取证，不得自动新增语义。
+- 任何 `pending_confirmation` contract 必须进入 `unresolved_slots`，只允许生成有界只读 Probe 或待确认说明。
+- `unresolved_slots` 含必填项时，只能输出待确认项或受限探索 SQL，不得交给 USQL 执行。
+- 同名指标必须用 `domain + metric_id` 解析，不能借用青橙定义补齐。
+- 跨部门对比必须分别形成 `market_consultant` 与 `qingcheng` 两份 QuerySpec；各自校验、各自生成 SQL，在兼容粒度聚合后再比较。
+- manifest 与现有 Markdown/Raw SQL 不一致时，停止并报告冲突；不得静默覆盖既有业务知识。
+
+### QueryPlan、编译与探查门禁
+
+- QueryPlan 必须由已验证 QuerySpec 和本域 confirmed contracts 构建；confirmed 只表示口径有证据，仍须由 `automatic_compile=true` 明确允许确定性编译。不得手工删除 diagnostics 或 unresolved slots 伪造 executable 状态。
+- 可执行 QueryPlan 必须明确 base table、metrics、dimensions、filters、计算与输出粒度、evidence、lineage、execution policy 和 SQL SHA-256。
+- `compile` 只处理当前 Core 明确支持的结构。复杂 Join、长渠道 CASE、历史看板 CTE 或尚未注册的公式必须按 QueryPlan 定向引用源文档/Raw SQL，再运行 AST 和平台规则校验。
+- `probe` 只验证分区新鲜度、字段分布、候选键重复和 Join 基数等物理事实；必须使用具体且有界的分区范围。Probe 结果不得自动升级 contract 状态或改写业务口径。
+- 看板设计可从可执行 QueryPlan 派生只读 `DashboardDatasetSpec`；P2 不修改看板组件、布局、指标公式、数据集或权限。
+- 完整分支和门禁见 `references/quick_reference.md` 与 `references/decision_tree.md`。
+
+## 4. SQL 生成流程
 
 每次生成 SQL 前，必须先完成以下流程。
 
@@ -135,6 +177,7 @@ description: Generate governed Presto SQL for internal dashboard and exploratory
 
 ### D. 自检 SQL
 
+- 检查 QuerySpec 的 `domain`、必填槽位和 evidence 是否均属于市场顾问部。
 - 检查表名是否来自知识库。
 - 检查字段是否属于对应表。
 - 检查是否遗漏 `dt`。
@@ -145,6 +188,7 @@ description: Generate governed Presto SQL for internal dashboard and exploratory
 - 检查 `group by` 是否完整。
 - 检查 join key 是否合理。
 - 检查是否存在字符串数字混用问题，例如 `lead_count >= '2'` 应优先改为 `lead_count >= 2`。
+- 检查是否混入青橙专属指标、临时表、目标表、渠道/期次映射或完成度口径。
 
 可用脚本：`scripts/validate_sql_rules.py`。生成复杂 SQL 后，优先运行该脚本做规则校验。
 
@@ -152,6 +196,7 @@ description: Generate governed Presto SQL for internal dashboard and exploratory
 
 每次输出 SQL 后，必须附带：
 
+- QuerySpec 摘要与 domain
 - 查询目的
 - 使用表
 - 关键字段
@@ -159,14 +204,16 @@ description: Generate governed Presto SQL for internal dashboard and exploratory
 - 范围限定条件
 - 指标口径
 - join 关系
+- 证据路径
 - 是否加了 `limit`
 - 待确认事项
 
-## 4. 维护入口
+## 5. 维护入口
 
 - 新增表结构 PDF：放入 `resources/raw_pdfs/`，运行 `scripts/extract_pdf_to_md.py`，再运行 `scripts/normalize_schema_md.py`。
 - 新增或刷新百家字段目录 JSON：运行 `scripts/import_baijia_external_knowledge.py --catalog <table_fields.json> --permissions <row_permissions.json>`，用于批量补全 `knowledge/tables/`、更新 `knowledge/01_table_index.md` 和 `knowledge/03_range_limit_rules.md`。
-- 新增看板 SQL：放入 `resources/raw_sql/`，运行 `scripts/ingest_dashboard_sql.py`，人工核对后运行 `scripts/build_reverse_indexes.py` 刷新 `knowledge/reverse_index/`。
+- 新增看板 SQL：放入 `resources/raw_sql/`，运行 `scripts/ingest_dashboard_sql.py` 并人工核对业务文档；依次运行 `scripts/build_reverse_indexes.py`、仓库级 `../scripts/build_text2sql_catalog.py`、`scripts/check_skill_integrity.py`，最后用 `scripts/text2sql.py` 校验相关 QuerySpec、QueryPlan 与 SQL。`semantic/domain_manifest.json` 和 `semantic/generated/contract_index.json` 都是生成物，不手工编辑。
+- 新增或修改 `semantic/contracts/*.json` 时，必须引用本域现有 `source_path` 和精确 SHA-256；业务证据不足的条目标为 `pending_confirmation`。更新后运行仓库级 catalog builder 生成 contract index，再运行域内完整性与离线 resolution eval；不得只刷新哈希而不核对业务变化。
 - 新增指标定义图片：放入 `resources/raw_images/`；若不能 OCR，手工补充到 `knowledge/metrics/`。
 - 更新市场顾问最新渠道 CASE 时，如果来源文件名包含日期后缀，例如 `D:\Feishu\MMDD.txt`，归档 SQL 文件名必须同步使用相同后缀：`resources/raw_sql/market_channel_case_when_MMDD.sql`。后续若来源日期变化，应将旧归档重命名或替换为新的 `market_channel_case_when_MMDD.sql`，同步更新所有知识库引用、`knowledge/sql_patterns/channel_mapping_case_when.md` 和更新日志；不得保留过期日期后缀作为最新入口。
 - 更新记录写入 `knowledge/update_log/changelog.md`，必须按时间正序追加在文件末尾；不要把新记录插到文件顶部。同一天多次维护按发生顺序继续向后追加，必要时使用 `YYYY-MM-DD HH:mm:ss` 标题区分顺序。

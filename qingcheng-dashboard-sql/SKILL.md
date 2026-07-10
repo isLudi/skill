@@ -1,6 +1,6 @@
 ---
 name: qingcheng-dashboard-sql
-description: Generate and maintain governed Presto SQL for Qingcheng project department (青橙项目部) dashboards, metrics, temp tables, historical dashboard SQL, field matching rules, and SQL error fixes. Use when asked to create, explain, validate, repair, or ingest Qingcheng/青橙 dashboard取数 SQL or update this isolated Qingcheng knowledge base; do not use for market consultant/市场顾问部 logic.
+description: Resolve, plan, compile, explain, validate, repair, and maintain governed Presto SQL for Qingcheng project department (青橙项目部), using isolated semantic contracts, metrics, dashboards, temp tables, historical SQL, range rules, and bounded data probes. Use for Qingcheng/青橙 Text2SQL, dashboard取数, completion, conversion, attendance, revenue, metric disambiguation, data-definition exploration, and knowledge maintenance; never use market-consultant/市场顾问部 semantics to fill Qingcheng gaps.
 ---
 
 # qingcheng-dashboard-sql
@@ -13,15 +13,18 @@ description: Generate and maintain governed Presto SQL for Qingcheng project dep
 
 加载后先确认 Skill 根目录，再按需读取以下入口：
 
-1. `metadata.json`：确认版本、查询引擎、知识库目录、隔离策略和健康检查脚本。
-2. `knowledge/quick_reference.md`：快速定位高频看板、表、临时表和反向索引入口。
-3. `knowledge/04_qingcheng_project_profile.md`：确认青橙业务域、隔离规则、临时表策略和待确认基础口径。
-4. `knowledge/decision_tree.md`：按用户需求路由到具体表、指标、看板、join、反向索引或 SQL 模板。
-5. `knowledge/01_table_index.md`：定位相关表；不要直接全量读取所有表文档。
-6. 相关 `knowledge/tables/*.md`、`knowledge/temp_tables/*.md`、`knowledge/metrics/*.md`、`knowledge/dashboards/*.md`、`knowledge/joins/*.md`。
-7. `knowledge/reverse_index/*.md`：当只知道字段、表、指标、raw SQL 或 debug 线索时先读，用于反向定位候选文档。
-8. `knowledge/dashboard_web_profiles/README.md` 及对应快照：当问题涉及青橙自助 BI 页面上的筛选器、组件、字段 ID、下载按钮、刷新任务 ID、选择器漂移或前端结构排查时读取。
-9. `knowledge/sql_patterns/*.md`：生成或修复 SQL 时参考模板。
+1. `metadata.json`：确认 `domain_id=qingcheng`、版本、查询引擎、共享 Core、物理目录、隔离策略和健康检查脚本。
+2. `semantic/domain_manifest.json`：读取轻量的青橙实体清单、证据路径和隔离声明；它只做域内路由，不替代业务文档。
+3. `semantic/generated/contract_index.json`：按指标、维度、join、范围别名定位契约 ID、状态和来源；它是生成索引，不是口径权威。
+4. `semantic/contracts/*.json`：只读取命中的契约；`confirmed` 可进入规划，`pending_confirmation` 只能形成待确认项或探查计划。
+5. `knowledge/quick_reference.md`：快速定位高频看板、表、临时表和反向索引入口。
+6. `knowledge/04_qingcheng_project_profile.md`：确认青橙业务域、隔离规则、临时表策略和待确认基础口径。
+7. `knowledge/decision_tree.md`：按用户需求路由到具体表、指标、看板、join、反向索引或 SQL 模板。
+8. `knowledge/01_table_index.md`：定位相关表；不要直接全量读取所有表文档。
+9. 相关 `knowledge/tables/*.md`、`knowledge/temp_tables/*.md`、`knowledge/metrics/*.md`、`knowledge/dashboards/*.md`、`knowledge/joins/*.md`：只读取与当前 QuerySpec 相关的文件。
+10. `knowledge/reverse_index/*.md`：仅在只知道字段、表、指标、raw SQL 或 debug 线索时读取，用于反向定位候选文档。
+11. `knowledge/dashboard_web_profiles/README.md` 及对应快照：当问题涉及青橙自助 BI 页面上的筛选器、组件、字段 ID、下载按钮、刷新任务 ID、选择器漂移或前端结构排查时读取。
+12. `knowledge/sql_patterns/*.md`：生成或修复 SQL 时参考模板。
 
 文件编码规则：
 
@@ -33,6 +36,10 @@ description: Generate and maintain governed Presto SQL for Qingcheng project dep
 
 - 只服务青橙项目部相关 SQL 和知识库维护。
 - 不把本 Skill 当通用 SQL 生成器使用。
+- 不加载、套用或推断市场顾问指标、评优/人产规则、范围、临时表、渠道 CASE、业务 join、看板或 raw SQL。
+- 共享物理目录只能提供表名、字段、类型、分区、物理粒度和候选键；青橙范围、指标和 join 仍以本 Skill 文档为准。
+- `semantic/contracts/` 只能引用本 Skill 的青橙文档或 Raw SQL；契约与来源 SHA-256 不一致时必须停止，不能用生成索引覆盖来源。
+- 用户只说“顾问”时必须在 `qingcheng:dimension:section_consultant`（线索分配顾问）和 `qingcheng:dimension:performance_consultant`（业绩归属顾问）之间消歧；不得根据当前查询表静默猜测。
 - 不脱离本 Skill 知识库编造表、字段、join key、临时表语义或指标口径。
 - 青橙相关 Web BI 结构快照、README 索引和调试结论只写入本 Skill 的 `knowledge/dashboard_web_profiles/`，不得写回 `sql-query-writer-for-dashboard`。
 - 不在缺少 `dt`、必要 `hour`、部门/项目范围限定或必要 `limit` 时直接给出生产查询。
@@ -60,7 +67,46 @@ description: Generate and maintain governed Presto SQL for Qingcheng project dep
 - 禁止使用知识库不存在的字段。用户新提供的 SQL 中出现的新字段，可在入库文档中标记“来源于历史 SQL，待表结构确认”。
 - 如果指标口径不完整，优先从本 Skill 已入库的青橙看板 SQL 中抽取定义，并标注“待人工确认”。
 
-## 3. SQL 生成流程
+## 3. QuerySpec 门禁
+
+生成生产 SQL 前，先用 `semantic/domain_manifest.json` 确认域，再用 `semantic/generated/contract_index.json` 解析别名，只读取命中的 `semantic/contracts/*.json` 及其 `source_path`。然后通过 `scripts/text2sql.py` 构建 QuerySpec 和 QueryPlan。脚本参数以 `scripts/text2sql.py --help` 为准；不要绕过脚本自行把未决请求或 pending 契约标记为可执行。
+
+QuerySpec 至少包含：
+
+- `schema_version`：P2 使用 `2.0.0`；`domain` 必须为 `qingcheng`。
+- `intent`、`metrics`、`dimensions`、`filters`、`time_range`。
+- `metrics` 优先保存 `qingcheng:metric:*` ID、名称和青橙来源；维度必须解析为 `qingcheng:dimension:*` 契约。
+- `business_scope` 与 `execution_mode`：区分生产范围和受限探索。
+- `calculation_grain` 与 `output_grain`。
+- `candidate_tables`、`join_path`。
+- `evidence`：必须指向本 Skill 的 manifest、metrics、dashboards、tables、temp_tables、joins 或 raw SQL。
+- `unresolved_slots`：记录未确认的业务域、指标版本、范围、时间、粒度、表、临时表或 join。
+
+执行门禁：
+
+- `domain` 未决或不是 `qingcheng` 时，不得生成青橙生产 SQL。
+- `unresolved_slots` 含必填项时，只能输出待确认项或受限探索 SQL，不得交给 USQL 执行。
+- 只有 `confirmed` 指标、维度、join 和范围契约可进入 QueryPlan；任一 `pending_confirmation` 必须进入 `unresolved_slots`。confirmed 指标仍须 `automatic_compile=true` 才能进入确定性编译，否则保留为人工 SQL 计划。
+- 同名指标必须用 `domain + contract_id` 解析，不能借用市场顾问定义补齐。
+- “顾问”同时命中线索分配顾问和业绩归属顾问时，必须要求补充语义或使用完整契约 ID；不得任选其一。
+- 跨部门对比必须分别形成 `qingcheng` 与 `market_consultant` 两份 QuerySpec；各自校验、各自生成 SQL，在兼容粒度聚合后再比较。
+- manifest 与现有 Markdown/Raw SQL 不一致时，停止并报告冲突；不得静默覆盖既有业务知识。
+
+### P2 渐进披露与输出边界
+
+按以下顺序推进，不得跳级加载或执行：
+
+1. `domain_manifest`：只确认 `qingcheng` 域、候选实体和证据位置。
+2. `contract_index`：解析指标、维度、join、范围别名并发现歧义；它不包含完整业务口径。
+3. `contracts + source_path`：只读取命中的契约及对应青橙 Markdown/Raw SQL，核对状态、SHA-256、粒度、范围和风险。
+4. `QuerySpec`：记录明确需求和未决槽位；pending 契约与歧义必须保留为未决。
+5. `QueryPlan`：确定基础表、指标表达式、维度、过滤、范围、join、证据和可执行状态。
+6. `compile`：仅对全部 confirmed、指标 `automatic_compile=true`、无未决槽位且单基础表的 QueryPlan 自动编译；复杂公式、多阶段聚合和多表 join 只输出计划并回到历史 SQL/Join 文档人工审阅。
+7. `probe`：生成带具体分区和边界的只读探查 SQL，用于新鲜度、分布、重复键、粒度或 join 放大检查；生成探查 SQL 不等于授权 USQL 执行。
+
+编译后的 SQL 仍须经过 AST、青橙平台规则和证据校验。任何执行或下载继续交给 `usql-web-query-operator`，本 Skill 不保存凭证、不管理登录态，也不直接执行 SQL。
+
+## 4. SQL 生成流程
 
 每次生成 SQL 前，必须完成以下流程。
 
@@ -82,19 +128,22 @@ description: Generate and maintain governed Presto SQL for Qingcheng project dep
 优先读取顺序：
 
 1. `metadata.json`
-2. `knowledge/quick_reference.md`
-3. `knowledge/04_qingcheng_project_profile.md`
-4. `knowledge/decision_tree.md`
-5. `knowledge/01_table_index.md`
-6. 相关 `knowledge/reverse_index/*.md`（字段、表、指标或 debug 反向定位场景）
-7. 相关 `knowledge/tables/*.md`
-8. 相关 `knowledge/temp_tables/*.md`
-9. 相关 `knowledge/metrics/*.md`
-10. 相关 `knowledge/dashboards/*.md`
-11. `knowledge/dashboard_web_profiles/README.md` 及对应快照（仅当问题涉及 Web BI 前端结构时）
-12. `knowledge/joins/*.md`
-13. `knowledge/sql_patterns/*.md`
-14. `knowledge/00_global_rules.md` 和 `knowledge/03_range_limit_rules.md`
+2. `semantic/domain_manifest.json`
+3. `semantic/generated/contract_index.json`
+4. 命中的单个 `semantic/contracts/*.json` 条目及其 `source_path`
+5. `knowledge/quick_reference.md`
+6. `knowledge/04_qingcheng_project_profile.md`
+7. `knowledge/decision_tree.md`
+8. `knowledge/01_table_index.md`
+9. 相关 `knowledge/reverse_index/*.md`（字段、表、指标或 debug 反向定位场景）
+10. 相关 `knowledge/tables/*.md`
+11. 相关 `knowledge/temp_tables/*.md`
+12. 相关 `knowledge/metrics/*.md`
+13. 相关 `knowledge/dashboards/*.md`
+14. `knowledge/dashboard_web_profiles/README.md` 及对应快照（仅当问题涉及 Web BI 前端结构时）
+15. `knowledge/joins/*.md`
+16. `knowledge/sql_patterns/*.md`
+17. `knowledge/00_global_rules.md` 和 `knowledge/03_range_limit_rules.md`
 
 ### C. 生成 SQL
 
@@ -112,6 +161,10 @@ description: Generate and maintain governed Presto SQL for Qingcheng project dep
 
 ### D. 自检 SQL
 
+- 检查 QuerySpec 的 `domain`、必填槽位和 evidence 是否均属于青橙项目部。
+- 检查所有 contract ID 都以 `qingcheng:` 开头、来源哈希未漂移且状态为 `confirmed`；`pending_confirmation` 不得被编译。
+- 检查“顾问”是否已明确为线索分配顾问或业绩归属顾问。
+- 检查 QueryPlan 的基础表、计算粒度、输出粒度、范围和 join 风险是否与 QuerySpec 一致；多表 join 不得由 P2 单表编译器自动拼接。
 - 检查表名是否来自本 Skill 知识库或用户本轮提供的 SQL。
 - 检查字段是否属于对应表；若知识库缺失，标注待确认。
 - 检查是否遗漏 `dt`。
@@ -124,12 +177,15 @@ description: Generate and maintain governed Presto SQL for Qingcheng project dep
 - 检查是否存在字符串数字混用问题，例如 `lead_count >= '2'` 应优先改为 `lead_count >= 2`。
 - 检查是否混入市场顾问部专属口径。
 
-可用脚本：`scripts/validate_sql_rules.py`。生成复杂 SQL 后，优先运行该脚本做规则校验。
+可用脚本：`scripts/validate_sql_rules.py`。生成复杂 SQL 后，优先运行该脚本做规则校验。该检查器按 AST 中每个 `SELECT`/CTE 的物理表作用域核对 `dt`、`hour` 和部门/项目过滤；外层查询不得替代内层物理表过滤，`SELECT DISTINCT` 也不会与其他查询块的 `GROUP BY` 混检。
 
 ### E. 输出说明
 
 每次输出 SQL 后，必须附带：
 
+- QuerySpec 摘要与 domain
+- 命中的 contract ID、状态和来源路径
+- QueryPlan 状态；若不可执行，列出 unresolved slots 和阻断原因
 - 查询目的
 - 使用表
 - 使用临时表
@@ -138,10 +194,12 @@ description: Generate and maintain governed Presto SQL for Qingcheng project dep
 - 青橙范围限定条件
 - 指标口径
 - join 关系
+- 证据路径
 - 是否加了 `limit`
+- 若生成 probe，说明探查种类、边界和需要人工解释的结果
 - 待确认事项
 
-## 4. 知识库维护流程
+## 5. 知识库维护流程
 
 新增青橙看板 SQL：
 
@@ -151,7 +209,11 @@ description: Generate and maintain governed Presto SQL for Qingcheng project dep
 4. 更新 `knowledge/01_table_index.md`、`knowledge/joins/common_join_keys.md`、`knowledge/joins/table_relationships.md`。
 5. 更新 `knowledge/update_log/changelog.md`，按时间正序追加在文件末尾。
 6. 运行 `scripts/build_reverse_indexes.py` 刷新 `knowledge/reverse_index/`。
-7. 运行 `scripts/check_skill_integrity.py`。
+7. 若业务定义已明确且需要进入 P2 规划，更新对应 `semantic/contracts/*.json`，同步当前 `source_path` SHA-256；证据不足的契约只能标为 `pending_confirmation`。
+8. 运行 `../scripts/build_text2sql_catalog.py` 重建结构化清单、`semantic/generated/contract_index.json` 和共享中性物理目录；`semantic/domain_manifest.json` 与 `semantic/generated/` 均为生成物，不手工编辑。
+9. 人工核对 domain manifest、contract index、契约状态和来源引用；不得从市场顾问 manifest 或 contracts 复制业务语义。
+10. 运行 `semantic/evals/resolution_cases.json` 的离线别名解析评测，确认已知别名、预期歧义和 unknown 用例均符合预期。
+11. 使用 `scripts/text2sql.py` 校验 QuerySpec、QueryPlan、编译 SQL 或 probe，再运行 `scripts/check_skill_integrity.py`。
 
 新增青橙临时表：
 

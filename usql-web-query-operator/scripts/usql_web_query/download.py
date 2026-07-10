@@ -8,6 +8,7 @@ from typing import Any
 
 from _shared.errors import UsageError
 
+from .artifact_validation import DownloadArtifactError, validate_download_bytes, validate_download_file
 from .page_helpers import get_sql_frame
 from .result_panel import result_page_has_no_data
 from .sql_utils import visible_download_limit
@@ -31,7 +32,14 @@ def _filename_from_disposition(value: str | None, fallback: str) -> str:
     filename = re.sub(r'[<>:"/\\|?*]+', "_", filename).strip()
     return filename or fallback
 
-def _download_via_result_api(page: Any, artifacts_dir: Path, query_id: str | None) -> str | None:
+def _download_via_result_api(
+    page: Any,
+    artifacts_dir: Path,
+    query_id: str | None,
+    *,
+    expected_rows: int | None = None,
+    expected_columns: int | None = None,
+) -> str | None:
     if not query_id:
         return None
     request = page.context.request
@@ -57,24 +65,65 @@ def _download_via_result_api(page: Any, artifacts_dir: Path, query_id: str | Non
         content = file_resp.body()
         if not file_resp.ok or not content:
             return None
+        validate_download_bytes(
+            content,
+            expected_format="csv",
+            expected_rows=expected_rows,
+            expected_columns=expected_columns,
+        )
         fallback = f"usql_result_{query_id}.csv"
         filename = _filename_from_disposition(file_resp.headers.get("content-disposition"), fallback)
         if not filename.lower().endswith(".csv"):
             filename = f"{filename}.csv"
         target = artifacts_dir / filename
+        target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(content)
         return str(target)
+    except DownloadArtifactError:
+        raise
     except Exception:
         return None
 
-def click_download_button(page: Any, artifacts_dir: Path, query_id: str | None = None):
-    """Click the download button and select Excel format from the dropdown.
+def _validate_saved_excel(
+    target: Path,
+    *,
+    expected_rows: int | None,
+    expected_columns: int | None,
+) -> str:
+    try:
+        validate_download_file(
+            target,
+            expected_format="xlsx",
+            expected_rows=expected_rows,
+            expected_columns=expected_columns,
+        )
+    except DownloadArtifactError:
+        target.unlink(missing_ok=True)
+        raise
+    return str(target)
 
-    The platform shows a dropdown with CSV and Excel options after clicking
-    the download icon. We select the Excel (.xlsx) option.
+
+def click_download_button(
+    page: Any,
+    artifacts_dir: Path,
+    query_id: str | None = None,
+    *,
+    expected_rows: int | None = None,
+    expected_columns: int | None = None,
+):
+    """Download and validate a direct result artifact.
+
+    The result API CSV is preferred. If that path is unavailable, the UI Excel
+    artifact is accepted only after workbook structure and row/header checks.
     """
     frame = get_sql_frame(page)
-    direct_download = _download_via_result_api(page, artifacts_dir, query_id)
+    direct_download = _download_via_result_api(
+        page,
+        artifacts_dir,
+        query_id,
+        expected_rows=expected_rows,
+        expected_columns=expected_columns,
+    )
     if direct_download:
         return direct_download
 
@@ -100,11 +149,19 @@ def click_download_button(page: Any, artifacts_dir: Path, query_id: str | None =
                         suggested = download.suggested_filename or "usql_result_download.xlsx"
                         target = artifacts_dir / suggested
                         download.save_as(str(target))
-                        return str(target)
+                        return _validate_saved_excel(
+                            target,
+                            expected_rows=expected_rows,
+                            expected_columns=expected_columns,
+                        )
+                    except DownloadArtifactError:
+                        raise
                     except Exception:
                         pass
                     clicked = True
                     break
+            except DownloadArtifactError:
+                raise
             except Exception:
                 continue
         if clicked:
@@ -165,4 +222,8 @@ def click_download_button(page: Any, artifacts_dir: Path, query_id: str | None =
     suggested = download.suggested_filename or "usql_result_download.xlsx"
     target = artifacts_dir / suggested
     download.save_as(str(target))
-    return str(target)
+    return _validate_saved_excel(
+        target,
+        expected_rows=expected_rows,
+        expected_columns=expected_columns,
+    )

@@ -108,11 +108,13 @@ iframe 编辑器工具栏中的运行按钮回退方案：
 
 ### 下载
 
-下载按钮是 iframe 结果区中的下箭头图标。已验证流程：
+下载优先使用结果下载 API 的 CSV；只有 API 不可用时才使用 iframe 结果区中的下箭头图标。已验证流程：
 
-1. 点击结果区 `.anticon-download` 或带下载语义的 icon。
-2. 如果点击后出现下拉菜单，选择 `excel` / `Excel` / `xlsx`。
-3. 如果图标直接触发浏览器下载，则直接保存该文件。
+1. 调用结果下载检查接口和 CSV 下载接口，并在写盘前校验返回字节。
+2. 如果 API 不可用，点击结果区 `.anticon-download` 或带下载语义的 icon。
+3. 如果点击后出现下拉菜单，选择 `excel` / `Excel` / `xlsx`；如果图标直接触发浏览器下载，则保存后校验。
+4. CSV 若实际为对象存储 XML 列表/错误页，或 Excel 在查询有数据时只有表头、表头列不完整，判定为无效制品，不得返回成功。
+5. `run --download` 识别到上述无效制品时，自动用同一 concrete SQL 创建临时 Template Query、下载 CSV，并执行 `offline -> delete`。summary 的 `download_fallback` 保留原因、临时模板/查询 ID、行数和清理结果。
 
 已验证 xlsx 文件名模式类似 `task_<query_id>_<timestamp>.xlsx`。
 
@@ -330,5 +332,6 @@ where dt = '20260531'
 - 下载类型映射：
   - `type=1`：`csv`
   - `type=2`：Excel 制品，实测文件名为 `*.xlsx`
+- 下载制品必须与 `query/result` 的行数/列元数据交叉校验；`type=2` 返回表头空或列不完整工作簿时自动改取 `type=1`，固定 `.xlsx` 输出路径同步改为 `.csv`。
 - 生产命令：`D:\anaconda3\python.exe scripts\usql_web_query.py template-download --sql-file C:\path\to\query.sql`
 - 当前已验证的清理顺序为 `publish -> query -> download -> offline -> delete`。查询历史记录不在清理范围内。

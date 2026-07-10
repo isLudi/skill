@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import re
 import sys
 from datetime import date, time
@@ -30,6 +31,10 @@ REQUIRED_DIRS = [
     "resources/raw_images",
     "resources/rendered_pages",
     "scripts",
+    "semantic",
+    "semantic/contracts",
+    "semantic/evals",
+    "semantic/generated",
 ]
 
 REQUIRED_FILES = [
@@ -63,6 +68,14 @@ REQUIRED_FILES = [
     "scripts/check_skill_integrity.py",
     "scripts/ingest_dashboard_sql.py",
     "scripts/validate_sql_rules.py",
+    "scripts/text2sql.py",
+    "semantic/domain_manifest.json",
+    "semantic/contracts/metric_contracts.json",
+    "semantic/contracts/dimension_contracts.json",
+    "semantic/contracts/join_contracts.json",
+    "semantic/contracts/scope_contracts.json",
+    "semantic/evals/resolution_cases.json",
+    "semantic/generated/contract_index.json",
 ]
 
 TABLE_SECTIONS = [
@@ -92,7 +105,7 @@ TEMP_TABLE_SECTIONS = [
 
 
 def read_text(path: Path) -> str:
-    return path.read_text(encoding="utf-8")
+    return path.read_text(encoding="utf-8-sig")
 
 
 def fail(message: str, failures: list[str]) -> None:
@@ -122,15 +135,128 @@ def check_metadata(failures: list[str]) -> None:
         fail("metadata.query_engine must be Presto", failures)
     if metadata.get("business_domain") != "青橙项目部":
         fail("metadata.business_domain must be 青橙项目部", failures)
+    if metadata.get("domain_id") != "qingcheng":
+        fail("metadata.domain_id must be qingcheng", failures)
     if metadata.get("entrypoint") != "SKILL.md":
         fail("metadata.entrypoint must be SKILL.md", failures)
     if not metadata.get("forbid_cross_domain_defaulting"):
         fail("metadata.forbid_cross_domain_defaulting must be true", failures)
+    if metadata.get("semantic_contract_version") != "2.0.0":
+        fail("metadata.semantic_contract_version must be 2.0.0", failures)
+    if metadata.get("query_spec_schema_version") != "2.0.0":
+        fail("metadata.query_spec_schema_version must be 2.0.0", failures)
+    if metadata.get("query_plan_schema_version") != "2.0.0":
+        fail("metadata.query_plan_schema_version must be 2.0.0", failures)
+    if metadata.get("pending_contract_policy") != "block_production_compilation":
+        fail("metadata.pending_contract_policy must block production compilation", failures)
+    if metadata.get("consultant_alias_policy") != "require_section_or_performance_disambiguation":
+        fail("metadata.consultant_alias_policy must require consultant disambiguation", failures)
+    required_capabilities = {
+        "resolve",
+        "plan",
+        "compile_single_base_table",
+        "probe_read_only",
+        "dataset_spec_read_only",
+    }
+    if set(metadata.get("p2_capabilities", [])) != required_capabilities:
+        fail("metadata.p2_capabilities must declare the complete P2 surface", failures)
+    if metadata.get("automatic_compile_flag_required") is not True:
+        fail("metadata.automatic_compile_flag_required must be true", failures)
 
     for rel in metadata.get("knowledge_dirs", []):
         if not (ROOT / rel).is_dir():
             fail(f"metadata knowledge dir missing: {rel}", failures)
+    contract_dir = metadata.get("semantic_contract_dir")
+    if not contract_dir or not (ROOT / contract_dir).resolve().is_dir():
+        fail(f"metadata semantic_contract_dir target missing: {contract_dir}", failures)
+    for key in (
+        "semantic_manifest",
+        "semantic_contract_index",
+        "semantic_eval_cases",
+        "semantic_contract_schema",
+        "text2sql_cli",
+        "physical_catalog",
+        "query_spec_schema",
+        "query_plan_schema",
+        "dashboard_dataset_spec_schema",
+    ):
+        rel = metadata.get(key)
+        if not rel or not (ROOT / rel).resolve().is_file():
+            fail(f"metadata {key} target missing: {rel}", failures)
     ok("metadata.json")
+
+
+def check_semantic_contracts(failures: list[str]) -> None:
+    core_root = (ROOT.parent / "_shared" / "text2sql_core").resolve()
+    if str(core_root) not in sys.path:
+        sys.path.insert(0, str(core_root))
+    try:
+        from text2sql_core.contracts import ContractRegistry
+        from text2sql_core.evaluator import evaluate_resolution_cases
+    except Exception as exc:  # noqa: BLE001
+        fail(f"cannot load Text2SQL contract validators: {exc}", failures)
+        return
+
+    registry = ContractRegistry.load(ROOT, "qingcheng")
+    contract_errors = [item for item in registry.diagnostics if item.severity == "error"]
+    for item in contract_errors:
+        fail(f"semantic contract {item.code}: {item.message}", failures)
+    if contract_errors:
+        return
+
+    expected_consultant_ids = [
+        "qingcheng:dimension:performance_consultant",
+        "qingcheng:dimension:section_consultant",
+    ]
+    generated = registry.generated_index()
+    if generated.get("alias_collisions", {}).get("顾问") != expected_consultant_ids:
+        fail("consultant alias must remain ambiguous between section and performance consultants", failures)
+
+    index_path = ROOT / "semantic" / "generated" / "contract_index.json"
+    try:
+        stored_index = json.loads(read_text(index_path))
+    except Exception as exc:  # noqa: BLE001
+        fail(f"semantic/generated/contract_index.json is not valid JSON: {exc}", failures)
+    else:
+        if stored_index != generated:
+            fail("semantic/generated/contract_index.json is stale; rebuild the Text2SQL catalog", failures)
+        else:
+            ok(f"semantic contracts and generated index: {len(registry.values())}")
+
+    eval_result = evaluate_resolution_cases(ROOT, "qingcheng")
+    if not eval_result.get("ok"):
+        for item in eval_result.get("failures", []):
+            fail(f"semantic eval failed: {item}", failures)
+    else:
+        ok(f"semantic resolution evals: {eval_result['passed']}/{eval_result['total']}")
+
+
+def check_domain_manifest(failures: list[str]) -> None:
+    path = ROOT / "semantic" / "domain_manifest.json"
+    try:
+        manifest = json.loads(read_text(path))
+    except Exception as exc:  # noqa: BLE001
+        fail(f"semantic/domain_manifest.json is not valid JSON: {exc}", failures)
+        return
+    if manifest.get("domain", {}).get("id") != "qingcheng":
+        fail("semantic manifest domain must be qingcheng", failures)
+    inventory = {item.get("source_path"): item for item in manifest.get("source_inventory", [])}
+    sources = sorted((ROOT / "knowledge").rglob("*.md"))
+    sources.extend(sorted(path for path in (ROOT / "resources" / "raw_sql").rglob("*") if path.is_file()))
+    expected = {source.relative_to(ROOT).as_posix() for source in sources}
+    if set(inventory) != expected:
+        fail("semantic manifest does not cover the exact knowledge/raw SQL source set", failures)
+        return
+    stale = []
+    for source in sources:
+        relative = source.relative_to(ROOT).as_posix()
+        digest = hashlib.sha256(source.read_bytes()).hexdigest()
+        if inventory[relative].get("sha256") != digest:
+            stale.append(relative)
+    if stale:
+        fail(f"semantic manifest has stale source hashes: {', '.join(stale)}", failures)
+    else:
+        ok("semantic manifest coverage and hashes")
 
 
 def check_markdown_docs(folder: str, sections: list[str], failures: list[str]) -> None:
@@ -206,6 +332,8 @@ def main() -> int:
             fail(f"missing file: {rel}", failures)
 
     check_metadata(failures)
+    check_domain_manifest(failures)
+    check_semantic_contracts(failures)
     check_markdown_docs("knowledge/tables", TABLE_SECTIONS, failures)
     check_markdown_docs("knowledge/temp_tables", TEMP_TABLE_SECTIONS, failures)
     check_changelog_order(failures)

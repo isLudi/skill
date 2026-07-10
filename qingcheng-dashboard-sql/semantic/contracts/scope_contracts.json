@@ -1,0 +1,164 @@
+{
+  "schema_version": "2.0.0",
+  "domain": "qingcheng",
+  "contracts": [
+    {
+      "id": "qingcheng:scope:conversion_performance_department",
+      "name": "青橙转化业绩归属范围",
+      "aliases": [
+        "青橙转化业绩范围",
+        "业绩归属青橙",
+        "conversion_performance_scope"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/03_range_limit_rules.md",
+      "source_sha256": "5c4de0f91f4e34a7c708106b5ebf9e763a5671ad3c1da5a8dea774a27bc0b9df",
+      "filters": [
+        {
+          "field": "performance_second_level_department_name",
+          "operator": "=",
+          "value": "青橙项目部"
+        }
+      ],
+      "applies_to_tables": [
+        "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf"
+      ],
+      "partition_requirements": [
+        "dt",
+        "hour"
+      ],
+      "notes": [
+        "课程一级/二级部门白名单也是 canonical 转化口径的一部分；其长枚举必须从对应 raw SQL 原样读取，不能由本单字段范围代替。"
+      ]
+    },
+    {
+      "id": "qingcheng:scope:conversion_lead_department",
+      "name": "青橙转化线索范围",
+      "aliases": [
+        "青橙线索范围",
+        "线索归属青橙",
+        "conversion_lead_scope"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/03_range_limit_rules.md",
+      "source_sha256": "5c4de0f91f4e34a7c708106b5ebf9e763a5671ad3c1da5a8dea774a27bc0b9df",
+      "filters": [
+        {
+          "field": "section_assign_employee_first_level_department_name",
+          "operator": "=",
+          "value": "H业务线"
+        },
+        {
+          "field": "section_assign_employee_second_level_department_name",
+          "operator": "=",
+          "value": "青橙项目部"
+        },
+        {
+          "field": "period_mapping_first_level_department_name",
+          "operator": "=",
+          "value": "H业务线"
+        },
+        {
+          "field": "period_mapping_second_level_department_name",
+          "operator": "IN",
+          "value": [
+            "精品班学部",
+            "青橙项目部"
+          ]
+        }
+      ],
+      "applies_to_tables": [
+        "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df"
+      ],
+      "partition_requirements": [
+        "dt",
+        "hour"
+      ]
+    },
+    {
+      "id": "qingcheng:scope:completion_employee_window",
+      "name": "青橙完成度员工任职范围",
+      "aliases": [
+        "青橙完成度范围",
+        "青橙员工任职窗口",
+        "completion_employee_scope"
+      ],
+      "status": "confirmed",
+      "source_path": "resources/raw_sql/qingcheng_team_completion_month_raw_20260522.sql",
+      "source_sha256": "94e1b87c2a17820b431ad107dc6fa2a9b3d54b3e8ae29cd2d9666e7ebf00d307",
+      "filters": [
+        {
+          "field": "path_name",
+          "operator": "LIKE",
+          "value": "高途-H业务线-青橙项目部%"
+        },
+        {
+          "field": "employee_first_level_department_name",
+          "operator": "=",
+          "value": "H业务线"
+        },
+        {
+          "field": "employee_second_level_department_name",
+          "operator": "=",
+          "value": "青橙项目部"
+        },
+        {
+          "field": "coalesce(order_attr.original_paid_time, paid_time, trade_time)",
+          "operator": "BETWEEN_EMPLOYMENT_WINDOW",
+          "value": {
+            "begin_field": "begin_time",
+            "end_field": "end_time",
+            "allow_null_end": true
+          }
+        }
+      ],
+      "applies_to_tables": [
+        "finance_dw.app_finance_performance_extend_details_hf",
+        "dw.dim_employee_chain"
+      ],
+      "partition_requirements": [
+        "dt",
+        "hour"
+      ],
+      "notes": [
+        "现行完成度口径优先使用 original_paid_time 判断任职窗口；team_hist 期次只作为已有文档明确的兜底。"
+      ]
+    },
+    {
+      "id": "qingcheng:scope:unresolved_department_placeholders",
+      "name": "青橙未决部门范围占位符",
+      "aliases": [
+        "青橙范围占位符",
+        "未确认青橙部门",
+        "unresolved_qingcheng_scope"
+      ],
+      "status": "pending_confirmation",
+      "source_path": "knowledge/03_range_limit_rules.md",
+      "source_sha256": "5c4de0f91f4e34a7c708106b5ebf9e763a5671ad3c1da5a8dea774a27bc0b9df",
+      "filters": [
+        {
+          "field": "<first_level_department_field>",
+          "operator": "=",
+          "placeholder": "<青橙一级部门名称>"
+        },
+        {
+          "field": "<second_level_department_field>",
+          "operator": "=",
+          "placeholder": "<青橙二级部门名称>"
+        },
+        {
+          "field": "<third_level_department_field>",
+          "operator": "=",
+          "placeholder": "<青橙三级部门/项目名称>"
+        }
+      ],
+      "applies_to_tables": [],
+      "partition_requirements": [
+        "dt"
+      ],
+      "notes": [
+        "占位符未替换时只能生成受限探索 SQL，不得进入生产执行。"
+      ]
+    }
+  ]
+}

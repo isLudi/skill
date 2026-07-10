@@ -1,4 +1,4 @@
-﻿with dd as (
+with dd as (
     select *
     from (
     select

@@ -1,9 +1,17 @@
-﻿# 用户需求到知识库路由
+# 用户需求到知识库路由
 
 > 先用本文件判断要读哪些知识，再进入具体表、指标、看板、join、反向索引或 SQL 模板。不要把本文件当完整口径来源。
 
 | 用户说法 | 先读 | 再读 | 必要规则/踩坑 |
 |---|---|---|---|
+| 用户给出青橙指标、维度、join 或范围别名 | `semantic/generated/contract_index.json` | 命中的 `semantic/contracts/*.json` 条目及其 `source_path` | contract index 只负责路由；`confirmed` 才能进入可执行计划，`pending_confirmation` 必须保留为未决 |
+| 用户只说“顾问” | contract index 中别名 `顾问` 的两个候选 | `qingcheng:dimension:section_consultant` 与 `qingcheng:dimension:performance_consultant` | 询问是线索分配顾问还是业绩归属顾问；不得按当前候选表自动决定 |
+| 已解析 confirmed 指标，候选指标共享一个基础表 | 命中的 metric/dimension/scope contracts | 对应表文档、范围文档和 QuerySpec | 先生成 QueryPlan；仅无未决槽位、无 join 的单基础表计划可自动 compile |
+| 命中 pending 契约或多表 join | 对应契约的 `source_path` | `knowledge/joins/`、`knowledge/reverse_index/join_risk_index.md`、命中的 Raw SQL | pending 阻断生产；多表 join 只输出计划并人工审阅，不能用另一部门口径补齐 |
+| 需要探查分区新鲜度、字段分布、重复键或 join 放大 | `semantic/domain_manifest.json` 与共享中性物理目录 | 命中的表/Join 文档，使用 `probe` 生成有界只读 SQL | 使用具体分区和小范围；probe 生成不代表执行授权，结果解释仍回到青橙业务文档 |
+| 未说明业务部门，或同名指标可能属于青橙/市场顾问 | `semantic/domain_manifest.json` | 先形成 `domain: unresolved` 的 QuerySpec | 不得默认青橙或市场顾问；业务域、指标版本、范围或粒度未决时停止生成生产 SQL |
+| 已确认青橙需求，准备生成或修复 SQL | `semantic/domain_manifest.json` | `knowledge/quick_reference.md` 与命中的单个 dashboard/metric/table/temp_table/join 文档 | 使用 `scripts/text2sql.py` 校验 QuerySpec；evidence 只能来自青橙 Skill 或中性物理目录 |
+| 青橙与市场顾问跨部门对比 | 两个 Skill 各自的 `semantic/domain_manifest.json` | 两边各自命中的 metrics/dashboard/raw SQL | 构建两份独立 QuerySpec；不得共享指标、范围、临时表、渠道/期次或业务 join，只在兼容聚合粒度合并结果 |
 | 青橙有哪些表、某表能不能用于青橙 | `knowledge/04_qingcheng_project_profile.md` | `knowledge/01_table_index.md`、对应 `knowledge/tables/*.md` 或 `knowledge/temp_tables/*.md` | 不从市场顾问 skill 自动迁移表语义；公共表也要确认青橙范围字段 |
 | 写青橙过程数据 SQL | `knowledge/dashboards/qingcheng_process_data_raw_20260522.md` | `knowledge/metrics/qingcheng_process_data_metrics.md`、`knowledge/joins/table_relationships.md` | 外呼、APP 登录、到课补充会改变粒度，先查 join 风险 |
 | 写青橙到课 SQL | `knowledge/dashboards/qingcheng_daoke_raw_20260522.md` | `knowledge/metrics/qingcheng_daoke_metrics.md`、`knowledge/temp_tables/temp_table.dingxi01_qing_daoke.md` | 到课表 `qici + qudao + grade + begin_time` 唯一性待确认 |
@@ -16,11 +24,14 @@
 | 用户只给字段名、指标名或别名 | `knowledge/reverse_index/field_to_metrics.md` | `knowledge/reverse_index/metric_to_raw_sql.md`、对应 metrics/dashboard 文档 | 反向索引只定位候选文档，最终口径回到 metrics/dashboard |
 | 用户只给表名，问哪些看板用到 | `knowledge/reverse_index/table_to_dashboards.md` | `knowledge/01_table_index.md`、对应 dashboard 文档 | 表被引用不代表所有看板可复用同一范围或 join |
 | SQL 结果为空、某期次/顾问/渠道查不到 | `knowledge/reverse_index/join_risk_index.md` | `knowledge/joins/table_relationships.md`、对应表文档 | 先排查主表有无数据、范围过滤、join anti-check，再判断业务无数据 |
-| SQL 报错、平台函数问题 | `knowledge/00_global_rules.md` | `knowledge/sql_patterns/presto_date_partition_patterns.md`、`scripts/validate_sql_rules.py` | 禁用三参数 `date_add`，分区表必须加 `dt`，小时表说明 `hour` 逻辑 |
+| SQL 报错、平台函数问题 | `knowledge/00_global_rules.md` | `knowledge/sql_patterns/presto_date_partition_patterns.md`、`scripts/validate_sql_rules.py` | 禁用三参数 `date_add`；AST 检查器逐个 SELECT/CTE 核对物理表 `dt`、`hour` 和业务范围，不用外层过滤替代内层范围，也不把 `SELECT DISTINCT` 与其他查询块的 GROUP BY 混检 |
 | 入库新的青橙看板 SQL | `SKILL.md` 的知识库维护流程 | `scripts/ingest_dashboard_sql.py`、`scripts/build_reverse_indexes.py`、`scripts/check_skill_integrity.py` | 自动解析只是草稿；人工核对后再更新索引和 changelog |
 
 ## 路由原则
 
+- 先做 domain resolution，再按 `domain_manifest -> contract_index -> 命中契约 -> source_path` 渐进披露；`domain != qingcheng` 时停止本 Skill 的业务检索。
+- 契约解析后依次形成 QuerySpec 与 QueryPlan；只有全部命中项为 `confirmed`、必填 unresolved slot 已清空且单基础表无 join 时，才可自动 compile。
+- `pending_confirmation`、别名歧义和多表 join 必须停在计划或 probe 阶段；反向索引只定位候选，最终证据回到 domain-local metrics/dashboard/raw SQL。
 - 简单字段或表结构问题：读 `quick_reference.md`、`01_table_index.md`、相关 `tables/*.md` 或 `temp_tables/*.md`。
 - 指标或看板口径问题：先读对应 `dashboards/*.md` 和 `metrics/*.md`；如果问题涉及看板自定义公式、字段展示名或透视表聚合，再读 `knowledge/dashboard_web_profiles/edit_metrics/` 和 `knowledge/metrics/qingcheng_dashboard_metric_formula_linkage.md`。
 - 反向排查问题：先读 `knowledge/reverse_index/`，再进入具体文档，不要全量读取知识库。

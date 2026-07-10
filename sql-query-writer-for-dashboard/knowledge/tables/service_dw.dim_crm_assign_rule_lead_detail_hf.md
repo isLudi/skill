@@ -1,4 +1,4 @@
-﻿# service_dw.dim_crm_assign_rule_lead_detail_hf
+# service_dw.dim_crm_assign_rule_lead_detail_hf
 
 ## 1. 中文名称
 

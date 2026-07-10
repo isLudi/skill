@@ -1,0 +1,147 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.codex/text2sql/query_spec.schema.json",
+  "title": "Domain-safe Text2SQL QuerySpec",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "domain",
+    "intent",
+    "metrics",
+    "dimensions",
+    "filters",
+    "calculation_grain",
+    "output_grain",
+    "candidate_tables",
+    "join_path",
+    "evidence",
+    "unresolved_slots"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "2.0.0"
+    },
+    "spec_id": {
+      "type": ["string", "null"]
+    },
+    "domain": {
+      "enum": ["unresolved", "market_consultant", "qingcheng"]
+    },
+    "intent": {
+      "type": "string",
+      "minLength": 1
+    },
+    "metrics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "source_path"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^(market_consultant|qingcheng):"},
+          "name": {"type": "string", "minLength": 1},
+          "source_path": {"type": "string", "pattern": "^knowledge/metrics/"}
+        }
+      }
+    },
+    "dimensions": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1}
+    },
+    "filters": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["field", "operator", "value"],
+        "properties": {
+          "field": {"type": "string", "minLength": 1},
+          "operator": {"type": "string", "minLength": 1},
+          "value": {}
+        }
+      }
+    },
+    "business_scope": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["field", "operator", "value"],
+        "properties": {
+          "field": {"type": "string", "minLength": 1},
+          "operator": {"type": "string", "minLength": 1},
+          "value": {}
+        }
+      }
+    },
+    "scopes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^(market_consultant|qingcheng):scope:"
+      }
+    },
+    "execution_mode": {
+      "enum": ["production", "exploratory"]
+    },
+    "time_range": {
+      "type": ["object", "null"],
+      "additionalProperties": true
+    },
+    "calculation_grain": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1}
+    },
+    "output_grain": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1}
+    },
+    "candidate_tables": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "source_path"],
+        "properties": {
+          "name": {"type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*\\.[A-Za-z_][A-Za-z0-9_]*$"},
+          "source_path": {"type": "string", "pattern": "^knowledge/(tables|temp_tables)/"}
+        }
+      }
+    },
+    "join_path": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["left", "right", "keys", "source_path"],
+        "properties": {
+          "contract_id": {
+            "type": "string",
+            "pattern": "^(market_consultant|qingcheng):join:"
+          },
+          "left": {"type": "string", "minLength": 1},
+          "right": {"type": "string", "minLength": 1},
+          "keys": {"type": "array", "items": {"type": "string", "minLength": 1}},
+          "source_path": {"type": "string", "pattern": "^knowledge/joins/"}
+        }
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["source_path", "kind", "supports"],
+        "properties": {
+          "source_path": {"type": "string", "minLength": 1},
+          "kind": {"enum": ["table", "metric", "dashboard", "join", "raw_sql", "rule"]},
+          "supports": {"type": "array", "items": {"type": "string", "minLength": 1}}
+        }
+      }
+    },
+    "unresolved_slots": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1}
+    }
+  }
+}

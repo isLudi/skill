@@ -1,18 +1,17 @@
 """
 Excel Formula Recalculation Script
-Recalculates all formulas in an Excel file using LibreOffice
+Recalculates formulas with Excel COM on Windows and LibreOffice elsewhere.
 """
 
 import json
 import os
 import platform
+import shutil
 import subprocess
 import sys
 from pathlib import Path
 
-from office.soffice import get_soffice_env
-
-from openpyxl import load_workbook
+from office.workbook_scan import scan_workbook
 
 MACRO_DIR_MACOS = "~/Library/Application Support/LibreOffice/4/user/basic/Standard"
 MACRO_DIR_LINUX = "~/.config/libreoffice/4/user/basic/Standard"
@@ -40,6 +39,8 @@ def has_gtimeout():
 
 
 def setup_libreoffice_macro():
+    from office.soffice import get_soffice_env
+
     macro_dir = os.path.expanduser(
         MACRO_DIR_MACOS if platform.system() == "Darwin" else MACRO_DIR_LINUX
     )
@@ -68,13 +69,31 @@ def setup_libreoffice_macro():
 
 
 def recalc(filename, timeout=30):
+    """Select the native calculation backend for the current operating system."""
+
+    if platform.system() == "Windows":
+        from office.excel_com import recalc_with_excel
+
+        return recalc_with_excel(filename, timeout)
+    return recalc_with_libreoffice(filename, timeout)
+
+
+def recalc_with_libreoffice(filename, timeout=30):
+    from office.soffice import get_soffice_env
+
     if not Path(filename).exists():
-        return {"error": f"File {filename} does not exist"}
+        return {"backend": "libreoffice", "error": f"File {filename} does not exist"}
+
+    if shutil.which("soffice") is None:
+        return {
+            "backend": "libreoffice",
+            "error": "LibreOffice soffice was not found on PATH",
+        }
 
     abs_path = str(Path(filename).absolute())
 
     if not setup_libreoffice_macro():
-        return {"error": "Failed to setup LibreOffice macro"}
+        return {"backend": "libreoffice", "error": "Failed to setup LibreOffice macro"}
 
     cmd = [
         "soffice",
@@ -91,80 +110,28 @@ def recalc(filename, timeout=30):
 
     result = subprocess.run(cmd, capture_output=True, text=True, env=get_soffice_env())
 
-    if result.returncode != 0 and result.returncode != 124:  
+    if result.returncode != 0 and result.returncode != 124:
         error_msg = result.stderr or "Unknown error during recalculation"
         if "Module1" in error_msg or "RecalculateAndSave" not in error_msg:
-            return {"error": "LibreOffice macro not configured properly"}
-        return {"error": error_msg}
+            return {
+                "backend": "libreoffice",
+                "error": "LibreOffice macro not configured properly",
+            }
+        return {"backend": "libreoffice", "error": error_msg}
 
     try:
-        wb = load_workbook(filename, data_only=True)
-
-        excel_errors = [
-            "#VALUE!",
-            "#DIV/0!",
-            "#REF!",
-            "#NAME?",
-            "#NULL!",
-            "#NUM!",
-            "#N/A",
-        ]
-        error_details = {err: [] for err in excel_errors}
-        total_errors = 0
-
-        for sheet_name in wb.sheetnames:
-            ws = wb[sheet_name]
-            for row in ws.iter_rows():
-                for cell in row:
-                    if cell.value is not None and isinstance(cell.value, str):
-                        for err in excel_errors:
-                            if err in cell.value:
-                                location = f"{sheet_name}!{cell.coordinate}"
-                                error_details[err].append(location)
-                                total_errors += 1
-                                break
-
-        wb.close()
-
-        result = {
-            "status": "success" if total_errors == 0 else "errors_found",
-            "total_errors": total_errors,
-            "error_summary": {},
-        }
-
-        for err_type, locations in error_details.items():
-            if locations:
-                result["error_summary"][err_type] = {
-                    "count": len(locations),
-                    "locations": locations[:20],  
-                }
-
-        wb_formulas = load_workbook(filename, data_only=False)
-        formula_count = 0
-        for sheet_name in wb_formulas.sheetnames:
-            ws = wb_formulas[sheet_name]
-            for row in ws.iter_rows():
-                for cell in row:
-                    if (
-                        cell.value
-                        and isinstance(cell.value, str)
-                        and cell.value.startswith("=")
-                    ):
-                        formula_count += 1
-        wb_formulas.close()
-
-        result["total_formulas"] = formula_count
-
+        result = scan_workbook(filename)
+        result["backend"] = "libreoffice"
         return result
 
     except Exception as e:
-        return {"error": str(e)}
+        return {"backend": "libreoffice", "error": str(e)}
 
 
 def main():
     if len(sys.argv) < 2:
         print("Usage: python recalc.py <excel_file> [timeout_seconds]")
-        print("\nRecalculates all formulas in an Excel file using LibreOffice")
+        print("\nRecalculates formulas with Excel COM on Windows and LibreOffice elsewhere")
         print("\nReturns JSON with error details:")
         print("  - status: 'success' or 'errors_found'")
         print("  - total_errors: Total number of Excel errors found")
@@ -177,7 +144,7 @@ def main():
     timeout = int(sys.argv[2]) if len(sys.argv) > 2 else 30
 
     result = recalc(filename, timeout)
-    print(json.dumps(result, indent=2))
+    print(json.dumps(result, ensure_ascii=False, indent=2))
 
 
 if __name__ == "__main__":

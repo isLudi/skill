@@ -14,6 +14,8 @@ from _shared.auth import fill_login_if_present
 from _shared.config import TEMPLATE_QUERY_API_BASE, TEMPLATE_QUERY_MARKET_URL, TEMPLATE_QUERY_MY_CREATE_URL
 from _shared.errors import UsageError
 
+from .artifact_validation import validate_download_bytes
+
 
 STATUS_LABELS = {
     1: "unpublished",
@@ -487,6 +489,8 @@ class TemplateQueryClient:
         download_type: int,
         artifacts_dir: Path,
         output_file: Path | None = None,
+        expected_rows: int | None = None,
+        expected_columns: int | None = None,
     ) -> Path:
         artifacts_dir.mkdir(parents=True, exist_ok=True)
         signed_url = self.fetch_query_download_url(query_id, download_type)
@@ -494,6 +498,13 @@ class TemplateQueryClient:
         content = response.body()
         if not response.ok or not content:
             raise UsageError(f"Template Query signed download failed for query {query_id}.")
+
+        validate_download_bytes(
+            content,
+            expected_format="csv" if download_type == 1 else "xlsx",
+            expected_rows=expected_rows,
+            expected_columns=expected_columns,
+        )
 
         fallback_name = f"template_query_{query_id}{download_suffix(download_type)}"
         filename = _filename_from_disposition(response.headers.get("content-disposition"), fallback_name)

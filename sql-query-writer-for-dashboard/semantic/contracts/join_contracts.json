@@ -1,0 +1,129 @@
+{
+  "schema_version": "2.0.0",
+  "domain": "market_consultant",
+  "contracts": [
+    {
+      "id": "market_consultant:join:first_call_task_to_employee",
+      "name": "首 call 任务员工账号桥接",
+      "aliases": [
+        "首call员工桥接",
+        "首呼账号关联",
+        "account_id员工关联"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/joins/common_join_keys.md",
+      "source_sha256": "bbd2d1df1490412c9130f7901a0c013f582866477fc3913c744de617cfe92e41",
+      "description": "首 call 任务表通过 account_id 关联员工维表，以补充 employee_email_name 和组织架构。",
+      "left_table": "gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf",
+      "right_table": "finance_dw.dim_finance_employee_df",
+      "key_pairs": [
+        {
+          "left_field": "account_id",
+          "right_field": "account_id"
+        }
+      ],
+      "cardinality": "many_to_one_after_right_deduplication",
+      "risks": [
+        "员工维表同一 account_id 若存在多行会放大首 call 任务，关联前必须按目标分区和有效记录去重。",
+        "首 call 指标还需在桥接后使用 user_id + employee_email_name 回连主线索，不能只凭 account_id 直接回连。"
+      ]
+    },
+    {
+      "id": "market_consultant:join:lead_to_outbound_workload",
+      "name": "主线索关联外呼工作量",
+      "aliases": [
+        "外呼工作量关联",
+        "通话明细关联",
+        "线索外呼join"
+      ],
+      "status": "pending_confirmation",
+      "source_path": "knowledge/joins/common_join_keys.md",
+      "source_sha256": "bbd2d1df1490412c9130f7901a0c013f582866477fc3913c744de617cfe92e41",
+      "description": "历史流量画像按用户与截面顾问邮箱前缀关联外呼工作量。",
+      "left_table": "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+      "right_table": "service_dw.app_h_crm_lead_employee_workload_detail_hf",
+      "key_pairs": [
+        {
+          "left_field": "user_id",
+          "right_field": "user_number"
+        },
+        {
+          "left_field": "employee_email_prefix",
+          "right_field": "section_assign_employee_email_prefix"
+        }
+      ],
+      "cardinality": "many_to_many_risk",
+      "risks": [
+        "外呼侧历史聚合包含 lead_id，但最终 join 未带 lead_id；同一用户存在多线索时可能放大。",
+        "两侧 user_id/user_number 以及邮箱前缀字段类型必须显式对齐。",
+        "右表必须先按 user_number + lead_id + section_assign_employee_email_prefix 聚合，再评估是否能够安全回连。"
+      ]
+    },
+    {
+      "id": "market_consultant:join:lead_to_learning_detail",
+      "name": "主线索关联用户行课",
+      "aliases": [
+        "到课关联",
+        "用户行课join",
+        "线索行课关联"
+      ],
+      "status": "pending_confirmation",
+      "source_path": "knowledge/joins/common_join_keys.md",
+      "source_sha256": "bbd2d1df1490412c9130f7901a0c013f582866477fc3913c744de617cfe92e41",
+      "description": "主线索按用户和期次关联行课明细；行课侧期次由 begin_time 派生。",
+      "left_table": "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+      "right_table": "service_dw.dws_service_user_learn_detail_hf",
+      "key_pairs": [
+        {
+          "left_field": "user_id",
+          "right_field": "user_number"
+        },
+        {
+          "left_field": "period_name",
+          "right_field": "derived_qici_from_begin_time"
+        }
+      ],
+      "cardinality": "one_to_many_before_lesson_aggregation",
+      "risks": [
+        "同一用户同一期存在多节课，直接关联会放大线索指标。",
+        "必须先确认 begin_time 到 qici 的派生规则，并按目标到课粒度聚合或使用 exists。",
+        "如需第 N 节口径，还必须结合 begin_time 与自动课次，不可仅按 user_id + period_name 取明细。"
+      ]
+    },
+    {
+      "id": "market_consultant:join:lead_to_cost_goal",
+      "name": "主线索关联渠道成本目标",
+      "aliases": [
+        "成本目标关联",
+        "渠道成本join",
+        "单例子成本关联"
+      ],
+      "status": "pending_confirmation",
+      "source_path": "knowledge/joins/table_relationships.md",
+      "source_sha256": "b4513daf6f0baa7a354219e7e0e7eb26429706169333cf06d5faee1d91e10080",
+      "description": "历史市场转化看板以期次、归一化渠道和年级关联成本目标临时表。",
+      "left_table": "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+      "right_table": "temp_table.dingxi01_cost",
+      "key_pairs": [
+        {
+          "left_field": "period_name",
+          "right_field": "qici"
+        },
+        {
+          "left_field": "channel_map",
+          "right_field": "channel"
+        },
+        {
+          "left_field": "grade_1",
+          "right_field": "grade"
+        }
+      ],
+      "cardinality": "many_to_one_if_right_unique",
+      "risks": [
+        "temp_table.dingxi01_cost 的 channel + grade + qici 必须先验证唯一，否则会放大线索和营收。",
+        "channel_map 与最新渠道 CASE 的输出必须一致，不能直接使用原始 channel_name 字段替代。",
+        "grade_1 为看板派生年级，不能在未确认映射时静默替换为其他年级字段。"
+      ]
+    }
+  ]
+}

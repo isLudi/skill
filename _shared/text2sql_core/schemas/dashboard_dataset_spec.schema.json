@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.codex/text2sql/dashboard_dataset_spec.schema.json",
+  "title": "Read-only dashboard dataset design",
+  "type": "object",
+  "required": [
+    "schema_version", "artifact_type", "mode", "domain", "plan_id", "status",
+    "grain", "base_table", "scope_contracts", "fields", "default_filters", "lineage", "write_boundary"
+  ],
+  "properties": {
+    "schema_version": {"const": "2.0.0"},
+    "artifact_type": {"const": "dashboard_dataset_spec"},
+    "mode": {"const": "read_only_design"},
+    "domain": {"enum": ["market_consultant", "qingcheng"]},
+    "plan_id": {"type": "string"},
+    "status": {"enum": ["ready", "draft"]},
+    "grain": {"type": "array"},
+    "base_table": {"type": ["string", "null"]},
+    "scope_contracts": {"type": "array"},
+    "fields": {"type": "array"},
+    "default_filters": {"type": "array"},
+    "lineage": {"type": "array"},
+    "write_boundary": {
+      "type": "object",
+      "required": ["may_profile_existing_dashboard", "may_generate_diff_plan", "may_modify_dashboard", "may_publish_dashboard"],
+      "properties": {
+        "may_profile_existing_dashboard": {"const": true},
+        "may_generate_diff_plan": {"const": true},
+        "may_modify_dashboard": {"const": false},
+        "may_publish_dashboard": {"const": false}
+      }
+    }
+  }
+}

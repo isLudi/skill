@@ -1,4 +1,4 @@
-﻿# 市场顾问部_行课报表 edit metrics
+# 市场顾问部_行课报表 edit metrics
 
 > Source: Taitan dashboard edit-page read-only API. Use together with the web profile and the Data Center SQL file for the same model_id.
 

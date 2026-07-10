@@ -1,4 +1,4 @@
-﻿# finance_dw.app_finance_performance_extend_details_hf
+# finance_dw.app_finance_performance_extend_details_hf
 
 ## 1. 中文名称
 

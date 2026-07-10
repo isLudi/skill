@@ -2,7 +2,7 @@
 
 ## 这个 skill 是做什么的
 
-`xlsx` skill 用于处理 Excel 和表格文件。它适合读取、清洗、分析、创建或修改 `.xlsx`、`.xlsm`、`.csv`、`.tsv` 文件，支持公式、格式、图表、工作表结构、模板保留，以及通过 LibreOffice 重算公式并检查错误。
+`xlsx` skill 用于处理 Excel 和表格文件。它适合读取、清洗、分析、创建或修改 `.xlsx`、`.xlsm`、`.csv`、`.tsv` 文件，支持公式、格式、图表、工作表结构、模板保留，以及通过平台原生后端重算公式并检查错误：Windows 使用 Microsoft Excel COM，Linux/macOS 使用 LibreOffice。
 
 用户口中的 “Excel skill” 在本地目录名是 `xlsx`。这个文件是中文上手说明，实际执行规则仍以同目录下的 `SKILL.md` 和 `LICENSE.txt` 为准。
 
@@ -69,7 +69,7 @@
 请使用 xlsx skill 修改 <模板.xlsx>，输出为 <输出文件.xlsx>。
 请保留模板原有格式、列宽、颜色、公式和工作表结构。
 只更新 <工作表名> 中的指定数据区域，并新增必要公式。
-完成后请使用 LibreOffice 重算公式并检查是否有公式错误。
+完成后请运行 `scripts/recalc.py`，由脚本自动选择当前平台的重算后端并检查公式错误。
 ```
 
 ### 构建财务模型
@@ -103,10 +103,14 @@ df.to_excel("output.xlsx", index=False)
 
 ### 重算和检查公式
 
-官方 skill 提供 `scripts/recalc.py`，用于通过 LibreOffice 重算公式值并检查错误。
+官方 skill 提供 `scripts/recalc.py`，用于重算公式值并检查错误。Windows 自动使用 Excel COM，Linux/macOS 自动使用 LibreOffice。
 
 ```bash
-python scripts/recalc.py workbook.xlsx
+# Windows（本机）
+D:\anaconda3\python.exe scripts/recalc.py workbook.xlsx
+
+# Linux/macOS
+python3 scripts/recalc.py workbook.xlsx
 ```
 
 ## 依赖和环境
@@ -115,7 +119,8 @@ python scripts/recalc.py workbook.xlsx
 
 - `pandas`：数据读取、清洗、聚合和分析。
 - `openpyxl`：读写 `.xlsx`、样式、公式、工作表结构。
-- `LibreOffice`：重算公式和检查 Excel 计算结果。
+- Windows：桌面版 Microsoft Excel 与 `pywin32`；本机默认使用 `D:\anaconda3\python.exe`。
+- Linux/macOS：LibreOffice，且 `soffice` 需要位于 `PATH`。
 - `scripts/recalc.py`：官方 skill 中的公式重算辅助脚本。
 
 ## 使用注意
@@ -124,5 +129,7 @@ python scripts/recalc.py workbook.xlsx
 - 修改模板时必须保留已有格式和约定，除非用户明确要求重做样式。
 - 财务模型中输入、公式、跨表链接和外部链接应使用不同颜色区分。
 - 输出前应检查公式错误、循环引用、范围偏移和除零问题。
+- 不要对 Excel Table 已覆盖的同一区域再设置工作表级 `auto_filter`，重叠筛选器可能导致 Excel COM 无法打开工作簿。
+- 如果 Excel COM 能启动但无法打开某个文件，应优先检查工作簿结构、筛选器重叠、文件锁定或文件损坏，而不是判断本机缺少 COM。
 - 重要工作簿请输出到新文件，不要覆盖原件。
 - 该 skill 的许可证不是开源许可证，集成、分发或二次改造前请先阅读 `LICENSE.txt`。

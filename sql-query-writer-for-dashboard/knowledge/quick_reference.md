@@ -1,6 +1,16 @@
-﻿# 快速参考卡
+# 快速参考卡
 
 > 80% 高频场景入口。只用于快速定位，生成 SQL 前仍需读取对应表、指标、看板、join、权限或踩坑文档。
+
+## Text2SQL 最短路径
+
+1. 先确认业务域必须为 `market_consultant`；若业务域未决或属于青橙，停止使用本卡，不能默认套用市场顾问口径。
+2. 读取 `semantic/domain_manifest.json`，按实体别名定位市场顾问候选指标、看板、表、join 和证据路径。
+3. 使用 `scripts/text2sql.py` 构建并校验 QuerySpec；至少明确指标、维度、过滤、时间、计算粒度、输出粒度、候选表、join path、evidence 和 unresolved slots。
+4. 只读取本卡或 `knowledge/decision_tree.md` 路由出的具体文档；不要全量加载知识库。
+5. `unresolved_slots` 含必填项时不得生成或执行生产 SQL。共享物理目录只提供中性表结构，不能补充市场顾问业务口径。
+
+跨部门对比必须另建一份 `qingcheng` QuerySpec；两边各用各自证据生成并校验 SQL，只在兼容聚合粒度上合并结果。
 
 ## 高频表与 Web 状态
 

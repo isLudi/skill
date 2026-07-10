@@ -86,6 +86,8 @@ D:\anaconda3\python.exe scripts\usql_web_query.py template-download `
 - 输入 SQL 必须已经是可直接执行的具体 SQL。当前实现会拒绝仍包含模板参数或未解析查询条件的 SQL。
 - 清理是生产默认路径。无论成功或失败，只要未传 `--keep-template`，命令都会尝试执行 `offline -> delete` 清理临时模板。
 - `我的查询` 下的查询历史记录不在该命令清理范围内；当前已验证的清理范围仅覆盖临时模板本身。
+- 下载不是只看 HTTP 状态：XML `ListBucketResult`/错误负载、查询非空但 Excel 只有表头、Excel 表头列数少于 `query/result.meta` 都会被拒绝。
+- 当请求 `xls` 且 Excel 制品校验失败时，命令自动改取模板 CSV；如 `--output-file` 以 `.xlsx` 结尾，实际文件写为同名 `.csv`。JSON summary 的 `downloadFormatRequested`、`downloadFormatActual` 和 `downloadFallbackReason` 用于审计该回退。
 
 2026-06-21 已验证的接口顺序：
 

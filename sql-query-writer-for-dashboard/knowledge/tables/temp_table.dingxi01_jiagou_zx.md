@@ -1,4 +1,4 @@
-﻿# temp_table.dingxi01_jiagou_zx
+# temp_table.dingxi01_jiagou_zx
 
 ## 1. 中文名称
 

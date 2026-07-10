@@ -1,4 +1,4 @@
-﻿# KOC渠道播报数据 edit metrics
+# KOC渠道播报数据 edit metrics
 
 > Source: Taitan dashboard edit-page read-only API. Use together with the web profile and the Data Center SQL file for the same model_id.
 

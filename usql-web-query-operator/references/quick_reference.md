@@ -14,6 +14,7 @@
 | 任务类型 | 先读哪些内容 | 主要命令 | 何时继续下钻 |
 |---|---|---|---|
 | SQL 页面执行、小结果预览、<=1000 行下载 | `SKILL.md` 中“安全边界”“标准流程” | `scripts\usql_web_query.py run` | 失败时再读 `references/query_error_handling.md`；若怀疑 UI 变化再读 `references/platform_profile.md` |
+| 携带上游 QueryPlan 执行 SQL | `references/query_plan_contract.md` | `scripts\usql_web_query.py run --sql-file <sql> --query-plan <json>` | 只有契约字段或 Hash 校验失败时检查上游计划；平台执行失败仍转到 `references/query_error_handling.md` |
 | SQL 执行失败、需要分类错误 | `references/query_error_handling.md` | `scripts\usql_web_query.py run` | 只有错误信息不足或页面结构变了，才看 `references/platform_profile.md` 或相关命令实现 |
 | 模板取数中读取我创建的模板 SQL | `references/template_query.md` | `scripts\usql_web_query.py fetch-template-sql` | 只有模板匹配或页面状态异常时，才看 `references/platform_profile.md` 或相关实现 |
 | 模板市场中按模板名读取 SQL | `references/template_query.md` | `scripts\usql_web_query.py fetch-market-template-sql` | 只有市场搜索、模板匹配或页面状态异常时，才看 `references/platform_profile.md` 或相关实现 |
@@ -30,6 +31,7 @@
 
 - 需要生成、修复、解释市场顾问 SQL：先用 `sql-query-writer-for-dashboard`，再由本 skill 执行。
 - 需要生成、修复、解释青橙 SQL：先用 `qingcheng-dashboard-sql`，再由本 skill 执行。
+- 上游同时产出 QueryPlan 时，将与计划 Hash 精确对应的 SQL 文件和计划一起传给 `run --query-plan`；operator 只验证，不修改计划或推断缺失槽位。
 - 需要大结果下载时，先确保上游 SQL skill 已经产出“可直接执行的具体 SQL”，再调用 `template-download`；不要把模板参数解析留到下载阶段。
 
 ## 不要默认做的事
@@ -39,4 +41,5 @@
 - 不要把 `read_dashboard.py` 的问题塞回 `usql_web_query.py`，也不要把 SQL 页面执行逻辑塞进 `read_dashboard.py`。
 - 不要用 `profile-edit-dashboard` 修改、删除、发布或新建看板指标；它只负责读取字段说明和公式。
 - 修改 Taitan 全局筛选器时使用独立的 `edit-public-filters`，不要复用只读画像命令；不带 `--apply` 时必须保持 dry-run，不得发布。
+- 不要把 QueryPlan 视为下载、看板写入、模板写入或权限变更授权；它只约束 `run`，且下载仍受 QueryPlan 与 1000 行策略双重门禁。
 - 不要在未经确认的情况下，对超过 1000 行的结果走 `SQL取数` 直接下载。

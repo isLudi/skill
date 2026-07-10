@@ -1,4 +1,4 @@
-﻿# temp_table.dingxi01_channel_group
+# temp_table.dingxi01_channel_group
 
 ## 1. 中文名称
 

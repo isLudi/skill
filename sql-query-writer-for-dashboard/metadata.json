@@ -1,9 +1,16 @@
 {
   "name": "sql-query-writer-for-dashboard",
-  "description": "Generate Presto SQL for dashboard and exploratory queries based on internal table schema, metric definitions, dashboard SQL logic, and query-platform constraints.",
-  "version": "0.2.4",
+  "description": "Resolve market-consultant semantic contracts, build governed QuerySpec and QueryPlan artifacts, compile explicitly approved Presto SQL, and generate bounded read-only probes without supplying Qingcheng semantics.",
+  "version": "0.4.0",
   "language": "zh-CN",
   "query_engine": "Presto",
+  "business_domain": "市场顾问部",
+  "domain_id": "market_consultant",
+  "isolated_from": [
+    "qingcheng-dashboard-sql",
+    "青橙项目部"
+  ],
+  "forbid_cross_domain_defaulting": true,
   "entrypoint": "SKILL.md",
   "knowledge_dirs": [
     "knowledge/tables",
@@ -16,10 +23,35 @@
   ],
   "docs": [
     "README.md",
-    "docs/USAGE_PROMPTS.md"
+    "docs/USAGE_PROMPTS.md",
+    "references/quick_reference.md",
+    "references/decision_tree.md"
   ],
   "healthcheck": "scripts/check_skill_integrity.py",
   "reverse_index_builder": "scripts/build_reverse_indexes.py",
+  "semantic_manifest": "semantic/domain_manifest.json",
+  "semantic_contract_version": "2.0.0",
+  "semantic_contract_dir": "semantic/contracts",
+  "semantic_contract_index": "semantic/generated/contract_index.json",
+  "semantic_eval_cases": "semantic/evals/resolution_cases.json",
+  "semantic_contract_schema": "../_shared/text2sql_core/schemas/semantic_contracts.schema.json",
+  "text2sql_cli": "scripts/text2sql.py",
+  "text2sql_core": "../_shared/text2sql_core",
+  "physical_catalog": "../_shared/text2sql_core/catalog/physical_catalog.json",
+  "query_spec_schema": "../_shared/text2sql_core/schemas/query_spec.schema.json",
+  "query_spec_schema_version": "2.0.0",
+  "query_plan_schema": "../_shared/text2sql_core/schemas/query_plan.schema.json",
+  "query_plan_schema_version": "2.0.0",
+  "dashboard_dataset_spec_schema": "../_shared/text2sql_core/schemas/dashboard_dataset_spec.schema.json",
+  "p2_capabilities": [
+    "resolve",
+    "plan",
+    "compile_single_base_table",
+    "probe_read_only",
+    "dataset_spec_read_only"
+  ],
+  "automatic_compile_flag_required": true,
+  "pending_contract_policy": "block_production_compilation",
   "update_policy": "appendable",
   "requires_full_table_name": true
 }

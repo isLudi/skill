@@ -1,4 +1,4 @@
-﻿# bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df
+# bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df
 
 ## 1. 中文名称
 

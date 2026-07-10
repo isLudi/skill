@@ -1,4 +1,4 @@
-﻿# temp_table.zhangjunyan01_pingyou_jg
+# temp_table.zhangjunyan01_pingyou_jg
 
 ## 1. 中文名称
 

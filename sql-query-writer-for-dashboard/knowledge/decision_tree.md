@@ -1,9 +1,12 @@
-﻿# 用户需求到知识库路由
+# 用户需求到知识库路由
 
 > 先用本文件判断要读哪些知识，再进入具体表、指标、看板、join 或踩坑文档。不要把本文件当完整口径来源。
 
 | 用户说法 | 先读 | 再读 | 必要规则/踩坑 |
 |---|---|---|---|
+| 未说明业务部门，或同名指标可能属于市场顾问/青橙 | `semantic/domain_manifest.json` | 先形成 `domain: unresolved` 的 QuerySpec | 不得默认市场顾问；业务域、指标版本、范围或粒度未决时停止生成生产 SQL |
+| 已确认市场顾问需求，准备生成或修复 SQL | `semantic/domain_manifest.json` | `knowledge/quick_reference.md` 与命中的单个 dashboard/metric/table/join 文档 | 使用 `scripts/text2sql.py` 校验 QuerySpec；evidence 只能来自市场顾问 Skill 或中性物理目录 |
+| 市场顾问与青橙跨部门对比 | 两个 Skill 各自的 `semantic/domain_manifest.json` | 两边各自命中的 metrics/dashboard/raw SQL | 构建两份独立 QuerySpec；不得共享指标、范围、临时表、渠道/期次或业务 join，只在兼容聚合粒度合并结果 |
 | 市场顾问转化、线索转化、GMV、净收、破单 | `knowledge/dashboards/market_consultant_conversion.md` | `knowledge/metrics/market_consultant_conversion_metrics.md`、`knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md` | `knowledge/sql_patterns/channel_mapping_case_when.md`、`knowledge/pitfalls/common_join_failures.md` |
 | 线索转化到课、首节到课、AB 意向 | `knowledge/dashboards/market_consultant_lead_conversion_attendance.md` | `knowledge/metrics/market_consultant_lead_conversion_attendance_metrics.md`、`knowledge/tables/temp_table.dingxi01_daoke_1_6_t.md` | 主课次按 `qici + channel_map_1 + grade_1` 内实际开课时间自动排序；`manual_ke_1` 仅诊断；注意到课候选窗口、槽位过滤和渠道 CASE 顺序 |
 | 流量画像、城市渠道、APP 登录、成交科目档位 | `knowledge/dashboards/traffic_profile.md` | `knowledge/metrics/traffic_profile_metrics.md`、`knowledge/sql_patterns/dashboard_query_patterns.md` | 外呼 join 未带 `lead_id`、财务成交科目 join 粒度 |
@@ -29,6 +32,8 @@
 
 ## 路由原则
 
+- 先做 domain resolution，再读取 `semantic/domain_manifest.json` 并构建 QuerySpec；`domain != market_consultant` 时停止本 Skill 的业务检索。
+- QuerySpec 的必填 unresolved slot 未清空前，不得生成或执行生产 SQL；反向索引只定位候选，最终证据回到 domain-local metrics/dashboard/raw SQL。
 - 简单表结构或字段问题：读 `quick_reference.md`、`01_table_index.md`、相关 `tables/*.md` 即可。
 - 指标或看板口径问题：先读对应 `dashboards/*.md` 和 `metrics/*.md`，再补 join 或 SQL pattern。
 - SQL 报错或结果异常：先读全局规则、范围限定、权限边界，再读相关 pitfalls。

@@ -1,0 +1,4107 @@
+{
+  "schema_version": "2.0.0",
+  "domain": {
+    "id": "qingcheng",
+    "name": "青橙项目部",
+    "skill": "qingcheng-dashboard-sql",
+    "isolated_from": [
+      "market_consultant"
+    ]
+  },
+  "authority": {
+    "business_semantics": "domain_markdown_and_raw_sql",
+    "semantic_contract_role": "hash_bound_machine_interpretation_for_confirmed_entries_only",
+    "generated_manifest_role": "routing_and_validation_index",
+    "physical_catalog_role": "neutral_physical_facts_only"
+  },
+  "progressive_disclosure": {
+    "forward": [
+      "semantic/domain_manifest.json",
+      "semantic/generated/contract_index.json",
+      "knowledge/quick_reference.md",
+      "knowledge/decision_tree.md",
+      "targeted domain documents",
+      "resources/raw_sql/<selected evidence>.sql"
+    ],
+    "reverse": [
+      "knowledge/reverse_index/field_to_metrics.md",
+      "knowledge/reverse_index/join_risk_index.md",
+      "knowledge/reverse_index/metric_to_raw_sql.md",
+      "knowledge/reverse_index/table_to_dashboards.md"
+    ]
+  },
+  "boundary": {
+    "domain_local_temp_tables": [
+      "temp_table.dingxi01_jiagou_db",
+      "temp_table.dingxi01_qing_daoke",
+      "temp_table.dingxi01_qing_goal",
+      "temp_table.dingxi01_qing_qi_moth",
+      "temp_table.dingxi01_qing_team_g_qi",
+      "temp_table.dingxi01_qing_team_goal",
+      "temp_table.dingxi01_qing_team_jg",
+      "temp_table.dingxi01_qing_zz",
+      "temp_table.shenbaoxin_channel_group"
+    ],
+    "exclusive_temp_tables": [
+      "temp_table.dingxi01_qing_daoke",
+      "temp_table.dingxi01_qing_goal",
+      "temp_table.dingxi01_qing_qi_moth",
+      "temp_table.dingxi01_qing_team_g_qi",
+      "temp_table.dingxi01_qing_team_goal",
+      "temp_table.dingxi01_qing_team_jg",
+      "temp_table.dingxi01_qing_zz"
+    ],
+    "forbidden_temp_tables": [
+      "temp_table.dingxi01_channel_group",
+      "temp_table.dingxi01_cost",
+      "temp_table.dingxi01_daoke_1_6_t",
+      "temp_table.dingxi01_jiagou_zx",
+      "temp_table.dingxi01_plan_id",
+      "temp_table.zhangjunyan01_pingyou_jg"
+    ],
+    "same_name_temp_tables_require_domain_evidence": [
+      "temp_table.dingxi01_jiagou_db",
+      "temp_table.shenbaoxin_channel_group"
+    ],
+    "forbid_cross_domain_metric_defaulting": true,
+    "cross_department_comparison_requires_two_specs": true
+  },
+  "counts": {
+    "knowledge_files": 129,
+    "raw_sql_files": 13,
+    "by_category": {
+      "dashboard_web_profiles": 28,
+      "dashboards": 11,
+      "governance": 7,
+      "joins": 2,
+      "metrics": 33,
+      "raw_sql": 13,
+      "reverse_index": 4,
+      "sql_patterns": 12,
+      "tables": 20,
+      "temp_tables": 11,
+      "update_log": 1
+    }
+  },
+  "semantic_contracts": {
+    "schema_version": "2.0.0",
+    "index_path": "semantic/generated/contract_index.json",
+    "counts": {
+      "dimension": 11,
+      "join": 4,
+      "metric": 8,
+      "scope": 4
+    },
+    "confirmed_counts": {
+      "dimension": 11,
+      "join": 2,
+      "metric": 7,
+      "scope": 3
+    },
+    "source_files": [
+      {
+        "source_path": "semantic/contracts/metric_contracts.json",
+        "sha256": "127bcbc29e712088b5efaab2ba2720c6744981356bc054d39e8fe2f27db11b42"
+      },
+      {
+        "source_path": "semantic/contracts/dimension_contracts.json",
+        "sha256": "816b335690cd8df4d412ade8b3954b956d2d2e8fc814cd8c6046bb5617d800e0"
+      },
+      {
+        "source_path": "semantic/contracts/join_contracts.json",
+        "sha256": "019ce3a8c18c36b1f30d2d3ae3712cb6104491e9f7b293d2bfa81097d1d39248"
+      },
+      {
+        "source_path": "semantic/contracts/scope_contracts.json",
+        "sha256": "20b8834bcbdf4877c6211cfd6827a45b0f3d561974fce262be88a27841190d18"
+      }
+    ]
+  },
+  "entities": {
+    "dashboard_web_profiles": [
+      {
+        "id": "qingcheng:dashboard_web_profiles:README",
+        "source_path": "knowledge/dashboard_web_profiles/README.md",
+        "sha256": "220a614644cb2486346474476e5a1f14428463cd5984b1a3021ca1e63c6aa9c1",
+        "bytes": 2364,
+        "title": "Web BI 看板结构快照",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "README",
+          "Web BI 看板结构快照"
+        ]
+      },
+      {
+        "id": "qingcheng:dashboard_web_profiles:dashboard_3916483456733192193_web_profile",
+        "source_path": "knowledge/dashboard_web_profiles/dashboard_3916483456733192193_web_profile.md",
+        "sha256": "cecf96d2780f854680511d2af1989ded4828dd926f9f27fe66720222619124eb",
+        "bytes": 2057,
+        "title": "推送--转化-抖音私信 Web BI 结构快照",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "dashboard_3916483456733192193_web_profile",
+          "推送--转化-抖音私信 Web BI 结构快照"
+        ]
+      },
+      {
+        "id": "qingcheng:dashboard_web_profiles:dashboard_3916517219847778305_web_profile",
+        "source_path": "knowledge/dashboard_web_profiles/dashboard_3916517219847778305_web_profile.md",
+        "sha256": "cfa9d11334838ee3cba227f5f894123a6d935bb7e645e08ca5f8506b32895bf7",
+        "bytes": 2062,
+        "title": "推送--转化-抖音私信_团 Web BI 结构快照",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "dashboard_3916517219847778305_web_profile",
+          "推送--转化-抖音私信_团 Web BI 结构快照"
+        ]
+      },
+      {
+        "id": "qingcheng:dashboard_web_profiles:dashboard_3916532003721617409_web_profile",
+        "source_path": "knowledge/dashboard_web_profiles/dashboard_3916532003721617409_web_profile.md",
+        "sha256": "939aedcf97ba4f2ad16b150a6e92192a1caa771ff3605ef7711ebe4668fe2084",
+        "bytes": 2050,
+        "title": "推送--转化-私域_团 Web BI 结构快照",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "dashboard_3916532003721617409_web_profile",
+          "推送--转化-私域_团 Web BI 结构快照"
+        ]
+      },
+      {
+        "id": "qingcheng:dashboard_web_profiles:dashboard_3916532959832903681_web_profile",
+        "source_path": "knowledge/dashboard_web_profiles/dashboard_3916532959832903681_web_profile.md",
+        "sha256": "725ea2a42d92b5e218d156043d39f8a0ace1f1e80c4c845a1db862455da5341e",
+        "bytes": 2047,
+        "title": "推送--转化-私域_ Web BI 结构快照",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "dashboard_3916532959832903681_web_profile",
+          "推送--转化-私域_ Web BI 结构快照"
+        ]
+      },
+      {
+        "id": "qingcheng:dashboard_web_profiles:dashboard_3916545163522686976_web_profile",
+        "source_path": "knowledge/dashboard_web_profiles/dashboard_3916545163522686976_web_profile.md",
+        "sha256": "268db2bfd4d75799b90260d759380843353f1ab51f950ad0ee9add1f9a9fe071",
+        "bytes": 2050,
+        "title": "推送--转化-进校_团 Web BI 结构快照",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "dashboard_3916545163522686976_web_profile",
+          "推送--转化-进校_团 Web BI 结构快照"
+        ]
+      },
+      {
+        "id": "qingcheng:dashboard_web_profiles:dashboard_3916546265268498433_web_profile",
+        "source_path": "knowledge/dashboard_web_profiles/dashboard_3916546265268498433_web_profile.md",
+        "sha256": "df1ffb9a972b9a3cba2dc362d3e45c820521cc6ff0dc432c169f578c527d38ba",
+        "bytes": 2045,
+        "title": "推送--转化-进校 Web BI 结构快照",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "dashboard_3916546265268498433_web_profile",
+          "推送--转化-进校 Web BI 结构快照"
+        ]
+      },
+      {
+        "id": "qingcheng:dashboard_web_profiles:README",
+        "source_path": "knowledge/dashboard_web_profiles/edit_metrics/README.md",
+        "sha256": "a34c2292b64f3933644f92e5374a7ae73d8d4867232c1f9ff6172e7ae751fbc6",
+        "bytes": 2454,
+        "title": "Qingcheng dashboard edit-page metrics profiles",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "Qingcheng dashboard edit-page metrics profiles",
+          "README"
+        ]
+      },
+      {
+        "id": "qingcheng:dashboard_web_profiles:dashboard_3733927793301065728_edit_metrics",
+        "source_path": "knowledge/dashboard_web_profiles/edit_metrics/dashboard_3733927793301065728_edit_metrics.md",
+        "sha256": "a70057dc434ba1b451671958f701a224b2f38c4e729bd05c52334833b14bc875",
+        "bytes": 4568,
+        "title": "过程数据报表-青橙 edit-page metrics profile",
+        "table_refs": [],
+        "raw_sql_refs": [
+          "data_center_qingcheng_2064_20260625.sql"
+        ],
+        "status": "documented",
+        "aliases": [
+          "dashboard_3733927793301065728_edit_metrics",
+          "过程数据报表-青橙 edit-page metrics profile"
+        ]
+      },
+      {
+        "id": "qingcheng:dashboard_web_profiles:dashboard_3765824192103694336_edit_metrics",
+        "source_path": "knowledge/dashboard_web_profiles/edit_metrics/dashboard_3765824192103694336_edit_metrics.md",
+        "sha256": "a424e1af2a9dc33ce319c58f7dea3d16fb55f216977a18897b4ebb6f84938fab",
+        "bytes": 3016,
+        "title": "青橙项目部_行课报表 edit-page metrics profile",
+        "table_refs": [],
+        "raw_sql_refs": [
+          "qingcheng_daoke_raw_20260522.sql"
+        ],
+        "status": "documented",
+        "aliases": [
+          "dashboard_3765824192103694336_edit_metrics",
+          "青橙项目部_行课报表 edit-page metrics profile"
+        ]
+      },
+      {
+        "id": "qingcheng:dashboard_web_profiles:dashboard_3852445620602875904_edit_metrics",
+        "source_path": "knowledge/dashboard_web_profiles/edit_metrics/dashboard_3852445620602875904_edit_metrics.md",
+        "sha256": "41e1196a62df3179279fc00617f8c6799acf371a80e0d0871f482a50bb02e001",
+        "bytes": 3754,
+        "title": "青橙-全域产品数据看板 edit-page metrics profile",
+        "table_refs": [],
+        "raw_sql_refs": [
+          "qingcheng_revenue_year_quarter_month_raw_20260522.sql"
+        ],
+        "status": "documented",
+        "aliases": [
+          "dashboard_3852445620602875904_edit_metrics",
+          "青橙-全域产品数据看板 edit-page metrics profile"
+        ]
+      },
+      {
+        "id": "qingcheng:dashboard_web_profiles:dashboard_3865509979877412864_edit_metrics",
+        "source_path": "knowledge/dashboard_web_profiles/edit_metrics/dashboard_3865509979877412864_edit_metrics.md",
+        "sha256": "2a94f6df37483cfda618e563c20838a6d2850d2237708e25ad815a2a93eaf229",
+        "bytes": 3295,
+        "title": "青橙-全年级营收看板 edit-page metrics profile",
+        "table_refs": [],
+        "raw_sql_refs": [
+          "qingcheng_revenue_year_quarter_month_raw_20260522.sql"
+        ],
+        "status": "documented",
+        "aliases": [
+          "dashboard_3865509979877412864_edit_metrics",
+          "青橙-全年级营收看板 edit-page metrics profile"
+        ]
+      },
+      {
+        "id": "qingcheng:dashboard_web_profiles:dashboard_3872626876332130305_edit_metrics",
+        "source_path": "knowledge/dashboard_web_profiles/edit_metrics/dashboard_3872626876332130305_edit_metrics.md",
+        "sha256": "087059fda70f743feda592cc3d00c3a55556dfa13ccf72c96b9f1cdc74b46593",
+        "bytes": 5898,
+        "title": "团队转化完成度-青橙 edit-page metrics profile",
+        "table_refs": [],
+        "raw_sql_refs": [
+          "qingcheng_team_completion_month_raw_20260522.sql",
+          "qingcheng_team_completion_period_raw_20260522.sql"
+        ],
+        "status": "documented",
+        "aliases": [
+          "dashboard_3872626876332130305_edit_metrics",
+          "团队转化完成度-青橙 edit-page metrics profile"
+        ]
+      },
+      {
+        "id": "qingcheng:dashboard_web_profiles:dashboard_3873038327756636161_edit_metrics",
+        "source_path": "knowledge/dashboard_web_profiles/edit_metrics/dashboard_3873038327756636161_edit_metrics.md",
+        "sha256": "da036c3731a26e47dc1b46f39f9740c09391523c1ded09cf048b7516d61902d1",
+        "bytes": 5653,
+        "title": "个人转化数据-青橙 edit-page metrics profile",
+        "table_refs": [],
+        "raw_sql_refs": [
+          "qingcheng_personal_conversion_raw_20260522.sql"
+        ],
+        "status": "documented",
+        "aliases": [
+          "dashboard_3873038327756636161_edit_metrics",
+          "个人转化数据-青橙 edit-page metrics profile"
+        ]
+      },
+      {
+        "id": "qingcheng:dashboard_web_profiles:dashboard_3884629814875697153_edit_metrics",
+        "source_path": "knowledge/dashboard_web_profiles/edit_metrics/dashboard_3884629814875697153_edit_metrics.md",
+        "sha256": "e4e17745752d8febe0d143631fd1b54cca27fdfedaa26fbb8c4e32e3cb765c08",
+        "bytes": 3779,
+        "title": "青-抖私-转化 edit-page metrics profile",
+        "table_refs": [],
+        "raw_sql_refs": [
+          "data_center_qingcheng_2740_20260624.sql"
+        ],
+        "status": "documented",
+        "aliases": [
+          "dashboard_3884629814875697153_edit_metrics",
+          "青-抖私-转化 edit-page metrics profile"
+        ]
+      },
+      {
+        "id": "qingcheng:dashboard_web_profiles:dashboard_3885764906392891392_edit_metrics",
+        "source_path": "knowledge/dashboard_web_profiles/edit_metrics/dashboard_3885764906392891392_edit_metrics.md",
+        "sha256": "5e22bde4f9646ada2d7b498d76eb4c931e6a03dd1c5dbba0e4b2e8b74de5ed78",
+        "bytes": 4588,
+        "title": "转化数据看板 edit-page metrics profile",
+        "table_refs": [],
+        "raw_sql_refs": [
+          "data_center_qingcheng_2460_20260709.sql"
+        ],
+        "status": "documented",
+        "aliases": [
+          "dashboard_3885764906392891392_edit_metrics",
+          "转化数据看板 edit-page metrics profile"
+        ]
+      },
+      {
+        "id": "qingcheng:dashboard_web_profiles:dashboard_3893277592797257728_edit_metrics",
+        "source_path": "knowledge/dashboard_web_profiles/edit_metrics/dashboard_3893277592797257728_edit_metrics.md",
+        "sha256": "133bc2f314a003f866f2443d4669d81a4ef5e27b85f7162a617ed71282572f0c",
+        "bytes": 2114,
+        "title": "完成度文字播报_青 edit-page metrics profile",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "dashboard_3893277592797257728_edit_metrics",
+          "完成度文字播报_青 edit-page metrics profile"
+        ]
+      },
+      {
+        "id": "qingcheng:dashboard_web_profiles:dashboard_3910621974690701312_edit_metrics",
+        "source_path": "knowledge/dashboard_web_profiles/edit_metrics/dashboard_3910621974690701312_edit_metrics.md",
+        "sha256": "229542148bba8e953c04ea59f7108e0e7df9c648ec93b32530febb4a5bcd6731",
+        "bytes": 4291,
+        "title": "青橙-渠道过程数据-天 edit-page metrics profile",
+        "table_refs": [],
+        "raw_sql_refs": [
+          "data_center_qingcheng_2064_20260625.sql"
+        ],
+        "status": "documented",
+        "aliases": [
+          "dashboard_3910621974690701312_edit_metrics",
+          "青橙-渠道过程数据-天 edit-page metrics profile"
+        ]
+      },
+      {
+        "id": "qingcheng:dashboard_web_profiles:qingcheng_all_product_dashboard_web_profile",
+        "source_path": "knowledge/dashboard_web_profiles/qingcheng_all_product_dashboard_web_profile.md",
+        "sha256": "6967e6096077d35bfbaaf556b9a2c5d69e64ceea372c0f220b8e6172f7f15bfd",
+        "bytes": 5011,
+        "title": "青橙-全域产品数据看板 Web BI 结构快照",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "qingcheng_all_product_dashboard_web_profile",
+          "青橙-全域产品数据看板 Web BI 结构快照"
+        ]
+      },
+      {
+        "id": "qingcheng:dashboard_web_profiles:qingcheng_attendance_report_web_profile",
+        "source_path": "knowledge/dashboard_web_profiles/qingcheng_attendance_report_web_profile.md",
+        "sha256": "86a08252a9378e222ab0999daf66d4b7c4776ba61becbd1f8335727ccc264f1b",
+        "bytes": 3406,
+        "title": "青橙项目部_行课报表 Web BI 结构快照",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "qingcheng_attendance_report_web_profile",
+          "青橙项目部_行课报表 Web BI 结构快照"
+        ]
+      },
+      {
+        "id": "qingcheng:dashboard_web_profiles:qingcheng_channel_process_daily_web_profile",
+        "source_path": "knowledge/dashboard_web_profiles/qingcheng_channel_process_daily_web_profile.md",
+        "sha256": "3480005832689b0f0ff9818979b8848e798439a6ee4e2e56c9e6f8311e2d3854",
+        "bytes": 3580,
+        "title": "青橙-渠道过程数据-天 Web BI 结构快照",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "qingcheng_channel_process_daily_web_profile",
+          "青橙-渠道过程数据-天 Web BI 结构快照"
+        ]
+      },
+      {
+        "id": "qingcheng:dashboard_web_profiles:qingcheng_completion_broadcast_text_web_profile",
+        "source_path": "knowledge/dashboard_web_profiles/qingcheng_completion_broadcast_text_web_profile.md",
+        "sha256": "86419b45d0b20772e07f622aa49c29dae617b4df69c4bd7858871ba069806609",
+        "bytes": 1615,
+        "title": "完成度文字播报_青 Web BI 结构快照",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "qingcheng_completion_broadcast_text_web_profile",
+          "完成度文字播报_青 Web BI 结构快照"
+        ]
+      },
+      {
+        "id": "qingcheng:dashboard_web_profiles:qingcheng_conversion_dashboard_web_profile",
+        "source_path": "knowledge/dashboard_web_profiles/qingcheng_conversion_dashboard_web_profile.md",
+        "sha256": "de5b0adb7170a8a218c80d51b6032584aacb233d5eb2e4bb0313af9df28f52d8",
+        "bytes": 5808,
+        "title": "转化数据看板 Web BI 结构快照",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "qingcheng_conversion_dashboard_web_profile",
+          "转化数据看板 Web BI 结构快照"
+        ]
+      },
+      {
+        "id": "qingcheng:dashboard_web_profiles:qingcheng_dousi_conversion_web_profile",
+        "source_path": "knowledge/dashboard_web_profiles/qingcheng_dousi_conversion_web_profile.md",
+        "sha256": "2bc2dadba824e79555a8922137f05bcd9cb605b306c3fcaccfd98d596effd429",
+        "bytes": 2622,
+        "title": "青-抖私-转化 Web BI 结构快照",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "qingcheng_dousi_conversion_web_profile",
+          "青-抖私-转化 Web BI 结构快照"
+        ]
+      },
+      {
+        "id": "qingcheng:dashboard_web_profiles:qingcheng_full_grade_revenue_dashboard_web_profile",
+        "source_path": "knowledge/dashboard_web_profiles/qingcheng_full_grade_revenue_dashboard_web_profile.md",
+        "sha256": "116f1f37a6a1b9e02fa18aa80c9f0e100f6255e0ce125b1b162c5c1e5b835625",
+        "bytes": 5015,
+        "title": "青橙-全年级营收看板 Web BI 结构快照",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "qingcheng_full_grade_revenue_dashboard_web_profile",
+          "青橙-全年级营收看板 Web BI 结构快照"
+        ]
+      },
+      {
+        "id": "qingcheng:dashboard_web_profiles:qingcheng_personal_conversion_web_profile",
+        "source_path": "knowledge/dashboard_web_profiles/qingcheng_personal_conversion_web_profile.md",
+        "sha256": "0bfafe411e9151f32bf1b3e16d404181f1f763333eb81f78315ea669ffa21241",
+        "bytes": 2723,
+        "title": "个人转化数据-青橙 Web BI 结构快照",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "qingcheng_personal_conversion_web_profile",
+          "个人转化数据-青橙 Web BI 结构快照"
+        ]
+      },
+      {
+        "id": "qingcheng:dashboard_web_profiles:qingcheng_process_data_report_web_profile",
+        "source_path": "knowledge/dashboard_web_profiles/qingcheng_process_data_report_web_profile.md",
+        "sha256": "dee44c7fe0388ee055a43fe750c4b52b7f3f272624d7938ca1a22867899dff8e",
+        "bytes": 4734,
+        "title": "过程数据报表-青橙 Web BI 结构快照",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "qingcheng_process_data_report_web_profile",
+          "过程数据报表-青橙 Web BI 结构快照"
+        ]
+      },
+      {
+        "id": "qingcheng:dashboard_web_profiles:qingcheng_team_conversion_completion_web_profile",
+        "source_path": "knowledge/dashboard_web_profiles/qingcheng_team_conversion_completion_web_profile.md",
+        "sha256": "4354c2ae068b888063388f6c9c9d07328cb31d667322333e08942fd017e87ea5",
+        "bytes": 4378,
+        "title": "团队转化完成度-青橙 Web BI 结构快照",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "qingcheng_team_conversion_completion_web_profile",
+          "团队转化完成度-青橙 Web BI 结构快照"
+        ]
+      }
+    ],
+    "dashboards": [
+      {
+        "id": "qingcheng:dashboards:_dashboard_template",
+        "source_path": "knowledge/dashboards/_dashboard_template.md",
+        "sha256": "41d9a793e96e9058fb07eb2c9d089532316ae337f81ea295d1595d9af50c6d5a",
+        "bytes": 940,
+        "title": "<看板名称>",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "aliases": [
+          "<看板名称>",
+          "_dashboard_template"
+        ]
+      },
+      {
+        "id": "qingcheng:dashboards:data_center_qingcheng_datasets",
+        "source_path": "knowledge/dashboards/data_center_qingcheng_datasets.md",
+        "sha256": "11bdaf64b9b62b5da36378725fb1ab0132a1553215a4129bc32f27a888e4d1f9",
+        "bytes": 2330,
+        "title": "数据中心数据集源 SQL（青橙项目部）",
+        "table_refs": [],
+        "raw_sql_refs": [
+          "data_center_qingcheng_2064_20260625.sql",
+          "data_center_qingcheng_2460_20260709.sql"
+        ],
+        "status": "documented",
+        "aliases": [
+          "data_center_qingcheng_datasets",
+          "数据中心数据集源 SQL（青橙项目部）"
+        ]
+      },
+      {
+        "id": "qingcheng:dashboards:qingcheng_channel_order_detail_raw_20260627",
+        "source_path": "knowledge/dashboards/qingcheng_channel_order_detail_raw_20260627.md",
+        "sha256": "8fe7f644b1f434fcfa689620c2d5938936355867a01afd45c23ba25abf932554",
+        "bytes": 7289,
+        "title": "青橙渠道订单明细 raw",
+        "table_refs": [
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf"
+        ],
+        "raw_sql_refs": [
+          "qingcheng_channel_order_detail_raw_20260627.sql"
+        ],
+        "status": "pending_confirmation",
+        "aliases": [
+          "qingcheng_channel_order_detail_raw_20260627",
+          "青橙渠道订单明细 raw"
+        ]
+      },
+      {
+        "id": "qingcheng:dashboards:qingcheng_conversion_raw_20260626",
+        "source_path": "knowledge/dashboards/qingcheng_conversion_raw_20260626.md",
+        "sha256": "862db6f054ff2263d4e1d6c18bd3d80c6333fe35e52e1259bf8aff99b2815d1d",
+        "bytes": 12683,
+        "title": "青橙转化数据 raw",
+        "table_refs": [
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "finance_dw.dim_finance_order_change_df",
+          "finance_dw.dm_finance_order_refund_detail_df",
+          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
+          "temp_table.dingxi01_qing_team_jg"
+        ],
+        "raw_sql_refs": [
+          "data_center_qingcheng_2460_20260709.sql"
+        ],
+        "status": "documented",
+        "aliases": [
+          "qingcheng_conversion_raw_20260626",
+          "青橙转化数据 raw"
+        ]
+      },
+      {
+        "id": "qingcheng:dashboards:qingcheng_conversion_wide_table_market_channel_20260611",
+        "source_path": "knowledge/dashboards/qingcheng_conversion_wide_table_market_channel_20260611.md",
+        "sha256": "bffa913757acc95f8ee54ab4b73562ab19a69e4ec98ab90e3587313766b60973",
+        "bytes": 12670,
+        "title": "青橙转化宽表-市场渠道",
+        "table_refs": [
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "service_dw.app_h_crm_lead_task_process_info_detail_hf",
+          "temp_table.shenbaoxin_channel_group"
+        ],
+        "raw_sql_refs": [
+          "qingcheng_conversion_wide_table_market_channel_20260611.sql"
+        ],
+        "status": "pending_confirmation",
+        "aliases": [
+          "qingcheng_conversion_wide_table_market_channel_20260611",
+          "青橙转化宽表-市场渠道"
+        ]
+      },
+      {
+        "id": "qingcheng:dashboards:qingcheng_daoke_raw_20260522",
+        "source_path": "knowledge/dashboards/qingcheng_daoke_raw_20260522.md",
+        "sha256": "ff314e555fc2d05ac7298e9ffaf9afb6256845dd48d45323b69581fbe5849078",
+        "bytes": 5863,
+        "title": "青橙到课 raw",
+        "table_refs": [
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "service_dw.dws_service_user_learn_detail_hf",
+          "temp_table.dingxi01_jiagou_db",
+          "temp_table.dingxi01_qing_daoke"
+        ],
+        "raw_sql_refs": [
+          "qingcheng_daoke_raw_20260522.sql"
+        ],
+        "status": "pending_confirmation",
+        "aliases": [
+          "qingcheng_daoke_raw_20260522",
+          "青橙到课 raw"
+        ]
+      },
+      {
+        "id": "qingcheng:dashboards:qingcheng_personal_conversion_raw_20260522",
+        "source_path": "knowledge/dashboards/qingcheng_personal_conversion_raw_20260522.md",
+        "sha256": "44ac41fbcfe44c34f3eaa5f30f3134783db1ab57f9956baced849eb2edb1b943",
+        "bytes": 15279,
+        "title": "青橙个人转化 raw",
+        "table_refs": [
+          "dw.dim_employee_chain",
+          "finance_dw.app_finance_performance_extend_details_hf",
+          "finance_dw.dim_finance_order_change_df",
+          "finance_dw.dm_finance_order_refund_detail_df",
+          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
+          "temp_table.dingxi01_qing_goal",
+          "temp_table.dingxi01_qing_qi_moth",
+          "temp_table.dingxi01_qing_team_jg"
+        ],
+        "raw_sql_refs": [
+          "qingcheng_personal_conversion_raw_20260522.sql"
+        ],
+        "status": "pending_confirmation",
+        "aliases": [
+          "qingcheng_personal_conversion_raw_20260522",
+          "青橙个人转化 raw"
+        ]
+      },
+      {
+        "id": "qingcheng:dashboards:qingcheng_process_data_raw_20260522",
+        "source_path": "knowledge/dashboards/qingcheng_process_data_raw_20260522.md",
+        "sha256": "c9f66e074bec059ef717f0222c8590705d9b11a9a7e123ef617c4977cf925cf0",
+        "bytes": 10045,
+        "title": "青橙过程数据 raw",
+        "table_refs": [
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "dw.dim_cstm_active_user_c_appliction_mb_df",
+          "dw.dws_user_active_user_c_appliction_hf",
+          "service_dw.app_h_crm_lead_employee_workload_detail_hf",
+          "service_dw.dm_crm_lead_stats_detail_hf",
+          "service_dw.dws_service_user_learn_detail_hf",
+          "temp_table.dingxi01_jiagou_db",
+          "temp_table.dingxi01_qing_daoke"
+        ],
+        "raw_sql_refs": [
+          "qingcheng_process_data_raw_20260522.sql"
+        ],
+        "status": "pending_confirmation",
+        "aliases": [
+          "qingcheng_process_data_raw_20260522",
+          "青橙过程数据 raw"
+        ]
+      },
+      {
+        "id": "qingcheng:dashboards:qingcheng_revenue_year_quarter_month_raw_20260522",
+        "source_path": "knowledge/dashboards/qingcheng_revenue_year_quarter_month_raw_20260522.md",
+        "sha256": "0b3765267141acf52bf995f22be192347a8d1c2b01368812fb4f97144533b15c",
+        "bytes": 6127,
+        "title": "青橙年季月营收情况 raw",
+        "table_refs": [
+          "dw.dim_employee_chain",
+          "finance_dw.app_finance_performance_extend_details_hf",
+          "temp_table.dingxi01_qing_zz"
+        ],
+        "raw_sql_refs": [
+          "qingcheng_revenue_year_quarter_month_raw_20260522.sql"
+        ],
+        "status": "pending_confirmation",
+        "aliases": [
+          "qingcheng_revenue_year_quarter_month_raw_20260522",
+          "青橙年季月营收情况 raw"
+        ]
+      },
+      {
+        "id": "qingcheng:dashboards:qingcheng_team_completion_month_raw_20260522",
+        "source_path": "knowledge/dashboards/qingcheng_team_completion_month_raw_20260522.md",
+        "sha256": "8887ecd59361dd66ae26d9e8ef60b435c3a6d75627224a80e26157323f00d262",
+        "bytes": 12599,
+        "title": "青橙团队完成度【月】raw",
+        "table_refs": [
+          "dw.dim_employee_chain",
+          "finance_dw.app_finance_performance_extend_details_hf",
+          "finance_dw.dim_finance_order_change_df",
+          "finance_dw.dm_finance_order_refund_detail_df",
+          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
+          "temp_table.dingxi01_qing_qi_moth",
+          "temp_table.dingxi01_qing_team_goal",
+          "temp_table.dingxi01_qing_team_jg"
+        ],
+        "raw_sql_refs": [
+          "qingcheng_team_completion_month_raw_20260522.sql"
+        ],
+        "status": "pending_confirmation",
+        "aliases": [
+          "qingcheng_team_completion_month_raw_20260522",
+          "青橙团队完成度【月】raw"
+        ]
+      },
+      {
+        "id": "qingcheng:dashboards:qingcheng_team_completion_period_raw_20260522",
+        "source_path": "knowledge/dashboards/qingcheng_team_completion_period_raw_20260522.md",
+        "sha256": "824f813d1d26dd04db97ae043617b0e0dfe33f75fc7017d1a6a5a9eeca434f34",
+        "bytes": 10839,
+        "title": "青橙团队完成度【期】raw",
+        "table_refs": [
+          "dw.dim_employee_chain",
+          "finance_dw.app_finance_performance_extend_details_hf",
+          "finance_dw.dim_finance_order_change_df",
+          "finance_dw.dm_finance_order_refund_detail_df",
+          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
+          "temp_table.dingxi01_qing_qi_moth",
+          "temp_table.dingxi01_qing_team_g_qi",
+          "temp_table.dingxi01_qing_team_goal",
+          "temp_table.dingxi01_qing_team_jg"
+        ],
+        "raw_sql_refs": [
+          "qingcheng_team_completion_period_raw_20260522.sql"
+        ],
+        "status": "pending_confirmation",
+        "aliases": [
+          "qingcheng_team_completion_period_raw_20260522",
+          "青橙团队完成度【期】raw"
+        ]
+      }
+    ],
+    "governance": [
+      {
+        "id": "qingcheng:governance:00_global_rules",
+        "source_path": "knowledge/00_global_rules.md",
+        "sha256": "81a73524d6587f5a85a17f73cd1ce51965c0adcbda2c376d933fec5722747986",
+        "bytes": 2476,
+        "title": "全局 SQL 生成规则",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "aliases": [
+          "00_global_rules",
+          "全局 SQL 生成规则"
+        ]
+      },
+      {
+        "id": "qingcheng:governance:01_table_index",
+        "source_path": "knowledge/01_table_index.md",
+        "sha256": "08f839fb73013554d2d18400c62a36bf4e8bc0262d3c8e38d674b2b7e4f7fbea",
+        "bytes": 10535,
+        "title": "表索引",
+        "table_refs": [
+          "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf",
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "data_lake_fuwu.dwd_crm_leads_rt",
+          "dw.dim_cstm_active_user_c_appliction_mb_df",
+          "dw.dim_employee_chain",
+          "dw.dws_user_active_user_c_appliction_hf",
+          "finance_dw.app_finance_performance_extend_details_hf",
+          "finance_dw.dim_finance_employee_df",
+          "finance_dw.dim_finance_order_change_df",
+          "finance_dw.dm_finance_order_refund_detail_df",
+          "gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf",
+          "service_dw.app_h_crm_lead_employee_workload_detail_hf",
+          "service_dw.app_h_crm_lead_task_process_info_detail_hf",
+          "service_dw.app_user_attribute_label_gaia_wide_df",
+          "service_dw.dim_crm_assign_rule_lead_detail_hf",
+          "service_dw.dim_crm_assign_rule_plan_item_info_hf",
+          "service_dw.dm_crm_lead_stats_detail_hf",
+          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
+          "service_dw.dws_service_user_learn_detail_hf",
+          "temp_table.dingxi01_jiagou_db",
+          "temp_table.dingxi01_qing_daoke",
+          "temp_table.dingxi01_qing_goal",
+          "temp_table.dingxi01_qing_qi_moth",
+          "temp_table.dingxi01_qing_team_g_qi",
+          "temp_table.dingxi01_qing_team_goal",
+          "temp_table.dingxi01_qing_team_jg",
+          "temp_table.dingxi01_qing_zz",
+          "temp_table.shenbaoxin_channel_group"
+        ],
+        "raw_sql_refs": [
+          "data_center_qingcheng_2460_20260709.sql",
+          "qingcheng_channel_order_detail_raw_20260627.sql",
+          "qingcheng_conversion_wide_table_market_channel_20260611.sql",
+          "qingcheng_daoke_raw_20260522.sql",
+          "qingcheng_personal_conversion_raw_20260522.sql",
+          "qingcheng_process_data_raw_20260522.sql",
+          "qingcheng_revenue_year_quarter_month_raw_20260522.sql",
+          "qingcheng_team_completion_month_raw_20260522.sql",
+          "qingcheng_team_completion_period_raw_20260522.sql"
+        ],
+        "status": "pending_confirmation",
+        "aliases": [
+          "01_table_index",
+          "表索引"
+        ]
+      },
+      {
+        "id": "qingcheng:governance:02_query_engine_presto",
+        "source_path": "knowledge/02_query_engine_presto.md",
+        "sha256": "5a232035e87a0c31b90c9b1f6742849cd14d43dc2275c0d093015b832e5f52f3",
+        "bytes": 776,
+        "title": "Presto 查询引擎规则",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "02_query_engine_presto",
+          "Presto 查询引擎规则"
+        ]
+      },
+      {
+        "id": "qingcheng:governance:03_range_limit_rules",
+        "source_path": "knowledge/03_range_limit_rules.md",
+        "sha256": "5c4de0f91f4e34a7c708106b5ebf9e763a5671ad3c1da5a8dea774a27bc0b9df",
+        "bytes": 7645,
+        "title": "青橙范围限定规则",
+        "table_refs": [
+          "dw.dim_employee_chain",
+          "temp_table.dingxi01_qing_qi_moth",
+          "temp_table.dingxi01_qing_team_g_qi",
+          "temp_table.dingxi01_qing_team_goal",
+          "temp_table.dingxi01_qing_team_jg"
+        ],
+        "raw_sql_refs": [
+          "data_center_qingcheng_2460_20260709.sql",
+          "qingcheng_personal_conversion_raw_20260522.sql",
+          "qingcheng_revenue_year_quarter_month_raw_20260522.sql",
+          "qingcheng_team_completion_month_raw_20260522.sql",
+          "qingcheng_team_completion_period_raw_20260522.sql"
+        ],
+        "status": "pending_confirmation",
+        "aliases": [
+          "03_range_limit_rules",
+          "青橙范围限定规则"
+        ]
+      },
+      {
+        "id": "qingcheng:governance:04_qingcheng_project_profile",
+        "source_path": "knowledge/04_qingcheng_project_profile.md",
+        "sha256": "824103fcab6824fb6778b8f9fdeb0e0206cd37e2d9c99fbabf68e164fa039a41",
+        "bytes": 9729,
+        "title": "青橙项目部业务域档案",
+        "table_refs": [
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "dw.dim_employee_chain",
+          "finance_dw.app_finance_performance_extend_details_hf",
+          "finance_dw.dim_finance_order_change_df",
+          "finance_dw.dm_finance_order_refund_detail_df",
+          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
+          "temp_table.dingxi01_jiagou_db",
+          "temp_table.dingxi01_qing_daoke",
+          "temp_table.dingxi01_qing_qi_moth",
+          "temp_table.dingxi01_qing_team_g_qi",
+          "temp_table.dingxi01_qing_team_goal",
+          "temp_table.dingxi01_qing_team_jg",
+          "temp_table.dingxi01_qing_zz"
+        ],
+        "raw_sql_refs": [
+          "data_center_qingcheng_2460_20260709.sql",
+          "qingcheng_daoke_raw_20260522.sql",
+          "qingcheng_personal_conversion_raw_20260522.sql",
+          "qingcheng_process_data_raw_20260522.sql",
+          "qingcheng_revenue_year_quarter_month_raw_20260522.sql",
+          "qingcheng_team_completion_month_raw_20260522.sql",
+          "qingcheng_team_completion_period_raw_20260522.sql"
+        ],
+        "status": "pending_confirmation",
+        "aliases": [
+          "04_qingcheng_project_profile",
+          "青橙项目部业务域档案"
+        ]
+      },
+      {
+        "id": "qingcheng:governance:decision_tree",
+        "source_path": "knowledge/decision_tree.md",
+        "sha256": "47773a072af53ddb6dd1f9849fe006175611e669af1bb9106e4c1a0ec3cbea53",
+        "bytes": 8506,
+        "title": "用户需求到知识库路由",
+        "table_refs": [
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "finance_dw.app_finance_performance_extend_details_hf",
+          "service_dw.dm_crm_lead_stats_detail_hf",
+          "temp_table.dingxi01_qing_daoke"
+        ],
+        "raw_sql_refs": [
+          "data_center_qingcheng_2064_20260625.sql"
+        ],
+        "status": "pending_confirmation",
+        "aliases": [
+          "decision_tree",
+          "用户需求到知识库路由"
+        ]
+      },
+      {
+        "id": "qingcheng:governance:quick_reference",
+        "source_path": "knowledge/quick_reference.md",
+        "sha256": "d2aa3b2f4c2731c1604dcacb93278a2a6e56be56f0ddeefc1fcba3d4e916785f",
+        "bytes": 10336,
+        "title": "快速参考卡",
+        "table_refs": [
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "finance_dw.app_finance_performance_extend_details_hf",
+          "service_dw.dm_crm_lead_stats_detail_hf",
+          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
+          "temp_table.dingxi01_jiagou_db",
+          "temp_table.dingxi01_qing_daoke",
+          "temp_table.dingxi01_qing_team_g_qi",
+          "temp_table.dingxi01_qing_team_goal",
+          "temp_table.dingxi01_qing_team_jg",
+          "temp_table.shenbaoxin_channel_group"
+        ],
+        "raw_sql_refs": [
+          "data_center_qingcheng_2064_20260625.sql"
+        ],
+        "status": "pending_confirmation",
+        "aliases": [
+          "quick_reference",
+          "快速参考卡"
+        ]
+      }
+    ],
+    "joins": [
+      {
+        "id": "qingcheng:joins:common_join_keys",
+        "source_path": "knowledge/joins/common_join_keys.md",
+        "sha256": "400fc99bbedde07c9f28005b7c70eda7bcf4ce686acbe71989ba4c3ce0f5663d",
+        "bytes": 7329,
+        "title": "常用 join key",
+        "table_refs": [
+          "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf",
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "data_lake_fuwu.dwd_crm_leads_rt",
+          "dw.dim_employee_chain",
+          "finance_dw.app_finance_performance_extend_details_hf",
+          "finance_dw.dim_finance_order_change_df",
+          "finance_dw.dm_finance_order_refund_detail_df",
+          "service_dw.app_h_crm_lead_task_process_info_detail_hf",
+          "service_dw.dm_crm_lead_stats_detail_hf",
+          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
+          "service_dw.dws_service_user_learn_detail_hf",
+          "temp_table.dingxi01_jiagou_db",
+          "temp_table.dingxi01_qing_daoke",
+          "temp_table.dingxi01_qing_qi_moth",
+          "temp_table.dingxi01_qing_team_g_qi",
+          "temp_table.dingxi01_qing_team_goal",
+          "temp_table.dingxi01_qing_team_jg",
+          "temp_table.dingxi01_qing_zz",
+          "temp_table.shenbaoxin_channel_group"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "common_join_keys",
+          "常用 join key"
+        ]
+      },
+      {
+        "id": "qingcheng:joins:table_relationships",
+        "source_path": "knowledge/joins/table_relationships.md",
+        "sha256": "dc20c55438710eb92c5ee15d64432342aec8061fdd0e0c2062d0569b21ad8f92",
+        "bytes": 13387,
+        "title": "表关系",
+        "table_refs": [
+          "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf",
+          "data_lake_fuwu.dwd_crm_leads_rt",
+          "service_dw.app_h_crm_lead_task_process_info_detail_hf",
+          "service_dw.dm_crm_lead_stats_detail_hf",
+          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
+          "temp_table.dingxi01_jiagou_db",
+          "temp_table.dingxi01_qing_daoke",
+          "temp_table.dingxi01_qing_qi_moth",
+          "temp_table.dingxi01_qing_team_g_qi",
+          "temp_table.dingxi01_qing_team_goal",
+          "temp_table.dingxi01_qing_team_jg",
+          "temp_table.dingxi01_qing_zz",
+          "temp_table.shenbaoxin_channel_group"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "table_relationships",
+          "表关系"
+        ]
+      }
+    ],
+    "metrics": [
+      {
+        "id": "qingcheng:metrics:_metric_template",
+        "source_path": "knowledge/metrics/_metric_template.md",
+        "sha256": "50b438e73399d9ee0fcdbeafaa926588901ce19b6d27f393baef1188e6d1b831",
+        "bytes": 576,
+        "title": "<指标名称>",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "aliases": [
+          "<指标名称>",
+          "_metric_template"
+        ]
+      },
+      {
+        "id": "qingcheng:metrics:qingcheng_channel_order_detail_metrics",
+        "source_path": "knowledge/metrics/qingcheng_channel_order_detail_metrics.md",
+        "sha256": "babfe61d442792b16889bc6da25187a2e63caedaa5a1430d3a62987ff525081e",
+        "bytes": 3863,
+        "title": "青橙渠道订单明细指标与派生字段",
+        "table_refs": [
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf"
+        ],
+        "raw_sql_refs": [
+          "qingcheng_channel_order_detail_raw_20260627.sql"
+        ],
+        "status": "pending_confirmation",
+        "aliases": [
+          "qingcheng_channel_order_detail_metrics",
+          "青橙渠道订单明细指标与派生字段"
+        ]
+      },
+      {
+        "id": "qingcheng:metrics:qingcheng_conversion_metrics",
+        "source_path": "knowledge/metrics/qingcheng_conversion_metrics.md",
+        "sha256": "41b7ccd47cd77897cb7acdeefe142fc683571ce1d05d3ce6b5bf4035938fb006",
+        "bytes": 5678,
+        "title": "青橙转化指标",
+        "table_refs": [
+          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf"
+        ],
+        "raw_sql_refs": [
+          "data_center_qingcheng_2460_20260709.sql"
+        ],
+        "status": "pending_confirmation",
+        "aliases": [
+          "qingcheng_conversion_metrics",
+          "青橙转化指标"
+        ]
+      },
+      {
+        "id": "qingcheng:metrics:qingcheng_conversion_wide_table_market_channel_20260611_metric_1",
+        "source_path": "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_20260611_metric_1.md",
+        "sha256": "ed15ce35fd5a0288c2143539e74652ae68d4e8ac2a1950ffed4fac5d4247a7bd",
+        "bytes": 725,
+        "title": "qingcheng_conversion_wide_table_market_channel_20260611_metric_1",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "aliases": [
+          "qingcheng_conversion_wide_table_market_channel_20260611_metric_1"
+        ]
+      },
+      {
+        "id": "qingcheng:metrics:qingcheng_conversion_wide_table_market_channel_20260611_metric_10",
+        "source_path": "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_20260611_metric_10.md",
+        "sha256": "8d75cd312bd6236cc6cf909f4861449828ea0f5c7e1edb2a99cfdc8774d2e12c",
+        "bytes": 732,
+        "title": "qingcheng_conversion_wide_table_market_channel_20260611_metric_10",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "aliases": [
+          "qingcheng_conversion_wide_table_market_channel_20260611_metric_10"
+        ]
+      },
+      {
+        "id": "qingcheng:metrics:qingcheng_conversion_wide_table_market_channel_20260611_metric_11",
+        "source_path": "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_20260611_metric_11.md",
+        "sha256": "b27a53cf9c45f85fb4eb881f7ceb450d3a64a1aa40b429877def97bbc5172239",
+        "bytes": 759,
+        "title": "qingcheng_conversion_wide_table_market_channel_20260611_metric_11",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "aliases": [
+          "qingcheng_conversion_wide_table_market_channel_20260611_metric_11"
+        ]
+      },
+      {
+        "id": "qingcheng:metrics:qingcheng_conversion_wide_table_market_channel_20260611_metric_12",
+        "source_path": "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_20260611_metric_12.md",
+        "sha256": "1490d9e4acca0bc4d5ee22f6cda7731fc46a66d0cc3c81f30bfbbfa9096933ca",
+        "bytes": 779,
+        "title": "qingcheng_conversion_wide_table_market_channel_20260611_metric_12",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "aliases": [
+          "qingcheng_conversion_wide_table_market_channel_20260611_metric_12"
+        ]
+      },
+      {
+        "id": "qingcheng:metrics:qingcheng_conversion_wide_table_market_channel_20260611_metric_13",
+        "source_path": "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_20260611_metric_13.md",
+        "sha256": "9364c7557b74245f187bef0a901f3142bda15d07c098ec8a99b76a11f22a723b",
+        "bytes": 741,
+        "title": "qingcheng_conversion_wide_table_market_channel_20260611_metric_13",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "aliases": [
+          "qingcheng_conversion_wide_table_market_channel_20260611_metric_13"
+        ]
+      },
+      {
+        "id": "qingcheng:metrics:qingcheng_conversion_wide_table_market_channel_20260611_metric_14",
+        "source_path": "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_20260611_metric_14.md",
+        "sha256": "c563c2b79d56e25f5acd80d69d0492dd418165f3e6a4b7c2108ea98a1002b492",
+        "bytes": 762,
+        "title": "qingcheng_conversion_wide_table_market_channel_20260611_metric_14",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "aliases": [
+          "qingcheng_conversion_wide_table_market_channel_20260611_metric_14"
+        ]
+      },
+      {
+        "id": "qingcheng:metrics:qingcheng_conversion_wide_table_market_channel_20260611_metric_15",
+        "source_path": "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_20260611_metric_15.md",
+        "sha256": "af1adc0cdbbd3a4e5d1f497051b3ccc3ff403b3144600c8c5c1896769e68a557",
+        "bytes": 782,
+        "title": "qingcheng_conversion_wide_table_market_channel_20260611_metric_15",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "aliases": [
+          "qingcheng_conversion_wide_table_market_channel_20260611_metric_15"
+        ]
+      },
+      {
+        "id": "qingcheng:metrics:qingcheng_conversion_wide_table_market_channel_20260611_metric_16",
+        "source_path": "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_20260611_metric_16.md",
+        "sha256": "7685a43612b73b8ae644e6919e46376ddc76fa6959f95703fa5115e8590eebf8",
+        "bytes": 737,
+        "title": "qingcheng_conversion_wide_table_market_channel_20260611_metric_16",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "aliases": [
+          "qingcheng_conversion_wide_table_market_channel_20260611_metric_16"
+        ]
+      },
+      {
+        "id": "qingcheng:metrics:qingcheng_conversion_wide_table_market_channel_20260611_metric_17",
+        "source_path": "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_20260611_metric_17.md",
+        "sha256": "dd69f76d349775a113e0a321adb99e054e2f61079a420c8bd2bc805262c6a978",
+        "bytes": 788,
+        "title": "qingcheng_conversion_wide_table_market_channel_20260611_metric_17",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "aliases": [
+          "qingcheng_conversion_wide_table_market_channel_20260611_metric_17"
+        ]
+      },
+      {
+        "id": "qingcheng:metrics:qingcheng_conversion_wide_table_market_channel_20260611_metric_18",
+        "source_path": "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_20260611_metric_18.md",
+        "sha256": "e95f3fe2afc6928e571b03b937650549fccdbfde98dd6f3e1e41701f561b1464",
+        "bytes": 810,
+        "title": "qingcheng_conversion_wide_table_market_channel_20260611_metric_18",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "aliases": [
+          "qingcheng_conversion_wide_table_market_channel_20260611_metric_18"
+        ]
+      },
+      {
+        "id": "qingcheng:metrics:qingcheng_conversion_wide_table_market_channel_20260611_metric_19",
+        "source_path": "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_20260611_metric_19.md",
+        "sha256": "305ac3a508b0d83a74231514d2117de770ba3ed8b6b0fada9157cf80538a5f74",
+        "bytes": 757,
+        "title": "qingcheng_conversion_wide_table_market_channel_20260611_metric_19",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "aliases": [
+          "qingcheng_conversion_wide_table_market_channel_20260611_metric_19"
+        ]
+      },
+      {
+        "id": "qingcheng:metrics:qingcheng_conversion_wide_table_market_channel_20260611_metric_2",
+        "source_path": "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_20260611_metric_2.md",
+        "sha256": "567b991bafadc1c6cf7c4853b13cbba28eeed71ba95698b711178bcdcc560033",
+        "bytes": 741,
+        "title": "qingcheng_conversion_wide_table_market_channel_20260611_metric_2",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "aliases": [
+          "qingcheng_conversion_wide_table_market_channel_20260611_metric_2"
+        ]
+      },
+      {
+        "id": "qingcheng:metrics:qingcheng_conversion_wide_table_market_channel_20260611_metric_20",
+        "source_path": "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_20260611_metric_20.md",
+        "sha256": "9a2e5ee190fbf88f12967bbfbb913d9a3f671d815384b5a89fd48660ecc8aac9",
+        "bytes": 796,
+        "title": "qingcheng_conversion_wide_table_market_channel_20260611_metric_20",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "aliases": [
+          "qingcheng_conversion_wide_table_market_channel_20260611_metric_20"
+        ]
+      },
+      {
+        "id": "qingcheng:metrics:qingcheng_conversion_wide_table_market_channel_20260611_metric_21",
+        "source_path": "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_20260611_metric_21.md",
+        "sha256": "7a59ac48624f251f3e602b3360b0d5715ef57b034fb30ad245bf64308c373c4b",
+        "bytes": 779,
+        "title": "qingcheng_conversion_wide_table_market_channel_20260611_metric_21",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "aliases": [
+          "qingcheng_conversion_wide_table_market_channel_20260611_metric_21"
+        ]
+      },
+      {
+        "id": "qingcheng:metrics:qingcheng_conversion_wide_table_market_channel_20260611_metric_22",
+        "source_path": "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_20260611_metric_22.md",
+        "sha256": "01e3cfd065cfc849a4a493cef1413bd2b9c0f60cbc4dcf2da75d318bdc69ef4e",
+        "bytes": 750,
+        "title": "qingcheng_conversion_wide_table_market_channel_20260611_metric_22",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "aliases": [
+          "qingcheng_conversion_wide_table_market_channel_20260611_metric_22"
+        ]
+      },
+      {
+        "id": "qingcheng:metrics:qingcheng_conversion_wide_table_market_channel_20260611_metric_3",
+        "source_path": "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_20260611_metric_3.md",
+        "sha256": "e54d6882d3aa95a2ae8a51464d4b68a9d255b58f2153b1ee3f10497ccd8e77af",
+        "bytes": 739,
+        "title": "qingcheng_conversion_wide_table_market_channel_20260611_metric_3",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "aliases": [
+          "qingcheng_conversion_wide_table_market_channel_20260611_metric_3"
+        ]
+      },
+      {
+        "id": "qingcheng:metrics:qingcheng_conversion_wide_table_market_channel_20260611_metric_4",
+        "source_path": "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_20260611_metric_4.md",
+        "sha256": "df5b18a63af5bef45fa300ac6db3ecb093b3f785b7cdddef0eb6d84e48d1ec85",
+        "bytes": 737,
+        "title": "qingcheng_conversion_wide_table_market_channel_20260611_metric_4",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "aliases": [
+          "qingcheng_conversion_wide_table_market_channel_20260611_metric_4"
+        ]
+      },
+      {
+        "id": "qingcheng:metrics:qingcheng_conversion_wide_table_market_channel_20260611_metric_5",
+        "source_path": "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_20260611_metric_5.md",
+        "sha256": "75c0c9470b03694efc30a657f80dfa896427681c947e41d4fa510913a7386ae3",
+        "bytes": 723,
+        "title": "qingcheng_conversion_wide_table_market_channel_20260611_metric_5",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "aliases": [
+          "qingcheng_conversion_wide_table_market_channel_20260611_metric_5"
+        ]
+      },
+      {
+        "id": "qingcheng:metrics:qingcheng_conversion_wide_table_market_channel_20260611_metric_6",
+        "source_path": "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_20260611_metric_6.md",
+        "sha256": "6744f43e32aac0794c864549bc4ed5c68335144c97d1032cd0249fa3f76d6ddd",
+        "bytes": 733,
+        "title": "qingcheng_conversion_wide_table_market_channel_20260611_metric_6",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "aliases": [
+          "qingcheng_conversion_wide_table_market_channel_20260611_metric_6"
+        ]
+      },
+      {
+        "id": "qingcheng:metrics:qingcheng_conversion_wide_table_market_channel_20260611_metric_7",
+        "source_path": "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_20260611_metric_7.md",
+        "sha256": "9da651eb5c249eb9d9b7c9873dbb0fae73745ad12c8621372c37b604dd0594fe",
+        "bytes": 735,
+        "title": "qingcheng_conversion_wide_table_market_channel_20260611_metric_7",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "aliases": [
+          "qingcheng_conversion_wide_table_market_channel_20260611_metric_7"
+        ]
+      },
+      {
+        "id": "qingcheng:metrics:qingcheng_conversion_wide_table_market_channel_20260611_metric_8",
+        "source_path": "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_20260611_metric_8.md",
+        "sha256": "09a400d3cc1a2a9d3782b3bf5ea8cb97a7e2d9f1c8e8ba9a7136fcbe560ac4a4",
+        "bytes": 762,
+        "title": "qingcheng_conversion_wide_table_market_channel_20260611_metric_8",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "aliases": [
+          "qingcheng_conversion_wide_table_market_channel_20260611_metric_8"
+        ]
+      },
+      {
+        "id": "qingcheng:metrics:qingcheng_conversion_wide_table_market_channel_20260611_metric_9",
+        "source_path": "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_20260611_metric_9.md",
+        "sha256": "fcb5b91028d098576466fb8ea81bff8f0793e7dadf92e70bfd5486b751c14599",
+        "bytes": 790,
+        "title": "qingcheng_conversion_wide_table_market_channel_20260611_metric_9",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "aliases": [
+          "qingcheng_conversion_wide_table_market_channel_20260611_metric_9"
+        ]
+      },
+      {
+        "id": "qingcheng:metrics:qingcheng_conversion_wide_table_market_channel_metrics",
+        "source_path": "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_metrics.md",
+        "sha256": "a5aa9cf58aa22ba5b1a7b160e0b1f5cb38efa3ceb4929a472f6146412a55480e",
+        "bytes": 7464,
+        "title": "青橙转化宽表-市场渠道指标",
+        "table_refs": [],
+        "raw_sql_refs": [
+          "qingcheng_conversion_wide_table_market_channel_20260611.sql"
+        ],
+        "status": "pending_confirmation",
+        "aliases": [
+          "qingcheng_conversion_wide_table_market_channel_metrics",
+          "青橙转化宽表-市场渠道指标"
+        ]
+      },
+      {
+        "id": "qingcheng:metrics:qingcheng_daoke_metrics",
+        "source_path": "knowledge/metrics/qingcheng_daoke_metrics.md",
+        "sha256": "0dc8f7f243a09684f48a693aa1767fa13ab8070a6a4b9017e8ea8194bfa4c25e",
+        "bytes": 3216,
+        "title": "青橙到课指标",
+        "table_refs": [
+          "temp_table.dingxi01_qing_daoke"
+        ],
+        "raw_sql_refs": [
+          "qingcheng_daoke_raw_20260522.sql"
+        ],
+        "status": "documented",
+        "aliases": [
+          "qingcheng_daoke_metrics",
+          "青橙到课指标"
+        ]
+      },
+      {
+        "id": "qingcheng:metrics:qingcheng_dashboard_metric_formula_linkage",
+        "source_path": "knowledge/metrics/qingcheng_dashboard_metric_formula_linkage.md",
+        "sha256": "5d05fd1cb9c99f9fd3bd004e5c4c806f6662d00e8c03bf28e198e6b944c73622",
+        "bytes": 12871,
+        "title": "Qingcheng dashboard metric formulas and SQL linkage",
+        "table_refs": [],
+        "raw_sql_refs": [
+          "data_center_qingcheng_2064_20260625.sql",
+          "data_center_qingcheng_2460_20260709.sql",
+          "data_center_qingcheng_2740_20260624.sql",
+          "qingcheng_conversion_wide_table_market_channel_20260611.sql",
+          "qingcheng_daoke_raw_20260522.sql",
+          "qingcheng_personal_conversion_raw_20260522.sql",
+          "qingcheng_revenue_year_quarter_month_raw_20260522.sql",
+          "qingcheng_team_completion_month_raw_20260522.sql",
+          "qingcheng_team_completion_period_raw_20260522.sql"
+        ],
+        "status": "documented",
+        "aliases": [
+          "Qingcheng dashboard metric formulas and SQL linkage",
+          "qingcheng_dashboard_metric_formula_linkage"
+        ]
+      },
+      {
+        "id": "qingcheng:metrics:qingcheng_personal_conversion_metrics",
+        "source_path": "knowledge/metrics/qingcheng_personal_conversion_metrics.md",
+        "sha256": "9c31b362ee98fd944d6cabfbc744e8882d1e844e5c4642f200d59ad0ac1571bb",
+        "bytes": 8886,
+        "title": "青橙个人转化指标",
+        "table_refs": [
+          "finance_dw.dm_finance_order_refund_detail_df",
+          "temp_table.dingxi01_qing_qi_moth",
+          "temp_table.dingxi01_qing_team_jg"
+        ],
+        "raw_sql_refs": [
+          "qingcheng_personal_conversion_raw_20260522.sql"
+        ],
+        "status": "documented",
+        "aliases": [
+          "qingcheng_personal_conversion_metrics",
+          "青橙个人转化指标"
+        ]
+      },
+      {
+        "id": "qingcheng:metrics:qingcheng_process_data_metrics",
+        "source_path": "knowledge/metrics/qingcheng_process_data_metrics.md",
+        "sha256": "5328597cae08b27b1fe37cd601bba018c36db18ccb9df74cce43cadcabb5748c",
+        "bytes": 4933,
+        "title": "青橙过程数据指标",
+        "table_refs": [
+          "service_dw.dm_crm_lead_stats_detail_hf",
+          "temp_table.dingxi01_qing_daoke"
+        ],
+        "raw_sql_refs": [
+          "qingcheng_process_data_raw_20260522.sql"
+        ],
+        "status": "pending_confirmation",
+        "aliases": [
+          "qingcheng_process_data_metrics",
+          "青橙过程数据指标"
+        ]
+      },
+      {
+        "id": "qingcheng:metrics:qingcheng_revenue_year_quarter_month_metrics",
+        "source_path": "knowledge/metrics/qingcheng_revenue_year_quarter_month_metrics.md",
+        "sha256": "cb39370f9614110c859c8e734cf49e8123a9fe0ace1e51c014fff91aa590efcb",
+        "bytes": 3097,
+        "title": "青橙年季月营收指标",
+        "table_refs": [],
+        "raw_sql_refs": [
+          "qingcheng_revenue_year_quarter_month_raw_20260522.sql"
+        ],
+        "status": "documented",
+        "aliases": [
+          "qingcheng_revenue_year_quarter_month_metrics",
+          "青橙年季月营收指标"
+        ]
+      },
+      {
+        "id": "qingcheng:metrics:qingcheng_team_completion_month_metrics",
+        "source_path": "knowledge/metrics/qingcheng_team_completion_month_metrics.md",
+        "sha256": "d2136e2745d8807e9ce0a88c27e2f5d4dba7947ab6fe006212602676e328af2d",
+        "bytes": 5077,
+        "title": "青橙团队完成度【月】指标",
+        "table_refs": [
+          "finance_dw.dm_finance_order_refund_detail_df",
+          "temp_table.dingxi01_qing_team_goal"
+        ],
+        "raw_sql_refs": [
+          "qingcheng_team_completion_month_raw_20260522.sql"
+        ],
+        "status": "pending_confirmation",
+        "aliases": [
+          "qingcheng_team_completion_month_metrics",
+          "青橙团队完成度【月】指标"
+        ]
+      },
+      {
+        "id": "qingcheng:metrics:qingcheng_team_completion_period_metrics",
+        "source_path": "knowledge/metrics/qingcheng_team_completion_period_metrics.md",
+        "sha256": "d8b600bacd6b5576ba3d92ed03eb4acd96a5f71abb86d1b76d47fa9ecb410194",
+        "bytes": 4771,
+        "title": "青橙团队完成度【期】指标",
+        "table_refs": [
+          "temp_table.dingxi01_qing_qi_moth",
+          "temp_table.dingxi01_qing_team_g_qi",
+          "temp_table.dingxi01_qing_team_goal"
+        ],
+        "raw_sql_refs": [
+          "qingcheng_team_completion_period_raw_20260522.sql"
+        ],
+        "status": "pending_confirmation",
+        "aliases": [
+          "qingcheng_team_completion_period_metrics",
+          "青橙团队完成度【期】指标"
+        ]
+      }
+    ],
+    "raw_sql": [
+      {
+        "id": "qingcheng:raw_sql:data_center_qingcheng_2064_20260624",
+        "source_path": "resources/raw_sql/data_center_qingcheng_2064_20260624.sql",
+        "sha256": "d31ddf360bcd17563191df489817d6f41a49406c1c552a15f3ed9013a15690ec",
+        "bytes": 15556,
+        "title": "data_center_qingcheng_2064_20260624",
+        "table_refs": [
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "dw.dim_cstm_active_user_c_appliction_mb_df",
+          "dw.dws_user_active_user_c_appliction_hf",
+          "service_dw.app_h_crm_lead_employee_workload_detail_hf",
+          "service_dw.dm_crm_lead_stats_detail_hf",
+          "service_dw.dws_service_user_learn_detail_hf",
+          "temp_table.dingxi01_jiagou_db",
+          "temp_table.dingxi01_qing_daoke"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "data_center_qingcheng_2064_20260624"
+        ]
+      },
+      {
+        "id": "qingcheng:raw_sql:data_center_qingcheng_2064_20260625",
+        "source_path": "resources/raw_sql/data_center_qingcheng_2064_20260625.sql",
+        "sha256": "5cc28ed374d8e02f4db97ba22a4cad73caed53cf3d2c6e659c82c75a16dd9dc5",
+        "bytes": 15927,
+        "title": "data_center_qingcheng_2064_20260625",
+        "table_refs": [
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "dw.dim_cstm_active_user_c_appliction_mb_df",
+          "dw.dws_user_active_user_c_appliction_hf",
+          "service_dw.app_h_crm_lead_employee_workload_detail_hf",
+          "service_dw.dm_crm_lead_stats_detail_hf",
+          "service_dw.dws_service_user_learn_detail_hf",
+          "temp_table.dingxi01_jiagou_db",
+          "temp_table.dingxi01_qing_daoke"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "data_center_qingcheng_2064_20260625"
+        ]
+      },
+      {
+        "id": "qingcheng:raw_sql:data_center_qingcheng_2460_20260626",
+        "source_path": "resources/raw_sql/data_center_qingcheng_2460_20260626.sql",
+        "sha256": "0ef622fe84abb0f3561597fc98c78e00b3e54691be84f70b38046c76104a6d74",
+        "bytes": 28074,
+        "title": "data_center_qingcheng_2460_20260626",
+        "table_refs": [
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "finance_dw.dim_finance_order_change_df",
+          "finance_dw.dm_finance_order_refund_detail_df",
+          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
+          "temp_table.dingxi01_qing_team_jg"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "data_center_qingcheng_2460_20260626"
+        ]
+      },
+      {
+        "id": "qingcheng:raw_sql:data_center_qingcheng_2460_20260709",
+        "source_path": "resources/raw_sql/data_center_qingcheng_2460_20260709.sql",
+        "sha256": "bfd6a41d878081afdadb9e3eb8f69bfce94b380467cb3dbab4531a93dbdbd61f",
+        "bytes": 28814,
+        "title": "data_center_qingcheng_2460_20260709",
+        "table_refs": [
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "finance_dw.dim_finance_order_change_df",
+          "finance_dw.dm_finance_order_refund_detail_df",
+          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
+          "temp_table.dingxi01_qing_team_jg"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "data_center_qingcheng_2460_20260709"
+        ]
+      },
+      {
+        "id": "qingcheng:raw_sql:data_center_qingcheng_2740_20260624",
+        "source_path": "resources/raw_sql/data_center_qingcheng_2740_20260624.sql",
+        "sha256": "ba008980d05b30c1702a88cd933e8a7533144b1bd1872ee736af7d73a3f9c704",
+        "bytes": 14787,
+        "title": "data_center_qingcheng_2740_20260624",
+        "table_refs": [
+          "dw.dim_employee_chain",
+          "finance_dw.app_finance_performance_extend_details_hf",
+          "service_dw.dim_crm_assign_rule_lead_detail_hf",
+          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
+          "temp_table.dingxi01_qing_team_jg"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "data_center_qingcheng_2740_20260624"
+        ]
+      },
+      {
+        "id": "qingcheng:raw_sql:qingcheng_channel_order_detail_raw_20260627",
+        "source_path": "resources/raw_sql/qingcheng_channel_order_detail_raw_20260627.sql",
+        "sha256": "027c505dede4b677618a6047636445b17804f350e9002ff67723a041ce35eee9",
+        "bytes": 2909,
+        "title": "qingcheng_channel_order_detail_raw_20260627",
+        "table_refs": [
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "qingcheng_channel_order_detail_raw_20260627"
+        ]
+      },
+      {
+        "id": "qingcheng:raw_sql:qingcheng_conversion_wide_table_market_channel_20260611",
+        "source_path": "resources/raw_sql/qingcheng_conversion_wide_table_market_channel_20260611.sql",
+        "sha256": "c33f3e09b5865daed5ce0623b3454764ca4572b1c13519d328f96953efac07f9",
+        "bytes": 42371,
+        "title": "qingcheng_conversion_wide_table_market_channel_20260611",
+        "table_refs": [
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "service_dw.app_h_crm_lead_task_process_info_detail_hf",
+          "temp_table.shenbaoxin_channel_group"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "qingcheng_conversion_wide_table_market_channel_20260611"
+        ]
+      },
+      {
+        "id": "qingcheng:raw_sql:qingcheng_daoke_raw_20260522",
+        "source_path": "resources/raw_sql/qingcheng_daoke_raw_20260522.sql",
+        "sha256": "156ecf80d8008c45c58626f5491007455de9bb16d95303b891676598dafa50f6",
+        "bytes": 6756,
+        "title": "qingcheng_daoke_raw_20260522",
+        "table_refs": [
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "service_dw.dws_service_user_learn_detail_hf",
+          "temp_table.dingxi01_jiagou_db",
+          "temp_table.dingxi01_qing_daoke"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "qingcheng_daoke_raw_20260522"
+        ]
+      },
+      {
+        "id": "qingcheng:raw_sql:qingcheng_personal_conversion_raw_20260522",
+        "source_path": "resources/raw_sql/qingcheng_personal_conversion_raw_20260522.sql",
+        "sha256": "5bacb0dfbdb1d4255b427985fb9bbbb78904529b512f972b7439f792d28209b5",
+        "bytes": 25604,
+        "title": "qingcheng_personal_conversion_raw_20260522",
+        "table_refs": [
+          "dw.dim_employee_chain",
+          "finance_dw.app_finance_performance_extend_details_hf",
+          "finance_dw.dim_finance_order_change_df",
+          "finance_dw.dm_finance_order_refund_detail_df",
+          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
+          "temp_table.dingxi01_qing_goal",
+          "temp_table.dingxi01_qing_qi_moth",
+          "temp_table.dingxi01_qing_team_jg"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "qingcheng_personal_conversion_raw_20260522"
+        ]
+      },
+      {
+        "id": "qingcheng:raw_sql:qingcheng_process_data_raw_20260522",
+        "source_path": "resources/raw_sql/qingcheng_process_data_raw_20260522.sql",
+        "sha256": "48bc762738fa894f2cc2e8c127b42d77bc07423e03c5ea0b5d10c812270b56bc",
+        "bytes": 13162,
+        "title": "qingcheng_process_data_raw_20260522",
+        "table_refs": [
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "dw.dim_cstm_active_user_c_appliction_mb_df",
+          "dw.dws_user_active_user_c_appliction_hf",
+          "service_dw.app_h_crm_lead_employee_workload_detail_hf",
+          "service_dw.dm_crm_lead_stats_detail_hf",
+          "service_dw.dws_service_user_learn_detail_hf",
+          "temp_table.dingxi01_jiagou_db",
+          "temp_table.dingxi01_qing_daoke"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "qingcheng_process_data_raw_20260522"
+        ]
+      },
+      {
+        "id": "qingcheng:raw_sql:qingcheng_revenue_year_quarter_month_raw_20260522",
+        "source_path": "resources/raw_sql/qingcheng_revenue_year_quarter_month_raw_20260522.sql",
+        "sha256": "9238ea3ef964dbcc834c06eada967ecc99d8d211155165432a782f892f835745",
+        "bytes": 7171,
+        "title": "qingcheng_revenue_year_quarter_month_raw_20260522",
+        "table_refs": [
+          "dw.dim_employee_chain",
+          "finance_dw.app_finance_performance_extend_details_hf",
+          "temp_table.dingxi01_qing_zz"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "qingcheng_revenue_year_quarter_month_raw_20260522"
+        ]
+      },
+      {
+        "id": "qingcheng:raw_sql:qingcheng_team_completion_month_raw_20260522",
+        "source_path": "resources/raw_sql/qingcheng_team_completion_month_raw_20260522.sql",
+        "sha256": "94e1b87c2a17820b431ad107dc6fa2a9b3d54b3e8ae29cd2d9666e7ebf00d307",
+        "bytes": 21158,
+        "title": "qingcheng_team_completion_month_raw_20260522",
+        "table_refs": [
+          "dw.dim_employee_chain",
+          "finance_dw.app_finance_performance_extend_details_hf",
+          "finance_dw.dim_finance_order_change_df",
+          "finance_dw.dm_finance_order_refund_detail_df",
+          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
+          "temp_table.dingxi01_qing_qi_moth",
+          "temp_table.dingxi01_qing_team_goal",
+          "temp_table.dingxi01_qing_team_jg"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "qingcheng_team_completion_month_raw_20260522"
+        ]
+      },
+      {
+        "id": "qingcheng:raw_sql:qingcheng_team_completion_period_raw_20260522",
+        "source_path": "resources/raw_sql/qingcheng_team_completion_period_raw_20260522.sql",
+        "sha256": "90b312e0dd5156bbac75e9e375cf04ff1d6eaf41e058fd4b21d5d4c64d0035c7",
+        "bytes": 21108,
+        "title": "qingcheng_team_completion_period_raw_20260522",
+        "table_refs": [
+          "dw.dim_employee_chain",
+          "finance_dw.app_finance_performance_extend_details_hf",
+          "finance_dw.dim_finance_order_change_df",
+          "finance_dw.dm_finance_order_refund_detail_df",
+          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
+          "temp_table.dingxi01_qing_qi_moth",
+          "temp_table.dingxi01_qing_team_g_qi",
+          "temp_table.dingxi01_qing_team_jg"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "qingcheng_team_completion_period_raw_20260522"
+        ]
+      }
+    ],
+    "reverse_index": [
+      {
+        "id": "qingcheng:reverse_index:field_to_metrics",
+        "source_path": "knowledge/reverse_index/field_to_metrics.md",
+        "sha256": "bacbae5ddc4173dfc8511df97d915beb38325ec58a6afb3da9aff51655ace934",
+        "bytes": 87504,
+        "title": "字段到指标反向索引",
+        "table_refs": [],
+        "raw_sql_refs": [
+          "data_center_qingcheng_2064_20260625.sql",
+          "data_center_qingcheng_2460_20260709.sql",
+          "data_center_qingcheng_2740_20260624.sql",
+          "qingcheng_channel_order_detail_raw_20260627.sql",
+          "qingcheng_conversion_wide_table_market_channel_20260611.sql",
+          "qingcheng_daoke_raw_20260522.sql",
+          "qingcheng_personal_conversion_raw_20260522.sql",
+          "qingcheng_process_data_raw_20260522.sql",
+          "qingcheng_revenue_year_quarter_month_raw_20260522.sql",
+          "qingcheng_team_completion_month_raw_20260522.sql",
+          "qingcheng_team_completion_period_raw_20260522.sql"
+        ],
+        "status": "documented",
+        "aliases": [
+          "field_to_metrics",
+          "字段到指标反向索引"
+        ]
+      },
+      {
+        "id": "qingcheng:reverse_index:join_risk_index",
+        "source_path": "knowledge/reverse_index/join_risk_index.md",
+        "sha256": "e2cebb786913feba013e94ed7d28f12f75e7eb89eba60becf952d8a2c30d659b",
+        "bytes": 28659,
+        "title": "JOIN 与结果异常风险索引",
+        "table_refs": [
+          "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf",
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "data_lake_fuwu.dwd_crm_leads_rt",
+          "dw.dim_employee_chain",
+          "finance_dw.app_finance_performance_extend_details_hf",
+          "finance_dw.dim_finance_order_change_df",
+          "service_dw.app_h_crm_lead_task_process_info_detail_hf",
+          "service_dw.dm_crm_lead_stats_detail_hf",
+          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
+          "temp_table.dingxi01_jiagou_db",
+          "temp_table.dingxi01_qing_daoke",
+          "temp_table.dingxi01_qing_qi_moth",
+          "temp_table.dingxi01_qing_team_jg",
+          "temp_table.dingxi01_qing_zz",
+          "temp_table.shenbaoxin_channel_group"
+        ],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "aliases": [
+          "JOIN 与结果异常风险索引",
+          "join_risk_index"
+        ]
+      },
+      {
+        "id": "qingcheng:reverse_index:metric_to_raw_sql",
+        "source_path": "knowledge/reverse_index/metric_to_raw_sql.md",
+        "sha256": "59e049dcedab4b31b9eea752182c145a89eeb4f7918e5ae45197b4f4d50ce1b9",
+        "bytes": 6798,
+        "title": "指标到 raw SQL 反向索引",
+        "table_refs": [
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "service_dw.dm_crm_lead_stats_detail_hf",
+          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
+          "temp_table.dingxi01_qing_daoke",
+          "temp_table.dingxi01_qing_qi_moth",
+          "temp_table.dingxi01_qing_team_g_qi",
+          "temp_table.dingxi01_qing_team_goal",
+          "temp_table.dingxi01_qing_team_jg"
+        ],
+        "raw_sql_refs": [
+          "data_center_qingcheng_2064_20260625.sql",
+          "data_center_qingcheng_2460_20260709.sql",
+          "data_center_qingcheng_2740_20260624.sql",
+          "qingcheng_channel_order_detail_raw_20260627.sql",
+          "qingcheng_conversion_wide_table_market_channel_20260611.sql",
+          "qingcheng_daoke_raw_20260522.sql",
+          "qingcheng_personal_conversion_raw_20260522.sql",
+          "qingcheng_process_data_raw_20260522.sql",
+          "qingcheng_revenue_year_quarter_month_raw_20260522.sql",
+          "qingcheng_team_completion_month_raw_20260522.sql",
+          "qingcheng_team_completion_period_raw_20260522.sql"
+        ],
+        "status": "documented",
+        "aliases": [
+          "metric_to_raw_sql",
+          "指标到 raw SQL 反向索引"
+        ]
+      },
+      {
+        "id": "qingcheng:reverse_index:table_to_dashboards",
+        "source_path": "knowledge/reverse_index/table_to_dashboards.md",
+        "sha256": "6205cd59ba47a9aebfda886a6765b2076d8f0fc654ac9f00f1e0a9bfd6ae900f",
+        "bytes": 13510,
+        "title": "表到看板反向索引",
+        "table_refs": [
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "dw.dim_cstm_active_user_c_appliction_mb_df",
+          "dw.dim_employee_chain",
+          "dw.dws_user_active_user_c_appliction_hf",
+          "finance_dw.app_finance_performance_extend_details_hf",
+          "finance_dw.dim_finance_order_change_df",
+          "finance_dw.dm_finance_order_refund_detail_df",
+          "service_dw.app_h_crm_lead_employee_workload_detail_hf",
+          "service_dw.app_h_crm_lead_task_process_info_detail_hf",
+          "service_dw.dm_crm_lead_stats_detail_hf",
+          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
+          "service_dw.dws_service_user_learn_detail_hf",
+          "temp_table.dingxi01_jiagou_db",
+          "temp_table.dingxi01_qing_daoke",
+          "temp_table.dingxi01_qing_goal",
+          "temp_table.dingxi01_qing_qi_moth",
+          "temp_table.dingxi01_qing_team_g_qi",
+          "temp_table.dingxi01_qing_team_goal",
+          "temp_table.dingxi01_qing_team_jg",
+          "temp_table.dingxi01_qing_zz",
+          "temp_table.shenbaoxin_channel_group"
+        ],
+        "raw_sql_refs": [
+          "data_center_qingcheng_2460_20260709.sql",
+          "qingcheng_channel_order_detail_raw_20260627.sql",
+          "qingcheng_conversion_wide_table_market_channel_20260611.sql",
+          "qingcheng_daoke_raw_20260522.sql",
+          "qingcheng_personal_conversion_raw_20260522.sql",
+          "qingcheng_process_data_raw_20260522.sql",
+          "qingcheng_revenue_year_quarter_month_raw_20260522.sql",
+          "qingcheng_team_completion_month_raw_20260522.sql",
+          "qingcheng_team_completion_period_raw_20260522.sql"
+        ],
+        "status": "documented",
+        "aliases": [
+          "table_to_dashboards",
+          "表到看板反向索引"
+        ]
+      }
+    ],
+    "sql_patterns": [
+      {
+        "id": "qingcheng:sql_patterns:aggregation_patterns",
+        "source_path": "knowledge/sql_patterns/aggregation_patterns.md",
+        "sha256": "79b7f88b781c01ed8369d90d1ca13cd00b24f93b078122f046026d2e4d002dea",
+        "bytes": 837,
+        "title": "聚合模板",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "aliases": [
+          "aggregation_patterns",
+          "聚合模板"
+        ]
+      },
+      {
+        "id": "qingcheng:sql_patterns:cte_patterns",
+        "source_path": "knowledge/sql_patterns/cte_patterns.md",
+        "sha256": "ede306406cad828dd24e70e72a0961ba13d73b4c4ddefabd1652305e143868ca",
+        "bytes": 767,
+        "title": "CTE 模板",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "CTE 模板",
+          "cte_patterns"
+        ]
+      },
+      {
+        "id": "qingcheng:sql_patterns:dashboard_query_patterns",
+        "source_path": "knowledge/sql_patterns/dashboard_query_patterns.md",
+        "sha256": "845ff5a334ec7582c9506b6be545f4fedef3fef3a6b9afc025df9daea5258911",
+        "bytes": 1900,
+        "title": "看板 SQL 模式",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "aliases": [
+          "dashboard_query_patterns",
+          "看板 SQL 模式"
+        ]
+      },
+      {
+        "id": "qingcheng:sql_patterns:exploratory_query_patterns",
+        "source_path": "knowledge/sql_patterns/exploratory_query_patterns.md",
+        "sha256": "d7008769ff357e3286ee35ea6d8739b4ac89f3b81e79ffbeec7c1e0f48ca2454",
+        "bytes": 722,
+        "title": "探索查询模式",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "exploratory_query_patterns",
+          "探索查询模式"
+        ]
+      },
+      {
+        "id": "qingcheng:sql_patterns:latest_record_patterns",
+        "source_path": "knowledge/sql_patterns/latest_record_patterns.md",
+        "sha256": "53b82857e261e694dbbe580f16f77f36d29272769196144263197778dd14c457",
+        "bytes": 773,
+        "title": "最新记录模板",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "latest_record_patterns",
+          "最新记录模板"
+        ]
+      },
+      {
+        "id": "qingcheng:sql_patterns:presto_date_partition_patterns",
+        "source_path": "knowledge/sql_patterns/presto_date_partition_patterns.md",
+        "sha256": "5a8980a2fe8e3c8bab61cb00120da0dd0e45610be83335dd7dc09f5e0784b3bd",
+        "bytes": 500,
+        "title": "Presto 日期和分区模式",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "Presto 日期和分区模式",
+          "presto_date_partition_patterns"
+        ]
+      },
+      {
+        "id": "qingcheng:sql_patterns:qingcheng_channel_grade_mapping",
+        "source_path": "knowledge/sql_patterns/qingcheng_channel_grade_mapping.md",
+        "sha256": "94ebfb5c62ee37f2481f19d463cd9b4f35389072e6faf6e3db7a59275fdb4e96",
+        "bytes": 25265,
+        "title": "青橙渠道和年级映射",
+        "table_refs": [
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "temp_table.dingxi01_qing_daoke",
+          "temp_table.shenbaoxin_channel_group"
+        ],
+        "raw_sql_refs": [
+          "data_center_qingcheng_2064_20260625.sql",
+          "data_center_qingcheng_2460_20260709.sql",
+          "qingcheng_conversion_wide_table_market_channel_20260611.sql",
+          "qingcheng_daoke_raw_20260522.sql",
+          "qingcheng_process_data_raw_20260522.sql"
+        ],
+        "status": "pending_confirmation",
+        "aliases": [
+          "qingcheng_channel_grade_mapping",
+          "青橙渠道和年级映射"
+        ]
+      },
+      {
+        "id": "qingcheng:sql_patterns:qingcheng_completion_sql_repair_checklist",
+        "source_path": "knowledge/sql_patterns/qingcheng_completion_sql_repair_checklist.md",
+        "sha256": "54c33655124788ae660f311bb550ed3506e74ea44dd443a732eb4a59232b8d2a",
+        "bytes": 7649,
+        "title": "青橙完成度 SQL 修复检查清单",
+        "table_refs": [
+          "dw.dim_employee_chain",
+          "finance_dw.app_finance_performance_extend_details_hf",
+          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
+          "temp_table.dingxi01_qing_team_jg"
+        ],
+        "raw_sql_refs": [
+          "qingcheng_personal_conversion_raw_20260522.sql",
+          "qingcheng_team_completion_month_raw_20260522.sql",
+          "qingcheng_team_completion_period_raw_20260522.sql"
+        ],
+        "status": "documented",
+        "aliases": [
+          "qingcheng_completion_sql_repair_checklist",
+          "青橙完成度 SQL 修复检查清单"
+        ]
+      },
+      {
+        "id": "qingcheng:sql_patterns:qingcheng_lead_origin_trace",
+        "source_path": "knowledge/sql_patterns/qingcheng_lead_origin_trace.md",
+        "sha256": "dd111e7d557fb7357db2b5f02812de97d8aaec1336dd74b7bbd559715357f73f",
+        "bytes": 9877,
+        "title": "青橙 lead_id 原始来源追溯",
+        "table_refs": [
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df"
+        ],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "aliases": [
+          "qingcheng_lead_origin_trace",
+          "青橙 lead_id 原始来源追溯"
+        ]
+      },
+      {
+        "id": "qingcheng:sql_patterns:qingcheng_personal_completion_discounted_output_risks",
+        "source_path": "knowledge/sql_patterns/qingcheng_personal_completion_discounted_output_risks.md",
+        "sha256": "44c7534e3ae00fe9f90c20e0c4bee27c8c4c39e71f57f9fa644a83ee886106a7",
+        "bytes": 13383,
+        "title": "青橙个人完成度折算后产出风险排查",
+        "table_refs": [
+          "finance_dw.app_finance_performance_extend_details_hf",
+          "finance_dw.dim_finance_order_change_df",
+          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
+          "temp_table.dingxi01_qing_team_jg"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "qingcheng_personal_completion_discounted_output_risks",
+          "青橙个人完成度折算后产出风险排查"
+        ]
+      },
+      {
+        "id": "qingcheng:sql_patterns:qingcheng_scope_patterns",
+        "source_path": "knowledge/sql_patterns/qingcheng_scope_patterns.md",
+        "sha256": "9c422486b9df929174f5191267041ac76f127c0d0c418f83e51c2999bb4a49a3",
+        "bytes": 1063,
+        "title": "青橙范围限定模式",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "aliases": [
+          "qingcheng_scope_patterns",
+          "青橙范围限定模式"
+        ]
+      },
+      {
+        "id": "qingcheng:sql_patterns:qingcheng_summer_qici_corrections",
+        "source_path": "knowledge/sql_patterns/qingcheng_summer_qici_corrections.md",
+        "sha256": "c1e9aa00e2af2eb92acc3a6e0e65cf2dba6a9ff5d17ab398e3f1fe9e7ebef889",
+        "bytes": 2893,
+        "title": "青橙暑期期次修正规则",
+        "table_refs": [
+          "temp_table.dingxi01_qing_team_jg"
+        ],
+        "raw_sql_refs": [
+          "data_center_qingcheng_2460_20260709.sql"
+        ],
+        "status": "documented",
+        "aliases": [
+          "qingcheng_summer_qici_corrections",
+          "青橙暑期期次修正规则"
+        ]
+      }
+    ],
+    "tables": [
+      {
+        "id": "qingcheng:tables:_table_template",
+        "source_path": "knowledge/tables/_table_template.md",
+        "sha256": "d07ea8c19c645c4e996c7ff1454e95617575cde3f79bd706bbfffaec9b43b7bc",
+        "bytes": 757,
+        "title": "<库名.表名>",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "aliases": [
+          "<库名.表名>",
+          "_table_template"
+        ]
+      },
+      {
+        "id": "qingcheng:tables:bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf",
+        "source_path": "knowledge/tables/bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf.md",
+        "sha256": "a7ca97e8123954405e9b878bb4742ee193dfee7a2f79079503aff639e9e6e9bd",
+        "bytes": 7499,
+        "title": "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf",
+        "table_refs": [
+          "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf",
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "data_lake_fuwu.dwd_crm_leads_rt",
+          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "table_name": "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf",
+        "aliases": [
+          "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf"
+        ]
+      },
+      {
+        "id": "qingcheng:tables:bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+        "source_path": "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
+        "sha256": "ea297289bbf05ad5b909599e458e221c60a664b13321d407f2c6e9f42d3554b1",
+        "bytes": 47752,
+        "title": "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+        "table_refs": [
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df"
+        ],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "table_name": "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+        "aliases": [
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df"
+        ]
+      },
+      {
+        "id": "qingcheng:tables:data_lake_fuwu.dwd_crm_leads_rt",
+        "source_path": "knowledge/tables/data_lake_fuwu.dwd_crm_leads_rt.md",
+        "sha256": "4a891556af6a142b90217c3c2896083eb76e17f9606f2c15080808df6e0e36e3",
+        "bytes": 9727,
+        "title": "data_lake_fuwu.dwd_crm_leads_rt",
+        "table_refs": [
+          "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf",
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "data_lake_fuwu.dwd_crm_leads_rt",
+          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "table_name": "data_lake_fuwu.dwd_crm_leads_rt",
+        "aliases": [
+          "data_lake_fuwu.dwd_crm_leads_rt"
+        ]
+      },
+      {
+        "id": "qingcheng:tables:dw.dim_cstm_active_user_c_appliction_mb_df",
+        "source_path": "knowledge/tables/dw.dim_cstm_active_user_c_appliction_mb_df.md",
+        "sha256": "735e849e676ffb4a722c7588e11d257f554d31550c229566cf841c983fcc9f99",
+        "bytes": 3479,
+        "title": "dw.dim_cstm_active_user_c_appliction_mb_df",
+        "table_refs": [
+          "dw.dim_cstm_active_user_c_appliction_mb_df"
+        ],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "table_name": "dw.dim_cstm_active_user_c_appliction_mb_df",
+        "aliases": [
+          "dw.dim_cstm_active_user_c_appliction_mb_df"
+        ]
+      },
+      {
+        "id": "qingcheng:tables:dw.dim_employee_chain",
+        "source_path": "knowledge/tables/dw.dim_employee_chain.md",
+        "sha256": "b601348dd155f5a8abafe2cf3b6c55e2e2826b67e458eae762116c2c366612de",
+        "bytes": 5442,
+        "title": "dw.dim_employee_chain",
+        "table_refs": [
+          "dw.dim_employee_chain",
+          "finance_dw.app_finance_performance_extend_details_hf"
+        ],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "table_name": "dw.dim_employee_chain",
+        "aliases": [
+          "dw.dim_employee_chain"
+        ]
+      },
+      {
+        "id": "qingcheng:tables:dw.dws_user_active_user_c_appliction_hf",
+        "source_path": "knowledge/tables/dw.dws_user_active_user_c_appliction_hf.md",
+        "sha256": "c21f71a31fa14046cc9e5a80772fef54299e1e9dbd30bf43c6fcc1c2ccc2ecc8",
+        "bytes": 2545,
+        "title": "dw.dws_user_active_user_c_appliction_hf",
+        "table_refs": [
+          "dw.dws_user_active_user_c_appliction_hf"
+        ],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "table_name": "dw.dws_user_active_user_c_appliction_hf",
+        "aliases": [
+          "dw.dws_user_active_user_c_appliction_hf"
+        ]
+      },
+      {
+        "id": "qingcheng:tables:finance_dw.app_finance_performance_extend_details_hf",
+        "source_path": "knowledge/tables/finance_dw.app_finance_performance_extend_details_hf.md",
+        "sha256": "0acdfc84fb239f8bf580f17c2306c3f446d1341944fe69b31cbb5af571bf8354",
+        "bytes": 20196,
+        "title": "finance_dw.app_finance_performance_extend_details_hf",
+        "table_refs": [
+          "finance_dw.app_finance_performance_extend_details_hf",
+          "temp_table.dingxi01_qing_team_jg",
+          "temp_table.dingxi01_qing_zz"
+        ],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "table_name": "finance_dw.app_finance_performance_extend_details_hf",
+        "aliases": [
+          "finance_dw.app_finance_performance_extend_details_hf"
+        ]
+      },
+      {
+        "id": "qingcheng:tables:finance_dw.dim_finance_employee_df",
+        "source_path": "knowledge/tables/finance_dw.dim_finance_employee_df.md",
+        "sha256": "97b327d137ba65f0a2cb185e045d18de70fe0ec96da4117e2bbc35618067d26d",
+        "bytes": 6912,
+        "title": "finance_dw.dim_finance_employee_df",
+        "table_refs": [
+          "finance_dw.dim_finance_employee_df",
+          "gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "table_name": "finance_dw.dim_finance_employee_df",
+        "aliases": [
+          "finance_dw.dim_finance_employee_df"
+        ]
+      },
+      {
+        "id": "qingcheng:tables:finance_dw.dim_finance_order_change_df",
+        "source_path": "knowledge/tables/finance_dw.dim_finance_order_change_df.md",
+        "sha256": "1645667e45b8dce5bf397b1ee650eb10cc58b01f4054e53d4dbf37f8d368c476",
+        "bytes": 5104,
+        "title": "finance_dw.dim_finance_order_change_df",
+        "table_refs": [
+          "finance_dw.dim_finance_order_change_df"
+        ],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "table_name": "finance_dw.dim_finance_order_change_df",
+        "aliases": [
+          "finance_dw.dim_finance_order_change_df"
+        ]
+      },
+      {
+        "id": "qingcheng:tables:finance_dw.dm_finance_order_refund_detail_df",
+        "source_path": "knowledge/tables/finance_dw.dm_finance_order_refund_detail_df.md",
+        "sha256": "3aa30d24b31bc89be949883d34340ea84099ed7d2b94e5927f8166fb783e58f7",
+        "bytes": 12832,
+        "title": "finance_dw.dm_finance_order_refund_detail_df",
+        "table_refs": [
+          "finance_dw.dim_finance_order_change_df",
+          "finance_dw.dm_finance_order_refund_detail_df"
+        ],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "table_name": "finance_dw.dm_finance_order_refund_detail_df",
+        "aliases": [
+          "finance_dw.dm_finance_order_refund_detail_df"
+        ]
+      },
+      {
+        "id": "qingcheng:tables:gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf",
+        "source_path": "knowledge/tables/gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf.md",
+        "sha256": "9677498c45af597098e04218f0f664850129f7db9dd79d39cf0bc3f1c1776620",
+        "bytes": 6940,
+        "title": "gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf",
+        "table_refs": [
+          "finance_dw.dim_finance_employee_df",
+          "gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf",
+          "service_dw.app_h_crm_lead_task_process_info_detail_hf"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "table_name": "gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf",
+        "aliases": [
+          "gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf"
+        ]
+      },
+      {
+        "id": "qingcheng:tables:service_dw.app_h_crm_lead_employee_workload_detail_hf",
+        "source_path": "knowledge/tables/service_dw.app_h_crm_lead_employee_workload_detail_hf.md",
+        "sha256": "7c86265143206809980eddfc3917c795586b5053fed973df380b451b41182b0c",
+        "bytes": 7582,
+        "title": "service_dw.app_h_crm_lead_employee_workload_detail_hf",
+        "table_refs": [
+          "service_dw.app_h_crm_lead_employee_workload_detail_hf"
+        ],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "table_name": "service_dw.app_h_crm_lead_employee_workload_detail_hf",
+        "aliases": [
+          "service_dw.app_h_crm_lead_employee_workload_detail_hf"
+        ]
+      },
+      {
+        "id": "qingcheng:tables:service_dw.app_h_crm_lead_task_process_info_detail_hf",
+        "source_path": "knowledge/tables/service_dw.app_h_crm_lead_task_process_info_detail_hf.md",
+        "sha256": "8e2210c752f79a4b0404da380c52464f4cc637c470c4b5a48b2e31f09523a120",
+        "bytes": 17025,
+        "title": "service_dw.app_h_crm_lead_task_process_info_detail_hf",
+        "table_refs": [
+          "service_dw.app_h_crm_lead_task_process_info_detail_hf"
+        ],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "table_name": "service_dw.app_h_crm_lead_task_process_info_detail_hf",
+        "aliases": [
+          "service_dw.app_h_crm_lead_task_process_info_detail_hf"
+        ]
+      },
+      {
+        "id": "qingcheng:tables:service_dw.app_user_attribute_label_gaia_wide_df",
+        "source_path": "knowledge/tables/service_dw.app_user_attribute_label_gaia_wide_df.md",
+        "sha256": "a9ecbebc40007e4e43eb560f836da514ab524f4c0d299a677ff5f792bd7dfbf7",
+        "bytes": 11486,
+        "title": "service_dw.app_user_attribute_label_gaia_wide_df",
+        "table_refs": [
+          "service_dw.app_user_attribute_label_gaia_wide_df"
+        ],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "table_name": "service_dw.app_user_attribute_label_gaia_wide_df",
+        "aliases": [
+          "service_dw.app_user_attribute_label_gaia_wide_df"
+        ]
+      },
+      {
+        "id": "qingcheng:tables:service_dw.dim_crm_assign_rule_lead_detail_hf",
+        "source_path": "knowledge/tables/service_dw.dim_crm_assign_rule_lead_detail_hf.md",
+        "sha256": "0b4ca67c5344c19602555b422ca525086c34471c9d38503a53be218b92a54128",
+        "bytes": 4059,
+        "title": "service_dw.dim_crm_assign_rule_lead_detail_hf",
+        "table_refs": [
+          "service_dw.dim_crm_assign_rule_lead_detail_hf",
+          "service_dw.dim_crm_assign_rule_plan_item_info_hf"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "table_name": "service_dw.dim_crm_assign_rule_lead_detail_hf",
+        "aliases": [
+          "service_dw.dim_crm_assign_rule_lead_detail_hf"
+        ]
+      },
+      {
+        "id": "qingcheng:tables:service_dw.dim_crm_assign_rule_plan_item_info_hf",
+        "source_path": "knowledge/tables/service_dw.dim_crm_assign_rule_plan_item_info_hf.md",
+        "sha256": "4c45cfc4ba9168e9edfe45bc736a55016d68cf534c5af2a568e97dddc72c8c53",
+        "bytes": 5906,
+        "title": "service_dw.dim_crm_assign_rule_plan_item_info_hf",
+        "table_refs": [
+          "finance_dw.dim_finance_employee_df",
+          "service_dw.dim_crm_assign_rule_lead_detail_hf",
+          "service_dw.dim_crm_assign_rule_plan_item_info_hf"
+        ],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "table_name": "service_dw.dim_crm_assign_rule_plan_item_info_hf",
+        "aliases": [
+          "service_dw.dim_crm_assign_rule_plan_item_info_hf"
+        ]
+      },
+      {
+        "id": "qingcheng:tables:service_dw.dm_crm_lead_stats_detail_hf",
+        "source_path": "knowledge/tables/service_dw.dm_crm_lead_stats_detail_hf.md",
+        "sha256": "2fc755a895859c53a464a1bb0188b67f67b29513a9175c4c313181533c905ed9",
+        "bytes": 38249,
+        "title": "service_dw.dm_crm_lead_stats_detail_hf",
+        "table_refs": [
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "service_dw.dm_crm_lead_stats_detail_hf"
+        ],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "table_name": "service_dw.dm_crm_lead_stats_detail_hf",
+        "aliases": [
+          "service_dw.dm_crm_lead_stats_detail_hf"
+        ]
+      },
+      {
+        "id": "qingcheng:tables:service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
+        "source_path": "knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md",
+        "sha256": "386b749b24399bf240306e9c34ad14dff77a01d2d3f8d8a081d4a29af34d4045",
+        "bytes": 31814,
+        "title": "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
+        "table_refs": [
+          "finance_dw.app_finance_performance_extend_details_hf",
+          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf"
+        ],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "table_name": "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
+        "aliases": [
+          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf"
+        ]
+      },
+      {
+        "id": "qingcheng:tables:service_dw.dws_service_user_learn_detail_hf",
+        "source_path": "knowledge/tables/service_dw.dws_service_user_learn_detail_hf.md",
+        "sha256": "7e9d3825bfef2e46cc513d6cd7a24406ea273649859277fcf311e9167313eae0",
+        "bytes": 6412,
+        "title": "service_dw.dws_service_user_learn_detail_hf",
+        "table_refs": [
+          "service_dw.dws_service_user_learn_detail_hf",
+          "temp_table.dingxi01_qing_daoke"
+        ],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "table_name": "service_dw.dws_service_user_learn_detail_hf",
+        "aliases": [
+          "service_dw.dws_service_user_learn_detail_hf"
+        ]
+      }
+    ],
+    "temp_tables": [
+      {
+        "id": "qingcheng:temp_tables:_no_temp_table_usage_cases",
+        "source_path": "knowledge/temp_tables/_no_temp_table_usage_cases.md",
+        "sha256": "c3b1883b1824b6dcb136ca1332dabafc8c0356fb3cba23ed876d268cf6287dda",
+        "bytes": 641,
+        "title": "未使用临时表的 SQL 记录",
+        "table_refs": [
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf"
+        ],
+        "raw_sql_refs": [
+          "qingcheng_channel_order_detail_raw_20260627.sql"
+        ],
+        "status": "documented",
+        "aliases": [
+          "_no_temp_table_usage_cases",
+          "未使用临时表的 SQL 记录"
+        ]
+      },
+      {
+        "id": "qingcheng:temp_tables:_temp_table_template",
+        "source_path": "knowledge/temp_tables/_temp_table_template.md",
+        "sha256": "49215f867d1669cec4c132b0b62f6f28d8c827066ac29fd0a8956ecdff8396a4",
+        "bytes": 614,
+        "title": "<库名.表名>",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "aliases": [
+          "<库名.表名>",
+          "_temp_table_template"
+        ]
+      },
+      {
+        "id": "qingcheng:temp_tables:temp_table.dingxi01_jiagou_db",
+        "source_path": "knowledge/temp_tables/temp_table.dingxi01_jiagou_db.md",
+        "sha256": "d542ff54869759ee5536693537ece89a3904f1066dff2bedaada786eb71c53e1",
+        "bytes": 2459,
+        "title": "temp_table.dingxi01_jiagou_db",
+        "table_refs": [
+          "temp_table.dingxi01_jiagou_db"
+        ],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "table_name": "temp_table.dingxi01_jiagou_db",
+        "aliases": [
+          "temp_table.dingxi01_jiagou_db"
+        ]
+      },
+      {
+        "id": "qingcheng:temp_tables:temp_table.dingxi01_qing_daoke",
+        "source_path": "knowledge/temp_tables/temp_table.dingxi01_qing_daoke.md",
+        "sha256": "0d72c5f4b41aa4a96197926701a6494ca8804db567f9e5ed602eb99f967793e0",
+        "bytes": 2052,
+        "title": "temp_table.dingxi01_qing_daoke",
+        "table_refs": [
+          "temp_table.dingxi01_qing_daoke"
+        ],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "table_name": "temp_table.dingxi01_qing_daoke",
+        "aliases": [
+          "temp_table.dingxi01_qing_daoke"
+        ]
+      },
+      {
+        "id": "qingcheng:temp_tables:temp_table.dingxi01_qing_goal",
+        "source_path": "knowledge/temp_tables/temp_table.dingxi01_qing_goal.md",
+        "sha256": "6a7386522ea9763fbfe45cc078679dc377d81f278344bd3190da46d5851ef7a4",
+        "bytes": 2017,
+        "title": "temp_table.dingxi01_qing_goal",
+        "table_refs": [
+          "temp_table.dingxi01_qing_goal",
+          "temp_table.dingxi01_qing_team_g_qi",
+          "temp_table.dingxi01_qing_team_goal"
+        ],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "table_name": "temp_table.dingxi01_qing_goal",
+        "aliases": [
+          "temp_table.dingxi01_qing_goal"
+        ]
+      },
+      {
+        "id": "qingcheng:temp_tables:temp_table.dingxi01_qing_qi_moth",
+        "source_path": "knowledge/temp_tables/temp_table.dingxi01_qing_qi_moth.md",
+        "sha256": "5c7de707d91893c8c53f3cd02b0cd3053b012f85f5a893a16e242800cd58b18d",
+        "bytes": 1501,
+        "title": "temp_table.dingxi01_qing_qi_moth",
+        "table_refs": [
+          "temp_table.dingxi01_qing_qi_moth"
+        ],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "table_name": "temp_table.dingxi01_qing_qi_moth",
+        "aliases": [
+          "temp_table.dingxi01_qing_qi_moth"
+        ]
+      },
+      {
+        "id": "qingcheng:temp_tables:temp_table.dingxi01_qing_team_g_qi",
+        "source_path": "knowledge/temp_tables/temp_table.dingxi01_qing_team_g_qi.md",
+        "sha256": "ff2a5ce8043359e9465d507aaf27c6aed5f88d330398ad8a39fb723ca651f824",
+        "bytes": 1869,
+        "title": "temp_table.dingxi01_qing_team_g_qi",
+        "table_refs": [
+          "temp_table.dingxi01_qing_team_g_qi",
+          "temp_table.dingxi01_qing_team_goal"
+        ],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "table_name": "temp_table.dingxi01_qing_team_g_qi",
+        "aliases": [
+          "temp_table.dingxi01_qing_team_g_qi"
+        ]
+      },
+      {
+        "id": "qingcheng:temp_tables:temp_table.dingxi01_qing_team_goal",
+        "source_path": "knowledge/temp_tables/temp_table.dingxi01_qing_team_goal.md",
+        "sha256": "9c0ef63527b2a6b7b51aa25fdb080ba6379a4638f029c8e2f93497e02b21d830",
+        "bytes": 1857,
+        "title": "temp_table.dingxi01_qing_team_goal",
+        "table_refs": [
+          "temp_table.dingxi01_qing_team_g_qi",
+          "temp_table.dingxi01_qing_team_goal"
+        ],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "table_name": "temp_table.dingxi01_qing_team_goal",
+        "aliases": [
+          "temp_table.dingxi01_qing_team_goal"
+        ]
+      },
+      {
+        "id": "qingcheng:temp_tables:temp_table.dingxi01_qing_team_jg",
+        "source_path": "knowledge/temp_tables/temp_table.dingxi01_qing_team_jg.md",
+        "sha256": "a8697d4a93d28c47e1cd40698f8c5a2f11a0f509ed816f2ce1fd4cc084fe6850",
+        "bytes": 3058,
+        "title": "temp_table.dingxi01_qing_team_jg",
+        "table_refs": [
+          "temp_table.dingxi01_jiagou_db",
+          "temp_table.dingxi01_qing_team_jg"
+        ],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "table_name": "temp_table.dingxi01_qing_team_jg",
+        "aliases": [
+          "temp_table.dingxi01_qing_team_jg"
+        ]
+      },
+      {
+        "id": "qingcheng:temp_tables:temp_table.dingxi01_qing_zz",
+        "source_path": "knowledge/temp_tables/temp_table.dingxi01_qing_zz.md",
+        "sha256": "b401b73521578b24dcb5b682bf05b3a0ff64330585fc20dcb6327824f1d41e85",
+        "bytes": 1481,
+        "title": "temp_table.dingxi01_qing_zz",
+        "table_refs": [
+          "temp_table.dingxi01_jiagou_db",
+          "temp_table.dingxi01_qing_team_jg",
+          "temp_table.dingxi01_qing_zz"
+        ],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "table_name": "temp_table.dingxi01_qing_zz",
+        "aliases": [
+          "temp_table.dingxi01_qing_zz"
+        ]
+      },
+      {
+        "id": "qingcheng:temp_tables:temp_table.shenbaoxin_channel_group",
+        "source_path": "knowledge/temp_tables/temp_table.shenbaoxin_channel_group.md",
+        "sha256": "cb61a62e01b6e911edc6523c342303b6759a4797a96bab1c415d2c6975f3ed50",
+        "bytes": 2282,
+        "title": "temp_table.shenbaoxin_channel_group",
+        "table_refs": [
+          "temp_table.shenbaoxin_channel_group"
+        ],
+        "raw_sql_refs": [],
+        "status": "pending_confirmation",
+        "table_name": "temp_table.shenbaoxin_channel_group",
+        "aliases": [
+          "temp_table.shenbaoxin_channel_group"
+        ]
+      }
+    ],
+    "update_log": [
+      {
+        "id": "qingcheng:update_log:changelog",
+        "source_path": "knowledge/update_log/changelog.md",
+        "sha256": "73632b200cbf8fcafac8de162bd921419e7e1a34fddfd6f083c4da44f5cfc9d3",
+        "bytes": 41402,
+        "title": "更新日志",
+        "table_refs": [
+          "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf",
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "data_lake_fuwu.dwd_crm_leads_rt",
+          "dw.dim_employee_chain",
+          "finance_dw.app_finance_performance_extend_details_hf",
+          "finance_dw.dim_finance_employee_df",
+          "finance_dw.dim_finance_order_change_df",
+          "finance_dw.dm_finance_order_refund_detail_df",
+          "gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf",
+          "service_dw.app_h_crm_lead_task_process_info_detail_hf",
+          "service_dw.app_user_attribute_label_gaia_wide_df",
+          "service_dw.dim_crm_assign_rule_lead_detail_hf",
+          "service_dw.dim_crm_assign_rule_plan_item_info_hf",
+          "service_dw.dm_crm_lead_stats_detail_hf",
+          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
+          "temp_table.dingxi01_jiagou_db",
+          "temp_table.dingxi01_qing_daoke",
+          "temp_table.dingxi01_qing_qi_moth",
+          "temp_table.dingxi01_qing_team_g_qi",
+          "temp_table.dingxi01_qing_team_goal",
+          "temp_table.dingxi01_qing_team_jg",
+          "temp_table.dingxi01_qing_zz",
+          "temp_table.shenbaoxin_channel_group"
+        ],
+        "raw_sql_refs": [
+          "data_center_qingcheng_2064_20260625.sql",
+          "data_center_qingcheng_2460_20260626.sql",
+          "data_center_qingcheng_2460_20260709.sql",
+          "qingcheng_channel_order_detail_raw_20260627.sql",
+          "qingcheng_personal_conversion_raw_20260522.sql",
+          "qingcheng_team_completion_month_raw_20260522.sql",
+          "qingcheng_team_completion_period_raw_20260522.sql"
+        ],
+        "status": "pending_confirmation",
+        "aliases": [
+          "changelog",
+          "更新日志"
+        ]
+      }
+    ]
+  },
+  "reverse_lookup": {
+    "table_to_sources": {
+      "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf": [
+        "knowledge/01_table_index.md",
+        "knowledge/joins/common_join_keys.md",
+        "knowledge/joins/table_relationships.md",
+        "knowledge/reverse_index/join_risk_index.md",
+        "knowledge/tables/bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf.md",
+        "knowledge/tables/data_lake_fuwu.dwd_crm_leads_rt.md",
+        "knowledge/update_log/changelog.md"
+      ],
+      "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df": [
+        "knowledge/01_table_index.md",
+        "knowledge/04_qingcheng_project_profile.md",
+        "knowledge/dashboards/qingcheng_channel_order_detail_raw_20260627.md",
+        "knowledge/dashboards/qingcheng_conversion_raw_20260626.md",
+        "knowledge/dashboards/qingcheng_conversion_wide_table_market_channel_20260611.md",
+        "knowledge/dashboards/qingcheng_daoke_raw_20260522.md",
+        "knowledge/dashboards/qingcheng_process_data_raw_20260522.md",
+        "knowledge/decision_tree.md",
+        "knowledge/joins/common_join_keys.md",
+        "knowledge/metrics/qingcheng_channel_order_detail_metrics.md",
+        "knowledge/quick_reference.md",
+        "knowledge/reverse_index/join_risk_index.md",
+        "knowledge/reverse_index/metric_to_raw_sql.md",
+        "knowledge/reverse_index/table_to_dashboards.md",
+        "knowledge/sql_patterns/qingcheng_channel_grade_mapping.md",
+        "knowledge/sql_patterns/qingcheng_lead_origin_trace.md",
+        "knowledge/tables/bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf.md",
+        "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
+        "knowledge/tables/data_lake_fuwu.dwd_crm_leads_rt.md",
+        "knowledge/tables/service_dw.dm_crm_lead_stats_detail_hf.md",
+        "knowledge/temp_tables/_no_temp_table_usage_cases.md",
+        "knowledge/update_log/changelog.md",
+        "resources/raw_sql/data_center_qingcheng_2064_20260624.sql",
+        "resources/raw_sql/data_center_qingcheng_2064_20260625.sql",
+        "resources/raw_sql/data_center_qingcheng_2460_20260626.sql",
+        "resources/raw_sql/data_center_qingcheng_2460_20260709.sql",
+        "resources/raw_sql/qingcheng_channel_order_detail_raw_20260627.sql",
+        "resources/raw_sql/qingcheng_conversion_wide_table_market_channel_20260611.sql",
+        "resources/raw_sql/qingcheng_daoke_raw_20260522.sql",
+        "resources/raw_sql/qingcheng_process_data_raw_20260522.sql"
+      ],
+      "data_lake_fuwu.dwd_crm_leads_rt": [
+        "knowledge/01_table_index.md",
+        "knowledge/joins/common_join_keys.md",
+        "knowledge/joins/table_relationships.md",
+        "knowledge/reverse_index/join_risk_index.md",
+        "knowledge/tables/bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf.md",
+        "knowledge/tables/data_lake_fuwu.dwd_crm_leads_rt.md",
+        "knowledge/update_log/changelog.md"
+      ],
+      "dw.dim_cstm_active_user_c_appliction_mb_df": [
+        "knowledge/01_table_index.md",
+        "knowledge/dashboards/qingcheng_process_data_raw_20260522.md",
+        "knowledge/reverse_index/table_to_dashboards.md",
+        "knowledge/tables/dw.dim_cstm_active_user_c_appliction_mb_df.md",
+        "resources/raw_sql/data_center_qingcheng_2064_20260624.sql",
+        "resources/raw_sql/data_center_qingcheng_2064_20260625.sql",
+        "resources/raw_sql/qingcheng_process_data_raw_20260522.sql"
+      ],
+      "dw.dim_employee_chain": [
+        "knowledge/01_table_index.md",
+        "knowledge/03_range_limit_rules.md",
+        "knowledge/04_qingcheng_project_profile.md",
+        "knowledge/dashboards/qingcheng_personal_conversion_raw_20260522.md",
+        "knowledge/dashboards/qingcheng_revenue_year_quarter_month_raw_20260522.md",
+        "knowledge/dashboards/qingcheng_team_completion_month_raw_20260522.md",
+        "knowledge/dashboards/qingcheng_team_completion_period_raw_20260522.md",
+        "knowledge/joins/common_join_keys.md",
+        "knowledge/reverse_index/join_risk_index.md",
+        "knowledge/reverse_index/table_to_dashboards.md",
+        "knowledge/sql_patterns/qingcheng_completion_sql_repair_checklist.md",
+        "knowledge/tables/dw.dim_employee_chain.md",
+        "knowledge/update_log/changelog.md",
+        "resources/raw_sql/data_center_qingcheng_2740_20260624.sql",
+        "resources/raw_sql/qingcheng_personal_conversion_raw_20260522.sql",
+        "resources/raw_sql/qingcheng_revenue_year_quarter_month_raw_20260522.sql",
+        "resources/raw_sql/qingcheng_team_completion_month_raw_20260522.sql",
+        "resources/raw_sql/qingcheng_team_completion_period_raw_20260522.sql"
+      ],
+      "dw.dws_user_active_user_c_appliction_hf": [
+        "knowledge/01_table_index.md",
+        "knowledge/dashboards/qingcheng_process_data_raw_20260522.md",
+        "knowledge/reverse_index/table_to_dashboards.md",
+        "knowledge/tables/dw.dws_user_active_user_c_appliction_hf.md",
+        "resources/raw_sql/data_center_qingcheng_2064_20260624.sql",
+        "resources/raw_sql/data_center_qingcheng_2064_20260625.sql",
+        "resources/raw_sql/qingcheng_process_data_raw_20260522.sql"
+      ],
+      "finance_dw.app_finance_performance_extend_details_hf": [
+        "knowledge/01_table_index.md",
+        "knowledge/04_qingcheng_project_profile.md",
+        "knowledge/dashboards/qingcheng_personal_conversion_raw_20260522.md",
+        "knowledge/dashboards/qingcheng_revenue_year_quarter_month_raw_20260522.md",
+        "knowledge/dashboards/qingcheng_team_completion_month_raw_20260522.md",
+        "knowledge/dashboards/qingcheng_team_completion_period_raw_20260522.md",
+        "knowledge/decision_tree.md",
+        "knowledge/joins/common_join_keys.md",
+        "knowledge/quick_reference.md",
+        "knowledge/reverse_index/join_risk_index.md",
+        "knowledge/reverse_index/table_to_dashboards.md",
+        "knowledge/sql_patterns/qingcheng_completion_sql_repair_checklist.md",
+        "knowledge/sql_patterns/qingcheng_personal_completion_discounted_output_risks.md",
+        "knowledge/tables/dw.dim_employee_chain.md",
+        "knowledge/tables/finance_dw.app_finance_performance_extend_details_hf.md",
+        "knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md",
+        "knowledge/update_log/changelog.md",
+        "resources/raw_sql/data_center_qingcheng_2740_20260624.sql",
+        "resources/raw_sql/qingcheng_personal_conversion_raw_20260522.sql",
+        "resources/raw_sql/qingcheng_revenue_year_quarter_month_raw_20260522.sql",
+        "resources/raw_sql/qingcheng_team_completion_month_raw_20260522.sql",
+        "resources/raw_sql/qingcheng_team_completion_period_raw_20260522.sql"
+      ],
+      "finance_dw.dim_finance_employee_df": [
+        "knowledge/01_table_index.md",
+        "knowledge/tables/finance_dw.dim_finance_employee_df.md",
+        "knowledge/tables/gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf.md",
+        "knowledge/tables/service_dw.dim_crm_assign_rule_plan_item_info_hf.md",
+        "knowledge/update_log/changelog.md"
+      ],
+      "finance_dw.dim_finance_order_change_df": [
+        "knowledge/01_table_index.md",
+        "knowledge/04_qingcheng_project_profile.md",
+        "knowledge/dashboards/qingcheng_conversion_raw_20260626.md",
+        "knowledge/dashboards/qingcheng_personal_conversion_raw_20260522.md",
+        "knowledge/dashboards/qingcheng_team_completion_month_raw_20260522.md",
+        "knowledge/dashboards/qingcheng_team_completion_period_raw_20260522.md",
+        "knowledge/joins/common_join_keys.md",
+        "knowledge/reverse_index/join_risk_index.md",
+        "knowledge/reverse_index/table_to_dashboards.md",
+        "knowledge/sql_patterns/qingcheng_personal_completion_discounted_output_risks.md",
+        "knowledge/tables/finance_dw.dim_finance_order_change_df.md",
+        "knowledge/tables/finance_dw.dm_finance_order_refund_detail_df.md",
+        "knowledge/update_log/changelog.md",
+        "resources/raw_sql/data_center_qingcheng_2460_20260626.sql",
+        "resources/raw_sql/data_center_qingcheng_2460_20260709.sql",
+        "resources/raw_sql/qingcheng_personal_conversion_raw_20260522.sql",
+        "resources/raw_sql/qingcheng_team_completion_month_raw_20260522.sql",
+        "resources/raw_sql/qingcheng_team_completion_period_raw_20260522.sql"
+      ],
+      "finance_dw.dm_finance_order_refund_detail_df": [
+        "knowledge/01_table_index.md",
+        "knowledge/04_qingcheng_project_profile.md",
+        "knowledge/dashboards/qingcheng_conversion_raw_20260626.md",
+        "knowledge/dashboards/qingcheng_personal_conversion_raw_20260522.md",
+        "knowledge/dashboards/qingcheng_team_completion_month_raw_20260522.md",
+        "knowledge/dashboards/qingcheng_team_completion_period_raw_20260522.md",
+        "knowledge/joins/common_join_keys.md",
+        "knowledge/metrics/qingcheng_personal_conversion_metrics.md",
+        "knowledge/metrics/qingcheng_team_completion_month_metrics.md",
+        "knowledge/reverse_index/table_to_dashboards.md",
+        "knowledge/tables/finance_dw.dm_finance_order_refund_detail_df.md",
+        "knowledge/update_log/changelog.md",
+        "resources/raw_sql/data_center_qingcheng_2460_20260626.sql",
+        "resources/raw_sql/data_center_qingcheng_2460_20260709.sql",
+        "resources/raw_sql/qingcheng_personal_conversion_raw_20260522.sql",
+        "resources/raw_sql/qingcheng_team_completion_month_raw_20260522.sql",
+        "resources/raw_sql/qingcheng_team_completion_period_raw_20260522.sql"
+      ],
+      "gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf": [
+        "knowledge/01_table_index.md",
+        "knowledge/tables/finance_dw.dim_finance_employee_df.md",
+        "knowledge/tables/gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf.md",
+        "knowledge/update_log/changelog.md"
+      ],
+      "service_dw.app_h_crm_lead_employee_workload_detail_hf": [
+        "knowledge/01_table_index.md",
+        "knowledge/dashboards/qingcheng_process_data_raw_20260522.md",
+        "knowledge/reverse_index/table_to_dashboards.md",
+        "knowledge/tables/service_dw.app_h_crm_lead_employee_workload_detail_hf.md",
+        "resources/raw_sql/data_center_qingcheng_2064_20260624.sql",
+        "resources/raw_sql/data_center_qingcheng_2064_20260625.sql",
+        "resources/raw_sql/qingcheng_process_data_raw_20260522.sql"
+      ],
+      "service_dw.app_h_crm_lead_task_process_info_detail_hf": [
+        "knowledge/01_table_index.md",
+        "knowledge/dashboards/qingcheng_conversion_wide_table_market_channel_20260611.md",
+        "knowledge/joins/common_join_keys.md",
+        "knowledge/joins/table_relationships.md",
+        "knowledge/reverse_index/join_risk_index.md",
+        "knowledge/reverse_index/table_to_dashboards.md",
+        "knowledge/tables/gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf.md",
+        "knowledge/tables/service_dw.app_h_crm_lead_task_process_info_detail_hf.md",
+        "knowledge/update_log/changelog.md",
+        "resources/raw_sql/qingcheng_conversion_wide_table_market_channel_20260611.sql"
+      ],
+      "service_dw.app_user_attribute_label_gaia_wide_df": [
+        "knowledge/01_table_index.md",
+        "knowledge/tables/service_dw.app_user_attribute_label_gaia_wide_df.md",
+        "knowledge/update_log/changelog.md"
+      ],
+      "service_dw.dim_crm_assign_rule_lead_detail_hf": [
+        "knowledge/01_table_index.md",
+        "knowledge/tables/service_dw.dim_crm_assign_rule_lead_detail_hf.md",
+        "knowledge/tables/service_dw.dim_crm_assign_rule_plan_item_info_hf.md",
+        "knowledge/update_log/changelog.md",
+        "resources/raw_sql/data_center_qingcheng_2740_20260624.sql"
+      ],
+      "service_dw.dim_crm_assign_rule_plan_item_info_hf": [
+        "knowledge/01_table_index.md",
+        "knowledge/tables/service_dw.dim_crm_assign_rule_lead_detail_hf.md",
+        "knowledge/tables/service_dw.dim_crm_assign_rule_plan_item_info_hf.md",
+        "knowledge/update_log/changelog.md"
+      ],
+      "service_dw.dm_crm_lead_stats_detail_hf": [
+        "knowledge/01_table_index.md",
+        "knowledge/dashboards/qingcheng_process_data_raw_20260522.md",
+        "knowledge/decision_tree.md",
+        "knowledge/joins/common_join_keys.md",
+        "knowledge/joins/table_relationships.md",
+        "knowledge/metrics/qingcheng_process_data_metrics.md",
+        "knowledge/quick_reference.md",
+        "knowledge/reverse_index/join_risk_index.md",
+        "knowledge/reverse_index/metric_to_raw_sql.md",
+        "knowledge/reverse_index/table_to_dashboards.md",
+        "knowledge/tables/service_dw.dm_crm_lead_stats_detail_hf.md",
+        "knowledge/update_log/changelog.md",
+        "resources/raw_sql/data_center_qingcheng_2064_20260624.sql",
+        "resources/raw_sql/data_center_qingcheng_2064_20260625.sql",
+        "resources/raw_sql/qingcheng_process_data_raw_20260522.sql"
+      ],
+      "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf": [
+        "knowledge/01_table_index.md",
+        "knowledge/04_qingcheng_project_profile.md",
+        "knowledge/dashboards/qingcheng_channel_order_detail_raw_20260627.md",
+        "knowledge/dashboards/qingcheng_conversion_raw_20260626.md",
+        "knowledge/dashboards/qingcheng_personal_conversion_raw_20260522.md",
+        "knowledge/dashboards/qingcheng_team_completion_month_raw_20260522.md",
+        "knowledge/dashboards/qingcheng_team_completion_period_raw_20260522.md",
+        "knowledge/joins/common_join_keys.md",
+        "knowledge/joins/table_relationships.md",
+        "knowledge/metrics/qingcheng_channel_order_detail_metrics.md",
+        "knowledge/metrics/qingcheng_conversion_metrics.md",
+        "knowledge/quick_reference.md",
+        "knowledge/reverse_index/join_risk_index.md",
+        "knowledge/reverse_index/metric_to_raw_sql.md",
+        "knowledge/reverse_index/table_to_dashboards.md",
+        "knowledge/sql_patterns/qingcheng_completion_sql_repair_checklist.md",
+        "knowledge/sql_patterns/qingcheng_personal_completion_discounted_output_risks.md",
+        "knowledge/tables/bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf.md",
+        "knowledge/tables/data_lake_fuwu.dwd_crm_leads_rt.md",
+        "knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md",
+        "knowledge/temp_tables/_no_temp_table_usage_cases.md",
+        "knowledge/update_log/changelog.md",
+        "resources/raw_sql/data_center_qingcheng_2460_20260626.sql",
+        "resources/raw_sql/data_center_qingcheng_2460_20260709.sql",
+        "resources/raw_sql/data_center_qingcheng_2740_20260624.sql",
+        "resources/raw_sql/qingcheng_channel_order_detail_raw_20260627.sql",
+        "resources/raw_sql/qingcheng_personal_conversion_raw_20260522.sql",
+        "resources/raw_sql/qingcheng_team_completion_month_raw_20260522.sql",
+        "resources/raw_sql/qingcheng_team_completion_period_raw_20260522.sql"
+      ],
+      "service_dw.dws_service_user_learn_detail_hf": [
+        "knowledge/01_table_index.md",
+        "knowledge/dashboards/qingcheng_daoke_raw_20260522.md",
+        "knowledge/dashboards/qingcheng_process_data_raw_20260522.md",
+        "knowledge/joins/common_join_keys.md",
+        "knowledge/reverse_index/table_to_dashboards.md",
+        "knowledge/tables/service_dw.dws_service_user_learn_detail_hf.md",
+        "resources/raw_sql/data_center_qingcheng_2064_20260624.sql",
+        "resources/raw_sql/data_center_qingcheng_2064_20260625.sql",
+        "resources/raw_sql/qingcheng_daoke_raw_20260522.sql",
+        "resources/raw_sql/qingcheng_process_data_raw_20260522.sql"
+      ],
+      "temp_table.dingxi01_jiagou_db": [
+        "knowledge/01_table_index.md",
+        "knowledge/04_qingcheng_project_profile.md",
+        "knowledge/dashboards/qingcheng_daoke_raw_20260522.md",
+        "knowledge/dashboards/qingcheng_process_data_raw_20260522.md",
+        "knowledge/joins/common_join_keys.md",
+        "knowledge/joins/table_relationships.md",
+        "knowledge/quick_reference.md",
+        "knowledge/reverse_index/join_risk_index.md",
+        "knowledge/reverse_index/table_to_dashboards.md",
+        "knowledge/temp_tables/temp_table.dingxi01_jiagou_db.md",
+        "knowledge/temp_tables/temp_table.dingxi01_qing_team_jg.md",
+        "knowledge/temp_tables/temp_table.dingxi01_qing_zz.md",
+        "knowledge/update_log/changelog.md",
+        "resources/raw_sql/data_center_qingcheng_2064_20260624.sql",
+        "resources/raw_sql/data_center_qingcheng_2064_20260625.sql",
+        "resources/raw_sql/qingcheng_daoke_raw_20260522.sql",
+        "resources/raw_sql/qingcheng_process_data_raw_20260522.sql"
+      ],
+      "temp_table.dingxi01_qing_daoke": [
+        "knowledge/01_table_index.md",
+        "knowledge/04_qingcheng_project_profile.md",
+        "knowledge/dashboards/qingcheng_daoke_raw_20260522.md",
+        "knowledge/dashboards/qingcheng_process_data_raw_20260522.md",
+        "knowledge/decision_tree.md",
+        "knowledge/joins/common_join_keys.md",
+        "knowledge/joins/table_relationships.md",
+        "knowledge/metrics/qingcheng_daoke_metrics.md",
+        "knowledge/metrics/qingcheng_process_data_metrics.md",
+        "knowledge/quick_reference.md",
+        "knowledge/reverse_index/join_risk_index.md",
+        "knowledge/reverse_index/metric_to_raw_sql.md",
+        "knowledge/reverse_index/table_to_dashboards.md",
+        "knowledge/sql_patterns/qingcheng_channel_grade_mapping.md",
+        "knowledge/tables/service_dw.dws_service_user_learn_detail_hf.md",
+        "knowledge/temp_tables/temp_table.dingxi01_qing_daoke.md",
+        "knowledge/update_log/changelog.md",
+        "resources/raw_sql/data_center_qingcheng_2064_20260624.sql",
+        "resources/raw_sql/data_center_qingcheng_2064_20260625.sql",
+        "resources/raw_sql/qingcheng_daoke_raw_20260522.sql",
+        "resources/raw_sql/qingcheng_process_data_raw_20260522.sql"
+      ],
+      "temp_table.dingxi01_qing_goal": [
+        "knowledge/01_table_index.md",
+        "knowledge/dashboards/qingcheng_personal_conversion_raw_20260522.md",
+        "knowledge/reverse_index/table_to_dashboards.md",
+        "knowledge/temp_tables/temp_table.dingxi01_qing_goal.md",
+        "resources/raw_sql/qingcheng_personal_conversion_raw_20260522.sql"
+      ],
+      "temp_table.dingxi01_qing_qi_moth": [
+        "knowledge/01_table_index.md",
+        "knowledge/03_range_limit_rules.md",
+        "knowledge/04_qingcheng_project_profile.md",
+        "knowledge/dashboards/qingcheng_personal_conversion_raw_20260522.md",
+        "knowledge/dashboards/qingcheng_team_completion_month_raw_20260522.md",
+        "knowledge/dashboards/qingcheng_team_completion_period_raw_20260522.md",
+        "knowledge/joins/common_join_keys.md",
+        "knowledge/joins/table_relationships.md",
+        "knowledge/metrics/qingcheng_personal_conversion_metrics.md",
+        "knowledge/metrics/qingcheng_team_completion_period_metrics.md",
+        "knowledge/reverse_index/join_risk_index.md",
+        "knowledge/reverse_index/metric_to_raw_sql.md",
+        "knowledge/reverse_index/table_to_dashboards.md",
+        "knowledge/temp_tables/temp_table.dingxi01_qing_qi_moth.md",
+        "knowledge/update_log/changelog.md",
+        "resources/raw_sql/qingcheng_personal_conversion_raw_20260522.sql",
+        "resources/raw_sql/qingcheng_team_completion_month_raw_20260522.sql",
+        "resources/raw_sql/qingcheng_team_completion_period_raw_20260522.sql"
+      ],
+      "temp_table.dingxi01_qing_team_g_qi": [
+        "knowledge/01_table_index.md",
+        "knowledge/03_range_limit_rules.md",
+        "knowledge/04_qingcheng_project_profile.md",
+        "knowledge/dashboards/qingcheng_team_completion_period_raw_20260522.md",
+        "knowledge/joins/common_join_keys.md",
+        "knowledge/joins/table_relationships.md",
+        "knowledge/metrics/qingcheng_team_completion_period_metrics.md",
+        "knowledge/quick_reference.md",
+        "knowledge/reverse_index/metric_to_raw_sql.md",
+        "knowledge/reverse_index/table_to_dashboards.md",
+        "knowledge/temp_tables/temp_table.dingxi01_qing_goal.md",
+        "knowledge/temp_tables/temp_table.dingxi01_qing_team_g_qi.md",
+        "knowledge/temp_tables/temp_table.dingxi01_qing_team_goal.md",
+        "knowledge/update_log/changelog.md",
+        "resources/raw_sql/qingcheng_team_completion_period_raw_20260522.sql"
+      ],
+      "temp_table.dingxi01_qing_team_goal": [
+        "knowledge/01_table_index.md",
+        "knowledge/03_range_limit_rules.md",
+        "knowledge/04_qingcheng_project_profile.md",
+        "knowledge/dashboards/qingcheng_team_completion_month_raw_20260522.md",
+        "knowledge/dashboards/qingcheng_team_completion_period_raw_20260522.md",
+        "knowledge/joins/common_join_keys.md",
+        "knowledge/joins/table_relationships.md",
+        "knowledge/metrics/qingcheng_team_completion_month_metrics.md",
+        "knowledge/metrics/qingcheng_team_completion_period_metrics.md",
+        "knowledge/quick_reference.md",
+        "knowledge/reverse_index/metric_to_raw_sql.md",
+        "knowledge/reverse_index/table_to_dashboards.md",
+        "knowledge/temp_tables/temp_table.dingxi01_qing_goal.md",
+        "knowledge/temp_tables/temp_table.dingxi01_qing_team_g_qi.md",
+        "knowledge/temp_tables/temp_table.dingxi01_qing_team_goal.md",
+        "knowledge/update_log/changelog.md",
+        "resources/raw_sql/qingcheng_team_completion_month_raw_20260522.sql"
+      ],
+      "temp_table.dingxi01_qing_team_jg": [
+        "knowledge/01_table_index.md",
+        "knowledge/03_range_limit_rules.md",
+        "knowledge/04_qingcheng_project_profile.md",
+        "knowledge/dashboards/qingcheng_conversion_raw_20260626.md",
+        "knowledge/dashboards/qingcheng_personal_conversion_raw_20260522.md",
+        "knowledge/dashboards/qingcheng_team_completion_month_raw_20260522.md",
+        "knowledge/dashboards/qingcheng_team_completion_period_raw_20260522.md",
+        "knowledge/joins/common_join_keys.md",
+        "knowledge/joins/table_relationships.md",
+        "knowledge/metrics/qingcheng_personal_conversion_metrics.md",
+        "knowledge/quick_reference.md",
+        "knowledge/reverse_index/join_risk_index.md",
+        "knowledge/reverse_index/metric_to_raw_sql.md",
+        "knowledge/reverse_index/table_to_dashboards.md",
+        "knowledge/sql_patterns/qingcheng_completion_sql_repair_checklist.md",
+        "knowledge/sql_patterns/qingcheng_personal_completion_discounted_output_risks.md",
+        "knowledge/sql_patterns/qingcheng_summer_qici_corrections.md",
+        "knowledge/tables/finance_dw.app_finance_performance_extend_details_hf.md",
+        "knowledge/temp_tables/temp_table.dingxi01_qing_team_jg.md",
+        "knowledge/temp_tables/temp_table.dingxi01_qing_zz.md",
+        "knowledge/update_log/changelog.md",
+        "resources/raw_sql/data_center_qingcheng_2460_20260626.sql",
+        "resources/raw_sql/data_center_qingcheng_2460_20260709.sql",
+        "resources/raw_sql/data_center_qingcheng_2740_20260624.sql",
+        "resources/raw_sql/qingcheng_personal_conversion_raw_20260522.sql",
+        "resources/raw_sql/qingcheng_team_completion_month_raw_20260522.sql",
+        "resources/raw_sql/qingcheng_team_completion_period_raw_20260522.sql"
+      ],
+      "temp_table.dingxi01_qing_zz": [
+        "knowledge/01_table_index.md",
+        "knowledge/04_qingcheng_project_profile.md",
+        "knowledge/dashboards/qingcheng_revenue_year_quarter_month_raw_20260522.md",
+        "knowledge/joins/common_join_keys.md",
+        "knowledge/joins/table_relationships.md",
+        "knowledge/reverse_index/join_risk_index.md",
+        "knowledge/reverse_index/table_to_dashboards.md",
+        "knowledge/tables/finance_dw.app_finance_performance_extend_details_hf.md",
+        "knowledge/temp_tables/temp_table.dingxi01_qing_zz.md",
+        "knowledge/update_log/changelog.md",
+        "resources/raw_sql/qingcheng_revenue_year_quarter_month_raw_20260522.sql"
+      ],
+      "temp_table.shenbaoxin_channel_group": [
+        "knowledge/01_table_index.md",
+        "knowledge/dashboards/qingcheng_conversion_wide_table_market_channel_20260611.md",
+        "knowledge/joins/common_join_keys.md",
+        "knowledge/joins/table_relationships.md",
+        "knowledge/quick_reference.md",
+        "knowledge/reverse_index/join_risk_index.md",
+        "knowledge/reverse_index/table_to_dashboards.md",
+        "knowledge/sql_patterns/qingcheng_channel_grade_mapping.md",
+        "knowledge/temp_tables/temp_table.shenbaoxin_channel_group.md",
+        "knowledge/update_log/changelog.md",
+        "resources/raw_sql/qingcheng_conversion_wide_table_market_channel_20260611.sql"
+      ]
+    },
+    "raw_sql_to_sources": {
+      "data_center_qingcheng_2064_20260625.sql": [
+        "knowledge/dashboard_web_profiles/edit_metrics/dashboard_3733927793301065728_edit_metrics.md",
+        "knowledge/dashboard_web_profiles/edit_metrics/dashboard_3910621974690701312_edit_metrics.md",
+        "knowledge/dashboards/data_center_qingcheng_datasets.md",
+        "knowledge/decision_tree.md",
+        "knowledge/metrics/qingcheng_dashboard_metric_formula_linkage.md",
+        "knowledge/quick_reference.md",
+        "knowledge/reverse_index/field_to_metrics.md",
+        "knowledge/reverse_index/metric_to_raw_sql.md",
+        "knowledge/sql_patterns/qingcheng_channel_grade_mapping.md",
+        "knowledge/update_log/changelog.md"
+      ],
+      "data_center_qingcheng_2460_20260626.sql": [
+        "knowledge/update_log/changelog.md"
+      ],
+      "data_center_qingcheng_2460_20260709.sql": [
+        "knowledge/01_table_index.md",
+        "knowledge/03_range_limit_rules.md",
+        "knowledge/04_qingcheng_project_profile.md",
+        "knowledge/dashboard_web_profiles/edit_metrics/dashboard_3885764906392891392_edit_metrics.md",
+        "knowledge/dashboards/data_center_qingcheng_datasets.md",
+        "knowledge/dashboards/qingcheng_conversion_raw_20260626.md",
+        "knowledge/metrics/qingcheng_conversion_metrics.md",
+        "knowledge/metrics/qingcheng_dashboard_metric_formula_linkage.md",
+        "knowledge/reverse_index/field_to_metrics.md",
+        "knowledge/reverse_index/metric_to_raw_sql.md",
+        "knowledge/reverse_index/table_to_dashboards.md",
+        "knowledge/sql_patterns/qingcheng_channel_grade_mapping.md",
+        "knowledge/sql_patterns/qingcheng_summer_qici_corrections.md",
+        "knowledge/update_log/changelog.md"
+      ],
+      "data_center_qingcheng_2740_20260624.sql": [
+        "knowledge/dashboard_web_profiles/edit_metrics/dashboard_3884629814875697153_edit_metrics.md",
+        "knowledge/metrics/qingcheng_dashboard_metric_formula_linkage.md",
+        "knowledge/reverse_index/field_to_metrics.md",
+        "knowledge/reverse_index/metric_to_raw_sql.md"
+      ],
+      "qingcheng_channel_order_detail_raw_20260627.sql": [
+        "knowledge/01_table_index.md",
+        "knowledge/dashboards/qingcheng_channel_order_detail_raw_20260627.md",
+        "knowledge/metrics/qingcheng_channel_order_detail_metrics.md",
+        "knowledge/reverse_index/field_to_metrics.md",
+        "knowledge/reverse_index/metric_to_raw_sql.md",
+        "knowledge/reverse_index/table_to_dashboards.md",
+        "knowledge/temp_tables/_no_temp_table_usage_cases.md",
+        "knowledge/update_log/changelog.md"
+      ],
+      "qingcheng_conversion_wide_table_market_channel_20260611.sql": [
+        "knowledge/01_table_index.md",
+        "knowledge/dashboards/qingcheng_conversion_wide_table_market_channel_20260611.md",
+        "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_metrics.md",
+        "knowledge/metrics/qingcheng_dashboard_metric_formula_linkage.md",
+        "knowledge/reverse_index/field_to_metrics.md",
+        "knowledge/reverse_index/metric_to_raw_sql.md",
+        "knowledge/reverse_index/table_to_dashboards.md",
+        "knowledge/sql_patterns/qingcheng_channel_grade_mapping.md"
+      ],
+      "qingcheng_daoke_raw_20260522.sql": [
+        "knowledge/01_table_index.md",
+        "knowledge/04_qingcheng_project_profile.md",
+        "knowledge/dashboard_web_profiles/edit_metrics/dashboard_3765824192103694336_edit_metrics.md",
+        "knowledge/dashboards/qingcheng_daoke_raw_20260522.md",
+        "knowledge/metrics/qingcheng_daoke_metrics.md",
+        "knowledge/metrics/qingcheng_dashboard_metric_formula_linkage.md",
+        "knowledge/reverse_index/field_to_metrics.md",
+        "knowledge/reverse_index/metric_to_raw_sql.md",
+        "knowledge/reverse_index/table_to_dashboards.md",
+        "knowledge/sql_patterns/qingcheng_channel_grade_mapping.md"
+      ],
+      "qingcheng_personal_conversion_raw_20260522.sql": [
+        "knowledge/01_table_index.md",
+        "knowledge/03_range_limit_rules.md",
+        "knowledge/04_qingcheng_project_profile.md",
+        "knowledge/dashboard_web_profiles/edit_metrics/dashboard_3873038327756636161_edit_metrics.md",
+        "knowledge/dashboards/qingcheng_personal_conversion_raw_20260522.md",
+        "knowledge/metrics/qingcheng_dashboard_metric_formula_linkage.md",
+        "knowledge/metrics/qingcheng_personal_conversion_metrics.md",
+        "knowledge/reverse_index/field_to_metrics.md",
+        "knowledge/reverse_index/metric_to_raw_sql.md",
+        "knowledge/reverse_index/table_to_dashboards.md",
+        "knowledge/sql_patterns/qingcheng_completion_sql_repair_checklist.md",
+        "knowledge/update_log/changelog.md"
+      ],
+      "qingcheng_process_data_raw_20260522.sql": [
+        "knowledge/01_table_index.md",
+        "knowledge/04_qingcheng_project_profile.md",
+        "knowledge/dashboards/qingcheng_process_data_raw_20260522.md",
+        "knowledge/metrics/qingcheng_process_data_metrics.md",
+        "knowledge/reverse_index/field_to_metrics.md",
+        "knowledge/reverse_index/metric_to_raw_sql.md",
+        "knowledge/reverse_index/table_to_dashboards.md",
+        "knowledge/sql_patterns/qingcheng_channel_grade_mapping.md"
+      ],
+      "qingcheng_revenue_year_quarter_month_raw_20260522.sql": [
+        "knowledge/01_table_index.md",
+        "knowledge/03_range_limit_rules.md",
+        "knowledge/04_qingcheng_project_profile.md",
+        "knowledge/dashboard_web_profiles/edit_metrics/dashboard_3852445620602875904_edit_metrics.md",
+        "knowledge/dashboard_web_profiles/edit_metrics/dashboard_3865509979877412864_edit_metrics.md",
+        "knowledge/dashboards/qingcheng_revenue_year_quarter_month_raw_20260522.md",
+        "knowledge/metrics/qingcheng_dashboard_metric_formula_linkage.md",
+        "knowledge/metrics/qingcheng_revenue_year_quarter_month_metrics.md",
+        "knowledge/reverse_index/field_to_metrics.md",
+        "knowledge/reverse_index/metric_to_raw_sql.md",
+        "knowledge/reverse_index/table_to_dashboards.md"
+      ],
+      "qingcheng_team_completion_month_raw_20260522.sql": [
+        "knowledge/01_table_index.md",
+        "knowledge/03_range_limit_rules.md",
+        "knowledge/04_qingcheng_project_profile.md",
+        "knowledge/dashboard_web_profiles/edit_metrics/dashboard_3872626876332130305_edit_metrics.md",
+        "knowledge/dashboards/qingcheng_team_completion_month_raw_20260522.md",
+        "knowledge/metrics/qingcheng_dashboard_metric_formula_linkage.md",
+        "knowledge/metrics/qingcheng_team_completion_month_metrics.md",
+        "knowledge/reverse_index/field_to_metrics.md",
+        "knowledge/reverse_index/metric_to_raw_sql.md",
+        "knowledge/reverse_index/table_to_dashboards.md",
+        "knowledge/sql_patterns/qingcheng_completion_sql_repair_checklist.md",
+        "knowledge/update_log/changelog.md"
+      ],
+      "qingcheng_team_completion_period_raw_20260522.sql": [
+        "knowledge/01_table_index.md",
+        "knowledge/03_range_limit_rules.md",
+        "knowledge/04_qingcheng_project_profile.md",
+        "knowledge/dashboard_web_profiles/edit_metrics/dashboard_3872626876332130305_edit_metrics.md",
+        "knowledge/dashboards/qingcheng_team_completion_period_raw_20260522.md",
+        "knowledge/metrics/qingcheng_dashboard_metric_formula_linkage.md",
+        "knowledge/metrics/qingcheng_team_completion_period_metrics.md",
+        "knowledge/reverse_index/field_to_metrics.md",
+        "knowledge/reverse_index/metric_to_raw_sql.md",
+        "knowledge/reverse_index/table_to_dashboards.md",
+        "knowledge/sql_patterns/qingcheng_completion_sql_repair_checklist.md",
+        "knowledge/update_log/changelog.md"
+      ]
+    }
+  },
+  "source_inventory": [
+    {
+      "source_path": "knowledge/00_global_rules.md",
+      "sha256": "81a73524d6587f5a85a17f73cd1ce51965c0adcbda2c376d933fec5722747986",
+      "bytes": 2476,
+      "category": "governance"
+    },
+    {
+      "source_path": "knowledge/01_table_index.md",
+      "sha256": "08f839fb73013554d2d18400c62a36bf4e8bc0262d3c8e38d674b2b7e4f7fbea",
+      "bytes": 10535,
+      "category": "governance"
+    },
+    {
+      "source_path": "knowledge/02_query_engine_presto.md",
+      "sha256": "5a232035e87a0c31b90c9b1f6742849cd14d43dc2275c0d093015b832e5f52f3",
+      "bytes": 776,
+      "category": "governance"
+    },
+    {
+      "source_path": "knowledge/03_range_limit_rules.md",
+      "sha256": "5c4de0f91f4e34a7c708106b5ebf9e763a5671ad3c1da5a8dea774a27bc0b9df",
+      "bytes": 7645,
+      "category": "governance"
+    },
+    {
+      "source_path": "knowledge/04_qingcheng_project_profile.md",
+      "sha256": "824103fcab6824fb6778b8f9fdeb0e0206cd37e2d9c99fbabf68e164fa039a41",
+      "bytes": 9729,
+      "category": "governance"
+    },
+    {
+      "source_path": "knowledge/dashboard_web_profiles/README.md",
+      "sha256": "220a614644cb2486346474476e5a1f14428463cd5984b1a3021ca1e63c6aa9c1",
+      "bytes": 2364,
+      "category": "dashboard_web_profiles"
+    },
+    {
+      "source_path": "knowledge/dashboard_web_profiles/dashboard_3916483456733192193_web_profile.md",
+      "sha256": "cecf96d2780f854680511d2af1989ded4828dd926f9f27fe66720222619124eb",
+      "bytes": 2057,
+      "category": "dashboard_web_profiles"
+    },
+    {
+      "source_path": "knowledge/dashboard_web_profiles/dashboard_3916517219847778305_web_profile.md",
+      "sha256": "cfa9d11334838ee3cba227f5f894123a6d935bb7e645e08ca5f8506b32895bf7",
+      "bytes": 2062,
+      "category": "dashboard_web_profiles"
+    },
+    {
+      "source_path": "knowledge/dashboard_web_profiles/dashboard_3916532003721617409_web_profile.md",
+      "sha256": "939aedcf97ba4f2ad16b150a6e92192a1caa771ff3605ef7711ebe4668fe2084",
+      "bytes": 2050,
+      "category": "dashboard_web_profiles"
+    },
+    {
+      "source_path": "knowledge/dashboard_web_profiles/dashboard_3916532959832903681_web_profile.md",
+      "sha256": "725ea2a42d92b5e218d156043d39f8a0ace1f1e80c4c845a1db862455da5341e",
+      "bytes": 2047,
+      "category": "dashboard_web_profiles"
+    },
+    {
+      "source_path": "knowledge/dashboard_web_profiles/dashboard_3916545163522686976_web_profile.md",
+      "sha256": "268db2bfd4d75799b90260d759380843353f1ab51f950ad0ee9add1f9a9fe071",
+      "bytes": 2050,
+      "category": "dashboard_web_profiles"
+    },
+    {
+      "source_path": "knowledge/dashboard_web_profiles/dashboard_3916546265268498433_web_profile.md",
+      "sha256": "df1ffb9a972b9a3cba2dc362d3e45c820521cc6ff0dc432c169f578c527d38ba",
+      "bytes": 2045,
+      "category": "dashboard_web_profiles"
+    },
+    {
+      "source_path": "knowledge/dashboard_web_profiles/edit_metrics/README.md",
+      "sha256": "a34c2292b64f3933644f92e5374a7ae73d8d4867232c1f9ff6172e7ae751fbc6",
+      "bytes": 2454,
+      "category": "dashboard_web_profiles"
+    },
+    {
+      "source_path": "knowledge/dashboard_web_profiles/edit_metrics/dashboard_3733927793301065728_edit_metrics.md",
+      "sha256": "a70057dc434ba1b451671958f701a224b2f38c4e729bd05c52334833b14bc875",
+      "bytes": 4568,
+      "category": "dashboard_web_profiles"
+    },
+    {
+      "source_path": "knowledge/dashboard_web_profiles/edit_metrics/dashboard_3765824192103694336_edit_metrics.md",
+      "sha256": "a424e1af2a9dc33ce319c58f7dea3d16fb55f216977a18897b4ebb6f84938fab",
+      "bytes": 3016,
+      "category": "dashboard_web_profiles"
+    },
+    {
+      "source_path": "knowledge/dashboard_web_profiles/edit_metrics/dashboard_3852445620602875904_edit_metrics.md",
+      "sha256": "41e1196a62df3179279fc00617f8c6799acf371a80e0d0871f482a50bb02e001",
+      "bytes": 3754,
+      "category": "dashboard_web_profiles"
+    },
+    {
+      "source_path": "knowledge/dashboard_web_profiles/edit_metrics/dashboard_3865509979877412864_edit_metrics.md",
+      "sha256": "2a94f6df37483cfda618e563c20838a6d2850d2237708e25ad815a2a93eaf229",
+      "bytes": 3295,
+      "category": "dashboard_web_profiles"
+    },
+    {
+      "source_path": "knowledge/dashboard_web_profiles/edit_metrics/dashboard_3872626876332130305_edit_metrics.md",
+      "sha256": "087059fda70f743feda592cc3d00c3a55556dfa13ccf72c96b9f1cdc74b46593",
+      "bytes": 5898,
+      "category": "dashboard_web_profiles"
+    },
+    {
+      "source_path": "knowledge/dashboard_web_profiles/edit_metrics/dashboard_3873038327756636161_edit_metrics.md",
+      "sha256": "da036c3731a26e47dc1b46f39f9740c09391523c1ded09cf048b7516d61902d1",
+      "bytes": 5653,
+      "category": "dashboard_web_profiles"
+    },
+    {
+      "source_path": "knowledge/dashboard_web_profiles/edit_metrics/dashboard_3884629814875697153_edit_metrics.md",
+      "sha256": "e4e17745752d8febe0d143631fd1b54cca27fdfedaa26fbb8c4e32e3cb765c08",
+      "bytes": 3779,
+      "category": "dashboard_web_profiles"
+    },
+    {
+      "source_path": "knowledge/dashboard_web_profiles/edit_metrics/dashboard_3885764906392891392_edit_metrics.md",
+      "sha256": "5e22bde4f9646ada2d7b498d76eb4c931e6a03dd1c5dbba0e4b2e8b74de5ed78",
+      "bytes": 4588,
+      "category": "dashboard_web_profiles"
+    },
+    {
+      "source_path": "knowledge/dashboard_web_profiles/edit_metrics/dashboard_3893277592797257728_edit_metrics.md",
+      "sha256": "133bc2f314a003f866f2443d4669d81a4ef5e27b85f7162a617ed71282572f0c",
+      "bytes": 2114,
+      "category": "dashboard_web_profiles"
+    },
+    {
+      "source_path": "knowledge/dashboard_web_profiles/edit_metrics/dashboard_3910621974690701312_edit_metrics.md",
+      "sha256": "229542148bba8e953c04ea59f7108e0e7df9c648ec93b32530febb4a5bcd6731",
+      "bytes": 4291,
+      "category": "dashboard_web_profiles"
+    },
+    {
+      "source_path": "knowledge/dashboard_web_profiles/qingcheng_all_product_dashboard_web_profile.md",
+      "sha256": "6967e6096077d35bfbaaf556b9a2c5d69e64ceea372c0f220b8e6172f7f15bfd",
+      "bytes": 5011,
+      "category": "dashboard_web_profiles"
+    },
+    {
+      "source_path": "knowledge/dashboard_web_profiles/qingcheng_attendance_report_web_profile.md",
+      "sha256": "86a08252a9378e222ab0999daf66d4b7c4776ba61becbd1f8335727ccc264f1b",
+      "bytes": 3406,
+      "category": "dashboard_web_profiles"
+    },
+    {
+      "source_path": "knowledge/dashboard_web_profiles/qingcheng_channel_process_daily_web_profile.md",
+      "sha256": "3480005832689b0f0ff9818979b8848e798439a6ee4e2e56c9e6f8311e2d3854",
+      "bytes": 3580,
+      "category": "dashboard_web_profiles"
+    },
+    {
+      "source_path": "knowledge/dashboard_web_profiles/qingcheng_completion_broadcast_text_web_profile.md",
+      "sha256": "86419b45d0b20772e07f622aa49c29dae617b4df69c4bd7858871ba069806609",
+      "bytes": 1615,
+      "category": "dashboard_web_profiles"
+    },
+    {
+      "source_path": "knowledge/dashboard_web_profiles/qingcheng_conversion_dashboard_web_profile.md",
+      "sha256": "de5b0adb7170a8a218c80d51b6032584aacb233d5eb2e4bb0313af9df28f52d8",
+      "bytes": 5808,
+      "category": "dashboard_web_profiles"
+    },
+    {
+      "source_path": "knowledge/dashboard_web_profiles/qingcheng_dousi_conversion_web_profile.md",
+      "sha256": "2bc2dadba824e79555a8922137f05bcd9cb605b306c3fcaccfd98d596effd429",
+      "bytes": 2622,
+      "category": "dashboard_web_profiles"
+    },
+    {
+      "source_path": "knowledge/dashboard_web_profiles/qingcheng_full_grade_revenue_dashboard_web_profile.md",
+      "sha256": "116f1f37a6a1b9e02fa18aa80c9f0e100f6255e0ce125b1b162c5c1e5b835625",
+      "bytes": 5015,
+      "category": "dashboard_web_profiles"
+    },
+    {
+      "source_path": "knowledge/dashboard_web_profiles/qingcheng_personal_conversion_web_profile.md",
+      "sha256": "0bfafe411e9151f32bf1b3e16d404181f1f763333eb81f78315ea669ffa21241",
+      "bytes": 2723,
+      "category": "dashboard_web_profiles"
+    },
+    {
+      "source_path": "knowledge/dashboard_web_profiles/qingcheng_process_data_report_web_profile.md",
+      "sha256": "dee44c7fe0388ee055a43fe750c4b52b7f3f272624d7938ca1a22867899dff8e",
+      "bytes": 4734,
+      "category": "dashboard_web_profiles"
+    },
+    {
+      "source_path": "knowledge/dashboard_web_profiles/qingcheng_team_conversion_completion_web_profile.md",
+      "sha256": "4354c2ae068b888063388f6c9c9d07328cb31d667322333e08942fd017e87ea5",
+      "bytes": 4378,
+      "category": "dashboard_web_profiles"
+    },
+    {
+      "source_path": "knowledge/dashboards/_dashboard_template.md",
+      "sha256": "41d9a793e96e9058fb07eb2c9d089532316ae337f81ea295d1595d9af50c6d5a",
+      "bytes": 940,
+      "category": "dashboards"
+    },
+    {
+      "source_path": "knowledge/dashboards/data_center_qingcheng_datasets.md",
+      "sha256": "11bdaf64b9b62b5da36378725fb1ab0132a1553215a4129bc32f27a888e4d1f9",
+      "bytes": 2330,
+      "category": "dashboards"
+    },
+    {
+      "source_path": "knowledge/dashboards/qingcheng_channel_order_detail_raw_20260627.md",
+      "sha256": "8fe7f644b1f434fcfa689620c2d5938936355867a01afd45c23ba25abf932554",
+      "bytes": 7289,
+      "category": "dashboards"
+    },
+    {
+      "source_path": "knowledge/dashboards/qingcheng_conversion_raw_20260626.md",
+      "sha256": "862db6f054ff2263d4e1d6c18bd3d80c6333fe35e52e1259bf8aff99b2815d1d",
+      "bytes": 12683,
+      "category": "dashboards"
+    },
+    {
+      "source_path": "knowledge/dashboards/qingcheng_conversion_wide_table_market_channel_20260611.md",
+      "sha256": "bffa913757acc95f8ee54ab4b73562ab19a69e4ec98ab90e3587313766b60973",
+      "bytes": 12670,
+      "category": "dashboards"
+    },
+    {
+      "source_path": "knowledge/dashboards/qingcheng_daoke_raw_20260522.md",
+      "sha256": "ff314e555fc2d05ac7298e9ffaf9afb6256845dd48d45323b69581fbe5849078",
+      "bytes": 5863,
+      "category": "dashboards"
+    },
+    {
+      "source_path": "knowledge/dashboards/qingcheng_personal_conversion_raw_20260522.md",
+      "sha256": "44ac41fbcfe44c34f3eaa5f30f3134783db1ab57f9956baced849eb2edb1b943",
+      "bytes": 15279,
+      "category": "dashboards"
+    },
+    {
+      "source_path": "knowledge/dashboards/qingcheng_process_data_raw_20260522.md",
+      "sha256": "c9f66e074bec059ef717f0222c8590705d9b11a9a7e123ef617c4977cf925cf0",
+      "bytes": 10045,
+      "category": "dashboards"
+    },
+    {
+      "source_path": "knowledge/dashboards/qingcheng_revenue_year_quarter_month_raw_20260522.md",
+      "sha256": "0b3765267141acf52bf995f22be192347a8d1c2b01368812fb4f97144533b15c",
+      "bytes": 6127,
+      "category": "dashboards"
+    },
+    {
+      "source_path": "knowledge/dashboards/qingcheng_team_completion_month_raw_20260522.md",
+      "sha256": "8887ecd59361dd66ae26d9e8ef60b435c3a6d75627224a80e26157323f00d262",
+      "bytes": 12599,
+      "category": "dashboards"
+    },
+    {
+      "source_path": "knowledge/dashboards/qingcheng_team_completion_period_raw_20260522.md",
+      "sha256": "824f813d1d26dd04db97ae043617b0e0dfe33f75fc7017d1a6a5a9eeca434f34",
+      "bytes": 10839,
+      "category": "dashboards"
+    },
+    {
+      "source_path": "knowledge/decision_tree.md",
+      "sha256": "47773a072af53ddb6dd1f9849fe006175611e669af1bb9106e4c1a0ec3cbea53",
+      "bytes": 8506,
+      "category": "governance"
+    },
+    {
+      "source_path": "knowledge/joins/common_join_keys.md",
+      "sha256": "400fc99bbedde07c9f28005b7c70eda7bcf4ce686acbe71989ba4c3ce0f5663d",
+      "bytes": 7329,
+      "category": "joins"
+    },
+    {
+      "source_path": "knowledge/joins/table_relationships.md",
+      "sha256": "dc20c55438710eb92c5ee15d64432342aec8061fdd0e0c2062d0569b21ad8f92",
+      "bytes": 13387,
+      "category": "joins"
+    },
+    {
+      "source_path": "knowledge/metrics/_metric_template.md",
+      "sha256": "50b438e73399d9ee0fcdbeafaa926588901ce19b6d27f393baef1188e6d1b831",
+      "bytes": 576,
+      "category": "metrics"
+    },
+    {
+      "source_path": "knowledge/metrics/qingcheng_channel_order_detail_metrics.md",
+      "sha256": "babfe61d442792b16889bc6da25187a2e63caedaa5a1430d3a62987ff525081e",
+      "bytes": 3863,
+      "category": "metrics"
+    },
+    {
+      "source_path": "knowledge/metrics/qingcheng_conversion_metrics.md",
+      "sha256": "41b7ccd47cd77897cb7acdeefe142fc683571ce1d05d3ce6b5bf4035938fb006",
+      "bytes": 5678,
+      "category": "metrics"
+    },
+    {
+      "source_path": "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_20260611_metric_1.md",
+      "sha256": "ed15ce35fd5a0288c2143539e74652ae68d4e8ac2a1950ffed4fac5d4247a7bd",
+      "bytes": 725,
+      "category": "metrics"
+    },
+    {
+      "source_path": "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_20260611_metric_10.md",
+      "sha256": "8d75cd312bd6236cc6cf909f4861449828ea0f5c7e1edb2a99cfdc8774d2e12c",
+      "bytes": 732,
+      "category": "metrics"
+    },
+    {
+      "source_path": "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_20260611_metric_11.md",
+      "sha256": "b27a53cf9c45f85fb4eb881f7ceb450d3a64a1aa40b429877def97bbc5172239",
+      "bytes": 759,
+      "category": "metrics"
+    },
+    {
+      "source_path": "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_20260611_metric_12.md",
+      "sha256": "1490d9e4acca0bc4d5ee22f6cda7731fc46a66d0cc3c81f30bfbbfa9096933ca",
+      "bytes": 779,
+      "category": "metrics"
+    },
+    {
+      "source_path": "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_20260611_metric_13.md",
+      "sha256": "9364c7557b74245f187bef0a901f3142bda15d07c098ec8a99b76a11f22a723b",
+      "bytes": 741,
+      "category": "metrics"
+    },
+    {
+      "source_path": "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_20260611_metric_14.md",
+      "sha256": "c563c2b79d56e25f5acd80d69d0492dd418165f3e6a4b7c2108ea98a1002b492",
+      "bytes": 762,
+      "category": "metrics"
+    },
+    {
+      "source_path": "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_20260611_metric_15.md",
+      "sha256": "af1adc0cdbbd3a4e5d1f497051b3ccc3ff403b3144600c8c5c1896769e68a557",
+      "bytes": 782,
+      "category": "metrics"
+    },
+    {
+      "source_path": "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_20260611_metric_16.md",
+      "sha256": "7685a43612b73b8ae644e6919e46376ddc76fa6959f95703fa5115e8590eebf8",
+      "bytes": 737,
+      "category": "metrics"
+    },
+    {
+      "source_path": "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_20260611_metric_17.md",
+      "sha256": "dd69f76d349775a113e0a321adb99e054e2f61079a420c8bd2bc805262c6a978",
+      "bytes": 788,
+      "category": "metrics"
+    },
+    {
+      "source_path": "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_20260611_metric_18.md",
+      "sha256": "e95f3fe2afc6928e571b03b937650549fccdbfde98dd6f3e1e41701f561b1464",
+      "bytes": 810,
+      "category": "metrics"
+    },
+    {
+      "source_path": "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_20260611_metric_19.md",
+      "sha256": "305ac3a508b0d83a74231514d2117de770ba3ed8b6b0fada9157cf80538a5f74",
+      "bytes": 757,
+      "category": "metrics"
+    },
+    {
+      "source_path": "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_20260611_metric_2.md",
+      "sha256": "567b991bafadc1c6cf7c4853b13cbba28eeed71ba95698b711178bcdcc560033",
+      "bytes": 741,
+      "category": "metrics"
+    },
+    {
+      "source_path": "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_20260611_metric_20.md",
+      "sha256": "9a2e5ee190fbf88f12967bbfbb913d9a3f671d815384b5a89fd48660ecc8aac9",
+      "bytes": 796,
+      "category": "metrics"
+    },
+    {
+      "source_path": "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_20260611_metric_21.md",
+      "sha256": "7a59ac48624f251f3e602b3360b0d5715ef57b034fb30ad245bf64308c373c4b",
+      "bytes": 779,
+      "category": "metrics"
+    },
+    {
+      "source_path": "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_20260611_metric_22.md",
+      "sha256": "01e3cfd065cfc849a4a493cef1413bd2b9c0f60cbc4dcf2da75d318bdc69ef4e",
+      "bytes": 750,
+      "category": "metrics"
+    },
+    {
+      "source_path": "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_20260611_metric_3.md",
+      "sha256": "e54d6882d3aa95a2ae8a51464d4b68a9d255b58f2153b1ee3f10497ccd8e77af",
+      "bytes": 739,
+      "category": "metrics"
+    },
+    {
+      "source_path": "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_20260611_metric_4.md",
+      "sha256": "df5b18a63af5bef45fa300ac6db3ecb093b3f785b7cdddef0eb6d84e48d1ec85",
+      "bytes": 737,
+      "category": "metrics"
+    },
+    {
+      "source_path": "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_20260611_metric_5.md",
+      "sha256": "75c0c9470b03694efc30a657f80dfa896427681c947e41d4fa510913a7386ae3",
+      "bytes": 723,
+      "category": "metrics"
+    },
+    {
+      "source_path": "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_20260611_metric_6.md",
+      "sha256": "6744f43e32aac0794c864549bc4ed5c68335144c97d1032cd0249fa3f76d6ddd",
+      "bytes": 733,
+      "category": "metrics"
+    },
+    {
+      "source_path": "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_20260611_metric_7.md",
+      "sha256": "9da651eb5c249eb9d9b7c9873dbb0fae73745ad12c8621372c37b604dd0594fe",
+      "bytes": 735,
+      "category": "metrics"
+    },
+    {
+      "source_path": "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_20260611_metric_8.md",
+      "sha256": "09a400d3cc1a2a9d3782b3bf5ea8cb97a7e2d9f1c8e8ba9a7136fcbe560ac4a4",
+      "bytes": 762,
+      "category": "metrics"
+    },
+    {
+      "source_path": "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_20260611_metric_9.md",
+      "sha256": "fcb5b91028d098576466fb8ea81bff8f0793e7dadf92e70bfd5486b751c14599",
+      "bytes": 790,
+      "category": "metrics"
+    },
+    {
+      "source_path": "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_metrics.md",
+      "sha256": "a5aa9cf58aa22ba5b1a7b160e0b1f5cb38efa3ceb4929a472f6146412a55480e",
+      "bytes": 7464,
+      "category": "metrics"
+    },
+    {
+      "source_path": "knowledge/metrics/qingcheng_daoke_metrics.md",
+      "sha256": "0dc8f7f243a09684f48a693aa1767fa13ab8070a6a4b9017e8ea8194bfa4c25e",
+      "bytes": 3216,
+      "category": "metrics"
+    },
+    {
+      "source_path": "knowledge/metrics/qingcheng_dashboard_metric_formula_linkage.md",
+      "sha256": "5d05fd1cb9c99f9fd3bd004e5c4c806f6662d00e8c03bf28e198e6b944c73622",
+      "bytes": 12871,
+      "category": "metrics"
+    },
+    {
+      "source_path": "knowledge/metrics/qingcheng_personal_conversion_metrics.md",
+      "sha256": "9c31b362ee98fd944d6cabfbc744e8882d1e844e5c4642f200d59ad0ac1571bb",
+      "bytes": 8886,
+      "category": "metrics"
+    },
+    {
+      "source_path": "knowledge/metrics/qingcheng_process_data_metrics.md",
+      "sha256": "5328597cae08b27b1fe37cd601bba018c36db18ccb9df74cce43cadcabb5748c",
+      "bytes": 4933,
+      "category": "metrics"
+    },
+    {
+      "source_path": "knowledge/metrics/qingcheng_revenue_year_quarter_month_metrics.md",
+      "sha256": "cb39370f9614110c859c8e734cf49e8123a9fe0ace1e51c014fff91aa590efcb",
+      "bytes": 3097,
+      "category": "metrics"
+    },
+    {
+      "source_path": "knowledge/metrics/qingcheng_team_completion_month_metrics.md",
+      "sha256": "d2136e2745d8807e9ce0a88c27e2f5d4dba7947ab6fe006212602676e328af2d",
+      "bytes": 5077,
+      "category": "metrics"
+    },
+    {
+      "source_path": "knowledge/metrics/qingcheng_team_completion_period_metrics.md",
+      "sha256": "d8b600bacd6b5576ba3d92ed03eb4acd96a5f71abb86d1b76d47fa9ecb410194",
+      "bytes": 4771,
+      "category": "metrics"
+    },
+    {
+      "source_path": "knowledge/quick_reference.md",
+      "sha256": "d2aa3b2f4c2731c1604dcacb93278a2a6e56be56f0ddeefc1fcba3d4e916785f",
+      "bytes": 10336,
+      "category": "governance"
+    },
+    {
+      "source_path": "knowledge/reverse_index/field_to_metrics.md",
+      "sha256": "bacbae5ddc4173dfc8511df97d915beb38325ec58a6afb3da9aff51655ace934",
+      "bytes": 87504,
+      "category": "reverse_index"
+    },
+    {
+      "source_path": "knowledge/reverse_index/join_risk_index.md",
+      "sha256": "e2cebb786913feba013e94ed7d28f12f75e7eb89eba60becf952d8a2c30d659b",
+      "bytes": 28659,
+      "category": "reverse_index"
+    },
+    {
+      "source_path": "knowledge/reverse_index/metric_to_raw_sql.md",
+      "sha256": "59e049dcedab4b31b9eea752182c145a89eeb4f7918e5ae45197b4f4d50ce1b9",
+      "bytes": 6798,
+      "category": "reverse_index"
+    },
+    {
+      "source_path": "knowledge/reverse_index/table_to_dashboards.md",
+      "sha256": "6205cd59ba47a9aebfda886a6765b2076d8f0fc654ac9f00f1e0a9bfd6ae900f",
+      "bytes": 13510,
+      "category": "reverse_index"
+    },
+    {
+      "source_path": "knowledge/sql_patterns/aggregation_patterns.md",
+      "sha256": "79b7f88b781c01ed8369d90d1ca13cd00b24f93b078122f046026d2e4d002dea",
+      "bytes": 837,
+      "category": "sql_patterns"
+    },
+    {
+      "source_path": "knowledge/sql_patterns/cte_patterns.md",
+      "sha256": "ede306406cad828dd24e70e72a0961ba13d73b4c4ddefabd1652305e143868ca",
+      "bytes": 767,
+      "category": "sql_patterns"
+    },
+    {
+      "source_path": "knowledge/sql_patterns/dashboard_query_patterns.md",
+      "sha256": "845ff5a334ec7582c9506b6be545f4fedef3fef3a6b9afc025df9daea5258911",
+      "bytes": 1900,
+      "category": "sql_patterns"
+    },
+    {
+      "source_path": "knowledge/sql_patterns/exploratory_query_patterns.md",
+      "sha256": "d7008769ff357e3286ee35ea6d8739b4ac89f3b81e79ffbeec7c1e0f48ca2454",
+      "bytes": 722,
+      "category": "sql_patterns"
+    },
+    {
+      "source_path": "knowledge/sql_patterns/latest_record_patterns.md",
+      "sha256": "53b82857e261e694dbbe580f16f77f36d29272769196144263197778dd14c457",
+      "bytes": 773,
+      "category": "sql_patterns"
+    },
+    {
+      "source_path": "knowledge/sql_patterns/presto_date_partition_patterns.md",
+      "sha256": "5a8980a2fe8e3c8bab61cb00120da0dd0e45610be83335dd7dc09f5e0784b3bd",
+      "bytes": 500,
+      "category": "sql_patterns"
+    },
+    {
+      "source_path": "knowledge/sql_patterns/qingcheng_channel_grade_mapping.md",
+      "sha256": "94ebfb5c62ee37f2481f19d463cd9b4f35389072e6faf6e3db7a59275fdb4e96",
+      "bytes": 25265,
+      "category": "sql_patterns"
+    },
+    {
+      "source_path": "knowledge/sql_patterns/qingcheng_completion_sql_repair_checklist.md",
+      "sha256": "54c33655124788ae660f311bb550ed3506e74ea44dd443a732eb4a59232b8d2a",
+      "bytes": 7649,
+      "category": "sql_patterns"
+    },
+    {
+      "source_path": "knowledge/sql_patterns/qingcheng_lead_origin_trace.md",
+      "sha256": "dd111e7d557fb7357db2b5f02812de97d8aaec1336dd74b7bbd559715357f73f",
+      "bytes": 9877,
+      "category": "sql_patterns"
+    },
+    {
+      "source_path": "knowledge/sql_patterns/qingcheng_personal_completion_discounted_output_risks.md",
+      "sha256": "44c7534e3ae00fe9f90c20e0c4bee27c8c4c39e71f57f9fa644a83ee886106a7",
+      "bytes": 13383,
+      "category": "sql_patterns"
+    },
+    {
+      "source_path": "knowledge/sql_patterns/qingcheng_scope_patterns.md",
+      "sha256": "9c422486b9df929174f5191267041ac76f127c0d0c418f83e51c2999bb4a49a3",
+      "bytes": 1063,
+      "category": "sql_patterns"
+    },
+    {
+      "source_path": "knowledge/sql_patterns/qingcheng_summer_qici_corrections.md",
+      "sha256": "c1e9aa00e2af2eb92acc3a6e0e65cf2dba6a9ff5d17ab398e3f1fe9e7ebef889",
+      "bytes": 2893,
+      "category": "sql_patterns"
+    },
+    {
+      "source_path": "knowledge/tables/_table_template.md",
+      "sha256": "d07ea8c19c645c4e996c7ff1454e95617575cde3f79bd706bbfffaec9b43b7bc",
+      "bytes": 757,
+      "category": "tables"
+    },
+    {
+      "source_path": "knowledge/tables/bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf.md",
+      "sha256": "a7ca97e8123954405e9b878bb4742ee193dfee7a2f79079503aff639e9e6e9bd",
+      "bytes": 7499,
+      "category": "tables"
+    },
+    {
+      "source_path": "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
+      "sha256": "ea297289bbf05ad5b909599e458e221c60a664b13321d407f2c6e9f42d3554b1",
+      "bytes": 47752,
+      "category": "tables"
+    },
+    {
+      "source_path": "knowledge/tables/data_lake_fuwu.dwd_crm_leads_rt.md",
+      "sha256": "4a891556af6a142b90217c3c2896083eb76e17f9606f2c15080808df6e0e36e3",
+      "bytes": 9727,
+      "category": "tables"
+    },
+    {
+      "source_path": "knowledge/tables/dw.dim_cstm_active_user_c_appliction_mb_df.md",
+      "sha256": "735e849e676ffb4a722c7588e11d257f554d31550c229566cf841c983fcc9f99",
+      "bytes": 3479,
+      "category": "tables"
+    },
+    {
+      "source_path": "knowledge/tables/dw.dim_employee_chain.md",
+      "sha256": "b601348dd155f5a8abafe2cf3b6c55e2e2826b67e458eae762116c2c366612de",
+      "bytes": 5442,
+      "category": "tables"
+    },
+    {
+      "source_path": "knowledge/tables/dw.dws_user_active_user_c_appliction_hf.md",
+      "sha256": "c21f71a31fa14046cc9e5a80772fef54299e1e9dbd30bf43c6fcc1c2ccc2ecc8",
+      "bytes": 2545,
+      "category": "tables"
+    },
+    {
+      "source_path": "knowledge/tables/finance_dw.app_finance_performance_extend_details_hf.md",
+      "sha256": "0acdfc84fb239f8bf580f17c2306c3f446d1341944fe69b31cbb5af571bf8354",
+      "bytes": 20196,
+      "category": "tables"
+    },
+    {
+      "source_path": "knowledge/tables/finance_dw.dim_finance_employee_df.md",
+      "sha256": "97b327d137ba65f0a2cb185e045d18de70fe0ec96da4117e2bbc35618067d26d",
+      "bytes": 6912,
+      "category": "tables"
+    },
+    {
+      "source_path": "knowledge/tables/finance_dw.dim_finance_order_change_df.md",
+      "sha256": "1645667e45b8dce5bf397b1ee650eb10cc58b01f4054e53d4dbf37f8d368c476",
+      "bytes": 5104,
+      "category": "tables"
+    },
+    {
+      "source_path": "knowledge/tables/finance_dw.dm_finance_order_refund_detail_df.md",
+      "sha256": "3aa30d24b31bc89be949883d34340ea84099ed7d2b94e5927f8166fb783e58f7",
+      "bytes": 12832,
+      "category": "tables"
+    },
+    {
+      "source_path": "knowledge/tables/gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf.md",
+      "sha256": "9677498c45af597098e04218f0f664850129f7db9dd79d39cf0bc3f1c1776620",
+      "bytes": 6940,
+      "category": "tables"
+    },
+    {
+      "source_path": "knowledge/tables/service_dw.app_h_crm_lead_employee_workload_detail_hf.md",
+      "sha256": "7c86265143206809980eddfc3917c795586b5053fed973df380b451b41182b0c",
+      "bytes": 7582,
+      "category": "tables"
+    },
+    {
+      "source_path": "knowledge/tables/service_dw.app_h_crm_lead_task_process_info_detail_hf.md",
+      "sha256": "8e2210c752f79a4b0404da380c52464f4cc637c470c4b5a48b2e31f09523a120",
+      "bytes": 17025,
+      "category": "tables"
+    },
+    {
+      "source_path": "knowledge/tables/service_dw.app_user_attribute_label_gaia_wide_df.md",
+      "sha256": "a9ecbebc40007e4e43eb560f836da514ab524f4c0d299a677ff5f792bd7dfbf7",
+      "bytes": 11486,
+      "category": "tables"
+    },
+    {
+      "source_path": "knowledge/tables/service_dw.dim_crm_assign_rule_lead_detail_hf.md",
+      "sha256": "0b4ca67c5344c19602555b422ca525086c34471c9d38503a53be218b92a54128",
+      "bytes": 4059,
+      "category": "tables"
+    },
+    {
+      "source_path": "knowledge/tables/service_dw.dim_crm_assign_rule_plan_item_info_hf.md",
+      "sha256": "4c45cfc4ba9168e9edfe45bc736a55016d68cf534c5af2a568e97dddc72c8c53",
+      "bytes": 5906,
+      "category": "tables"
+    },
+    {
+      "source_path": "knowledge/tables/service_dw.dm_crm_lead_stats_detail_hf.md",
+      "sha256": "2fc755a895859c53a464a1bb0188b67f67b29513a9175c4c313181533c905ed9",
+      "bytes": 38249,
+      "category": "tables"
+    },
+    {
+      "source_path": "knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md",
+      "sha256": "386b749b24399bf240306e9c34ad14dff77a01d2d3f8d8a081d4a29af34d4045",
+      "bytes": 31814,
+      "category": "tables"
+    },
+    {
+      "source_path": "knowledge/tables/service_dw.dws_service_user_learn_detail_hf.md",
+      "sha256": "7e9d3825bfef2e46cc513d6cd7a24406ea273649859277fcf311e9167313eae0",
+      "bytes": 6412,
+      "category": "tables"
+    },
+    {
+      "source_path": "knowledge/temp_tables/_no_temp_table_usage_cases.md",
+      "sha256": "c3b1883b1824b6dcb136ca1332dabafc8c0356fb3cba23ed876d268cf6287dda",
+      "bytes": 641,
+      "category": "temp_tables"
+    },
+    {
+      "source_path": "knowledge/temp_tables/_temp_table_template.md",
+      "sha256": "49215f867d1669cec4c132b0b62f6f28d8c827066ac29fd0a8956ecdff8396a4",
+      "bytes": 614,
+      "category": "temp_tables"
+    },
+    {
+      "source_path": "knowledge/temp_tables/temp_table.dingxi01_jiagou_db.md",
+      "sha256": "d542ff54869759ee5536693537ece89a3904f1066dff2bedaada786eb71c53e1",
+      "bytes": 2459,
+      "category": "temp_tables"
+    },
+    {
+      "source_path": "knowledge/temp_tables/temp_table.dingxi01_qing_daoke.md",
+      "sha256": "0d72c5f4b41aa4a96197926701a6494ca8804db567f9e5ed602eb99f967793e0",
+      "bytes": 2052,
+      "category": "temp_tables"
+    },
+    {
+      "source_path": "knowledge/temp_tables/temp_table.dingxi01_qing_goal.md",
+      "sha256": "6a7386522ea9763fbfe45cc078679dc377d81f278344bd3190da46d5851ef7a4",
+      "bytes": 2017,
+      "category": "temp_tables"
+    },
+    {
+      "source_path": "knowledge/temp_tables/temp_table.dingxi01_qing_qi_moth.md",
+      "sha256": "5c7de707d91893c8c53f3cd02b0cd3053b012f85f5a893a16e242800cd58b18d",
+      "bytes": 1501,
+      "category": "temp_tables"
+    },
+    {
+      "source_path": "knowledge/temp_tables/temp_table.dingxi01_qing_team_g_qi.md",
+      "sha256": "ff2a5ce8043359e9465d507aaf27c6aed5f88d330398ad8a39fb723ca651f824",
+      "bytes": 1869,
+      "category": "temp_tables"
+    },
+    {
+      "source_path": "knowledge/temp_tables/temp_table.dingxi01_qing_team_goal.md",
+      "sha256": "9c0ef63527b2a6b7b51aa25fdb080ba6379a4638f029c8e2f93497e02b21d830",
+      "bytes": 1857,
+      "category": "temp_tables"
+    },
+    {
+      "source_path": "knowledge/temp_tables/temp_table.dingxi01_qing_team_jg.md",
+      "sha256": "a8697d4a93d28c47e1cd40698f8c5a2f11a0f509ed816f2ce1fd4cc084fe6850",
+      "bytes": 3058,
+      "category": "temp_tables"
+    },
+    {
+      "source_path": "knowledge/temp_tables/temp_table.dingxi01_qing_zz.md",
+      "sha256": "b401b73521578b24dcb5b682bf05b3a0ff64330585fc20dcb6327824f1d41e85",
+      "bytes": 1481,
+      "category": "temp_tables"
+    },
+    {
+      "source_path": "knowledge/temp_tables/temp_table.shenbaoxin_channel_group.md",
+      "sha256": "cb61a62e01b6e911edc6523c342303b6759a4797a96bab1c415d2c6975f3ed50",
+      "bytes": 2282,
+      "category": "temp_tables"
+    },
+    {
+      "source_path": "knowledge/update_log/changelog.md",
+      "sha256": "73632b200cbf8fcafac8de162bd921419e7e1a34fddfd6f083c4da44f5cfc9d3",
+      "bytes": 41402,
+      "category": "update_log"
+    },
+    {
+      "source_path": "resources/raw_sql/data_center_qingcheng_2064_20260624.sql",
+      "sha256": "d31ddf360bcd17563191df489817d6f41a49406c1c552a15f3ed9013a15690ec",
+      "bytes": 15556,
+      "category": "raw_sql"
+    },
+    {
+      "source_path": "resources/raw_sql/data_center_qingcheng_2064_20260625.sql",
+      "sha256": "5cc28ed374d8e02f4db97ba22a4cad73caed53cf3d2c6e659c82c75a16dd9dc5",
+      "bytes": 15927,
+      "category": "raw_sql"
+    },
+    {
+      "source_path": "resources/raw_sql/data_center_qingcheng_2460_20260626.sql",
+      "sha256": "0ef622fe84abb0f3561597fc98c78e00b3e54691be84f70b38046c76104a6d74",
+      "bytes": 28074,
+      "category": "raw_sql"
+    },
+    {
+      "source_path": "resources/raw_sql/data_center_qingcheng_2460_20260709.sql",
+      "sha256": "bfd6a41d878081afdadb9e3eb8f69bfce94b380467cb3dbab4531a93dbdbd61f",
+      "bytes": 28814,
+      "category": "raw_sql"
+    },
+    {
+      "source_path": "resources/raw_sql/data_center_qingcheng_2740_20260624.sql",
+      "sha256": "ba008980d05b30c1702a88cd933e8a7533144b1bd1872ee736af7d73a3f9c704",
+      "bytes": 14787,
+      "category": "raw_sql"
+    },
+    {
+      "source_path": "resources/raw_sql/qingcheng_channel_order_detail_raw_20260627.sql",
+      "sha256": "027c505dede4b677618a6047636445b17804f350e9002ff67723a041ce35eee9",
+      "bytes": 2909,
+      "category": "raw_sql"
+    },
+    {
+      "source_path": "resources/raw_sql/qingcheng_conversion_wide_table_market_channel_20260611.sql",
+      "sha256": "c33f3e09b5865daed5ce0623b3454764ca4572b1c13519d328f96953efac07f9",
+      "bytes": 42371,
+      "category": "raw_sql"
+    },
+    {
+      "source_path": "resources/raw_sql/qingcheng_daoke_raw_20260522.sql",
+      "sha256": "156ecf80d8008c45c58626f5491007455de9bb16d95303b891676598dafa50f6",
+      "bytes": 6756,
+      "category": "raw_sql"
+    },
+    {
+      "source_path": "resources/raw_sql/qingcheng_personal_conversion_raw_20260522.sql",
+      "sha256": "5bacb0dfbdb1d4255b427985fb9bbbb78904529b512f972b7439f792d28209b5",
+      "bytes": 25604,
+      "category": "raw_sql"
+    },
+    {
+      "source_path": "resources/raw_sql/qingcheng_process_data_raw_20260522.sql",
+      "sha256": "48bc762738fa894f2cc2e8c127b42d77bc07423e03c5ea0b5d10c812270b56bc",
+      "bytes": 13162,
+      "category": "raw_sql"
+    },
+    {
+      "source_path": "resources/raw_sql/qingcheng_revenue_year_quarter_month_raw_20260522.sql",
+      "sha256": "9238ea3ef964dbcc834c06eada967ecc99d8d211155165432a782f892f835745",
+      "bytes": 7171,
+      "category": "raw_sql"
+    },
+    {
+      "source_path": "resources/raw_sql/qingcheng_team_completion_month_raw_20260522.sql",
+      "sha256": "94e1b87c2a17820b431ad107dc6fa2a9b3d54b3e8ae29cd2d9666e7ebf00d307",
+      "bytes": 21158,
+      "category": "raw_sql"
+    },
+    {
+      "source_path": "resources/raw_sql/qingcheng_team_completion_period_raw_20260522.sql",
+      "sha256": "90b312e0dd5156bbac75e9e375cf04ff1d6eaf41e058fd4b21d5d4c64d0035c7",
+      "bytes": 21108,
+      "category": "raw_sql"
+    }
+  ]
+}

@@ -1,0 +1,385 @@
+{
+  "schema_version": "2.0.0",
+  "domain": "market_consultant",
+  "counts": {
+    "dimension": 8,
+    "join": 4,
+    "metric": 10,
+    "scope": 4
+  },
+  "entries": [
+    {
+      "id": "market_consultant:dimension:channel_map",
+      "kind": "dimension",
+      "name": "归一化渠道",
+      "aliases": [
+        "渠道",
+        "标准渠道",
+        "渠道映射",
+        "channel_map",
+        "channel_map_1",
+        "qudao"
+      ],
+      "status": "pending_confirmation",
+      "source_path": "knowledge/sql_patterns/channel_mapping_case_when.md",
+      "source_sha256": "df0918f81124ada2a02a80fbbf9352ff7507069f359189e9b3015bc0b1905ebf"
+    },
+    {
+      "id": "market_consultant:dimension:city_name",
+      "kind": "dimension",
+      "name": "城市",
+      "aliases": [
+        "市",
+        "所在城市",
+        "city",
+        "city_name"
+      ],
+      "status": "pending_confirmation",
+      "source_path": "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
+      "source_sha256": "591ce03f711a141f064e029da3c6fc1578ed3e8a44025a1c449be9ef6251e1da"
+    },
+    {
+      "id": "market_consultant:dimension:employee_email_name",
+      "kind": "dimension",
+      "name": "顾问",
+      "aliases": [
+        "顾问姓名",
+        "员工姓名",
+        "接量顾问",
+        "employee_email_name"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
+      "source_sha256": "591ce03f711a141f064e029da3c6fc1578ed3e8a44025a1c449be9ef6251e1da"
+    },
+    {
+      "id": "market_consultant:dimension:period_name",
+      "kind": "dimension",
+      "name": "期次",
+      "aliases": [
+        "线索期次",
+        "期名称",
+        "period",
+        "period_name"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
+      "source_sha256": "591ce03f711a141f064e029da3c6fc1578ed3e8a44025a1c449be9ef6251e1da"
+    },
+    {
+      "id": "market_consultant:dimension:province_name",
+      "kind": "dimension",
+      "name": "省份",
+      "aliases": [
+        "省",
+        "所在省份",
+        "province",
+        "province_name"
+      ],
+      "status": "pending_confirmation",
+      "source_path": "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
+      "source_sha256": "591ce03f711a141f064e029da3c6fc1578ed3e8a44025a1c449be9ef6251e1da"
+    },
+    {
+      "id": "market_consultant:dimension:stats_grade_name",
+      "kind": "dimension",
+      "name": "统计年级",
+      "aliases": [
+        "年级",
+        "线索年级",
+        "统计口径年级",
+        "stats_grade_name"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
+      "source_sha256": "591ce03f711a141f064e029da3c6fc1578ed3e8a44025a1c449be9ef6251e1da"
+    },
+    {
+      "id": "market_consultant:dimension:virtual_manager",
+      "kind": "dimension",
+      "name": "虚拟架构经理",
+      "aliases": [
+        "经理",
+        "大组长",
+        "虚拟大组长",
+        "virtual_leader_email_name"
+      ],
+      "status": "pending_confirmation",
+      "source_path": "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
+      "source_sha256": "591ce03f711a141f064e029da3c6fc1578ed3e8a44025a1c449be9ef6251e1da"
+    },
+    {
+      "id": "market_consultant:dimension:virtual_supervisor",
+      "kind": "dimension",
+      "name": "虚拟架构主管",
+      "aliases": [
+        "主管",
+        "小组长",
+        "虚拟小组长",
+        "virtual_direct_leader_email_name"
+      ],
+      "status": "pending_confirmation",
+      "source_path": "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
+      "source_sha256": "591ce03f711a141f064e029da3c6fc1578ed3e8a44025a1c449be9ef6251e1da"
+    },
+    {
+      "id": "market_consultant:join:first_call_task_to_employee",
+      "kind": "join",
+      "name": "首 call 任务员工账号桥接",
+      "aliases": [
+        "首call员工桥接",
+        "首呼账号关联",
+        "account_id员工关联"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/joins/common_join_keys.md",
+      "source_sha256": "bbd2d1df1490412c9130f7901a0c013f582866477fc3913c744de617cfe92e41"
+    },
+    {
+      "id": "market_consultant:join:lead_to_cost_goal",
+      "kind": "join",
+      "name": "主线索关联渠道成本目标",
+      "aliases": [
+        "成本目标关联",
+        "渠道成本join",
+        "单例子成本关联"
+      ],
+      "status": "pending_confirmation",
+      "source_path": "knowledge/joins/table_relationships.md",
+      "source_sha256": "b4513daf6f0baa7a354219e7e0e7eb26429706169333cf06d5faee1d91e10080"
+    },
+    {
+      "id": "market_consultant:join:lead_to_learning_detail",
+      "kind": "join",
+      "name": "主线索关联用户行课",
+      "aliases": [
+        "到课关联",
+        "用户行课join",
+        "线索行课关联"
+      ],
+      "status": "pending_confirmation",
+      "source_path": "knowledge/joins/common_join_keys.md",
+      "source_sha256": "bbd2d1df1490412c9130f7901a0c013f582866477fc3913c744de617cfe92e41"
+    },
+    {
+      "id": "market_consultant:join:lead_to_outbound_workload",
+      "kind": "join",
+      "name": "主线索关联外呼工作量",
+      "aliases": [
+        "外呼工作量关联",
+        "通话明细关联",
+        "线索外呼join"
+      ],
+      "status": "pending_confirmation",
+      "source_path": "knowledge/joins/common_join_keys.md",
+      "source_sha256": "bbd2d1df1490412c9130f7901a0c013f582866477fc3913c744de617cfe92e41"
+    },
+    {
+      "id": "market_consultant:metric:conversion_subject_count",
+      "kind": "metric",
+      "name": "转化科目人次",
+      "aliases": [
+        "成交科目人次",
+        "支付科目人次",
+        "订单转化人次",
+        "pay_user_subs"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
+      "source_sha256": "f7131b48bd29a7d44c24002dbc08a90d1039e17dca778de98b3e6c0e52a447dc",
+      "automatic_compile": true
+    },
+    {
+      "id": "market_consultant:metric:conversion_users",
+      "kind": "metric",
+      "name": "转化人数",
+      "aliases": [
+        "支付人数",
+        "成交人数",
+        "转化用户数",
+        "pay_users"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
+      "source_sha256": "f7131b48bd29a7d44c24002dbc08a90d1039e17dca778de98b3e6c0e52a447dc",
+      "automatic_compile": true
+    },
+    {
+      "id": "market_consultant:metric:cross_period_conversion_subject_count",
+      "kind": "metric",
+      "name": "跨期转化科目人次",
+      "aliases": [
+        "非当期转化科目人次",
+        "跨期成交科目人次",
+        "跨期支付科目人次",
+        "pay_user_subs_not_on_period"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
+      "source_sha256": "f7131b48bd29a7d44c24002dbc08a90d1039e17dca778de98b3e6c0e52a447dc",
+      "automatic_compile": true
+    },
+    {
+      "id": "market_consultant:metric:cross_period_conversion_users",
+      "kind": "metric",
+      "name": "跨期转化人数",
+      "aliases": [
+        "非当期转化人数",
+        "跨期支付人数",
+        "跨期成交人数",
+        "pay_users_not_on_period"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
+      "source_sha256": "f7131b48bd29a7d44c24002dbc08a90d1039e17dca778de98b3e6c0e52a447dc",
+      "automatic_compile": true
+    },
+    {
+      "id": "market_consultant:metric:first_call_task_rate",
+      "kind": "metric",
+      "name": "首call任务率",
+      "aliases": [
+        "首call率",
+        "首呼任务率",
+        "CRM首call率",
+        "first_call_task_rate"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/outbound_call_process_metrics.md",
+      "source_sha256": "459a7f3e52ed291e96e533f05ad2f669442c0a8affe0c9dfa83738383bd73e5e",
+      "automatic_compile": false
+    },
+    {
+      "id": "market_consultant:metric:first_call_within_24h_rate",
+      "kind": "metric",
+      "name": "24小时外呼率",
+      "aliases": [
+        "24h外呼率",
+        "24小时首呼率",
+        "24h首呼及时率",
+        "first_call_24h_rate"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/outbound_call_process_metrics.md",
+      "source_sha256": "459a7f3e52ed291e96e533f05ad2f669442c0a8affe0c9dfa83738383bd73e5e",
+      "automatic_compile": false
+    },
+    {
+      "id": "market_consultant:metric:lead_count",
+      "kind": "metric",
+      "name": "线索数",
+      "aliases": [
+        "进线量",
+        "线索量",
+        "lead_count"
+      ],
+      "status": "pending_confirmation",
+      "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
+      "source_sha256": "f7131b48bd29a7d44c24002dbc08a90d1039e17dca778de98b3e6c0e52a447dc"
+    },
+    {
+      "id": "market_consultant:metric:same_period_conversion_subject_count",
+      "kind": "metric",
+      "name": "当期转化科目人次",
+      "aliases": [
+        "当期转化",
+        "当期成交科目人次",
+        "当期支付科目人次",
+        "同线索期科目人次",
+        "pay_user_subs_on_period"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
+      "source_sha256": "f7131b48bd29a7d44c24002dbc08a90d1039e17dca778de98b3e6c0e52a447dc",
+      "automatic_compile": true
+    },
+    {
+      "id": "market_consultant:metric:same_period_conversion_users",
+      "kind": "metric",
+      "name": "当期转化人数",
+      "aliases": [
+        "当期转化",
+        "当期支付人数",
+        "同线索期转化人数",
+        "当期成交人数",
+        "pay_users_on_period"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
+      "source_sha256": "f7131b48bd29a7d44c24002dbc08a90d1039e17dca778de98b3e6c0e52a447dc",
+      "automatic_compile": true
+    },
+    {
+      "id": "market_consultant:metric:valid_lead_count",
+      "kind": "metric",
+      "name": "有效线索数",
+      "aliases": [
+        "退后线索",
+        "有效量",
+        "can_renew_ds_count_a",
+        "valid_lead_count"
+      ],
+      "status": "pending_confirmation",
+      "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
+      "source_sha256": "f7131b48bd29a7d44c24002dbc08a90d1039e17dca778de98b3e6c0e52a447dc"
+    },
+    {
+      "id": "market_consultant:scope:conversion_dashboard",
+      "kind": "scope",
+      "name": "市场顾问转化看板范围",
+      "aliases": [
+        "市场顾问转化范围",
+        "转化看板部门范围",
+        "conversion_scope"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
+      "source_sha256": "f7131b48bd29a7d44c24002dbc08a90d1039e17dca778de98b3e6c0e52a447dc"
+    },
+    {
+      "id": "market_consultant:scope:finance_performance",
+      "kind": "scope",
+      "name": "市场顾问财务业绩范围",
+      "aliases": [
+        "财务流水部门范围",
+        "市场顾问退款范围",
+        "finance_performance_scope"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/03_range_limit_rules.md",
+      "source_sha256": "e457997c593c8c6b46f69126923a217f513236045143f5396dd02a56b5c53755"
+    },
+    {
+      "id": "market_consultant:scope:outbound_dashboard",
+      "kind": "scope",
+      "name": "市场顾问外呼看板范围",
+      "aliases": [
+        "外呼过程范围",
+        "市场顾问外呼范围",
+        "outbound_scope"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/outbound_call_process_metrics.md",
+      "source_sha256": "459a7f3e52ed291e96e533f05ad2f669442c0a8affe0c9dfa83738383bd73e5e"
+    },
+    {
+      "id": "market_consultant:scope:period_half_open_range",
+      "kind": "scope",
+      "name": "期次半开区间",
+      "aliases": [
+        "期次范围",
+        "期次起止",
+        "period_range"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/03_range_limit_rules.md",
+      "source_sha256": "e457997c593c8c6b46f69126923a217f513236045143f5396dd02a56b5c53755"
+    }
+  ],
+  "alias_collisions": {
+    "当期转化": [
+      "market_consultant:metric:same_period_conversion_subject_count",
+      "market_consultant:metric:same_period_conversion_users"
+    ]
+  }
+}

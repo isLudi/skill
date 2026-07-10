@@ -1,6 +1,13 @@
 ---
 name: xlsx
-description: Use this skill any time a spreadsheet file is the primary input or output. This means any task where the user wants to: open, read, edit, or fix an existing .xlsx, .xlsm, .csv, or .tsv file (e.g., adding columns, computing formulas, formatting, charting, cleaning messy data); create a new spreadsheet from scratch or from other data sources; or convert between tabular file formats. Trigger especially when the user references a spreadsheet file by name or path — even casually (like "the xlsx in my downloads") — and wants something done to it or produced from it. Also trigger for cleaning or restructuring messy tabular data files (malformed rows, misplaced headers, junk data) into proper spreadsheets. The deliverable must be a spreadsheet file. Do NOT trigger when the primary deliverable is a Word document, HTML report, standalone Python script, database pipeline, or Google Sheets API integration, even if tabular data is involved.
+description: >-
+  Use this skill any time a spreadsheet file is the primary input or output. This
+  includes opening, reading, editing, fixing, creating, cleaning, restructuring,
+  or converting .xlsx, .xlsm, .csv, and .tsv files. Trigger especially when the
+  user references a spreadsheet by name or path and wants a spreadsheet
+  deliverable. Do not trigger when the primary deliverable is a Word document,
+  HTML report, standalone Python script, database pipeline, or Google Sheets API
+  integration, even if tabular data is involved.
 ---
 
 # Requirements for Outputs
@@ -70,7 +77,7 @@ A user may ask you to create, edit, or analyze the contents of an .xlsx file. Yo
 
 ## Important Requirements
 
-**LibreOffice Required for Formula Recalculation**: You can assume LibreOffice is installed for recalculating formula values using the `scripts/recalc.py` script. The script automatically configures LibreOffice on first run, including in sandboxed environments where Unix sockets are restricted (handled by `scripts/office/soffice.py`)
+**Platform-native formula recalculation**: Use `scripts/recalc.py`. It automatically routes Windows to Microsoft Excel COM and Linux/macOS to LibreOffice. On Windows, use `D:\anaconda3\python.exe` and require desktop Excel plus `pywin32`. On Linux/macOS, require `soffice` on `PATH`; the script configures the LibreOffice macro and Unix-socket workaround when needed.
 
 ## Reading and analyzing data
 
@@ -135,7 +142,11 @@ This applies to ALL calculations - totals, percentages, ratios, differences, etc
 4. **Save**: Write to file
 5. **Recalculate formulas (MANDATORY IF USING FORMULAS)**: Use the scripts/recalc.py script
    ```bash
-   python scripts/recalc.py output.xlsx
+   # Windows
+   D:\anaconda3\python.exe scripts/recalc.py output.xlsx
+
+   # Linux/macOS
+   python3 scripts/recalc.py output.xlsx
    ```
 6. **Verify and fix any errors**: 
    - The script returns JSON with error details
@@ -208,20 +219,35 @@ wb.save('modified.xlsx')
 Excel files created or modified by openpyxl contain formulas as strings but not calculated values. Use the provided `scripts/recalc.py` script to recalculate formulas:
 
 ```bash
-python scripts/recalc.py <excel_file> [timeout_seconds]
+# Windows
+D:\anaconda3\python.exe scripts/recalc.py <excel_file> [timeout_seconds]
+
+# Linux/macOS
+python3 scripts/recalc.py <excel_file> [timeout_seconds]
 ```
 
 Example:
 ```bash
-python scripts/recalc.py output.xlsx 30
+# Windows
+D:\anaconda3\python.exe scripts/recalc.py output.xlsx 30
+
+# Linux/macOS
+python3 scripts/recalc.py output.xlsx 30
 ```
 
 The script:
-- Automatically sets up LibreOffice macro on first run
+- Automatically selects Excel COM on Windows and LibreOffice on Linux/macOS
+- Uses `CalculateFullRebuild()` and saves through desktop Excel on Windows
+- Automatically sets up the LibreOffice macro on first run outside Windows
 - Recalculates all formulas in all sheets
 - Scans ALL cells for Excel errors (#REF!, #DIV/0!, etc.)
 - Returns JSON with detailed error locations and counts
-- Works on both Linux and macOS
+- Reports the selected backend in the `backend` field
+
+Windows diagnostics:
+- If `pywin32` is missing, run the script with `D:\anaconda3\python.exe` or install `pywin32` into the selected Python environment.
+- If Excel COM starts but cannot open the workbook, inspect workbook structure, overlapping filters, file locks, and file corruption before treating it as a missing dependency.
+- Do not apply a worksheet-level `auto_filter` to the same range already owned by an Excel Table; the table already provides filtering and overlapping filters can make Excel reject the file.
 
 ## Formula Verification Checklist
 
@@ -249,6 +275,7 @@ Quick checks to ensure formulas work correctly:
 The script returns JSON with error details:
 ```json
 {
+  "backend": "excel_com",         // or "libreoffice"
   "status": "success",           // or "errors_found"
   "total_errors": 0,              // Total error count
   "total_formulas": 42,           // Number of formulas in file

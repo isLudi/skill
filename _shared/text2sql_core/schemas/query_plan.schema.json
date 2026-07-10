@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.codex/text2sql/query_plan.schema.json",
+  "title": "Governed Text2SQL QueryPlan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "plan_id", "domain", "intent", "status", "base_table",
+    "metrics", "dimensions", "filters", "scopes", "joins", "calculation_grain",
+    "output_grain", "evidence", "lineage", "unresolved_slots", "diagnostics",
+    "execution_policy", "sql_sha256"
+  ],
+  "properties": {
+    "schema_version": {"const": "2.0.0"},
+    "plan_id": {"type": "string", "pattern": "^plan_[0-9a-f]{20}$"},
+    "domain": {"enum": ["market_consultant", "qingcheng"]},
+    "intent": {"type": "string"},
+    "status": {"enum": ["executable", "requires_manual_sql", "blocked"]},
+    "base_table": {"type": ["string", "null"]},
+    "metrics": {"type": "array"},
+    "dimensions": {"type": "array"},
+    "filters": {"type": "array"},
+    "scopes": {"type": "array"},
+    "joins": {"type": "array"},
+    "calculation_grain": {"type": "array"},
+    "output_grain": {"type": "array"},
+    "evidence": {"type": "array"},
+    "lineage": {"type": "array"},
+    "unresolved_slots": {"type": "array"},
+    "diagnostics": {"type": "array"},
+    "execution_policy": {
+      "type": "object",
+      "required": ["allow_download", "max_direct_download_rows", "requires_preview"],
+      "properties": {
+        "allow_download": {"type": "boolean"},
+        "max_direct_download_rows": {"type": "integer", "maximum": 1000},
+        "requires_preview": {"type": "boolean"},
+        "execution_mode": {"enum": ["production", "exploratory"]}
+      }
+    },
+    "sql_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"}
+  }
+}

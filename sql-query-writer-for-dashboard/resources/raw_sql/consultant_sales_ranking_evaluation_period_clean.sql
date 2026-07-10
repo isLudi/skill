@@ -1,4 +1,4 @@
-﻿with dd as (select *
+with dd as (select *
 from (
     select
         id, order_number, 

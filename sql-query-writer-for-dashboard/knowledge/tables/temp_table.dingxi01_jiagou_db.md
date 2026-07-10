@@ -1,4 +1,4 @@
-﻿# temp_table.dingxi01_jiagou_db
+# temp_table.dingxi01_jiagou_db
 
 ## 1. 中文名称
 

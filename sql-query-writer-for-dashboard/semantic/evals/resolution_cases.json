@@ -1,0 +1,79 @@
+{
+  "schema_version": "2.0.0",
+  "domain": "market_consultant",
+  "cases": [
+    {
+      "id": "market_consultant:eval:conversion_users_by_period",
+      "query": "按期次看市场顾问支付人数",
+      "expected_ids": [
+        "market_consultant:metric:conversion_users",
+        "market_consultant:dimension:period_name"
+      ],
+      "expected_status": "resolved"
+    },
+    {
+      "id": "market_consultant:eval:same_period_users_by_consultant",
+      "query": "按顾问查看当期成交人数",
+      "expected_ids": [
+        "market_consultant:metric:same_period_conversion_users",
+        "market_consultant:dimension:employee_email_name"
+      ],
+      "expected_status": "resolved"
+    },
+    {
+      "id": "market_consultant:eval:subjects_by_channel",
+      "query": "按渠道看订单转化人次",
+      "expected_ids": [
+        "market_consultant:metric:conversion_subject_count",
+        "market_consultant:dimension:channel_map"
+      ],
+      "expected_status": "resolved"
+    },
+    {
+      "id": "market_consultant:eval:first_call_24h_alias",
+      "query": "市场顾问24h首呼及时率",
+      "expected_ids": [
+        "market_consultant:metric:first_call_within_24h_rate"
+      ],
+      "expected_status": "resolved"
+    },
+    {
+      "id": "market_consultant:eval:first_call_task_alias",
+      "query": "市场顾问CRM首call率",
+      "expected_ids": [
+        "market_consultant:metric:first_call_task_rate"
+      ],
+      "expected_status": "resolved"
+    },
+    {
+      "id": "market_consultant:eval:pending_valid_lead_alias",
+      "query": "按年级看退后线索",
+      "expected_ids": [
+        "market_consultant:metric:valid_lead_count",
+        "market_consultant:dimension:stats_grade_name"
+      ],
+      "expected_status": "resolved"
+    },
+    {
+      "id": "market_consultant:eval:ambiguous_same_period_conversion",
+      "query": "看当期转化",
+      "expected_ids": [
+        "market_consultant:metric:same_period_conversion_users",
+        "market_consultant:metric:same_period_conversion_subject_count"
+      ],
+      "expected_status": "ambiguous"
+    },
+    {
+      "id": "market_consultant:eval:other_domain_unknown",
+      "query": "青橙目标完成率",
+      "expected_ids": [],
+      "expected_status": "unknown"
+    },
+    {
+      "id": "market_consultant:eval:unknown_metric",
+      "query": "火星用户渗透率",
+      "expected_ids": [],
+      "expected_status": "unknown"
+    }
+  ]
+}

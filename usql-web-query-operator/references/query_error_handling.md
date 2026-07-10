@@ -73,3 +73,5 @@
 ## 下载规则
 
 只有 `status=Success` 后才能使用 `--download`。脚本会执行本地下载安全策略：SQL 必须明显包含 `LIMIT 1000` 或更低限制，或者结果页能证明输出不超过 1000 行。
+
+如果本次使用了 `run --query-plan`，下载还必须同时满足 QueryPlan 的 `execution_policy.allow_download=true`。QueryPlan 允许下载不代表可以绕过本地 1000 行策略；任一门禁不通过都必须停止下载。契约校验本身发生在浏览器启动前，相关失败应回到上游业务 SQL skill 修正计划或 SQL，不应按平台 SQL 错误重试。

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import re
 import sys
 from datetime import date, time
@@ -17,6 +18,8 @@ REQUIRED_FILES = [
     "README.md",
     "metadata.json",
     "docs/USAGE_PROMPTS.md",
+    "references/quick_reference.md",
+    "references/decision_tree.md",
     "knowledge/00_global_rules.md",
     "knowledge/01_table_index.md",
     "knowledge/02_query_engine_presto.md",
@@ -36,6 +39,14 @@ REQUIRED_FILES = [
     "scripts/normalize_schema_md.py",
     "scripts/ingest_dashboard_sql.py",
     "scripts/validate_sql_rules.py",
+    "scripts/text2sql.py",
+    "semantic/domain_manifest.json",
+    "semantic/contracts/metric_contracts.json",
+    "semantic/contracts/dimension_contracts.json",
+    "semantic/contracts/join_contracts.json",
+    "semantic/contracts/scope_contracts.json",
+    "semantic/evals/resolution_cases.json",
+    "semantic/generated/contract_index.json",
 ]
 
 REQUIRED_DIRS = [
@@ -51,7 +62,12 @@ REQUIRED_DIRS = [
     "resources/raw_sql",
     "resources/raw_images",
     "resources/rendered_pages",
+    "references",
     "scripts",
+    "semantic",
+    "semantic/contracts",
+    "semantic/evals",
+    "semantic/generated",
 ]
 
 TABLE_SECTIONS = [
@@ -70,7 +86,7 @@ TABLE_SECTIONS = [
 
 
 def read_text(path: Path) -> str:
-    return path.read_text(encoding="utf-8")
+    return path.read_text(encoding="utf-8-sig")
 
 
 def fail(message: str, failures: list[str]) -> None:
@@ -100,10 +116,136 @@ def check_metadata(failures: list[str]) -> None:
         fail("metadata.query_engine must be Presto", failures)
     if metadata.get("entrypoint") != "SKILL.md":
         fail("metadata.entrypoint must be SKILL.md", failures)
+    if metadata.get("domain_id") != "market_consultant":
+        fail("metadata.domain_id must be market_consultant", failures)
+    if metadata.get("business_domain") != "市场顾问部":
+        fail("metadata.business_domain must be 市场顾问部", failures)
+    if not metadata.get("forbid_cross_domain_defaulting"):
+        fail("metadata.forbid_cross_domain_defaulting must be true", failures)
+    if metadata.get("semantic_contract_version") != "2.0.0":
+        fail("metadata.semantic_contract_version must be 2.0.0", failures)
+    if metadata.get("query_spec_schema_version") != "2.0.0":
+        fail("metadata.query_spec_schema_version must be 2.0.0", failures)
+    if metadata.get("query_plan_schema_version") != "2.0.0":
+        fail("metadata.query_plan_schema_version must be 2.0.0", failures)
+    if metadata.get("pending_contract_policy") != "block_production_compilation":
+        fail("metadata.pending_contract_policy must block production compilation", failures)
+    expected_capabilities = {
+        "resolve",
+        "plan",
+        "compile_single_base_table",
+        "probe_read_only",
+        "dataset_spec_read_only",
+    }
+    if set(metadata.get("p2_capabilities", [])) != expected_capabilities:
+        fail("metadata.p2_capabilities must declare the complete supported P2 surface", failures)
+    if metadata.get("automatic_compile_flag_required") is not True:
+        fail("metadata.automatic_compile_flag_required must be true", failures)
     for rel in metadata.get("knowledge_dirs", []):
         if not (ROOT / rel).is_dir():
             fail(f"metadata knowledge dir missing: {rel}", failures)
+    for key in (
+        "semantic_manifest",
+        "semantic_contract_dir",
+        "semantic_contract_index",
+        "semantic_eval_cases",
+        "semantic_contract_schema",
+        "text2sql_cli",
+        "physical_catalog",
+        "query_spec_schema",
+        "query_plan_schema",
+        "dashboard_dataset_spec_schema",
+    ):
+        rel = metadata.get(key)
+        target = (ROOT / rel).resolve() if rel else None
+        expected_type_ok = target.is_dir() if key == "semantic_contract_dir" and target else target.is_file() if target else False
+        if not rel or not expected_type_ok:
+            fail(f"metadata {key} target missing: {rel}", failures)
     ok("metadata.json")
+
+
+def check_semantic_contracts(failures: list[str]) -> None:
+    core_root = (ROOT.parent / "_shared" / "text2sql_core").resolve()
+    if not core_root.is_dir():
+        fail(f"shared Text2SQL core is missing: {core_root}", failures)
+        return
+    sys.path.insert(0, str(core_root))
+    try:
+        from text2sql_core.contracts import ContractRegistry
+        from text2sql_core.evaluator import evaluate_resolution_cases
+    except Exception as exc:  # noqa: BLE001
+        fail(f"cannot import shared semantic contract validators: {exc}", failures)
+        return
+
+    registry = ContractRegistry.load(ROOT, "market_consultant")
+    errors = [item for item in registry.diagnostics if item.severity == "error"]
+    if errors:
+        for item in errors:
+            fail(f"semantic contract {item.code}: {item.message}", failures)
+        return
+
+    expected_ambiguity = [
+        "market_consultant:metric:same_period_conversion_subject_count",
+        "market_consultant:metric:same_period_conversion_users",
+    ]
+    generated_index = registry.generated_index()
+    if generated_index.get("alias_collisions", {}).get("当期转化") != expected_ambiguity:
+        fail("当期转化 alias must remain ambiguous between user and subject-count metrics", failures)
+
+    generated_path = ROOT / "semantic" / "generated" / "contract_index.json"
+    try:
+        actual_index = json.loads(read_text(generated_path))
+    except Exception as exc:  # noqa: BLE001
+        fail(f"semantic/generated/contract_index.json is not valid JSON: {exc}", failures)
+        return
+    expected_index = generated_index
+    if actual_index != expected_index:
+        fail(
+            "semantic/generated/contract_index.json is stale; run repository scripts/build_text2sql_catalog.py",
+            failures,
+        )
+    else:
+        counts = expected_index.get("counts", {})
+        ok(
+            "semantic contracts and generated index "
+            f"(metrics={counts.get('metric', 0)}, dimensions={counts.get('dimension', 0)}, "
+            f"joins={counts.get('join', 0)}, scopes={counts.get('scope', 0)})"
+        )
+
+    evaluation = evaluate_resolution_cases(ROOT, "market_consultant")
+    if not evaluation.get("ok"):
+        for item in evaluation.get("failures", []):
+            fail(f"semantic resolution eval failed: {item}", failures)
+    else:
+        ok(f"semantic resolution evals: {evaluation.get('passed')}/{evaluation.get('total')}")
+
+
+def check_domain_manifest(failures: list[str]) -> None:
+    path = ROOT / "semantic" / "domain_manifest.json"
+    try:
+        manifest = json.loads(read_text(path))
+    except Exception as exc:  # noqa: BLE001
+        fail(f"semantic/domain_manifest.json is not valid JSON: {exc}", failures)
+        return
+    if manifest.get("domain", {}).get("id") != "market_consultant":
+        fail("semantic manifest domain must be market_consultant", failures)
+    inventory = {item.get("source_path"): item for item in manifest.get("source_inventory", [])}
+    sources = sorted((ROOT / "knowledge").rglob("*.md"))
+    sources.extend(sorted(path for path in (ROOT / "resources" / "raw_sql").rglob("*") if path.is_file()))
+    expected = {source.relative_to(ROOT).as_posix() for source in sources}
+    if set(inventory) != expected:
+        fail("semantic manifest does not cover the exact knowledge/raw SQL source set", failures)
+        return
+    stale = []
+    for source in sources:
+        relative = source.relative_to(ROOT).as_posix()
+        digest = hashlib.sha256(source.read_bytes()).hexdigest()
+        if inventory[relative].get("sha256") != digest:
+            stale.append(relative)
+    if stale:
+        fail(f"semantic manifest has stale source hashes: {', '.join(stale)}", failures)
+    else:
+        ok("semantic manifest coverage and hashes")
 
 
 def check_table_docs(failures: list[str]) -> None:
@@ -222,6 +364,8 @@ def main() -> int:
             fail(f"missing file: {rel}", failures)
 
     check_metadata(failures)
+    check_domain_manifest(failures)
+    check_semantic_contracts(failures)
     check_table_docs(failures)
     check_index_coverage(failures)
     check_channel_case_latest(failures)

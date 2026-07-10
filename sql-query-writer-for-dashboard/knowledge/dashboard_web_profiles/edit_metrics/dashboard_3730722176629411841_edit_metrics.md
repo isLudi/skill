@@ -1,4 +1,4 @@
-﻿# 外呼过程数据看板 edit metrics
+# 外呼过程数据看板 edit metrics
 
 > Source: Taitan dashboard edit-page read-only API. Use together with the web profile and the Data Center SQL file for the same model_id.
 

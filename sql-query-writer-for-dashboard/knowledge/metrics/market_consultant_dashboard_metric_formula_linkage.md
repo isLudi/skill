@@ -1,4 +1,4 @@
-﻿# Market consultant dashboard metric formula and SQL linkage
+# Market consultant dashboard metric formula and SQL linkage
 
 ## Scope
 

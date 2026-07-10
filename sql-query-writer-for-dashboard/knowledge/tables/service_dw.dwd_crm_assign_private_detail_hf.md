@@ -1,4 +1,4 @@
-﻿# service_dw.dwd_crm_assign_private_detail_hf
+# service_dw.dwd_crm_assign_private_detail_hf
 
 ## 1. 中文名称
 

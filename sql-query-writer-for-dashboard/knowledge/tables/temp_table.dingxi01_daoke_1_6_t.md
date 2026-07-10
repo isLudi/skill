@@ -1,4 +1,4 @@
-﻿# temp_table.dingxi01_daoke_1_6_t
+# temp_table.dingxi01_daoke_1_6_t
 
 ## 1. 中文名称
 

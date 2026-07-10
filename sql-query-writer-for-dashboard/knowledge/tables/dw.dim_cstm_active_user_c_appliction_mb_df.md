@@ -1,4 +1,4 @@
-﻿# dw.dim_cstm_active_user_c_appliction_mb_df
+# dw.dim_cstm_active_user_c_appliction_mb_df
 
 ## 1. 中文名称
 

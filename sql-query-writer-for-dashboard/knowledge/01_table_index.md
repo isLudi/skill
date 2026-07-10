@@ -1,4 +1,4 @@
-﻿# 表索引
+# 表索引
 
 > 由 `scripts/import_baijia_external_knowledge.py` 根据百家字段目录和既有临时表文档更新。库名前缀或字段口径为待确认时，生成生产 SQL 前必须人工确认。所有表在 Web 查询环境（Playwright）中均可正常使用。
 

@@ -1,4 +1,4 @@
 interface:
-  display_name: "青橙看板 SQL"
-  short_description: "青橙项目部独立看板 SQL、指标和临时表知识库专用入口"
-  default_prompt: "Use $qingcheng-dashboard-sql to generate or maintain Qingcheng dashboard Presto SQL from its isolated knowledge base."
+  display_name: "青橙 Text2SQL"
+  short_description: "解析青橙独立语义契约并规划、校验受控 Presto SQL。"
+  default_prompt: "Use $qingcheng-dashboard-sql to resolve confirmed Qingcheng contracts, build a QuerySpec and QueryPlan, and compile only executable metrics with automatic_compile=true or generate bounded read-only probes while keeping pending and consultant-alias ambiguities unresolved."

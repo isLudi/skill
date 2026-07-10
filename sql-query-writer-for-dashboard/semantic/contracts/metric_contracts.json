@@ -1,0 +1,430 @@
+{
+  "schema_version": "2.0.0",
+  "domain": "market_consultant",
+  "contracts": [
+    {
+      "id": "market_consultant:metric:conversion_users",
+      "name": "转化人数",
+      "aliases": [
+        "支付人数",
+        "成交人数",
+        "转化用户数",
+        "pay_users"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
+      "source_sha256": "f7131b48bd29a7d44c24002dbc08a90d1039e17dca778de98b3e6c0e52a447dc",
+      "description": "历史市场顾问转化看板明确输出的截面转化线索人数。",
+      "sql_expression": "sum({base}.conversion_lead_count)",
+      "output_alias": "pay_users",
+      "aggregation": "sum",
+      "automatic_compile": true,
+      "candidate_tables": [
+        "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df"
+      ],
+      "calculation_grain": [
+        "period_name",
+        "channel_map",
+        "employee_email_name"
+      ],
+      "allowed_dimensions": [
+        "market_consultant:dimension:period_name",
+        "market_consultant:dimension:channel_map",
+        "market_consultant:dimension:stats_grade_name",
+        "market_consultant:dimension:employee_email_name",
+        "market_consultant:dimension:virtual_manager",
+        "market_consultant:dimension:virtual_supervisor"
+      ],
+      "required_scope_fields": [
+        "dt",
+        "hour",
+        "section_assign_employee_first_level_department_name",
+        "section_assign_employee_second_level_department_name",
+        "section_assign_employee_third_level_department_name",
+        "period_mapping_first_level_department_name"
+      ],
+      "notes": "confirmed 表示公式已由当前业务域文档和对应 Raw SQL 明确记录，不代表所有展示场景无需重新确认范围与粒度。"
+    },
+    {
+      "id": "market_consultant:metric:same_period_conversion_users",
+      "name": "当期转化人数",
+      "aliases": [
+        "当期转化",
+        "当期支付人数",
+        "同线索期转化人数",
+        "当期成交人数",
+        "pay_users_on_period"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
+      "source_sha256": "f7131b48bd29a7d44c24002dbc08a90d1039e17dca778de98b3e6c0e52a447dc",
+      "description": "同一线索期内完成转化的线索人数。",
+      "sql_expression": "sum({base}.same_lead_period_conversion_lead_count)",
+      "output_alias": "pay_users_on_period",
+      "aggregation": "sum",
+      "automatic_compile": true,
+      "candidate_tables": [
+        "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df"
+      ],
+      "calculation_grain": [
+        "period_name",
+        "channel_map",
+        "employee_email_name"
+      ],
+      "allowed_dimensions": [
+        "market_consultant:dimension:period_name",
+        "market_consultant:dimension:channel_map",
+        "market_consultant:dimension:stats_grade_name",
+        "market_consultant:dimension:employee_email_name",
+        "market_consultant:dimension:virtual_manager",
+        "market_consultant:dimension:virtual_supervisor"
+      ],
+      "required_scope_fields": [
+        "dt",
+        "hour",
+        "section_assign_employee_first_level_department_name",
+        "section_assign_employee_second_level_department_name",
+        "section_assign_employee_third_level_department_name",
+        "period_mapping_first_level_department_name"
+      ]
+    },
+    {
+      "id": "market_consultant:metric:cross_period_conversion_users",
+      "name": "跨期转化人数",
+      "aliases": [
+        "非当期转化人数",
+        "跨期支付人数",
+        "跨期成交人数",
+        "pay_users_not_on_period"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
+      "source_sha256": "f7131b48bd29a7d44c24002dbc08a90d1039e17dca778de98b3e6c0e52a447dc",
+      "description": "截面转化人数扣除同线索期转化人数。",
+      "sql_expression": "sum({base}.conversion_lead_count - {base}.same_lead_period_conversion_lead_count)",
+      "output_alias": "pay_users_not_on_period",
+      "aggregation": "sum",
+      "automatic_compile": true,
+      "candidate_tables": [
+        "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df"
+      ],
+      "calculation_grain": [
+        "period_name",
+        "channel_map",
+        "employee_email_name"
+      ],
+      "allowed_dimensions": [
+        "market_consultant:dimension:period_name",
+        "market_consultant:dimension:channel_map",
+        "market_consultant:dimension:stats_grade_name",
+        "market_consultant:dimension:employee_email_name",
+        "market_consultant:dimension:virtual_manager",
+        "market_consultant:dimension:virtual_supervisor"
+      ],
+      "required_scope_fields": [
+        "dt",
+        "hour",
+        "section_assign_employee_first_level_department_name",
+        "section_assign_employee_second_level_department_name",
+        "section_assign_employee_third_level_department_name",
+        "period_mapping_first_level_department_name"
+      ]
+    },
+    {
+      "id": "market_consultant:metric:conversion_subject_count",
+      "name": "转化科目人次",
+      "aliases": [
+        "成交科目人次",
+        "支付科目人次",
+        "订单转化人次",
+        "pay_user_subs"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
+      "source_sha256": "f7131b48bd29a7d44c24002dbc08a90d1039e17dca778de98b3e6c0e52a447dc",
+      "description": "截面转化科目人次，不等同于去重用户数。",
+      "sql_expression": "sum({base}.subject_count)",
+      "output_alias": "pay_user_subs",
+      "aggregation": "sum",
+      "automatic_compile": true,
+      "candidate_tables": [
+        "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df"
+      ],
+      "calculation_grain": [
+        "period_name",
+        "channel_map",
+        "employee_email_name"
+      ],
+      "allowed_dimensions": [
+        "market_consultant:dimension:period_name",
+        "market_consultant:dimension:channel_map",
+        "market_consultant:dimension:stats_grade_name",
+        "market_consultant:dimension:employee_email_name",
+        "market_consultant:dimension:virtual_manager",
+        "market_consultant:dimension:virtual_supervisor"
+      ],
+      "required_scope_fields": [
+        "dt",
+        "hour",
+        "section_assign_employee_first_level_department_name",
+        "section_assign_employee_second_level_department_name",
+        "section_assign_employee_third_level_department_name",
+        "period_mapping_first_level_department_name"
+      ]
+    },
+    {
+      "id": "market_consultant:metric:same_period_conversion_subject_count",
+      "name": "当期转化科目人次",
+      "aliases": [
+        "当期转化",
+        "当期成交科目人次",
+        "当期支付科目人次",
+        "同线索期科目人次",
+        "pay_user_subs_on_period"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
+      "source_sha256": "f7131b48bd29a7d44c24002dbc08a90d1039e17dca778de98b3e6c0e52a447dc",
+      "description": "同一线索期内完成转化的科目人次。",
+      "sql_expression": "sum({base}.same_lead_period_subject_count)",
+      "output_alias": "pay_user_subs_on_period",
+      "aggregation": "sum",
+      "automatic_compile": true,
+      "candidate_tables": [
+        "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df"
+      ],
+      "calculation_grain": [
+        "period_name",
+        "channel_map",
+        "employee_email_name"
+      ],
+      "allowed_dimensions": [
+        "market_consultant:dimension:period_name",
+        "market_consultant:dimension:channel_map",
+        "market_consultant:dimension:stats_grade_name",
+        "market_consultant:dimension:employee_email_name",
+        "market_consultant:dimension:virtual_manager",
+        "market_consultant:dimension:virtual_supervisor"
+      ],
+      "required_scope_fields": [
+        "dt",
+        "hour",
+        "section_assign_employee_first_level_department_name",
+        "section_assign_employee_second_level_department_name",
+        "section_assign_employee_third_level_department_name",
+        "period_mapping_first_level_department_name"
+      ]
+    },
+    {
+      "id": "market_consultant:metric:cross_period_conversion_subject_count",
+      "name": "跨期转化科目人次",
+      "aliases": [
+        "非当期转化科目人次",
+        "跨期成交科目人次",
+        "跨期支付科目人次",
+        "pay_user_subs_not_on_period"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
+      "source_sha256": "f7131b48bd29a7d44c24002dbc08a90d1039e17dca778de98b3e6c0e52a447dc",
+      "description": "截面转化科目人次扣除同线索期转化科目人次。",
+      "sql_expression": "sum({base}.subject_count - {base}.same_lead_period_subject_count)",
+      "output_alias": "pay_user_subs_not_on_period",
+      "aggregation": "sum",
+      "automatic_compile": true,
+      "candidate_tables": [
+        "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df"
+      ],
+      "calculation_grain": [
+        "period_name",
+        "channel_map",
+        "employee_email_name"
+      ],
+      "allowed_dimensions": [
+        "market_consultant:dimension:period_name",
+        "market_consultant:dimension:channel_map",
+        "market_consultant:dimension:stats_grade_name",
+        "market_consultant:dimension:employee_email_name",
+        "market_consultant:dimension:virtual_manager",
+        "market_consultant:dimension:virtual_supervisor"
+      ],
+      "required_scope_fields": [
+        "dt",
+        "hour",
+        "section_assign_employee_first_level_department_name",
+        "section_assign_employee_second_level_department_name",
+        "section_assign_employee_third_level_department_name",
+        "period_mapping_first_level_department_name"
+      ]
+    },
+    {
+      "id": "market_consultant:metric:first_call_within_24h_rate",
+      "name": "24小时外呼率",
+      "aliases": [
+        "24h外呼率",
+        "24小时首呼率",
+        "24h首呼及时率",
+        "first_call_24h_rate"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/outbound_call_process_metrics.md",
+      "source_sha256": "459a7f3e52ed291e96e533f05ad2f669442c0a8affe0c9dfa83738383bd73e5e",
+      "description": "24 小时内完成首呼的有效线索数除以有效线索数。",
+      "sql_expression": "coalesce(sum({base}.first_call_in_24h) / nullif(sum({base}.valid_lead_count), 0), 0)",
+      "output_alias": "first_call_24h_rate",
+      "aggregation": "ratio_of_sums",
+      "automatic_compile": false,
+      "candidate_tables": [
+        "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+        "service_dw.app_h_crm_lead_employee_workload_detail_hf"
+      ],
+      "calculation_grain": [
+        "period_name",
+        "channel_map",
+        "employee_email_name"
+      ],
+      "allowed_dimensions": [
+        "market_consultant:dimension:period_name",
+        "market_consultant:dimension:channel_map",
+        "market_consultant:dimension:stats_grade_name",
+        "market_consultant:dimension:employee_email_name",
+        "market_consultant:dimension:virtual_manager",
+        "market_consultant:dimension:virtual_supervisor"
+      ],
+      "required_scope_fields": [
+        "dt",
+        "hour",
+        "section_assign_employee_first_level_department_name",
+        "section_assign_employee_second_level_department_name",
+        "virtual_third_department_name",
+        "period_mapping_first_level_department_name",
+        "period_mapping_second_level_department_name"
+      ],
+      "notes": "比率必须在最终聚合粒度按分子分母重算，禁止对行级比率求和或平均。"
+    },
+    {
+      "id": "market_consultant:metric:first_call_task_rate",
+      "name": "首call任务率",
+      "aliases": [
+        "首call率",
+        "首呼任务率",
+        "CRM首call率",
+        "first_call_task_rate"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/outbound_call_process_metrics.md",
+      "source_sha256": "459a7f3e52ed291e96e533f05ad2f669442c0a8affe0c9dfa83738383bd73e5e",
+      "description": "已完成 CRM 首 call 任务的有效线索数除以有效线索数。",
+      "sql_expression": "coalesce(sum({base}.is_f_call) / nullif(sum({base}.valid_lead_count), 0), 0)",
+      "output_alias": "first_call_task_rate",
+      "aggregation": "ratio_of_sums",
+      "automatic_compile": false,
+      "candidate_tables": [
+        "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+        "gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf",
+        "finance_dw.dim_finance_employee_df"
+      ],
+      "calculation_grain": [
+        "period_name",
+        "employee_email_name"
+      ],
+      "allowed_dimensions": [
+        "market_consultant:dimension:period_name",
+        "market_consultant:dimension:channel_map",
+        "market_consultant:dimension:stats_grade_name",
+        "market_consultant:dimension:employee_email_name",
+        "market_consultant:dimension:virtual_manager",
+        "market_consultant:dimension:virtual_supervisor"
+      ],
+      "required_scope_fields": [
+        "dt",
+        "hour",
+        "section_assign_employee_first_level_department_name",
+        "section_assign_employee_second_level_department_name",
+        "virtual_third_department_name",
+        "period_mapping_first_level_department_name",
+        "period_mapping_second_level_department_name"
+      ],
+      "notes": "is_f_call 必须由首 call 任务表 first_call_status = 3 经 account_id 员工维桥接生成，禁止从旧过程表 call_answer_lead_count 取值。"
+    },
+    {
+      "id": "market_consultant:metric:lead_count",
+      "name": "线索数",
+      "aliases": [
+        "进线量",
+        "线索量",
+        "lead_count"
+      ],
+      "status": "pending_confirmation",
+      "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
+      "source_sha256": "f7131b48bd29a7d44c24002dbc08a90d1039e17dca778de98b3e6c0e52a447dc",
+      "description": "历史转化看板对抖音私域使用 merge_assign_lead_count，其他渠道使用 lead_count。",
+      "sql_expression": "sum(case when {base}.channel_map = '抖音私域' then {base}.merge_assign_lead_count else {base}.lead_count end)",
+      "output_alias": "lead_count",
+      "aggregation": "sum",
+      "candidate_tables": [
+        "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df"
+      ],
+      "calculation_grain": [
+        "period_name",
+        "channel_map",
+        "employee_email_name"
+      ],
+      "allowed_dimensions": [
+        "market_consultant:dimension:period_name",
+        "market_consultant:dimension:channel_map",
+        "market_consultant:dimension:stats_grade_name",
+        "market_consultant:dimension:employee_email_name"
+      ],
+      "required_scope_fields": [
+        "dt",
+        "hour",
+        "section_assign_employee_first_level_department_name",
+        "section_assign_employee_second_level_department_name",
+        "section_assign_employee_third_level_department_name",
+        "period_mapping_first_level_department_name"
+      ],
+      "notes": "抖音私域合并线索口径尚未由独立业务指标文档确认，生产编译前必须确认是否沿用该特殊分支。"
+    },
+    {
+      "id": "market_consultant:metric:valid_lead_count",
+      "name": "有效线索数",
+      "aliases": [
+        "退后线索",
+        "有效量",
+        "can_renew_ds_count_a",
+        "valid_lead_count"
+      ],
+      "status": "pending_confirmation",
+      "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
+      "source_sha256": "f7131b48bd29a7d44c24002dbc08a90d1039e17dca778de98b3e6c0e52a447dc",
+      "description": "历史转化看板对抖音私域使用 merge_valid_lead_count，其他渠道使用 valid_lead_count。",
+      "sql_expression": "sum(case when {base}.channel_map = '抖音私域' then {base}.merge_valid_lead_count else {base}.valid_lead_count end)",
+      "output_alias": "can_renew_ds_count_a",
+      "aggregation": "sum",
+      "candidate_tables": [
+        "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df"
+      ],
+      "calculation_grain": [
+        "period_name",
+        "channel_map",
+        "employee_email_name"
+      ],
+      "allowed_dimensions": [
+        "market_consultant:dimension:period_name",
+        "market_consultant:dimension:channel_map",
+        "market_consultant:dimension:stats_grade_name",
+        "market_consultant:dimension:employee_email_name"
+      ],
+      "required_scope_fields": [
+        "dt",
+        "hour",
+        "section_assign_employee_first_level_department_name",
+        "section_assign_employee_second_level_department_name",
+        "section_assign_employee_third_level_department_name",
+        "period_mapping_first_level_department_name"
+      ],
+      "notes": "抖音私域合并有效线索口径尚未由独立业务指标文档确认；其他看板可能直接 sum(valid_lead_count)，不得静默混用。"
+    }
+  ]
+}

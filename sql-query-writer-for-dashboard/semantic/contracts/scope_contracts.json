@@ -1,0 +1,185 @@
+{
+  "schema_version": "2.0.0",
+  "domain": "market_consultant",
+  "contracts": [
+    {
+      "id": "market_consultant:scope:conversion_dashboard",
+      "name": "市场顾问转化看板范围",
+      "aliases": [
+        "市场顾问转化范围",
+        "转化看板部门范围",
+        "conversion_scope"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
+      "source_sha256": "f7131b48bd29a7d44c24002dbc08a90d1039e17dca778de98b3e6c0e52a447dc",
+      "description": "市场顾问转化看板主全链路表的分区与部门范围。",
+      "candidate_tables": [
+        "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df"
+      ],
+      "filters": [
+        {
+          "field": "dt",
+          "operator": "=",
+          "placeholder": "<YYYYMMDD>"
+        },
+        {
+          "field": "hour",
+          "operator": "=",
+          "placeholder": "<HH>"
+        },
+        {
+          "field": "section_assign_employee_first_level_department_name",
+          "operator": "=",
+          "value": "H业务线"
+        },
+        {
+          "field": "section_assign_employee_second_level_department_name",
+          "operator": "=",
+          "value": "市场部"
+        },
+        {
+          "field": "section_assign_employee_third_level_department_name",
+          "operator": "=",
+          "value": "市场顾问部"
+        },
+        {
+          "field": "period_mapping_first_level_department_name",
+          "operator": "=",
+          "value": "H业务线"
+        }
+      ],
+      "notes": "dt/hour 必须在执行前解析为目标分区；不得沿用文档中的历史 now 偏移而不先检查数据新鲜度。"
+    },
+    {
+      "id": "market_consultant:scope:outbound_dashboard",
+      "name": "市场顾问外呼看板范围",
+      "aliases": [
+        "外呼过程范围",
+        "市场顾问外呼范围",
+        "outbound_scope"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/outbound_call_process_metrics.md",
+      "source_sha256": "459a7f3e52ed291e96e533f05ad2f669442c0a8affe0c9dfa83738383bd73e5e",
+      "description": "外呼过程看板主线索的分区、截面部门、虚拟架构和期次归属范围。",
+      "candidate_tables": [
+        "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df"
+      ],
+      "filters": [
+        {
+          "field": "dt",
+          "operator": "=",
+          "placeholder": "<YYYYMMDD>"
+        },
+        {
+          "field": "hour",
+          "operator": "=",
+          "placeholder": "<HH>"
+        },
+        {
+          "field": "section_assign_employee_first_level_department_name",
+          "operator": "=",
+          "value": "H业务线"
+        },
+        {
+          "field": "section_assign_employee_second_level_department_name",
+          "operator": "=",
+          "value": "市场部"
+        },
+        {
+          "field": "virtual_third_department_name",
+          "operator": "=",
+          "value": "市场顾问部"
+        },
+        {
+          "field": "period_mapping_first_level_department_name",
+          "operator": "=",
+          "value": "H业务线"
+        },
+        {
+          "field": "period_mapping_second_level_department_name",
+          "operator": "in",
+          "value": [
+            "市场部",
+            "精品班学部"
+          ]
+        }
+      ],
+      "notes": "外呼看板明确允许期次映射二级部门为精品班学部，不能把该值误判为跨域并自动剔除。"
+    },
+    {
+      "id": "market_consultant:scope:finance_performance",
+      "name": "市场顾问财务业绩范围",
+      "aliases": [
+        "财务流水部门范围",
+        "市场顾问退款范围",
+        "finance_performance_scope"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/03_range_limit_rules.md",
+      "source_sha256": "e457997c593c8c6b46f69126923a217f513236045143f5396dd02a56b5c53755",
+      "description": "财务业绩明细用于市场顾问销售和退款分析时的员工归属范围。",
+      "candidate_tables": [
+        "finance_dw.app_finance_performance_extend_details_hf"
+      ],
+      "filters": [
+        {
+          "field": "dt",
+          "operator": "=",
+          "placeholder": "<YYYYMMDD>"
+        },
+        {
+          "field": "hour",
+          "operator": "=",
+          "placeholder": "<HH>"
+        },
+        {
+          "field": "employee_first_level_department_name",
+          "operator": "=",
+          "value": "H业务线"
+        },
+        {
+          "field": "employee_second_level_department_name",
+          "operator": "=",
+          "value": "市场部"
+        },
+        {
+          "field": "employee_third_level_department_name",
+          "operator": "=",
+          "value": "市场顾问部"
+        }
+      ],
+      "notes": "课程部门范围与员工归属范围不是同一语义；按课程维度分析退款时必须另行确认 course_* 范围。"
+    },
+    {
+      "id": "market_consultant:scope:period_half_open_range",
+      "name": "期次半开区间",
+      "aliases": [
+        "期次范围",
+        "期次起止",
+        "period_range"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/03_range_limit_rules.md",
+      "source_sha256": "e457997c593c8c6b46f69126923a217f513236045143f5396dd02a56b5c53755",
+      "description": "平台模板查询对期次字段使用同名参数的左闭右开区间。",
+      "candidate_tables": [
+        "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df"
+      ],
+      "filters": [
+        {
+          "field": "period_name",
+          "operator": ">=",
+          "placeholder": "${period_name:1}"
+        },
+        {
+          "field": "period_name",
+          "operator": "<",
+          "placeholder": "${period_name:2}"
+        }
+      ],
+      "notes": "参数名必须与过滤列名一致，不得改写为 begin_period/end_period，也不得对字段或模板参数包 cast、date、substr。"
+    }
+  ]
+}
