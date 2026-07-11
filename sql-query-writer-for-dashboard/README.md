@@ -26,7 +26,7 @@ docs/USAGE_PROMPTS.md
 
 ## 1. Skill 是什么
 
-这是一个公司内部看板取数 SQL 生成 Skill。它基于表结构 PDF、字段知识库、指标口径、历史看板 SQL、join 关系和查询平台约束，生成 Presto SQL，并输出可审核的解释。
+这是一个公司内部看板取数 SQL 生成 Skill。它基于数据地图物理字段覆盖层、指标口径、历史看板 SQL、join 关系和查询平台约束，生成 Presto SQL，并输出可审核的解释。
 
 ## 2. 适用场景
 
@@ -45,37 +45,22 @@ docs/USAGE_PROMPTS.md
 - 缺少分区条件、部门范围限定或指标口径仍不清楚的大表全量扫描。
 - 需要实时写入、DDL、DML 或删除数据的操作。
 
-## 4. 如何上传新的表结构 PDF
+## 4. 如何维护物理表字段
 
-后续新增表结构时，将 PDF 放入：
+物理表字段统一通过 `usql-web-query-operator` 的数据地图命令探查和同步，不再上传或解析表结构 PDF、截图、页面渲染图或手工字段目录 JSON：
 
-```text
-resources/raw_pdfs/
+```powershell
+D:\anaconda3\python.exe ..\usql-web-query-operator\scripts\usql_web_query.py sync-datamap-fields --target-skill market
 ```
 
-然后运行或调用：
+默认 dry-run。确认差异后再加 `--write`。数据地图只提供表名、字段、类型、分区和 DDL 等物理事实；市场顾问业务含义、范围、Join 与指标口径仍以本 Skill 的业务文档和 confirmed contract 为准。
 
-```bash
-python scripts/extract_pdf_to_md.py
-python scripts/normalize_schema_md.py
-```
+## 5. 字段来源边界
 
-## 5. 如何将 PDF 转成 MD
-
-`scripts/extract_pdf_to_md.py` 会尝试用 PyMuPDF 或 pdfplumber 抽取文本；图片型页面会渲染到：
-
-```text
-resources/rendered_pages/
-```
-
-脚本会生成：
-
-```text
-resources/pdf_extract_report.md
-knowledge/tables/*.md
-```
-
-无法可靠识别的字段会写成“待人工确认”，不会静默丢弃。
+- `knowledge/tables/` 保存当前物理字段覆盖层和市场顾问使用备注。
+- 数据地图未登记、登录失败或字段身份不唯一时，停止自动写入并保留待确认状态。
+- `temp_table.*` 不走数据地图，继续以本地表格、SQL 使用证据和人工确认维护。
+- 临时截图、HTML 和接口缓存只放在 `C:\Users\Ludim\.codex\runtime\`，不进入业务 Skill。
 
 ## 6. 如何新增看板 SQL
 
@@ -97,13 +82,7 @@ python scripts/ingest_dashboard_sql.py
 
 优先在 `knowledge/metrics/` 里新增一个指标文件，使用 `_metric_template.md` 的结构。
 
-新增指标定义图片时，将图片放入：
-
-```text
-resources/raw_images/
-```
-
-若图片无法被自动识别，则在 `knowledge/metrics/` 中手工补充，不得擅自猜测指标定义。
+指标必须在 `knowledge/metrics/` 中形成唯一当前定义，并绑定 dashboard/raw SQL、字段公式或其他可复核业务证据。临时截图只用于 runtime 诊断，不作为长期权威口径。
 
 ## 8. 如何更新 Web BI 看板结构快照
 
@@ -117,22 +96,13 @@ knowledge/dashboard_web_profiles/
 
 ## 9. 如何更新表索引
 
-运行：
+数据地图写入后依次重建反向索引、共享 catalog、域内完整性和完整 Text2SQL stack：
 
 ```bash
-python scripts/normalize_schema_md.py
-```
-
-脚本会检查表结构 Markdown，并更新：
-
-```text
-knowledge/01_table_index.md
-```
-
-维护后建议运行结构自检：
-
-```bash
+python scripts/build_reverse_indexes.py
+python ../scripts/build_text2sql_catalog.py
 python scripts/check_skill_integrity.py
+python ../scripts/validate_text2sql_stack.py
 ```
 
 ## 10. 如何让 Code X 生成探索型 SQL

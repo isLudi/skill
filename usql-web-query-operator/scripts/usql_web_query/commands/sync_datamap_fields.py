@@ -24,6 +24,7 @@ from usql_web_query.knowledge_field_sync import (
 
 
 def cmd_sync_datamap_fields(args: argparse.Namespace) -> int:
+    validate_datamap_write_mode(args)
     load_env_file(args.env_file)
     targets = _resolve_targets(args)
     table_names = discover_tables(targets, args.table)
@@ -45,6 +46,7 @@ def cmd_sync_datamap_fields(args: argparse.Namespace) -> int:
 
     run_date = date.fromisoformat(args.run_date) if args.run_date else date.today()
     summaries = []
+    results = []
     maintenance_failed = False
     for target in targets:
         result = sync_skill_target(
@@ -56,18 +58,30 @@ def cmd_sync_datamap_fields(args: argparse.Namespace) -> int:
         )
         if args.update_changelog:
             append_changelog(target, result, run_date=run_date, write=args.write)
-        if args.write and (result.changed_files or result.changelog_updated):
-            try:
-                result.maintenance = run_maintenance(
-                    target,
-                    rebuild_indexes=args.rebuild_indexes,
-                    check_integrity=args.check_integrity,
-                    enabled=True,
-                )
-            except UsageError:
-                maintenance_failed = True
-                raise
-        summaries.append(result.to_json())
+        results.append(result)
+
+    changed_targets = [
+        target
+        for target, result in zip(targets, results)
+        if result.changed_files or result.changelog_updated
+    ]
+    if args.write and changed_targets:
+        try:
+            maintenance = run_maintenance(
+                changed_targets,
+                rebuild_indexes=args.rebuild_indexes,
+                build_catalog=args.build_catalog,
+                check_integrity=args.check_integrity,
+                validate_stack=args.validate_stack,
+                enabled=True,
+            )
+            for result in results:
+                if result.changed_files or result.changelog_updated:
+                    result.maintenance = maintenance
+        except UsageError:
+            maintenance_failed = True
+            raise
+    summaries = [result.to_json() for result in results]
 
     output = {
         "ok": not maintenance_failed,
@@ -81,6 +95,21 @@ def cmd_sync_datamap_fields(args: argparse.Namespace) -> int:
     }
     print(json.dumps(output, ensure_ascii=False, indent=2))
     return 0
+
+
+def validate_datamap_write_mode(args: argparse.Namespace) -> None:
+    if not args.write:
+        return
+    disabled = [
+        name
+        for name in ("rebuild_indexes", "build_catalog", "check_integrity", "validate_stack")
+        if not getattr(args, name, False)
+    ]
+    if disabled:
+        raise UsageError(
+            "unsafe Data Map write options; mandatory maintenance cannot be disabled: "
+            + ", ".join(disabled)
+        )
 
 
 def _refresh_datamap_catalog(args: argparse.Namespace, table_names: list[str], catalog: dict[str, object]) -> dict[str, object]:

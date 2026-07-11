@@ -114,6 +114,8 @@ D:\anaconda3\python.exe scripts\usql_web_query.py sync-datamap-fields --target-s
 
 默认是 dry-run：脚本登录数据地图，查找目标 skill 知识库中已有的物理表文档，对比数据地图字段和 `knowledge/tables/*.md`，只打印 JSON summary，不写文件。
 
+该命令是两个业务 SQL Skill 的物理表字段权威维护入口。业务 Skill 不再保存表结构 PDF、字段截图、页面渲染图或手工字段目录 JSON；数据地图登录态、接口缓存和调试制品只保存在 runtime。数据地图负责物理事实，不得据此推断部门指标、范围、Join 或业务口径。
+
 确认需要更新知识库后再加 `--write`：
 
 ```powershell
@@ -137,7 +139,7 @@ D:\anaconda3\python.exe scripts\usql_web_query.py sync-datamap-fields `
 - 跳过 `temp_table.*` 文档。手工临时表来自本地 Excel/SQL 规则，不从数据地图维护。
 - 只替换占位的类型/说明单元格，或在带日期的 `数据地图字段补充（YYYY-MM-DD）` 段落下追加缺失字段，不覆盖已有业务语义。
 - 数据地图浏览器登录态和字段缓存保存在 `C:\Users\Ludim\.codex\runtime\data-map\`，不会写入 skill 目录。
-- 使用 `--write` 且确实产生字段变更时，会追加 changelog，并默认运行目标 skill 的 `scripts/build_reverse_indexes.py` 和 `scripts/check_skill_integrity.py`。
+- 使用 `--write` 且确实产生字段变更时，会追加 changelog，并强制运行目标 skill 的反向索引、仓库级 catalog builder、目标 skill integrity 和完整 `validate_text2sql_stack.py`；这些门禁不能通过 `--no-*` 关闭。
 - 使用 `--no-refresh-datamap` 可只从本地 runtime 缓存同步；使用 `--only-missing-cache` 可只刷新新增表。
 
 ## 数据中心源 SQL 同步

@@ -99,7 +99,7 @@ limit 100;
 
 ## 11. 注意事项
 
-- 该表来自 SQL 使用字段推断，不是 Excel/Word/PDF 结构确认结果。
+- 该表来自 SQL 使用字段推断，尚未通过源表或平台结构接口确认。
 - 仅确认 `channel` 在 SQL 中作为 join key 出现。
 - `channel_group` 为同类表口径推断字段，使用前必须通过平台 `desc temp_table.shenbaoxin_channel_group` 或表格源文件确认。
 - 临时表无分区，直接探索必须加 `limit`。

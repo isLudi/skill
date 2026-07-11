@@ -6597,7 +6597,7 @@
         {
           "domain": "market_consultant",
           "source_path": "sql-query-writer-for-dashboard/knowledge/tables/dw.dim_cstm_active_user_c_appliction_mb_df.md",
-          "sha256": "35ef1672064ee5453104ff0ab7a01c3b330a2ca1f56e7b186da7330172f0afa5"
+          "sha256": "c8ac381f9248af1e1c3c0ef459dae09df7f80d0e340cbb360535806fd401562e"
         },
         {
           "domain": "qingcheng",
@@ -7551,7 +7551,7 @@
         {
           "domain": "market_consultant",
           "source_path": "sql-query-writer-for-dashboard/knowledge/tables/dw.dws_user_active_user_c_appliction_hf.md",
-          "sha256": "f3f69bcb5f83041c1909c8ddd949bd27286e565a1306c59a52ea67e3c1da9fd4"
+          "sha256": "89ca71f8750e1b589666e5338ee62f23ee432fe7fecc4c8548b4a4689d3cce38"
         },
         {
           "domain": "qingcheng",
@@ -13176,7 +13176,7 @@
         {
           "domain": "market_consultant",
           "source_path": "sql-query-writer-for-dashboard/knowledge/tables/README.md",
-          "sha256": "99608d4b65d11328fd9bcb16732ebc73f643cc7316f3b5173e8727390e8eadfa"
+          "sha256": "cc12bfdc26aa9077063ff1172d4f03b82702a8d3037e9adc46424d3fc9a24840"
         }
       ],
       "columns": [],
@@ -13195,7 +13195,7 @@
         {
           "domain": "market_consultant",
           "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.app_h_crm_lead_employee_workload_detail_hf.md",
-          "sha256": "6afd2b61a207fdde81f602826134f4fb4bc57408f3b2ece5b781774a77b10532"
+          "sha256": "f9cf64f83f4cc745168ce453c4b046fe8e0d2bde63ecce3f59b7081cc1018e79"
         },
         {
           "domain": "qingcheng",
@@ -14051,7 +14051,7 @@
         {
           "domain": "market_consultant",
           "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.app_h_crm_lead_task_process_info_detail_hf.md",
-          "sha256": "41a47db630cd72053fb50dcd0bfff53c637d64a54c9f7613700a1e28e6f3a0ec"
+          "sha256": "6d36b7c5c2a5b044b16a604143df2add02ad80856884785f499378a08e6a64bb"
         },
         {
           "domain": "qingcheng",
@@ -15933,7 +15933,7 @@
         {
           "domain": "market_consultant",
           "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.app_user_attribute_label_gaia_wide_df.md",
-          "sha256": "b9befa1a249d382a10affd91b41dcd52469f5686e14b9141b9cf7f7a9a2c0b92"
+          "sha256": "4babba0a1651a9be9019999ba17c5cb30bdf5044a988d8e26d8d9ee53f274693"
         },
         {
           "domain": "qingcheng",
@@ -18878,7 +18878,7 @@
         {
           "domain": "market_consultant",
           "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dm_crm_lead_stats_detail_hf.md",
-          "sha256": "2404d4e61c0f95d7a7a0a8377f2f576890faac8b572c71e538661414c4880a46"
+          "sha256": "7339e2e9d8cc6b1aad03003c95923b22cbe23702d6e510296676ca6cc2077e64"
         },
         {
           "domain": "qingcheng",
@@ -26340,7 +26340,7 @@
         {
           "domain": "market_consultant",
           "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md",
-          "sha256": "e2f66f6774369a91c214efce0ee1cf6f39a418b7074fff864ccf46956b4b9395"
+          "sha256": "837d9824b595fe81e23e324d4b428b6d76dc94ae87dac195ae3a1f9fce30c280"
         }
       ],
       "columns": [
@@ -30294,7 +30294,7 @@
         {
           "domain": "market_consultant",
           "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dws_service_user_learn_detail_hf.md",
-          "sha256": "c1047bd8c907fbab82884d33147bae7049ebdda970953ae1ae9467509b303978"
+          "sha256": "1dac21c4e752cb88e71b6efbe8eb4128082aaa13ad7673a0e6a69e35dc5cf355"
         },
         {
           "domain": "qingcheng",

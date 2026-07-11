@@ -768,3 +768,10 @@
 - 将 37 个市场顾问数据中心 SQL 一次性迁移为 `data_center_market_<model_id>.sql` 稳定路径；版本日期不再进入文件名，历史内容由 Git 与 changelog 追溯。
 - 新增 `semantic/current_model_bindings.json`，登记 37 个 current model 的稳定路径、SQL SHA-256 和数据集元数据，并绑定 2349 退款金额结构、2890 多科退费、2353 退费原因三个当前语义槽位及看板证据。
 - 数据中心更新改为 `dry-run plan -> exact plan hash -> atomic apply -> mandatory validation`；跨 model 替代必须同计划更新语义槽位并显式退役旧模型，任一维护门禁失败自动恢复写前快照。
+
+## 2026-07-11 物理表字段来源收敛
+
+- 退役初始数据地图 PDF、29 张页面渲染图、空图片目录、PDF 解析报告，以及 PDF/OCR/手工字段目录 JSON 解析脚本；历史 changelog 继续保留原始导入事实，但不再作为当前 Text2SQL 入口。
+- 保留 `knowledge/tables` 已沉淀的全部表字段、业务备注和 confirmed contract，只删除当前文档中的低置信度 PDF/OCR 依赖说明；2026-06-17 数据地图回填记录已确认市场域 19 张物理表字段缺口、类型占位和说明占位均为 0。
+- 物理表字段统一改由 `usql-web-query-operator sync-datamap-fields` 探查和维护；数据地图只提供表名、字段、类型、分区和 DDL 等物理事实，不替代市场顾问指标、范围、Join 或业务口径。
+- 数据地图写入后的反向索引、共享 catalog、域内 integrity 和完整 Text2SQL stack 改为不可关闭的强制门禁，避免表字段更新后知识索引或 contract source hash 漂移。

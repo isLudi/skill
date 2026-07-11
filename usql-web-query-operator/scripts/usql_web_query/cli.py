@@ -130,7 +130,9 @@ def build_parser() -> argparse.ArgumentParser:
     sync_datamap.add_argument("--executable-path", default=None, help="Explicit browser executable path; overrides --browser-channel.")
     sync_datamap.add_argument("--update-changelog", action=argparse.BooleanOptionalAction, default=True, help="Append changelog entry when writing field changes.")
     sync_datamap.add_argument("--rebuild-indexes", action=argparse.BooleanOptionalAction, default=True, help="Run target skill build_reverse_indexes.py after writes.")
+    sync_datamap.add_argument("--build-catalog", action=argparse.BooleanOptionalAction, default=True, help="Rebuild shared Text2SQL manifests and physical catalog after writes.")
     sync_datamap.add_argument("--check-integrity", action=argparse.BooleanOptionalAction, default=True, help="Run target skill check_skill_integrity.py after writes.")
+    sync_datamap.add_argument("--validate-stack", action=argparse.BooleanOptionalAction, default=True, help="Run the complete Text2SQL stack validation after writes.")
     sync_datamap.set_defaults(func=cmd_sync_datamap_fields)
 
     sync_data_center = subparsers.add_parser(

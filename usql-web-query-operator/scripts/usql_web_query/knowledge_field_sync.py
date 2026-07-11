@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -179,17 +180,64 @@ def append_changelog(target: SkillTarget, result: SkillSyncResult, *, run_date: 
     result.changelog_updated = True
 
 
-def run_maintenance(target: SkillTarget, *, rebuild_indexes: bool, check_integrity: bool, enabled: bool) -> list[dict[str, Any]]:
+def run_maintenance(
+    targets: list[SkillTarget],
+    *,
+    rebuild_indexes: bool,
+    build_catalog: bool,
+    check_integrity: bool,
+    validate_stack: bool,
+    enabled: bool,
+) -> list[dict[str, Any]]:
     if not enabled:
         return []
-    commands: list[tuple[str, list[str]]] = []
+    skills_root = Path(__file__).resolve().parents[3]
+    commands: list[tuple[str, list[str], Path]] = []
     if rebuild_indexes:
-        commands.append(("build_reverse_indexes", [sys.executable, "scripts/build_reverse_indexes.py"]))
+        commands.extend(
+            (
+                f"build_reverse_indexes:{target.name}",
+                [sys.executable, "scripts/build_reverse_indexes.py"],
+                target.root,
+            )
+            for target in targets
+        )
+    if build_catalog:
+        commands.append(
+            (
+                "build_text2sql_catalog",
+                [sys.executable, "scripts/build_text2sql_catalog.py"],
+                skills_root,
+            )
+        )
     if check_integrity:
-        commands.append(("check_skill_integrity", [sys.executable, "scripts/check_skill_integrity.py"]))
+        commands.extend(
+            (
+                f"check_skill_integrity:{target.name}",
+                [sys.executable, "scripts/check_skill_integrity.py"],
+                target.root,
+            )
+            for target in targets
+        )
+    if validate_stack:
+        commands.append(
+            (
+                "validate_text2sql_stack",
+                [sys.executable, "scripts/validate_text2sql_stack.py"],
+                skills_root,
+            )
+        )
     results: list[dict[str, Any]] = []
-    for name, command in commands:
-        completed = subprocess.run(command, cwd=target.root, text=True, capture_output=True)
+    for name, command, cwd in commands:
+        completed = subprocess.run(
+            command,
+            cwd=cwd,
+            text=True,
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+            env={**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1"},
+        )
         item = {
             "name": name,
             "returncode": completed.returncode,
@@ -198,7 +246,7 @@ def run_maintenance(target: SkillTarget, *, rebuild_indexes: bool, check_integri
         }
         results.append(item)
         if completed.returncode != 0:
-            raise UsageError(f"{target.name} maintenance command failed: {name}")
+            raise UsageError(f"Data Map maintenance command failed: {name}")
     return results
 
 

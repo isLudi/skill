@@ -1427,8 +1427,8 @@
       {
         "id": "market_consultant:governance:01_table_index",
         "source_path": "knowledge/01_table_index.md",
-        "sha256": "1717676012bf3d3fd149849cf72ad35581877b6aac10ce811d027ed37808f70b",
-        "bytes": 7396,
+        "sha256": "3b0b44b1b0052aa1c642e4b892eacbbb738242ee032aa37ee37bbbd1569c051b",
+        "bytes": 7438,
         "title": "表索引",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -3446,8 +3446,8 @@
       {
         "id": "market_consultant:tables:README",
         "source_path": "knowledge/tables/README.md",
-        "sha256": "99608d4b65d11328fd9bcb16732ebc73f643cc7316f3b5173e8727390e8eadfa",
-        "bytes": 332,
+        "sha256": "cc12bfdc26aa9077063ff1172d4f03b82702a8d3037e9adc46424d3fc9a24840",
+        "bytes": 620,
         "title": "tables 知识库",
         "table_refs": [],
         "raw_sql_refs": [],
@@ -3493,14 +3493,14 @@
       {
         "id": "market_consultant:tables:dw.dim_cstm_active_user_c_appliction_mb_df",
         "source_path": "knowledge/tables/dw.dim_cstm_active_user_c_appliction_mb_df.md",
-        "sha256": "35ef1672064ee5453104ff0ab7a01c3b330a2ca1f56e7b186da7330172f0afa5",
-        "bytes": 4958,
+        "sha256": "c8ac381f9248af1e1c3c0ef459dae09df7f80d0e340cbb360535806fd401562e",
+        "bytes": 4938,
         "title": "dw.dim_cstm_active_user_c_appliction_mb_df",
         "table_refs": [
           "dw.dim_cstm_active_user_c_appliction_mb_df"
         ],
         "raw_sql_refs": [],
-        "status": "pending_confirmation",
+        "status": "documented",
         "table_name": "dw.dim_cstm_active_user_c_appliction_mb_df",
         "aliases": [
           "dw.dim_cstm_active_user_c_appliction_mb_df"
@@ -3526,14 +3526,14 @@
       {
         "id": "market_consultant:tables:dw.dws_user_active_user_c_appliction_hf",
         "source_path": "knowledge/tables/dw.dws_user_active_user_c_appliction_hf.md",
-        "sha256": "f3f69bcb5f83041c1909c8ddd949bd27286e565a1306c59a52ea67e3c1da9fd4",
-        "bytes": 3632,
+        "sha256": "89ca71f8750e1b589666e5338ee62f23ee432fe7fecc4c8548b4a4689d3cce38",
+        "bytes": 3612,
         "title": "dw.dws_user_active_user_c_appliction_hf",
         "table_refs": [
           "dw.dws_user_active_user_c_appliction_hf"
         ],
         "raw_sql_refs": [],
-        "status": "pending_confirmation",
+        "status": "documented",
         "table_name": "dw.dws_user_active_user_c_appliction_hf",
         "aliases": [
           "dw.dws_user_active_user_c_appliction_hf"
@@ -3613,8 +3613,8 @@
       {
         "id": "market_consultant:tables:service_dw.app_h_crm_lead_employee_workload_detail_hf",
         "source_path": "knowledge/tables/service_dw.app_h_crm_lead_employee_workload_detail_hf.md",
-        "sha256": "6afd2b61a207fdde81f602826134f4fb4bc57408f3b2ece5b781774a77b10532",
-        "bytes": 8553,
+        "sha256": "f9cf64f83f4cc745168ce453c4b046fe8e0d2bde63ecce3f59b7081cc1018e79",
+        "bytes": 8530,
         "title": "service_dw.app_h_crm_lead_employee_workload_detail_hf",
         "table_refs": [
           "service_dw.app_h_crm_lead_employee_workload_detail_hf"
@@ -3629,8 +3629,8 @@
       {
         "id": "market_consultant:tables:service_dw.app_h_crm_lead_task_process_info_detail_hf",
         "source_path": "knowledge/tables/service_dw.app_h_crm_lead_task_process_info_detail_hf.md",
-        "sha256": "41a47db630cd72053fb50dcd0bfff53c637d64a54c9f7613700a1e28e6f3a0ec",
-        "bytes": 13562,
+        "sha256": "6d36b7c5c2a5b044b16a604143df2add02ad80856884785f499378a08e6a64bb",
+        "bytes": 13539,
         "title": "service_dw.app_h_crm_lead_task_process_info_detail_hf",
         "table_refs": [
           "finance_dw.dim_finance_employee_df",
@@ -3647,14 +3647,14 @@
       {
         "id": "market_consultant:tables:service_dw.app_user_attribute_label_gaia_wide_df",
         "source_path": "knowledge/tables/service_dw.app_user_attribute_label_gaia_wide_df.md",
-        "sha256": "b9befa1a249d382a10affd91b41dcd52469f5686e14b9141b9cf7f7a9a2c0b92",
-        "bytes": 11370,
+        "sha256": "4babba0a1651a9be9019999ba17c5cb30bdf5044a988d8e26d8d9ee53f274693",
+        "bytes": 11307,
         "title": "service_dw.app_user_attribute_label_gaia_wide_df",
         "table_refs": [
           "service_dw.app_user_attribute_label_gaia_wide_df"
         ],
         "raw_sql_refs": [],
-        "status": "pending_confirmation",
+        "status": "documented",
         "table_name": "service_dw.app_user_attribute_label_gaia_wide_df",
         "aliases": [
           "service_dw.app_user_attribute_label_gaia_wide_df"
@@ -3702,8 +3702,8 @@
       {
         "id": "market_consultant:tables:service_dw.dm_crm_lead_stats_detail_hf",
         "source_path": "knowledge/tables/service_dw.dm_crm_lead_stats_detail_hf.md",
-        "sha256": "2404d4e61c0f95d7a7a0a8377f2f576890faac8b572c71e538661414c4880a46",
-        "bytes": 30767,
+        "sha256": "7339e2e9d8cc6b1aad03003c95923b22cbe23702d6e510296676ca6cc2077e64",
+        "bytes": 30706,
         "title": "service_dw.dm_crm_lead_stats_detail_hf",
         "table_refs": [
           "service_dw.dm_crm_lead_stats_detail_hf"
@@ -3734,8 +3734,8 @@
       {
         "id": "market_consultant:tables:service_dw.dwd_crm_assign_private_detail_hf",
         "source_path": "knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md",
-        "sha256": "e2f66f6774369a91c214efce0ee1cf6f39a418b7074fff864ccf46956b4b9395",
-        "bytes": 9660,
+        "sha256": "837d9824b595fe81e23e324d4b428b6d76dc94ae87dac195ae3a1f9fce30c280",
+        "bytes": 9615,
         "title": "service_dw.dwd_crm_assign_private_detail_hf",
         "table_refs": [
           "service_dw.dwd_crm_assign_private_detail_hf"
@@ -3767,14 +3767,14 @@
       {
         "id": "market_consultant:tables:service_dw.dws_service_user_learn_detail_hf",
         "source_path": "knowledge/tables/service_dw.dws_service_user_learn_detail_hf.md",
-        "sha256": "c1047bd8c907fbab82884d33147bae7049ebdda970953ae1ae9467509b303978",
-        "bytes": 7237,
+        "sha256": "1dac21c4e752cb88e71b6efbe8eb4128082aaa13ad7673a0e6a69e35dc5cf355",
+        "bytes": 7214,
         "title": "service_dw.dws_service_user_learn_detail_hf",
         "table_refs": [
           "service_dw.dws_service_user_learn_detail_hf"
         ],
         "raw_sql_refs": [],
-        "status": "pending_confirmation",
+        "status": "documented",
         "table_name": "service_dw.dws_service_user_learn_detail_hf",
         "aliases": [
           "service_dw.dws_service_user_learn_detail_hf"
@@ -3912,8 +3912,8 @@
       {
         "id": "market_consultant:temp_tables:temp_table.shenbaoxin_channel_group",
         "source_path": "knowledge/tables/temp_table.shenbaoxin_channel_group.md",
-        "sha256": "ed05a6158870495a47280a68f26abc70b2fa45e21575bad7328dec142223063b",
-        "bytes": 2961,
+        "sha256": "15f4b9a0aa855b15181cb0521854b74dd7c6462d10d32959cd78957c83f1af14",
+        "bytes": 2966,
         "title": "temp_table.shenbaoxin_channel_group",
         "table_refs": [
           "temp_table.shenbaoxin_channel_group"
@@ -3950,8 +3950,8 @@
       {
         "id": "market_consultant:update_log:changelog",
         "source_path": "knowledge/update_log/changelog.md",
-        "sha256": "fa02173fee0f750473c76cbb1cd5b076d15442236f79e17cddcdfa7a175e736d",
-        "bytes": 90569,
+        "sha256": "395dd356d4eab97480364e315952d0075cc1c3d957a0cf8707cd88921ddc6a51",
+        "bytes": 91577,
         "title": "更新记录",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -5079,8 +5079,8 @@
     },
     {
       "source_path": "knowledge/01_table_index.md",
-      "sha256": "1717676012bf3d3fd149849cf72ad35581877b6aac10ce811d027ed37808f70b",
-      "bytes": 7396,
+      "sha256": "3b0b44b1b0052aa1c642e4b892eacbbb738242ee032aa37ee37bbbd1569c051b",
+      "bytes": 7438,
       "category": "governance"
     },
     {
@@ -5619,8 +5619,8 @@
     },
     {
       "source_path": "knowledge/tables/README.md",
-      "sha256": "99608d4b65d11328fd9bcb16732ebc73f643cc7316f3b5173e8727390e8eadfa",
-      "bytes": 332,
+      "sha256": "cc12bfdc26aa9077063ff1172d4f03b82702a8d3037e9adc46424d3fc9a24840",
+      "bytes": 620,
       "category": "tables"
     },
     {
@@ -5637,8 +5637,8 @@
     },
     {
       "source_path": "knowledge/tables/dw.dim_cstm_active_user_c_appliction_mb_df.md",
-      "sha256": "35ef1672064ee5453104ff0ab7a01c3b330a2ca1f56e7b186da7330172f0afa5",
-      "bytes": 4958,
+      "sha256": "c8ac381f9248af1e1c3c0ef459dae09df7f80d0e340cbb360535806fd401562e",
+      "bytes": 4938,
       "category": "tables"
     },
     {
@@ -5649,8 +5649,8 @@
     },
     {
       "source_path": "knowledge/tables/dw.dws_user_active_user_c_appliction_hf.md",
-      "sha256": "f3f69bcb5f83041c1909c8ddd949bd27286e565a1306c59a52ea67e3c1da9fd4",
-      "bytes": 3632,
+      "sha256": "89ca71f8750e1b589666e5338ee62f23ee432fe7fecc4c8548b4a4689d3cce38",
+      "bytes": 3612,
       "category": "tables"
     },
     {
@@ -5679,20 +5679,20 @@
     },
     {
       "source_path": "knowledge/tables/service_dw.app_h_crm_lead_employee_workload_detail_hf.md",
-      "sha256": "6afd2b61a207fdde81f602826134f4fb4bc57408f3b2ece5b781774a77b10532",
-      "bytes": 8553,
+      "sha256": "f9cf64f83f4cc745168ce453c4b046fe8e0d2bde63ecce3f59b7081cc1018e79",
+      "bytes": 8530,
       "category": "tables"
     },
     {
       "source_path": "knowledge/tables/service_dw.app_h_crm_lead_task_process_info_detail_hf.md",
-      "sha256": "41a47db630cd72053fb50dcd0bfff53c637d64a54c9f7613700a1e28e6f3a0ec",
-      "bytes": 13562,
+      "sha256": "6d36b7c5c2a5b044b16a604143df2add02ad80856884785f499378a08e6a64bb",
+      "bytes": 13539,
       "category": "tables"
     },
     {
       "source_path": "knowledge/tables/service_dw.app_user_attribute_label_gaia_wide_df.md",
-      "sha256": "b9befa1a249d382a10affd91b41dcd52469f5686e14b9141b9cf7f7a9a2c0b92",
-      "bytes": 11370,
+      "sha256": "4babba0a1651a9be9019999ba17c5cb30bdf5044a988d8e26d8d9ee53f274693",
+      "bytes": 11307,
       "category": "tables"
     },
     {
@@ -5709,8 +5709,8 @@
     },
     {
       "source_path": "knowledge/tables/service_dw.dm_crm_lead_stats_detail_hf.md",
-      "sha256": "2404d4e61c0f95d7a7a0a8377f2f576890faac8b572c71e538661414c4880a46",
-      "bytes": 30767,
+      "sha256": "7339e2e9d8cc6b1aad03003c95923b22cbe23702d6e510296676ca6cc2077e64",
+      "bytes": 30706,
       "category": "tables"
     },
     {
@@ -5721,8 +5721,8 @@
     },
     {
       "source_path": "knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md",
-      "sha256": "e2f66f6774369a91c214efce0ee1cf6f39a418b7074fff864ccf46956b4b9395",
-      "bytes": 9660,
+      "sha256": "837d9824b595fe81e23e324d4b428b6d76dc94ae87dac195ae3a1f9fce30c280",
+      "bytes": 9615,
       "category": "tables"
     },
     {
@@ -5733,8 +5733,8 @@
     },
     {
       "source_path": "knowledge/tables/service_dw.dws_service_user_learn_detail_hf.md",
-      "sha256": "c1047bd8c907fbab82884d33147bae7049ebdda970953ae1ae9467509b303978",
-      "bytes": 7237,
+      "sha256": "1dac21c4e752cb88e71b6efbe8eb4128082aaa13ad7673a0e6a69e35dc5cf355",
+      "bytes": 7214,
       "category": "tables"
     },
     {
@@ -5781,8 +5781,8 @@
     },
     {
       "source_path": "knowledge/tables/temp_table.shenbaoxin_channel_group.md",
-      "sha256": "ed05a6158870495a47280a68f26abc70b2fa45e21575bad7328dec142223063b",
-      "bytes": 2961,
+      "sha256": "15f4b9a0aa855b15181cb0521854b74dd7c6462d10d32959cd78957c83f1af14",
+      "bytes": 2966,
       "category": "temp_tables"
     },
     {
@@ -5793,8 +5793,8 @@
     },
     {
       "source_path": "knowledge/update_log/changelog.md",
-      "sha256": "fa02173fee0f750473c76cbb1cd5b076d15442236f79e17cddcdfa7a175e736d",
-      "bytes": 90569,
+      "sha256": "395dd356d4eab97480364e315952d0075cc1c3d957a0cf8707cd88921ddc6a51",
+      "bytes": 91577,
       "category": "update_log"
     },
     {

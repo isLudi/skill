@@ -1,30 +1,8 @@
 # scripts
 
-## extract_pdf_to_md.py
+## 物理表字段维护
 
-从 `resources/raw_pdfs/` 读取 PDF，抽取文本，渲染图片型页面，生成表结构 Markdown 和 `resources/pdf_extract_report.md`。
-
-```bash
-python scripts/extract_pdf_to_md.py
-python scripts/extract_pdf_to_md.py --overwrite
-```
-
-## normalize_schema_md.py
-
-统一 `knowledge/tables/*.md` 格式，自动补充 `department_name` 强制范围限定字段，并更新 `knowledge/01_table_index.md`。
-
-```bash
-python scripts/normalize_schema_md.py
-```
-
-## import_baijia_external_knowledge.py
-
-从百家字段目录 JSON 和 row permissions JSON 批量补全表知识库，修正已确认库名前缀，新增高频表，并更新表索引与范围限定规则。
-
-```bash
-python scripts/import_baijia_external_knowledge.py
-python scripts/import_baijia_external_knowledge.py --catalog path/to/table_fields.json --permissions path/to/row_permissions.json
-```
+本目录不再提供 PDF、图片或手工 JSON 字段解析脚本。物理表字段统一使用相邻 `usql-web-query-operator` Skill 的 `sync-datamap-fields` 命令，从天工数据地图探查并同步到 `knowledge/tables/`。
 
 ## ingest_dashboard_sql.py
 
@@ -46,7 +24,7 @@ python scripts/validate_sql_rules.py --sql-file examples/simple_table_exploratio
 
 ## check_skill_integrity.py
 
-检查 Skill 封装结构是否完整，包括入口文件、metadata、知识库目录、核心脚本、表文档结构和表索引覆盖。
+检查 Skill 封装结构是否完整，包括入口文件、metadata、知识库目录、核心脚本、表文档结构、表索引覆盖及数据地图维护边界。
 
 ```bash
 python scripts/check_skill_integrity.py

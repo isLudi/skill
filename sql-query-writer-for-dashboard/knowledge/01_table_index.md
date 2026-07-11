@@ -1,6 +1,6 @@
 # 表索引
 
-> 由 `scripts/import_baijia_external_knowledge.py` 根据百家字段目录和既有临时表文档更新。库名前缀或字段口径为待确认时，生成生产 SQL 前必须人工确认。所有表在 Web 查询环境（Playwright）中均可正常使用。
+> 物理表字段由 `usql-web-query-operator sync-datamap-fields` 从天工数据地图同步，临时表继续由本 Skill 的 SQL/表格证据维护。库名前缀或业务口径待确认时，生成生产 SQL 前必须人工确认。所有表在 Web 查询环境（Playwright）中均可正常使用。
 
 | 完整表名 | 中文名 | 数据粒度 | 分区字段 | 小时表 | 库名前缀状态 | 字段校验状态 |
 |---|---|---|---|---|---|---|

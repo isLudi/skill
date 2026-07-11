@@ -1,7 +1,7 @@
 {
   "name": "sql-query-writer-for-dashboard",
   "description": "Resolve market-consultant semantic contracts, build governed QuerySpec and QueryPlan artifacts, compile explicitly approved Presto SQL, and generate bounded read-only probes without supplying Qingcheng semantics.",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "language": "zh-CN",
   "query_engine": "Presto",
   "business_domain": "市场顾问部",
@@ -40,6 +40,8 @@
   "text2sql_cli": "scripts/text2sql.py",
   "text2sql_core": "../_shared/text2sql_core",
   "physical_catalog": "../_shared/text2sql_core/catalog/physical_catalog.json",
+  "physical_schema_authority": "usql-web-query-operator:sync-datamap-fields",
+  "legacy_document_schema_ingestion": "disabled",
   "query_spec_schema": "../_shared/text2sql_core/schemas/query_spec.schema.json",
   "query_spec_schema_version": "2.0.0",
   "query_plan_schema": "../_shared/text2sql_core/schemas/query_plan.schema.json",
