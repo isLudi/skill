@@ -96,7 +96,7 @@ Artifact hashes use canonical UTF-8 JSON. Call `artifact_sha256(value,
 profile, design, plan, QueryPlan, and DatasetSpec bindings remain covered.
 Schemas are under `schemas/dashboard_*.schema.json`. Existing QuerySpec,
 QueryPlan, and DashboardDatasetSpec schema version `2.0.0` remains supported;
-new P3 artifacts use `3.0.0`.
+P4B dashboard artifacts use `4.0.0`; earlier P3 artifacts must be regenerated before Apply.
 
 For optional web execution, pass the exact compiled SQL and its plan to
 `usql-web-query-operator run --query-plan`. The operator validates the plan

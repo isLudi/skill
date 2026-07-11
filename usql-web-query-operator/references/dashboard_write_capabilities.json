@@ -1,0 +1,368 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_type": "DashboardWriteCapabilityRegistry",
+  "platform": "taitan",
+  "default_policy": "block_unverified",
+  "capabilities": [
+    {
+      "operation": "create_dashboard",
+      "phase": "draft",
+      "maturity": "unverified",
+      "write_policy": "blocked",
+      "readback_coverage": "none",
+      "risk": "high",
+      "adapter": null,
+      "write_endpoints": [],
+      "readback_endpoints": [],
+      "evidence": [],
+      "limitations": [
+        "No verified create request or stable folder binding readback."
+      ]
+    },
+    {
+      "operation": "clone_dashboard",
+      "phase": "draft",
+      "maturity": "unverified",
+      "write_policy": "blocked",
+      "readback_coverage": "none",
+      "risk": "high",
+      "adapter": null,
+      "write_endpoints": [],
+      "readback_endpoints": [],
+      "evidence": [],
+      "limitations": [
+        "No verified clone request, identity mapping, or compensation path."
+      ]
+    },
+    {
+      "operation": "move_dashboard_folder",
+      "phase": "folder",
+      "maturity": "unverified",
+      "write_policy": "blocked",
+      "readback_coverage": "partial",
+      "risk": "high",
+      "adapter": null,
+      "write_endpoints": [],
+      "readback_endpoints": [
+        "data/menu/manage"
+      ],
+      "evidence": [],
+      "limitations": [
+        "Menu scanning is read-only; folder mutation is not verified."
+      ]
+    },
+    {
+      "operation": "bind_dataset",
+      "phase": "draft",
+      "maturity": "observed",
+      "write_policy": "blocked",
+      "readback_coverage": "full",
+      "risk": "critical",
+      "adapter": null,
+      "write_endpoints": [],
+      "readback_endpoints": [
+        "config/dashboard",
+        "value/unit/consumer/detail"
+      ],
+      "evidence": [],
+      "limitations": [
+        "Dataset identities are profiled, but rebinding payload and impact scope are not verified."
+      ]
+    },
+    {
+      "operation": "create_pivot_component",
+      "phase": "draft",
+      "maturity": "observed",
+      "write_policy": "blocked",
+      "readback_coverage": "full",
+      "risk": "high",
+      "adapter": null,
+      "write_endpoints": [],
+      "readback_endpoints": [
+        "config/dashboard",
+        "value/unit/consumer/detail"
+      ],
+      "evidence": [],
+      "limitations": [
+        "Pivot state is profiled, but component creation and stable identity allocation are not verified."
+      ]
+    },
+    {
+      "operation": "update_component_fields",
+      "phase": "draft",
+      "maturity": "verified",
+      "write_policy": "allowlisted",
+      "readback_coverage": "full",
+      "risk": "high",
+      "adapter": "read_dashboard.dashboard_write_adapters.ADAPTERS[update_component_fields]",
+      "write_endpoints": [
+        "config/update/unit"
+      ],
+      "readback_endpoints": [
+        "value/unit/consumer/detail",
+        "model field detail"
+      ],
+      "evidence": [
+        {
+          "source_path": "scripts/read_dashboard/dashboard_write_adapters.py",
+          "source_sha256": "b58117a35a7fc8f2a82c7eb901e459b1a7c3a8bde3d3acfe56add85b901f8329",
+          "note": "Stable unit/group/field adapter with target-state readback and reversible recovery."
+        },
+        {
+          "source_path": "tests/test_dashboard_write_adapters.py",
+          "source_sha256": "1951886b0023be6880f86b040de652337999902379315aa1ac5b6f155d5eb9ef",
+          "note": "Drift, stable identity, unrelated-state preservation, and recovery tests."
+        },
+        {
+          "source_path": "tests/fixtures/p4b_sandbox_transaction_evidence.json",
+          "source_sha256": "209091ad1aeabff82e48d765c6b97db26131e0fc3005110a871394839525a838",
+          "note": "Redacted live sandbox HTTP 200, multi-operation apply, reverse recovery, and full-profile restoration evidence."
+        }
+      ],
+      "limitations": [
+        "Allowlisted only for one existing stable field display-name change; add/remove/reorder, formula/filter binding changes, and dataset rebinding remain blocked."
+      ]
+    },
+    {
+      "operation": "create_formula",
+      "phase": "draft",
+      "maturity": "observed",
+      "write_policy": "blocked",
+      "readback_coverage": "full",
+      "risk": "critical",
+      "adapter": null,
+      "write_endpoints": [],
+      "readback_endpoints": [
+        "value/unit/consumer/detail",
+        "custom formula detail"
+      ],
+      "evidence": [],
+      "limitations": [
+        "Formula AST, dependency, type, grain, and creation payload validation are not implemented."
+      ]
+    },
+    {
+      "operation": "update_formula",
+      "phase": "draft",
+      "maturity": "verified",
+      "write_policy": "allowlisted",
+      "readback_coverage": "full",
+      "risk": "critical",
+      "adapter": "read_dashboard.dashboard_write_adapters.ADAPTERS[update_formula]",
+      "write_endpoints": [
+        "model/customized/column/saveAndUpdate"
+      ],
+      "readback_endpoints": [
+        "value/unit/consumer/detail",
+        "custom formula detail"
+      ],
+      "evidence": [
+        {
+          "source_path": "scripts/read_dashboard/dashboard_write_adapters.py",
+          "source_sha256": "b58117a35a7fc8f2a82c7eb901e459b1a7c3a8bde3d3acfe56add85b901f8329",
+          "note": "Existing-formula adapter excludes volatile server metadata and restores exact expression."
+        },
+        {
+          "source_path": "tests/test_dashboard_write_adapters.py",
+          "source_sha256": "1951886b0023be6880f86b040de652337999902379315aa1ac5b6f155d5eb9ef",
+          "note": "Formula metadata normalization, drift, and recovery tests."
+        },
+        {
+          "source_path": "tests/fixtures/p4b_sandbox_transaction_evidence.json",
+          "source_sha256": "209091ad1aeabff82e48d765c6b97db26131e0fc3005110a871394839525a838",
+          "note": "Redacted live sandbox HTTP 200, multi-operation apply, reverse recovery, and full-profile restoration evidence."
+        }
+      ],
+      "limitations": [
+        "Allowlisted only for the expression of one existing component-local, non-shared formula with unchanged dependencies; create/delete/shared formulas remain blocked."
+      ]
+    },
+    {
+      "operation": "create_public_filter",
+      "phase": "draft",
+      "maturity": "observed",
+      "write_policy": "blocked",
+      "readback_coverage": "full",
+      "risk": "high",
+      "adapter": null,
+      "write_endpoints": [],
+      "readback_endpoints": [
+        "value/public/unit/relation/detail"
+      ],
+      "evidence": [],
+      "limitations": [
+        "Existing relations are profiled; relation creation and component association are not verified."
+      ]
+    },
+    {
+      "operation": "update_filter_dynamic_default",
+      "phase": "draft",
+      "maturity": "verified",
+      "write_policy": "allowlisted",
+      "readback_coverage": "full",
+      "risk": "medium",
+      "adapter": "read_dashboard.dashboard_write_adapters.ADAPTERS[update_filter_dynamic_default]",
+      "write_endpoints": [
+        "config/update/public/relation/unit"
+      ],
+      "readback_endpoints": [
+        "value/public/unit/relation/detail",
+        "config/dashboard"
+      ],
+      "evidence": [
+        {
+          "source_path": "scripts/read_dashboard/filter_edit.py",
+          "source_sha256": "f045f18355a48fe5b464e0245e9c4bd6108592d154ab46a65c0859fde0c40356",
+          "note": "Stable relation_id + filter_id + field_id adapter with immediate readback."
+        },
+        {
+          "source_path": "tests/test_dashboard_change_workflow.py",
+          "source_sha256": "6739b2814338adc516196b6c575d6d322ead0352b8b14393131a794c880238d1",
+          "note": "Preflight, allowlist, multi-operation recovery, apply receipt, and legacy write-block tests."
+        },
+        {
+          "source_path": "tests/fixtures/p4b_sandbox_transaction_evidence.json",
+          "source_sha256": "209091ad1aeabff82e48d765c6b97db26131e0fc3005110a871394839525a838",
+          "note": "Redacted live sandbox HTTP 200, multi-operation apply, reverse recovery, and full-profile restoration evidence."
+        }
+      ],
+      "limitations": [
+        "The platform has no server-side transaction API; P4B uses immediate readback plus compensating reverse recovery and blocks publication on any failure."
+      ]
+    },
+    {
+      "operation": "update_component_filter",
+      "phase": "draft",
+      "maturity": "observed",
+      "write_policy": "blocked",
+      "readback_coverage": "full",
+      "risk": "high",
+      "adapter": null,
+      "write_endpoints": [],
+      "readback_endpoints": [
+        "value/unit/consumer/detail"
+      ],
+      "evidence": [],
+      "limitations": [
+        "Component filter identity is profiled; update endpoint is not verified."
+      ]
+    },
+    {
+      "operation": "update_layout",
+      "phase": "draft",
+      "maturity": "verified",
+      "write_policy": "allowlisted",
+      "readback_coverage": "full",
+      "risk": "high",
+      "adapter": "read_dashboard.dashboard_write_adapters.ADAPTERS[update_layout]",
+      "write_endpoints": [
+        "config/save/dashboardHtml"
+      ],
+      "readback_endpoints": [
+        "config/dashboard"
+      ],
+      "evidence": [
+        {
+          "source_path": "scripts/read_dashboard/dashboard_write_adapters.py",
+          "source_sha256": "b58117a35a7fc8f2a82c7eb901e459b1a7c3a8bde3d3acfe56add85b901f8329",
+          "note": "Stable node layout patch with full schema readback and target-only recovery."
+        },
+        {
+          "source_path": "tests/test_dashboard_write_adapters.py",
+          "source_sha256": "1951886b0023be6880f86b040de652337999902379315aa1ac5b6f155d5eb9ef",
+          "note": "Layout key allowlist, drift, unrelated-state preservation, and recovery tests."
+        },
+        {
+          "source_path": "tests/fixtures/p4b_sandbox_transaction_evidence.json",
+          "source_sha256": "209091ad1aeabff82e48d765c6b97db26131e0fc3005110a871394839525a838",
+          "note": "Redacted live sandbox HTTP 200, multi-operation apply, reverse recovery, and full-profile restoration evidence."
+        }
+      ],
+      "limitations": [
+        "Allowlisted only for x/y/w/h on an existing stable node in the same container and tab after bounds/collision validation; z, container moves, create/delete, and publication remain blocked."
+      ]
+    },
+    {
+      "operation": "update_theme",
+      "phase": "draft",
+      "maturity": "verified",
+      "write_policy": "allowlisted",
+      "readback_coverage": "full",
+      "risk": "high",
+      "adapter": "read_dashboard.dashboard_write_adapters.ADAPTERS[update_theme]",
+      "write_endpoints": [
+        "config/save/dashboardHtml"
+      ],
+      "readback_endpoints": [
+        "config/dashboard"
+      ],
+      "evidence": [
+        {
+          "source_path": "scripts/read_dashboard/dashboard_write_adapters.py",
+          "source_sha256": "b58117a35a7fc8f2a82c7eb901e459b1a7c3a8bde3d3acfe56add85b901f8329",
+          "note": "Root background-color adapter with theme identity readback and target-only recovery."
+        },
+        {
+          "source_path": "tests/test_dashboard_write_adapters.py",
+          "source_sha256": "1951886b0023be6880f86b040de652337999902379315aa1ac5b6f155d5eb9ef",
+          "note": "Theme identity, unrelated-state preservation, drift, and recovery tests."
+        },
+        {
+          "source_path": "tests/fixtures/p4b_sandbox_transaction_evidence.json",
+          "source_sha256": "209091ad1aeabff82e48d765c6b97db26131e0fc3005110a871394839525a838",
+          "note": "Redacted live sandbox HTTP 200, multi-operation apply, reverse recovery, and full-profile restoration evidence."
+        }
+      ],
+      "limitations": [
+        "Allowlisted only for an explicit #RRGGBB dashboard-root background color; theme identity, palette tokens, and per-component styling remain blocked."
+      ]
+    },
+    {
+      "operation": "publish_dashboard",
+      "phase": "publish",
+      "maturity": "partial",
+      "write_policy": "separate_confirmation",
+      "readback_coverage": "partial",
+      "risk": "critical",
+      "adapter": "read_dashboard.filter_edit.publish_dashboard",
+      "write_endpoints": [
+        "version/dashboard/publishWarn",
+        "version/dashboard/saveAndPublish"
+      ],
+      "readback_endpoints": [
+        "config/dashboard:draft"
+      ],
+      "evidence": [
+        {
+          "source_path": "scripts/read_dashboard/dashboard_change.py",
+          "source_sha256": "a9d820698d3a97fef9d693bed8ec3cd7d2e2fe4e42db6c28e98f49c7957de3ba",
+          "note": "Separate publish confirmation bound to ChangePlan and ApplyReceipt hashes."
+        },
+        {
+          "source_path": "tests/test_dashboard_change_workflow.py",
+          "source_sha256": "6739b2814338adc516196b6c575d6d322ead0352b8b14393131a794c880238d1",
+          "note": "Publish preflight and receipt validation tests."
+        }
+      ],
+      "limitations": [
+        "No formal published-version read API; success remains publish_requested_unverified."
+      ]
+    },
+    {
+      "operation": "update_permissions",
+      "phase": "permission",
+      "maturity": "unverified",
+      "write_policy": "blocked",
+      "readback_coverage": "none",
+      "risk": "critical",
+      "adapter": null,
+      "write_endpoints": [],
+      "readback_endpoints": [],
+      "evidence": [],
+      "limitations": [
+        "Principal resolution, permission diff, write endpoint, and readback are not verified."
+      ]
+    }
+  ],
+  "registry_sha256": "b5410a4e543018c63013ee419b255d5c7091b2e5f4abf0eb58f53d5e53c37557"
+}

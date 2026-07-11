@@ -1,0 +1,90 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_type": "P4BSandboxTransactionEvidence",
+  "dashboard_id": "dashboard_3984457934065463296",
+  "domain": "market_consultant",
+  "expected_profile_sha256": "91e256f1ecd56bd16e7924444e05975048c6156c70aabdbeae4461200e43c086",
+  "final_profile_sha256": "91e256f1ecd56bd16e7924444e05975048c6156c70aabdbeae4461200e43c086",
+  "restored_to_baseline": true,
+  "verification_sha256": "3f8219dc7bda13b7c30d2306692765de7653fe8c3cfe2a5584fd5abc3431a11c",
+  "operations": [
+    {
+      "operation": "update_component_fields",
+      "status": "verified_and_restored",
+      "drift_blocked_without_write": true,
+      "write_succeeded": true,
+      "restored": true,
+      "write_response_statuses": [200, 200],
+      "payload_sha256": [
+        "9acaca4545b2e4788cd94008ec212c6bbdc261add6c11c33777d041ffa984e77",
+        "b9f9a0516e5744ae55d62d0f3909bbd792dfa7fedfcaa8111c746f6ae2f7b589"
+      ]
+    },
+    {
+      "operation": "update_filter_dynamic_default",
+      "status": "verified_and_restored",
+      "drift_blocked_without_write": true,
+      "write_succeeded": true,
+      "restored": true,
+      "write_response_statuses": [200, 200],
+      "payload_sha256": [
+        "1227ceb73c2a1e65847d5ba8a02d574bc4a9fb60838071d44ff165642e15ced6",
+        "072856cd36d7e264dcf045fe55b395b55c577f312544c55372d5a58e1881a813"
+      ]
+    },
+    {
+      "operation": "update_formula",
+      "status": "verified_and_restored",
+      "drift_blocked_without_write": true,
+      "write_succeeded": true,
+      "restored": true,
+      "write_response_statuses": [200, 200],
+      "payload_sha256": [
+        "eed83051d1666fb68f3563cf368c3f90f180cff18121c22e00c96d50c2ac6d02",
+        "83eb65d554712a00be82286f483b38760afb721b91007e5daf0136df9ba93e62"
+      ]
+    },
+    {
+      "operation": "update_layout",
+      "status": "verified_and_restored",
+      "drift_blocked_without_write": true,
+      "write_succeeded": true,
+      "restored": true,
+      "write_response_statuses": [200, 200],
+      "payload_sha256": [
+        "d7b0553fe940f4f7d9395c64fc08a790d22f773b2bf37235fcc4a5c959ecb349",
+        "887bb3d7d3137cf7f6723aa2921bab60073b02efce7bb3399b5d8fe81b0dae13"
+      ]
+    },
+    {
+      "operation": "update_theme",
+      "status": "verified_and_restored",
+      "drift_blocked_without_write": true,
+      "write_succeeded": true,
+      "restored": true,
+      "write_response_statuses": [200, 200],
+      "payload_sha256": [
+        "64f5c71abbf1ec5feba759511cae854df7312aa5ad03014c6b78d5a5c3fdd9e6",
+        "e12b29daaece18af0d8918f1bcc9129808b79b5a4ab124730b2dffe0ff0d519a"
+      ]
+    }
+  ],
+  "transaction": {
+    "status": "verified_and_restored",
+    "applied_operations": [
+      "update_component_fields",
+      "update_filter_dynamic_default",
+      "update_formula",
+      "update_layout",
+      "update_theme"
+    ],
+    "restored_operations": [
+      "update_theme",
+      "update_layout",
+      "update_formula",
+      "update_filter_dynamic_default",
+      "update_component_fields"
+    ],
+    "error": null
+  }
+}

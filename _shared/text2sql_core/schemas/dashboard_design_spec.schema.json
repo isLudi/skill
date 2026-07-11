@@ -9,11 +9,11 @@
     "source_profile_sha256", "source_plan_id", "query_plan_sha256",
     "dataset_spec_sha256", "design_intent", "available_fields",
     "dataset_default_filters", "desired_components", "desired_layout",
-    "desired_formulas", "desired_public_filters", "desired_component_filters", "desired_datasets",
+    "desired_formulas", "desired_public_filters", "desired_component_filters", "desired_datasets", "desired_theme",
     "layout_policy", "write_boundary", "diagnostics", "status", "design_sha256"
   ],
   "properties": {
-    "schema_version": {"const": "3.0.0"},
+    "schema_version": {"const": "4.0.0"},
     "artifact_type": {"const": "dashboard_design_spec"},
     "mode": {"const": "design_only"},
     "domain": {"enum": ["unresolved", "market_consultant", "qingcheng"]},
@@ -60,6 +60,7 @@
     "desired_public_filters": {"type": "array", "items": {"$ref": "dashboard_profile.schema.json#/$defs/filter"}},
     "desired_component_filters": {"type": "array", "items": {"$ref": "dashboard_profile.schema.json#/$defs/component_filter"}},
     "desired_datasets": {"type": "array", "items": {"$ref": "dashboard_profile.schema.json#/$defs/dataset"}},
+    "desired_theme": {"$ref": "dashboard_profile.schema.json#/$defs/theme"},
     "layout_policy": {"type": "object"},
     "write_boundary": {
       "type": "object",

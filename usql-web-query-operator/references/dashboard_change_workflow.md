@@ -1,4 +1,4 @@
-# Taitan 看板 P3A/P3B 变更工作流
+# Taitan 看板 P3A/P4B 变更工作流
 
 本文件描述独立的 `profile → design spec → diff/dry-run → apply draft → publish confirmation` 安全链路。只有处理看板设计或变更任务时读取；普通 SQL 执行、下载或只读看板浏览不需要加载本文件。
 
@@ -7,7 +7,7 @@
 1. [能力边界](#能力边界)
 2. [Artifact 与 Hash 绑定](#artifact-与-hash-绑定)
 3. [P3A：画像、设计和 dry-run](#p3a画像设计和-dry-run)
-4. [P3B：草稿 Apply](#p3b草稿-apply)
+4. [P4B：草稿 Apply](#p4b草稿-apply)
 5. [独立发布确认](#独立发布确认)
 6. [公共筛选器稳定定位](#公共筛选器稳定定位)
 7. [受支持与阻断的操作](#受支持与阻断的操作)
@@ -62,6 +62,7 @@ D:\anaconda3\python.exe scripts\read_dashboard.py profile-edit-dashboard `
 - 公式 ID、表达式、依赖和影响组件。
 - 公共筛选器的 `relation_id + filter_id + field_id`。
 - `dynamic_default` 以及平台实际字段 `dynamics_filter`、`dynamics_filter_value`、`auto_search_default_value`。
+- 根主题的 `background_color + theme_type + style_id`；P4B 只允许修改 `background_color`。
 - `binding_validation`：逐项记录 pivot、dataset、selected field、formula、component-filter 的绑定计数和悬空引用错误；它属于只读证据，不授予写入权限。
 
 ### 2. 生成 DesignSpec
@@ -76,7 +77,7 @@ D:\anaconda3\python.exe scripts\read_dashboard.py design-dashboard `
   --output C:\runtime\dashboard_design_spec.json
 ```
 
-`desired-state` 可包含 `components`、`layout`、`formulas`、`public_filters`、`component_filters`。提供某个集合时，它表示该集合的完整目标状态，不是局部 patch；缺项可能被解释为删除并被 P3B 阻断。组件内筛选器目前只支持 P3A Diff，不能 Apply。
+`desired-state` 可包含 `components`、`layout`、`formulas`、`public_filters`、`component_filters`、`theme`。提供某个集合时，它表示该集合的完整目标状态，不是局部 patch；缺项可能被解释为删除并被 P4B 阻断。组件内筛选器目前只支持 P3A Diff，不能 Apply。
 
 DesignSpec 只接受 `status=ready` 且带 canonical `query_plan_sha256/dataset_spec_sha256` 的 DatasetSpec。所有 contract-backed field、scope 和 filter evidence 必须为本域 `confirmed` contract，并携带本域 `source_domain`、相对 `source_path` 和 `source_sha256`；缺失、pending 或跨域证据会生成 blocked DesignSpec，命令返回非零。
 
@@ -110,9 +111,9 @@ D:\anaconda3\python.exe scripts\read_dashboard.py plan-dashboard-change `
   --output C:\runtime\dashboard_change_plan.json
 ```
 
-该命令不启动浏览器、不调用写接口，并输出 before/after、risk、`write_status`、阻断原因和 `change_plan_sha256`。组件、布局和公式可以完整画像与 Diff，即使当前没有经过生产验证的写接口。
+该命令不启动浏览器、不调用写接口，并输出 before/after、risk、`write_status`、阻断原因和 `change_plan_sha256`。Diff 可以覆盖全部设计状态；只有满足下文窄约束的五类操作会得到 `write_status=supported`。
 
-## P3B：草稿 Apply
+## P4B：草稿 Apply
 
 ```powershell
 D:\anaconda3\python.exe scripts\read_dashboard.py apply-dashboard-change `
@@ -126,12 +127,14 @@ Apply 门禁顺序：
 
 1. 在导入 Playwright、打开浏览器前验证 Artifact 类型、域、精确 Hash、状态和 operation allowlist。
 2. 要求 `status=ready_for_dry_run` 且至少存在一个受支持 operation；`no_changes` 不允许 Apply。
-3. 一个 ChangePlan 最多涉及一个 `relation_id`。平台没有已验证的事务或回滚，多 relation 必须拆为多个计划，防止部分写入。
-4. 重读当前 draft，要求 `profile_sha256 == base_profile_sha256`；漂移时零写入停止。
-5. 使用稳定三元组定位目标，并把即时 relation 中的 field state 与 ChangePlan `before` 逐项核对。
-6. 紧邻 POST 再取一次 relation；payload Hash 或目标状态漂移时零写入停止，否则只调用一次更新接口。
-7. 再次完整画像 draft，并要求 post profile 与 ChangePlan `target_state` 精确一致。
-8. 生成 `DashboardApplyReceipt`。任一 operation 未标记为 `applied` 或回读不一致时，receipt 为失败，禁止发布。
+3. 重读当前 draft，要求 `profile_sha256 == base_profile_sha256`；漂移时零写入停止。
+4. 每个 operation 使用稳定目标 ID，并在紧邻写入前连续读取两次目标；目标 Hash 漂移时零写入停止。
+5. 写后立即读取目标，证明精确目标状态；筛选器允许平台生成缓存字段，但动态默认三元组必须一致。
+6. 多 operation 按 ChangePlan 固定顺序执行。平台没有服务端事务 API，因此任一步失败时停止后续写入，并按完成顺序的反向逐项补偿恢复。
+7. 恢复过程也要求写前目标仍等于刚完成的 after 状态；若目标被并发编辑，不猜测覆盖，receipt 标记恢复失败并转人工检查。
+8. 全部成功后再次完整画像，要求 post profile 与 ChangePlan `target_state` 精确一致；不一致也触发反向恢复。
+9. 恢复完成后再次完整画像，只有回到 `base_profile_sha256` 才记录 `recovery.status=restored`。
+10. 生成 `DashboardApplyReceipt`。任一 operation 未标记为 `applied`、最终目标不一致或恢复不可证明时，receipt 为失败，禁止发布。
 
 Apply 命令不接受 `--publish`，也不会调用发布接口。
 
@@ -176,11 +179,12 @@ P3B 不再使用“第一个/第二个筛选器”定位。每个可写 operatio
 
 | operation | P3A Diff | P3B Apply |
 |---|---:|---:|
-| `update_filter_dynamic_default` | 支持 | 支持，仅稳定三元组且单 relation |
+| `update_filter_dynamic_default` | 支持 | 支持，仅稳定三元组和显式动态默认值 |
 | `update_existing_component` | 支持 | `blocked_unsupported` |
-| `update_component_fields` | 支持 | `blocked_unsupported` |
-| `update_layout` | 支持 | `blocked_unsupported` |
-| `update_formula` | 支持 | `blocked_unsupported` |
+| `update_component_fields` | 支持 | 支持，仅既有稳定 field ID 的单个显示名修改 |
+| `update_layout` | 支持 | 支持，仅同容器/Tab 既有节点 `x/y/w/h`，通过边界与碰撞检查 |
+| `update_formula` | 支持 | 支持，仅既有单组件非共享公式表达式，依赖不变 |
+| `update_theme` | 支持 | 支持，仅根 `background_color=#RRGGBB` |
 | 新建、删除、换类型、跨容器移动、数据集重绑 | 支持识别 | 阻断 |
 
 共享公式、跨组件公式和任何影响范围不明的改动必须阻断。没有抓取并验证真实请求的接口，不得凭字段名猜测写 payload。
@@ -190,8 +194,9 @@ P3B 不再使用“第一个/第二个筛选器”定位。每个可写 operatio
 - `domain unresolved/mismatch`：回到对应业务 SQL skill，重新生成域内 QuerySpec、DatasetSpec 和画像。
 - `profile drift`：重新 profile、design 和 diff，不得复用旧 Hash。
 - `blocked_unsupported`：保留 dry-run 结果，等待专门接口验证和 allowlist 扩展。
-- `multiple relation_id`：拆成多个独立 ChangePlan，逐个 Apply、回读和确认。
-- `post profile mismatch`：停止发布，保存失败 ApplyReceipt，并人工检查 draft。
+- `operation failure`：停止后续操作，逆序恢复已完成项；恢复后完整 Profile Hash 必须回到 baseline。
+- `recovery target drift`：不得覆盖并发编辑，保存 `recovery.status=failed` 的 ApplyReceipt 并人工检查 draft。
+- `post profile mismatch`：按事务故障处理并恢复；若恢复不可证明，停止发布并人工检查 draft。
 - `publish blocked`：不要重新 Apply；先确认 Receipt/Plan 绑定和 draft 是否发生新编辑。
 
 ## Legacy 兼容命令

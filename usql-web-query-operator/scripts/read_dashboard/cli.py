@@ -12,6 +12,7 @@ from _shared.errors import UsageError
 
 from .commands.capture_dashboard import cmd_capture_dashboard
 from .commands.check_dashboard_values import cmd_check_dashboard_values
+from .commands.capture_write_evidence import cmd_capture_write_evidence
 from .commands.apply_dashboard_change import cmd_apply_dashboard_change
 from .commands.design_dashboard import cmd_design_dashboard
 from .commands.edit_public_filters import cmd_edit_public_filters
@@ -23,7 +24,10 @@ from .commands.profile_edit_batch import cmd_profile_edit_all, cmd_profile_edit_
 from .commands.profile_folder import cmd_profile_folder
 from .commands.publish_dashboard_change import cmd_publish_dashboard_change
 from .commands.scan_folder import cmd_scan_folder
+from .commands.inspect_write_capabilities import cmd_inspect_write_capabilities
+from .commands.verify_sandbox_write_adapters import cmd_verify_sandbox_write_adapters
 from .constants import DEFAULT_PROFILE_ALL_FOLDERS
+from .write_capabilities import DEFAULT_REGISTRY, MANUAL_PROBE_OPERATIONS
 
 
 def _add_value_probe_args(parser: argparse.ArgumentParser) -> None:
@@ -219,7 +223,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     apply_change = subparsers.add_parser(
         "apply-dashboard-change",
-        help="Apply one exact stable-ID public-filter ChangePlan to draft; never publishes.",
+        help="Apply one exact P4B allowlisted ChangePlan to draft with reverse recovery; never publishes.",
     )
     apply_change.add_argument("--change-plan", type=Path, required=True)
     apply_change.add_argument("--change-plan-sha256", required=True, help="Exact SHA-256 printed by plan-dashboard-change.")
@@ -260,6 +264,61 @@ def build_parser() -> argparse.ArgumentParser:
     publish_change.add_argument("--wait-ms", type=int, default=3_000)
     publish_change.add_argument("--debug-artifacts", action="store_true")
     publish_change.set_defaults(func=cmd_publish_dashboard_change)
+
+    inspect_write = subparsers.add_parser(
+        "inspect-write-capabilities",
+        help="Validate and summarize the P4A/P4B dashboard write capability registry without browser access.",
+    )
+    inspect_write.add_argument("--registry", type=Path, default=DEFAULT_REGISTRY)
+    inspect_write.add_argument("--output", type=Path, default=None)
+    inspect_write.set_defaults(func=cmd_inspect_write_capabilities)
+
+    capture_write = subparsers.add_parser(
+        "capture-write-evidence",
+        help="Capture redacted request-shape evidence for exactly one manual action in an explicit sandbox dashboard.",
+    )
+    capture_write.add_argument("--operation", choices=sorted(MANUAL_PROBE_OPERATIONS), required=True)
+    capture_write.add_argument("--sandbox-dashboard-id", required=True)
+    capture_write.add_argument("--expected-dashboard-name", required=True, help="Exact live name; must contain P4A/sandbox/test/沙箱/测试.")
+    capture_write.add_argument("--domain", choices=["market_consultant", "qingcheng"], required=True)
+    capture_write.add_argument("--confirm-sandbox-write", action="store_true", required=True)
+    capture_write.add_argument("--capture-seconds", type=int, default=45, help="Visible manual capture window, 10..300 seconds.")
+    capture_write.add_argument("--html-id", default=None)
+    capture_write.add_argument("--registry", type=Path, default=DEFAULT_REGISTRY)
+    capture_write.add_argument("--output", type=Path, default=None)
+    capture_write.add_argument("--headed", action="store_true", required=True)
+    capture_write.add_argument("--state-path", type=Path, default=DEFAULT_STATE)
+    capture_write.add_argument("--artifacts-dir", type=Path, default=DEFAULT_ARTIFACTS)
+    capture_write.add_argument("--env-file", type=Path, default=DEFAULT_ENV_FILE)
+    capture_write.add_argument("--username", default=os.environ.get("BAIJIA_USERNAME"))
+    capture_write.add_argument("--password", default=os.environ.get("BAIJIA_PASSWORD"))
+    capture_write.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL)
+    capture_write.add_argument("--executable-path", default=None)
+    capture_write.add_argument("--wait-ms", type=int, default=3_000)
+    capture_write.add_argument("--debug-artifacts", action="store_true")
+    capture_write.set_defaults(func=cmd_capture_write_evidence)
+
+    verify_adapters = subparsers.add_parser(
+        "verify-sandbox-write-adapters",
+        help="Run reversible P4B adapters and a forward/reverse transaction in an exact sandbox, requiring a full-profile recovery match.",
+    )
+    verify_adapters.add_argument("--target-manifest", type=Path, required=True)
+    verify_adapters.add_argument("--sandbox-dashboard-id", required=True)
+    verify_adapters.add_argument("--expected-dashboard-name", required=True)
+    verify_adapters.add_argument("--domain", choices=["market_consultant", "qingcheng"], required=True)
+    verify_adapters.add_argument("--confirm-sandbox-write", action="store_true", required=True)
+    verify_adapters.add_argument("--output", type=Path, default=None)
+    verify_adapters.add_argument("--headed", action="store_true")
+    verify_adapters.add_argument("--state-path", type=Path, default=DEFAULT_STATE)
+    verify_adapters.add_argument("--artifacts-dir", type=Path, default=DEFAULT_ARTIFACTS)
+    verify_adapters.add_argument("--env-file", type=Path, default=DEFAULT_ENV_FILE)
+    verify_adapters.add_argument("--username", default=os.environ.get("BAIJIA_USERNAME"))
+    verify_adapters.add_argument("--password", default=os.environ.get("BAIJIA_PASSWORD"))
+    verify_adapters.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL)
+    verify_adapters.add_argument("--executable-path", default=None)
+    verify_adapters.add_argument("--wait-ms", type=int, default=3_000)
+    verify_adapters.add_argument("--debug-artifacts", action="store_true")
+    verify_adapters.set_defaults(func=cmd_verify_sandbox_write_adapters)
 
     edit_filters = subparsers.add_parser(
         "edit-public-filters",

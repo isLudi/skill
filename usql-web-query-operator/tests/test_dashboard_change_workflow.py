@@ -635,14 +635,16 @@ class StableFilterApplyTests(unittest.TestCase):
                 [operation],
             )
 
-    def test_preflight_blocks_unsupported_and_multi_relation_without_browser(self) -> None:
-        unsupported = governed_layout_plan()
-        with self.assertRaisesRegex(UsageError, "blocked"):
-            preflight_apply_plan(unsupported, unsupported["change_plan_sha256"], expected_domain="qingcheng")
+    def test_preflight_accepts_verified_layout_and_multi_relation_transaction(self) -> None:
+        layout = governed_layout_plan()
+        self.assertEqual("ready_for_dry_run", layout["status"])
+        preflight_apply_plan(layout, layout["change_plan_sha256"], expected_domain="qingcheng")
 
         multi = governed_filter_plan(relation_count=2)
-        with self.assertRaisesRegex(UsageError, "only one public-filter relation"):
-            preflight_apply_plan(multi, multi["change_plan_sha256"], expected_domain="qingcheng")
+        operations = preflight_apply_plan(
+            multi, multi["change_plan_sha256"], expected_domain="qingcheng"
+        )
+        self.assertEqual(2, len(operations))
 
     def test_no_changes_plan_and_receipt_cannot_apply_or_publish(self) -> None:
         plan = governed_noop_plan()
@@ -763,7 +765,7 @@ class ApplyReadbackTests(unittest.TestCase):
                 "completeness": {"status": "complete"},
             },
         ), patch(
-            "read_dashboard.dashboard_change.update_public_filter_detail"
+            "read_dashboard.dashboard_change.apply_planned_operation"
         ) as update_call:
             with self.assertRaisesRegex(UsageError, "profile drifted"):
                 apply_change_plan_to_draft(
@@ -817,7 +819,7 @@ class ApplyReadbackTests(unittest.TestCase):
                 return []
 
             @staticmethod
-            def build_apply_receipt(_plan, current, operation_results=None):
+            def build_apply_receipt(_plan, current, operation_results=None, recovery=None):
                 self.assertIs(current, post_profile)
                 self.assertEqual(operation_results[0]["status"], "applied")
                 return {
@@ -844,10 +846,8 @@ class ApplyReadbackTests(unittest.TestCase):
         ) as readback, patch(
             "read_dashboard.dashboard_change.normalize_profile", side_effect=[pre_profile, post_profile]
         ), patch(
-            "read_dashboard.dashboard_change.fetch_public_filter_detail", return_value=public_filter_detail()
-        ), patch(
-            "read_dashboard.dashboard_change.update_public_filter_detail",
-            return_value={"status": "success"},
+            "read_dashboard.dashboard_change.apply_planned_operation",
+            return_value=SimpleNamespace(operation_id=plan["operations"][0]["operation_id"]),
         ) as update_call, patch(
             "read_dashboard.dashboard_change._core_api", return_value=FakeCore()
         ):
@@ -864,6 +864,88 @@ class ApplyReadbackTests(unittest.TestCase):
         self.assertIs(after, post_profile)
         self.assertEqual(readback.call_count, 2)
         update_call.assert_called_once()
+
+    def test_multi_operation_failure_restores_in_reverse_and_emits_failed_receipt(self) -> None:
+        plan = governed_filter_plan(relation_count=2)
+        pre_profile = {
+            "profile_sha256": plan["base_profile_sha256"],
+            "domain": "qingcheng",
+            "dashboard_id": plan["dashboard_id"],
+            "dashboard_name": "Dashboard",
+            "completeness": {"status": "complete"},
+        }
+        restored_profile = dict(pre_profile)
+        first_mutation = SimpleNamespace(
+            operation_id=plan["operations"][0]["operation_id"],
+            operation="update_filter_dynamic_default",
+        )
+        fake_page = SimpleNamespace(
+            url="https://example.invalid/?dashboardId=dashboard_3852445620602875904&htmlId=html_1",
+            wait_for_timeout=lambda _value: None,
+        )
+        args = SimpleNamespace(domain="qingcheng", wait_ms=0, debug_artifacts=False)
+
+        class FakeCore:
+            @staticmethod
+            def artifact_sha256(value, field_name):
+                import hashlib
+
+                payload = dict(value)
+                payload.pop(field_name, None)
+                raw = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+                return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+            @staticmethod
+            def validate_dashboard_change_plan(_plan, current_profile=None):
+                return []
+
+            @staticmethod
+            def build_apply_receipt(_plan, current, operation_results=None, recovery=None):
+                return {
+                    "artifact_type": "dashboard_apply_receipt",
+                    "domain": "qingcheng",
+                    "dashboard_id": _plan["dashboard_id"],
+                    "change_plan_sha256": _plan["change_plan_sha256"],
+                    "pre_profile_sha256": _plan["base_profile_sha256"],
+                    "post_profile_sha256": current["profile_sha256"],
+                    "operations": operation_results,
+                    "recovery": recovery,
+                    "status": "failed",
+                    "ok": False,
+                    "apply_receipt_sha256": "e" * 64,
+                }
+
+            @staticmethod
+            def validate_apply_receipt(_receipt, _plan, post_profile=None):
+                return []
+
+        with patch("read_dashboard.dashboard_change.open_edit_page"), patch(
+            "read_dashboard.dashboard_change._read_current_profile",
+            side_effect=[{"raw": "before"}, {"raw": "restored"}],
+        ), patch(
+            "read_dashboard.dashboard_change.normalize_profile",
+            side_effect=[pre_profile, restored_profile],
+        ), patch(
+            "read_dashboard.dashboard_change.apply_planned_operation",
+            side_effect=[first_mutation, UsageError("second write failed")],
+        ), patch(
+            "read_dashboard.dashboard_change.restore_planned_operation",
+            return_value={"operation_id": first_mutation.operation_id, "status": "restored"},
+        ) as restore_call, patch(
+            "read_dashboard.dashboard_change._core_api", return_value=FakeCore()
+        ):
+            receipt, _, after = apply_change_plan_to_draft(
+                page=fake_page,
+                args=args,
+                plan=plan,
+                supplied_sha256=plan["change_plan_sha256"],
+                artifacts_dir=Path("."),
+            )
+
+        self.assertFalse(receipt["ok"])
+        self.assertEqual("restored", receipt["recovery"]["status"])
+        self.assertEqual(plan["base_profile_sha256"], after["profile_sha256"])
+        restore_call.assert_called_once()
 
 
 class PublishReadbackTests(unittest.TestCase):

@@ -1,0 +1,65 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_type": "P4ARedactedSandboxEvidence",
+  "verification_sha256": "2a66541bf4fa5ae72dd87352b2523bf5ef8edbf5b387bd9c8cc2649ea1b73d27",
+  "expected_profile_sha256": "aa7d6de135af7e3dbfc87a25096de5ef8a14c56ee7f35c0387b607a5fea8ae0a",
+  "final_profile_sha256": "aa7d6de135af7e3dbfc87a25096de5ef8a14c56ee7f35c0387b607a5fea8ae0a",
+  "restored_to_baseline": true,
+  "operations": [
+    {
+      "operation": "update_layout",
+      "endpoint": "/uanalysis-intelligence/config/save/dashboardHtml",
+      "write_response_statuses": [200, 200],
+      "payload_sha256": [
+        "255d59a104e57137f29bf32b39b1adc78f540c85e43068ef01d44ff8f312670a",
+        "ad19e8b83dd01a3889e0fe993cc5b94a1502368806e3e031de8958ab0ad71e4c"
+      ],
+      "drift_blocked_without_write": true,
+      "restored": true
+    },
+    {
+      "operation": "update_component_fields",
+      "endpoint": "/uanalysis-intelligence/config/update/unit",
+      "write_response_statuses": [200, 200],
+      "payload_sha256": [
+        "8e3286383b7260302bb58973324e792f8f34f419ced684d27f2deece354d4602",
+        "25e8d2eeae6b1c2e5355a844d1b63db7b3095c79c5ad1ea923438444d38ed5a4"
+      ],
+      "drift_blocked_without_write": true,
+      "restored": true
+    },
+    {
+      "operation": "update_formula",
+      "endpoint": "/uanalysis-intelligence/model/customized/column/saveAndUpdate",
+      "write_response_statuses": [200, 200],
+      "payload_sha256": [
+        "eed83051d1666fb68f3563cf368c3f90f180cff18121c22e00c96d50c2ac6d02",
+        "83eb65d554712a00be82286f483b38760afb721b91007e5daf0136df9ba93e62"
+      ],
+      "drift_blocked_without_write": true,
+      "restored": true
+    },
+    {
+      "operation": "update_filter_dynamic_default",
+      "endpoint": "/uanalysis-intelligence/config/update/public/relation/unit",
+      "write_response_statuses": [200, 200],
+      "payload_sha256": [
+        "6b05ea645e01ed82f7878ef8c2f437ddfda712664afe318e0eb8b86c183d4f09",
+        "425469d6b1bdd69bcda477ef1698096339fc614e04d820c9bbd6b8aa37afe9e1"
+      ],
+      "drift_blocked_without_write": true,
+      "restored": true
+    },
+    {
+      "operation": "update_theme",
+      "endpoint": "/uanalysis-intelligence/config/save/dashboardHtml",
+      "write_response_statuses": [200, 200],
+      "payload_sha256": [
+        "53467fc129f7e05adc704a870afc21c3065d0c40c475098692a849954a2548f3",
+        "b45d567ba8a9b56b4c3c83496b1057f3a20c8d0c27b3c8eabda2494d8f478304"
+      ],
+      "drift_blocked_without_write": true,
+      "restored": true
+    }
+  ]
+}

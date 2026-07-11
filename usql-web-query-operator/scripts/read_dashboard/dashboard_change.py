@@ -6,7 +6,6 @@ import copy
 import json
 import sys
 import time
-from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
@@ -19,18 +18,26 @@ from .edit_profile import (
     profile_edit_dashboard,
 )
 from .filter_edit import (
-    apply_stable_public_filter_operations,
-    assert_stable_public_filter_preconditions,
     build_publish_payload,
     fetch_edit_config,
-    fetch_public_filter_detail,
     publish_dashboard,
-    update_public_filter_detail,
 )
+from .dashboard_write_adapters import (
+    AppliedDashboardMutation,
+    apply_planned_operation,
+    restore_planned_operation,
+)
+from .write_capabilities import capability_by_operation, load_capability_registry
 
 
 SUPPORTED_DOMAINS = {"market_consultant", "qingcheng"}
-SUPPORTED_APPLY_OPERATION = "update_filter_dynamic_default"
+SUPPORTED_APPLY_OPERATIONS = {
+    "update_component_fields",
+    "update_filter_dynamic_default",
+    "update_formula",
+    "update_layout",
+    "update_theme",
+}
 
 
 def _diagnostic_errors(diagnostics: Any) -> list[dict[str, Any]]:
@@ -145,6 +152,7 @@ def build_design_spec(
             desired_formulas=desired_state.get("formulas"),
             desired_public_filters=desired_state.get("public_filters"),
             desired_component_filters=desired_state.get("component_filters"),
+            desired_theme=desired_state.get("theme"),
             query_plan_sha256=query_plan_sha256,
             design_intent=design_intent,
         )
@@ -204,27 +212,25 @@ def preflight_apply_plan(
         raise UsageError("ChangePlan operations must be a list.")
     if not operations:
         raise UsageError("A no_changes ChangePlan cannot authorize draft writes or publication.")
+    registry = load_capability_registry()
     for operation in operations:
         if not isinstance(operation, dict):
             raise UsageError("ChangePlan operations must be JSON objects.")
         operation_type = str(operation.get("type") or operation.get("operation_type") or "")
         write_status = str(operation.get("write_status") or "")
-        if operation_type != SUPPORTED_APPLY_OPERATION or write_status not in {"supported", "supported_apply"}:
+        if operation_type not in SUPPORTED_APPLY_OPERATIONS or write_status not in {"supported", "supported_apply"}:
             raise UsageError(
                 f"Dashboard operation {operation_type or '<missing>'} is blocked_unsupported; no writes were attempted."
             )
-        target = operation.get("target") if isinstance(operation.get("target"), dict) else {}
-        if not all(str(target.get(key) or "") for key in ("relation_id", "filter_id", "field_id")):
-            raise UsageError("Supported public-filter operations require relation_id, filter_id, and field_id.")
-    relation_ids = {
-        str((operation.get("target") or {}).get("relation_id") or "")
-        for operation in operations
-    }
-    relation_ids.discard("")
-    if len(relation_ids) > 1:
-        raise UsageError(
-            "A ChangePlan may update only one public-filter relation because the platform has no verified transaction or rollback."
-        )
+        capability = capability_by_operation(registry, operation_type)
+        if not (
+            capability.get("maturity") == "verified"
+            and capability.get("write_policy") == "allowlisted"
+            and capability.get("readback_coverage") == "full"
+        ):
+            raise UsageError(
+                f"Dashboard operation {operation_type} is not verified/allowlisted in the live capability registry."
+            )
     if artifact_domain(plan) != domain:  # defensive: keep the resolved binding visible
         raise UsageError("ChangePlan domain binding changed during validation.")
     return operations
@@ -304,56 +310,111 @@ def apply_change_plan_to_draft(
     if _diagnostic_errors(current_diagnostics):
         raise UsageError("Dashboard draft no longer satisfies the dry-run ChangePlan; no writes were attempted.")
 
-    grouped: dict[str, list[dict[str, Any]]] = defaultdict(list)
-    for operation in operations:
-        target = operation.get("target") or {}
-        grouped[str(target["relation_id"])].append(operation)
-
     operation_results: list[dict[str, Any]] = []
-    for relation_id, relation_operations in sorted(grouped.items()):
-        detail = fetch_public_filter_detail(page, dashboard_id, relation_id)
-        assert_stable_public_filter_preconditions(detail, relation_id, relation_operations)
-        detail_hash = canonical_sha256(detail)
-        planned_payload, _ = apply_stable_public_filter_operations(detail, relation_id, relation_operations)
+    applied_mutations: list[AppliedDashboardMutation] = []
+    active_operation: dict[str, Any] | None = None
+    try:
+        for active_operation in operations:
+            mutation = apply_planned_operation(
+                page=page,
+                dashboard_id=dashboard_id,
+                dashboard_name=str(plan.get("dashboard_name") or current_profile.get("dashboard_name") or ""),
+                operation=active_operation,
+            )
+            applied_mutations.append(mutation)
+            operation_results.append(
+                {"operation_id": mutation.operation_id, "status": "applied"}
+            )
 
-        immediate_detail = fetch_public_filter_detail(page, dashboard_id, relation_id)
-        assert_stable_public_filter_preconditions(immediate_detail, relation_id, relation_operations)
-        if canonical_sha256(immediate_detail) != detail_hash:
-            raise UsageError("Public-filter relation changed immediately before POST; no writes were attempted.")
-        updated, local_results = apply_stable_public_filter_operations(
-            immediate_detail,
-            relation_id,
-            relation_operations,
+        post_raw = _read_current_profile(
+            page=page,
+            args=args,
+            dashboard_id=dashboard_id,
+            domain=domain,
+            artifacts_dir=artifacts_dir,
+            edit_url=edit_url,
         )
-        if canonical_sha256(updated) != canonical_sha256(planned_payload):
-            raise UsageError("Public-filter update payload drifted immediately before POST; no writes were attempted.")
-        response = update_public_filter_detail(page, dashboard_id, loaded_html_id, updated)
-        response_ok = response.get("status") in (None, "success")
-        for result in local_results:
-            result["write_response"] = {
-                "status": response.get("status"),
-                "error_code": response.get("errorCode"),
+        post_profile = require_complete_profile(post_raw, "Post-apply dashboard draft profile")
+        receipt = _core_api().build_apply_receipt(
+            plan,
+            post_profile,
+            operation_results=operation_results,
+            recovery={
+                "attempted": False,
+                "status": "not_needed",
+                "restored_profile_sha256": None,
+                "operations": [],
+                "errors": [],
+            },
+        )
+        if not receipt.get("ok"):
+            raise UsageError("Full draft readback does not match the ChangePlan target state.")
+        _core_api().validate_apply_receipt(receipt, plan, post_profile=post_profile)
+        return receipt, current_profile, post_profile
+    except Exception as apply_exc:  # noqa: BLE001
+        recovery_results: list[dict[str, Any]] = []
+        recovery_errors: list[str] = []
+        for mutation in reversed(applied_mutations):
+            try:
+                recovery_results.append(
+                    restore_planned_operation(
+                        page=page,
+                        dashboard_id=dashboard_id,
+                        dashboard_name=str(plan.get("dashboard_name") or current_profile.get("dashboard_name") or ""),
+                        mutation=mutation,
+                    )
+                )
+            except Exception as recovery_exc:  # noqa: BLE001
+                recovery_errors.append(
+                    f"{mutation.operation_id}: {type(recovery_exc).__name__}: {recovery_exc}"
+                )
+        restored_raw = _read_current_profile(
+            page=page,
+            args=args,
+            dashboard_id=dashboard_id,
+            domain=domain,
+            artifacts_dir=artifacts_dir,
+            edit_url=edit_url,
+        )
+        restored_profile = require_complete_profile(
+            restored_raw, "Post-recovery dashboard draft profile"
+        )
+        profile_restored = (
+            str(restored_profile.get("profile_sha256") or "") == _plan_profile_sha256(plan)
+        )
+        if not profile_restored:
+            recovery_errors.append("full dashboard profile hash did not return to the ChangePlan baseline")
+        applied_ids = {item["operation_id"] for item in operation_results}
+        failed_id = str((active_operation or {}).get("operation_id") or "")
+        failed_results = [
+            {
+                "operation_id": str(operation.get("operation_id") or ""),
+                "status": "failed" if str(operation.get("operation_id") or "") in applied_ids or str(operation.get("operation_id") or "") == failed_id else "skipped",
+                "message": (
+                    "restored after transaction failure"
+                    if str(operation.get("operation_id") or "") in applied_ids
+                    else str(apply_exc)
+                    if str(operation.get("operation_id") or "") == failed_id
+                    else "not attempted after transaction failure"
+                ),
             }
-            result["ok"] = bool(result.get("ok") and response_ok)
-            result["status"] = "applied" if result["ok"] else "failed"
-            operation_results.append(result)
-
-    post_raw = _read_current_profile(
-        page=page,
-        args=args,
-        dashboard_id=dashboard_id,
-        domain=domain,
-        artifacts_dir=artifacts_dir,
-        edit_url=edit_url,
-    )
-    post_profile = require_complete_profile(post_raw, "Post-apply dashboard draft profile")
-    receipt = _core_api().build_apply_receipt(
-        plan,
-        post_profile,
-        operation_results=operation_results,
-    )
-    _core_api().validate_apply_receipt(receipt, plan, post_profile=post_profile)
-    return receipt, current_profile, post_profile
+            for operation in operations
+        ]
+        recovery = {
+            "attempted": bool(applied_mutations),
+            "status": "restored" if profile_restored and not recovery_errors else "failed",
+            "restored_profile_sha256": restored_profile.get("profile_sha256"),
+            "operations": recovery_results,
+            "errors": recovery_errors,
+        }
+        receipt = _core_api().build_apply_receipt(
+            plan,
+            restored_profile,
+            operation_results=failed_results,
+            recovery=recovery,
+        )
+        _core_api().validate_apply_receipt(receipt, plan, post_profile=restored_profile)
+        return receipt, current_profile, restored_profile
 
 
 def preflight_publish_receipt(

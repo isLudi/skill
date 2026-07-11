@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.codex/usql/dashboard_write_probe.schema.json",
+  "title": "Taitan sandbox dashboard write probe evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "artifact_type",
+    "operation",
+    "domain",
+    "sandbox_dashboard_id",
+    "sandbox_dashboard_name",
+    "sandbox_confirmed",
+    "capture_boundary",
+    "started_at",
+    "completed_at",
+    "before_profile_sha256",
+    "after_profile_sha256",
+    "profile_changed",
+    "observations",
+    "blocked_requests",
+    "status",
+    "probe_sha256"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "artifact_type": {"const": "DashboardWriteProbe"},
+    "operation": {"type": "string", "minLength": 1},
+    "domain": {"enum": ["market_consultant", "qingcheng"]},
+    "sandbox_dashboard_id": {"type": "string", "pattern": "^dashboard_[0-9]+$"},
+    "sandbox_dashboard_name": {"type": "string", "minLength": 1},
+    "sandbox_confirmed": {"const": true},
+    "capture_boundary": {"type": "string", "minLength": 1},
+    "started_at": {"type": "string", "minLength": 1},
+    "completed_at": {"type": "string", "minLength": 1},
+    "before_profile_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "after_profile_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "profile_changed": {"type": "boolean"},
+    "observations": {"type": "array", "items": {"$ref": "#/$defs/observation"}},
+    "blocked_requests": {"type": "array", "items": {"$ref": "#/$defs/observation"}},
+    "status": {"enum": ["evidence_captured", "no_effect", "blocked_dangerous_request", "incomplete"]},
+    "probe_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "$defs": {
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["method", "url_path", "host", "payload_bytes", "request_key_paths", "blocked"],
+      "properties": {
+        "method": {"type": "string"},
+        "url_path": {"type": "string"},
+        "host": {"type": "string"},
+        "payload_bytes": {"type": "integer", "minimum": 0},
+        "request_key_paths": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "response_status": {"type": ["integer", "null"]},
+        "response_content_type": {"type": ["string", "null"]},
+        "blocked": {"type": "boolean"}
+      }
+    }
+  }
+}

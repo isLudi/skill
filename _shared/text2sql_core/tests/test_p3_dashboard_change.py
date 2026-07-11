@@ -587,8 +587,93 @@ class P3DashboardChangeTest(unittest.TestCase):
             {"relation_id", "filter_id", "field_id"},
             {key for key, value in operation["target"].items() if value},
         )
-        self.assertEqual({"update_filter_dynamic_default"}, SAFE_OPERATION_TYPES)
+        self.assertEqual(
+            {
+                "update_component_fields",
+                "update_filter_dynamic_default",
+                "update_formula",
+                "update_layout",
+                "update_theme",
+            },
+            SAFE_OPERATION_TYPES,
+        )
         self.assertEqual([], validate_dashboard_change_plan(plan, profile))
+
+    def test_p4b_narrow_component_layout_formula_and_theme_operations_are_supported(self) -> None:
+        profile = normalize_dashboard_profile(raw_profile())
+        profile["components"][0]["fields"] = {
+            "dimensions": [],
+            "metrics": [
+                {
+                    "field_id": "metric-physical-1",
+                    "business_name": "Old name",
+                    "group": "measure",
+                    "role": "measure",
+                    "sort_value": None,
+                }
+            ],
+        }
+        profile = normalize_dashboard_profile(profile)
+
+        components = copy.deepcopy(profile["components"])
+        components[0]["fields"]["metrics"][0]["business_name"] = "New name"
+        component_plan = diff_dashboard(
+            profile, self.design(profile, desired_components=components)
+        )
+        self.assertEqual("ready_for_dry_run", component_plan["status"])
+        component_operation = component_plan["operations"][0]
+        self.assertEqual("update_component_fields", component_operation["type"])
+        self.assertEqual("unitMeasureList", component_operation["target"]["field_group"])
+
+        layout = copy.deepcopy(profile["layout"])
+        layout[0]["w"] = 11
+        layout_plan = diff_dashboard(profile, self.design(profile, desired_layout=layout))
+        self.assertEqual("ready_for_dry_run", layout_plan["status"])
+        self.assertEqual("update_layout", layout_plan["operations"][0]["type"])
+
+        formulas = copy.deepcopy(profile["formulas"])
+        formulas[0]["expression"] = "a / nullif(b, 0)"
+        formula_plan = diff_dashboard(
+            profile, self.design(profile, desired_formulas=formulas)
+        )
+        self.assertEqual("ready_for_dry_run", formula_plan["status"])
+        self.assertEqual("update_formula", formula_plan["operations"][0]["type"])
+
+        theme = copy.deepcopy(profile["theme"])
+        theme["background_color"] = "#f2f3f6"
+        theme_plan = diff_dashboard(
+            profile, self.design(profile, desired_theme=theme)
+        )
+        self.assertEqual("ready_for_dry_run", theme_plan["status"])
+        self.assertEqual("update_theme", theme_plan["operations"][0]["type"])
+
+    def test_p4b_blocks_field_add_formula_dependency_and_non_root_theme_changes(self) -> None:
+        profile = normalize_dashboard_profile(raw_profile())
+
+        components = copy.deepcopy(profile["components"])
+        components[0]["fields"] = {
+            "dimensions": [],
+            "metrics": [{"field_id": "new", "business_name": "new", "group": "measure"}],
+        }
+        component_plan = diff_dashboard(
+            profile, self.design(profile, desired_components=components)
+        )
+        self.assertEqual("blocked", component_plan["status"])
+
+        formulas = copy.deepcopy(profile["formulas"])
+        formulas[0]["expression"] = "a / c"
+        formulas[0]["dependencies"] = ["a", "c"]
+        formula_plan = diff_dashboard(
+            profile, self.design(profile, desired_formulas=formulas)
+        )
+        self.assertEqual("blocked", formula_plan["status"])
+
+        theme = copy.deepcopy(profile["theme"])
+        theme["theme_type"] = "dark"
+        theme_plan = diff_dashboard(
+            profile, self.design(profile, desired_theme=theme)
+        )
+        self.assertEqual("blocked", theme_plan["status"])
 
     def test_dynamic_default_without_stable_triple_is_blocked(self) -> None:
         raw = raw_profile()
@@ -605,7 +690,7 @@ class P3DashboardChangeTest(unittest.TestCase):
         self.assertEqual("blocked", plan["status"])
         self.assertEqual("blocked_unsupported", plan["operations"][0]["write_status"])
 
-    def test_component_layout_formula_and_generic_filter_diffs_are_visible_but_blocked(self) -> None:
+    def test_component_layout_formula_and_generic_filter_diffs_expose_p4b_policy(self) -> None:
         profile = normalize_dashboard_profile(raw_profile())
         cases: list[tuple[str, dict]] = []
 
@@ -638,14 +723,20 @@ class P3DashboardChangeTest(unittest.TestCase):
             )
         )
 
+        expected_write_status = {
+            "update_existing_component": "blocked_unsupported",
+            "update_layout": "supported",
+            "update_formula": "supported",
+            "update_filter": "blocked_unsupported",
+            "update_component_filter": "blocked_unsupported",
+        }
         for expected_type, design in cases:
             with self.subTest(expected_type=expected_type):
                 plan = diff_dashboard(profile, design)
-                self.assertEqual("blocked", plan["status"])
-                self.assertIn(expected_type, {item["type"] for item in plan["operations"]})
-                self.assertTrue(
-                    all(item["write_status"] == "blocked_unsupported" for item in plan["operations"])
-                )
+                if expected_write_status[expected_type] == "blocked_unsupported":
+                    self.assertEqual("blocked", plan["status"])
+                operation = next(item for item in plan["operations"] if item["type"] == expected_type)
+                self.assertEqual(expected_write_status[expected_type], operation["write_status"])
 
     def test_layout_collision_and_formula_cycle_have_explicit_diagnostics(self) -> None:
         profile = normalize_dashboard_profile(raw_profile())

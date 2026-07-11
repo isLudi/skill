@@ -3,7 +3,7 @@
   "exceptions": [
     {
       "source_path": "sql-query-writer-for-dashboard/resources/raw_sql/consultant_sales_ranking_evaluation.sql",
-      "sha256": "9b343f3c4512634a37e6c7657b1c2d28af21245bf07889070605433377803bb1",
+      "sha256": "c5c4026e774d06244f97df286b9614d8d15827418df7b0d8e55249cac1effb5f",
       "reason": "Retained historical evidence contains two top-level queries without a semicolon delimiter; do not use as executable SQL without selecting one query."
     }
   ]

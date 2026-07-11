@@ -162,9 +162,9 @@
       "ordinal": 12,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/评优看板",
       "source_observed_on": "2026-07-05",
-      "sql_bytes": 6973,
-      "sql_lines": 145,
-      "sql_sha256": "6569ca55daf092f707b8a0c0cf3a194d36fcac3e8873d01c81bef4d0da0e000e",
+      "sql_bytes": 7002,
+      "sql_lines": 144,
+      "sql_sha256": "b2e2ae43fa4dffef6ade49dba379bb2236ee67c3f86dd655209fba22936b34c1",
       "subject_id": "2411"
     },
     {
@@ -267,9 +267,9 @@
       "ordinal": 19,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/月度评优",
       "source_observed_on": "2026-07-05",
-      "sql_bytes": 8447,
-      "sql_lines": 194,
-      "sql_sha256": "e0cb04672ca6635f0cea314d5d9c58ef4a88d62753658d2b972b95bb4b0e84ce",
+      "sql_bytes": 8525,
+      "sql_lines": 193,
+      "sql_sha256": "fb0a907937b810c874794a07d7a2f04800c581f33b9308a8a1b044d6844c4b94",
       "subject_id": "2622"
     },
     {
@@ -297,9 +297,9 @@
       "ordinal": 21,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/季度评优",
       "source_observed_on": "2026-07-05",
-      "sql_bytes": 9901,
-      "sql_lines": 236,
-      "sql_sha256": "9afc154f9f830984ac0c6f6b50b83856d7e5ff42b7e2a24bb3ad47dc4b551217",
+      "sql_bytes": 10020,
+      "sql_lines": 235,
+      "sql_sha256": "2da42961556853d520baff81166d2c9b8cfa57c062ffcc1a912be1675f1b0297",
       "subject_id": "2633"
     },
     {
@@ -312,9 +312,9 @@
       "ordinal": 22,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/半年度评优",
       "source_observed_on": "2026-07-05",
-      "sql_bytes": 11329,
-      "sql_lines": 385,
-      "sql_sha256": "dc50993aea53ac80407583b463f049ca8e828021cb1399fc598cec9f15881380",
+      "sql_bytes": 11460,
+      "sql_lines": 383,
+      "sql_sha256": "9cd13a683cb8a4bc1b4a09f1a7508e206e88ec5237c9f5a0c20db424119e1f2a",
       "subject_id": "2634"
     },
     {

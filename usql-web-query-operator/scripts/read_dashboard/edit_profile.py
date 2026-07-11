@@ -37,7 +37,7 @@ FIELD_GROUPS = (
     ("filter", "unitFilterList"),
 )
 
-SNAPSHOT_SCHEMA_VERSION = "3.0.0"
+SNAPSHOT_SCHEMA_VERSION = "4.0.0"
 
 
 def canonical_sha256(value: Any) -> str:
@@ -1001,6 +1001,17 @@ def build_dashboard_snapshot(
     dataset_fields: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     components = enrich_component_snapshot(extract_design_components(dashboard_html), pivot_units)
+    root = (dashboard_html.get("componentsTree") or [None])[0]
+    root_style = (
+        root.get("props", {}).get("style", {})
+        if isinstance(root, dict)
+        else {}
+    )
+    dashboard_config = (
+        dashboard_html.get("config")
+        if isinstance(dashboard_html.get("config"), dict)
+        else {}
+    )
     return {
         "dashboard": {
             "dashboard_id": dashboard_id,
@@ -1027,6 +1038,11 @@ def build_dashboard_snapshot(
         "public_filters": build_public_filter_snapshot(public_filters),
         "component_filters": build_component_filter_snapshot(pivot_units),
         "datasets": build_dataset_snapshot(pivot_units, dataset_fields),
+        "theme": {
+            "background_color": root_style.get("backgroundColor"),
+            "theme_type": dashboard_config.get("themeType"),
+            "style_id": dashboard_config.get("styleId"),
+        },
     }
 
 
@@ -1614,6 +1630,7 @@ def profile_edit_dashboard(
         "public_filters",
         "component_filters",
         "datasets",
+        "theme",
     ]
     completeness = {
         "status": "complete" if not errors else "incomplete",
@@ -1701,6 +1718,7 @@ def profile_edit_dashboard(
         "public_filters": snapshot["public_filters"],
         "component_filters": snapshot["component_filters"],
         "datasets": snapshot["datasets"],
+        "theme": snapshot["theme"],
         "binding_validation": binding_validation,
         "snapshot": snapshot,
         "profile_sha256": canonical_sha256(snapshot),

@@ -20,11 +20,15 @@ from .dashboard_contracts import validate_dataset_contract_registry_evidence
 from .dashboard_domains import validate_dashboard_domain_registration
 
 
-SCHEMA_VERSION = "3.0.0"
+SCHEMA_VERSION = "4.0.0"
 SUPPORTED_DOMAINS = {"market_consultant", "qingcheng"}
 PROFILE_DOMAINS = {*SUPPORTED_DOMAINS, "unresolved"}
 SAFE_OPERATION_TYPES = {
+    "update_component_fields",
     "update_filter_dynamic_default",
+    "update_formula",
+    "update_layout",
+    "update_theme",
 }
 RECOGNIZED_DESIGN_OPERATION_TYPES = {
     "create_component",
@@ -44,6 +48,7 @@ RECOGNIZED_DESIGN_OPERATION_TYPES = {
     "update_filter",
     "update_filter_dynamic_default",
     "update_component_filter",
+    "update_theme",
     "create_dataset",
     "delete_dataset",
     "replace_dataset",
@@ -56,6 +61,7 @@ PROFILE_REQUIRED_SECTIONS = (
     "public_filters",
     "component_filters",
     "datasets",
+    "theme",
 )
 DOMAIN_SKILL_NAMES = {
     "market_consultant": "sql-query-writer-for-dashboard",
@@ -327,6 +333,17 @@ def _normalize_dataset(item: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
+def _normalize_theme(item: Mapping[str, Any] | None) -> dict[str, Any]:
+    value = item if isinstance(item, Mapping) else {}
+    return {
+        "background_color": _optional_text(
+            _first(value, "background_color", "backgroundColor")
+        ),
+        "theme_type": _optional_text(_first(value, "theme_type", "themeType")),
+        "style_id": _optional_text(_first(value, "style_id", "styleId")),
+    }
+
+
 def _ensure_unique(items: Sequence[Mapping[str, Any]], key: str, collection: str) -> None:
     values = [str(item.get(key, "")) for item in items]
     duplicates = sorted({value for value in values if values.count(value) > 1})
@@ -404,6 +421,7 @@ def normalize_dashboard_profile(profile: Mapping[str, Any]) -> dict[str, Any]:
     datasets = _normalize_list(
         snapshot.get("datasets", []), _normalize_dataset, "dataset_id", "dataset"
     )
+    theme = _normalize_theme(snapshot.get("theme"))
     raw_completeness = (
         profile.get("completeness")
         if isinstance(profile.get("completeness"), Mapping)
@@ -420,7 +438,12 @@ def normalize_dashboard_profile(profile: Mapping[str, Any]) -> dict[str, Any]:
     observed_sections = sorted(
         section
         for section in required_sections
-        if section in snapshot and isinstance(snapshot.get(section), list)
+        if section in snapshot
+        and (
+            isinstance(snapshot.get(section), list)
+            or (section == "theme" and isinstance(snapshot.get(section), Mapping))
+        )
+        or section == "theme"
     )
     missing_sections = sorted(set(required_sections) - set(observed_sections))
     explicit_missing = _stable_unique(
@@ -480,6 +503,7 @@ def normalize_dashboard_profile(profile: Mapping[str, Any]) -> dict[str, Any]:
         "public_filters": public_filters,
         "component_filters": component_filters,
         "datasets": datasets,
+        "theme": theme,
         "layout_policy": _json_value(snapshot.get("layout_policy", {"max_columns": 24})),
         "completeness": completeness,
         "write_boundary": {
@@ -505,6 +529,7 @@ def _state_from_profile(profile: Mapping[str, Any]) -> dict[str, Any]:
         "public_filters": copy.deepcopy(profile.get("public_filters", [])),
         "component_filters": copy.deepcopy(profile.get("component_filters", [])),
         "datasets": copy.deepcopy(profile.get("datasets", [])),
+        "theme": copy.deepcopy(profile.get("theme", _normalize_theme(None))),
         "layout_policy": copy.deepcopy(profile.get("layout_policy", {})),
     }
 
@@ -517,6 +542,7 @@ def _normalize_desired_state(
     desired_formulas: Sequence[Mapping[str, Any]] | None,
     desired_public_filters: Sequence[Mapping[str, Any]] | None,
     desired_component_filters: Sequence[Mapping[str, Any]] | None,
+    desired_theme: Mapping[str, Any] | None,
 ) -> dict[str, Any]:
     state = _state_from_profile(profile)
     if desired_components is not None:
@@ -546,6 +572,8 @@ def _normalize_desired_state(
             "component_filter_key",
             "component filter",
         )
+    if desired_theme is not None:
+        state["theme"] = _normalize_theme(desired_theme)
     return state
 
 
@@ -713,6 +741,7 @@ def build_dashboard_design_spec(
     desired_formulas: Sequence[Mapping[str, Any]] | None = None,
     desired_public_filters: Sequence[Mapping[str, Any]] | None = None,
     desired_component_filters: Sequence[Mapping[str, Any]] | None = None,
+    desired_theme: Mapping[str, Any] | None = None,
     query_plan_sha256: str | None = None,
     design_intent: str = "preserve_current",
     business_skill_roots: Mapping[str, str | Path] | None = None,
@@ -784,6 +813,7 @@ def build_dashboard_design_spec(
         desired_formulas=desired_formulas,
         desired_public_filters=desired_public_filters,
         desired_component_filters=desired_component_filters,
+        desired_theme=desired_theme,
     )
     embedded_query_plan_hash = _optional_text(dataset_spec.get("query_plan_sha256"))
     supplied_query_plan_hash = _optional_text(query_plan_sha256)
@@ -881,6 +911,7 @@ def build_dashboard_design_spec(
         "desired_public_filters": desired_state["public_filters"],
         "desired_component_filters": desired_state["component_filters"],
         "desired_datasets": desired_state["datasets"],
+        "desired_theme": desired_state["theme"],
         "layout_policy": desired_state["layout_policy"],
         "write_boundary": {
             "phase": "P3A_design",
@@ -967,12 +998,13 @@ def _operation(
     risk: str,
     allowed: bool,
     blocked_reasons: Sequence[str] = (),
+    target_override: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     target_item = after or before or {}
     body: dict[str, Any] = {
         "type": operation_type,
         "collection": collection,
-        "target": _target_for(collection, target_item),
+        "target": _json_value(target_override or _target_for(collection, target_item)),
         "before": _json_value(before),
         "after": _json_value(after),
         "write_status": "supported" if allowed else "blocked_unsupported",
@@ -982,6 +1014,79 @@ def _operation(
     }
     body["operation_id"] = f"op_{canonical_sha256(body)[:16]}"
     return body
+
+
+def _component_field_entries(component: Mapping[str, Any]) -> list[dict[str, Any]]:
+    fields = component.get("fields")
+    if not isinstance(fields, Mapping):
+        return []
+    entries: list[dict[str, Any]] = []
+    for collection_name in ("dimensions", "metrics"):
+        values = fields.get(collection_name, [])
+        if not isinstance(values, list):
+            return []
+        for item in values:
+            if not isinstance(item, Mapping):
+                return []
+            entry = copy.deepcopy(dict(item))
+            entry["_collection"] = collection_name
+            entries.append(entry)
+    return entries
+
+
+def _component_field_group(item: Mapping[str, Any]) -> str | None:
+    group = str(item.get("group") or "")
+    return {
+        "row_dimension": "unitRowDimensionList",
+        "column_dimension": "unitColumnDimensionList",
+        "measure": "unitMeasureList",
+    }.get(group)
+
+
+def _single_component_field_rename(
+    before: Mapping[str, Any], after: Mapping[str, Any]
+) -> tuple[dict[str, Any] | None, list[str]]:
+    before_items = _component_field_entries(before)
+    after_items = _component_field_entries(after)
+    reasons: list[str] = []
+    if not before.get("unit_id") or before.get("unit_id") != after.get("unit_id"):
+        reasons.append("component field rename requires one stable unit_id")
+    if len(before_items) != len(after_items):
+        reasons.append("component field add/delete is outside P4B")
+        return None, reasons
+    changes: list[tuple[dict[str, Any], dict[str, Any]]] = []
+    for old, new in zip(before_items, after_items):
+        old_identity = (old.get("_collection"), old.get("field_id"))
+        new_identity = (new.get("_collection"), new.get("field_id"))
+        if old_identity != new_identity:
+            reasons.append("component field identity or ordering changed")
+            return None, reasons
+        old_without_name = {key: value for key, value in old.items() if key != "business_name"}
+        new_without_name = {key: value for key, value in new.items() if key != "business_name"}
+        if old_without_name != new_without_name:
+            reasons.append("only an existing field display name may change")
+            return None, reasons
+        if old.get("business_name") != new.get("business_name"):
+            changes.append((old, new))
+    if len(changes) != 1:
+        reasons.append("P4B component apply requires exactly one field display-name change")
+        return None, reasons
+    old, new = changes[0]
+    field_group = _component_field_group(new)
+    if not field_group:
+        reasons.append("component field group has no verified write mapping")
+        return None, reasons
+    if not str(new.get("business_name") or "").strip():
+        reasons.append("component field display name must be non-empty")
+        return None, reasons
+    if reasons:
+        return None, reasons
+    return {
+        "component_id": after.get("component_id"),
+        "unit_id": after.get("unit_id"),
+        "field_group": field_group,
+        "field_id": new.get("field_id"),
+    }, []
 
 
 def _component_operations(
@@ -1018,11 +1123,22 @@ def _component_operations(
         )
     field_keys = {"fields", "formula_ids", "filter_ids"}
     if any(before.get(key) != after.get(key) for key in field_keys):
+        target, reasons = _single_component_field_rename(before, after)
+        safe = (
+            target is not None
+            and before.get("formula_ids") == after.get("formula_ids")
+            and before.get("filter_ids") == after.get("filter_ids")
+        )
+        if before.get("formula_ids") != after.get("formula_ids"):
+            reasons.append("component formula binding changes are outside P4B")
+        if before.get("filter_ids") != after.get("filter_ids"):
+            reasons.append("component filter binding changes are outside P4B")
         operations.append(
             _operation(
                 "update_component_fields", "components", before, after,
-                risk="medium", allowed=False,
-                blocked_reasons=["component field edits are diff-only in P3A"],
+                risk="low" if safe else "high", allowed=safe,
+                blocked_reasons=reasons,
+                target_override=target,
             )
         )
     ignored = field_keys | {
@@ -1078,24 +1194,48 @@ def _diff_collection(
                 old.get("container_id") != new.get("container_id")
                 or old.get("tab_id") != new.get("tab_id")
             )
+            changed_keys = {
+                key for key in set(old) | set(new) if old.get(key) != new.get(key)
+            }
+            verified_keys = {"x", "y", "w", "h"}
+            stable_keys = {"component_id", "unit_id", "container_id", "tab_id", "z"}
+            stable_identity = all(old.get(key) == new.get(key) for key in stable_keys)
+            safe_layout = (
+                not container_changed
+                and stable_identity
+                and bool(changed_keys)
+                and changed_keys <= verified_keys
+            )
+            reasons = []
+            if container_changed:
+                reasons.append("cross-container or cross-tab moves are outside P3B")
+            if not stable_identity:
+                reasons.append("layout apply requires stable component, unit, container, tab, and z")
+            if changed_keys - verified_keys:
+                reasons.append("only x/y/w/h layout keys have a verified P4B adapter")
             operations.append(
                 _operation(
                     "move_component_container" if container_changed else "update_layout",
                     collection, old, new,
-                    risk="high" if container_changed else "medium",
-                    allowed=False,
-                    blocked_reasons=(
-                        ["cross-container or cross-tab moves are outside P3B"]
-                        if container_changed
-                        else ["layout edits are diff-only in P3A"]
-                    ),
+                    risk="low" if safe_layout else "high",
+                    allowed=safe_layout,
+                    blocked_reasons=reasons,
                 )
             )
         elif collection == "formulas":
             shared = bool(old.get("shared") or new.get("shared"))
             safe_scope = old.get("scope") == new.get("scope") == "component"
             component_ids = set(old.get("component_ids", [])) | set(new.get("component_ids", []))
-            safe = not shared and safe_scope and len(component_ids) <= 1
+            changed_keys = {
+                key for key in set(old) | set(new) if old.get(key) != new.get(key)
+            }
+            safe = (
+                not shared
+                and safe_scope
+                and len(component_ids) == 1
+                and changed_keys == {"expression"}
+                and bool(str(new.get("expression") or "").strip())
+            )
             reasons: list[str] = []
             if shared:
                 reasons.append("shared formula updates require impact review")
@@ -1103,11 +1243,17 @@ def _diff_collection(
                 reasons.append("only component-local formula updates are supported in P3B")
             if len(component_ids) > 1:
                 reasons.append("formula affects multiple components")
+            if len(component_ids) != 1:
+                reasons.append("formula apply requires exactly one affected component")
+            if changed_keys != {"expression"}:
+                reasons.append("only an existing formula expression may change; dependencies and identity must remain stable")
+            if not str(new.get("expression") or "").strip():
+                reasons.append("formula expression must be non-empty")
             operations.append(
                 _operation(
                     "update_formula", collection, old, new,
-                    risk="medium" if safe else "high", allowed=False,
-                    blocked_reasons=(reasons or ["formula edits are diff-only in P3A"]),
+                    risk="medium" if safe else "high", allowed=safe,
+                    blocked_reasons=reasons,
                 )
             )
         elif collection == "public_filters":
@@ -1308,8 +1454,38 @@ def _design_state(design: Mapping[str, Any]) -> dict[str, Any]:
         "public_filters": copy.deepcopy(design.get("desired_public_filters", [])),
         "component_filters": copy.deepcopy(design.get("desired_component_filters", [])),
         "datasets": copy.deepcopy(design.get("desired_datasets", [])),
+        "theme": copy.deepcopy(design.get("desired_theme", _normalize_theme(None))),
         "layout_policy": copy.deepcopy(design.get("layout_policy", {})),
     }
+
+
+def _theme_operation(
+    before: Mapping[str, Any], after: Mapping[str, Any]
+) -> dict[str, Any] | None:
+    if before == after:
+        return None
+    changed_keys = {
+        key for key in set(before) | set(after) if before.get(key) != after.get(key)
+    }
+    background = str(after.get("background_color") or "")
+    safe = changed_keys == {"background_color"} and bool(
+        re.fullmatch(r"#[0-9A-Fa-f]{6}", background)
+    )
+    reasons: list[str] = []
+    if changed_keys != {"background_color"}:
+        reasons.append("only the dashboard root background color is writable in P4B")
+    if not re.fullmatch(r"#[0-9A-Fa-f]{6}", background):
+        reasons.append("root background color must be an explicit #RRGGBB value")
+    return _operation(
+        "update_theme",
+        "theme",
+        before,
+        after,
+        risk="low" if safe else "high",
+        allowed=safe,
+        blocked_reasons=reasons,
+        target_override={"scope": "dashboard_root"},
+    )
 
 
 def _diff_states(
@@ -1332,6 +1508,12 @@ def _diff_states(
                 target.get(collection, []),
             )
         )
+    theme_operation = _theme_operation(
+        baseline.get("theme", _normalize_theme(None)),
+        target.get("theme", _normalize_theme(None)),
+    )
+    if theme_operation is not None:
+        operations.append(theme_operation)
     operations.sort(key=lambda item: (item["type"], item["operation_id"]))
     return operations
 
@@ -1540,7 +1722,8 @@ def validate_dashboard_change_plan(
             )
         )
     for index, operation in enumerate(operations):
-        if operation.get("type") not in SAFE_OPERATION_TYPES:
+        operation_type = str(operation.get("type") or "")
+        if operation_type not in SAFE_OPERATION_TYPES:
             diagnostics.append(
                 _diagnostic(
                     "DASHBOARD_OPERATION_NOT_ALLOWLISTED", "error",
@@ -1548,16 +1731,11 @@ def validate_dashboard_change_plan(
                     f"operations[{index}].type",
                 )
             )
-        if operation.get("collection") != "public_filters":
-            diagnostics.append(
-                _diagnostic(
-                    "DASHBOARD_OPERATION_COLLECTION_UNSUPPORTED", "error",
-                    "the current P3B allowlist applies only to public_filters",
-                    f"operations[{index}].collection",
-                )
-            )
         target = operation.get("target") if isinstance(operation.get("target"), Mapping) else {}
-        if not all(target.get(key) for key in ("relation_id", "filter_id", "field_id")):
+        after = operation.get("after") if isinstance(operation.get("after"), Mapping) else {}
+        if operation_type == "update_filter_dynamic_default" and not all(
+            target.get(key) for key in ("relation_id", "filter_id", "field_id")
+        ):
             diagnostics.append(
                 _diagnostic(
                     "DASHBOARD_FILTER_STABLE_ID_REQUIRED", "error",
@@ -1565,8 +1743,7 @@ def validate_dashboard_change_plan(
                     f"operations[{index}].target",
                 )
             )
-        after = operation.get("after") if isinstance(operation.get("after"), Mapping) else {}
-        if not (
+        if operation_type == "update_filter_dynamic_default" and not (
             after.get("dynamics_filter") is True
             and after.get("dynamics_filter_value") not in (None, "")
             and after.get("auto_search_default_value") is False
@@ -1576,6 +1753,40 @@ def validate_dashboard_change_plan(
                     "DASHBOARD_FILTER_DYNAMIC_DEFAULT_INVALID", "error",
                     "supported filter apply requires an explicit verified dynamic default",
                     f"operations[{index}].after",
+                )
+            )
+        if operation_type == "update_layout" and not target.get("component_id"):
+            diagnostics.append(
+                _diagnostic(
+                    "DASHBOARD_LAYOUT_STABLE_ID_REQUIRED", "error",
+                    "layout apply requires a stable component_id",
+                    f"operations[{index}].target",
+                )
+            )
+        if operation_type == "update_component_fields" and not all(
+            target.get(key) for key in ("component_id", "unit_id", "field_group", "field_id")
+        ):
+            diagnostics.append(
+                _diagnostic(
+                    "DASHBOARD_COMPONENT_FIELD_STABLE_ID_REQUIRED", "error",
+                    "component field apply requires component_id, unit_id, field_group, and field_id",
+                    f"operations[{index}].target",
+                )
+            )
+        if operation_type == "update_formula" and not target.get("formula_id"):
+            diagnostics.append(
+                _diagnostic(
+                    "DASHBOARD_FORMULA_STABLE_ID_REQUIRED", "error",
+                    "formula apply requires a stable formula_id",
+                    f"operations[{index}].target",
+                )
+            )
+        if operation_type == "update_theme" and target.get("scope") != "dashboard_root":
+            diagnostics.append(
+                _diagnostic(
+                    "DASHBOARD_THEME_SCOPE_INVALID", "error",
+                    "theme apply is limited to dashboard_root",
+                    f"operations[{index}].target",
                 )
             )
         if operation.get("write_status") != "supported":
@@ -1650,6 +1861,7 @@ def build_apply_receipt(
     post_profile: Mapping[str, Any],
     *,
     operation_results: Sequence[Mapping[str, Any]] | None = None,
+    recovery: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Build a readback-bound receipt after an operator attempted P3B apply.
 
@@ -1712,6 +1924,16 @@ def build_apply_receipt(
         },
         "status": "applied" if ok and expected_ids else ("no_changes" if ok else "failed"),
         "ok": ok,
+        "recovery": _json_value(
+            recovery
+            or {
+                "attempted": False,
+                "status": "not_needed",
+                "restored_profile_sha256": None,
+                "operations": [],
+                "errors": [],
+            }
+        ),
         "publish_boundary": {
             "publish_authorized": False,
             "requires_separate_publish_confirmation": True,
@@ -1744,6 +1966,25 @@ def validate_apply_receipt(
     if receipt.get("domain") != change_plan.get("domain") or str(receipt.get("dashboard_id")) != str(change_plan.get("dashboard_id")):
         diagnostics.append(
             _diagnostic("DASHBOARD_RECEIPT_IDENTITY_MISMATCH", "error", "receipt identity is invalid")
+        )
+    recovery = receipt.get("recovery") if isinstance(receipt.get("recovery"), Mapping) else {}
+    if receipt.get("status") == "applied" and (
+        recovery.get("attempted") is not False or recovery.get("status") != "not_needed"
+    ):
+        diagnostics.append(
+            _diagnostic(
+                "DASHBOARD_APPLY_RECOVERY_INCONSISTENT", "error",
+                "a successful apply receipt cannot claim recovery was attempted",
+                "recovery",
+            )
+        )
+    if recovery.get("status") == "restored" and recovery.get("restored_profile_sha256") != change_plan.get("base_profile_sha256"):
+        diagnostics.append(
+            _diagnostic(
+                "DASHBOARD_APPLY_RECOVERY_HASH_MISMATCH", "error",
+                "a restored transaction must return to the ChangePlan baseline profile hash",
+                "recovery.restored_profile_sha256",
+            )
         )
     expected_ids = {
         str(item.get("operation_id"))

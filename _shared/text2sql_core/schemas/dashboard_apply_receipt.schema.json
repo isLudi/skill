@@ -6,11 +6,11 @@
   "required": [
     "schema_version", "artifact_type", "domain", "dashboard_id",
     "change_plan_sha256", "pre_profile_sha256", "post_profile_sha256",
-    "operations", "verification", "status", "ok", "publish_boundary",
+    "operations", "verification", "status", "ok", "recovery", "publish_boundary",
     "apply_receipt_sha256"
   ],
   "properties": {
-    "schema_version": {"const": "3.0.0"},
+    "schema_version": {"const": "4.0.0"},
     "artifact_type": {"const": "dashboard_apply_receipt"},
     "domain": {"enum": ["market_consultant", "qingcheng"]},
     "dashboard_id": {"type": "string", "minLength": 1},
@@ -43,6 +43,23 @@
     },
     "status": {"enum": ["applied", "no_changes", "failed"]},
     "ok": {"type": "boolean"},
+    "recovery": {
+      "type": "object",
+      "required": ["attempted", "status", "restored_profile_sha256", "operations", "errors"],
+      "properties": {
+        "attempted": {"type": "boolean"},
+        "status": {"enum": ["not_needed", "restored", "failed"]},
+        "restored_profile_sha256": {
+          "oneOf": [
+            {"$ref": "dashboard_profile.schema.json#/$defs/sha256"},
+            {"type": "null"}
+          ]
+        },
+        "operations": {"type": "array"},
+        "errors": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
     "publish_boundary": {
       "type": "object",
       "required": ["publish_authorized", "requires_separate_publish_confirmation"],

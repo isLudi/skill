@@ -120,7 +120,7 @@
   },
   "current_model_registry": {
     "source_path": "semantic/current_model_bindings.json",
-    "source_sha256": "8a26fe98170709fa7d416ad9f81731c7595d08a8682185af0d3cab76ae0c494e",
+    "source_sha256": "15bbfb54dc275f92c6300e72d6d4f0b9a205733d6e2a8eb2fb77c1d6e33108d7",
     "policy": "one_current_model_per_id_and_semantic_slot",
     "canonical_filename_policy": "data_center_market_<model_id>.sql",
     "model_count": 37,
@@ -1100,8 +1100,8 @@
       {
         "id": "market_consultant:dashboards:consultant_sales_ranking_evaluation",
         "source_path": "knowledge/dashboards/consultant_sales_ranking_evaluation.md",
-        "sha256": "4c3074025d792b9b0401ac49c93b2738ee4f49905b979ed9463c8b66becc3055",
-        "bytes": 14264,
+        "sha256": "35b2920398af4154421008383fdbc9037b8020327543f427512f7ee4a77e4688",
+        "bytes": 14694,
         "title": "顾问销售评优看板",
         "table_refs": [
           "dw.dim_employee_chain",
@@ -1719,8 +1719,8 @@
       {
         "id": "market_consultant:metrics:consultant_sales_ranking_evaluation_metrics",
         "source_path": "knowledge/metrics/consultant_sales_ranking_evaluation_metrics.md",
-        "sha256": "7a8cdc9d0454292b07679985be8328fa6481aa203c80140d345a6175bc6bba46",
-        "bytes": 4337,
+        "sha256": "f7f94ceb66544408a9e088bd7acdb2fc961f850165183de419b2e08425d7656e",
+        "bytes": 4710,
         "title": "顾问销售评优指标",
         "table_refs": [
           "finance_dw.app_finance_performance_extend_details_hf",
@@ -2011,8 +2011,8 @@
       {
         "id": "market_consultant:raw_sql:consultant_sales_ranking_evaluation",
         "source_path": "resources/raw_sql/consultant_sales_ranking_evaluation.sql",
-        "sha256": "9b343f3c4512634a37e6c7657b1c2d28af21245bf07889070605433377803bb1",
-        "bytes": 30715,
+        "sha256": "c5c4026e774d06244f97df286b9614d8d15827418df7b0d8e55249cac1effb5f",
+        "bytes": 30896,
         "title": "consultant_sales_ranking_evaluation",
         "table_refs": [
           "finance_dw.app_finance_performance_extend_details_hf",
@@ -2027,8 +2027,8 @@
       {
         "id": "market_consultant:raw_sql:consultant_sales_ranking_evaluation_month_clean",
         "source_path": "resources/raw_sql/consultant_sales_ranking_evaluation_month_clean.sql",
-        "sha256": "beab31fb398fb36e7ccb2777f11b6e9c4e6e9c09d09624c59ee39c8784408fe2",
-        "bytes": 8452,
+        "sha256": "8d63042d7eac218c255a7b7010850713700a56e7b175def89bcc173cc3ca111f",
+        "bytes": 8530,
         "title": "consultant_sales_ranking_evaluation_month_clean",
         "table_refs": [
           "finance_dw.app_finance_performance_extend_details_hf",
@@ -2043,8 +2043,8 @@
       {
         "id": "market_consultant:raw_sql:consultant_sales_ranking_evaluation_period_clean",
         "source_path": "resources/raw_sql/consultant_sales_ranking_evaluation_period_clean.sql",
-        "sha256": "636364ef26138e56f2259258b94fedcff7f83718b89f7d4007de267b4ac1647b",
-        "bytes": 6973,
+        "sha256": "a6364bf3bdcb587d035a050013c262715334f534a91eaa1d55984825a98a7027",
+        "bytes": 7002,
         "title": "consultant_sales_ranking_evaluation_period_clean",
         "table_refs": [
           "finance_dw.app_finance_performance_extend_details_hf",
@@ -2059,8 +2059,8 @@
       {
         "id": "market_consultant:raw_sql:consultant_sales_ranking_evaluation_quarter_clean",
         "source_path": "resources/raw_sql/consultant_sales_ranking_evaluation_quarter_clean.sql",
-        "sha256": "b1a0a9f20e37bef822c1b549a844d66084ea8219384739449aec415bdcf3e24a",
-        "bytes": 9906,
+        "sha256": "98b030e83ab35f94b43abb25b7068cb2c446990e79d78ebe5b504d4f566b1166",
+        "bytes": 10025,
         "title": "consultant_sales_ranking_evaluation_quarter_clean",
         "table_refs": [
           "finance_dw.app_finance_performance_extend_details_hf",
@@ -2076,8 +2076,8 @@
       {
         "id": "market_consultant:raw_sql:consultant_sales_ranking_evaluation_year_clean",
         "source_path": "resources/raw_sql/consultant_sales_ranking_evaluation_year_clean.sql",
-        "sha256": "b1883a1bf3a8d993a647464fb5e6d4f09f6753027524a548218359c7d338c28a",
-        "bytes": 11385,
+        "sha256": "c46feb05d56b5d430ce4e5ec6c0a8166507f3c270d1a733658d7719bfa86ab55",
+        "bytes": 11516,
         "title": "consultant_sales_ranking_evaluation_year_clean",
         "table_refs": [
           "finance_dw.app_finance_performance_extend_details_hf",
@@ -2304,8 +2304,8 @@
       {
         "id": "market_consultant:raw_sql:data_center_market_2421",
         "source_path": "resources/raw_sql/data_center_market_2421.sql",
-        "sha256": "6569ca55daf092f707b8a0c0cf3a194d36fcac3e8873d01c81bef4d0da0e000e",
-        "bytes": 6973,
+        "sha256": "b2e2ae43fa4dffef6ade49dba379bb2236ee67c3f86dd655209fba22936b34c1",
+        "bytes": 7002,
         "title": "data_center_market_2421",
         "table_refs": [
           "finance_dw.app_finance_performance_extend_details_hf",
@@ -2457,8 +2457,8 @@
       {
         "id": "market_consultant:raw_sql:data_center_market_2632",
         "source_path": "resources/raw_sql/data_center_market_2632.sql",
-        "sha256": "e0cb04672ca6635f0cea314d5d9c58ef4a88d62753658d2b972b95bb4b0e84ce",
-        "bytes": 8447,
+        "sha256": "fb0a907937b810c874794a07d7a2f04800c581f33b9308a8a1b044d6844c4b94",
+        "bytes": 8525,
         "title": "data_center_market_2632",
         "table_refs": [
           "finance_dw.app_finance_performance_extend_details_hf",
@@ -2492,8 +2492,8 @@
       {
         "id": "market_consultant:raw_sql:data_center_market_2643",
         "source_path": "resources/raw_sql/data_center_market_2643.sql",
-        "sha256": "9afc154f9f830984ac0c6f6b50b83856d7e5ff42b7e2a24bb3ad47dc4b551217",
-        "bytes": 9901,
+        "sha256": "2da42961556853d520baff81166d2c9b8cfa57c062ffcc1a912be1675f1b0297",
+        "bytes": 10020,
         "title": "data_center_market_2643",
         "table_refs": [
           "finance_dw.app_finance_performance_extend_details_hf",
@@ -2509,8 +2509,8 @@
       {
         "id": "market_consultant:raw_sql:data_center_market_2644",
         "source_path": "resources/raw_sql/data_center_market_2644.sql",
-        "sha256": "dc50993aea53ac80407583b463f049ca8e828021cb1399fc598cec9f15881380",
-        "bytes": 11329,
+        "sha256": "9cd13a683cb8a4bc1b4a09f1a7508e206e88ec5237c9f5a0c20db424119e1f2a",
+        "bytes": 11460,
         "title": "data_center_market_2644",
         "table_refs": [
           "finance_dw.app_finance_performance_extend_details_hf",
@@ -3028,8 +3028,8 @@
       {
         "id": "market_consultant:reverse_index:field_to_metrics",
         "source_path": "knowledge/reverse_index/field_to_metrics.md",
-        "sha256": "821976fcf80a2f5d86bf9db9a0a5524b15e31a640cabdd7532bbf72472b92a5b",
-        "bytes": 152655,
+        "sha256": "88198c940c3bc07a3a7d24f03cdc41e302d4ab4fc93b0d3de676958e1531283a",
+        "bytes": 152888,
         "title": "字段到指标反向索引",
         "table_refs": [],
         "raw_sql_refs": [
@@ -3950,8 +3950,8 @@
       {
         "id": "market_consultant:update_log:changelog",
         "source_path": "knowledge/update_log/changelog.md",
-        "sha256": "395dd356d4eab97480364e315952d0075cc1c3d957a0cf8707cd88921ddc6a51",
-        "bytes": 91577,
+        "sha256": "c41d04f3b95848f5ab01a6a77030366a5fb824a32cac4417a83420c64439f826",
+        "bytes": 92335,
         "title": "更新记录",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -5337,8 +5337,8 @@
     },
     {
       "source_path": "knowledge/dashboards/consultant_sales_ranking_evaluation.md",
-      "sha256": "4c3074025d792b9b0401ac49c93b2738ee4f49905b979ed9463c8b66becc3055",
-      "bytes": 14264,
+      "sha256": "35b2920398af4154421008383fdbc9037b8020327543f427512f7ee4a77e4688",
+      "bytes": 14694,
       "category": "dashboards"
     },
     {
@@ -5433,8 +5433,8 @@
     },
     {
       "source_path": "knowledge/metrics/consultant_sales_ranking_evaluation_metrics.md",
-      "sha256": "7a8cdc9d0454292b07679985be8328fa6481aa203c80140d345a6175bc6bba46",
-      "bytes": 4337,
+      "sha256": "f7f94ceb66544408a9e088bd7acdb2fc961f850165183de419b2e08425d7656e",
+      "bytes": 4710,
       "category": "metrics"
     },
     {
@@ -5511,8 +5511,8 @@
     },
     {
       "source_path": "knowledge/reverse_index/field_to_metrics.md",
-      "sha256": "821976fcf80a2f5d86bf9db9a0a5524b15e31a640cabdd7532bbf72472b92a5b",
-      "bytes": 152655,
+      "sha256": "88198c940c3bc07a3a7d24f03cdc41e302d4ab4fc93b0d3de676958e1531283a",
+      "bytes": 152888,
       "category": "reverse_index"
     },
     {
@@ -5793,38 +5793,38 @@
     },
     {
       "source_path": "knowledge/update_log/changelog.md",
-      "sha256": "395dd356d4eab97480364e315952d0075cc1c3d957a0cf8707cd88921ddc6a51",
-      "bytes": 91577,
+      "sha256": "c41d04f3b95848f5ab01a6a77030366a5fb824a32cac4417a83420c64439f826",
+      "bytes": 92335,
       "category": "update_log"
     },
     {
       "source_path": "resources/raw_sql/consultant_sales_ranking_evaluation.sql",
-      "sha256": "9b343f3c4512634a37e6c7657b1c2d28af21245bf07889070605433377803bb1",
-      "bytes": 30715,
+      "sha256": "c5c4026e774d06244f97df286b9614d8d15827418df7b0d8e55249cac1effb5f",
+      "bytes": 30896,
       "category": "raw_sql"
     },
     {
       "source_path": "resources/raw_sql/consultant_sales_ranking_evaluation_month_clean.sql",
-      "sha256": "beab31fb398fb36e7ccb2777f11b6e9c4e6e9c09d09624c59ee39c8784408fe2",
-      "bytes": 8452,
+      "sha256": "8d63042d7eac218c255a7b7010850713700a56e7b175def89bcc173cc3ca111f",
+      "bytes": 8530,
       "category": "raw_sql"
     },
     {
       "source_path": "resources/raw_sql/consultant_sales_ranking_evaluation_period_clean.sql",
-      "sha256": "636364ef26138e56f2259258b94fedcff7f83718b89f7d4007de267b4ac1647b",
-      "bytes": 6973,
+      "sha256": "a6364bf3bdcb587d035a050013c262715334f534a91eaa1d55984825a98a7027",
+      "bytes": 7002,
       "category": "raw_sql"
     },
     {
       "source_path": "resources/raw_sql/consultant_sales_ranking_evaluation_quarter_clean.sql",
-      "sha256": "b1a0a9f20e37bef822c1b549a844d66084ea8219384739449aec415bdcf3e24a",
-      "bytes": 9906,
+      "sha256": "98b030e83ab35f94b43abb25b7068cb2c446990e79d78ebe5b504d4f566b1166",
+      "bytes": 10025,
       "category": "raw_sql"
     },
     {
       "source_path": "resources/raw_sql/consultant_sales_ranking_evaluation_year_clean.sql",
-      "sha256": "b1883a1bf3a8d993a647464fb5e6d4f09f6753027524a548218359c7d338c28a",
-      "bytes": 11385,
+      "sha256": "c46feb05d56b5d430ce4e5ec6c0a8166507f3c270d1a733658d7719bfa86ab55",
+      "bytes": 11516,
       "category": "raw_sql"
     },
     {
@@ -5889,8 +5889,8 @@
     },
     {
       "source_path": "resources/raw_sql/data_center_market_2421.sql",
-      "sha256": "6569ca55daf092f707b8a0c0cf3a194d36fcac3e8873d01c81bef4d0da0e000e",
-      "bytes": 6973,
+      "sha256": "b2e2ae43fa4dffef6ade49dba379bb2236ee67c3f86dd655209fba22936b34c1",
+      "bytes": 7002,
       "category": "raw_sql"
     },
     {
@@ -5931,8 +5931,8 @@
     },
     {
       "source_path": "resources/raw_sql/data_center_market_2632.sql",
-      "sha256": "e0cb04672ca6635f0cea314d5d9c58ef4a88d62753658d2b972b95bb4b0e84ce",
-      "bytes": 8447,
+      "sha256": "fb0a907937b810c874794a07d7a2f04800c581f33b9308a8a1b044d6844c4b94",
+      "bytes": 8525,
       "category": "raw_sql"
     },
     {
@@ -5943,14 +5943,14 @@
     },
     {
       "source_path": "resources/raw_sql/data_center_market_2643.sql",
-      "sha256": "9afc154f9f830984ac0c6f6b50b83856d7e5ff42b7e2a24bb3ad47dc4b551217",
-      "bytes": 9901,
+      "sha256": "2da42961556853d520baff81166d2c9b8cfa57c062ffcc1a912be1675f1b0297",
+      "bytes": 10020,
       "category": "raw_sql"
     },
     {
       "source_path": "resources/raw_sql/data_center_market_2644.sql",
-      "sha256": "dc50993aea53ac80407583b463f049ca8e828021cb1399fc598cec9f15881380",
-      "bytes": 11329,
+      "sha256": "9cd13a683cb8a4bc1b4a09f1a7508e206e88ec5237c9f5a0c20db424119e1f2a",
+      "bytes": 11460,
       "category": "raw_sql"
     },
     {

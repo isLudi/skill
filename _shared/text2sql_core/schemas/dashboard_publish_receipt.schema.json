@@ -14,7 +14,7 @@
     "ok", "publish_receipt_sha256"
   ],
   "properties": {
-    "schema_version": {"const": "3.0.0"},
+    "schema_version": {"const": "4.0.0"},
     "artifact_type": {"const": "dashboard_publish_receipt"},
     "domain": {"enum": ["market_consultant", "qingcheng"]},
     "dashboard_id": {"type": "string", "minLength": 1},

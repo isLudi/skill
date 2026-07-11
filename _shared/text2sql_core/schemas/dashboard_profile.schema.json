@@ -6,11 +6,11 @@
   "required": [
     "schema_version", "artifact_type", "mode", "domain", "dashboard_id",
     "dashboard_name", "version_id", "components", "layout", "formulas",
-    "public_filters", "component_filters", "datasets", "layout_policy", "completeness", "write_boundary",
+    "public_filters", "component_filters", "datasets", "theme", "layout_policy", "completeness", "write_boundary",
     "profile_sha256"
   ],
   "properties": {
-    "schema_version": {"const": "3.0.0"},
+    "schema_version": {"const": "4.0.0"},
     "artifact_type": {"const": "dashboard_profile"},
     "mode": {"const": "read_only_profile"},
     "domain": {"enum": ["unresolved", "market_consultant", "qingcheng"]},
@@ -26,6 +26,7 @@
     "public_filters": {"type": "array", "items": {"$ref": "#/$defs/filter"}},
     "component_filters": {"type": "array", "items": {"$ref": "#/$defs/component_filter"}},
     "datasets": {"type": "array", "items": {"$ref": "#/$defs/dataset"}},
+    "theme": {"$ref": "#/$defs/theme"},
     "layout_policy": {"type": "object"},
     "completeness": {
       "type": "object",
@@ -138,6 +139,16 @@
       "properties": {
         "dataset_id": {"type": "string", "minLength": 1},
         "name": {"type": "string"}, "source": {}, "config": {}
+      },
+      "additionalProperties": false
+    },
+    "theme": {
+      "type": "object",
+      "required": ["background_color", "theme_type", "style_id"],
+      "properties": {
+        "background_color": {"type": ["string", "null"]},
+        "theme_type": {"type": ["string", "null"]},
+        "style_id": {"type": ["string", "null"]}
       },
       "additionalProperties": false
     }
