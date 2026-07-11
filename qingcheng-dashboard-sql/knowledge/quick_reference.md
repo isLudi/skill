@@ -65,7 +65,7 @@
 |---|---|---|---|
 | 追溯某批 `lead_id` 的原始来源 / 原始分配线索 | `knowledge/sql_patterns/qingcheng_lead_origin_trace.md` | `knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md`、`knowledge/tables/service_dw.dm_crm_lead_stats_detail_hf.md` | 不要把 `rule_name` 当原始来源；`rule_name like '%公开课%'` 可能为 0；窗口别名不要写成 `rn` |
 | 个人/团队完成度与订单流水不一致 | `knowledge/sql_patterns/qingcheng_completion_sql_repair_checklist.md` | `knowledge/sql_patterns/qingcheng_personal_completion_discounted_output_risks.md`、`knowledge/dashboards/qingcheng_personal_conversion_raw_20260522.md`、`knowledge/metrics/qingcheng_personal_conversion_metrics.md`、`knowledge/tables/finance_dw.app_finance_performance_extend_details_hf.md` | 不要只看前端公式；先查原始支付时间、空课程部门、调课调班链路、service 明细 transfer 兜底和期次架构 join |
-| 看板展示值与 SQL 输出字段看似一致但仍对不上 | `knowledge/metrics/qingcheng_dashboard_metric_formula_linkage.md` | 对应 `knowledge/dashboard_web_profiles/edit_metrics/<dashboard_id>_edit_metrics.md` 和当前 retained snapshot（如 `resources/raw_sql/data_center_qingcheng_2064_20260625.sql`） | 先判断差异来自 SQL 输出、前端自定义公式、透视表维度聚合，还是转化口径与 finance 完成度口径不同 |
+| 看板展示值与 SQL 输出字段看似一致但仍对不上 | `knowledge/metrics/qingcheng_dashboard_metric_formula_linkage.md` | 对应 `knowledge/dashboard_web_profiles/edit_metrics/<dashboard_id>_edit_metrics.md` 和当前 retained snapshot（如 `resources/raw_sql/data_center_qingcheng_2064.sql`） | 先判断差异来自 SQL 输出、前端自定义公式、透视表维度聚合，还是转化口径与 finance 完成度口径不同 |
 
 ## 高频表与临时表
 

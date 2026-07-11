@@ -11,6 +11,7 @@
     "progressive_disclosure",
     "boundary",
     "counts",
+    "current_model_registry",
     "dashboard_registry",
     "entities",
     "reverse_lookup",
@@ -33,6 +34,26 @@
     "progressive_disclosure": {"type": "object"},
     "boundary": {"type": "object"},
     "counts": {"type": "object"},
+    "current_model_registry": {
+      "type": "object",
+      "required": [
+        "source_path",
+        "source_sha256",
+        "policy",
+        "canonical_filename_policy",
+        "model_count",
+        "semantic_slot_count"
+      ],
+      "properties": {
+        "source_path": {"const": "semantic/current_model_bindings.json"},
+        "source_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "policy": {"const": "one_current_model_per_id_and_semantic_slot"},
+        "canonical_filename_policy": {"type": "string", "minLength": 1},
+        "model_count": {"type": "integer", "minimum": 0},
+        "semantic_slot_count": {"type": "integer", "minimum": 0}
+      },
+      "additionalProperties": false
+    },
     "dashboard_registry": {
       "type": "object",
       "required": ["source", "policy", "count", "registered", "cross_domain_conflicts"],

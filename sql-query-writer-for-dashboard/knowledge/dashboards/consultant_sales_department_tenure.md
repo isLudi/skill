@@ -2,7 +2,7 @@
 
 ## 1. 来源
 
-原始 SQL：`resources/raw_sql/data_center_market_2727_20260705.sql`
+原始 SQL：`resources/raw_sql/data_center_market_2727.sql`
 
 最近更新：2026-05-08
 

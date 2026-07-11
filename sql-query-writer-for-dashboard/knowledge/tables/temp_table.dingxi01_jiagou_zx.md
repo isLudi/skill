@@ -160,20 +160,19 @@ eligible_consultant_name as (
 
 ### 流量画像 SQL 使用备注
 
-- `data_center_market_2683_20260705.sql` 最终层通过 `zx.employee_email_name = zz.employee_email_name` 补充 `xiaozu`。
+- `data_center_market_2683.sql` 最终层通过 `zx.employee_email_name = zz.employee_email_name` 补充 `xiaozu`。
 - 该表无 `qici` 字段，流量画像中得到的是当前专项架构口径，不代表某期次历史架构；跨期复盘时需确认是否改用 `temp_table.dingxi01_jiagou_db`。
 
 ### 运营侧个人数据 2293 使用备注
 
-- `resources/raw_sql/data_center_market_2293_20260705.sql` 中本表只作为当前在职架构兜底，不能优先替代 `temp_table.dingxi01_jiagou_db` 的期次架构。
+- `resources/raw_sql/data_center_market_2293.sql` 中本表只作为当前在职架构兜底，不能优先替代 `temp_table.dingxi01_jiagou_db` 的期次架构。
 - 该 SQL 使用 `zx_active` 先按 `employee_email_name` 去重，并限定 `cast(zaizhi as varchar) = '1'`、`department in ('郑州顾问部', '西安一部', '西安二部')`，避免当前架构表重复 key 放大运营侧个人数据。
 - 展示经理/主管字段的优先级为：`temp_table.dingxi01_jiagou_db` 期次架构 > 本表当前在职架构 > 事实宽表 `virtual_*` 字段。
 
 ### 退费分析 SQL 使用备注
 
 - 当前 2349 科目/产品/年级退款金额占比 SQL 通过 `employee_email_name = name` 关联该表，补充 `xiaozu`、`jingli`。
-- `data_center_market_2350_20260705.sql`、`data_center_market_2349_20260705.sql`、`data_center_market_2353_20260705.sql` 也通过同一方式关联该表，但仅作为历史归档。
-- 该表无 `qici` 字段，因此这些退费财务流水 SQL 的架构是当前专项架构口径，不是订单发生期的历史架构。
+- 当前 2349 与 2353 通过同一方式关联该表。该表无 `qici` 字段，因此两者使用当前专项架构，不是订单发生期架构。
 
 ## 13. 反向联动速查
 
@@ -181,8 +180,7 @@ eligible_consultant_name as (
 
 - `../dashboards/market_consultant_conversion.md`、`../dashboards/traffic_profile.md`：补充当前小组或经理。
 - `../dashboards/consultant_sales_ranking_evaluation.md`：季度/半年 clean 脚本用作当前在职顾问名单。
-- `../dashboards/refund_subject_product.md`：当前 2349 科目/产品/年级退款金额占比的当前架构补充入口。
-- `../dashboards/refund_multi_subject_user_ratio.md`、`../dashboards/refund_reason_analysis.md`：历史退费分析当前架构补充入口；当前默认路由到 `../dashboards/market_channel_conversion_profile.md`。
+- `../dashboards/market_channel_conversion_profile.md`：2349 与 2353 的唯一当前说明入口。
 - `../dashboards/data_center_market_datasets.md`：运营侧个人数据 2293 当前架构兜底和去重来源。
 
 已知风险：

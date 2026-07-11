@@ -161,6 +161,6 @@ limit 20;
 
 ### 流量画像 SQL 使用备注
 
-- `data_center_market_2683_20260705.sql` 的 `call_c` CTE 使用该表统计外呼过程指标：`call_duration > 300` 作为 5 分钟长通话，`call_status in ('1','0')` 统计总外呼次数，`call_status = '1'` 统计接通次数。
+- `data_center_market_2683.sql` 的 `call_c` CTE 使用该表统计外呼过程指标：`call_duration > 300` 作为 5 分钟长通话，`call_status in ('1','0')` 统计总外呼次数，`call_status = '1'` 统计接通次数。
 - `call_c` 先按 `user_number + lead_id + section_assign_employee_email_prefix` 聚合，但后续 join 主线索时只使用 `user_number + section_assign_employee_email_prefix`，未使用 `lead_id`；多线索用户需确认是否会重复匹配。
 - 该 CTE 只加 `dt/hour` 分区条件，未单独加部门范围；复用时如查询范围扩大，应结合主表或本表可用部门字段补充限制。

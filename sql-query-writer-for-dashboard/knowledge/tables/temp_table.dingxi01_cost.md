@@ -8,7 +8,7 @@
 
 稳定临时表，用于按渠道、年级和期次补充单例子成本 `cost` 与目标 `goal`。
 
-字段来源：`resources/raw_sql/data_center_market_2253_20260705.sql`。
+字段来源：`resources/raw_sql/data_center_market_2253.sql`。
 
 ## 3. 数据粒度
 
@@ -96,7 +96,7 @@ limit 200;
 
 ### 流量画像 SQL 使用备注
 
-- `data_center_market_2683_20260705.sql` 使用 `ct.channel = channel_map`、`ct.grade = grade_1`、`ct.qici = period_name` 补充 `cb_cb = cost` 和 `gl_gl = goal`。
+- `data_center_market_2683.sql` 使用 `ct.channel = channel_map`、`ct.grade = grade_1`、`ct.qici = period_name` 补充 `cb_cb = cost` 和 `gl_gl = goal`。
 - 成本目标在结果层用 `coalesce(..., 0)`，无法区分真实 0 和未维护缺失，复用时可额外输出命中标记。
 
 ## 12. 反向联动速查

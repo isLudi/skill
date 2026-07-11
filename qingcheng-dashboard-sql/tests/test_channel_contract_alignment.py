@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 SKILL_ROOT = Path(__file__).resolve().parents[1]
-CANONICAL_SQL = SKILL_ROOT / "resources" / "raw_sql" / "data_center_qingcheng_2064_20260625.sql"
+CANONICAL_SQL = SKILL_ROOT / "resources" / "raw_sql" / "data_center_qingcheng_2064.sql"
 DIMENSION_CONTRACTS = SKILL_ROOT / "semantic" / "contracts" / "dimension_contracts.json"
 
 

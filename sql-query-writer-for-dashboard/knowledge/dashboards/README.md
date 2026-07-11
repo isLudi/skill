@@ -20,17 +20,16 @@ python scripts/ingest_dashboard_sql.py
 
 ## 已入库看板
 
-- `market_consultant_conversion.md`：市场顾问转化看板，来源 `resources/raw_sql/data_center_market_2253_20260705.sql`。
+- `market_consultant_conversion.md`：市场顾问转化看板，来源 `resources/raw_sql/data_center_market_2253.sql`。
 - `market_consultant_lead_conversion_attendance.md`：市场顾问线索转化到课看板，来源 `resources/raw_sql/market_consultant_lead_conversion_attendance.sql`。
-- `traffic_profile.md`：流量画像看板，来源 `resources/raw_sql/data_center_market_2683_20260705.sql`；2026-05-15 已按 `city_channel.txt` 更新为省份/城市维度版本。
-- `refund_multi_subject_user_ratio.md`、`refund_subject_product.md`、`refund_reason_analysis.md`：历史退费看板入口，已合并到 `market_channel_conversion_profile.md`；旧 raw SQL 仅作追溯资料。
+- `traffic_profile.md`：流量画像看板，来源 `resources/raw_sql/data_center_market_2683.sql`；2026-05-15 已按 `city_channel.txt` 更新为省份/城市维度版本。
+- `market_channel_conversion_profile.md`：市场渠道用户画像分析唯一退费入口，覆盖 2349 科目/产品/年级退款金额占比、2890 多科用户退费和 2353 退费原因分析。
 - `outbound_call_process_dashboard.md`：外呼过程数据看板，来源 `resources/raw_sql/outbound_call_process_dashboard.sql`。
 - `lead_assign_plan_actual_valid_count.md`：线索分配计划与实际有效量看板，来源 `resources/raw_sql/lead_assign_plan_actual_valid_count.sql`。
 - `consultant_sales_ranking_evaluation.md`：顾问销售评优看板，来源 `resources/raw_sql/consultant_sales_ranking_evaluation.sql`。
-- `consultant_sales_department_tenure.md`：顾问部门任职期销售统计，来源 `resources/raw_sql/data_center_market_2727_20260705.sql`。
-- `consultant_sales_department_tenure_period_20260424.md`：顾问部门任职期销售统计 20260424 期过滤版本，来源 `resources/raw_sql/data_center_market_2742_20260705.sql`。
+- `consultant_sales_department_tenure.md`：顾问部门任职期销售统计，来源 `resources/raw_sql/data_center_market_2727.sql`。
 - `h_biz_line_department_conversion.md`：H业务线二级部门转化看板，来源 `resources/raw_sql/h_biz_line_department_conversion.sql`；2026-05-24 入库，覆盖市场部、精品班学部、青橙项目部、菁英班学部四个二级部门的渠道-规则-年级-部门级转化汇总。
-- `market_channel_conversion_profile.md`：市场渠道用户画像分析，来源 `data_center_market_2836_20260705.sql`、`data_center_market_2885_20260705.sql`、`data_center_market_2883_20260705.sql`、`data_center_market_2809_20260705.sql`、`data_center_market_2890_20260705.sql`；覆盖首 call 通时、上课时长、深沟阶段、整体画像和多维退费率数据集。
+- `market_channel_conversion_profile.md`：市场渠道用户画像分析，来源 `data_center_market_2836.sql`、`data_center_market_2885.sql`、`data_center_market_2883.sql`、`data_center_market_2809.sql`、`data_center_market_2890.sql`；覆盖首 call 通时、上课时长、深沟阶段、整体画像和多维退费率数据集。
 
 ## Web BI 结构快照
 

@@ -139,8 +139,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
     sync_data_center.add_argument("--target-skill", choices=["all", "market", "qingcheng"], default="all", help="Built-in business skill target.")
     sync_data_center.add_argument("--dataset-name", action="append", help="Specific Data Center dataset name to sync. Repeatable; defaults to the configured scope.")
+    sync_data_center.add_argument("--retire-model-id", action="append", help="Explicit current model retirement. With target=all use market:<id> or qingcheng:<id>.")
+    sync_data_center.add_argument("--slot-binding", action="append", help="Reviewed semantic slot replacement in the form <slot_id>=<model_id>.")
     sync_data_center.add_argument("--market-start-name", default=DEFAULT_MARKET_START_DATASET, help="First market-consultant dataset to include.")
     sync_data_center.add_argument("--write", action="store_true", help="Write raw SQL and markdown changes. Default is dry-run.")
+    sync_data_center.add_argument("--expected-plan-sha256", default=None, help="Exact hash emitted by a reviewed dry-run; required with --write.")
     sync_data_center.add_argument("--run-date", default=None, help="Override changelog/snapshot date, format YYYY-MM-DD.")
     sync_data_center.add_argument("--state-path", type=Path, default=DEFAULT_STATE, help="Shared Baijia browser storage state path.")
     sync_data_center.add_argument("--artifacts-dir", type=Path, default=DATA_CENTER_RUNTIME_DIR, help="Runtime summary output directory.")
@@ -153,6 +156,7 @@ def build_parser() -> argparse.ArgumentParser:
     sync_data_center.add_argument("--update-changelog", action=argparse.BooleanOptionalAction, default=True, help="Append changelog entry when writing SQL snapshots.")
     sync_data_center.add_argument("--rebuild-indexes", action=argparse.BooleanOptionalAction, default=True, help="Run target skill build_reverse_indexes.py after writes.")
     sync_data_center.add_argument("--check-integrity", action=argparse.BooleanOptionalAction, default=True, help="Run target skill check_skill_integrity.py after writes.")
+    sync_data_center.add_argument("--validate-stack", action=argparse.BooleanOptionalAction, default=True, help="Run the complete Text2SQL stack after writes; disabling is rejected for Apply.")
     sync_data_center.set_defaults(func=cmd_sync_data_center_sql)
 
     fetch_template = subparsers.add_parser(

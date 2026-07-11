@@ -6,7 +6,7 @@
 
 ## 2. 表用途
 
-用于通过订单号补充退款原因。当前仅在历史退费 SQL `resources/raw_sql/data_center_market_2353_20260705.sql` 中出现。`refund_reason_analysis.md` 已合并到 `market_channel_conversion_profile.md` 作为历史入口；新多维退费率 SQL `resources/raw_sql/data_center_market_2890_20260705.sql` 不使用该表。
+用于通过订单号补充退款原因。当前由 `resources/raw_sql/data_center_market_2353.sql` 使用，并对应 `market_channel_conversion_profile.md` 中的退费原因组件；2890 多科退费模型不使用该表。
 
 ## 3. 数据粒度
 
@@ -34,7 +34,7 @@ Presto
 | dt | string | 日期分区 | 分区过滤 | 是 |
 | order_number | bigint | 订单编号 | 与财务业绩明细按订单关联 | 是 |
 | refund_reason | string | 退款原因 | 退费原因分析维度 | 是 |
-| refund_type | bigint | 退款类型 | 过滤退款类型；历史 SQL 使用 `refund_type = '1'` | 是 |
+| refund_type | bigint | 退款类型 | 当前 2353 使用 `refund_type = '1'`，业务枚举含义待确认 | 是 |
 
 ### 7.1 数据地图字段补充（2026-06-17）
 
@@ -93,6 +93,6 @@ limit 100;
 
 ## 11. 注意事项
 
-- 表结构来自 `resources/raw_sql/data_center_market_2353_20260705.sql` 使用字段推断，真实 DDL、字段类型、主键、分区刷新延迟均待人工确认。
+- 表结构已结合数据地图与当前 2353 使用字段补充；主键和分区刷新延迟仍待人工确认。
 - `refund_type = '1'` 的业务含义待确认，不能擅自解释为全部退款或部分退款。
 - 若 `order_number` 在该表不唯一，关联退费原因会放大财务业绩明细结果。

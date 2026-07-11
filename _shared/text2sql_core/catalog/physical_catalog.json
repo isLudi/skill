@@ -65,7 +65,7 @@
         {
           "domain": "qingcheng",
           "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf.md",
-          "sha256": "a7ca97e8123954405e9b878bb4742ee193dfee7a2f79079503aff639e9e6e9bd"
+          "sha256": "8c33a0f01e755703c21e62af63756db0c4b6e3db23a0ff08de97d2acf2d67e92"
         }
       ],
       "columns": [
@@ -380,6 +380,84 @@
               "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf.md"
             }
           ]
+        },
+        {
+          "name": "virtual_direct_leader_email_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "virtual_first_department_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "virtual_fourth_department_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "virtual_leader_email_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "virtual_second_department_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "virtual_third_department_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf.md"
+            }
+          ]
         }
       ],
       "partition_candidates": [
@@ -400,7 +478,7 @@
         {
           "domain": "market_consultant",
           "source_path": "sql-query-writer-for-dashboard/knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
-          "sha256": "591ce03f711a141f064e029da3c6fc1578ed3e8a44025a1c449be9ef6251e1da"
+          "sha256": "22de5807e82009cd855e0dc20548ad482bd059218bcf8d3803cf05a0163cc7d5"
         },
         {
           "domain": "qingcheng",
@@ -6519,7 +6597,7 @@
         {
           "domain": "market_consultant",
           "source_path": "sql-query-writer-for-dashboard/knowledge/tables/dw.dim_cstm_active_user_c_appliction_mb_df.md",
-          "sha256": "579ae5143c3aa320845a65268ed5b7e00739e6ec8759171fc945fcf801dae887"
+          "sha256": "35ef1672064ee5453104ff0ab7a01c3b330a2ca1f56e7b186da7330172f0afa5"
         },
         {
           "domain": "qingcheng",
@@ -7699,7 +7777,7 @@
         {
           "domain": "market_consultant",
           "source_path": "sql-query-writer-for-dashboard/knowledge/tables/finance_dw.app_finance_performance_extend_details_hf.md",
-          "sha256": "f0b42432e7c29a25750a4f753a91c1b78314a48f7c05bc0e40e5ab697872fda1"
+          "sha256": "c5341d150c580c121073925effe5bc76102488c542a814ed5084d7425a08cc30"
         },
         {
           "domain": "qingcheng",
@@ -12476,7 +12554,7 @@
         {
           "domain": "market_consultant",
           "source_path": "sql-query-writer-for-dashboard/knowledge/tables/finance_dw.dwd_finance_order_refund_df.md",
-          "sha256": "7005118cdc3cb2716fe15b375fe900b821c9b29904ca739dc6b4d9a121427cd9"
+          "sha256": "99c95b3d0c995602d88dfc5774ab29ae10ff7778b4960af56427cf50aa2d06d4"
         }
       ],
       "columns": [
@@ -13117,7 +13195,7 @@
         {
           "domain": "market_consultant",
           "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.app_h_crm_lead_employee_workload_detail_hf.md",
-          "sha256": "77c059eb4ffc0027945cb88fc47e5bacca6538752f36a9109f59551bdfe8cfc4"
+          "sha256": "6afd2b61a207fdde81f602826134f4fb4bc57408f3b2ece5b781774a77b10532"
         },
         {
           "domain": "qingcheng",
@@ -26262,7 +26340,7 @@
         {
           "domain": "market_consultant",
           "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md",
-          "sha256": "b52214f69734f5a139f68a0962690a29883570d62aaed95092459db8cf052a6a"
+          "sha256": "e2f66f6774369a91c214efce0ee1cf6f39a418b7074fff864ccf46956b4b9395"
         }
       ],
       "columns": [
@@ -26953,7 +27031,7 @@
         {
           "domain": "qingcheng",
           "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md",
-          "sha256": "386b749b24399bf240306e9c34ad14dff77a01d2d3f8d8a081d4a29af34d4045"
+          "sha256": "f7976e80e7cc3ed8a5f52a8d2d219a260eb5ee4e5d4ead06d4a2cca7134194a8"
         }
       ],
       "columns": [
@@ -30216,7 +30294,7 @@
         {
           "domain": "market_consultant",
           "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dws_service_user_learn_detail_hf.md",
-          "sha256": "5329f5b1e6e42b30a34a379c37004ae15e39473c4db64a55c52557c354e584e7"
+          "sha256": "c1047bd8c907fbab82884d33147bae7049ebdda970953ae1ae9467509b303978"
         },
         {
           "domain": "qingcheng",

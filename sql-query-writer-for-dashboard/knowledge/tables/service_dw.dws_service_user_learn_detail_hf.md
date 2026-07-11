@@ -137,7 +137,7 @@ limit 20;
 
 ### 流量画像 SQL 使用备注
 
-- `data_center_market_2683_20260705.sql` 使用该表补充用户行课记录，通过 `user_number` 和派生 `qici` 与主线索 `user_id + period_name` 对齐。
+- `data_center_market_2683.sql` 使用该表补充用户行课记录，通过 `user_number` 和派生 `qici` 与主线索 `user_id + period_name` 对齐。
 - 行课范围限定为 `course_first_level_department_name = 'H业务线'`，`course_second_level_department_name in ('精品班学部','市场部','青橙项目部')`，且 `is_need_attend = 1`。
 - `qici` 对 2026-02-03 至 2026-03-02 的若干春节特殊周硬编码，其余日期按周逻辑推导；生成新 SQL 时应优先复用完整期次 CASE。
 - 到课字段：普通到课使用 `live_learn_duration > 0`，有效到课使用 `is_valid_live_learn = '1'`，字段类型待确认。

@@ -148,13 +148,14 @@ D:\anaconda3\python.exe scripts\usql_web_query.py sync-datamap-fields `
 D:\anaconda3\python.exe scripts\usql_web_query.py sync-data-center-sql --target-skill all
 ```
 
-默认是 dry-run：脚本使用本 skill 的共享登录态打开数据中心，通过目录和数据集详情接口读取目标范围，打印 JSON summary，不写业务 skill 文件。
-确认范围后再加 `--write`：
+默认是 dry-run：脚本使用本 skill 的共享登录态打开数据中心，通过目录和数据集详情接口读取目标范围，生成 `DataCenterSyncPlan`、精确 `plan_sha256` 和 runtime plan artifact，不写业务 skill 文件。
+审阅计划后，使用完全相同的范围重新抓取，并携带精确计划哈希 Apply：
 
 ```powershell
 D:\anaconda3\python.exe scripts\usql_web_query.py sync-data-center-sql `
   --target-skill all `
-  --write
+  --write `
+  --expected-plan-sha256 <dry-run 输出的 plan_sha256>
 ```
 
 内置目标和范围：
@@ -165,10 +166,13 @@ D:\anaconda3\python.exe scripts\usql_web_query.py sync-data-center-sql `
 
 写入规则：
 
-- 完整源 SQL 保存到目标 skill 的 `resources/raw_sql/data_center_<target>_<fileValue>_<YYYYMMDD>.sql`。
+- 每个 model_id 只写稳定路径 `resources/raw_sql/data_center_<target>_<model_id>.sql`；更新时原位替换，禁止创建日期后缀副本。
+- 每个业务域在对应业务 skill 的 semantic 目录中用 `current_model_bindings.json` 记录 current model、SQL SHA-256、稳定路径和语义槽位；该文件不属于 operator，两个域的 registry 也不得互相引用。
 - 数据集清单保存到目标 skill 的 `knowledge/dashboards/data_center_<target>_datasets.md`，记录数据集名称、菜单 ID、`fileValue`、`subjectId`、数据源 ID、平台路径和 raw SQL 文件。
 - 脚本只保存数据中心接口返回的 `executeSql`，不改写 SQL 语义，不推断字段或指标口径。
-- 加 `--write` 且发生文件变更时，会追加 changelog，并默认运行目标 skill 的 `scripts/build_reverse_indexes.py` 和 `scripts/check_skill_integrity.py`。
+- Apply 使用跨进程独占锁，并在锁内重新核对 exact plan hash 和所有文件前置 SHA；同一命令覆盖两个域时作为一个事务执行。并发或残留锁一律先阻断，不允许两个更新进程交错写入。
+- Apply 后强制运行反向索引、共享 catalog、唯一版本审计、域内 integrity 和完整 `validate_text2sql_stack.py`；禁止用 `--no-*` 关闭这些门禁。任一步失败会恢复本次业务文件及生成物。
+- 模型被新 model_id 替代时，使用 `--slot-binding <slot_id>=<new_model_id>` 更新语义槽位，并用 `--retire-model-id <old_model_id>` 显式退役；未审阅的模型消失会阻断全量同步。
 - 运行摘要保存到 `C:\Users\Ludim\.codex\runtime\usql-web-query-operator\data-center\`，不会把 cookie 或账号密码写入 skill 目录。
 
 常用增量参数：
@@ -176,11 +180,10 @@ D:\anaconda3\python.exe scripts\usql_web_query.py sync-data-center-sql `
 ```powershell
 D:\anaconda3\python.exe scripts\usql_web_query.py sync-data-center-sql `
   --target-skill market `
-  --dataset-name 市场渠道用户成单分析3 `
-  --write
+  --dataset-name 市场渠道用户成单分析3
 ```
 
-`--market-start-name` 可覆盖市场顾问目录的起始数据集名；`--dataset-name` 可重复传入，用于只刷新指定数据集。
+先读取该增量 dry-run 的 `plan_sha256`，再追加 `--write --expected-plan-sha256 <hash>`。`--market-start-name` 可覆盖市场顾问目录的起始数据集名；`--dataset-name` 可重复传入。
 
 ## 临时表上传
 
@@ -265,7 +268,7 @@ D:\anaconda3\python.exe scripts\read_dashboard.py profile-all --dashboard-wait-m
 - `login`：打开 CAS 登录流程，认证后把浏览器 storage state 保存到 repo 外。
 - `run`：可选先用 `--query-plan` 校验上游只读执行契约；通过后打开 `SQL取数`，创建或复用查询 tab，写入 SQL 前切换引擎，将 SQL 写入 CodeMirror，优先用 `Ctrl+E` 提交，再用运行按钮回退，等待查询历史/结果 tab 状态，平台失败时捕获 `error_details`，可用时提取小范围可见结果预览，并在 QueryPlan 与本地行数门禁均允许时下载并校验结果制品。直接下载若识别为 XML 伪 CSV、表头空/列不完整 Excel，会自动改走临时 Template Query CSV，并在下线、删除临时模板后才报告成功。
 - `sync-datamap-fields`：使用数据地图页面和接口刷新 `sql-query-writer-for-dashboard` 和/或 `qingcheng-dashboard-sql` 中的物理表字段说明。默认 dry-run，只有 `--write` 才写文档。
-- `sync-data-center-sql`：使用数据中心页面和接口刷新 `sql-query-writer-for-dashboard` 和/或 `qingcheng-dashboard-sql` 中的数据集源 SQL。默认 dry-run，只有 `--write` 才写 raw SQL、清单文档和 changelog。
+- `sync-data-center-sql`：使用数据中心页面和接口生成稳定 canonical SQL 同步计划；Apply 必须绑定 dry-run 的精确 Hash，并以可回滚事务写入 raw SQL、current-model registry、清单文档和 changelog。
 - `upload-temp-table`：把本地 `.csv`、`.xls` 或 `.xlsx` 上传到 `临时表` 区域。支持 `--target-mode new|reuse`、`--import-mode overwrite|append`、`--header-row|--no-header-row`，并从 `导入历史` 输出 JSON summary。
 - `check-manual-table`：读取手工表 registry，将本地 Excel 文件解析到平台标准临时表名，并在不触碰浏览器的情况下执行 workbook 校验。
 - `fetch-template-sql`：从“我创建的模板”只读抓取已保存 SQL。

@@ -15,6 +15,7 @@ QUICK_VALIDATE = REPO_ROOT / ".system" / "skill-creator" / "scripts" / "quick_va
 CORE_ROOT = REPO_ROOT / "_shared" / "text2sql_core"
 BUILD_CATALOG = REPO_ROOT / "scripts" / "build_text2sql_catalog.py"
 AUDIT_CORPUS = REPO_ROOT / "scripts" / "audit_text2sql_corpus.py"
+AUDIT_KNOWLEDGE_VERSIONS = REPO_ROOT / "scripts" / "audit_knowledge_versions.py"
 EXPECTED_SQLGLOT_VERSION = "30.12.0"
 SKILL_NAMES = (
     "qingcheng-dashboard-sql",
@@ -289,6 +290,13 @@ def main() -> int:
         REPO_ROOT,
     ):
         failures.append("P1-P3 shared-core tests failed")
+
+    if not run_command(
+        "Canonical knowledge version and ownership audit",
+        [sys.executable, str(AUDIT_KNOWLEDGE_VERSIONS)],
+        REPO_ROOT,
+    ):
+        failures.append("duplicate canonical versions or current knowledge ownership detected")
 
     if not run_command(
         "Retained SQL corpus audit",

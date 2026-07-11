@@ -25,7 +25,7 @@
 | Legacy 公共筛选器计划检查 | `references/platform_profile.md` 的“Legacy 公共筛选器只读检查” | `scripts\read_dashboard.py edit-public-filters` | 仅保留 dry-run；所有 legacy 写入/发布参数都会在浏览器前拒绝 |
 | 手工临时表上传 | `SKILL.md` 中“临时表上传” + `references/manual_temp_table_registry.md` | `scripts\usql_web_query.py check-manual-table` / `upload-temp-table` | 只有需要确认具体登记项或表名映射时，才打开 `manual_temp_table_registry.json` |
 | 数据地图字段同步 | `SKILL.md` 中“数据地图字段同步” | `scripts\usql_web_query.py sync-datamap-fields` | 只有同步结果异常或需要改写逻辑时，才看相关实现 |
-| 数据中心源 SQL 同步 | `SKILL.md` 中“数据中心源 SQL 同步” | `scripts\usql_web_query.py sync-data-center-sql` | 只有目录范围、写入规则或接口行为异常时，才看相关实现 |
+| 数据中心源 SQL 同步 | `SKILL.md` 中“数据中心源 SQL 同步” | `sync-data-center-sql` dry-run → `--write --expected-plan-sha256 <hash>` | 稳定 model_id 路径；current-model registry、跨进程独占锁、原子回滚和全栈验证均为强制门禁 |
 | 截图读字 / OCR 协作 | `SKILL.md` 中“通过 mineru-converter 读取图片” | `mineru-open-api flash-extract` / `extract` | 只在本 skill 已经捕获到截图后使用，不要反过来先做 OCR |
 
 ## 跨 skill 路由

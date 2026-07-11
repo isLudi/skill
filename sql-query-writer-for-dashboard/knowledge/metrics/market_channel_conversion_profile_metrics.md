@@ -6,17 +6,17 @@
 
 ## 2. 适用 SQL
 
-- `resources/raw_sql/data_center_market_2836_20260705.sql`
-- `resources/raw_sql/data_center_market_2885_20260705.sql`
-- `resources/raw_sql/data_center_market_2883_20260705.sql`
-- `resources/raw_sql/data_center_market_2683_20260705.sql`
-- `resources/raw_sql/data_center_market_2809_20260705.sql`
-- `resources/raw_sql/data_center_market_2812_20260705.sql`
-- `resources/raw_sql/data_center_market_2890_20260705.sql`
-- `resources/raw_sql/data_center_market_2349_20260705.sql`
-- `resources/raw_sql/data_center_market_2886_20260705.sql`
-- `resources/raw_sql/data_center_market_2344_20260705.sql`
-- `resources/raw_sql/data_center_market_2353_20260705.sql`
+- `resources/raw_sql/data_center_market_2836.sql`
+- `resources/raw_sql/data_center_market_2885.sql`
+- `resources/raw_sql/data_center_market_2883.sql`
+- `resources/raw_sql/data_center_market_2683.sql`
+- `resources/raw_sql/data_center_market_2809.sql`
+- `resources/raw_sql/data_center_market_2812.sql`
+- `resources/raw_sql/data_center_market_2890.sql`
+- `resources/raw_sql/data_center_market_2349.sql`
+- `resources/raw_sql/data_center_market_2886.sql`
+- `resources/raw_sql/data_center_market_2344.sql`
+- `resources/raw_sql/data_center_market_2353.sql`
 
 ## 3. 指标粒度
 
@@ -94,7 +94,7 @@ qici + channel_1 + jingli + xiaozu + grade_list + analysis_type + dim_value
 
 ## 5.1 整体画像数据集指标
 
-适用 SQL：`resources/raw_sql/data_center_market_2809_20260705.sql`
+适用 SQL：`resources/raw_sql/data_center_market_2809.sql`
 
 | 字段 | SQL 口径 | 说明 | 聚合规则 |
 |---|---|---|---|
@@ -126,7 +126,7 @@ qici + channel_1 + jingli + xiaozu + grade_list + analysis_type + dim_value
 
 ## 5.2 退费整体数据集指标
 
-适用 SQL：`resources/raw_sql/data_center_market_2886_20260705.sql`
+适用 SQL：`resources/raw_sql/data_center_market_2886.sql`
 
 | 字段 | SQL 口径 | 说明 | 聚合规则 |
 |---|---|---|---|
@@ -149,7 +149,7 @@ qici + channel_1 + jingli + xiaozu + grade_list + analysis_type + dim_value
 
 ## 5.3 多维退费率数据集指标
 
-适用 SQL：`resources/raw_sql/data_center_market_2890_20260705.sql`
+适用 SQL：`resources/raw_sql/data_center_market_2890.sql`
 
 | 字段 | SQL 口径 | 说明 | 聚合规则 |
 |---|---|---|---|
@@ -188,7 +188,7 @@ qici + channel_1 + jingli + xiaozu + grade_list + analysis_type + dim_value
 
 ## 5.3 退费金额结构占比数据集指标
 
-适用 SQL：`resources/raw_sql/data_center_market_2349_20260705.sql`
+适用 SQL：`resources/raw_sql/data_center_market_2349.sql`
 
 | 字段 | SQL 口径 | 说明 | 聚合规则 |
 |---|---|---|---|
@@ -208,7 +208,7 @@ qici + channel_1 + jingli + xiaozu + grade_list + analysis_type + dim_value
 | 不同产品退费占比 | `analysis_type = 'product'` | `ifnull(sum(${refund_amount}) / sum(${total_refund_amount}), 0)` |
 | 不同年级退费占比 | `analysis_type = 'grade'` | `ifnull(sum(${refund_amount}) / sum(${total_refund_amount}), 0)` |
 
-旧 `refund_total` 负数口径和 SQL 行级退款金额占比字段均已废弃，不再作为 2349 当前图表分子或直接指标。
+2349 当前图表只使用 `refund_amount` 与 `total_refund_amount` 聚合计算占比。
 
 ## 6. 分桶口径
 

@@ -56,6 +56,12 @@ where dt = format_datetime(current_timestamp - interval '2' hour, 'YYYYMMdd')
 | `user_id` | bigint | 用户 ID | 用户级补充字段 |
 | `employee_email_prefix` | string | 员工邮箱前缀 | 潜客阶段 TMK 顾问账号 |
 | `employee_email_name` | string | 员工姓名数字 | 潜客阶段 TMK 顾问姓名 |
+| `virtual_first_department_name` | string | 员工最新虚拟架构一级部门 | 数据地图确认；2026-07-11 TMK 样本主要为 `H业务线` |
+| `virtual_second_department_name` | string | 员工最新虚拟架构二级部门 | 数据地图确认；TMK 样本可见 `市场部`、`青橙项目部` |
+| `virtual_third_department_name` | string | 员工最新虚拟架构三级部门 | 数据地图确认；TMK 过程数据可作为 `department` 的临时架构兜底来源 |
+| `virtual_fourth_department_name` | string | 员工最新虚拟架构四级部门 | 数据地图确认；TMK 过程数据可作为 `dept_2` 的临时架构兜底来源 |
+| `virtual_leader_email_name` | string | 员工最新虚拟架构大组长 | 数据地图确认；直属主管为空时的上级兜底 |
+| `virtual_direct_leader_email_name` | string | 员工最新虚拟架构小组长 | 数据地图确认；TMK 过程数据可作为 `xiaozu` 的临时架构兜底来源 |
 | `lead_purchase_intention_name` | string | 购买意向名称 | 青橙 TMK/规划系统筛选核心字段 |
 | `lead_purchase_intention_level2_category_name` | string | 购买意向二级分类 | 年级兜底字段 |
 | `stats_grade_name` | string | 统计口径线索年级 | 可作为年级优先补充 |
@@ -153,3 +159,4 @@ limit 1000
 - 本表字段名使用 `lead_id`，没有 `crm_leads_id` 字段；与 `data_lake_fuwu.dwd_crm_leads_rt.crm_leads_id` 关联时需显式说明两侧语义。
 - 用本表直接取 `lead_model_type=0` 作为转移后承接顾问来源，在 2026-07-09 最新小时验证未命中这些转移线索，query id `1456984198`。
 - 若目标是历史转移漏斗，建议以 `data_lake_fuwu.dwd_crm_leads_rt` 的 `previous_model_id` 链路为主，再回补本表字段；不要从本表 `lead_model_type=0` 单独推断转移结果。
+- 2026-07-11 TMK 过程数据探查中，132 条转移线索有 102 个潜客 ID 命中本表，100 条过程字段完整；按 `qici + employee_email_name` 匹配 `temp_table.dingxi01_jiagou_db` 仅 8 条。若过程数据必须保留 TMK 行，可先用临时架构表，未命中时再用 `virtual_third_department_name / virtual_fourth_department_name / virtual_direct_leader_email_name` 兜底，并保留其原始组织名称，不得伪装为青橙一部/三部等既有团队。

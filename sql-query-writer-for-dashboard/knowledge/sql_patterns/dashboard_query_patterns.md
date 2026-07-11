@@ -471,7 +471,7 @@ zx_active as (
 - `call_c` 从外呼表聚合后回连 `data` 时，必须同时使用 `user_id + lead_id + employee_email_prefix`；缺少 `lead_id` 会把同一用户多线索互相匹配。
 - `f_call0` 必须先聚合到回连粒度 `user_id + employee_email_name`；不要在输出中保留 `account_id` 后再只按 `user_id + employee_email_name` join。
 - `zhuanhua` 已经聚合到展示粒度后，最终层只能 join 去重后的维表或目标表。`temp_table.dingxi01_cost` 应拆成具体年级 `cost_exact` 和 `grade = '0'` 通配 `cost_zero`；`temp_table.dingxi01_jiagou_db` 应先做 `jiagou_period` 去重。
-- 最新修正版参考 `resources/raw_sql/data_center_market_2293_20260705.sql`。如果现场看板退款、线索仍高于 2253 转化数据，先确认数据中心是否已经发布该版本。
+- 最新修正版参考 `resources/raw_sql/data_center_market_2293.sql`。如果现场看板退款、线索仍高于 2253 转化数据，先确认数据中心是否已经发布该版本。
 
 ## 渠道 CASE 映射
 
@@ -504,7 +504,7 @@ zx_active as (
 
 ## 流量画像增强模式
 
-流量画像类 SQL 可参考 `resources/raw_sql/data_center_market_2683_20260705.sql` 和 `knowledge/dashboards/traffic_profile.md`，在市场顾问主全链路表基础上增加画像/过程维度：
+流量画像类 SQL 可参考 `resources/raw_sql/data_center_market_2683.sql` 和 `knowledge/dashboards/traffic_profile.md`，在市场顾问主全链路表基础上增加画像/过程维度：
 
 - APP 登录：`dw.dim_cstm_active_user_c_appliction_mb_df` 按 `user_number` 取最新 `last_event_time`，派生近 7 日 `is_app_denglu` 和最新 `last_app_channel`。
 - 首呼时效：主表 `section_assign_time` 与 `first_call_time` 计算小时差，再按 24/48 小时窗口标记。

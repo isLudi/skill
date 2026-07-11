@@ -2,7 +2,7 @@
 
 ## 1. 来源
 
-当前过程数据数据中心快照：`resources/raw_sql/data_center_qingcheng_2064_20260625.sql`
+当前过程数据数据中心快照：`resources/raw_sql/data_center_qingcheng_2064.sql`
 
 历史已入库过程数据 raw：`resources/raw_sql/qingcheng_process_data_raw_20260522.sql`
 
@@ -12,7 +12,7 @@
 - 适用域：仅限青橙项目部过程数据模型 `2064`。
 - 输入字段：`bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.rule_name`。
 - 输出维度：`channel_map_1`（一级渠道）与 `channel_map_2`（二级渠道）。
-- 权威实现：`resources/raw_sql/data_center_qingcheng_2064_20260625.sql` 的 `data` CTE。
+- 权威实现：`resources/raw_sql/data_center_qingcheng_2064.sql` 的 `data` CTE。
 - 一致性约束：同一个规则若同时定义一级、二级渠道，两套 CASE 必须同步维护；`%抖音正价退费%` 在两级都必须输出 `抖音复用`，不得出现一级命中而二级为 `null` 的状态。
 - 优先级约束：`%抖音正价退费%` 是精确业务规则，必须位于可能覆盖它的宽泛分支之前。
 - Text2SQL 契约：`semantic/contracts/dimension_contracts.json` 中的 `qingcheng:dimension:process_channel_level_1` 与 `qingcheng:dimension:process_channel_level_2` 使用相同规则，支持在青橙有效线索单表路径中确定性编译。
@@ -140,7 +140,7 @@ f.lead_purchase_intention_level2_category_name
 
 ## 7. 转化 raw 版本差异
 
-来源：`resources/raw_sql/data_center_qingcheng_2460_20260709.sql`。
+来源：`resources/raw_sql/data_center_qingcheng_2460.sql`。
 
 转化 SQL 中存在两套渠道映射：
 
@@ -208,7 +208,7 @@ f.lead_purchase_intention_level2_category_name
 
 ## 8. 转化成本映射
 
-来源：`resources/raw_sql/data_center_qingcheng_2460_20260709.sql`。
+来源：`resources/raw_sql/data_center_qingcheng_2460.sql`。
 
 | 条件 | `cost_lead` |
 |---|---|

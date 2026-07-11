@@ -409,3 +409,24 @@
 - 刷新 26 个编辑页组件/字段快照：active=21，paused=5，incomplete=0。
 - 两个已从当前青橙播报菜单移除的旧看板快照继续保留为 historical，但通过 registry_status 标记排除出 P3 当前设计/变更路由。
 - 本次仅更新 dashboard_web_profiles、索引与生成清单；未修改青橙指标、渠道/期次范围、Join、语义契约或 2064 权威 SQL。
+
+## 2026-07-11 青橙 TMK 潜客过程数据链路验证
+
+- 只读验证 `dwd_crm_leads_rt` 潜客转正常线索、潜客宽表过程字段、青橙承接顾问、临时架构和外呼明细的覆盖率；核心 query id：`1459464455`、`1459472798`、`1459484750`。
+- 132 条转移线索中，潜客宽表命中 102 个潜客 ID、100 条过程字段完整；转移后正常线索在青橙承接顾问范围仅命中 1 条，因此承接顾问不能作为 TMK 过程数据的主人员维度。
+- 临时架构按 `qici + employee_email_name` 仅命中 8 条；补充登记潜客宽表虚拟三级/四级部门、大组长和直属小组长字段，允许过程数据在保留原始组织名称的前提下作架构兜底。
+- 外呼明细按 `user_id + prelead_id + employee_email_prefix` 精确关联，当前样本的外呼次数、接通次数和总通时与潜客宽表汇总一致；8min 人数继续使用单次 `call_duration > 480`，不使用累计通时近似。
+- 完整候选 SQL 仅输出到 runtime，未写入数据中心、未保存或发布任何看板。
+
+## 2026-07-11 canonical 知识唯一版本清理
+
+- 删除 `data_center_qingcheng_2064_20260624.sql`，仅保留已补齐“抖音正价退费→抖音复用”一级、二级渠道映射的 `2064_20260625` canonical 版本。
+- 删除 `data_center_qingcheng_2460_20260626.sql`，仅保留已包含 `20260716期` 暑期业务日历修正的 `2460_20260709` canonical 版本。
+- 保留线索分配顾问与业绩归属顾问两个不同角色契约；裸称“顾问”继续阻断并要求消歧，不把角色差异误判为历史字段。
+- 新增仓库级唯一版本审计，阻断重复 canonical 文件、相同内容副本、重复契约 ID 和同类同表同字段的重复所有权。
+
+## 2026-07-11 数据中心 stable canonical 原子同步
+
+- 将 2064、2460、2740 三个青橙数据中心 SQL 一次性迁移为 `data_center_qingcheng_<model_id>.sql` 稳定路径；版本日期不再进入文件名。
+- 新增 `semantic/current_model_bindings.json`，分别绑定青橙过程、转化、抖私转化三个 current model 和域内看板证据；市场顾问模型不得进入该 registry。
+- 数据中心更新改为 `dry-run plan -> exact plan hash -> atomic apply -> mandatory validation`；跨 model 替代必须同计划更新语义槽位并显式退役旧模型，任一维护门禁失败自动恢复写前快照。

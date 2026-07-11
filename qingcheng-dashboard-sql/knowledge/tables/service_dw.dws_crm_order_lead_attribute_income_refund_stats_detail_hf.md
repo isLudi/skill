@@ -235,7 +235,7 @@ where dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
   and (income_amount <> 0 or refund_amount <> 0)
 ```
 
-课程部门白名单来自 `data_center_qingcheng_2460_20260709.sql`，非常长；复用时优先从原始 SQL 拷贝，不要手工删减。2026-06-26 canonical 版本的一级部门白名单包含 `H业务线`、`LL业务线`、`TUTU`、`TT`、`A业务线`、`EM业务线`、`KA业务线`、`TT业务线`、`创新中心`，二级部门白名单包含 `创新学部`、`升学规划中心`、`线上考研学部`。
+课程部门白名单来自 `data_center_qingcheng_2460.sql`，非常长；复用时优先从原始 SQL 拷贝，不要手工删减。2026-06-26 canonical 版本的一级部门白名单包含 `H业务线`、`LL业务线`、`TUTU`、`TT`、`A业务线`、`EM业务线`、`KA业务线`、`TT业务线`、`创新中心`，二级部门白名单包含 `创新学部`、`升学规划中心`、`线上考研学部`。
 
 ## 9. 常用 join key
 

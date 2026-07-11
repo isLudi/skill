@@ -2,7 +2,7 @@
 
 ## 1. 临时表用途
 
-青橙团队架构表。当前在 `data_center_qingcheng_2460_20260709.sql` 最终层按员工姓名补充学部、小组、大组和经理；在 `qingcheng_team_completion_month_raw_20260522.sql` 和 `qingcheng_team_completion_period_raw_20260522.sql` 中补充直属主管，用于和团队目标表合并；在 `qingcheng_personal_conversion_raw_20260522.sql` 中作为个人期次输出骨架。
+青橙团队架构表。当前在 `data_center_qingcheng_2460.sql` 最终层按员工姓名补充学部、小组、大组和经理；在 `qingcheng_team_completion_month_raw_20260522.sql` 和 `qingcheng_team_completion_period_raw_20260522.sql` 中补充直属主管，用于和团队目标表合并；在 `qingcheng_personal_conversion_raw_20260522.sql` 中作为个人期次输出骨架。
 
 ## 2. 来源和刷新方式
 

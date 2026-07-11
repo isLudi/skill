@@ -70,6 +70,7 @@ REQUIRED_FILES = [
     "scripts/validate_sql_rules.py",
     "scripts/text2sql.py",
     "semantic/domain_manifest.json",
+    "semantic/current_model_bindings.json",
     "semantic/contracts/metric_contracts.json",
     "semantic/contracts/dimension_contracts.json",
     "semantic/contracts/join_contracts.json",

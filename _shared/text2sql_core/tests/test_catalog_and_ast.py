@@ -60,8 +60,8 @@ class CatalogAndAstTest(unittest.TestCase):
 
     def test_domain_manifests_cover_every_knowledge_and_raw_sql_file(self) -> None:
         expected_baseline = {
-            "market_consultant": (127, 63),
-            "qingcheng": (158, 13),
+            "market_consultant": (121, 53),
+            "qingcheng": (158, 11),
         }
         for domain, config in DOMAIN_CONFIG.items():
             skill_root = REPO_ROOT / config["skill"]
@@ -82,6 +82,27 @@ class CatalogAndAstTest(unittest.TestCase):
                 self.assertEqual(hashlib.sha256(path.read_bytes()).hexdigest(), inventory[relative]["sha256"])
             self.assertEqual(expected_baseline[domain][0], manifest["counts"]["knowledge_files"])
             self.assertEqual(expected_baseline[domain][1], manifest["counts"]["raw_sql_files"])
+            current_registry = manifest["current_model_registry"]
+            current_registry_path = skill_root / current_registry["source_path"]
+            current_registry_payload = json.loads(current_registry_path.read_text(encoding="utf-8"))
+            self.assertEqual(
+                hashlib.sha256(current_registry_path.read_bytes()).hexdigest(),
+                current_registry["source_sha256"],
+            )
+            self.assertEqual(domain, current_registry_payload["domain"])
+            self.assertEqual(len(current_registry_payload["models"]), current_registry["model_count"])
+            self.assertEqual(
+                len(current_registry_payload["semantic_slots"]),
+                current_registry["semantic_slot_count"],
+            )
+            self.assertEqual(
+                current_registry_payload["canonical_filename_policy"],
+                current_registry["canonical_filename_policy"],
+            )
+            self.assertIn(
+                "semantic/current_model_bindings.json",
+                manifest["progressive_disclosure"]["forward"],
+            )
             for category, entities in manifest["entities"].items():
                 for entity in entities:
                     self.assertTrue(entity["id"].startswith(f"{domain}:{category}:"))
@@ -134,8 +155,8 @@ class CatalogAndAstTest(unittest.TestCase):
 
     def test_ast_parses_representative_sql_for_each_domain(self) -> None:
         fixtures = {
-            "market_consultant": "resources/raw_sql/data_center_market_2253_20260705.sql",
-            "qingcheng": "resources/raw_sql/data_center_qingcheng_2460_20260709.sql",
+            "market_consultant": "resources/raw_sql/data_center_market_2253.sql",
+            "qingcheng": "resources/raw_sql/data_center_qingcheng_2460.sql",
         }
         for domain, relative in fixtures.items():
             skill_root = REPO_ROOT / DOMAIN_CONFIG[domain]["skill"]
@@ -197,10 +218,10 @@ class CatalogAndAstTest(unittest.TestCase):
     def test_retained_sql_corpus_is_parsed_or_explicitly_classified(self) -> None:
         result = audit_raw_sql(REPO_ROOT, CORE_ROOT / "config" / "corpus_exceptions.json")
         self.assertTrue(result["ok"], result)
-        self.assertEqual(63, result["domains"]["market_consultant"]["total"])
+        self.assertEqual(53, result["domains"]["market_consultant"]["total"])
         self.assertEqual(3, result["domains"]["market_consultant"]["templates"])
         self.assertEqual(1, result["domains"]["market_consultant"]["allowed_legacy_failures"])
-        self.assertEqual(13, result["domains"]["qingcheng"]["total"])
+        self.assertEqual(11, result["domains"]["qingcheng"]["total"])
         self.assertEqual(1, result["domains"]["qingcheng"]["templates"])
 
 

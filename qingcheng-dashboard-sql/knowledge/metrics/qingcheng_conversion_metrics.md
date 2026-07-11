@@ -2,7 +2,7 @@
 
 ## 1. 来源
 
-`resources/raw_sql/data_center_qingcheng_2460_20260709.sql`
+`resources/raw_sql/data_center_qingcheng_2460.sql`
 
 适用看板：`knowledge/dashboards/qingcheng_conversion_raw_20260626.md`
 

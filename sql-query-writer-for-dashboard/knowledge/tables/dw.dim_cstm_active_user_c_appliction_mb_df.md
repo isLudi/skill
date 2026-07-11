@@ -117,7 +117,7 @@ limit 20;
 
 ### 流量画像 SQL 使用备注
 
-- `data_center_market_2683_20260705.sql` 使用该表两次：`denglu_app` 取用户最新应用登录记录并判断最近 7 日 `is_app_denglu`，`app_ph` 限定 `appliction_name = 'APP'` 取最新 `last_app_channel`。
+- `data_center_market_2683.sql` 使用该表两次：`denglu_app` 取用户最新应用登录记录并判断最近 7 日 `is_app_denglu`，`app_ph` 限定 `appliction_name = 'APP'` 取最新 `last_app_channel`。
 - 登录时间使用 `try(date_parse(last_event_time, '%Y-%m-%d %H:%i:%s:%f'))` 解析，并按 `user_number` 做 `row_number()` 取最新记录。
 - `denglu_app` 分区为 `dt = format_datetime(now() - interval '24' hour, 'YYYYMMdd')`，并限定 `product_name in ('高途','规划精品')`；`app_ph` 只限定 `appliction_name = 'APP'`，未限定产品线。
 - `is_app_denglu` 判断应用名包含 `PC客户端`、`APP`、`PC`，名称枚举需结合线上数据确认。

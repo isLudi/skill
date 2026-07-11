@@ -226,6 +226,7 @@ QuerySpec 至少包含：
 - 新增表结构 PDF：放入 `resources/raw_pdfs/`，运行 `scripts/extract_pdf_to_md.py`，再运行 `scripts/normalize_schema_md.py`。
 - 新增或刷新百家字段目录 JSON：运行 `scripts/import_baijia_external_knowledge.py --catalog <table_fields.json> --permissions <row_permissions.json>`，用于批量补全 `knowledge/tables/`、更新 `knowledge/01_table_index.md` 和 `knowledge/03_range_limit_rules.md`。
 - 新增看板 SQL：放入 `resources/raw_sql/`，运行 `scripts/ingest_dashboard_sql.py` 并人工核对业务文档；依次运行 `scripts/build_reverse_indexes.py`、仓库级 `../scripts/build_text2sql_catalog.py`、`scripts/check_skill_integrity.py`，最后用 `scripts/text2sql.py` 校验相关 QuerySpec、QueryPlan 与 SQL。`semantic/domain_manifest.json` 和 `semantic/generated/contract_index.json` 都是生成物，不手工编辑。
+- 数据中心 SQL 只允许稳定路径 `resources/raw_sql/data_center_market_<model_id>.sql`；current model 与语义槽位登记在 `semantic/current_model_bindings.json`。刷新必须通过 operator 的 `sync-data-center-sql` dry-run 获取精确计划哈希，再用 `--write --expected-plan-sha256 <hash>` 原子替换；禁止手工新增日期副本。Apply 后强制执行反向索引、共享 catalog、唯一版本审计、integrity 和完整栈验证，失败自动回滚。
 - 新增或修改 `semantic/contracts/*.json` 时，必须引用本域现有 `source_path` 和精确 SHA-256；业务证据不足的条目标为 `pending_confirmation`。更新后运行仓库级 catalog builder 生成 contract index，再运行域内完整性与离线 resolution eval；不得只刷新哈希而不核对业务变化。
 - 新增指标定义图片：放入 `resources/raw_images/`；若不能 OCR，手工补充到 `knowledge/metrics/`。
 - 更新市场顾问最新渠道 CASE 时，如果来源文件名包含日期后缀，例如 `D:\Feishu\MMDD.txt`，归档 SQL 文件名必须同步使用相同后缀：`resources/raw_sql/market_channel_case_when_MMDD.sql`。后续若来源日期变化，应将旧归档重命名或替换为新的 `market_channel_case_when_MMDD.sql`，同步更新所有知识库引用、`knowledge/sql_patterns/channel_mapping_case_when.md` 和更新日志；不得保留过期日期后缀作为最新入口。

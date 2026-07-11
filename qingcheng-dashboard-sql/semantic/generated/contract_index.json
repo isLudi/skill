@@ -32,7 +32,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md",
-      "source_sha256": "386b749b24399bf240306e9c34ad14dff77a01d2d3f8d8a081d4a29af34d4045"
+      "source_sha256": "f7976e80e7cc3ed8a5f52a8d2d219a260eb5ee4e5d4ead06d4a2cca7134194a8"
     },
     {
       "id": "qingcheng:dimension:lead_id",
@@ -58,7 +58,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md",
-      "source_sha256": "386b749b24399bf240306e9c34ad14dff77a01d2d3f8d8a081d4a29af34d4045"
+      "source_sha256": "f7976e80e7cc3ed8a5f52a8d2d219a260eb5ee4e5d4ead06d4a2cca7134194a8"
     },
     {
       "id": "qingcheng:dimension:performance_consultant",
@@ -72,7 +72,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md",
-      "source_sha256": "386b749b24399bf240306e9c34ad14dff77a01d2d3f8d8a081d4a29af34d4045"
+      "source_sha256": "f7976e80e7cc3ed8a5f52a8d2d219a260eb5ee4e5d4ead06d4a2cca7134194a8"
     },
     {
       "id": "qingcheng:dimension:period_name",
@@ -98,7 +98,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/sql_patterns/qingcheng_channel_grade_mapping.md",
-      "source_sha256": "94ebfb5c62ee37f2481f19d463cd9b4f35389072e6faf6e3db7a59275fdb4e96",
+      "source_sha256": "c16d8449105a60ec2d51e000e2b9c3b2ed04b1c221b1f04a09d0215044e1ca7c",
       "automatic_compile": true
     },
     {
@@ -112,7 +112,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/sql_patterns/qingcheng_channel_grade_mapping.md",
-      "source_sha256": "94ebfb5c62ee37f2481f19d463cd9b4f35389072e6faf6e3db7a59275fdb4e96",
+      "source_sha256": "c16d8449105a60ec2d51e000e2b9c3b2ed04b1c221b1f04a09d0215044e1ca7c",
       "automatic_compile": true
     },
     {
@@ -140,7 +140,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md",
-      "source_sha256": "386b749b24399bf240306e9c34ad14dff77a01d2d3f8d8a081d4a29af34d4045"
+      "source_sha256": "f7976e80e7cc3ed8a5f52a8d2d219a260eb5ee4e5d4ead06d4a2cca7134194a8"
     },
     {
       "id": "qingcheng:dimension:user_id",
@@ -261,7 +261,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/qingcheng_conversion_metrics.md",
-      "source_sha256": "41b7ccd47cd77897cb7acdeefe142fc683571ce1d05d3ce6b5bf4035938fb006",
+      "source_sha256": "dc0f8abd22565d30f251bb25f1b758249fea85a23263c3989d8d7304b5646945",
       "automatic_compile": false
     },
     {
@@ -275,7 +275,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/qingcheng_conversion_metrics.md",
-      "source_sha256": "41b7ccd47cd77897cb7acdeefe142fc683571ce1d05d3ce6b5bf4035938fb006",
+      "source_sha256": "dc0f8abd22565d30f251bb25f1b758249fea85a23263c3989d8d7304b5646945",
       "automatic_compile": false
     },
     {
@@ -289,7 +289,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/qingcheng_conversion_metrics.md",
-      "source_sha256": "41b7ccd47cd77897cb7acdeefe142fc683571ce1d05d3ce6b5bf4035938fb006",
+      "source_sha256": "dc0f8abd22565d30f251bb25f1b758249fea85a23263c3989d8d7304b5646945",
       "automatic_compile": false
     },
     {
@@ -316,7 +316,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/qingcheng_conversion_metrics.md",
-      "source_sha256": "41b7ccd47cd77897cb7acdeefe142fc683571ce1d05d3ce6b5bf4035938fb006",
+      "source_sha256": "dc0f8abd22565d30f251bb25f1b758249fea85a23263c3989d8d7304b5646945",
       "automatic_compile": true
     },
     {
@@ -343,7 +343,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/03_range_limit_rules.md",
-      "source_sha256": "5c4de0f91f4e34a7c708106b5ebf9e763a5671ad3c1da5a8dea774a27bc0b9df"
+      "source_sha256": "d3c0abc5c92a75e2def9f3c9a9b643ba7937fc92ba66dbfabfdea250065e6185"
     },
     {
       "id": "qingcheng:scope:conversion_performance_department",
@@ -356,7 +356,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/03_range_limit_rules.md",
-      "source_sha256": "5c4de0f91f4e34a7c708106b5ebf9e763a5671ad3c1da5a8dea774a27bc0b9df"
+      "source_sha256": "d3c0abc5c92a75e2def9f3c9a9b643ba7937fc92ba66dbfabfdea250065e6185"
     },
     {
       "id": "qingcheng:scope:unresolved_department_placeholders",
@@ -369,7 +369,7 @@
       ],
       "status": "pending_confirmation",
       "source_path": "knowledge/03_range_limit_rules.md",
-      "source_sha256": "5c4de0f91f4e34a7c708106b5ebf9e763a5671ad3c1da5a8dea774a27bc0b9df"
+      "source_sha256": "d3c0abc5c92a75e2def9f3c9a9b643ba7937fc92ba66dbfabfdea250065e6185"
     }
   ],
   "alias_collisions": {

@@ -6,7 +6,7 @@
 
 ## 2. 指标定义
 
-指标来自 `resources/raw_sql/data_center_market_2727_20260705.sql`。该 SQL 用财务业绩流水计算顾问销售净额，通过员工组织链限制交易时间必须落在顾问位于 `高途-H业务线-市场部-市场顾问部` 的部门任职时间范围内，并输出部门内排名和追赶上一名净收差值。
+指标来自 `resources/raw_sql/data_center_market_2727.sql`。该 SQL 用财务业绩流水计算顾问销售净额，通过员工组织链限制交易时间必须落在顾问位于 `高途-H业务线-市场部-市场顾问部` 的部门任职时间范围内，并输出部门内排名和追赶上一名净收差值。
 
 该指标集合与 `consultant_sales_ranking_evaluation_metrics.md` 均使用 `finance_dw.app_finance_performance_extend_details_hf` 的销售流水，但本集合不计算 ROI、退费率和评优分位。
 

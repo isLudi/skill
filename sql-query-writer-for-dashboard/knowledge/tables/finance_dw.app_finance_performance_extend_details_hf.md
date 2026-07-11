@@ -308,7 +308,7 @@ limit 100;
 
 ### 流量画像 SQL 使用备注
 
-- `data_center_market_2683_20260705.sql` 的 `dd` CTE 使用该表按 `trade_time` 派生 `qici`，再按 `qici + user_id + employee_email_name` 统计 `count(distinct subject)`，用于输出成交科目档位 `sub`。
+- `data_center_market_2683.sql` 的 `dd` CTE 使用该表按 `trade_time` 派生 `qici`，再按 `qici + user_id + employee_email_name` 统计 `count(distinct subject)`，用于输出成交科目档位 `sub`。
 - 科目归一化规则覆盖英语/英文、语文、数学、物理、化学、历史、政治、生物、地理、日语，其他保留原 `course_subject`。
 - 范围限定为 `employee_first_level_department_name = 'H业务线'`、`employee_second_level_department_name = '市场部'`、`employee_third_level_department_name = '市场顾问部'`，并过滤 `real_price <> 0`。
 - 2026-05-15 `city_channel.txt` 版本最终在 `base` CTE 使用 `${period_name1}`、`${period_name2}` 控制主线索期次范围；`dd` CTE 自身没有单独期次过滤，依赖后续 join 和最终范围过滤。
@@ -316,12 +316,12 @@ limit 100;
 
 ### 退费分析 SQL 使用备注
 
-- `data_center_market_2349_20260705.sql` 以该表为财务业绩主表，按 `trade_time` 推导 `qici`，用于当前 2349 科目/产品/年级退款金额占比。
-- `data_center_market_2350_20260705.sql`、`data_center_market_2349_20260705.sql`、`data_center_market_2353_20260705.sql` 仍保留为历史归档；旧 `data_center_market_2349_20260705.sql` 不再作为当前口径。
+- `data_center_market_2349.sql` 以该表为财务业绩主表，按 `trade_time` 推导 `qici`，用于当前 2349 科目/产品/年级退款金额占比。
+- `data_center_market_2349.sql` 与 `data_center_market_2353.sql` 分别是当前退款金额结构和退费原因模型。
 - 常用范围限定为 `employee_first_level_department_name = 'H业务线'`、`employee_second_level_department_name = '市场部'`、`employee_third_level_department_name = '市场顾问部'`。
-- 多科用户退费占比和退费原因分析使用 `price <> 0`，并按 `zong_price < 0` 判断退款、`zong_price > 0` 判断收款。
+- 2353 退费原因分析使用 `price <> 0`，并按 `zong_price < 0` 判断退款、`zong_price > 0` 判断收款。
 - 当前 2349 使用 `case when trade_status in ('全部退款','部分退款') then -real_price else real_price end as real_price_0`，调课调班按 `name` 汇总 `price` 生成 `name_total_price`，最终只将 `name_total_price < 0` 的记录取绝对值输出为 `refund_amount`。
-- 三份 SQL 均选出 `course_first_level_department_name`、`course_second_level_department_name`、`course_top_level_department_name`，但未在财务主表层单独过滤课程部门，复用时需确认是否补充。
+- 2349 与 2353 均选出课程部门字段，但课程范围不同，复用时必须按目标模型保留原范围。
 
 ## 12. 反向联动速查
 
@@ -329,8 +329,7 @@ limit 100;
 
 - `../dashboards/consultant_sales_ranking_evaluation.md`：顾问销售评优和人产排名。
 - `../dashboards/traffic_profile.md`：成交科目档位 `sub`。
-- `../dashboards/refund_subject_product.md`：当前 2349 科目/产品/年级退款金额占比入口。
-- `../dashboards/refund_multi_subject_user_ratio.md`、`../dashboards/refund_reason_analysis.md`：历史退费分析财务主表入口，当前默认路由到 `../dashboards/market_channel_conversion_profile.md` 的多维退费率数据集或 2349 fixed SQL。
+- `../dashboards/market_channel_conversion_profile.md`：2349 退款金额结构与 2353 退费原因的唯一当前看板说明入口。
 
 已知风险：
 

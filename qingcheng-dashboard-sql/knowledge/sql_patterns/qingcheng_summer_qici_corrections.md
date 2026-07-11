@@ -11,7 +11,7 @@
 2026-07-09 已将 `2460 转化数据` 同步为当前 canonical SQL：
 
 ```text
-resources/raw_sql/data_center_qingcheng_2460_20260709.sql
+resources/raw_sql/data_center_qingcheng_2460.sql
 ```
 
 本次修正包含三处：

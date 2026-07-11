@@ -100,7 +100,7 @@
 
 ## 历史看板范围补充：流量画像
 
-来源：`resources/raw_sql/data_center_market_2683_20260705.sql`。2026-05-15 已按 `D:\Feishu\city_channel.txt` 更新为省份/城市维度版本。
+来源：`resources/raw_sql/data_center_market_2683.sql`。2026-05-15 已按 `D:\Feishu\city_channel.txt` 更新为省份/城市维度版本。
 
 该 SQL 涉及市场顾问流量画像，复用时应优先保持以下范围限制，除非用户明确要求改业务范围：
 
@@ -122,23 +122,23 @@
 
 注意：
 
-- `data_center_market_2683_20260705.sql` 中外呼工作量表 `service_dw.app_h_crm_lead_employee_workload_detail_hf` 只限定 `dt/hour`，未单独限定部门。若后续脱离主表生成外呼明细或外呼聚合 SQL，应补充可用的员工/虚拟部门范围字段或通过主表范围内 join 限定。
+- `data_center_market_2683.sql` 中外呼工作量表 `service_dw.app_h_crm_lead_employee_workload_detail_hf` 只限定 `dt/hour`，未单独限定部门。若后续脱离主表生成外呼明细或外呼聚合 SQL，应补充可用的员工/虚拟部门范围字段或通过主表范围内 join 限定。
 - 当前 `city_channel.txt` 版本在 `base` CTE 使用 `period_name >= ${period_name1}` 且 `period_name < ${period_name2}` 的半开区间过滤；生成可执行 SQL 前必须替换期次参数，不能保留占位符直接提交。
 
-## 历史看板范围补充：退费分析
+## 当前退费分析范围
 
-来源：`resources/raw_sql/data_center_market_2350_20260705.sql`、`resources/raw_sql/data_center_market_2349_20260705.sql`、`resources/raw_sql/data_center_market_2353_20260705.sql`。
+来源：`resources/raw_sql/data_center_market_2349.sql`、`resources/raw_sql/data_center_market_2353.sql`。
 
 | 表/CTE | 范围字段 | 历史取值 |
 |---|---|---|
 | `finance_dw.app_finance_performance_extend_details_hf` | `employee_first_level_department_name` | `'H业务线'` |
 | `finance_dw.app_finance_performance_extend_details_hf` | `employee_second_level_department_name` | `'市场部'` |
 | `finance_dw.app_finance_performance_extend_details_hf` | `employee_third_level_department_name` | `'市场顾问部'` |
-| `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` | `course_first_level_department_name` | 多科用户退费占比/退费原因分析使用 `'H业务线'`；退费科目产品使用多业务线白名单 |
-| `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` | `course_second_level_department_name` | 多科用户退费占比/退费原因分析使用 `'精品班学部','菁英班学部','市场部','本地化大班学部','一对一学部','青橙项目部'`；退费科目产品使用长白名单 |
+| `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` | `course_first_level_department_name` | 2353 退费原因分析使用 `'H业务线'`；2349 退款金额结构使用多业务线白名单 |
+| `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` | `course_second_level_department_name` | 2353 使用精品班/菁英班/市场部/本地化大班/一对一/青橙白名单；2349 使用当前 SQL 长白名单 |
 | `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` | `performance_third_level_department_name` | `'市场顾问部'` |
 
-注意：当前 2349 科目/产品/年级退款金额占比 SQL 已作为最新入口，仍沿用财务主表员工部门范围和归因流水课程部门长白名单。历史三份退费分析 SQL 的财务主表选出了课程部门字段，但主表层只过滤员工部门；生成新 SQL 时如果以课程维度分析，需要确认是否补充 `course_*_department_name` 范围。
+注意：2349 与 2353 的课程部门范围不同，必须按目标模型各自的当前 SQL 使用，不得互相覆盖。
 
 ## 历史看板范围补充：H业务线二级部门转化看板
 

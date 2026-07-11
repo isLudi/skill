@@ -165,6 +165,30 @@ def _build_dashboard_registry(
     }
 
 
+def _build_current_model_registry_summary(skill_root: Path, domain: str) -> dict[str, Any]:
+    """Expose the authoritative current-model registry without duplicating its payload."""
+
+    relative_path = "semantic/current_model_bindings.json"
+    path = skill_root / relative_path
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if payload.get("domain") != domain:
+        raise ValueError(
+            f"{relative_path} domain mismatch: expected {domain!r}, got {payload.get('domain')!r}"
+        )
+    models = payload.get("models")
+    semantic_slots = payload.get("semantic_slots")
+    if not isinstance(models, list) or not isinstance(semantic_slots, list):
+        raise ValueError(f"{relative_path} must contain models and semantic_slots arrays")
+    return {
+        "source_path": relative_path,
+        "source_sha256": _sha256(path),
+        "policy": "one_current_model_per_id_and_semantic_slot",
+        "canonical_filename_policy": str(payload.get("canonical_filename_policy") or ""),
+        "model_count": len(models),
+        "semantic_slot_count": len(semantic_slots),
+    }
+
+
 def _build_domain_manifest(
     repo_root: Path,
     domain: str,
@@ -241,6 +265,7 @@ def _build_domain_manifest(
         skill_root,
         entities.get("dashboard_web_profiles", []),
     )
+    current_model_registry = _build_current_model_registry_summary(skill_root, domain)
     return {
         "schema_version": SCHEMA_VERSION,
         "domain": {
@@ -258,6 +283,7 @@ def _build_domain_manifest(
         "progressive_disclosure": {
             "forward": [
                 "semantic/domain_manifest.json",
+                "semantic/current_model_bindings.json",
                 "semantic/generated/contract_index.json",
                 "knowledge/quick_reference.md",
                 "knowledge/decision_tree.md",
@@ -298,6 +324,7 @@ def _build_domain_manifest(
                 for filename in CONTRACT_FILES.values()
             ],
         },
+        "current_model_registry": current_model_registry,
         "dashboard_registry": dashboard_registry,
         "entities": {category: items for category, items in sorted(entities.items())},
         "reverse_lookup": {

@@ -1,7 +1,7 @@
 {
   "name": "qingcheng-dashboard-sql",
   "description": "Resolve Qingcheng semantic contracts, plan and compile governed Presto SQL, generate bounded data probes, and maintain an isolated Qingcheng dashboard knowledge base.",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "language": "zh-CN",
   "query_engine": "Presto",
   "business_domain": "青橙项目部",
@@ -30,6 +30,8 @@
   "dashboard_ingest": "scripts/ingest_dashboard_sql.py",
   "reverse_index_builder": "scripts/build_reverse_indexes.py",
   "semantic_manifest": "semantic/domain_manifest.json",
+  "current_model_registry": "semantic/current_model_bindings.json",
+  "data_center_canonical_policy": "stable_model_id_path_with_hashed_atomic_sync",
   "semantic_contract_version": "2.0.0",
   "semantic_contract_dir": "semantic/contracts",
   "semantic_contract_index": "semantic/generated/contract_index.json",

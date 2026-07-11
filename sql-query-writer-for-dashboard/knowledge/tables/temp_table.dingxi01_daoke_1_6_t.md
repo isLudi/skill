@@ -122,7 +122,7 @@ limit 20;
 
 ### 流量画像 SQL 使用备注
 
-- `data_center_market_2683_20260705.sql` 使用 `qici + channel + grade + begin_time` 关联，而不是 `qudao` 字段。
+- `data_center_market_2683.sql` 使用 `qici + channel + grade + begin_time` 关联，而不是 `qudao` 字段。
 - `曹忆` 渠道使用 `ke_1 = '3'` 判断到课/有效到课，其他渠道使用 `ke_1 = '1'`。
 - 普通到课判断来自行课表 `live_learn_duration > 0`，有效到课判断来自行课表 `is_valid_live_learn = '1'`；该临时表只提供课次映射。
 

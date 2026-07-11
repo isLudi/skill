@@ -110,7 +110,7 @@ class AstAwareScopeValidationTests(unittest.TestCase):
             SKILL_ROOT
             / "resources"
             / "raw_sql"
-            / "data_center_qingcheng_2064_20260625.sql"
+            / "data_center_qingcheng_2064.sql"
         ).read_text(encoding="utf-8")
 
         issues = validate(sql)

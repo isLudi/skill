@@ -2,7 +2,7 @@
 
 ## 1. 来源
 
-`resources/raw_sql/data_center_qingcheng_2460_20260709.sql`
+`resources/raw_sql/data_center_qingcheng_2460.sql`
 
 入库时间：2026-06-26；当前热修版本：2026-07-09
 

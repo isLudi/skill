@@ -216,17 +216,18 @@ QuerySpec 至少包含：
 
 新增青橙看板 SQL：
 
-1. 将原始 SQL 保存到 `resources/raw_sql/`，文件名优先使用 `qingcheng_<看板英文名或拼音>_<YYYYMMDD>.sql`。
+1. 普通青橙专题 SQL 保存到 `resources/raw_sql/`，可使用 `qingcheng_<看板英文名或拼音>_<YYYYMMDD>.sql`；数据中心 SQL 例外，只允许稳定路径 `data_center_qingcheng_<model_id>.sql`。
 2. 运行 `scripts/ingest_dashboard_sql.py --sql-file <path>` 生成 `knowledge/dashboards/`、`knowledge/metrics/` 和 `knowledge/temp_tables/` 的初始文档。
 3. 人工核对自动解析结果，把“待人工确认”补齐为青橙真实口径。
 4. 更新 `knowledge/01_table_index.md`、`knowledge/joins/common_join_keys.md`、`knowledge/joins/table_relationships.md`。
 5. 更新 `knowledge/update_log/changelog.md`，按时间正序追加在文件末尾。
-6. 运行 `scripts/build_reverse_indexes.py` 刷新 `knowledge/reverse_index/`。
-7. 若业务定义已明确且需要进入 P2 规划，更新对应 `semantic/contracts/*.json`，同步当前 `source_path` SHA-256；证据不足的契约只能标为 `pending_confirmation`。
-8. 运行 `../scripts/build_text2sql_catalog.py` 重建结构化清单、`semantic/generated/contract_index.json` 和共享中性物理目录；`semantic/domain_manifest.json` 与 `semantic/generated/` 均为生成物，不手工编辑。
-9. 人工核对 domain manifest、contract index、契约状态和来源引用；不得从市场顾问 manifest 或 contracts 复制业务语义。
-10. 运行 `semantic/evals/resolution_cases.json` 的离线别名解析评测，确认已知别名、预期歧义和 unknown 用例均符合预期。
-11. 使用 `scripts/text2sql.py` 校验 QuerySpec、QueryPlan、编译 SQL 或 probe，再运行 `scripts/check_skill_integrity.py`。
+6. 数据中心 current model 与语义槽位登记在 `semantic/current_model_bindings.json`；刷新必须通过 operator 的 `sync-data-center-sql` dry-run 获取精确计划哈希，再用 `--write --expected-plan-sha256 <hash>` 原子替换。禁止日期副本；Apply 后强制执行反向索引、共享 catalog、唯一版本审计、integrity 和完整栈验证，失败自动回滚。
+7. 运行 `scripts/build_reverse_indexes.py` 刷新 `knowledge/reverse_index/`。
+8. 若业务定义已明确且需要进入 P2 规划，更新对应 `semantic/contracts/*.json`，同步当前 `source_path` SHA-256；证据不足的契约只能标为 `pending_confirmation`。
+9. 运行 `../scripts/build_text2sql_catalog.py` 重建结构化清单、`semantic/generated/contract_index.json` 和共享中性物理目录；`semantic/domain_manifest.json` 与 `semantic/generated/` 均为生成物，不手工编辑。
+10. 人工核对 domain manifest、contract index、契约状态和来源引用；不得从市场顾问 manifest 或 contracts 复制业务语义。
+11. 运行 `semantic/evals/resolution_cases.json` 的离线别名解析评测，确认已知别名、预期歧义和 unknown 用例均符合预期。
+12. 使用 `scripts/text2sql.py` 校验 QuerySpec、QueryPlan、编译 SQL 或 probe，再运行 `scripts/check_skill_integrity.py`。
 
 新增青橙临时表：
 

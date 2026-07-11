@@ -68,7 +68,7 @@
 
 ## 9. 已入库转化口径
 
-来源：`resources/raw_sql/data_center_qingcheng_2460_20260709.sql`
+来源：`resources/raw_sql/data_center_qingcheng_2460.sql`
 
 | 口径 | 文档 |
 |---|---|

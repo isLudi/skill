@@ -164,7 +164,7 @@ limit 20;
 
 ### 流量画像 SQL 使用备注
 
-- `data_center_market_2683_20260705.sql` 通过 `user_id = user_number` 关联该表，并按 `private_sea_update_time desc` 取每个用户最新私海阶段。
+- `data_center_market_2683.sql` 通过 `user_id = user_number` 关联该表，并按 `private_sea_update_time desc` 取每个用户最新私海阶段。
 - 阶段映射在 SQL 内硬编码：`450 = 深沟`、`470 = 已双沟`，其他阶段归为 `其他`，同时保留了完整 `sale_flow_stage_sequence` 到阶段名映射。
 - 范围限定为 `assign_employee_first_level_department_name = 'H业务线'`、`assign_employee_second_level_department_name = '市场部'`、`assign_employee_third_level_department_name = '市场顾问部'`。
 

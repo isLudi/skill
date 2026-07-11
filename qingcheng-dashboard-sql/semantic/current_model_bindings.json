@@ -1,0 +1,78 @@
+{
+  "canonical_filename_policy": "data_center_qingcheng_<model_id>.sql",
+  "domain": "qingcheng",
+  "models": [
+    {
+      "canonical_sql": "resources/raw_sql/data_center_qingcheng_2064.sql",
+      "data_source_id": "menu_source_817034371567951872",
+      "dataset_id": "menu_set_3733940369833271296",
+      "dataset_name": "青橙-过程数据",
+      "file_value": "2064",
+      "model_id": "2064",
+      "ordinal": 1,
+      "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/青橙项目部/青橙-过程数据",
+      "source_observed_on": "2026-06-25",
+      "sql_bytes": 15927,
+      "sql_lines": 346,
+      "sql_sha256": "5cc28ed374d8e02f4db97ba22a4cad73caed53cf3d2c6e659c82c75a16dd9dc5",
+      "subject_id": "2054"
+    },
+    {
+      "canonical_sql": "resources/raw_sql/data_center_qingcheng_2460.sql",
+      "data_source_id": "待补充",
+      "dataset_id": "待补充",
+      "dataset_name": "转化数据",
+      "file_value": "2460",
+      "model_id": "2460",
+      "ordinal": 2,
+      "path": "青橙项目部 / 转化数据看板使用的 2460 数据集；本次回写未重新抓取数据中心详情元数据",
+      "source_observed_on": "2026-07-09",
+      "sql_bytes": 28814,
+      "sql_lines": 473,
+      "sql_sha256": "bfd6a41d878081afdadb9e3eb8f69bfce94b380467cb3dbab4531a93dbdbd61f",
+      "subject_id": "待补充"
+    },
+    {
+      "canonical_sql": "resources/raw_sql/data_center_qingcheng_2740.sql",
+      "data_source_id": "",
+      "dataset_id": "",
+      "dataset_name": "抖私-转化",
+      "file_value": "2740",
+      "model_id": "2740",
+      "ordinal": 102740,
+      "path": "青橙项目部/抖私-转化",
+      "source_observed_on": "2026-06-24",
+      "sql_bytes": 14787,
+      "sql_lines": 235,
+      "sql_sha256": "ba008980d05b30c1702a88cd933e8a7533144b1bd1872ee736af7d73a3f9c704",
+      "subject_id": ""
+    }
+  ],
+  "schema_version": "1.0.0",
+  "semantic_slots": [
+    {
+      "component_ids": [],
+      "current_model_id": "2064",
+      "dashboard_id": "dashboard_3733927793301065728",
+      "evidence_path": "knowledge/metrics/qingcheng_dashboard_metric_formula_linkage.md",
+      "slot_id": "qingcheng:dataset:process"
+    },
+    {
+      "component_ids": [],
+      "current_model_id": "2460",
+      "dashboard_id": "dashboard_3885764906392891392",
+      "evidence_path": "knowledge/metrics/qingcheng_dashboard_metric_formula_linkage.md",
+      "slot_id": "qingcheng:dataset:conversion"
+    },
+    {
+      "component_ids": [
+        "unit_3885634016216997889",
+        "unit_3893209576598749188"
+      ],
+      "current_model_id": "2740",
+      "dashboard_id": "dashboard_3884629814875697153",
+      "evidence_path": "knowledge/dashboard_web_profiles/qingcheng_dousi_conversion_web_profile.md",
+      "slot_id": "qingcheng:dataset:dousi_conversion"
+    }
+  ]
+}
