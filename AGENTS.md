@@ -80,7 +80,7 @@ When a user request matches any scenario below, automatically load and orchestra
 - User wants to read Taitan dashboard edit-page pivot-table fields, metric meanings, or custom metric formulas without modifying the dashboard
 - User explicitly wants to dry-run, apply, or publish the supported Taitan public-filter dynamic-default edit workflow
 
-**Scope:** Playwright web automation for SQL execution, optional read-only QueryPlan/hash validation before execution, direct xlsx result downloads, Template Query stored-SQL fetch and large-result download, BI dashboard scanning/profiling, and read-only Taitan edit-page metric/formula profiling. Dashboard operations are read-only by default. The only current dashboard mutation is the explicitly authorized `edit-public-filters` workflow: it defaults to dry-run, requires `--apply` to update a draft, and requires `--apply --publish --confirm-publish` to publish. Does NOT generate SQL or modify dashboard metrics, fields, layout, datasets, or permissions.
+**Scope:** Playwright web automation for SQL execution, optional read-only QueryPlan/hash validation before execution, direct xlsx result downloads, Template Query stored-SQL fetch and large-result download, BI dashboard scanning/profiling, and the governed P3 dashboard chain for components, layout, formulas, and filters: `profile -> DashboardDesignSpec -> diff -> dry-run -> draft apply -> separate publish confirmation`. Dashboard operations are read-only by default. P3A may profile, design, diff, and dry-run all four change classes. P3B may apply only operations backed by an explicitly verified write adapter; currently this is limited to stable-ID public-filter updates, while component, layout, formula, dataset, permission, create, and delete mutations remain blocked. Does NOT generate SQL.
 
 #### playwright
 **Load only when ANY of the following is true:**
@@ -181,13 +181,22 @@ In the workflows below, **selected business SQL skill** means the Skill chosen b
 - **usql-web-query-operator** only (`read_dashboard.py profile-edit-dashboard`)
 - Boundary: read-only. Do not save, publish, delete, create, update, or otherwise modify dashboard metrics.
 
-#### Workflow E3: Authorized Dashboard Public-Filter Edit
-> "Preview or update the supported Taitan public-filter dynamic defaults" (预览或更新已支持的 Taitan 公共筛选器动态默认项)
+#### Workflow E3: Legacy Public-Filter Inspection
+> "Inspect the historical ordinal public-filter plan without writing"（只读检查旧版序号式公共筛选器计划）
 
-1. **usql-web-query-operator** - Run `read_dashboard.py edit-public-filters` without `--apply`; this is the mandatory dry-run plan.
-2. Inspect the target dashboards and before/after values. Require explicit user authorization before adding `--apply` to update drafts.
-3. Publishing is a separate production mutation. Require explicit publication confirmation before adding `--publish --confirm-publish`.
-4. Boundary: this workflow does not modify metrics, component fields, layout, datasets, SQL, or permissions.
+- **usql-web-query-operator** - `read_dashboard.py edit-public-filters` is retained only for backward-compatible dry-run inspection. Do not add `--apply` or `--publish`; the operator must reject those legacy write flags before browser launch.
+- Any new or resumed public-filter mutation must use Workflow E4 with a resolved domain, stable `relation_id + filter_id + field_id`, an exact `DashboardChangePlan` hash, draft readback, and a separate publication command.
+- Boundary: the legacy command cannot authorize or perform dashboard writes and must not be selected as the production mutation route.
+
+#### Workflow E4: Governed Dashboard Design and Draft Apply
+> "Profile a dashboard, design component/layout/formula/filter changes, preview the diff, then apply the supported draft changes"（看板设计、差异预览与受控草稿修改）
+
+1. **usql-web-query-operator** - Read the current dashboard draft into a complete normalized `DashboardProfile` with stable component, selected-field, dataset/model, formula, layout, and filter identities plus a canonical profile hash. Every pivot reference must resolve. Preserve partial profiles for diagnosis, but never pass an incomplete profile to Design, Apply, or Publish.
+2. Build a domain-bound `DashboardDesignSpec` only from a ready, QueryPlan-bound `DashboardDatasetSpec` whose contract-backed fields/scopes/filters exactly match the live domain registry and real source-file hashes. The dashboard ID must also be registered by a current domain-local governed web profile and absent from the other domain; unregistered dashboards remain read-only until knowledge sync and catalog rebuild. Then produce a `DashboardChangePlan` by diffing against that exact profile. This is P3A and must remain read-only.
+3. Run the mandatory dry-run. Reject cross-domain inputs, stale profile hashes, ambiguous identities, formula dependency cycles, layout collisions, dataset rebinding, create/delete operations, and any operation without a verified write adapter.
+4. P3B draft Apply requires explicit user authorization and must consume the reviewed change-plan hash. Re-read the draft immediately before writing, reject drift, apply only the verified operation whitelist, read back the affected objects, and emit a `DashboardApplyReceipt`.
+5. Publication is a separate command and authorization boundary. It must consume the successful apply receipt, require an explicit publish confirmation, re-check drift, and emit a publication receipt. If no formal published-version read API exists, the receipt must say `publish_requested_unverified` and `fully_verified=false`; a matching draft readback is not proof of the online version. Never combine draft Apply and publish in one P3 operation.
+6. Keep generated P3 artifacts under the operator runtime directory unless the user explicitly requests domain knowledge-base maintenance. A `QueryPlan`, `DashboardDatasetSpec`, `DashboardDesignSpec`, or `DashboardChangePlan` never grants write or publish authority by itself.
 
 #### Workflow F: Excel-Only Operations
 > "Clean up this CSV and turn it into a formatted Excel file" (把这个 CSV 整理成格式化的 Excel)
@@ -254,14 +263,14 @@ In the workflows below, **selected business SQL skill** means the Skill chosen b
    - Qingcheng isolation: any 青橙 dashboard docs, metrics, temp tables, joins, changelog entries, or `dashboard_web_profiles` content must be written only to `skills/qingcheng-dashboard-sql`; never mix them into `sql-query-writer-for-dashboard`
    - QuerySpec gate: production SQL requires a resolved domain, domain-local evidence, explicit time/range semantics, calculation grain, output grain, candidate tables, and join path; unresolved required slots block execution
    - Semantic contract gate: only source-hash-bound `confirmed` contracts may enter an executable QueryPlan, and deterministic compilation additionally requires explicit automatic-compile approval. `pending_confirmation`, ambiguous aliases, conflicting or missing scope, incompatible dimensions, grain mismatch, complex recipes, and unreviewed joins must not be silently compiled
-   - QueryPlan execution gate: when a plan is supplied to `usql-web-query-operator`, it must be executable, have no unresolved slots, and match the exact submitted SQL SHA-256. A QueryPlan does not authorize downloads, dashboard writes, template writes, or publication
+   - QueryPlan execution gate: when a plan is supplied to `usql-web-query-operator`, it must be executable, have no unresolved slots, and match the exact submitted SQL SHA-256. A QueryPlan does not authorize downloads, dashboard writes, template writes, or publication. Likewise, `DashboardDatasetSpec`, `DashboardDesignSpec`, and `DashboardChangePlan` are descriptive/review artifacts and do not authorize Apply or publication
    - Cross-department work must maintain two independent QuerySpecs and may combine only validated, grain-compatible results
    - The shared physical catalog may contain only neutral physical facts. It must not contain department metrics, ranges, temporary tables, channel or period mappings, business joins, dashboard semantics, or raw SQL definitions
    - SQL skill index maintenance: after modifying dashboards, metrics, tables, temp tables, joins, raw SQL, or semantic contracts, run the selected Skill's `scripts/build_reverse_indexes.py`, then run repository-level `scripts/build_text2sql_catalog.py`, then the selected Skill's `scripts/check_skill_integrity.py`; close the stack with `scripts/validate_text2sql_stack.py`
    - Feishu skill location: install and maintain Feishu CLI skills under `C:\Users\Ludim\.codex\skills\lark-*`; do not treat `C:\Users\Ludim\.codex\.agents\skills` as the long-term home for these skills
    - Feishu skill discovery: every installed `lark-*` skill must keep `agents/openai.yaml`; if a new skill does not appear in the callable skill list, inspect its registration metadata and restart Codex after install or update
    - `usql-web-query-operator` safety policy: no direct `SQL取数` downloads exceeding 1000 rows without confirmation; when the user explicitly needs a large-result export and the SQL is already concrete, prefer the Template Query temporary-download path with enforced cleanup (`offline -> delete`); never expose credentials
-   - Dashboard edit safety: `edit-public-filters` must run as dry-run first. `--apply` requires explicit authorization to update drafts; `--publish --confirm-publish` requires a separate explicit confirmation to publish. Never infer dashboard-write authorization from a read/profile request
+   - Dashboard edit safety: all P3 changes must follow `profile -> design spec -> diff -> dry-run -> explicitly authorized draft apply -> separately confirmed publish`. The design and diff stages may cover components, layout, formulas, and filters, but Apply must block every operation without a verified write adapter; currently only stable-ID public-filter updates are writable. Apply must bind to the reviewed change-plan hash, require a complete profile, re-read the draft and immediate target state to detect drift, and verify affected objects by readback. Publication must be a separate operation bound to a successful apply receipt and post-publication readback. When the platform has no formal published-version read API, record `publish_requested_unverified` and `fully_verified=false`; never treat draft readback as proof of the online version. The legacy `edit-public-filters` command is dry-run-only; its write or publish flags must fail before browser launch. Never infer dashboard-write authorization from a read/profile request
    - Playwright boundary: do not use generic Playwright directly for `SQL取数` execution, BI dashboard scanning or profiling, Taitan edit-page metric or formula profiling, authenticated SQL-platform downloads, or login-state management; route those through `usql-web-query-operator`
    - `xlsx` formula rule: use Excel formulas, not hardcoded Python-computed values
 6. **Credentials**:
