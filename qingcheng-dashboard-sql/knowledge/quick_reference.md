@@ -16,6 +16,15 @@
 
 跨部门对比必须另建一份 `market_consultant` QuerySpec；两边各用各自证据生成并校验 SQL，只在兼容聚合粒度上合并结果。
 
+### P3 看板设计最短路径
+
+1. 先读取最新 `DashboardProfile`，确认 dashboard/draft、组件、模型、relation/filter/field identity 和 profile hash。
+2. 按 `QuerySpec -> QueryPlan -> DashboardDatasetSpec -> DashboardDesignSpec` 正向生成青橙设计；每个指标、维度、范围和公式依赖必须携带 `qingcheng:*` confirmed contract ID 与 `source_path`。
+3. 使用 `DashboardDesignSpec + DashboardProfile` 生成 `DashboardChangePlan`，依次执行 `design-dashboard -> plan-dashboard-change`；后者默认 dry-run，不调用写接口。
+4. component、layout、formula、filter 均可做 P3A 画像、设计、diff 和 dry-run。P3B 只允许 `update_filter_dynamic_default`，且必须稳定定位 `relation_id + filter_id + field_id`；计划含任一 blocked operation 时整次 Apply 零写入。
+5. Apply 仅由 operator 的 `apply-dashboard-change` 写 draft；发布必须另用 `publish-dashboard-change --confirm-publish`，消费成功 ApplyReceipt 并校验最新草稿 profile hash。
+6. 完整门禁和反向路由见 `knowledge/sql_patterns/dashboard_design_change_workflow.md`；普通 SQL 任务不要加载该文档。
+
 ### P2 状态速查
 
 | 状态/场景 | 允许动作 | 禁止动作 |
@@ -24,8 +33,17 @@
 | `pending_confirmation` 契约命中 | 输出待确认项；生成有界 probe 或人工 SQL 计划 | 标记 QueryPlan 可执行、自动 compile 或交给 USQL |
 | 同一别名命中多个契约 | 保留 `ambiguous`，要求补充业务语义 | 按表名、历史习惯或另一业务域自动选取 |
 | confirmed 且 `automatic_compile=true` 的单表 QueryPlan | compile 后继续做 AST 与青橙规则校验 | 把 confirmed 或编译成功等同于业务正确或执行授权 |
-| 一级渠道/二级渠道/`channel_map_1`/`channel_map_2` | `semantic/contracts/dimension_contracts.json` | `knowledge/sql_patterns/qingcheng_channel_grade_mapping.md` 与 2064 权威 SQL | 使用青橙过程渠道派生维度；不要退回原始 `channel_name_2`，抖音正价退费必须在两级都输出抖音复用 |
+| 一级渠道/二级渠道/`channel_map_1`/`channel_map_2` | 读取 `semantic/contracts/dimension_contracts.json`、`knowledge/sql_patterns/qingcheng_channel_grade_mapping.md` 与 2064 权威 SQL | 使用青橙过程渠道派生维度；不要退回原始 `channel_name_2`，抖音正价退费必须在两级都输出抖音复用 |
 | 多表 join QueryPlan | 读取 `knowledge/joins/`、对应 Raw SQL 和风险索引，人工审阅 | 让 P2 单表编译器自动拼 join |
+
+### P3 状态速查
+
+| 状态/对象 | 允许动作 | 禁止动作 |
+|---|---|---|
+| component / layout / formula / filter | profile、DesignSpec、结构化 diff、dry-run | 把设计成功视为平台写入授权 |
+| 已有公共筛选器动态默认项，稳定 identity 完整 | 生成 `update_filter_dynamic_default` 并交 operator dry-run/显式 Apply | 用筛选器序号或显示名定位 |
+| 组件字段、布局、公式、数据集重绑、新建/删除 | 保留完整 diff，标记 `blocked_unsupported` | 调用未知写接口或部分执行计划 |
+| profile hash 漂移、契约待确认或跨域依赖 | 重新 profile、回到青橙 contract/source 取证 | 继续 Apply 或借市场顾问口径补齐 |
 
 ## 高频看板入口
 

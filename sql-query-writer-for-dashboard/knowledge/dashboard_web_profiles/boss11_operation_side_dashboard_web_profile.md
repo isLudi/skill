@@ -8,8 +8,8 @@
 - 文件夹：`市场顾问数据`
 - dashboard_id：`dashboard_3833805337379700736`
 - 打开入口：`https://uanalysis.baijia.com/dashboard-market?id=dashboard_3833805337379700736&sourceType=1`
-- profile 时间：2026-06-24 19:24:12
-- 原始结构 profile：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\artifacts\20260624-191824\市场顾问数据\11老板_运营侧数据看板\profile.json`
+- profile 时间：2026-07-11 09:48:47
+- 原始结构 profile：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\p3-validation-20260711\profile-all\市场顾问数据\11老板_运营侧数据看板\profile.json`
 - 页面渲染：成功
 
 ## 2. 刷新验证
@@ -51,120 +51,120 @@
 |---|---|---|---|---|---|---|
 | 标题图 | unit_3833805476815142913 | u_material | 1 主题分析 |  | loaded_empty | rows=0 |
 | 全局筛选器 | public_filter_relation_3833805476815142919 | public_filter_relation |  |  | filter_relation |  |
-| 进量_转化分析 | unit_3833805476815142964 | u_pivot | 2345 进量测试(市场渠道) | page=100<br>download=0 | data_ready | task=1424640739,1424640737<br>rows=9<br>total=9 |
+| 进量_转化分析 | unit_3833805476815142964 | u_pivot | 2345 进量测试(市场渠道) | page=100<br>download=0 | data_ready | task=1459208475,1459208474<br>rows=5<br>total=5 |
 | 全局筛选器 | public_filter_relation_3833805476815142970 | public_filter_relation |  |  | filter_relation |  |
-| 进量节奏分析 | unit_3833805476815142965 | u_line | 2345 进量测试(市场渠道) | download=0 | data_ready | task=1424640814<br>rows=0 |
-| 整体数据 | unit_3833805476815142914 | card | 2253 转化数据_市场顾问 | download=0 | data_ready | task=1424640840<br>rows=9 |
-| 经理 | unit_3833805476815142920 | u_pivot | 2293 运营侧个人数据 | page=100<br>download=1 | data_ready | task=1424640851,1424640849<br>rows=13<br>total=13 |
-| 主管 | unit_3833805476815142958 | u_pivot | 2293 运营侧个人数据 | page=100<br>download=1 | data_ready | task=1424640871,1424640869<br>rows=13<br>total=13 |
-| 个人 | unit_3833805476815142959 | u_pivot | 2293 运营侧个人数据 | page=100<br>download=1 | data_ready | task=1424640917,1424640914<br>rows=13<br>total=13 |
+| 进量节奏分析 | unit_3833805476815142965 | u_line | 2345 进量测试(市场渠道) | download=0 | data_ready | task=1459208479<br>rows=0 |
+| 整体数据 | unit_3833805476815142914 | card | 2253 转化数据_市场顾问 | download=0 | data_ready | task=1459208480<br>rows=9 |
+| 经理 | unit_3833805476815142920 | u_pivot | 2293 运营侧个人数据 | page=100<br>download=1 | data_ready | task=1459208483,1459208482<br>rows=54<br>total=54 |
+| 主管 | unit_3833805476815142958 | u_pivot | 2293 运营侧个人数据 | page=100<br>download=1 | data_ready | task=1459208491,1459208489<br>rows=54<br>total=54 |
+| 个人 | unit_3833805476815142959 | u_pivot | 2293 运营侧个人数据 | page=100<br>download=1 | data_ready | task=1459208494,1459208493<br>rows=54<br>total=54 |
 | 全局筛选器 | public_filter_relation_3833805476815142929 | public_filter_relation |  |  | filter_relation |  |
-| KOC自孵化 | unit_3833805476815142941 | u_pivot | 2293 运营侧个人数据 | page=100<br>download=1 | data_ready | task=1424640957,1424640956<br>rows=13<br>total=13 |
-| 春春 | unit_3833805476815142926 | u_pivot | 2293 运营侧个人数据 | page=100<br>download=1 | data_ready | task=1424640994,1424640995<br>rows=13<br>total=13 |
-| 亚飞 | unit_3833805476815142925 | u_pivot | 2293 运营侧个人数据 | page=100<br>download=1 | data_ready | task=1424641024,1424641023<br>rows=13<br>total=13 |
-| 曹忆 | unit_3833805476815142939 | u_pivot | 2293 运营侧个人数据 | page=100<br>download=1 | data_ready | task=1424641038,1424641037<br>rows=13<br>total=13 |
-| 肖晗IP | unit_3833805476815142953 | u_pivot | 2293 运营侧个人数据 | page=100<br>download=1 | data_ready | task=1424641057,1424641058<br>rows=13<br>total=13 |
-| 周帅IP | unit_3833805476815142976 | u_pivot | 2293 运营侧个人数据 | page=100<br>download=1 | data_ready | task=1424641101,1424641102<br>rows=13<br>total=13 |
-| 收款分时间占比 | unit_3833805476815142977 | u_pivot | 2424 每日转化数据表 | page=500<br>download=0 | data_ready | task=1424641350,1424641349<br>rows=9<br>total=9 |
+| KOC自孵化 | unit_3833805476815142941 | u_pivot | 2293 运营侧个人数据 | page=100<br>download=1 | data_ready | task=1459208497,1459208495<br>rows=54<br>total=54 |
+| 春春 | unit_3833805476815142926 | u_pivot | 2293 运营侧个人数据 | page=100<br>download=1 | data_ready | task=1459208511,1459208510<br>rows=54<br>total=54 |
+| 亚飞 | unit_3833805476815142925 | u_pivot | 2293 运营侧个人数据 | page=100<br>download=1 | data_ready | task=1459208514,1459208512<br>rows=54<br>total=54 |
+| 曹忆 | unit_3833805476815142939 | u_pivot | 2293 运营侧个人数据 | page=100<br>download=1 | data_ready | task=1459208521,1459208520<br>rows=54<br>total=54 |
+| 肖晗IP | unit_3833805476815142953 | u_pivot | 2293 运营侧个人数据 | page=100<br>download=1 | data_ready | task=1459208526,1459208525<br>rows=54<br>total=54 |
+| 周帅IP | unit_3833805476815142976 | u_pivot | 2293 运营侧个人数据 | page=100<br>download=1 | data_ready | task=1459208529,1459208528<br>rows=54<br>total=54 |
+| 收款分时间占比 | unit_3833805476815142977 | u_pivot | 2424 每日转化数据表 | page=500<br>download=0 | data_ready | task=1459208532,1459208531<br>rows=12<br>total=12 |
 | 全局筛选器 | public_filter_relation_3833805476815142987 | public_filter_relation |  |  | filter_relation |  |
-| 日度净收走势 | unit_3833805476815142978 | u_line | 2423 每日转化情况 | download=0 | data_ready | task=1424641532<br>rows=0 |
-| 线索分时间转化数据 | unit_3833805476815142960 | u_pivot | 2344 分析--分周期转化 | page=200<br>download=1 | data_ready | task=1424641548,1424641547<br>rows=9<br>total=9 |
-| 行课数据 | unit_3833805476815142946 | u_pivot | 2132 (内部)到课衰减情况 | page=100<br>download=1 | data_ready | task=1424641575,1424641571<br>rows=11<br>total=11 |
-| 外呼数据 | unit_3833805476815142947 | u_pivot | 2054 (内部渠道)外呼过程数据 | page=200<br>download=1 | data_ready | task=1424641588,1424641586<br>rows=8<br>total=8 |
+| 日度净收走势 | unit_3833805476815142978 | u_line | 2423 每日转化情况 | download=0 | data_ready | task=1459208546<br>rows=0 |
+| 线索分时间转化数据 | unit_3833805476815142960 | u_pivot | 2344 分析--分周期转化 | page=200<br>download=1 | data_ready | task=1459208547,1459208549<br>rows=12<br>total=12 |
+| 行课数据 | unit_3833805476815142946 | u_pivot | 2132 (内部)到课衰减情况 | page=100<br>download=1 | data_ready | task=1459208552,1459208551<br>rows=14<br>total=14 |
+| 外呼数据 | unit_3833805476815142947 | u_pivot | 2054 (内部渠道)外呼过程数据 | page=200<br>download=1 | data_ready | task=1459208555,1459208554<br>rows=11<br>total=11 |
 
 ## 5. 分析单元字段结构
 
 ### 进量_转化分析
 
 - unit_id：`unit_3833805476815142964`；类型：`u_pivot`；模型：`2345` / 进量测试(市场渠道)
-- 刷新：data_ready；task_ids：`1424640739,1424640737`；行数：9；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1459208475,1459208474`；行数：5；序列：0 / 0 点
 
 ### 进量节奏分析
 
 - unit_id：`unit_3833805476815142965`；类型：`u_line`；模型：`2345` / 进量测试(市场渠道)
-- 刷新：data_ready；task_ids：`1424640814`；行数：0；序列：2 / 10 点
+- 刷新：data_ready；task_ids：`1459208479`；行数：0；序列：2 / 10 点
 
 ### 整体数据
 
 - unit_id：`unit_3833805476815142914`；类型：`card`；模型：`2253` / 转化数据_市场顾问
-- 刷新：data_ready；task_ids：`1424640840`；行数：9；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1459208480`；行数：9；序列：0 / 0 点
 - 单元筛选字段：depart（id=311388）、depart_1（id=316910）
 
 ### 经理
 
 - unit_id：`unit_3833805476815142920`；类型：`u_pivot`；模型：`2293` / 运营侧个人数据
-- 刷新：data_ready；task_ids：`1424640851,1424640849`；行数：13；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1459208483,1459208482`；行数：54；序列：0 / 0 点
 
 ### 主管
 
 - unit_id：`unit_3833805476815142958`；类型：`u_pivot`；模型：`2293` / 运营侧个人数据
-- 刷新：data_ready；task_ids：`1424640871,1424640869`；行数：13；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1459208491,1459208489`；行数：54；序列：0 / 0 点
 
 ### 个人
 
 - unit_id：`unit_3833805476815142959`；类型：`u_pivot`；模型：`2293` / 运营侧个人数据
-- 刷新：data_ready；task_ids：`1424640917,1424640914`；行数：13；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1459208494,1459208493`；行数：54；序列：0 / 0 点
 
 ### KOC自孵化
 
 - unit_id：`unit_3833805476815142941`；类型：`u_pivot`；模型：`2293` / 运营侧个人数据
-- 刷新：data_ready；task_ids：`1424640957,1424640956`；行数：13；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1459208497,1459208495`；行数：54；序列：0 / 0 点
 - 单元筛选字段：channel_map（id=319191）
 
 ### 春春
 
 - unit_id：`unit_3833805476815142926`；类型：`u_pivot`；模型：`2293` / 运营侧个人数据
-- 刷新：data_ready；task_ids：`1424640994,1424640995`；行数：13；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1459208511,1459208510`；行数：54；序列：0 / 0 点
 - 单元筛选字段：channel_map（id=319191）
 
 ### 亚飞
 
 - unit_id：`unit_3833805476815142925`；类型：`u_pivot`；模型：`2293` / 运营侧个人数据
-- 刷新：data_ready；task_ids：`1424641024,1424641023`；行数：13；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1459208514,1459208512`；行数：54；序列：0 / 0 点
 - 单元筛选字段：channel_map（id=319191）
 
 ### 曹忆
 
 - unit_id：`unit_3833805476815142939`；类型：`u_pivot`；模型：`2293` / 运营侧个人数据
-- 刷新：data_ready；task_ids：`1424641038,1424641037`；行数：13；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1459208521,1459208520`；行数：54；序列：0 / 0 点
 - 单元筛选字段：channel_map（id=319191）
 
 ### 肖晗IP
 
 - unit_id：`unit_3833805476815142953`；类型：`u_pivot`；模型：`2293` / 运营侧个人数据
-- 刷新：data_ready；task_ids：`1424641057,1424641058`；行数：13；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1459208526,1459208525`；行数：54；序列：0 / 0 点
 - 单元筛选字段：channel_map（id=319191）
 
 ### 周帅IP
 
 - unit_id：`unit_3833805476815142976`；类型：`u_pivot`；模型：`2293` / 运营侧个人数据
-- 刷新：data_ready；task_ids：`1424641101,1424641102`；行数：13；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1459208529,1459208528`；行数：54；序列：0 / 0 点
 - 单元筛选字段：channel_map（id=319191）
 
 ### 收款分时间占比
 
 - unit_id：`unit_3833805476815142977`；类型：`u_pivot`；模型：`2424` / 每日转化数据表
-- 刷新：data_ready；task_ids：`1424641350,1424641349`；行数：9；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1459208532,1459208531`；行数：12；序列：0 / 0 点
 
 ### 日度净收走势
 
 - unit_id：`unit_3833805476815142978`；类型：`u_line`；模型：`2423` / 每日转化情况
-- 刷新：data_ready；task_ids：`1424641532`；行数：0；序列：5 / 5 点
+- 刷新：data_ready；task_ids：`1459208546`；行数：0；序列：5 / 5 点
 
 ### 线索分时间转化数据
 
 - unit_id：`unit_3833805476815142960`；类型：`u_pivot`；模型：`2344` / 分析--分周期转化
-- 刷新：data_ready；task_ids：`1424641548,1424641547`；行数：9；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1459208547,1459208549`；行数：12；序列：0 / 0 点
 - 单元筛选字段：qici（id=335527）、grade_list（id=335531）、channel_1（id=335528）
 
 ### 行课数据
 
 - unit_id：`unit_3833805476815142946`；类型：`u_pivot`；模型：`2132` / (内部)到课衰减情况
-- 刷新：data_ready；task_ids：`1424641575,1424641571`；行数：11；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1459208552,1459208551`；行数：14；序列：0 / 0 点
 - 单元筛选字段：qici（id=289670）、department（id=289674）、grade_1（id=289672）、channel_map_1（id=289671）、rule_name（id=374265）
 
 ### 外呼数据
 
 - unit_id：`unit_3833805476815142947`；类型：`u_pivot`；模型：`2054` / (内部渠道)外呼过程数据
-- 刷新：data_ready；task_ids：`1424641588,1424641586`；行数：8；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1459208555,1459208554`；行数：11；序列：0 / 0 点
 - 单元筛选字段：qici（id=273592）、department（id=273596）、grade_1（id=273595）、channel_map_1（id=273594）

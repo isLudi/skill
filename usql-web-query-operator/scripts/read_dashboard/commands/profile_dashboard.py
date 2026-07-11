@@ -11,6 +11,7 @@ from _shared.fs_utils import ensure_runtime, safe_artifact_dir
 
 from ..profile import build_error_profile, build_profile_summary, profile_dashboard
 from ..common import write_json
+from ..value_health import policy_from_args
 
 
 def cmd_profile_dashboard(args) -> int:
@@ -34,6 +35,8 @@ def cmd_profile_dashboard(args) -> int:
                 wait_ms=args.wait_ms,
                 artifacts_dir=artifacts_dir,
                 debug_artifacts=args.debug_artifacts,
+                include_values=args.profile_mode == "full",
+                value_policy=policy_from_args(args),
             )
         except Exception as exc:  # noqa: BLE001
             profile = build_error_profile(dashboard_id, args.dashboard_name or dashboard_id, args.folder, str(exc))

@@ -11,13 +11,58 @@ from _shared.config import DEFAULT_ARTIFACTS, DEFAULT_BROWSER_CHANNEL, DEFAULT_E
 from _shared.errors import UsageError
 
 from .commands.capture_dashboard import cmd_capture_dashboard
+from .commands.check_dashboard_values import cmd_check_dashboard_values
+from .commands.apply_dashboard_change import cmd_apply_dashboard_change
+from .commands.design_dashboard import cmd_design_dashboard
 from .commands.edit_public_filters import cmd_edit_public_filters
+from .commands.plan_dashboard_change import cmd_plan_dashboard_change
 from .commands.profile_all import cmd_profile_all
 from .commands.profile_dashboard import cmd_profile_dashboard
 from .commands.profile_edit_dashboard import cmd_profile_edit_dashboard
+from .commands.profile_edit_batch import cmd_profile_edit_all, cmd_profile_edit_folder
 from .commands.profile_folder import cmd_profile_folder
+from .commands.publish_dashboard_change import cmd_publish_dashboard_change
 from .commands.scan_folder import cmd_scan_folder
 from .constants import DEFAULT_PROFILE_ALL_FOLDERS
+
+
+def _add_value_probe_args(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--value-request-timeout-ms", type=int, default=15_000)
+    parser.add_argument("--value-max-attempts", type=int, default=2)
+    parser.add_argument("--value-retry-backoff-ms", type=int, default=500)
+    parser.add_argument("--value-dashboard-timeout-ms", type=int, default=90_000)
+    parser.add_argument(
+        "--value-failure-cache",
+        type=Path,
+        default=DEFAULT_ARTIFACTS / "dashboard_value_failures.json",
+    )
+    parser.add_argument("--value-failure-cache-ttl-seconds", type=int, default=900)
+    parser.add_argument("--no-value-failure-cache", action="store_true")
+
+
+def _add_edit_batch_args(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--domain", choices=["auto", "market_consultant", "qingcheng"], default="auto")
+    parser.add_argument("--output-dir", type=Path, default=None)
+    parser.add_argument("--version-id", default="draft")
+    parser.add_argument("--max-workers", type=int, default=2, help="Bounded worker count; clamped to 1..4.")
+    parser.add_argument("--worker-timeout-seconds", type=int, default=300)
+    parser.add_argument("--resume-max-age-seconds", type=int, default=86_400)
+    resume = parser.add_mutually_exclusive_group()
+    resume.add_argument("--resume", dest="resume", action="store_true")
+    resume.add_argument("--no-resume", dest="resume", action="store_false")
+    parser.set_defaults(resume=True)
+    parser.add_argument("--skip-dataset-fields", action="store_true")
+    parser.add_argument("--headed", action="store_true")
+    parser.add_argument("--state-path", type=Path, default=DEFAULT_STATE)
+    parser.add_argument("--artifacts-dir", type=Path, default=DEFAULT_ARTIFACTS)
+    parser.add_argument("--env-file", type=Path, default=DEFAULT_ENV_FILE)
+    parser.add_argument("--username", default=os.environ.get("BAIJIA_USERNAME"))
+    parser.add_argument("--password", default=os.environ.get("BAIJIA_PASSWORD"))
+    parser.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL)
+    parser.add_argument("--executable-path", default=None)
+    parser.add_argument("--scan-wait-ms", type=int, default=3_000)
+    parser.add_argument("--wait-ms", type=int, default=2_000)
+    parser.add_argument("--debug-artifacts", action="store_true")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -74,9 +119,29 @@ def build_parser() -> argparse.ArgumentParser:
     profile.add_argument("--password", default=os.environ.get("BAIJIA_PASSWORD"))
     profile.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL, help="Installed browser channel, e.g. msedge or chrome.")
     profile.add_argument("--executable-path", default=None, help="Explicit browser executable path; overrides --browser-channel.")
-    profile.add_argument("--wait-ms", type=int, default=45_000, help="Wait after opening the dashboard so its data can refresh.")
+    profile.add_argument("--wait-ms", type=int, default=5_000, help="Wait after opening the dashboard before reading config.")
+    profile.add_argument("--profile-mode", choices=["config", "full"], default="config")
+    _add_value_probe_args(profile)
     profile.add_argument("--debug-artifacts", action="store_true", help="Save screenshots and HTML under the runtime artifacts directory.")
     profile.set_defaults(func=cmd_profile_dashboard)
+
+    value_health = subparsers.add_parser(
+        "check-dashboard-values",
+        help="Run bounded value/unit health checks from a cached dashboard config profile.",
+    )
+    value_health.add_argument("--profile", type=Path, required=True)
+    value_health.add_argument("--output", type=Path, default=None)
+    value_health.add_argument("--headed", action="store_true")
+    value_health.add_argument("--state-path", type=Path, default=DEFAULT_STATE)
+    value_health.add_argument("--artifacts-dir", type=Path, default=DEFAULT_ARTIFACTS)
+    value_health.add_argument("--env-file", type=Path, default=DEFAULT_ENV_FILE)
+    value_health.add_argument("--username", default=os.environ.get("BAIJIA_USERNAME"))
+    value_health.add_argument("--password", default=os.environ.get("BAIJIA_PASSWORD"))
+    value_health.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL)
+    value_health.add_argument("--executable-path", default=None)
+    value_health.add_argument("--wait-ms", type=int, default=3_000)
+    _add_value_probe_args(value_health)
+    value_health.set_defaults(func=cmd_check_dashboard_values)
 
     profile_edit = subparsers.add_parser(
         "profile-edit-dashboard",
@@ -86,7 +151,19 @@ def build_parser() -> argparse.ArgumentParser:
     profile_edit.add_argument("--dashboard-id", default=None, help="Dashboard ID. Required when --edit-url is omitted.")
     profile_edit.add_argument("--html-id", default=None, help="Optional htmlId used to build the edit URL.")
     profile_edit.add_argument("--version-id", default="draft", help="Dashboard version id to read; defaults to draft.")
+    profile_edit.add_argument(
+        "--domain",
+        choices=["market_consultant", "qingcheng", "unresolved"],
+        default="unresolved",
+        help="Bind the profile to a business domain; unresolved profiles cannot enter apply or publish.",
+    )
     profile_edit.add_argument("--output", type=Path, default=None)
+    profile_edit.add_argument(
+        "--normalized-output",
+        type=Path,
+        default=None,
+        help="Optionally write the pure DashboardProfile artifact beside the backward-compatible rich profile.",
+    )
     profile_edit.add_argument("--headed", action="store_true", help="Show browser window.")
     profile_edit.add_argument("--state-path", type=Path, default=DEFAULT_STATE)
     profile_edit.add_argument("--artifacts-dir", type=Path, default=DEFAULT_ARTIFACTS)
@@ -100,9 +177,93 @@ def build_parser() -> argparse.ArgumentParser:
     profile_edit.add_argument("--debug-artifacts", action="store_true", help="Save screenshot and HTML under the runtime artifacts directory.")
     profile_edit.set_defaults(func=cmd_profile_edit_dashboard)
 
+    profile_edit_folder = subparsers.add_parser(
+        "profile-edit-folder",
+        help="Profile edit pages under one folder with bounded subprocess concurrency and resume cache.",
+    )
+    profile_edit_folder.add_argument("--folder", required=True)
+    profile_edit_folder.add_argument("--names", action="append")
+    _add_edit_batch_args(profile_edit_folder)
+    profile_edit_folder.set_defaults(func=cmd_profile_edit_folder)
+
+    profile_edit_all = subparsers.add_parser(
+        "profile-edit-all",
+        help="Profile governed market and Qingcheng edit pages with bounded concurrency and resume cache.",
+    )
+    profile_edit_all.add_argument("--folders", action="append")
+    _add_edit_batch_args(profile_edit_all)
+    profile_edit_all.set_defaults(func=cmd_profile_edit_all)
+
+    design = subparsers.add_parser(
+        "design-dashboard",
+        help="Build a domain-bound DashboardDesignSpec locally; never writes to Taitan.",
+    )
+    design.add_argument("--profile", type=Path, required=True, help="DashboardProfile JSON from profile-edit-dashboard.")
+    design.add_argument("--dataset-spec", type=Path, required=True, help="Domain-bound DashboardDatasetSpec JSON.")
+    design.add_argument("--desired-state", type=Path, default=None, help="Optional JSON containing desired components/layout/formulas/public_filters.")
+    design.add_argument("--domain", choices=["market_consultant", "qingcheng"], required=True)
+    design.add_argument("--query-plan-sha256", default=None, help="Optional exact upstream QueryPlan SHA-256 binding.")
+    design.add_argument("--design-intent", default="preserve_current", help="Auditable design intent label.")
+    design.add_argument("--output", type=Path, required=True)
+    design.set_defaults(func=cmd_design_dashboard)
+
+    plan_change = subparsers.add_parser(
+        "plan-dashboard-change",
+        help="Diff a DashboardProfile and DashboardDesignSpec into a zero-write dry-run plan.",
+    )
+    plan_change.add_argument("--profile", type=Path, required=True)
+    plan_change.add_argument("--design-spec", type=Path, required=True)
+    plan_change.add_argument("--domain", choices=["market_consultant", "qingcheng"], required=True)
+    plan_change.add_argument("--output", type=Path, required=True)
+    plan_change.set_defaults(func=cmd_plan_dashboard_change)
+
+    apply_change = subparsers.add_parser(
+        "apply-dashboard-change",
+        help="Apply one exact stable-ID public-filter ChangePlan to draft; never publishes.",
+    )
+    apply_change.add_argument("--change-plan", type=Path, required=True)
+    apply_change.add_argument("--change-plan-sha256", required=True, help="Exact SHA-256 printed by plan-dashboard-change.")
+    apply_change.add_argument("--domain", choices=["market_consultant", "qingcheng"], required=True)
+    apply_change.add_argument("--output", type=Path, default=None)
+    apply_change.add_argument("--headed", action="store_true", help="Show browser window.")
+    apply_change.add_argument("--state-path", type=Path, default=DEFAULT_STATE)
+    apply_change.add_argument("--artifacts-dir", type=Path, default=DEFAULT_ARTIFACTS)
+    apply_change.add_argument("--env-file", type=Path, default=DEFAULT_ENV_FILE)
+    apply_change.add_argument("--username", default=os.environ.get("BAIJIA_USERNAME"))
+    apply_change.add_argument("--password", default=os.environ.get("BAIJIA_PASSWORD"))
+    apply_change.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL)
+    apply_change.add_argument("--executable-path", default=None)
+    apply_change.add_argument("--wait-ms", type=int, default=3_000)
+    apply_change.add_argument("--debug-artifacts", action="store_true")
+    apply_change.set_defaults(func=cmd_apply_dashboard_change)
+
+    publish_change = subparsers.add_parser(
+        "publish-dashboard-change",
+        help="Publish a verified ApplyReceipt in a separate explicitly confirmed command.",
+    )
+    publish_change.add_argument("--change-plan", type=Path, required=True)
+    publish_change.add_argument("--change-plan-sha256", required=True)
+    publish_change.add_argument("--apply-receipt", type=Path, required=True)
+    publish_change.add_argument("--apply-receipt-sha256", required=True)
+    publish_change.add_argument("--domain", choices=["market_consultant", "qingcheng"], required=True)
+    publish_change.add_argument("--confirm-publish", action="store_true", required=True)
+    publish_change.add_argument("--version-description", required=True)
+    publish_change.add_argument("--output", type=Path, default=None)
+    publish_change.add_argument("--headed", action="store_true", help="Show browser window.")
+    publish_change.add_argument("--state-path", type=Path, default=DEFAULT_STATE)
+    publish_change.add_argument("--artifacts-dir", type=Path, default=DEFAULT_ARTIFACTS)
+    publish_change.add_argument("--env-file", type=Path, default=DEFAULT_ENV_FILE)
+    publish_change.add_argument("--username", default=os.environ.get("BAIJIA_USERNAME"))
+    publish_change.add_argument("--password", default=os.environ.get("BAIJIA_PASSWORD"))
+    publish_change.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL)
+    publish_change.add_argument("--executable-path", default=None)
+    publish_change.add_argument("--wait-ms", type=int, default=3_000)
+    publish_change.add_argument("--debug-artifacts", action="store_true")
+    publish_change.set_defaults(func=cmd_publish_dashboard_change)
+
     edit_filters = subparsers.add_parser(
         "edit-public-filters",
-        help="Plan public-filter changes by default; explicitly apply to draft and optionally publish.",
+        help="Legacy ordinal dry-run inspection only; all write/publish flags are rejected.",
     )
     edit_filters.add_argument("--folder", default="青橙播报")
     edit_filters.add_argument(
@@ -116,7 +277,7 @@ def build_parser() -> argparse.ArgumentParser:
     edit_filters.add_argument("--html-id", default=None, help="Optional htmlId used to build edit URLs.")
     edit_filters.add_argument("--first-value", default="1", help="Dynamic filter value for the first public filter.")
     edit_filters.add_argument("--second-value", default="2", help="Dynamic filter value for the second public filter.")
-    edit_filters.add_argument("--version-description", default="auto update public filters", help="Version description for full publish.")
+    edit_filters.add_argument("--version-description", default="legacy dry-run only", help="Deprecated compatibility option; legacy publication is disabled.")
     edit_filters.add_argument("--output", type=Path, default=None)
     edit_filters.add_argument("--headed", action="store_true", help="Show browser window.")
     edit_filters.add_argument("--state-path", type=Path, default=DEFAULT_STATE)
@@ -133,7 +294,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--apply",
         dest="dry_run",
         action="store_false",
-        help="Apply the planned public-filter changes to the dashboard draft.",
+        help="Deprecated and rejected. Use apply-dashboard-change with a reviewed stable-ID plan.",
     )
     edit_mode.add_argument(
         "--dry-run",
@@ -141,11 +302,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Read and plan changes without calling update or publish APIs. This is the default.",
     )
-    edit_filters.add_argument("--publish", action="store_true", default=False, help="Publish after --apply updates the draft.")
+    edit_filters.add_argument("--publish", action="store_true", default=False, help="Deprecated and rejected. Use publish-dashboard-change.")
     edit_filters.add_argument(
         "--confirm-publish",
         action="store_true",
-        help="Explicitly confirm full publication. Required together with --apply --publish.",
+        help="Deprecated and rejected for the legacy command.",
     )
     edit_filters.add_argument("--strict-filter-count", action="store_true", help="Fail when a requested filter index is missing.")
     edit_filters.set_defaults(func=cmd_edit_public_filters, dry_run=True)
@@ -163,7 +324,9 @@ def build_parser() -> argparse.ArgumentParser:
     profile_folder.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL, help="Installed browser channel, e.g. msedge or chrome.")
     profile_folder.add_argument("--executable-path", default=None, help="Explicit browser executable path; overrides --browser-channel.")
     profile_folder.add_argument("--wait-ms", type=int, default=5_000, help="Wait after opening the BI page before scanning the folder.")
-    profile_folder.add_argument("--dashboard-wait-ms", type=int, default=45_000, help="Wait after opening each dashboard so its data can refresh.")
+    profile_folder.add_argument("--dashboard-wait-ms", type=int, default=5_000, help="Wait after opening each dashboard before reading config.")
+    profile_folder.add_argument("--profile-mode", choices=["config", "full"], default="config")
+    _add_value_probe_args(profile_folder)
     profile_folder.add_argument("--debug-artifacts", action="store_true", help="Save screenshots and HTML under each dashboard profile directory.")
     profile_folder.set_defaults(func=cmd_profile_folder)
 
@@ -183,7 +346,9 @@ def build_parser() -> argparse.ArgumentParser:
     profile_all.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL, help="Installed browser channel, e.g. msedge or chrome.")
     profile_all.add_argument("--executable-path", default=None, help="Explicit browser executable path; overrides --browser-channel.")
     profile_all.add_argument("--wait-ms", type=int, default=5_000, help="Wait after opening the BI page before scanning a folder.")
-    profile_all.add_argument("--dashboard-wait-ms", type=int, default=45_000, help="Wait after opening each dashboard so its data can refresh.")
+    profile_all.add_argument("--dashboard-wait-ms", type=int, default=5_000, help="Wait after opening each dashboard before reading config.")
+    profile_all.add_argument("--profile-mode", choices=["config", "full"], default="config")
+    _add_value_probe_args(profile_all)
     profile_all.add_argument("--debug-artifacts", action="store_true", help="Save screenshots and HTML under each dashboard profile directory.")
     profile_all.add_argument("--skip-dashboards-readme", action="store_true", help="Do not update knowledge/dashboards/README.md.")
     profile_all.add_argument("--skip-changelog", action="store_true", help="Do not append a knowledge changelog entry.")

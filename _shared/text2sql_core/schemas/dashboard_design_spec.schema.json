@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.codex/text2sql/dashboard_design_spec.schema.json",
+  "title": "Dashboard design-only specification",
+  "type": "object",
+  "required": [
+    "schema_version", "artifact_type", "mode", "domain", "dashboard_id",
+    "dashboard_domain_resolution",
+    "source_profile_sha256", "source_plan_id", "query_plan_sha256",
+    "dataset_spec_sha256", "design_intent", "available_fields",
+    "dataset_default_filters", "desired_components", "desired_layout",
+    "desired_formulas", "desired_public_filters", "desired_component_filters", "desired_datasets",
+    "layout_policy", "write_boundary", "diagnostics", "status", "design_sha256"
+  ],
+  "properties": {
+    "schema_version": {"const": "3.0.0"},
+    "artifact_type": {"const": "dashboard_design_spec"},
+    "mode": {"const": "design_only"},
+    "domain": {"enum": ["unresolved", "market_consultant", "qingcheng"]},
+    "dashboard_id": {"type": "string", "minLength": 1},
+    "dashboard_name": {"type": "string"},
+    "dashboard_domain_resolution": {
+      "type": "object",
+      "required": [
+        "dashboard_id", "requested_domain", "status", "registered_domain", "evidence"
+      ],
+      "properties": {
+        "dashboard_id": {"type": "string", "minLength": 1},
+        "requested_domain": {"enum": ["unresolved", "market_consultant", "qingcheng"]},
+        "status": {"enum": ["registered", "blocked"]},
+        "registered_domain": {
+          "type": ["string", "null"],
+          "enum": [null, "market_consultant", "qingcheng"]
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["source_path", "source_sha256"],
+            "properties": {
+              "source_path": {"type": "string", "minLength": 1},
+              "source_sha256": {"$ref": "dashboard_profile.schema.json#/$defs/sha256"}
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "source_profile_sha256": {"$ref": "dashboard_profile.schema.json#/$defs/sha256"},
+    "source_plan_id": {"type": ["string", "null"]},
+    "query_plan_sha256": {"oneOf": [{"$ref": "dashboard_profile.schema.json#/$defs/sha256"}, {"type": "null"}]},
+    "dataset_spec_sha256": {"$ref": "dashboard_profile.schema.json#/$defs/sha256"},
+    "design_intent": {"type": "string", "minLength": 1},
+    "available_fields": {"type": "array"},
+    "dataset_default_filters": {"type": "array"},
+    "desired_components": {"type": "array", "items": {"$ref": "dashboard_profile.schema.json#/$defs/component"}},
+    "desired_layout": {"type": "array", "items": {"$ref": "dashboard_profile.schema.json#/$defs/layout"}},
+    "desired_formulas": {"type": "array", "items": {"$ref": "dashboard_profile.schema.json#/$defs/formula"}},
+    "desired_public_filters": {"type": "array", "items": {"$ref": "dashboard_profile.schema.json#/$defs/filter"}},
+    "desired_component_filters": {"type": "array", "items": {"$ref": "dashboard_profile.schema.json#/$defs/component_filter"}},
+    "desired_datasets": {"type": "array", "items": {"$ref": "dashboard_profile.schema.json#/$defs/dataset"}},
+    "layout_policy": {"type": "object"},
+    "write_boundary": {
+      "type": "object",
+      "required": ["phase", "may_generate_diff", "may_dry_run", "apply_authorized", "may_publish_dashboard"],
+      "properties": {
+        "phase": {"const": "P3A_design"}, "may_generate_diff": {"const": true},
+        "may_dry_run": {"const": true}, "apply_authorized": {"const": false},
+        "may_publish_dashboard": {"const": false}
+      },
+      "additionalProperties": false
+    },
+    "diagnostics": {"type": "array"},
+    "status": {"enum": ["ready", "blocked"]},
+    "design_sha256": {"$ref": "dashboard_profile.schema.json#/$defs/sha256"}
+  },
+  "additionalProperties": false
+}

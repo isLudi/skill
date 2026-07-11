@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.codex/text2sql/dashboard_apply_receipt.schema.json",
+  "title": "Post-apply dashboard readback receipt",
+  "type": "object",
+  "required": [
+    "schema_version", "artifact_type", "domain", "dashboard_id",
+    "change_plan_sha256", "pre_profile_sha256", "post_profile_sha256",
+    "operations", "verification", "status", "ok", "publish_boundary",
+    "apply_receipt_sha256"
+  ],
+  "properties": {
+    "schema_version": {"const": "3.0.0"},
+    "artifact_type": {"const": "dashboard_apply_receipt"},
+    "domain": {"enum": ["market_consultant", "qingcheng"]},
+    "dashboard_id": {"type": "string", "minLength": 1},
+    "change_plan_sha256": {"$ref": "dashboard_profile.schema.json#/$defs/sha256"},
+    "pre_profile_sha256": {"$ref": "dashboard_profile.schema.json#/$defs/sha256"},
+    "post_profile_sha256": {"$ref": "dashboard_profile.schema.json#/$defs/sha256"},
+    "operations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["operation_id", "status"],
+        "properties": {
+          "operation_id": {"type": "string"},
+          "status": {"enum": ["applied", "failed", "skipped"]},
+          "message": {"type": "string"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "verification": {
+      "type": "object",
+      "required": ["profile_readback_performed", "target_state_matches", "all_planned_operations_accounted_for", "plan_validation_ok"],
+      "properties": {
+        "profile_readback_performed": {"type": "boolean"},
+        "target_state_matches": {"type": "boolean"},
+        "all_planned_operations_accounted_for": {"type": "boolean"},
+        "plan_validation_ok": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "status": {"enum": ["applied", "no_changes", "failed"]},
+    "ok": {"type": "boolean"},
+    "publish_boundary": {
+      "type": "object",
+      "required": ["publish_authorized", "requires_separate_publish_confirmation"],
+      "properties": {
+        "publish_authorized": {"const": false},
+        "requires_separate_publish_confirmation": {"const": true}
+      },
+      "additionalProperties": false
+    },
+    "apply_receipt_sha256": {"$ref": "dashboard_profile.schema.json#/$defs/sha256"}
+  },
+  "additionalProperties": false
+}

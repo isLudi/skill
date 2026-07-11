@@ -69,6 +69,11 @@
 | [knowledge/sql_patterns/channel_mapping_case_when.md](../sql_patterns/channel_mapping_case_when.md) | 5.1 超长 CASE 顺序风险 | 4. 新增或调整规则时，优先使用大小写兼容写法，例如 `lower(rule_name) like '%孟亚飞ip99%'`；不要同时保留后置重复分支，避免读者误以为后置分支可命中。 |
 | [knowledge/sql_patterns/channel_mapping_case_when.md](../sql_patterns/channel_mapping_case_when.md) | 7. 定期更新流程 | 4. 更新本文件的原始文件、Skill 归档、来源文件最后修改时间、代码规模、关键渠道规则和待确认事项。 |
 | [knowledge/sql_patterns/cte_patterns.md](../sql_patterns/cte_patterns.md) | 规则 | - 复杂看板 SQL 应将基础过滤、join、指标聚合拆开。 |
+| [knowledge/sql_patterns/dashboard_design_change_workflow.md](../sql_patterns/dashboard_design_change_workflow.md) | 1. 域与证据门禁 | - 任一 contract 为 `pending_confirmation`、别名歧义、来源哈希漂移、字段无法反查或 profile 域不明时，只允许画像和 diff，禁止形成可 apply 的变更计划。 |
+| [knowledge/sql_patterns/dashboard_design_change_workflow.md](../sql_patterns/dashboard_design_change_workflow.md) | 2. 正向链路 | - `query_plan_sha256`、`dataset_spec_sha256` 和 `profile_sha256`；后续按 `design_sha256 -> change_plan_sha256 -> apply_receipt_sha256 -> publish_receipt_sha256` 逐级绑定，任一前序 hash 漂移都必须重新规划。 |
+| [knowledge/sql_patterns/dashboard_design_change_workflow.md](../sql_patterns/dashboard_design_change_workflow.md) | 3. P3A：全类型设计、Diff 与 Dry-run | P3A 不调用写接口。Dry-run 必须基于最新 profile，输出 before/after、风险、阻断项和拟议 payload；profile hash 漂移时重新画像并重新 diff。 |
+| [knowledge/sql_patterns/dashboard_design_change_workflow.md](../sql_patterns/dashboard_design_change_workflow.md) | 4. P3B：当前 Apply 白名单 | 当前唯一允许交给 operator Apply 的变更是： |
+| [knowledge/sql_patterns/dashboard_design_change_workflow.md](../sql_patterns/dashboard_design_change_workflow.md) | 5. 反向链路 | - 反向解析必须产出唯一市场顾问 contract ID；无法唯一映射时保留 `unknown/ambiguous`，不得根据字段显示名猜测。 |
 | [knowledge/sql_patterns/dashboard_query_patterns.md](../sql_patterns/dashboard_query_patterns.md) | 多 CTE 看板结构 | count(distinct case when 待确认有效线索条件 then b.lead_id end) as valid_lead_cnt, |
 | [knowledge/sql_patterns/dashboard_query_patterns.md](../sql_patterns/dashboard_query_patterns.md) | 排名指标粒度与前端聚合 | 排名、比率、目标、差值等非明细粒度指标必须先确定计算粒度。若计算粒度与最终输出粒度不一致，前端聚合可能把指标重复累加。 |
 | [knowledge/sql_patterns/dashboard_query_patterns.md](../sql_patterns/dashboard_query_patterns.md) | 排名指标粒度与前端聚合 | 典型风险： |

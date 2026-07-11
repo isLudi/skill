@@ -8,8 +8,8 @@
 - 文件夹：`市场顾问数据`
 - dashboard_id：`dashboard_3748410696516800512`
 - 打开入口：`https://uanalysis.baijia.com/dashboard-market?id=dashboard_3748410696516800512&sourceType=1`
-- profile 时间：2026-06-24 19:20:57
-- 原始结构 profile：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\artifacts\20260624-191824\市场顾问数据\市场顾问部_行课报表\profile.json`
+- profile 时间：2026-07-11 09:46:30
+- 原始结构 profile：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\p3-validation-20260711\profile-all\市场顾问数据\市场顾问部_行课报表\profile.json`
 - 页面渲染：成功
 
 ## 2. 刷新验证
@@ -39,25 +39,25 @@
 |---|---|---|---|---|---|---|
 | 标题图 | unit_3748416372584517632 | u_material | 1 主题分析 |  | loaded_empty | rows=0 |
 | 全局筛选器 | public_filter_relation_3748432894568730625 | public_filter_relation |  |  | filter_relation |  |
-| 渠道年级行课 | unit_3748421949431779328 | u_pivot | 2132 (内部)到课衰减情况 | page=100<br>download=1 | data_ready | task=1424632811,1424632807<br>rows=20<br>total=20 |
-| 主管行课 | unit_3748425123565043713 | u_pivot | 2132 (内部)到课衰减情况 | page=100<br>download=1 | data_ready | task=1424632842,1424632841<br>rows=23<br>total=23 |
-| 伙伴行课 | unit_3748430264775114753 | u_pivot | 2132 (内部)到课衰减情况 | page=100<br>download=1 | data_ready | task=1424632884,1424632883<br>rows=100<br>total=478 |
+| 渠道年级行课 | unit_3748421949431779328 | u_pivot | 2132 (内部)到课衰减情况 | page=100<br>download=1 | data_ready | task=1459207447,1459207446<br>rows=11<br>total=11 |
+| 主管行课 | unit_3748425123565043713 | u_pivot | 2132 (内部)到课衰减情况 | page=100<br>download=1 | data_ready | task=1459207453,1459207452<br>rows=23<br>total=23 |
+| 伙伴行课 | unit_3748430264775114753 | u_pivot | 2132 (内部)到课衰减情况 | page=100<br>download=1 | data_ready | task=1459207459,1459207458<br>rows=100<br>total=555 |
 
 ## 5. 分析单元字段结构
 
 ### 渠道年级行课
 
 - unit_id：`unit_3748421949431779328`；类型：`u_pivot`；模型：`2132` / (内部)到课衰减情况
-- 刷新：data_ready；task_ids：`1424632811,1424632807`；行数：20；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1459207447,1459207446`；行数：11；序列：0 / 0 点
 
 ### 主管行课
 
 - unit_id：`unit_3748425123565043713`；类型：`u_pivot`；模型：`2132` / (内部)到课衰减情况
-- 刷新：data_ready；task_ids：`1424632842,1424632841`；行数：23；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1459207453,1459207452`；行数：23；序列：0 / 0 点
 - 单元筛选字段：department（id=289674）
 
 ### 伙伴行课
 
 - unit_id：`unit_3748430264775114753`；类型：`u_pivot`；模型：`2132` / (内部)到课衰减情况
-- 刷新：data_ready；task_ids：`1424632884,1424632883`；行数：100；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1459207459,1459207458`；行数：100；序列：0 / 0 点
 - 单元筛选字段：xiaozu（id=289673）、channel_map_1（id=289671）

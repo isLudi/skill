@@ -1,6 +1,6 @@
 ---
 name: sql-query-writer-for-dashboard
-description: Resolve market-consultant semantic contracts, build governed QuerySpec and QueryPlan artifacts, compile supported Presto SQL, generate bounded data probes, and explain, validate, or repair market consultant department (市场顾问部) dashboard queries using its isolated metrics, dashboards, historical SQL, table overlays, joins, channel mappings, and platform constraints. Use for market-consultant conversion, traffic, outbound-call, attendance, refund, evaluation, Text2SQL planning, data-definition exploration, or knowledge maintenance; do not use for Qingcheng/青橙 semantics.
+description: Resolve market-consultant semantic contracts, build governed QuerySpec, QueryPlan, and domain-bound dashboard design artifacts, compile supported Presto SQL, generate bounded data probes, and explain, validate, or repair market consultant department (市场顾问部) dashboard queries using its isolated metrics, dashboards, historical SQL, table overlays, joins, channel mappings, and platform constraints. Use for market-consultant conversion, traffic, outbound-call, attendance, refund, evaluation, Text2SQL planning, dashboard design/diff/dry-run, data-definition exploration, or knowledge maintenance; do not use for Qingcheng/青橙 semantics.
 ---
 
 # sql-query-writer-for-dashboard
@@ -25,8 +25,9 @@ description: Resolve market-consultant semantic contracts, build governed QueryS
 10. `knowledge/01_table_index.md`：确认候选表、分区和 USQL 权限状态。
 11. `knowledge/reverse_index/*.md`：仅在只知道字段、表、指标、raw SQL 或 debug 线索时读取，用于反向定位候选文档。
 12. 命中的 `semantic/contracts/*.json` 及其 `source_path`：只读取与当前 QuerySpec 相关的 contract、表、指标、看板、join、踩坑或 SQL pattern 文档；复杂实现才继续读取对应 Raw SQL。
-13. 当用户要求执行 SQL 并下载结果、或需要将查询结果用于 Python 分析时，通过 `usql-web-query-operator` Skill 调用 Playwright Web 自动化执行查询并下载 xlsx。具体流程参考 `knowledge/sql_patterns/web_query_playwright.md`。凭证文件统一通过命令行 `--env-file` 或环境变量 `USQL_ENV_FILE` 指定；未指定时由 operator 使用本机兼容回退路径。浏览器登录状态保存在 `C:\Users\Ludim\.codex\runtime\usql-web-query-operator\state.json`。
-14. 涉及表可读性判断、权限失败、或某些表无法通过 Web 查询时，读取 `knowledge/sql_patterns/web_permission_guide.md`；不要把权限问题简单归因为 SQL 语法。
+13. `knowledge/sql_patterns/dashboard_design_change_workflow.md`：仅在设计、diff、dry-run、受控筛选器变更或从 live profile 反查契约/源 SQL 时读取。
+14. 当用户要求执行 SQL 并下载结果、或需要将查询结果用于 Python 分析时，通过 `usql-web-query-operator` Skill 调用 Playwright Web 自动化执行查询并下载 xlsx。具体流程参考 `knowledge/sql_patterns/web_query_playwright.md`。凭证文件统一通过命令行 `--env-file` 或环境变量 `USQL_ENV_FILE` 指定；未指定时由 operator 使用本机兼容回退路径。浏览器登录状态保存在 `C:\Users\Ludim\.codex\runtime\usql-web-query-operator\state.json`。
+15. 涉及表可读性判断、权限失败、或某些表无法通过 Web 查询时，读取 `knowledge/sql_patterns/web_permission_guide.md`；不要把权限问题简单归因为 SQL 语法。
 
 文件编码规则：
 
@@ -41,6 +42,9 @@ description: Resolve market-consultant semantic contracts, build governed QueryS
 - 只服务市场顾问部业务 SQL 和知识维护，不把本 Skill 当通用 SQL 生成器使用。
 - 不加载、套用或推断青橙指标、范围、临时表、渠道/期次映射、业务 join、看板或 raw SQL。
 - 共享物理目录只能提供表名、字段、类型、分区、物理粒度和候选键；市场顾问范围、指标和 join 仍以本 Skill 文档为准。
+- 市场顾问 `DashboardDesignSpec` 中的指标、维度、范围和公式依赖只能引用 `market_consultant:*` 的 `confirmed` contract ID 及其 `source_path`；不得因 live profile 出现同名字段而借用青橙口径。
+- 看板 `dashboard_id` 必须已由本 Skill 的 `knowledge/dashboard_web_profiles/` 注册并通过源文件 Hash 回查；未注册或同时出现在另一域的看板只允许只读画像，先完成市场顾问知识同步和 catalog 重建再进入 Design。
+- 本 Skill 只提供市场顾问业务设计约束，不保存看板登录态、不调用写接口。P3A 的组件/布局/公式/筛选器均可设计、diff 和 dry-run；P3B Apply 当前只允许 operator 已验证的已有公共筛选器动态默认项白名单。
 - 不脱离知识库编造表、字段、join key 或指标口径。
 - 不在缺少 `dt`、`hour`、部门范围限定或必要 `limit` 时直接给出生产查询。
 - `confirmed` contract 只有在当前 QuerySpec 同时满足时间、范围、粒度、证据和 Join 门禁后才能进入 QueryPlan；`pending_confirmation` contract 只能用于候选解释、定向取证或只读 Probe，不得编译生产 SQL。
@@ -120,8 +124,17 @@ QuerySpec 至少包含：
 - 可执行 QueryPlan 必须明确 base table、metrics、dimensions、filters、计算与输出粒度、evidence、lineage、execution policy 和 SQL SHA-256。
 - `compile` 只处理当前 Core 明确支持的结构。复杂 Join、长渠道 CASE、历史看板 CTE 或尚未注册的公式必须按 QueryPlan 定向引用源文档/Raw SQL，再运行 AST 和平台规则校验。
 - `probe` 只验证分区新鲜度、字段分布、候选键重复和 Join 基数等物理事实；必须使用具体且有界的分区范围。Probe 结果不得自动升级 contract 状态或改写业务口径。
-- 看板设计可从可执行 QueryPlan 派生只读 `DashboardDatasetSpec`；P2 不修改看板组件、布局、指标公式、数据集或权限。
+- 看板设计先从可执行 QueryPlan 派生 `DashboardDatasetSpec`；P3 再生成域内 `DashboardDesignSpec` 与 `DashboardChangePlan`，但任何工件都不授权平台写入。
 - 完整分支和门禁见 `references/quick_reference.md` 与 `references/decision_tree.md`。
+
+### P3A/P3B 看板设计与变更边界
+
+- 正向链路固定为 `QuerySpec -> QueryPlan -> DashboardDatasetSpec -> DashboardDesignSpec -> DashboardChangePlan -> dry-run`。DesignSpec 必须绑定本域 confirmed contract ID、`source_path`、QueryPlan/DatasetSpec hash 和基线 `DashboardProfile` hash。
+- 反向链路固定为 `live DashboardProfile -> component/model/relation/filter/field identity -> 字段/公式 -> contract_index -> market_consultant contract -> source_path -> dashboard/metric/raw SQL`；无法唯一反查时保留 `unknown/ambiguous`。
+- P3A 可覆盖 component、layout、formula、filter 的画像、设计、diff 与 dry-run，但不写平台。
+- P3B 只把 `update_filter_dynamic_default` 交给 `usql-web-query-operator`，并要求稳定的 `relation_id + filter_id(unit_id) + field_id`。组件字段、布局、公式、数据集重绑、新建和删除一律 `blocked_unsupported`。
+- Apply 只能写 draft，必须消费精确匹配的 ChangePlan/hash，写前后重新 profile；QueryPlan、DesignSpec 和 ChangePlan 都不构成写入或发布授权。同次 apply+publish 禁止，发布必须独立确认。
+- 详细字段、风险和路由见 `knowledge/sql_patterns/dashboard_design_change_workflow.md`；业务请求不涉及看板设计/编辑时不要加载该文档。
 
 ## 4. SQL 生成流程
 

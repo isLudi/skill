@@ -11,6 +11,7 @@
     "progressive_disclosure",
     "boundary",
     "counts",
+    "dashboard_registry",
     "entities",
     "reverse_lookup",
     "source_inventory",
@@ -32,6 +33,60 @@
     "progressive_disclosure": {"type": "object"},
     "boundary": {"type": "object"},
     "counts": {"type": "object"},
+    "dashboard_registry": {
+      "type": "object",
+      "required": ["source", "policy", "count", "registered", "cross_domain_conflicts"],
+      "properties": {
+        "source": {"const": "knowledge/dashboard_web_profiles"},
+        "policy": {
+          "const": "unregistered_or_cross_domain_dashboard_blocks_design_and_mutation"
+        },
+        "count": {"type": "integer", "minimum": 0},
+        "registered": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["dashboard_id", "status", "evidence"],
+            "properties": {
+              "dashboard_id": {"type": "string", "minLength": 1},
+              "status": {"const": "registered"},
+              "evidence": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "required": ["source_path", "source_sha256"],
+                  "properties": {
+                    "source_path": {"type": "string", "minLength": 1},
+                    "source_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+                  },
+                  "additionalProperties": false
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "cross_domain_conflicts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["dashboard_id", "domains"],
+            "properties": {
+              "dashboard_id": {"type": "string", "minLength": 1},
+              "domains": {
+                "type": "array",
+                "minItems": 2,
+                "uniqueItems": true,
+                "items": {"enum": ["market_consultant", "qingcheng"]}
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
     "entities": {"type": "object"},
     "reverse_lookup": {"type": "object"},
     "source_inventory": {

@@ -19,6 +19,7 @@ from ..markdown import dashboard_filename, update_dashboards_readme, write_profi
 from ..menu import collect_dashboard_records, fetch_dashboard_menu
 from ..models import DashboardKnowledgeEntry
 from ..profile import profile_records
+from ..value_health import policy_from_args
 
 
 def _format_folder_scope(folder_names: list[str]) -> str:
@@ -157,6 +158,8 @@ def cmd_profile_all(args) -> int:
                     output_dir=folder_dir,
                     dashboard_wait_ms=args.dashboard_wait_ms,
                     debug_artifacts=args.debug_artifacts,
+                    include_values=args.profile_mode == "full",
+                    value_policy=policy_from_args(args),
                 )
                 results.extend(folder_results)
                 bucket["results"].extend(folder_results)
@@ -219,6 +222,7 @@ def cmd_profile_all(args) -> int:
         "generated_at": time.strftime("%Y-%m-%d %H:%M:%S"),
         "folders": requested_folders,
         "output_dir": str(output_dir),
+        "profile_mode": args.profile_mode,
         "target_count": len(results),
         "ok_count": sum(1 for item in results if item.get("ok")),
         "folder_summaries": folder_summaries,

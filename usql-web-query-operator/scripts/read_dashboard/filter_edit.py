@@ -1,4 +1,4 @@
-"""Edit and publish Taitan public-filter settings."""
+"""Legacy public-filter inspection helpers; direct writes are disabled."""
 
 from __future__ import annotations
 
@@ -82,6 +82,164 @@ def _field_lists_from_filter_unit(unit: dict[str, Any]) -> list[list[dict[str, A
             if isinstance(values, list):
                 lists.append(values)
     return lists
+
+
+def find_public_filter_unit(detail: dict[str, Any], filter_id: str) -> dict[str, Any]:
+    matches = [unit for unit in collect_leaf_filter_units(detail) if str(unit.get("unitId") or "") == str(filter_id)]
+    if len(matches) != 1:
+        raise UsageError(f"Expected exactly one public filter {filter_id}, found {len(matches)}.")
+    return matches[0]
+
+
+def public_filter_field_state(unit: dict[str, Any], field_id: str) -> dict[str, Any]:
+    matches: list[dict[str, Any]] = []
+    for fields in _field_lists_from_filter_unit(unit):
+        for field in fields:
+            if not isinstance(field, dict):
+                continue
+            candidate_id = str(field.get("fieldId") or field.get("paramId") or "")
+            if candidate_id == str(field_id):
+                matches.append(field)
+    if not matches:
+        raise UsageError(f"Filter {unit.get('unitId')} does not contain field {field_id}.")
+    field = matches[0]
+    fmt = field.get("format") if isinstance(field.get("format"), dict) else {}
+    return {
+        "unit_id": unit.get("unitId"),
+        "filter_id": unit.get("unitId"),
+        "unit_name": unit.get("unitName"),
+        "field_id": str(field.get("fieldId") or field.get("paramId") or ""),
+        "show_name": field.get("showName") or field.get("name"),
+        "operator": fmt.get("condition") or "",
+        "values": copy.deepcopy(fmt.get("filterValue") or []),
+        "dynamic_default": fmt.get("dynamicsFilter"),
+        "default_value": fmt.get("dynamicsFilterValue"),
+        "dynamics_filter": fmt.get("dynamicsFilter"),
+        "dynamics_filter_value": fmt.get("dynamicsFilterValue"),
+        "auto_search_default_value": fmt.get("autoSearchDefaultValue"),
+    }
+
+
+def assert_stable_public_filter_preconditions(
+    detail: dict[str, Any],
+    relation_id: str,
+    operations: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    detail_relation_id = str(detail.get("unitId") or detail.get("id") or relation_id)
+    if detail_relation_id != str(relation_id):
+        raise UsageError(f"Public filter relation drift: expected {relation_id}, got {detail_relation_id}.")
+    states: list[dict[str, Any]] = []
+    for operation in operations:
+        target = operation.get("target") if isinstance(operation.get("target"), dict) else {}
+        if str(target.get("relation_id") or "") != str(relation_id):
+            raise UsageError("Public-filter precondition relation_id does not match the fetched relation.")
+        filter_id = str(target.get("filter_id") or "")
+        field_id = str(target.get("field_id") or "")
+        unit = find_public_filter_unit(detail, filter_id)
+        actual = public_filter_field_state(unit, field_id)
+        expected = operation.get("before") if isinstance(operation.get("before"), dict) else {}
+        checks = {
+            "filter_id": filter_id,
+            "field_id": field_id,
+            "operator": expected.get("operator"),
+            "values": expected.get("values"),
+            "dynamics_filter": expected.get("dynamics_filter"),
+            "dynamics_filter_value": expected.get("dynamics_filter_value"),
+            "auto_search_default_value": expected.get("auto_search_default_value"),
+        }
+        mismatches = {
+            key: {"expected": value, "actual": actual.get(key)}
+            for key, value in checks.items()
+            if actual.get(key) != value
+        }
+        if mismatches:
+            raise UsageError(
+                f"Public-filter target state drifted before apply for {operation.get('operation_id')}: "
+                f"{sorted(mismatches)}."
+            )
+        states.append(actual)
+    return states
+
+
+def set_dynamic_filter_value_by_ids(unit: dict[str, Any], field_id: str, value: str) -> None:
+    changed = False
+    for fields in _field_lists_from_filter_unit(unit):
+        for field in fields:
+            if not isinstance(field, dict):
+                continue
+            candidate_id = str(field.get("fieldId") or field.get("paramId") or "")
+            if candidate_id != str(field_id):
+                continue
+            fmt = field.setdefault("format", {})
+            if not isinstance(fmt, dict):
+                field["format"] = fmt = {}
+            fmt["dynamicsFilter"] = True
+            fmt["dynamicsFilterValue"] = str(value)
+            fmt["autoSearchDefaultValue"] = False
+            changed = True
+    if not changed:
+        raise UsageError(f"Filter {unit.get('unitId')} does not contain editable field {field_id}.")
+
+
+def apply_stable_public_filter_operations(
+    detail: dict[str, Any],
+    relation_id: str,
+    operations: list[dict[str, Any]],
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    """Apply only exact relation/filter/field-targeted dynamic-default changes."""
+
+    detail_relation_id = str(detail.get("unitId") or detail.get("id") or relation_id)
+    if detail_relation_id != str(relation_id):
+        raise UsageError(f"Public filter relation drift: expected {relation_id}, got {detail_relation_id}.")
+    updated = copy.deepcopy(detail)
+    results: list[dict[str, Any]] = []
+    for operation in operations:
+        operation_type = str(operation.get("type") or operation.get("operation_type") or "")
+        if operation_type != "update_filter_dynamic_default":
+            raise UsageError(f"Unsupported dashboard operation for apply: {operation_type or '<missing>'}.")
+        target = operation.get("target") if isinstance(operation.get("target"), dict) else {}
+        target_relation_id = str(target.get("relation_id") or "")
+        filter_id = str(target.get("filter_id") or target.get("unit_id") or "")
+        field_id = str(target.get("field_id") or "")
+        if target_relation_id != str(relation_id) or not filter_id or not field_id:
+            raise UsageError(
+                "Public-filter apply requires exact relation_id, filter_id, and field_id targets."
+            )
+        unit = find_public_filter_unit(updated, filter_id)
+        before = public_filter_field_state(unit, field_id)
+        after = operation.get("after") if isinstance(operation.get("after"), dict) else {}
+        dynamic_default = after.get("dynamics_filter")
+        if dynamic_default is not True:
+            raise UsageError(
+                f"Operation {operation.get('operation_id')} must enable a verified dynamic default; disabling is unsupported."
+            )
+        requested_value = after.get("dynamics_filter_value")
+        if requested_value in (None, ""):
+            values = after.get("values")
+            if isinstance(values, list) and len(values) == 1:
+                requested_value = values[0]
+        if requested_value in (None, ""):
+            raise UsageError(
+                f"Operation {operation.get('operation_id')} is missing after.default_value."
+            )
+        set_dynamic_filter_value_by_ids(unit, field_id, str(requested_value))
+        verified_after = public_filter_field_state(unit, field_id)
+        results.append(
+            {
+                "operation_id": operation.get("operation_id"),
+                "type": operation_type,
+                "target": dict(target),
+                "before": before,
+                "after": verified_after,
+                "ok": (
+                    bool(verified_after.get("dynamics_filter"))
+                    and str(verified_after.get("dynamics_filter_value")) == str(requested_value)
+                    and verified_after.get("auto_search_default_value") is False
+                ),
+                "status": "prepared",
+            }
+        )
+    return updated, results
 
 
 def public_filter_state(unit: dict[str, Any]) -> dict[str, Any]:
@@ -303,6 +461,14 @@ def edit_dashboard_public_filters(
     plan: dict[int, str],
     artifacts_dir: Path,
 ) -> dict[str, Any]:
+    if (
+        not getattr(args, "dry_run", True)
+        or getattr(args, "publish", False)
+        or getattr(args, "confirm_publish", False)
+    ):
+        raise UsageError(
+            "Legacy edit-public-filters is read-only. Use the stable-ID P3 plan/apply/publish commands."
+        )
     edit_url = build_edit_url(dashboard_id, getattr(args, "html_id", None))
     open_edit_page(page, args, context=None, edit_url=edit_url)
     page.wait_for_timeout(getattr(args, "wait_ms", 3000))
@@ -314,19 +480,11 @@ def edit_dashboard_public_filters(
         raise UsageError(f"No public filter relation component found in {dashboard_id}.")
     relation_id = relation_ids[0]
     before_detail = fetch_public_filter_detail(page, dashboard_id, relation_id)
-    updated_detail, changes, applied_plan = apply_dynamic_filter_plan(
+    _updated_detail, changes, applied_plan = apply_dynamic_filter_plan(
         before_detail,
         plan,
         strict_filter_count=getattr(args, "strict_filter_count", False),
     )
-
-    update_response: dict[str, Any] | None = None
-    publish_response: dict[str, Any] | None = None
-    if not getattr(args, "dry_run", False):
-        update_response = update_public_filter_detail(page, dashboard_id, html_id, updated_detail)
-        after_config = fetch_edit_config(page, dashboard_id)
-        if getattr(args, "publish", False):
-            publish_response = publish_dashboard(page, after_config, args.version_description, html_id)
 
     after_detail = fetch_public_filter_detail(page, dashboard_id, relation_id)
     after_units = collect_leaf_filter_units(after_detail)
@@ -335,15 +493,7 @@ def edit_dashboard_public_filters(
         for index in sorted(applied_plan)
         if 0 <= index - 1 < len(after_units)
     ]
-    if getattr(args, "dry_run", False):
-        ok = bool(applied_plan)
-    else:
-        ok = bool(applied_plan) and all(
-            str(item.get("dynamics_filter_value")) == str(applied_plan[item["filter_index"]])
-            for item in verification
-        )
-    if getattr(args, "publish", False) and not getattr(args, "dry_run", False):
-        ok = ok and bool(publish_response and publish_response.get("publish_status") == "success")
+    ok = bool(applied_plan)
 
     result = {
         "ok": ok,
@@ -358,11 +508,11 @@ def edit_dashboard_public_filters(
         "plan": plan,
         "applied_plan": applied_plan,
         "dry_run": bool(getattr(args, "dry_run", False)),
-        "published": bool(getattr(args, "publish", False) and not getattr(args, "dry_run", False)),
+        "published": False,
         "changes": changes,
         "verification": verification,
-        "update_response": update_response,
-        "publish_response": publish_response,
+        "update_response": None,
+        "publish_response": None,
     }
     output_path = artifacts_dir / safe_filename(str(result["dashboard_name"])) / "edit_public_filters_summary.json"
     write_json(result, output_path)

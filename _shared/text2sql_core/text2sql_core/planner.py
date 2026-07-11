@@ -133,6 +133,9 @@ def build_query_plan(
                 "automatic_compile": contract.get("automatic_compile"),
                 "candidate_tables": contract.get("candidate_tables", []),
                 "source_path": contract.get("source_path"),
+                "contract_status": contract.get("status"),
+                "source_domain": spec.domain,
+                "source_sha256": contract.get("source_sha256"),
             }
         )
     if not metric_contracts:
@@ -195,6 +198,9 @@ def build_query_plan(
                 "data_type": contract.get("data_type"),
                 "automatic_compile": contract.get("automatic_compile", True),
                 "source_path": contract.get("source_path"),
+                "contract_status": contract.get("status"),
+                "source_domain": spec.domain,
+                "source_sha256": contract.get("source_sha256"),
             }
         )
 
@@ -565,6 +571,9 @@ def build_query_plan(
                 "id": contract["id"],
                 "name": contract.get("name"),
                 "source_path": contract.get("source_path"),
+                "contract_status": contract.get("status"),
+                "source_domain": spec.domain,
+                "source_sha256": contract.get("source_sha256"),
                 "candidate_tables": sorted(applies_to),
                 "applied_fields": sorted(applied_fields),
             }

@@ -8,8 +8,8 @@
 - 文件夹：`青橙项目部`
 - dashboard_id：`dashboard_3765824192103694336`
 - 打开入口：`https://uanalysis.baijia.com/dashboard-market?id=dashboard_3765824192103694336&sourceType=1`
-- profile 时间：2026-06-24 18:43:09
-- 原始结构 profile：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\artifacts\20260624-184137\青橙项目部\青橙项目部_行课报表\profile.json`
+- profile 时间：2026-07-11 09:57:44
+- 原始结构 profile：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\p3-validation-20260711\profile-all\青橙项目部\青橙项目部_行课报表\profile.json`
 - 页面渲染：成功
 
 ## 2. 刷新验证
@@ -38,31 +38,31 @@
 |---|---|---|---|---|---|---|
 | 标题图 | unit_3765824210457968640 | u_material | 1 主题分析 |  | loaded_empty | rows=0 |
 | 全局筛选器 | public_filter_relation_3765824210457968649 | public_filter_relation |  |  | filter_relation |  |
-| 主管行课 | unit_3765824210457968642 | u_pivot | 2244 青橙到课 | page=100<br>download=1 | data_ready | task=1424542126,1424542125<br>rows=17<br>total=17 |
-| 伙伴行课 | unit_3765824210457968645 | u_pivot | 2244 青橙到课 | page=100<br>download=1 | data_ready | task=1424542161,1424542160<br>rows=68<br>total=68 |
-| 渠道部门行课 | unit_3765824210457968641 | u_pivot | 2244 青橙到课 | page=100<br>download=1 | data_ready | task=1424542220,1424542219<br>rows=7<br>total=7 |
-| 渠道年级行课 | unit_3766965643325820932 | u_pivot | 2244 青橙到课 | page=100<br>download=1 | data_ready | task=1424542240,1424542239<br>rows=13<br>total=13 |
+| 主管行课 | unit_3765824210457968642 | u_pivot | 2244 青橙到课 | page=100<br>download=1 | data_ready | task=1459211452,1459211451<br>rows=17<br>total=17 |
+| 伙伴行课 | unit_3765824210457968645 | u_pivot | 2244 青橙到课 | page=100<br>download=1 | data_ready | task=1459211458,1459211456<br>rows=93<br>total=93 |
+| 渠道部门行课 | unit_3765824210457968641 | u_pivot | 2244 青橙到课 | page=100<br>download=1 | data_ready | task=1459211462,1459211461<br>rows=8<br>total=8 |
+| 渠道年级行课 | unit_3766965643325820932 | u_pivot | 2244 青橙到课 | page=100<br>download=1 | data_ready | task=1459211474,1459211473<br>rows=13<br>total=13 |
 
 ## 5. 分析单元字段结构
 
 ### 主管行课
 
 - unit_id：`unit_3765824210457968642`；类型：`u_pivot`；模型：`2244` / 青橙到课
-- 刷新：data_ready；task_ids：`1424542126,1424542125`；行数：17；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1459211452,1459211451`；行数：17；序列：0 / 0 点
 - 单元筛选字段：dept_2（id=311120）
 
 ### 伙伴行课
 
 - unit_id：`unit_3765824210457968645`；类型：`u_pivot`；模型：`2244` / 青橙到课
-- 刷新：data_ready；task_ids：`1424542161,1424542160`；行数：68；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1459211458,1459211456`；行数：93；序列：0 / 0 点
 - 单元筛选字段：dept_2（id=311120）
 
 ### 渠道部门行课
 
 - unit_id：`unit_3765824210457968641`；类型：`u_pivot`；模型：`2244` / 青橙到课
-- 刷新：data_ready；task_ids：`1424542220,1424542219`；行数：7；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1459211462,1459211461`；行数：8；序列：0 / 0 点
 
 ### 渠道年级行课
 
 - unit_id：`unit_3766965643325820932`；类型：`u_pivot`；模型：`2244` / 青橙到课
-- 刷新：data_ready；task_ids：`1424542240,1424542239`；行数：13；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1459211474,1459211473`；行数：13；序列：0 / 0 点

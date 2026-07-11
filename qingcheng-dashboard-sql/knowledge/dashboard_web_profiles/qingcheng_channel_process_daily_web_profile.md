@@ -8,8 +8,8 @@
 - 文件夹：`青橙项目部`
 - dashboard_id：`dashboard_3910621974690701312`
 - 打开入口：`https://uanalysis.baijia.com/dashboard-market?id=dashboard_3910621974690701312&sourceType=1`
-- profile 时间：2026-06-24 18:47:53
-- 原始结构 profile：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\artifacts\20260624-184137\青橙项目部\青橙-渠道过程数据-天\profile.json`
+- profile 时间：2026-07-11 10:03:21
+- 原始结构 profile：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\p3-validation-20260711\profile-all\青橙项目部\青橙-渠道过程数据-天\profile.json`
 - 页面渲染：成功
 
 ## 2. 刷新验证
@@ -40,31 +40,31 @@
 | 文本框 | unit_3910621992189337617 | u_text | 1 None | download=0 | data_ready | rows=0 |
 | 标题图 | unit_3910621992189337601 | u_material | 1 主题分析 |  | loaded_empty | rows=0 |
 | 全局筛选器 | public_filter_relation_3910621992189337604 | public_filter_relation |  |  | filter_relation |  |
-| 渠道-整体 | unit_3910621992189337610 | u_pivot | 2064 青橙-过程数据 | page=50<br>download=1 | data_ready | task=1424554117,1424554118<br>rows=20<br>total=20 |
-| 渠道-年级 | unit_3910621992189337611 | u_pivot | 2064 青橙-过程数据 | page=50<br>download=1 | data_ready | task=1424554136,1424554138<br>rows=29<br>total=29 |
-| 渠道-主管 | unit_3910621992189337612 | u_pivot | 2064 青橙-过程数据 | page=100<br>download=1 | data_ready | task=1424554145,1424554143<br>rows=100<br>total=264 |
-| 伙伴数据 | unit_3910621992189337609 | u_pivot | 2064 青橙-过程数据 | page=100<br>download=1 | data_ready | task=1424554156,1424554154<br>rows=100<br>total=530 |
+| 渠道-整体 | unit_3910621992189337610 | u_pivot | 2064 青橙-过程数据 | page=50<br>download=1 | data_ready | task=1459214944,1459214945<br>rows=30<br>total=30 |
+| 渠道-年级 | unit_3910621992189337611 | u_pivot | 2064 青橙-过程数据 | page=50<br>download=1 | data_ready | task=1459214950,1459214947<br>rows=36<br>total=36 |
+| 渠道-主管 | unit_3910621992189337612 | u_pivot | 2064 青橙-过程数据 | page=100<br>download=1 | data_ready | task=1459214954,1459214952<br>rows=100<br>total=335 |
+| 伙伴数据 | unit_3910621992189337609 | u_pivot | 2064 青橙-过程数据 | page=100<br>download=1 | data_ready | task=1459214968,1459214966<br>rows=100<br>total=639 |
 
 ## 5. 分析单元字段结构
 
 ### 渠道-整体
 
 - unit_id：`unit_3910621992189337610`；类型：`u_pivot`；模型：`2064` / 青橙-过程数据
-- 刷新：data_ready；task_ids：`1424554117,1424554118`；行数：20；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1459214944,1459214945`；行数：30；序列：0 / 0 点
 
 ### 渠道-年级
 
 - unit_id：`unit_3910621992189337611`；类型：`u_pivot`；模型：`2064` / 青橙-过程数据
-- 刷新：data_ready；task_ids：`1424554136,1424554138`；行数：29；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1459214950,1459214947`；行数：36；序列：0 / 0 点
 
 ### 渠道-主管
 
 - unit_id：`unit_3910621992189337612`；类型：`u_pivot`；模型：`2064` / 青橙-过程数据
-- 刷新：data_ready；task_ids：`1424554145,1424554143`；行数：100；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1459214954,1459214952`；行数：100；序列：0 / 0 点
 - 单元筛选字段：department（id=275419）
 
 ### 伙伴数据
 
 - unit_id：`unit_3910621992189337609`；类型：`u_pivot`；模型：`2064` / 青橙-过程数据
-- 刷新：data_ready；task_ids：`1424554156,1424554154`；行数：100；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1459214968,1459214966`；行数：100；序列：0 / 0 点
 - 单元筛选字段：grade_1（id=275418）、assign_day（id=460871）

@@ -1,4 +1,4 @@
 interface:
   display_name: "青橙 Text2SQL"
-  short_description: "解析青橙独立语义契约并规划、校验受控 Presto SQL。"
-  default_prompt: "Use $qingcheng-dashboard-sql to resolve confirmed Qingcheng contracts, build a QuerySpec and QueryPlan, and compile only executable metrics with automatic_compile=true or generate bounded read-only probes while keeping pending and consultant-alias ambiguities unresolved."
+  short_description: "解析青橙域契约，生成受控 SQL 与可审计看板设计变更计划。"
+  default_prompt: "Use $qingcheng-dashboard-sql to resolve confirmed Qingcheng-only contracts, build a QuerySpec and QueryPlan, and compile only executable metrics with automatic_compile=true or generate bounded read-only probes while keeping pending and consultant-alias ambiguities unresolved. When dashboard design is requested, derive domain-bound DashboardDesignSpec and DashboardChangePlan artifacts without treating them as platform-write authority; keep Apply behind the operator allowlist."

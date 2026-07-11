@@ -8,8 +8,8 @@
 - 文件夹：`青橙项目部`
 - dashboard_id：`dashboard_3885764906392891392`
 - 打开入口：`https://uanalysis.baijia.com/dashboard-market?id=dashboard_3885764906392891392&sourceType=1`
-- profile 时间：2026-06-24 18:46:47
-- 原始结构 profile：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\artifacts\20260624-184137\青橙项目部\转化数据看板\profile.json`
+- profile 时间：2026-07-11 10:00:47
+- 原始结构 profile：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\p3-validation-20260711\profile-all\青橙项目部\转化数据看板\profile.json`
 - 页面渲染：成功
 
 ## 2. 刷新验证
@@ -40,69 +40,69 @@
 |---|---|---|---|---|---|---|
 | 标题图 | unit_3885765321595432960 | u_material | 1 主题分析 |  | loaded_empty | rows=0 |
 | 全局筛选器 | public_filter_relation_3885825940437295104 | public_filter_relation |  |  | filter_relation |  |
-| 指标卡组 | unit_3885824427184324609 | card | 2460 转化数据 | download=0 | data_ready | task=1424551293<br>rows=5 |
-| 渠道-总 | unit_3885802565373767680 | u_pivot | 2460 转化数据 | page=500<br>download=1 | data_ready | task=1424551341,1424551340<br>rows=6<br>total=6 |
-| 部门-总 | unit_3885799917415424001 | u_pivot | 2460 转化数据 | page=500<br>download=1 | data_ready | task=1424551365,1424551364<br>rows=1<br>total=1 |
-| 渠道-大组 | unit_3916477914471084040 | u_pivot | 2460 转化数据 | page=500<br>download=1 | data_ready | task=1424551398,1424551394<br>rows=10<br>total=10 |
-| 一级渠道-年级 | unit_3885804389298036736 | u_pivot | 2460 转化数据 | page=500<br>download=1 | data_ready | task=1424551444,1424551443<br>rows=20<br>total=20 |
-| 一级渠道-主管 | unit_3885807778524864512 | u_pivot | 2460 转化数据 | page=500<br>download=1 | data_ready | task=1424551478,1424551474<br>rows=6<br>total=6 |
-| 一级渠道-年级_副本_副本 | unit_3885809281027678208 | u_pivot | 2460 转化数据 | page=500<br>download=1 | data_ready | task=1424551509,1424551504<br>rows=8<br>total=8 |
-| 二级渠道-年级 | unit_3885812440113995776 | u_pivot | 2460 转化数据 | page=500<br>download=1 | data_ready | task=1424551553,1424551550<br>rows=26<br>total=26 |
-| 二级渠道-主管 | unit_3885812858531909632 | u_pivot | 2460 转化数据 | page=500<br>download=1 | data_ready | task=1424551602,1424551600<br>rows=8<br>total=8 |
-| 伙伴数据 | unit_3885813531449008129 | u_pivot | 2460 转化数据 | page=500<br>download=1 | data_ready | task=1424551629,1424551626<br>rows=188<br>total=188 |
+| 指标卡组 | unit_3885824427184324609 | card | 2460 转化数据 | download=0 | data_ready | task=1459213323<br>rows=5 |
+| 渠道-总 | unit_3885802565373767680 | u_pivot | 2460 转化数据 | page=500<br>download=1 | data_ready | task=1459213334,1459213332<br>rows=3<br>total=3 |
+| 部门-总 | unit_3885799917415424001 | u_pivot | 2460 转化数据 | page=500<br>download=1 | data_ready | task=1459213346,1459213345<br>rows=1<br>total=1 |
+| 渠道-大组 | unit_3916477914471084040 | u_pivot | 2460 转化数据 | page=500<br>download=1 | data_ready | task=1459213356,1459213354<br>rows=10<br>total=10 |
+| 一级渠道-年级 | unit_3885804389298036736 | u_pivot | 2460 转化数据 | page=500<br>download=1 | data_ready | task=1459213366,1459213363<br>rows=10<br>total=10 |
+| 一级渠道-主管 | unit_3885807778524864512 | u_pivot | 2460 转化数据 | page=500<br>download=1 | data_ready | task=1459213382,1459213381<br>rows=3<br>total=3 |
+| 一级渠道-年级_副本_副本 | unit_3885809281027678208 | u_pivot | 2460 转化数据 | page=500<br>download=1 | data_ready | task=1459213392,1459213390<br>rows=5<br>total=5 |
+| 二级渠道-年级 | unit_3885812440113995776 | u_pivot | 2460 转化数据 | page=500<br>download=1 | data_ready | task=1459213423,1459213422<br>rows=16<br>total=16 |
+| 二级渠道-主管 | unit_3885812858531909632 | u_pivot | 2460 转化数据 | page=500<br>download=1 | data_ready | task=1459213427,1459213428<br>rows=5<br>total=5 |
+| 伙伴数据 | unit_3885813531449008129 | u_pivot | 2460 转化数据 | page=500<br>download=1 | data_ready | task=1459213437,1459213434<br>rows=109<br>total=109 |
 
 ## 5. 分析单元字段结构
 
 ### 指标卡组
 
 - unit_id：`unit_3885824427184324609`；类型：`card`；模型：`2460` / 转化数据
-- 刷新：data_ready；task_ids：`1424551293`；行数：5；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1459213323`；行数：5；序列：0 / 0 点
 
 ### 渠道-总
 
 - unit_id：`unit_3885802565373767680`；类型：`u_pivot`；模型：`2460` / 转化数据
-- 刷新：data_ready；task_ids：`1424551341,1424551340`；行数：6；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1459213334,1459213332`；行数：3；序列：0 / 0 点
 
 ### 部门-总
 
 - unit_id：`unit_3885799917415424001`；类型：`u_pivot`；模型：`2460` / 转化数据
-- 刷新：data_ready；task_ids：`1424551365,1424551364`；行数：1；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1459213346,1459213345`；行数：1；序列：0 / 0 点
 
 ### 渠道-大组
 
 - unit_id：`unit_3916477914471084040`；类型：`u_pivot`；模型：`2460` / 转化数据
-- 刷新：data_ready；task_ids：`1424551398,1424551394`；行数：10；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1459213356,1459213354`；行数：10；序列：0 / 0 点
 
 ### 一级渠道-年级
 
 - unit_id：`unit_3885804389298036736`；类型：`u_pivot`；模型：`2460` / 转化数据
-- 刷新：data_ready；task_ids：`1424551444,1424551443`；行数：20；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1459213366,1459213363`；行数：10；序列：0 / 0 点
 
 ### 一级渠道-主管
 
 - unit_id：`unit_3885807778524864512`；类型：`u_pivot`；模型：`2460` / 转化数据
-- 刷新：data_ready；task_ids：`1424551478,1424551474`；行数：6；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1459213382,1459213381`；行数：3；序列：0 / 0 点
 
 ### 一级渠道-年级_副本_副本
 
 - unit_id：`unit_3885809281027678208`；类型：`u_pivot`；模型：`2460` / 转化数据
-- 刷新：data_ready；task_ids：`1424551509,1424551504`；行数：8；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1459213392,1459213390`；行数：5；序列：0 / 0 点
 - 单元筛选字段：channel_map_2（id=374753）
 
 ### 二级渠道-年级
 
 - unit_id：`unit_3885812440113995776`；类型：`u_pivot`；模型：`2460` / 转化数据
-- 刷新：data_ready；task_ids：`1424551553,1424551550`；行数：26；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1459213423,1459213422`；行数：16；序列：0 / 0 点
 - 单元筛选字段：channel_map_2（id=374753）
 
 ### 二级渠道-主管
 
 - unit_id：`unit_3885812858531909632`；类型：`u_pivot`；模型：`2460` / 转化数据
-- 刷新：data_ready；task_ids：`1424551602,1424551600`；行数：8；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1459213427,1459213428`；行数：5；序列：0 / 0 点
 - 单元筛选字段：channel_map_2（id=374753）
 
 ### 伙伴数据
 
 - unit_id：`unit_3885813531449008129`；类型：`u_pivot`；模型：`2460` / 转化数据
-- 刷新：data_ready；task_ids：`1424551629,1424551626`；行数：188；序列：0 / 0 点
-- 单元筛选字段：grade_1（id=408277）、channel_map_2（id=374753）
+- 刷新：data_ready；task_ids：`1459213437,1459213434`；行数：109；序列：0 / 0 点
+- 单元筛选字段：grade_1（id=408277）、channel_map_2（id=374753）、xiaozu（id=388420）、employee_email_name（id=408278）

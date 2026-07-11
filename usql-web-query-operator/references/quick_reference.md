@@ -19,9 +19,10 @@
 | 模板取数中读取我创建的模板 SQL | `references/template_query.md` | `scripts\usql_web_query.py fetch-template-sql` | 只有模板匹配或页面状态异常时，才看 `references/platform_profile.md` 或相关实现 |
 | 模板市场中按模板名读取 SQL | `references/template_query.md` | `scripts\usql_web_query.py fetch-market-template-sql` | 只有市场搜索、模板匹配或页面状态异常时，才看 `references/platform_profile.md` 或相关实现 |
 | 结果超过 1000 行，需要绕开 `SQL取数` 直接下载审批 | `references/template_query.md` | `scripts\usql_web_query.py template-download` | 只有 SQL 仍带模板参数、下载链路异常、或清理逻辑异常时，才看相关命令实现 |
-| 看板文件夹扫描 / 看板画像 | `SKILL.md` 中“看板文件夹扫描”“脚本能力” + `references/platform_profile.md` | `scripts\read_dashboard.py scan-folder` / `profile-dashboard` / `profile-folder` / `profile-all` | 只有菜单、组件、筛选器或页面结构异常时，才继续看 `read_dashboard/commands/*.py` |
-| Taitan 编辑页透视表字段、指标含义、自定义公式读取 | `SKILL.md` 中“看板文件夹扫描” + `references/platform_profile.md` 的“Taitan 编辑页指标公式 API” | `scripts\read_dashboard.py profile-edit-dashboard` | 只有字段详情接口变化、公式缺失或 selector 回退验证失败时，才看 `read_dashboard/edit_profile.py` 和对应命令实现 |
-| Taitan 编辑页全局筛选器动态默认项修改并发布 | `references/platform_profile.md` 的“公共筛选器编辑与发布 API” | `scripts\read_dashboard.py edit-public-filters` | 默认 dry-run；明确授权后用 `--apply` 写草稿，再用 `--publish --confirm-publish` 发布；异常时才看实现 |
+| 看板配置画像 / 实时取值健康检查 | `SKILL.md` 中“看板文件夹扫描”“脚本能力” + `references/platform_profile.md` | 默认 config-only：`profile-dashboard` / `profile-folder` / `profile-all`；独立健康检查：`check-dashboard-values` | 只有菜单、组件、筛选器或页面结构异常时，才继续看 `read_dashboard/commands/*.py`；不要让 value/unit 超时阻塞知识同步 |
+| Taitan 编辑页透视表字段、指标含义、自定义公式读取 | `SKILL.md` 中“看板文件夹扫描” + `references/platform_profile.md` 的“Taitan 编辑页指标公式 API” | 单张：`profile-edit-dashboard`；批量：`profile-edit-folder` / `profile-edit-all` | 只有字段详情接口变化、公式缺失、Hash 不稳定或 selector 回退验证失败时，才看 `read_dashboard/edit_profile.py`、`edit_batch.py` 和对应命令实现 |
+| Text2SQL 看板组件/布局/公式/筛选器设计与变更 | `references/dashboard_change_workflow.md` | `profile-edit-dashboard` → `design-dashboard` → `plan-dashboard-change` → `apply-dashboard-change` → `publish-dashboard-change` | P3A 可画像和 Diff 全部类型；P3B 当前只 Apply stable-ID 公共筛选器动态默认项，Apply 与 Publish 必须独立 |
+| Legacy 公共筛选器计划检查 | `references/platform_profile.md` 的“Legacy 公共筛选器只读检查” | `scripts\read_dashboard.py edit-public-filters` | 仅保留 dry-run；所有 legacy 写入/发布参数都会在浏览器前拒绝 |
 | 手工临时表上传 | `SKILL.md` 中“临时表上传” + `references/manual_temp_table_registry.md` | `scripts\usql_web_query.py check-manual-table` / `upload-temp-table` | 只有需要确认具体登记项或表名映射时，才打开 `manual_temp_table_registry.json` |
 | 数据地图字段同步 | `SKILL.md` 中“数据地图字段同步” | `scripts\usql_web_query.py sync-datamap-fields` | 只有同步结果异常或需要改写逻辑时，才看相关实现 |
 | 数据中心源 SQL 同步 | `SKILL.md` 中“数据中心源 SQL 同步” | `scripts\usql_web_query.py sync-data-center-sql` | 只有目录范围、写入规则或接口行为异常时，才看相关实现 |
@@ -40,6 +41,8 @@
 - 不要一上来就读全部命令实现。
 - 不要把 `read_dashboard.py` 的问题塞回 `usql_web_query.py`，也不要把 SQL 页面执行逻辑塞进 `read_dashboard.py`。
 - 不要用 `profile-edit-dashboard` 修改、删除、发布或新建看板指标；它只负责读取字段说明和公式。
-- 修改 Taitan 全局筛选器时使用独立的 `edit-public-filters`，不要复用只读画像命令；不带 `--apply` 时必须保持 dry-run，不得发布。
+- 不要把 DesignSpec、ChangePlan 或 ApplyReceipt 当成写入/发布授权；新链路必须逐命令显式执行并校验 Hash。
+- 不要对组件、布局、公式调用未经生产验证的写接口；这些类型在 P3A 可完整 Diff，在 operator P3B 必须阻断。
+- 修改 Taitan 公共筛选器必须使用 `profile-edit-dashboard → design-dashboard → plan-dashboard-change → apply-dashboard-change → publish-dashboard-change`；`edit-public-filters` 只允许 legacy dry-run 检查。
 - 不要把 QueryPlan 视为下载、看板写入、模板写入或权限变更授权；它只约束 `run`，且下载仍受 QueryPlan 与 1000 行策略双重门禁。
 - 不要在未经确认的情况下，对超过 1000 行的结果走 `SQL取数` 直接下载。

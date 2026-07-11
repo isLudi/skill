@@ -387,3 +387,25 @@
 - `knowledge/sql_patterns/qingcheng_channel_grade_mapping.md` 升级为 2064 权威渠道契约，明确两级渠道成对维护、优先级、适用域和 Text2SQL 契约 ID。
 - 新增青橙过程一级、二级渠道派生维度契约；两者均从 `rule_name` 确定性编译，且仅允许在青橙基础表和已确认指标兼容范围内使用。
 - 新增契约/权威 SQL 对齐回归测试，防止后续只修改一级或二级渠道。
+
+## 2026-07-11 Text2SQL P3A/P3B 青橙看板设计路由
+
+- 新增 `knowledge/sql_patterns/dashboard_design_change_workflow.md`，明确青橙正向 `QuerySpec -> QueryPlan -> DashboardDatasetSpec -> DashboardDesignSpec -> DashboardChangePlan` 链路，以及从 live profile 反查 component/model/field/formula、青橙 contract、`source_path` 和 retained SQL 的反向链路。
+- P3A 对 component、layout、formula、filter 开放画像、设计、结构化 diff 和 dry-run；所有业务字段和公式依赖必须引用 `qingcheng:*` 的 `confirmed` contract ID 与本域 `source_path`，不借用市场顾问同名口径。
+- P3B 当前只允许 stable-ID `update_filter_dynamic_default`：必须同时定位 `relation_id + filter_id + field_id`。组件字段、布局、公式、数据集重绑、新建和删除均标为 `blocked_unsupported`；计划含任一 blocked operation 时整次 Apply 零写入。
+- `apply-dashboard-change` 仅写 draft，`publish-dashboard-change --confirm-publish` 独立执行并校验成功 ApplyReceipt 与最新 profile hash。本 Skill 不保存登录态、不掌握写接口，也不把任何设计工件当授权。
+- 同步 `agents/openai.yaml` 的描述和默认提示，使 Skill 入口能发现青橙域内 DashboardDesignSpec/ChangePlan 能力，同时保留 operator 写入门禁。
+- 仅更新 Skill 路由、速查、决策树与工作流说明；未删除、覆盖或修改既有青橙指标、维度、范围、Join 契约及业务知识文档。
+
+## 2026-07-11 10:01:17
+
+- 通过 `usql-web-query-operator/scripts/read_dashboard.py profile-all` 扫描 `青橙项目部` 文件夹，并将原始 `profile.json` 写入本地 runtime 目录。
+- 刷新 `knowledge/dashboard_web_profiles/README.md`，当前索引 10 个看板快照。
+- 本次 profile 结果：成功 10 个，失败 0 个。
+
+## 2026-07-11 P3 看板探测器全量回归与编辑器知识刷新
+
+- 只读刷新青橙项目部与青橙播报共 26 个当前 Web BI 结构快照。
+- 刷新 26 个编辑页组件/字段快照：active=21，paused=5，incomplete=0。
+- 两个已从当前青橙播报菜单移除的旧看板快照继续保留为 historical，但通过 registry_status 标记排除出 P3 当前设计/变更路由。
+- 本次仅更新 dashboard_web_profiles、索引与生成清单；未修改青橙指标、渠道/期次范围、Join、语义契约或 2064 权威 SQL。

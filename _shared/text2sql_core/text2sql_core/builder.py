@@ -38,6 +38,12 @@ ENTITY_FOLDERS = {
     "update_log": "update_log",
 }
 RAW_SQL_REFERENCE_RE = re.compile(r"resources/raw_sql/([A-Za-z0-9_.-]+\.sql)")
+DASHBOARD_IDENTIFIER_RE = re.compile(
+    r"(?<![A-Za-z0-9_])(?:dashboard|home)_\d+(?![A-Za-z0-9_])"
+)
+INACTIVE_DASHBOARD_PROFILE_RE = re.compile(
+    r"(?mi)^-\s+registry_status:\s+`?(?:historical|inactive|removed_from_current_folder)`?\s*$"
+)
 IDENTIFIER_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 TYPE_RE = re.compile(
     r"^(?:string|varchar(?:\([^)]*\))?|char(?:\([^)]*\))?|bigint|integer|int|smallint|tinyint|double|float|real|decimal(?:\([^)]*\))?|boolean|date|timestamp|datetime|array(?:<.*>)?|map(?:<.*>)?|row(?:\(.*\))?)$",
@@ -117,6 +123,48 @@ def _entity_id(domain: str, category: str, source_path: str) -> str:
     return f"{domain}:{category}:{slug}"
 
 
+def _build_dashboard_registry(
+    skill_root: Path,
+    entries: Iterable[dict[str, Any]],
+) -> dict[str, Any]:
+    """Build domain-local dashboard ownership evidence from governed web profiles."""
+
+    evidence_by_id: dict[str, list[dict[str, str]]] = defaultdict(list)
+    for entry in entries:
+        source_path = str(entry.get("source_path") or "")
+        path = skill_root / source_path
+        if not source_path or not path.is_file():
+            continue
+        text = _read_text(path)
+        if INACTIVE_DASHBOARD_PROFILE_RE.search(text):
+            continue
+        for dashboard_id in sorted(set(DASHBOARD_IDENTIFIER_RE.findall(text))):
+            evidence_by_id[dashboard_id].append(
+                {
+                    "source_path": source_path,
+                    "source_sha256": str(entry.get("sha256") or ""),
+                }
+            )
+    registered = [
+        {
+            "dashboard_id": dashboard_id,
+            "status": "registered",
+            "evidence": sorted(
+                evidence,
+                key=lambda item: (item["source_path"], item["source_sha256"]),
+            ),
+        }
+        for dashboard_id, evidence in sorted(evidence_by_id.items())
+    ]
+    return {
+        "source": "knowledge/dashboard_web_profiles",
+        "policy": "unregistered_or_cross_domain_dashboard_blocks_design_and_mutation",
+        "count": len(registered),
+        "registered": registered,
+        "cross_domain_conflicts": [],
+    }
+
+
 def _build_domain_manifest(
     repo_root: Path,
     domain: str,
@@ -189,6 +237,10 @@ def _build_domain_manifest(
     }
     exclusive_own = sorted(own_temps - other_temps)
     forbidden = sorted(other_temps - own_temps)
+    dashboard_registry = _build_dashboard_registry(
+        skill_root,
+        entities.get("dashboard_web_profiles", []),
+    )
     return {
         "schema_version": SCHEMA_VERSION,
         "domain": {
@@ -246,6 +298,7 @@ def _build_domain_manifest(
                 for filename in CONTRACT_FILES.values()
             ],
         },
+        "dashboard_registry": dashboard_registry,
         "entities": {category: items for category, items in sorted(entities.items())},
         "reverse_lookup": {
             "table_to_sources": {key: sorted(set(value)) for key, value in sorted(table_to_sources.items())},
@@ -358,6 +411,21 @@ def build_outputs(repo_root: Path) -> dict[Path, str]:
             raise ValueError(f"invalid {domain} semantic contracts: {messages}")
         registries[domain] = registry
         manifests[domain] = _build_domain_manifest(repo_root, domain, known_tables, registry)
+    dashboard_owners: dict[str, list[str]] = defaultdict(list)
+    for domain, manifest in manifests.items():
+        for item in manifest.get("dashboard_registry", {}).get("registered", []):
+            dashboard_owners[str(item["dashboard_id"])].append(domain)
+    conflicts = {
+        dashboard_id: sorted(domains)
+        for dashboard_id, domains in sorted(dashboard_owners.items())
+        if len(set(domains)) > 1
+    }
+    for domain, manifest in manifests.items():
+        manifest["dashboard_registry"]["cross_domain_conflicts"] = [
+            {"dashboard_id": dashboard_id, "domains": domains}
+            for dashboard_id, domains in conflicts.items()
+            if domain in domains
+        ]
     outputs: dict[Path, str] = {}
     for domain, manifest in manifests.items():
         skill = str(DOMAIN_CONFIG[domain]["skill"])

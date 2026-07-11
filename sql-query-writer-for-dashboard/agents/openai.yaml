@@ -1,4 +1,4 @@
 interface:
   display_name: "市场顾问 Text2SQL"
-  short_description: "用市场顾问域契约构建 QuerySpec/QueryPlan，并受控编译或探查 Presto SQL。"
-  default_prompt: "Use $sql-query-writer-for-dashboard only for the market_consultant domain. Resolve domain-local semantic contracts, block pending_confirmation items, build and validate QuerySpec and QueryPlan artifacts, then compile only executable metrics with automatic_compile=true or generate bounded read-only probes; never default Qingcheng semantics into this domain."
+  short_description: "解析市场顾问域契约，生成受控 SQL 与可审计看板设计变更计划。"
+  default_prompt: "Use $sql-query-writer-for-dashboard only for the market_consultant domain. Resolve domain-local semantic contracts, block pending_confirmation items, build and validate QuerySpec and QueryPlan artifacts, then compile only executable metrics with automatic_compile=true or generate bounded read-only probes; never default Qingcheng semantics into this domain. When dashboard design is requested, derive domain-bound DashboardDesignSpec and DashboardChangePlan artifacts without treating them as platform-write authority; keep Apply behind the operator allowlist."

@@ -13,6 +13,9 @@
 | 市场渠道用户画像、成单用户过程分析、多维退费率、人头退费率、GMV 退费率、退费科目产品占比 | `knowledge/dashboards/market_channel_conversion_profile.md` | `knowledge/metrics/market_channel_conversion_profile_metrics.md`、`resources/raw_sql/data_center_market_2890_20260705.sql`、`resources/raw_sql/data_center_market_2349_20260705.sql` | 退费率默认输出分子/分母字段，由透视表重算；科目/产品/年级退款金额占比使用 2349 fixed SQL |
 | 模板取数最新代码、AI分析市场顾问部多科/分周期/每天/转化/过程/到课/员工架构/进量模板 | `knowledge/dashboards/template_query_market_datasets.md` | 清单中的对应 raw SQL 文件 | 使用口径必须说明为“模板取数”；不要默认覆盖或替代数据中心/Web BI canonical SQL |
 | 市场顾问看板指标含义、前端公式、透视表字段、指标与数据中心 SQL 关系 | `knowledge/metrics/market_consultant_dashboard_metric_formula_linkage.md` | `knowledge/dashboard_web_profiles/edit_metrics/README.md`、对应看板 `*_edit_metrics.md`、`resources/raw_sql/data_center_market_*_20260705.sql` | 每个看板指标先按 `model_id` 回到唯一数据中心 SQL；不要因看板名或数据集别名不同重复维护同一份 SQL |
+| 设计、比较或 dry-run 市场顾问看板组件、布局、公式、筛选器 | `knowledge/sql_patterns/dashboard_design_change_workflow.md` | 最新 `DashboardProfile`、命中的市场顾问 contracts/source、`DashboardDatasetSpec` | P3A 四类对象均可设计/diff；DesignSpec 每个业务依赖必须引用 `market_consultant:*` confirmed contract ID 与 `source_path` |
+| Apply 市场顾问看板变更 | `DashboardChangePlan` 与 operator 当前 allowlist | `usql-web-query-operator` 的 `apply-dashboard-change` | 当前只允许 stable-ID `update_filter_dynamic_default`；任一 blocked operation 使整次 Apply 零写入；本 Skill 不掌握登录态或写接口 |
+| 从 live profile 反查组件字段、公式或筛选器口径 | `knowledge/sql_patterns/dashboard_design_change_workflow.md` | `dashboard_web_profiles -> metric linkage -> contract_index -> market_consultant contract -> source_path/raw SQL` | 必须反查到唯一市场顾问 contract；unknown/ambiguous 或青橙依赖不得进入可 Apply DesignSpec |
 | 历史退费分析、多科退费历史口径、退费原因、科目产品退费 | `knowledge/metrics/refund_analysis_metrics.md` | `knowledge/dashboards/refund_multi_subject_user_ratio.md`、`knowledge/dashboards/refund_subject_product.md`、`knowledge/dashboards/refund_reason_analysis.md` | 2349 科目/产品/年级金额占比已更新为当前 fixed SQL；退费原因和多科历史口径仍需区分历史财务流水 |
 | 分配计划、计划分配量、实际有效量 | `knowledge/dashboards/lead_assign_plan_actual_valid_count.md` | `knowledge/tables/service_dw.dim_crm_assign_rule_lead_detail_hf.md`、`knowledge/tables/temp_table.dingxi01_plan_id.md` | `group_id` 不全局唯一，规则名拆期次风险 |
 | 外呼过程、长通话、深沟、双沟、首 call 任务 | `knowledge/dashboards/outbound_call_process_dashboard.md` | `knowledge/sql_patterns/first_call_task_metric_pattern.md`、`knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md` | 首 call 必须用任务表，API 验证需看权限 |
@@ -36,5 +39,6 @@
 - QuerySpec 的必填 unresolved slot 未清空前，不得生成或执行生产 SQL；反向索引只定位候选，最终证据回到 domain-local metrics/dashboard/raw SQL。
 - 简单表结构或字段问题：读 `quick_reference.md`、`01_table_index.md`、相关 `tables/*.md` 即可。
 - 指标或看板口径问题：先读对应 `dashboards/*.md` 和 `metrics/*.md`，再补 join 或 SQL pattern。
+- 看板设计或编辑问题：只在域内语义已确认后读取 `knowledge/sql_patterns/dashboard_design_change_workflow.md`；依次执行 profile、DesignSpec、ChangePlan/diff、dry-run。Apply 与 publish 必须由 operator 独立命令完成，不能由业务 Skill 授权。
 - SQL 报错或结果异常：先读全局规则、范围限定、权限边界，再读相关 pitfalls。
 - 生成新市场顾问渠道归因 SQL：默认使用 `resources/raw_sql/market_channel_case_when_0612.sql`，除非用户明确要求沿用历史 SQL 旧口径。

@@ -1,4 +1,4 @@
-"""Edit public-filter dynamic defaults and optionally publish dashboards."""
+"""Inspect legacy public-filter dynamic-default changes in dry-run mode only."""
 
 from __future__ import annotations
 
@@ -21,12 +21,11 @@ from ..filter_edit import (
 
 
 def validate_edit_mode(args) -> None:
-    if args.publish and args.dry_run:
-        raise UsageError("--publish requires --apply.")
-    if args.publish and not args.confirm_publish:
-        raise UsageError("--publish requires --confirm-publish.")
-    if args.confirm_publish and not args.publish:
-        raise UsageError("--confirm-publish is only valid together with --publish.")
+    if not args.dry_run or args.publish or args.confirm_publish:
+        raise UsageError(
+            "Legacy edit-public-filters is read-only. Use plan-dashboard-change, "
+            "apply-dashboard-change, and publish-dashboard-change for governed writes."
+        )
 
 
 def cmd_edit_public_filters(args) -> int:

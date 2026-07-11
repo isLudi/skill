@@ -5,11 +5,11 @@
 
 ## 1. 来源
 
-- 文件夹：`市场顾问数据`
+- 文件夹：`??????`
 - dashboard_id：`dashboard_3861041931986931712`
 - 打开入口：`https://uanalysis.baijia.com/dashboard-market?id=dashboard_3861041931986931712&sourceType=1`
-- profile 时间：2026-06-24 19:25:22
-- 原始结构 profile：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\artifacts\20260624-191824\市场顾问数据\多维度时效分析-抖咨\profile.json`
+- profile 时间：2026-07-11 10:54:32
+- 原始结构 profile：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\p3-validation-20260711\retry-market-timeliness\多维度时效分析-抖咨\profile.json`
 - 页面渲染：成功
 
 ## 2. 刷新验证
@@ -17,12 +17,12 @@
 | 项目 | 数值 |
 |---|---:|
 | `unit_count` | 10 |
-| `value_unit_count` | 9 |
-| `data_ready_unit_count` | 8 |
+| `value_unit_count` | 2 |
+| `data_ready_unit_count` | 1 |
 | `analytic_unit_count` | 8 |
-| `analytic_data_ready_unit_count` | 8 |
-| `error_count` | 0 |
-| `all_analytic_units_ready` | True |
+| `analytic_data_ready_unit_count` | 1 |
+| `error_count` | 7 |
+| `all_analytic_units_ready` | False |
 
 ## 3. 全局筛选器
 
@@ -36,61 +36,133 @@
 |---|---|---|---|---|---|---|
 | 标题图 | unit_3861068961718165504 | u_material | 1 主题分析 |  | loaded_empty | rows=0 |
 | 全局筛选器 | public_filter_relation_3861067180758081537 | public_filter_relation |  |  | filter_relation |  |
-| 部门 | unit_3861063716424466433 | u_pivot | 2623 抖音私信- 分时间段 | page=300<br>download=0 | data_ready | task=1424644571,1424644570<br>rows=2<br>total=2 |
-| 经理 | unit_3861063388582449154 | u_pivot | 2623 抖音私信- 分时间段 | page=300<br>download=0 | data_ready | task=1424644606,1424644605<br>rows=3<br>total=3 |
-| 顾问_副本 | unit_3861061473331204097 | u_pivot | 2623 抖音私信- 分时间段 | page=300<br>download=0 | data_ready | task=1424644655,1424644652<br>rows=4<br>total=4 |
-| 顾问 | unit_3861044167111950336 | u_pivot | 2623 抖音私信- 分时间段 | page=300<br>download=0 | data_ready | task=1424644696,1424644697<br>rows=7<br>total=7 |
-| 部门 | unit_3861107228588707841 | u_pivot | 2625 分触达时间段--抖音咨询 | page=300<br>download=0 | data_ready | task=1424644722,1424644721<br>rows=2<br>total=2 |
-| 经理 | unit_3861108524580036608 | u_pivot | 2625 分触达时间段--抖音咨询 | page=300<br>download=0 | data_ready | task=1424644827,1424644828<br>rows=3<br>total=3 |
-| 主管 | unit_3861106694555324416 | u_pivot | 2625 分触达时间段--抖音咨询 | page=300<br>download=0 | data_ready | task=1424644847,1424644848<br>rows=4<br>total=4 |
-| 顾问 | unit_3861088496817307649 | u_pivot | 2625 分触达时间段--抖音咨询 | page=300<br>download=0 | data_ready | task=1424644878,1424644877<br>rows=7<br>total=7 |
+| 部门 | unit_3861063716424466433 | u_pivot | 2623 抖音私信- 分时间段 | page=300<br>download=0 | unprofiled |  |
+| 经理 | unit_3861063388582449154 | u_pivot | 2623 抖音私信- 分时间段 | page=300<br>download=0 | unprofiled |  |
+| 顾问_副本 | unit_3861061473331204097 | u_pivot | 2623 抖音私信- 分时间段 | page=300<br>download=0 | unprofiled |  |
+| 顾问 | unit_3861044167111950336 | u_pivot | 2623 抖音私信- 分时间段 | page=300<br>download=0 | unprofiled |  |
+| 部门 | unit_3861107228588707841 | u_pivot | 2625 分触达时间段--抖音咨询 | page=300<br>download=0 | unprofiled |  |
+| 经理 | unit_3861108524580036608 | u_pivot | 2625 分触达时间段--抖音咨询 | page=300<br>download=0 | data_ready | task=1459238160,1459238161<br>rows=1<br>total=1 |
+| 主管 | unit_3861106694555324416 | u_pivot | 2625 分触达时间段--抖音咨询 | page=300<br>download=0 | unprofiled |  |
+| 顾问 | unit_3861088496817307649 | u_pivot | 2625 分触达时间段--抖音咨询 | page=300<br>download=0 | unprofiled |  |
 
 ## 5. 分析单元字段结构
 
 ### 部门
 
 - unit_id：`unit_3861063716424466433`；类型：`u_pivot`；模型：`2623` / 抖音私信- 分时间段
-- 刷新：data_ready；task_ids：`1424644571,1424644570`；行数：2；序列：0 / 0 点
+- 刷新：unknown；task_ids：``；行数：0；序列：0 / 0 点
 - 维度/表头字段：时间段（id=405161）
 
 ### 经理
 
 - unit_id：`unit_3861063388582449154`；类型：`u_pivot`；模型：`2623` / 抖音私信- 分时间段
-- 刷新：data_ready；task_ids：`1424644606,1424644605`；行数：3；序列：0 / 0 点
+- 刷新：unknown；task_ids：``；行数：0；序列：0 / 0 点
 - 维度/表头字段：时间段（id=405161）
 
 ### 顾问_副本
 
 - unit_id：`unit_3861061473331204097`；类型：`u_pivot`；模型：`2623` / 抖音私信- 分时间段
-- 刷新：data_ready；task_ids：`1424644655,1424644652`；行数：4；序列：0 / 0 点
+- 刷新：unknown；task_ids：``；行数：0；序列：0 / 0 点
 - 维度/表头字段：时间段（id=405161）
 
 ### 顾问
 
 - unit_id：`unit_3861044167111950336`；类型：`u_pivot`；模型：`2623` / 抖音私信- 分时间段
-- 刷新：data_ready；task_ids：`1424644696,1424644697`；行数：7；序列：0 / 0 点
+- 刷新：unknown；task_ids：``；行数：0；序列：0 / 0 点
 - 维度/表头字段：时间段（id=405161）
 
 ### 部门
 
 - unit_id：`unit_3861107228588707841`；类型：`u_pivot`；模型：`2625` / 分触达时间段--抖音咨询
-- 刷新：data_ready；task_ids：`1424644722,1424644721`；行数：2；序列：0 / 0 点
+- 刷新：unknown；task_ids：``；行数：0；序列：0 / 0 点
 - 维度/表头字段：触达时间（id=405279）
 
 ### 经理
 
 - unit_id：`unit_3861108524580036608`；类型：`u_pivot`；模型：`2625` / 分触达时间段--抖音咨询
-- 刷新：data_ready；task_ids：`1424644827,1424644828`；行数：3；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1459238160,1459238161`；行数：1；序列：0 / 0 点
 - 维度/表头字段：触达时间（id=405279）
 
 ### 主管
 
 - unit_id：`unit_3861106694555324416`；类型：`u_pivot`；模型：`2625` / 分触达时间段--抖音咨询
-- 刷新：data_ready；task_ids：`1424644847,1424644848`；行数：4；序列：0 / 0 点
+- 刷新：unknown；task_ids：``；行数：0；序列：0 / 0 点
 - 维度/表头字段：触达时间（id=405279）
 
 ### 顾问
 
 - unit_id：`unit_3861088496817307649`；类型：`u_pivot`；模型：`2625` / 分触达时间段--抖音咨询
-- 刷新：data_ready；task_ids：`1424644878,1424644877`；行数：7；序列：0 / 0 点
+- 刷新：unknown；task_ids：``；行数：0；序列：0 / 0 点
 - 维度/表头字段：触达时间（id=405279）
+
+## 6. 采集异常
+
+- `unit_3861063716424466433`：APIRequestContext.post: Timeout 45000ms exceeded.
+Call log:
+  - → POST https://uanalysis.baijia.com/uanalysis-intelligence/value/unit
+    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0
+    - accept: */*
+    - accept-encoding: gzip,deflate,br
+    - content-type: application/json
+    - content-length: 308
+    - cookie: JSESSIONID=9EC9AFACE5BE421A609392FD30EDD05D; _const_d_jsession_id_=b5155d95c2b44b11b1879ad3744b8b65.uanalysis.baijia.com; CAS_AC_CURRENT_ROLE=umetric_common_user
+
+- `unit_3861063388582449154`：APIRequestContext.post: Timeout 45000ms exceeded.
+Call log:
+  - → POST https://uanalysis.baijia.com/uanalysis-intelligence/value/unit
+    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0
+    - accept: */*
+    - accept-encoding: gzip,deflate,br
+    - content-type: application/json
+    - content-length: 308
+    - cookie: JSESSIONID=8BD9D8D5490024A9125557D0B2D96FAC; _const_d_jsession_id_=b5155d95c2b44b11b1879ad3744b8b65.uanalysis.baijia.com; CAS_AC_CURRENT_ROLE=umetric_common_user
+
+- `unit_3861061473331204097`：APIRequestContext.post: Timeout 45000ms exceeded.
+Call log:
+  - → POST https://uanalysis.baijia.com/uanalysis-intelligence/value/unit
+    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0
+    - accept: */*
+    - accept-encoding: gzip,deflate,br
+    - content-type: application/json
+    - content-length: 308
+    - cookie: JSESSIONID=8177000272E00381B34B674802694705; _const_d_jsession_id_=b5155d95c2b44b11b1879ad3744b8b65.uanalysis.baijia.com; CAS_AC_CURRENT_ROLE=umetric_common_user
+
+- `unit_3861044167111950336`：APIRequestContext.post: Timeout 45000ms exceeded.
+Call log:
+  - → POST https://uanalysis.baijia.com/uanalysis-intelligence/value/unit
+    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0
+    - accept: */*
+    - accept-encoding: gzip,deflate,br
+    - content-type: application/json
+    - content-length: 308
+    - cookie: JSESSIONID=CE2A224FD62DD007B91AE60084CD23A7; _const_d_jsession_id_=b5155d95c2b44b11b1879ad3744b8b65.uanalysis.baijia.com; CAS_AC_CURRENT_ROLE=umetric_common_user
+
+- `unit_3861107228588707841`：APIRequestContext.post: Timeout 45000ms exceeded.
+Call log:
+  - → POST https://uanalysis.baijia.com/uanalysis-intelligence/value/unit
+    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0
+    - accept: */*
+    - accept-encoding: gzip,deflate,br
+    - content-type: application/json
+    - content-length: 308
+    - cookie: JSESSIONID=FEB5B0C23547DB5DDA4B9E32EE17F689; _const_d_jsession_id_=b5155d95c2b44b11b1879ad3744b8b65.uanalysis.baijia.com; CAS_AC_CURRENT_ROLE=umetric_common_user
+
+- `unit_3861106694555324416`：APIRequestContext.post: Timeout 45000ms exceeded.
+Call log:
+  - → POST https://uanalysis.baijia.com/uanalysis-intelligence/value/unit
+    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0
+    - accept: */*
+    - accept-encoding: gzip,deflate,br
+    - content-type: application/json
+    - content-length: 308
+    - cookie: JSESSIONID=B6ED89E01634B522B894E2AE075D1621; _const_d_jsession_id_=b5155d95c2b44b11b1879ad3744b8b65.uanalysis.baijia.com; CAS_AC_CURRENT_ROLE=umetric_common_user
+
+- `unit_3861088496817307649`：APIRequestContext.post: Timeout 45000ms exceeded.
+Call log:
+  - → POST https://uanalysis.baijia.com/uanalysis-intelligence/value/unit
+    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0
+    - accept: */*
+    - accept-encoding: gzip,deflate,br
+    - content-type: application/json
+    - content-length: 308
+    - cookie: JSESSIONID=9751E82C79E96F11479CBC77B72BCBD9; _const_d_jsession_id_=b5155d95c2b44b11b1879ad3744b8b65.uanalysis.baijia.com; CAS_AC_CURRENT_ROLE=umetric_common_user

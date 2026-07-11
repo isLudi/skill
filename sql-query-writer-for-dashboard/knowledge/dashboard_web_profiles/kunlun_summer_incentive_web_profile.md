@@ -8,8 +8,8 @@
 - 文件夹：`市场顾问数据`
 - dashboard_id：`dashboard_3881610656431284224`
 - 打开入口：`https://uanalysis.baijia.com/dashboard-market?id=dashboard_3881610656431284224&sourceType=1`
-- profile 时间：2026-06-24 19:26:00
-- 原始结构 profile：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\artifacts\20260624-191824\市场顾问数据\昆仑山战役-暑期激励数据看板\profile.json`
+- profile 时间：2026-07-11 09:56:17
+- 原始结构 profile：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\p3-validation-20260711\profile-all\市场顾问数据\昆仑山战役-暑期激励数据看板\profile.json`
 - 页面渲染：成功
 
 ## 2. 刷新验证
@@ -37,47 +37,47 @@
 | 标题图 | unit_3881611004233035777 | u_material | 1 主题分析 |  | loaded_empty | rows=0 |
 | 文本框 | unit_3881612212014751744 | u_text | 1 None | download=0 | data_ready | rows=0 |
 | 文本框_副本 | unit_3890428705223966720 | u_text | 1 None | download=0 | data_ready | rows=0 |
-| 天级数据-西安 | unit_3890409769709219842 | u_pivot | 2727 暑期激励看板 | page=500<br>download=0 | data_ready | task=1424646197,1424646196<br>rows=347<br>total=347 |
-| 天级数据-郑州 | unit_3890469963619188736 | u_pivot | 2727 暑期激励看板 | page=500<br>download=0 | data_ready | task=1424646270,1424646268<br>rows=347<br>total=347 |
-| 期次数据-西安 | unit_3913361199684935681 | u_pivot | 2751 暑期激励v2 | page=100<br>download=0 | data_ready | task=1424646349,1424646348<br>rows=100<br>total=283 |
-| 月度数据-西安 | unit_3913379858514313219 | u_pivot | 2842 暑期激励v3-月份 | page=100<br>download=0 | data_ready | task=1424646355,1424646354<br>rows=100<br>total=246 |
-| 月度数据-郑州 | unit_3913387360440238081 | u_pivot | 2842 暑期激励v3-月份 | page=100<br>download=0 | data_ready | task=1424646368,1424646369<br>rows=100<br>total=246 |
-| 期次数据-郑州 | unit_3913378722861166595 | u_pivot | 2751 暑期激励v2 | page=100<br>download=0 | data_ready | task=1424646423,1424646422<br>rows=100<br>total=283 |
+| 天级数据-西安 | unit_3890409769709219842 | u_pivot | 2727 暑期激励看板 | page=500<br>download=0 | data_ready | task=1459210978,1459210977<br>rows=374<br>total=374 |
+| 天级数据-郑州 | unit_3890469963619188736 | u_pivot | 2727 暑期激励看板 | page=500<br>download=0 | data_ready | task=1459210980,1459210979<br>rows=374<br>total=374 |
+| 期次数据-西安 | unit_3913361199684935681 | u_pivot | 2751 暑期激励v2 | page=100<br>download=0 | data_ready | task=1459210994,1459210993<br>rows=100<br>total=298 |
+| 月度数据-西安 | unit_3913379858514313219 | u_pivot | 2842 暑期激励v3-月份 | page=100<br>download=0 | data_ready | task=1459211000,1459210999<br>rows=100<br>total=271 |
+| 月度数据-郑州 | unit_3913387360440238081 | u_pivot | 2842 暑期激励v3-月份 | page=100<br>download=0 | data_ready | task=1459211002,1459211001<br>rows=100<br>total=271 |
+| 期次数据-郑州 | unit_3913378722861166595 | u_pivot | 2751 暑期激励v2 | page=100<br>download=0 | data_ready | task=1459211014,1459211013<br>rows=100<br>total=298 |
 
 ## 5. 分析单元字段结构
 
 ### 天级数据-西安
 
 - unit_id：`unit_3890409769709219842`；类型：`u_pivot`；模型：`2727` / 暑期激励看板
-- 刷新：data_ready；task_ids：`1424646197,1424646196`；行数：347；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1459210978,1459210977`；行数：374；序列：0 / 0 点
 - 单元筛选字段：trade_date（id=427435）、dept（id=427433）、jingli（id=427432）
 
 ### 天级数据-郑州
 
 - unit_id：`unit_3890469963619188736`；类型：`u_pivot`；模型：`2727` / 暑期激励看板
-- 刷新：data_ready；task_ids：`1424646270,1424646268`；行数：347；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1459210980,1459210979`；行数：374；序列：0 / 0 点
 - 单元筛选字段：trade_date（id=427435）、dept（id=427433）、jingli（id=427432）
 
 ### 期次数据-西安
 
 - unit_id：`unit_3913361199684935681`；类型：`u_pivot`；模型：`2751` / 暑期激励v2
-- 刷新：data_ready；task_ids：`1424646349,1424646348`；行数：100；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1459210994,1459210993`；行数：100；序列：0 / 0 点
 - 单元筛选字段：dept（id=435530）、jingli（id=435533）、qici（id=463215）
 
 ### 月度数据-西安
 
 - unit_id：`unit_3913379858514313219`；类型：`u_pivot`；模型：`2842` / 暑期激励v3-月份
-- 刷新：data_ready；task_ids：`1424646355,1424646354`；行数：100；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1459211000,1459210999`；行数：100；序列：0 / 0 点
 - 单元筛选字段：dept（id=462993）、natural_month（id=462990）、jingli（id=462996）
 
 ### 月度数据-郑州
 
 - unit_id：`unit_3913387360440238081`；类型：`u_pivot`；模型：`2842` / 暑期激励v3-月份
-- 刷新：data_ready；task_ids：`1424646368,1424646369`；行数：100；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1459211002,1459211001`；行数：100；序列：0 / 0 点
 - 单元筛选字段：dept（id=462993）、natural_month（id=462990）、jingli（id=462996）
 
 ### 期次数据-郑州
 
 - unit_id：`unit_3913378722861166595`；类型：`u_pivot`；模型：`2751` / 暑期激励v2
-- 刷新：data_ready；task_ids：`1424646423,1424646422`；行数：100；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1459211014,1459211013`；行数：100；序列：0 / 0 点
 - 单元筛选字段：dept（id=435530）、jingli（id=435533）、qici（id=463215）

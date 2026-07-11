@@ -14,6 +14,7 @@ PUBLIC_FILTER_DETAIL_API = "https://uanalysis.baijia.com/uanalysis-intelligence/
 UNIT_VALUE_API = "https://uanalysis.baijia.com/uanalysis-intelligence/value/unit"
 
 DEFAULT_PROFILE_ALL_FOLDERS = ("市场顾问数据", "青橙项目部")
+DEFAULT_PROFILE_EDIT_ALL_FOLDERS = ("市场顾问数据", "青橙项目部", "青橙播报")
 
 SKILLS_ROOT = Path(__file__).resolve().parents[3]
 MARKET_KNOWLEDGE_ROOT = SKILLS_ROOT / "sql-query-writer-for-dashboard" / "knowledge"
@@ -43,6 +44,12 @@ FOLDER_KNOWLEDGE_TARGETS = {
         changelog_path=MARKET_KNOWLEDGE_ROOT / "update_log" / "changelog.md",
     ),
     "青橙项目部": DashboardKnowledgeTarget(
+        skill_name="qingcheng-dashboard-sql",
+        knowledge_dir=QINGCHENG_KNOWLEDGE_ROOT / "dashboard_web_profiles",
+        readme_path=QINGCHENG_KNOWLEDGE_ROOT / "dashboard_web_profiles" / "README.md",
+        changelog_path=QINGCHENG_KNOWLEDGE_ROOT / "update_log" / "changelog.md",
+    ),
+    "青橙播报": DashboardKnowledgeTarget(
         skill_name="qingcheng-dashboard-sql",
         knowledge_dir=QINGCHENG_KNOWLEDGE_ROOT / "dashboard_web_profiles",
         readme_path=QINGCHENG_KNOWLEDGE_ROOT / "dashboard_web_profiles" / "README.md",

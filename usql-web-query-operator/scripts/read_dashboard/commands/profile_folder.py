@@ -14,6 +14,7 @@ from ..common import parse_dashboard_names, write_json
 from ..constants import DASHBOARD_MARKET_URL
 from ..menu import collect_dashboard_records, fetch_dashboard_menu
 from ..profile import profile_records
+from ..value_health import policy_from_args
 
 
 def cmd_profile_folder(args) -> int:
@@ -47,6 +48,8 @@ def cmd_profile_folder(args) -> int:
                 output_dir=output_dir,
                 dashboard_wait_ms=args.dashboard_wait_ms,
                 debug_artifacts=args.debug_artifacts,
+                include_values=args.profile_mode == "full",
+                value_policy=policy_from_args(args),
             )
             results.extend(folder_results)
             profiles.extend(
@@ -66,6 +69,7 @@ def cmd_profile_folder(args) -> int:
         "generated_at": time.strftime("%Y-%m-%d %H:%M:%S"),
         "folder": args.folder,
         "output_dir": str(output_dir),
+        "profile_mode": args.profile_mode,
         "target_count": len(results),
         "ok_count": sum(1 for item in results if item.get("ok")),
         "results": results,

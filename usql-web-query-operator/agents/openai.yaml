@@ -1,4 +1,4 @@
 interface:
   display_name: "USQL Web Query Operator"
-  short_description: "Run USQL with QueryPlan checks and safe BI boundaries."
-  default_prompt: "Use $usql-web-query-operator to run safe SQL with optional read-only QueryPlan validation, fetch or download Template Query results, upload authorized temp tables, sync governed knowledge, inspect BI dashboards, or dry-run and explicitly apply authorized public-filter edits while preserving login state, download limits, and dashboard-write safety gates."
+  short_description: "Run USQL and govern hash-bound Taitan dashboard changes."
+  default_prompt: "Use $usql-web-query-operator to run safe SQL with optional QueryPlan validation, fetch or download Template Query results, inspect BI dashboards, or follow the independent profile, design, dry-run, draft-apply, and publish-confirmation chain while preserving domain, hash, login-state, download, and dashboard-write safety gates."

@@ -14,7 +14,12 @@ REPO_ROOT = CORE_ROOT.parents[1]
 sys.path.insert(0, str(CORE_ROOT))
 
 from text2sql_core.ast_validator import validate_sql_ast  # noqa: E402
-from text2sql_core.builder import DOMAIN_CONFIG, build_outputs, check_outputs  # noqa: E402
+from text2sql_core.builder import (  # noqa: E402
+    DOMAIN_CONFIG,
+    _build_dashboard_registry,
+    build_outputs,
+    check_outputs,
+)
 from text2sql_core.catalog import CatalogBundle  # noqa: E402
 from text2sql_core.corpus import audit_raw_sql  # noqa: E402
 
@@ -31,10 +36,32 @@ class CatalogAndAstTest(unittest.TestCase):
         self.assertEqual([], check_outputs(outputs))
         self.assertEqual(outputs, build_outputs(REPO_ROOT))
 
+    def test_inactive_dashboard_profile_is_not_registered(self) -> None:
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            active = root / "knowledge/dashboard_web_profiles/active.md"
+            inactive = root / "knowledge/dashboard_web_profiles/inactive.md"
+            active.parent.mkdir(parents=True)
+            active.write_text("dashboard_100\n", encoding="utf-8")
+            inactive.write_text(
+                "dashboard_200\n- registry_status: `removed_from_current_folder`\n",
+                encoding="utf-8",
+            )
+            registry = _build_dashboard_registry(
+                root,
+                [
+                    {"source_path": "knowledge/dashboard_web_profiles/active.md", "sha256": "a"},
+                    {"source_path": "knowledge/dashboard_web_profiles/inactive.md", "sha256": "b"},
+                ],
+            )
+        self.assertEqual(["dashboard_100"], [item["dashboard_id"] for item in registry["registered"]])
+
     def test_domain_manifests_cover_every_knowledge_and_raw_sql_file(self) -> None:
         expected_baseline = {
-            "market_consultant": (124, 63),
-            "qingcheng": (129, 13),
+            "market_consultant": (127, 63),
+            "qingcheng": (158, 13),
         }
         for domain, config in DOMAIN_CONFIG.items():
             skill_root = REPO_ROOT / config["skill"]
@@ -58,6 +85,20 @@ class CatalogAndAstTest(unittest.TestCase):
             for category, entities in manifest["entities"].items():
                 for entity in entities:
                     self.assertTrue(entity["id"].startswith(f"{domain}:{category}:"))
+            registry = manifest["dashboard_registry"]
+            self.assertEqual(registry["count"], len(registry["registered"]))
+            self.assertGreater(registry["count"], 0)
+            self.assertEqual([], registry["cross_domain_conflicts"])
+            profile_sources = {
+                item["source_path"]: item["sha256"]
+                for item in manifest["entities"]["dashboard_web_profiles"]
+            }
+            for dashboard in registry["registered"]:
+                for evidence in dashboard["evidence"]:
+                    self.assertEqual(
+                        profile_sources[evidence["source_path"]],
+                        evidence["source_sha256"],
+                    )
 
     def test_physical_catalog_contains_no_temporary_or_business_entities(self) -> None:
         catalog = json.loads((CORE_ROOT / "catalog" / "physical_catalog.json").read_text(encoding="utf-8"))

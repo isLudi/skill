@@ -50,6 +50,54 @@ unreviewed join produce a blocked or `requires_manual_sql` plan instead of
 guessed SQL. Bounded probes are read-only diagnostics. Dashboard dataset
 specs are read-only designs and cannot authorize edits or publication.
 
+## P3 dashboard design and controlled change artifacts
+
+P3 adds a pure-local change-control layer in `text2sql_core.dashboard_change`.
+It does not add browser access or widen the P2 SQL and dataset boundaries:
+
+1. `normalize_dashboard_profile` creates a read-only `DashboardProfile` from
+   stable node, relation, filter, and field identities. Its hash also binds a
+   normalized completeness record; incomplete profiles remain useful for
+   inspection but cannot enter design or apply.
+2. `build_dashboard_design_spec` binds desired state to the exact profile,
+   QueryPlan, and DashboardDatasetSpec hashes. The DatasetSpec must be ready,
+   self-hashed, QueryPlan-bound, and carry confirmed domain-local source
+   evidence for every referenced business contract. Contract evidence is not
+   trusted from the DatasetSpec alone: design resolves the domain to its own
+   business Skill, reloads the live contract registry, requires an exact
+   `status + source_path + source_sha256` match, and rereads the registered
+   source file to recompute SHA-256. Missing, stale, forged, or cross-domain
+   evidence blocks the DesignSpec.
+   The same gate resolves `dashboard_id` through both domain-local
+   `dashboard_registry` sections. An unregistered, stale, duplicated, or
+   cross-domain dashboard remains profile-only until its governed web profile
+   is synchronized into the correct business Skill and the catalog is rebuilt.
+3. `diff_dashboard` emits a `DashboardChangePlan` with before/after values,
+   risk, support status, and block reasons. The plan is always dry-run-only and
+   never grants apply or publish authority.
+4. `build_apply_receipt` and `validate_apply_receipt` require post-write
+   profile readback to match the complete target state.
+5. Publication remains a separate confirmation and receipt. A no-op apply
+   receipt cannot be used as a publication credential. When only draft
+   readback is available, the receipt records `publish_requested_unverified`
+   and `fully_verified=false`; it explicitly does not claim that a formal
+   published-version read API exists.
+
+P3A can profile and diff components, layouts, formulas, public filters, and
+dataset bindings. Current P3B write support is intentionally narrower: only an
+existing public-filter dynamic default addressed by the stable
+`relation_id + filter_id + field_id` triple can be marked `supported`.
+Component, layout, formula, generic filter, create, delete, container move,
+and dataset-rebind operations remain visible in the diff but are
+`blocked_unsupported`; one blocked operation blocks the entire apply.
+
+Artifact hashes use canonical UTF-8 JSON. Call `artifact_sha256(value,
+"<self_hash_field>")`; it omits only the artifact's own hash field so upstream
+profile, design, plan, QueryPlan, and DatasetSpec bindings remain covered.
+Schemas are under `schemas/dashboard_*.schema.json`. Existing QuerySpec,
+QueryPlan, and DashboardDatasetSpec schema version `2.0.0` remains supported;
+new P3 artifacts use `3.0.0`.
+
 For optional web execution, pass the exact compiled SQL and its plan to
 `usql-web-query-operator run --query-plan`. The operator validates the plan
 status, unresolved slots, SQL SHA-256, and download policy before opening the

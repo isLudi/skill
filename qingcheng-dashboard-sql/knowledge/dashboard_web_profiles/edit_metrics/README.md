@@ -1,22 +1,35 @@
-# Qingcheng dashboard edit-page metrics profiles
+# Qingcheng dashboard editor profiles
 
-Generated from read-only `profile-edit-dashboard` snapshots on 2026-06-24.
+- Captured at: `2026-07-11`
+- Source: read-only Taitan edit-page API via `read_dashboard.py profile-edit-dashboard`.
+- Progressive disclosure: open this index first, then the target dashboard file; only return to metric contracts/raw SQL when SQL semantics are needed.
+- Safety: these files do not authorize dashboard Apply or Publish.
 
-- These files record pivot units, selected dimensions, BI measures, custom formulas, and captured text notes.
-- Rendered dashboard structure snapshots live one level up in `knowledge/dashboard_web_profiles/`.
-- Cross-dashboard metric-to-SQL linkage is summarized in `knowledge/metrics/qingcheng_dashboard_metric_formula_linkage.md`.
-
-## Dashboard Index
-
-| dashboard | dashboard_id | metrics profile | pivot_units | measures/custom | dataset_models |
-|---|---|---|---:|---:|---|
-| `过程数据报表-青橙` | `dashboard_3733927793301065728` | [dashboard_3733927793301065728_edit_metrics.md](dashboard_3733927793301065728_edit_metrics.md) | 7 | 119/98 | 2064 |
-| `青橙项目部_行课报表` | `dashboard_3765824192103694336` | [dashboard_3765824192103694336_edit_metrics.md](dashboard_3765824192103694336_edit_metrics.md) | 4 | 52/48 | 2244 |
-| `青橙-全域产品数据看板` | `dashboard_3852445620602875904` | [dashboard_3852445620602875904_edit_metrics.md](dashboard_3852445620602875904_edit_metrics.md) | 4 | 48/16 | 2576 |
-| `青橙-全年级营收看板` | `dashboard_3865509979877412864` | [dashboard_3865509979877412864_edit_metrics.md](dashboard_3865509979877412864_edit_metrics.md) | 4 | 48/16 | 2576 |
-| `团队转化完成度-青橙` | `dashboard_3872626876332130305` | [dashboard_3872626876332130305_edit_metrics.md](dashboard_3872626876332130305_edit_metrics.md) | 6 | 72/30 | 2680, 2677 |
-| `个人转化数据-青橙` | `dashboard_3873038327756636161` | [dashboard_3873038327756636161_edit_metrics.md](dashboard_3873038327756636161_edit_metrics.md) | 2 | 24/14 | 2769 |
-| `青-抖私-转化` | `dashboard_3884629814875697153` | [dashboard_3884629814875697153_edit_metrics.md](dashboard_3884629814875697153_edit_metrics.md) | 2 | 16/10 | 2740 |
-| `转化数据看板` | `dashboard_3885764906392891392` | [dashboard_3885764906392891392_edit_metrics.md](dashboard_3885764906392891392_edit_metrics.md) | 9 | 216/126 | 2460 |
-| `完成度文字播报_青` | `dashboard_3893277592797257728` | [dashboard_3893277592797257728_edit_metrics.md](dashboard_3893277592797257728_edit_metrics.md) | 0 | 0/0 | - |
-| `青橙-渠道过程数据-天` | `dashboard_3910621974690701312` | [dashboard_3910621974690701312_edit_metrics.md](dashboard_3910621974690701312_edit_metrics.md) | 4 | 68/56 | 2064 |
+| folder | dashboard | dashboard_id | status | pivots | fields | measures | custom formulas | profile sha256 | editor profile |
+|---|---|---|---|---:|---:|---:|---:|---|---|
+| 青橙播报 | 【暂停】IP-主管-青橙 | `dashboard_3946590011857625088` | paused | 1 | 20 | 17 | 14 | `4ec2b9dfd3c6dfba5b7384997d68d6f9c8c06e81a22ccb551b2100ef80b53c35` | [dashboard_3946590011857625088_edit_metrics.md](dashboard_3946590011857625088_edit_metrics.md) |
+| 青橙播报 | 【暂停】IP_SEC伙伴_青橙 | `dashboard_3946302758716309505` | paused | 1 | 19 | 15 | 12 | `446becb4a93189ae13016a4835c098650e809dff9b68136318a08424961ffba4` | [dashboard_3946302758716309505_edit_metrics.md](dashboard_3946302758716309505_edit_metrics.md) |
+| 青橙播报 | 【暂停】IP_伙伴_青橙 | `dashboard_3946300999239598080` | paused | 1 | 19 | 15 | 12 | `0aaa85b6380de6b1a23a50d9edac0ccd76bc7a7a0156332fc650130d94e33210` | [dashboard_3946300999239598080_edit_metrics.md](dashboard_3946300999239598080_edit_metrics.md) |
+| 青橙播报 | 【暂停】推送--转化-IP | `dashboard_3955664128397336577` | paused | 1 | 20 | 16 | 9 | `8efb151cc9ca241621ff96a37c12709e1d52bed9b2914691ff50c5d9591302da` | [dashboard_3955664128397336577_edit_metrics.md](dashboard_3955664128397336577_edit_metrics.md) |
+| 青橙播报 | 【暂停】推送--转化-IP_团 | `dashboard_3955668042437943296` | paused | 1 | 20 | 18 | 11 | `91dd26d68eaa98f957840760122d99fb6ce71034c5f6c29d636eb1f792f76175` | [dashboard_3955668042437943296_edit_metrics.md](dashboard_3955668042437943296_edit_metrics.md) |
+| 青橙播报 | 主管_过程数据播报-青橙 | `dashboard_3758260036978020353` | active | 3 | 55 | 45 | 36 | `019dc575040d7745cabce4561ce17a26bcd2d55ca72ce605364fbf7b6da0b76e` | [dashboard_3758260036978020353_edit_metrics.md](dashboard_3758260036978020353_edit_metrics.md) |
+| 青橙播报 | 转化-抖音私信-主管 | `dashboard_3916517219847778305` | active | 1 | 20 | 18 | 11 | `47fb8a501e07c69a998cbb32792c139b47e83bfcc03a0ca3b01f408381e57258` | [dashboard_3916517219847778305_edit_metrics.md](dashboard_3916517219847778305_edit_metrics.md) |
+| 青橙播报 | 转化-抖音私信-伙伴 | `dashboard_3916483456733192193` | active | 1 | 20 | 17 | 10 | `7ec4e103e8ec6b2dfe6a0e3f74635579f9d4aeee72c4c6a9a3d1a89584459957` | [dashboard_3916483456733192193_edit_metrics.md](dashboard_3916483456733192193_edit_metrics.md) |
+| 青橙播报 | 转化-私域-主管 | `dashboard_3916532003721617409` | active | 1 | 20 | 18 | 11 | `83dae65e523b25cc95445ec2dd36f3bcee16a2a047c4eb3e894c69d6b3eaded0` | [dashboard_3916532003721617409_edit_metrics.md](dashboard_3916532003721617409_edit_metrics.md) |
+| 青橙播报 | 转化-私域-伙伴 | `dashboard_3916532959832903681` | active | 1 | 19 | 16 | 9 | `6f216f44ad1ce1edca5a1642038ac3ca39872a4a489f16673d5eb4a6de872b3e` | [dashboard_3916532959832903681_edit_metrics.md](dashboard_3916532959832903681_edit_metrics.md) |
+| 青橙播报 | 过程-全部渠道-主管 | `dashboard_3949837513553666049` | active | 1 | 19 | 16 | 12 | `ff2501465804017727e0ab6d75e83ccfeb7694450072db44cc524fa6fcef7525` | [dashboard_3949837513553666049_edit_metrics.md](dashboard_3949837513553666049_edit_metrics.md) |
+| 青橙播报 | 过程-公域-伙伴-SEC | `dashboard_3974056495059804161` | active | 1 | 20 | 15 | 12 | `3249321623012630d4b69ab901953ea0a3eaf5942780695261485b565a235faf` | [dashboard_3974056495059804161_edit_metrics.md](dashboard_3974056495059804161_edit_metrics.md) |
+| 青橙播报 | 过程-图书-伙伴-SEC | `dashboard_3823668064977854464` | active | 1 | 19 | 15 | 12 | `5f31448c9bb34bc5ddc3417b7a683d75e42d60b3b9ee893ef8fceb87e849b36f` | [dashboard_3823668064977854464_edit_metrics.md](dashboard_3823668064977854464_edit_metrics.md) |
+| 青橙播报 | 过程-抖音私信-伙伴 | `dashboard_3878349316925460480` | active | 1 | 18 | 15 | 12 | `017eba428bd6c24f8b15558473fb7cf2deac379c6b0e1181445aad755bae5233` | [dashboard_3878349316925460480_edit_metrics.md](dashboard_3878349316925460480_edit_metrics.md) |
+| 青橙播报 | 过程-私域-主管 | `dashboard_3823635046956941312` | active | 1 | 18 | 15 | 12 | `f00b7f0fed52117bb1c158e660d429dc6094bb867df434b206d0cc1a129fcdd0` | [dashboard_3823635046956941312_edit_metrics.md](dashboard_3823635046956941312_edit_metrics.md) |
+| 青橙播报 | 过程-私域-伙伴 | `dashboard_3823651951319777281` | active | 1 | 19 | 15 | 12 | `2102f2ede4231be1eeae076243df5fcc34061c9a3535ca8c1edd92d8152f0fd0` | [dashboard_3823651951319777281_edit_metrics.md](dashboard_3823651951319777281_edit_metrics.md) |
+| 青橙项目部 | 个人转化数据-青橙 | `dashboard_3873038327756636161` | active | 2 | 40 | 24 | 14 | `dfdc37dca9810a1ab3ad3ea193859d7399641dcb3c1044be369c9843eee3d4a8` | [dashboard_3873038327756636161_edit_metrics.md](dashboard_3873038327756636161_edit_metrics.md) |
+| 青橙项目部 | 团队转化完成度-青橙 | `dashboard_3872626876332130305` | active | 6 | 83 | 72 | 30 | `44674815adc58089189a290a6bde0844e58d018882d00aa133a9cfd5666922aa` | [dashboard_3872626876332130305_edit_metrics.md](dashboard_3872626876332130305_edit_metrics.md) |
+| 青橙项目部 | 完成度文字播报_青 | `dashboard_3893277592797257728` | active | 0 | 0 | 0 | 0 | `e26b9b306260fd78d1e6dfa2d9ffff41f4e6a820138a0491022338e604e8bece` | [dashboard_3893277592797257728_edit_metrics.md](dashboard_3893277592797257728_edit_metrics.md) |
+| 青橙项目部 | 转化数据看板 | `dashboard_3885764906392891392` | active | 9 | 239 | 216 | 126 | `9b711e349c0a62878637a444b40d34f0870fc2956ae819dcfcad1f4f265a48d9` | [dashboard_3885764906392891392_edit_metrics.md](dashboard_3885764906392891392_edit_metrics.md) |
+| 青橙项目部 | 过程数据报表-青橙 | `dashboard_3733927793301065728` | active | 7 | 139 | 119 | 98 | `4155b4ffa65a15b3f57b7d55d13f925d0f5661fbab1a57da224da7971df0e98d` | [dashboard_3733927793301065728_edit_metrics.md](dashboard_3733927793301065728_edit_metrics.md) |
+| 青橙项目部 | 青-抖私-转化 | `dashboard_3884629814875697153` | active | 2 | 28 | 16 | 10 | `50ec4088e5f1d67d4ef46abba3e3e9c52a7f18d37f0ea48f3a55de6ca8f7b0a2` | [dashboard_3884629814875697153_edit_metrics.md](dashboard_3884629814875697153_edit_metrics.md) |
+| 青橙项目部 | 青橙-全域产品数据看板 | `dashboard_3852445620602875904` | active | 4 | 74 | 48 | 16 | `543b4f7016f52edab1e24eed14576260f5111f85ca4747b0a13b298f04668f1b` | [dashboard_3852445620602875904_edit_metrics.md](dashboard_3852445620602875904_edit_metrics.md) |
+| 青橙项目部 | 青橙-全年级营收看板 | `dashboard_3865509979877412864` | active | 4 | 70 | 48 | 16 | `f5aff6726a60ad1469f9d527e5c05db6fa46b9221a7f4d749a4ac93b334ba12b` | [dashboard_3865509979877412864_edit_metrics.md](dashboard_3865509979877412864_edit_metrics.md) |
+| 青橙项目部 | 青橙-渠道过程数据-天 | `dashboard_3910621974690701312` | active | 4 | 81 | 68 | 56 | `6836e24ffbac574e2572a9f5ec9e5b750da293f2fdc91c7fec6f9423e0ffe505` | [dashboard_3910621974690701312_edit_metrics.md](dashboard_3910621974690701312_edit_metrics.md) |
+| 青橙项目部 | 青橙项目部_行课报表 | `dashboard_3765824192103694336` | active | 4 | 62 | 52 | 48 | `de1f949478d2dc793e81939b7f11c3b1e92d9e467251708f16983929e4258207` | [dashboard_3765824192103694336_edit_metrics.md](dashboard_3765824192103694336_edit_metrics.md) |

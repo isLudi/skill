@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import time
 from pathlib import Path
 from typing import Any
@@ -19,14 +20,20 @@ from .constants import (
     UNIT_VALUE_API,
 )
 from .models import DashboardProfileSummary, DashboardRecord
+from .value_health import ValueProbePolicy, probe_value_targets
 
 
 def dashboard_url(dashboard_id: str) -> str:
     return f"{DASHBOARD_MARKET_URL}?id={dashboard_id}&sourceType=1"
 
 
-def post_json(page: Any, url: str, payload: dict[str, Any]) -> dict[str, Any]:
-    response = page.request.post(url, data=payload, timeout=45_000)
+def post_json(
+    page: Any,
+    url: str,
+    payload: dict[str, Any],
+    timeout_ms: int = 45_000,
+) -> dict[str, Any]:
+    response = page.request.post(url, data=payload, timeout=timeout_ms)
     if response.status >= 400:
         raise UsageError(f"API failed with HTTP {response.status}: {url}")
     data = response.json()
@@ -263,6 +270,102 @@ def fetch_unit_detail(page: Any, unit_id: str) -> dict[str, Any]:
     return detail
 
 
+def profile_content_sha256(profile: dict[str, Any]) -> str:
+    payload = {
+        key: profile.get(key)
+        for key in (
+            "dashboard_id",
+            "dashboard_name",
+            "config_summary",
+            "components",
+            "unit_details",
+            "public_filters",
+        )
+    }
+    raw = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+
+def _analytic_targets(profile: dict[str, Any]) -> list[dict[str, Any]]:
+    targets: list[dict[str, Any]] = []
+    components = {
+        str(item.get("unit_id") or ""): item
+        for item in profile.get("components") or []
+        if isinstance(item, dict)
+    }
+    for unit_id, detail in (profile.get("unit_details") or {}).items():
+        if not isinstance(detail, dict):
+            continue
+        if str(detail.get("unit_type") or "") in {"u_text", "u_material"}:
+            continue
+        component = components.get(str(unit_id)) or {}
+        targets.append(
+            {
+                "unit_id": str(unit_id),
+                "page_size": detail.get("page_size") or component.get("page_size"),
+            }
+        )
+    return targets
+
+
+def probe_profile_values(
+    page: Any,
+    profile: dict[str, Any],
+    policy: ValueProbePolicy,
+) -> dict[str, Any]:
+    dashboard_id = str(profile.get("dashboard_id") or "")
+    targets = _analytic_targets(profile)
+
+    def fetch_value(target: dict[str, Any], timeout_ms: int) -> dict[str, Any]:
+        unit_id = str(target["unit_id"])
+        payload = post_json(
+            page,
+            UNIT_VALUE_API,
+            default_unit_value_payload(unit_id, target.get("page_size")),
+            timeout_ms=timeout_ms,
+        )
+        return summarize_unit_value(unit_id, payload)
+
+    probe = probe_value_targets(
+        dashboard_id=dashboard_id,
+        targets=targets,
+        fetch_value=fetch_value,
+        policy=policy,
+    )
+    values = list(probe["unit_values"].values())
+    data_ready_count = sum(1 for item in values if item.get("status") == "data_ready")
+    refresh_validation = {
+        "mode": "value_health",
+        "status": "complete" if not probe["errors"] else "incomplete",
+        "unit_count": len(profile.get("components") or []),
+        "value_target_count": len(targets),
+        "value_unit_count": len(values),
+        "data_ready_unit_count": data_ready_count,
+        "analytic_unit_count": len(targets),
+        "analytic_data_ready_unit_count": data_ready_count,
+        "error_count": len(probe["errors"]),
+        "all_value_units_ready": bool(targets) and data_ready_count == len(targets),
+        "all_analytic_units_ready": bool(targets) and data_ready_count == len(targets),
+        "attempted_request_count": probe["attempted_request_count"],
+        "cache_hit_count": probe["cache_hit_count"],
+        "elapsed_ms": probe["elapsed_ms"],
+        "deadline_exceeded": probe["deadline_exceeded"],
+        "policy": probe["policy"],
+    }
+    return {
+        "schema_version": "1.0.0",
+        "artifact_type": "DashboardValueHealth",
+        "ok": not probe["errors"],
+        "generated_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+        "dashboard_id": dashboard_id,
+        "dashboard_name": profile.get("dashboard_name"),
+        "source_profile_sha256": profile.get("profile_sha256") or profile_content_sha256(profile),
+        "unit_values": probe["unit_values"],
+        "refresh_validation": refresh_validation,
+        "errors": probe["errors"],
+    }
+
+
 def profile_dashboard(
     page: Any,
     dashboard_id: str,
@@ -271,6 +374,8 @@ def profile_dashboard(
     wait_ms: int,
     artifacts_dir: Path,
     debug_artifacts: bool,
+    include_values: bool = True,
+    value_policy: ValueProbePolicy | None = None,
 ) -> dict[str, Any]:
     opened_url = dashboard_url(dashboard_id)
     page.goto(opened_url, wait_until="domcontentloaded", timeout=45_000)
@@ -285,7 +390,6 @@ def profile_dashboard(
 
     details: dict[str, Any] = {}
     public_filters: dict[str, Any] = {}
-    value_summaries: dict[str, Any] = {}
     errors: list[dict[str, str]] = []
 
     for component in component_units:
@@ -297,30 +401,18 @@ def profile_dashboard(
                 continue
             detail_summary = summarize_unit_detail(detail)
             details[unit_id] = detail_summary
-            value_payload = post_json(
-                page,
-                UNIT_VALUE_API,
-                default_unit_value_payload(unit_id, detail_summary.get("page_size") or component.get("page_size")),
-            )
-            value_summaries[unit_id] = summarize_unit_value(unit_id, value_payload)
         except Exception as exc:  # noqa: BLE001
             errors.append({"unit_id": unit_id, "message": str(exc)})
 
     dashboard_name = str(config.get("dashboardName") or dashboard_name or dashboard_id)
-    value_units = list(value_summaries.values())
-    data_ready_count = sum(1 for item in value_units if item.get("status") == "data_ready")
     analytic_unit_ids = [
         unit_id
         for unit_id, detail in details.items()
         if str(detail.get("unit_type") or "") not in {"u_text", "u_material"}
     ]
-    analytic_ready_count = sum(
-        1
-        for unit_id in analytic_unit_ids
-        if value_summaries.get(unit_id, {}).get("status") == "data_ready"
-    )
-    return {
+    profile = {
         "ok": True,
+        "profile_mode": "full" if include_values else "config_only",
         "generated_at": time.strftime("%Y-%m-%d %H:%M:%S"),
         "source_folder": folder_name,
         "dashboard_id": dashboard_id,
@@ -341,19 +433,33 @@ def profile_dashboard(
         "components": component_units,
         "unit_details": details,
         "public_filters": public_filters,
-        "unit_values": value_summaries,
+        "unit_values": {},
         "refresh_validation": {
+            "mode": "not_run",
+            "status": "not_run",
             "unit_count": len(component_units),
-            "value_unit_count": len(value_units),
-            "data_ready_unit_count": data_ready_count,
+            "value_target_count": len(analytic_unit_ids),
+            "value_unit_count": 0,
+            "data_ready_unit_count": 0,
             "analytic_unit_count": len(analytic_unit_ids),
-            "analytic_data_ready_unit_count": analytic_ready_count,
-            "error_count": len(errors),
-            "all_value_units_ready": bool(value_units) and data_ready_count == len(value_units),
-            "all_analytic_units_ready": bool(analytic_unit_ids) and analytic_ready_count == len(analytic_unit_ids),
+            "analytic_data_ready_unit_count": 0,
+            "error_count": 0,
+            "all_value_units_ready": None,
+            "all_analytic_units_ready": None,
         },
         "errors": errors,
     }
+    profile["profile_sha256"] = profile_content_sha256(profile)
+    if include_values:
+        health = probe_profile_values(page, profile, value_policy or ValueProbePolicy())
+        profile["unit_values"] = health["unit_values"]
+        profile["refresh_validation"] = health["refresh_validation"]
+        profile["value_health"] = {
+            "artifact_type": health["artifact_type"],
+            "source_profile_sha256": health["source_profile_sha256"],
+        }
+        profile["errors"].extend(health["errors"])
+    return profile
 
 
 def build_error_profile(
@@ -394,6 +500,8 @@ def profile_records(
     output_dir: Path,
     dashboard_wait_ms: int,
     debug_artifacts: bool,
+    include_values: bool = True,
+    value_policy: ValueProbePolicy | None = None,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     results: list[dict[str, Any]] = []
     artifacts: list[dict[str, Any]] = []
@@ -413,6 +521,8 @@ def profile_records(
                 wait_ms=dashboard_wait_ms,
                 artifacts_dir=profile_dir,
                 debug_artifacts=debug_artifacts,
+                include_values=include_values,
+                value_policy=value_policy,
             )
             write_json(profile, profile_path)
             artifacts.append({"record": record, "profile": profile, "profile_path": profile_path})

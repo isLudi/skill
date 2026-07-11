@@ -6,6 +6,7 @@ import sys
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
+from unittest.mock import patch
 
 
 SKILL_ROOT = Path(__file__).resolve().parents[1]
@@ -14,7 +15,10 @@ sys.path.insert(0, str(SCRIPTS_DIR))
 
 from _shared.errors import UsageError  # noqa: E402
 from read_dashboard.cli import build_parser  # noqa: E402
-from read_dashboard.commands.edit_public_filters import validate_edit_mode  # noqa: E402
+from read_dashboard.commands.edit_public_filters import (  # noqa: E402
+    cmd_edit_public_filters,
+    validate_edit_mode,
+)
 
 
 class DashboardEditSafetyTests(unittest.TestCase):
@@ -25,23 +29,33 @@ class DashboardEditSafetyTests(unittest.TestCase):
         self.assertFalse(args.confirm_publish)
         validate_edit_mode(args)
 
-    def test_publish_requires_apply(self) -> None:
+    def test_legacy_publish_is_rejected(self) -> None:
         args = SimpleNamespace(dry_run=True, publish=True, confirm_publish=True)
-        with self.assertRaisesRegex(UsageError, "--publish requires --apply"):
+        with self.assertRaisesRegex(UsageError, "Legacy edit-public-filters is read-only"):
             validate_edit_mode(args)
 
-    def test_publish_requires_explicit_confirmation(self) -> None:
+    def test_legacy_apply_and_publish_is_rejected(self) -> None:
         args = SimpleNamespace(dry_run=False, publish=True, confirm_publish=False)
-        with self.assertRaisesRegex(UsageError, "--publish requires --confirm-publish"):
+        with self.assertRaisesRegex(UsageError, "Legacy edit-public-filters is read-only"):
             validate_edit_mode(args)
 
-    def test_apply_and_confirmed_publish_is_allowed(self) -> None:
+    def test_legacy_confirmed_apply_and_publish_is_rejected(self) -> None:
         args = SimpleNamespace(dry_run=False, publish=True, confirm_publish=True)
-        validate_edit_mode(args)
+        with self.assertRaisesRegex(UsageError, "Legacy edit-public-filters is read-only"):
+            validate_edit_mode(args)
 
-    def test_confirmation_without_publish_is_rejected(self) -> None:
+    def test_legacy_write_is_rejected_before_browser_import(self) -> None:
+        args = SimpleNamespace(dry_run=False, publish=False, confirm_publish=False)
+        with patch(
+            "read_dashboard.commands.edit_public_filters.import_playwright"
+        ) as browser_import:
+            with self.assertRaisesRegex(UsageError, "Legacy edit-public-filters is read-only"):
+                cmd_edit_public_filters(args)
+        browser_import.assert_not_called()
+
+    def test_legacy_confirmation_without_publish_is_rejected(self) -> None:
         args = SimpleNamespace(dry_run=False, publish=False, confirm_publish=True)
-        with self.assertRaisesRegex(UsageError, "only valid together with --publish"):
+        with self.assertRaisesRegex(UsageError, "Legacy edit-public-filters is read-only"):
             validate_edit_mode(args)
 
 

@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.codex/text2sql/dashboard_publish_receipt.schema.json",
+  "title": "Separately confirmed dashboard publication receipt",
+  "type": "object",
+  "required": [
+    "schema_version", "artifact_type", "domain", "dashboard_id",
+    "apply_receipt_sha256", "change_plan_sha256",
+    "expected_draft_profile_sha256", "pre_publish_profile_sha256",
+    "post_publish_draft_profile_sha256", "readback_performed", "readback_scope",
+    "published_version_readback_performed", "published_version_profile_sha256",
+    "verification_status", "fully_verified",
+    "confirmed", "version_description", "publish_status", "published_at",
+    "ok", "publish_receipt_sha256"
+  ],
+  "properties": {
+    "schema_version": {"const": "3.0.0"},
+    "artifact_type": {"const": "dashboard_publish_receipt"},
+    "domain": {"enum": ["market_consultant", "qingcheng"]},
+    "dashboard_id": {"type": "string", "minLength": 1},
+    "apply_receipt_sha256": {"$ref": "dashboard_profile.schema.json#/$defs/sha256"},
+    "change_plan_sha256": {"$ref": "dashboard_profile.schema.json#/$defs/sha256"},
+    "expected_draft_profile_sha256": {"$ref": "dashboard_profile.schema.json#/$defs/sha256"},
+    "pre_publish_profile_sha256": {"$ref": "dashboard_profile.schema.json#/$defs/sha256"},
+    "post_publish_draft_profile_sha256": {
+      "oneOf": [
+        {"$ref": "dashboard_profile.schema.json#/$defs/sha256"},
+        {"type": "null"}
+      ]
+    },
+    "readback_performed": {"type": "boolean"},
+    "readback_scope": {"enum": ["draft_profile_only", "published_version"]},
+    "published_version_readback_performed": {"type": "boolean"},
+    "published_version_profile_sha256": {
+      "oneOf": [
+        {"$ref": "dashboard_profile.schema.json#/$defs/sha256"},
+        {"type": "null"}
+      ]
+    },
+    "verification_status": {
+      "enum": [
+        "draft_only_unverified_published_version",
+        "published_version_verified",
+        "failed",
+        "not_attempted"
+      ]
+    },
+    "fully_verified": {"type": "boolean"},
+    "confirmed": {"type": "boolean"},
+    "version_description": {"type": "string"},
+    "publish_status": {
+      "enum": ["publish_requested_unverified", "published_verified", "failed", "not_attempted"]
+    },
+    "published_at": {"type": "string"},
+    "ok": {"type": "boolean"},
+    "publish_receipt_sha256": {"$ref": "dashboard_profile.schema.json#/$defs/sha256"}
+  },
+  "additionalProperties": false
+}

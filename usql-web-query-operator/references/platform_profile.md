@@ -201,7 +201,16 @@ iframe 编辑器工具栏中的运行按钮回退方案：
 - 公共筛选器明细：POST `https://uanalysis.baijia.com/uanalysis-intelligence/value/public/unit/relation/detail`，body 为 `{"id":"<public_filter_relation_id>","isConfig":false}`
 - 单元取值 / 刷新验证：POST `https://uanalysis.baijia.com/uanalysis-intelligence/value/unit`，带目标 `unit_id`、空筛选列表和 page 对象。表格/透视表单元返回 `title`、`data`、`totalData`、`page`、`taskIds`；图表单元可能返回 `xAxis`、`series`、`taskIds`，不一定返回表格 `data`。
 
-该流程使用 `read_dashboard.py profile-dashboard` 或 `profile-folder`。不要把这些 dashboard API 加进 `usql_web_query.py`。
+该流程使用 `read_dashboard.py profile-dashboard`、`profile-folder` 或 `profile-all`。默认 `--profile-mode config` 只读取配置和 unit detail，不调用 `value/unit`；这也是知识同步的生产默认。实时数据健康检查使用独立命令 `check-dashboard-values --profile <config-profile.json>`。
+
+`check-dashboard-values` 的默认保护：
+
+- 单次请求超时 `15000 ms`，最多 `2` 次，退避 `500 ms`。
+- 单看板总预算 `90000 ms`；预算耗尽后其余 unit 标记 `not_run_dashboard_timeout`，不得继续串行等待。
+- 失败写入 runtime-only cache，TTL `900` 秒；TTL 内重复检查返回 `skipped_cached_failure`，不再次调用慢接口。
+- 输出独立 `DashboardValueHealth` Artifact，并通过 `source_profile_sha256` 绑定 config profile；健康失败不污染配置完整性，也不被解释为业务指标错误。
+
+需要向后兼容的一体化画像时显式使用 `--profile-mode full`。不要把 full 模式恢复为 `profile-all` 默认。
 
 ## Taitan 编辑页指标公式 API
 
@@ -212,6 +221,7 @@ iframe 编辑器工具栏中的运行按钮回退方案：
 - 生产命令：`D:\anaconda3\python.exe scripts\read_dashboard.py profile-edit-dashboard --edit-url "<edit_url>"`
 - 默认读取版本：`draft`，可用 `--version-id <version>` 覆盖。
 - 输出位置：runtime artifact 目录，默认文件名为 `<dashboard_id>_edit_metrics_profile.json`。
+- 批处理：`profile-edit-folder` / `profile-edit-all` 先扫描菜单，再用隔离 subprocess 有限并发执行同一只读命令。默认 `max_workers=2`，硬上限 4；使用 staging 文件和 `profile_sha256` 区分 `unchanged` / `updated` / `incomplete`，完整缓存 24 小时内可 resume。
 
 只读接口：
 
@@ -221,7 +231,7 @@ iframe 编辑器工具栏中的运行按钮回退方案：
 - 维度详情：POST `https://udata.baijia.com/uanalysis-intelligence/model/detail/dim`，body 为 `{"id":"<field_id>","modelType":2}`。
 - 普通指标详情：POST `https://udata.baijia.com/uanalysis-intelligence/model/detail/metric`，body 为 `{"id":"<metric_id>","modelType":2}`。
 - 自定义指标公式：POST `https://udata.baijia.com/uanalysis-intelligence/model/customized/column/list`，body 为 `{"id":"customized_<id>"}`。响应中的 `formula` 和 `dependencyIndicators` 是自定义指标计算公式和依赖来源。
-- 数据集字段树：POST `https://udata.baijia.com/uanalysis-intelligence/model/subject/paramList`，body 为 `{"modelType":2,"dashboardId":"<dashboard_id>","subjectId":<subject_id>,"selected":[...]}`。`subjectId` 可从公共筛选器关系或自定义指标详情中推断；识别不到时不阻断透视表字段采集。
+- 数据集字段树：POST `https://udata.baijia.com/uanalysis-intelligence/model/subject/paramList`，body 为 `{"modelType":2,"dashboardId":"<dashboard_id>","subjectId":<subject_id>,"selected":[...]}`。`subjectId` 可从公共筛选器关系、透视表 `dashboardModel` 或自定义指标详情中推断；识别不到时仍保留透视表字段采集结果，但若 pivot 同时没有可解析的 `applicationModelId/modelId`，画像完整性必须为 `incomplete`。
 
 输出结构重点：
 
@@ -230,6 +240,8 @@ iframe 编辑器工具栏中的运行按钮回退方案：
 - 普通指标的 `formula` 来自字段配置中的聚合定义，例如 `sum(<metric_id>)`；自定义指标的 `formula` 来自 `model/customized/column/list`，例如 `sum(${is_friend_lead})/sum(${v_lead})`。
 - `text_notes[]`：从富文本组件和文本单元中提取的指标说明、口径说明。
 - `dataset_fields[]`：可识别 `subjectId` 时补充的数据集字段树摘要；如只需要实际使用字段，可加 `--skip-dataset-fields`。
+- `binding_validation`：检查每个已配置 pivot 的 unit/component/model-or-dataset identity、selected field、formula、component-filter 与 dataset 反向引用；启用字段树时再核对已选字段和公式依赖。空白/非数据组件不计入失败。
+- `profile_sha256`：只覆盖可编辑状态；Taitan 每次打开可能变化的 `html_id` 作为路由元数据保留，但不参与状态 Hash。组件、布局、公式、筛选器和数据集变化仍必须改变 Hash。
 
 边界：
 
@@ -237,13 +249,21 @@ iframe 编辑器工具栏中的运行按钮回退方案：
 - 不调用保存、发布、删除、新建、更新接口，也不点击 `保存并发布`、`保存到草稿箱` 等按钮。
 - UI selector 或坐标点击只允许作为 selector 漂移排查的临时验证；生产脚本优先走只读 API。
 
-## 公共筛选器编辑与发布 API
+## P3A/P3B 看板变更链路
+
+2026-07-11 起，Text2SQL 下游看板设计和修改使用独立的 `profile-edit-dashboard → design-dashboard → plan-dashboard-change → apply-dashboard-change → publish-dashboard-change` 链路。完整 Artifact、Hash、stable-ID、单 relation 原子性和阻断规则见 `references/dashboard_change_workflow.md`。
+
+当前生产验证过的 P3B 写入面只有公共筛选器动态默认项：`relation_id + filter_id + field_id` 三者必须同时精确匹配。组件、布局和公式可以画像与 Diff，但 operator 不调用未经验证的写接口。
+
+`apply-dashboard-change` 只写 draft；`publish-dashboard-change` 必须在独立进程中消费成功 ApplyReceipt 并显式确认。新链路不允许同一次命令 apply + publish。
+
+## Legacy 公共筛选器只读检查与历史 API
 
 2026-07-04 已验证：
 
+`edit-public-filters` 仅保留历史序号式计划的 dry-run 检查。新的 Text2SQL 看板变更使用上一节 P3 链路；legacy 写入与发布参数会在浏览器启动前拒绝。
+
 - 计划命令：`D:\anaconda3\python.exe scripts\read_dashboard.py edit-public-filters --target-set qingcheng-required`，默认只 dry-run。
-- 写草稿命令：在计划确认后显式增加 `--apply`。
-- 全量发布命令：在再次确认后显式增加 `--apply --publish --confirm-publish`。
 - 默认目标文件夹：`青橙播报`。
 - 内置目标 `qingcheng-required` 覆盖 6 个看板：`主管_过程数据播报-青橙`、`私域-渠道团队`、`私域--伙伴推送`、`图书_SEC伙伴_青橙`、`主管_过程数据-青橙`、`公域--伙伴推送`。
 - 默认修改规则：第 1 个全局筛选器设为动态筛选 `第一项`（`dynamicsFilterValue="1"`），第 2 个全局筛选器设为动态筛选 `第二项`（`dynamicsFilterValue="2"`）。可用 `--first-value`、`--second-value` 覆盖。
@@ -255,8 +275,8 @@ iframe 编辑器工具栏中的运行按钮回退方案：
 
 边界：
 
-- 该命令默认是只读计划，不调用更新或发布接口。只有 `--apply` 才更新草稿；只有 `--apply --publish --confirm-publish` 才全量发布。
-- 该命令只修改公共筛选器动态默认项，不修改指标、图表字段、SQL、布局或权限配置。
+- 该命令只能生成只读计划，不调用更新或发布接口；`--apply`、`--publish`、`--confirm-publish` 均被拒绝。
+- 下列更新与发布 API 记录仅作为已验证平台能力和 P3 adapter 依据，不再授权 legacy 命令调用。
 - 调试产物写入 runtime artifact 目录，不写入业务 SQL skill。
 
 ## 冒烟测试 SQL

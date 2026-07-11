@@ -8,8 +8,8 @@
 - 文件夹：`青橙项目部`
 - dashboard_id：`dashboard_3884629814875697153`
 - 打开入口：`https://uanalysis.baijia.com/dashboard-market?id=dashboard_3884629814875697153&sourceType=1`
-- profile 时间：2026-06-24 18:46:07
-- 原始结构 profile：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\artifacts\20260624-184137\青橙项目部\青-抖私-转化\profile.json`
+- profile 时间：2026-07-11 10:00:26
+- 原始结构 profile：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\p3-validation-20260711\profile-all\青橙项目部\青-抖私-转化\profile.json`
 - 页面渲染：成功
 
 ## 2. 刷新验证
@@ -36,20 +36,20 @@
 |---|---|---|---|---|---|---|
 | 标题图 | unit_3885623155693903872 | u_material | 1 主题分析 |  | loaded_empty | rows=0 |
 | 文本框 | unit_3886043646744297473 | u_text | 1 None | download=0 | data_ready | rows=0 |
-| 透视表 | unit_3885634016216997889 | u_pivot | 2740 抖私-转化 | page=500<br>download=1 | data_ready | task=1424549968,1424549967<br>rows=16<br>total=16 |
-| 透视表_副本 | unit_3893209576598749188 | u_pivot | 2740 抖私-转化 | page=500<br>download=1 | data_ready | task=1424550042,1424550036<br>rows=1208<br>total=151 |
+| 透视表 | unit_3885634016216997889 | u_pivot | 2740 抖私-转化 | page=500<br>download=1 | data_ready | task=1459213048,1459213047<br>rows=16<br>total=16 |
+| 透视表_副本 | unit_3893209576598749188 | u_pivot | 2740 抖私-转化 | page=500<br>download=1 | data_ready | task=1459213094,1459213091<br>rows=1232<br>total=154 |
 
 ## 5. 分析单元字段结构
 
 ### 透视表
 
 - unit_id：`unit_3885634016216997889`；类型：`u_pivot`；模型：`2740` / 抖私-转化
-- 刷新：data_ready；task_ids：`1424549968,1424549967`；行数：16；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1459213048,1459213047`；行数：16；序列：0 / 0 点
 - 单元筛选字段：qici（id=431248）、grade_list（id=431251）、channel_1（id=431249）、channel_2（id=441233）
 
 ### 透视表_副本
 
 - unit_id：`unit_3893209576598749188`；类型：`u_pivot`；模型：`2740` / 抖私-转化
-- 刷新：data_ready；task_ids：`1424550042,1424550036`；行数：1208；序列：0 / 0 点
+- 刷新：data_ready；task_ids：`1459213094,1459213091`；行数：1232；序列：0 / 0 点
 - 维度/表头字段：渠道（id=431249）
 - 单元筛选字段：qici（id=431248）、grade_list（id=431251）、channel_1（id=431249）

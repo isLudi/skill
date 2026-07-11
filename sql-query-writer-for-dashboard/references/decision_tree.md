@@ -1,4 +1,4 @@
-# 市场顾问 P2 Text2SQL 决策树
+# 市场顾问 P2/P3 Text2SQL 决策树
 
 ## A. 先判定业务域
 
@@ -62,5 +62,19 @@
 ## G. 看板数据集设计
 
 - 从可执行 QueryPlan 派生 `DashboardDatasetSpec`，声明字段、类型、粒度、聚合方式、分子/分母和筛选能力。
-- P2 只生成设计规格和差异输入，不修改组件、布局、指标公式、数据集或权限。
-- 看板 public-filter 的既有编辑流程仍必须先 dry-run，apply 和 publish 分别要求显式授权。
+- 每个字段继续保留本域 contract ID 与 `source_path`，不从青橙 Skill 补充口径。
+
+## H. P3 看板设计与受控变更
+
+1. 是否已有最新 `DashboardProfile`，且 dashboard/draft identity 与 profile hash 明确？
+   - 否：先运行 operator 的 `profile-edit-dashboard`。
+2. 是否能从 QueryPlan/DatasetSpec 和市场顾问 confirmed contracts 构建 `DashboardDesignSpec`？
+   - 否：保留 unresolved/ambiguous，不生成可 Apply 计划。
+3. 运行 `design-dashboard -> plan-dashboard-change`；component、layout、formula、filter 均可生成 diff，dry-run 不调用写接口。
+4. ChangePlan 是否只包含 stable-ID `update_filter_dynamic_default`，且 `relation_id + filter_id + field_id` 完整？
+   - 是：用户显式授权后可交 `apply-dashboard-change` 写 draft。
+   - 否：标记 `blocked_unsupported`；任一 blocked operation 使整次 Apply 零写入。
+5. Apply 后重新 profile 并生成 `DashboardApplyReceipt`。发布必须另用 `publish-dashboard-change --confirm-publish`，校验成功 receipt 和最新草稿 profile hash。
+6. 组件/字段/公式反查按 `live profile -> contract_index -> market_consultant contract -> source_path/raw SQL`；unknown、ambiguous 或青橙依赖不得静默补齐。
+
+详细规则只在看板设计/编辑场景读取 `knowledge/sql_patterns/dashboard_design_change_workflow.md`。本 Skill 不保存登录态、不调用写接口。

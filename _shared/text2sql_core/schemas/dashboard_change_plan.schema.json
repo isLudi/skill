@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.codex/text2sql/dashboard_change_plan.schema.json",
+  "title": "Dry-run-only dashboard change plan",
+  "type": "object",
+  "required": [
+    "schema_version", "artifact_type", "mode", "domain", "dashboard_id",
+    "base_profile_sha256", "design_sha256", "query_plan_sha256",
+    "dataset_spec_sha256", "status", "dry_run", "operations",
+    "blocked_reasons", "diagnostics", "baseline_state", "target_state",
+    "summary", "authorization", "write_boundary", "change_plan_sha256"
+  ],
+  "properties": {
+    "schema_version": {"const": "3.0.0"},
+    "artifact_type": {"const": "dashboard_change_plan"},
+    "mode": {"const": "dry_run_only"},
+    "domain": {"enum": ["unresolved", "market_consultant", "qingcheng"]},
+    "dashboard_id": {"type": "string", "minLength": 1},
+    "dashboard_name": {"type": "string"},
+    "base_profile_sha256": {"$ref": "dashboard_profile.schema.json#/$defs/sha256"},
+    "design_sha256": {"$ref": "dashboard_profile.schema.json#/$defs/sha256"},
+    "query_plan_sha256": {"oneOf": [{"$ref": "dashboard_profile.schema.json#/$defs/sha256"}, {"type": "null"}]},
+    "dataset_spec_sha256": {"$ref": "dashboard_profile.schema.json#/$defs/sha256"},
+    "status": {"enum": ["ready_for_dry_run", "no_changes", "blocked"]},
+    "dry_run": {"const": true},
+    "operations": {"type": "array", "items": {"$ref": "#/$defs/operation"}},
+    "blocked_reasons": {"type": "array", "items": {"type": "string"}},
+    "diagnostics": {"type": "array"},
+    "baseline_state": {"$ref": "#/$defs/state"},
+    "target_state": {"$ref": "#/$defs/state"},
+    "summary": {"type": "object"},
+    "authorization": {
+      "type": "object",
+      "required": ["apply_authorized", "publish_authorized", "requires_explicit_apply_authorization", "requires_separate_publish_confirmation"],
+      "properties": {
+        "apply_authorized": {"const": false}, "publish_authorized": {"const": false},
+        "requires_explicit_apply_authorization": {"const": true},
+        "requires_separate_publish_confirmation": {"const": true}
+      },
+      "additionalProperties": false
+    },
+    "write_boundary": {
+      "type": "object",
+      "required": ["may_dry_run", "may_apply_from_this_artifact_alone", "may_publish_dashboard"],
+      "properties": {
+        "may_dry_run": {"const": true},
+        "may_apply_from_this_artifact_alone": {"const": false},
+        "may_publish_dashboard": {"const": false}
+      },
+      "additionalProperties": false
+    },
+    "change_plan_sha256": {"$ref": "dashboard_profile.schema.json#/$defs/sha256"}
+  },
+  "$defs": {
+    "operation": {
+      "type": "object",
+      "required": ["operation_id", "type", "collection", "target", "before", "after", "write_status", "status", "risk", "blocked_reasons"],
+      "properties": {
+        "operation_id": {"type": "string", "pattern": "^op_[0-9a-f]{16}$"},
+        "type": {"type": "string", "minLength": 1},
+        "collection": {"enum": ["components", "layout", "formulas", "public_filters", "component_filters", "datasets"]},
+        "target": {"type": "object"}, "before": {}, "after": {},
+        "write_status": {"enum": ["supported", "blocked_unsupported"]},
+        "status": {"const": "planned"},
+        "risk": {"enum": ["low", "medium", "high"]},
+        "blocked_reasons": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
+    "state": {
+      "type": "object",
+      "required": ["components", "layout", "formulas", "public_filters", "component_filters", "datasets", "layout_policy"],
+      "properties": {
+        "components": {"type": "array", "items": {"$ref": "dashboard_profile.schema.json#/$defs/component"}},
+        "layout": {"type": "array", "items": {"$ref": "dashboard_profile.schema.json#/$defs/layout"}},
+        "formulas": {"type": "array", "items": {"$ref": "dashboard_profile.schema.json#/$defs/formula"}},
+        "public_filters": {"type": "array", "items": {"$ref": "dashboard_profile.schema.json#/$defs/filter"}},
+        "component_filters": {"type": "array", "items": {"$ref": "dashboard_profile.schema.json#/$defs/component_filter"}},
+        "datasets": {"type": "array", "items": {"$ref": "dashboard_profile.schema.json#/$defs/dataset"}},
+        "layout_policy": {"type": "object"}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

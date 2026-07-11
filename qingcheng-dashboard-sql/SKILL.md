@@ -1,6 +1,6 @@
 ---
 name: qingcheng-dashboard-sql
-description: Resolve, plan, compile, explain, validate, repair, and maintain governed Presto SQL for Qingcheng project department (青橙项目部), using isolated semantic contracts, metrics, dashboards, temp tables, historical SQL, range rules, and bounded data probes. Use for Qingcheng/青橙 Text2SQL, dashboard取数, completion, conversion, attendance, revenue, metric disambiguation, data-definition exploration, and knowledge maintenance; never use market-consultant/市场顾问部 semantics to fill Qingcheng gaps.
+description: Resolve, plan, compile, explain, validate, repair, and maintain governed Presto SQL and domain-bound dashboard designs for Qingcheng project department (青橙项目部), using isolated semantic contracts, metrics, dashboards, temp tables, historical SQL, range rules, and bounded data probes. Use for Qingcheng/青橙 Text2SQL, dashboard取数与设计/diff/dry-run, completion, conversion, attendance, revenue, metric disambiguation, data-definition exploration, and knowledge maintenance; never use market-consultant/市场顾问部 semantics to fill Qingcheng gaps.
 ---
 
 # qingcheng-dashboard-sql
@@ -24,7 +24,8 @@ description: Resolve, plan, compile, explain, validate, repair, and maintain gov
 9. 相关 `knowledge/tables/*.md`、`knowledge/temp_tables/*.md`、`knowledge/metrics/*.md`、`knowledge/dashboards/*.md`、`knowledge/joins/*.md`：只读取与当前 QuerySpec 相关的文件。
 10. `knowledge/reverse_index/*.md`：仅在只知道字段、表、指标、raw SQL 或 debug 线索时读取，用于反向定位候选文档。
 11. `knowledge/dashboard_web_profiles/README.md` 及对应快照：当问题涉及青橙自助 BI 页面上的筛选器、组件、字段 ID、下载按钮、刷新任务 ID、选择器漂移或前端结构排查时读取。
-12. `knowledge/sql_patterns/*.md`：生成或修复 SQL 时参考模板。
+12. `knowledge/sql_patterns/dashboard_design_change_workflow.md`：仅在设计、diff、dry-run、受控筛选器变更或从 live profile 反查契约/源 SQL 时读取。
+13. 其他 `knowledge/sql_patterns/*.md`：生成或修复 SQL 时按命中场景读取。
 
 文件编码规则：
 
@@ -42,6 +43,9 @@ description: Resolve, plan, compile, explain, validate, repair, and maintain gov
 - 用户只说“顾问”时必须在 `qingcheng:dimension:section_consultant`（线索分配顾问）和 `qingcheng:dimension:performance_consultant`（业绩归属顾问）之间消歧；不得根据当前查询表静默猜测。
 - 不脱离本 Skill 知识库编造表、字段、join key、临时表语义或指标口径。
 - 青橙相关 Web BI 结构快照、README 索引和调试结论只写入本 Skill 的 `knowledge/dashboard_web_profiles/`，不得写回 `sql-query-writer-for-dashboard`。
+- 青橙 `DashboardDesignSpec` 中的指标、维度、范围和公式依赖只能引用 `qingcheng:*` 的 `confirmed` contract ID 及其 `source_path`；不得因 live profile 出现同名字段而借用市场顾问口径。
+- 看板 `dashboard_id` 必须已由本 Skill 的 `knowledge/dashboard_web_profiles/` 注册并通过源文件 Hash 回查；未注册或同时出现在另一域的看板只允许只读画像，先完成青橙知识同步和 catalog 重建再进入 Design。
+- 本 Skill 只提供青橙业务设计约束，不保存看板登录态、不调用写接口。P3A 的组件/布局/公式/筛选器均可设计、diff 和 dry-run；P3B Apply 当前只允许 operator 已验证的已有公共筛选器动态默认项白名单。
 - 不在缺少 `dt`、必要 `hour`、部门/项目范围限定或必要 `limit` 时直接给出生产查询。
 - 如果 SQL 或用户材料中出现市场顾问部、评优架构、参评名单、市场顾问专属临时表或市场顾问专属渠道 CASE，默认视为跨域污染；除非用户明确说明这是青橙也复用的逻辑，否则必须标注“待人工确认”，不得直接入库为青橙口径。
 - 若用户只要求“给参考 SQL，不修改 Skill”，不得改写 `resources/raw_sql/` 或 `knowledge/`。
@@ -105,6 +109,15 @@ QuerySpec 至少包含：
 7. `probe`：生成带具体分区和边界的只读探查 SQL，用于新鲜度、分布、重复键、粒度或 join 放大检查；生成探查 SQL 不等于授权 USQL 执行。
 
 编译后的 SQL 仍须经过 AST、青橙平台规则和证据校验。任何执行或下载继续交给 `usql-web-query-operator`，本 Skill 不保存凭证、不管理登录态，也不直接执行 SQL。
+
+### P3A/P3B 看板设计与变更边界
+
+- 正向链路固定为 `QuerySpec -> QueryPlan -> DashboardDatasetSpec -> DashboardDesignSpec -> DashboardChangePlan -> dry-run`。DesignSpec 必须绑定本域 confirmed contract ID、`source_path`、QueryPlan/DatasetSpec hash 和基线 `DashboardProfile` hash。
+- 反向链路固定为 `live DashboardProfile -> component/model/relation/filter/field identity -> 字段/公式 -> contract_index -> qingcheng contract -> source_path -> dashboard/metric/raw SQL`；无法唯一反查时保留 `unknown/ambiguous`。
+- P3A 可覆盖 component、layout、formula、filter 的画像、设计、diff 与 dry-run，但不写平台。
+- P3B 只把 `update_filter_dynamic_default` 交给 `usql-web-query-operator`，并要求稳定的 `relation_id + filter_id(unit_id) + field_id`。组件字段、布局、公式、数据集重绑、新建和删除一律 `blocked_unsupported`。
+- Apply 只能写 draft，必须消费精确匹配的 ChangePlan/hash，写前后重新 profile；QueryPlan、DesignSpec 和 ChangePlan 都不构成写入或发布授权。同次 apply+publish 禁止，发布必须独立确认。
+- 详细字段、风险和路由见 `knowledge/sql_patterns/dashboard_design_change_workflow.md`；业务请求不涉及看板设计/编辑时不要加载该文档。
 
 ## 4. SQL 生成流程
 

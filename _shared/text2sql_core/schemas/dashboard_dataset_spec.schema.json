@@ -16,10 +16,12 @@
     "status": {"enum": ["ready", "draft"]},
     "grain": {"type": "array"},
     "base_table": {"type": ["string", "null"]},
-    "scope_contracts": {"type": "array"},
-    "fields": {"type": "array"},
-    "default_filters": {"type": "array"},
+    "scope_contracts": {"type": "array", "items": {"$ref": "#/$defs/contractEvidence"}},
+    "fields": {"type": "array", "items": {"$ref": "#/$defs/contractEvidence"}},
+    "default_filters": {"type": "array", "items": {"$ref": "#/$defs/contractEvidence"}},
     "lineage": {"type": "array"},
+    "query_plan_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "dataset_spec_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
     "write_boundary": {
       "type": "object",
       "required": ["may_profile_existing_dashboard", "may_generate_diff_plan", "may_modify_dashboard", "may_publish_dashboard"],
@@ -28,6 +30,18 @@
         "may_generate_diff_plan": {"const": true},
         "may_modify_dashboard": {"const": false},
         "may_publish_dashboard": {"const": false}
+      }
+    }
+  },
+  "$defs": {
+    "contractEvidence": {
+      "type": "object",
+      "properties": {
+        "contract_id": {"type": ["string", "null"]},
+        "contract_status": {"type": ["string", "null"]},
+        "source_domain": {"type": ["string", "null"]},
+        "source_path": {"type": ["string", "null"]},
+        "source_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"}
       }
     }
   }

@@ -1,0 +1,146 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.codex/text2sql/dashboard_profile.schema.json",
+  "title": "Normalized read-only dashboard profile",
+  "type": "object",
+  "required": [
+    "schema_version", "artifact_type", "mode", "domain", "dashboard_id",
+    "dashboard_name", "version_id", "components", "layout", "formulas",
+    "public_filters", "component_filters", "datasets", "layout_policy", "completeness", "write_boundary",
+    "profile_sha256"
+  ],
+  "properties": {
+    "schema_version": {"const": "3.0.0"},
+    "artifact_type": {"const": "dashboard_profile"},
+    "mode": {"const": "read_only_profile"},
+    "domain": {"enum": ["unresolved", "market_consultant", "qingcheng"]},
+    "dashboard_id": {"type": "string", "minLength": 1},
+    "dashboard_name": {"type": "string"},
+    "version_id": {"type": "string", "minLength": 1},
+    "html_id": {"type": ["string", "null"]},
+    "draft_revision": {"type": ["string", "null"]},
+    "captured_at": {"type": "string"},
+    "components": {"type": "array", "items": {"$ref": "#/$defs/component"}},
+    "layout": {"type": "array", "items": {"$ref": "#/$defs/layout"}},
+    "formulas": {"type": "array", "items": {"$ref": "#/$defs/formula"}},
+    "public_filters": {"type": "array", "items": {"$ref": "#/$defs/filter"}},
+    "component_filters": {"type": "array", "items": {"$ref": "#/$defs/component_filter"}},
+    "datasets": {"type": "array", "items": {"$ref": "#/$defs/dataset"}},
+    "layout_policy": {"type": "object"},
+    "completeness": {
+      "type": "object",
+      "required": ["status", "required", "observed", "missing", "reasons", "details"],
+      "properties": {
+        "status": {"enum": ["complete", "incomplete"]},
+        "required": {"type": "array", "items": {"type": "string"}},
+        "observed": {"type": "array", "items": {"type": "string"}},
+        "missing": {"type": "array", "items": {"type": "string"}},
+        "reasons": {"type": "array", "items": {"type": "string"}},
+        "details": {"type": "object"}
+      },
+      "additionalProperties": false
+    },
+    "write_boundary": {
+      "type": "object",
+      "required": ["may_profile", "may_design", "may_diff", "may_modify_dashboard", "may_publish_dashboard"],
+      "properties": {
+        "may_profile": {"const": true},
+        "may_design": {"const": true},
+        "may_diff": {"const": true},
+        "may_modify_dashboard": {"const": false},
+        "may_publish_dashboard": {"const": false}
+      },
+      "additionalProperties": false
+    },
+    "profile_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "component": {
+      "type": "object",
+      "required": ["component_id", "component_type", "fields", "formula_ids", "filter_ids", "sort", "pagination", "display", "config", "extensions"],
+      "properties": {
+        "component_id": {"type": "string", "minLength": 1},
+        "unit_id": {"type": ["string", "null"]},
+        "component_type": {"type": "string", "minLength": 1},
+        "title": {"type": "string"},
+        "container_id": {"type": ["string", "null"]},
+        "tab_id": {"type": ["string", "null"]},
+        "dataset_id": {"type": ["string", "null"]},
+        "fields": {},
+        "formula_ids": {"type": "array", "items": {"type": "string"}},
+        "filter_ids": {"type": "array", "items": {"type": "string"}},
+        "sort": {}, "pagination": {}, "display": {}, "config": {}, "extensions": {}
+      },
+      "additionalProperties": false
+    },
+    "layout": {
+      "type": "object",
+      "required": ["component_id", "x", "y", "w", "h", "z"],
+      "properties": {
+        "component_id": {"type": "string", "minLength": 1},
+        "unit_id": {"type": ["string", "null"]},
+        "container_id": {"type": ["string", "null"]},
+        "tab_id": {"type": ["string", "null"]},
+        "x": {"type": "number"}, "y": {"type": "number"},
+        "w": {"type": "number"}, "h": {"type": "number"}, "z": {"type": "number"}
+      },
+      "additionalProperties": false
+    },
+    "formula": {
+      "type": "object",
+      "required": ["formula_id", "name", "expression", "dependencies", "scope", "shared", "component_ids", "config"],
+      "properties": {
+        "formula_id": {"type": "string", "minLength": 1},
+        "name": {"type": "string"}, "expression": {"type": "string"},
+        "dependencies": {"type": "array"}, "scope": {"type": "string"},
+        "shared": {"type": "boolean"},
+        "component_ids": {"type": "array", "items": {"type": "string"}},
+        "dataset_id": {"type": ["string", "null"]},
+        "contract_id": {"type": ["string", "null"]},
+        "config": {}
+      },
+      "additionalProperties": false
+    },
+    "filter": {
+      "type": "object",
+      "required": ["filter_key", "filter_id", "field_name", "title", "operator", "values", "default_value", "dynamic_default", "dynamics_filter", "dynamics_filter_value", "auto_search_default_value", "target_component_ids", "config", "extensions"],
+      "properties": {
+        "filter_key": {"type": "string", "minLength": 1},
+        "filter_id": {"type": "string", "minLength": 1},
+        "relation_id": {"type": ["string", "null"]},
+        "field_id": {"type": ["string", "null"]},
+        "field_name": {"type": "string"},
+        "dataset_id": {"type": ["string", "null"]},
+        "title": {"type": "string"}, "operator": {"type": "string"},
+        "values": {"type": "array"}, "default_value": {}, "dynamic_default": {},
+        "dynamics_filter": {}, "dynamics_filter_value": {}, "auto_search_default_value": {},
+        "target_component_ids": {"type": "array", "items": {"type": "string"}},
+        "config": {}, "extensions": {}
+      },
+      "additionalProperties": false
+    },
+    "component_filter": {
+      "type": "object",
+      "required": ["component_filter_key", "unit_id", "field_id", "business_name", "condition", "filter_type", "config"],
+      "properties": {
+        "component_filter_key": {"type": "string", "minLength": 1},
+        "unit_id": {"type": "string", "minLength": 1},
+        "field_id": {"type": "string", "minLength": 1},
+        "business_name": {"type": "string"},
+        "condition": {}, "filter_type": {}, "config": {}
+      },
+      "additionalProperties": false
+    },
+    "dataset": {
+      "type": "object",
+      "required": ["dataset_id", "name", "source", "config"],
+      "properties": {
+        "dataset_id": {"type": "string", "minLength": 1},
+        "name": {"type": "string"}, "source": {}, "config": {}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

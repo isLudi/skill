@@ -1,4 +1,4 @@
-"""Validate the P0-P2 local Text2SQL skill stack with one read-only command."""
+"""Validate the P0-P3 local Text2SQL skill stack with one read-only command."""
 
 from __future__ import annotations
 
@@ -235,11 +235,11 @@ def main() -> int:
             failures.append(f"reverse indexes are stale for {skill_name}")
 
     if not run_command(
-        "P2 generated manifests, contracts, and physical catalog reproducibility",
+        "P1-P3 generated manifests, contracts, and physical catalog reproducibility",
         [sys.executable, str(BUILD_CATALOG), "--check"],
         REPO_ROOT,
     ):
-        failures.append("P2 generated manifests, contract indexes, or physical catalog are stale")
+        failures.append("P1-P3 generated manifests, contract indexes, or physical catalog are stale")
 
     for skill_name in BUSINESS_SKILLS:
         skill_root = REPO_ROOT / skill_name
@@ -250,11 +250,11 @@ def main() -> int:
         ):
             failures.append(f"integrity check failed for {skill_name}")
         if not run_command(
-            f"P2 semantic resolution evals {skill_name}",
+            f"P2-P3 semantic resolution evals {skill_name}",
             [sys.executable, "scripts/text2sql.py", "evaluate"],
             skill_root,
         ):
-            failures.append(f"P2 semantic resolution evals failed for {skill_name}")
+            failures.append(f"P2-P3 semantic resolution evals failed for {skill_name}")
 
     for skill_name in SKILL_NAMES:
         skill_root = REPO_ROOT / skill_name
@@ -284,11 +284,11 @@ def main() -> int:
 
     core_tests = CORE_ROOT / "tests"
     if not run_command(
-        "P1-P2 QuerySpec, QueryPlan, compiler, probes, catalog, AST, and boundary tests",
+        "P1-P3 QuerySpec, QueryPlan, dashboard design/change, compiler, probes, catalog, AST, and boundary tests",
         [sys.executable, "-m", "unittest", "discover", "-s", str(core_tests), "-p", "test_*.py"],
         REPO_ROOT,
     ):
-        failures.append("P1-P2 shared-core tests failed")
+        failures.append("P1-P3 shared-core tests failed")
 
     if not run_command(
         "Retained SQL corpus audit",

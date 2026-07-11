@@ -49,6 +49,11 @@
 | [knowledge/sql_patterns/aggregation_patterns.md](../sql_patterns/aggregation_patterns.md) | 条件聚合 | 如果 `is_valid_lead` 取值未确认，必须标记待人工确认。 |
 | [knowledge/sql_patterns/cte_patterns.md](../sql_patterns/cte_patterns.md) | 规则 | - 基础 CTE 优先完成分区过滤和青橙范围过滤，再做后续 join 和聚合。 |
 | [knowledge/sql_patterns/cte_patterns.md](../sql_patterns/cte_patterns.md) | 规则 | - 复杂看板 SQL 应将基础过滤、join、指标聚合拆开。 |
+| [knowledge/sql_patterns/dashboard_design_change_workflow.md](../sql_patterns/dashboard_design_change_workflow.md) | 1. 域与证据门禁 | - 任一 contract 为 `pending_confirmation`、别名歧义、来源哈希漂移、字段无法反查或 profile 域不明时，只允许画像和 diff，禁止形成可 apply 的变更计划。 |
+| [knowledge/sql_patterns/dashboard_design_change_workflow.md](../sql_patterns/dashboard_design_change_workflow.md) | 2. 正向链路 | - `query_plan_sha256`、`dataset_spec_sha256` 和 `profile_sha256`；后续按 `design_sha256 -> change_plan_sha256 -> apply_receipt_sha256 -> publish_receipt_sha256` 逐级绑定，任一前序 hash 漂移都必须重新规划。 |
+| [knowledge/sql_patterns/dashboard_design_change_workflow.md](../sql_patterns/dashboard_design_change_workflow.md) | 3. P3A：全类型设计、Diff 与 Dry-run | P3A 不调用写接口。Dry-run 必须基于最新 profile，输出 before/after、风险、阻断项和拟议 payload；profile hash 漂移时重新画像并重新 diff。 |
+| [knowledge/sql_patterns/dashboard_design_change_workflow.md](../sql_patterns/dashboard_design_change_workflow.md) | 4. P3B：当前 Apply 白名单 | 当前唯一允许交给 operator Apply 的变更是： |
+| [knowledge/sql_patterns/dashboard_design_change_workflow.md](../sql_patterns/dashboard_design_change_workflow.md) | 5. 反向链路 | - 反向解析必须产出唯一青橙 contract ID；无法唯一映射时保留 `unknown/ambiguous`，不得根据字段显示名猜测。 |
 | [knowledge/sql_patterns/dashboard_query_patterns.md](../sql_patterns/dashboard_query_patterns.md) | 2. 青橙范围先行 | 事实主表层优先加青橙范围限定，再做指标计算。不得先计算全量再在外层按青橙过滤，除非历史 SQL 已明确如此设计且不会改变口径。 |
 | [knowledge/sql_patterns/dashboard_query_patterns.md](../sql_patterns/dashboard_query_patterns.md) | 3. 临时表 join | - join key 是否会产生一对多放大。 |
 | [knowledge/sql_patterns/dashboard_query_patterns.md](../sql_patterns/dashboard_query_patterns.md) | 4. 指标粒度 | - 如果两者不一致，前端如何聚合，是否需要 `*_once` 防重复字段。 |
