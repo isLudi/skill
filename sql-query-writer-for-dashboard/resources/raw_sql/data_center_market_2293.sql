@@ -1,21 +1,35 @@
--- 2026-07-09 hotfix: map business dates 2026-07-14..2026-07-18 to qici 20260716.
--- Dataset: 2293 operation personal data
-with data_pre as (
+with biz_qici_calendar as (
+    select *
+    from (
+        values
+            ('market_consultant', 'lead_period', '20260716期', date '2026-07-14', date '2026-07-18', 1),
+            ('market_consultant', 'class_period', '20260716期', date '2026-07-14', date '2026-07-18', 1),
+            ('market_consultant', 'lead_period', '20260722期', date '2026-07-20', date '2026-07-24', 1),
+            ('market_consultant', 'class_period', '20260722期', date '2026-07-20', date '2026-07-24', 1),
+            ('market_consultant', 'lead_period', '20260728期', date '2026-07-26', date '2026-07-30', 1),
+            ('market_consultant', 'class_period', '20260728期', date '2026-07-26', date '2026-07-30', 1),
+            ('market_consultant', 'lead_period', '20260803期', date '2026-08-01', date '2026-08-05', 1),
+            ('market_consultant', 'class_period', '20260803期', date '2026-08-01', date '2026-08-05', 1),
+            ('market_consultant', 'lead_period', '20260809期', date '2026-08-07', date '2026-08-11', 1),
+            ('market_consultant', 'class_period', '20260809期', date '2026-08-07', date '2026-08-11', 1)
+    ) as t(business_domain, date_role, qici, period_start_date, period_end_date, enabled)
+),
+data_pre as (
     select distinct
-        case
-            when cast(date_parse(replace(concat(t1.group_period_year, t1.group_period_term), '期', ''), '%Y%m%d') as date) between date '2026-07-14' and date '2026-07-18' then '20260716期'
-            else concat(
-            date_format(
-                date_trunc(
-                    'week',
-                    date_parse(replace(concat(t1.group_period_year, t1.group_period_term), '期', ''), '%Y%m%d')
-                      - interval '1' day
-                ) + interval '4' day,
-                '%Y%m%d'
-            ),
-            '期'
-        )
-        end as period_name,
+        coalesce(
+            lead_cal.qici,
+            concat(
+                date_format(
+                    date_trunc(
+                        'week',
+                        date_parse(replace(concat(t1.group_period_year, t1.group_period_term), '期', ''), '%Y%m%d')
+                          - interval '1' day
+                    ) + interval '4' day,
+                    '%Y%m%d'
+                ),
+                '期'
+            )
+        ) as period_name,
         t1.virtual_third_department_name as depart_1,
         t1.virtual_fourth_department_name as depart,
         t1.virtual_leader_email_name as jingli,
@@ -89,6 +103,12 @@ end as grade_1,
         coalesce(case when t1.intention_level in ('A', 'B') and t.jieduan in ('深沟','已双沟') then 1 else 0 end, 0) as AB_intention_level,
         coalesce(case when t1.intention_level in ('A', 'B') and t1.conversion_lead_count = 1 then 1 else 0 end, 0) as AB_zhuanhua
     from bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df t1
+    left join biz_qici_calendar lead_cal
+      on lead_cal.business_domain = 'market_consultant'
+     and lead_cal.date_role = 'lead_period'
+     and cast(date_parse(replace(concat(t1.group_period_year, t1.group_period_term), '期', ''), '%Y%m%d') as date)
+         between lead_cal.period_start_date and lead_cal.period_end_date
+     and lead_cal.enabled = 1
     left join (
         select
             user_number,
@@ -451,33 +471,41 @@ and third_level_department_name = '市场顾问部') b  on a.account_id = b.acco
         ) t1
         left join (
             select 
-                user_number,
-                begin_time,
-                substr(begin_time, 12, 5) as ke_time,
-case 
-	when cast(begin_time as date) between date '2026-07-14' and date '2026-07-18' then '20260716期'
-	when cast(begin_time as date) >= date '2026-02-25' and cast(begin_time as date) <= date '2026-03-02' then '20260227期'
-	when cast(begin_time as date) >= date '2026-02-17' and cast(begin_time as date) <= date '2026-02-24' then '20260220期'		
-	when cast(begin_time as date) >= date '2026-02-09' and cast(begin_time as date) <= date '2026-02-16' then '20260213期'
-	when cast(begin_time as date) >= date '2026-02-03' and cast(begin_time as date) <= date '2026-02-08' then '20260206期'
+                tlearn.user_number,
+                tlearn.begin_time,
+                substr(tlearn.begin_time, 12, 5) as ke_time,
+coalesce(
+    class_cal.qici,
+    case
+	when cast(tlearn.begin_time as date) >= date '2026-02-25' and cast(tlearn.begin_time as date) <= date '2026-03-02' then '20260227期'
+	when cast(tlearn.begin_time as date) >= date '2026-02-17' and cast(tlearn.begin_time as date) <= date '2026-02-24' then '20260220期'
+	when cast(tlearn.begin_time as date) >= date '2026-02-09' and cast(tlearn.begin_time as date) <= date '2026-02-16' then '20260213期'
+	when cast(tlearn.begin_time as date) >= date '2026-02-03' and cast(tlearn.begin_time as date) <= date '2026-02-08' then '20260206期'
     -- 对于其他日期，使用原有的周逻辑
     else 
         case 
-            when day_of_week(cast(begin_time as date)) = 2 
-                then date_format(date_trunc('week', cast(begin_time as date)) - interval '3' day, '%Y%m%d') || '期'
-            else date_format(date_trunc('week', cast(begin_time as date)) + interval '4' day, '%Y%m%d') || '期'
+            when day_of_week(cast(tlearn.begin_time as date)) = 2
+                then date_format(date_trunc('week', cast(tlearn.begin_time as date)) - interval '3' day, '%Y%m%d') || '期'
+            else date_format(date_trunc('week', cast(tlearn.begin_time as date)) + interval '4' day, '%Y%m%d') || '期'
         end
-end as qici,
-                mod(date_diff('day', cast('2021-02-01' as date), cast(begin_time as date)), 7) as dow,
-                is_need_attend,
-                live_learn_duration,
-                is_valid_live_learn
-            from service_dw.dws_service_user_learn_detail_hf  
-            where dt = date_format(now() - interval '2' hour, '%Y%m%d') 
-                and hour = date_format(now() - interval '3' hour, '%H')
-                and course_first_level_department_name = 'H业务线'
-                and course_second_level_department_name in ('精品班学部','市场部','青橙项目部')
-                and is_need_attend = 1
+    end
+) as qici,
+                mod(date_diff('day', cast('2021-02-01' as date), cast(tlearn.begin_time as date)), 7) as dow,
+                tlearn.is_need_attend,
+                tlearn.live_learn_duration,
+                tlearn.is_valid_live_learn
+            from service_dw.dws_service_user_learn_detail_hf
+              tlearn
+            left join biz_qici_calendar class_cal
+              on class_cal.business_domain = 'market_consultant'
+             and class_cal.date_role = 'class_period'
+             and cast(tlearn.begin_time as date) between class_cal.period_start_date and class_cal.period_end_date
+             and class_cal.enabled = 1
+            where tlearn.dt = date_format(now() - interval '2' hour, '%Y%m%d')
+                and tlearn.hour = date_format(now() - interval '3' hour, '%H')
+                and tlearn.course_first_level_department_name = 'H业务线'
+                and tlearn.course_second_level_department_name in ('精品班学部','市场部','青橙项目部')
+                and tlearn.is_need_attend = 1
         ) t2 on t1.period_name = t2.qici and t1.user_id = t2.user_number) dk
 	left join temp_table.dingxi01_daoke_1_6_t ke on dk.period_name = ke.qici and dk.channel_map = ke.channel and dk.grade_1 = ke.grade and dk.begin_time = ke.begin_time)
 -----------------------整合 
@@ -792,6 +820,18 @@ final_result_enriched as (
         frh.jingli,
         frh.zhuguan,
         frh.employee_email_name,
+        case
+            when coalesce(frh.lead_count, 0) > 0
+              or coalesce(frh.can_renew_ds_count_a, 0) > 0
+            then frh.employee_email_name
+            else null
+        end as current_take_employee_email_name,
+        case
+            when coalesce(frh.lead_count, 0) > 0
+              or coalesce(frh.can_renew_ds_count_a, 0) > 0
+            then 1
+            else 0
+        end as current_take_headcount_row,
         frh.lead_count,
         frh.can_renew_ds_count_a,
         frh.friend_lead,
