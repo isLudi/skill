@@ -29,7 +29,9 @@ from .commands.doctor import cmd_doctor
 from .commands.fetch_market_template_sql import cmd_fetch_market_template_sql
 from .commands.fetch_template_sql import cmd_fetch_template_sql
 from .commands.login import cmd_login
+from .commands.apply_data_center_dataset_creation import cmd_apply_data_center_dataset_creation
 from .commands.apply_data_center_sql_replacement import cmd_apply_data_center_sql_replacement
+from .commands.plan_data_center_dataset_creation import cmd_plan_data_center_dataset_creation
 from .commands.plan_data_center_sql_replacement import cmd_plan_data_center_sql_replacement
 from .commands.run import cmd_run
 from .commands.sync_data_center_sql import cmd_sync_data_center_sql
@@ -38,6 +40,7 @@ from .commands.template_download import cmd_template_download
 from .commands.upload_temp_table import cmd_upload_temp_table
 from .config import DEFAULT_QUERY_ENGINE
 from .data_center import DEFAULT_MARKET_START_DATASET
+from .data_center_creation import DEFAULT_DATA_SOURCE_ID, DEFAULT_DATA_SOURCE_NAME
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -210,6 +213,129 @@ def build_parser() -> argparse.ArgumentParser:
     apply_data_center_replacement.add_argument("--executable-path", default=None, help="Explicit browser executable path; overrides --browser-channel.")
     apply_data_center_replacement.add_argument("--debug-artifacts", action="store_true", help="Capture a failure screenshot under the receipt path.")
     apply_data_center_replacement.set_defaults(func=cmd_apply_data_center_sql_replacement)
+
+    plan_data_center_creation = subparsers.add_parser(
+        "plan-data-center-dataset-creation",
+        help="Read a target folder and create a hash-bound Data Center dataset creation plan.",
+    )
+    plan_data_center_creation.add_argument(
+        "--domain",
+        choices=["market", "qingcheng"],
+        required=True,
+        help="Department boundary used to resolve the folder identity.",
+    )
+    creation_folder = plan_data_center_creation.add_mutually_exclusive_group(required=True)
+    creation_folder.add_argument(
+        "--folder-path",
+        help="Exact full path or unique domain-local suffix of the target folder.",
+    )
+    creation_folder.add_argument("--folder-id", help="Exact menu_set_* folder identity.")
+    plan_data_center_creation.add_argument(
+        "--dataset-name",
+        required=True,
+        help="New dataset name; must be unique in the target folder.",
+    )
+    plan_data_center_creation.add_argument(
+        "--sql-file",
+        type=Path,
+        required=True,
+        help="UTF-8 without BOM concrete SQL file.",
+    )
+    plan_data_center_creation.add_argument(
+        "--data-source-name",
+        default=DEFAULT_DATA_SOURCE_NAME,
+        help="Exact visible Data Center data source name.",
+    )
+    plan_data_center_creation.add_argument(
+        "--data-source-id",
+        default=DEFAULT_DATA_SOURCE_ID,
+        help="Exact Data Center data source identity bound into the plan.",
+    )
+    plan_data_center_creation.add_argument(
+        "--schedule-start",
+        default=None,
+        help="Schedule start date YYYY-MM-DD; defaults to today.",
+    )
+    plan_data_center_creation.add_argument(
+        "--schedule-end",
+        default=None,
+        help="Schedule end date YYYY-MM-DD; defaults to start + 90 days.",
+    )
+    plan_data_center_creation.add_argument(
+        "--schedule-hour",
+        action="append",
+        help="Hourly execution time such as 0:00. Repeatable; defaults to all 24 hours.",
+    )
+    plan_data_center_creation.add_argument(
+        "--output-file",
+        type=Path,
+        default=None,
+        help="Exact plan artifact path. Defaults to the Data Center runtime directory.",
+    )
+    plan_data_center_creation.add_argument("--state-path", type=Path, default=DEFAULT_STATE)
+    plan_data_center_creation.add_argument(
+        "--artifacts-dir",
+        type=Path,
+        default=DATA_CENTER_RUNTIME_DIR / "creation",
+    )
+    plan_data_center_creation.add_argument("--env-file", type=Path, default=DEFAULT_ENV_FILE)
+    plan_data_center_creation.add_argument("--username", default=os.environ.get("BAIJIA_USERNAME"))
+    plan_data_center_creation.add_argument("--password", default=os.environ.get("BAIJIA_PASSWORD"))
+    plan_data_center_creation.add_argument("--headed", action="store_true")
+    plan_data_center_creation.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL)
+    plan_data_center_creation.add_argument("--executable-path", default=None)
+    plan_data_center_creation.set_defaults(func=cmd_plan_data_center_dataset_creation)
+
+    apply_data_center_creation = subparsers.add_parser(
+        "apply-data-center-dataset-creation",
+        help="Create one reviewed dataset, save it, trigger extraction, and verify SUCCESS.",
+    )
+    apply_data_center_creation.add_argument(
+        "--plan-file",
+        type=Path,
+        required=True,
+        help="Reviewed Data Center creation plan artifact.",
+    )
+    apply_data_center_creation.add_argument(
+        "--expected-plan-sha256",
+        required=True,
+        help="Exact plan hash shown by the read-only planning command.",
+    )
+    apply_data_center_creation.add_argument(
+        "--confirm-production-write",
+        action="store_true",
+        help="Explicitly authorize the remote creation and extraction chain.",
+    )
+    apply_data_center_creation.add_argument(
+        "--preview-timeout-ms",
+        type=int,
+        default=10 * 60 * 1000,
+    )
+    apply_data_center_creation.add_argument(
+        "--refresh-timeout-ms",
+        type=int,
+        default=20 * 60 * 1000,
+    )
+    apply_data_center_creation.add_argument(
+        "--poll-interval-ms",
+        type=int,
+        default=3000,
+    )
+    apply_data_center_creation.add_argument("--output-file", type=Path, default=None)
+    apply_data_center_creation.add_argument("--state-path", type=Path, default=DEFAULT_STATE)
+    apply_data_center_creation.add_argument(
+        "--artifacts-dir",
+        type=Path,
+        default=DATA_CENTER_RUNTIME_DIR / "creation",
+    )
+    apply_data_center_creation.add_argument("--env-file", type=Path, default=DEFAULT_ENV_FILE)
+    apply_data_center_creation.add_argument("--username", default=os.environ.get("BAIJIA_USERNAME"))
+    apply_data_center_creation.add_argument("--password", default=os.environ.get("BAIJIA_PASSWORD"))
+    apply_data_center_creation.add_argument("--headed", action="store_true")
+    apply_data_center_creation.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL)
+    apply_data_center_creation.add_argument("--executable-path", default=None)
+    apply_data_center_creation.add_argument("--debug-artifacts", action="store_true")
+    apply_data_center_creation.set_defaults(func=cmd_apply_data_center_dataset_creation)
 
     fetch_template = subparsers.add_parser(
         "fetch-template-sql",

@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import base64
-import json
 import re
 import time
 from datetime import datetime
@@ -12,20 +10,26 @@ from typing import Any
 from _shared.config import DATA_CENTER_DATASET_URL
 from _shared.errors import UsageError
 
-from .data_center import (
-    DataCenterClient,
-    DataCenterScheduleRun,
-    select_dataset_for_replacement,
-)
+from .data_center import DataCenterClient, select_dataset_for_replacement
 from .data_center_replacement import (
     DataCenterSqlReplacementPlan,
     canonical_sql_text,
     sql_sha256,
 )
-
-
-SUCCESS_STATUSES = {"SUCCESS"}
-FAILURE_STATUSES = {"FAIL", "FAILED", "ERROR", "CANCELLED", "CANCELED"}
+from .data_center_ui import (
+    click_optional_save_confirmation as _click_optional_save_confirmation,
+    compact_api_response as _compact_api_response,
+    elapsed_ms as _elapsed_ms,
+    get_codemirror_sql as _get_codemirror_sql,
+    matches_schedule_trigger as _matches_schedule_trigger,
+    matches_sql_response as _matches_sql_response,
+    poll_for_new_success,
+    preview_summary as _preview_summary,
+    require_success_response as _require_success_response,
+    set_codemirror_sql as _set_codemirror_sql,
+    visible_save_debug as _visible_save_debug,
+    wait_for_editor_sql_hash as _wait_for_editor_sql_hash,
+)
 
 
 class DataCenterReplacementExecutor:
@@ -241,185 +245,14 @@ class DataCenterReplacementExecutor:
         if current_task_id != expected_task_id:
             raise UsageError("Data Center schedule taskId drifted from the reviewed plan")
 
-    def _poll_for_new_success(
-        self,
-        schedule_task_id: str,
-        baseline_ids: set[str],
-    ) -> DataCenterScheduleRun:
-        deadline = time.monotonic() + self.refresh_timeout_ms / 1000
-        last_run: DataCenterScheduleRun | None = None
-        while time.monotonic() < deadline:
-            runs = self.client.fetch_schedule_runs(schedule_task_id)
-            new_run = next((run for run in runs if run.id and run.id not in baseline_ids), None)
-            if new_run is not None:
-                last_run = new_run
-                if new_run.status in SUCCESS_STATUSES:
-                    return new_run
-                if new_run.status in FAILURE_STATUSES:
-                    raise UsageError(
-                        "Data Center synchronization failed: "
-                        + json.dumps(new_run.to_json(), ensure_ascii=False)
-                    )
-            self.page.wait_for_timeout(self.poll_interval_ms)
-        suffix = (
-            json.dumps(last_run.to_json(), ensure_ascii=False)
-            if last_run is not None
-            else "no new execution record"
+    def _poll_for_new_success(self, schedule_task_id: str, baseline_ids: set[str]) -> Any:
+        """Backward-compatible wrapper around the shared synchronization poller."""
+
+        return poll_for_new_success(
+            page=self.page,
+            client=self.client,
+            schedule_task_id=schedule_task_id,
+            baseline_ids=baseline_ids,
+            timeout_ms=self.refresh_timeout_ms,
+            poll_interval_ms=self.poll_interval_ms,
         )
-        raise UsageError(f"Data Center synchronization timed out: {suffix}")
-
-
-def _get_codemirror_sql(editor: Any) -> str:
-    value = editor.evaluate("el => el.CodeMirror && el.CodeMirror.getValue()")
-    if not isinstance(value, str):
-        raise UsageError("Data Center CodeMirror value is unavailable")
-    return canonical_sql_text(value)
-
-
-def _wait_for_editor_sql_hash(
-    *,
-    page: Any,
-    editor: Any,
-    expected_sha256: str,
-    timeout_ms: int,
-) -> str:
-    """Wait for the asynchronously populated editor without weakening drift checks."""
-
-    deadline = time.monotonic() + timeout_ms / 1000
-    latest = _get_codemirror_sql(editor)
-    while time.monotonic() < deadline:
-        latest = _get_codemirror_sql(editor)
-        if sql_sha256(latest) == expected_sha256:
-            return latest
-        page.wait_for_timeout(250)
-    return latest
-
-
-def _set_codemirror_sql(editor: Any, sql: str) -> None:
-    encoded = base64.b64encode(sql.encode("utf-8")).decode("ascii")
-    changed = editor.evaluate(
-        """(el, sqlB64) => {
-            if (!el.CodeMirror) return false;
-            const bytes = Uint8Array.from(atob(sqlB64), ch => ch.charCodeAt(0));
-            const sql = new TextDecoder('utf-8').decode(bytes);
-            el.CodeMirror.setValue(sql);
-            el.CodeMirror.execCommand('selectAll');
-            return true;
-        }""",
-        encoded,
-    )
-    if not changed:
-        raise UsageError("Data Center CodeMirror replacement failed")
-
-
-def _click_optional_save_confirmation(page: Any) -> bool:
-    """Confirm the dependency-impact modal shown by some shared datasets."""
-
-    dialog = page.locator('.ant-modal:visible, [role="dialog"]:visible').last
-    try:
-        dialog.wait_for(state="visible", timeout=3_000)
-    except Exception:
-        return False
-
-    confirm = dialog.locator("button").filter(
-        has_text=re.compile(r"^\s*(?:确\s*认|确\s*定)\s*$")
-    ).last
-    if confirm.count() == 0:
-        return False
-    confirm.wait_for(state="visible", timeout=3_000)
-    confirm.click()
-    return True
-
-
-def _visible_save_debug(page: Any) -> dict[str, Any]:
-    """Capture bounded UI labels without persisting editor SQL or page HTML."""
-
-    try:
-        dialogs = page.locator('.ant-modal:visible, [role="dialog"]:visible').all_inner_texts()
-    except Exception:
-        dialogs = []
-    try:
-        buttons = page.locator("button:visible").all_inner_texts()
-    except Exception:
-        buttons = []
-    return {
-        "dialogs": [text.strip()[:500] for text in dialogs[:5]],
-        "buttons": [text.strip()[:100] for text in buttons[:30]],
-    }
-
-
-def _matches_sql_response(
-    response: Any,
-    *,
-    endpoint: str,
-    expected_sql_sha256: str,
-    expected_dataset_id: str | None = None,
-) -> bool:
-    if not response.url.endswith(endpoint):
-        return False
-    payload = _request_payload(response.request)
-    sql = payload.get("executeSql")
-    if not isinstance(sql, str) or sql_sha256(sql) != expected_sql_sha256:
-        return False
-    if expected_dataset_id is not None and str(payload.get("id") or "") != expected_dataset_id:
-        return False
-    return True
-
-
-def _matches_schedule_trigger(response: Any, schedule_task_id: str) -> bool:
-    if not response.url.endswith("/data/set/schedules/executeOnce"):
-        return False
-    payload = _request_payload(response.request)
-    return str(payload.get("id") or "") == schedule_task_id
-
-
-def _request_payload(request: Any) -> dict[str, Any]:
-    raw = request.post_data
-    if not raw:
-        return {}
-    try:
-        payload = json.loads(raw)
-    except json.JSONDecodeError:
-        return {}
-    return payload if isinstance(payload, dict) else {}
-
-
-def _require_success_response(response: Any, *, phase: str) -> dict[str, Any]:
-    if not response.ok:
-        raise UsageError(f"Data Center {phase} failed with HTTP {response.status}")
-    try:
-        payload = response.json()
-    except Exception as exc:
-        raise UsageError(f"Data Center {phase} returned non-JSON content") from exc
-    if not isinstance(payload, dict):
-        raise UsageError(f"Data Center {phase} response is not an object")
-    if payload.get("status") not in (None, "success") or payload.get("errorCode") not in (None, 0):
-        raise UsageError(
-            f"Data Center {phase} failed: "
-            + json.dumps(_compact_api_response(payload), ensure_ascii=False)
-        )
-    return payload
-
-
-def _preview_summary(payload: dict[str, Any]) -> dict[str, Any]:
-    result = ((payload.get("data") or {}).get("result") or {})
-    return {
-        "status": payload.get("status"),
-        "errorCode": payload.get("errorCode"),
-        "taskId": result.get("taskId"),
-        "metaCount": len(result.get("meta") or []),
-        "rowCount": len(result.get("data") or []),
-    }
-
-
-def _compact_api_response(payload: dict[str, Any]) -> dict[str, Any]:
-    data = payload.get("data")
-    return {
-        "status": payload.get("status"),
-        "errorCode": payload.get("errorCode"),
-        "data": data if isinstance(data, (str, int, float, bool, type(None))) else None,
-    }
-
-
-def _elapsed_ms(started: float) -> int:
-    return round((time.perf_counter() - started) * 1000)

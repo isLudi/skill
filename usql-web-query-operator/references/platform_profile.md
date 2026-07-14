@@ -177,6 +177,17 @@ iframe 编辑器工具栏中的运行按钮回退方案：
 - 数据集菜单：POST `https://uanalysis.baijia.com/uanalysis-intelligence/data/menu/manage`，body 为 `{"menuType":"DATA_SET"}`
 - 数据集详情：POST `https://uanalysis.baijia.com/uanalysis-intelligence/data/set/detail`，body 为 `{"id":"menu_set_<id>"}`。必须使用菜单节点 ID，不是 `fileValue` 或 `subjectId`。
 - 详情响应中的 `executeSql` 是数据中心编辑页左下角 SQL 语句的完整源 SQL；`dataSourceId`、`subjectId`、`openExternal` 等字段可作为数据集元数据记录。
+
+## 数据中心新建数据集页面与请求
+
+2026-07-14 已在 `青橙项目部` 文件夹完成无保存采证，并完成一次生产验收：
+
+- 文件夹菜单“新建数据集”只打开草稿页，不立即创建远端对象；路由为 `/data-center/edit-data-set?parentId=<menu_set_folder_id>`。
+- 草稿保存接口为 `POST /uanalysis-data/data/set/saveAndUpdate`。新建 payload 必须满足 `id=null`，并携带 `parentId`、`name`、`menuType=DATA_SET`、`dataSourceId`、完整 `executeSql`、预览生成的 `dataParamList` 和 `schedule`。
+- 当前默认数据源 `PRESTO数据源（DORIS加速）` 的已验证身份为 `menu_source_817034371567951872`；Plan 同时绑定显示名与身份，预览/保存请求必须与两者一致。
+- 同步日期组件允许从当天开始，范围不得超过 90 天；小时级 `timeUnit=1`，每小时一次必须显式选择 `0:00` 到 `23:00` 共 24 项。
+- 保存响应的 `data` 返回新 `menu_set_*` 身份。完成标准不是保存，而是详情 API 回读名称/目录/SQL/数据源/同步配置一致，随后 `executeOnce` 成功并出现新的 `SUCCESS` 同步记录。
+- 已验证创建数据集 `Codex自动建数验收_20260714_222621`（`menu_set_3989072902490079232`）：预览 2 字段/1 行；新同步记录 `158879234` 于 `2026-07-14 22:28:10` 完成，状态 `SUCCESS`，执行耗时 3 秒。
 - 打开 `https://uanalysis.baijia.com/data-center/data-set?selectId=<menu_set_id>` 可以在 UI 中选中指定数据集，但脚本同步源 SQL 时优先使用详情接口，避免触发数据预览执行。
 
 2026-07-14 生产替换链路采证：

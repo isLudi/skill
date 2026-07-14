@@ -14,6 +14,7 @@ from _shared.errors import UsageError
 
 DATASET_MENU_TYPE = "DATA_SET"
 DATASET_SQL_FILE_TYPE = "DATA_SET_SQL"
+DATASET_FOLDER_FILE_TYPE = "DATA_SET_MENU_GENERAL"
 DEFAULT_MARKET_START_DATASET = "(内部渠道)外呼过程数据"
 
 
@@ -49,6 +50,36 @@ class DataCenterDataset:
             "parentId": self.parent_id,
             "owner": self.owner,
             "createTime": self.create_time,
+            "path": self.path_text,
+        }
+
+
+@dataclass(frozen=True)
+class DataCenterFolder:
+    """A folder node from the Data Center menu tree."""
+
+    id: str
+    key: str
+    name: str
+    file_value: str
+    subject_id: str
+    parent_id: str
+    owner: str
+    path: tuple[str, ...]
+
+    @property
+    def path_text(self) -> str:
+        return "/".join(self.path)
+
+    def to_json(self) -> dict[str, Any]:
+        return {
+            "id": self.id,
+            "key": self.key,
+            "name": self.name,
+            "fileValue": self.file_value,
+            "subjectId": self.subject_id,
+            "parentId": self.parent_id,
+            "owner": self.owner,
             "path": self.path_text,
         }
 
@@ -139,6 +170,10 @@ class DataCenterClient:
         menu = self.fetch_menu()
         return list(iter_sql_datasets(menu))
 
+    def discover_folders(self) -> list[DataCenterFolder]:
+        menu = self.fetch_menu()
+        return list(iter_dataset_folders(menu))
+
     def fetch_dataset_sql(self, dataset: DataCenterDataset) -> DataCenterDatasetSql:
         payload = self.post_json("set/detail", {"id": dataset.id})
         detail = payload.get("data") or {}
@@ -208,6 +243,18 @@ def iter_sql_datasets(menu_payload: dict[str, Any]) -> Iterable[DataCenterDatase
                 continue
             seen.add(dataset.id)
             yield dataset
+
+
+def iter_dataset_folders(menu_payload: dict[str, Any]) -> Iterable[DataCenterFolder]:
+    """Yield stable folder identities from a Data Center menu/manage payload."""
+
+    seen: set[str] = set()
+    for root in _menu_roots(menu_payload):
+        for folder in _walk_folder_node(root, ()):
+            if folder.id in seen:
+                continue
+            seen.add(folder.id)
+            yield folder
 
 
 def select_qingcheng_datasets(datasets: Iterable[DataCenterDataset]) -> list[DataCenterDataset]:
@@ -296,6 +343,52 @@ def select_dataset_for_replacement(
     return matches[0]
 
 
+def select_folder_for_creation(
+    folders: Iterable[DataCenterFolder],
+    *,
+    domain: str,
+    folder_path: str | None = None,
+    folder_id: str | None = None,
+) -> DataCenterFolder:
+    """Resolve one exact folder inside a department boundary."""
+
+    if bool(folder_path) == bool(folder_id):
+        raise UsageError("provide exactly one of folder_path or folder_id")
+    if domain == "market":
+        boundary = ("市场顾问部", "市场顾问部")
+    elif domain == "qingcheng":
+        boundary = ("市场顾问部", "青橙项目部")
+    else:
+        raise UsageError(f"unsupported Data Center creation domain: {domain}")
+    candidates = [
+        item
+        for item in folders
+        if _path_contains(item.path, boundary)
+    ]
+    if folder_id:
+        matches = [item for item in candidates if item.id == folder_id]
+        label = folder_id
+    else:
+        requested = tuple(
+            part.strip()
+            for part in str(folder_path).replace("\\", "/").split("/")
+            if part.strip()
+        )
+        matches = [
+            item
+            for item in candidates
+            if item.path == requested
+            or (len(item.path) >= len(requested) and item.path[-len(requested) :] == requested)
+        ]
+        label = str(folder_path)
+    if not matches:
+        raise UsageError(f"Data Center creation folder was not found in {domain}: {label}")
+    if len(matches) > 1:
+        identities = ", ".join(f"{item.id} ({item.path_text})" for item in matches)
+        raise UsageError(f"Data Center creation folder is ambiguous: {label}: {identities}")
+    return matches[0]
+
+
 def _is_login_url(url: str) -> bool:
     return "cas.baijia.com" in url or "login" in url.lower()
 
@@ -344,14 +437,53 @@ def _walk_menu_node(node: dict[str, Any], parent_path: tuple[str, ...]) -> Itera
                 yield from _walk_menu_node(child, current_path)
 
 
+def _walk_folder_node(
+    node: dict[str, Any],
+    parent_path: tuple[str, ...],
+) -> Iterable[DataCenterFolder]:
+    name = _clean_text(node.get("name") or node.get("title") or node.get("label"))
+    current_path = (*parent_path, name) if name else parent_path
+    folder_id = _clean_text(node.get("id") or node.get("key"))
+    if folder_id and _is_dataset_folder_node(node):
+        yield DataCenterFolder(
+            id=folder_id,
+            key=_clean_text(node.get("key")),
+            name=name or folder_id,
+            file_value=_clean_text(node.get("fileValue")),
+            subject_id=_clean_text(node.get("subjectId")),
+            parent_id=_clean_text(node.get("parentId")),
+            owner=_clean_text(node.get("owner") or node.get("ownerName") or node.get("creator")),
+            path=current_path,
+        )
+    children = node.get("children") or node.get("childList") or []
+    if isinstance(children, list):
+        for child in children:
+            if isinstance(child, dict):
+                yield from _walk_folder_node(child, current_path)
+
+
 def _is_sql_dataset_node(node: dict[str, Any]) -> bool:
     file_type = _clean_text(node.get("fileType") or node.get("type"))
     return str(node.get("isFile")) == "1" and file_type == DATASET_SQL_FILE_TYPE
 
 
+def _is_dataset_folder_node(node: dict[str, Any]) -> bool:
+    file_type = _clean_text(node.get("fileType") or node.get("type"))
+    return str(node.get("isFile")) != "1" and file_type == DATASET_FOLDER_FILE_TYPE
+
+
 def _parent_endswith(dataset: DataCenterDataset, suffix: tuple[str, ...]) -> bool:
     parent = dataset.parent_path
     return len(parent) >= len(suffix) and parent[-len(suffix) :] == suffix
+
+
+def _path_contains(path: tuple[str, ...], segment: tuple[str, ...]) -> bool:
+    if len(path) < len(segment):
+        return False
+    return any(
+        path[index : index + len(segment)] == segment
+        for index in range(len(path) - len(segment) + 1)
+    )
 
 
 def _clean_text(value: Any) -> str:
