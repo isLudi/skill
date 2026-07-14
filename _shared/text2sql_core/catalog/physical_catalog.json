@@ -26334,13 +26334,19 @@
       "id": "physical:service_dw.dwd_crm_assign_private_detail_hf",
       "name": "service_dw.dwd_crm_assign_private_detail_hf",
       "domains": [
-        "market_consultant"
+        "market_consultant",
+        "qingcheng"
       ],
       "source_docs": [
         {
           "domain": "market_consultant",
           "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md",
           "sha256": "837d9824b595fe81e23e324d4b428b6d76dc94ae87dac195ae3a1f9fce30c280"
+        },
+        {
+          "domain": "qingcheng",
+          "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md",
+          "sha256": "7faa37266fad728997bc2db5a8c7968336c574da888a736da1c91362ab625190"
         }
       ],
       "columns": [
@@ -26354,6 +26360,11 @@
               "domain": "market_consultant",
               "type": "int",
               "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "int",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
             }
           ]
         },
@@ -26367,6 +26378,11 @@
               "domain": "market_consultant",
               "type": "string",
               "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
             }
           ]
         },
@@ -26380,6 +26396,11 @@
               "domain": "market_consultant",
               "type": "string",
               "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
             }
           ]
         },
@@ -26393,6 +26414,11 @@
               "domain": "market_consultant",
               "type": "string",
               "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
             }
           ]
         },
@@ -26406,6 +26432,11 @@
               "domain": "market_consultant",
               "type": "string",
               "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
             }
           ]
         },
@@ -26419,6 +26450,11 @@
               "domain": "market_consultant",
               "type": "string",
               "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
             }
           ]
         },
@@ -26432,6 +26468,11 @@
               "domain": "market_consultant",
               "type": "string",
               "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
             }
           ]
         },
@@ -26445,6 +26486,11 @@
               "domain": "market_consultant",
               "type": "string",
               "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
             }
           ]
         },
@@ -26458,6 +26504,11 @@
               "domain": "market_consultant",
               "type": "string",
               "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
             }
           ]
         },
@@ -26471,6 +26522,11 @@
               "domain": "market_consultant",
               "type": "string",
               "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
             }
           ]
         },
@@ -26484,6 +26540,11 @@
               "domain": "market_consultant",
               "type": "string",
               "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
             }
           ]
         },
@@ -26510,6 +26571,11 @@
               "domain": "market_consultant",
               "type": "int",
               "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "int",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
             }
           ]
         },
@@ -26523,6 +26589,11 @@
               "domain": "market_consultant",
               "type": "bigint",
               "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
             }
           ]
         },
@@ -26536,6 +26607,11 @@
               "domain": "market_consultant",
               "type": "string",
               "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
             }
           ]
         },
@@ -26562,6 +26638,11 @@
               "domain": "market_consultant",
               "type": "bigint",
               "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
             }
           ]
         },
@@ -26575,6 +26656,11 @@
               "domain": "market_consultant",
               "type": "string",
               "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
             }
           ]
         },
@@ -26588,6 +26674,11 @@
               "domain": "market_consultant",
               "type": "string",
               "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
             }
           ]
         },
@@ -26627,6 +26718,11 @@
               "domain": "market_consultant",
               "type": "int",
               "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "int",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
             }
           ]
         },
@@ -26640,6 +26736,11 @@
               "domain": "market_consultant",
               "type": "string",
               "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
             }
           ]
         },
@@ -26653,6 +26754,11 @@
               "domain": "market_consultant",
               "type": "string",
               "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
             }
           ]
         },
@@ -26666,6 +26772,11 @@
               "domain": "market_consultant",
               "type": "int",
               "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "int",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
             }
           ]
         },
@@ -26679,6 +26790,11 @@
               "domain": "market_consultant",
               "type": "string",
               "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
             }
           ]
         },
@@ -26692,6 +26808,11 @@
               "domain": "market_consultant",
               "type": "string",
               "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
             }
           ]
         },
@@ -26718,6 +26839,11 @@
               "domain": "market_consultant",
               "type": "int",
               "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "int",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
             }
           ]
         },
@@ -26731,6 +26857,11 @@
               "domain": "market_consultant",
               "type": "string",
               "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
             }
           ]
         },
@@ -26744,6 +26875,11 @@
               "domain": "market_consultant",
               "type": "string",
               "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
             }
           ]
         },
@@ -26770,6 +26906,11 @@
               "domain": "market_consultant",
               "type": "bigint",
               "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
             }
           ]
         },
@@ -26783,6 +26924,11 @@
               "domain": "market_consultant",
               "type": "string",
               "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
             }
           ]
         },
@@ -26796,6 +26942,11 @@
               "domain": "market_consultant",
               "type": "string",
               "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
             }
           ]
         },
@@ -26809,6 +26960,11 @@
               "domain": "market_consultant",
               "type": "string",
               "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
             }
           ]
         },
@@ -26822,6 +26978,11 @@
               "domain": "market_consultant",
               "type": "int",
               "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "int",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
             }
           ]
         },
@@ -26835,6 +26996,11 @@
               "domain": "market_consultant",
               "type": "string",
               "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
             }
           ]
         },
@@ -26874,6 +27040,11 @@
               "domain": "market_consultant",
               "type": "bigint",
               "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
             }
           ]
         },
@@ -26887,6 +27058,11 @@
               "domain": "market_consultant",
               "type": "bigint",
               "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
             }
           ]
         },
@@ -26900,6 +27076,11 @@
               "domain": "market_consultant",
               "type": "int",
               "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "int",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
             }
           ]
         },
@@ -26913,6 +27094,11 @@
               "domain": "market_consultant",
               "type": "int",
               "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "int",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
             }
           ]
         },
@@ -26926,6 +27112,11 @@
               "domain": "market_consultant",
               "type": "string",
               "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
             }
           ]
         },
@@ -26939,6 +27130,11 @@
               "domain": "market_consultant",
               "type": "int",
               "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "int",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
             }
           ]
         },
@@ -26952,6 +27148,11 @@
               "domain": "market_consultant",
               "type": "string",
               "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
             }
           ]
         },
@@ -26965,6 +27166,11 @@
               "domain": "market_consultant",
               "type": "bigint",
               "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
             }
           ]
         },
@@ -26978,6 +27184,11 @@
               "domain": "market_consultant",
               "type": "string",
               "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
             }
           ]
         },
@@ -27004,6 +27215,11 @@
               "domain": "market_consultant",
               "type": "int",
               "source_path": "sql-query-writer-for-dashboard/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "int",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md"
             }
           ]
         }

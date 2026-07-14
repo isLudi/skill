@@ -10,6 +10,7 @@
 | `bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf` | 潜客转线索指标统计表 | 青橙 TMK/规划系统潜客过程数据和潜客转正常线索链路回补 | `dt` | `hour` | 数据地图和 live SQL 已确认；转移承接顾问覆盖待补充来源 | `knowledge/tables/bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf.md` |
 | `dw.dim_employee_chain` | 员工组织链维表 | 员工青橙任职起止时间 | `dt` | 无 | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/dw.dim_employee_chain.md` |
 | `service_dw.dm_crm_lead_stats_detail_hf` | 线索统计明细小时表 | 首次接通时间差 | `dt` | `hour` | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/service_dw.dm_crm_lead_stats_detail_hf.md` |
+| `service_dw.dwd_crm_assign_private_detail_hf` | CRM 线索分配私海记录小时表 | TMK 转移后首次承接、转手历史和当前私海候选 | `dt` | `hour` | 数据地图字段与 live 粒度/去重契约已确认；当前顾问仍以截面表为准 | `knowledge/tables/service_dw.dwd_crm_assign_private_detail_hf.md` |
 | `service_dw.app_h_crm_lead_employee_workload_detail_hf` | CRM 线索员工工作量明细小时表 | 外呼次数、接通、通时 | `dt` | `hour` | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/service_dw.app_h_crm_lead_employee_workload_detail_hf.md` |
 | `service_dw.dws_service_user_learn_detail_hf` | 用户学习明细小时表 | 首节到课、有效到课 | `dt` | `hour` | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/service_dw.dws_service_user_learn_detail_hf.md` |
 | `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` | CRM 订单线索归因收入退款明细小时表 | 青橙转化、收入、退款、净营收、完成度原始支付归属和 transfer 补充识别 | `dt` | `hour` | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md` |

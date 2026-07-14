@@ -61,7 +61,7 @@ class CatalogAndAstTest(unittest.TestCase):
     def test_domain_manifests_cover_every_knowledge_and_raw_sql_file(self) -> None:
         expected_baseline = {
             "market_consultant": (121, 53),
-            "qingcheng": (158, 11),
+            "qingcheng": (159, 11),
         }
         for domain, config in DOMAIN_CONFIG.items():
             skill_root = REPO_ROOT / config["skill"]

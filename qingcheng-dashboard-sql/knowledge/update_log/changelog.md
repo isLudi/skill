@@ -430,3 +430,17 @@
 - 将 2064、2460、2740 三个青橙数据中心 SQL 一次性迁移为 `data_center_qingcheng_<model_id>.sql` 稳定路径；版本日期不再进入文件名。
 - 新增 `semantic/current_model_bindings.json`，分别绑定青橙过程、转化、抖私转化三个 current model 和域内看板证据；市场顾问模型不得进入该 registry。
 - 数据中心更新改为 `dry-run plan -> exact plan hash -> atomic apply -> mandatory validation`；跨 model 替代必须同计划更新语义槽位并显式退役旧模型，任一维护门禁失败自动恢复写前快照。
+## 2026-07-13 青橙 TMK 私海分配历史表探查与契约登记
+
+- 新增 `service_dw.dwd_crm_assign_private_detail_hf` 青橙表文档，明确当前小时快照内 `private_sea_id` 为物理记录键、`lead_id` 为一对多历史关联键。
+- 全量有界探查 H 业务线允许学部 2026-07-01 以来 509829 行：`private_sea_id` 无重复，29208 个线索存在多个私海记录，28798 个线索对应多个顾问。
+- 固化首次承接、当前私海候选和完整转手链路的确定性排序；当前顾问继续以 `dm_crm_lead_stats_detail_hf.section_assign_employee_email_name` 为准。
+- 当前 144 条 TMK/规划系统转移线索中，私海历史命中 123 条、截面顾问命中 115 条，双方同命中的 115 条全部一致；3 条发生顾问转手，21 条只能解释为 H 范围内未命中。
+- live query id：`1466169274`、`1466174917`、`1466178403`、`1466187134`。
+
+## 2026-07-13 数据地图字段补充
+
+- 使用数据地图 `tableV2/searchTableList`、`normalColumns`、`partitionColumns` 和 `getDdl` 接口刷新物理表字段信息。
+- 覆盖 `knowledge/tables` 中 1 张物理表文档；追加 42 个数据地图字段，回填类型 0 处、字段说明 0 处。
+- 复扫结果为字段缺口 0、类型占位 0、说明占位 0。
+- 本次维护严格限定在 `qingcheng-dashboard-sql` 内，未同步到市场顾问 Skill；未覆盖 `temp_table.*` 临时表文档；临时表字段仍以本地 Excel、SQL 使用场景和人工维护规则为准。

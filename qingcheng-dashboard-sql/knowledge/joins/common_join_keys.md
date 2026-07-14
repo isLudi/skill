@@ -18,6 +18,7 @@
 | `bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf p` | `data_lake_fuwu.dwd_crm_leads_rt prelead` | `p.lead_id = prelead.crm_leads_id and p.lead_model_type = 1` | left join | 回补青橙 TMK/规划系统潜客阶段顾问、渠道、年级和过程字段 | 2026-07-09 live 验证；以 `dwd` 转移链路为主过滤时覆盖率高于严格青橙截面过滤 |
 | `data_lake_fuwu.dwd_crm_leads_rt lead` | `data_lake_fuwu.dwd_crm_leads_rt prelead` | `lead.previous_model_id = prelead.crm_leads_id` | inner/left join | 潜客转正常线索漏斗；`lead.model_type=0`，`prelead.model_type=1` | 2026-07-09 TMK/规划系统意向验证成功，query id `1456961079` |
 | `data_lake_fuwu.dwd_crm_leads_rt lead` | `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf o` | `lead.crm_leads_id = o.lead_id` | left join | 转移后正常线索是否成交、成交年级/科目/主讲、成交金额/退费/净金额 | 使用 service 表课程和业绩范围过滤；2026-07-09 当前样本无成交命中 |
+| `dwd_transfer` | `service_dw.dwd_crm_assign_private_detail_hf p` | `dwd_transfer.transfer_lead_id = p.lead_id` | left join | TMK 转移后首次承接顾问、私海转手历史和当前私海候选 | 一对多；历史保留 `private_sea_id`，首次按 `assign_time, private_sea_id`，当前候选按活跃状态、分配/更新时间和 ID 排序；144 条转移线索命中 123 条，query id `1466178403` |
 | `dd` | `prc` | `lead_id + performance_employee_email_name = employee_email_name + rn = 1` | left join | 判断订单是否属于线索期次 | 已从 SQL 入库 |
 | `bb_dedup` | `ud` | `employee_email_name/name + qici + channel_map_2/qudao + grade_1/grade_0 + virtual_direct_leader_email_name/zhuguan` | full outer join | 合并线索量和业绩指标，并保留年级维度 | 已从 SQL 入库，若同维度仍多行则保留 `rn = 1` |
 | `mm` | `temp_table.dingxi01_qing_team_jg` | `employee_email_name` | left join | 补充最新团队架构 | 已从 SQL 入库 |

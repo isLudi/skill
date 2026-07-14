@@ -12,7 +12,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/joins/common_join_keys.md",
-      "source_sha256": "400fc99bbedde07c9f28005b7c70eda7bcf4ce686acbe71989ba4c3ce0f5663d",
+      "source_sha256": "f86af25077c2ecb917291968623a7e0f8414ba0f0a26c350a89306681077ee40",
       "left_table": "finance_dw.dm_finance_order_refund_detail_df",
       "right_table": "finance_dw.dim_finance_order_change_df",
       "join_type": "left",
@@ -44,7 +44,7 @@
       ],
       "status": "pending_confirmation",
       "source_path": "knowledge/joins/common_join_keys.md",
-      "source_sha256": "400fc99bbedde07c9f28005b7c70eda7bcf4ce686acbe71989ba4c3ce0f5663d",
+      "source_sha256": "f86af25077c2ecb917291968623a7e0f8414ba0f0a26c350a89306681077ee40",
       "left_table": "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
       "right_table": "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
       "join_type": "left",
@@ -85,7 +85,7 @@
       ],
       "status": "pending_confirmation",
       "source_path": "knowledge/joins/common_join_keys.md",
-      "source_sha256": "400fc99bbedde07c9f28005b7c70eda7bcf4ce686acbe71989ba4c3ce0f5663d",
+      "source_sha256": "f86af25077c2ecb917291968623a7e0f8414ba0f0a26c350a89306681077ee40",
       "left_table": "temp_table.dingxi01_qing_team_jg",
       "right_table": "temp_table.dingxi01_qing_qi_moth",
       "join_type": "left",
@@ -118,7 +118,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/joins/common_join_keys.md",
-      "source_sha256": "400fc99bbedde07c9f28005b7c70eda7bcf4ce686acbe71989ba4c3ce0f5663d",
+      "source_sha256": "f86af25077c2ecb917291968623a7e0f8414ba0f0a26c350a89306681077ee40",
       "left_table": "data_lake_fuwu.dwd_crm_leads_rt",
       "right_table": "data_lake_fuwu.dwd_crm_leads_rt",
       "join_type": "inner_or_left",
@@ -139,6 +139,42 @@
         "左侧必须限定 model_type=0，右侧必须限定 model_type=1。",
         "该关联只证明转移链路，成交仍需用转移后的正常 lead_id 关联订单表。",
         "当前已验证的是既有小样本；扩大时间范围时仍应复核重复和覆盖率。"
+      ]
+    },
+    {
+      "id": "qingcheng:join:transferred_lead_to_private_assignment_history",
+      "name": "青橙转移后正常线索关联私海分配历史",
+      "aliases": [
+        "TMK承接顾问链路",
+        "转移线索关联分配历史",
+        "首次承接顾问",
+        "私海转手历史"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/joins/common_join_keys.md",
+      "source_sha256": "f86af25077c2ecb917291968623a7e0f8414ba0f0a26c350a89306681077ee40",
+      "left_table": "data_lake_fuwu.dwd_crm_leads_rt",
+      "right_table": "service_dw.dwd_crm_assign_private_detail_hf",
+      "join_type": "left",
+      "keys": [
+        {
+          "left": "crm_leads_id",
+          "right": "lead_id"
+        }
+      ],
+      "key_pairs": [
+        {
+          "left": "crm_leads_id",
+          "right": "lead_id"
+        }
+      ],
+      "cardinality": "one_to_many_requires_right_dedup_or_history_grain",
+      "risks": [
+        "左侧必须是 model_type=0 的转移后正常线索，不能使用潜客 crm_leads_id。",
+        "右表 private_sea_id 是记录键，lead_id 可对应多个私海和多个顾问；线索粒度输出前必须按表文档去重。",
+        "首次承接按 assign_time, private_sea_id 升序；当前私海候选需同时考虑活跃状态、分配时间、更新时间和 private_sea_id。",
+        "当前承接顾问仍以 dm_crm_lead_stats_detail_hf.section_assign_employee_email_name 为准；私海表用于历史解释和缺失回补。",
+        "TMK 当前 144 条转移线索中 H 范围命中 123 条，未命中不得解释为没有发生转移。"
       ]
     }
   ]
