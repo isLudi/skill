@@ -116,11 +116,11 @@ When a user request matches any scenario below, automatically load and orchestra
 #### lark-* (Feishu CLI Skills)
 **Load when ANY of the following is true:**
 - User wants to configure `lark-cli`, authenticate, switch `user`/`bot` identity, fix Feishu scope errors, or handle permission-denied responses -> `lark-shared`
-- User wants to read or edit Feishu docs, wiki content, or mind notes, or gives a recognizable `/docx/` or `/wiki/` URL/token -> `lark-doc` or `lark-wiki`
-- User wants to upload, download, search, move, copy, import, export, inspect, identify link type/title/token, or organize Feishu Drive files/folders -> `lark-drive`
-- User wants to read or edit Feishu online sheets, formulas, pivot tables, charts, or workbook structure -> `lark-sheets`
+- User wants to read or edit Feishu docs, wiki content, mind notes, or document XML/block content, or gives a recognizable `/docx/` or `/wiki/` URL/token -> `lark-doc` or `lark-wiki`
+- User wants to upload, download, search, move, copy, import, export, inspect, identify link type/title/token, list/manage comments, or organize Feishu Drive files/folders -> `lark-drive`
+- User wants to read or edit Feishu online sheets, formulas, formula verification, history, changesets, pivot tables, charts, or workbook structure -> `lark-sheets`
 - User wants to work with Feishu Base/bitable tables, records, views, dashboards, forms, or workflows -> `lark-base`
-- User wants to build, develop, deploy, publish, inspect logs/Trace/metrics, manage environment variables, app databases, app file storage, OpenAPI keys, visibility, or plugin integration for Miaoda/Spark apps -> `lark-apps`
+- User wants to build, develop, deploy, publish, inspect app metadata/logs/Trace/metrics, manage environment variables, app databases, app file storage, OpenAPI keys, visibility, or plugin integration for Miaoda/Spark apps -> `lark-apps`
 - User wants to send/search chat messages, manage chats, download chat files, reply in Feishu IM, send urgent notifications, use interactive cards, or handle card callbacks -> `lark-im`
 - User wants to create/read/patch/diff native Feishu Markdown files -> `lark-markdown`
 - User wants to listen to or consume Feishu/Lark real-time events, webhook-like event streams, or bounded bot event subscriptions -> `lark-event`
