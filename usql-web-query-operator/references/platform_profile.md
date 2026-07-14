@@ -179,6 +179,17 @@ iframe 编辑器工具栏中的运行按钮回退方案：
 - 详情响应中的 `executeSql` 是数据中心编辑页左下角 SQL 语句的完整源 SQL；`dataSourceId`、`subjectId`、`openExternal` 等字段可作为数据集元数据记录。
 - 打开 `https://uanalysis.baijia.com/data-center/data-set?selectId=<menu_set_id>` 可以在 UI 中选中指定数据集，但脚本同步源 SQL 时优先使用详情接口，避免触发数据预览执行。
 
+2026-07-14 生产替换链路采证：
+
+- 编辑页路由为 `https://uanalysis.baijia.com/data-center/edit-data-set?selectId=<menu_set_id>`，但生产执行不能直接深链进入：必须先打开详情页再点击“编辑”，让前端绑定当前数据集。SQL 编辑器为 `.CodeMirror`，运行控件为 `[aria-label="play-circle"]`。
+- CodeMirror 可见早于 SQL 异步注入完成；必须持续读取编辑器，直到内容 Hash 等于详情 API 的当前 SQL Hash，超时仍不一致才按漂移阻断。不能把空编辑器当成真实 SQL，也不能跳过 Hash 门禁。
+- 预览运行：POST `/uanalysis-intelligence/data/set/execute`；请求带 `dataSourceId`、完整 `executeSql`、`dataParamList` 和 `isCash`。
+- 保存前检查：POST `/uanalysis-intelligence/data/menu/changeFileConfirm`，body 为 `{"id":"<menu_set_id>"}`。
+- 保存：POST `/uanalysis-intelligence/data/set/saveAndUpdate`；请求绑定 `id`、名称、数据源、完整 SQL、字段元数据和原同步配置。
+- 同步历史：POST `/uanalysis-intelligence/data/set/schedules/list`，body 为 `{"taskId":"<comma-separated task ids>","pageNo":1,"pageSize":10}`；返回记录字段为 `id/startTime/endTime/elapsed/status`。
+- 立即执行：POST `/uanalysis-intelligence/data/set/schedules/executeOnce`，body 为 `{"id":"<comma-separated task ids>"}`。
+- 生产完成必须同时满足：保存后详情 SQL Hash 与计划一致、出现不属于执行前基线的新同步记录、该新记录 `status=SUCCESS`。仅保存成功或仅收到立即执行响应均不算完成。
+
 目标范围规则：
 
 - 青橙项目部：目录路径以 `市场顾问部/青橙项目部/<数据集名>` 结尾的 SQL 数据集全部同步到 `qingcheng-dashboard-sql`。

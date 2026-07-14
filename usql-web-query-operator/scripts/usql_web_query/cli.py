@@ -29,6 +29,8 @@ from .commands.doctor import cmd_doctor
 from .commands.fetch_market_template_sql import cmd_fetch_market_template_sql
 from .commands.fetch_template_sql import cmd_fetch_template_sql
 from .commands.login import cmd_login
+from .commands.apply_data_center_sql_replacement import cmd_apply_data_center_sql_replacement
+from .commands.plan_data_center_sql_replacement import cmd_plan_data_center_sql_replacement
 from .commands.run import cmd_run
 from .commands.sync_data_center_sql import cmd_sync_data_center_sql
 from .commands.sync_datamap_fields import cmd_sync_datamap_fields
@@ -160,6 +162,54 @@ def build_parser() -> argparse.ArgumentParser:
     sync_data_center.add_argument("--check-integrity", action=argparse.BooleanOptionalAction, default=True, help="Run target skill check_skill_integrity.py after writes.")
     sync_data_center.add_argument("--validate-stack", action=argparse.BooleanOptionalAction, default=True, help="Run the complete Text2SQL stack after writes; disabling is rejected for Apply.")
     sync_data_center.set_defaults(func=cmd_sync_data_center_sql)
+
+    plan_data_center_replacement = subparsers.add_parser(
+        "plan-data-center-sql-replacement",
+        help="Read one Data Center dataset and create a hash-bound remote replacement plan.",
+    )
+    plan_data_center_replacement.add_argument(
+        "--domain",
+        choices=["market", "qingcheng"],
+        required=True,
+        help="Department boundary used to resolve the dataset identity.",
+    )
+    replacement_identity = plan_data_center_replacement.add_mutually_exclusive_group(required=True)
+    replacement_identity.add_argument("--dataset-name", help="Exact Data Center dataset name.")
+    replacement_identity.add_argument("--dataset-id", help="Exact menu_set_* dataset identity.")
+    plan_data_center_replacement.add_argument("--sql-file", type=Path, required=True, help="UTF-8 without BOM replacement SQL file.")
+    plan_data_center_replacement.add_argument("--allow-noop", action="store_true", help="Allow an unchanged SQL hash only for an explicit refresh rehearsal.")
+    plan_data_center_replacement.add_argument("--output-file", type=Path, default=None, help="Exact plan artifact path. Defaults to the Data Center runtime directory.")
+    plan_data_center_replacement.add_argument("--state-path", type=Path, default=DEFAULT_STATE, help="Shared Baijia browser storage state path.")
+    plan_data_center_replacement.add_argument("--artifacts-dir", type=Path, default=DATA_CENTER_RUNTIME_DIR / "replacement", help="Runtime directory for plan artifacts.")
+    plan_data_center_replacement.add_argument("--env-file", type=Path, default=DEFAULT_ENV_FILE)
+    plan_data_center_replacement.add_argument("--username", default=os.environ.get("BAIJIA_USERNAME"))
+    plan_data_center_replacement.add_argument("--password", default=os.environ.get("BAIJIA_PASSWORD"))
+    plan_data_center_replacement.add_argument("--headed", action="store_true", help="Show browser while reading the current dataset state.")
+    plan_data_center_replacement.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL, help="Installed browser channel, e.g. msedge or chrome.")
+    plan_data_center_replacement.add_argument("--executable-path", default=None, help="Explicit browser executable path; overrides --browser-channel.")
+    plan_data_center_replacement.set_defaults(func=cmd_plan_data_center_sql_replacement)
+
+    apply_data_center_replacement = subparsers.add_parser(
+        "apply-data-center-sql-replacement",
+        help="Apply one reviewed SQL replacement, save it, trigger refresh, and verify SUCCESS.",
+    )
+    apply_data_center_replacement.add_argument("--plan-file", type=Path, required=True, help="Reviewed Data Center replacement plan artifact.")
+    apply_data_center_replacement.add_argument("--expected-plan-sha256", required=True, help="Exact plan hash shown by the read-only planning command.")
+    apply_data_center_replacement.add_argument("--confirm-production-write", action="store_true", help="Explicitly authorize the remote production write and refresh chain.")
+    apply_data_center_replacement.add_argument("--preview-timeout-ms", type=int, default=10 * 60 * 1000, help="Maximum wait for replacement SQL preview execution.")
+    apply_data_center_replacement.add_argument("--refresh-timeout-ms", type=int, default=20 * 60 * 1000, help="Maximum wait for a new synchronization record to reach SUCCESS.")
+    apply_data_center_replacement.add_argument("--poll-interval-ms", type=int, default=3000, help="Synchronization-history polling interval.")
+    apply_data_center_replacement.add_argument("--output-file", type=Path, default=None, help="Exact receipt path. Defaults to the Data Center runtime directory.")
+    apply_data_center_replacement.add_argument("--state-path", type=Path, default=DEFAULT_STATE, help="Shared Baijia browser storage state path.")
+    apply_data_center_replacement.add_argument("--artifacts-dir", type=Path, default=DATA_CENTER_RUNTIME_DIR / "replacement", help="Runtime directory for apply receipts.")
+    apply_data_center_replacement.add_argument("--env-file", type=Path, default=DEFAULT_ENV_FILE)
+    apply_data_center_replacement.add_argument("--username", default=os.environ.get("BAIJIA_USERNAME"))
+    apply_data_center_replacement.add_argument("--password", default=os.environ.get("BAIJIA_PASSWORD"))
+    apply_data_center_replacement.add_argument("--headed", action="store_true", help="Show the browser during the production write chain.")
+    apply_data_center_replacement.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL, help="Installed browser channel, e.g. msedge or chrome.")
+    apply_data_center_replacement.add_argument("--executable-path", default=None, help="Explicit browser executable path; overrides --browser-channel.")
+    apply_data_center_replacement.add_argument("--debug-artifacts", action="store_true", help="Capture a failure screenshot under the receipt path.")
+    apply_data_center_replacement.set_defaults(func=cmd_apply_data_center_sql_replacement)
 
     fetch_template = subparsers.add_parser(
         "fetch-template-sql",

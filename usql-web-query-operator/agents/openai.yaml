@@ -1,4 +1,4 @@
 interface:
   display_name: "USQL Web Query Operator"
-  short_description: "Run USQL and govern or probe hash-bound Taitan changes."
-  default_prompt: "Use $usql-web-query-operator to run safe SQL with optional QueryPlan validation, fetch or download Template Query results, inspect BI dashboards, audit P4A/P4B dashboard write capabilities in an explicit sandbox, or follow the independent profile, design, dry-run, verified draft-apply with reverse recovery, and publish-confirmation chain while preserving domain, hash, login-state, download, and dashboard-write safety gates."
+  short_description: "Run USQL and govern hash-bound Data Center or Taitan changes."
+  default_prompt: "Use $usql-web-query-operator to run safe SQL, fetch or download Template Query results, read and locally sync Data Center SQL, plan or explicitly apply a hash-bound single-dataset replace-preview-save-refresh workflow, inspect BI dashboards, audit P4A/P4B write capabilities, or follow the independent Taitan profile, design, dry-run, verified draft-apply, and publish-confirmation chain while preserving domain, identity, hash, login-state, download, and write-safety gates."

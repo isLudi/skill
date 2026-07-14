@@ -27,6 +27,7 @@
 | 手工临时表上传 | `SKILL.md` 中“临时表上传” + `references/manual_temp_table_registry.md` | `scripts\usql_web_query.py check-manual-table` / `upload-temp-table` | 只有需要确认具体登记项或表名映射时，才打开 `manual_temp_table_registry.json` |
 | 数据地图字段同步 | `SKILL.md` 中“数据地图字段同步” | `scripts\usql_web_query.py sync-datamap-fields` | 两业务 Skill 的物理字段权威入口；PDF/截图/手工 JSON 不再进入业务 Skill。只有同步结果异常或需要改写逻辑时，才看相关实现 |
 | 数据中心源 SQL 同步 | `SKILL.md` 中“数据中心源 SQL 同步” | `sync-data-center-sql` dry-run → `--write --expected-plan-sha256 <hash>` | 稳定 model_id 路径；current-model registry、跨进程独占锁、原子回滚和全栈验证均为强制门禁 |
+| 数据中心 SQL 生产替换与刷新 | `references/data_center_replacement.md` | `plan-data-center-sql-replacement` → 审阅 Hash → `apply-data-center-sql-replacement --confirm-production-write` | Plan 远端只读；Apply 才能替换、预览、保存、立即执行并等待新记录 `SUCCESS`；与本地知识同步分权 |
 | 截图读字 / OCR 协作 | `SKILL.md` 中“通过 mineru-converter 读取图片” | `mineru-open-api flash-extract` / `extract` | 只在本 skill 已经捕获到截图后使用，不要反过来先做 OCR |
 
 ## 跨 skill 路由
@@ -46,4 +47,5 @@
 - 不要对组件、布局、公式调用未经生产验证的写接口；这些类型在 P3A 可完整 Diff，在 operator P3B 必须阻断。
 - 修改 Taitan 公共筛选器必须使用 `profile-edit-dashboard → design-dashboard → plan-dashboard-change → apply-dashboard-change → publish-dashboard-change`；`edit-public-filters` 只允许 legacy dry-run 检查。
 - 不要把 QueryPlan 视为下载、看板写入、模板写入或权限变更授权；它只约束 `run`，且下载仍受 QueryPlan 与 1000 行策略双重门禁。
+- 不要把 `sync-data-center-sql --write` 或 Data Center Replacement Plan 视为远端数据集写入授权；远端替换只能走独立生产 Apply 命令。
 - 不要在未经确认的情况下，对超过 1000 行的结果走 `SQL取数` 直接下载。

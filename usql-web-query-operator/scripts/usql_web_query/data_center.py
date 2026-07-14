@@ -76,6 +76,26 @@ class DataCenterDatasetSql:
         return data
 
 
+@dataclass(frozen=True)
+class DataCenterScheduleRun:
+    """One execution record from a dataset synchronization schedule."""
+
+    id: str
+    start_time: str
+    end_time: str
+    elapsed_seconds: int | None
+    status: str
+
+    def to_json(self) -> dict[str, Any]:
+        return {
+            "id": self.id,
+            "startTime": self.start_time,
+            "endTime": self.end_time,
+            "elapsedSeconds": self.elapsed_seconds,
+            "status": self.status,
+        }
+
+
 class DataCenterClient:
     """Authenticated browser-backed client for Data Center dataset APIs."""
 
@@ -135,6 +155,48 @@ class DataCenterClient:
             detail_payload=detail,
         )
 
+    def fetch_schedule_runs(
+        self,
+        schedule_task_id: str,
+        *,
+        page_no: int = 1,
+        page_size: int = 10,
+    ) -> list[DataCenterScheduleRun]:
+        """Read synchronization history without triggering a run."""
+
+        if not schedule_task_id.strip():
+            raise UsageError("Data Center schedule taskId is empty.")
+        payload = self.post_json(
+            "set/schedules/list",
+            {
+                "taskId": schedule_task_id,
+                "pageNo": page_no,
+                "pageSize": page_size,
+            },
+        )
+        rows = payload.get("data") or []
+        if not isinstance(rows, list):
+            raise UsageError("Data Center schedule history is not a list.")
+        runs: list[DataCenterScheduleRun] = []
+        for row in rows:
+            if not isinstance(row, dict):
+                continue
+            elapsed = row.get("elapsed")
+            try:
+                elapsed_seconds = int(elapsed) if elapsed is not None else None
+            except (TypeError, ValueError):
+                elapsed_seconds = None
+            runs.append(
+                DataCenterScheduleRun(
+                    id=_clean_text(row.get("id")),
+                    start_time=_clean_text(row.get("startTime")),
+                    end_time=_clean_text(row.get("endTime")),
+                    elapsed_seconds=elapsed_seconds,
+                    status=_clean_text(row.get("status")).upper(),
+                )
+            )
+        return runs
+
 
 def iter_sql_datasets(menu_payload: dict[str, Any]) -> Iterable[DataCenterDataset]:
     """Yield SQL dataset file nodes from a Data Center menu/manage payload."""
@@ -192,6 +254,46 @@ def filter_datasets_by_name(
     if missing:
         raise UsageError("Requested Data Center dataset(s) were not found: " + ", ".join(missing))
     return filtered
+
+
+def select_dataset_for_replacement(
+    datasets: Iterable[DataCenterDataset],
+    *,
+    domain: str,
+    dataset_name: str | None = None,
+    dataset_id: str | None = None,
+) -> DataCenterDataset:
+    """Resolve one exact dataset inside a department boundary."""
+
+    if bool(dataset_name) == bool(dataset_id):
+        raise UsageError("provide exactly one of dataset_name or dataset_id")
+    if domain == "market":
+        candidates = [
+            item
+            for item in datasets
+            if _parent_endswith(item, ("市场顾问部", "市场顾问部"))
+        ]
+    elif domain == "qingcheng":
+        candidates = [
+            item
+            for item in datasets
+            if _parent_endswith(item, ("市场顾问部", "青橙项目部"))
+        ]
+    else:
+        raise UsageError(f"unsupported Data Center replacement domain: {domain}")
+
+    if dataset_id:
+        matches = [item for item in candidates if item.id == dataset_id]
+        label = dataset_id
+    else:
+        matches = [item for item in candidates if item.name == dataset_name]
+        label = str(dataset_name)
+    if not matches:
+        raise UsageError(f"Data Center dataset was not found in {domain}: {label}")
+    if len(matches) > 1:
+        identities = ", ".join(f"{item.id} ({item.path_text})" for item in matches)
+        raise UsageError(f"Data Center dataset identity is ambiguous: {label}: {identities}")
+    return matches[0]
 
 
 def _is_login_url(url: str) -> bool:
