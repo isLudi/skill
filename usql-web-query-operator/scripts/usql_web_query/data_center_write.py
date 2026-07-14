@@ -129,18 +129,25 @@ class DataCenterReplacementExecutor:
 
         self.progress["phase"] = "save"
         phase_started = time.perf_counter()
-        with self.page.expect_response(
-            lambda response: _matches_sql_response(
-                response,
-                endpoint="/data/set/saveAndUpdate",
-                expected_sql_sha256=self.plan.replacement_sql_sha256,
-                expected_dataset_id=dataset.id,
-            ),
-            timeout=60_000,
-        ) as save_info:
-            save_button = self.page.locator("button[type=submit]").first
-            save_button.wait_for(state="visible", timeout=15_000)
-            save_button.click()
+        try:
+            with self.page.expect_response(
+                lambda response: _matches_sql_response(
+                    response,
+                    endpoint="/data/set/saveAndUpdate",
+                    expected_sql_sha256=self.plan.replacement_sql_sha256,
+                    expected_dataset_id=dataset.id,
+                ),
+                timeout=60_000,
+            ) as save_info:
+                save_button = self.page.locator("button[type=submit]").first
+                save_button.wait_for(state="visible", timeout=15_000)
+                save_button.click()
+                self.progress["save_confirmation_clicked"] = (
+                    _click_optional_save_confirmation(self.page)
+                )
+        except Exception:
+            self.progress["save_debug"] = _visible_save_debug(self.page)
+            raise
         save_payload = _require_success_response(save_info.value, phase="save")
         self.progress["save_response"] = _compact_api_response(save_payload)
         self.progress["remote_sql_saved"] = True
@@ -303,6 +310,42 @@ def _set_codemirror_sql(editor: Any, sql: str) -> None:
     )
     if not changed:
         raise UsageError("Data Center CodeMirror replacement failed")
+
+
+def _click_optional_save_confirmation(page: Any) -> bool:
+    """Confirm the dependency-impact modal shown by some shared datasets."""
+
+    dialog = page.locator('.ant-modal:visible, [role="dialog"]:visible').last
+    try:
+        dialog.wait_for(state="visible", timeout=3_000)
+    except Exception:
+        return False
+
+    confirm = dialog.locator("button").filter(
+        has_text=re.compile(r"^\s*(?:确\s*认|确\s*定)\s*$")
+    ).last
+    if confirm.count() == 0:
+        return False
+    confirm.wait_for(state="visible", timeout=3_000)
+    confirm.click()
+    return True
+
+
+def _visible_save_debug(page: Any) -> dict[str, Any]:
+    """Capture bounded UI labels without persisting editor SQL or page HTML."""
+
+    try:
+        dialogs = page.locator('.ant-modal:visible, [role="dialog"]:visible').all_inner_texts()
+    except Exception:
+        dialogs = []
+    try:
+        buttons = page.locator("button:visible").all_inner_texts()
+    except Exception:
+        buttons = []
+    return {
+        "dialogs": [text.strip()[:500] for text in dialogs[:5]],
+        "buttons": [text.strip()[:100] for text in buttons[:30]],
+    }
 
 
 def _matches_sql_response(

@@ -7,6 +7,7 @@ import unittest
 from datetime import datetime, timezone
 from pathlib import Path
 from types import SimpleNamespace
+from unittest.mock import MagicMock
 
 
 SKILL_ROOT = Path(__file__).resolve().parents[1]
@@ -35,6 +36,7 @@ from usql_web_query.data_center_replacement import (  # noqa: E402
 )
 from usql_web_query.data_center_write import (  # noqa: E402
     DataCenterReplacementExecutor,
+    _click_optional_save_confirmation,
     _matches_schedule_trigger,
     _matches_sql_response,
     _wait_for_editor_sql_hash,
@@ -237,6 +239,25 @@ class DataCenterReplacementApplyTests(unittest.TestCase):
             timeout_ms=1000,
         )
         self.assertEqual("select 1\n", result)
+
+    def test_save_confirmation_modal_is_confirmed_when_present(self) -> None:
+        page = MagicMock()
+        dialog = MagicMock()
+        confirm = MagicMock()
+        page.locator.return_value.last = dialog
+        dialog.locator.return_value.filter.return_value.last = confirm
+        confirm.count.return_value = 1
+
+        self.assertTrue(_click_optional_save_confirmation(page))
+        confirm.click.assert_called_once_with()
+
+    def test_save_continues_without_confirmation_modal(self) -> None:
+        page = MagicMock()
+        dialog = MagicMock()
+        page.locator.return_value.last = dialog
+        dialog.wait_for.side_effect = RuntimeError("no dialog")
+
+        self.assertFalse(_click_optional_save_confirmation(page))
 
     def test_poll_requires_a_new_success_record(self) -> None:
         running = DataCenterScheduleRun("2", "start", "", None, "RUNNING")
