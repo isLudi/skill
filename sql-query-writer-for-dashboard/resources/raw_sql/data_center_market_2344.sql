@@ -1,5 +1,3 @@
--- 2026-07-09 hotfix: map business dates 2026-07-14..2026-07-18 to qici 20260716.
--- Dataset: 2344 period conversion analysis
 with dd as (select *
 from (
     select
@@ -18,7 +16,7 @@ from (
         biz_number, course_grade as grade_list,
         course_subject as subject,
 	 case
-			when substr(trade_time, 1, 10) >= '2026-07-14' and substr(trade_time, 1, 10) <= '2026-07-18' then '20260716期'
+			when substr(trade_time, 1, 10) >= '2026-07-14' and substr(trade_time, 1, 10) <= '2026-07-19' then '20260716期'
 			when substr(trade_time, 1, 10) >= '2026-02-25' and substr(trade_time, 1, 10) <= '2026-03-02' then '20260227期'
 			when substr(trade_time, 1, 10) >= '2026-02-17' and substr(trade_time, 1, 10) <= '2026-02-24' then '20260220期'
 			when substr(trade_time, 1, 10) >= '2026-02-09' and substr(trade_time, 1, 10) <= '2026-02-16' then '20260213期'
@@ -104,7 +102,7 @@ from (
 ,n_uid as (
 select aa.*,row_number() over (partition by aa.original_order_user_number order by aa.qici desc) as rn
 from (select lead_id,original_order_user_number,performance_employee_email_name,case
-    when cast(date_parse(replace(concat(trade_group_period_year,trade_group_period_term),'期',''),'%Y%m%d') as date) between date '2026-07-14' and date '2026-07-18' then '20260716期'
+    when cast(date_parse(replace(concat(trade_group_period_year,trade_group_period_term),'期',''),'%Y%m%d') as date) between date '2026-07-14' and date '2026-07-19' then '20260716期'
     else concat(cast(date_format(date_trunc('week',date_parse(replace(concat(trade_group_period_year,trade_group_period_term),'期',''),'%Y%m%d') - interval '1' day) + interval '4' day,'%Y%m%d')as varchar),'期')
 end qici
 from service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf
@@ -161,7 +159,10 @@ where n_uid.rn =1)
         cast(t.flow_original_order_activity_price as varchar) as flow_original_order_activity_price,
         cast(t.flow_order_price as varchar) as flow_order_price,
         cast(t.flow_orders_income_amount as varchar) as flow_orders_income_amount,
-        concat(cast(date_format(date_trunc('week', date_parse(replace(concat(t.group_period_year, t.group_period_term), '期', ''), '%Y%m%d') - interval '1' day) + interval '4' day, '%Y%m%d') as varchar), '期') as lf_period_name
+        case
+            when cast(date_parse(replace(concat(t.group_period_year, t.group_period_term), '期', ''), '%Y%m%d') as date) between date '2026-07-14' and date '2026-07-19' then '20260716期'
+            else concat(cast(date_format(date_trunc('week', date_parse(replace(concat(t.group_period_year, t.group_period_term), '期', ''), '%Y%m%d') - interval '1' day) + interval '4' day, '%Y%m%d') as varchar), '期')
+        end as lf_period_name
     from bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df t
     where t.dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
       and t.hour = format_datetime(now() - interval '3' hour, 'HH')
@@ -354,6 +355,13 @@ rr.rule_name as rr_rule_name
 ,coalesce(
     lf.lf_period_name,
     case
+        when regexp_like(rr.group_period_term, '^[0-9]{8}期$')
+             and cast(date_parse(substr(rr.group_period_term, 1, 8), '%Y%m%d') as date) between date '2026-07-14' and date '2026-07-19'
+        then '20260716期'
+        when regexp_like(rr.group_period_term, '^[0-9]{4}期$')
+             and substr(lead_gmv.qici, 1, 4) = '2026'
+             and substr(rr.group_period_term, 1, 4) between '0714' and '0719'
+        then '20260716期'
         when regexp_like(rr.group_period_term, '^[0-9]{8}期$')
         then date_format(
             date_trunc('week', date_parse(substr(rr.group_period_term, 1, 8), '%Y%m%d') - interval '1' day) + interval '4' day,
@@ -679,7 +687,7 @@ else '其他未知流量' end as channel_1,
 with m2253_data as
 (select distinct
 case
-    when cast(date_parse(replace(concat(group_period_year, group_period_term), '期', ''), '%Y%m%d') as date) between date '2026-07-14' and date '2026-07-18' then '20260716期'
+    when cast(date_parse(replace(concat(group_period_year, group_period_term), '期', ''), '%Y%m%d') as date) between date '2026-07-14' and date '2026-07-19' then '20260716期'
     else concat(cast(date_format(date_trunc('week', date_parse(replace(concat(group_period_year, group_period_term), '期', ''), '%Y%m%d') - interval '1' day) + interval '4' day, '%Y%m%d') as varchar), '期')
 end period_name,
  virtual_third_department_name  depart_1,

@@ -1,9 +1,34 @@
-WITH lead_raw AS (
+WITH biz_qici_calendar AS (
+    select *
+    from (
+        values
+            ('market_consultant', 'lead_period', '20260716期', date '2026-07-14', date '2026-07-18', 1),
+            ('market_consultant', 'class_period', '20260716期', date '2026-07-14', date '2026-07-18', 1),
+            ('market_consultant', 'trade_period', '20260716期', date '2026-07-14', date '2026-07-18', 1),
+            ('market_consultant', 'lead_period', '20260722期', date '2026-07-20', date '2026-07-24', 1),
+            ('market_consultant', 'class_period', '20260722期', date '2026-07-20', date '2026-07-24', 1),
+            ('market_consultant', 'trade_period', '20260722期', date '2026-07-20', date '2026-07-24', 1),
+            ('market_consultant', 'lead_period', '20260728期', date '2026-07-26', date '2026-07-30', 1),
+            ('market_consultant', 'class_period', '20260728期', date '2026-07-26', date '2026-07-30', 1),
+            ('market_consultant', 'trade_period', '20260728期', date '2026-07-26', date '2026-07-30', 1),
+            ('market_consultant', 'lead_period', '20260803期', date '2026-08-01', date '2026-08-05', 1),
+            ('market_consultant', 'class_period', '20260803期', date '2026-08-01', date '2026-08-05', 1),
+            ('market_consultant', 'trade_period', '20260803期', date '2026-08-01', date '2026-08-05', 1),
+            ('market_consultant', 'lead_period', '20260809期', date '2026-08-07', date '2026-08-11', 1),
+            ('market_consultant', 'class_period', '20260809期', date '2026-08-07', date '2026-08-11', 1),
+            ('market_consultant', 'trade_period', '20260809期', date '2026-08-07', date '2026-08-11', 1)
+    ) as t(business_domain, date_role, qici, period_start_date, period_end_date, enabled)
+),
+lead_raw AS (
     SELECT DISTINCT
-        concat(
-            cast(date_format(date_trunc('week', date_parse(replace(concat(t1.group_period_year, t1.group_period_term), '期', ''), '%Y%m%d') - interval '1' day) + interval '4' day, '%Y%m%d') as varchar),
-            '期'
-        ) AS period_name,
+        case
+            when lead_cal.qici is not null then lead_cal.qici
+            when date_format(date_trunc('week', date_parse(replace(concat(t1.group_period_year, t1.group_period_term), '期', ''), '%Y%m%d') - interval '1' day) + interval '4' day, '%Y%m%d') = '20260717' then '20260716期'
+            else concat(
+                date_format(date_trunc('week', date_parse(replace(concat(t1.group_period_year, t1.group_period_term), '期', ''), '%Y%m%d') - interval '1' day) + interval '4' day, '%Y%m%d'),
+                '期'
+            )
+        end as period_name,
         t1.lead_id,
         t1.user_id,
         t1.rule_name,
@@ -47,6 +72,12 @@ WITH lead_raw AS (
         coalesce(t1.in_pay_period_refund_amount, 0) AS in_pay_period_refund_amount,
         coalesce(t1.non_pay_period_refund_amount, 0) AS non_pay_period_refund_amount
     FROM bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df t1
+    left join biz_qici_calendar lead_cal
+      on lead_cal.business_domain = 'market_consultant'
+     and lead_cal.date_role = 'lead_period'
+     and cast(date_parse(replace(concat(t1.group_period_year, t1.group_period_term), '期', ''), '%Y%m%d') as date)
+         between lead_cal.period_start_date and lead_cal.period_end_date
+     and lead_cal.enabled = 1
     WHERE t1.dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
       AND t1.hour = format_datetime(now() - interval '3' hour, 'HH')
       AND t1.section_assign_employee_first_level_department_name = 'H业务线'
@@ -295,14 +326,21 @@ learn_duration AS (
         SELECT
             t.user_number AS user_id,
             CASE
+                WHEN class_cal.qici IS NOT NULL THEN class_cal.qici
                 WHEN cast(t.begin_time AS date) >= date '2026-02-25' AND cast(t.begin_time AS date) <= date '2026-03-02' THEN '20260227期'
                 WHEN cast(t.begin_time AS date) >= date '2026-02-17' AND cast(t.begin_time AS date) <= date '2026-02-24' THEN '20260220期'
                 WHEN cast(t.begin_time AS date) >= date '2026-02-09' AND cast(t.begin_time AS date) <= date '2026-02-16' THEN '20260213期'
                 WHEN cast(t.begin_time AS date) >= date '2026-02-03' AND cast(t.begin_time AS date) <= date '2026-02-08' THEN '20260206期'
+                WHEN date_format(date_trunc('week', cast(t.begin_time AS date) - interval '1' day) + interval '4' day, '%Y%m%d') = '20260717' THEN '20260716期'
                 ELSE concat(date_format(date_trunc('week', cast(t.begin_time AS date) - interval '1' day) + interval '4' day, '%Y%m%d'), '期')
             END AS qici,
             t.live_learn_duration
         FROM service_dw.dws_service_user_learn_detail_hf t
+        LEFT JOIN biz_qici_calendar class_cal
+          ON class_cal.business_domain = 'market_consultant'
+         AND class_cal.date_role = 'class_period'
+         AND cast(t.begin_time AS date) BETWEEN class_cal.period_start_date AND class_cal.period_end_date
+         AND class_cal.enabled = 1
         WHERE t.dt = date_format(now() - interval '2' hour, '%Y%m%d')
           AND t.hour = date_format(now() - interval '2' hour, '%H')
           AND t.course_first_level_department_name = 'H业务线'

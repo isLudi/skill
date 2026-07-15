@@ -14,7 +14,8 @@ sum(case when trade_type = '调课调班' then price else 0 end) over (partition
             else 0 end as zong_price 
  from 
 	(select *,
-        case 
+		case
+			when substr(trade_time, 1, 10) >= '2026-07-14' and substr(trade_time, 1, 10) <= '2026-07-19' then '20260716期'
 			when substr(trade_time, 1, 10) >= '2026-02-25' and substr(trade_time, 1, 10) <= '2026-03-02' then '20260227期'
 			when substr(trade_time, 1, 10) >= '2026-02-17' and substr(trade_time, 1, 10) <= '2026-02-24' then '20260220期'
 			when substr(trade_time, 1, 10) >= '2026-02-09' and substr(trade_time, 1, 10) <= '2026-02-16' then '20260213期'
@@ -57,7 +58,10 @@ where dup_rn = 1 and zong_price <> 0 and zong_price0 <>0)
 ------依据期次获取最新uid
 ,n_uid as (
 select aa.*,row_number() over (partition by original_order_user_number order by qici desc) as rn
-from (select lead_id,original_order_user_number,performance_employee_email_name,concat(cast(date_format(date_add('day',4,date_trunc('week',date_add('day',-1,date_parse(replace(concat(trade_group_period_year,trade_group_period_term),'期',''),'%Y%m%d')))),'%Y%m%d')as varchar),'期') qici
+from (select lead_id,original_order_user_number,performance_employee_email_name,case
+    when cast(date_parse(replace(concat(trade_group_period_year,trade_group_period_term),'期',''),'%Y%m%d') as date) between date '2026-07-14' and date '2026-07-19' then '20260716期'
+    else concat(cast(date_format(date_add('day',4,date_trunc('week',date_add('day',-1,date_parse(replace(concat(trade_group_period_year,trade_group_period_term),'期',''),'%Y%m%d')))),'%Y%m%d')as varchar),'期')
+end qici
 from service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf 
 where dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
         and hour = format_datetime(now() - interval '2' hour, 'HH')
@@ -113,7 +117,9 @@ when rr.rule_name like '%汐子ip%' or rr.rule_name like '%ip百度%' or rr.rule
 when rr.rule_name like '%9KM%' then '9KM'
 when rr.rule_name like '%百度星耀数学%' or rr.rule_name like '%数学%' or rr.rule_name like '%百度星耀物理%' or rr.rule_name like '%物理%'then '百度星耀'
 else '未知' end as channel_1,
-case 
+case
+        when substr(lead_gmv.qici, 1, 4) = '2026' and substr(rr.group_period_term, 1, 4) between '0714' and '0719'
+        then '20260716期'
         -- 如果月份 >= 6，年份为2025
         when cast(substr(rr.group_period_term, 1, 2) as int) >= 6 
         then date_format(date_add('day', 5 - day_of_week(date_parse('2025' || rr.group_period_term, '%Y%m%d')),date_parse('2025' || rr.group_period_term, '%Y%m%d')), '%Y%m%d') || '期'

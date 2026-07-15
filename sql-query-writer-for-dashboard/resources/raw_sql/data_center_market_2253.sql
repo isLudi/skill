@@ -2,7 +2,7 @@ with biz_qici_calendar as (
     select *
     from (
         values
-            ('market_consultant', 'lead_period', '20260716期', date '2026-07-14', date '2026-07-18', 1),
+            ('market_consultant', 'lead_period', '20260716期', date '2026-07-14', date '2026-07-19', 1),
             ('market_consultant', 'lead_period', '20260722期', date '2026-07-20', date '2026-07-24', 1),
             ('market_consultant', 'lead_period', '20260728期', date '2026-07-26', date '2026-07-30', 1)
     ) as t(business_domain, date_role, qici, period_start_date, period_end_date, enabled)

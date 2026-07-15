@@ -1,14 +1,28 @@
-with src as (
+with biz_qici_calendar as (
+    select *
+    from (
+        values
+            ('market_consultant', 'lead_period', '20260716期', date '2026-07-14', date '2026-07-19', 1),
+            ('market_consultant', 'lead_period', '20260722期', date '2026-07-20', date '2026-07-24', 1),
+            ('market_consultant', 'lead_period', '20260728期', date '2026-07-26', date '2026-07-30', 1),
+            ('market_consultant', 'lead_period', '20260803期', date '2026-08-01', date '2026-08-05', 1),
+            ('market_consultant', 'lead_period', '20260809期', date '2026-08-07', date '2026-08-11', 1)
+    ) as t(business_domain, date_role, qici, period_start_date, period_end_date, enabled)
+),
+src as (
     select
-        concat(
-            date_format(
-                date_trunc(
-                    'week',
-                    date_parse(replace(concat(t.group_period_year, t.group_period_term), '期', ''), '%Y%m%d') - interval '1' day
-                ) + interval '4' day,
-                '%Y%m%d'
-            ),
-            '期'
+        coalesce(
+            lead_cal.qici,
+            concat(
+                date_format(
+                    date_trunc(
+                        'week',
+                        date_parse(replace(concat(t.group_period_year, t.group_period_term), '期', ''), '%Y%m%d') - interval '1' day
+                    ) + interval '4' day,
+                    '%Y%m%d'
+                ),
+                '期'
+            )
         ) as period_name,
         t.rule_name,
         t.flow_pool_name,
@@ -49,11 +63,18 @@ with src as (
         coalesce(t.in_pay_period_refund_amount, 0) as in_pay_period_refund_amount,
         coalesce(t.non_pay_period_refund_amount, 0) as non_pay_period_refund_amount
     from bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df t
+    left join biz_qici_calendar lead_cal
+      on lead_cal.business_domain = 'market_consultant'
+     and lead_cal.date_role = 'lead_period'
+     and cast(date_parse(replace(concat(t.group_period_year, t.group_period_term), '期', ''), '%Y%m%d') as date)
+         between lead_cal.period_start_date and lead_cal.period_end_date
+     and lead_cal.enabled = 1
     where t.dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
       and t.hour = format_datetime(now() - interval '3' hour, 'HH')
       and t.section_assign_employee_first_level_department_name = 'H业务线'
       and t.section_assign_employee_second_level_department_name = '市场部'
       and t.section_assign_employee_third_level_department_name = '市场顾问部'
+      and t.virtual_third_department_name = '市场顾问部'
       and t.period_mapping_first_level_department_name = 'H业务线'
       and t.period_mapping_second_level_department_name in ('精品班学部', '青橙项目部', '一对一学部', '本地化大班学部', '市场部', '菁英班学部')
 ),
@@ -108,7 +129,7 @@ when (flow_pool_name like '%汤哥%' or flow_pool_name like '%汤老师%') and p
 when (flow_pool_name like '%中考百日冲刺%') and period_name not like '%多学科拓展%' and third_department_name='直播部'  then '曹忆9.9纯课'	
 when source_manager_name = '陈晓菁04' and channel_provider_name not like '%开拓%' and put_plan_name not like '%九学%' then '商务低价'	
 when (flow_pool_name like '%孟帝%' or flow_pool_name like '%孟老师%' or flow_pool_name like '%中考数学冲刺%' or flow_pool_name like '%8升9数学%' or flow_pool_name like '%孟亚飞讲数学%' or flow_pool_name like '%中考冲刺%' or flow_pool_name like '%中考满分冲刺%' or flow_pool_name like '%押题王孟亚飞%' or flow_pool_name like '%中考数学大通关%' or flow_pool_name like '%中考数学规划%' or flow_pool_name like '%亚飞数学%' or flow_pool_name like '%孟帝数学%' or flow_pool_name like '%亚飞秒解思维%')  and period_name not like '%多学科拓展%' and channel_name_2 not like '%KOL%' and third_department_name='直播部' and channel_name_2 = '抖音'  then '孟亚飞-1组-抖音'
-when (flow_pool_name like '%孟帝%' or flow_pool_name like '%孟老师%' or flow_pool_name like '%中考数学冲刺%' or flow_pool_name like '%8升9数学%' or flow_pool_name like '%孟亚飞讲数学%' or flow_pool_name like '%中考冲刺%' or flow_pool_name like '%中考满分冲刺%' or flow_pool_name like '%押题王孟亚飞%' or flow_pool_name like '%中考数学大通关%' or flow_pool_name like '%中考数学规划%' or flow_pool_name like '%亚飞数学%' or flow_pool_name like '%孟帝数学%')  and period_name not like '%多学科拓展%' and channel_name_2 not like '%KOL%' and third_department_name='直播部' and channel_name_2 = '视频号'  then '孟亚飞-1组-视频号'
+when (flow_pool_name like '%孟帝%' or flow_pool_name like '%孟老师%' or flow_pool_name like '%中考数学冲刺%' or flow_pool_name like '%8升9数学%' or flow_pool_name like '%孟亚飞讲数学%' or flow_pool_name like '%中考冲刺%' or flow_pool_name like '%中考满分冲刺%' or flow_pool_name like '%押题王孟亚飞%' or flow_pool_name like '%中考数学大通关%' or flow_pool_name like '%中考数学规划%' or flow_pool_name like '%亚飞数学%' or flow_pool_name like '%孟帝数学%')  and period_name not like '%多学科拓展%' and channel_name_2 not like '%KOL%' and third_department_name='直播部' and channel_name_2 = '视频号'  then '孟亚飞9元'
 when (flow_pool_name like '%孟帝%' or flow_pool_name like '%孟老师%' or flow_pool_name like '%中考数学冲刺%' or flow_pool_name like '%8升9数学%' or flow_pool_name like '%孟亚飞讲数学%' or flow_pool_name like '%中考冲刺%' or flow_pool_name like '%中考满分冲刺%' or flow_pool_name like '%押题王孟亚飞%' or flow_pool_name like '%中考数学大通关%' or flow_pool_name like '%中考数学规划%' or flow_pool_name like '%亚飞数学%' or flow_pool_name like '%孟帝数学%')  and period_name not like '%多学科拓展%' and channel_name_2 not like '%KOL%' and third_department_name='直播部' and channel_name_2 = 'B站'  then '孟亚飞-1组-B站'
 when (flow_pool_name like '%孟帝%' or flow_pool_name like '%孟老师%' or flow_pool_name like '%中考数学冲刺%' or flow_pool_name like '%8升9数学%' or flow_pool_name like '%孟亚飞讲数学%' or flow_pool_name like '%中考冲刺%' or flow_pool_name like '%中考满分冲刺%' or flow_pool_name like '%押题王孟亚飞%' or flow_pool_name like '%中考数学大通关%' or flow_pool_name like '%中考数学规划%' or flow_pool_name like '%亚飞数学%' or flow_pool_name like '%孟帝数学%')  and period_name not like '%多学科拓展%' and channel_name_2 not like '%KOL%' and third_department_name='直播部' and channel_name_2 not like '%百度%'  then '孟亚飞99-1组'
 when (flow_pool_name like '%孟帝%' or flow_pool_name like '%孟老师%' or flow_pool_name like '%中考数学冲刺%' or flow_pool_name like '%8升9数学%' or flow_pool_name like '%孟亚飞讲数学%' or flow_pool_name like '%中考冲刺%' or flow_pool_name like '%中考满分冲刺%' or flow_pool_name like '%押题王孟亚飞%' or flow_pool_name like '%中考数学大通关%' or flow_pool_name like '%中考数学规划%' or flow_pool_name like '%亚飞数学%')  and period_name not like '%多学科拓展%' and channel_name_2 not like '%KOL%' and third_department_name='直播部' and channel_name_2 = '百度'  then '孟亚飞-1组-百度'
@@ -142,8 +163,6 @@ when channel_name_1 = '信息流' and channel_name_2 = 'B站' and third_departme
 when channel_name_1 = '信息流' and channel_name_2 = 'B站' and third_department_name not like '%投放%' and flow_order_price like '%1980%' and ad_account_name like '%数学%' then 'B站信息流-周帅'
 when channel_name_1 = '短直电商' and channel_name_2 = 'B站' and third_department_name  like '%商务%' and   (flow_pool_name like '%春春%' or sku_id_name like '%陈瑞春%')  then 'B站信息流-陈瑞春'
 when channel_name_1 = '短直电商' and channel_name_2 = 'B站' and third_department_name  like '%商务%' and  (flow_pool_name like '%朱博士%')  then 'B站信息流-朱汉祺'
---when third_department_name = '线上商务部' and channel_name_2 = 'B站' and put_plan_name like '%春春%' then 'B站信息流-陈瑞春'
---when third_department_name = '线上商务部' and channel_name_2 = 'B站' and put_plan_name like '%朱博士%' then 'B站信息流-朱汉祺'
 when channel_name_1 = '信息流' and channel_name_2 = 'B站' and third_department_name not like '%投放%' and flow_original_order_activity_price not like '%2980%' and flow_original_order_activity_price not like '%2990%' and flow_original_order_activity_price not like '%1980%' then 'B站信息流'
 when flow_pool_name = '百度搜索引擎' or channel_name_1='搜索营销' then '信息流搜索'
 when channel_name_1 = '信息流获客' and channel_name_2 = '小红书' and source_manager_name in ('王慧敏13','张琳02','王樱琦01') then '小红书投放'
@@ -159,7 +178,6 @@ when  source_manager_name in ('孙晗01','方俊结01','刘亦鹏02','何木玲'
 when  source_manager_name in ('孙晗01','方俊结01','刘亦鹏02','何木玲','杨梓月','张可意03','任颖迪','曹蕊07') and (sku_id_name like '%朱汉祺%' or sku_id_name like '%29元%' or sku_id_name like '%朱博士%' or rule_name like '%朱汉祺%' or rule_name like '%朱博士%' ) and (flow_original_order_activity_price not like '%1100%' or rule_name like '%29%') and sku_id_name not like '%周帅%' then 'KOC-5元朱汉祺'
 when  source_manager_name in ('孙晗01','方俊结01','刘亦鹏02','何木玲','杨梓月','张可意03','任颖迪','曹蕊07') and period_name not like '%多学科拓展%' and sku_id_name not like '%朱汉祺%' and sku_id_name not like '%朱博士%' and sku_id_name not like '%周帅%' and sku_id_name not like '%29元%' then 'KOC-5元纯课'
 when  source_manager_name in ('孙晗01','方俊结01','刘亦鹏02','何木玲','杨梓月','张可意03','任颖迪','曹蕊07') and sku_id_name like '%周帅%' then 'KOC-周帅'
---when (channel_name_2 like '%KOL%' and source_manager_name in ('崔文轩','孙培尧')) or (channel_name_2 like '%抖音%' and source_manager_name in ('徐绮鹤')) and period_name not like '%多学科拓展%' then '自孵化KOC'
 when third_department_name in ('品牌效能部','KOC孵化部') and channel_name_2 in ('抖音','视频号','快手','KOL')  then '自孵化KOC-5元纯课'
 when third_department_name in ('品牌效能部','KOC孵化部') and channel_name_2 in ('抖音','视频号','快手','KOL') and (sku_id_name like '%5元%'or sku_id_name like '%11元%' or flow_original_order_activity_price like '%1100%' or flow_original_order_activity_price like '%500%' or flow_orders_income_amount  like '%1100%' or flow_orders_income_amount  like '%500%' ) then '自孵化KOC-5元纯课'
 when source_manager_name in ('包青青','蔡瑞涵','李文迁','李佳馨44','孙昊17','王洁雅01','王硕北','朱文','贾铭锐','李壮壮04','陈晓菁04') and channel_name_2 like '%社群%' then '进校社群'
@@ -260,58 +278,51 @@ else '其他未知流量' end as channel_map,
 city_agg as (
     select
         period_name,
+        channel_map,
+        grade_name,
         city_level_name,
-        sum(lead_count) as lead_count,
-        sum(valid_lead_count) as valid_lead_count,
-        sum(pay_user_head_count) as pay_user_head_count,
-        sum(pay_subject_person_count) as pay_subject_person_count,
-        sum(net_income_section) as net_income_section
-    from (
-        select
-            period_name,
-            channel_map,
-            grade_name,
-            city_level_name,
-            sum(case when channel_map in ('抖音私域', '抖音私信') then merge_assign_lead_count else lead_count end) as lead_count,
-            sum(case when channel_map in ('抖音私域', '抖音私信') then merge_valid_lead_count else valid_lead_count end) as valid_lead_count,
-            sum(conversion_lead_count) as pay_user_head_count,
-            sum(subject_count) as pay_subject_person_count,
-            sum((income_amount - in_pay_period_refund_amount - non_pay_period_refund_amount) / 100.0) as net_income_section
-        from data
-        group by
-            period_name,
-            channel_map,
-            grade_name,
-            city_level_name
-    ) city_detail
+        sum(case when channel_map in ('抖音私域', '抖音私信') then merge_assign_lead_count else lead_count end) as lead_count,
+        sum(case when channel_map in ('抖音私域', '抖音私信') then merge_valid_lead_count else valid_lead_count end) as valid_lead_count,
+        sum(conversion_lead_count) as pay_user_head_count,
+        sum(subject_count) as pay_subject_person_count,
+        sum((income_amount - in_pay_period_refund_amount - non_pay_period_refund_amount) / 100.0) as net_income_section
+    from data
     group by
         period_name,
+        channel_map,
+        grade_name,
         city_level_name
 ),
 final_city as (
     select
         period_name,
+        channel_map,
+        grade_name,
         city_level_name,
         lead_count,
         valid_lead_count,
         pay_user_head_count,
         pay_subject_person_count,
         net_income_section,
-  sum(lead_count) over (partition by period_name) as total_lead_count_in_period,
-	sum(net_income_section) over (partition by period_name) as total_net_income_in_period
+        sum(lead_count) over (partition by period_name, channel_map, grade_name) as total_lead_count_in_period_channel_grade,
+        sum(net_income_section) over (partition by period_name, channel_map, grade_name) as total_net_income_in_period_channel_grade
     from city_agg
 )
 select
     period_name,
+    channel_map,
+    grade_name,
     city_level_name,
     lead_count,
-    total_lead_count_in_period,
+    total_lead_count_in_period_channel_grade,
     valid_lead_count,
     pay_user_head_count,
     pay_subject_person_count,
     net_income_section,
-	total_net_income_in_period
+    total_net_income_in_period_channel_grade
 from final_city
 order by
     period_name,
+    channel_map,
+    grade_name,
     city_level_name

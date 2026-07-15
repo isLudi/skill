@@ -339,7 +339,7 @@ D:\anaconda3\python.exe scripts\read_dashboard.py profile-all --dashboard-wait-m
 1. 用相同的 `--browser-channel` / `--state-path`，加 `--headed --debug-artifacts` 重跑失败命令。
 2. 先读 JSON summary。SQL 运行失败时，先用 `error_details`、`error_category` 和 `repair_guidance`，不要直接假设 selector 漂移。
 3. 检查配置的 runtime artifact 目录。不要把截图、HTML、SQL 文本、结果预览、cookie 或下载文件复制到 `.codex/skills/`。
-4. 如果需要读取截图文字，用 `mineru-converter` 提取到 `C:\Users\Ludim\.codex\runtime\tmp\` 或 stdout。
+4. 如果需要理解截图内容，直接使用 Codex 原生多模态能力检查截图中的可见文本、布局和状态。
 5. 如果仍需要 DOM 级探索，再用通用 `playwright` skill 做一次性 snapshot/screenshot/click/type 检查。
 6. 持久修复必须回到本 skill：更新 selector、回退逻辑、`references/platform_profile.md` 或修复建议，然后重跑 USQL 脚本验证。
 
@@ -363,39 +363,15 @@ D:\anaconda3\python.exe scripts\read_dashboard.py profile-all --dashboard-wait-m
 
 当用户要求“通过页面跑这个 SQL”时，先判断是否应使用本 skill；不要尝试 USQL RestAPI，除非用户明确要求 API 执行。
 
-## 通过 mineru-converter 读取图片
+## 直接检查截图
 
-当本 skill 在调试、错误分析、脚本验证或代码检查中捕获截图，且确实需要读取截图内容时，交给 `mineru-converter`，不要凭肉眼猜像素内容。
+当本 skill 在调试、错误分析、脚本验证或代码检查中捕获截图且需要理解其内容时，直接使用 Codex 原生多模态能力检查。
 
-### 何时调用 mineru-converter
-
-| 场景 | 示例 |
-|---|---|
-| 错误诊断 | Playwright 捕获到平台错误弹窗 / notification，需要提取准确错误文本 |
-| 脚本验证 | 需要确认脚本修改后页面是否正确渲染，读取截图中的可见数据 |
-| 登录/状态问题 | 登录页出现 CAPTCHA、风控、MFA 等异常挑战，需要提取页面消息 |
-| 看板画像 | `read_dashboard.py` 捕获图表/指标截图，需要提取可见指标名和值 |
-| selector 调试 | 页面结构变化，需要从截图判断新布局 |
-
-### 调用方式
-
-```powershell
-# 第 1 步：从统一 env 文件加载 token
-$env:MINERU_TOKEN = (Get-Content -LiteralPath $env:USQL_ENV_FILE -Encoding UTF8 | Select-String '^MINERU_TOKEN=(.+)$').Matches.Groups[1].Value
-
-# 第 2 步：提取图片内容。快速读取用 flash-extract，复杂内容用 extract。
-mineru-open-api flash-extract <screenshot_path>.png -o C:\Users\Ludim\.codex\runtime\tmp\<descriptive_name>.md
-# 或详细分析（需要鉴权）：
-mineru-open-api extract <screenshot_path>.png -o C:\Users\Ludim\.codex\runtime\tmp\<descriptive_name>.md
-```
-
-### 输出策略
-
-- **绝不要**把 mineru-converter 输出写入 `.codex/skills/` 或任何 skill 目录。
-- 临时 Markdown 输出放到 `C:\Users\Ludim\.codex\runtime\tmp\`。
-- 信息消费完成、任务结束后删除临时文件。
-- 只需要 stdout 时，省略 `-o`，直接消费 Markdown。
-- 截图快速读字优先用 `flash-extract`；只有截图包含复杂表格或公式且需要高保真时才用 `extract`。
+- 优先使用页面 JSON summary、`error_details`、HTML/DOM 和网络响应作为结构化证据。
+- 只有结构化证据不足时才查看截图，以确认可见错误、页面状态、布局或字段。
+- CAPTCHA、MFA 和风控挑战只做识别与报告，不尝试绕过。
+- 截图和其他调试 artifact 仍放在 runtime 目录，不写入 skill 目录。
+- 如果截图无法支持精确判断，回到 DOM 或接口证据，不根据模糊像素推断。
 
 ## 模板取数已保存 SQL
 
@@ -450,10 +426,8 @@ D:\anaconda3\python.exe scripts\usql_web_query.py template-download `
 - 后续维护本 skill 的说明类 Markdown 文档时，默认使用中文撰写。
 - 命令名、参数名、字段名、接口名、路径、状态值以及必要的英文技术术语保留原文，避免影响识别和执行。
 
-### 跨 skill 顺序
-
-同时需要本 skill 和 `mineru-converter` 时，按以下顺序：
+### 截图诊断顺序
 
 1. **usql-web-query-operator**：执行脚本，遇到错误或需要验证时捕获截图。
-2. **mineru-converter**：读取截图，返回提取到的文本/数据。
-3. **usql-web-query-operator** 或 **sql-query-writer-for-dashboard**：用提取结果诊断、修复或验证。
+2. 使用 Codex 原生多模态能力直接检查截图中的可见内容。
+3. **usql-web-query-operator** 或 **sql-query-writer-for-dashboard**：用截图证据诊断、修复或验证。

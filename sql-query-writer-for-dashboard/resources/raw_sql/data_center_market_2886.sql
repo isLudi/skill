@@ -1,9 +1,39 @@
-WITH lead_raw AS (
+WITH biz_qici_calendar AS (
+    select *
+    from (
+        values
+            ('market_consultant', 'lead_period', '20260716期', date '2026-07-14', date '2026-07-19', 1),
+            ('market_consultant', 'class_period', '20260716期', date '2026-07-14', date '2026-07-19', 1),
+            ('market_consultant', 'trade_period', '20260716期', date '2026-07-14', date '2026-07-19', 1),
+            ('market_consultant', 'lead_period', '20260722期', date '2026-07-20', date '2026-07-24', 1),
+            ('market_consultant', 'class_period', '20260722期', date '2026-07-20', date '2026-07-24', 1),
+            ('market_consultant', 'trade_period', '20260722期', date '2026-07-20', date '2026-07-24', 1),
+            ('market_consultant', 'lead_period', '20260728期', date '2026-07-26', date '2026-07-30', 1),
+            ('market_consultant', 'class_period', '20260728期', date '2026-07-26', date '2026-07-30', 1),
+            ('market_consultant', 'trade_period', '20260728期', date '2026-07-26', date '2026-07-30', 1),
+            ('market_consultant', 'lead_period', '20260803期', date '2026-08-01', date '2026-08-05', 1),
+            ('market_consultant', 'class_period', '20260803期', date '2026-08-01', date '2026-08-05', 1),
+            ('market_consultant', 'trade_period', '20260803期', date '2026-08-01', date '2026-08-05', 1),
+            ('market_consultant', 'lead_period', '20260809期', date '2026-08-07', date '2026-08-11', 1),
+            ('market_consultant', 'class_period', '20260809期', date '2026-08-07', date '2026-08-11', 1),
+            ('market_consultant', 'trade_period', '20260809期', date '2026-08-07', date '2026-08-11', 1)
+    ) as t(business_domain, date_role, qici, period_start_date, period_end_date, enabled)
+),
+lead_raw AS (
     SELECT DISTINCT
-        concat(
-            cast(date_format(date_trunc('week', date_parse(replace(concat(t1.group_period_year, t1.group_period_term), '期', ''), '%Y%m%d') - interval '1' day) + interval '4' day, '%Y%m%d') as varchar),
-            '期'
-        ) AS period_name,
+        coalesce(
+            lead_cal.qici,
+            concat(
+                date_format(
+                    date_trunc(
+                        'week',
+                        date_parse(replace(concat(t1.group_period_year, t1.group_period_term), '期', ''), '%Y%m%d') - interval '1' day
+                    ) + interval '4' day,
+                    '%Y%m%d'
+                ),
+                '期'
+            )
+        ) as period_name,
         t1.lead_id,
         t1.user_id,
         t1.rule_name,
@@ -43,6 +73,12 @@ WITH lead_raw AS (
         coalesce(t1.in_pay_period_refund_amount, 0) AS in_pay_period_refund_amount,
         coalesce(t1.non_pay_period_refund_amount, 0) AS non_pay_period_refund_amount
     FROM bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df t1
+    left join biz_qici_calendar lead_cal
+      on lead_cal.business_domain = 'market_consultant'
+     and lead_cal.date_role = 'lead_period'
+     and cast(date_parse(replace(concat(t1.group_period_year, t1.group_period_term), '期', ''), '%Y%m%d') as date)
+         between lead_cal.period_start_date and lead_cal.period_end_date
+     and lead_cal.enabled = 1
     WHERE t1.dt = format_datetime(now() - interval '3' hour, 'YYYYMMdd')
       AND t1.hour = format_datetime(now() - interval '3' hour, 'HH')
       AND t1.section_assign_employee_first_level_department_name = 'H业务线'

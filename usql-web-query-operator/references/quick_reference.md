@@ -29,7 +29,7 @@
 | 数据中心源 SQL 同步 | `SKILL.md` 中“数据中心源 SQL 同步” | `sync-data-center-sql` dry-run → `--write --expected-plan-sha256 <hash>` | 稳定 model_id 路径；current-model registry、跨进程独占锁、原子回滚和全栈验证均为强制门禁 |
 | 数据中心 SQL 生产替换与刷新 | `references/data_center_replacement.md` | `plan-data-center-sql-replacement` → 审阅 Hash → `apply-data-center-sql-replacement --confirm-production-write` | Plan 远端只读；Apply 才能替换、预览、保存、立即执行并等待新记录 `SUCCESS`；与本地知识同步分权 |
 | 数据中心新建数据集并抽数 | `references/data_center_creation.md` | `plan-data-center-dataset-creation` → 审阅 Hash → `apply-data-center-dataset-creation --confirm-production-write` | 自然语言先落到明确域、文件夹、名称和具体 SQL；Plan 只读，Apply 才创建、配置同步、保存、立即执行并等待新 `SUCCESS` |
-| 截图读字 / OCR 协作 | `SKILL.md` 中“通过 mineru-converter 读取图片” | `mineru-open-api flash-extract` / `extract` | 只在本 skill 已经捕获到截图后使用，不要反过来先做 OCR |
+| 截图内容检查 | `SKILL.md` 中“直接检查截图” | Codex 原生多模态查看 | 只在结构化证据不足且本 skill 已捕获截图后使用 |
 
 ## 跨 skill 路由
 
