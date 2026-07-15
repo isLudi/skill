@@ -102,18 +102,6 @@ When a user request matches any scenario below, automatically load and orchestra
 
 **Scope:** Excel creation, editing, formatting, and formula calculation. Does NOT generate SQL or execute queries.
 
-#### mineru-converter
-**Load when ANY of the following is true:**
-- User wants to read, parse, extract, or summarize content from a PDF, image, or Office document
-- User shares a document file path and asks about its content
-- User needs OCR on scanned documents or screenshots
-- User wants to extract tables, formulas, or structured data from a document
-- User says "read this PDF/image" (读一下这个 PDF/图片), "what does this screenshot say" (这个截图里有什么), "extract tables from this document" (提取文档中的表格)
-- User wants to convert a document between formats (PDF -> Markdown, PDF -> Word, etc.)
-- **OR**: another skill (especially usql-web-query-operator) needs to interpret image/screenshot content during debugging, error analysis, or code inspection
-
-**Scope:** Document-to-Markdown extraction via MinerU Open API. Two modes: `flash-extract` (free, <=10MB/20pp) and `extract` (auth required, <=200MB/600pp, full fidelity). Output can be consumed inline (stdout) or saved to file.
-
 #### lark-* (Feishu CLI Skills)
 **Load when ANY of the following is true:**
 - User wants to configure `lark-cli`, authenticate, switch `user`/`bot` identity, fix Feishu scope errors, or handle permission-denied responses -> `lark-shared`
@@ -217,24 +205,25 @@ In the workflows below, **selected business SQL skill** means the Skill chosen b
 2. **usql-web-query-operator** - Execute SQL and download xlsx; if the export would exceed the direct `SQL取数` download boundary, switch to **Workflow L**
 3. **xlsx** - Load the data with pandas and perform analysis or visualization
 
-#### Workflow H: Document Reading & Extraction
+#### Workflow H: Document and Image Reading
 > "Read this PDF and summarize" (读一下这个 PDF 并总结) / "What does this screenshot contain?" (这个截图里有什么)
 
-1. **mineru-converter** - Extract document/image content to Markdown
-2. Parse the extracted Markdown and respond to the user's specific request
+1. For images and screenshots, inspect the visual content directly with Codex's native multimodal capability
+2. For PDF or Office files, use the matching specialized document skill when available
+3. Respond to the user's specific request using the inspected or extracted content
 
 #### Workflow I: Debug Screenshot Analysis
 > Agent encounters an error screenshot during USQL script execution and needs to understand its content
 
 1. **usql-web-query-operator** - Capture the debug screenshot from the Playwright session
-2. **mineru-converter** - Read the screenshot via `flash-extract` and return the text or error content
-3. **usql-web-query-operator** or **selected business SQL skill** - Use the extracted text to diagnose and repair without changing the resolved domain
+2. Inspect the screenshot directly with Codex's native multimodal capability and identify the visible error, state, or layout
+3. **usql-web-query-operator** or **selected business SQL skill** - Use that evidence to diagnose and repair without changing the resolved domain
 
 #### Workflow J: USQL Selector Drift & Browser Fallback
 > A SQL/BI automation script fails because the page structure, selector, popup, or interaction flow appears to have changed
 
 1. **usql-web-query-operator** - Reproduce with the relevant script and `--headed --debug-artifacts`; keep artifacts under the runtime directory, not in skill directories
-2. **mineru-converter** - If screenshots contain needed text, extract the visible message or page labels
+2. If visual evidence is needed, inspect screenshots directly with Codex's native multimodal capability
 3. **playwright** - Only if DOM-level or one-off browser exploration is still needed, inspect the page with snapshot, screenshot, click, or type commands
 4. **usql-web-query-operator** - Update the selector list, fallback strategy, or documentation, then rerun the USQL script to verify
 
@@ -290,7 +279,7 @@ In the workflows below, **selected business SQL skill** means the Skill chosen b
    - Cross-department work must maintain two independent QuerySpecs and may combine only validated, grain-compatible results
    - The shared physical catalog may contain only neutral physical facts. It must not contain department metrics, ranges, temporary tables, channel or period mappings, business joins, dashboard semantics, or raw SQL definitions
    - SQL skill index maintenance: after modifying dashboards, metrics, tables, temp tables, joins, raw SQL, or semantic contracts, run the selected Skill's `scripts/build_reverse_indexes.py`, then run repository-level `scripts/build_text2sql_catalog.py`, then the selected Skill's `scripts/check_skill_integrity.py`; close the stack with `scripts/validate_text2sql_stack.py`
-   - Market physical schema maintenance: refresh `sql-query-writer-for-dashboard/knowledge/tables` only through `usql-web-query-operator sync-datamap-fields`. Do not recreate `resources/raw_pdfs`, `resources/raw_images`, `resources/rendered_pages`, PDF/OCR extraction scripts, or hand-maintained field-catalog JSON inside the market Skill. Data Map supplies neutral physical fields, types, partitions, and DDL only; market metrics, scopes, joins, and business semantics remain domain-local contracts
+   - Market physical schema maintenance: refresh `sql-query-writer-for-dashboard/knowledge/tables` only through `usql-web-query-operator sync-datamap-fields`. Do not recreate `resources/raw_pdfs`, `resources/raw_images`, `resources/rendered_pages`, document extraction scripts, or hand-maintained field-catalog JSON inside the market Skill. Data Map supplies neutral physical fields, types, partitions, and DDL only; market metrics, scopes, joins, and business semantics remain domain-local contracts
    - Data Center canonical sync: Data Center SQL may only use stable paths `resources/raw_sql/data_center_market_<model_id>.sql` or `resources/raw_sql/data_center_qingcheng_<model_id>.sql`; never create dated Data Center copies. Refresh through `usql-web-query-operator sync-data-center-sql`: first review the dry-run `plan_sha256`, then Apply with exact `--expected-plan-sha256`. Each domain must maintain its own `semantic/current_model_bindings.json`; cross-model replacements require an explicit semantic-slot rebind and old-model retirement in the same plan. Apply must hold the cross-process exclusive lock, atomically cover every selected domain, run reverse indexes, catalog build, uniqueness audit, integrity and `validate_text2sql_stack.py`, and restore the pre-write snapshot if any gate fails
    - Data Center remote replacement boundary: `sync-data-center-sql` is remote read-only even when `--write` is present; that flag writes only local business-Skill knowledge. `plan-data-center-sql-replacement` is also remote read-only and must bind one exact domain, `menu_set_*` identity, current SQL Hash, replacement-file Hash, data source, and schedule task. Only `apply-data-center-sql-replacement` may modify a remote production dataset, and only with explicit user authorization, the exact reviewed `--expected-plan-sha256`, and `--confirm-production-write`. Apply must hold the per-dataset lock, re-read identity and current SQL before writing, use the page sequence full replace -> preview run -> save, verify the saved SQL Hash through the detail API, then trigger `executeOnce` and poll until a new schedule record is `SUCCESS`. Save success alone is not completion. If save succeeded but refresh/readback fails, emit a failed receipt, require manual attention, and do not silently roll back or claim success
    - Data Center remote creation boundary: `plan-data-center-dataset-creation` is remote read-only and must bind one exact domain-local folder identity/path, a unique dataset name, concrete SQL file Hash, exact data-source name/ID, and a schedule of at most 90 days. Only `apply-data-center-dataset-creation` may create a production dataset, and only with explicit user authorization, the exact reviewed `--expected-plan-sha256`, and `--confirm-production-write`. Apply must hold the per-folder/name lock, re-read the folder and reject name conflicts, use the page sequence create draft -> name/source/full SQL -> preview -> schedule -> save, require the save request to carry `id=null` and the planned parent/source/SQL, read back the unique new `menu_set_*` identity/SQL/schedule, then trigger `executeOnce` and poll until a new schedule record is `SUCCESS`. Creation and replacement plans do not authorize each other. If save succeeded but readback/refresh fails, emit a failed receipt, require manual attention, and do not automatically delete, roll back, or claim success
@@ -304,10 +293,3 @@ In the workflows below, **selected business SQL skill** means the Skill chosen b
 6. **Credentials**:
    - Generic Playwright must not read, write, copy, or replace the USQL browser storage state. Keep SQL/BI login state owned by `usql-web-query-operator` at `C:\Users\Ludim\.codex\runtime\usql-web-query-operator\state.json`
    - Configure the shared credentials file with `USQL_ENV_FILE`, or pass `--env-file` to an operator command. The file contains `BAIJIA_USERNAME` / `BAIJIA_PASSWORD`; never hardcode or print them. Browser login state is stored at `C:\Users\Ludim\.codex\runtime\usql-web-query-operator\state.json`
-   - `mineru-converter` reads `MINERU_TOKEN` from the same `USQL_ENV_FILE`. Token expires 2026-09-09. Load it with:
-
-```powershell
-$envFile = $env:USQL_ENV_FILE
-if ([string]::IsNullOrWhiteSpace($envFile)) { throw 'USQL_ENV_FILE is not configured.' }
-$env:MINERU_TOKEN = (Get-Content -LiteralPath $envFile -Encoding UTF8 | Select-String '^MINERU_TOKEN=(.+)$').Matches.Groups[1].Value
-```
