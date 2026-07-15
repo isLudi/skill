@@ -120,7 +120,7 @@
   },
   "current_model_registry": {
     "source_path": "semantic/current_model_bindings.json",
-    "source_sha256": "523dc4e6ed8312134825af7d09473db3b42d342d4ac33144e4735a741f4d5cac",
+    "source_sha256": "e87de0ce71700b124dabc47776c77739826e7cdaa4b30faf4e60a10a74efb9fd",
     "policy": "one_current_model_per_id_and_semantic_slot",
     "canonical_filename_policy": "data_center_market_<model_id>.sql",
     "model_count": 37,
@@ -1124,8 +1124,8 @@
       {
         "id": "market_consultant:dashboards:data_center_market_datasets",
         "source_path": "knowledge/dashboards/data_center_market_datasets.md",
-        "sha256": "9dafccc9a20bb09e49fe41d7e1f8fb090f74db4cee21e294bd8c117532fad853",
-        "bytes": 15144,
+        "sha256": "a7b7dec8c10f9435e216f249c9a6de5aca9e2fd4f2b8f7c93ec76f20633ffb28",
+        "bytes": 15201,
         "title": "数据中心数据集源 SQL（市场顾问部）",
         "table_refs": [],
         "raw_sql_refs": [
@@ -2768,8 +2768,8 @@
       {
         "id": "market_consultant:raw_sql:data_center_market_2978",
         "source_path": "resources/raw_sql/data_center_market_2978.sql",
-        "sha256": "4f9e8a1dee2ca08e8162b66fe712069da3475d468cefb956157c6d7e2813ac8c",
-        "bytes": 15232,
+        "sha256": "b0e70665b7abcb76091cdc42fdde936e15e239a54c8bc867d653d05ba63a0c43",
+        "bytes": 15965,
         "title": "data_center_market_2978",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -3346,8 +3346,8 @@
       {
         "id": "market_consultant:sql_patterns:market_summer_qici_corrections",
         "source_path": "knowledge/sql_patterns/market_summer_qici_corrections.md",
-        "sha256": "96fd5913bd9a98de4b5be9ab2f4dc02b412858a1ad92b284b316566249d9fbd1",
-        "bytes": 6318,
+        "sha256": "593e8520a3b4cc3398d1141baa4279ecbb0c6545091572b2b81f114485808d9d",
+        "bytes": 6838,
         "title": "市场顾问部暑期期次修正规则",
         "table_refs": [],
         "raw_sql_refs": [],
@@ -3950,8 +3950,8 @@
       {
         "id": "market_consultant:update_log:changelog",
         "source_path": "knowledge/update_log/changelog.md",
-        "sha256": "a63d4dec2be8c451f2e075244c502340ef6b58e3fc6c57c19ad1cad7b7185ffd",
-        "bytes": 95053,
+        "sha256": "c709c9536c5d72a4aa86e3cffce6c9740fc2047a283e941ed3e3c70733560fc5",
+        "bytes": 95778,
         "title": "更新记录",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -5343,8 +5343,8 @@
     },
     {
       "source_path": "knowledge/dashboards/data_center_market_datasets.md",
-      "sha256": "9dafccc9a20bb09e49fe41d7e1f8fb090f74db4cee21e294bd8c117532fad853",
-      "bytes": 15144,
+      "sha256": "a7b7dec8c10f9435e216f249c9a6de5aca9e2fd4f2b8f7c93ec76f20633ffb28",
+      "bytes": 15201,
       "category": "dashboards"
     },
     {
@@ -5583,8 +5583,8 @@
     },
     {
       "source_path": "knowledge/sql_patterns/market_summer_qici_corrections.md",
-      "sha256": "96fd5913bd9a98de4b5be9ab2f4dc02b412858a1ad92b284b316566249d9fbd1",
-      "bytes": 6318,
+      "sha256": "593e8520a3b4cc3398d1141baa4279ecbb0c6545091572b2b81f114485808d9d",
+      "bytes": 6838,
       "category": "sql_patterns"
     },
     {
@@ -5793,8 +5793,8 @@
     },
     {
       "source_path": "knowledge/update_log/changelog.md",
-      "sha256": "a63d4dec2be8c451f2e075244c502340ef6b58e3fc6c57c19ad1cad7b7185ffd",
-      "bytes": 95053,
+      "sha256": "c709c9536c5d72a4aa86e3cffce6c9740fc2047a283e941ed3e3c70733560fc5",
+      "bytes": 95778,
       "category": "update_log"
     },
     {
@@ -6039,8 +6039,8 @@
     },
     {
       "source_path": "resources/raw_sql/data_center_market_2978.sql",
-      "sha256": "4f9e8a1dee2ca08e8162b66fe712069da3475d468cefb956157c6d7e2813ac8c",
-      "bytes": 15232,
+      "sha256": "b0e70665b7abcb76091cdc42fdde936e15e239a54c8bc867d653d05ba63a0c43",
+      "bytes": 15965,
       "category": "raw_sql"
     },
     {

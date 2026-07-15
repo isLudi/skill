@@ -2,24 +2,24 @@
 
 ## 1. 来源与范围
 
-- current-model registry 基线日期：2026-07-11；最近业务 SQL 修正：2026-07-09
+- 最近同步计划日期：2026-07-15
 - 来源页面：https://uanalysis.baijia.com/data-center/data-set
 - 同步范围：青橙项目部目录下的全部 SQL 数据集。
-- 维护方式：`sync-data-center-sql` 先生成同步计划，Apply 必须绑定精确计划哈希；每个 model_id 原子替换稳定 canonical 文件。
-- SQL 存放：完整源 SQL 存放在 `resources/raw_sql/data_center_qingcheng_<model_id>.sql`；SHA-256 与 current model/语义槽位登记在 `semantic/current_model_bindings.json`。
+- canonical SQL 使用稳定文件名；更新时间与 SHA-256 由 `semantic/current_model_bindings.json` 记录。
+- 更新必须执行 `dry-run -> expected plan hash -> atomic apply -> full validation`，旧日期文件不得进入活跃知识库。
 
-## 2. 数据集清单
+## 2. 当前数据集清单
 
-| 序号 | 数据集名称 | 数据集 ID | fileValue | subjectId | 数据源 ID | 所属路径 | 源 SQL 文件 | 行数 |
-|---:|---|---|---|---|---|---|---|---:|
-| 1 | `青橙-过程数据` | `menu_set_3733940369833271296` | `2064` | `2054` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/青橙项目部/青橙-过程数据 | [data_center_qingcheng_2064.sql](../../resources/raw_sql/data_center_qingcheng_2064.sql) | 345 |
-| 2 | `转化数据` | `待补充` | `2460` | `待补充` | `待补充` | 青橙项目部 / 转化数据看板使用的 2460 数据集；本次回写未重新抓取数据中心详情元数据 | [data_center_qingcheng_2460.sql](../../resources/raw_sql/data_center_qingcheng_2460.sql) | 473 |
-| 3 | `抖私-转化` | `待补充` | `2740` | `待补充` | `待补充` | 青橙项目部 / 青-抖私-转化看板当前绑定模型 | [data_center_qingcheng_2740.sql](../../resources/raw_sql/data_center_qingcheng_2740.sql) | 158 |
+| 序号 | 数据集名称 | 数据集 ID | model_id | subjectId | 数据源 ID | 所属路径 | canonical SQL | SQL SHA-256 | 行数 |
+|---:|---|---|---|---|---|---|---|---|---:|
+| 1 | `青橙-过程数据` | `menu_set_3733940369833271296` | `2064` | `2054` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/青橙项目部/青橙-过程数据 | [data_center_qingcheng_2064.sql](../../resources/raw_sql/data_center_qingcheng_2064.sql) | `5cc28ed374d8e02f4db97ba22a4cad73caed53cf3d2c6e659c82c75a16dd9dc5` | 346 |
+| 2 | `转化数据` | `menu_set_3833505841890963456` | `2460` | `2450` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/青橙项目部/转化数据 | [data_center_qingcheng_2460.sql](../../resources/raw_sql/data_center_qingcheng_2460.sql) | `5d6286bf8cda1384467a5b2d99071ba20f4a46417967d1869c3cff8f21106e70` | 499 |
+| 3 | `抖私-转化` |  | `2740` |  |  | 青橙项目部/抖私-转化 | [data_center_qingcheng_2740.sql](../../resources/raw_sql/data_center_qingcheng_2740.sql) | `ba008980d05b30c1702a88cd933e8a7533144b1bd1872ee736af7d73a3f9c704` | 235 |
 
 ## 3. 维护说明
 
-- 2026-07-09：2460 current model 已包含 `20260716期` 暑期业务日历修正，并同步修正订单侧、线索侧和当期判断短期次。
-- 更新时先运行 `sync-data-center-sql --target-skill qingcheng`，审阅 `plan_sha256` 后再运行 `--write --expected-plan-sha256 <hash>`；禁止直接复制日期文件。
-- 同一 model_id 只允许一个稳定 canonical 文件；跨 model_id 替代必须同时更新语义槽位并显式退役旧模型。
-- 若需要解释字段、指标或看板口径，应在读取源 SQL 后再维护 `knowledge/tables`、`knowledge/metrics` 或专题文档；不要只凭数据集名称补口径。
-- 青橙与市场顾问业务知识库相互隔离：青橙数据集只写入 `qingcheng-dashboard-sql`，市场顾问数据集只写入 `sql-query-writer-for-dashboard`。
+- 默认命令只生成同步计划；Apply 必须携带完全匹配的 `--expected-plan-sha256`。
+- 同一 model_id 只能覆盖稳定 canonical 文件，不能创建日期后缀副本。
+- 模型替换涉及业务用途变化时，先更新 `semantic_slots` 的 current model 和看板证据，再 Apply。
+- 青橙与市场顾问 current-model registry 相互隔离，不得跨域引用。
+- 2026-07-15：`2460` 已在 canonical SQL 内维护 `biz_qici_calendar`，覆盖 `20260716期` 至 `20260821期` 的暑期运营期次，避免继续按自然周周五生成 `20260724期` 等非业务期次。

@@ -5,18 +5,32 @@ with koc_channel_scope as (
     union all
     select 'KOC-孟亚飞数学' as source_channel, 'KOC-孟亚飞数学' as broadcast_channel, 3 as sort_order
 ),
+biz_qici_calendar as (
+    select *
+    from (
+        values
+            ('20260716期', date '2026-07-14', date '2026-07-19'),
+            ('20260722期', date '2026-07-20', date '2026-07-24'),
+            ('20260728期', date '2026-07-26', date '2026-07-30'),
+            ('20260803期', date '2026-08-01', date '2026-08-05'),
+            ('20260809期', date '2026-08-07', date '2026-08-11')
+    ) as t(qici, start_date, end_date)
+),
 lead_base as (
     select distinct
-        concat(
-            date_format(
-                date_trunc(
-                    'week',
-                    date_parse(replace(concat(t1.group_period_year, t1.group_period_term), '期', ''), '%Y%m%d')
-                      - interval '1' day
-                ) + interval '4' day,
-                '%Y%m%d'
-            ),
-            '期'
+        coalesce(
+            cal.qici,
+            concat(
+                date_format(
+                    date_trunc(
+                        'week',
+                        date_parse(replace(concat(t1.group_period_year, t1.group_period_term), '期', ''), '%Y%m%d')
+                          - interval '1' day
+                    ) + interval '4' day,
+                    '%Y%m%d'
+                ),
+                '期'
+            )
         ) as period_name,
         t1.virtual_fourth_department_name as department,
         t1.virtual_leader_email_name as raw_manager_name,
@@ -36,6 +50,9 @@ lead_base as (
         t1.lead_create_time,
         coalesce(t1.valid_lead_count, 0) as valid_lead_count
     from bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df t1
+    left join biz_qici_calendar cal
+      on cast(date_parse(replace(concat(t1.group_period_year, t1.group_period_term), '期', ''), '%Y%m%d') as date)
+         between cal.start_date and cal.end_date
     where t1.dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
       and t1.hour = format_datetime(now() - interval '3' hour, 'HH')
       and t1.section_assign_employee_first_level_department_name = 'H业务线'

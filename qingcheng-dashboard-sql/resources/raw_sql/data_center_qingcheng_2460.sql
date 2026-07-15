@@ -1,13 +1,17 @@
--- 2026-07-09 hotfix: map Qingcheng business dates 2026-07-14..2026-07-18 to qici 20260716期.
--- Scope: dashboard_3885764906392891392 / Data Center model 2460 conversion dataset.
--- Reason: summer operation period is business-calendar based and no longer equals fixed Friday 20260717期.
--- Runtime adaptation for Qingcheng broadcast automation, generated 2026-06-19.
--- Architecture decision: conversion/result broadcast uses temp_table.dingxi01_qing_team_jg by result qici.
--- Key change: remove max(qici) latest-architecture join and join mm.qici = jg.qici instead.
--- This prevents a future process period architecture upload from changing the result-period org mapping.
--- 业绩明细：以 service 表为主，先剔除 service 明细上已标识的调课调班金额，
--- 再按完成度口径计算退4/点睛2与折算后产出，用于 podan 分子（字段名保持 podan 不变）。
-with lead_map as (
+with biz_qici_calendar as (
+select *
+from (
+    values
+        ('20260716期', '0716期', '20260717期', '0717期', date '2026-07-14', date '2026-07-20'),
+        ('20260722期', '0722期', '20260724期', '0724期', date '2026-07-21', date '2026-07-27'),
+        ('20260728期', '0728期', '20260731期', '0731期', date '2026-07-28', date '2026-08-03'),
+        ('20260803期', '0803期', '20260807期', '0807期', date '2026-08-04', date '2026-08-06'),
+        ('20260809期', '0809期', '20260807期', '0807期', date '2026-08-07', date '2026-08-10'),
+        ('20260815期', '0815期', '20260814期', '0814期', date '2026-08-11', date '2026-08-17'),
+        ('20260821期', '0821期', '20260821期', '0821期', date '2026-08-18', date '2026-08-24')
+) as t(qici, short_qici, legacy_qici, legacy_short_qici, period_start_date, period_end_date)
+)
+,lead_map as (
 select lead_id,put_plan_name,employee_email_name,channel_name_1,channel_name_2,channel_name_3,flow_pool_name,get_customer_way_name
   ,rule_name,case
   when rule_name like '%青橙IP%' then '青橙IP'
@@ -41,7 +45,19 @@ when rule_name like '%初三%' then '初三'
 else lead_purchase_intention_level2_category_name end as grade_0,
 virtual_direct_leader_email_name
 from (
-    select *,
+    select
+           lead_id,
+           put_plan_name,
+           employee_email_name,
+           channel_name_1,
+           channel_name_2,
+           channel_name_3,
+           flow_pool_name,
+           get_customer_way_name,
+           rule_name,
+           lead_purchase_intention_level2_category_name,
+           virtual_direct_leader_email_name,
+           section_assign_time,
            row_number() over (
                partition by lead_id, employee_email_name
                order by section_assign_time desc,
@@ -75,11 +91,10 @@ base.service_transfer_in_amount_yuan,
 base.service_transfer_out_amount_yuan,
 base.rule_name0,
 base.rule_name,
-case
-    when base.qici = '20260716期'
-     and regexp_extract(base.rule_name, '(\d{4}期)', 1) = '0717期' then '0716期'
-    else regexp_extract(base.rule_name, '(\d{4}期)', 1)
-end as qici0,
+coalesce(
+    period_cal.short_qici,
+    regexp_extract(base.rule_name, '(\d{4}期)', 1)
+) as qici0,
 base.grade_0,
 base.qici,
 regexp_extract(base.qici, '\d{4}(\d{4}期)', 1) as period,
@@ -116,26 +131,30 @@ ld.rule_name0,
 ld.rule_name,
 ld.grade_0,
 ld.virtual_direct_leader_email_name,
-case
-    when cast(gmv.trade_timestamp as date) between date '2026-07-14' and date '2026-07-18' then '20260716期'
-    when day_of_week(cast(gmv.trade_timestamp as timestamp)) = 1 then
-        concat(
-            date_format(
-                date_trunc('week', cast(gmv.trade_timestamp as timestamp)) - interval '3' day,
-                '%Y%m%d'
-            ),
-            '期'
-        )
-    else
-        concat(
-            date_format(
-                date_trunc('week', cast(gmv.trade_timestamp as timestamp)) + interval '4' day,
-                '%Y%m%d'
-            ),
-            '期'
-        )
-end as qici
+coalesce(
+    trade_cal.qici,
+    case
+        when day_of_week(cast(gmv.trade_timestamp as timestamp)) = 1 then
+            concat(
+                date_format(
+                    date_trunc('week', cast(gmv.trade_timestamp as timestamp)) - interval '3' day,
+                    '%Y%m%d'
+                ),
+                '期'
+            )
+        else
+            concat(
+                date_format(
+                    date_trunc('week', cast(gmv.trade_timestamp as timestamp)) + interval '4' day,
+                    '%Y%m%d'
+                ),
+                '期'
+            )
+    end
+) as qici
 from service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf gmv
+left join biz_qici_calendar trade_cal
+  on cast(gmv.trade_timestamp as date) between trade_cal.period_start_date and trade_cal.period_end_date
 left join lead_map ld
   on gmv.lead_id = ld.lead_id
  and ld.employee_email_name = gmv.performance_employee_email_name
@@ -146,6 +165,9 @@ where gmv.dt=format_datetime(NOW()-interval '2' hour,'YYYYMMdd')
   and gmv.course_second_level_department_name in ('V项目部','本地化部','私域营销组','青少成长学部','创新技术组','成长中心供应链组','APP运营组','英语产品部','职场服务部','用户平台部','微师产品部','上海中心综合部','CAL技术组','财务核算部','财经项目部','人才发展部','财务信息化部','图书项目部（关闭）','运营部','基础架构组','数学产品部','营销产品部','雅思学部','商品部','磨课组','升学规划部','升学规划中心','郑州中心','组织部','留学申请学部','质检部','架构平台部','师训组','投放商务组','系统班部','编程素养学部','市场运营组','项目运营组','KM技术组','二讲老师部','成都中心综合部','业务设计部','专题课部','微师职教产品部','高校学部','教学服务部','平台产品部','数字化学部','品牌运营组','校长办公室','运营中心财务','视效部','数据与商业分析中心','X项目','教学产品部','XA学部','语言学部','图书产品部','主播部','业务支持部','HL技术组','武汉中心综合部','成人供应链组','途途课堂','信息平台部','HL经营分析组','大数据部','直播运营组','市场部','金刚产品部','教学产品运营中心','平台电商组','企业效能部','品牌与内容部','产品研发部','小学部','技术质量部','财务报告部','税务部','用户产品部','直播二部','招聘部','HR共享中心','清北','增长策略部','督察部','商品运营部','资金管理部','美好家庭学部','设计支持中心','初中部','AIGC创新部','财务部','人力资源部','人才保障部一部','CAL经营分析组','基础技术部','综合素养学部','热线呼入部','品牌部','语文产品部','供应链部','题库','GZ学部','政府关系部','HRBP部','招生运营部','督检组','耀师项目部','产品运营部','营运部','多媒体技术部','跟谁学郑州中心(失效）','人工智能部','体验设计部','狮王项目部','资产服务部','专升本项目部','基础技术部(失效)','郑州中心综合部','考研学部','线上考研学部','内容营销组','公关部','公职学部','客服部','运营平台部','CS学部','财务FP&A部','商学院学部','行政部','直播三部','营销技术部','私域运营组','飞花产品部','星火产品部','客户端技术部','薪酬绩效部','图书项目部','NJ学部','直播一部','法务部','在线服务部','履约部','KML经营分析组','社会保障部','精品班部','教学教研部','医疗项目部','菁英班部','菁英班学部','精品班学部','一对一学部','北京学部','图书学部','河南学部','清北班学部','湖广学部','山西学部','K学部','M学部','大学生学习学部','合肥学校','太原学校','苏州学校','郑州学校','北京学校','上海学校','运营中心','广州学校','市场中心','南京学校','深圳学校','成都学校','财务中心','武汉学校','济南学校','天津学校','学校办公室','重庆学校','西安学校','长沙学校','市场二部','留学学部','国际考试学部','出国语培线下项目','广州学校（IE）','国际竞赛项目','剑桥英语项目','上海学校（IE）','心理学部','创新项目部','创新学部','素质成长学部','国际考试在线学部','毛豆学部','青少学部','市场三部','市场四部','青橙项目部','文旅学部','本地化大班学部','市场营销部','直播市场部','创新增长部','学习规划中心','素养初中学部','素养青藤学部','素养小学学部','用户运营部','经营策略部','校园招聘','直播创新部','战略创新部','产研部','业务研发部','教学质量部','Theta项目部','AI素养学部','文旅项目','Theta智学项目部','Theta产研部','V学部','TT初中学部','TT小学学部','产研部','T学部','专题课部（失效）','初中组','文旅项目（失效）')
   and (gmv.income_amount <>0 or gmv.refund_amount <> 0)
 ) base
+left join biz_qici_calendar period_cal
+  on base.qici = period_cal.qici
+ and regexp_extract(base.rule_name, '(\d{4}期)', 1) = period_cal.legacy_short_qici
 where base.qici >= '20260424期'
 )
 -- lead期次+分配时间
@@ -338,11 +360,11 @@ group by qici,qudao,grade_0,zhuguan,name
 ,bb as (
 select qici,channel_map_1,channel_map_2,grade_1,virtual_direct_leader_email_name,employee_email_name,sum(v_lead) as v_lead
 from(
-select distinct *
-,case
-    when cast(date_parse(replace(concat(group_period_year, group_period_term), '期', ''), '%Y%m%d') as date) between date '2026-07-14' and date '2026-07-18' then '20260716期'
-    else concat(cast(date_format(date_trunc('week', date_parse(replace(concat(group_period_year, group_period_term), '期', ''), '%Y%m%d') - interval '1' day) + interval '4' day, '%Y%m%d') as varchar), '期')
-end qici
+select distinct f.*
+,coalesce(
+    lead_cal.qici,
+    concat(cast(date_format(date_trunc('week', date_parse(replace(concat(group_period_year, group_period_term), '期', ''), '%Y%m%d') - interval '1' day) + interval '4' day, '%Y%m%d') as varchar), '期')
+) qici
 ,case
 when f.rule_name like '%私域%' then '青橙私域'
   when f.rule_name like '%IP%' or f.rule_name like '%亚飞IP%' then '青橙IP'
@@ -391,6 +413,9 @@ else f.lead_purchase_intention_level2_category_name end as grade_1
 ,case when f.valid_lead_count = '1' then 1 else 0 end as v_lead
 from
 bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df f
+left join biz_qici_calendar lead_cal
+  on cast(date_parse(replace(concat(group_period_year, group_period_term), '期', ''), '%Y%m%d') as date)
+     between lead_cal.period_start_date and lead_cal.period_end_date
 where f.dt=format_datetime(NOW()-interval '2' hour,'YYYYMMdd') and f.hour=format_datetime(NOW()-interval '2' hour,'HH')
 and f.section_assign_employee_first_level_department_name = 'H业务线'
 and f.section_assign_employee_second_level_department_name = '青橙项目部'

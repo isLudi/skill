@@ -444,3 +444,14 @@
 - 覆盖 `knowledge/tables` 中 1 张物理表文档；追加 42 个数据地图字段，回填类型 0 处、字段说明 0 处。
 - 复扫结果为字段缺口 0、类型占位 0、说明占位 0。
 - 本次维护严格限定在 `qingcheng-dashboard-sql` 内，未同步到市场顾问 Skill；未覆盖 `temp_table.*` 临时表文档；临时表字段仍以本地 Excel、SQL 使用场景和人工维护规则为准。
+
+## 2026-07-15 数据中心 stable canonical SQL 同步
+
+- 按已审阅同步计划原子更新 model_id：`2460`；每个 model_id 只保留稳定 canonical 路径。
+- 写入后已强制重建反向索引和目录，并运行唯一版本审计、域内 integrity 与完整 Text2SQL 栈验证。
+
+## 2026-07-15 青橙转化数据看板暑期期次 20260724 修正
+
+- 更新 `resources/raw_sql/data_center_qingcheng_2460.sql`，新增 `biz_qici_calendar` 覆盖 `20260716期` 至 `20260821期`，将 `2026-07-21` 至 `2026-07-27` 的历史固定周五结果 `20260724期` 归一为业务期次 `20260722期`。
+- 同步修正订单侧 `trade_timestamp`、线索侧 `group_period_year + group_period_term`、当期短期次 `qici0`，并修复 `lead_map` / `bb` 中 `select *` 引发的字段二义性风险。
+- 线上 SQL 验证 query id：`1474435390`；聚合结果仅出现 `20260716期=224`、`20260722期=42`，未出现 `20260724期`。

@@ -536,10 +536,10 @@
       "model_id": "2978",
       "ordinal": 38,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/koc数据播报",
-      "source_observed_on": "2026-07-05",
-      "sql_bytes": 15232,
-      "sql_lines": 377,
-      "sql_sha256": "4f9e8a1dee2ca08e8162b66fe712069da3475d468cefb956157c6d7e2813ac8c",
+      "source_observed_on": "2026-07-15",
+      "sql_bytes": 15965,
+      "sql_lines": 395,
+      "sql_sha256": "b0e70665b7abcb76091cdc42fdde936e15e239a54c8bc867d653d05ba63a0c43",
       "subject_id": "2966"
     },
     {

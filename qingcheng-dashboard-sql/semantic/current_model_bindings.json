@@ -19,18 +19,18 @@
     },
     {
       "canonical_sql": "resources/raw_sql/data_center_qingcheng_2460.sql",
-      "data_source_id": "待补充",
-      "dataset_id": "待补充",
+      "data_source_id": "menu_source_817034371567951872",
+      "dataset_id": "menu_set_3833505841890963456",
       "dataset_name": "转化数据",
       "file_value": "2460",
       "model_id": "2460",
       "ordinal": 2,
-      "path": "青橙项目部 / 转化数据看板使用的 2460 数据集；本次回写未重新抓取数据中心详情元数据",
-      "source_observed_on": "2026-07-09",
-      "sql_bytes": 28814,
-      "sql_lines": 473,
-      "sql_sha256": "bfd6a41d878081afdadb9e3eb8f69bfce94b380467cb3dbab4531a93dbdbd61f",
-      "subject_id": "待补充"
+      "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/青橙项目部/转化数据",
+      "source_observed_on": "2026-07-15",
+      "sql_bytes": 29386,
+      "sql_lines": 499,
+      "sql_sha256": "5d6286bf8cda1384467a5b2d99071ba20f4a46417967d1869c3cff8f21106e70",
+      "subject_id": "2450"
     },
     {
       "canonical_sql": "resources/raw_sql/data_center_qingcheng_2740.sql",
