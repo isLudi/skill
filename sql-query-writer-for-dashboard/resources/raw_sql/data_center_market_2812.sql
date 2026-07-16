@@ -3,10 +3,10 @@ with biz_qici_calendar as (
     from (
         values
             ('market_consultant', 'lead_period', '20260716期', date '2026-07-14', date '2026-07-19', 1),
-            ('market_consultant', 'lead_period', '20260722期', date '2026-07-20', date '2026-07-24', 1),
-            ('market_consultant', 'lead_period', '20260728期', date '2026-07-26', date '2026-07-30', 1),
-            ('market_consultant', 'lead_period', '20260803期', date '2026-08-01', date '2026-08-05', 1),
-            ('market_consultant', 'lead_period', '20260809期', date '2026-08-07', date '2026-08-11', 1)
+            ('market_consultant', 'lead_period', '20260722期', date '2026-07-20', date '2026-07-25', 1),
+            ('market_consultant', 'lead_period', '20260728期', date '2026-07-26', date '2026-07-31', 1),
+            ('market_consultant', 'lead_period', '20260803期', date '2026-08-01', date '2026-08-06', 1),
+            ('market_consultant', 'lead_period', '20260809期', date '2026-08-07', date '2026-08-12', 1)
     ) as t(business_domain, date_role, qici, period_start_date, period_end_date, enabled)
 ),
 src as (

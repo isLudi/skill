@@ -14,7 +14,10 @@
 |---:|---|---|---|---|---|---|---|---|---:|
 | 1 | `青橙-过程数据` | `menu_set_3733940369833271296` | `2064` | `2054` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/青橙项目部/青橙-过程数据 | [data_center_qingcheng_2064.sql](../../resources/raw_sql/data_center_qingcheng_2064.sql) | `4d75c1219cdc550485203a854328f3687e5cac43ce1ba3845cf7c4640eb38f8d` | 905 |
 | 2 | `转化数据` | `menu_set_3833505841890963456` | `2460` | `2450` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/青橙项目部/转化数据 | [data_center_qingcheng_2460.sql](../../resources/raw_sql/data_center_qingcheng_2460.sql) | `5d6286bf8cda1384467a5b2d99071ba20f4a46417967d1869c3cff8f21106e70` | 499 |
-| 3 | `抖私-转化` |  | `2740` |  |  | 青橙项目部/抖私-转化 | [data_center_qingcheng_2740.sql](../../resources/raw_sql/data_center_qingcheng_2740.sql) | `ba008980d05b30c1702a88cd933e8a7533144b1bd1872ee736af7d73a3f9c704` | 235 |
+| 3 | `团队完成度【月】` | `menu_set_3872620822275268609` | `2677` | `2667` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/青橙项目部/团队完成度【月】 | [data_center_qingcheng_2677.sql](../../resources/raw_sql/data_center_qingcheng_2677.sql) | `5d37f1443117637537a2cb30f5507a4c31b96e505d1d98386fbeb35a56613efe` | 457 |
+| 4 | `团队完成度【期】` | `menu_set_3873036408401260544` | `2680` | `2670` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/青橙项目部/团队完成度【期】 | [data_center_qingcheng_2680.sql](../../resources/raw_sql/data_center_qingcheng_2680.sql) | `7ee768fbadf2f3734d764d0bbc41cbdca61c019137993dd117a3ae4cb46df3cf` | 456 |
+| 5 | `青橙个人转化` | `menu_set_3893030630962376704` | `2769` | `2759` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/青橙项目部/青橙个人转化 | [data_center_qingcheng_2769.sql](../../resources/raw_sql/data_center_qingcheng_2769.sql) | `8e613de45f493058878a961d9f73f7ae4cd5185f4a331f68753dc48079704c90` | 724 |
+| 6 | `抖私-转化` |  | `2740` |  |  | 青橙项目部/抖私-转化 | [data_center_qingcheng_2740.sql](../../resources/raw_sql/data_center_qingcheng_2740.sql) | `ba008980d05b30c1702a88cd933e8a7533144b1bd1872ee736af7d73a3f9c704` | 235 |
 
 ## 3. 维护说明
 

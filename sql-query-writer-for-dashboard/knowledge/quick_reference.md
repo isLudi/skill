@@ -54,7 +54,7 @@
 | 市场顾问转化/线索转化 | `knowledge/dashboards/market_consultant_conversion.md` | `knowledge/metrics/market_consultant_conversion_metrics.md` |
 | 流量画像/城市渠道 | `knowledge/dashboards/traffic_profile.md` | `knowledge/metrics/traffic_profile_metrics.md` |
 | 市场渠道用户画像/成单过程/多维退费率/退费科目产品占比 | `knowledge/dashboards/market_channel_conversion_profile.md` | `knowledge/metrics/market_channel_conversion_profile_metrics.md`；科目/产品/年级退款金额占比读 2349 fixed SQL |
-| 市场顾问部模板取数最新代码/AI分析模板 | `knowledge/dashboards/template_query_market_datasets.md` | 读取清单中对应 raw SQL；使用口径必须说明为“模板取数” |
+| 市场顾问部模板取数最新代码/AI分析模板/馒头订单明细 | `knowledge/dashboards/template_query_market_datasets.md` | 读取清单中对应 raw SQL；馒头支付时间执行计划问题再读 `knowledge/sql_patterns/mantou_order_detail_pay_time_stage_optimization.md` |
 | 市场顾问看板指标含义/前端公式/数据集 SQL 联动 | `knowledge/metrics/market_consultant_dashboard_metric_formula_linkage.md` | 再读 `knowledge/dashboard_web_profiles/edit_metrics/` 中对应看板明细和 `resources/raw_sql/data_center_market_*_*.sql` |
 | 运营侧暑期期次、`20260717期` 应归 `20260716期`、7 月后期次不按周五 | `knowledge/sql_patterns/market_summer_qici_corrections.md` | 再读 `knowledge/dashboard_web_profiles/operation_side_dashboard_web_profile.md` 和 `knowledge/dashboards/data_center_market_datasets.md` |
 | 退费分析 | `knowledge/metrics/market_channel_conversion_profile_metrics.md` | 唯一入口为 `knowledge/dashboards/market_channel_conversion_profile.md`；按 2349、2890、2353 三个当前模型选择对应字段 |
@@ -70,5 +70,6 @@
 - 先读 `knowledge/00_global_rules.md` 和 `knowledge/03_range_limit_rules.md` 顶部核心规则，再写生产 SQL。
 - 排查平台“模板取数”中存储的最新 SQL 时，先读 `knowledge/dashboards/template_query_market_datasets.md`，不要默认用数据中心或 Web BI canonical SQL 替代；回答时说明使用口径为“模板取数”。
 - 生成平台模板取数 SQL 时，日期/时间区间必须使用 `字段名 >= ${字段名:1} and 字段名 < ${字段名:2}`，参数名和过滤列名一致，不能加 `cast()`，详见 `knowledge/sql_patterns/template_parameter_rules.md`。
+- `馒头_订单明细_支付时间` 当前发布版使用窗口统计控制 stage 数；不要恢复 `user_stats`、`subject_stats` 和 `lianbao_stats` 同时重复读取重 CTE `cs` 的旧结构。
 - 需要最新渠道归因时，读 `knowledge/sql_patterns/channel_mapping_case_when.md`，完整 CASE 用 `resources/raw_sql/market_channel_case_when_0612.sql`。
 - 涉及 Web 查询执行、下载、权限问题时，读 `knowledge/sql_patterns/web_permission_guide.md`。

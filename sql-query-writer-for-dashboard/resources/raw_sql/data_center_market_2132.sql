@@ -1,9 +1,13 @@
--- 2026-07-09 hotfix: map business dates 2026-07-14..2026-07-18 to qici 20260716.
+-- 2026-07-16 update: map summer business dates 2026-07-14..2026-08-12 to actual operation qici ranges.
 -- Dataset: 2132 attendance decay
 with data as (
     select distinct
   f.*,  case
-      when cast(date_parse(replace(concat(f.group_period_year,f.group_period_term),'期',''),'%Y%m%d') as date) between date '2026-07-14' and date '2026-07-18' then '20260716期'
+      when cast(date_parse(replace(concat(f.group_period_year,f.group_period_term),'期',''),'%Y%m%d') as date) between date '2026-07-14' and date '2026-07-19' then '20260716期'
+      when cast(date_parse(replace(concat(f.group_period_year,f.group_period_term),'期',''),'%Y%m%d') as date) between date '2026-07-20' and date '2026-07-25' then '20260722期'
+      when cast(date_parse(replace(concat(f.group_period_year,f.group_period_term),'期',''),'%Y%m%d') as date) between date '2026-07-26' and date '2026-07-31' then '20260728期'
+      when cast(date_parse(replace(concat(f.group_period_year,f.group_period_term),'期',''),'%Y%m%d') as date) between date '2026-08-01' and date '2026-08-06' then '20260803期'
+      when cast(date_parse(replace(concat(f.group_period_year,f.group_period_term),'期',''),'%Y%m%d') as date) between date '2026-08-07' and date '2026-08-12' then '20260809期'
       else concat(cast(date_format(date_trunc('week', date_parse(replace(concat(f.group_period_year,f.group_period_term),'期',''),'%Y%m%d') - interval '1' day) + interval '4' day, '%Y%m%d') as varchar),'期')
   end as qici,
 case when flow_pool_name in ('高途学习规划','智辉老师讲规划') then '市场私域视频号'

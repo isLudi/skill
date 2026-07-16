@@ -1,4 +1,4 @@
--- 2026-07-09 hotfix: map business dates 2026-07-14..2026-07-18 to qici 20260716.
+-- 2026-07-16 update: map summer business dates 2026-07-14..2026-08-12 to actual operation qici ranges.
 -- Dataset: 2054 outbound process
 with d_ap as (
     select distinct
@@ -81,7 +81,11 @@ data as (
     select distinct
         f.*,
         case
-            when cast(date_parse(replace(concat(f.group_period_year, f.group_period_term), '期', ''), '%Y%m%d') as date) between date '2026-07-14' and date '2026-07-18' then '20260716期'
+            when cast(date_parse(replace(concat(f.group_period_year, f.group_period_term), '期', ''), '%Y%m%d') as date) between date '2026-07-14' and date '2026-07-19' then '20260716期'
+            when cast(date_parse(replace(concat(f.group_period_year, f.group_period_term), '期', ''), '%Y%m%d') as date) between date '2026-07-20' and date '2026-07-25' then '20260722期'
+            when cast(date_parse(replace(concat(f.group_period_year, f.group_period_term), '期', ''), '%Y%m%d') as date) between date '2026-07-26' and date '2026-07-31' then '20260728期'
+            when cast(date_parse(replace(concat(f.group_period_year, f.group_period_term), '期', ''), '%Y%m%d') as date) between date '2026-08-01' and date '2026-08-06' then '20260803期'
+            when cast(date_parse(replace(concat(f.group_period_year, f.group_period_term), '期', ''), '%Y%m%d') as date) between date '2026-08-07' and date '2026-08-12' then '20260809期'
             else concat(
             date_format(
                 date_trunc(
@@ -431,7 +435,11 @@ else '其他未知流量' end as channel_map_1,
                 trace_update_time,
                 assign_time,
                 case
-                    when cast(assign_time as date) between date '2026-07-14' and date '2026-07-18' then '20260716期'
+                    when cast(assign_time as date) between date '2026-07-14' and date '2026-07-19' then '20260716期'
+                    when cast(assign_time as date) between date '2026-07-20' and date '2026-07-25' then '20260722期'
+                    when cast(assign_time as date) between date '2026-07-26' and date '2026-07-31' then '20260728期'
+                    when cast(assign_time as date) between date '2026-08-01' and date '2026-08-06' then '20260803期'
+                    when cast(assign_time as date) between date '2026-08-07' and date '2026-08-12' then '20260809期'
                     else concat(
                     date_format(
                         date_trunc('week', cast(assign_time as timestamp) - interval '1' day) + interval '4' day,
@@ -584,7 +592,11 @@ daoke as (
                 user_number,
                 begin_time,
                 case
-                    when cast(begin_time as date) between date '2026-07-14' and date '2026-07-18' then '20260716期'
+                    when cast(begin_time as date) between date '2026-07-14' and date '2026-07-19' then '20260716期'
+                    when cast(begin_time as date) between date '2026-07-20' and date '2026-07-25' then '20260722期'
+                    when cast(begin_time as date) between date '2026-07-26' and date '2026-07-31' then '20260728期'
+                    when cast(begin_time as date) between date '2026-08-01' and date '2026-08-06' then '20260803期'
+                    when cast(begin_time as date) between date '2026-08-07' and date '2026-08-12' then '20260809期'
                     when cast(begin_time as date) >= date '2026-02-25' and cast(begin_time as date) <= date '2026-03-02' then '20260227期'
                     when cast(begin_time as date) >= date '2026-02-17' and cast(begin_time as date) <= date '2026-02-24' then '20260220期'
                     when cast(begin_time as date) >= date '2026-02-09' and cast(begin_time as date) <= date '2026-02-16' then '20260213期'

@@ -30,7 +30,13 @@ with org_t as (
 finance_base as (
     select
         x.*,
-        concat(
+        case
+            when x.trade_dt between date '2026-07-14' and date '2026-07-19' then '20260716期'
+            when x.trade_dt between date '2026-07-20' and date '2026-07-25' then '20260722期'
+            when x.trade_dt between date '2026-07-26' and date '2026-07-31' then '20260728期'
+            when x.trade_dt between date '2026-08-01' and date '2026-08-06' then '20260803期'
+            when x.trade_dt between date '2026-08-07' and date '2026-08-12' then '20260809期'
+            else concat(
             date_format(
                 cast(
                     case day_of_week(x.trade_dt - interval '1' day)
@@ -46,7 +52,8 @@ finance_base as (
                 '%Y%m%d'
             ),
             '期'
-        ) as trade_qici
+            )
+        end as trade_qici
     from (
         select
             fe.*,
@@ -400,7 +407,13 @@ cost_dim as (
 conversion_base as (
     select
         x.*,
-        concat(
+        case
+            when x.group_period_date between date '2026-07-14' and date '2026-07-19' then '20260716期'
+            when x.group_period_date between date '2026-07-20' and date '2026-07-25' then '20260722期'
+            when x.group_period_date between date '2026-07-26' and date '2026-07-31' then '20260728期'
+            when x.group_period_date between date '2026-08-01' and date '2026-08-06' then '20260803期'
+            when x.group_period_date between date '2026-08-07' and date '2026-08-12' then '20260809期'
+            else concat(
             date_format(
                 cast(
                     case day_of_week(x.group_period_date - interval '1' day)
@@ -416,7 +429,8 @@ conversion_base as (
                 '%Y%m%d'
             ),
             '期'
-        ) as period_name_calc
+            )
+        end as period_name_calc
     from (
         select
             fl.*,
