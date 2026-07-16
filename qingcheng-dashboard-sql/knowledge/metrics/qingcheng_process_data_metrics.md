@@ -2,9 +2,9 @@
 
 ## 1. 来源
 
-`resources/raw_sql/qingcheng_process_data_raw_20260522.sql`
+当前生产权威 SQL：`resources/raw_sql/data_center_qingcheng_2064.sql`
 
-适用看板：`knowledge/dashboards/qingcheng_process_data_raw_20260522.md`
+适用看板：`过程数据报表-青橙`、`青橙-渠道过程数据-天`
 
 ## 2. 指标计算粒度
 
@@ -56,7 +56,7 @@ date_diff(
 
 ## 6. 外呼指标
 
-外呼指标先在 `call_c` 中按 `user_number + lead_id + section_assign_employee_email_prefix` 聚合，再 join 到青橙线索。
+历史累计外呼指标先在 `call_c` 中按 `user_number + lead_id + section_assign_employee_email_prefix` 聚合，再 join 到青橙线索。正常线索历史字段仍保留原有宽关联兼容逻辑；新增 14 天指标不得复用该宽关联。
 
 | 指标 | SQL 口径 | 说明 | 状态 |
 |---|---|---|---|
@@ -65,7 +65,44 @@ date_diff(
 | `zong_call_ci` | `sum(case when call_status in ('1','0') then 1 else 0 end)` | 外呼总次数 | 已从 SQL 入库 |
 | `call_status` | `sum(case when call_status = '1' then 1 else 0 end)` | 外呼接通次数 | 已从 SQL 入库 |
 
-## 7. APP/PC 登录指标
+## 7. 14 天过程指标
+
+14 天统一定义为从线索分配时间 `section_assign_timestamp` 起，事件时间差满足 `date_diff('hour', section_assign_timestamp, event_time) between 0 and 336`。SQL 只输出可加总的分子、分母或累计值，不直接输出比率型指标。
+
+外呼事件来自 `service_dw.app_h_crm_lead_employee_workload_detail_hf`，必须使用精确键：
+
+```text
+call_detail.user_number = data.user_id
++ call_detail.lead_id = data.process_lead_id
++ call_detail.section_assign_employee_email_prefix = data.employee_email_prefix
+```
+
+这条精确 `lead_id` 门禁用于避免同一用户、同一顾问下存在多条线索时发生外呼串数。
+
+| 最终 select 字段 | SQL 口径 | 看板用途 |
+|---|---|---|
+| `first_call_cnt_14d` | 首次外呼距分配时间 `0-336` 小时且为有效线索时记 1 | 14 天首 call 率分子 |
+| `first_call_connected_cnt_14d` | 首次接通距分配时间 `0-336` 小时且为有效线索时记 1 | 14 天沟通率分子 |
+| `v_lead_14d_denominator` | 复用有效线索标记 `v_lead` | 14 天首 call 率、沟通率、8min、外呼时长、外呼频次的共同分母 |
+| `is_long_call_14d` | 分配后 `0-336` 小时内存在单次 `call_duration > 480` 秒时，在线索键粒度取 `max(flag)` | 14 天 8min 人数；同时作为 14 天 8min 率分子 |
+| `call_duration_14d` | 分配后 `0-336` 小时内 `call_status in ('1','0')` 的通话秒数求和后除以 60 | 14 天总通时；同时作为 14 天人均外呼时长分子，单位分钟 |
+| `zong_call_ci_14d` | 分配后 `0-336` 小时内 `call_status in ('1','0')` 的外呼事件数 | 14 天人均外呼频次分子 |
+
+看板公式必须使用“聚合后相除”，禁止逐行比率再求平均：
+
+```text
+14天首call率 = sum(first_call_cnt_14d) / sum(v_lead_14d_denominator)
+14天沟通率 = sum(first_call_connected_cnt_14d) / sum(v_lead_14d_denominator)
+14天8min人数 = sum(is_long_call_14d)
+14天8min = sum(is_long_call_14d) / sum(v_lead_14d_denominator)
+14天外呼时长 = sum(call_duration_14d) / sum(v_lead_14d_denominator)
+14天外呼频次 = sum(zong_call_ci_14d) / sum(v_lead_14d_denominator)
+14天总通时 = sum(call_duration_14d)
+```
+
+2026-07-16 渠道级全量校验 query id `1477067724`：所有期次/渠道的分子均未超过分母，新增字段无负值，`invalid_flag=0`。生产 Preview task id `1477125780`，最终输出 35 列；新抽数记录 `159190210` 为 `SUCCESS`。
+
+## 8. APP/PC 登录指标
 
 | 指标 | SQL 口径 | 说明 | 状态 |
 |---|---|---|---|
@@ -75,7 +112,7 @@ date_diff(
 
 注意：原 SQL 使用 `coalesce(is_app_denglu_h,0) = '1'`，存在数字与字符串比较。后续生成新 SQL 时建议改成 `= 1`。
 
-## 8. 首节到课指标
+## 9. 首节到课指标
 
 首节课判断依赖 `temp_table.dingxi01_qing_daoke` 的 `ke_1 = '1'`。
 
@@ -84,10 +121,9 @@ date_diff(
 | `daoke1` | `ke_1 = '1' and live_learn_duration > 0`，同一分组内大于 0 则记 1 | 首节到课 | 已从 SQL 入库 |
 | `valid_daoke_1` | `ke_1 = '1' and is_valid_live_learn = '1'`，同一分组内大于 0 则记 1 | 首节有效到课 | 已从 SQL 入库 |
 
-## 9. 待确认事项
+## 10. 待确认事项
 
 - `first_call_time_diff_hour` 最终求和是否应作为指标输出待确认；更常见可能是平均值、中位数或分桶。
 - “剔除线索量<2”是否应加入最终 `having sum(v_lead) >= 2` 待确认。
 - `valid_lead_count`、`friend_lead_count` 在主表中是字符串还是数值待表结构确认；当前 SQL 同时存在字符串和数值比较。
 - APP 登录按 `user_id = user_number` join 到线索，若一名用户多条线索，汇总 `is_app_denglu` 可能按线索放大；前端聚合需注意。
-

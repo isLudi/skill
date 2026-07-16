@@ -1,5 +1,3 @@
--- 2026-07-09 hotfix: map business dates 2026-07-14..2026-07-18 to qici 20260716.
--- Dataset: 2310 department conversion
 with data_base as (
     select distinct
         t1.*,
@@ -19,7 +17,7 @@ with data_base as (
         )
         end as calc_period_name
     from bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df t1
-    where t1.dt = format_datetime(now() - interval '3' hour, 'YYYYMMdd')
+    where t1.dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
       and t1.hour = format_datetime(now() - interval '3' hour, 'HH')
       and t1.section_assign_employee_first_level_department_name = 'H业务线'
       and t1.section_assign_employee_second_level_department_name in ('市场部','精品班学部','青橙项目部','菁英班学部','本地化大班学部')
@@ -31,7 +29,24 @@ data as (
     select distinct
         calc_period_name as period_name,
         virtual_third_department_name as depart_1,
-        period_mapping_second_level_department_name as dept_name,
+        case
+            when (
+                (
+                    section_assign_employee_second_level_department_name = '青橙项目部'
+                    and rule_name like '%抖音私信%'
+                )
+                or source_manager_name in ('韩正卿')
+                or (
+                    section_assign_employee_second_level_department_name = '青橙项目部'
+                    and third_department_name = '私域运营部'
+                    and channel_name_1 = '市场私域'
+                    and channel_name_2 = '抖音'
+                    and flow_pool_name = '抖音私域专用流量池'
+                )
+            )
+            then section_assign_employee_second_level_department_name
+            else period_mapping_second_level_department_name
+        end as dept_name,
         virtual_fourth_department_name as depart,
         virtual_leader_email_name as jingli,
         virtual_direct_leader_email_name as zhuguan,
@@ -63,6 +78,7 @@ when rule_name like '%途途私域%' or (rule_name like '%私域%' and first_dep
 when third_department_name='图书营销部' and (sku_id_name like '%孟亚飞99%' or sku_id_name like '%亚飞%') and channel_name_2 = '百度' then '孟亚飞-2组-百度'
 when third_department_name='图书营销部' and (sku_id_name like '%孟亚飞99%' or sku_id_name like '%亚飞%') and channel_name_2 = '抖音' then '孟亚飞-2组-抖音'
 when third_department_name = '投放部' and (ad_account_name like '%周帅%' or put_plan_name like '%周帅%') then '信息流-周帅'
+when section_assign_employee_second_level_department_name = '青橙项目部' and rule_name like '%抖音私信%' then '抖音私信'
 when source_manager_name in ('韩正卿') then '抖音私信'
 when third_department_name = '私域运营部' and source_manager_name in ('陈雷19','崔慧敏01','侯佳林01','郑天琪02','杨彬屹','曹义鹏','王硕阳','于超研','岳一帆02','田起帆','王绍阳') then '进校私域合作'
 when channel_name_1='市场私域' and (virtual_fourth_department_name in ('郑州学习顾问二部','郑州学习顾问七部','郑州训练营') or virtual_fifth_department_name in ('罗江博团队')) then '市场私域入群'
@@ -73,6 +89,12 @@ when third_department_name = '线上商务部' and channel_name_2 = '小红书' 
 when (flow_pool_name like '%肖晗%' or sku_id_name like '%肖晗%' or put_plan_name like '%肖晗9元%') and third_department_name='直播部'  then '肖晗'
 when (flow_pool_name like '%北大汤哥%' or flow_pool_name like '%海淀名师高阶%' or flow_pool_name like '%海淀高阶%') and sku_id_name like '%小艺%'  then '郭艺'
 when  third_department_name like '%私域%' and rule_name like '%私域%' and rule_name like '%图书%' then '市场私域图书'
+when section_assign_employee_second_level_department_name = '青橙项目部'
+ and third_department_name = '私域运营部'
+ and channel_name_1 = '市场私域'
+ and channel_name_2 = '抖音'
+ and flow_pool_name = '抖音私域专用流量池'
+then '抖音私信'
 when  third_department_name like '%私域%' and rule_name like '%品效%'  then '市场私域品效'
 when  third_department_name like '%私域%' and rule_name like '%公域学霸%'  then '市场私域公域组'
 when  third_department_name like '%私域%' and rule_name like '%IE%'  then '市场私域IE'

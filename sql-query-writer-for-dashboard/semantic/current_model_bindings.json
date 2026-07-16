@@ -86,10 +86,10 @@
       "model_id": "2310",
       "ordinal": 6,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/分二级部门转化",
-      "source_observed_on": "2026-07-09",
-      "sql_bytes": 45660,
-      "sql_lines": 410,
-      "sql_sha256": "0861b3b4431dfc93c91fb4eb9fcf5aed80883113474f5a5d7b485eff3f615b19",
+      "source_observed_on": "2026-07-16",
+      "sql_bytes": 46690,
+      "sql_lines": 432,
+      "sql_sha256": "df6ebc410af838facac0d05ca75ca9c7c2141b5f808a6bdb44fdcd881c3681b3",
       "subject_id": "2299"
     },
     {

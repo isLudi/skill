@@ -120,7 +120,7 @@
   },
   "current_model_registry": {
     "source_path": "semantic/current_model_bindings.json",
-    "source_sha256": "e87de0ce71700b124dabc47776c77739826e7cdaa4b30faf4e60a10a74efb9fd",
+    "source_sha256": "af41a0ef14b249959513bea2533f8eb577788975fb4a7b3df5a466c857a88784",
     "policy": "one_current_model_per_id_and_semantic_slot",
     "canonical_filename_policy": "data_center_market_<model_id>.sql",
     "model_count": 37,
@@ -1124,8 +1124,8 @@
       {
         "id": "market_consultant:dashboards:data_center_market_datasets",
         "source_path": "knowledge/dashboards/data_center_market_datasets.md",
-        "sha256": "a7b7dec8c10f9435e216f249c9a6de5aca9e2fd4f2b8f7c93ec76f20633ffb28",
-        "bytes": 15201,
+        "sha256": "834db3ae6e0100748cbca9e1cf1b82928a507909f020b1a5498172ec4a90167e",
+        "bytes": 15144,
         "title": "数据中心数据集源 SQL（市场顾问部）",
         "table_refs": [],
         "raw_sql_refs": [
@@ -2202,8 +2202,8 @@
       {
         "id": "market_consultant:raw_sql:data_center_market_2310",
         "source_path": "resources/raw_sql/data_center_market_2310.sql",
-        "sha256": "0861b3b4431dfc93c91fb4eb9fcf5aed80883113474f5a5d7b485eff3f615b19",
-        "bytes": 45660,
+        "sha256": "df6ebc410af838facac0d05ca75ca9c7c2141b5f808a6bdb44fdcd881c3681b3",
+        "bytes": 46691,
         "title": "data_center_market_2310",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -3950,8 +3950,8 @@
       {
         "id": "market_consultant:update_log:changelog",
         "source_path": "knowledge/update_log/changelog.md",
-        "sha256": "c709c9536c5d72a4aa86e3cffce6c9740fc2047a283e941ed3e3c70733560fc5",
-        "bytes": 95778,
+        "sha256": "5e9b90368a63168f095c3321b66c116f9eebae81dd82d8a769c70346584f6e5e",
+        "bytes": 96580,
         "title": "更新记录",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -5343,8 +5343,8 @@
     },
     {
       "source_path": "knowledge/dashboards/data_center_market_datasets.md",
-      "sha256": "a7b7dec8c10f9435e216f249c9a6de5aca9e2fd4f2b8f7c93ec76f20633ffb28",
-      "bytes": 15201,
+      "sha256": "834db3ae6e0100748cbca9e1cf1b82928a507909f020b1a5498172ec4a90167e",
+      "bytes": 15144,
       "category": "dashboards"
     },
     {
@@ -5793,8 +5793,8 @@
     },
     {
       "source_path": "knowledge/update_log/changelog.md",
-      "sha256": "c709c9536c5d72a4aa86e3cffce6c9740fc2047a283e941ed3e3c70733560fc5",
-      "bytes": 95778,
+      "sha256": "5e9b90368a63168f095c3321b66c116f9eebae81dd82d8a769c70346584f6e5e",
+      "bytes": 96580,
       "category": "update_log"
     },
     {
@@ -5859,8 +5859,8 @@
     },
     {
       "source_path": "resources/raw_sql/data_center_market_2310.sql",
-      "sha256": "0861b3b4431dfc93c91fb4eb9fcf5aed80883113474f5a5d7b485eff3f615b19",
-      "bytes": 45660,
+      "sha256": "df6ebc410af838facac0d05ca75ca9c7c2141b5f808a6bdb44fdcd881c3681b3",
+      "bytes": 46691,
       "category": "raw_sql"
     },
     {

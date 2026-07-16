@@ -2,7 +2,7 @@
 
 ## Scope
 
-- Current snapshot date: 2026-06-26.
+- Current snapshot date: 2026-07-16.
 - Frontend metric formulas are captured from read-only dashboard edit-page profiles under `knowledge/dashboard_web_profiles/edit_metrics/`.
 - Source SQL files are the latest retained Data Center SQL snapshots under `resources/raw_sql/data_center_qingcheng_*` where a current snapshot exists; otherwise keep the latest canonical retained snapshot.
 - Use this document to connect a BI metric symptom to its frontend formula and the SQL column that feeds it.
@@ -26,7 +26,7 @@
 
 | model | source SQL | key output columns | frontend formula dependency | debugging notes |
 |---|---|---|---|---|
-| `2064 Qingcheng process data` | [data_center_qingcheng_2064.sql](../../resources/raw_sql/data_center_qingcheng_2064.sql) | `v_lead`, `is_friend_lead`, APP and first-call/communication fields, attendance fields | Rates are generally `sum(flag_or_count) / sum(v_lead)` after pivot grouping. | Lead volume and manpower rows can appear with blank org fields when the base lead has no matched receiver/org mapping; verify source join before adding frontend filters. The current authority maps `%抖音正价退费%` to `抖音复用` in both `channel_map_1` and `channel_map_2`, and keeps the Qingcheng IP level-2 branches `IP星义/IP朱博士/IP春春/IP郭艺/IP亚飞`. |
+| `2064 Qingcheng process data` | [data_center_qingcheng_2064.sql](../../resources/raw_sql/data_center_qingcheng_2064.sql) | `v_lead`, `is_friend_lead`, APP and first-call/communication fields, attendance fields; 14-day additive fields `first_call_cnt_14d`, `first_call_connected_cnt_14d`, `v_lead_14d_denominator`, `is_long_call_14d`, `call_duration_14d`, `zong_call_ci_14d` | Existing rates generally use `sum(flag_or_count) / sum(v_lead)`. The 14-day rates and per-lead averages must use the dedicated additive numerator and `sum(v_lead_14d_denominator)`; SQL does not emit the final ratio. | Lead volume and manpower rows can appear with blank org fields when the base lead has no matched receiver/org mapping; verify source join before adding frontend filters. The current authority maps `%抖音正价退费%` to `抖音复用` in both channel levels. For `规划系统高一/高二/高三` SEC 未加好友潜客, first gate requires source virtual org `学习顾问部 / SEC创新部`; second gate requires same-qici consultant org `dept_2='SEC'`. The source gate must also be applied in transfer-ID deduplication. The 14-day call fields use exact `user_id + process_lead_id + employee_email_prefix` matching and event hours `0-336`. |
 | `2244 Qingcheng attendance` | [qingcheng_daoke_raw_20260522.sql](../../resources/raw_sql/qingcheng_daoke_raw_20260522.sql) | `lead`, `ke_1` to `ke_6`, `v_ke_1` to `v_ke_6` | Attendance and valid-attendance ratios are computed as course count divided by `lead`. | Confirm period, grade, and channel filters before comparing with process dashboards. |
 | `2460 Conversion data` | [data_center_qingcheng_2460.sql](../../resources/raw_sql/data_center_qingcheng_2460.sql) | `v_lead`, `pay_user`, `p_pay_user`, `pay_sub`, `p_pay_sub`, `income`, `refund`, `promit`, `p_income`, `refund_user`, `podan`, `sc`, `cost_lead` | Conversion rate, order rate, ROI, manpower efficiency, customer price, and current/past-period revenue are frontend aggregations over these SQL outputs. | This dataset is lead-attribution oriented and can differ from finance-performance completion datasets. Current retained logic uses business-calendar qici overrides before `trade_timestamp` Friday-period fallback, service main-detail revenue with internal transfer-chain exclusion, discounted `podan`, and team-org backfill on `employee_email_name + qici`. |
 | `2576 Year/season/month revenue` | [qingcheng_revenue_year_quarter_month_raw_20260522.sql](../../resources/raw_sql/qingcheng_revenue_year_quarter_month_raw_20260522.sql) | `income`, `refund`, `promit`, `p_payer`, `r_payer`, `p_sub`, `r_sub` | Revenue dashboards calculate net users, net subjects, joint-purchase rate, and refund ratios at the frontend. | Use this for product/time revenue views, not consultant completion payouts. |
@@ -37,6 +37,17 @@
 | `2834 Conversion wide market channel` | [qingcheng_conversion_wide_table_market_channel_20260611.sql](../../resources/raw_sql/qingcheng_conversion_wide_table_market_channel_20260611.sql) | Market-channel dimensions and lead/order attribution fields | Used for channel-level decomposition and historical lead-source tracing. | Useful for finding original lead source when Qingcheng IP rule names mask raw channel fields. |
 
 ## High-Frequency Frontend Formulas
+
+### Process Data 14-Day Metrics
+
+- 14-day first-call rate: `sum(first_call_cnt_14d) / sum(v_lead_14d_denominator)`.
+- 14-day communication rate: `sum(first_call_connected_cnt_14d) / sum(v_lead_14d_denominator)`.
+- 14-day 8min people: `sum(is_long_call_14d)`.
+- 14-day 8min rate: `sum(is_long_call_14d) / sum(v_lead_14d_denominator)`.
+- 14-day outbound duration per lead: `sum(call_duration_14d) / sum(v_lead_14d_denominator)`.
+- 14-day outbound frequency per lead: `sum(zong_call_ci_14d) / sum(v_lead_14d_denominator)`.
+- 14-day total connected duration: `sum(call_duration_14d)`.
+- `call_duration_14d` is already in minutes. Use ratio-of-sums and protect zero denominators in the BI formula.
 
 ### Conversion Dashboards
 

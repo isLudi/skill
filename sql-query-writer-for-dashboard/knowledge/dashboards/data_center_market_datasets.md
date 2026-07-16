@@ -2,7 +2,7 @@
 
 ## 1. 来源与范围
 
-- 最近同步计划日期：2026-07-15
+- 最近同步计划日期：2026-07-16
 - 来源页面：https://uanalysis.baijia.com/data-center/data-set
 - 同步范围：市场顾问部目录下从 `(内部渠道)外呼过程数据` 开始到末尾的 SQL 数据集。
 - canonical SQL 使用稳定文件名；更新时间与 SHA-256 由 `semantic/current_model_bindings.json` 记录。
@@ -17,7 +17,7 @@
 | 3 | `转化数据_市场顾问` | `menu_set_3767103007846227968` | `2253` | `2242` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/转化数据_市场顾问 | [data_center_market_2253.sql](../../resources/raw_sql/data_center_market_2253.sql) | `4703c450187a2d3f916f5d2ef93102c1fbfe56559dcf11807d3f7b40e918cfe8` | 466 |
 | 4 | `运营侧个人数据` | `menu_set_3790459879440003073` | `2293` | `2282` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/运营侧个人数据 | [data_center_market_2293.sql](../../resources/raw_sql/data_center_market_2293.sql) | `b04902bff771b8b893a7ce3ca5467605a6cf4d36926bc644a240a2cfeedffc82` | 937 |
 | 5 | `进量节奏` | `menu_set_3791960320014991360` | `2307` | `2296` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/进量节奏 | [data_center_market_2307.sql](../../resources/raw_sql/data_center_market_2307.sql) | `eba6a6cacfbe92bd33eda80fb40773bda281e10db1a510bd44229bd8f75d5c7d` | 125 |
-| 6 | `分二级部门转化` | `menu_set_3793241904433971200` | `2310` | `2299` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/分二级部门转化 | [data_center_market_2310.sql](../../resources/raw_sql/data_center_market_2310.sql) | `0861b3b4431dfc93c91fb4eb9fcf5aed80883113474f5a5d7b485eff3f615b19` | 410 |
+| 6 | `分二级部门转化` | `menu_set_3793241904433971200` | `2310` | `2299` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/分二级部门转化 | [data_center_market_2310.sql](../../resources/raw_sql/data_center_market_2310.sql) | `df6ebc410af838facac0d05ca75ca9c7c2141b5f808a6bdb44fdcd881c3681b3` | 432 |
 | 7 | `分析--分周期转化` | `menu_set_3803169871873413121` | `2344` | `2334` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/分析--分周期转化 | [data_center_market_2344.sql](../../resources/raw_sql/data_center_market_2344.sql) | `54233beb7e6cd8cde550fc194e0ebb2d630353c21ae9d6e893d74dbec2144efa` | 1244 |
 | 8 | `进量测试(市场渠道)` | `menu_set_3803433852106686465` | `2345` | `2335` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/进量测试(市场渠道) | [data_center_market_2345.sql](../../resources/raw_sql/data_center_market_2345.sql) | `bed058fc16067267fe5cbad3490573ab4d49002750d4606a1d761d25dd86cd69` | 562 |
 | 9 | `退费_科目_产品` | `menu_set_3804597496486080513` | `2349` | `2339` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/退费_科目_产品 | [data_center_market_2349.sql](../../resources/raw_sql/data_center_market_2349.sql) | `85a739d70c3d18324454305c720d31093bb886780a448f256e5874fcb2169c88` | 327 |

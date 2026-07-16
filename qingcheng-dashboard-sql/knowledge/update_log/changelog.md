@@ -455,3 +455,26 @@
 - 更新 `resources/raw_sql/data_center_qingcheng_2460.sql`，新增 `biz_qici_calendar` 覆盖 `20260716期` 至 `20260821期`，将 `2026-07-21` 至 `2026-07-27` 的历史固定周五结果 `20260724期` 归一为业务期次 `20260722期`。
 - 同步修正订单侧 `trade_timestamp`、线索侧 `group_period_year + group_period_term`、当期短期次 `qici0`，并修复 `lead_map` / `bb` 中 `select *` 引发的字段二义性风险。
 - 线上 SQL 验证 query id：`1474435390`；聚合结果仅出现 `20260716期=224`、`20260722期=42`，未出现 `20260724期`。
+
+## 2026-07-15 青橙过程数据 SEC 未加好友双重限域
+
+- 更新生产数据中心 `青橙-过程数据`（model `2064`）：`规划系统高一/高二/高三` 潜客进入 `tmk_prelead_raw` 前必须来自 `学习顾问部 / SEC创新部`，最终输出仍需同一期次顾问命中 `dept_2='SEC'`。
+- `tmk_output_transfer_ids` 同步使用相同来源门禁，避免其他部门潜客错误排除转化后的正常线索；其他青橙 TMK 意向保持原逻辑。
+- 候选 SQL 完整预览 query id `1475692517`；历史回归 query id `1475707964`：20260710 期保留 10,142 条，历史 144,330 条来源均为 `学习顾问部 / SEC创新部`；当日来源核验 query id `1475714339`：968 条均为 `私域运营部 / 筛优组`，严格 SEC 来源为 0。
+- 生产替换计划哈希 `22e0f49ec9356ebf05bfbd2ca02d37a6dae7568e0b828a4b3a29bce395fbbdff`；保存后 SQL 哈希 `50d965ebc77f53d184f45f806e2e493fb286bba5ea7f96517925ebc764d81efc`；新抽数记录 `159071145` 于 2026-07-15 22:49:30 达到 `SUCCESS`。
+- `过程数据报表-青橙` 只读值健康检查：7 个分析组件全部 data-ready，错误数 0；未修改看板配置或发布状态。
+
+## 2026-07-16 数据中心 stable canonical SQL 同步
+
+- 按已审阅同步计划原子更新 model_id：`2064`；每个 model_id 只保留稳定 canonical 路径。
+- 写入后已强制重建反向索引和目录，并运行唯一版本审计、域内 integrity 与完整 Text2SQL 栈验证。
+
+## 2026-07-16 青橙过程数据 14 天指标上线
+
+- 更新生产数据中心 `青橙-过程数据`（model `2064`），新增 6 个可加总字段：`first_call_cnt_14d`、`first_call_connected_cnt_14d`、`v_lead_14d_denominator`、`is_long_call_14d`、`call_duration_14d`、`zong_call_ci_14d`，由看板组合得到 7 个 14 天指标；SQL 未直接输出任何比率型指标。
+- 14 天窗口统一为线索分配后 `0-336` 小时。14 天外呼明细按 `user_number + lead_id + section_assign_employee_email_prefix` 精确关联，避免同一用户、同一顾问下多条线索串数；`call_duration_14d` 已换算为分钟。
+- 全量候选 SQL query id `1477043537`；渠道级校验 query id `1477067724`，所有期次/渠道 `invalid_flag=0`，分子未超过分母且新增累计值无负数。
+- 生产替换计划哈希 `e286c0cbaa70d4c4cf2a20966e23660e92164f5f14733ab5cac55a97d38704de`；生产 Preview task id `1477125780`，输出 35 列；保存后 SQL 哈希 `4d75c1219cdc550485203a854328f3687e5cac43ce1ba3845cf7c4640eb38f8d`。
+- 新抽数记录 `159190210` 于 2026-07-16 15:45:55 达到 `SUCCESS`；随后按本地同步计划哈希 `8330671f2af20d3073fc1e5f5471b9733b32cb2a5fbb1e3cc22602146871bd36` 反向同步 stable canonical raw SQL。
+- Data Center 新增字段触发连续两层保存确认；修复 `usql-web-query-operator` 的确认按钮识别和连续弹窗处理，并通过替换/创建回归测试 27/27。
+- `过程数据报表-青橙` 刷新后只读值健康检查：7 个分析组件全部 data-ready，错误数 0；本次未修改看板公式、组件或发布状态。

@@ -244,12 +244,46 @@ class DataCenterReplacementApplyTests(unittest.TestCase):
         page = MagicMock()
         dialog = MagicMock()
         confirm = MagicMock()
-        page.locator.return_value.last = dialog
+        no_dialog = MagicMock()
+        no_dialog.wait_for.side_effect = RuntimeError("no next dialog")
+        locator_1 = MagicMock()
+        locator_1.last = dialog
+        locator_2 = MagicMock()
+        locator_2.last = no_dialog
+        page.locator.side_effect = [locator_1, locator_2]
         dialog.locator.return_value.filter.return_value.last = confirm
         confirm.count.return_value = 1
+        dialog.inner_text.return_value = "字段变更确认\n确认保存"
 
         self.assertTrue(_click_optional_save_confirmation(page))
+        pattern = dialog.locator.return_value.filter.call_args.kwargs["has_text"]
+        self.assertIsNotNone(pattern.fullmatch("确认保存"))
         confirm.click.assert_called_once_with()
+
+    def test_consecutive_save_confirmation_modals_are_confirmed(self) -> None:
+        page = MagicMock()
+        first_dialog = MagicMock()
+        second_dialog = MagicMock()
+        no_dialog = MagicMock()
+        no_dialog.wait_for.side_effect = RuntimeError("no next dialog")
+        first_confirm = MagicMock()
+        second_confirm = MagicMock()
+        first_dialog.locator.return_value.filter.return_value.last = first_confirm
+        second_dialog.locator.return_value.filter.return_value.last = second_confirm
+        first_dialog.inner_text.return_value = "字段变更确认\n确认保存"
+        second_dialog.inner_text.return_value = "修改保存配置后，会影响下游依赖\n确认"
+        first_confirm.count.return_value = 1
+        second_confirm.count.return_value = 1
+        locators = []
+        for dialog in (first_dialog, second_dialog, no_dialog):
+            locator = MagicMock()
+            locator.last = dialog
+            locators.append(locator)
+        page.locator.side_effect = locators
+
+        self.assertTrue(_click_optional_save_confirmation(page))
+        first_confirm.click.assert_called_once_with()
+        second_confirm.click.assert_called_once_with()
 
     def test_save_continues_without_confirmation_modal(self) -> None:
         page = MagicMock()

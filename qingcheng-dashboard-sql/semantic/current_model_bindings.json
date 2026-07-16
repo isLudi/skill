@@ -11,10 +11,10 @@
       "model_id": "2064",
       "ordinal": 1,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/青橙项目部/青橙-过程数据",
-      "source_observed_on": "2026-06-25",
-      "sql_bytes": 15927,
-      "sql_lines": 346,
-      "sql_sha256": "5cc28ed374d8e02f4db97ba22a4cad73caed53cf3d2c6e659c82c75a16dd9dc5",
+      "source_observed_on": "2026-07-16",
+      "sql_bytes": 34118,
+      "sql_lines": 905,
+      "sql_sha256": "4d75c1219cdc550485203a854328f3687e5cac43ce1ba3845cf7c4640eb38f8d",
       "subject_id": "2054"
     },
     {

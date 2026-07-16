@@ -62,19 +62,36 @@ def set_codemirror_sql(editor: Any, sql: str) -> None:
 
 
 def click_optional_save_confirmation(page: Any) -> bool:
-    dialog = page.locator('.ant-modal:visible, [role="dialog"]:visible').last
-    try:
-        dialog.wait_for(state="visible", timeout=3_000)
-    except Exception:
-        return False
-    confirm = dialog.locator("button").filter(
-        has_text=re.compile(r"^\s*(?:确\s*认|确\s*定)\s*$")
-    ).last
-    if confirm.count() == 0:
-        return False
-    confirm.wait_for(state="visible", timeout=3_000)
-    confirm.click()
-    return True
+    clicked = False
+    seen_dialogs: set[str] = set()
+    confirm_pattern = re.compile(r"^\s*(?:确\s*认(?:\s*保\s*存)?|确\s*定)\s*$")
+    for _ in range(3):
+        deadline = time.monotonic() + 3
+        dialog = None
+        signature = ""
+        while time.monotonic() < deadline:
+            candidate = page.locator('.ant-modal:visible, [role="dialog"]:visible').last
+            try:
+                candidate.wait_for(state="visible", timeout=500)
+            except Exception:
+                break
+            signature = candidate.inner_text().strip()
+            if not signature or signature not in seen_dialogs:
+                dialog = candidate
+                break
+            page.wait_for_timeout(250)
+        if dialog is None:
+            break
+        confirm = dialog.locator("button").filter(has_text=confirm_pattern).last
+        if confirm.count() == 0:
+            break
+        confirm.wait_for(state="visible", timeout=3_000)
+        confirm.click()
+        clicked = True
+        if signature:
+            seen_dialogs.add(signature)
+        page.wait_for_timeout(500)
+    return clicked
 
 
 def visible_save_debug(page: Any) -> dict[str, Any]:

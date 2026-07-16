@@ -17,6 +17,14 @@
 - 优先级约束：`%抖音正价退费%` 是精确业务规则，必须位于可能覆盖它的宽泛分支之前。
 - Text2SQL 契约：`semantic/contracts/dimension_contracts.json` 中的 `qingcheng:dimension:process_channel_level_1` 与 `qingcheng:dimension:process_channel_level_2` 使用相同规则，支持在青橙有效线索单表路径中确定性编译。
 
+### 1.2 订单复用 / SEC 未加好友双重限域
+
+- `record_source='tmk_prelead'` 的潜客过程行统一输出为一级渠道 `订单复用`；`规划系统高一`、`规划系统高二`、`规划系统高三` 输出二级渠道 `未加好友`。
+- 上述三个 `purchase_intention_name` 是跨部门共用值，不能单独作为青橙范围。进入 `tmk_prelead_raw` 前必须同时满足来源虚拟组织 `virtual_third_department_name='学习顾问部'`、`virtual_fourth_department_name='SEC创新部'`。
+- 最终输出还必须按同一期次、同一顾问命中 `temp_table.dingxi01_jiagou_db.dept_2='SEC'`。来源组织门禁与期次架构门禁相互独立，合称“双重限域”。
+- `tmk_output_transfer_ids` 必须复用同一来源组织门禁；否则其他部门的规划系统潜客会错误排除其转化后的正常线索，即使该潜客本身最终未通过 SEC 架构门禁。
+- 2026-07-15 回归：20260710 期严格 SEC 来源为 10,142 条（高二 5,246、高三 4,896）；历史 144,330 条来源均为 `学习顾问部 / SEC创新部`。当日 968 条规划系统潜客全部来自 `私域运营部 / 筛优组`，严格来源为 0。
+
 ## 2. 一级渠道 channel_map_1
 
 按 `f.rule_name` 模糊匹配：
