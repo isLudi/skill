@@ -219,7 +219,22 @@ class P2SemanticCompilerTest(unittest.TestCase):
 
                 self.assertTrue(plan.executable, plan.to_dict())
                 compiled = compile_query_plan(plan, registry)
-                self.assertIn("CASE WHEN t.rule_name LIKE '%抖音正价退费%' THEN '抖音复用'", compiled.sql)
+                compiled_sql = compiled.sql.lower()
+                if output_alias == "channel_map_1":
+                    self.assertIn(
+                        "case when t.rule_name like '%抖音正价退费%' then '抖音复用'",
+                        compiled_sql,
+                    )
+                    self.assertIn(
+                        "concat('ip', chr(36192), chr(35838), chr(22833), chr(36133))",
+                        compiled_sql,
+                    )
+                else:
+                    self.assertIn(
+                        "case when t.rule_name like '%抖音正价退费%' then '抖音正价退费'",
+                        compiled_sql,
+                    )
+                    self.assertIn("then '星义ip'", compiled_sql)
                 self.assertIn(f"as {output_alias}", compiled.sql)
                 self.assertIn("group by", compiled.sql.lower())
 

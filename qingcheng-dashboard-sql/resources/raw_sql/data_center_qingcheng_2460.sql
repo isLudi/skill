@@ -14,27 +14,64 @@ from (
 ,lead_map as (
 select lead_id,put_plan_name,employee_email_name,channel_name_1,channel_name_2,channel_name_3,flow_pool_name,get_customer_way_name
   ,rule_name,case
-  when rule_name like '%青橙IP%' then '青橙IP'
+when rule_name like '%抖音正价退费%' then '抖音复用'
+when (rule_name like '%赠失-星义%'
+  or rule_name like '%赠失-朱博士%'
+  or rule_name like '%赠失-春春%'
+  or rule_name like '%赠失-郭艺%'
+  or rule_name like '%赠失-亚飞%'
+  or rule_name like '%青橙IP%') then concat('IP', chr(36192), chr(35838), chr(22833), chr(36133))
+when (rule_name like '%私域本地化%'
+  or rule_name like '%河南本地化%'
+  or rule_name like '%青橙本地化%') then '本地化'
+when (rule_name like '%私域会话%'
+  or rule_name like '%私域表单%'
+  or rule_name like '%私域品效%'
+  or rule_name like '%私域图书%') then '私域'
+when (rule_name like '%公域学霸%'
+  or rule_name like '%青橙公域%') then '公域'
+when (rule_name like '%武汉图书%'
+  or rule_name like '%西安图书%') then '图书'
+when rule_name like '%亚飞IP%' then '主讲IP'
+when (rule_name like '%SEC未加好友%'
+  or rule_name like '%SEC首期掉海%'
+  or rule_name like '%SEC招生退费%'
+  or rule_name like '%招生退费%') then '订单复用'
+when (rule_name like '%顾问未加好友%'
+  or rule_name like '%公海%') then '公海'
+when rule_name like '%抖音私信%' then '抖音私信'
+when (rule_name like '%进校9元%'
+  or rule_name like '%进校%') then '进校9元'
+else '未知' end as channel_map_1
+,case
+when rule_name like '%抖音正价退费%' then '抖音正价退费'
+when rule_name like '%赠失-星义%' then '星义IP'
+when rule_name like '%赠失-朱博士%' then '朱博士IP'
+when rule_name like '%赠失-春春%' then '春春IP'
+when rule_name like '%赠失-郭艺%' then '郭艺IP'
+when rule_name like '%赠失-亚飞%' then '亚飞IP'
+when rule_name like '%青橙IP%' then '亚飞IP'
 when rule_name like '%私域会话%' then '私域会话'
 when rule_name like '%私域表单%' then '私域表单'
 when rule_name like '%私域图书%' then '私域图书'
-when rule_name like '%私域裂变%' then '私域裂变'
 when rule_name like '%私域品效%' then '私域品效'
-when rule_name like '%私域IE%' then '私域IE'
 when rule_name like '%私域本地化%' then '私域本地化'
+when (rule_name like '%河南本地化%'
+  or rule_name like '%青橙本地化%') then '河南本地化'
 when rule_name like '%亚飞IP%' then '亚飞IP'
 when rule_name like '%SEC未加好友%' then 'SEC未加好友'
 when rule_name like '%SEC首期掉海%' then 'SEC首期掉海'
-when rule_name like '%顾问未加好友%' then '顾问未加好友'
-when rule_name like '%郑州图书%' then '郑州图书'
+when (rule_name like '%SEC招生退费%'
+  or rule_name like '%招生退费%') then 'SEC招生退费'
+when (rule_name like '%顾问未加好友%'
+  or rule_name like '%公海%') then '顾问未加好友'
 when rule_name like '%武汉图书%' then '武汉图书'
 when rule_name like '%西安图书%' then '西安图书'
-when rule_name like '%图书咨询%' then '图书咨询'
-when rule_name like '%公域学霸%' then '公域学霸'
-when rule_name like '%公海%' then '公海'
+when (rule_name like '%公域学霸%'
+  or rule_name like '%青橙公域%') then '公域学霸'
 when rule_name like '%抖音私信%' then '抖音私信'
-when rule_name like '%训练营%' then '青橙训练营'
-when rule_name like '%进校%' then '进校'
+when (rule_name like '%进校9元%'
+  or rule_name like '%进校%') then '进校9元'
 else '未知' end as rule_name0
 ,case
 when rule_name like '%高一%' then '高一'
@@ -89,6 +126,7 @@ base.filled_course_first_level_department_name,
 base.filled_course_second_level_department_name,
 base.service_transfer_in_amount_yuan,
 base.service_transfer_out_amount_yuan,
+base.channel_map_1,
 base.rule_name0,
 base.rule_name,
 coalesce(
@@ -127,6 +165,7 @@ case
      and not (gmv.grade_name like '%小学%' or gmv.grade_name like '%初%') then '精品班学部'
     else gmv.course_second_level_department_name
 end as filled_course_second_level_department_name,
+ld.channel_map_1,
 ld.rule_name0,
 ld.rule_name,
 ld.grade_0,
@@ -227,7 +266,7 @@ where latest_child_order_number is not null
 ,order_change as (
 select
     join_order_number as order_number,
-    1 as has_order_change,
+    max(1) as has_order_change,
     max(is_original_order) as is_original_order,
     max(is_child_order) as is_child_order,
     max(transfer_in_amount_yuan) as transfer_in_amount_yuan,
@@ -263,7 +302,7 @@ group by order_number
 -- 成单周期 + 调课调班剔除 + 退4/点睛2
 ,gmv as (
 select
-dd.qici,dd.rule_name0 as qudao,dd.qici0,
+dd.qici,dd.channel_map_1,dd.rule_name0 as qudao,dd.qici0,
 case when dd.qici0 = dd.period then 1 else 0 end as is_on_period,
 dd.grade_0,dd.lead_id,dd.original_order_user_number as uid,
 dd.performance_employee_email_name as name,dd.virtual_direct_leader_email_name as zhuguan,
@@ -321,7 +360,7 @@ left join order_change
 -- 先汇总 uid 订单，并按完成度折算逻辑计算用户级破蛋口径
 ,udd as (
 select
-qici,qudao,grade_0,zhuguan,name,uid,
+qici,channel_map_1,qudao,grade_0,zhuguan,name,uid,
 date_diff('day',
         date(max(section_assign_time)),
         date(min(case when income_amount > 0 then trade_timestamp end))
@@ -336,12 +375,12 @@ sum(case when course_first_level_department_name = 'H业务线' then income_amou
 sum(case when course_first_level_department_name != 'H业务线' then income_amount - refund_4 else 0 end) as n_H_promit_4,
 sum(case when course_first_level_department_name = 'H业务线' and course_second_level_department_name = '一对一学部' then income_amount - refund_4 else 0 end) as Y_promit_4
 from gmv
-group by qici,qudao,grade_0,zhuguan,name,uid
+group by qici,channel_map_1,qudao,grade_0,zhuguan,name,uid
 )
 -- 汇总订单至顾问
 ,ud as (
 select
-qici,qudao,grade_0,zhuguan,name,
+qici,channel_map_1,qudao,grade_0,zhuguan,name,
 count(distinct case when income > 0 then uid end) as pay_user,
 count(distinct case when income > 0 and p_income > 0 then uid end) as p_pay_user,
 sum(pay_sub) as pay_sub,
@@ -354,52 +393,74 @@ count(distinct case when refund > 500 then uid end) as refund_user,
 count(distinct case when ((H_promit_4 - Y_promit_4) + n_H_promit_4 * 0.5) > 0 then uid end) as podan,
 sum(sc) as sc
 from udd
-group by qici,qudao,grade_0,zhuguan,name
+group by qici,channel_map_1,qudao,grade_0,zhuguan,name
 )
 -- 线索量
 ,bb as (
 select qici,channel_map_1,channel_map_2,grade_1,virtual_direct_leader_email_name,employee_email_name,sum(v_lead) as v_lead
 from(
 select distinct f.*
-,coalesce(
-    lead_cal.qici,
-    concat(cast(date_format(date_trunc('week', date_parse(replace(concat(group_period_year, group_period_term), '期', ''), '%Y%m%d') - interval '1' day) + interval '4' day, '%Y%m%d') as varchar), '期')
-) qici
+,f.derived_qici as qici
 ,case
-when f.rule_name like '%私域%' then '青橙私域'
-  when f.rule_name like '%IP%' or f.rule_name like '%亚飞IP%' then '青橙IP'
-when f.rule_name like '%青橙IP%' then '青橙IP'
-when f.rule_name like '%公海%' then '青橙公海'
-when f.rule_name like '%公域%' then '青橙公域'
-when f.rule_name like '%武汉图书%' or f.rule_name like '%郑州图书%' or f.rule_name like '%西安图书%' then '青橙图书'
+when f.rule_name like '%抖音正价退费%' then '抖音复用'
+when (f.rule_name like '%赠失-星义%'
+  or f.rule_name like '%赠失-朱博士%'
+  or f.rule_name like '%赠失-春春%'
+  or f.rule_name like '%赠失-郭艺%'
+  or f.rule_name like '%赠失-亚飞%'
+  or f.rule_name like '%青橙IP%') then concat('IP', chr(36192), chr(35838), chr(22833), chr(36133))
+when (f.rule_name like '%私域本地化%'
+  or f.rule_name like '%河南本地化%'
+  or f.rule_name like '%青橙本地化%') then '本地化'
+when (f.rule_name like '%私域会话%'
+  or f.rule_name like '%私域表单%'
+  or f.rule_name like '%私域品效%'
+  or f.rule_name like '%私域图书%') then '私域'
+when (f.rule_name like '%公域学霸%'
+  or f.rule_name like '%青橙公域%') then '公域'
+when (f.rule_name like '%武汉图书%'
+  or f.rule_name like '%西安图书%') then '图书'
+when f.rule_name like '%亚飞IP%' then '主讲IP'
+when (f.rule_name like '%SEC未加好友%'
+  or f.rule_name like '%SEC首期掉海%'
+  or f.rule_name like '%SEC招生退费%'
+  or f.rule_name like '%招生退费%') then '订单复用'
+when (f.rule_name like '%顾问未加好友%'
+  or f.rule_name like '%公海%') then '公海'
 when f.rule_name like '%抖音私信%' then '抖音私信'
-when f.rule_name like '%训练营%' then '青橙训练营'
-when f.rule_name like '%进校%' then '进校'
+when (f.rule_name like '%进校9元%'
+  or f.rule_name like '%进校%') then '进校9元'
 else '未知'
 end as channel_map_1
   ,case
-when f.rule_name like '%青橙IP%' then '青橙IP'
+when f.rule_name like '%抖音正价退费%' then '抖音正价退费'
+when f.rule_name like '%赠失-星义%' then '星义IP'
+when f.rule_name like '%赠失-朱博士%' then '朱博士IP'
+when f.rule_name like '%赠失-春春%' then '春春IP'
+when f.rule_name like '%赠失-郭艺%' then '郭艺IP'
+when f.rule_name like '%赠失-亚飞%' then '亚飞IP'
+when f.rule_name like '%青橙IP%' then '亚飞IP'
 when f.rule_name like '%私域会话%' then '私域会话'
 when f.rule_name like '%私域表单%' then '私域表单'
 when f.rule_name like '%私域图书%' then '私域图书'
-when f.rule_name like '%私域裂变%' then '私域裂变'
 when f.rule_name like '%私域品效%' then '私域品效'
-when f.rule_name like '%私域IE%' then '私域IE'
 when f.rule_name like '%私域本地化%' then '私域本地化'
+when (f.rule_name like '%河南本地化%'
+  or f.rule_name like '%青橙本地化%') then '河南本地化'
 when f.rule_name like '%亚飞IP%' then '亚飞IP'
 when f.rule_name like '%SEC未加好友%' then 'SEC未加好友'
 when f.rule_name like '%SEC首期掉海%' then 'SEC首期掉海'
-when f.rule_name like '%顾问未加好友%' then '顾问未加好友'
-when f.rule_name like '%郑州图书%' then '郑州图书'
+when (f.rule_name like '%SEC招生退费%'
+  or f.rule_name like '%招生退费%') then 'SEC招生退费'
+when (f.rule_name like '%顾问未加好友%'
+  or f.rule_name like '%公海%') then '顾问未加好友'
 when f.rule_name like '%武汉图书%' then '武汉图书'
 when f.rule_name like '%西安图书%' then '西安图书'
-when f.rule_name like '%图书咨询%' then '图书咨询'
-when f.rule_name like '%公域学霸%' then '公域学霸'
-when f.rule_name like '%南京%' then '南京'
-when f.rule_name like '%公海%' then '公海'
+when (f.rule_name like '%公域学霸%'
+  or f.rule_name like '%青橙公域%') then '公域学霸'
 when f.rule_name like '%抖音私信%' then '抖音私信'
-when f.rule_name like '%训练营%' then '青橙训练营'
-when f.rule_name like '%进校%' then '进校'
+when (f.rule_name like '%进校9元%'
+  or f.rule_name like '%进校%') then '进校9元'
 else '未知'
 end as channel_map_2
 ,case
@@ -410,17 +471,24 @@ when f.rule_name like '%初一%' then '初一'
 when f.rule_name like '%初二%' then '初二'
 when f.rule_name like '%初三%' then '初三'
 else f.lead_purchase_intention_level2_category_name end as grade_1
-,case when f.valid_lead_count = '1' then 1 else 0 end as v_lead
-from
-bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df f
-left join biz_qici_calendar lead_cal
-  on cast(date_parse(replace(concat(group_period_year, group_period_term), '期', ''), '%Y%m%d') as date)
-     between lead_cal.period_start_date and lead_cal.period_end_date
-where f.dt=format_datetime(NOW()-interval '2' hour,'YYYYMMdd') and f.hour=format_datetime(NOW()-interval '2' hour,'HH')
-and f.section_assign_employee_first_level_department_name = 'H业务线'
-and f.section_assign_employee_second_level_department_name = '青橙项目部'
-and f.period_mapping_first_level_department_name = 'H业务线'
-and f.valid_lead_count = '1' )
+,case when coalesce(try_cast(f.valid_lead_count as bigint), 0) = 1 then 1 else 0 end as v_lead
+from (
+    select
+        f.*,
+        coalesce(
+            lead_cal.qici,
+            concat(cast(date_format(date_trunc('week', date_parse(replace(concat(group_period_year, group_period_term), '期', ''), '%Y%m%d') - interval '1' day) + interval '4' day, '%Y%m%d') as varchar), '期')
+        ) as derived_qici
+    from bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df f
+    left join biz_qici_calendar lead_cal
+      on cast(date_parse(replace(concat(group_period_year, group_period_term), '期', ''), '%Y%m%d') as date)
+         between lead_cal.period_start_date and lead_cal.period_end_date
+    where f.dt=format_datetime(NOW()-interval '2' hour,'YYYYMMdd') and f.hour=format_datetime(NOW()-interval '2' hour,'HH')
+    and f.section_assign_employee_first_level_department_name = 'H业务线'
+    and f.section_assign_employee_second_level_department_name = '青橙项目部'
+    and f.period_mapping_first_level_department_name = 'H业务线'
+    and coalesce(try_cast(f.valid_lead_count as bigint), 0) = 1
+) f )
 where qici >= '20260424期'
 group by qici,channel_map_1,channel_map_2,grade_1,virtual_direct_leader_email_name,employee_email_name)
 -- 保留年级维度的对齐层
@@ -436,6 +504,7 @@ group by qici,channel_map_1,channel_map_2,grade_1,virtual_direct_leader_email_na
 -- 合并
 ,mm as (select
 coalesce(bb1.qici, ud.qici) as qici,
+coalesce(bb1.channel_map_1, ud.channel_map_1, '未知') as channel_1,
 coalesce(bb1.channel_map_2, ud.qudao, '未知') as channel_map_2,
 coalesce(bb1.grade_1, ud.grade_0, '未知') as grade_1,
 coalesce(bb1.employee_email_name, ud.name) as employee_email_name,
@@ -457,6 +526,7 @@ from bb_dedup bb1
 full outer join ud
     on ud.name = bb1.employee_email_name
    and ud.qici = bb1.qici
+   and ud.channel_map_1 = bb1.channel_map_1
    and ud.qudao = bb1.channel_map_2
    and ud.grade_0 = bb1.grade_1
    and ud.zhuguan = bb1.virtual_direct_leader_email_name
@@ -466,22 +536,31 @@ where bb1.rn = 1 or bb1.rn is null
 select *
 from(
 select distinct
-mm.*,
+mm.qici,
+mm.channel_map_2,
+mm.grade_1,
+mm.employee_email_name,
+mm.v_lead,
+mm.virtual_direct_leader_email_name,
+mm.jieliang,
+mm.pay_user,
+mm.p_pay_user,
+mm.pay_sub,
+mm.p_pay_sub,
+mm.income,
+mm.refund,
+mm.promit,
+mm.p_income,
+mm.refund_user,
+mm.podan,
+mm.sc,
 case when channel_map_2 = '亚飞IP' then 120
 when channel_map_2 = '武汉图书' then 20
 when channel_map_2 = '抖音私信' then 130
-when channel_map_2 = '进校' then 70
+when channel_map_2 = '进校9元' then 70
 else 0
 end as cost_lead,
-case when channel_map_2 like '%私域%' or channel_map_2 like '%公域%' then '私域'
-     when channel_map_2 like '%IP%' then 'IP'
-     when channel_map_2 like '%图书%' then '图书'
-     when channel_map_2 like '%SEC未加好友%' or channel_map_2 like '%SEC首期掉海%' or channel_map_2 like '%公海%' or channel_map_2 like '%顾问未加好友%' then '公海'
-     when channel_map_2 like '%抖音私信%' then '抖音私信'
-     when channel_map_2 like '%训练营%' then '青橙训练营'
-     when channel_map_2 like '%进校%' then '进校'
-     else '未知'
-end as channel_1,
+mm.channel_1,
 jg.xuebu as dept_2,
 jg.leader_employee_email_name as xiaozu,
 jg.dazu,jg.jingli

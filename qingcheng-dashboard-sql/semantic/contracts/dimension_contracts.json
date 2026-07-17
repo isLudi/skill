@@ -74,14 +74,14 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/sql_patterns/qingcheng_channel_grade_mapping.md",
-      "source_sha256": "efa0a270e9595d00a99e9f7aef31cceb8cb5eb125817d628d8397924ed35912c",
+      "source_sha256": "b990ece8806475b765f47fa5276efb54c2bef27165caab73bc006bb2ab63319b",
       "field": "channel_map_1",
       "output_alias": "channel_map_1",
       "table": "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
       "data_type": "string",
       "automatic_compile": true,
-      "sql_expression": "CASE WHEN {base}.rule_name LIKE '%抖音正价退费%' THEN '抖音复用' WHEN {base}.rule_name LIKE '%私域%' THEN '青橙私域' WHEN {base}.rule_name LIKE '%青橙IP%' THEN '青橙IP' WHEN {base}.rule_name LIKE '%青橙公海%' THEN '青橙公海' WHEN {base}.rule_name LIKE '%青橙公域%' THEN '青橙公域' WHEN {base}.rule_name LIKE '%青橙图书%' THEN '青橙图书' WHEN {base}.rule_name LIKE '%青橙本地化%' THEN '青橙本地化' WHEN {base}.rule_name LIKE '%抖音私信%' THEN '抖音私信' WHEN {base}.rule_name LIKE '%进校%' THEN '进校' WHEN {base}.rule_name LIKE '%训练营%' THEN '青橙训练营' END",
-      "description": "2064 data CTE 的一级渠道派生维度；规则与权威渠道契约及 2064 retained snapshot 保持一致。"
+      "sql_expression": "case when {base}.rule_name like '%抖音正价退费%' then '抖音复用' when {base}.rule_name like '%赠失-星义%' or {base}.rule_name like '%赠失-朱博士%' or {base}.rule_name like '%赠失-春春%' or {base}.rule_name like '%赠失-郭艺%' or {base}.rule_name like '%赠失-亚飞%' or {base}.rule_name like '%青橙IP%' then concat('IP', chr(36192), chr(35838), chr(22833), chr(36133)) when {base}.rule_name like '%私域本地化%' or {base}.rule_name like '%河南本地化%' or {base}.rule_name like '%青橙本地化%' then '本地化' when {base}.rule_name like '%私域会话%' or {base}.rule_name like '%私域表单%' or {base}.rule_name like '%私域品效%' or {base}.rule_name like '%私域图书%' then '私域' when {base}.rule_name like '%公域学霸%' or {base}.rule_name like '%青橙公域%' then '公域' when {base}.rule_name like '%武汉图书%' or {base}.rule_name like '%西安图书%' then '图书' when {base}.rule_name like '%亚飞IP%' then '主讲IP' when {base}.rule_name like '%SEC未加好友%' or {base}.rule_name like '%SEC首期掉海%' or {base}.rule_name like '%SEC招生退费%' or {base}.rule_name like '%招生退费%' then '订单复用' when {base}.rule_name like '%顾问未加好友%' or {base}.rule_name like '%青橙公海%' then '公海' when {base}.rule_name like '%抖音私信%' then '抖音私信' when {base}.rule_name like '%进校9元%' or {base}.rule_name like '%进校%' then '进校9元' end",
+      "description": "2064 data CTE 的一级渠道派生维度；输出名称按图片标准渠道表重命名。"
     },
     {
       "id": "qingcheng:dimension:process_channel_level_2",
@@ -93,14 +93,14 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/sql_patterns/qingcheng_channel_grade_mapping.md",
-      "source_sha256": "efa0a270e9595d00a99e9f7aef31cceb8cb5eb125817d628d8397924ed35912c",
+      "source_sha256": "b990ece8806475b765f47fa5276efb54c2bef27165caab73bc006bb2ab63319b",
       "field": "channel_map_2",
       "output_alias": "channel_map_2",
       "table": "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
       "data_type": "string",
       "automatic_compile": true,
-      "sql_expression": "CASE WHEN {base}.rule_name LIKE '%抖音正价退费%' THEN '抖音复用' WHEN {base}.rule_name LIKE '%赠失-星义%' THEN 'IP星义' WHEN {base}.rule_name LIKE '%赠失-朱博士%' THEN 'IP朱博士' WHEN {base}.rule_name LIKE '%赠失-春春%' THEN 'IP春春' WHEN {base}.rule_name LIKE '%赠失-郭艺%' THEN 'IP郭艺' WHEN {base}.rule_name LIKE '%赠失-亚飞%' THEN 'IP亚飞' WHEN {base}.rule_name LIKE '%私域会话%' THEN '私域会话' WHEN {base}.rule_name LIKE '%私域表单%' THEN '私域表单' WHEN {base}.rule_name LIKE '%私域图书%' THEN '私域图书' WHEN {base}.rule_name LIKE '%私域裂变%' THEN '私域裂变' WHEN {base}.rule_name LIKE '%私域品效%' THEN '私域品效' WHEN {base}.rule_name LIKE '%私域IE%' THEN '私域IE' WHEN {base}.rule_name LIKE '%私域本地化%' THEN '私域本地化' WHEN {base}.rule_name LIKE '%亚飞IP%' THEN '亚飞IP' WHEN {base}.rule_name LIKE '%SEC未加好友%' THEN 'SEC未加好友' WHEN {base}.rule_name LIKE '%SEC首期掉海%' THEN 'SEC首期掉海' WHEN {base}.rule_name LIKE '%顾问未加好友%' THEN '顾问未加好友' WHEN {base}.rule_name LIKE '%郑州图书%' THEN '郑州图书' WHEN {base}.rule_name LIKE '%武汉图书%' THEN '武汉图书' WHEN {base}.rule_name LIKE '%西安图书%' THEN '西安图书' WHEN {base}.rule_name LIKE '%图书咨询%' THEN '图书咨询' WHEN {base}.rule_name LIKE '%公域学霸%' THEN '公域学霸' WHEN {base}.rule_name LIKE '%南京%' THEN '南京' WHEN {base}.rule_name LIKE '%抖音私信%' THEN '抖音私信' WHEN {base}.rule_name LIKE '%进校9元%' THEN '进校9元' WHEN {base}.rule_name LIKE '%训练营%' THEN '青橙训练营' END",
-      "description": "2064 data CTE 的二级渠道派生维度；抖音正价退费与一级渠道成对输出抖音复用。"
+      "sql_expression": "case when {base}.rule_name like '%抖音正价退费%' then '抖音正价退费' when {base}.rule_name like '%赠失-星义%' then '星义IP' when {base}.rule_name like '%赠失-朱博士%' then '朱博士IP' when {base}.rule_name like '%赠失-春春%' then '春春IP' when {base}.rule_name like '%赠失-郭艺%' then '郭艺IP' when {base}.rule_name like '%赠失-亚飞%' then '亚飞IP' when {base}.rule_name like '%青橙IP%' then '亚飞IP' when {base}.rule_name like '%私域会话%' then '私域会话' when {base}.rule_name like '%私域表单%' then '私域表单' when {base}.rule_name like '%私域图书%' then '私域图书' when {base}.rule_name like '%私域品效%' then '私域品效' when {base}.rule_name like '%私域本地化%' then '私域本地化' when {base}.rule_name like '%河南本地化%' or {base}.rule_name like '%青橙本地化%' then '河南本地化' when {base}.rule_name like '%亚飞IP%' then '亚飞IP' when {base}.rule_name like '%SEC未加好友%' then 'SEC未加好友' when {base}.rule_name like '%SEC首期掉海%' then 'SEC首期掉海' when {base}.rule_name like '%SEC招生退费%' or {base}.rule_name like '%招生退费%' then 'SEC招生退费' when {base}.rule_name like '%顾问未加好友%' or {base}.rule_name like '%青橙公海%' then '顾问未加好友' when {base}.rule_name like '%武汉图书%' then '武汉图书' when {base}.rule_name like '%西安图书%' then '西安图书' when {base}.rule_name like '%公域学霸%' or {base}.rule_name like '%青橙公域%' then '公域学霸' when {base}.rule_name like '%抖音私信%' then '抖音私信' when {base}.rule_name like '%进校9元%' or {base}.rule_name like '%进校%' then '进校9元' end",
+      "description": "2064 data CTE 的二级渠道派生维度；输出名称按图片标准渠道表重命名，抖音正价退费二级输出抖音正价退费。"
     },
     {
       "id": "qingcheng:dimension:section_consultant",

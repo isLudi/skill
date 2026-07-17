@@ -102,11 +102,11 @@
     "source_files": [
       {
         "source_path": "semantic/contracts/metric_contracts.json",
-        "sha256": "54ce56d2dbcebc5e09af22b36d554d32399363ef1e3204353a23130279cea968"
+        "sha256": "846532939a3a65b83607ee0fd76dfd22f02166826cee1548a04412edbe67d989"
       },
       {
         "source_path": "semantic/contracts/dimension_contracts.json",
-        "sha256": "f42ce11a3dd1d23d4f35e45885bba2ef1351d8167316f433aa979b661dd6cea8"
+        "sha256": "a8c32728d002606f5ccf1a7bfc89bbad1fecfa8ca043c538b7f8f8ca019c983d"
       },
       {
         "source_path": "semantic/contracts/join_contracts.json",
@@ -120,7 +120,7 @@
   },
   "current_model_registry": {
     "source_path": "semantic/current_model_bindings.json",
-    "source_sha256": "2eaa6a306346d848b62c262a7a2db09c5ad074df5226c97b93c0a5b91e45e387",
+    "source_sha256": "6367866178fbc82bb1259529832f708ee22498298d42f63782ec7fafc74a0867",
     "policy": "one_current_model_per_id_and_semantic_slot",
     "canonical_filename_policy": "data_center_qingcheng_<model_id>.sql",
     "model_count": 6,
@@ -1511,7 +1511,7 @@
       {
         "id": "qingcheng:dashboards:data_center_qingcheng_datasets",
         "source_path": "knowledge/dashboards/data_center_qingcheng_datasets.md",
-        "sha256": "485ab0090ee71bfd3704835b5e176f5cc18914e6a1be656bb195d9662723c04f",
+        "sha256": "dfbff94a1359e43c26caee6e291a22e1b4f5195bacabf36a69d2e297e150d749",
         "bytes": 3258,
         "title": "数据中心数据集源 SQL（青橙项目部）",
         "table_refs": [],
@@ -1902,8 +1902,8 @@
       {
         "id": "qingcheng:governance:quick_reference",
         "source_path": "knowledge/quick_reference.md",
-        "sha256": "c1fd0bb93d4ad4c63a73585bd42ed1c0ee70b3990b95e01e932545c69cf80f75",
-        "bytes": 12232,
+        "sha256": "5d51e5466eeb053295e93fb00585fadd9c5759a4ec89c256ca0262110b5b7784",
+        "bytes": 12290,
         "title": "快速参考卡",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -2031,8 +2031,8 @@
       {
         "id": "qingcheng:metrics:qingcheng_conversion_metrics",
         "source_path": "knowledge/metrics/qingcheng_conversion_metrics.md",
-        "sha256": "dc0f8abd22565d30f251bb25f1b758249fea85a23263c3989d8d7304b5646945",
-        "bytes": 5669,
+        "sha256": "36b6be614285a53c42844fd8915576b4caa76e6fdf892e4763d0154a0c7ac7b5",
+        "bytes": 6006,
         "title": "青橙转化指标",
         "table_refs": [
           "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf"
@@ -2413,8 +2413,8 @@
       {
         "id": "qingcheng:metrics:qingcheng_process_data_metrics",
         "source_path": "knowledge/metrics/qingcheng_process_data_metrics.md",
-        "sha256": "c0e17f521870c323e1233d8181714e41a07f2f3e4ac88eadfb471aa682293cd3",
-        "bytes": 7535,
+        "sha256": "28e2727e9d8e0ad6b78239691cbb8c7c2f6f356980b723b6f840b050529ca923",
+        "bytes": 7782,
         "title": "青橙过程数据指标",
         "table_refs": [
           "service_dw.app_h_crm_lead_employee_workload_detail_hf",
@@ -2490,8 +2490,8 @@
       {
         "id": "qingcheng:raw_sql:data_center_qingcheng_2064",
         "source_path": "resources/raw_sql/data_center_qingcheng_2064.sql",
-        "sha256": "4d75c1219cdc550485203a854328f3687e5cac43ce1ba3845cf7c4640eb38f8d",
-        "bytes": 34119,
+        "sha256": "a89b41f0f9b2ba8336226d5a6c5d5b2b5bfb8388faca1f500bbaacb12ce2bfce",
+        "bytes": 35832,
         "title": "data_center_qingcheng_2064",
         "table_refs": [
           "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf",
@@ -2514,8 +2514,8 @@
       {
         "id": "qingcheng:raw_sql:data_center_qingcheng_2460",
         "source_path": "resources/raw_sql/data_center_qingcheng_2460.sql",
-        "sha256": "5d6286bf8cda1384467a5b2d99071ba20f4a46417967d1869c3cff8f21106e70",
-        "bytes": 29386,
+        "sha256": "e137d83e0e68c5116b60e8ffaf45a58ea19229f3506f6a2c75bba46f96eb39dc",
+        "bytes": 32253,
         "title": "data_center_qingcheng_2460",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -2776,8 +2776,8 @@
       {
         "id": "qingcheng:reverse_index:field_to_metrics",
         "source_path": "knowledge/reverse_index/field_to_metrics.md",
-        "sha256": "36d4427a5a8049ff50e12305e5e34d01e719d032cc6b02f0a69a1dccdef55350",
-        "bytes": 87772,
+        "sha256": "0b4a79d7cafae8446020a4a22dfb13fefac710f392f8c9320543e9d835c2e18c",
+        "bytes": 88116,
         "title": "字段到指标反向索引",
         "table_refs": [],
         "raw_sql_refs": [
@@ -2801,8 +2801,8 @@
       {
         "id": "qingcheng:reverse_index:join_risk_index",
         "source_path": "knowledge/reverse_index/join_risk_index.md",
-        "sha256": "035f5204e7dba8bf4d8e215b07798556bf708991cc1e38e93bc1dd64705b5066",
-        "bytes": 30667,
+        "sha256": "9fc712a1e6fef85425c90e11d9679ab291ac8666fa58c2d0b7cb48f6561a90ec",
+        "bytes": 29915,
         "title": "JOIN 与结果异常风险索引",
         "table_refs": [
           "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf",
@@ -3014,8 +3014,8 @@
       {
         "id": "qingcheng:sql_patterns:qingcheng_channel_grade_mapping",
         "source_path": "knowledge/sql_patterns/qingcheng_channel_grade_mapping.md",
-        "sha256": "efa0a270e9595d00a99e9f7aef31cceb8cb5eb125817d628d8397924ed35912c",
-        "bytes": 26410,
+        "sha256": "b990ece8806475b765f47fa5276efb54c2bef27165caab73bc006bb2ab63319b",
+        "bytes": 28795,
         "title": "青橙渠道和年级映射",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -4686,7 +4686,7 @@
     },
     {
       "source_path": "knowledge/dashboards/data_center_qingcheng_datasets.md",
-      "sha256": "485ab0090ee71bfd3704835b5e176f5cc18914e6a1be656bb195d9662723c04f",
+      "sha256": "dfbff94a1359e43c26caee6e291a22e1b4f5195bacabf36a69d2e297e150d749",
       "bytes": 3258,
       "category": "dashboards"
     },
@@ -4776,8 +4776,8 @@
     },
     {
       "source_path": "knowledge/metrics/qingcheng_conversion_metrics.md",
-      "sha256": "dc0f8abd22565d30f251bb25f1b758249fea85a23263c3989d8d7304b5646945",
-      "bytes": 5669,
+      "sha256": "36b6be614285a53c42844fd8915576b4caa76e6fdf892e4763d0154a0c7ac7b5",
+      "bytes": 6006,
       "category": "metrics"
     },
     {
@@ -4938,8 +4938,8 @@
     },
     {
       "source_path": "knowledge/metrics/qingcheng_process_data_metrics.md",
-      "sha256": "c0e17f521870c323e1233d8181714e41a07f2f3e4ac88eadfb471aa682293cd3",
-      "bytes": 7535,
+      "sha256": "28e2727e9d8e0ad6b78239691cbb8c7c2f6f356980b723b6f840b050529ca923",
+      "bytes": 7782,
       "category": "metrics"
     },
     {
@@ -4962,20 +4962,20 @@
     },
     {
       "source_path": "knowledge/quick_reference.md",
-      "sha256": "c1fd0bb93d4ad4c63a73585bd42ed1c0ee70b3990b95e01e932545c69cf80f75",
-      "bytes": 12232,
+      "sha256": "5d51e5466eeb053295e93fb00585fadd9c5759a4ec89c256ca0262110b5b7784",
+      "bytes": 12290,
       "category": "governance"
     },
     {
       "source_path": "knowledge/reverse_index/field_to_metrics.md",
-      "sha256": "36d4427a5a8049ff50e12305e5e34d01e719d032cc6b02f0a69a1dccdef55350",
-      "bytes": 87772,
+      "sha256": "0b4a79d7cafae8446020a4a22dfb13fefac710f392f8c9320543e9d835c2e18c",
+      "bytes": 88116,
       "category": "reverse_index"
     },
     {
       "source_path": "knowledge/reverse_index/join_risk_index.md",
-      "sha256": "035f5204e7dba8bf4d8e215b07798556bf708991cc1e38e93bc1dd64705b5066",
-      "bytes": 30667,
+      "sha256": "9fc712a1e6fef85425c90e11d9679ab291ac8666fa58c2d0b7cb48f6561a90ec",
+      "bytes": 29915,
       "category": "reverse_index"
     },
     {
@@ -5034,8 +5034,8 @@
     },
     {
       "source_path": "knowledge/sql_patterns/qingcheng_channel_grade_mapping.md",
-      "sha256": "efa0a270e9595d00a99e9f7aef31cceb8cb5eb125817d628d8397924ed35912c",
-      "bytes": 26410,
+      "sha256": "b990ece8806475b765f47fa5276efb54c2bef27165caab73bc006bb2ab63319b",
+      "bytes": 28795,
       "category": "sql_patterns"
     },
     {
@@ -5268,14 +5268,14 @@
     },
     {
       "source_path": "resources/raw_sql/data_center_qingcheng_2064.sql",
-      "sha256": "4d75c1219cdc550485203a854328f3687e5cac43ce1ba3845cf7c4640eb38f8d",
-      "bytes": 34119,
+      "sha256": "a89b41f0f9b2ba8336226d5a6c5d5b2b5bfb8388faca1f500bbaacb12ce2bfce",
+      "bytes": 35832,
       "category": "raw_sql"
     },
     {
       "source_path": "resources/raw_sql/data_center_qingcheng_2460.sql",
-      "sha256": "5d6286bf8cda1384467a5b2d99071ba20f4a46417967d1869c3cff8f21106e70",
-      "bytes": 29386,
+      "sha256": "e137d83e0e68c5116b60e8ffaf45a58ea19229f3506f6a2c75bba46f96eb39dc",
+      "bytes": 32253,
       "category": "raw_sql"
     },
     {

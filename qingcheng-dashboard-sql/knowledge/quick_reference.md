@@ -33,7 +33,7 @@
 | `pending_confirmation` 契约命中 | 输出待确认项；生成有界 probe 或人工 SQL 计划 | 标记 QueryPlan 可执行、自动 compile 或交给 USQL |
 | 同一别名命中多个契约 | 保留 `ambiguous`，要求补充业务语义 | 按表名、历史习惯或另一业务域自动选取 |
 | confirmed 且 `automatic_compile=true` 的单表 QueryPlan | compile 后继续做 AST 与青橙规则校验 | 把 confirmed 或编译成功等同于业务正确或执行授权 |
-| 一级渠道/二级渠道/`channel_map_1`/`channel_map_2` | 读取 `semantic/contracts/dimension_contracts.json`、`knowledge/sql_patterns/qingcheng_channel_grade_mapping.md` 与 2064 权威 SQL | 使用青橙过程渠道派生维度；不要退回原始 `channel_name_2`，抖音正价退费必须在两级都输出抖音复用 |
+| 一级渠道/二级渠道/`channel_map_1`/`channel_map_2` | 读取 `semantic/contracts/dimension_contracts.json`、`knowledge/sql_patterns/qingcheng_channel_grade_mapping.md` 与 2064 权威 SQL | 使用青橙过程渠道派生维度；不要退回原始 `channel_name_2`，抖音正价退费必须在两级都输出抖音复用；`私域本地化` 从 20260722 期起才归 `本地化` |
 | 多表 join QueryPlan | 读取 `knowledge/joins/`、对应 Raw SQL 和风险索引，人工审阅 | 让 P2 单表编译器自动拼 join |
 
 ### P3 状态速查

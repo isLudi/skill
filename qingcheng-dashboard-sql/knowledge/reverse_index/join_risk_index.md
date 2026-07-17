@@ -62,9 +62,7 @@
 | [knowledge/sql_patterns/latest_record_patterns.md](../sql_patterns/latest_record_patterns.md) | 注意 | - 范围过滤字段应替换成当前查询已确认的青橙范围字段。 |
 | [knowledge/sql_patterns/latest_record_patterns.md](../sql_patterns/latest_record_patterns.md) | 注意 | - 如果存在同一主键多条同一更新时间记录，需增加二级排序字段并标记待确认。 |
 | [knowledge/sql_patterns/presto_date_partition_patterns.md](../sql_patterns/presto_date_partition_patterns.md) | 3. 单日小时表 | 如果 `hour` 类型待确认，先保持与历史 SQL 一致，并标记待确认。 |
-| [knowledge/sql_patterns/qingcheng_channel_grade_mapping.md](../sql_patterns/qingcheng_channel_grade_mapping.md) | 1.1 权威渠道契约 | - 一致性约束：同一个规则若同时定义一级、二级渠道，两套 CASE 必须同步维护；`%抖音正价退费%` 在两级都必须输出 `抖音复用`，不得出现一级命中而二级为 `null` 的状态。 |
 | [knowledge/sql_patterns/qingcheng_channel_grade_mapping.md](../sql_patterns/qingcheng_channel_grade_mapping.md) | 5. 维护注意事项 | - CASE 顺序会影响命中结果，新增规则必须检查是否被上游更宽泛的规则吞掉。 |
-| [knowledge/sql_patterns/qingcheng_channel_grade_mapping.md](../sql_patterns/qingcheng_channel_grade_mapping.md) | 5. 维护注意事项 | - `%抖音正价退费% -> 抖音复用` 是成对渠道契约：`channel_map_1`、`channel_map_2` 和 2064 权威 SQL 必须同时出现；该规则缺失任一级都会使最终 `channel_map_1/channel_map_2 is not null` 门禁丢数。 |
 | [knowledge/sql_patterns/qingcheng_channel_grade_mapping.md](../sql_patterns/qingcheng_channel_grade_mapping.md) | 8. 转化成本映射 | 成本为硬编码，不来自成本表；更新成本口径时必须同步更新 SQL 和 `knowledge/metrics/qingcheng_conversion_metrics.md`。 |
 | [knowledge/sql_patterns/qingcheng_channel_grade_mapping.md](../sql_patterns/qingcheng_channel_grade_mapping.md) | 9.2 渠道大类分组 | 以下按渠道大类对 channel_map 输出值进行分组（大类来源：`temp_table.shenbaoxin_channel_group.channel_group`，以下归类为推断，待人工确认）： |
 | [knowledge/sql_patterns/qingcheng_channel_grade_mapping.md](../sql_patterns/qingcheng_channel_grade_mapping.md) | 9.3 已知风险 | - **分支顺序敏感**：多处 `third_department_name='直播部'` 分支分散在不同位置，前面更宽泛的条件可能吞掉后面更精确的匹配。例如 `sku_id_name like '%孟亚飞%'` 被放在相对靠后的位置，但前面孟亚飞相关的流量池匹配可能已经命中。 |
