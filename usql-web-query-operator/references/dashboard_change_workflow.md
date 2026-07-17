@@ -11,8 +11,9 @@
 5. [独立发布确认](#独立发布确认)
 6. [公共筛选器稳定定位](#公共筛选器稳定定位)
 7. [受支持与阻断的操作](#受支持与阻断的操作)
-8. [故障与恢复](#故障与恢复)
-9. [Legacy 兼容命令](#legacy-兼容命令)
+8. [复制重建透视表组件](#复制重建透视表组件)
+9. [故障与恢复](#故障与恢复)
+10. [Legacy 兼容命令](#legacy-兼容命令)
 
 ## 能力边界
 
@@ -188,6 +189,80 @@ P3B 不再使用“第一个/第二个筛选器”定位。每个可写 operatio
 | 新建、删除、换类型、跨容器移动、数据集重绑 | 支持识别 | 阻断 |
 
 共享公式、跨组件公式和任何影响范围不明的改动必须阻断。没有抓取并验证真实请求的接口，不得凭字段名猜测写 payload。
+
+## 复制重建透视表组件
+
+复制重建用于处理既有透视表 unit 可见字段正确、但 `value/unit` 仍走旧任务或旧绑定的情况。沙箱验证命令是 `rebind-pivot-fields-sandbox`，生产 draft 命令是 `rebind-pivot-fields-production`。生产路径只允许 registry 中 `verified/allowlisted` 的 `rebuild_pivot_unit_by_copy`，并要求精确 `--manifest-sha256` 与显式 `--confirm-production-write`。两个命令都只保存 draft，不发布。
+
+沙箱命令：
+
+```powershell
+D:\anaconda3\python.exe scripts\read_dashboard.py rebind-pivot-fields-sandbox `
+  --target-manifest C:\runtime\pivot_rebind_manifest.json `
+  --sandbox-dashboard-id dashboard_123 `
+  --expected-dashboard-name "过程数据报表-青橙-沙箱" `
+  --domain qingcheng `
+  --confirm-sandbox-write `
+  --output C:\runtime\pivot_rebind_receipt.json
+```
+
+生产 draft 命令：
+
+```powershell
+D:\anaconda3\python.exe scripts\read_dashboard.py rebind-pivot-fields-production `
+  --target-manifest C:\runtime\pivot_rebind_manifest.json `
+  --manifest-sha256 <exact-manifest-hash> `
+  --dashboard-id dashboard_123 `
+  --expected-dashboard-name "过程数据报表-青橙" `
+  --domain qingcheng `
+  --confirm-production-write `
+  --output C:\runtime\pivot_rebind_production_receipt.json
+```
+
+manifest 必须声明 `artifact_type=DashboardPivotFieldRebindManifest`、`schema_version=1.0.0`、域、目标 dashboard、可选 `expected_profile_sha256`、需要先备份的看板，以及 operations。每个 operation 绑定 `target_unit_id`、`source_unit_id`、目标维度 field IDs 和必需指标 field IDs。生产 manifest 还必须声明 `required_public_filters` 和覆盖每个 operation 的 `filtered_value_checks`：每个 check 必须携带完整 `public_filter_list`，并证明它包含目标期次/周期筛选值。只看无 filter 的 `value/unit` 原始结果会把跨期次总量误判为指定期次结果，不能作为生产验证门禁。
+
+```json
+{
+  "required_public_filters": [
+    {
+      "field_id": "qici",
+      "field_name": "期次",
+      "expected_values": ["20260722期"]
+    }
+  ],
+  "filtered_value_checks": [
+    {
+      "check_id": "channel1_book_sec_20260722",
+      "operation_id": "channel1_overall",
+      "public_filter_list": [
+        {
+          "fieldId": "qici",
+          "filterValue": ["20260722期"],
+          "condition": "in"
+        }
+      ],
+      "row_match": {
+        "channel_map_1": "图书",
+        "dept_2": "SEC"
+      },
+      "measure_field_id": "v_lead",
+      "expected_value": 55
+    }
+  ]
+}
+```
+
+若设置 `rebuild_by_copy=true`，命令按以下顺序执行：
+
+1. 读取并保存所有指定 backup dashboard 的 draft edit config、组件 unit detail 和 published config；生产看板只能作为只读备份目标。
+2. 读取沙箱完整 DashboardProfile，若 manifest 绑定了 `expected_profile_sha256`，必须一致。
+3. 对每个 operation 调用 `config/copy/unit` 复制 `source_unit_id`，得到新 unit ID。
+4. 对新 unit 调用 `config/update/unit`，把字段重建为目标维度组合和指标组合，必要时保留目标组件的展示名与格式。
+5. 批量修改 dashboardHtml 中目标组件的 `settings.unitId`，指向新 unit，并调用 `config/save/dashboardHtml` 保存 draft。
+6. 读回 profile，然后按 manifest 中的 `filtered_value_checks` 调用 `value/unit`，请求体必须带 `publicFilterList`，并断言指定期次/周期下的目标行和指标值。
+7. receipt 记录 pre/post profile hash、备份路径、新旧 unit 映射、schema 引用验证、filtered value 验证摘要和脱敏请求 shape。
+
+生产命令不会发布，也不会绕过独立 PublishReceipt 边界。若中途失败且 dashboardHtml 已保存，会尝试恢复写前 schema；已经复制出的孤立 unit 可能留在后端，但不会被组件引用。若只是 `touch_before_final=true`，命令会先写入临时字段列表再写回目标字段列表，用于测试缓存失效；但如果旧 unitId 本身绑定了旧任务，通常需要 `rebuild_by_copy=true`。
 
 ## 故障与恢复
 

@@ -324,6 +324,7 @@ D:\anaconda3\python.exe scripts\read_dashboard.py profile-all --dashboard-wait-m
 - `inspect-write-capabilities`：离线验证并汇总 P4A 写能力注册表、代码证据 Hash 和 allowlist；不启动浏览器。
 - `capture-write-evidence`：只在明确测试看板中、显式确认且 headed 时，抓取一次人工草稿动作的脱敏请求结构和前后 Profile；主动阻断发布、删除、权限和认证写请求，不自动生成写适配器。
 - `verify-sandbox-write-adapters`：读取显式 sandbox manifest，以正式适配器先逐项验证，再执行多操作连续 Apply、逆序恢复和完整 Profile Hash 复原；只用于沙箱，不能单独扩大生产白名单。
+- `rebind-pivot-fields-sandbox` / `rebind-pivot-fields-production`：复制重建既有透视表 unit；生产命令要求 registry allowlist、精确 manifest Hash、`--confirm-production-write`，以及 manifest 中覆盖每个 operation 的 `filtered_value_checks`。验证必须向 `value/unit` 传入公共筛选器 `publicFilterList` 并断言指定期次/周期的行值；无 filter 的原始 `value/unit` 结果只能作为健康检查证据，不能作为生产门禁；命令先保存完整配置备份，再用 `config/copy/unit → config/update/unit → config/save/dashboardHtml` 把目标组件指向新 unit；不发布。
 - `edit-public-filters`：legacy 只读兼容命令，仅保留序号式 dry-run 计划。任何 `--apply`、`--publish` 或 `--confirm-publish` 都会在浏览器启动前拒绝；所有写入必须走 stable-ID P3 链路。
 - `profile-folder`：在某个文件夹下查找指定看板名并逐个生成 config-only 画像；仅在显式 `--profile-mode full` 时同步检查取值。
 - `profile-all`：默认以 config-only 扫描 `市场顾问数据` 和 `青橙项目部`，为每个发现的看板生成画像，将原始 `profile.json` artifact 写到 runtime 目录，把市场顾问 markdown web 画像路由到 `sql-query-writer-for-dashboard/knowledge/dashboard_web_profiles/`，把青橙 markdown web 画像路由到 `qingcheng-dashboard-sql/knowledge/dashboard_web_profiles/`，并重建各自 README/changelog，避免混用两个知识库。

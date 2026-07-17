@@ -221,7 +221,7 @@ iframe 编辑器工具栏中的运行按钮回退方案：
 - 看板配置：POST `https://uanalysis.baijia.com/uanalysis-intelligence/config/dashBoard`，body 为 `{"dashboardId":"<dashboard_id>","isConfig":false}`
 - 单元明细：POST `https://uanalysis.baijia.com/uanalysis-intelligence/value/unit/consumer/detail`，body 为 `{"id":"<unit_id>","isConfig":false}`
 - 公共筛选器明细：POST `https://uanalysis.baijia.com/uanalysis-intelligence/value/public/unit/relation/detail`，body 为 `{"id":"<public_filter_relation_id>","isConfig":false}`
-- 单元取值 / 刷新验证：POST `https://uanalysis.baijia.com/uanalysis-intelligence/value/unit`，带目标 `unit_id`、空筛选列表和 page 对象。表格/透视表单元返回 `title`、`data`、`totalData`、`page`、`taskIds`；图表单元可能返回 `xAxis`、`series`、`taskIds`，不一定返回表格 `data`。
+- 单元取值 / 刷新验证：POST `https://uanalysis.baijia.com/uanalysis-intelligence/value/unit`，带目标 `unit_id`、筛选列表和 page 对象。默认健康检查使用空 `publicFilterList`，只证明 unit 能返回数据结构；透视表复制重建后的业务值验证必须传入公共筛选器 `publicFilterList` 并断言指定期次/周期，不能用空筛选结果替代。表格/透视表单元返回 `title`、`data`、`totalData`、`page`、`taskIds`；图表单元可能返回 `xAxis`、`series`、`taskIds`，不一定返回表格 `data`。
 
 该流程使用 `read_dashboard.py profile-dashboard`、`profile-folder` 或 `profile-all`。默认 `--profile-mode config` 只读取配置和 unit detail，不调用 `value/unit`；这也是知识同步的生产默认。实时数据健康检查使用独立命令 `check-dashboard-values --profile <config-profile.json>`。
 
@@ -278,6 +278,8 @@ iframe 编辑器工具栏中的运行按钮回退方案：
 当前生产验证过的 P3B 写入面只有公共筛选器动态默认项：`relation_id + filter_id + field_id` 三者必须同时精确匹配。组件、布局和公式可以画像与 Diff，但 operator 不调用未经验证的写接口。
 
 `apply-dashboard-change` 只写 draft；`publish-dashboard-change` 必须在独立进程中消费成功 ApplyReceipt 并显式确认。新链路不允许同一次命令 apply + publish。
+
+复制重建透视表 unit 使用 `config/copy/unit`，body 为 `{"id":"<source_unit_id>"}`，返回新 `unitId`；随后用 `config/update/unit` 更新新 unit 的字段列表，再用 `config/save/dashboardHtml` 将既有组件 `settings.unitId` 指向新 unit。沙箱使用 `rebind-pivot-fields-sandbox --confirm-sandbox-write`；生产 draft 使用 registry allowlisted 的 `rebind-pivot-fields-production --manifest-sha256 <hash> --confirm-production-write`。生产 manifest 必须包含带公共筛选器的 `filtered_value_checks`，命令会用 `value/unit` 回读指定期次/周期的行值；无 filter 原始值只能作为排查证据，不是生产通过条件。该路径不发布，发布仍需独立确认。
 
 ## Legacy 公共筛选器只读检查与历史 API
 

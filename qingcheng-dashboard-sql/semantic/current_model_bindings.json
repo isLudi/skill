@@ -3,6 +3,21 @@
   "domain": "qingcheng",
   "models": [
     {
+      "canonical_sql": "resources/raw_sql/data_center_qingcheng_2244.sql",
+      "data_source_id": "menu_source_817034371567951872",
+      "dataset_id": "menu_set_3765823085331369984",
+      "dataset_name": "青橙到课",
+      "file_value": "2244",
+      "model_id": "2244",
+      "ordinal": 100000,
+      "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/青橙项目部/青橙到课",
+      "source_observed_on": "2026-07-17",
+      "sql_bytes": 7832,
+      "sql_lines": 150,
+      "sql_sha256": "b2a242cc06dfb0f7962511044d59254ba005c698f7b0462ea122a3af2deb8837",
+      "subject_id": "2233"
+    },
+    {
       "canonical_sql": "resources/raw_sql/data_center_qingcheng_2064.sql",
       "data_source_id": "menu_source_817034371567951872",
       "dataset_id": "menu_set_3733940369833271296",
@@ -101,6 +116,18 @@
       "dashboard_id": "dashboard_3733927793301065728",
       "evidence_path": "knowledge/metrics/qingcheng_dashboard_metric_formula_linkage.md",
       "slot_id": "qingcheng:dataset:process"
+    },
+    {
+      "component_ids": [
+        "unit_3765824210457968642",
+        "unit_3765824210457968645",
+        "unit_3765824210457968641",
+        "unit_3766965643325820932"
+      ],
+      "current_model_id": "2244",
+      "dashboard_id": "dashboard_3765824192103694336",
+      "evidence_path": "knowledge/metrics/qingcheng_dashboard_metric_formula_linkage.md",
+      "slot_id": "qingcheng:dataset:attendance"
     },
     {
       "component_ids": [],

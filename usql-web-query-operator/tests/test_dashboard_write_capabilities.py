@@ -25,11 +25,12 @@ class DashboardWriteCapabilityRegistryTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.registry = load_capability_registry()
 
-    def test_registry_exposes_only_the_five_narrow_p4b_apply_operations(self) -> None:
+    def test_registry_exposes_verified_p4b_apply_operations(self) -> None:
         summary = registry_summary(self.registry)
-        self.assertEqual(15, summary["capability_count"])
+        self.assertEqual(16, summary["capability_count"])
         self.assertEqual(
             [
+                "rebuild_pivot_unit_by_copy",
                 "update_component_fields",
                 "update_filter_dynamic_default",
                 "update_formula",

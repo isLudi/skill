@@ -23,6 +23,7 @@ from .commands.profile_edit_dashboard import cmd_profile_edit_dashboard
 from .commands.profile_edit_batch import cmd_profile_edit_all, cmd_profile_edit_folder
 from .commands.profile_folder import cmd_profile_folder
 from .commands.publish_dashboard_change import cmd_publish_dashboard_change
+from .commands.rebind_pivot_fields_sandbox import cmd_rebind_pivot_fields_sandbox
 from .commands.scan_folder import cmd_scan_folder
 from .commands.inspect_write_capabilities import cmd_inspect_write_capabilities
 from .commands.verify_sandbox_write_adapters import cmd_verify_sandbox_write_adapters
@@ -319,6 +320,64 @@ def build_parser() -> argparse.ArgumentParser:
     verify_adapters.add_argument("--wait-ms", type=int, default=3_000)
     verify_adapters.add_argument("--debug-artifacts", action="store_true")
     verify_adapters.set_defaults(func=cmd_verify_sandbox_write_adapters)
+
+    rebind_pivot = subparsers.add_parser(
+        "rebind-pivot-fields-sandbox",
+        help="Rebuild existing pivot field bindings in an explicit sandbox after full config backups; never publishes.",
+    )
+    rebind_pivot.add_argument("--target-manifest", type=Path, required=True)
+    rebind_pivot.add_argument("--sandbox-dashboard-id", required=True)
+    rebind_pivot.add_argument("--expected-dashboard-name", required=True)
+    rebind_pivot.add_argument("--domain", choices=["market_consultant", "qingcheng"], required=True)
+    rebind_pivot.add_argument("--confirm-sandbox-write", action="store_true", required=True)
+    rebind_pivot.add_argument(
+        "--restore-after-apply",
+        action="store_true",
+        help="Restore changed units after a successful sandbox write, useful for adapter drills.",
+    )
+    rebind_pivot.add_argument("--output", type=Path, default=None)
+    rebind_pivot.add_argument("--headed", action="store_true")
+    rebind_pivot.add_argument("--state-path", type=Path, default=DEFAULT_STATE)
+    rebind_pivot.add_argument("--artifacts-dir", type=Path, default=DEFAULT_ARTIFACTS)
+    rebind_pivot.add_argument("--env-file", type=Path, default=DEFAULT_ENV_FILE)
+    rebind_pivot.add_argument("--username", default=os.environ.get("BAIJIA_USERNAME"))
+    rebind_pivot.add_argument("--password", default=os.environ.get("BAIJIA_PASSWORD"))
+    rebind_pivot.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL)
+    rebind_pivot.add_argument("--executable-path", default=None)
+    rebind_pivot.add_argument("--wait-ms", type=int, default=3_000)
+    rebind_pivot.add_argument("--touch-wait-ms", type=int, default=1_000)
+    rebind_pivot.add_argument("--debug-artifacts", action="store_true")
+    rebind_pivot.set_defaults(func=cmd_rebind_pivot_fields_sandbox)
+
+    rebind_pivot_prod = subparsers.add_parser(
+        "rebind-pivot-fields-production",
+        help="Copy-rebuild existing pivot bindings on a production dashboard draft with registry allowlist and exact manifest hash.",
+    )
+    rebind_pivot_prod.add_argument("--target-manifest", type=Path, required=True)
+    rebind_pivot_prod.add_argument("--manifest-sha256", required=True)
+    rebind_pivot_prod.add_argument("--dashboard-id", required=True)
+    rebind_pivot_prod.add_argument("--expected-dashboard-name", required=True)
+    rebind_pivot_prod.add_argument("--domain", choices=["market_consultant", "qingcheng"], required=True)
+    rebind_pivot_prod.add_argument("--confirm-production-write", action="store_true", required=True)
+    rebind_pivot_prod.add_argument(
+        "--restore-after-apply",
+        action="store_true",
+        help="Restore changed component unit references after a successful production write; normally only for drills.",
+    )
+    rebind_pivot_prod.add_argument("--registry", type=Path, default=DEFAULT_REGISTRY)
+    rebind_pivot_prod.add_argument("--output", type=Path, default=None)
+    rebind_pivot_prod.add_argument("--headed", action="store_true")
+    rebind_pivot_prod.add_argument("--state-path", type=Path, default=DEFAULT_STATE)
+    rebind_pivot_prod.add_argument("--artifacts-dir", type=Path, default=DEFAULT_ARTIFACTS)
+    rebind_pivot_prod.add_argument("--env-file", type=Path, default=DEFAULT_ENV_FILE)
+    rebind_pivot_prod.add_argument("--username", default=os.environ.get("BAIJIA_USERNAME"))
+    rebind_pivot_prod.add_argument("--password", default=os.environ.get("BAIJIA_PASSWORD"))
+    rebind_pivot_prod.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL)
+    rebind_pivot_prod.add_argument("--executable-path", default=None)
+    rebind_pivot_prod.add_argument("--wait-ms", type=int, default=3_000)
+    rebind_pivot_prod.add_argument("--touch-wait-ms", type=int, default=1_000)
+    rebind_pivot_prod.add_argument("--debug-artifacts", action="store_true")
+    rebind_pivot_prod.set_defaults(func=cmd_rebind_pivot_fields_sandbox)
 
     edit_filters = subparsers.add_parser(
         "edit-public-filters",

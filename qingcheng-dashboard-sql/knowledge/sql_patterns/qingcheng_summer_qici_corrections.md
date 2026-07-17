@@ -36,6 +36,10 @@ resources/raw_sql/data_center_qingcheng_2460.sql
 
 这三份 SQL 均在 `biz_qici_calendar` 中维护 `0716/0722/0728/0803/0809` 五个已确认区间，并在订单结果期次、团队历史架构回填期次、退费期次三类日期来源上使用日期范围 join。
 
+2026-07-17 已按相同实际区间更新行课报表数据集：
+
+- `resources/raw_sql/data_center_qingcheng_2244.sql`：青橙到课，服务 `青橙项目部_行课报表`。线索侧按 `group_period_year + group_period_term` 解析日期后范围 join `biz_qici_calendar`，行课侧按 `begin_time` 日期范围 join 同一日历；未命中日历时才回退历史周五逻辑。
+
 ## 影响指标
 
 期次修正会影响看板全局筛选器 `qici`，以及所有按 `qici` 分组、筛选或 join 的组件。

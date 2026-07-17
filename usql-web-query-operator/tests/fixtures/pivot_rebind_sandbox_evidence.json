@@ -1,0 +1,107 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_type": "DashboardPivotRebindSandboxEvidence",
+  "operation": "rebuild_pivot_unit_by_copy",
+  "status": "verified_in_sandbox",
+  "sandbox_dashboard_id": "dashboard_3992997596313669633",
+  "sandbox_receipt_sha256": "b84c37147edaacab163763e03376eb369f9ed7f470568efc92cb4d276d2c7c47",
+  "pre_profile_sha256": "188f8e26065473c734652484468b7ff67dd201327b0d979dd912092f5c176696",
+  "post_profile_sha256": "9a975c56ed6ee60369b8e2df49163b68da6d3671a442849db423bd30dd2200fb",
+  "write_endpoints": [
+    "config/copy/unit",
+    "config/update/unit",
+    "config/save/dashboardHtml"
+  ],
+  "readback_endpoints": [
+    "config/dashBoard",
+    "value/unit/consumer/detail",
+    "value/unit"
+  ],
+  "schema_reference_verification": [
+    {
+      "target_unit_id": "unit_3992997618174382089",
+      "new_unit_id": "unit_3993022325342851072",
+      "old_reference_count": 0,
+      "new_reference_count": 1
+    },
+    {
+      "target_unit_id": "unit_3992997618174382095",
+      "new_unit_id": "unit_3993022361041588224",
+      "old_reference_count": 0,
+      "new_reference_count": 1
+    },
+    {
+      "target_unit_id": "unit_3992997618174382096",
+      "new_unit_id": "unit_3993022396142501888",
+      "old_reference_count": 0,
+      "new_reference_count": 1
+    }
+  ],
+  "legacy_unfiltered_value_assertions": [
+    {
+      "component": "channel1_overall",
+      "unit_id": "unit_3993022325342851072",
+      "channel_map_1": "book",
+      "dept_2": "SEC",
+      "v_lead": 13277
+    },
+    {
+      "component": "channel1_overall",
+      "unit_id": "unit_3993022325342851072",
+      "channel_map_1": "book",
+      "dept_2": "dept_1",
+      "v_lead": 50
+    },
+    {
+      "component": "channel2_overall",
+      "unit_id": "unit_3992997618174382097",
+      "channel_map_1": "book",
+      "channel_map_2": "wuhan_book",
+      "dept_2": "SEC",
+      "v_lead": 13277
+    }
+  ],
+  "filtered_value_assertions": [
+    {
+      "component": "channel1_overall",
+      "unit_id": "unit_3993022325342851072",
+      "required_public_filters": [
+        {
+          "field_id": "qici",
+          "expected_values": [
+            "20260722期"
+          ]
+        }
+      ],
+      "public_filter_sha256": "redacted",
+      "row_match": {
+        "channel_map_1": "图书",
+        "dept_2": "SEC"
+      },
+      "measure_field_id": "v_lead",
+      "expected_value": 55
+    },
+    {
+      "component": "channel2_overall",
+      "unit_id": "unit_3992997618174382097",
+      "required_public_filters": [
+        {
+          "field_id": "qici",
+          "expected_values": [
+            "20260722期"
+          ]
+        }
+      ],
+      "public_filter_sha256": "redacted",
+      "row_match": {
+        "channel_map_1": "图书",
+        "channel_map_2": "武汉图书",
+        "dept_2": "SEC"
+      },
+      "measure_field_id": "v_lead",
+      "expected_value": 55
+    }
+  ],
+  "production_validation_rule": "Production pivot rebuild validation must use filtered_value_assertions with public filters for the specified qici/period. Legacy unfiltered value assertions are sandbox evidence only and are not accepted as a production gate.",
+  "recovery_boundary": "DashboardHtml is restored from the pre-write schema on failure; copied orphan units may remain unreferenced in the sandbox backend."
+}

@@ -69,14 +69,14 @@
   },
   "counts": {
     "knowledge_files": 159,
-    "raw_sql_files": 14,
+    "raw_sql_files": 15,
     "by_category": {
       "dashboard_web_profiles": 56,
       "dashboards": 11,
       "governance": 7,
       "joins": 2,
       "metrics": 33,
-      "raw_sql": 14,
+      "raw_sql": 15,
       "reverse_index": 4,
       "sql_patterns": 13,
       "tables": 21,
@@ -120,11 +120,11 @@
   },
   "current_model_registry": {
     "source_path": "semantic/current_model_bindings.json",
-    "source_sha256": "6367866178fbc82bb1259529832f708ee22498298d42f63782ec7fafc74a0867",
+    "source_sha256": "813cf021a6848ea45a9f8948b2beac2ca91fa299b8d1a6f265ed08efa89cae23",
     "policy": "one_current_model_per_id_and_semantic_slot",
     "canonical_filename_policy": "data_center_qingcheng_<model_id>.sql",
-    "model_count": 6,
-    "semantic_slot_count": 3
+    "model_count": 7,
+    "semantic_slot_count": 4
   },
   "dashboard_registry": {
     "source": "knowledge/dashboard_web_profiles",
@@ -1511,12 +1511,13 @@
       {
         "id": "qingcheng:dashboards:data_center_qingcheng_datasets",
         "source_path": "knowledge/dashboards/data_center_qingcheng_datasets.md",
-        "sha256": "dfbff94a1359e43c26caee6e291a22e1b4f5195bacabf36a69d2e297e150d749",
-        "bytes": 3258,
+        "sha256": "0eaded21e2ad2124082fc85d2e134ca64c388398b78c718fb0c919a605f57b4e",
+        "bytes": 3618,
         "title": "数据中心数据集源 SQL（青橙项目部）",
         "table_refs": [],
         "raw_sql_refs": [
           "data_center_qingcheng_2064.sql",
+          "data_center_qingcheng_2244.sql",
           "data_center_qingcheng_2460.sql",
           "data_center_qingcheng_2677.sql",
           "data_center_qingcheng_2680.sql",
@@ -2512,6 +2513,24 @@
         ]
       },
       {
+        "id": "qingcheng:raw_sql:data_center_qingcheng_2244",
+        "source_path": "resources/raw_sql/data_center_qingcheng_2244.sql",
+        "sha256": "b2a242cc06dfb0f7962511044d59254ba005c698f7b0462ea122a3af2deb8837",
+        "bytes": 7970,
+        "title": "data_center_qingcheng_2244",
+        "table_refs": [
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "service_dw.dws_service_user_learn_detail_hf",
+          "temp_table.dingxi01_jiagou_db",
+          "temp_table.dingxi01_qing_daoke"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "data_center_qingcheng_2244"
+        ]
+      },
+      {
         "id": "qingcheng:raw_sql:data_center_qingcheng_2460",
         "source_path": "resources/raw_sql/data_center_qingcheng_2460.sql",
         "sha256": "e137d83e0e68c5116b60e8ffaf45a58ea19229f3506f6a2c75bba46f96eb39dc",
@@ -3111,13 +3130,14 @@
       {
         "id": "qingcheng:sql_patterns:qingcheng_summer_qici_corrections",
         "source_path": "knowledge/sql_patterns/qingcheng_summer_qici_corrections.md",
-        "sha256": "809585f5e26a5707d27e23adca924b11ef5f021fb4e77e78dc5cfe1ea027c339",
-        "bytes": 3968,
+        "sha256": "949cbb43c0100f2646ee9e55340aa197d611de419152c70cbb3044fa12953aa4",
+        "bytes": 4356,
         "title": "青橙暑期期次修正规则",
         "table_refs": [
           "temp_table.dingxi01_qing_team_jg"
         ],
         "raw_sql_refs": [
+          "data_center_qingcheng_2244.sql",
           "data_center_qingcheng_2460.sql",
           "data_center_qingcheng_2677.sql",
           "data_center_qingcheng_2680.sql",
@@ -3678,8 +3698,8 @@
       {
         "id": "qingcheng:update_log:changelog",
         "source_path": "knowledge/update_log/changelog.md",
-        "sha256": "6b8cee246bea2e604ae416ec8b3357dc50810dc681a6703a241a2e815808bfc4",
-        "bytes": 51784,
+        "sha256": "609242cc295623b74f367c97507ef6ae8efd54d54ac3f86bd452f71989de2c99",
+        "bytes": 53292,
         "title": "更新日志",
         "table_refs": [
           "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf",
@@ -3758,6 +3778,7 @@
         "knowledge/temp_tables/_no_temp_table_usage_cases.md",
         "knowledge/update_log/changelog.md",
         "resources/raw_sql/data_center_qingcheng_2064.sql",
+        "resources/raw_sql/data_center_qingcheng_2244.sql",
         "resources/raw_sql/data_center_qingcheng_2460.sql",
         "resources/raw_sql/qingcheng_channel_order_detail_raw_20260627.sql",
         "resources/raw_sql/qingcheng_conversion_wide_table_market_channel_20260611.sql",
@@ -4004,6 +4025,7 @@
         "knowledge/reverse_index/table_to_dashboards.md",
         "knowledge/tables/service_dw.dws_service_user_learn_detail_hf.md",
         "resources/raw_sql/data_center_qingcheng_2064.sql",
+        "resources/raw_sql/data_center_qingcheng_2244.sql",
         "resources/raw_sql/qingcheng_daoke_raw_20260522.sql",
         "resources/raw_sql/qingcheng_process_data_raw_20260522.sql"
       ],
@@ -4024,6 +4046,7 @@
         "knowledge/temp_tables/temp_table.dingxi01_qing_zz.md",
         "knowledge/update_log/changelog.md",
         "resources/raw_sql/data_center_qingcheng_2064.sql",
+        "resources/raw_sql/data_center_qingcheng_2244.sql",
         "resources/raw_sql/qingcheng_daoke_raw_20260522.sql",
         "resources/raw_sql/qingcheng_process_data_raw_20260522.sql"
       ],
@@ -4046,6 +4069,7 @@
         "knowledge/temp_tables/temp_table.dingxi01_qing_daoke.md",
         "knowledge/update_log/changelog.md",
         "resources/raw_sql/data_center_qingcheng_2064.sql",
+        "resources/raw_sql/data_center_qingcheng_2244.sql",
         "resources/raw_sql/qingcheng_daoke_raw_20260522.sql",
         "resources/raw_sql/qingcheng_process_data_raw_20260522.sql"
       ],
@@ -4187,6 +4211,10 @@
         "knowledge/reverse_index/metric_to_raw_sql.md",
         "knowledge/reverse_index/table_to_dashboards.md",
         "knowledge/sql_patterns/qingcheng_channel_grade_mapping.md"
+      ],
+      "data_center_qingcheng_2244.sql": [
+        "knowledge/dashboards/data_center_qingcheng_datasets.md",
+        "knowledge/sql_patterns/qingcheng_summer_qici_corrections.md"
       ],
       "data_center_qingcheng_2460.sql": [
         "knowledge/01_table_index.md",
@@ -4686,8 +4714,8 @@
     },
     {
       "source_path": "knowledge/dashboards/data_center_qingcheng_datasets.md",
-      "sha256": "dfbff94a1359e43c26caee6e291a22e1b4f5195bacabf36a69d2e297e150d749",
-      "bytes": 3258,
+      "sha256": "0eaded21e2ad2124082fc85d2e134ca64c388398b78c718fb0c919a605f57b4e",
+      "bytes": 3618,
       "category": "dashboards"
     },
     {
@@ -5064,8 +5092,8 @@
     },
     {
       "source_path": "knowledge/sql_patterns/qingcheng_summer_qici_corrections.md",
-      "sha256": "809585f5e26a5707d27e23adca924b11ef5f021fb4e77e78dc5cfe1ea027c339",
-      "bytes": 3968,
+      "sha256": "949cbb43c0100f2646ee9e55340aa197d611de419152c70cbb3044fa12953aa4",
+      "bytes": 4356,
       "category": "sql_patterns"
     },
     {
@@ -5262,14 +5290,20 @@
     },
     {
       "source_path": "knowledge/update_log/changelog.md",
-      "sha256": "6b8cee246bea2e604ae416ec8b3357dc50810dc681a6703a241a2e815808bfc4",
-      "bytes": 51784,
+      "sha256": "609242cc295623b74f367c97507ef6ae8efd54d54ac3f86bd452f71989de2c99",
+      "bytes": 53292,
       "category": "update_log"
     },
     {
       "source_path": "resources/raw_sql/data_center_qingcheng_2064.sql",
       "sha256": "a89b41f0f9b2ba8336226d5a6c5d5b2b5bfb8388faca1f500bbaacb12ce2bfce",
       "bytes": 35832,
+      "category": "raw_sql"
+    },
+    {
+      "source_path": "resources/raw_sql/data_center_qingcheng_2244.sql",
+      "sha256": "b2a242cc06dfb0f7962511044d59254ba005c698f7b0462ea122a3af2deb8837",
+      "bytes": 7970,
       "category": "raw_sql"
     },
     {
