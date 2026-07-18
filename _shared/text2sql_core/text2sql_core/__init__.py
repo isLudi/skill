@@ -14,6 +14,18 @@ from .dashboard_change import (
     validate_dashboard_change_plan,
     validate_publish_receipt,
 )
+from .dashboard_build import (
+    COMPONENT_TYPES,
+    REQUIRED_CAPABILITIES,
+    build_dashboard_build_plan,
+    build_dashboard_build_publish_receipt,
+    build_dashboard_build_receipt,
+    normalize_dashboard_build_spec,
+    validate_dashboard_build_plan,
+    validate_dashboard_build_publish_receipt,
+    validate_dashboard_build_receipt,
+    validate_dashboard_build_spec,
+)
 from .models import Diagnostic, QueryPlan, QuerySpec, ValidationResult
 
 __all__ = [
@@ -22,15 +34,25 @@ __all__ = [
     "QuerySpec",
     "SAFE_OPERATION_TYPES",
     "ValidationResult",
+    "COMPONENT_TYPES",
+    "REQUIRED_CAPABILITIES",
     "artifact_sha256",
     "build_apply_receipt",
     "build_dashboard_change_plan",
     "build_dashboard_design_spec",
     "build_publish_receipt",
     "canonical_sha256",
+    "build_dashboard_build_plan",
+    "build_dashboard_build_publish_receipt",
+    "build_dashboard_build_receipt",
     "diff_dashboard",
     "normalize_dashboard_profile",
+    "normalize_dashboard_build_spec",
     "validate_apply_receipt",
+    "validate_dashboard_build_plan",
+    "validate_dashboard_build_publish_receipt",
+    "validate_dashboard_build_receipt",
+    "validate_dashboard_build_spec",
     "validate_dashboard_change_plan",
     "validate_publish_receipt",
 ]

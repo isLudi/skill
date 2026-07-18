@@ -66,6 +66,21 @@ def load_capability_registry(path: Path = DEFAULT_REGISTRY) -> dict[str, Any]:
             raise UsageError(f"Allowlisted capability must be verified: {operation}")
         if capability["write_policy"] == "allowlisted" and capability["readback_coverage"] != "full":
             raise UsageError(f"Allowlisted capability must have full readback: {operation}")
+        if capability["write_policy"] == "allowlisted" and not capability.get("adapter"):
+            raise UsageError(f"Allowlisted capability must have a production adapter: {operation}")
+        transaction_class = str(capability.get("transaction_class") or "")
+        recovery_policy = str(capability.get("recovery_policy") or "")
+        if transaction_class == "creation_saga" and recovery_policy != "creation_saga_no_auto_delete":
+            raise UsageError(f"Creation-saga capability must forbid automatic delete: {operation}")
+        if capability["write_policy"] == "separate_confirmation" and (
+            transaction_class != "separate_publish" or recovery_policy != "separate_publish"
+        ):
+            raise UsageError(f"Separate-confirmation capability must use separate_publish: {operation}")
+        if capability["write_policy"] == "allowlisted" and transaction_class not in {
+            "compensating_restore",
+            "creation_saga",
+        }:
+            raise UsageError(f"Allowlisted capability has unsupported transaction class: {operation}")
         if capability["write_policy"] == "sandbox_only":
             if capability["maturity"] != "sandbox_verified":
                 raise UsageError(f"Sandbox-only capability must be sandbox_verified: {operation}")

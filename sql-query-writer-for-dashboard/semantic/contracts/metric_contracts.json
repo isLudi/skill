@@ -425,6 +425,106 @@
         "period_mapping_first_level_department_name"
       ],
       "notes": "抖音私域合并有效线索口径尚未由独立业务指标文档确认；其他看板可能直接 sum(valid_lead_count)，不得静默混用。"
+    },
+    {
+      "id": "market_consultant:metric:finance_positive_order_count_dedup",
+      "name": "财务归属正价课订单数（去重）",
+      "aliases": [
+        "财务归属正价课订单数",
+        "成单正价课明细",
+        "正价课订单明细"
+      ],
+      "status": "pending_confirmation",
+      "automatic_compile": false,
+      "source_path": "knowledge/metrics/market_positive_order_detail_finance_metrics.md",
+      "source_sha256": "9f074b1eab528af166494b42b97731973805b06b3b772ba9dbd5b901e6497e45",
+      "description": "M2 在订单—班级明细上用 order_row_number=1 形成财务正价课订单数；与运营口径订单数不同。",
+      "candidate_tables": [
+        "finance_dw.app_finance_performance_extend_details_hf",
+        "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
+        "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df"
+      ],
+      "calculation_grain": "order_number after multi-stage attribution and dedup",
+      "notes": "精品班学部版和市场部版范围不同，多表人工 SQL 阻断自动编译。"
+    },
+    {
+      "id": "market_consultant:metric:sale_subject_count",
+      "name": "整周期整数售卖科目数",
+      "aliases": [
+        "售卖科目数",
+        "售卖科目占比",
+        "整数售卖科目数"
+      ],
+      "status": "pending_confirmation",
+      "automatic_compile": false,
+      "source_path": "knowledge/metrics/market_jingpin_chusan_subject_share_metrics.md",
+      "source_sha256": "1d5775088a8407df2e62e13ae31037e08f3dfd6e8701a282d1ce5a9fd7d601fc",
+      "description": "M3 按渠道组+父订单+科目汇总净售卖金额，净额大于 0 时整数计 1；默认整周期输出。",
+      "candidate_tables": [
+        "finance_dw.app_finance_performance_extend_details_hf",
+        "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf"
+      ],
+      "calculation_grain": "channel_group + top_order_number + course_subject",
+      "notes": "依赖退款、调课调班和渠道归因的多表人工 SQL；行级占比不可直接聚合。"
+    },
+    {
+      "id": "market_consultant:metric:period_grade_conversion_overview_bundle",
+      "name": "初中期次年级转化概览指标组",
+      "aliases": [
+        "H业务线初中转化透视",
+        "初中期次年级转化概览",
+        "期次年级转化透视"
+      ],
+      "status": "pending_confirmation",
+      "automatic_compile": false,
+      "source_path": "knowledge/dashboards/market_period_grade_conversion_overview_template.md",
+      "source_sha256": "d81b8d10bce33ca6134b1c6e765c4b6b1b2a4fbcf741c124d3f54a386cb9583f",
+      "description": "M5 按期次和初中年级输出线索、人头/订单转化分子分母、净收款和单效分子分母。",
+      "candidate_tables": [
+        "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df"
+      ],
+      "calculation_grain": "period_name + grade after lead/advisor/rule dedup",
+      "notes": "历史样例覆盖 H 业务线多个二级部门，且 lead_count contract 仍待确认；只能按人工 SQL 模板调用。"
+    },
+    {
+      "id": "market_consultant:metric:finance_positive_subject_structure_bundle",
+      "name": "渠道财务正价课科目结构指标组",
+      "aliases": [
+        "渠道正价课科目结构",
+        "财务正价课科目结构",
+        "正价课科目人次占比",
+        "渠道专项正价课班课结构"
+      ],
+      "status": "pending_confirmation",
+      "automatic_compile": false,
+      "source_path": "knowledge/metrics/market_finance_positive_subject_structure_metrics.md",
+      "source_sha256": "f652d7a946c10a46bc33f8df89823b47f6bbaaaff62377072a52e7888ed592b6",
+      "description": "M6/M8 以财务正价课订单识别用户，输出科目用户、人次、金额、订单的可加总分子分母，并可继续拆课程/班课。",
+      "candidate_tables": [
+        "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+        "finance_dw.app_finance_performance_extend_details_hf"
+      ],
+      "calculation_grain": "period + channel + grade + manager + user + subject, optionally course/class dimensions",
+      "notes": "财务 real_price/trade_type 识别与 2809 运营转化口径不一致，调课调班和跨期匹配仍需确认。"
+    },
+    {
+      "id": "market_consultant:metric:channel_top_consultant_ranking_bundle",
+      "name": "渠道内顾问净GMV TOPN指标组",
+      "aliases": [
+        "渠道内TOP10顾问转化",
+        "渠道顾问净GMV排名",
+        "渠道内顾问单效排名"
+      ],
+      "status": "pending_confirmation",
+      "automatic_compile": false,
+      "source_path": "knowledge/metrics/market_channel_top10_consultant_conversion_metrics.md",
+      "source_sha256": "ded5f67a0829f87741bf6144154a37aafc66d0c7c2fafde3dd0dffa6a4d8bb5e",
+      "description": "M7 在顾问学部+渠道内按当期净GMV、承接线索和顾问名确定性排序，输出 TOP N 顾问转化指标。",
+      "candidate_tables": [
+        "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df"
+      ],
+      "calculation_grain": "period_name + consultant_department + channel_map + employee_email_name",
+      "notes": "有效线索特殊渠道分支、当前渠道映射和顾问学部字段均需在 QuerySpec 中确认；不复制历史长 CASE。"
     }
   ]
 }

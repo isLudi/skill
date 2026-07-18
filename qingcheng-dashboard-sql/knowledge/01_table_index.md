@@ -19,6 +19,7 @@
 | `finance_dw.app_finance_performance_extend_details_hf` | 财务业绩扩展明细小时表 | 年季月营收、团队完成度、个人转化 | `dt` | `hour` | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/finance_dw.app_finance_performance_extend_details_hf.md` |
 | `finance_dw.dim_finance_employee_df` | 员工维表 | 员工账号、在职状态和组织架构补充 | `dt` | 无 | 公共表结构复用，字段待表结构确认 | `knowledge/tables/finance_dw.dim_finance_employee_df.md` |
 | `finance_dw.dm_finance_order_refund_detail_df` | 财务订单退款明细日表 | 全退订单行课节数、退 4 阈值 | `dt` | 无 | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/finance_dw.dm_finance_order_refund_detail_df.md` |
+| `finance_dw.dwd_finance_order_refund_df` | 财务订单退款原因明细日表 | 青橙退费原因和原因源金额；按青橙订单集合限定 | `dt` | 无 | 已从历史验证 SQL 入库；字段类型、主键和退款类型枚举待数据地图确认 | `knowledge/tables/finance_dw.dwd_finance_order_refund_df.md` |
 | `finance_dw.dim_finance_order_change_df` | 财务订单调课调班维表 | 完成度主交易层和退款层识别调课调班/课程转移主链路；service transfer 是兜底补充 | `dt` | 无 | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/finance_dw.dim_finance_order_change_df.md` |
 | `service_dw.app_h_crm_lead_task_process_info_detail_hf` | CRM 线索任务处理信息明细小时表 | F 类首次外呼标记 | `dt` | `hour` | 新入库，字段待表结构确认 | `knowledge/tables/service_dw.app_h_crm_lead_task_process_info_detail_hf.md` |
 | `gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf` | 顾问首call数据分析表 | 首 call 任务状态和任务量 | `dt` | `hour` | 公共表结构复用，字段待表结构确认 | `knowledge/tables/gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf.md` |
@@ -49,6 +50,8 @@
 | 青橙到课 raw | `resources/raw_sql/qingcheng_daoke_raw_20260522.sql` | `knowledge/metrics/qingcheng_daoke_metrics.md` | 已入库，部分口径待确认 |
 | 青橙转化 raw | `resources/raw_sql/data_center_qingcheng_2460.sql` | `knowledge/metrics/qingcheng_conversion_metrics.md` | 已入库；当前 canonical 版本按业务日历优先、`trade_timestamp` 周五逻辑兜底映射结果期次，按 `employee_email_name + qici` 回填团队架构，并统一为 service 主明细 + 调课调班剔除 + 折算破蛋口径 |
 | 青橙渠道订单明细 raw | `resources/raw_sql/qingcheng_channel_order_detail_raw_20260627.sql` | `knowledge/metrics/qingcheng_channel_order_detail_metrics.md` | 已入库；2026-06-27 模板版新增省/市/城市等级字段，`ld` 范围限定和明细粒度稳定性待确认 |
+| 青橙退费原因分析模板 | `resources/raw_sql/qingcheng_refund_reason_analysis_20260718.sql` | `knowledge/metrics/qingcheng_refund_reason_metrics.md` | 已入库；原因金额分摊、退款类型、渠道 CASE 和结果期次架构保持待确认 |
+| 青橙 TMK 转移与订单追踪模板 | `resources/raw_sql/qingcheng_tmk_transfer_order_trace_20260718.sql` | `knowledge/metrics/qingcheng_tmk_transfer_order_trace_metrics.md` | 已入库；复用已确认转移 Join，业财未回补使用三态和空金额 |
 | 青橙年季月营收 raw | `resources/raw_sql/qingcheng_revenue_year_quarter_month_raw_20260522.sql` | `knowledge/metrics/qingcheng_revenue_year_quarter_month_metrics.md` | 已入库，raw SQL 存在平台函数风险 |
 | 青橙团队完成度【月】raw | `resources/raw_sql/qingcheng_team_completion_month_raw_20260522.sql` | `knowledge/metrics/qingcheng_team_completion_month_metrics.md` | 已入库，raw SQL 存在平台函数风险 |
 | 青橙团队完成度【期】raw | `resources/raw_sql/qingcheng_team_completion_period_raw_20260522.sql` | `knowledge/metrics/qingcheng_team_completion_period_metrics.md` | 已入库，raw SQL 存在平台函数风险 |

@@ -2,9 +2,9 @@
   "schema_version": "2.0.0",
   "domain": "market_consultant",
   "counts": {
-    "dimension": 8,
+    "dimension": 9,
     "join": 4,
-    "metric": 10,
+    "metric": 15,
     "scope": 4
   },
   "entries": [
@@ -79,6 +79,22 @@
       "status": "pending_confirmation",
       "source_path": "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
       "source_sha256": "22de5807e82009cd855e0dc20548ad482bd059218bcf8d3803cf05a0163cc7d5"
+    },
+    {
+      "id": "market_consultant:dimension:registration_type",
+      "kind": "dimension",
+      "name": "市场顾问订单报名类型",
+      "aliases": [
+        "报名类型",
+        "暑秋联报报名类型",
+        "暑秋联报类型",
+        "暑秋联报",
+        "单秋"
+      ],
+      "status": "pending_confirmation",
+      "source_path": "knowledge/metrics/market_class_order_registration_fields.md",
+      "source_sha256": "6911d43dbd500bc0e2494c01a8a1471a40bdbfe59c5d33d247ce108d81dd27c6",
+      "automatic_compile": false
     },
     {
       "id": "market_consultant:dimension:stats_grade_name",
@@ -175,6 +191,20 @@
       "source_sha256": "e21ca99aae41753cb65127e8d168641a5d4f352bb5129d91a0025e89b540eadc"
     },
     {
+      "id": "market_consultant:metric:channel_top_consultant_ranking_bundle",
+      "kind": "metric",
+      "name": "渠道内顾问净GMV TOPN指标组",
+      "aliases": [
+        "渠道内TOP10顾问转化",
+        "渠道顾问净GMV排名",
+        "渠道内顾问单效排名"
+      ],
+      "status": "pending_confirmation",
+      "source_path": "knowledge/metrics/market_channel_top10_consultant_conversion_metrics.md",
+      "source_sha256": "ded5f67a0829f87741bf6144154a37aafc66d0c7c2fafde3dd0dffa6a4d8bb5e",
+      "automatic_compile": false
+    },
+    {
       "id": "market_consultant:metric:conversion_subject_count",
       "kind": "metric",
       "name": "转化科目人次",
@@ -235,6 +265,35 @@
       "automatic_compile": true
     },
     {
+      "id": "market_consultant:metric:finance_positive_order_count_dedup",
+      "kind": "metric",
+      "name": "财务归属正价课订单数（去重）",
+      "aliases": [
+        "财务归属正价课订单数",
+        "成单正价课明细",
+        "正价课订单明细"
+      ],
+      "status": "pending_confirmation",
+      "source_path": "knowledge/metrics/market_positive_order_detail_finance_metrics.md",
+      "source_sha256": "9f074b1eab528af166494b42b97731973805b06b3b772ba9dbd5b901e6497e45",
+      "automatic_compile": false
+    },
+    {
+      "id": "market_consultant:metric:finance_positive_subject_structure_bundle",
+      "kind": "metric",
+      "name": "渠道财务正价课科目结构指标组",
+      "aliases": [
+        "渠道正价课科目结构",
+        "财务正价课科目结构",
+        "正价课科目人次占比",
+        "渠道专项正价课班课结构"
+      ],
+      "status": "pending_confirmation",
+      "source_path": "knowledge/metrics/market_finance_positive_subject_structure_metrics.md",
+      "source_sha256": "f652d7a946c10a46bc33f8df89823b47f6bbaaaff62377072a52e7888ed592b6",
+      "automatic_compile": false
+    },
+    {
       "id": "market_consultant:metric:first_call_task_rate",
       "kind": "metric",
       "name": "首call任务率",
@@ -276,6 +335,34 @@
       "status": "pending_confirmation",
       "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
       "source_sha256": "f4aaed422e45206b3dae8037280b50062553310da5d68cfbc0309e2fe616c59c"
+    },
+    {
+      "id": "market_consultant:metric:period_grade_conversion_overview_bundle",
+      "kind": "metric",
+      "name": "初中期次年级转化概览指标组",
+      "aliases": [
+        "H业务线初中转化透视",
+        "初中期次年级转化概览",
+        "期次年级转化透视"
+      ],
+      "status": "pending_confirmation",
+      "source_path": "knowledge/dashboards/market_period_grade_conversion_overview_template.md",
+      "source_sha256": "d81b8d10bce33ca6134b1c6e765c4b6b1b2a4fbcf741c124d3f54a386cb9583f",
+      "automatic_compile": false
+    },
+    {
+      "id": "market_consultant:metric:sale_subject_count",
+      "kind": "metric",
+      "name": "整周期整数售卖科目数",
+      "aliases": [
+        "售卖科目数",
+        "售卖科目占比",
+        "整数售卖科目数"
+      ],
+      "status": "pending_confirmation",
+      "source_path": "knowledge/metrics/market_jingpin_chusan_subject_share_metrics.md",
+      "source_sha256": "1d5775088a8407df2e62e13ae31037e08f3dfd6e8701a282d1ce5a9fd7d601fc",
+      "automatic_compile": false
     },
     {
       "id": "market_consultant:metric:same_period_conversion_subject_count",

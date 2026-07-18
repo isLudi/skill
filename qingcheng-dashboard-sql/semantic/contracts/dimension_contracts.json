@@ -184,6 +184,25 @@
       "table": "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
       "data_type": "string",
       "description": "service 订单明细登记的成交年级名称。"
+    },
+    {
+      "id": "qingcheng:dimension:refund_reason",
+      "name": "青橙退费原因",
+      "aliases": [
+        "青橙退费原因",
+        "青橙退费原因金额",
+        "退费原因",
+        "refund_reason"
+      ],
+      "status": "pending_confirmation",
+      "automatic_compile": false,
+      "source_path": "knowledge/metrics/qingcheng_refund_reason_metrics.md",
+      "source_sha256": "2777c300e9593fb209b916c6992d067628cbb248e5481bd444b813364981daee",
+      "description": "Q1 从财务退款原因明细读取；空原因归未获取到退费原因，退款类型枚举和原因事务粒度仍待确认。",
+      "field": "refund_reason",
+      "table": "finance_dw.dwd_finance_order_refund_df",
+      "data_type": "string",
+      "notes": "仅允许候选解释和人工 SQL 计划。"
     }
   ]
 }

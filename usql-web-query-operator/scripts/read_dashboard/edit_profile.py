@@ -37,6 +37,8 @@ FIELD_GROUPS = (
     ("filter", "unitFilterList"),
 )
 
+SUPPORTED_DATA_UNIT_TYPES = frozenset({"card", "u_pivot", "u_bar", "u_pie"})
+
 SNAPSHOT_SCHEMA_VERSION = "4.0.0"
 
 
@@ -336,6 +338,17 @@ def _pivot_dataset_identity(unit: dict[str, Any]) -> tuple[str | None, dict[str,
     }
 
 
+def _data_unit_dataset_identity(unit: dict[str, Any]) -> tuple[str | None, dict[str, Any]]:
+    """Return the stable dataset identity shared by all supported data units.
+
+    The historical helper name is retained because external callers and old
+    fixtures still describe this as a pivot identity.  Taitan exposes the same
+    dashboardModel structure for card, pivot, bar, and pie units.
+    """
+
+    return _pivot_dataset_identity(unit)
+
+
 def build_dataset_snapshot(
     pivot_units: list[dict[str, Any]],
     dataset_fields: list[dict[str, Any]] | None = None,
@@ -435,8 +448,68 @@ def enrich_component_snapshot(
     return components
 
 
+def build_data_unit_snapshot(data_units: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Build a compact, stable identity/binding view for supported data units."""
+
+    rows: list[dict[str, Any]] = []
+    for unit in data_units:
+        unit_id = str(unit.get("unit_id") or "")
+        if not unit_id:
+            continue
+        component = unit.get("component") if isinstance(unit.get("component"), dict) else {}
+        dataset_id, model_identity = _data_unit_dataset_identity(unit)
+        field_groups: dict[str, list[str]] = {
+            group_name: [] for group_name, _field_key in FIELD_GROUPS
+        }
+        formula_ids: list[str] = []
+        for field in unit.get("fields") or []:
+            if not isinstance(field, dict):
+                continue
+            group = str(field.get("group") or "")
+            field_id = str(field.get("field_id") or "")
+            if group in field_groups and field_id:
+                field_groups[group].append(field_id)
+            if str(field.get("formula") or "").strip():
+                formula_ids.append(_formula_id_for_field(unit_id, field))
+        rows.append(
+            {
+                "unit_id": unit_id,
+                "unit_type": str(unit.get("unit_type") or ""),
+                "component_id": str(
+                    component.get("component_id") or component.get("node_id") or ""
+                ),
+                "dataset_id": dataset_id,
+                "model_identity": model_identity,
+                "field_groups": {
+                    key: sorted(set(values)) for key, values in field_groups.items()
+                },
+                "formula_ids": sorted(set(formula_ids)),
+                "component_filter_ids": sorted(
+                    f"{unit_id}::{field_id}"
+                    for field_id in field_groups.get("filter", [])
+                ),
+            }
+        )
+    return sorted(rows, key=lambda item: item["unit_id"])
+
+
+def _is_editable_data_component(component: dict[str, Any]) -> bool:
+    """Recognize configured supported data units without treating containers as data units."""
+
+    if not str(component.get("unit_id") or "").strip():
+        return False
+    component_type = str(component.get("component_type") or "").strip().lower()
+    node_component = str(component.get("node_component") or "").strip().lower()
+    if component_type in SUPPORTED_DATA_UNIT_TYPES:
+        return True
+    return any(
+        marker in node_component
+        for marker in ("pivot", "barchart", "piechart", "metriccard", "cardgroup")
+    )
+
+
 def _is_editable_pivot_component(component: dict[str, Any]) -> bool:
-    """Recognize configured pivot units without treating blank containers as data units."""
+    """Backward-compatible pivot-only predicate used by legacy callers."""
 
     if not str(component.get("unit_id") or "").strip():
         return False
@@ -474,15 +547,20 @@ def _dependency_field_id(dependency: Any) -> str | None:
     return None
 
 
-def validate_pivot_bindings(
+def validate_data_component_bindings(
     *,
     component_units: list[dict[str, Any]],
-    pivot_units: list[dict[str, Any]],
+    data_units: list[dict[str, Any]],
     snapshot: dict[str, Any],
     dataset_fields: list[dict[str, Any]],
     include_dataset_fields: bool,
 ) -> dict[str, Any]:
-    """Validate the stable structural references required by the governed P3 chain."""
+    """Validate stable references for card, pivot, bar, and pie data components.
+
+    Existing ``PIVOT_*`` diagnostic codes are intentionally retained for
+    compatibility with downstream automation.  They now apply to every
+    supported data unit and include ``unit_type`` where the source exposes it.
+    """
 
     errors: list[dict[str, Any]] = []
     components = {
@@ -511,7 +589,7 @@ def validate_pivot_bindings(
         if isinstance(item, dict) and item.get("dataset_id")
     }
     pivot_by_unit: dict[str, dict[str, Any]] = {}
-    for unit in pivot_units:
+    for unit in data_units:
         unit_id = str(unit.get("unit_id") or "")
         if not unit_id:
             errors.append(
@@ -535,7 +613,7 @@ def validate_pivot_bindings(
     expected_pivot_ids = {
         str(component.get("unit_id") or "")
         for component in component_units
-        if isinstance(component, dict) and _is_editable_pivot_component(component)
+        if isinstance(component, dict) and _is_editable_data_component(component)
     }
     for unit_id in sorted(expected_pivot_ids - set(pivot_by_unit)):
         errors.append(
@@ -586,7 +664,7 @@ def validate_pivot_bindings(
                 )
             )
 
-        dataset_id, model_identity = _pivot_dataset_identity(unit)
+        dataset_id, model_identity = _data_unit_dataset_identity(unit)
         component_dataset_id = str(component.get("dataset_id") or "")
         if not dataset_id or not any(
             model_identity.get(key) not in (None, "")
@@ -970,13 +1048,16 @@ def validate_pivot_bindings(
 
     return {
         "status": "complete" if not errors else "incomplete",
+        "editable_data_component_count": len(pivot_by_unit),
+        "expected_data_component_count": len(expected_pivot_ids),
+        "validated_data_component_count": len(validated_pivot_ids),
         "editable_pivot_count": len(pivot_by_unit),
         "expected_pivot_count": len(expected_pivot_ids),
         "validated_pivot_count": len(validated_pivot_ids),
         "ignored_non_data_component_count": sum(
             1
             for component in component_units
-            if isinstance(component, dict) and not _is_editable_pivot_component(component)
+            if isinstance(component, dict) and not _is_editable_data_component(component)
         ),
         "dataset_reference_count": dataset_reference_count,
         "selected_field_reference_count": selected_field_reference_count,
@@ -986,6 +1067,25 @@ def validate_pivot_bindings(
         "error_count": len(errors),
         "errors": errors,
     }
+
+
+def validate_pivot_bindings(
+    *,
+    component_units: list[dict[str, Any]],
+    pivot_units: list[dict[str, Any]],
+    snapshot: dict[str, Any],
+    dataset_fields: list[dict[str, Any]],
+    include_dataset_fields: bool,
+) -> dict[str, Any]:
+    """Compatibility wrapper for callers that still provide pivot-only profiles."""
+
+    return validate_data_component_bindings(
+        component_units=component_units,
+        data_units=pivot_units,
+        snapshot=snapshot,
+        dataset_fields=dataset_fields,
+        include_dataset_fields=include_dataset_fields,
+    )
 
 
 def build_dashboard_snapshot(
@@ -999,8 +1099,10 @@ def build_dashboard_snapshot(
     pivot_units: list[dict[str, Any]],
     public_filters: dict[str, Any],
     dataset_fields: list[dict[str, Any]] | None = None,
+    data_units: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    components = enrich_component_snapshot(extract_design_components(dashboard_html), pivot_units)
+    effective_data_units = data_units if data_units is not None else pivot_units
+    components = enrich_component_snapshot(extract_design_components(dashboard_html), effective_data_units)
     root = (dashboard_html.get("componentsTree") or [None])[0]
     root_style = (
         root.get("props", {}).get("style", {})
@@ -1021,6 +1123,7 @@ def build_dashboard_snapshot(
             "domain": domain,
         },
         "components": components,
+        "data_units": build_data_unit_snapshot(effective_data_units),
         "layout": [
             {
                 "node_id": item["node_id"],
@@ -1034,10 +1137,10 @@ def build_dashboard_snapshot(
             for item in components
             if item.get("layout")
         ],
-        "formulas": build_formula_snapshot(pivot_units),
+        "formulas": build_formula_snapshot(effective_data_units),
         "public_filters": build_public_filter_snapshot(public_filters),
-        "component_filters": build_component_filter_snapshot(pivot_units),
-        "datasets": build_dataset_snapshot(pivot_units, dataset_fields),
+        "component_filters": build_component_filter_snapshot(effective_data_units),
+        "datasets": build_dataset_snapshot(effective_data_units, dataset_fields),
         "theme": {
             "background_color": root_style.get("backgroundColor"),
             "theme_type": dashboard_config.get("themeType"),
@@ -1538,6 +1641,7 @@ def profile_edit_dashboard(
 
     unit_details: dict[str, dict[str, Any]] = {}
     public_filters: dict[str, Any] = {}
+    data_units: list[dict[str, Any]] = []
     pivot_units: list[dict[str, Any]] = []
     errors: list[dict[str, Any]] = []
     field_detail_cache: dict[tuple[str, str], dict[str, Any]] = {}
@@ -1552,16 +1656,19 @@ def profile_edit_dashboard(
             if unit_id.startswith("public_filter_relation_"):
                 public_filters[unit_id] = detail
                 continue
-            if detail.get("unitType") == "u_pivot":
-                pivot_profile = summarize_edit_unit(page, detail, field_detail_cache)
-                pivot_profile["component"] = component
-                pivot_units.append(pivot_profile)
+            unit_type = str(detail.get("unitType") or "").lower()
+            if unit_type in SUPPORTED_DATA_UNIT_TYPES:
+                data_profile = summarize_edit_unit(page, detail, field_detail_cache)
+                data_profile["component"] = component
+                data_units.append(data_profile)
+                if unit_type == "u_pivot":
+                    pivot_units.append(data_profile)
         except Exception as exc:  # noqa: BLE001
             errors.append({"category": "unit", "unit_id": unit_id, "message": str(exc)})
 
     all_selected_fields: list[dict[str, Any]] = []
     model_types: set[int] = set()
-    for unit in pivot_units:
+    for unit in data_units:
         all_selected_fields.extend(unit.get("selected_fields") or [])
         model_type = unit.get("model_type")
         if model_type is not None:
@@ -1570,13 +1677,13 @@ def profile_edit_dashboard(
             except (TypeError, ValueError):
                 pass
 
-    subject_ids = discover_subject_ids(public_filters, field_detail_cache, pivot_units)
+    subject_ids = discover_subject_ids(public_filters, field_detail_cache, data_units)
     dataset_fields = (
         fetch_dataset_fields(page, dashboard_id, subject_ids, sorted(model_types), all_selected_fields)
         if include_dataset_fields
         else []
     )
-    for unit in pivot_units:
+    for unit in data_units:
         for field in unit.get("fields") or []:
             if not isinstance(field, dict):
                 continue
@@ -1601,9 +1708,9 @@ def profile_edit_dashboard(
             )
     text_notes = extract_text_notes(dashboard_html, unit_details)
     dashboard_name = str(config.get("dashboardName") or dashboard_id)
-    measure_count = sum(int(unit.get("measure_count") or 0) for unit in pivot_units)
-    configured_field_count = sum(int(unit.get("field_count") or 0) for unit in pivot_units)
-    formula_count = sum(int(unit.get("custom_formula_count") or 0) for unit in pivot_units)
+    measure_count = sum(int(unit.get("measure_count") or 0) for unit in data_units)
+    configured_field_count = sum(int(unit.get("field_count") or 0) for unit in data_units)
+    formula_count = sum(int(unit.get("custom_formula_count") or 0) for unit in data_units)
     snapshot = build_dashboard_snapshot(
         dashboard_id=dashboard_id,
         dashboard_name=dashboard_name,
@@ -1612,12 +1719,13 @@ def profile_edit_dashboard(
         domain=domain,
         dashboard_html=dashboard_html,
         pivot_units=pivot_units,
+        data_units=data_units,
         public_filters=public_filters,
         dataset_fields=dataset_fields,
     )
-    binding_validation = validate_pivot_bindings(
+    binding_validation = validate_data_component_bindings(
         component_units=component_units,
-        pivot_units=pivot_units,
+        data_units=data_units,
         snapshot=snapshot,
         dataset_fields=dataset_fields,
         include_dataset_fields=include_dataset_fields,
@@ -1625,6 +1733,7 @@ def profile_edit_dashboard(
     errors.extend(binding_validation["errors"])
     required_sections = [
         "components",
+        "data_units",
         "layout",
         "formulas",
         "public_filters",
@@ -1713,6 +1822,7 @@ def profile_edit_dashboard(
         },
         "components": component_units,
         "component_snapshot": snapshot["components"],
+        "data_unit_snapshot": snapshot["data_units"],
         "layout": snapshot["layout"],
         "formulas": snapshot["formulas"],
         "public_filters": snapshot["public_filters"],
@@ -1722,12 +1832,18 @@ def profile_edit_dashboard(
         "binding_validation": binding_validation,
         "snapshot": snapshot,
         "profile_sha256": canonical_sha256(snapshot),
+        "data_units": data_units,
         "pivot_units": pivot_units,
         "public_filter_unit_count": len(public_filters),
         "subject_ids": subject_ids,
         "dataset_fields": dataset_fields,
         "text_notes": text_notes,
         "summary": {
+            "data_unit_count": len(data_units),
+            "data_unit_counts_by_type": {
+                unit_type: sum(1 for item in data_units if item.get("unit_type") == unit_type)
+                for unit_type in sorted(SUPPORTED_DATA_UNIT_TYPES)
+            },
             "pivot_unit_count": len(pivot_units),
             "configured_field_count": configured_field_count,
             "measure_count": measure_count,
@@ -1753,6 +1869,8 @@ def build_edit_profile_summary(profile: dict[str, Any], output_path: Path) -> di
         "dashboard_id": profile.get("dashboard_id"),
         "domain": profile.get("domain"),
         "output_path": str(output_path),
+        "data_unit_count": summary.get("data_unit_count", 0),
+        "data_unit_counts_by_type": summary.get("data_unit_counts_by_type", {}),
         "pivot_unit_count": summary.get("pivot_unit_count", 0),
         "configured_field_count": summary.get("configured_field_count", 0),
         "measure_count": summary.get("measure_count", 0),
@@ -1781,6 +1899,7 @@ def build_edit_error_profile(
             "status": "incomplete",
             "required": [
                 "components",
+                "data_units",
                 "layout",
                 "formulas",
                 "public_filters",
@@ -1790,6 +1909,7 @@ def build_edit_error_profile(
             "observed": [],
             "missing": [
                 "components",
+                "data_units",
                 "layout",
                 "formulas",
                 "public_filters",

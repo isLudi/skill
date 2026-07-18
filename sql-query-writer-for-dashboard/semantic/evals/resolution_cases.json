@@ -74,6 +74,54 @@
       "query": "火星用户渗透率",
       "expected_ids": [],
       "expected_status": "unknown"
+    },
+    {
+      "id": "market_consultant:eval:summer_autumn_registration_type",
+      "query": "暑秋联报报名类型",
+      "expected_ids": [
+        "market_consultant:dimension:registration_type"
+      ],
+      "expected_status": "resolved"
+    },
+    {
+      "id": "market_consultant:eval:positive_order_detail",
+      "query": "成单正价课明细",
+      "expected_ids": [
+        "market_consultant:metric:finance_positive_order_count_dedup"
+      ],
+      "expected_status": "resolved"
+    },
+    {
+      "id": "market_consultant:eval:sale_subject_share",
+      "query": "售卖科目占比",
+      "expected_ids": [
+        "market_consultant:metric:sale_subject_count"
+      ],
+      "expected_status": "resolved"
+    },
+    {
+      "id": "market_consultant:eval:period_grade_conversion_overview",
+      "query": "初中期次年级转化概览",
+      "expected_ids": [
+        "market_consultant:metric:period_grade_conversion_overview_bundle"
+      ],
+      "expected_status": "resolved"
+    },
+    {
+      "id": "market_consultant:eval:finance_positive_subject_structure",
+      "query": "财务正价课科目结构",
+      "expected_ids": [
+        "market_consultant:metric:finance_positive_subject_structure_bundle"
+      ],
+      "expected_status": "resolved"
+    },
+    {
+      "id": "market_consultant:eval:channel_top10_consultants",
+      "query": "渠道内TOP10顾问转化",
+      "expected_ids": [
+        "market_consultant:metric:channel_top_consultant_ranking_bundle"
+      ],
+      "expected_status": "resolved"
     }
   ]
 }

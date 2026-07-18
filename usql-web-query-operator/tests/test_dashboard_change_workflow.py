@@ -33,6 +33,7 @@ from read_dashboard.edit_profile import (  # noqa: E402
     canonical_dashboard_id,
     fetch_edit_dashboard_config,
     profile_edit_dashboard,
+    validate_data_component_bindings,
     validate_pivot_bindings,
 )
 from read_dashboard.filter_edit import (  # noqa: E402
@@ -40,6 +41,7 @@ from read_dashboard.filter_edit import (  # noqa: E402
     assert_stable_public_filter_preconditions,
     public_filter_field_state,
 )
+from read_dashboard.profile import summarize_unit_value  # noqa: E402
 
 
 def public_filter_detail() -> dict:
@@ -589,6 +591,98 @@ class DashboardProfileTests(unittest.TestCase):
         self.assertEqual("complete", profile["binding_validation"]["status"])
         self.assertEqual(0, profile["binding_validation"]["editable_pivot_count"])
         self.assertEqual(1, profile["binding_validation"]["ignored_non_data_component_count"])
+
+    def test_card_pivot_bar_and_pie_share_complete_data_unit_bindings(self) -> None:
+        unit_types = ["card", "u_pivot", "u_bar", "u_pie"]
+        children = [
+            {
+                "id": f"node_{index}",
+                "componentName": f"DataComponent{index}",
+                "props": {
+                    "settings": {
+                        "unitId": f"unit_{index}",
+                        "componentType": unit_type,
+                        "componentName": unit_type,
+                    }
+                },
+            }
+            for index, unit_type in enumerate(unit_types, start=1)
+        ]
+        config = {
+            "dashboardId": "dashboard_3984457934065463296",
+            "dashboardName": "P4C Test Sandbox",
+            "htmlId": "html_1",
+            "dashboardHtmlJson": json.dumps(
+                {"componentsTree": [{"id": "root", "componentName": "RootContentNew", "children": children}]}
+            ),
+        }
+        details = {
+            f"unit_{index}": {
+                "unitId": f"unit_{index}",
+                "unitName": unit_type,
+                "unitType": unit_type,
+                "modelId": "model_1",
+                "modelName": "Test model",
+                "dashboardModel": {
+                    "subjectId": 101,
+                    "applicationModelId": "model_1",
+                    "modelType": 2,
+                },
+                "unitDimensionList": [],
+                "unitMeasureList": [],
+                "unitFilterList": [],
+            }
+            for index, unit_type in enumerate(unit_types, start=1)
+        }
+        fake_page = SimpleNamespace(url="https://example.invalid/?dashboardId=dashboard_3984457934065463296&htmlId=html_1")
+        with tempfile.TemporaryDirectory() as temp_dir, patch(
+            "read_dashboard.edit_profile.fetch_edit_dashboard_config", return_value=config
+        ), patch(
+            "read_dashboard.edit_profile.fetch_edit_unit_detail",
+            side_effect=lambda _page, unit_id, _dashboard_id, _version: details[unit_id],
+        ):
+            profile = profile_edit_dashboard(
+                page=fake_page,
+                dashboard_id="dashboard_3984457934065463296",
+                html_id="html_1",
+                edit_url=fake_page.url,
+                version_id="draft",
+                artifacts_dir=Path(temp_dir),
+                debug_artifacts=False,
+                include_dataset_fields=False,
+                domain="qingcheng",
+            )
+        self.assertTrue(profile["complete"])
+        self.assertEqual(unit_types, [item["unit_type"] for item in profile["data_units"]])
+        self.assertEqual(1, len(profile["pivot_units"]))
+        self.assertEqual(4, profile["binding_validation"]["validated_data_component_count"])
+        self.assertEqual(4, len(profile["snapshot"]["data_units"]))
+
+        validation = validate_data_component_bindings(
+            component_units=profile["components"],
+            data_units=profile["data_units"],
+            snapshot=profile["snapshot"],
+            dataset_fields=[],
+            include_dataset_fields=False,
+        )
+        self.assertEqual("complete", validation["status"])
+
+    def test_value_summary_is_type_aware_for_card_pivot_bar_and_pie(self) -> None:
+        cases = [
+            ("card", {"data": {"metric": 10}}, "metric_group"),
+            ("u_pivot", {"data": [{"grade": "A"}]}, "pivot"),
+            ("u_bar", {"xAxis": {"data": ["A"]}, "series": []}, "chart"),
+            ("u_pie", {"series": [{"name": "Amount", "data": [{"value": 10}]}]}, "chart"),
+        ]
+        for unit_type, unit_payload, expected_shape in cases:
+            with self.subTest(unit_type=unit_type):
+                summary = summarize_unit_value(
+                    "unit_1",
+                    {"status": "success", "data": {"unit_1": unit_payload}},
+                    unit_type,
+                )
+                self.assertEqual("data_ready", summary["status"])
+                self.assertEqual(expected_shape, summary["response_shape"])
 
     def test_incomplete_profile_is_saved_for_diagnosis_but_blocked_from_design(self) -> None:
         profile = raw_profile()

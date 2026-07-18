@@ -55,6 +55,14 @@
 | 流量画像/城市渠道 | `knowledge/dashboards/traffic_profile.md` | `knowledge/metrics/traffic_profile_metrics.md` |
 | 市场渠道用户画像/成单过程/多维退费率/退费科目产品占比 | `knowledge/dashboards/market_channel_conversion_profile.md` | `knowledge/metrics/market_channel_conversion_profile_metrics.md`；科目/产品/年级退款金额占比读 2349 fixed SQL |
 | 市场顾问部模板取数最新代码/AI分析模板/馒头订单明细 | `knowledge/dashboards/template_query_market_datasets.md` | 读取清单中对应 raw SQL；馒头支付时间执行计划问题再读 `knowledge/sql_patterns/mantou_order_detail_pay_time_stage_optimization.md` |
+| 指定班级订单明细、暑秋联报/单秋报名类型 | `knowledge/dashboards/market_class_order_registration_template.md` | `knowledge/metrics/market_class_order_registration_fields.md`；分别运行财务明细和报名类型 SQL，再按 `order_number + class_id` 合并 |
+| 成单正价课订单明细、财务归属口径 | `knowledge/dashboards/market_positive_order_detail_finance_template.md` | `knowledge/metrics/market_positive_order_detail_finance_metrics.md`；先选精品班学部版或市场部版，不要只替换单个部门谓词 |
+| 精品班初三整周期售卖科目占比 | `knowledge/dashboards/market_jingpin_chusan_subject_share_template.md` | `knowledge/metrics/market_jingpin_chusan_subject_share_metrics.md`；默认整周期、订单—科目净额 `>0` 整数计数，下游按分子/分母重算占比 |
+| 指定渠道按外部开课表查第 1—6 讲到课 | `knowledge/dashboards/market_channel_attendance_external_schedule_template.md` | 复用 `knowledge/metrics/market_consultant_lead_conversion_attendance_metrics.md`；更换渠道时同步替换渠道谓词、课表、组织范围和时间窗口 |
+| H 业务线初中期次×年级转化概览 | `knowledge/dashboards/market_period_grade_conversion_overview_template.md` | 复用 `knowledge/metrics/h_biz_line_department_conversion_metrics.md`；SQL 输出人头/订单转化和单效的分子分母，不直接输出比率 |
+| 渠道财务正价课科目结构 | `knowledge/dashboards/market_finance_positive_subject_structure_template.md` | `knowledge/metrics/market_finance_positive_subject_structure_metrics.md`；先确认使用财务正价课识别而非 2809 运营转化识别 |
+| 渠道内 TOP10 顾问转化/净 GMV 排名 | `knowledge/dashboards/market_channel_top10_consultant_conversion_template.md` | `knowledge/metrics/market_channel_top10_consultant_conversion_metrics.md`；渠道用当前 canonical 映射，学部+渠道使用显式配对 |
+| 渠道专项正价课科目、课程和班课拆分 | `knowledge/sql_patterns/market_channel_positive_subject_course_worked_example.md` | 作为 M6 worked example；渠道、订单类型、版本关键词和课程粒度均为参数，不固化西安直播江苏 |
 | 市场顾问看板指标含义/前端公式/数据集 SQL 联动 | `knowledge/metrics/market_consultant_dashboard_metric_formula_linkage.md` | 再读 `knowledge/dashboard_web_profiles/edit_metrics/` 中对应看板明细和 `resources/raw_sql/data_center_market_*_*.sql` |
 | 运营侧暑期期次、`20260717期` 应归 `20260716期`、7 月后期次不按周五 | `knowledge/sql_patterns/market_summer_qici_corrections.md` | 再读 `knowledge/dashboard_web_profiles/operation_side_dashboard_web_profile.md` 和 `knowledge/dashboards/data_center_market_datasets.md` |
 | 退费分析 | `knowledge/metrics/market_channel_conversion_profile_metrics.md` | 唯一入口为 `knowledge/dashboards/market_channel_conversion_profile.md`；按 2349、2890、2353 三个当前模型选择对应字段 |

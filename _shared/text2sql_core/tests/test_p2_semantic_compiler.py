@@ -118,6 +118,10 @@ class P2SemanticCompilerTest(unittest.TestCase):
         )
 
     def test_contracts_are_hash_bound_and_resolution_evals_pass(self) -> None:
+        expected_eval_counts = {
+            "market_consultant": 15,
+            "qingcheng": 11,
+        }
         for domain, config in DOMAIN_CASES.items():
             with self.subTest(domain=domain):
                 skill_root = REPO_ROOT / config["skill"]
@@ -125,7 +129,7 @@ class P2SemanticCompilerTest(unittest.TestCase):
                 self.assertTrue(registry.ok, [item.to_dict() for item in registry.diagnostics])
                 report = evaluate_resolution_cases(skill_root, domain)
                 self.assertTrue(report["ok"], report)
-                self.assertEqual(9, report["passed"])
+                self.assertEqual(expected_eval_counts[domain], report["passed"])
                 for filename in CONTRACT_FILES.values():
                     envelope = json.loads(
                         (skill_root / "semantic" / "contracts" / filename).read_text(encoding="utf-8")

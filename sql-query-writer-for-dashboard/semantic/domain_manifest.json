@@ -67,18 +67,18 @@
     "cross_department_comparison_requires_two_specs": true
   },
   "counts": {
-    "knowledge_files": 122,
-    "raw_sql_files": 54,
+    "knowledge_files": 135,
+    "raw_sql_files": 63,
     "by_category": {
       "dashboard_web_profiles": 37,
-      "dashboards": 13,
+      "dashboards": 20,
       "governance": 6,
       "joins": 2,
-      "metrics": 12,
+      "metrics": 17,
       "pitfalls": 3,
-      "raw_sql": 54,
+      "raw_sql": 63,
       "reverse_index": 4,
-      "sql_patterns": 15,
+      "sql_patterns": 16,
       "tables": 21,
       "temp_tables": 8,
       "update_log": 1
@@ -88,9 +88,9 @@
     "schema_version": "2.0.0",
     "index_path": "semantic/generated/contract_index.json",
     "counts": {
-      "dimension": 8,
+      "dimension": 9,
       "join": 4,
-      "metric": 10,
+      "metric": 15,
       "scope": 4
     },
     "confirmed_counts": {
@@ -102,11 +102,11 @@
     "source_files": [
       {
         "source_path": "semantic/contracts/metric_contracts.json",
-        "sha256": "815713fbce26a7efa49bfdb3e53e1bf994936e2b9d6f3d908c160a8b9a5b5697"
+        "sha256": "7fc73637d4ecba94709f48b4d1d3fdc32e2133a9b1799b7d81a55aa716d8d2df"
       },
       {
         "source_path": "semantic/contracts/dimension_contracts.json",
-        "sha256": "8951d8ea7f1e3c0599cf58dfb2eba6942024926d9e8bcc2ae2dadaabd23e4940"
+        "sha256": "1e0fe4f0770f99da32762afefc1b248c1983185647748b6cf76ea85540396ea2"
       },
       {
         "source_path": "semantic/contracts/join_contracts.json",
@@ -1221,6 +1221,22 @@
         ]
       },
       {
+        "id": "market_consultant:dashboards:market_channel_attendance_external_schedule_template",
+        "source_path": "knowledge/dashboards/market_channel_attendance_external_schedule_template.md",
+        "sha256": "e2613cc29694649f051cd2631349528a4d0d70995a84d048ec0ac3c8ab8cf921",
+        "bytes": 4470,
+        "title": "市场顾问指定渠道外部课表到课模板",
+        "table_refs": [],
+        "raw_sql_refs": [
+          "market_channel_attendance_external_schedule_example_20260718.sql"
+        ],
+        "status": "documented",
+        "aliases": [
+          "market_channel_attendance_external_schedule_template",
+          "市场顾问指定渠道外部课表到课模板"
+        ]
+      },
+      {
         "id": "market_consultant:dashboards:market_channel_conversion_profile",
         "source_path": "knowledge/dashboards/market_channel_conversion_profile.md",
         "sha256": "3069dd5ba4fde514cce995b1859137e1faa94a73149f68efef9250ec372c100c",
@@ -1253,6 +1269,37 @@
         "aliases": [
           "market_channel_conversion_profile",
           "市场渠道用户画像分析"
+        ]
+      },
+      {
+        "id": "market_consultant:dashboards:market_channel_top10_consultant_conversion_template",
+        "source_path": "knowledge/dashboards/market_channel_top10_consultant_conversion_template.md",
+        "sha256": "b1a76d34817c76d6934b487ce573a586591be8cf67dbb86b40c558af2bcec50d",
+        "bytes": 2917,
+        "title": "市场渠道内 TOP10 顾问转化模板",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "market_channel_top10_consultant_conversion_template",
+          "市场渠道内 TOP10 顾问转化模板"
+        ]
+      },
+      {
+        "id": "market_consultant:dashboards:market_class_order_registration_template",
+        "source_path": "knowledge/dashboards/market_class_order_registration_template.md",
+        "sha256": "ffb93cb6376995a4aff091a2b2fc7e18230a3fd09509e81718e561a767eb5c47",
+        "bytes": 3741,
+        "title": "市场顾问指定班级订单与暑秋联报报名类型模板",
+        "table_refs": [],
+        "raw_sql_refs": [
+          "market_class_order_detail_20260718.sql",
+          "market_class_order_registration_type_20260718.sql"
+        ],
+        "status": "documented",
+        "aliases": [
+          "market_class_order_registration_template",
+          "市场顾问指定班级订单与暑秋联报报名类型模板"
         ]
       },
       {
@@ -1301,6 +1348,71 @@
         "aliases": [
           "market_consultant_lead_conversion_attendance",
           "市场顾问线索转化到课看板"
+        ]
+      },
+      {
+        "id": "market_consultant:dashboards:market_finance_positive_subject_structure_template",
+        "source_path": "knowledge/dashboards/market_finance_positive_subject_structure_template.md",
+        "sha256": "5bd25c61a98028f04b34a1eb663da13f0103c376e7a472637a99ccb86586c7a7",
+        "bytes": 3177,
+        "title": "市场渠道财务正价课科目结构模板",
+        "table_refs": [],
+        "raw_sql_refs": [
+          "market_finance_positive_subject_structure_example_20260718.sql"
+        ],
+        "status": "documented",
+        "aliases": [
+          "market_finance_positive_subject_structure_template",
+          "市场渠道财务正价课科目结构模板"
+        ]
+      },
+      {
+        "id": "market_consultant:dashboards:market_jingpin_chusan_subject_share_template",
+        "source_path": "knowledge/dashboards/market_jingpin_chusan_subject_share_template.md",
+        "sha256": "a5ce3d160340338fe4cd1a7a02dacb381548febe7f3ce8f7d5cefb1c01530814",
+        "bytes": 2754,
+        "title": "精品班初三整周期售卖科目占比模板",
+        "table_refs": [],
+        "raw_sql_refs": [
+          "market_jingpin_chusan_subject_share_whole_period_20260718.sql"
+        ],
+        "status": "documented",
+        "aliases": [
+          "market_jingpin_chusan_subject_share_template",
+          "精品班初三整周期售卖科目占比模板"
+        ]
+      },
+      {
+        "id": "market_consultant:dashboards:market_period_grade_conversion_overview_template",
+        "source_path": "knowledge/dashboards/market_period_grade_conversion_overview_template.md",
+        "sha256": "d81b8d10bce33ca6134b1c6e765c4b6b1b2a4fbcf741c124d3f54a386cb9583f",
+        "bytes": 3185,
+        "title": "H 业务线初中期次×年级转化概览模板",
+        "table_refs": [],
+        "raw_sql_refs": [
+          "market_period_grade_conversion_overview_20260718.sql"
+        ],
+        "status": "documented",
+        "aliases": [
+          "H 业务线初中期次×年级转化概览模板",
+          "market_period_grade_conversion_overview_template"
+        ]
+      },
+      {
+        "id": "market_consultant:dashboards:market_positive_order_detail_finance_template",
+        "source_path": "knowledge/dashboards/market_positive_order_detail_finance_template.md",
+        "sha256": "f719478b09329b808b86b70f9182935504c3a8e1a0742035cc686f611ed9c1c1",
+        "bytes": 3907,
+        "title": "市场顾问正价课订单明细（财务归属口径）模板",
+        "table_refs": [],
+        "raw_sql_refs": [
+          "market_positive_order_detail_finance_jpb_20260718.sql",
+          "market_positive_order_detail_finance_market_20260718.sql"
+        ],
+        "status": "documented",
+        "aliases": [
+          "market_positive_order_detail_finance_template",
+          "市场顾问正价课订单明细（财务归属口径）模板"
         ]
       },
       {
@@ -1521,8 +1633,8 @@
       {
         "id": "market_consultant:governance:decision_tree",
         "source_path": "knowledge/decision_tree.md",
-        "sha256": "5963e1663ee5d44e26edc78d8b2eb3cfcf419535e674ff16875056ad44edd5ba",
-        "bytes": 11107,
+        "sha256": "7ac8abd1ba9df523985fe1b809eed5c8e967cd3b6ba32a35fb8926c583b733c7",
+        "bytes": 13894,
         "title": "用户需求到知识库路由",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -1545,8 +1657,8 @@
       {
         "id": "market_consultant:governance:quick_reference",
         "source_path": "knowledge/quick_reference.md",
-        "sha256": "5657efc463ea60266a78c22ed00b8618230327a10435131bd45d33b21defd4cc",
-        "bytes": 7926,
+        "sha256": "65b40a0a853bc06b2b7e886b94e8e9050b908f27050ed65811aefc05bacdf46e",
+        "bytes": 10153,
         "title": "快速参考卡",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -1811,6 +1923,37 @@
         ]
       },
       {
+        "id": "market_consultant:metrics:market_channel_top10_consultant_conversion_metrics",
+        "source_path": "knowledge/metrics/market_channel_top10_consultant_conversion_metrics.md",
+        "sha256": "ded5f67a0829f87741bf6144154a37aafc66d0c7c2fafde3dd0dffa6a4d8bb5e",
+        "bytes": 1578,
+        "title": "市场渠道内 TOP10 顾问转化指标",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "market_channel_top10_consultant_conversion_metrics",
+          "市场渠道内 TOP10 顾问转化指标"
+        ]
+      },
+      {
+        "id": "market_consultant:metrics:market_class_order_registration_fields",
+        "source_path": "knowledge/metrics/market_class_order_registration_fields.md",
+        "sha256": "6911d43dbd500bc0e2494c01a8a1471a40bdbfe59c5d33d247ce108d81dd27c6",
+        "bytes": 1513,
+        "title": "市场顾问指定班级订单与报名类型字段口径",
+        "table_refs": [],
+        "raw_sql_refs": [
+          "market_class_order_detail_20260718.sql",
+          "market_class_order_registration_type_20260718.sql"
+        ],
+        "status": "documented",
+        "aliases": [
+          "market_class_order_registration_fields",
+          "市场顾问指定班级订单与报名类型字段口径"
+        ]
+      },
+      {
         "id": "market_consultant:metrics:market_consultant_conversion_metrics",
         "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
         "sha256": "f4aaed422e45206b3dae8037280b50062553310da5d68cfbc0309e2fe616c59c",
@@ -1894,6 +2037,53 @@
         "aliases": [
           "market_consultant_lead_conversion_attendance_metrics",
           "市场顾问线索转化到课指标"
+        ]
+      },
+      {
+        "id": "market_consultant:metrics:market_finance_positive_subject_structure_metrics",
+        "source_path": "knowledge/metrics/market_finance_positive_subject_structure_metrics.md",
+        "sha256": "f652d7a946c10a46bc33f8df89823b47f6bbaaaff62377072a52e7888ed592b6",
+        "bytes": 2117,
+        "title": "市场渠道财务正价课科目结构指标",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "market_finance_positive_subject_structure_metrics",
+          "市场渠道财务正价课科目结构指标"
+        ]
+      },
+      {
+        "id": "market_consultant:metrics:market_jingpin_chusan_subject_share_metrics",
+        "source_path": "knowledge/metrics/market_jingpin_chusan_subject_share_metrics.md",
+        "sha256": "1d5775088a8407df2e62e13ae31037e08f3dfd6e8701a282d1ce5a9fd7d601fc",
+        "bytes": 1194,
+        "title": "精品班初三售卖科目占比指标",
+        "table_refs": [],
+        "raw_sql_refs": [
+          "market_jingpin_chusan_subject_share_whole_period_20260718.sql"
+        ],
+        "status": "documented",
+        "aliases": [
+          "market_jingpin_chusan_subject_share_metrics",
+          "精品班初三售卖科目占比指标"
+        ]
+      },
+      {
+        "id": "market_consultant:metrics:market_positive_order_detail_finance_metrics",
+        "source_path": "knowledge/metrics/market_positive_order_detail_finance_metrics.md",
+        "sha256": "9f074b1eab528af166494b42b97731973805b06b3b772ba9dbd5b901e6497e45",
+        "bytes": 1651,
+        "title": "市场顾问正价课订单明细财务口径字段",
+        "table_refs": [],
+        "raw_sql_refs": [
+          "market_positive_order_detail_finance_jpb_20260718.sql",
+          "market_positive_order_detail_finance_market_20260718.sql"
+        ],
+        "status": "documented",
+        "aliases": [
+          "market_positive_order_detail_finance_metrics",
+          "市场顾问正价课订单明细财务口径字段"
         ]
       },
       {
@@ -2848,6 +3038,22 @@
         ]
       },
       {
+        "id": "market_consultant:raw_sql:market_channel_attendance_external_schedule_example_20260718",
+        "source_path": "resources/raw_sql/market_channel_attendance_external_schedule_example_20260718.sql",
+        "sha256": "b2a980d77a9b07c6de1aba98d3c59d42453d04b7db8d99194f8de80f878cadab",
+        "bytes": 16129,
+        "title": "market_channel_attendance_external_schedule_example_20260718",
+        "table_refs": [
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "service_dw.dws_service_user_learn_detail_hf"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "market_channel_attendance_external_schedule_example_20260718"
+        ]
+      },
+      {
         "id": "market_consultant:raw_sql:market_channel_case_when_0612",
         "source_path": "resources/raw_sql/market_channel_case_when_0612.sql",
         "sha256": "ae366d6b4efb1fb3a0dd27f9ef5f0df98aacbfc2cafce75392e24ebb8bc63899",
@@ -2858,6 +3064,52 @@
         "status": "documented",
         "aliases": [
           "market_channel_case_when_0612"
+        ]
+      },
+      {
+        "id": "market_consultant:raw_sql:market_channel_positive_subject_course_example_20260718",
+        "source_path": "resources/raw_sql/market_channel_positive_subject_course_example_20260718.sql",
+        "sha256": "f343f66303f9cdd44208ade01985d8519fd21edcc98b2814b798590dc362a526",
+        "bytes": 13437,
+        "title": "market_channel_positive_subject_course_example_20260718",
+        "table_refs": [
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "finance_dw.app_finance_performance_extend_details_hf"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "market_channel_positive_subject_course_example_20260718"
+        ]
+      },
+      {
+        "id": "market_consultant:raw_sql:market_class_order_detail_20260718",
+        "source_path": "resources/raw_sql/market_class_order_detail_20260718.sql",
+        "sha256": "7146de356db8eb60a12eec5a209faf7cca4489cd730b5c65d490828dc22dbf9b",
+        "bytes": 4449,
+        "title": "market_class_order_detail_20260718",
+        "table_refs": [
+          "finance_dw.app_finance_performance_extend_details_hf"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "market_class_order_detail_20260718"
+        ]
+      },
+      {
+        "id": "market_consultant:raw_sql:market_class_order_registration_type_20260718",
+        "source_path": "resources/raw_sql/market_class_order_registration_type_20260718.sql",
+        "sha256": "aab70d2039cea52fef8128034e13ec8fd7ec9425a5f160c1cc3158636b96d061",
+        "bytes": 4669,
+        "title": "market_class_order_registration_type_20260718",
+        "table_refs": [
+          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "market_class_order_registration_type_20260718"
         ]
       },
       {
@@ -2878,6 +3130,90 @@
         "status": "documented",
         "aliases": [
           "market_consultant_lead_conversion_attendance"
+        ]
+      },
+      {
+        "id": "market_consultant:raw_sql:market_finance_positive_subject_structure_example_20260718",
+        "source_path": "resources/raw_sql/market_finance_positive_subject_structure_example_20260718.sql",
+        "sha256": "e0cb7ac878d77d6de63d5e5b467d14057f2e8e02e8ddbf13b23a2a12f867bb23",
+        "bytes": 49974,
+        "title": "market_finance_positive_subject_structure_example_20260718",
+        "table_refs": [
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "finance_dw.app_finance_performance_extend_details_hf"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "market_finance_positive_subject_structure_example_20260718"
+        ]
+      },
+      {
+        "id": "market_consultant:raw_sql:market_jingpin_chusan_subject_share_whole_period_20260718",
+        "source_path": "resources/raw_sql/market_jingpin_chusan_subject_share_whole_period_20260718.sql",
+        "sha256": "75d4a61cf1aa62d5dd0e4a117a991597fda6590d0d316d7e34a4c1aacaa4f43c",
+        "bytes": 23656,
+        "title": "market_jingpin_chusan_subject_share_whole_period_20260718",
+        "table_refs": [
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "finance_dw.app_finance_performance_extend_details_hf",
+          "finance_dw.dim_finance_order_change_df",
+          "finance_dw.dm_finance_order_refund_detail_df",
+          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "market_jingpin_chusan_subject_share_whole_period_20260718"
+        ]
+      },
+      {
+        "id": "market_consultant:raw_sql:market_period_grade_conversion_overview_20260718",
+        "source_path": "resources/raw_sql/market_period_grade_conversion_overview_20260718.sql",
+        "sha256": "45254f72b640cac107ba1390cb59c74c0c26287f8c38f147f49e2ad2418807cd",
+        "bytes": 3577,
+        "title": "market_period_grade_conversion_overview_20260718",
+        "table_refs": [
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "market_period_grade_conversion_overview_20260718"
+        ]
+      },
+      {
+        "id": "market_consultant:raw_sql:market_positive_order_detail_finance_jpb_20260718",
+        "source_path": "resources/raw_sql/market_positive_order_detail_finance_jpb_20260718.sql",
+        "sha256": "f38e713100882e0eded012457406f3fc0df64465a9cd9bb5537ff1899b229714",
+        "bytes": 56628,
+        "title": "market_positive_order_detail_finance_jpb_20260718",
+        "table_refs": [
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "finance_dw.app_finance_performance_extend_details_hf",
+          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "market_positive_order_detail_finance_jpb_20260718"
+        ]
+      },
+      {
+        "id": "market_consultant:raw_sql:market_positive_order_detail_finance_market_20260718",
+        "source_path": "resources/raw_sql/market_positive_order_detail_finance_market_20260718.sql",
+        "sha256": "f316fcd28bf72e09d9c26ed4535cb98c27784f67da510310d3e7daf4072fe7cf",
+        "bytes": 56558,
+        "title": "market_positive_order_detail_finance_market_20260718",
+        "table_refs": [
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "finance_dw.app_finance_performance_extend_details_hf",
+          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "market_positive_order_detail_finance_market_20260718"
         ]
       },
       {
@@ -3050,8 +3386,8 @@
       {
         "id": "market_consultant:reverse_index:field_to_metrics",
         "source_path": "knowledge/reverse_index/field_to_metrics.md",
-        "sha256": "88198c940c3bc07a3a7d24f03cdc41e302d4ab4fc93b0d3de676958e1531283a",
-        "bytes": 152888,
+        "sha256": "712d5a61d852545958504a4d7f3c577c22e603eef88d43423f7519ce6b5eb7a1",
+        "bytes": 160034,
         "title": "字段到指标反向索引",
         "table_refs": [],
         "raw_sql_refs": [
@@ -3071,7 +3407,12 @@
           "h_biz_line_department_conversion.sql",
           "lead_assign_plan_actual_valid_count.sql",
           "market_channel_case_when_0612.sql",
+          "market_class_order_detail_20260718.sql",
+          "market_class_order_registration_type_20260718.sql",
           "market_consultant_lead_conversion_attendance.sql",
+          "market_jingpin_chusan_subject_share_whole_period_20260718.sql",
+          "market_positive_order_detail_finance_jpb_20260718.sql",
+          "market_positive_order_detail_finance_market_20260718.sql",
           "outbound_call_process_dashboard.sql"
         ],
         "status": "documented",
@@ -3117,8 +3458,8 @@
       {
         "id": "market_consultant:reverse_index:metric_to_raw_sql",
         "source_path": "knowledge/reverse_index/metric_to_raw_sql.md",
-        "sha256": "718a0b9b8af63a73fedb96c05cfc8541f42605ffec5259ffafdcf0fae2dc59d9",
-        "bytes": 4540,
+        "sha256": "3a39c091a42eb275e033f5d0f29c4d74201d748fa27a698f4a00105ee0ee03c5",
+        "bytes": 5810,
         "title": "指标到 raw SQL 反向索引",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -3160,7 +3501,12 @@
           "h_biz_line_department_conversion.sql",
           "lead_assign_plan_actual_valid_count.sql",
           "market_channel_case_when_0612.sql",
+          "market_class_order_detail_20260718.sql",
+          "market_class_order_registration_type_20260718.sql",
           "market_consultant_lead_conversion_attendance.sql",
+          "market_jingpin_chusan_subject_share_whole_period_20260718.sql",
+          "market_positive_order_detail_finance_jpb_20260718.sql",
+          "market_positive_order_detail_finance_market_20260718.sql",
           "outbound_call_process_dashboard.sql"
         ],
         "status": "documented",
@@ -3379,6 +3725,22 @@
         "aliases": [
           "mantou_order_detail_pay_time_stage_optimization",
           "馒头订单明细支付时间模板执行计划优化"
+        ]
+      },
+      {
+        "id": "market_consultant:sql_patterns:market_channel_positive_subject_course_worked_example",
+        "source_path": "knowledge/sql_patterns/market_channel_positive_subject_course_worked_example.md",
+        "sha256": "9a74a63aac6abbf058cb79c85e7e712d9f9a0c93a04ecf86e3047149c1a7b825",
+        "bytes": 2774,
+        "title": "渠道专项正价课科目与班课 worked example",
+        "table_refs": [],
+        "raw_sql_refs": [
+          "market_channel_positive_subject_course_example_20260718.sql"
+        ],
+        "status": "documented",
+        "aliases": [
+          "market_channel_positive_subject_course_worked_example",
+          "渠道专项正价课科目与班课 worked example"
         ]
       },
       {
@@ -3988,8 +4350,8 @@
       {
         "id": "market_consultant:update_log:changelog",
         "source_path": "knowledge/update_log/changelog.md",
-        "sha256": "3e793085ee58e337ec915b3eb6b41327f08cd53dc7da12aa45d41b1c366bf271",
-        "bytes": 97365,
+        "sha256": "250d77276bed37991223ee5ee3bc29ab3c498a5577ab262de0f20be2396bba77",
+        "bytes": 99517,
         "title": "更新记录",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -4097,7 +4459,14 @@
         "resources/raw_sql/data_center_market_3039.sql",
         "resources/raw_sql/h_biz_line_department_conversion.sql",
         "resources/raw_sql/lead_assign_plan_actual_valid_count.sql",
+        "resources/raw_sql/market_channel_attendance_external_schedule_example_20260718.sql",
+        "resources/raw_sql/market_channel_positive_subject_course_example_20260718.sql",
         "resources/raw_sql/market_consultant_lead_conversion_attendance.sql",
+        "resources/raw_sql/market_finance_positive_subject_structure_example_20260718.sql",
+        "resources/raw_sql/market_jingpin_chusan_subject_share_whole_period_20260718.sql",
+        "resources/raw_sql/market_period_grade_conversion_overview_20260718.sql",
+        "resources/raw_sql/market_positive_order_detail_finance_jpb_20260718.sql",
+        "resources/raw_sql/market_positive_order_detail_finance_market_20260718.sql",
         "resources/raw_sql/outbound_call_process_dashboard.sql",
         "resources/raw_sql/template_query_market_attendance_20260619.sql",
         "resources/raw_sql/template_query_market_conversion_20260619.sql",
@@ -4209,6 +4578,12 @@
         "resources/raw_sql/data_center_market_2727.sql",
         "resources/raw_sql/data_center_market_2751.sql",
         "resources/raw_sql/data_center_market_2842.sql",
+        "resources/raw_sql/market_channel_positive_subject_course_example_20260718.sql",
+        "resources/raw_sql/market_class_order_detail_20260718.sql",
+        "resources/raw_sql/market_finance_positive_subject_structure_example_20260718.sql",
+        "resources/raw_sql/market_jingpin_chusan_subject_share_whole_period_20260718.sql",
+        "resources/raw_sql/market_positive_order_detail_finance_jpb_20260718.sql",
+        "resources/raw_sql/market_positive_order_detail_finance_market_20260718.sql",
         "resources/raw_sql/template_query_market_mantou_order_detail_pay_time_20260716.sql",
         "resources/raw_sql/template_query_market_period_conversion_20260619.sql"
       ],
@@ -4247,10 +4622,12 @@
       ],
       "finance_dw.dim_finance_order_change_df": [
         "knowledge/dashboards/template_query_market_datasets.md",
+        "resources/raw_sql/market_jingpin_chusan_subject_share_whole_period_20260718.sql",
         "resources/raw_sql/template_query_market_mantou_order_detail_pay_time_20260716.sql"
       ],
       "finance_dw.dm_finance_order_refund_detail_df": [
         "knowledge/dashboards/template_query_market_datasets.md",
+        "resources/raw_sql/market_jingpin_chusan_subject_share_whole_period_20260718.sql",
         "resources/raw_sql/template_query_market_mantou_order_detail_pay_time_20260716.sql"
       ],
       "finance_dw.dwd_finance_order_refund_df": [
@@ -4486,6 +4863,10 @@
         "resources/raw_sql/data_center_market_2423.sql",
         "resources/raw_sql/data_center_market_2424.sql",
         "resources/raw_sql/data_center_market_2634.sql",
+        "resources/raw_sql/market_class_order_registration_type_20260718.sql",
+        "resources/raw_sql/market_jingpin_chusan_subject_share_whole_period_20260718.sql",
+        "resources/raw_sql/market_positive_order_detail_finance_jpb_20260718.sql",
+        "resources/raw_sql/market_positive_order_detail_finance_market_20260718.sql",
         "resources/raw_sql/template_query_market_mantou_order_detail_pay_time_20260716.sql",
         "resources/raw_sql/template_query_market_period_conversion_20260619.sql"
       ],
@@ -4520,6 +4901,7 @@
         "resources/raw_sql/data_center_market_2774.sql",
         "resources/raw_sql/data_center_market_2885.sql",
         "resources/raw_sql/data_center_market_3039.sql",
+        "resources/raw_sql/market_channel_attendance_external_schedule_example_20260718.sql",
         "resources/raw_sql/market_consultant_lead_conversion_attendance.sql",
         "resources/raw_sql/outbound_call_process_dashboard.sql",
         "resources/raw_sql/template_query_market_attendance_20260619.sql",
@@ -5062,6 +5444,9 @@
         "knowledge/tables/temp_table.dingxi01_plan_id.md",
         "knowledge/update_log/changelog.md"
       ],
+      "market_channel_attendance_external_schedule_example_20260718.sql": [
+        "knowledge/dashboards/market_channel_attendance_external_schedule_template.md"
+      ],
       "market_channel_case_when_0612.sql": [
         "knowledge/dashboards/h_biz_line_department_conversion.md",
         "knowledge/dashboards/lead_assign_plan_actual_valid_count.md",
@@ -5078,6 +5463,21 @@
         "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
         "knowledge/update_log/changelog.md"
       ],
+      "market_channel_positive_subject_course_example_20260718.sql": [
+        "knowledge/sql_patterns/market_channel_positive_subject_course_worked_example.md"
+      ],
+      "market_class_order_detail_20260718.sql": [
+        "knowledge/dashboards/market_class_order_registration_template.md",
+        "knowledge/metrics/market_class_order_registration_fields.md",
+        "knowledge/reverse_index/field_to_metrics.md",
+        "knowledge/reverse_index/metric_to_raw_sql.md"
+      ],
+      "market_class_order_registration_type_20260718.sql": [
+        "knowledge/dashboards/market_class_order_registration_template.md",
+        "knowledge/metrics/market_class_order_registration_fields.md",
+        "knowledge/reverse_index/field_to_metrics.md",
+        "knowledge/reverse_index/metric_to_raw_sql.md"
+      ],
       "market_consultant_lead_conversion_attendance.sql": [
         "knowledge/dashboards/README.md",
         "knowledge/dashboards/market_consultant_lead_conversion_attendance.md",
@@ -5088,6 +5488,30 @@
         "knowledge/reverse_index/table_to_dashboards.md",
         "knowledge/tables/temp_table.shenbaoxin_channel_group.md",
         "knowledge/update_log/changelog.md"
+      ],
+      "market_finance_positive_subject_structure_example_20260718.sql": [
+        "knowledge/dashboards/market_finance_positive_subject_structure_template.md"
+      ],
+      "market_jingpin_chusan_subject_share_whole_period_20260718.sql": [
+        "knowledge/dashboards/market_jingpin_chusan_subject_share_template.md",
+        "knowledge/metrics/market_jingpin_chusan_subject_share_metrics.md",
+        "knowledge/reverse_index/field_to_metrics.md",
+        "knowledge/reverse_index/metric_to_raw_sql.md"
+      ],
+      "market_period_grade_conversion_overview_20260718.sql": [
+        "knowledge/dashboards/market_period_grade_conversion_overview_template.md"
+      ],
+      "market_positive_order_detail_finance_jpb_20260718.sql": [
+        "knowledge/dashboards/market_positive_order_detail_finance_template.md",
+        "knowledge/metrics/market_positive_order_detail_finance_metrics.md",
+        "knowledge/reverse_index/field_to_metrics.md",
+        "knowledge/reverse_index/metric_to_raw_sql.md"
+      ],
+      "market_positive_order_detail_finance_market_20260718.sql": [
+        "knowledge/dashboards/market_positive_order_detail_finance_template.md",
+        "knowledge/metrics/market_positive_order_detail_finance_metrics.md",
+        "knowledge/reverse_index/field_to_metrics.md",
+        "knowledge/reverse_index/metric_to_raw_sql.md"
       ],
       "outbound_call_process_dashboard.sql": [
         "knowledge/dashboards/README.md",
@@ -5415,9 +5839,27 @@
       "category": "dashboards"
     },
     {
+      "source_path": "knowledge/dashboards/market_channel_attendance_external_schedule_template.md",
+      "sha256": "e2613cc29694649f051cd2631349528a4d0d70995a84d048ec0ac3c8ab8cf921",
+      "bytes": 4470,
+      "category": "dashboards"
+    },
+    {
       "source_path": "knowledge/dashboards/market_channel_conversion_profile.md",
       "sha256": "3069dd5ba4fde514cce995b1859137e1faa94a73149f68efef9250ec372c100c",
       "bytes": 22923,
+      "category": "dashboards"
+    },
+    {
+      "source_path": "knowledge/dashboards/market_channel_top10_consultant_conversion_template.md",
+      "sha256": "b1a76d34817c76d6934b487ce573a586591be8cf67dbb86b40c558af2bcec50d",
+      "bytes": 2917,
+      "category": "dashboards"
+    },
+    {
+      "source_path": "knowledge/dashboards/market_class_order_registration_template.md",
+      "sha256": "ffb93cb6376995a4aff091a2b2fc7e18230a3fd09509e81718e561a767eb5c47",
+      "bytes": 3741,
       "category": "dashboards"
     },
     {
@@ -5430,6 +5872,30 @@
       "source_path": "knowledge/dashboards/market_consultant_lead_conversion_attendance.md",
       "sha256": "f320eadd49713bbaa57ddfdfa71d4aac82a55b579666258b438f0e854a6366bc",
       "bytes": 9862,
+      "category": "dashboards"
+    },
+    {
+      "source_path": "knowledge/dashboards/market_finance_positive_subject_structure_template.md",
+      "sha256": "5bd25c61a98028f04b34a1eb663da13f0103c376e7a472637a99ccb86586c7a7",
+      "bytes": 3177,
+      "category": "dashboards"
+    },
+    {
+      "source_path": "knowledge/dashboards/market_jingpin_chusan_subject_share_template.md",
+      "sha256": "a5ce3d160340338fe4cd1a7a02dacb381548febe7f3ce8f7d5cefb1c01530814",
+      "bytes": 2754,
+      "category": "dashboards"
+    },
+    {
+      "source_path": "knowledge/dashboards/market_period_grade_conversion_overview_template.md",
+      "sha256": "d81b8d10bce33ca6134b1c6e765c4b6b1b2a4fbcf741c124d3f54a386cb9583f",
+      "bytes": 3185,
+      "category": "dashboards"
+    },
+    {
+      "source_path": "knowledge/dashboards/market_positive_order_detail_finance_template.md",
+      "sha256": "f719478b09329b808b86b70f9182935504c3a8e1a0742035cc686f611ed9c1c1",
+      "bytes": 3907,
       "category": "dashboards"
     },
     {
@@ -5452,8 +5918,8 @@
     },
     {
       "source_path": "knowledge/decision_tree.md",
-      "sha256": "5963e1663ee5d44e26edc78d8b2eb3cfcf419535e674ff16875056ad44edd5ba",
-      "bytes": 11107,
+      "sha256": "7ac8abd1ba9df523985fe1b809eed5c8e967cd3b6ba32a35fb8926c583b733c7",
+      "bytes": 13894,
       "category": "governance"
     },
     {
@@ -5511,6 +5977,18 @@
       "category": "metrics"
     },
     {
+      "source_path": "knowledge/metrics/market_channel_top10_consultant_conversion_metrics.md",
+      "sha256": "ded5f67a0829f87741bf6144154a37aafc66d0c7c2fafde3dd0dffa6a4d8bb5e",
+      "bytes": 1578,
+      "category": "metrics"
+    },
+    {
+      "source_path": "knowledge/metrics/market_class_order_registration_fields.md",
+      "sha256": "6911d43dbd500bc0e2494c01a8a1471a40bdbfe59c5d33d247ce108d81dd27c6",
+      "bytes": 1513,
+      "category": "metrics"
+    },
+    {
       "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
       "sha256": "f4aaed422e45206b3dae8037280b50062553310da5d68cfbc0309e2fe616c59c",
       "bytes": 7301,
@@ -5526,6 +6004,24 @@
       "source_path": "knowledge/metrics/market_consultant_lead_conversion_attendance_metrics.md",
       "sha256": "0f53dd29ec556c4f8acc875fa562dc86770851cb43a333b65be71efa285b44b5",
       "bytes": 10682,
+      "category": "metrics"
+    },
+    {
+      "source_path": "knowledge/metrics/market_finance_positive_subject_structure_metrics.md",
+      "sha256": "f652d7a946c10a46bc33f8df89823b47f6bbaaaff62377072a52e7888ed592b6",
+      "bytes": 2117,
+      "category": "metrics"
+    },
+    {
+      "source_path": "knowledge/metrics/market_jingpin_chusan_subject_share_metrics.md",
+      "sha256": "1d5775088a8407df2e62e13ae31037e08f3dfd6e8701a282d1ce5a9fd7d601fc",
+      "bytes": 1194,
+      "category": "metrics"
+    },
+    {
+      "source_path": "knowledge/metrics/market_positive_order_detail_finance_metrics.md",
+      "sha256": "9f074b1eab528af166494b42b97731973805b06b3b772ba9dbd5b901e6497e45",
+      "bytes": 1651,
       "category": "metrics"
     },
     {
@@ -5560,14 +6056,14 @@
     },
     {
       "source_path": "knowledge/quick_reference.md",
-      "sha256": "5657efc463ea60266a78c22ed00b8618230327a10435131bd45d33b21defd4cc",
-      "bytes": 7926,
+      "sha256": "65b40a0a853bc06b2b7e886b94e8e9050b908f27050ed65811aefc05bacdf46e",
+      "bytes": 10153,
       "category": "governance"
     },
     {
       "source_path": "knowledge/reverse_index/field_to_metrics.md",
-      "sha256": "88198c940c3bc07a3a7d24f03cdc41e302d4ab4fc93b0d3de676958e1531283a",
-      "bytes": 152888,
+      "sha256": "712d5a61d852545958504a4d7f3c577c22e603eef88d43423f7519ce6b5eb7a1",
+      "bytes": 160034,
       "category": "reverse_index"
     },
     {
@@ -5578,8 +6074,8 @@
     },
     {
       "source_path": "knowledge/reverse_index/metric_to_raw_sql.md",
-      "sha256": "718a0b9b8af63a73fedb96c05cfc8541f42605ffec5259ffafdcf0fae2dc59d9",
-      "bytes": 4540,
+      "sha256": "3a39c091a42eb275e033f5d0f29c4d74201d748fa27a698f4a00105ee0ee03c5",
+      "bytes": 5810,
       "category": "reverse_index"
     },
     {
@@ -5640,6 +6136,12 @@
       "source_path": "knowledge/sql_patterns/mantou_order_detail_pay_time_stage_optimization.md",
       "sha256": "f0d775a83e540b8a86b4036a1f149ea0f5ea951c6aacc2be1dce5879c38fda66",
       "bytes": 3108,
+      "category": "sql_patterns"
+    },
+    {
+      "source_path": "knowledge/sql_patterns/market_channel_positive_subject_course_worked_example.md",
+      "sha256": "9a74a63aac6abbf058cb79c85e7e712d9f9a0c93a04ecf86e3047149c1a7b825",
+      "bytes": 2774,
       "category": "sql_patterns"
     },
     {
@@ -5854,8 +6356,8 @@
     },
     {
       "source_path": "knowledge/update_log/changelog.md",
-      "sha256": "3e793085ee58e337ec915b3eb6b41327f08cd53dc7da12aa45d41b1c366bf271",
-      "bytes": 97365,
+      "sha256": "250d77276bed37991223ee5ee3bc29ab3c498a5577ab262de0f20be2396bba77",
+      "bytes": 99517,
       "category": "update_log"
     },
     {
@@ -6123,15 +6625,69 @@
       "category": "raw_sql"
     },
     {
+      "source_path": "resources/raw_sql/market_channel_attendance_external_schedule_example_20260718.sql",
+      "sha256": "b2a980d77a9b07c6de1aba98d3c59d42453d04b7db8d99194f8de80f878cadab",
+      "bytes": 16129,
+      "category": "raw_sql"
+    },
+    {
       "source_path": "resources/raw_sql/market_channel_case_when_0612.sql",
       "sha256": "ae366d6b4efb1fb3a0dd27f9ef5f0df98aacbfc2cafce75392e24ebb8bc63899",
       "bytes": 36103,
       "category": "raw_sql"
     },
     {
+      "source_path": "resources/raw_sql/market_channel_positive_subject_course_example_20260718.sql",
+      "sha256": "f343f66303f9cdd44208ade01985d8519fd21edcc98b2814b798590dc362a526",
+      "bytes": 13437,
+      "category": "raw_sql"
+    },
+    {
+      "source_path": "resources/raw_sql/market_class_order_detail_20260718.sql",
+      "sha256": "7146de356db8eb60a12eec5a209faf7cca4489cd730b5c65d490828dc22dbf9b",
+      "bytes": 4449,
+      "category": "raw_sql"
+    },
+    {
+      "source_path": "resources/raw_sql/market_class_order_registration_type_20260718.sql",
+      "sha256": "aab70d2039cea52fef8128034e13ec8fd7ec9425a5f160c1cc3158636b96d061",
+      "bytes": 4669,
+      "category": "raw_sql"
+    },
+    {
       "source_path": "resources/raw_sql/market_consultant_lead_conversion_attendance.sql",
       "sha256": "08966379481d4dad363e598e816c5ff8db6d59990a7c94e005847c171789ee49",
       "bytes": 55223,
+      "category": "raw_sql"
+    },
+    {
+      "source_path": "resources/raw_sql/market_finance_positive_subject_structure_example_20260718.sql",
+      "sha256": "e0cb7ac878d77d6de63d5e5b467d14057f2e8e02e8ddbf13b23a2a12f867bb23",
+      "bytes": 49974,
+      "category": "raw_sql"
+    },
+    {
+      "source_path": "resources/raw_sql/market_jingpin_chusan_subject_share_whole_period_20260718.sql",
+      "sha256": "75d4a61cf1aa62d5dd0e4a117a991597fda6590d0d316d7e34a4c1aacaa4f43c",
+      "bytes": 23656,
+      "category": "raw_sql"
+    },
+    {
+      "source_path": "resources/raw_sql/market_period_grade_conversion_overview_20260718.sql",
+      "sha256": "45254f72b640cac107ba1390cb59c74c0c26287f8c38f147f49e2ad2418807cd",
+      "bytes": 3577,
+      "category": "raw_sql"
+    },
+    {
+      "source_path": "resources/raw_sql/market_positive_order_detail_finance_jpb_20260718.sql",
+      "sha256": "f38e713100882e0eded012457406f3fc0df64465a9cd9bb5537ff1899b229714",
+      "bytes": 56628,
+      "category": "raw_sql"
+    },
+    {
+      "source_path": "resources/raw_sql/market_positive_order_detail_finance_market_20260718.sql",
+      "sha256": "f316fcd28bf72e09d9c26ed4535cb98c27784f67da510310d3e7daf4072fe7cf",
+      "bytes": 56558,
       "category": "raw_sql"
     },
     {

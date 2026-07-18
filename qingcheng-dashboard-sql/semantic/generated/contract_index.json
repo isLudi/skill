@@ -2,9 +2,9 @@
   "schema_version": "2.0.0",
   "domain": "qingcheng",
   "counts": {
-    "dimension": 11,
+    "dimension": 12,
     "join": 5,
-    "metric": 8,
+    "metric": 10,
     "scope": 4
   },
   "entries": [
@@ -116,6 +116,21 @@
       "automatic_compile": true
     },
     {
+      "id": "qingcheng:dimension:refund_reason",
+      "kind": "dimension",
+      "name": "青橙退费原因",
+      "aliases": [
+        "青橙退费原因",
+        "青橙退费原因金额",
+        "退费原因",
+        "refund_reason"
+      ],
+      "status": "pending_confirmation",
+      "source_path": "knowledge/metrics/qingcheng_refund_reason_metrics.md",
+      "source_sha256": "2777c300e9593fb209b916c6992d067628cbb248e5481bd444b813364981daee",
+      "automatic_compile": false
+    },
+    {
       "id": "qingcheng:dimension:section_consultant",
       "kind": "dimension",
       "name": "青橙线索分配顾问",
@@ -165,7 +180,7 @@
       ],
       "status": "pending_confirmation",
       "source_path": "knowledge/joins/common_join_keys.md",
-      "source_sha256": "ee97ba7fe16947586c7d441c77d2c71847e6f8dc40a27b4ce26ecba1c5e536c2"
+      "source_sha256": "ac11d73022b6cf689b56668c8a1d8898b5be63fc6a016bad5fc71561f9692f8f"
     },
     {
       "id": "qingcheng:join:refund_to_order_change",
@@ -178,7 +193,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/joins/common_join_keys.md",
-      "source_sha256": "ee97ba7fe16947586c7d441c77d2c71847e6f8dc40a27b4ce26ecba1c5e536c2"
+      "source_sha256": "ac11d73022b6cf689b56668c8a1d8898b5be63fc6a016bad5fc71561f9692f8f"
     },
     {
       "id": "qingcheng:join:team_structure_to_period_month",
@@ -191,7 +206,7 @@
       ],
       "status": "pending_confirmation",
       "source_path": "knowledge/joins/common_join_keys.md",
-      "source_sha256": "ee97ba7fe16947586c7d441c77d2c71847e6f8dc40a27b4ce26ecba1c5e536c2"
+      "source_sha256": "ac11d73022b6cf689b56668c8a1d8898b5be63fc6a016bad5fc71561f9692f8f"
     },
     {
       "id": "qingcheng:join:transferred_lead_to_prelead",
@@ -204,7 +219,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/joins/common_join_keys.md",
-      "source_sha256": "ee97ba7fe16947586c7d441c77d2c71847e6f8dc40a27b4ce26ecba1c5e536c2"
+      "source_sha256": "ac11d73022b6cf689b56668c8a1d8898b5be63fc6a016bad5fc71561f9692f8f"
     },
     {
       "id": "qingcheng:join:transferred_lead_to_private_assignment_history",
@@ -218,7 +233,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/joins/common_join_keys.md",
-      "source_sha256": "ee97ba7fe16947586c7d441c77d2c71847e6f8dc40a27b4ce26ecba1c5e536c2"
+      "source_sha256": "ac11d73022b6cf689b56668c8a1d8898b5be63fc6a016bad5fc71561f9692f8f"
     },
     {
       "id": "qingcheng:metric:discounted_output",
@@ -307,6 +322,20 @@
       "automatic_compile": false
     },
     {
+      "id": "qingcheng:metric:refund_reason_allocated_amount",
+      "kind": "metric",
+      "name": "青橙按原因分摊退费金额",
+      "aliases": [
+        "青橙退费原因金额",
+        "退费原因金额",
+        "按原因分摊退费金额"
+      ],
+      "status": "pending_confirmation",
+      "source_path": "knowledge/metrics/qingcheng_refund_reason_metrics.md",
+      "source_sha256": "2777c300e9593fb209b916c6992d067628cbb248e5481bd444b813364981daee",
+      "automatic_compile": false
+    },
+    {
       "id": "qingcheng:metric:team_completion_rate",
       "kind": "metric",
       "name": "青橙团队目标完成度",
@@ -318,6 +347,20 @@
       "status": "pending_confirmation",
       "source_path": "knowledge/metrics/qingcheng_team_completion_month_metrics.md",
       "source_sha256": "d2136e2745d8807e9ce0a88c27e2f5d4dba7947ab6fe006212602676e328af2d"
+    },
+    {
+      "id": "qingcheng:metric:tmk_transfer_lead_count",
+      "kind": "metric",
+      "name": "青橙 TMK 转移线索数",
+      "aliases": [
+        "TMK转移线索数",
+        "TMK转正常线索",
+        "SEC后转线索数"
+      ],
+      "status": "pending_confirmation",
+      "source_path": "knowledge/metrics/qingcheng_tmk_transfer_order_trace_metrics.md",
+      "source_sha256": "f56a6924101af73fab288fbdf198b63c0a3accc8ed704b03f91861b8bb48b35e",
+      "automatic_compile": false
     },
     {
       "id": "qingcheng:metric:valid_leads",
@@ -387,6 +430,10 @@
     }
   ],
   "alias_collisions": {
+    "青橙退费原因金额": [
+      "qingcheng:dimension:refund_reason",
+      "qingcheng:metric:refund_reason_allocated_amount"
+    ],
     "顾问": [
       "qingcheng:dimension:performance_consultant",
       "qingcheng:dimension:section_consultant"

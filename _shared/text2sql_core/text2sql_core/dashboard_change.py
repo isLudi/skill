@@ -56,6 +56,7 @@ RECOGNIZED_DESIGN_OPERATION_TYPES = {
 PROFILE_VOLATILE_KEYS = {"captured_at", "profiled_at", "html_id"}
 PROFILE_REQUIRED_SECTIONS = (
     "components",
+    "data_units",
     "layout",
     "formulas",
     "public_filters",
@@ -63,6 +64,7 @@ PROFILE_REQUIRED_SECTIONS = (
     "datasets",
     "theme",
 )
+SUPPORTED_DATA_UNIT_TYPES = {"card", "u_pivot", "u_bar", "u_pie"}
 DOMAIN_SKILL_NAMES = {
     "market_consultant": "sql-query-writer-for-dashboard",
     "qingcheng": "qingcheng-dashboard-sql",
@@ -197,6 +199,71 @@ def _normalize_component(item: Mapping[str, Any]) -> dict[str, Any]:
         "config": _json_value(item.get("config", {})),
         "extensions": _json_value(extensions),
     }
+
+
+def _normalize_data_unit(item: Mapping[str, Any]) -> dict[str, Any]:
+    unit_id = _require_text(_first(item, "unit_id", "id"), "data_unit.unit_id")
+    raw_groups = item.get("field_groups") if isinstance(item.get("field_groups"), Mapping) else {}
+    field_groups = {
+        group: _stable_unique(raw_groups.get(group, []))
+        for group in (
+            "row_dimension",
+            "column_dimension",
+            "measure",
+            "aide_measure",
+            "filter",
+        )
+    }
+    return {
+        "unit_id": unit_id,
+        "unit_type": _require_text(item.get("unit_type") or "unknown", "data_unit.unit_type"),
+        "component_id": _optional_text(item.get("component_id")),
+        "dataset_id": _optional_text(item.get("dataset_id")),
+        "model_identity": _json_value(item.get("model_identity", {})),
+        "field_groups": field_groups,
+        "formula_ids": _stable_unique(item.get("formula_ids", [])),
+        "component_filter_ids": _stable_unique(item.get("component_filter_ids", [])),
+    }
+
+
+def _data_units_from_components(components: Sequence[Mapping[str, Any]]) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for component in components:
+        unit_id = _optional_text(component.get("unit_id"))
+        unit_type = str(component.get("component_type") or "").lower()
+        if not unit_id or unit_type not in SUPPORTED_DATA_UNIT_TYPES:
+            continue
+        fields = component.get("fields") if isinstance(component.get("fields"), Mapping) else {}
+        dimensions = fields.get("dimensions") if isinstance(fields.get("dimensions"), list) else []
+        metrics = fields.get("metrics") if isinstance(fields.get("metrics"), list) else []
+        field_groups = {
+            "row_dimension": [],
+            "column_dimension": [],
+            "measure": [],
+            "aide_measure": [],
+            "filter": [],
+        }
+        for field in [*dimensions, *metrics]:
+            if not isinstance(field, Mapping):
+                continue
+            group = str(field.get("group") or "")
+            field_id = _optional_text(field.get("field_id"))
+            if group in field_groups and field_id:
+                field_groups[group].append(field_id)
+        config = component.get("config") if isinstance(component.get("config"), Mapping) else {}
+        rows.append(
+            {
+                "unit_id": unit_id,
+                "unit_type": unit_type,
+                "component_id": component.get("component_id"),
+                "dataset_id": component.get("dataset_id"),
+                "model_identity": config.get("model_identity", {}),
+                "field_groups": field_groups,
+                "formula_ids": component.get("formula_ids", []),
+                "component_filter_ids": component.get("filter_ids", []),
+            }
+        )
+    return rows
 
 
 def _normalize_layout(item: Mapping[str, Any], component: Mapping[str, Any] | None = None) -> dict[str, Any]:
@@ -383,6 +450,15 @@ def normalize_dashboard_profile(profile: Mapping[str, Any]) -> dict[str, Any]:
     components = _normalize_list(
         snapshot.get("components", []), _normalize_component, "component_id", "component"
     )
+    raw_data_units = snapshot.get("data_units")
+    if not isinstance(raw_data_units, list):
+        raw_data_units = _data_units_from_components(components)
+    data_units = _normalize_list(
+        raw_data_units,
+        _normalize_data_unit,
+        "unit_id",
+        "data unit",
+    )
     component_by_id = {item["component_id"]: item for item in components}
     raw_layout = snapshot.get("layout")
     if raw_layout is None:
@@ -443,6 +519,7 @@ def normalize_dashboard_profile(profile: Mapping[str, Any]) -> dict[str, Any]:
             isinstance(snapshot.get(section), list)
             or (section == "theme" and isinstance(snapshot.get(section), Mapping))
         )
+        or section == "data_units"
         or section == "theme"
     )
     missing_sections = sorted(set(required_sections) - set(observed_sections))
@@ -498,6 +575,7 @@ def normalize_dashboard_profile(profile: Mapping[str, Any]) -> dict[str, Any]:
             or dashboard_meta.get("draft_revision")
         ),
         "components": components,
+        "data_units": data_units,
         "layout": layout,
         "formulas": formulas,
         "public_filters": public_filters,

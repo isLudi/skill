@@ -248,21 +248,22 @@ iframe 编辑器工具栏中的运行按钮回退方案：
 只读接口：
 
 - 编辑页配置：POST `https://udata.baijia.com/uanalysis-intelligence/config/dashBoard`，body 为 `{"dashboardId":"<dashboard_id>","isConfig":true,"versionId":"draft"}`。
-- 透视表单元配置：POST `https://udata.baijia.com/uanalysis-intelligence/value/unit/detail`，body 为 `{"id":"<unit_id>","dashboardId":"<dashboard_id>","versionId":"draft"}`。该接口会返回 `unitDimensionList`、`unitColumnDimensionList`、`unitMeasureList`、`unitAideMeasureList`、`unitFilterList`，比 view page 的 `consumer/detail` 更适合读取编辑页字段配置。
+- 数据组件单元配置：POST `https://udata.baijia.com/uanalysis-intelligence/value/unit/detail`，body 为 `{"id":"<unit_id>","dashboardId":"<dashboard_id>","versionId":"draft"}`。`card`、`u_pivot`、`u_bar`、`u_pie` 均通过该接口暴露 `dashboardModel`、`unitDimensionList`、`unitColumnDimensionList`、`unitMeasureList`、`unitAideMeasureList`、`unitFilterList`；它比 view page 的 `consumer/detail` 更适合读取编辑页字段配置。
 - 公共筛选器关系：POST `https://udata.baijia.com/uanalysis-intelligence/value/public/unit/relation/detail`，body 为 `{"id":"<public_filter_relation_id>","isConfig":true,"versionId":"draft"}`。
 - 维度详情：POST `https://udata.baijia.com/uanalysis-intelligence/model/detail/dim`，body 为 `{"id":"<field_id>","modelType":2}`。
 - 普通指标详情：POST `https://udata.baijia.com/uanalysis-intelligence/model/detail/metric`，body 为 `{"id":"<metric_id>","modelType":2}`。
 - 自定义指标公式：POST `https://udata.baijia.com/uanalysis-intelligence/model/customized/column/list`，body 为 `{"id":"customized_<id>"}`。响应中的 `formula` 和 `dependencyIndicators` 是自定义指标计算公式和依赖来源。
-- 数据集字段树：POST `https://udata.baijia.com/uanalysis-intelligence/model/subject/paramList`，body 为 `{"modelType":2,"dashboardId":"<dashboard_id>","subjectId":<subject_id>,"selected":[...]}`。`subjectId` 可从公共筛选器关系、透视表 `dashboardModel` 或自定义指标详情中推断；识别不到时仍保留透视表字段采集结果，但若 pivot 同时没有可解析的 `applicationModelId/modelId`，画像完整性必须为 `incomplete`。
+- 数据集字段树：POST `https://udata.baijia.com/uanalysis-intelligence/model/subject/paramList`，body 为 `{"modelType":2,"dashboardId":"<dashboard_id>","subjectId":<subject_id>,"selected":[...]}`。`subjectId` 可从公共筛选器关系、任一支持数据组件的 `dashboardModel` 或自定义指标详情中推断；识别不到时仍保留字段采集结果，但只要已配置数据组件没有可解析的 `applicationModelId/modelId`，画像完整性就必须为 `incomplete`。
 
 输出结构重点：
 
-- `pivot_units[]`：每个透视表的单元 ID、名称、模型、组件信息和字段列表。
-- `pivot_units[].fields[]`：实际配置字段，包含 `group`、`show_name`、`field_id`、`business_name`、`formula`、`detail`、`dependencies`。
+- `data_units[]`：所有受支持数据组件的单元 ID、类型、名称、模型/数据集 identity、组件信息和字段列表；类型覆盖 `card/u_pivot/u_bar/u_pie`。
+- `pivot_units[]`：`data_units[]` 中 `u_pivot` 的向后兼容视图，旧调用方无需立即迁移。
+- `data_units[].fields[]`：实际配置字段，包含 `group`、`show_name`、`field_id`、`business_name`、`formula`、`detail`、`dependencies`。
 - 普通指标的 `formula` 来自字段配置中的聚合定义，例如 `sum(<metric_id>)`；自定义指标的 `formula` 来自 `model/customized/column/list`，例如 `sum(${is_friend_lead})/sum(${v_lead})`。
 - `text_notes[]`：从富文本组件和文本单元中提取的指标说明、口径说明。
 - `dataset_fields[]`：可识别 `subjectId` 时补充的数据集字段树摘要；如只需要实际使用字段，可加 `--skip-dataset-fields`。
-- `binding_validation`：检查每个已配置 pivot 的 unit/component/model-or-dataset identity、selected field、formula、component-filter 与 dataset 反向引用；启用字段树时再核对已选字段和公式依赖。空白/非数据组件不计入失败。
+- `binding_validation`：检查每个已配置 `card/u_pivot/u_bar/u_pie` 的 unit/component/model-or-dataset identity、selected field、formula、component-filter 与 dataset 反向引用；启用字段树时再核对已选字段和公式依赖。空白/非数据组件不计入失败。
 - `profile_sha256`：只覆盖可编辑状态；Taitan 每次打开可能变化的 `html_id` 作为路由元数据保留，但不参与状态 Hash。组件、布局、公式、筛选器和数据集变化仍必须改变 Hash。
 
 边界：
@@ -271,15 +272,21 @@ iframe 编辑器工具栏中的运行按钮回退方案：
 - 不调用保存、发布、删除、新建、更新接口，也不点击 `保存并发布`、`保存到草稿箱` 等按钮。
 - UI selector 或坐标点击只允许作为 selector 漂移排查的临时验证；生产脚本优先走只读 API。
 
-## P3A/P3B 看板变更链路
+## P3A/P4B 看板变更链路
 
 2026-07-11 起，Text2SQL 下游看板设计和修改使用独立的 `profile-edit-dashboard → design-dashboard → plan-dashboard-change → apply-dashboard-change → publish-dashboard-change` 链路。完整 Artifact、Hash、stable-ID、单 relation 原子性和阻断规则见 `references/dashboard_change_workflow.md`。
 
-当前生产验证过的 P3B 写入面只有公共筛选器动态默认项：`relation_id + filter_id + field_id` 三者必须同时精确匹配。组件、布局和公式可以画像与 Diff，但 operator 不调用未经验证的写接口。
+当前 Registry 生产 allowlist 包括既有稳定字段显示名、同容器布局、依赖不变的既有局部公式、公共筛选器动态默认、根背景色，以及独立治理的透视表 copy-rebind。它们仍受各自精确目标、Hash、回读和恢复门禁；未登记或 blocked 的组件、数据集、筛选器、创建/删除操作不得调用。
 
 `apply-dashboard-change` 只写 draft；`publish-dashboard-change` 必须在独立进程中消费成功 ApplyReceipt 并显式确认。新链路不允许同一次命令 apply + publish。
 
 复制重建透视表 unit 使用 `config/copy/unit`，body 为 `{"id":"<source_unit_id>"}`，返回新 `unitId`；随后用 `config/update/unit` 更新新 unit 的字段列表，再用 `config/save/dashboardHtml` 将既有组件 `settings.unitId` 指向新 unit。沙箱使用 `rebind-pivot-fields-sandbox --confirm-sandbox-write`；生产 draft 使用 registry allowlisted 的 `rebind-pivot-fields-production --manifest-sha256 <hash> --confirm-production-write`。生产 manifest 必须包含带公共筛选器的 `filtered_value_checks`，命令会用 `value/unit` 回读指定期次/周期的行值；无 filter 原始值只能作为排查证据，不是生产通过条件。该路径不发布，发布仍需独立确认。
+
+## P4C 从零创建看板
+
+P4C 使用与既有修改完全独立的 `DashboardBuildSpec → DashboardBuildPlan → DashboardBuildReceipt → DashboardBuildPublishReceipt` 创建 Saga，详见 `references/dashboard_build_workflow.md`。Registry 已登记四类组件、计算列、公共筛选器、dashboard shell 和 dashboardHtml 组装，但在真实沙箱请求证据与生产 adapter 完成前全部保持 blocked。`apply-dashboard-build` 会在浏览器前拒绝，不允许用模板克隆或预建空板代替。
+
+已观察到 subject 级自定义计算列保存路径为 `model/customized/column/saveAndUpdate`。该写路径目前只用于取证候选，不能根据前端字段名猜测 payload，也不能向生产共享 subject 写测试列。
 
 ## Legacy 公共筛选器只读检查与历史 API
 

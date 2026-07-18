@@ -145,6 +145,26 @@
       "table": "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
       "data_type": "string",
       "notes": "字段存在已确认，但城市归属业务口径尚未由独立指标文档确认。"
+    },
+    {
+      "id": "market_consultant:dimension:registration_type",
+      "name": "市场顾问订单报名类型",
+      "aliases": [
+        "报名类型",
+        "暑秋联报报名类型",
+        "暑秋联报类型",
+        "暑秋联报",
+        "单秋"
+      ],
+      "status": "pending_confirmation",
+      "automatic_compile": false,
+      "source_path": "knowledge/metrics/market_class_order_registration_fields.md",
+      "source_sha256": "6911d43dbd500bc0e2494c01a8a1471a40bdbfe59c5d33d247ce108d81dd27c6",
+      "description": "M1 历史验证模板按 2026 秋季班 bind_type 识别暑秋联报主课/从课和单秋普通订单；其他学年学季仍需确认。",
+      "field": "registration_type",
+      "table": "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
+      "data_type": "string",
+      "notes": "多表人工模板维度；混合 bind_type 联报优先，不授权自动编译。"
     }
   ]
 }

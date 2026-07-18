@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.codex/text2sql/dashboard_build_receipt.schema.json",
+  "title": "P4C draft creation saga receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "artifact_type", "domain", "build_id",
+    "dashboard_build_plan_sha256", "target_state_sha256", "status", "ok",
+    "dashboard_id", "html_id", "dashboard_name", "target_folder",
+    "operation_results", "created_resources", "reused_resources",
+    "orphaned_resources", "manual_cleanup_required", "failure",
+    "post_profile_sha256", "verification", "transaction_class", "recovery",
+    "publish_boundary", "completed_at", "dashboard_build_receipt_sha256"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "artifact_type": {"const": "dashboard_build_receipt"},
+    "domain": {"enum": ["market_consultant", "qingcheng"]},
+    "build_id": {"type": "string", "minLength": 1},
+    "dashboard_build_plan_sha256": {"$ref": "#/$defs/sha256"},
+    "target_state_sha256": {"$ref": "#/$defs/sha256"},
+    "status": {"enum": ["applied", "failed"]},
+    "ok": {"type": "boolean"},
+    "dashboard_id": {"type": ["string", "null"]},
+    "html_id": {"type": ["string", "null"]},
+    "dashboard_name": {"type": "string", "minLength": 1},
+    "target_folder": {"type": "object"},
+    "operation_results": {"type": "array", "items": {"type": "object"}},
+    "created_resources": {"type": "array", "items": {"type": "object"}},
+    "reused_resources": {"type": "array", "items": {"type": "object"}},
+    "orphaned_resources": {"type": "array", "items": {"type": "object"}},
+    "manual_cleanup_required": {"type": "boolean"},
+    "failure": {"type": ["string", "null"]},
+    "post_profile_sha256": {"oneOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+    "verification": {"type": "object"},
+    "transaction_class": {"const": "creation_saga"},
+    "recovery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["policy", "automatic_delete_attempted", "rolled_back"],
+      "properties": {
+        "policy": {"const": "creation_saga_no_auto_delete"},
+        "automatic_delete_attempted": {"const": false},
+        "rolled_back": {"const": false}
+      }
+    },
+    "publish_boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["published", "publish_authorized", "requires_separate_publish_confirmation"],
+      "properties": {
+        "published": {"const": false},
+        "publish_authorized": {"const": false},
+        "requires_separate_publish_confirmation": {"const": true}
+      }
+    },
+    "completed_at": {"type": "string", "minLength": 1},
+    "dashboard_build_receipt_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {"sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+}

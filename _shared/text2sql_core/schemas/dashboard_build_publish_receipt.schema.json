@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.codex/text2sql/dashboard_build_publish_receipt.schema.json",
+  "title": "Separate P4C publish receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "artifact_type", "domain", "build_id", "dashboard_id",
+    "dashboard_build_plan_sha256", "dashboard_build_receipt_sha256",
+    "version_description", "publish_payload_sha256", "pre_publish_profile_sha256",
+    "post_publish_draft_profile_sha256", "platform_response_status",
+    "publish_status", "verification_status", "fully_verified", "confirmed",
+    "transaction_class", "completed_at", "dashboard_build_publish_receipt_sha256"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "artifact_type": {"const": "dashboard_build_publish_receipt"},
+    "domain": {"enum": ["market_consultant", "qingcheng"]},
+    "build_id": {"type": "string", "minLength": 1},
+    "dashboard_id": {"type": "string", "minLength": 1},
+    "dashboard_build_plan_sha256": {"$ref": "#/$defs/sha256"},
+    "dashboard_build_receipt_sha256": {"$ref": "#/$defs/sha256"},
+    "version_description": {"type": "string", "minLength": 1},
+    "publish_payload_sha256": {"$ref": "#/$defs/sha256"},
+    "pre_publish_profile_sha256": {"$ref": "#/$defs/sha256"},
+    "post_publish_draft_profile_sha256": {"$ref": "#/$defs/sha256"},
+    "platform_response_status": {"type": "string", "minLength": 1},
+    "publish_status": {"const": "publish_requested_unverified"},
+    "verification_status": {"const": "draft_only_unverified_published_version"},
+    "fully_verified": {"const": false},
+    "confirmed": {"const": true},
+    "transaction_class": {"const": "separate_publish"},
+    "completed_at": {"type": "string", "minLength": 1},
+    "dashboard_build_publish_receipt_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {"sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+}

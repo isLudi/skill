@@ -21,8 +21,9 @@
 | 结果超过 1000 行，需要绕开 `SQL取数` 直接下载审批 | `references/template_query.md` | `scripts\usql_web_query.py template-download` | 只有 SQL 仍带模板参数、下载链路异常、或清理逻辑异常时，才看相关命令实现 |
 | 看板配置画像 / 实时取值健康检查 | `SKILL.md` 中“看板文件夹扫描”“脚本能力” + `references/platform_profile.md` | 默认 config-only：`profile-dashboard` / `profile-folder` / `profile-all`；独立健康检查：`check-dashboard-values` | 只有菜单、组件、筛选器或页面结构异常时，才继续看 `read_dashboard/commands/*.py`；不要让 value/unit 超时阻塞知识同步 |
 | Taitan 编辑页透视表字段、指标含义、自定义公式读取 | `SKILL.md` 中“看板文件夹扫描” + `references/platform_profile.md` 的“Taitan 编辑页指标公式 API” | 单张：`profile-edit-dashboard`；批量：`profile-edit-folder` / `profile-edit-all` | 只有字段详情接口变化、公式缺失、Hash 不稳定或 selector 回退验证失败时，才看 `read_dashboard/edit_profile.py`、`edit_batch.py` 和对应命令实现 |
-| Text2SQL 看板组件/布局/公式/筛选器设计与变更 | `references/dashboard_change_workflow.md` | `profile-edit-dashboard` → `design-dashboard` → `plan-dashboard-change` → `apply-dashboard-change` → `publish-dashboard-change` | P3A 可画像和 Diff 全部类型；P3B 当前只 Apply stable-ID 公共筛选器动态默认项，Apply 与 Publish 必须独立 |
+| Text2SQL 看板组件/布局/公式/筛选器设计与变更 | `references/dashboard_change_workflow.md` | `profile-edit-dashboard` → `design-dashboard` → `plan-dashboard-change` → `apply-dashboard-change` → `publish-dashboard-change` | P3A 可画像和 Diff 全部类型；P4B 只 Apply Registry 中五类窄修改，Apply 与 Publish 必须独立 |
 | P4A/P4B 看板写能力与受控 Apply | `references/dashboard_write_capabilities.md` + `references/dashboard_change_workflow.md` | 离线 `inspect-write-capabilities`；人工抓证据用 `capture-write-evidence`；可逆沙箱事务验证用 `verify-sandbox-write-adapters`；生产草稿变更用 `apply-dashboard-change` | 只有 Registry `verified/allowlisted` 的五类窄操作可 Apply；`sandbox_verified` 仍不能自动晋级，发布必须独立确认 |
+| P4C 从零创建新看板 | `references/dashboard_build_workflow.md` + `references/dashboard_write_capabilities.md` | `plan-dashboard-build` → 必要的数据中心独立 Plan/Apply/SUCCESS → 重新 Plan → `apply-dashboard-build` → `publish-dashboard-build` | 创建使用 `creation_saga_no_auto_delete`；当前创建 capability 仍 blocked，须先用 `capture-dashboard-build-evidence` 获得真实沙箱证据并完成适配器晋级 |
 | 透视表组件复制重建 / unit 重新绑定 | `references/dashboard_change_workflow.md` 的“复制重建透视表组件” | 沙箱：`rebind-pivot-fields-sandbox --confirm-sandbox-write`；生产 draft：`rebind-pivot-fields-production --manifest-sha256 <hash> --confirm-production-write` | 生产仅限 registry allowlisted 的 `rebuild_pivot_unit_by_copy`；必须先备份配置、绑定 manifest hash，并用带 `publicFilterList` 的 `filtered_value_checks` 验证指定期次/周期；无 filter 的 value/unit 原始结果不是生产门禁；发布仍需独立确认 |
 | Legacy 公共筛选器计划检查 | `references/platform_profile.md` 的“Legacy 公共筛选器只读检查” | `scripts\read_dashboard.py edit-public-filters` | 仅保留 dry-run；所有 legacy 写入/发布参数都会在浏览器前拒绝 |
 | 手工临时表上传 | `SKILL.md` 中“临时表上传” + `references/manual_temp_table_registry.md` | `scripts\usql_web_query.py check-manual-table` / `upload-temp-table` | 只有需要确认具体登记项或表名映射时，才打开 `manual_temp_table_registry.json` |
@@ -48,6 +49,7 @@
 - 不要把 DesignSpec、ChangePlan 或 ApplyReceipt 当成写入/发布授权；新链路必须逐命令显式执行并校验 Hash。
 - 不要对组件、布局、公式调用未经生产验证的写接口；这些类型在 P3A 可完整 Diff，在 operator P3B 必须阻断。
 - 修改 Taitan 公共筛选器必须使用 `profile-edit-dashboard → design-dashboard → plan-dashboard-change → apply-dashboard-change → publish-dashboard-change`；`edit-public-filters` 只允许 legacy dry-run 检查。
+- 从零创建看板必须使用独立 P4C Artifact/Saga；不得把创建 operation 塞入 `DashboardChangePlan`，也不得用模板克隆或预建空板降级。
 - 不要把 QueryPlan 视为下载、看板写入、模板写入或权限变更授权；它只约束 `run`，且下载仍受 QueryPlan 与 1000 行策略双重门禁。
 - 不要把 `sync-data-center-sql --write`、Data Center Replacement Plan 或 Creation Plan 视为远端数据集写入授权；远端替换与创建必须分别走各自独立的生产 Apply 命令。
 - 不要在未经确认的情况下，对超过 1000 行的结果走 `SQL取数` 直接下载。

@@ -2,6 +2,8 @@
 
 本文件描述独立的 `profile → design spec → diff/dry-run → apply draft → publish confirmation` 安全链路。只有处理看板设计或变更任务时读取；普通 SQL 执行、下载或只读看板浏览不需要加载本文件。
 
+本链路只处理既有对象。若目标是从零创建唯一命名的新看板，必须改用 `references/dashboard_build_workflow.md` 的 P4C 创建 Saga；禁止把创建 operation 塞入 `DashboardChangePlan`。
+
 ## 目录
 
 1. [能力边界](#能力边界)
@@ -50,7 +52,7 @@ D:\anaconda3\python.exe scripts\read_dashboard.py profile-edit-dashboard `
   --normalized-output C:\runtime\dashboard_123.dashboard_profile.json
 ```
 
-主 `--output` 保持向后兼容，继续包含 `pivot_units`、`dataset_fields`、`text_notes` 和字段详情；同时增加 `domain`、规范快照、`profile_sha256` 和嵌套 `normalized_profile`。`--normalized-output` 可额外写出纯 DashboardProfile Artifact。
+主 `--output` 保持向后兼容，继续包含 `pivot_units`、`dataset_fields`、`text_notes` 和字段详情；同时增加覆盖 `card/u_pivot/u_bar/u_pie` 的 `data_units`、`domain`、规范快照、`profile_sha256` 和嵌套 `normalized_profile`。`pivot_units` 是透视表兼容视图，`--normalized-output` 可额外写出纯 DashboardProfile Artifact。
 
 `profile_sha256` 只覆盖组件、布局、公式、筛选器、数据集和完整性等可编辑状态。Taitan 每次打开可能重发的 `html_id` 保留为导航元数据但不参与 Hash；否则同一配置会产生伪漂移。Apply/Publish 仍必须使用最新 profile 中的 `html_id` 打开页面，并以完整状态 Hash 做前置校验。
 

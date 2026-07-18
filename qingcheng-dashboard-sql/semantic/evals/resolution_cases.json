@@ -72,6 +72,23 @@
       "query": "不存在的青橙指标",
       "expected_ids": [],
       "expected_status": "unknown"
+    },
+    {
+      "id": "qingcheng:eval:refund_reason_amount",
+      "query": "青橙退费原因金额",
+      "expected_ids": [
+        "qingcheng:dimension:refund_reason",
+        "qingcheng:metric:refund_reason_allocated_amount"
+      ],
+      "expected_status": "resolved"
+    },
+    {
+      "id": "qingcheng:eval:tmk_transfer_lead_count",
+      "query": "TMK转移线索数",
+      "expected_ids": [
+        "qingcheng:metric:tmk_transfer_lead_count"
+      ],
+      "expected_status": "resolved"
     }
   ]
 }

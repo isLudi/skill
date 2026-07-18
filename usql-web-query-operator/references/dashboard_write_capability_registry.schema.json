@@ -13,7 +13,7 @@
     "registry_sha256"
   ],
   "properties": {
-    "schema_version": {"const": "1.0.0"},
+    "schema_version": {"const": "1.1.0"},
     "artifact_type": {"const": "DashboardWriteCapabilityRegistry"},
     "platform": {"const": "taitan"},
     "default_policy": {"const": "block_unverified"},
@@ -44,6 +44,8 @@
         "phase",
         "maturity",
         "write_policy",
+        "transaction_class",
+        "recovery_policy",
         "readback_coverage",
         "risk",
         "adapter",
@@ -57,6 +59,8 @@
         "phase": {"enum": ["draft", "publish", "permission", "folder"]},
         "maturity": {"enum": ["verified", "sandbox_verified", "partial", "observed", "unverified"]},
         "write_policy": {"enum": ["allowlisted", "sandbox_only", "separate_confirmation", "blocked"]},
+        "transaction_class": {"enum": ["compensating_restore", "creation_saga", "separate_publish", "none"]},
+        "recovery_policy": {"enum": ["compensating_restore", "creation_saga_no_auto_delete", "separate_publish", "blocked_no_adapter"]},
         "readback_coverage": {"enum": ["full", "partial", "none"]},
         "risk": {"enum": ["low", "medium", "high", "critical"]},
         "adapter": {"type": ["string", "null"]},

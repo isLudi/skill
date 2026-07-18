@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.codex/usql/dashboard_build_evidence.schema.json",
+  "title": "Redacted P4C sandbox evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "artifact_type", "operation", "domain", "scope",
+    "target", "sandbox_confirmed", "capture_boundary", "started_at",
+    "completed_at", "before_state_sha256", "after_state_sha256", "state_changed",
+    "observations", "blocked_requests", "created_resources",
+    "automatic_delete_attempted", "registry_promoted", "status", "evidence_sha256"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "artifact_type": {"const": "DashboardBuildEvidence"},
+    "operation": {"enum": ["create_dashboard", "create_formula", "create_metric_group_component", "create_pivot_component", "create_bar_component", "create_pie_component", "create_public_filter", "assemble_new_dashboard"]},
+    "domain": {"enum": ["market_consultant", "qingcheng"]},
+    "scope": {"enum": ["dashboard", "folder"]},
+    "target": {"type": "object"},
+    "sandbox_confirmed": {"const": true},
+    "capture_boundary": {"type": "string", "minLength": 1},
+    "started_at": {"type": "string", "minLength": 1},
+    "completed_at": {"type": "string", "minLength": 1},
+    "before_state_sha256": {"$ref": "#/$defs/sha256"},
+    "after_state_sha256": {"$ref": "#/$defs/sha256"},
+    "state_changed": {"type": "boolean"},
+    "observations": {"type": "array", "items": {"$ref": "#/$defs/observation"}},
+    "blocked_requests": {"type": "array", "items": {"$ref": "#/$defs/observation"}},
+    "created_resources": {"type": "array", "items": {"type": "object"}},
+    "automatic_delete_attempted": {"const": false},
+    "registry_promoted": {"const": false},
+    "status": {"enum": ["evidence_captured", "no_effect", "blocked_dangerous_request", "incomplete"]},
+    "evidence_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["method", "url_path", "host", "payload_bytes", "request_key_paths", "response_status", "response_content_type", "blocked", "observation_sha256"],
+      "properties": {
+        "method": {"type": "string"},
+        "url_path": {"type": "string"},
+        "host": {"type": "string"},
+        "payload_bytes": {"type": "integer", "minimum": 0},
+        "request_key_paths": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "response_status": {"type": ["integer", "null"]},
+        "response_content_type": {"type": ["string", "null"]},
+        "blocked": {"type": "boolean"},
+        "observation_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    }
+  }
+}

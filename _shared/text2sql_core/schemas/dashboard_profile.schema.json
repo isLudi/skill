@@ -5,7 +5,7 @@
   "type": "object",
   "required": [
     "schema_version", "artifact_type", "mode", "domain", "dashboard_id",
-    "dashboard_name", "version_id", "components", "layout", "formulas",
+    "dashboard_name", "version_id", "components", "data_units", "layout", "formulas",
     "public_filters", "component_filters", "datasets", "theme", "layout_policy", "completeness", "write_boundary",
     "profile_sha256"
   ],
@@ -21,6 +21,7 @@
     "draft_revision": {"type": ["string", "null"]},
     "captured_at": {"type": "string"},
     "components": {"type": "array", "items": {"$ref": "#/$defs/component"}},
+    "data_units": {"type": "array", "items": {"$ref": "#/$defs/data_unit"}},
     "layout": {"type": "array", "items": {"$ref": "#/$defs/layout"}},
     "formulas": {"type": "array", "items": {"$ref": "#/$defs/formula"}},
     "public_filters": {"type": "array", "items": {"$ref": "#/$defs/filter"}},
@@ -72,6 +73,35 @@
         "formula_ids": {"type": "array", "items": {"type": "string"}},
         "filter_ids": {"type": "array", "items": {"type": "string"}},
         "sort": {}, "pagination": {}, "display": {}, "config": {}, "extensions": {}
+      },
+      "additionalProperties": false
+    },
+    "data_unit": {
+      "type": "object",
+      "required": [
+        "unit_id", "unit_type", "component_id", "dataset_id", "model_identity",
+        "field_groups", "formula_ids", "component_filter_ids"
+      ],
+      "properties": {
+        "unit_id": {"type": "string", "minLength": 1},
+        "unit_type": {"enum": ["card", "u_pivot", "u_bar", "u_pie", "unknown"]},
+        "component_id": {"type": ["string", "null"]},
+        "dataset_id": {"type": ["string", "null"]},
+        "model_identity": {"type": "object"},
+        "field_groups": {
+          "type": "object",
+          "required": ["row_dimension", "column_dimension", "measure", "aide_measure", "filter"],
+          "properties": {
+            "row_dimension": {"type": "array", "items": {"type": "string"}},
+            "column_dimension": {"type": "array", "items": {"type": "string"}},
+            "measure": {"type": "array", "items": {"type": "string"}},
+            "aide_measure": {"type": "array", "items": {"type": "string"}},
+            "filter": {"type": "array", "items": {"type": "string"}}
+          },
+          "additionalProperties": false
+        },
+        "formula_ids": {"type": "array", "items": {"type": "string"}},
+        "component_filter_ids": {"type": "array", "items": {"type": "string"}}
       },
       "additionalProperties": false
     },

@@ -12548,13 +12548,19 @@
       "id": "physical:finance_dw.dwd_finance_order_refund_df",
       "name": "finance_dw.dwd_finance_order_refund_df",
       "domains": [
-        "market_consultant"
+        "market_consultant",
+        "qingcheng"
       ],
       "source_docs": [
         {
           "domain": "market_consultant",
           "source_path": "sql-query-writer-for-dashboard/knowledge/tables/finance_dw.dwd_finance_order_refund_df.md",
           "sha256": "99c95b3d0c995602d88dfc5774ab29ae10ff7778b4960af56427cf50aa2d06d4"
+        },
+        {
+          "domain": "qingcheng",
+          "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.dwd_finance_order_refund_df.md",
+          "sha256": "44541220b5b9170d1e6f1c921f9626ae26260bead102b11081b64a30dcd8465b"
         }
       ],
       "columns": [

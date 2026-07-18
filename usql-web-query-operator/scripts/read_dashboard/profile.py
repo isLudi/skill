@@ -180,7 +180,11 @@ def summarize_public_filter_detail(detail: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def summarize_unit_value(unit_id: str, value_payload: dict[str, Any]) -> dict[str, Any]:
+def summarize_unit_value(
+    unit_id: str,
+    value_payload: dict[str, Any],
+    unit_type: str | None = None,
+) -> dict[str, Any]:
     data = value_payload.get("data")
     unit_value = data.get(unit_id) if isinstance(data, dict) else None
     if not isinstance(unit_value, dict):
@@ -191,7 +195,9 @@ def summarize_unit_value(unit_id: str, value_payload: dict[str, Any]) -> dict[st
             "error_code": value_payload.get("errorCode"),
         }
 
-    rows = unit_value.get("data") if isinstance(unit_value.get("data"), list) else []
+    raw_data = unit_value.get("data")
+    rows = raw_data if isinstance(raw_data, list) else []
+    data_object = raw_data if isinstance(raw_data, dict) else {}
     nested_rows = unit_value.get("nestedData") if isinstance(unit_value.get("nestedData"), list) else []
     series = unit_value.get("series") if isinstance(unit_value.get("series"), list) else []
     x_axis = unit_value.get("xAxis") if isinstance(unit_value.get("xAxis"), dict) else {}
@@ -202,11 +208,40 @@ def summarize_unit_value(unit_id: str, value_payload: dict[str, Any]) -> dict[st
     title = unit_value.get("title") if isinstance(unit_value.get("title"), list) else []
     column_title = unit_value.get("columnTitle") if isinstance(unit_value.get("columnTitle"), list) else []
     total_data = unit_value.get("totalData") if isinstance(unit_value.get("totalData"), dict) else {}
+    display_data = (
+        unit_value.get("displayDataList")
+        if isinstance(unit_value.get("displayDataList"), list)
+        else []
+    )
     page = unit_value.get("page") if isinstance(unit_value.get("page"), dict) else {}
-    data_ready = bool(rows or nested_rows or total_data or series_points or str(unit_value.get("textContent") or "").strip())
+    x_axis_count = len(x_axis.get("data") or []) if isinstance(x_axis.get("data"), list) else 0
+    normalized_unit_type = str(unit_type or unit_value.get("unitType") or "").lower()
+    if normalized_unit_type in {"u_bar", "u_pie"}:
+        response_shape = "chart"
+        data_ready = bool(series_points or x_axis_count)
+    elif normalized_unit_type == "card":
+        response_shape = "metric_group"
+        data_ready = bool(rows or data_object or nested_rows or total_data or display_data or series_points)
+    elif normalized_unit_type == "u_pivot":
+        response_shape = "pivot"
+        data_ready = bool(rows or nested_rows or total_data)
+    else:
+        response_shape = "unknown"
+        data_ready = bool(
+            rows
+            or data_object
+            or nested_rows
+            or total_data
+            or display_data
+            or series_points
+            or x_axis_count
+            or str(unit_value.get("textContent") or "").strip()
+        )
     return {
         "unit_id": unit_id,
         "unit_name": unit_value.get("unitName"),
+        "unit_type": normalized_unit_type or None,
+        "response_shape": response_shape,
         "status": "data_ready" if data_ready else "loaded_empty",
         "task_ids": unit_value.get("taskIds"),
         "total_task_id": unit_value.get("totalTaskId"),
@@ -216,12 +251,14 @@ def summarize_unit_value(unit_id: str, value_payload: dict[str, Any]) -> dict[st
         "title_count": len(title),
         "column_title_count": len(column_title),
         "data_row_count": len(rows),
+        "data_object_key_count": len(data_object),
         "nested_data_row_count": len(nested_rows),
+        "display_data_count": len(display_data),
         "series_count": len(series),
         "series_point_count": series_points,
         "series_names": [item.get("name") for item in series if isinstance(item, dict)],
         "x_axis_field_id": x_axis.get("filedId") or x_axis.get("fieldId"),
-        "x_axis_count": len(x_axis.get("data") or []) if isinstance(x_axis.get("data"), list) else 0,
+        "x_axis_count": x_axis_count,
         "first_row_keys": list(rows[0].keys()) if rows and isinstance(rows[0], dict) else [],
         "total_data_keys": list(total_data.keys()),
         "page": page,
@@ -302,6 +339,7 @@ def _analytic_targets(profile: dict[str, Any]) -> list[dict[str, Any]]:
         targets.append(
             {
                 "unit_id": str(unit_id),
+                "unit_type": str(detail.get("unit_type") or ""),
                 "page_size": detail.get("page_size") or component.get("page_size"),
             }
         )
@@ -324,7 +362,7 @@ def probe_profile_values(
             default_unit_value_payload(unit_id, target.get("page_size")),
             timeout_ms=timeout_ms,
         )
-        return summarize_unit_value(unit_id, payload)
+        return summarize_unit_value(unit_id, payload, target.get("unit_type"))
 
     probe = probe_value_targets(
         dashboard_id=dashboard_id,

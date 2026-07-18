@@ -27,7 +27,7 @@ class DashboardWriteCapabilityRegistryTests(unittest.TestCase):
 
     def test_registry_exposes_verified_p4b_apply_operations(self) -> None:
         summary = registry_summary(self.registry)
-        self.assertEqual(16, summary["capability_count"])
+        self.assertEqual(20, summary["capability_count"])
         self.assertEqual(
             [
                 "rebuild_pivot_unit_by_copy",
@@ -42,7 +42,27 @@ class DashboardWriteCapabilityRegistryTests(unittest.TestCase):
         self.assertEqual([], summary["sandbox_only_operations"])
         self.assertEqual(["publish_dashboard"], summary["separate_confirmation_operations"])
         self.assertIn("create_pivot_component", summary["blocked_operations"])
+        self.assertIn("create_metric_group_component", summary["blocked_operations"])
+        self.assertIn("create_bar_component", summary["blocked_operations"])
+        self.assertIn("create_pie_component", summary["blocked_operations"])
+        self.assertIn("assemble_new_dashboard", summary["blocked_operations"])
         self.assertIn("update_permissions", summary["blocked_operations"])
+        self.assertEqual(
+            "creation_saga_no_auto_delete",
+            next(
+                item
+                for item in self.registry["capabilities"]
+                if item["operation"] == "create_dashboard"
+            )["recovery_policy"],
+        )
+        self.assertEqual(
+            "compensating_restore",
+            next(
+                item
+                for item in self.registry["capabilities"]
+                if item["operation"] == "update_layout"
+            )["transaction_class"],
+        )
 
     def test_manual_probe_requires_visible_confirmed_sandbox(self) -> None:
         with self.assertRaisesRegex(UsageError, "confirm-sandbox-write"):

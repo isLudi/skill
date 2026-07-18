@@ -11,23 +11,29 @@ from _shared.config import DEFAULT_ARTIFACTS, DEFAULT_BROWSER_CHANNEL, DEFAULT_E
 from _shared.errors import UsageError
 
 from .commands.capture_dashboard import cmd_capture_dashboard
+from .commands.capture_dashboard_build_evidence import cmd_capture_dashboard_build_evidence
 from .commands.check_dashboard_values import cmd_check_dashboard_values
 from .commands.capture_write_evidence import cmd_capture_write_evidence
 from .commands.apply_dashboard_change import cmd_apply_dashboard_change
+from .commands.apply_dashboard_build import cmd_apply_dashboard_build
 from .commands.design_dashboard import cmd_design_dashboard
 from .commands.edit_public_filters import cmd_edit_public_filters
 from .commands.plan_dashboard_change import cmd_plan_dashboard_change
+from .commands.plan_dashboard_build import cmd_plan_dashboard_build
 from .commands.profile_all import cmd_profile_all
 from .commands.profile_dashboard import cmd_profile_dashboard
 from .commands.profile_edit_dashboard import cmd_profile_edit_dashboard
 from .commands.profile_edit_batch import cmd_profile_edit_all, cmd_profile_edit_folder
 from .commands.profile_folder import cmd_profile_folder
 from .commands.publish_dashboard_change import cmd_publish_dashboard_change
+from .commands.publish_dashboard_build import cmd_publish_dashboard_build
 from .commands.rebind_pivot_fields_sandbox import cmd_rebind_pivot_fields_sandbox
 from .commands.scan_folder import cmd_scan_folder
 from .commands.inspect_write_capabilities import cmd_inspect_write_capabilities
 from .commands.verify_sandbox_write_adapters import cmd_verify_sandbox_write_adapters
+from .commands.verify_sandbox_dashboard_build import cmd_verify_sandbox_dashboard_build
 from .constants import DEFAULT_PROFILE_ALL_FOLDERS
+from .dashboard_build_evidence import BUILD_EVIDENCE_OPERATIONS
 from .write_capabilities import DEFAULT_REGISTRY, MANUAL_PROBE_OPERATIONS
 
 
@@ -222,6 +228,24 @@ def build_parser() -> argparse.ArgumentParser:
     plan_change.add_argument("--output", type=Path, required=True)
     plan_change.set_defaults(func=cmd_plan_dashboard_change)
 
+    plan_build = subparsers.add_parser(
+        "plan-dashboard-build",
+        help="Resolve a declarative P4C DashboardBuildSpec into a zero-write hash-bound plan.",
+    )
+    plan_build.add_argument("--build-spec", type=Path, required=True)
+    plan_build.add_argument(
+        "--dataset-resolutions",
+        type=Path,
+        default=None,
+        help="Read-only model/subject field-binding evidence keyed by dataset_ref.",
+    )
+    plan_build.add_argument("--folder-snapshot-sha256", default=None)
+    name_state = plan_build.add_mutually_exclusive_group()
+    name_state.add_argument("--dashboard-name-available", action="store_true")
+    name_state.add_argument("--dashboard-name-conflict", action="store_true")
+    plan_build.add_argument("--output", type=Path, required=True)
+    plan_build.set_defaults(func=cmd_plan_dashboard_build)
+
     apply_change = subparsers.add_parser(
         "apply-dashboard-change",
         help="Apply one exact P4B allowlisted ChangePlan to draft with reverse recovery; never publishes.",
@@ -241,6 +265,29 @@ def build_parser() -> argparse.ArgumentParser:
     apply_change.add_argument("--wait-ms", type=int, default=3_000)
     apply_change.add_argument("--debug-artifacts", action="store_true")
     apply_change.set_defaults(func=cmd_apply_dashboard_change)
+
+    apply_build = subparsers.add_parser(
+        "apply-dashboard-build",
+        help="Create one new unpublished dashboard draft from an exact production-allowlisted P4C plan.",
+    )
+    apply_build.add_argument("--build-plan", type=Path, required=True)
+    apply_build.add_argument("--build-plan-sha256", required=True)
+    apply_build.add_argument("--domain", choices=["market_consultant", "qingcheng"], required=True)
+    apply_build.add_argument("--confirm-production-write", action="store_true", required=True)
+    apply_build.add_argument("--resume-receipt", type=Path, default=None)
+    apply_build.add_argument("--registry", type=Path, default=DEFAULT_REGISTRY)
+    apply_build.add_argument("--output", type=Path, default=None)
+    apply_build.add_argument("--headed", action="store_true")
+    apply_build.add_argument("--state-path", type=Path, default=DEFAULT_STATE)
+    apply_build.add_argument("--artifacts-dir", type=Path, default=DEFAULT_ARTIFACTS)
+    apply_build.add_argument("--env-file", type=Path, default=DEFAULT_ENV_FILE)
+    apply_build.add_argument("--username", default=os.environ.get("BAIJIA_USERNAME"))
+    apply_build.add_argument("--password", default=os.environ.get("BAIJIA_PASSWORD"))
+    apply_build.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL)
+    apply_build.add_argument("--executable-path", default=None)
+    apply_build.add_argument("--wait-ms", type=int, default=3_000)
+    apply_build.add_argument("--debug-artifacts", action="store_true")
+    apply_build.set_defaults(func=cmd_apply_dashboard_build)
 
     publish_change = subparsers.add_parser(
         "publish-dashboard-change",
@@ -265,6 +312,30 @@ def build_parser() -> argparse.ArgumentParser:
     publish_change.add_argument("--wait-ms", type=int, default=3_000)
     publish_change.add_argument("--debug-artifacts", action="store_true")
     publish_change.set_defaults(func=cmd_publish_dashboard_change)
+
+    publish_build = subparsers.add_parser(
+        "publish-dashboard-build",
+        help="Publish a successful P4C BuildReceipt in a separate explicitly confirmed command.",
+    )
+    publish_build.add_argument("--build-plan", type=Path, required=True)
+    publish_build.add_argument("--build-plan-sha256", required=True)
+    publish_build.add_argument("--build-receipt", type=Path, required=True)
+    publish_build.add_argument("--build-receipt-sha256", required=True)
+    publish_build.add_argument("--domain", choices=["market_consultant", "qingcheng"], required=True)
+    publish_build.add_argument("--confirm-publish", action="store_true", required=True)
+    publish_build.add_argument("--version-description", required=True)
+    publish_build.add_argument("--output", type=Path, default=None)
+    publish_build.add_argument("--headed", action="store_true")
+    publish_build.add_argument("--state-path", type=Path, default=DEFAULT_STATE)
+    publish_build.add_argument("--artifacts-dir", type=Path, default=DEFAULT_ARTIFACTS)
+    publish_build.add_argument("--env-file", type=Path, default=DEFAULT_ENV_FILE)
+    publish_build.add_argument("--username", default=os.environ.get("BAIJIA_USERNAME"))
+    publish_build.add_argument("--password", default=os.environ.get("BAIJIA_PASSWORD"))
+    publish_build.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL)
+    publish_build.add_argument("--executable-path", default=None)
+    publish_build.add_argument("--wait-ms", type=int, default=3_000)
+    publish_build.add_argument("--debug-artifacts", action="store_true")
+    publish_build.set_defaults(func=cmd_publish_dashboard_build)
 
     inspect_write = subparsers.add_parser(
         "inspect-write-capabilities",
@@ -298,6 +369,62 @@ def build_parser() -> argparse.ArgumentParser:
     capture_write.add_argument("--wait-ms", type=int, default=3_000)
     capture_write.add_argument("--debug-artifacts", action="store_true")
     capture_write.set_defaults(func=cmd_capture_write_evidence)
+
+    capture_build = subparsers.add_parser(
+        "capture-dashboard-build-evidence",
+        help="Capture one redacted P4C create request and menu/profile readback in an explicit sandbox.",
+    )
+    capture_build.add_argument("--operation", choices=sorted(BUILD_EVIDENCE_OPERATIONS), required=True)
+    capture_build.add_argument("--scope", choices=["dashboard", "folder"], required=True)
+    capture_build.add_argument("--domain", choices=["market_consultant", "qingcheng"], required=True)
+    capture_build.add_argument("--sandbox-dashboard-id", default=None)
+    capture_build.add_argument("--expected-dashboard-name", default=None)
+    capture_build.add_argument("--sandbox-subject-id", default=None)
+    capture_build.add_argument("--sandbox-subject-name", default=None)
+    capture_build.add_argument("--html-id", default=None)
+    capture_build.add_argument("--folder-id", default=None)
+    capture_build.add_argument("--folder-path", default=None)
+    capture_build.add_argument("--folder-name", default=None)
+    capture_build.add_argument("--expected-new-dashboard-name", default=None)
+    capture_build.add_argument(
+        "--automate-sandbox-ui",
+        action="store_true",
+        help=(
+            "Drive the single confirmed sandbox UI action through operator-owned selectors. "
+            "This is evidence capture only and never bypasses the sandbox or dangerous-request gates."
+        ),
+    )
+    capture_build.add_argument(
+        "--sandbox-action-manifest",
+        type=Path,
+        default=None,
+        help=(
+            "Exact JSON manifest for operator-owned sandbox UI automation. The manifest operation, "
+            "dashboard identity, dataset identity, and requested logical resource must match the CLI target."
+        ),
+    )
+    capture_build.add_argument("--confirm-sandbox-write", action="store_true", required=True)
+    capture_build.add_argument("--capture-seconds", type=int, default=45)
+    capture_build.add_argument("--output", type=Path, default=None)
+    capture_build.add_argument("--headed", action="store_true", required=True)
+    capture_build.add_argument("--state-path", type=Path, default=DEFAULT_STATE)
+    capture_build.add_argument("--artifacts-dir", type=Path, default=DEFAULT_ARTIFACTS)
+    capture_build.add_argument("--env-file", type=Path, default=DEFAULT_ENV_FILE)
+    capture_build.add_argument("--username", default=os.environ.get("BAIJIA_USERNAME"))
+    capture_build.add_argument("--password", default=os.environ.get("BAIJIA_PASSWORD"))
+    capture_build.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL)
+    capture_build.add_argument("--executable-path", default=None)
+    capture_build.add_argument("--wait-ms", type=int, default=3_000)
+    capture_build.add_argument("--debug-artifacts", action="store_true")
+    capture_build.set_defaults(func=cmd_capture_dashboard_build_evidence)
+
+    verify_build = subparsers.add_parser(
+        "verify-sandbox-dashboard-build",
+        help="Verify immutable P4C evidence coverage offline; does not promote production capabilities.",
+    )
+    verify_build.add_argument("--evidence-manifest", type=Path, required=True)
+    verify_build.add_argument("--output", type=Path, default=None)
+    verify_build.set_defaults(func=cmd_verify_sandbox_dashboard_build)
 
     verify_adapters = subparsers.add_parser(
         "verify-sandbox-write-adapters",

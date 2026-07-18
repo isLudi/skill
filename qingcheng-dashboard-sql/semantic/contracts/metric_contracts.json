@@ -293,6 +293,48 @@
         "前端是否使用该精确完成度公式待确认。",
         "pending_confirmation 状态必须阻断生产编译。"
       ]
+    },
+    {
+      "id": "qingcheng:metric:refund_reason_allocated_amount",
+      "name": "青橙按原因分摊退费金额",
+      "aliases": [
+        "青橙退费原因金额",
+        "退费原因金额",
+        "按原因分摊退费金额"
+      ],
+      "status": "pending_confirmation",
+      "automatic_compile": false,
+      "source_path": "knowledge/metrics/qingcheng_refund_reason_metrics.md",
+      "source_sha256": "2777c300e9593fb209b916c6992d067628cbb248e5481bd444b813364981daee",
+      "description": "Q1 将青橙订单退款金额按财务原因源金额比例分摊；无权重时均分，无原因时归未获取到退费原因。",
+      "candidate_tables": [
+        "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
+        "finance_dw.dwd_finance_order_refund_df",
+        "temp_table.dingxi01_qing_team_jg"
+      ],
+      "calculation_grain": "qici + order_number + refund_reason, then user + refund_reason",
+      "notes": "原因权重、refund_type 枚举、渠道 CASE 和结果期次架构仍待确认。"
+    },
+    {
+      "id": "qingcheng:metric:tmk_transfer_lead_count",
+      "name": "青橙 TMK 转移线索数",
+      "aliases": [
+        "TMK转移线索数",
+        "TMK转正常线索",
+        "SEC后转线索数"
+      ],
+      "status": "pending_confirmation",
+      "automatic_compile": false,
+      "source_path": "knowledge/metrics/qingcheng_tmk_transfer_order_trace_metrics.md",
+      "source_sha256": "f56a6924101af73fab288fbdf198b63c0a3accc8ed704b03f91861b8bb48b35e",
+      "description": "Q2 对已按 transfer_lead_id 去重的潜客转正常线索每条计 1；范围依赖业务期次、TMK 意向和 SEC 架构。",
+      "candidate_tables": [
+        "data_lake_fuwu.dwd_crm_leads_rt",
+        "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf",
+        "temp_table.dingxi01_jiagou_db"
+      ],
+      "calculation_grain": "transfer_lead_id",
+      "notes": "Join 契约已确认，但完整明细是多表人工 SQL；扩大期次范围仍需复核覆盖和重复。"
     }
   ]
 }
