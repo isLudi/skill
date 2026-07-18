@@ -31,7 +31,18 @@ from read_dashboard.dashboard_build_evidence import (  # noqa: E402
     preflight_build_evidence_capture,
     verify_dashboard_build_evidence_manifest,
 )
-from read_dashboard.dashboard_change import canonical_sha256, normalize_profile  # noqa: E402
+from read_dashboard.dashboard_change import (  # noqa: E402
+    artifact_sha256,
+    canonical_sha256,
+    normalize_profile,
+)
+from read_dashboard.dashboard_build_adapters import (  # noqa: E402
+    EDIT_UNIT_VALUE_API,
+    PRODUCTION_BUILD_ADAPTER_FACTORIES,
+    TaitanDashboardBuildV1Adapter,
+    _is_customized_field,
+    _prune_unplanned_data_nodes,
+)
 
 
 def raw_spec() -> dict:
@@ -300,7 +311,229 @@ class FaultInjectingBuildAdapter(FakeBuildAdapter):
         return super().check_global_filters(plan, resources)
 
 
+class OrderingBuildAdapter(FakeBuildAdapter):
+    def __init__(self) -> None:
+        super().__init__()
+        self.calls: list[str] = []
+
+    def ensure_calculated_column(self, plan, column, resources):
+        self.calls.append(f"formula:{column['logical_id']}")
+        return super().ensure_calculated_column(plan, column, resources)
+
+    def ensure_component(self, plan, component, resources):
+        self.calls.append(f"component:{component['component_id']}")
+        return super().ensure_component(plan, component, resources)
+
+
 class DashboardBuildOperatorTests(unittest.TestCase):
+    def test_production_adapter_is_registered_only_under_planned_id(self) -> None:
+        self.assertEqual(
+            ["taitan_dashboard_build_v1"],
+            sorted(PRODUCTION_BUILD_ADAPTER_FACTORIES),
+        )
+
+    def test_production_adapter_profile_target_covers_four_units_filters_and_layout(self) -> None:
+        plan = ready_plan()
+        adapter = object.__new__(TaitanDashboardBuildV1Adapter)
+        resource_map = {
+            "formula:rate": {
+                "field_id": "customized_rate",
+                "resource_id": "customized_rate",
+            },
+            "component:card": {
+                "unit_id": "unit_card",
+                "actual_component_id": "node_card",
+            },
+            "component:pivot": {
+                "unit_id": "unit_pivot",
+                "actual_component_id": "node_pivot",
+            },
+            "component:bar": {
+                "unit_id": "unit_bar",
+                "actual_component_id": "node_bar",
+            },
+            "component:pie": {
+                "unit_id": "unit_pie",
+                "actual_component_id": "node_pie",
+            },
+            "filter:period": {"relation_id": "public_relation"},
+        }
+        unit_ids = {
+            "card": ("unit_card", "node_card", "card"),
+            "pivot": ("unit_pivot", "node_pivot", "u_pivot"),
+            "bar": ("unit_bar", "node_bar", "u_bar"),
+            "pie": ("unit_pie", "node_pie", "u_pie"),
+        }
+        data_units = []
+        layout = []
+        for component in plan["components"]:
+            logical_id = component["component_id"]
+            unit_id, node_id, unit_type = unit_ids[logical_id]
+            dimensions = [item.get("field_id") for item in component["dimensions"]]
+            measures = [
+                "customized_rate"
+                if item.get("calculated_column_ref")
+                else item.get("field_id")
+                for item in component["measures"]
+            ]
+            filters = [item["field"].get("field_id") for item in component["local_filters"]]
+            data_units.append(
+                {
+                    "unit_id": unit_id,
+                    "unit_type": unit_type,
+                    "component_id": node_id,
+                    "model_identity": {
+                        "application_model_id": "model_1",
+                        "subject_id": "subject_1",
+                    },
+                    "field_groups": {
+                        "row_dimension": dimensions,
+                        "column_dimension": [],
+                        "measure": measures,
+                        "aide_measure": [],
+                        "filter": filters,
+                    },
+                }
+            )
+            layout.append({"component_id": node_id, **component["layout"]})
+        profile = {
+            "dashboard_name": plan["dashboard_name"],
+            "data_units": data_units,
+            "layout": layout,
+            "public_filters": [
+                {
+                    "relation_id": "public_relation",
+                    "field_id": "f_period",
+                    "target_component_ids": [
+                        "node_card",
+                        "node_pivot",
+                        "node_bar",
+                        "node_pie",
+                    ],
+                }
+            ],
+            "theme": {"background_color": "#FFFFFF"},
+        }
+        result = adapter.verify_profile_target(plan, profile, resource_map)
+        self.assertTrue(result["ok"], result["mismatches"])
+
+    def test_component_value_adapter_uses_draft_endpoint_and_type_shapes(self) -> None:
+        plan = ready_plan()
+        adapter = object.__new__(TaitanDashboardBuildV1Adapter)
+        adapter.page = object()
+        adapter._open_dashboard = lambda resources: ("dashboard_1", "html_1")
+        resource_map = {
+            f"component:{item['component_id']}": {
+                "unit_id": f"unit_{item['component_id']}"
+            }
+            for item in plan["components"]
+        }
+
+        def value_response(page, url, payload, timeout_ms):
+            self.assertEqual(EDIT_UNIT_VALUE_API, url)
+            self.assertEqual("draft", payload["versionId"])
+            unit_id = payload["id"]
+            if unit_id == "unit_card":
+                value = {"data": {"value": 1}}
+            elif unit_id == "unit_pivot":
+                value = {"data": [{"grade": "A", "amount": 1}]}
+            else:
+                value = {"series": [{"name": "amount", "data": [1]}]}
+            return {"status": "success", "data": {unit_id: value}}
+
+        with patch(
+            "read_dashboard.dashboard_build_adapters.post_json",
+            side_effect=value_response,
+        ):
+            results = adapter.check_component_values(plan, resource_map)
+        self.assertTrue(all(item["ok"] for item in results))
+        self.assertEqual(
+            ["metric_group", "pivot", "chart", "chart"],
+            [item["response_shape"] for item in results],
+        )
+
+    def test_assembly_detaches_unplanned_node_without_deleting_unit_identity(self) -> None:
+        schema = {
+            "componentsTree": [
+                {
+                    "id": "root",
+                    "componentName": "RootContentNew",
+                    "props": {
+                        "layout": [
+                            {"i": "node_keep", "x": 0},
+                            {"i": "node_orphan", "x": 1},
+                        ]
+                    },
+                    "children": [
+                        {
+                            "id": "node_keep",
+                            "componentName": "PivotTable",
+                            "props": {
+                                "settings": {
+                                    "unitId": "unit_keep",
+                                    "componentType": "u_pivot",
+                                }
+                            },
+                        },
+                        {
+                            "id": "node_orphan",
+                            "componentName": "PieChart",
+                            "props": {
+                                "settings": {
+                                    "unitId": "unit_orphan",
+                                    "componentType": "u_pie",
+                                }
+                            },
+                        },
+                        {
+                            "id": "node_filter",
+                            "componentName": "PublicFilter",
+                            "props": {
+                                "settings": {
+                                    "unitId": "public_filter_relation_1",
+                                    "componentType": "u_filter",
+                                }
+                            },
+                        },
+                    ],
+                }
+            ]
+        }
+        pruned, detached = _prune_unplanned_data_nodes(schema, {"unit_keep"})
+        self.assertEqual(
+            [{"unit_id": "unit_orphan", "component_id": "node_orphan"}],
+            detached,
+        )
+        root = pruned["componentsTree"][0]
+        self.assertEqual(
+            ["node_keep", "node_filter"],
+            [item["id"] for item in root["children"]],
+        )
+        self.assertEqual(["node_keep"], [item["i"] for item in root["props"]["layout"]])
+
+    def test_dataset_schema_excludes_subject_level_customized_columns(self) -> None:
+        self.assertTrue(_is_customized_field({"key": "customized_123"}))
+        self.assertFalse(_is_customized_field({"key": "9133623162857472"}))
+
+    def test_same_name_different_formula_is_blocked_without_write(self) -> None:
+        plan = ready_plan()
+        adapter = object.__new__(TaitanDashboardBuildV1Adapter)
+        adapter.page = object()
+        adapter._formula_match = lambda current_plan, column, resources: (
+            {"key": "customized_1"},
+            [],
+            1,
+        )
+        with patch(
+            "read_dashboard.dashboard_build_adapters._formula_item",
+            return_value={"formula": "${different}"},
+        ), patch("read_dashboard.dashboard_build_adapters._write_formula") as write:
+            with self.assertRaisesRegex(UsageError, "different expression"):
+                adapter.ensure_calculated_column(
+                    plan, plan["calculated_columns"][0], {}
+                )
+        write.assert_not_called()
+
     def test_upstream_artifact_binding_reads_real_files_and_source_hashes(self) -> None:
         source_path = "knowledge/00_global_rules.md"
         source_file = SKILL_ROOT.parent / "qingcheng-dashboard-sql" / source_path
@@ -434,8 +667,12 @@ class DashboardBuildOperatorTests(unittest.TestCase):
         ):
             self.assertIn(command, commands)
 
-    def test_production_apply_is_blocked_by_registry_before_browser_import(self) -> None:
+    def test_invalid_production_plan_is_blocked_before_browser_import(self) -> None:
         plan = ready_plan()
+        plan["status"] = "blocked"
+        plan["dashboard_build_plan_sha256"] = artifact_sha256(
+            plan, "dashboard_build_plan_sha256"
+        )
         with tempfile.TemporaryDirectory() as temp_dir:
             path = Path(temp_dir) / "plan.json"
             path.write_text(json.dumps(plan), encoding="utf-8")
@@ -448,9 +685,31 @@ class DashboardBuildOperatorTests(unittest.TestCase):
                 resume_receipt=None,
             )
             with patch("read_dashboard.commands.apply_dashboard_build.import_playwright") as browser_import:
-                with self.assertRaisesRegex(UsageError, "not production verified/allowlisted"):
+                with self.assertRaisesRegex(UsageError, "status must be ready"):
                     cmd_apply_dashboard_build(args)
                 browser_import.assert_not_called()
+
+    def test_dashboard_scoped_subject_is_allocated_before_formula_creation(self) -> None:
+        spec = raw_spec()
+        spec["datasets"][0]["config"] = {
+            "subject_identity_policy": "dashboard_scoped_clone"
+        }
+        spec["components"][0]["measures"] = ["calc:rate"]
+        plan = plan_dashboard_build(
+            normalize_build_spec(spec),
+            resolution(),
+            folder_snapshot_sha256="5" * 64,
+            dashboard_name_available=True,
+        )
+        adapter = OrderingBuildAdapter()
+        receipt = execute_dashboard_build_saga(plan, adapter)
+        self.assertTrue(receipt["ok"], receipt.get("failure"))
+        formula_index = adapter.calls.index("formula:rate")
+        self.assertGreater(formula_index, 0)
+        self.assertEqual("component:card", adapter.calls[-1])
+        self.assertTrue(
+            all(call.startswith("component:") for call in adapter.calls[:formula_index])
+        )
 
     def test_apply_requires_exact_hash_and_confirmation(self) -> None:
         plan = ready_plan()
@@ -480,6 +739,7 @@ class DashboardBuildOperatorTests(unittest.TestCase):
         self.assertGreater(len(failed["orphaned_resources"]), 0)
         resumed = execute_dashboard_build_saga(plan, FakeBuildAdapter(), resume_receipt=failed)
         self.assertTrue(resumed["ok"])
+        self.assertFalse(resumed["manual_cleanup_required"])
         self.assertGreater(len(resumed["reused_resources"]), 0)
 
     def test_publish_preflight_requires_successful_receipt_and_separate_confirmation(self) -> None:

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -21,9 +22,16 @@ from ..dashboard_build_evidence import (
     menu_folder_snapshot,
     preflight_build_evidence_capture,
 )
-from ..dashboard_change import require_complete_profile
-from ..edit_profile import build_edit_url, open_edit_page, profile_edit_dashboard
+from ..dashboard_change import canonical_sha256, require_complete_profile
+from ..edit_profile import (
+    build_edit_url,
+    fetch_edit_dashboard_config,
+    fetch_dataset_fields,
+    open_edit_page,
+    profile_edit_dashboard,
+)
 from ..menu import fetch_dashboard_menu
+from ..dashboard_write_adapters import find_layout_item, _write_dashboard_schema
 from ..write_capabilities import is_dangerous_request, request_observation
 
 
@@ -137,7 +145,7 @@ def _write_automation_diagnostic(
             )
         except Exception:  # noqa: BLE001 - a transient iframe must not abort evidence capture
             continue
-    probe_texts = ["维度", "指标", "筛选", "数据"]
+    probe_texts = ["维度", "行维度", "列维度", "指标", "筛选", "数据"]
     for group_name in ("dimensions", "measures", "local_filters"):
         for field in manifest.get(group_name) or []:
             if isinstance(field, Mapping):
@@ -163,6 +171,64 @@ def _write_automation_diagnostic(
             except Exception:  # noqa: BLE001 - diagnostic snapshot only
                 continue
         text_matches[probe] = values
+    checkbox_matches: list[dict[str, Any]] = []
+    checkboxes = page.locator('input[type="checkbox"]:visible')
+    for index in range(min(checkboxes.count(), 30)):
+        checkbox = checkboxes.nth(index)
+        try:
+            checkbox_matches.append(
+                {
+                    "checked": checkbox.is_checked(),
+                    "ancestor_html": checkbox.evaluate(
+                        "element => (element.closest('label')?.outerHTML || "
+                        "element.parentElement?.parentElement?.outerHTML || element.outerHTML).slice(0, 5000)"
+                    ),
+                }
+            )
+        except Exception:  # noqa: BLE001 - diagnostic snapshot only
+            continue
+    visible_modal_html: list[str] = []
+    modals = page.locator(".ant-modal-wrap:visible")
+    for index in range(min(modals.count(), 5)):
+        try:
+            visible_modal_html.append(
+                modals.nth(index).evaluate("element => element.outerHTML.slice(0, 100000)")
+            )
+        except Exception:  # noqa: BLE001 - diagnostic snapshot only
+            continue
+    action_icons: list[dict[str, Any]] = []
+    icons = page.locator('[aria-label="plus-square"]:visible')
+    for index in range(min(icons.count(), 20)):
+        icon = icons.nth(index)
+        try:
+            action_icons.append(
+                {
+                    "ancestor_html": icon.evaluate(
+                        "element => (element.parentElement?.parentElement?.parentElement?.outerHTML "
+                        "|| element.outerHTML).slice(0, 10000)"
+                    )
+                }
+            )
+        except Exception:  # noqa: BLE001 - diagnostic snapshot only
+            continue
+    aria_controls: list[dict[str, Any]] = []
+    aria_items = page.locator("[aria-label]:visible")
+    for index in range(min(aria_items.count(), 100)):
+        item = aria_items.nth(index)
+        try:
+            aria_controls.append(
+                {
+                    "tag": item.evaluate("element => element.tagName.toLowerCase()"),
+                    "aria_label": item.get_attribute("aria-label"),
+                    "class": item.get_attribute("class"),
+                    "ancestor_text": item.evaluate(
+                        "element => (element.closest('button')?.innerText || "
+                        "element.parentElement?.parentElement?.innerText || '').slice(0, 300)"
+                    ),
+                }
+            )
+        except Exception:  # noqa: BLE001 - diagnostic snapshot only
+            continue
     write_json(
         {
             "artifact_type": "DashboardBuildSandboxUiDiagnostic",
@@ -171,6 +237,10 @@ def _write_automation_diagnostic(
             "page": _visible_control_snapshot(page),
             "frames": frames,
             "text_matches": text_matches,
+            "checkbox_matches": checkbox_matches,
+            "visible_modal_html": visible_modal_html,
+            "action_icons": action_icons,
+            "aria_controls": aria_controls,
         },
         artifacts_dir / "dashboard-build-ui" / f"{safe_filename(operation)}.json",
     )
@@ -223,6 +293,30 @@ def _drag_between_locators(page, source, target, label: str) -> None:
 
 def _drag_field_to_slot(page, field_name: str, slot_name: str) -> None:
     source_text = page.get_by_text(field_name, exact=True)
+    expanded_customized_group = False
+    if source_text.count() == 0:
+        customized_group = page.get_by_text("自定义指标", exact=True)
+        if customized_group.count() == 1:
+            expanded_customized_group = True
+            tree_node = customized_group.locator(
+                "xpath=ancestor::*[contains(@class,'ant-tree-treenode')][1]"
+            )
+            switcher = tree_node.locator("span.ant-tree-switcher")
+            if switcher.count() == 1:
+                expanded = tree_node.get_attribute("aria-expanded") == "true"
+                if expanded:
+                    switcher.click()
+                    page.wait_for_timeout(300)
+                switcher.click()
+            else:
+                customized_group.click()
+            visible_tree_holders = page.locator("div.ant-tree-list-holder:visible")
+            if visible_tree_holders.count() >= 1:
+                visible_tree_holders.last.evaluate(
+                    "node => { node.scrollTop = node.scrollHeight; }"
+                )
+            page.wait_for_timeout(1_200)
+            source_text = page.get_by_text(field_name, exact=True)
     if source_text.count() != 1:
         raise UsageError(
             f"Expected exactly one dataset field named {field_name}; found {source_text.count()}."
@@ -234,6 +328,11 @@ def _drag_field_to_slot(page, field_name: str, slot_name: str) -> None:
     slot_label = slot_labels.nth(0)
     target = slot_label.locator("xpath=following-sibling::div//main")
     _drag_between_locators(page, source, target, f"{field_name}->{slot_name}")
+    if expanded_customized_group and page.get_by_text(field_name, exact=True).count() < 2:
+        source.drag_to(target, force=True, timeout=10_000)
+        page.wait_for_timeout(1_500)
+    if expanded_customized_group and page.get_by_text(field_name, exact=True).count() < 2:
+        raise UsageError(f"Custom field was not accepted by component slot: {field_name}")
 
 
 def _field_name(field: Mapping[str, Any]) -> str:
@@ -252,6 +351,12 @@ def _automate_dashboard_component_creation(page, args, manifest, artifacts_dir: 
         raise UsageError("Sandbox action manifest palette title does not match the operation.")
     _drag_palette_item_to_dashboard(page, palette_title)
     if args.operation != "create_public_filter":
+        component_name = str(manifest.get("component_name") or "").strip()
+        if component_name:
+            name_inputs = page.locator('input[placeholder="请输入"]:visible')
+            if name_inputs.count() < 1:
+                raise UsageError("Component name input was not found.")
+            name_inputs.first.fill(component_name)
         dataset = manifest["dataset"]
         chooser = page.get_by_text("+ 请选择数据集", exact=True)
         chooser.wait_for(state="visible", timeout=10_000)
@@ -273,10 +378,17 @@ def _automate_dashboard_component_creation(page, args, manifest, artifacts_dir: 
                 f"Expected exactly one sandbox dataset named {dataset['dataset_name']}; "
                 f"found {dataset_option.count()}."
             )
+        _write_automation_diagnostic(
+            artifacts_dir=artifacts_dir,
+            operation=f"{args.operation}-dataset-ready",
+            page=page,
+            manifest=manifest,
+        )
+        dimension_slot = "行维度" if args.operation == "create_pivot_component" else "维度"
         for field in manifest.get("dimensions") or []:
             if not isinstance(field, Mapping):
                 raise UsageError("Dimension entries must be objects.")
-            _drag_field_to_slot(page, _field_name(field), "维度")
+            _drag_field_to_slot(page, _field_name(field), dimension_slot)
         for field in manifest.get("measures") or []:
             if not isinstance(field, Mapping):
                 raise UsageError("Measure entries must be objects.")
@@ -287,12 +399,23 @@ def _automate_dashboard_component_creation(page, args, manifest, artifacts_dir: 
             _drag_field_to_slot(page, _field_name(field), "筛选")
             modal = page.locator(".ant-modal-wrap:visible").last
             modal.wait_for(state="visible", timeout=10_000)
-            checkboxes = modal.locator('input[type="checkbox"]')
-            if checkboxes.count() < 2:
+            _write_automation_diagnostic(
+                artifacts_dir=artifacts_dir,
+                operation=f"{args.operation}-local-filter-dialog",
+                page=page,
+                manifest=manifest,
+            )
+            value_nodes = modal.locator(".ant-tree-node-content-wrapper:visible")
+            if value_nodes.count() < 1:
                 raise UsageError("Local filter dialog did not expose a selectable value.")
-            checkboxes.nth(1).check(force=True)
+            value_nodes.first.click(force=True)
+            page.wait_for_timeout(1_500)
+            if not re.search(r"已选\s*[1-9]\d*", modal.inner_text()):
+                raise UsageError("Local filter value selection did not update the selected count.")
             modal.get_by_text("确 定", exact=True).click()
             page.wait_for_timeout(3_000)
+            if page.locator(".ant-modal-wrap:visible").count() != 0:
+                raise UsageError("Local filter dialog did not close after confirmation.")
         _write_automation_diagnostic(
             artifacts_dir=artifacts_dir,
             operation=f"{args.operation}-configured",
@@ -302,13 +425,166 @@ def _automate_dashboard_component_creation(page, args, manifest, artifacts_dir: 
         page.get_by_text("更 新", exact=True).click()
         page.wait_for_timeout(6_000)
         page.get_by_text("保存到草稿箱", exact=True).click()
-        page.wait_for_timeout(8_000)
+        page.get_by_text("确认保存修改吗", exact=True).wait_for(
+            state="visible", timeout=10_000
+        )
+        page.get_by_text("确 认", exact=True).click()
+        page.wait_for_timeout(10_000)
+    else:
+        target_entries = manifest.get("target_components") or []
+        targets = manifest.get("target_component_names") or []
+        target_specs = (
+            [item for item in target_entries if isinstance(item, Mapping) and item.get("name")]
+            if target_entries
+            else [{"name": str(name)} for name in targets]
+        )
+        if not target_specs:
+            raise UsageError("Public filter action requires target_component_names.")
+        for target in target_specs:
+            target_name = str(target.get("name") or "")
+            labels = page.get_by_text(str(target_name), exact=True).locator(
+                "xpath=ancestor::label[contains(@class,'ant-checkbox-group-item')][1]"
+            )
+            if labels.count() == 1:
+                labels.click()
+                continue
+            stable_ids = {
+                str(target.get("component_id") or ""),
+                str(target.get("unit_id") or ""),
+            } - {""}
+            matches = []
+            candidate_values = []
+            for index in range(labels.count()):
+                label = labels.nth(index)
+                checkbox = label.locator('input[type="checkbox"]')
+                values = {
+                    str(checkbox.get_attribute("value") or "") if checkbox.count() else "",
+                    str(label.get_attribute("data-component-id") or ""),
+                    str(label.get_attribute("data-unit-id") or ""),
+                    str(label.get_attribute("data-row-key") or ""),
+                } - {""}
+                candidate_values.append(sorted(values))
+                if stable_ids.intersection(values):
+                    matches.append(label)
+            if len(matches) != 1:
+                raise UsageError(
+                    f"Expected one public-filter target component named {target_name}; "
+                    f"found {labels.count()} and stable-id matches={len(matches)}; "
+                    f"candidate identifiers={candidate_values}."
+                )
+            matches[0].click()
+        page.wait_for_timeout(4_000)
+        page.get_by_text("点击设置", exact=True).click()
+        page.wait_for_timeout(3_000)
+        _write_automation_diagnostic(
+            artifacts_dir=artifacts_dir,
+            operation=f"{args.operation}-targets-selected",
+            page=page,
+            manifest=manifest,
+        )
+        modal = page.locator(".ant-modal-wrap:visible").last
+        modal.wait_for(state="visible", timeout=10_000)
+        combobox = modal.locator('input[role="combobox"]')
+        if combobox.count() != 1:
+            raise UsageError("Public filter field combobox was not found uniquely.")
+        combobox.click()
+        page.wait_for_timeout(2_000)
+        field = manifest.get("field")
+        if not isinstance(field, Mapping):
+            raise UsageError("Public filter action requires one exact field object.")
+        field_name = _field_name(field)
+        field_options = page.get_by_text(field_name, exact=True)
+        if field_options.count() < 1:
+            raise UsageError(f"Public-filter field option not found: {field_name}")
+        field_options.last.click()
+        page.wait_for_timeout(1_500)
+        modal.get_by_text("确 定", exact=True).click()
+        page.wait_for_timeout(4_000)
+        if page.locator(".ant-modal-wrap:visible").count() != 0:
+            raise UsageError("Public filter field dialog did not close after confirmation.")
+        page.get_by_text("更 新", exact=True).click()
+        page.wait_for_timeout(6_000)
+        page.get_by_text("保存到草稿箱", exact=True).click()
+        page.get_by_text("确认保存修改吗", exact=True).wait_for(
+            state="visible", timeout=10_000
+        )
+        page.get_by_text("确 认", exact=True).click()
+        page.wait_for_timeout(10_000)
     _write_automation_diagnostic(
         artifacts_dir=artifacts_dir,
         operation=args.operation,
         page=page,
         manifest=manifest,
     )
+
+
+def _automate_formula_creation(page, args, manifest, artifacts_dir: Path) -> None:
+    target_component_name = str(manifest.get("target_component_name") or "").strip()
+    if not target_component_name:
+        raise UsageError("Formula sandbox action requires target_component_name.")
+    simulator = page.frame_locator('iframe[name="undefined-SimulatorRenderer"]')
+    target = simulator.get_by_text(target_component_name, exact=True)
+    if target.count() != 1:
+        raise UsageError(
+            f"Expected one formula host component named {target_component_name}; "
+            f"found {target.count()}."
+        )
+    target.click()
+    page.wait_for_timeout(4_000)
+    _write_automation_diagnostic(
+        artifacts_dir=artifacts_dir,
+        operation=f"{args.operation}-component-selected",
+        page=page,
+        manifest=manifest,
+    )
+    dataset_menu = page.locator('[aria-label="unordered-list"]:visible')
+    if dataset_menu.count() != 1:
+        raise UsageError(
+            f"Expected one selected-dataset action menu; found {dataset_menu.count()}."
+        )
+    dataset_menu.click()
+    page.get_by_text("新增计算列", exact=True).click()
+    page.wait_for_timeout(3_000)
+    _write_automation_diagnostic(
+        artifacts_dir=artifacts_dir,
+        operation=f"{args.operation}-entrypoint-opened",
+        page=page,
+        manifest=manifest,
+    )
+    formula = manifest.get("formula")
+    if not isinstance(formula, Mapping):
+        raise UsageError("Formula sandbox action requires a formula object.")
+    formula_name = str(formula.get("name") or "").strip()
+    dependencies = formula.get("dependencies") or []
+    if not formula_name or len(dependencies) != 1 or not isinstance(dependencies[0], Mapping):
+        raise UsageError("Formula sandbox action requires a name and exactly one dependency.")
+    modal = page.locator(".ant-modal-wrap:visible").last
+    modal.get_by_placeholder("计算列名称").fill(formula_name)
+    type_select = modal.locator('input[role="combobox"]')
+    if type_select.count() != 1:
+        raise UsageError("Formula data-type selector was not found uniquely.")
+    type_select.locator(
+        "xpath=ancestor::div[contains(@class,'ant-select-selector')][1]"
+    ).click()
+    page.get_by_text("数值", exact=True).last.click()
+    dependency_name = _field_name(dependencies[0])
+    dependency = modal.get_by_text(dependency_name, exact=True)
+    if dependency.count() != 1:
+        raise UsageError(
+            f"Expected one formula dependency named {dependency_name}; found {dependency.count()}."
+        )
+    dependency.click()
+    page.wait_for_timeout(2_000)
+    _write_automation_diagnostic(
+        artifacts_dir=artifacts_dir,
+        operation=f"{args.operation}-configured",
+        page=page,
+        manifest=manifest,
+    )
+    modal.get_by_text("确 定", exact=True).click()
+    page.wait_for_timeout(8_000)
+    if page.locator(".ant-modal-wrap:visible").count() != 0:
+        raise UsageError("Formula dialog did not close after confirmation.")
 
 
 def _automate_folder_dashboard_creation(page, args) -> None:
@@ -340,7 +616,74 @@ def _automate_folder_dashboard_creation(page, args) -> None:
     page.wait_for_timeout(4_000)
 
 
-def _automate_confirmed_sandbox_action(page, args, manifest, artifacts_dir: Path) -> None:
+def _automate_dashboard_assembly(page, args, manifest, observations) -> None:
+    patch = manifest.get("layout_patch")
+    if not isinstance(patch, Mapping):
+        raise UsageError("assemble_new_dashboard requires one exact layout_patch object.")
+    component_id = str(patch.get("component_id") or "")
+    before = patch.get("before")
+    after = patch.get("after")
+    if not component_id or not isinstance(before, Mapping) or not isinstance(after, Mapping):
+        raise UsageError("Assembly layout_patch requires component_id, before, and after.")
+    layout_keys = ("x", "y", "w", "h")
+    if set(before) != set(layout_keys) or set(after) != set(layout_keys):
+        raise UsageError("Assembly layout before/after must contain only x, y, w, h.")
+    config = fetch_edit_dashboard_config(page, args.sandbox_dashboard_id, "draft")
+    if str(config.get("dashboardName") or "") != args.expected_dashboard_name:
+        raise UsageError("Sandbox dashboard identity drifted before assembly evidence write.")
+    try:
+        schema = json.loads(str(config.get("dashboardHtmlJson") or "{}"))
+    except json.JSONDecodeError as exc:
+        raise UsageError("Dashboard HTML schema is not valid JSON.") from exc
+    layout = find_layout_item(schema, component_id)
+    current = {key: layout.get(key) for key in layout_keys}
+    expected = {key: before[key] for key in layout_keys}
+    if current != expected:
+        raise UsageError(
+            f"Assembly layout drifted before write: expected {expected}, got {current}."
+        )
+    target = {key: after[key] for key in layout_keys}
+    for key in layout_keys:
+        layout[key] = target[key]
+    observation_start = len(observations)
+    _write_dashboard_schema(
+        page,
+        args.sandbox_dashboard_id,
+        args.expected_dashboard_name,
+        schema,
+        observations,
+    )
+    allowed_observation_keys = {
+        "method",
+        "host",
+        "url_path",
+        "payload_bytes",
+        "request_key_paths",
+        "response_status",
+        "response_content_type",
+        "blocked",
+    }
+    for index in range(observation_start, len(observations)):
+        observations[index] = {
+            key: value
+            for key, value in observations[index].items()
+            if key in allowed_observation_keys
+        }
+        observations[index].setdefault("blocked", False)
+    page.wait_for_timeout(5_000)
+    readback = fetch_edit_dashboard_config(page, args.sandbox_dashboard_id, "draft")
+    readback_schema = json.loads(str(readback.get("dashboardHtmlJson") or "{}"))
+    readback_layout = find_layout_item(readback_schema, component_id)
+    actual = {key: readback_layout.get(key) for key in layout_keys}
+    if actual != target:
+        raise UsageError(
+            f"Assembly layout readback mismatch: expected {target}, got {actual}."
+        )
+
+
+def _automate_confirmed_sandbox_action(
+    page, args, manifest, artifacts_dir: Path, observations
+) -> None:
     if args.scope == "folder" and args.operation == "create_dashboard":
         _automate_folder_dashboard_creation(page, args)
         return
@@ -350,6 +693,18 @@ def _automate_confirmed_sandbox_action(page, args, manifest, artifacts_dir: Path
                 f"Automated {args.operation} evidence requires --sandbox-action-manifest."
             )
         _automate_dashboard_component_creation(page, args, manifest, artifacts_dir)
+        return
+    if args.scope == "dashboard" and args.operation == "create_formula":
+        if manifest is None:
+            raise UsageError("Automated create_formula evidence requires --sandbox-action-manifest.")
+        _automate_formula_creation(page, args, manifest, artifacts_dir)
+        return
+    if args.scope == "dashboard" and args.operation == "assemble_new_dashboard":
+        if manifest is None:
+            raise UsageError(
+                "Automated assemble_new_dashboard evidence requires --sandbox-action-manifest."
+            )
+        _automate_dashboard_assembly(page, args, manifest, observations)
         return
     raise UsageError(
         f"Operator-owned sandbox UI automation is not implemented for {args.operation}."
@@ -437,6 +792,19 @@ def cmd_capture_dashboard_build_evidence(args) -> int:
                     "dashboard_name": args.expected_dashboard_name,
                 }
                 if args.operation == "create_formula":
+                    before_subject_fields = fetch_dataset_fields(
+                        page,
+                        args.sandbox_dashboard_id,
+                        [int(args.sandbox_subject_id)],
+                        [2],
+                        [],
+                    )
+                    before_state_sha256 = canonical_sha256(
+                        {
+                            "profile_sha256": before["profile_sha256"],
+                            "subject_fields": before_subject_fields,
+                        }
+                    )
                     target.update(
                         {
                             "sandbox_subject_id": args.sandbox_subject_id,
@@ -484,7 +852,7 @@ def cmd_capture_dashboard_build_evidence(args) -> int:
             )
             if bool(getattr(args, "automate_sandbox_ui", False)):
                 _automate_confirmed_sandbox_action(
-                    page, args, action_manifest, artifacts_dir
+                    page, args, action_manifest, artifacts_dir, observations
                 )
                 page.wait_for_timeout(min(args.capture_seconds, 10) * 1000)
             else:
@@ -543,6 +911,20 @@ def cmd_capture_dashboard_build_evidence(args) -> int:
                     after_raw, "Post-capture P4C sandbox DashboardProfile"
                 )
                 after_state_sha256 = str(after["profile_sha256"])
+                if args.operation == "create_formula":
+                    after_subject_fields = fetch_dataset_fields(
+                        page,
+                        args.sandbox_dashboard_id,
+                        [int(args.sandbox_subject_id)],
+                        [2],
+                        [],
+                    )
+                    after_state_sha256 = canonical_sha256(
+                        {
+                            "profile_sha256": after["profile_sha256"],
+                            "subject_fields": after_subject_fields,
+                        }
+                    )
         finally:
             browser.close()
 

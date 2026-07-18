@@ -212,9 +212,15 @@ def bind_build_upstream_artifacts(
             if plan_path:
                 try:
                     creation_plan = _read_json_path(plan_path, f"{dataset_ref} Data Center creation plan")
-                    plan_sha = str(_core_api().artifact_sha256(creation_plan, "plan_sha256"))
+                    from usql_web_query.data_center_creation import (
+                        DataCenterDatasetCreationPlan,
+                    )
+
+                    plan_sha = DataCenterDatasetCreationPlan.from_json(
+                        creation_plan
+                    ).plan_sha256
                     resolution["data_center_creation_plan_sha256"] = plan_sha
-                    if creation_plan.get("plan_sha256") != plan_sha or creation_plan.get("status") != "ready":
+                    if creation_plan.get("status") != "ready":
                         errors.append("Data Center creation plan is stale or not ready")
                 except UsageError as exc:
                     errors.append(str(exc))
@@ -451,6 +457,7 @@ def execute_dashboard_build_saga(
     reused: list[dict[str, Any]] = []
     operations: list[dict[str, Any]] = []
     resource_map: dict[str, Any] = {}
+    resume_orphans: list[dict[str, Any]] = []
     if resume_receipt:
         for resource in [
             *(resume_receipt.get("created_resources") or []),
@@ -458,6 +465,11 @@ def execute_dashboard_build_saga(
         ]:
             if isinstance(resource, Mapping) and resource.get("logical_id"):
                 resource_map[str(resource["logical_id"])] = copy.deepcopy(dict(resource))
+        resume_orphans = [
+            copy.deepcopy(dict(resource))
+            for resource in resume_receipt.get("orphaned_resources") or []
+            if isinstance(resource, Mapping)
+        ]
 
     dashboard_id: str | None = None
     html_id: str | None = None
@@ -479,6 +491,18 @@ def execute_dashboard_build_saga(
             resource.setdefault("logical_id", logical_id)
             resource_map[logical_id] = resource
             (reused if was_reused else created).append(resource)
+
+    def unresolved_resume_orphans() -> list[dict[str, Any]]:
+        resolved_logical_ids = {
+            str(resource.get("logical_id") or "")
+            for resource in [*created, *reused]
+            if isinstance(resource, Mapping) and resource.get("logical_id")
+        }
+        return [
+            resource
+            for resource in resume_orphans
+            if str(resource.get("logical_id") or "") not in resolved_logical_ids
+        ]
 
     try:
         folder_readback = adapter.verify_target_folder(plan)
@@ -533,12 +557,42 @@ def execute_dashboard_build_saga(
         dashboard_id = str(dashboard_resource.get("dashboard_id") or dashboard_resource.get("resource_id") or "") or None
         html_id = str(dashboard_resource.get("html_id") or "") or None
 
-        for index, column in enumerate(plan.get("calculated_columns") or [], start=1):
-            logical_id = str(column["logical_id"])
-            result = adapter.ensure_calculated_column(plan, column, resource_map)
-            record(f"step_02_formula_{index:03d}", "create_formula", result, f"formula:{logical_id}")
+        indexed_components = list(enumerate(plan.get("components") or [], start=1))
+        dashboard_scoped_subject = any(
+            isinstance(dataset, Mapping)
+            and isinstance(dataset.get("config"), Mapping)
+            and dataset["config"].get("subject_identity_policy")
+            == "dashboard_scoped_clone"
+            for dataset in plan.get("datasets") or []
+        )
 
-        for index, component in enumerate(plan.get("components") or [], start=1):
+        def component_uses_calculated_column(component: Mapping[str, Any]) -> bool:
+            values: list[Any] = [
+                *(component.get("dimensions") or []),
+                *(component.get("measures") or []),
+            ]
+            values.extend(
+                item.get("field")
+                for item in component.get("local_filters") or []
+                if isinstance(item, Mapping)
+            )
+            return any(
+                isinstance(item, Mapping) and item.get("calculated_column_ref")
+                for item in values
+            )
+
+        allocation_components = (
+            [item for item in indexed_components if not component_uses_calculated_column(item[1])]
+            if dashboard_scoped_subject and plan.get("calculated_columns")
+            else []
+        )
+        if dashboard_scoped_subject and plan.get("calculated_columns") and not allocation_components:
+            raise UsageError(
+                "A dashboard-scoped subject build requires at least one formula-free component "
+                "to allocate the exact dashboard subject before calculated-column creation."
+            )
+
+        def ensure_planned_component(index: int, component: Mapping[str, Any]) -> None:
             logical_id = str(component["component_id"])
             operation_type = {
                 "metric_group": "create_metric_group_component",
@@ -548,6 +602,20 @@ def execute_dashboard_build_saga(
             }[str(component["type"])]
             result = adapter.ensure_component(plan, component, resource_map)
             record(f"step_03_component_{index:03d}", operation_type, result, f"component:{logical_id}")
+
+        for index, component in allocation_components:
+            ensure_planned_component(index, component)
+
+        for index, column in enumerate(plan.get("calculated_columns") or [], start=1):
+            logical_id = str(column["logical_id"])
+            result = adapter.ensure_calculated_column(plan, column, resource_map)
+            record(f"step_02_formula_{index:03d}", "create_formula", result, f"formula:{logical_id}")
+
+        allocated_indexes = {index for index, _ in allocation_components}
+        for index, component in indexed_components:
+            if index in allocated_indexes:
+                continue
+            ensure_planned_component(index, component)
 
         for index, global_filter in enumerate(plan.get("global_filters") or [], start=1):
             logical_id = str(global_filter["filter_id"])
@@ -645,7 +713,7 @@ def execute_dashboard_build_saga(
             operation_results=operations,
             created_resources=created,
             reused_resources=reused,
-            orphaned_resources=created,
+            orphaned_resources=[*unresolved_resume_orphans(), *created],
             dashboard_id=dashboard_id,
             html_id=html_id,
             post_profile_sha256=post_profile_sha256,
@@ -659,7 +727,7 @@ def execute_dashboard_build_saga(
         operation_results=operations,
         created_resources=created,
         reused_resources=reused,
-        orphaned_resources=(),
+        orphaned_resources=unresolved_resume_orphans(),
         dashboard_id=dashboard_id,
         html_id=html_id,
         post_profile_sha256=post_profile_sha256,

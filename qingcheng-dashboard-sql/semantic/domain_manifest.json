@@ -2941,8 +2941,8 @@
       {
         "id": "qingcheng:reverse_index:join_risk_index",
         "source_path": "knowledge/reverse_index/join_risk_index.md",
-        "sha256": "289da3d5d81fff710bdade49bdb4aa6fa685da46d449c1a8a4a5c35695df235f",
-        "bytes": 37951,
+        "sha256": "194f71d9e7516a2e7801c786a0f7e168e9724d2d10bdc00e83c25490c0971062",
+        "bytes": 39285,
         "title": "JOIN 与结果异常风险索引",
         "table_refs": [
           "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf",
@@ -3299,8 +3299,8 @@
       {
         "id": "qingcheng:sql_patterns:qingcheng_tmk_transfer_latency_observation_log",
         "source_path": "knowledge/sql_patterns/qingcheng_tmk_transfer_latency_observation_log.md",
-        "sha256": "7d0fb0b770cff9f1a786c0064d86d4a93b823d99a3c8fb36c9563f4e52366cb4",
-        "bytes": 24853,
+        "sha256": "5b441f395c9f6d3d17d1aa7976e432c8df16ea131124fbd39c02b305ea5c28b7",
+        "bytes": 29283,
         "title": "青橙 TMK 转正常线索链路产出与延迟观测台账",
         "table_refs": [
           "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf",
@@ -3881,8 +3881,8 @@
       {
         "id": "qingcheng:update_log:changelog",
         "source_path": "knowledge/update_log/changelog.md",
-        "sha256": "bfbdc2f2383dbac7033d4e8a0ebe51e9aae133ed6a17a029b9e3f5d9b237af5f",
-        "bytes": 57977,
+        "sha256": "44bc7fbf89b4fb521c687b27b45f9499b07cb2f42b6e42dca8cec861cab4c101",
+        "bytes": 58794,
         "title": "更新日志",
         "table_refs": [
           "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf",
@@ -5264,8 +5264,8 @@
     },
     {
       "source_path": "knowledge/reverse_index/join_risk_index.md",
-      "sha256": "289da3d5d81fff710bdade49bdb4aa6fa685da46d449c1a8a4a5c35695df235f",
-      "bytes": 37951,
+      "sha256": "194f71d9e7516a2e7801c786a0f7e168e9724d2d10bdc00e83c25490c0971062",
+      "bytes": 39285,
       "category": "reverse_index"
     },
     {
@@ -5366,8 +5366,8 @@
     },
     {
       "source_path": "knowledge/sql_patterns/qingcheng_tmk_transfer_latency_observation_log.md",
-      "sha256": "7d0fb0b770cff9f1a786c0064d86d4a93b823d99a3c8fb36c9563f4e52366cb4",
-      "bytes": 24853,
+      "sha256": "5b441f395c9f6d3d17d1aa7976e432c8df16ea131124fbd39c02b305ea5c28b7",
+      "bytes": 29283,
       "category": "sql_patterns"
     },
     {
@@ -5570,8 +5570,8 @@
     },
     {
       "source_path": "knowledge/update_log/changelog.md",
-      "sha256": "bfbdc2f2383dbac7033d4e8a0ebe51e9aae133ed6a17a029b9e3f5d9b237af5f",
-      "bytes": 57977,
+      "sha256": "44bc7fbf89b4fb521c687b27b45f9499b07cb2f42b6e42dca8cec861cab4c101",
+      "bytes": 58794,
       "category": "update_log"
     },
     {

@@ -276,7 +276,7 @@ iframe 编辑器工具栏中的运行按钮回退方案：
 
 2026-07-11 起，Text2SQL 下游看板设计和修改使用独立的 `profile-edit-dashboard → design-dashboard → plan-dashboard-change → apply-dashboard-change → publish-dashboard-change` 链路。完整 Artifact、Hash、stable-ID、单 relation 原子性和阻断规则见 `references/dashboard_change_workflow.md`。
 
-当前 Registry 生产 allowlist 包括既有稳定字段显示名、同容器布局、依赖不变的既有局部公式、公共筛选器动态默认、根背景色，以及独立治理的透视表 copy-rebind。它们仍受各自精确目标、Hash、回读和恢复门禁；未登记或 blocked 的组件、数据集、筛选器、创建/删除操作不得调用。
+当前 Registry 生产 allowlist 包括既有稳定字段显示名、同容器布局、依赖不变的既有局部公式、公共筛选器动态默认、根背景色、独立治理的透视表 copy-rebind，以及 P4C 的八项新看板创建操作。它们仍受各自精确目标、Hash、回读和恢复门禁；未登记或 blocked 的既有组件重绑/筛选修改、克隆、文件夹移动、权限和删除操作不得调用。
 
 `apply-dashboard-change` 只写 draft；`publish-dashboard-change` 必须在独立进程中消费成功 ApplyReceipt 并显式确认。新链路不允许同一次命令 apply + publish。
 
@@ -284,9 +284,9 @@ iframe 编辑器工具栏中的运行按钮回退方案：
 
 ## P4C 从零创建看板
 
-P4C 使用与既有修改完全独立的 `DashboardBuildSpec → DashboardBuildPlan → DashboardBuildReceipt → DashboardBuildPublishReceipt` 创建 Saga，详见 `references/dashboard_build_workflow.md`。Registry 已登记四类组件、计算列、公共筛选器、dashboard shell 和 dashboardHtml 组装，但在真实沙箱请求证据与生产 adapter 完成前全部保持 blocked。`apply-dashboard-build` 会在浏览器前拒绝，不允许用模板克隆或预建空板代替。
+P4C 使用与既有修改完全独立的 `DashboardBuildSpec → DashboardBuildPlan → DashboardBuildReceipt → DashboardBuildPublishReceipt` 创建 Saga，详见 `references/dashboard_build_workflow.md`。2026-07-18 已在“P4C看板构建沙箱”完成真实从零草稿验收，四类组件、计算列、公共筛选器、dashboard shell 和 dashboardHtml 组装八项能力由 `taitan_dashboard_build_v1` 晋级为 `verified/allowlisted`。`apply-dashboard-build` 仍会在缺少 exact Plan Hash、显式确认、完整证据或发生字段/文件夹漂移时于写入前拒绝；不允许用模板克隆或预建空板代替。
 
-已观察到 subject 级自定义计算列保存路径为 `model/customized/column/saveAndUpdate`。该写路径目前只用于取证候选，不能根据前端字段名猜测 payload，也不能向生产共享 subject 写测试列。
+subject 级自定义计算列保存路径为 `model/customized/column/saveAndUpdate`。新看板选中数据集后，平台会分配 dashboard-scoped subject；计算列必须写入这个真实 subject，不能继续写源 subject。生产 Saga 先以无公式组件取得 subject，再创建计算列；同名同表达式可复用，同名不同表达式阻断。抽取字段树 Hash 排除 `customized_*` 列，自定义列身份与定义由独立资源回读治理。
 
 ## Legacy 公共筛选器只读检查与历史 API
 

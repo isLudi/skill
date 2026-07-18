@@ -7,18 +7,42 @@
     {
       "operation": "create_dashboard",
       "phase": "draft",
-      "maturity": "unverified",
-      "write_policy": "blocked",
+      "maturity": "verified",
+      "write_policy": "allowlisted",
       "transaction_class": "creation_saga",
       "recovery_policy": "creation_saga_no_auto_delete",
-      "readback_coverage": "none",
+      "readback_coverage": "full",
       "risk": "high",
-      "adapter": null,
-      "write_endpoints": [],
-      "readback_endpoints": [],
-      "evidence": [],
+      "adapter": "taitan_dashboard_build_v1",
+      "write_endpoints": [
+        "config/save/dashboardHtml"
+      ],
+      "readback_endpoints": [
+        "dashboard/menu",
+        "config/dashBoard"
+      ],
+      "evidence": [
+        {
+          "source_path": "references/dashboard_build_evidence_20260718.json",
+          "source_sha256": "7eaf0c07395f8271c30da9dd04d3b1de78c2714583a4a2725e4d34f4bd422e3c",
+          "note": "Eight-operation redacted sandbox request, identity, state-hash, readback, and safety evidence bundle."
+        },
+        {
+          "source_path": "scripts/read_dashboard/dashboard_build_adapters.py",
+          "source_sha256": "4d7788c9bd90ac15132e59d0f37adb4fd0123db8fa153cb8455aee5079c17632",
+          "note": "Production creation-saga adapter with drift, idempotency, complete-profile, draft-value, and no-auto-delete gates."
+        },
+        {
+          "source_path": "tests/test_dashboard_build.py",
+          "source_sha256": "8a9448c39588e14a012f44d02fe684c5756e46eb5d3fa30aff55291d30198deb",
+          "note": "Artifact, preflight, failure-injection, resume, adapter, type-aware value, filter-target, and formula-conflict tests."
+        }
+      ],
       "limitations": [
-        "No verified create request or stable folder binding readback."
+        "Only resources created by the same exact DashboardBuildPlan are in scope.",
+        "Existing dashboard dataset rebinding and existing component-local filter updates remain blocked.",
+        "Failures retain unpublished resources and require receipt-guided manual cleanup; automatic delete is forbidden.",
+        "Publishing remains a separate confirmation and is never performed by apply-dashboard-build."
       ]
     },
     {
@@ -80,103 +104,214 @@
     {
       "operation": "create_pivot_component",
       "phase": "draft",
-      "maturity": "observed",
-      "write_policy": "blocked",
+      "maturity": "verified",
+      "write_policy": "allowlisted",
       "transaction_class": "creation_saga",
       "recovery_policy": "creation_saga_no_auto_delete",
       "readback_coverage": "full",
       "risk": "high",
-      "adapter": null,
-      "write_endpoints": [],
-      "readback_endpoints": [
-        "config/dashboard",
-        "value/unit/consumer/detail"
+      "adapter": "taitan_dashboard_build_v1",
+      "write_endpoints": [
+        "config/update/unit",
+        "config/save/dashboardHtml"
       ],
-      "evidence": [],
+      "readback_endpoints": [
+        "config/dashBoard",
+        "value/unit/detail",
+        "value/unit"
+      ],
+      "evidence": [
+        {
+          "source_path": "references/dashboard_build_evidence_20260718.json",
+          "source_sha256": "7eaf0c07395f8271c30da9dd04d3b1de78c2714583a4a2725e4d34f4bd422e3c",
+          "note": "Eight-operation redacted sandbox request, identity, state-hash, readback, and safety evidence bundle."
+        },
+        {
+          "source_path": "scripts/read_dashboard/dashboard_build_adapters.py",
+          "source_sha256": "4d7788c9bd90ac15132e59d0f37adb4fd0123db8fa153cb8455aee5079c17632",
+          "note": "Production creation-saga adapter with drift, idempotency, complete-profile, draft-value, and no-auto-delete gates."
+        },
+        {
+          "source_path": "tests/test_dashboard_build.py",
+          "source_sha256": "8a9448c39588e14a012f44d02fe684c5756e46eb5d3fa30aff55291d30198deb",
+          "note": "Artifact, preflight, failure-injection, resume, adapter, type-aware value, filter-target, and formula-conflict tests."
+        }
+      ],
       "limitations": [
-        "Pivot state is profiled, but component creation and stable identity allocation are not verified."
+        "Only resources created by the same exact DashboardBuildPlan are in scope.",
+        "Existing dashboard dataset rebinding and existing component-local filter updates remain blocked.",
+        "Failures retain unpublished resources and require receipt-guided manual cleanup; automatic delete is forbidden.",
+        "Publishing remains a separate confirmation and is never performed by apply-dashboard-build."
       ]
     },
     {
       "operation": "create_metric_group_component",
       "phase": "draft",
-      "maturity": "observed",
-      "write_policy": "blocked",
+      "maturity": "verified",
+      "write_policy": "allowlisted",
       "transaction_class": "creation_saga",
       "recovery_policy": "creation_saga_no_auto_delete",
       "readback_coverage": "full",
       "risk": "high",
-      "adapter": null,
-      "write_endpoints": [],
+      "adapter": "taitan_dashboard_build_v1",
+      "write_endpoints": [
+        "config/update/unit",
+        "config/save/dashboardHtml"
+      ],
       "readback_endpoints": [
         "config/dashBoard",
         "value/unit/detail",
         "value/unit"
       ],
-      "evidence": [],
+      "evidence": [
+        {
+          "source_path": "references/dashboard_build_evidence_20260718.json",
+          "source_sha256": "7eaf0c07395f8271c30da9dd04d3b1de78c2714583a4a2725e4d34f4bd422e3c",
+          "note": "Eight-operation redacted sandbox request, identity, state-hash, readback, and safety evidence bundle."
+        },
+        {
+          "source_path": "scripts/read_dashboard/dashboard_build_adapters.py",
+          "source_sha256": "4d7788c9bd90ac15132e59d0f37adb4fd0123db8fa153cb8455aee5079c17632",
+          "note": "Production creation-saga adapter with drift, idempotency, complete-profile, draft-value, and no-auto-delete gates."
+        },
+        {
+          "source_path": "tests/test_dashboard_build.py",
+          "source_sha256": "8a9448c39588e14a012f44d02fe684c5756e46eb5d3fa30aff55291d30198deb",
+          "note": "Artifact, preflight, failure-injection, resume, adapter, type-aware value, filter-target, and formula-conflict tests."
+        }
+      ],
       "limitations": [
-        "Card units are fully profiled, but no real create request or stable identity-allocation evidence exists."
+        "Only resources created by the same exact DashboardBuildPlan are in scope.",
+        "Existing dashboard dataset rebinding and existing component-local filter updates remain blocked.",
+        "Failures retain unpublished resources and require receipt-guided manual cleanup; automatic delete is forbidden.",
+        "Publishing remains a separate confirmation and is never performed by apply-dashboard-build."
       ]
     },
     {
       "operation": "create_bar_component",
       "phase": "draft",
-      "maturity": "observed",
-      "write_policy": "blocked",
+      "maturity": "verified",
+      "write_policy": "allowlisted",
       "transaction_class": "creation_saga",
       "recovery_policy": "creation_saga_no_auto_delete",
       "readback_coverage": "full",
       "risk": "high",
-      "adapter": null,
-      "write_endpoints": [],
+      "adapter": "taitan_dashboard_build_v1",
+      "write_endpoints": [
+        "config/update/unit",
+        "config/save/dashboardHtml"
+      ],
       "readback_endpoints": [
         "config/dashBoard",
         "value/unit/detail",
         "value/unit"
       ],
-      "evidence": [],
+      "evidence": [
+        {
+          "source_path": "references/dashboard_build_evidence_20260718.json",
+          "source_sha256": "7eaf0c07395f8271c30da9dd04d3b1de78c2714583a4a2725e4d34f4bd422e3c",
+          "note": "Eight-operation redacted sandbox request, identity, state-hash, readback, and safety evidence bundle."
+        },
+        {
+          "source_path": "scripts/read_dashboard/dashboard_build_adapters.py",
+          "source_sha256": "4d7788c9bd90ac15132e59d0f37adb4fd0123db8fa153cb8455aee5079c17632",
+          "note": "Production creation-saga adapter with drift, idempotency, complete-profile, draft-value, and no-auto-delete gates."
+        },
+        {
+          "source_path": "tests/test_dashboard_build.py",
+          "source_sha256": "8a9448c39588e14a012f44d02fe684c5756e46eb5d3fa30aff55291d30198deb",
+          "note": "Artifact, preflight, failure-injection, resume, adapter, type-aware value, filter-target, and formula-conflict tests."
+        }
+      ],
       "limitations": [
-        "A real create request and allocated unit identity were observed in 过程数据报表-青橙-沙箱 on 2026-07-18, but dashboardHtml assembly did not survive full Profile readback; the incomplete runtime evidence is not eligible for production promotion."
+        "Only resources created by the same exact DashboardBuildPlan are in scope.",
+        "Existing dashboard dataset rebinding and existing component-local filter updates remain blocked.",
+        "Failures retain unpublished resources and require receipt-guided manual cleanup; automatic delete is forbidden.",
+        "Publishing remains a separate confirmation and is never performed by apply-dashboard-build."
       ]
     },
     {
       "operation": "create_pie_component",
       "phase": "draft",
-      "maturity": "observed",
-      "write_policy": "blocked",
+      "maturity": "verified",
+      "write_policy": "allowlisted",
       "transaction_class": "creation_saga",
       "recovery_policy": "creation_saga_no_auto_delete",
       "readback_coverage": "full",
       "risk": "high",
-      "adapter": null,
-      "write_endpoints": [],
+      "adapter": "taitan_dashboard_build_v1",
+      "write_endpoints": [
+        "config/update/unit",
+        "config/save/dashboardHtml"
+      ],
       "readback_endpoints": [
         "config/dashBoard",
         "value/unit/detail",
         "value/unit"
       ],
-      "evidence": [],
+      "evidence": [
+        {
+          "source_path": "references/dashboard_build_evidence_20260718.json",
+          "source_sha256": "7eaf0c07395f8271c30da9dd04d3b1de78c2714583a4a2725e4d34f4bd422e3c",
+          "note": "Eight-operation redacted sandbox request, identity, state-hash, readback, and safety evidence bundle."
+        },
+        {
+          "source_path": "scripts/read_dashboard/dashboard_build_adapters.py",
+          "source_sha256": "4d7788c9bd90ac15132e59d0f37adb4fd0123db8fa153cb8455aee5079c17632",
+          "note": "Production creation-saga adapter with drift, idempotency, complete-profile, draft-value, and no-auto-delete gates."
+        },
+        {
+          "source_path": "tests/test_dashboard_build.py",
+          "source_sha256": "8a9448c39588e14a012f44d02fe684c5756e46eb5d3fa30aff55291d30198deb",
+          "note": "Artifact, preflight, failure-injection, resume, adapter, type-aware value, filter-target, and formula-conflict tests."
+        }
+      ],
       "limitations": [
-        "Pie units are fully profiled, but no real create request or stable identity-allocation evidence exists."
+        "Only resources created by the same exact DashboardBuildPlan are in scope.",
+        "Existing dashboard dataset rebinding and existing component-local filter updates remain blocked.",
+        "Failures retain unpublished resources and require receipt-guided manual cleanup; automatic delete is forbidden.",
+        "Publishing remains a separate confirmation and is never performed by apply-dashboard-build."
       ]
     },
     {
       "operation": "assemble_new_dashboard",
       "phase": "draft",
-      "maturity": "observed",
-      "write_policy": "blocked",
+      "maturity": "verified",
+      "write_policy": "allowlisted",
       "transaction_class": "creation_saga",
       "recovery_policy": "creation_saga_no_auto_delete",
       "readback_coverage": "full",
       "risk": "critical",
-      "adapter": null,
-      "write_endpoints": [],
-      "readback_endpoints": [
-        "config/dashBoard"
+      "adapter": "taitan_dashboard_build_v1",
+      "write_endpoints": [
+        "config/save/dashboardHtml"
       ],
-      "evidence": [],
+      "readback_endpoints": [
+        "config/dashBoard",
+        "value/unit/detail"
+      ],
+      "evidence": [
+        {
+          "source_path": "references/dashboard_build_evidence_20260718.json",
+          "source_sha256": "7eaf0c07395f8271c30da9dd04d3b1de78c2714583a4a2725e4d34f4bd422e3c",
+          "note": "Eight-operation redacted sandbox request, identity, state-hash, readback, and safety evidence bundle."
+        },
+        {
+          "source_path": "scripts/read_dashboard/dashboard_build_adapters.py",
+          "source_sha256": "4d7788c9bd90ac15132e59d0f37adb4fd0123db8fa153cb8455aee5079c17632",
+          "note": "Production creation-saga adapter with drift, idempotency, complete-profile, draft-value, and no-auto-delete gates."
+        },
+        {
+          "source_path": "tests/test_dashboard_build.py",
+          "source_sha256": "8a9448c39588e14a012f44d02fe684c5756e46eb5d3fa30aff55291d30198deb",
+          "note": "Artifact, preflight, failure-injection, resume, adapter, type-aware value, filter-target, and formula-conflict tests."
+        }
+      ],
       "limitations": [
-        "A real sandbox config/save/dashboardHtml request was observed on 2026-07-18, but the resulting draft failed complete component readback and no published or historical draft snapshot was available for exact restoration; assembly remains blocked and requires manual cleanup."
+        "Only resources created by the same exact DashboardBuildPlan are in scope.",
+        "Existing dashboard dataset rebinding and existing component-local filter updates remain blocked.",
+        "Failures retain unpublished resources and require receipt-guided manual cleanup; automatic delete is forbidden.",
+        "Publishing remains a separate confirmation and is never performed by apply-dashboard-build."
       ]
     },
     {
@@ -269,21 +404,42 @@
     {
       "operation": "create_formula",
       "phase": "draft",
-      "maturity": "observed",
-      "write_policy": "blocked",
+      "maturity": "verified",
+      "write_policy": "allowlisted",
       "transaction_class": "creation_saga",
       "recovery_policy": "creation_saga_no_auto_delete",
       "readback_coverage": "full",
       "risk": "critical",
-      "adapter": null,
-      "write_endpoints": [],
-      "readback_endpoints": [
-        "value/unit/consumer/detail",
-        "custom formula detail"
+      "adapter": "taitan_dashboard_build_v1",
+      "write_endpoints": [
+        "model/customized/column/saveAndUpdate"
       ],
-      "evidence": [],
+      "readback_endpoints": [
+        "model/subject/paramList",
+        "model/customized/column/list"
+      ],
+      "evidence": [
+        {
+          "source_path": "references/dashboard_build_evidence_20260718.json",
+          "source_sha256": "7eaf0c07395f8271c30da9dd04d3b1de78c2714583a4a2725e4d34f4bd422e3c",
+          "note": "Eight-operation redacted sandbox request, identity, state-hash, readback, and safety evidence bundle."
+        },
+        {
+          "source_path": "scripts/read_dashboard/dashboard_build_adapters.py",
+          "source_sha256": "4d7788c9bd90ac15132e59d0f37adb4fd0123db8fa153cb8455aee5079c17632",
+          "note": "Production creation-saga adapter with drift, idempotency, complete-profile, draft-value, and no-auto-delete gates."
+        },
+        {
+          "source_path": "tests/test_dashboard_build.py",
+          "source_sha256": "8a9448c39588e14a012f44d02fe684c5756e46eb5d3fa30aff55291d30198deb",
+          "note": "Artifact, preflight, failure-injection, resume, adapter, type-aware value, filter-target, and formula-conflict tests."
+        }
+      ],
       "limitations": [
-        "Formula AST, dependency, type, grain, and creation payload validation are not implemented."
+        "Only resources created by the same exact DashboardBuildPlan are in scope.",
+        "Existing dashboard dataset rebinding and existing component-local filter updates remain blocked.",
+        "Failures retain unpublished resources and require receipt-guided manual cleanup; automatic delete is forbidden.",
+        "Publishing remains a separate confirmation and is never performed by apply-dashboard-build."
       ]
     },
     {
@@ -327,20 +483,44 @@
     {
       "operation": "create_public_filter",
       "phase": "draft",
-      "maturity": "observed",
-      "write_policy": "blocked",
+      "maturity": "verified",
+      "write_policy": "allowlisted",
       "transaction_class": "creation_saga",
       "recovery_policy": "creation_saga_no_auto_delete",
       "readback_coverage": "full",
       "risk": "high",
-      "adapter": null,
-      "write_endpoints": [],
-      "readback_endpoints": [
-        "value/public/unit/relation/detail"
+      "adapter": "taitan_dashboard_build_v1",
+      "write_endpoints": [
+        "config/update/public/relation/unit",
+        "config/save/dashboardHtml"
       ],
-      "evidence": [],
+      "readback_endpoints": [
+        "config/dashBoard",
+        "value/public/unit/relation/detail",
+        "value/unit"
+      ],
+      "evidence": [
+        {
+          "source_path": "references/dashboard_build_evidence_20260718.json",
+          "source_sha256": "7eaf0c07395f8271c30da9dd04d3b1de78c2714583a4a2725e4d34f4bd422e3c",
+          "note": "Eight-operation redacted sandbox request, identity, state-hash, readback, and safety evidence bundle."
+        },
+        {
+          "source_path": "scripts/read_dashboard/dashboard_build_adapters.py",
+          "source_sha256": "4d7788c9bd90ac15132e59d0f37adb4fd0123db8fa153cb8455aee5079c17632",
+          "note": "Production creation-saga adapter with drift, idempotency, complete-profile, draft-value, and no-auto-delete gates."
+        },
+        {
+          "source_path": "tests/test_dashboard_build.py",
+          "source_sha256": "8a9448c39588e14a012f44d02fe684c5756e46eb5d3fa30aff55291d30198deb",
+          "note": "Artifact, preflight, failure-injection, resume, adapter, type-aware value, filter-target, and formula-conflict tests."
+        }
+      ],
       "limitations": [
-        "Existing relations are profiled; relation creation and component association are not verified."
+        "Only resources created by the same exact DashboardBuildPlan are in scope.",
+        "Existing dashboard dataset rebinding and existing component-local filter updates remain blocked.",
+        "Failures retain unpublished resources and require receipt-guided manual cleanup; automatic delete is forbidden.",
+        "Publishing remains a separate confirmation and is never performed by apply-dashboard-build."
       ]
     },
     {
@@ -525,5 +705,5 @@
       ]
     }
   ],
-  "registry_sha256": "9af2f34d8fba825534fb0024ceee02c72088b57b4f8b4aad6d1ace3357a4b82e"
+  "registry_sha256": "ed668852543f2dade5b20d6e34ea3a2a4c24c5a0bc3cf6cbad47d2a27e34e04e"
 }

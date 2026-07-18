@@ -253,6 +253,32 @@ def _configured_public_filter_fields(unit: dict[str, Any]) -> list[dict[str, Any
     return fields
 
 
+def _public_filter_target_unit_ids(unit: dict[str, Any], field_id: str) -> list[str]:
+    values: list[str] = []
+
+    def add(raw: Any) -> None:
+        if isinstance(raw, str) and raw.startswith("unit_") and raw not in values:
+            values.append(raw)
+        elif isinstance(raw, dict):
+            add(raw.get("unitId") or raw.get("id"))
+        elif isinstance(raw, list):
+            for item in raw:
+                add(item)
+
+    relation = unit.get("relationUnit")
+    if isinstance(relation, dict):
+        for param in relation.get("filterUnitParamList") or []:
+            if not isinstance(param, dict):
+                continue
+            param_field_id = str(param.get("fieldId") or param.get("paramId") or "")
+            if not param_field_id or param_field_id == field_id:
+                add(param.get("unitIdList") or [])
+    fmt = unit.get("format")
+    if isinstance(fmt, dict):
+        add(fmt.get("dashboardUnitList") or [])
+    return sorted(values)
+
+
 def build_public_filter_snapshot(public_filters: dict[str, Any]) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     for relation_id, detail in sorted(public_filters.items()):
@@ -276,11 +302,12 @@ def build_public_filter_snapshot(public_filters: dict[str, Any]) -> list[dict[st
                 continue
             for field in fields:
                 fmt = field.get("format") if isinstance(field.get("format"), dict) else {}
+                field_id = str(field.get("fieldId") or field.get("paramId") or "")
                 rows.append(
                     {
                         "relation_id": relation_id,
                         "filter_id": filter_id,
-                        "field_id": str(field.get("fieldId") or field.get("paramId") or ""),
+                        "field_id": field_id,
                         "order_index": order_index,
                         "filter_name": unit.get("unitName"),
                         "title": unit.get("unitName") or "",
@@ -295,6 +322,7 @@ def build_public_filter_snapshot(public_filters: dict[str, Any]) -> list[dict[st
                         "dynamics_filter": fmt.get("dynamicsFilter"),
                         "dynamics_filter_value": fmt.get("dynamicsFilterValue"),
                         "auto_search_default_value": fmt.get("autoSearchDefaultValue"),
+                        "target_unit_ids": _public_filter_target_unit_ids(unit, field_id),
                     }
                 )
     return sorted(rows, key=lambda item: (str(item["relation_id"]), str(item["filter_id"]), str(item["field_id"])))
@@ -1114,6 +1142,22 @@ def build_dashboard_snapshot(
         if isinstance(dashboard_html.get("config"), dict)
         else {}
     )
+    public_filter_rows = build_public_filter_snapshot(public_filters)
+    component_ids_by_unit = {
+        str(item.get("unit_id") or ""): str(item.get("component_id") or "")
+        for item in components
+        if item.get("unit_id") and item.get("component_id")
+    }
+    for public_filter in public_filter_rows:
+        target_unit_ids = public_filter.pop("target_unit_ids", [])
+        public_filter["target_component_ids"] = sorted(
+            {
+                component_ids_by_unit[unit_id]
+                for unit_id in target_unit_ids
+                if unit_id in component_ids_by_unit
+            }
+        )
+        public_filter["config"] = {"target_unit_ids": target_unit_ids}
     return {
         "dashboard": {
             "dashboard_id": dashboard_id,
@@ -1138,7 +1182,7 @@ def build_dashboard_snapshot(
             if item.get("layout")
         ],
         "formulas": build_formula_snapshot(effective_data_units),
-        "public_filters": build_public_filter_snapshot(public_filters),
+        "public_filters": public_filter_rows,
         "component_filters": build_component_filter_snapshot(effective_data_units),
         "datasets": build_dataset_snapshot(effective_data_units, dataset_fields),
         "theme": {

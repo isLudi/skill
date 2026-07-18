@@ -1,0 +1,137 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_type": "DashboardBuildPromotionEvidence",
+  "captured_at": "2026-07-18",
+  "domain": "qingcheng",
+  "sandbox": {
+    "folder_id": "menu_dashboard_3994311069518958593",
+    "folder_path": "通用/H业务线/市场部/市场顾问部/青橙项目部/P4C看板构建沙箱",
+    "dashboard_id": "dashboard_3994327898895323136",
+    "dashboard_name": "P4C生产晋级验收-20260718-1325",
+    "application_model_id": "3131",
+    "subject_id": "183480",
+    "model_type": 2,
+    "dataset_name": "青橙-P4C看板构建沙箱数据集",
+    "data_center_menu_id": "menu_set_3994320073924214785",
+    "data_center_creation_plan_sha256": "6ca8494cd37cacf5d89bde781915ba795c8652194d8e5b341bc4d40767d45b72",
+    "data_center_success_record_id": "159536672"
+  },
+  "verification": {
+    "operation_count": 8,
+    "required_operation_count": 8,
+    "sandbox_evidence_complete": true,
+    "dangerous_request_count": 0,
+    "automatic_delete_attempted": false,
+    "post_profile_sha256": "8176c105ac919ce74bd9faa78f51c4cbb7c5a09437de082eaf90a9e4ad450be5",
+    "post_profile_complete": true,
+    "data_unit_counts": {
+      "card": 2,
+      "u_pivot": 2,
+      "u_bar": 1,
+      "u_pie": 1
+    },
+    "custom_formula_count": 1,
+    "component_local_filter_count": 1,
+    "global_filter_target_count": 3
+  },
+  "operations": [
+    {
+      "operation": "create_dashboard",
+      "evidence_sha256": "6f56df83bff5de792306a560bcea17871eb330fc9f34ef18f6c9235f88091f8d",
+      "selected_observation_sha256": "2e51f0254923ea7b2005084e537d6fd7c583506eeceaec78d3093b4b93e7a79a",
+      "before_state_sha256": "76fa46d7daa2114648eab6da8984746119082a1bf3739aee10058ba3db0dab47",
+      "after_state_sha256": "2b5cf34c10c151d724ffc50b8e08b90c5cfd5120c6dc2993b4476cb89c9c0ce1",
+      "method": "POST",
+      "url_path": "/uanalysis-intelligence/config/save/dashboardHtml",
+      "request_schema": ["dashboardHtmlJson", "dashboardName", "jsPackages", "parentId"],
+      "response_status": 200
+    },
+    {
+      "operation": "create_formula",
+      "evidence_sha256": "ea85db416913f590fc886bbc9927c97701ce697a80e4ff6c7ff752032f2487fb",
+      "selected_observation_sha256": "b01c6f7f7b38b75be5d52775dd697ce7e8843943c61b72722aebd53f18ba5850",
+      "before_state_sha256": "e0c11f1a557441c74a911f38c35162c976dcd9c92226684b3fe0f94e385ffe86",
+      "after_state_sha256": "61f00c3a0c964fc13ec12a0d3a7c2f2eb5b5e6e7d78f26716eee7c562fa7ade1",
+      "method": "POST",
+      "url_path": "/uanalysis-intelligence/model/customized/column/saveAndUpdate",
+      "request_schema": ["subjectId", "columnKey", "columnName", "columnDesc", "dataType", "formula", "dependency", "globalFilterSpecialConfig"],
+      "response_status": 200
+    },
+    {
+      "operation": "create_metric_group_component",
+      "evidence_sha256": "a24a49ea17a027817a8dfb653c25a902705f54687616c8d46cc29105d4ec8c0a",
+      "selected_observation_sha256": "fc641d3e18b63380d909779b543bbe0e402935c54b6e351afb48e2fdde66a41f",
+      "before_state_sha256": "85ff5ee9f5bedf7fa1b30f446a1c67f74c102bd51ccbc8282710dc507894cb8b",
+      "after_state_sha256": "6298d9e07da81cd09add05e9aebb184b150f5bb864e246fc6c807f212a3d1344",
+      "method": "POST",
+      "url_path": "/uanalysis-intelligence/config/update/unit",
+      "request_schema": ["htmlId", "modelId", "unitName", "unitType", "unitDimensionList", "unitMeasureList", "unitFilterList", "format"],
+      "response_status": 200
+    },
+    {
+      "operation": "create_pivot_component",
+      "evidence_sha256": "28851c1d1c3843473bad8389e181d11401299b66555f950a08f89a5d168d2256",
+      "selected_observation_sha256": "dbd03ea1abc2abc7e5e9b84a29ef9f8f5421b10855f07cc48423d5ed8e810e3a",
+      "before_state_sha256": "5f9895342beab7cf77674b2f8b855b869451f885d3a51e2ee98733294865b1ee",
+      "after_state_sha256": "9ce1cb120980c57184d78d62f8473548d94b19f93883f9cc5d1d32f063a72253",
+      "method": "POST",
+      "url_path": "/uanalysis-intelligence/config/update/unit",
+      "request_schema": ["htmlId", "modelId", "unitName", "unitType", "unitDimensionList", "unitColumnDimensionList", "unitMeasureList", "unitFilterList", "format"],
+      "response_status": 200,
+      "scope_proof": "unitFilterList was configured in the same new-unit creation action"
+    },
+    {
+      "operation": "create_bar_component",
+      "evidence_sha256": "615b7e08f8a306917dcbabd1a4a7f0852a0e4f3821ec3845361652add0491ac0",
+      "selected_observation_sha256": "9653555b1b4da3bffacacf5e0a06899934f227057d8214bf7a02a709a1d21ec7",
+      "before_state_sha256": "dd4cd614bdc2fc251650d15beb62620186006303fcf382f0680b3cfbf2694f12",
+      "after_state_sha256": "dc87613cbcec4b90292face8eee0e9bf6819905f5df755fb5a4cb61b9f952a53",
+      "method": "POST",
+      "url_path": "/uanalysis-intelligence/config/update/unit",
+      "request_schema": ["htmlId", "modelId", "unitName", "unitType", "unitDimensionList", "unitMeasureList", "unitFilterList", "format"],
+      "response_status": 200
+    },
+    {
+      "operation": "create_pie_component",
+      "evidence_sha256": "d536885e036a2f41b8d4a4441b698579ed28dc6c8c81f0a67bb19bc52d47a538",
+      "selected_observation_sha256": "ed398e76281ae054e31c94722e075f5e1543318f95d2052ea30432a9903a26ca",
+      "before_state_sha256": "688694bed7a01155837c0fa303829dbe1ae8d12c86ac59e5dd4b754c63e30c73",
+      "after_state_sha256": "5f9895342beab7cf77674b2f8b855b869451f885d3a51e2ee98733294865b1ee",
+      "method": "POST",
+      "url_path": "/uanalysis-intelligence/config/update/unit",
+      "request_schema": ["htmlId", "modelId", "unitName", "unitType", "unitDimensionList", "unitMeasureList", "unitFilterList", "format"],
+      "response_status": 200
+    },
+    {
+      "operation": "create_public_filter",
+      "evidence_sha256": "490db6b8466b483736221aa01a5c1a06ff2349c611f2cd764ef8a2adac1563b4",
+      "selected_observation_sha256": "90404884ec93e5a27e9f523d0d81ed3179bcf539707927192077af623433fc43",
+      "before_state_sha256": "9ce1cb120980c57184d78d62f8473548d94b19f93883f9cc5d1d32f063a72253",
+      "after_state_sha256": "85ff5ee9f5bedf7fa1b30f446a1c67f74c102bd51ccbc8282710dc507894cb8b",
+      "method": "POST",
+      "url_path": "/uanalysis-intelligence/config/update/public/relation/unit",
+      "request_schema": ["htmlId", "relationType", "unitName", "unitType", "unitList", "unitList[].unitList[].relationUnit.filterUnitParamList[].unitIdList"],
+      "response_status": 200
+    },
+    {
+      "operation": "assemble_new_dashboard",
+      "evidence_sha256": "978faa616b3e5ec68e9bb8e5e029c7976f6d83453533fd3500997fb5e43b2e22",
+      "selected_observation_sha256": "1d589e7bbdbe2a5d3a0fc9e79bdc2b6d46ec71865a1a6f6a2f6526daefcad1d7",
+      "before_state_sha256": "53a857c34e94949384b1de525cef30a633a06cde542f156a6250861511e35727",
+      "after_state_sha256": "97f71b55822fd161b3ca86f8c503edc5652a8f07759f43469339e83bf41260c7",
+      "method": "POST",
+      "url_path": "/uanalysis-intelligence/config/save/dashboardHtml",
+      "request_schema": ["dashboardId", "htmlId", "dashboardName", "dashboardHtmlJson", "saveUnitList", "allUnitList", "clientInfo", "customHtmlFormat", "jsPackages"],
+      "response_status": 200
+    }
+  ],
+  "safety": {
+    "publish_attempted": false,
+    "delete_attempted": false,
+    "permission_write_attempted": false,
+    "folder_write_attempted": false,
+    "authentication_write_attempted": false,
+    "raw_payload_values_retained": false,
+    "cookies_or_tokens_retained": false
+  }
+}

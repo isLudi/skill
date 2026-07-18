@@ -647,6 +647,7 @@ def build_dashboard_build_plan(
                 "dataset_schema_sha256": schema_sha,
                 "field_binding_sha256": binding_sha,
                 "field_bindings": sorted_bindings,
+                "config": copy.deepcopy(dataset.get("config") or {}),
             }
         )
 
