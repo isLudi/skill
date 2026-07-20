@@ -1,6 +1,6 @@
 # 手工临时表 Registry
 
-更新日期：2026-06-17
+更新日期：2026-07-20
 
 本文档记录本地 Excel 手工表与 SQL取数平台标准临时表名之间的对应关系。机器可读源文件是 `references/manual_temp_table_registry.json`，上传脚本读取 JSON 文件，本 Markdown 供人工阅读。
 
@@ -29,9 +29,9 @@
 
 | 本地文件 | 标准临时表 | 状态 | 可自动作为目标表 | 主要检查 |
 |---|---|---|---|---|
-| `daoke_t_one_six_qing.xlsx` | `dingxi01_qing_daoke` | 语义推断 | 是 | 必填列；不能有空表头；`qudao`/`grade` 覆盖需要 SQL 侧检查 |
+| `qing_daoke.xlsx`（兼容旧名 `daoke_t_one_six_qing.xlsx`） | `dingxi01_qing_daoke` | 语义推断 | 是 | 必填列；不能有空表头；`qudao`/`grade` 覆盖需要 SQL 侧检查 |
 | `qing_qi_moth.xlsx` | `dingxi01_qing_qi_moth` | 精确匹配 | 是 | 必填列 |
-| `qing_qici_goal.xlsx` | `dingxi01_qing_goal` | 语义推断 | 是 | 必填列 |
+| `qing_goal.xlsx`（兼容旧名 `qing_qici_goal.xlsx`） | `dingxi01_qing_goal` | 语义推断 | 是 | 必填列 |
 | `qing_team_goal_qi.xlsx` | `dingxi01_qing_team_g_qi` | 缩写推断 | 是 | 必填列 |
 | `qing_team_goal_moth.xlsx` | `dingxi01_qing_team_goal` | 语义推断 | 是 | 必填列 |
 | `qing_team_jg.xlsx` | `dingxi01_qing_team_jg` | 导入历史已验证 | 是 | 必须有 `qici`；`dazu` 不能为 `0`；email prefix 小写 |

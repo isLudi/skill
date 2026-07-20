@@ -1,0 +1,136 @@
+{
+  "version": 1,
+  "updated_at": "2026-07-20",
+  "chat": {
+    "name": "青橙数据对接",
+    "expected_chat_id": "oc_e604e064976c022ab4289fc2fb979332",
+    "sender_name": "郅玲玉",
+    "sender_open_id": "ou_bf111effd2d71a52ee40c58c7cb4d105"
+  },
+  "families": [
+    {
+      "id": "personal_period_goal",
+      "business_name": "个人期度目标表",
+      "source_filename_patterns": [
+        "^个人期度目标表\\.xlsx$",
+        "^个人期次目标表\\.xlsx$"
+      ],
+      "source_sheet": "Sheet1",
+      "target_workbook": "E:\\1900_work\\GAOTU\\19003_青橙项目部看板维护表格\\qing_goal.xlsx",
+      "target_sheet": "Sheet1",
+      "platform_temp_table": "dingxi01_qing_goal",
+      "target_columns": ["month", "qici", "xuebu", "jingli", "dazu", "xiaozu", "name", "qudao", "goal"],
+      "column_aliases": {"guwen": "name"},
+      "constant_columns": {"qudao": "-"},
+      "slice_column": "qici",
+      "slice_order": "asc",
+      "key_columns": ["qici", "name"],
+      "validation_rules": [
+        {"type": "slice_format", "column": "qici", "pattern": "^\\d{8}期$"},
+        {"type": "month_format", "column": "month"}
+      ]
+    },
+    {
+      "id": "team_period_goal",
+      "business_name": "团队期度目标表",
+      "source_filename_patterns": [
+        "^团队期度目标表\\.xlsx$",
+        "^团队期次目标表\\.xlsx$"
+      ],
+      "source_sheet": "Sheet1",
+      "target_workbook": "E:\\1900_work\\GAOTU\\19003_青橙项目部看板维护表格\\qing_team_goal_qi.xlsx",
+      "target_sheet": "Sheet1",
+      "platform_temp_table": "dingxi01_qing_team_g_qi",
+      "target_columns": ["month", "qici", "xuebu", "jingli", "dazu", "xiaozu", "emye_c", "goal"],
+      "column_aliases": {},
+      "constant_columns": {},
+      "slice_column": "qici",
+      "slice_order": "asc",
+      "key_columns": ["qici", "xuebu", "jingli", "dazu", "xiaozu"],
+      "validation_rules": [
+        {"type": "slice_format", "column": "qici", "pattern": "^\\d{8}期$"},
+        {"type": "month_format", "column": "month"}
+      ]
+    },
+    {
+      "id": "team_month_goal",
+      "business_name": "团队月度目标表",
+      "source_filename_patterns": [
+        "^团队月度目标表\\.xlsx$",
+        "^月度目标表\\.xlsx$"
+      ],
+      "source_sheet": "Sheet1",
+      "target_workbook": "E:\\1900_work\\GAOTU\\19003_青橙项目部看板维护表格\\qing_team_goal_moth.xlsx",
+      "target_sheet": "Sheet1",
+      "platform_temp_table": "dingxi01_qing_team_goal",
+      "target_columns": ["month", "xuebu", "jingli", "dazu", "xiaozu", "emye_c", "goal"],
+      "column_aliases": {},
+      "constant_columns": {},
+      "slice_column": "month",
+      "slice_order": "asc",
+      "key_columns": ["month", "xuebu", "jingli", "dazu", "xiaozu"],
+      "validation_rules": [
+        {"type": "month_format", "column": "month"}
+      ]
+    },
+    {
+      "id": "result_architecture",
+      "business_name": "全员结果数据架构",
+      "source_filename_patterns": [
+        "^全员结果数据架构\\.xlsx$"
+      ],
+      "source_sheet": "data",
+      "target_workbook": "E:\\1900_work\\GAOTU\\19003_青橙项目部看板维护表格\\qing_team_jg.xlsx",
+      "target_sheet": "data",
+      "platform_temp_table": "dingxi01_qing_team_jg",
+      "target_columns": ["employee_name", "employee_email_name", "email_prefix", "leader_employee_email_name", "leader_email_prefix", "dazu", "jingli", "xuebu", "qici"],
+      "column_aliases": {},
+      "constant_columns": {},
+      "slice_column": "qici",
+      "slice_order": "asc",
+      "key_columns": ["qici", "employee_email_name"],
+      "validation_rules": [
+        {"type": "slice_format", "column": "qici", "pattern": "^\\d{8}期$"},
+        {"type": "lowercase_ascii_prefix", "columns": ["email_prefix", "leader_email_prefix"]},
+        {"type": "disallow_values", "column": "dazu", "values": ["0"]}
+      ]
+    },
+    {
+      "id": "period_architecture",
+      "business_name": "期次带班架构",
+      "source_filename_patterns": [
+        "^(?:\\d{4}期)?(?:青橙)?(?:带班)?架构\\.xlsx$"
+      ],
+      "source_sheet": "Sheet1",
+      "target_workbook": "E:\\1900_work\\GAOTU\\19002_市场顾问部看板维护表格\\jiagou_db.xlsx",
+      "target_sheet": "zhengzhou",
+      "platform_temp_table": "dingxi01_jiagou_db",
+      "target_columns": ["xiaozu_z", "employee_email_prefix", "xiaozu", "employee_email_name", "department", "zaizhi", "qici", "dept_1", "dept_2", "jingli"],
+      "column_aliases": {},
+      "constant_columns": {},
+      "slice_column": "qici",
+      "slice_order": "desc",
+      "key_columns": ["qici", "employee_email_name"],
+      "target_scope": {"column": "dept_1", "equals": "青橙项目部"},
+      "allow_baseline_target_errors": true,
+      "validation_rules": [
+        {"type": "slice_format", "column": "qici", "pattern": "^\\d{8}期$"},
+        {"type": "lowercase_ascii_prefix", "columns": ["xiaozu_z", "employee_email_prefix"]},
+        {"type": "required_value", "column": "dept_1", "value": "青橙项目部"}
+      ]
+    }
+  ],
+  "upload_order": [
+    "personal_period_goal",
+    "team_period_goal",
+    "team_month_goal",
+    "result_architecture",
+    "period_architecture"
+  ],
+  "deferred_filename_patterns": [
+    "^qi\\d+daibanguocheng\\.xlsx$",
+    "^qing_team_moth_jg\\.xlsx$",
+    "^task_.*\\.xlsx$",
+    "^CRM线索数据.*\\.xlsx$"
+  ]
+}

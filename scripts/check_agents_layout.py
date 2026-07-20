@@ -7,6 +7,9 @@ import sys
 from pathlib import Path
 from typing import Any
 
+sys.stdout.reconfigure(encoding="utf-8")
+sys.stderr.reconfigure(encoding="utf-8")
+
 try:
     import tomllib
 except ModuleNotFoundError:  # pragma: no cover - Python 3.10 fallback
@@ -20,6 +23,94 @@ RUNTIME_AGENTS = CODEX_ROOT / "WORKSPACE_AGENTS.md"
 CONFIG_FILE = CODEX_ROOT / "config.toml"
 EXPECTED_FALLBACKS = [RUNTIME_AGENTS.name]
 DEFAULT_PROJECT_DOC_MAX_BYTES = 32 * 1024
+REQUIRED_CPLUS_CAPABILITIES = {
+    "utf8_transport": (
+        "## Global UTF-8 Policy",
+        "PYTHONIOENCODING",
+        "ensure_ascii=True",
+        "PowerShell must not carry or generate non-ASCII file payloads",
+    ),
+    "authorization_boundaries": (
+        "## Authorization and Safety",
+        "draft Apply",
+        "production Apply",
+        "Publish",
+        "does not grant the next permission",
+    ),
+    "single_source_layout": (
+        "## Instruction Layout and Git Versioning",
+        "WORKSPACE_AGENTS.md",
+        "sync_agents.ps1 -Mode Export -NoCommit",
+        "32768",
+    ),
+    "skill_routing": (
+        "## Skill Auto-Orchestration",
+        "sql-query-writer-for-dashboard",
+        "qingcheng-dashboard-sql",
+        "usql-web-query-operator",
+        "lark-shared",
+        "lark-openapi-explorer",
+    ),
+    "domain_resolution": (
+        "## Text2SQL Domain Resolution",
+        "domain: unresolved",
+        "automatic_compile=true",
+        "two independent QuerySpecs",
+    ),
+    "sql_workflows": (
+        "### A. Data Query and Fetch",
+        "### B. Query and Excel Report",
+        "### C. SQL Fix and Re-run",
+        "### D. SQL Generation Only",
+    ),
+    "dashboard_workflows": (
+        "### E2. Edit-page Metric and Formula Profiling",
+        "### E3. Legacy Public-filter Inspection",
+        "### E4. Governed Existing-dashboard Change",
+        "### E5. Governed From-zero Dashboard Build",
+    ),
+    "support_workflows": (
+        "### F. Spreadsheet-only Work",
+        "### G. Query and Analyze Results",
+        "### H. Document and Image Reading",
+        "### I. SQL/BI Debug Screenshot",
+        "### J. USQL Selector Drift",
+        "### K. Stored Template SQL Fetch",
+        "### M. Feishu Setup and Domain Handoff",
+    ),
+    "large_result_workflow": (
+        "### L. Large-result Template Download",
+        "limit <= 1000",
+        "offline -> delete",
+    ),
+    "data_center_workflows": (
+        "### N. Data Center SQL Replacement and Refresh",
+        "### O. Data Center Dataset Creation and First Extraction",
+        "--confirm-production-write",
+        "executeOnce",
+    ),
+    "knowledge_governance": (
+        "data_center_market_<model_id>.sql",
+        "data_center_qingcheng_<model_id>.sql",
+        "semantic/current_model_bindings.json",
+        "sync-datamap-fields",
+        "validate_text2sql_stack.py",
+    ),
+    "dashboard_governance": (
+        "Existing-dashboard Governance (P3/P4A/P4B)",
+        "From-zero Dashboard Governance (P4C)",
+        "creation_saga_no_auto_delete",
+        "thirteen creation categories",
+        "publish_requested_unverified",
+    ),
+    "tool_and_secret_boundaries": (
+        "Generic Playwright must not execute",
+        "Spreadsheet calculations must use spreadsheet formulas",
+        "runtime\\usql-web-query-operator\\state.json",
+        "BAIJIA_USERNAME",
+        "BAIJIA_PASSWORD",
+    ),
+}
 MOJIBAKE_MARKERS = (
     "\ufffd",
     "\u951f\u65a4\u62f7",
@@ -121,6 +212,11 @@ def main() -> int:
     if not isinstance(max_bytes, int) or isinstance(max_bytes, bool) or max_bytes <= 0:
         failures.append(f"project_doc_max_bytes must be a positive integer; found {max_bytes!r}")
         max_bytes = DEFAULT_PROJECT_DOC_MAX_BYTES
+    elif max_bytes > DEFAULT_PROJECT_DOC_MAX_BYTES:
+        failures.append(
+            "project_doc_max_bytes must not exceed the C+ hard limit: "
+            f"{max_bytes} > {DEFAULT_PROJECT_DOC_MAX_BYTES}"
+        )
 
     forbidden_paths = (
         CODEX_ROOT / "AGENTS.md",
@@ -152,6 +248,16 @@ def main() -> int:
     if canonical_bytes and runtime_bytes and canonical_bytes != runtime_bytes:
         failures.append("runtime mirror differs from the Git-versioned canonical AGENTS.md")
 
+    canonical_text = canonical_bytes.decode("utf-8", errors="replace")
+    for capability, required_fragments in REQUIRED_CPLUS_CAPABILITIES.items():
+        missing_fragments = [
+            fragment for fragment in required_fragments if fragment not in canonical_text
+        ]
+        if missing_fragments:
+            failures.append(
+                f"C+ capability {capability!r} is incomplete; missing {missing_fragments!r}"
+            )
+
     discovery_cases = {
         CODEX_ROOT: (CODEX_ROOT, [RUNTIME_AGENTS.resolve()]),
         REPO_ROOT: (REPO_ROOT, [CANONICAL_AGENTS.resolve()]),
@@ -176,6 +282,8 @@ def main() -> int:
     print(f"canonical_sha256={digest}")
     print(f"runtime_sha256={sha256(runtime_bytes)}")
     print(f"canonical_bytes={len(canonical_bytes)}")
+    print(f"project_doc_max_bytes={max_bytes}")
+    print(f"cplus_capability_groups={len(REQUIRED_CPLUS_CAPABILITIES)}")
     for cwd, sources in actual_sources.items():
         print(f"cwd={cwd}; sources={','.join(str(path) for path in sources)}")
     return 0

@@ -1,6 +1,6 @@
 {
-  "version": 1,
-  "updated_at": "2026-06-17",
+  "version": 2,
+  "updated_at": "2026-07-20",
   "default_database": "temp_table",
   "owner_prefix": "dingxi01_",
   "roots": {
@@ -221,7 +221,8 @@
       "domain": "qingcheng",
       "business_name": "到课",
       "upload_schedule": "周四",
-      "local_filename": "daoke_t_one_six_qing.xlsx",
+      "local_filename": "qing_daoke.xlsx",
+      "local_filename_aliases": ["daoke_t_one_six_qing.xlsx"],
       "standard_temp_table": "dingxi01_qing_daoke",
       "mapping_status": "platform_inferred_semantic",
       "confidence": "high",
@@ -261,7 +262,8 @@
       "domain": "qingcheng",
       "business_name": "个人期次目标表",
       "upload_schedule": "周四",
-      "local_filename": "qing_qici_goal.xlsx",
+      "local_filename": "qing_goal.xlsx",
+      "local_filename_aliases": ["qing_qici_goal.xlsx"],
       "standard_temp_table": "dingxi01_qing_goal",
       "mapping_status": "platform_inferred_semantic",
       "confidence": "high",

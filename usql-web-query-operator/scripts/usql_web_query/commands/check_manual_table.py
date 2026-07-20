@@ -24,7 +24,7 @@ def cmd_check_manual_table(args: argparse.Namespace) -> int:
     error_count = sum(record["validation"].get("error_count", 0) for record in records)
     warning_count = sum(record["validation"].get("warning_count", 0) for record in records)
     review_required_count = sum(
-        1 for record in records if record.get("mapping", {}).get("auto_target") is False
+        1 for record in records if (record.get("mapping") or {}).get("auto_target") is False
     )
     summary = {
         "ok": error_count == 0 and (not args.strict or review_required_count == 0),

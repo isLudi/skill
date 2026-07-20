@@ -29,6 +29,15 @@ class ManualTableEntry:
         return str(self.raw.get("local_filename", ""))
 
     @property
+    def local_filename_aliases(self) -> tuple[str, ...]:
+        values = self.raw.get("local_filename_aliases") or []
+        return tuple(str(value) for value in values if str(value).strip())
+
+    @property
+    def local_filenames(self) -> tuple[str, ...]:
+        return (self.local_filename, *self.local_filename_aliases)
+
+    @property
     def standard_temp_table(self) -> str | None:
         value = self.raw.get("standard_temp_table")
         return str(value).strip() if value else None
@@ -43,6 +52,7 @@ class ManualTableEntry:
             "domain": self.raw.get("domain"),
             "business_name": self.raw.get("business_name"),
             "local_filename": self.raw.get("local_filename"),
+            "local_filename_aliases": list(self.local_filename_aliases),
             "standard_temp_table": self.raw.get("standard_temp_table"),
             "mapping_status": self.raw.get("mapping_status"),
             "confidence": self.raw.get("confidence"),
@@ -81,13 +91,17 @@ class ManualTableRegistry:
     def resolve_file(self, file_path: Path) -> ManualTableEntry | None:
         normalized = _normalize_path(file_path)
         for entry in self.entries():
-            if normalized == _normalize_path(entry.file_path):
+            root = self.roots.get(str(entry.raw.get("domain", "")))
+            candidate_paths = [entry.file_path]
+            if root:
+                candidate_paths.extend(root / filename for filename in entry.local_filename_aliases)
+            if any(normalized == _normalize_path(candidate) for candidate in candidate_paths):
                 return entry
 
         matching_by_name = [
             entry
             for entry in self.entries()
-            if entry.local_filename.casefold() == file_path.name.casefold()
+            if file_path.name.casefold() in {name.casefold() for name in entry.local_filenames}
         ]
         if len(matching_by_name) == 1:
             return matching_by_name[0]
