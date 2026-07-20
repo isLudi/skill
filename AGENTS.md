@@ -113,7 +113,7 @@ When a user request matches any scenario below, automatically load and orchestra
 - User wants to build, develop, deploy, publish, inspect app metadata/logs/Trace/metrics, manage environment variables, app databases, app file storage, OpenAPI keys, visibility, app roles/members, automation triggers, or plugin integration for Miaoda/Spark apps -> `lark-apps`
 - User wants to send/search chat messages, manage chats, download chat files, reply in Feishu IM, send urgent notifications, use interactive cards, or handle card callbacks -> `lark-im`
 - User wants to create/read/patch/diff native Feishu Markdown files -> `lark-markdown`
-- User wants to listen to or consume Feishu/Lark real-time events, webhook-like event streams, or bounded bot event subscriptions -> `lark-event`
+- User wants to listen to or consume Feishu/Lark real-time events, Approval status-change events, webhook-like event streams, or bounded bot event subscriptions -> `lark-event`
 - User wants to wrap Feishu OpenAPI operations into a reusable custom skill -> `lark-skill-maker`
 - User needs a Feishu/Lark native OpenAPI that is not covered by the existing `lark-*` commands or skills -> `lark-openapi-explorer`
 - User wants calendar, contacts, mail, slides, tasks, approvals, OKRs, minutes, minutes permission requests, notes, VC, in-meeting VC agent operations, whiteboard, attendance, wiki-to-drive moves, or other Feishu domain operations -> use the matching `lark-*` skill by domain
