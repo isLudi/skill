@@ -16,6 +16,7 @@ CORE_ROOT = REPO_ROOT / "_shared" / "text2sql_core"
 BUILD_CATALOG = REPO_ROOT / "scripts" / "build_text2sql_catalog.py"
 AUDIT_CORPUS = REPO_ROOT / "scripts" / "audit_text2sql_corpus.py"
 AUDIT_KNOWLEDGE_VERSIONS = REPO_ROOT / "scripts" / "audit_knowledge_versions.py"
+AGENTS_LAYOUT_CHECK = REPO_ROOT / "scripts" / "check_agents_layout.py"
 EXPECTED_SQLGLOT_VERSION = "30.12.0"
 SKILL_NAMES = (
     "qingcheng-dashboard-sql",
@@ -168,7 +169,7 @@ def check_utf8_bom() -> list[str]:
     roots = [REPO_ROOT / skill_name for skill_name in SKILL_NAMES]
     roots.extend((CORE_ROOT, REPO_ROOT / "scripts"))
     failures: list[str] = []
-    candidates = [REPO_ROOT / "AGENTS.md", REPO_ROOT.parent / "AGENTS.md"]
+    candidates = [REPO_ROOT / "AGENTS.md", REPO_ROOT.parent / "WORKSPACE_AGENTS.md"]
     for root in roots:
         candidates.extend(
             path
@@ -176,6 +177,8 @@ def check_utf8_bom() -> list[str]:
             if path.is_file() and path.suffix.lower() in TEXT_SUFFIXES
         )
     for path in candidates:
+        if not path.is_file():
+            continue
         if path.read_bytes().startswith(b"\xef\xbb\xbf"):
             failures.append(f"UTF-8 BOM remains: {path}")
     return failures
@@ -199,13 +202,12 @@ def main() -> int:
     ):
         failures.append("Text2SQL parser dependencies missing or version mismatch")
 
-    root_agents = REPO_ROOT.parent / "AGENTS.md"
-    repo_agents = REPO_ROOT / "AGENTS.md"
-    if root_agents.read_bytes() == repo_agents.read_bytes():
-        print("[PASS] AGENTS boundary copies are byte-identical")
-    else:
-        print("[FAIL] AGENTS boundary copies differ")
-        failures.append("root and skills AGENTS.md must remain byte-identical")
+    if not run_command(
+        "single-source AGENTS layout",
+        [sys.executable, str(AGENTS_LAYOUT_CHECK)],
+        REPO_ROOT,
+    ):
+        failures.append("single-source AGENTS layout validation failed")
 
     bom_failures = check_utf8_bom()
     if bom_failures:
