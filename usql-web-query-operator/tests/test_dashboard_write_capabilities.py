@@ -29,7 +29,7 @@ class DashboardWriteCapabilityRegistryTests(unittest.TestCase):
         summary = registry_summary(self.registry)
         self.assertEqual(29, summary["capability_count"])
         self.assertEqual(
-            {"allowlisted": 23, "blocked": 5, "separate_confirmation": 1},
+            {"allowlisted": 22, "blocked": 5, "sandbox_only": 1, "separate_confirmation": 1},
             summary["by_write_policy"],
         )
         self.assertEqual(
@@ -45,7 +45,6 @@ class DashboardWriteCapabilityRegistryTests(unittest.TestCase):
                 "create_public_filter",
                 "create_tab_container",
                 "create_text_component",
-                "rebuild_pivot_unit_by_copy",
                 "rename_new_component_metrics",
                 "style_new_components",
                 "update_component_fields",
@@ -60,7 +59,7 @@ class DashboardWriteCapabilityRegistryTests(unittest.TestCase):
             ],
             summary["allowlisted_operations"],
         )
-        self.assertEqual([], summary["sandbox_only_operations"])
+        self.assertEqual(["rebuild_pivot_unit_by_copy"], summary["sandbox_only_operations"])
         self.assertEqual(["publish_dashboard"], summary["separate_confirmation_operations"])
         self.assertEqual(
             [

@@ -48,7 +48,7 @@
 | 34 | `退费整体数据` | `menu_set_3933610975748915200` | `2886` | `2874` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/退费整体数据 | [data_center_market_2886.sql](../../resources/raw_sql/data_center_market_2886.sql) | `0d725cab2ae97ae813bc1bad58d55eca96f2ae8494d5d713724b1b95cf6fa017` | 376 |
 | 35 | `多科用户退费` | `menu_set_3935191825064992768` | `2890` | `2878` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/多科用户退费 | [data_center_market_2890.sql](../../resources/raw_sql/data_center_market_2890.sql) | `86c7a461cc3fdec9b1315979af72a0a8f39b242d27b671c6fb1dad951c23f76f` | 410 |
 | 36 | `koc数据播报` | `menu_set_3954191650309713920` | `2978` | `2966` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/koc数据播报 | [data_center_market_2978.sql](../../resources/raw_sql/data_center_market_2978.sql) | `cfeeb56bbc6e7e6c0f223a8e585ee7ec19dcb69c9fc4c678d9374db79b3a269c` | 394 |
-| 37 | `新老人转化对比` | `menu_set_3975633867349405696` | `3039` | `3027` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/新老人转化对比 | [data_center_market_3039.sql](../../resources/raw_sql/data_center_market_3039.sql) | `573359fafe28039638131b125397d5a21a9ac72b84d6dad3250ac9407d4722d7` | 1041 |
+| 37 | `新老人转化对比` | `menu_set_3975633867349405696` | `3039` | `3027` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/新老人转化对比 | [data_center_market_3039.sql](../../resources/raw_sql/data_center_market_3039.sql) | `7ce4650fe63fa8ee7e88e9f1a89d520a3449b0a3f7ddd2fd96b90a8e6f9bc83d` | 1045 |
 
 ## 3. 维护说明
 

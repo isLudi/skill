@@ -48,7 +48,7 @@ def cmd_template_download(args: argparse.Namespace) -> int:
     error_message: str | None = None
     download_skipped_reason: str | None = None
     cleanup = {
-        "attempted": not args.keep_template,
+        "attempted": True,
         "offlineApplied": False,
         "deleted": False,
         "errors": [],
@@ -140,7 +140,7 @@ def cmd_template_download(args: argparse.Namespace) -> int:
                 except Exception:
                     pass
         finally:
-            if template is not None and not args.keep_template:
+            if template is not None:
                 _cleanup_template(client=TemplateQueryClient(page, args.state_path), template=template, current_status=template_status, cleanup=cleanup)
             context.close()
             browser.close()
@@ -312,113 +312,6 @@ def _download_with_csv_fallback(
             expected_columns=expected_columns,
         )
         return path, "csv", fallback_reason
-
-
-def download_concrete_sql_via_template_csv(
-    *,
-    page: Any,
-    state_path: Path,
-    sql: str,
-    artifacts_dir: Path,
-    username: str | None,
-    password: str | None,
-    timeout_ms: int,
-    poll_interval_ms: int = 2000,
-) -> tuple[Path, dict[str, Any]]:
-    """Re-run concrete SQL through a temporary Template Query and return CSV.
-
-    This is the correctness fallback for direct downloads that resolve to XML
-    listings or header-only Excel workbooks. The temporary template is always
-    taken offline and deleted before success is reported.
-    """
-
-    client = TemplateQueryClient(page, state_path)
-    template: TemplateQuery | None = None
-    template_status: int | None = None
-    query: TemplateQueryExecution | None = None
-    query_result: dict[str, Any] | None = None
-    error: Exception | None = None
-    download_path: Path | None = None
-    cleanup: dict[str, Any] = {
-        "attempted": True,
-        "offlineApplied": False,
-        "deleted": False,
-        "errors": [],
-    }
-    try:
-        client.ensure_authenticated(username, password)
-        auth_profile = client.fetch_auth_profile()
-        creator = _required_text(auth_profile.get("name"), "Template Query creator name")
-        template = client.save_template(
-            name=_default_template_name(),
-            description="Codex automatic fallback for invalid direct download artifact",
-            sql=sql,
-            creator=creator,
-            owner="",
-        )
-        template_status = template.status or 1
-        client.publish_template(template.id)
-        template_status = 2
-        query_detail = client.fetch_query_detail(template_id=template.id, query_type=1)
-        unresolved_conditions = _collect_unresolved_conditions(query_detail)
-        if unresolved_conditions:
-            raise UsageError(
-                "Automatic Template Query fallback requires concrete SQL without template parameters. "
-                f"Found unresolved query conditions: {', '.join(unresolved_conditions)}"
-            )
-        query_id = client.create_query(
-            query_name=_default_query_name(template.name),
-            template_id=template.id,
-            query_type=1,
-            required_conditions=_copy_rows(query_detail.get("requiredConditions")),
-            partition_conditions=_copy_rows(query_detail.get("partitionConditions")),
-            query_column=_select_all_query_columns(query_detail.get("queryColumn")),
-            query_conditions=_copy_rows(query_detail.get("queryConditions")),
-        )
-        query = client.wait_for_query_completion(
-            query_id=query_id,
-            timeout_ms=timeout_ms,
-            poll_interval_ms=poll_interval_ms,
-        )
-        if query.status != SUCCESS_QUERY_STATUS:
-            raise UsageError(_build_query_failure_message(query, client.fetch_query_log(query.id)))
-        if (query.count or 0) <= 0:
-            raise UsageError("Automatic Template Query fallback returned 0 rows.")
-        query_result = client.fetch_query_result(query.id)
-        download_path = client.download_query_result(
-            query_id=query.id,
-            download_type=parse_download_type("csv"),
-            artifacts_dir=artifacts_dir,
-            expected_rows=query.count,
-            expected_columns=_query_result_column_count(query_result),
-        )
-    except Exception as exc:  # noqa: BLE001
-        error = exc
-    finally:
-        if template is not None:
-            _cleanup_template(
-                client=client,
-                template=template,
-                current_status=template_status,
-                cleanup=cleanup,
-            )
-
-    if error is not None:
-        if cleanup["errors"]:
-            raise UsageError(f"{error} Cleanup failed: {'; '.join(cleanup['errors'])}") from error
-        raise error
-    if cleanup["errors"]:
-        raise UsageError(f"Automatic Template Query fallback cleanup failed: {'; '.join(cleanup['errors'])}")
-    if download_path is None or query is None or template is None:
-        raise UsageError("Automatic Template Query fallback did not produce a CSV artifact.")
-    return download_path, {
-        "source": "temporary_template_csv",
-        "templateId": template.id,
-        "queryId": query.id,
-        "rowCount": query.count,
-        "actualFormat": "csv",
-        "cleanup": cleanup,
-    }
 
 
 def _cleanup_template(

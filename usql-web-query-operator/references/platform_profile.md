@@ -114,7 +114,7 @@ iframe 编辑器工具栏中的运行按钮回退方案：
 2. 如果 API 不可用，点击结果区 `.anticon-download` 或带下载语义的 icon。
 3. 如果点击后出现下拉菜单，选择 `excel` / `Excel` / `xlsx`；如果图标直接触发浏览器下载，则保存后校验。
 4. CSV 若实际为对象存储 XML 列表/错误页，或 Excel 在查询有数据时只有表头、表头列不完整，判定为无效制品，不得返回成功。
-5. `run --download` 识别到上述无效制品时，自动用同一 concrete SQL 创建临时 Template Query、下载 CSV，并执行 `offline -> delete`。summary 的 `download_fallback` 保留原因、临时模板/查询 ID、行数和清理结果。
+5. `run --download` 识别到上述无效制品时失败关闭，并明确说明没有执行 Template Query 写入。需要临时模板链路时，用户必须另行授权并显式运行 `template-download`；该命令强制执行 `offline -> delete`。
 
 已验证 xlsx 文件名模式类似 `task_<query_id>_<timestamp>.xlsx`。
 
@@ -223,7 +223,7 @@ iframe 编辑器工具栏中的运行按钮回退方案：
 - 公共筛选器明细：POST `https://uanalysis.baijia.com/uanalysis-intelligence/value/public/unit/relation/detail`，body 为 `{"id":"<public_filter_relation_id>","isConfig":false}`
 - 单元取值 / 刷新验证：POST `https://uanalysis.baijia.com/uanalysis-intelligence/value/unit`，带目标 `unit_id`、筛选列表和 page 对象。默认健康检查使用空 `publicFilterList`，只证明 unit 能返回数据结构；透视表复制重建后的业务值验证必须传入公共筛选器 `publicFilterList` 并断言指定期次/周期，不能用空筛选结果替代。表格/透视表单元返回 `title`、`data`、`totalData`、`page`、`taskIds`；图表单元可能返回 `xAxis`、`series`、`taskIds`，不一定返回表格 `data`。
 
-该流程使用 `read_dashboard.py profile-dashboard`、`profile-folder` 或 `profile-all`。默认 `--profile-mode config` 只读取配置和 unit detail，不调用 `value/unit`；这也是知识同步的生产默认。实时数据健康检查使用独立命令 `check-dashboard-values --profile <config-profile.json>`。
+该流程使用 `read_dashboard.py profile-dashboard`、`profile-folder` 或 `profile-all`。默认 `--profile-mode config` 只读取配置和 unit detail，不调用 `value/unit`。`profile-all` 默认也只写 runtime；仅同时带 `--write-knowledge --confirm-skill-maintenance` 时才写固定、不可覆盖的域内知识目标，且任一画像失败会阻断整次知识写入。实时数据健康检查使用独立命令 `check-dashboard-values --profile <config-profile.json>`。
 
 `check-dashboard-values` 的默认保护：
 
@@ -276,11 +276,11 @@ iframe 编辑器工具栏中的运行按钮回退方案：
 
 2026-07-11 起，Text2SQL 下游看板设计和修改使用独立的 `profile-edit-dashboard → design-dashboard → plan-dashboard-change → apply-dashboard-change → publish-dashboard-change` 链路。完整 Artifact、Hash、stable-ID、单 relation 原子性和阻断规则见 `references/dashboard_change_workflow.md`。
 
-当前 Registry 生产 allowlist 包括既有稳定字段显示名、既有组件局部筛选器显示标签、既有组件标题、公共筛选器标题、既有 Tab 标签、同容器布局、依赖不变的既有局部公式、公共筛选器动态默认、根背景色、独立治理的透视表 copy-rebind，以及 P4C 的十三项新看板创建操作。它们仍受各自精确目标、Hash、回读和恢复门禁；未登记或 blocked 的既有组件重绑、泛化筛选条件/值/关系修改、克隆、文件夹移动、权限和删除操作不得调用。
+当前 Registry 生产 allowlist 包括既有稳定字段显示名、既有组件局部筛选器显示标签、既有组件标题、公共筛选器标题、既有 Tab 标签、同容器布局、依赖不变的既有局部公式、公共筛选器动态默认、根背景色，以及 P4C 的十三项新看板创建操作。透视表 copy-rebind 仅为 `sandbox_verified/sandbox_only`；未登记或 blocked 的既有组件重绑、泛化筛选条件/值/关系修改、克隆、文件夹移动、权限和删除操作不得调用。
 
 `apply-dashboard-change` 只写 draft；`publish-dashboard-change` 必须在独立进程中消费成功 ApplyReceipt 并显式确认。新链路不允许同一次命令 apply + publish。
 
-复制重建透视表 unit 使用 `config/copy/unit`，body 为 `{"id":"<source_unit_id>"}`，返回新 `unitId`；随后用 `config/update/unit` 更新新 unit 的字段列表，再用 `config/save/dashboardHtml` 将既有组件 `settings.unitId` 指向新 unit。沙箱使用 `rebind-pivot-fields-sandbox --confirm-sandbox-write`；生产 draft 使用 registry allowlisted 的 `rebind-pivot-fields-production --manifest-sha256 <hash> --confirm-production-write`。生产 manifest 必须包含带公共筛选器的 `filtered_value_checks`，命令会用 `value/unit` 回读指定期次/周期的行值；无 filter 原始值只能作为排查证据，不是生产通过条件。该路径不发布，发布仍需独立确认。
+复制重建透视表 unit 使用 `config/copy/unit`，body 为 `{"id":"<source_unit_id>"}`，返回新 `unitId`；随后用 `config/update/unit` 更新新 unit 的字段列表，再用 `config/save/dashboardHtml` 将既有组件 `settings.unitId` 指向新 unit。该链路仅允许 `rebind-pivot-fields-sandbox --confirm-sandbox-write`，目标名称必须含沙箱/测试标记。生产 CLI 和 allowlist 已移除，任何生产确认参数会在浏览器启动前返回 `blocked_unsupported`；沙箱 manifest/receipt 不授予生产权限。
 
 ## P4C 从零创建看板
 

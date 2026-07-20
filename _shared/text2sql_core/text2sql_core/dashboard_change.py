@@ -1123,7 +1123,7 @@ def _component_field_entries(component: Mapping[str, Any]) -> list[dict[str, Any
 def _component_field_group(item: Mapping[str, Any]) -> str | None:
     group = str(item.get("group") or "")
     return {
-        "row_dimension": "unitRowDimensionList",
+        "row_dimension": "unitDimensionList",
         "column_dimension": "unitColumnDimensionList",
         "measure": "unitMeasureList",
         "aide_measure": "unitAideMeasureList",

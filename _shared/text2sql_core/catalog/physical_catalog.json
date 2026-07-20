@@ -15944,7 +15944,7 @@
         {
           "domain": "qingcheng",
           "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.app_user_attribute_label_gaia_wide_df.md",
-          "sha256": "a9ecbebc40007e4e43eb560f836da514ab524f4c0d299a677ff5f792bd7dfbf7"
+          "sha256": "8368236314826b9030ce7ff1e052208eedba11d64e1fcacc13d72a4006d3fef8"
         }
       ],
       "columns": [

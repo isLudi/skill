@@ -1,8 +1,7 @@
-"""Scan configured folders, profile all dashboards, and sync markdown docs."""
+"""Scan configured folders into runtime and optionally maintain domain-isolated docs."""
 
 from __future__ import annotations
 
-from dataclasses import replace
 import json
 import time
 from pathlib import Path
@@ -42,7 +41,7 @@ def _append_changelog(
         "",
         f"## {timestamp}",
         "",
-        f"- 通过 `usql-web-query-operator/scripts/read_dashboard.py profile-all` 扫描 {_format_folder_scope(folder_names)}，并将原始 `profile.json` 写入本地 runtime 目录。",
+        f"- 通过 `usql-web-query-operator/scripts/read_dashboard.py profile-all --write-knowledge --confirm-skill-maintenance` 扫描 {_format_folder_scope(folder_names)}，并将原始 `profile.json` 写入本地 runtime 目录。",
         f"- 刷新 `knowledge/dashboard_web_profiles/README.md`，当前索引 {len(entries)} 个看板快照。",
         "- 本次 profile 结果：成功 {ok_count} 个，失败 {failed_count} 个。".format(
             ok_count=sum(1 for item in results if item.get("ok")),
@@ -54,70 +53,40 @@ def _append_changelog(
     changelog_path.write_text(existing.rstrip() + "\n" + "\n".join(lines).rstrip() + "\n", encoding="utf-8")
 
 
-def _single_target_override_requested(args) -> bool:
-    return any(
-        getattr(args, name) is not None
-        for name in ("knowledge_dir", "readme_path", "dashboards_readme_path", "changelog_path")
-    )
-
-
-def _apply_single_folder_overrides(base_target: DashboardKnowledgeTarget | None, folder: str, args) -> DashboardKnowledgeTarget:
-    knowledge_dir = args.knowledge_dir or (base_target.knowledge_dir if base_target else None)
-    if knowledge_dir is None:
-        raise UsageError(
-            f"Folder `{folder}` has no default knowledge target. Provide `--knowledge-dir` and `--readme-path` when profiling a single folder."
-        )
-    readme_path = args.readme_path
-    if readme_path is None:
-        readme_path = knowledge_dir / "README.md" if args.knowledge_dir else (base_target.readme_path if base_target else knowledge_dir / "README.md")
-    dashboards_readme_path = args.dashboards_readme_path if args.dashboards_readme_path is not None else (base_target.dashboards_readme_path if base_target else None)
-    changelog_path = args.changelog_path if args.changelog_path is not None else (base_target.changelog_path if base_target else None)
-    if base_target is None:
-        return DashboardKnowledgeTarget(
-            skill_name=f"custom:{folder}",
-            knowledge_dir=knowledge_dir,
-            readme_path=readme_path,
-            dashboards_readme_path=dashboards_readme_path,
-            changelog_path=changelog_path,
-        )
-    return replace(
-        base_target,
-        knowledge_dir=knowledge_dir,
-        readme_path=readme_path,
-        dashboards_readme_path=dashboards_readme_path,
-        changelog_path=changelog_path,
-    )
-
-
-def _resolve_targets(args, requested_folders: list[str]) -> dict[str, DashboardKnowledgeTarget]:
-    override_requested = _single_target_override_requested(args)
-    if override_requested and len(requested_folders) != 1:
-        raise UsageError(
-            "Single-target overrides for `profile-all` can only be used with exactly one folder. "
-            "Use the built-in folder routing for multi-folder syncs so Qingcheng and market knowledge stay isolated."
-        )
-
+def _resolve_targets(requested_folders: list[str]) -> dict[str, DashboardKnowledgeTarget]:
     targets: dict[str, DashboardKnowledgeTarget] = {}
     for folder in requested_folders:
         base_target = FOLDER_KNOWLEDGE_TARGETS.get(folder)
-        if override_requested:
-            targets[folder] = _apply_single_folder_overrides(base_target, folder, args)
-            continue
         if base_target is None:
             raise UsageError(
                 f"No default knowledge target is configured for folder `{folder}`. "
-                "Profile it alone with explicit `--knowledge-dir` / `--readme-path` overrides."
+                "Use `profile-folder` for runtime-only discovery; profile-all knowledge routing cannot be overridden."
             )
         targets[folder] = base_target
     return targets
 
 
+def _knowledge_write_enabled(args) -> bool:
+    write_requested = bool(getattr(args, "write_knowledge", False))
+    maintenance_confirmed = bool(getattr(args, "confirm_skill_maintenance", False))
+    if write_requested and not maintenance_confirmed:
+        raise UsageError(
+            "profile-all knowledge writes require both --write-knowledge and --confirm-skill-maintenance."
+        )
+    if maintenance_confirmed and not write_requested:
+        raise UsageError(
+            "--confirm-skill-maintenance is valid only together with --write-knowledge."
+        )
+    return write_requested and maintenance_confirmed
+
+
 def cmd_profile_all(args) -> int:
+    write_knowledge = _knowledge_write_enabled(args)
     load_env_file(args.env_file)
     sync_playwright = import_playwright()
     requested_folders = parse_dashboard_names(args.folders) or list(args.default_folders)
-    targets = _resolve_targets(args, requested_folders)
-    ensure_runtime([args.state_path.parent, args.artifacts_dir, *(target.knowledge_dir for target in targets.values())])
+    targets = _resolve_targets(requested_folders)
+    ensure_runtime([args.state_path.parent, args.artifacts_dir])
     artifacts_dir = safe_artifact_dir(args.artifacts_dir)
     output_dir = args.output_dir or artifacts_dir
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -126,6 +95,7 @@ def cmd_profile_all(args) -> int:
     entries: list[DashboardKnowledgeEntry] = []
     folder_summaries: list[dict[str, object]] = []
     target_buckets: dict[str, dict[str, object]] = {}
+    pending_profile_writes: list[tuple[dict[str, object], Path, Path]] = []
 
     with sync_playwright() as playwright:
         browser, context = launch_context(playwright, args.state_path, args.headed, args.browser_channel, args.executable_path)
@@ -178,7 +148,6 @@ def cmd_profile_all(args) -> int:
                     raw_profile_path = item["profile_path"]
                     filename = dashboard_filename(record)
                     markdown_path = target.knowledge_dir / filename
-                    write_profile_markdown(profile, raw_profile_path, markdown_path)
                     entry = DashboardKnowledgeEntry(
                         folder=folder,
                         dashboard_name=record.name,
@@ -190,8 +159,23 @@ def cmd_profile_all(args) -> int:
                     )
                     entries.append(entry)
                     bucket["entries"].append(entry)
+                    pending_profile_writes.append((profile, raw_profile_path, markdown_path))
         finally:
             browser.close()
+
+    knowledge_write_blocked_reason: str | None = None
+    knowledge_write_performed = False
+    if write_knowledge:
+        if not results:
+            knowledge_write_blocked_reason = "No dashboards were profiled; refusing to rewrite knowledge indexes."
+        elif not all(item.get("ok") for item in results) or len(entries) != len(results):
+            knowledge_write_blocked_reason = (
+                "One or more dashboard profiles failed or were incomplete; no Skill knowledge files were written."
+            )
+        else:
+            for profile, raw_profile_path, markdown_path in pending_profile_writes:
+                write_profile_markdown(profile, raw_profile_path, markdown_path)
+            knowledge_write_performed = True
 
     target_summaries: list[dict[str, object]] = []
     for bucket in target_buckets.values():
@@ -199,11 +183,12 @@ def cmd_profile_all(args) -> int:
         target_entries = list(bucket["entries"])
         target_results = list(bucket["results"])
         target_folders = list(bucket["folders"])
-        write_readme(target_entries, target.readme_path)
-        if not args.skip_dashboards_readme and target.dashboards_readme_path is not None:
-            update_dashboards_readme(target.dashboards_readme_path, target_folders)
-        if not args.skip_changelog and target.changelog_path is not None:
-            _append_changelog(target.changelog_path, target_results, target_entries, target_folders)
+        if knowledge_write_performed:
+            write_readme(target_entries, target.readme_path)
+            if not args.skip_dashboards_readme and target.dashboards_readme_path is not None:
+                update_dashboards_readme(target.dashboards_readme_path, target_folders)
+            if not args.skip_changelog and target.changelog_path is not None:
+                _append_changelog(target.changelog_path, target_results, target_entries, target_folders)
         target_summaries.append(
             {
                 "skill_name": target.skill_name,
@@ -215,6 +200,7 @@ def cmd_profile_all(args) -> int:
                 "entry_count": len(target_entries),
                 "ok_count": sum(1 for item in target_results if item.get("ok")),
                 "result_count": len(target_results),
+                "knowledge_write_performed": knowledge_write_performed,
             }
         )
 
@@ -225,12 +211,21 @@ def cmd_profile_all(args) -> int:
         "profile_mode": args.profile_mode,
         "target_count": len(results),
         "ok_count": sum(1 for item in results if item.get("ok")),
+        "knowledge_write": {
+            "requested": bool(getattr(args, "write_knowledge", False)),
+            "maintenance_confirmed": bool(getattr(args, "confirm_skill_maintenance", False)),
+            "performed": knowledge_write_performed,
+            "blocked_reason": knowledge_write_blocked_reason,
+        },
         "folder_summaries": folder_summaries,
         "knowledge_targets": target_summaries,
         "results": results,
-        "knowledge_entries": [entry.__dict__ for entry in entries],
+        "profiled_entries": [entry.__dict__ for entry in entries],
+        "knowledge_entries": [entry.__dict__ for entry in entries] if knowledge_write_performed else [],
     }
     consolidated_path = output_dir / "profile_all_consolidated.json"
     write_json(consolidated, consolidated_path)
     print(json.dumps({k: v for k, v in consolidated.items() if k != "results"}, ensure_ascii=False, indent=2))
-    return 0 if all(item.get("ok") for item in results) else 1
+    profiles_ok = all(item.get("ok") for item in results)
+    maintenance_ok = not write_knowledge or knowledge_write_performed
+    return 0 if profiles_ok and maintenance_ok else 1

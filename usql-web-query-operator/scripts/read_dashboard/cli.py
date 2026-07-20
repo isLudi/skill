@@ -476,36 +476,6 @@ def build_parser() -> argparse.ArgumentParser:
     rebind_pivot.add_argument("--debug-artifacts", action="store_true")
     rebind_pivot.set_defaults(func=cmd_rebind_pivot_fields_sandbox)
 
-    rebind_pivot_prod = subparsers.add_parser(
-        "rebind-pivot-fields-production",
-        help="Copy-rebuild existing pivot bindings on a production dashboard draft with registry allowlist and exact manifest hash.",
-    )
-    rebind_pivot_prod.add_argument("--target-manifest", type=Path, required=True)
-    rebind_pivot_prod.add_argument("--manifest-sha256", required=True)
-    rebind_pivot_prod.add_argument("--dashboard-id", required=True)
-    rebind_pivot_prod.add_argument("--expected-dashboard-name", required=True)
-    rebind_pivot_prod.add_argument("--domain", choices=["market_consultant", "qingcheng"], required=True)
-    rebind_pivot_prod.add_argument("--confirm-production-write", action="store_true", required=True)
-    rebind_pivot_prod.add_argument(
-        "--restore-after-apply",
-        action="store_true",
-        help="Restore changed component unit references after a successful production write; normally only for drills.",
-    )
-    rebind_pivot_prod.add_argument("--registry", type=Path, default=DEFAULT_REGISTRY)
-    rebind_pivot_prod.add_argument("--output", type=Path, default=None)
-    rebind_pivot_prod.add_argument("--headed", action="store_true")
-    rebind_pivot_prod.add_argument("--state-path", type=Path, default=DEFAULT_STATE)
-    rebind_pivot_prod.add_argument("--artifacts-dir", type=Path, default=DEFAULT_ARTIFACTS)
-    rebind_pivot_prod.add_argument("--env-file", type=Path, default=DEFAULT_ENV_FILE)
-    rebind_pivot_prod.add_argument("--username", default=os.environ.get("BAIJIA_USERNAME"))
-    rebind_pivot_prod.add_argument("--password", default=os.environ.get("BAIJIA_PASSWORD"))
-    rebind_pivot_prod.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL)
-    rebind_pivot_prod.add_argument("--executable-path", default=None)
-    rebind_pivot_prod.add_argument("--wait-ms", type=int, default=3_000)
-    rebind_pivot_prod.add_argument("--touch-wait-ms", type=int, default=1_000)
-    rebind_pivot_prod.add_argument("--debug-artifacts", action="store_true")
-    rebind_pivot_prod.set_defaults(func=cmd_rebind_pivot_fields_sandbox)
-
     edit_filters = subparsers.add_parser(
         "edit-public-filters",
         help="Legacy ordinal dry-run inspection only; all write/publish flags are rejected.",
@@ -575,13 +545,22 @@ def build_parser() -> argparse.ArgumentParser:
     profile_folder.add_argument("--debug-artifacts", action="store_true", help="Save screenshots and HTML under each dashboard profile directory.")
     profile_folder.set_defaults(func=cmd_profile_folder)
 
-    profile_all = subparsers.add_parser("profile-all", help="Scan configured folders, profile all dashboards, and sync markdown web profiles.")
+    profile_all = subparsers.add_parser(
+        "profile-all",
+        help="Scan configured folders into runtime; Skill knowledge writes require two explicit maintenance flags.",
+    )
     profile_all.add_argument("--folders", action="append", help="Folder names to scan. Repeat or separate with | or comma. Defaults to 市场顾问数据 and 青橙项目部.")
     profile_all.add_argument("--output-dir", type=Path, default=None)
-    profile_all.add_argument("--knowledge-dir", type=Path, default=None, help="Override the target dashboard_web_profiles directory when profiling exactly one folder.")
-    profile_all.add_argument("--readme-path", type=Path, default=None, help="Override the target dashboard_web_profiles README when profiling exactly one folder.")
-    profile_all.add_argument("--dashboards-readme-path", type=Path, default=None, help="Override the target dashboards README when profiling exactly one folder.")
-    profile_all.add_argument("--changelog-path", type=Path, default=None, help="Override the target changelog when profiling exactly one folder.")
+    profile_all.add_argument(
+        "--write-knowledge",
+        action="store_true",
+        help="Request writes to the fixed domain-isolated Skill knowledge targets.",
+    )
+    profile_all.add_argument(
+        "--confirm-skill-maintenance",
+        action="store_true",
+        help="Confirm that this run is authorized Skill knowledge-base maintenance; requires --write-knowledge.",
+    )
     profile_all.add_argument("--headed", action="store_true", help="Show browser window.")
     profile_all.add_argument("--state-path", type=Path, default=DEFAULT_STATE)
     profile_all.add_argument("--artifacts-dir", type=Path, default=DEFAULT_ARTIFACTS)

@@ -392,7 +392,6 @@ def build_parser() -> argparse.ArgumentParser:
     template_download.add_argument("--timeout-ms", type=int, default=20 * 60 * 1000, help="Maximum wait for query completion.")
     template_download.add_argument("--poll-interval-ms", type=int, default=2000, help="Polling interval for Template Query status checks.")
     template_download.add_argument("--include-preview", action="store_true", help="Include a small query-result preview in the JSON summary.")
-    template_download.add_argument("--keep-template", action="store_true", help="Skip offline/delete cleanup for debugging.")
     template_download.add_argument("--headed", action="store_true", help="Show browser window while authenticating.")
     template_download.add_argument("--debug-artifacts", action="store_true", help="Save screenshots and HTML under a timestamped runtime directory.")
     template_download.add_argument("--state-path", type=Path, default=DEFAULT_STATE, help="Shared Baijia browser storage state path.")

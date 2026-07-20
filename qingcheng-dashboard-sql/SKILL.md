@@ -235,14 +235,15 @@ QuerySpec 至少包含：
 - 如果临时表只服务某个看板，不得在其他看板 SQL 中复用，除非用户明确确认。
 - 如果临时表名称与其他部门临时表相似，必须写清楚不是同一口径。
 
-新增表结构 PDF 或字段目录：
+新增或刷新物理表结构：
 
-- 放入 `resources/raw_pdfs/` 或用户指定路径。
-- 表结构入库时只写入本 Skill 的 `knowledge/tables/`。
-- 不从其他 skill 自动复制表文档；若确实需要复用公共表结构，必须在更新日志中标明来源和核对结果。
+- 唯一权威入口是 `usql-web-query-operator sync-datamap-fields --target-skill qingcheng`：先运行默认 dry-run，用户明确授权知识维护后才加 `--write`。
+- PDF、截图、OCR、手工字段 JSON 和旧版文档提取/渲染资源目录均不是现行物理 schema 权威，不得据此新建或刷新 `knowledge/tables/`。
+- Data Map 只提供中性物理字段、类型、分区和 DDL；青橙指标、范围、临时表、业务 join 与看板语义仍只写在本 Skill 的域内 contracts/knowledge 中。
+- 不从其他 Skill 自动复制表文档；需要复用共享物理事实时，必须经共享中性 physical catalog 或 Data Map 重新核对，不得复制市场顾问业务语义。
 
 新增或刷新青橙 Web BI 结构快照：
 
-- 通过 `usql-web-query-operator/scripts/read_dashboard.py profile-all` 或对应单看板/文件夹命令采集。
+- 单看板/文件夹命令只把原始画像写入 runtime。需要批量写入知识库时，必须显式运行 `usql-web-query-operator/scripts/read_dashboard.py profile-all --write-knowledge --confirm-skill-maintenance`；少任一参数都不得修改本 Skill。
 - 所有青橙快照、README 索引和相关说明只写入本 Skill 的 `knowledge/dashboard_web_profiles/`。
 - 不得把 `青橙项目部` 文件夹下的结构快照写入 `sql-query-writer-for-dashboard`。

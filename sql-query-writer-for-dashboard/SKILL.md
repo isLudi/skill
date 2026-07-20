@@ -224,6 +224,7 @@ QuerySpec 至少包含：
 ## 5. 维护入口
 
 - 新增或刷新物理表字段时，统一调用 `usql-web-query-operator sync-datamap-fields`。先 dry-run 核对目标表、字段缺口、类型和说明，再显式 `--write`；物理字段以天工数据地图及 DDL 返回为准，业务含义、范围、Join 和指标仍由本 Skill 的 confirmed contract 与业务文档治理。不要在本 Skill 中保存或解析表结构 PDF、截图、页面渲染图或手工字段目录 JSON。
+- 新增或刷新 Web BI 结构快照时，`profile-dashboard`、`profile-folder` 和默认 `profile-all` 只写 runtime。只有用户明确要求市场顾问知识维护后，才可运行 `profile-all --write-knowledge --confirm-skill-maintenance`；目标固定路由到本 Skill，任一画像失败时整批不写，且不得把青橙快照混入本目录。
 - 新增看板 SQL：放入 `resources/raw_sql/`，运行 `scripts/ingest_dashboard_sql.py` 并人工核对业务文档；依次运行 `scripts/build_reverse_indexes.py`、仓库级 `../scripts/build_text2sql_catalog.py`、`scripts/check_skill_integrity.py`，最后用 `scripts/text2sql.py` 校验相关 QuerySpec、QueryPlan 与 SQL。`semantic/domain_manifest.json` 和 `semantic/generated/contract_index.json` 都是生成物，不手工编辑。
 - 数据中心 SQL 只允许稳定路径 `resources/raw_sql/data_center_market_<model_id>.sql`；current model 与语义槽位登记在 `semantic/current_model_bindings.json`。刷新必须通过 operator 的 `sync-data-center-sql` dry-run 获取精确计划哈希，再用 `--write --expected-plan-sha256 <hash>` 原子替换；禁止手工新增日期副本。Apply 后强制执行反向索引、共享 catalog、唯一版本审计、integrity 和完整栈验证，失败自动回滚。
 - 新增或修改 `semantic/contracts/*.json` 时，必须引用本域现有 `source_path` 和精确 SHA-256；业务证据不足的条目标为 `pending_confirmation`。更新后运行仓库级 catalog builder 生成 contract index，再运行域内完整性与离线 resolution eval；不得只刷新哈希而不核对业务变化。

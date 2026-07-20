@@ -558,3 +558,9 @@
 - 在 `P4C看板构建沙箱` 的 `dashboard_3994584279860838400` 完成字段显示名、局部筛选标签、组件标题、公共筛选标题、Tab 标签、布局、既有公式表达式、公共筛选动态默认项和根背景色九类适配器的逐项写入/回读/恢复验证。
 - 完成九操作连续正向 Apply 与逆序补偿恢复；最终完整 Profile Hash 精确回到基线 `64856e0fdd685f9c8ffe1027c5fc8985dd2d87c3e82fa97e063a9d0d046f750e`，verification SHA-256 为 `ccc9bbccc7d6cad3d26ecfae93c1691ddc19256d2a274fcb8db68d26b3762231`。
 - 本次只修改并恢复沙箱草稿，未调用发布接口；泛化组件筛选、字段增删/绑定、Tab 成员、数据集重绑、新建和删除仍保持阻断。
+
+## 2026-07-20 Skill 只读与知识维护边界收敛
+
+- 青橙 Web BI 批量画像默认改为 runtime-only；只有 `profile-all --write-knowledge --confirm-skill-maintenance` 才可写固定的青橙知识目标，任一画像失败时整批不写。
+- 青橙物理 schema 权威统一为 `usql-web-query-operator sync-datamap-fields --target-skill qingcheng`；PDF、截图、OCR 和旧版文档提取资源不再作为字段目录写入入口。
+- 移除完整性检查对旧版 PDF/图片/渲染目录的强制要求，并刷新反向索引、域清单和共享 physical catalog；未修改任何远端数据集或看板。

@@ -19,7 +19,7 @@
 | 核心临时表 | `temp_table.dingxi01_qing_daoke`, `temp_table.dingxi01_jiagou_db`, `temp_table.dingxi01_qing_team_jg`, `temp_table.dingxi01_qing_zz`, `temp_table.dingxi01_qing_qi_moth`, `temp_table.dingxi01_qing_team_goal`, `temp_table.dingxi01_qing_team_g_qi` | 已从 SQL 入库，来源/刷新方式待确认 |
 | 核心范围字段 | `section_assign_employee_second_level_department_name`, `virtual_second_department_name` | 已从 SQL 入库 |
 | 核心范围取值 | `青橙项目部` | 已从 SQL 入库 |
-| Web BI 结构快照 | `knowledge/dashboard_web_profiles/README.md` | 执行 `profile-all` 后维护；只允许写入本 Skill |
+| Web BI 结构快照 | `knowledge/dashboard_web_profiles/README.md` | 仅执行 `profile-all --write-knowledge --confirm-skill-maintenance` 后维护；默认画像只写 runtime，青橙快照只允许写入本 Skill |
 
 ## 4. 临时表策略
 

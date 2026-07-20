@@ -317,13 +317,13 @@
     {
       "operation": "rebuild_pivot_unit_by_copy",
       "phase": "draft",
-      "maturity": "verified",
-      "write_policy": "allowlisted",
+      "maturity": "sandbox_verified",
+      "write_policy": "sandbox_only",
       "transaction_class": "compensating_restore",
       "recovery_policy": "compensating_restore",
       "readback_coverage": "full",
       "risk": "critical",
-      "adapter": "read_dashboard.commands.rebind_pivot_fields_sandbox.cmd_rebind_pivot_fields_sandbox[production_mode]",
+      "adapter": "read_dashboard.commands.rebind_pivot_fields_sandbox.cmd_rebind_pivot_fields_sandbox[sandbox_only]",
       "write_endpoints": [
         "config/copy/unit",
         "config/update/unit",
@@ -337,30 +337,30 @@
       "evidence": [
         {
           "source_path": "scripts/read_dashboard/commands/rebind_pivot_fields_sandbox.py",
-          "source_sha256": "27fd2bbbcf587d2c6b74f24fd8c227d1d3022a02c0a142e007dc145a8f58df7e",
-          "note": "Production mode requires registry allowlist, exact manifest hash, production confirmation, full backups, schema readback, and public-filter-scoped value/unit validation."
+          "source_sha256": "9d011fe448243dd973a24fbc6d99b58ca5d74545a9ccc3fa657b880841eefda5",
+          "note": "Sandbox-only command requires an explicit sandbox identity, confirmation, full backups, schema readback, and blocks production mode before browser launch."
         },
         {
           "source_path": "scripts/read_dashboard/pivot_rebind.py",
           "source_sha256": "f596aaf9e18c071da4852d386c1b5d3396d869e9acbf677974c7638fa8524c85",
-          "note": "Field-list rebuild helper plus production filtered value check validation; unfiltered value/unit checks are rejected for production."
+          "note": "Field-list rebuild helper plus optional public-filter-scoped value assertions for sandbox verification."
         },
         {
           "source_path": "tests/test_pivot_rebind.py",
-          "source_sha256": "2cf5ffa6c98ae7454514a39dbf9c9022207e2969f6813c8757cb9728734cb7cc",
-          "note": "Unit field rebuild, required-measure guards, component reference replacement, and public-filter-scoped value validation tests."
+          "source_sha256": "b83e6b79bab4877f677f3c27b506a4dd413e6983fccf99d931c3d8407f6d52d4",
+          "note": "Unit field rebuild, production-mode rejection, required-measure guards, component reference replacement, and filtered value tests."
         },
         {
           "source_path": "tests/fixtures/pivot_rebind_sandbox_evidence.json",
           "source_sha256": "353199e4a29207c5daca6a13e650037da6a30f66a80ee4f4b7752388c6e776b9",
-          "note": "Redacted Qingcheng sandbox evidence separates legacy unfiltered checks from production-eligible filtered value assertions."
+          "note": "Redacted Qingcheng sandbox evidence separates unfiltered health checks from filtered value assertions."
         }
       ],
       "limitations": [
-        "Allowlisted only for copy-rebuilding existing pivot components in draft using an already-correct source unit from the same dashboard/model.",
-        "Requires an exact DashboardPivotFieldRebindManifest SHA-256, --confirm-production-write, and filtered_value_checks covering every operation.",
-        "Production value validation must call value/unit with publicFilterList for the specified qici/period; unfiltered value/unit output is not accepted as the production gate.",
-        "The recovery path restores dashboardHtml references to the pre-write schema; copied orphan units may remain unreferenced in the backend."
+        "Sandbox-only for copy-rebuilding existing pivot components using an already-correct source unit from the same dashboard/model.",
+        "Production pivot copy/rebind is blocked_unsupported and has no CLI entrypoint or Registry allowlist.",
+        "Filtered value assertions may call value/unit with publicFilterList for a specified qici/period; unfiltered output remains diagnostic only.",
+        "The sandbox recovery path restores dashboardHtml references to the pre-write schema; copied orphan units may remain unreferenced in the backend."
       ]
     },
     {
@@ -1054,5 +1054,5 @@
       ]
     }
   ],
-  "registry_sha256": "63a518d4e71250020d98dfd08a65274a025c9e83b47a0bafc3bb501f6ed6b312"
+  "registry_sha256": "6cff3d9b90ec30502cbca1e5479c30013b42c30eaa21aa62e91ea6d1c0036e78"
 }

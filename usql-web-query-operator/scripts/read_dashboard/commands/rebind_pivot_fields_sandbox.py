@@ -38,12 +38,8 @@ from ..profile import (
     parse_dashboard_html,
     post_json,
 )
-from ..write_capabilities import capability_by_operation, load_capability_registry
-
-
 SANDBOX_MARKERS = ("p4a", "sandbox", "test", "沙箱", "测试")
 COPY_UNIT_API = "https://udata.baijia.com/uanalysis-intelligence/config/copy/unit"
-PRODUCTION_OPERATION = "rebuild_pivot_unit_by_copy"
 
 
 def _load_manifest(path: Path) -> dict[str, Any]:
@@ -322,8 +318,13 @@ def _run_filtered_value_checks(
 def _execution_mode(args: Any, manifest: dict[str, Any]) -> dict[str, Any]:
     production = bool(getattr(args, "confirm_production_write", False))
     sandbox = bool(getattr(args, "confirm_sandbox_write", False))
-    if production == sandbox:
-        raise UsageError("Pivot rebind requires exactly one of --confirm-sandbox-write or --confirm-production-write.")
+    if production:
+        raise UsageError(
+            "Production pivot copy/rebind is blocked_unsupported. "
+            "This command is sandbox-only and accepts only --confirm-sandbox-write."
+        )
+    if not sandbox:
+        raise UsageError("Sandbox pivot rebind requires --confirm-sandbox-write.")
 
     dashboard_id = str(
         getattr(args, "dashboard_id", None)
@@ -339,48 +340,14 @@ def _execution_mode(args: Any, manifest: dict[str, Any]) -> dict[str, Any]:
     if manifest.get("dashboard_name") and str(manifest["dashboard_name"]) != expected_name:
         raise UsageError("Manifest dashboard_name does not match --expected-dashboard-name.")
 
-    if sandbox:
-        _require_sandbox(dashboard_id, expected_name)
-        return {
-            "name": "sandbox",
-            "dashboard_id": dashboard_id,
-            "expected_name": expected_name,
-            "target_backup_label": "sandbox_prewrite",
-            "receipt_artifact_type": "DashboardPivotFieldRebindSandboxReceipt",
-            "requires_allowlist": False,
-        }
-
-    lowered_name = expected_name.casefold()
-    if any(marker in lowered_name for marker in SANDBOX_MARKERS):
-        raise UsageError("Production pivot rebind refuses sandbox/test dashboard names.")
-    actual_manifest_sha256 = canonical_sha256(manifest)
-    expected_manifest_sha256 = str(getattr(args, "manifest_sha256", "") or "").strip().lower()
-    if not expected_manifest_sha256 or expected_manifest_sha256 != actual_manifest_sha256:
-        raise UsageError(
-            "Production pivot rebind requires the exact --manifest-sha256 "
-            f"{actual_manifest_sha256}."
-        )
-    registry = load_capability_registry(args.registry)
-    capability = capability_by_operation(registry, PRODUCTION_OPERATION)
-    if not (
-        capability.get("maturity") == "verified"
-        and capability.get("write_policy") == "allowlisted"
-        and capability.get("readback_coverage") == "full"
-    ):
-        raise UsageError(f"{PRODUCTION_OPERATION} is not verified/allowlisted in the live capability registry.")
+    _require_sandbox(dashboard_id, expected_name)
     return {
-        "name": "production",
+        "name": "sandbox",
         "dashboard_id": dashboard_id,
         "expected_name": expected_name,
-        "target_backup_label": "production_target_prewrite",
-        "receipt_artifact_type": "DashboardPivotFieldRebindProductionReceipt",
-        "requires_allowlist": True,
-        "manifest_sha256": actual_manifest_sha256,
-        "capability": {
-            "operation": PRODUCTION_OPERATION,
-            "write_policy": capability.get("write_policy"),
-            "maturity": capability.get("maturity"),
-        },
+        "target_backup_label": "sandbox_prewrite",
+        "receipt_artifact_type": "DashboardPivotFieldRebindSandboxReceipt",
+        "requires_allowlist": False,
     }
 
 
@@ -396,7 +363,7 @@ def cmd_rebind_pivot_fields_sandbox(args) -> int:
     filtered_value_checks = normalize_filtered_value_checks(
         manifest,
         operations,
-        require=mode["name"] == "production",
+        require=False,
     )
 
     load_env_file(args.env_file)

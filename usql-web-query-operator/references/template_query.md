@@ -78,13 +78,12 @@ D:\anaconda3\python.exe scripts\usql_web_query.py template-download `
 - `--download-format csv|xls`：默认 `csv`；`xls` 对应页面暴露的 Excel 格式下载分支。
 - `--output-file <path>`：把下载文件写到固定路径。
 - `--include-preview`：在 JSON 摘要中附带小规模结果预览。
-- `--keep-template`：调试时跳过下线和删除清理。
 - `--debug-artifacts`：把截图和 HTML 保存到带时间戳的 runtime 目录。
 
 当前范围与安全边界：
 
 - 输入 SQL 必须已经是可直接执行的具体 SQL。当前实现会拒绝仍包含模板参数或未解析查询条件的 SQL。
-- 清理是生产默认路径。无论成功或失败，只要未传 `--keep-template`，命令都会尝试执行 `offline -> delete` 清理临时模板。
+- 清理是不可跳过的强制路径。无论成功或失败，只要临时模板已经创建，命令都会尝试执行 `offline -> delete`；清理失败时整条命令失败，不提供保留模板参数。
 - `我的查询` 下的查询历史记录不在该命令清理范围内；当前已验证的清理范围仅覆盖临时模板本身。
 - 下载不是只看 HTTP 状态：XML `ListBucketResult`/错误负载、查询非空但 Excel 只有表头、Excel 表头列数少于 `query/result.meta` 都会被拒绝。
 - 当请求 `xls` 且 Excel 制品校验失败时，命令自动改取模板 CSV；如 `--output-file` 以 `.xlsx` 结尾，实际文件写为同名 `.csv`。JSON summary 的 `downloadFormatRequested`、`downloadFormatActual` 和 `downloadFallbackReason` 用于审计该回退。

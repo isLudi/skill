@@ -305,7 +305,7 @@ def update_dashboards_readme(readme_path: Path, folder_names: list[str] | tuple[
 
 当问题涉及自助 BI 页面上的筛选器、组件、字段 ID、下载按钮、刷新任务 ID 或行数/序列计数时，读取 `knowledge/dashboard_web_profiles/README.md` 及对应看板快照。该目录只记录 Web 前端结构，不替代本目录中的 SQL 业务口径。
 
-`knowledge/dashboard_web_profiles/README.md` 由 `usql-web-query-operator/scripts/read_dashboard.py profile-all` 统一重建，覆盖{_format_folder_scope(folder_names)}当前已同步的看板清单。
+`knowledge/dashboard_web_profiles/README.md` 仅由显式知识维护命令 `usql-web-query-operator/scripts/read_dashboard.py profile-all --write-knowledge --confirm-skill-maintenance` 重建，覆盖{_format_folder_scope(folder_names)}当前已同步的看板清单。未带这两个参数的 `profile-all` 只写 runtime。
 """
     updated = DASHBOARDS_README_SECTION_RE.sub(replacement, original)
     if updated == original:

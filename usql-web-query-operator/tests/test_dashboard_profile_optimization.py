@@ -13,7 +13,9 @@ SKILL_ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS_DIR = SKILL_ROOT / "scripts"
 sys.path.insert(0, str(SCRIPTS_DIR))
 
+from _shared.errors import UsageError  # noqa: E402
 from read_dashboard.cli import build_parser  # noqa: E402
+from read_dashboard.commands.profile_all import _knowledge_write_enabled, cmd_profile_all  # noqa: E402
 from read_dashboard.edit_batch import (  # noqa: E402
     commit_staged_profile,
     resolve_folder_domain,
@@ -73,7 +75,31 @@ class DashboardConfigModeTests(unittest.TestCase):
         self.assertEqual("config", parser.parse_args(["profile-dashboard", "--dashboard-id", "dashboard_1"]).profile_mode)
         self.assertEqual("config", parser.parse_args(["profile-folder"]).profile_mode)
         self.assertEqual("config", parser.parse_args(["profile-all"]).profile_mode)
+        self.assertFalse(parser.parse_args(["profile-all"]).write_knowledge)
+        self.assertFalse(parser.parse_args(["profile-all"]).confirm_skill_maintenance)
         self.assertEqual(2, parser.parse_args(["profile-edit-all"]).max_workers)
+
+    def test_profile_all_knowledge_writes_require_both_explicit_flags(self) -> None:
+        self.assertFalse(_knowledge_write_enabled(SimpleNamespace()))
+        with self.assertRaisesRegex(UsageError, "require both"):
+            _knowledge_write_enabled(SimpleNamespace(write_knowledge=True, confirm_skill_maintenance=False))
+        with self.assertRaisesRegex(UsageError, "valid only together"):
+            _knowledge_write_enabled(SimpleNamespace(write_knowledge=False, confirm_skill_maintenance=True))
+        self.assertTrue(
+            _knowledge_write_enabled(
+                SimpleNamespace(write_knowledge=True, confirm_skill_maintenance=True)
+            )
+        )
+
+    def test_profile_all_incomplete_write_confirmation_stops_before_browser_setup(self) -> None:
+        args = SimpleNamespace(write_knowledge=True, confirm_skill_maintenance=False)
+        with patch("read_dashboard.commands.profile_all.load_env_file") as load_env, patch(
+            "read_dashboard.commands.profile_all.import_playwright"
+        ) as import_browser:
+            with self.assertRaisesRegex(UsageError, "require both"):
+                cmd_profile_all(args)
+        load_env.assert_not_called()
+        import_browser.assert_not_called()
 
 
 class ValueHealthPolicyTests(unittest.TestCase):

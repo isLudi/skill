@@ -1886,8 +1886,8 @@
       {
         "id": "qingcheng:governance:04_qingcheng_project_profile",
         "source_path": "knowledge/04_qingcheng_project_profile.md",
-        "sha256": "7fbe13f29812bb576b63b0963bc68dd1386246c6aead20992dfe9919230d99b1",
-        "bytes": 9720,
+        "sha256": "73a9c471e17274f572ffaf14fc73580a07b738775cedb4a7fd6f1d5a671bb255",
+        "bytes": 9810,
         "title": "青橙项目部业务域档案",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -3574,8 +3574,8 @@
       {
         "id": "qingcheng:tables:service_dw.app_user_attribute_label_gaia_wide_df",
         "source_path": "knowledge/tables/service_dw.app_user_attribute_label_gaia_wide_df.md",
-        "sha256": "a9ecbebc40007e4e43eb560f836da514ab524f4c0d299a677ff5f792bd7dfbf7",
-        "bytes": 11486,
+        "sha256": "8368236314826b9030ce7ff1e052208eedba11d64e1fcacc13d72a4006d3fef8",
+        "bytes": 11653,
         "title": "service_dw.app_user_attribute_label_gaia_wide_df",
         "table_refs": [
           "service_dw.app_user_attribute_label_gaia_wide_df"
@@ -3882,8 +3882,8 @@
       {
         "id": "qingcheng:update_log:changelog",
         "source_path": "knowledge/update_log/changelog.md",
-        "sha256": "5b4ce3a584688e470ff3f09ff7e6f874f4b5f1f84b112d5aace5d83942981a57",
-        "bytes": 61703,
+        "sha256": "7f4e7ed5c8728d898d8ade785b97ad3aeba5d6450a048567543cef0446d67264",
+        "bytes": 62334,
         "title": "更新日志",
         "table_refs": [
           "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf",
@@ -4608,8 +4608,8 @@
     },
     {
       "source_path": "knowledge/04_qingcheng_project_profile.md",
-      "sha256": "7fbe13f29812bb576b63b0963bc68dd1386246c6aead20992dfe9919230d99b1",
-      "bytes": 9720,
+      "sha256": "73a9c471e17274f572ffaf14fc73580a07b738775cedb4a7fd6f1d5a671bb255",
+      "bytes": 9810,
       "category": "governance"
     },
     {
@@ -5466,8 +5466,8 @@
     },
     {
       "source_path": "knowledge/tables/service_dw.app_user_attribute_label_gaia_wide_df.md",
-      "sha256": "a9ecbebc40007e4e43eb560f836da514ab524f4c0d299a677ff5f792bd7dfbf7",
-      "bytes": 11486,
+      "sha256": "8368236314826b9030ce7ff1e052208eedba11d64e1fcacc13d72a4006d3fef8",
+      "bytes": 11653,
       "category": "tables"
     },
     {
@@ -5574,8 +5574,8 @@
     },
     {
       "source_path": "knowledge/update_log/changelog.md",
-      "sha256": "5b4ce3a584688e470ff3f09ff7e6f874f4b5f1f84b112d5aace5d83942981a57",
-      "bytes": 61703,
+      "sha256": "7f4e7ed5c8728d898d8ade785b97ad3aeba5d6450a048567543cef0446d67264",
+      "bytes": 62334,
       "category": "update_log"
     },
     {

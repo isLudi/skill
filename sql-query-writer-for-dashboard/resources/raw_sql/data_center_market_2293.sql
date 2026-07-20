@@ -810,7 +810,18 @@ final_result_headcount_base as (
         row_number() over (
             partition by fr.period_name, fr.depart, fr.employee_email_name
             order by fr.channel_map, fr.rule_name, fr.grade_1
-        ) as rn_employee_all
+        ) as rn_employee_all,
+        max(coalesce(fr.podan, 0)) over (
+            partition by fr.period_name, fr.depart, fr.employee_email_name
+        ) as employee_podan_flag_all,
+        row_number() over (
+            partition by fr.period_name, fr.depart, fr.employee_email_name
+            order by
+                case when coalesce(fr.podan, 0) > 0 then 0 else 1 end,
+                fr.channel_map,
+                fr.rule_name,
+                fr.grade_1
+        ) as rn_employee_podan_all
     from final_result fr
     left join employee_headcount_agg eh
       on eh.period_name = fr.period_name
@@ -877,7 +888,16 @@ final_result_enriched as (
         frh.kk_trade_income,
         frh.pre_refund,
         frh.s_lead,
-        frh.podan,
+        case
+            when frh.employee_podan_flag_all > 0
+             and frh.rn_employee_podan_all = 1 then 1
+            else 0
+        end as podan,
+        case
+            when frh.employee_podan_flag_all > 0
+             and frh.rn_employee_podan_all = 1 then 1
+            else 0
+        end as podan_employee_once,
         frh.name1,
         frh.xiaozu,
         frh.jingli_11,
@@ -935,3 +955,4 @@ select
 from final_result_enriched fre
 left join period_rank pr
   on fre.period_name = pr.period_name
+where nullif(trim(cast(fre.jingli_11 as varchar)), '') is not null

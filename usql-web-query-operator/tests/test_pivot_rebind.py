@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import sys
 import unittest
+from types import SimpleNamespace
 from pathlib import Path
 
 
@@ -15,8 +16,10 @@ from read_dashboard.pivot_rebind import (  # noqa: E402
     project_unit_field_state,
     rebuild_pivot_unit_fields,
 )
+from read_dashboard.cli import build_parser  # noqa: E402
 from read_dashboard.commands.rebind_pivot_fields_sandbox import (  # noqa: E402
     _count_component_unit_refs,
+    _execution_mode,
     _replace_component_unit_id,
 )
 
@@ -33,6 +36,14 @@ def field(field_id: str, name: str, show_name: str | None = None) -> dict[str, o
 
 
 class PivotRebindTests(unittest.TestCase):
+    def test_production_rebind_has_no_cli_entrypoint(self) -> None:
+        parser = build_parser()
+        subparsers = next(
+            action for action in parser._actions if action.__class__.__name__ == "_SubParsersAction"
+        )
+        self.assertIn("rebind-pivot-fields-sandbox", subparsers.choices)
+        self.assertNotIn("rebind-pivot-fields-production", subparsers.choices)
+
     def test_rebuild_uses_source_measures_and_target_dimension_display(self) -> None:
         target = {
             "unitId": "unit_target",
@@ -133,7 +144,7 @@ class PivotRebindTests(unittest.TestCase):
         self.assertEqual("unit_new", schema["componentsTree"][0]["settings"]["unitId"])
         self.assertEqual("unit_new", schema["componentsTree"][0]["props"]["settings"]["unitId"])
 
-    def test_production_requires_filtered_value_checks(self) -> None:
+    def test_strict_validation_requires_filtered_value_checks(self) -> None:
         manifest = {
             "artifact_type": "DashboardPivotFieldRebindManifest",
             "schema_version": "1.0.0",
@@ -141,6 +152,14 @@ class PivotRebindTests(unittest.TestCase):
         operations = [{"operation_id": "channel1_overall"}]
         with self.assertRaisesRegex(UsageError, "requires filtered_value_checks"):
             normalize_filtered_value_checks(manifest, operations, require=True)
+
+    def test_production_execution_mode_is_blocked_before_browser_launch(self) -> None:
+        args = SimpleNamespace(
+            confirm_production_write=True,
+            confirm_sandbox_write=False,
+        )
+        with self.assertRaisesRegex(UsageError, "blocked_unsupported"):
+            _execution_mode(args, {})
 
     def test_filtered_value_checks_require_period_public_filter(self) -> None:
         operations = [{"operation_id": "channel1_overall"}]

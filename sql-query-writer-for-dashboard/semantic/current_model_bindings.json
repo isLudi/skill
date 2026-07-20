@@ -552,9 +552,9 @@
       "ordinal": 39,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/新老人转化对比",
       "source_observed_on": "2026-07-20",
-      "sql_bytes": 71234,
+      "sql_bytes": 70188,
       "sql_lines": 1045,
-      "sql_sha256": "50aadec9543a195e45bd61afbe9ad5a6a1eb583e312843c795e0a9451552b137",
+      "sql_sha256": "7ce4650fe63fa8ee7e88e9f1a89d520a3449b0a3f7ddd2fd96b90a8e6f9bc83d",
       "subject_id": "3027"
     }
   ],

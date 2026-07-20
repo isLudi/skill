@@ -13,6 +13,7 @@ SKILL_ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS_DIR = SKILL_ROOT / "scripts"
 sys.path.insert(0, str(SCRIPTS_DIR))
 
+from _shared.errors import UsageError  # noqa: E402
 from usql_web_query.artifact_validation import (  # noqa: E402
     ArtifactInspection,
     DownloadArtifactError,
@@ -20,7 +21,8 @@ from usql_web_query.artifact_validation import (  # noqa: E402
     validate_download_bytes,
 )
 from usql_web_query.commands.template_download import _download_with_csv_fallback  # noqa: E402
-from usql_web_query.commands.run import _download_result_with_template_fallback  # noqa: E402
+from usql_web_query.commands.run import _download_result  # noqa: E402
+from usql_web_query.cli import build_parser  # noqa: E402
 
 
 def xlsx_bytes(rows: list[list[str]]) -> bytes:
@@ -44,6 +46,18 @@ def xlsx_bytes(rows: list[list[str]]) -> bytes:
 
 
 class DownloadArtifactValidationTests(unittest.TestCase):
+    def test_template_download_has_no_cleanup_bypass_flag(self) -> None:
+        parser = build_parser()
+        subparsers = next(
+            action for action in parser._actions if action.__class__.__name__ == "_SubParsersAction"
+        )
+        option_strings = {
+            option
+            for action in subparsers.choices["template-download"]._actions
+            for option in action.option_strings
+        }
+        self.assertNotIn("--keep-template", option_strings)
+
     def test_xml_list_bucket_result_is_rejected_as_pseudo_csv(self) -> None:
         content = b'<?xml version="1.0"?><ListBucketResult><Name>bucket</Name></ListBucketResult>'
 
@@ -93,7 +107,7 @@ class DownloadArtifactValidationTests(unittest.TestCase):
         self.assertTrue(csv_result.valid)
         self.assertTrue(excel_result.valid)
 
-    def test_header_only_excel_automatically_falls_back_to_template_csv(self) -> None:
+    def test_explicit_template_download_falls_back_from_xls_to_csv(self) -> None:
         class FakeClient:
             def __init__(self, output: Path):
                 self.output = output
@@ -135,7 +149,7 @@ class DownloadArtifactValidationTests(unittest.TestCase):
         self.assertEqual(client.download_types, [2, 1])
         self.assertEqual(client.output_files[-1].suffix, ".csv")
 
-    def test_invalid_direct_artifact_automatically_uses_temporary_template_csv(self) -> None:
+    def test_invalid_direct_artifact_fails_closed_without_template_writes(self) -> None:
         error = DownloadArtifactError(
             ArtifactInspection(
                 False,
@@ -146,37 +160,22 @@ class DownloadArtifactValidationTests(unittest.TestCase):
         )
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
-            fallback_path = root / "template_result.csv"
             with patch(
                 "usql_web_query.commands.run.click_download_button",
                 side_effect=error,
-            ), patch(
-                "usql_web_query.commands.run.download_concrete_sql_via_template_csv",
-                return_value=(
-                    fallback_path,
-                    {
-                        "source": "temporary_template_csv",
-                        "cleanup": {"offlineApplied": True, "deleted": True, "errors": []},
-                    },
-                ),
-            ) as template_fallback:
-                path, details = _download_result_with_template_fallback(
-                    page=object(),
-                    artifacts_dir=root,
-                    query_id="123",
-                    expected_rows=29,
-                    expected_columns=2,
-                    state_path=root / "state.json",
-                    sql="select 1",
-                    username=None,
-                    password=None,
-                    timeout_ms=1000,
-                )
+            ):
+                with self.assertRaises(UsageError) as raised:
+                    _download_result(
+                        page=object(),
+                        artifacts_dir=root,
+                        query_id="123",
+                        expected_rows=29,
+                        expected_columns=2,
+                    )
 
-        self.assertEqual(path, str(fallback_path))
-        self.assertEqual(details["source"], "temporary_template_csv")
-        self.assertIn("xml_pseudo_result", details["reason"])
-        template_fallback.assert_called_once()
+        message = str(raised.exception)
+        self.assertIn("No Template Query writes were attempted", message)
+        self.assertIn("template-download", message)
 
 
 if __name__ == "__main__":

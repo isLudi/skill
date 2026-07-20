@@ -630,6 +630,34 @@ class P3DashboardChangeTest(unittest.TestCase):
         self.assertEqual("update_component_fields", component_operation["type"])
         self.assertEqual("unitMeasureList", component_operation["target"]["field_group"])
 
+        dimension_profile = copy.deepcopy(profile)
+        dimension_profile["components"][0]["fields"] = {
+            "dimensions": [
+                {
+                    "field_id": "dimension-physical-1",
+                    "business_name": "manager",
+                    "display_name": "Manager",
+                    "group": "row_dimension",
+                    "role": "dimension",
+                    "sort_value": None,
+                }
+            ],
+            "metrics": [],
+        }
+        dimension_profile = normalize_dashboard_profile(dimension_profile)
+        dimension_components = copy.deepcopy(dimension_profile["components"])
+        dimension_components[0]["fields"]["dimensions"][0]["display_name"] = "Owner"
+        dimension_plan = diff_dashboard(
+            dimension_profile,
+            self.design(dimension_profile, desired_components=dimension_components),
+        )
+        self.assertEqual("ready_for_dry_run", dimension_plan["status"])
+        dimension_operation = dimension_plan["operations"][0]
+        self.assertEqual("update_component_fields", dimension_operation["type"])
+        self.assertEqual(
+            "unitDimensionList", dimension_operation["target"]["field_group"]
+        )
+
         layout = copy.deepcopy(profile["layout"])
         layout[0]["w"] = 11
         layout_plan = diff_dashboard(profile, self.design(profile, desired_layout=layout))
