@@ -120,7 +120,7 @@
   },
   "current_model_registry": {
     "source_path": "semantic/current_model_bindings.json",
-    "source_sha256": "c03ddc9d743aba1186e63f1593eef070b9df3fba18703ef2b5ec9838066f47fd",
+    "source_sha256": "5f251da53ce05e017d19ad3704cda5d81fa5dbf9dc9ee01887cf03bc1d574d83",
     "policy": "one_current_model_per_id_and_semantic_slot",
     "canonical_filename_policy": "data_center_market_<model_id>.sql",
     "model_count": 37,
@@ -1124,7 +1124,7 @@
       {
         "id": "market_consultant:dashboards:data_center_market_datasets",
         "source_path": "knowledge/dashboards/data_center_market_datasets.md",
-        "sha256": "919fa2da061881d57088c15c1383d06970bb69f740bfa139624e746e63dbae1d",
+        "sha256": "c7b1e94950978a5f9f7c4feb024161cd92a3b32dff3e74c555eb39f7f6ae1689",
         "bytes": 15144,
         "title": "数据中心数据集源 SQL（市场顾问部）",
         "table_refs": [],
@@ -2352,8 +2352,8 @@
       {
         "id": "market_consultant:raw_sql:data_center_market_2293",
         "source_path": "resources/raw_sql/data_center_market_2293.sql",
-        "sha256": "4ec5e6fbe3e0bf76b47cf2c588f9f78398a88aa6c0145102e0d7eaf503455800",
-        "bytes": 65999,
+        "sha256": "26ae5aa0d3857850ba52edddb04669ae2704c5c243f810f363f980859ce6de1e",
+        "bytes": 66850,
         "title": "data_center_market_2293",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -5822,7 +5822,7 @@
     },
     {
       "source_path": "knowledge/dashboards/data_center_market_datasets.md",
-      "sha256": "919fa2da061881d57088c15c1383d06970bb69f740bfa139624e746e63dbae1d",
+      "sha256": "c7b1e94950978a5f9f7c4feb024161cd92a3b32dff3e74c555eb39f7f6ae1689",
       "bytes": 15144,
       "category": "dashboards"
     },
@@ -6410,8 +6410,8 @@
     },
     {
       "source_path": "resources/raw_sql/data_center_market_2293.sql",
-      "sha256": "4ec5e6fbe3e0bf76b47cf2c588f9f78398a88aa6c0145102e0d7eaf503455800",
-      "bytes": 65999,
+      "sha256": "26ae5aa0d3857850ba52edddb04669ae2704c5c243f810f363f980859ce6de1e",
+      "bytes": 66850,
       "category": "raw_sql"
     },
     {

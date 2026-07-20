@@ -56,10 +56,10 @@
       "model_id": "2293",
       "ordinal": 4,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/运营侧个人数据",
-      "source_observed_on": "2026-07-16",
-      "sql_bytes": 65999,
-      "sql_lines": 937,
-      "sql_sha256": "4ec5e6fbe3e0bf76b47cf2c588f9f78398a88aa6c0145102e0d7eaf503455800",
+      "source_observed_on": "2026-07-20",
+      "sql_bytes": 66849,
+      "sql_lines": 958,
+      "sql_sha256": "26ae5aa0d3857850ba52edddb04669ae2704c5c243f810f363f980859ce6de1e",
       "subject_id": "2282"
     },
     {
