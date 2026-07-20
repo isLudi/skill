@@ -13,7 +13,7 @@
     "transaction_class", "completed_at", "dashboard_build_publish_receipt_sha256"
   ],
   "properties": {
-    "schema_version": {"const": "1.0.0"},
+    "schema_version": {"const": "1.1.0"},
     "artifact_type": {"const": "dashboard_build_publish_receipt"},
     "domain": {"enum": ["market_consultant", "qingcheng"]},
     "build_id": {"type": "string", "minLength": 1},

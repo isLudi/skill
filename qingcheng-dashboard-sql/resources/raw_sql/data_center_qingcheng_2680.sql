@@ -418,6 +418,7 @@ sum(
 sum(case when course_first_level_department_name = 'H业务线' and course_second_level_department_name = '一对一学部' then promit_4 else 0 end) as Y_promit_4,------一对一 净收
 sum(case when course_first_level_department_name = 'H业务线' and course_second_level_department_name = '一对一学部' then income else 0 end) as Y_income_4,-------一对一 营收
 sum(case when course_first_level_department_name = 'H业务线' and course_second_level_department_name = '一对一学部' then refund_4 else 0 end) as Y_refund_4,-------一对一 退费
+sum(case when course_first_level_department_name = 'H业务线' and course_second_level_department_name = '一对一学部' then 0 else refund_4 end) as class_refund_4,-------班课行课阈值退费
 	    sum(case when course_first_level_department_name = 'H业务线' then promit_4 else 0 end) as H_promit_4,------H业务线 100%
         sum(case when course_first_level_department_name = 'H业务线' then 0 else promit_4 end) as n_H_promit_4,---非H业务线 50%
         sum(refund_4) as refund_4,
@@ -448,6 +449,7 @@ from (
 		 coalesce(sum(H_promit_4),0) as H_promit_4,
         coalesce(sum(n_H_promit_4),0) as n_H_promit_4,
         coalesce(sum(refund_4),0) as refund_4,
+        coalesce(sum(class_refund_4),0) as class_refund_4,
         coalesce(sum(promit_4),0) as promit_4,
         coalesce(sum(re_payer_4),0) as re_payer_4,
         count(distinct case when promit > 0 then name end) as podan_4

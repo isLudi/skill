@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import copy
 import json
+from collections import Counter
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any, Mapping, Sequence
@@ -18,7 +19,9 @@ from .dashboard_write_adapters import (
     _formula_item,
     _write_dashboard_schema,
     _write_formula,
+    _write_unit_detail,
     find_layout_item,
+    find_unit_field,
 )
 from .edit_profile import (
     build_edit_url,
@@ -46,6 +49,31 @@ OPERATION_BY_COMPONENT = {
     "pie": "create_pie_component",
 }
 EDIT_UNIT_VALUE_API = "https://udata.baijia.com/uanalysis-intelligence/value/unit"
+
+
+def _schema_nodes_by_name(schema: Mapping[str, Any], component_name: str) -> list[dict[str, Any]]:
+    matches: list[dict[str, Any]] = []
+
+    def walk(value: Any) -> None:
+        if isinstance(value, Mapping):
+            if str(value.get("componentName") or "") == component_name and value.get("id"):
+                matches.append(dict(value))
+            for child in value.values():
+                walk(child)
+        elif isinstance(value, list):
+            for child in value:
+                walk(child)
+
+    walk(schema.get("componentsTree") or [])
+    return matches
+
+
+def _field_ids(detail: Mapping[str, Any], group: str) -> list[str]:
+    return [
+        str(item.get("fieldId") or "")
+        for item in detail.get(group) or []
+        if isinstance(item, Mapping) and item.get("fieldId") not in (None, "")
+    ]
 
 
 def _dataset_by_ref(plan: Mapping[str, Any], dataset_ref: str) -> dict[str, Any]:
@@ -248,10 +276,18 @@ class TaitanDashboardBuildV1Adapter:
                 ]
                 dashboard_name_available = True
         comparable_sha256 = canonical_sha256(comparable)
+        resume_safe_drift = bool(
+            self._resume_dashboard_id
+            and len(matching) == 1
+            and matching[0].get("dashboard_id") == self._resume_dashboard_id
+            and dashboard_name_available
+        )
         return {
-            "ok": comparable_sha256 == plan.get("folder_snapshot_sha256"),
+            "ok": comparable_sha256 == plan.get("folder_snapshot_sha256")
+            or resume_safe_drift,
             "dashboard_name_available": dashboard_name_available,
             "folder_snapshot_sha256": comparable_sha256,
+            "resume_safe_drift": resume_safe_drift,
         }
 
     def verify_dataset_bindings(
@@ -509,6 +545,182 @@ class TaitanDashboardBuildV1Adapter:
             "field_id": str(field.get("field_id") or ""),
         }
 
+    def _resolved_field_id(
+        self, field: Mapping[str, Any], resource_map: Mapping[str, Any]
+    ) -> str:
+        calculated = str(field.get("calculated_column_ref") or "")
+        if calculated:
+            resource = resource_map.get(f"formula:{calculated}")
+            if not isinstance(resource, Mapping):
+                raise UsageError(f"Calculated-column resource is missing: {calculated}")
+            return str(resource.get("field_id") or resource.get("resource_id") or "")
+        return str(field.get("field_id") or "")
+
+    def _component_binding_mismatches(
+        self,
+        component: Mapping[str, Any],
+        detail: Mapping[str, Any],
+        resource_map: Mapping[str, Any],
+    ) -> list[str]:
+        expected_dimensions = [
+            self._resolved_field_id(item, resource_map)
+            for item in component.get("dimensions") or []
+            if isinstance(item, Mapping)
+        ]
+        expected_measures = [
+            self._resolved_field_id(item, resource_map)
+            for item in component.get("measures") or []
+            if isinstance(item, Mapping)
+        ]
+        expected_filters = [
+            self._resolved_field_id(item.get("field") or {}, resource_map)
+            for item in component.get("local_filters") or []
+            if isinstance(item, Mapping)
+        ]
+        comparisons = {
+            "dimensions": (
+                Counter(expected_dimensions),
+                Counter(_field_ids(detail, "unitDimensionList")),
+            ),
+            "measures": (
+                Counter(expected_measures),
+                Counter(
+                    [
+                        *_field_ids(detail, "unitMeasureList"),
+                        *_field_ids(detail, "unitAideMeasureList"),
+                    ]
+                ),
+            ),
+            "local_filters": (
+                Counter(expected_filters),
+                Counter(_field_ids(detail, "unitFilterList")),
+            ),
+        }
+        return [
+            f"{label}:expected={dict(expected)},actual={dict(actual)}"
+            for label, (expected, actual) in comparisons.items()
+            if expected != actual
+        ]
+
+    def _repair_new_component_bindings(
+        self,
+        *,
+        dashboard_id: str,
+        component: Mapping[str, Any],
+        detail: Mapping[str, Any],
+        resource_map: Mapping[str, Any],
+    ) -> tuple[dict[str, Any], list[str]]:
+        """Repair UI field-selection drift using exact same-build unit readbacks.
+
+        The target and every donor must be a component resource created or
+        resumed by this exact creation Saga.  No existing unplanned unit is
+        queried or modified, and a missing exact donor leaves the build failed.
+        """
+
+        repaired = copy.deepcopy(dict(detail))
+        donor_details: list[Mapping[str, Any]] = [repaired]
+        target_unit_id = str(repaired.get("unitId") or repaired.get("id") or "")
+        target_dataset_ref = str(component.get("dataset_ref") or "")
+        for key, resource in resource_map.items():
+            if not str(key).startswith("component:") or not isinstance(resource, Mapping):
+                continue
+            unit_id = str(resource.get("unit_id") or resource.get("resource_id") or "")
+            if not unit_id or unit_id == target_unit_id:
+                continue
+            if str(resource.get("dataset_ref") or "") != target_dataset_ref:
+                continue
+            donor_details.append(
+                fetch_edit_unit_detail(self.page, unit_id, dashboard_id, "draft")
+            )
+
+        def exact_template(field_id: str, groups: Sequence[str]) -> dict[str, Any] | None:
+            matches: list[dict[str, Any]] = []
+            for donor in donor_details:
+                for group in groups:
+                    matches.extend(
+                        copy.deepcopy(dict(item))
+                        for item in donor.get(group) or []
+                        if isinstance(item, Mapping)
+                        and str(item.get("fieldId") or "") == field_id
+                    )
+            if not matches:
+                return None
+            # Unit-level display/sort metadata may legitimately differ between
+            # two donors with the same stable platform field ID. Preserve one
+            # complete, unmodified donor object in deterministic Saga order;
+            # target readback and type-aware value validation remain mandatory.
+            return matches[0]
+
+        expected = {
+            "unitDimensionList": [
+                self._resolved_field_id(item, resource_map)
+                for item in component.get("dimensions") or []
+                if isinstance(item, Mapping)
+            ],
+            "unitMeasureList": [
+                self._resolved_field_id(item, resource_map)
+                for item in component.get("measures") or []
+                if isinstance(item, Mapping)
+            ],
+            "unitFilterList": [
+                self._resolved_field_id(item.get("field") or {}, resource_map)
+                for item in component.get("local_filters") or []
+                if isinstance(item, Mapping)
+            ],
+        }
+        donor_groups = {
+            "unitDimensionList": ("unitDimensionList",),
+            "unitMeasureList": ("unitMeasureList", "unitAideMeasureList"),
+            "unitFilterList": ("unitFilterList",),
+        }
+        missing: list[str] = []
+        for target_group, field_ids in expected.items():
+            if Counter(_field_ids(repaired, target_group)) == Counter(field_ids):
+                continue
+            replacements: list[dict[str, Any]] = []
+            for field_id in field_ids:
+                template = exact_template(field_id, donor_groups[target_group])
+                if template is None:
+                    missing.append(f"{target_group}:{field_id}")
+                    continue
+                replacements.append(template)
+            if len(replacements) == len(field_ids):
+                repaired[target_group] = replacements
+                if target_group == "unitMeasureList":
+                    repaired["unitAideMeasureList"] = []
+        if missing:
+            return repaired, [f"missing exact same-build donor {item}" for item in missing]
+        _write_unit_detail(self.page, dashboard_id, repaired, [])
+        self.page.wait_for_timeout(1500)
+        readback = fetch_edit_unit_detail(
+            self.page,
+            str(repaired.get("unitId") or repaired.get("id") or target_unit_id),
+            dashboard_id,
+            "draft",
+        )
+        return readback, self._component_binding_mismatches(
+            component, readback, resource_map
+        )
+
+    @staticmethod
+    def _component_resource_from_unit(
+        component: Mapping[str, Any], unit: Mapping[str, Any]
+    ) -> dict[str, Any]:
+        logical_id = str(component["component_id"])
+        return {
+            "resource_type": "dashboard_component",
+            "resource_id": str(unit["unit_id"]),
+            "unit_id": str(unit["unit_id"]),
+            "actual_component_id": str(unit.get("component_id") or ""),
+            "unit_type": str(unit["unit_type"]),
+            "resource_name": str(component.get("title") or logical_id),
+            "dataset_ref": component.get("dataset_ref"),
+            "subject_id": str((unit.get("model_identity") or {}).get("subject_id") or ""),
+            "application_model_id": str(
+                (unit.get("model_identity") or {}).get("application_model_id") or ""
+            ),
+        }
+
     def ensure_component(
         self,
         plan: Mapping[str, Any],
@@ -516,6 +728,10 @@ class TaitanDashboardBuildV1Adapter:
         resource_map: Mapping[str, Any],
     ) -> Mapping[str, Any]:
         logical_id = str(component["component_id"])
+        if component.get("container_ref"):
+            raise UsageError(
+                f"Nested component {logical_id} must be created by its verified tab-container saga step."
+            )
         existing = _component_resource(resource_map, logical_id)
         dashboard_id, _ = self._open_dashboard(resource_map)
         if existing:
@@ -535,6 +751,37 @@ class TaitanDashboardBuildV1Adapter:
             existing["application_model_id"] = str(
                 dashboard_model.get("applicationModelId") or detail.get("modelId") or ""
             ) or existing.get("application_model_id")
+            mismatches = self._component_binding_mismatches(
+                component, detail, resource_map
+            )
+            if mismatches:
+                detail, mismatches = self._repair_new_component_bindings(
+                    dashboard_id=dashboard_id,
+                    component=component,
+                    detail=detail,
+                    resource_map=resource_map,
+                )
+                if mismatches:
+                    raise UsageError(
+                        f"Resume component binding drifted for {logical_id}: "
+                        + "; ".join(mismatches)
+                    )
+                existing["binding_repaired_after_ui_drift"] = True
+                existing["binding_repair_sha256"] = canonical_sha256(
+                    {
+                        "unit_id": str(existing.get("unit_id") or ""),
+                        "component_id": logical_id,
+                        "field_groups": {
+                            group: _field_ids(detail, group)
+                            for group in (
+                                "unitDimensionList",
+                                "unitMeasureList",
+                                "unitAideMeasureList",
+                                "unitFilterList",
+                            )
+                        },
+                    }
+                )
             return {"status": "reused", "resource": existing}
         before = self._profile(plan, resource_map, fields=False)
         before_ids = {str(item.get("unit_id") or "") for item in before.get("data_units") or []}
@@ -591,20 +838,362 @@ class TaitanDashboardBuildV1Adapter:
             raise UsageError(f"Component readback expected one new unit, found {len(created)}.")
         unit = created[0]
         actual_component_id = str(unit.get("component_id") or "")
-        resource = {
-            "resource_type": "dashboard_component",
-            "resource_id": str(unit["unit_id"]),
-            "unit_id": str(unit["unit_id"]),
-            "actual_component_id": actual_component_id,
-            "unit_type": str(unit["unit_type"]),
-            "resource_name": str(component.get("title") or logical_id),
-            "dataset_ref": component.get("dataset_ref"),
-            "subject_id": str((unit.get("model_identity") or {}).get("subject_id") or ""),
-            "application_model_id": str(
-                (unit.get("model_identity") or {}).get("application_model_id") or ""
-            ),
+        resource = self._component_resource_from_unit(component, unit)
+        detail = fetch_edit_unit_detail(
+            self.page, str(unit["unit_id"]), dashboard_id, "draft"
+        )
+        mismatches = self._component_binding_mismatches(component, detail, resource_map)
+        repaired = False
+        if mismatches:
+            detail, mismatches = self._repair_new_component_bindings(
+                dashboard_id=dashboard_id,
+                component=component,
+                detail=detail,
+                resource_map=resource_map,
+            )
+            repaired = not mismatches
+            if repaired:
+                resource["binding_repaired_after_ui_drift"] = True
+                resource["binding_repair_sha256"] = canonical_sha256(
+                    {
+                        "unit_id": str(unit["unit_id"]),
+                        "component_id": logical_id,
+                        "field_groups": {
+                            group: _field_ids(detail, group)
+                            for group in (
+                                "unitDimensionList",
+                                "unitMeasureList",
+                                "unitAideMeasureList",
+                                "unitFilterList",
+                            )
+                        },
+                    }
+                )
+        result: dict[str, Any] = {"status": "applied", "resource": resource}
+        if mismatches:
+            result["verification_error"] = (
+                f"new component {logical_id} binding readback mismatch: "
+                + "; ".join(mismatches)
+            )
+        return result
+
+    def ensure_text_component(
+        self,
+        plan: Mapping[str, Any],
+        text_component: Mapping[str, Any],
+        resource_map: Mapping[str, Any],
+    ) -> Mapping[str, Any]:
+        logical_id = str(text_component["text_id"])
+        existing = resource_map.get(f"text:{logical_id}")
+        dashboard_id, _ = self._open_dashboard(resource_map)
+        config = fetch_edit_dashboard_config(self.page, dashboard_id, "draft")
+        schema = json.loads(str(config.get("dashboardHtmlJson") or "{}"))
+        if isinstance(existing, Mapping):
+            matches = [
+                item
+                for item in _schema_nodes_by_name(schema, "Text")
+                if str(item.get("id") or "") == str(existing.get("actual_component_id") or "")
+            ]
+            if len(matches) != 1:
+                raise UsageError(f"Resume text component drifted: {logical_id}")
+            return {"status": "reused", "resource": dict(existing)}
+        before_ids = {
+            str(item.get("id") or "") for item in _schema_nodes_by_name(schema, "Text")
         }
-        return {"status": "applied", "resource": resource}
+        from .commands.capture_dashboard_build_evidence import (
+            _automate_palette_only_component_creation,
+        )
+
+        ui_args = SimpleNamespace(
+            operation="create_text_component",
+            sandbox_dashboard_id=dashboard_id,
+            expected_dashboard_name=str(plan["dashboard_name"]),
+        )
+        _automate_palette_only_component_creation(
+            self.page,
+            ui_args,
+            {
+                "logical_resource_id": logical_id,
+                "initial_text": str(text_component["initial_text"]),
+            },
+            self.artifacts_dir,
+        )
+        readback = fetch_edit_dashboard_config(self.page, dashboard_id, "draft")
+        readback_schema = json.loads(str(readback.get("dashboardHtmlJson") or "{}"))
+        created = [
+            item
+            for item in _schema_nodes_by_name(readback_schema, "Text")
+            if str(item.get("id") or "") not in before_ids
+        ]
+        if len(created) != 1:
+            raise UsageError(f"Text readback expected one new node, found {len(created)}.")
+        node_id = str(created[0]["id"])
+        return {
+            "status": "applied",
+            "resource": {
+                "resource_type": "dashboard_text",
+                "resource_id": node_id,
+                "actual_component_id": node_id,
+                "resource_name": str(text_component.get("title") or logical_id),
+            },
+        }
+
+    def ensure_tab_container(
+        self,
+        plan: Mapping[str, Any],
+        container: Mapping[str, Any],
+        resource_map: Mapping[str, Any],
+    ) -> Mapping[str, Any]:
+        logical_id = str(container["container_id"])
+        dashboard_id, _ = self._open_dashboard(resource_map)
+        config = fetch_edit_dashboard_config(self.page, dashboard_id, "draft")
+        schema = json.loads(str(config.get("dashboardHtmlJson") or "{}"))
+        existing = resource_map.get(f"container:{logical_id}")
+        before_tab_ids = {
+            str(item.get("id") or "")
+            for item in _schema_nodes_by_name(schema, "SingleTabs")
+        }
+        slot_components = {
+            str(slot["slot_id"]): next(
+                (
+                    item
+                    for item in plan.get("components") or []
+                    if item.get("container_ref") == logical_id
+                    and item.get("slot_ref") == slot["slot_id"]
+                ),
+                None,
+            )
+            for slot in container.get("slots") or []
+        }
+        if any(item is None for item in slot_components.values()):
+            raise UsageError(f"Tab container {logical_id} does not resolve every planned slot.")
+
+        if not isinstance(existing, Mapping):
+            manifest_slots: list[dict[str, Any]] = []
+            for slot in container.get("slots") or []:
+                component = slot_components[str(slot["slot_id"])]
+                if component.get("local_filters"):
+                    raise UsageError(
+                        "Evidence-backed nested pivots do not support local filters; place "
+                        "multi-layer local filters on root components."
+                    )
+                dataset = _dataset_by_ref(plan, str(component["dataset_ref"]))
+                dataset_config = (
+                    dataset.get("config")
+                    if isinstance(dataset.get("config"), Mapping)
+                    else {}
+                )
+                manifest_slots.append(
+                    {
+                        "logical_slot_id": str(slot["slot_id"]),
+                        "label": str(slot["label"]),
+                        "component": {
+                            "logical_resource_id": str(component["component_id"]),
+                            "component_name": str(
+                                component.get("title") or component["component_id"]
+                            ),
+                            "dataset": {
+                                "dataset_name": str(dataset_config.get("dataset_name") or ""),
+                                "application_model_id": dataset["application_model_id"],
+                                "subject_id": dataset["subject_id"],
+                                "model_type": dataset["model_type"],
+                                "dataset_schema_sha256": dataset["dataset_schema_sha256"],
+                                "field_binding_sha256": dataset["field_binding_sha256"],
+                            },
+                            "dimensions": [
+                                self._manifest_field(item, resource_map)
+                                for item in component.get("dimensions") or []
+                            ],
+                            "measures": [
+                                self._manifest_field(item, resource_map)
+                                for item in component.get("measures") or []
+                            ],
+                        },
+                    }
+                )
+            from .commands.capture_dashboard_build_evidence import (
+                _automate_palette_only_component_creation,
+            )
+
+            ui_args = SimpleNamespace(
+                operation="create_tab_container",
+                sandbox_dashboard_id=dashboard_id,
+                expected_dashboard_name=str(plan["dashboard_name"]),
+            )
+            _automate_palette_only_component_creation(
+                self.page,
+                ui_args,
+                {
+                    "logical_resource_id": logical_id,
+                    "component_name": str(container["title"]),
+                    "component_description": str(container.get("description") or ""),
+                    "slots": manifest_slots,
+                },
+                self.artifacts_dir,
+            )
+
+        profile = self._profile(plan, resource_map, fields=False)
+        candidates = [
+            item
+            for item in profile.get("components") or []
+            if item.get("component_type") == "SingleTabs"
+            and (
+                str(item.get("component_id") or "")
+                == str((existing or {}).get("actual_component_id") or "")
+                if isinstance(existing, Mapping)
+                else str(item.get("component_id") or "") not in before_tab_ids
+            )
+        ]
+        if len(candidates) != 1:
+            raise UsageError(
+                f"Tab-container readback expected one exact node, found {len(candidates)}."
+            )
+        tab = candidates[0]
+        actual_slots = tab.get("config", {}).get("slots") or []
+        if [str(item.get("label") or "") for item in actual_slots] != [
+            str(item["label"]) for item in container.get("slots") or []
+        ]:
+            raise UsageError(f"Tab-container slot-label readback mismatch: {logical_id}")
+        units_by_component = {
+            str(item.get("component_id") or ""): item
+            for item in profile.get("data_units") or []
+            if isinstance(item, Mapping)
+        }
+        child_resources: list[dict[str, Any]] = []
+        verification_errors: list[str] = []
+        for planned_slot, actual_slot in zip(container["slots"], actual_slots):
+            component = slot_components[str(planned_slot["slot_id"])]
+            actual_component_ids = actual_slot.get("component_ids") or []
+            if len(actual_component_ids) != 1:
+                raise UsageError(
+                    f"Tab slot {planned_slot['slot_id']} must contain one persisted pivot."
+                )
+            unit = units_by_component.get(str(actual_component_ids[0]))
+            if not unit or unit.get("unit_type") != "u_pivot":
+                raise UsageError(
+                    f"Tab slot {planned_slot['slot_id']} nested pivot readback is missing."
+                )
+            resource = self._component_resource_from_unit(component, unit)
+            resource["logical_id"] = f"component:{component['component_id']}"
+            detail = fetch_edit_unit_detail(
+                self.page, str(unit["unit_id"]), dashboard_id, "draft"
+            )
+            mismatches = self._component_binding_mismatches(
+                component, detail, resource_map
+            )
+            if mismatches:
+                verification_errors.append(
+                    f"{component['component_id']}:" + ";".join(mismatches)
+                )
+            child_resources.append(
+                {
+                    "status": "reused" if isinstance(existing, Mapping) else "applied",
+                    "resource": resource,
+                }
+            )
+        result: dict[str, Any] = {
+            "status": "reused" if isinstance(existing, Mapping) else "applied",
+            "resource": {
+                "resource_type": "dashboard_tab_container",
+                "resource_id": str(tab["component_id"]),
+                "actual_component_id": str(tab["component_id"]),
+                "resource_name": str(container["title"]),
+            },
+            "component_resources": child_resources,
+        }
+        if verification_errors:
+            result["verification_error"] = (
+                "nested pivot binding readback mismatch: " + " | ".join(verification_errors)
+            )
+        return result
+
+    def ensure_metric_names(
+        self,
+        plan: Mapping[str, Any],
+        component: Mapping[str, Any],
+        resource_map: Mapping[str, Any],
+    ) -> Mapping[str, Any]:
+        targets = [
+            item
+            for item in component.get("measures") or []
+            if isinstance(item, Mapping) and item.get("display_name")
+        ]
+        if not targets:
+            return {"status": "reused"}
+        resource_key = f"component:{component['component_id']}"
+        resource = resource_map.get(resource_key)
+        if not isinstance(resource, dict):
+            raise UsageError(f"Metric-rename component resource is missing: {resource_key}")
+        dashboard_id, _ = self._open_dashboard(resource_map)
+        unit_id = str(resource.get("unit_id") or resource.get("resource_id") or "")
+        detail = fetch_edit_unit_detail(self.page, unit_id, dashboard_id, "draft")
+        expected_ids = [self._resolved_field_id(item, resource_map) for item in targets]
+        actual_ids = [
+            *_field_ids(detail, "unitMeasureList"),
+            *_field_ids(detail, "unitAideMeasureList"),
+        ]
+        if Counter(expected_ids) != Counter(actual_ids):
+            raise UsageError(
+                f"Metric rename must cover every metric instance in {unit_id}: "
+                f"expected={dict(Counter(expected_ids))}, actual={dict(Counter(actual_ids))}."
+            )
+        current: dict[str, str] = {}
+        groups: dict[str, str] = {}
+        for field_id in expected_ids:
+            present_groups = [
+                group
+                for group in ("unitMeasureList", "unitAideMeasureList")
+                if field_id in _field_ids(detail, group)
+            ]
+            if len(present_groups) != 1:
+                raise UsageError(f"Metric {field_id} is not unique in unit {unit_id}.")
+            groups[field_id] = present_groups[0]
+            current[field_id] = str(
+                find_unit_field(detail, present_groups[0], field_id).get("showName") or ""
+            )
+        target_names = {
+            self._resolved_field_id(item, resource_map): str(item["display_name"])
+            for item in targets
+        }
+        if current == target_names:
+            resource["metric_names_applied"] = True
+            resource["metric_display_names_sha256"] = canonical_sha256(target_names)
+            return {"status": "reused"}
+        if resource.get("metric_names_applied"):
+            raise UsageError(
+                f"Metric display names drifted after a prior successful write: {component['component_id']}"
+            )
+        before = copy.deepcopy(detail)
+        try:
+            for field_id, display_name in target_names.items():
+                if not display_name or len(display_name) > 100:
+                    raise UsageError(f"Invalid metric display name for {field_id}.")
+                find_unit_field(detail, groups[field_id], field_id)["showName"] = display_name
+            _write_unit_detail(self.page, dashboard_id, detail, [])
+            self.page.wait_for_timeout(1500)
+            readback = fetch_edit_unit_detail(self.page, unit_id, dashboard_id, "draft")
+            for field_id, display_name in target_names.items():
+                actual = str(
+                    find_unit_field(readback, groups[field_id], field_id).get("showName") or ""
+                )
+                if actual != display_name:
+                    raise UsageError(
+                        f"Metric display-name readback mismatch for {unit_id}/{field_id}."
+                    )
+        except Exception:
+            _write_unit_detail(self.page, dashboard_id, before, [])
+            restored = fetch_edit_unit_detail(self.page, unit_id, dashboard_id, "draft")
+            for field_id, before_name in current.items():
+                if str(
+                    find_unit_field(restored, groups[field_id], field_id).get("showName") or ""
+                ) != before_name:
+                    raise UsageError(
+                        "Metric rename failed and complete display-name compensation was not proven."
+                    )
+            raise
+        resource["metric_names_applied"] = True
+        resource["metric_display_names_sha256"] = canonical_sha256(target_names)
+        return {"status": "applied"}
 
     def ensure_global_filter(
         self,
@@ -617,7 +1206,9 @@ class TaitanDashboardBuildV1Adapter:
         dashboard_id, _ = self._open_dashboard(resource_map)
         if isinstance(existing, Mapping):
             detail = fetch_public_filter_detail(
-                self.page, str(existing.get("relation_id") or existing.get("resource_id")), dashboard_id, "draft"
+                self.page,
+                dashboard_id,
+                str(existing.get("relation_id") or existing.get("resource_id")),
             )
             if not isinstance(detail, Mapping):
                 raise UsageError("Resume global-filter readback is empty.")
@@ -671,6 +1262,7 @@ class TaitanDashboardBuildV1Adapter:
             )
         manifest = {
             "field": self._manifest_field(field, resource_map),
+            "filter_name": str(global_filter.get("title") or logical_id),
             "target_component_names": targets,
             "target_components": target_components,
         }
@@ -705,6 +1297,108 @@ class TaitanDashboardBuildV1Adapter:
             },
         }
 
+    def apply_styles(
+        self, plan: Mapping[str, Any], resource_map: Mapping[str, Any]
+    ) -> Mapping[str, Any]:
+        dashboard_id, _ = self._open_dashboard(resource_map)
+        config = fetch_edit_dashboard_config(self.page, dashboard_id, "draft")
+        schema = json.loads(str(config.get("dashboardHtmlJson") or "{}"))
+        from .commands.capture_dashboard_build_evidence import (
+            _automate_component_styles,
+            _find_schema_node,
+            _style_projection,
+        )
+
+        targets: list[tuple[str, str, dict[str, Any]]] = []
+        color = str((plan.get("theme") or {}).get("background_color") or "")
+        if color:
+            pages = _schema_nodes_by_name(schema, "Page")
+            if len(pages) != 1:
+                raise UsageError(f"Dashboard style requires one Page node, found {len(pages)}.")
+            current_style = copy.deepcopy(
+                (pages[0].get("props") or {}).get("style") or {}
+            )
+            current_style["backgroundColor"] = color
+            targets.append((str(pages[0]["id"]), "Page", {"style": current_style}))
+
+        schema_name_by_type = {
+            "metric_group": "IndicatorCard",
+            "pivot": "PivotTable",
+            "bar": "BarChart",
+            "pie": "PieChart",
+        }
+        for component in plan.get("components") or []:
+            style = component.get("style") if isinstance(component.get("style"), Mapping) else {}
+            if not style:
+                continue
+            resource = _component_resource(resource_map, str(component["component_id"]))
+            if not resource:
+                raise UsageError(f"Style component resource is missing: {component['component_id']}")
+            targets.append(
+                (
+                    str(resource["actual_component_id"]),
+                    schema_name_by_type[str(component["type"])],
+                    copy.deepcopy(dict(style)),
+                )
+            )
+        for container in plan.get("containers") or []:
+            style = container.get("style") if isinstance(container.get("style"), Mapping) else {}
+            if not style:
+                continue
+            resource = resource_map.get(f"container:{container['container_id']}")
+            if not isinstance(resource, Mapping):
+                raise UsageError(f"Style container resource is missing: {container['container_id']}")
+            targets.append(
+                (
+                    str(resource["actual_component_id"]),
+                    "SingleTabs",
+                    copy.deepcopy(dict(style)),
+                )
+            )
+        for text_component in plan.get("text_components") or []:
+            resource = resource_map.get(f"text:{text_component['text_id']}")
+            if not isinstance(resource, Mapping):
+                raise UsageError(f"Style text resource is missing: {text_component['text_id']}")
+            props_patch = copy.deepcopy(dict(text_component.get("style") or {}))
+            props_patch["text_content_html"] = str(text_component["content_html"])
+            targets.append(
+                (str(resource["actual_component_id"]), "Text", props_patch)
+            )
+
+        patches: list[dict[str, Any]] = []
+        seen: set[str] = set()
+        for component_id, component_name, props_patch in targets:
+            if component_id in seen:
+                raise UsageError(f"Duplicate style target in build plan: {component_id}")
+            seen.add(component_id)
+            node = _find_schema_node(schema, component_id)
+            if str(node.get("componentName") or "") != component_name:
+                raise UsageError(
+                    f"Style target type drift for {component_id}: expected {component_name}."
+                )
+            before_projection = _style_projection(node)
+            after_projection = copy.deepcopy(before_projection)
+            after_projection.update(copy.deepcopy(props_patch))
+            if after_projection == before_projection:
+                continue
+            patches.append(
+                {
+                    "component_id": component_id,
+                    "component_name": component_name,
+                    "before_style_sha256": canonical_sha256(before_projection),
+                    "props_patch": props_patch,
+                    "after_style_sha256": canonical_sha256(after_projection),
+                }
+            )
+        if not patches:
+            return {"status": "reused"}
+        ui_args = SimpleNamespace(
+            sandbox_dashboard_id=dashboard_id,
+            expected_dashboard_name=str(plan["dashboard_name"]),
+        )
+        _automate_component_styles(self.page, ui_args, {"patches": patches}, [])
+        return {"status": "applied"}
+
     def assemble_dashboard(
         self, plan: Mapping[str, Any], resource_map: Mapping[str, Any]
     ) -> Mapping[str, Any]:
@@ -732,6 +1426,21 @@ class TaitanDashboardBuildV1Adapter:
                 if layout.get(key) != target.get(key):
                     layout[key] = target.get(key)
                     changed = True
+        for collection, prefix, id_key in (
+            (plan.get("containers") or [], "container", "container_id"),
+            (plan.get("text_components") or [], "text", "text_id"),
+        ):
+            for item in collection:
+                resource = resource_map.get(f"{prefix}:{item[id_key]}")
+                if not isinstance(resource, Mapping):
+                    raise UsageError(
+                        f"Assembly {prefix} resource is missing: {item[id_key]}"
+                    )
+                layout = find_layout_item(schema, str(resource["actual_component_id"]))
+                for key in ("x", "y", "w", "h"):
+                    if layout.get(key) != item["layout"].get(key):
+                        layout[key] = item["layout"].get(key)
+                        changed = True
         root = (schema.get("componentsTree") or [None])[0]
         color = str((plan.get("theme") or {}).get("background_color") or "")
         if color and isinstance(root, dict):
@@ -752,6 +1461,22 @@ class TaitanDashboardBuildV1Adapter:
             item = find_layout_item(readback_schema, str(resource["actual_component_id"]))
             if any(item.get(key) != component["layout"].get(key) for key in ("x", "y", "w", "h")):
                 raise UsageError(f"Assembly layout readback mismatch: {component['component_id']}")
+        for collection, prefix, id_key in (
+            (plan.get("containers") or [], "container", "container_id"),
+            (plan.get("text_components") or [], "text", "text_id"),
+        ):
+            for planned in collection:
+                resource = resource_map.get(f"{prefix}:{planned[id_key]}")
+                item = find_layout_item(
+                    readback_schema, str(resource["actual_component_id"])
+                )
+                if any(
+                    item.get(key) != planned["layout"].get(key)
+                    for key in ("x", "y", "w", "h")
+                ):
+                    raise UsageError(
+                        f"Assembly layout readback mismatch: {prefix}:{planned[id_key]}"
+                    )
         return {
             "status": "applied" if changed else "reused",
             "resource": {
@@ -795,6 +1520,11 @@ class TaitanDashboardBuildV1Adapter:
         layouts = {
             str(item.get("component_id") or ""): item
             for item in profile.get("layout") or []
+            if isinstance(item, Mapping)
+        }
+        profile_components = {
+            str(item.get("component_id") or ""): item
+            for item in profile.get("components") or []
             if isinstance(item, Mapping)
         }
         for component in plan.get("components") or []:
@@ -841,11 +1571,109 @@ class TaitanDashboardBuildV1Adapter:
             }
             if set(groups.get("filter") or []) != expected_filters:
                 mismatches.append(f"component:{component['component_id']}:filters")
+            profiled_component = profile_components.get(
+                str(resource.get("actual_component_id") or "")
+            )
+            if not profiled_component:
+                if component.get("style") or any(
+                    item.get("display_name")
+                    for item in component.get("measures") or []
+                    if isinstance(item, Mapping)
+                ):
+                    mismatches.append(f"component:{component['component_id']}:profile")
+            else:
+                actual_metric_names = {
+                    str(item.get("field_id") or ""): str(item.get("display_name") or "")
+                    for item in (profiled_component.get("fields") or {}).get("metrics") or []
+                    if isinstance(item, Mapping)
+                }
+                for measure in component.get("measures") or []:
+                    display_name = measure.get("display_name")
+                    if not display_name:
+                        continue
+                    field_id = self._resolved_field_id(measure, resource_map)
+                    if actual_metric_names.get(field_id) != str(display_name):
+                        mismatches.append(
+                            f"component:{component['component_id']}:metric_name:{field_id}"
+                        )
+                actual_style = (
+                    (profiled_component.get("config") or {}).get("visual_style") or {}
+                )
+                for key, expected in (component.get("style") or {}).items():
+                    if actual_style.get(key) != expected:
+                        mismatches.append(
+                            f"component:{component['component_id']}:style:{key}"
+                        )
             layout = layouts.get(str(resource.get("actual_component_id") or ""))
             if not layout or any(
                 layout.get(key) != component["layout"].get(key) for key in ("x", "y", "w", "h")
             ):
                 mismatches.append(f"component:{component['component_id']}:layout")
+        for container in plan.get("containers") or []:
+            resource = resource_map.get(f"container:{container['container_id']}") or {}
+            actual = profile_components.get(str(resource.get("actual_component_id") or ""))
+            if not actual or actual.get("component_type") != "SingleTabs":
+                mismatches.append(f"container:{container['container_id']}:profile")
+                continue
+            actual_slots = (actual.get("config") or {}).get("slots") or []
+            expected_slot_rows = []
+            for slot in container.get("slots") or []:
+                child = next(
+                    item
+                    for item in plan.get("components") or []
+                    if item.get("container_ref") == container["container_id"]
+                    and item.get("slot_ref") == slot["slot_id"]
+                )
+                child_resource = _component_resource(
+                    resource_map, str(child["component_id"])
+                ) or {}
+                expected_slot_rows.append(
+                    (
+                        str(slot["label"]),
+                        [str(child_resource.get("actual_component_id") or "")],
+                    )
+                )
+            actual_slot_rows = [
+                (
+                    str(item.get("label") or ""),
+                    [str(value) for value in item.get("component_ids") or []],
+                )
+                for item in actual_slots
+                if isinstance(item, Mapping)
+            ]
+            if actual_slot_rows != expected_slot_rows:
+                mismatches.append(f"container:{container['container_id']}:slots")
+            actual_style = (actual.get("config") or {}).get("visual_style") or {}
+            for key, expected in (container.get("style") or {}).items():
+                if actual_style.get(key) != expected:
+                    mismatches.append(f"container:{container['container_id']}:style:{key}")
+            layout = layouts.get(str(resource.get("actual_component_id") or ""))
+            if not layout or any(
+                layout.get(key) != container["layout"].get(key)
+                for key in ("x", "y", "w", "h")
+            ):
+                mismatches.append(f"container:{container['container_id']}:layout")
+        for text_component in plan.get("text_components") or []:
+            resource = resource_map.get(f"text:{text_component['text_id']}") or {}
+            actual = profile_components.get(str(resource.get("actual_component_id") or ""))
+            if not actual or actual.get("component_type") not in {"Text", "u_text"}:
+                mismatches.append(f"text:{text_component['text_id']}:profile")
+                continue
+            config = actual.get("config") or {}
+            if str(config.get("text_content_html") or "") != str(
+                text_component["content_html"]
+            ):
+                mismatches.append(f"text:{text_component['text_id']}:content")
+            actual_style = config.get("visual_style") or {}
+            for key, expected in (text_component.get("style") or {}).items():
+                if actual_style.get(key) != expected:
+                    mismatches.append(f"text:{text_component['text_id']}:style:{key}")
+            layout = layouts.get(str(resource.get("actual_component_id") or ""))
+            if not layout or any(
+                layout.get(key) != text_component["layout"].get(key)
+                for key in ("x", "y", "w", "h")
+            ):
+                mismatches.append(f"text:{text_component['text_id']}:layout")
         filters = {
             str(item.get("relation_id") or ""): item
             for item in profile.get("public_filters") or []

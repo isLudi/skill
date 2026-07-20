@@ -1,0 +1,159 @@
+{
+  "schema_version": "1.1.0",
+  "artifact_type": "DashboardBuildAdvancedPromotionEvidence",
+  "captured_at": "2026-07-18",
+  "domain": "qingcheng",
+  "sandbox": {
+    "folder_id": "menu_dashboard_3994311069518958593",
+    "folder_path": "通用/H业务线/市场部/市场顾问部/青橙项目部/P4C看板构建沙箱",
+    "dashboard_id": "dashboard_3994491256855117825",
+    "dashboard_name": "P4C高级功能取证-20260718-1605-沙箱",
+    "dataset_name": "青橙-P4C看板构建沙箱数据集",
+    "application_model_id": "3131",
+    "source_subject_id": "183480",
+    "dashboard_subject_id": "183589",
+    "model_type": 2,
+    "dataset_schema_sha256": "03cc65afd56c49a96e602a0fbb5a2f0bd4fa2c2bdd3a9bdfbc6ee85f88d16232",
+    "field_binding_sha256": "8a6e1ea0edb5441616118dbcc497c4a9607bf42537097df2ff11cf22a25ce19b"
+  },
+  "verification": {
+    "post_profile_sha256": "21501b551a6f3bafac71bcaf867e85fdb0c4309d5146f2e5448b4dbe0a10be34",
+    "post_profile_complete": true,
+    "renamed_metric_instance_count": 8,
+    "tab_container_count": 2,
+    "tab_slot_count": 4,
+    "nested_pivot_count": 4,
+    "styled_pivot_count": 4,
+    "styled_text_count": 1,
+    "global_filter_count": 2,
+    "global_filter_target_edge_count": 6,
+    "multi_local_filter_component_count": 1,
+    "evidence_manifest_operation_count": 13,
+    "evidence_manifest_required_operation_count": 13,
+    "sandbox_evidence_complete": true,
+    "evidence_manifest_file_sha256": "56119e70b4c31a3750ebb6398731c9ea0cc35cd85ba2409cd6c436598526028e",
+    "evidence_verification_file_sha256": "3cfe7c85ee22b9a68ef7a0f4cab5be91ba88086bba77f920a7fafba3c4690ceb",
+    "dangerous_request_count": 0,
+    "automatic_delete_attempted": false
+  },
+  "production_e2e": {
+    "build_id": "p4c_advanced_production_final_20260718_1739",
+    "folder_id": "menu_dashboard_3994311069518958593",
+    "dashboard_id": "dashboard_3994584279860838400",
+    "dashboard_name": "P4C高级生产验收-20260718-1739-沙箱",
+    "dashboard_subject_id": "183631",
+    "application_model_id": "3131",
+    "source_subject_id": "183480",
+    "build_spec_sha256": "544e208789b976c34767e0ad7021032c44c4efa8091339a4aebb7379d42558f3",
+    "build_plan_sha256": "db930c4bb9e1534b4ca657925cb72152c0f6e91e7a9b1df63d586e4d240f33e4",
+    "target_state_sha256": "7f55bc02f423ad56bac0d2dfe250c7b8ec0ce05d00a7905dd40a636177394175",
+    "post_profile_sha256": "64856e0fdd685f9c8ffe1027c5fc8985dd2d87c3e82fa97e063a9d0d046f750e",
+    "build_receipt_sha256": "f7995cbb4516afcc074fe04737968567aa88a6434b32abab38f1cc57a5d0d625",
+    "status": "applied",
+    "published": false,
+    "manual_cleanup_required": false,
+    "orphaned_resource_count": 0,
+    "component_counts": {
+      "card": 1,
+      "u_pivot": 4,
+      "u_bar": 1,
+      "u_pie": 1,
+      "u_text": 1,
+      "SingleTabs": 1
+    },
+    "renamed_metric_instance_count": 11,
+    "local_filter_count": 2,
+    "global_filter_count": 2,
+    "global_filter_target_edge_count": 8,
+    "component_value_check_count": 7,
+    "component_value_checks_passed": true,
+    "public_filter_assertion_count": 2,
+    "public_filter_assertions_passed": true,
+    "calculated_column_id": "customized_998650826299072512",
+    "resume_proof": {
+      "field_binding_drift_detected": true,
+      "exact_same_build_repair_verified": true,
+      "final_created_resource_count": 0,
+      "final_reused_resource_count": 14
+    }
+  },
+  "operations": [
+    {
+      "operation": "create_text_component",
+      "evidence_sha256": "78209e3777cfda7b2d55b60e67a4ce39fe6c8b0fba0c3b64dedde39655900f34",
+      "write_endpoint": "config/save/dashboardHtml",
+      "readback": ["config/dashBoard", "DashboardProfile.components[].config.text_content_html"],
+      "request_schema": ["dashboardId", "dashboardName", "dashboardHtmlJson", "saveUnitList", "allUnitList"]
+    },
+    {
+      "operation": "create_tab_container",
+      "evidence_sha256": "5b2631352557bca571e2b0d993f7fc6c37abe0cb29e0c4272aed4493823b17e7",
+      "write_endpoint": "config/save/dashboardHtml",
+      "readback": ["config/dashBoard", "DashboardProfile.components[].config.slots", "value/unit/detail"],
+      "scope": "exactly two named tab slots, each containing one newly created u_pivot"
+    },
+    {
+      "operation": "assemble_tab_slots",
+      "evidence_sha256": "a9b642fe6b699e71d90aede9d3dbd3753d5b01ae81aa04c2bc6e53048f5accdd",
+      "write_endpoint": "config/save/dashboardHtml",
+      "readback": ["DashboardProfile.components[].container_id", "DashboardProfile.data_units[].model_identity", "DashboardProfile.data_units[].field_groups", "slot_id", "slot_name", "slot_label", "nested_component_id", "nested_unit_id"]
+    },
+    {
+      "operation": "rename_new_component_metrics",
+      "evidence_sha256": "26654fcc10804fa43c2cd60c9c0cd174aa917ba2a28e6d10f62ffdd49c7d37ab",
+      "write_endpoint": "config/update/unit",
+      "readback": ["value/unit/detail.unitMeasureList[].showName", "DashboardProfile.components[].fields.metrics[].display_name"],
+      "scope": "Eight evidence-stage metric instances and all eleven production-E2E metric instances were renamed and read back"
+    },
+    {
+      "operation": "style_new_components",
+      "evidence_sha256": "2c1662286b2165b2b48293b97caed8a6dc167a43ca462968bb54f257c2a27688",
+      "write_endpoint": "config/save/dashboardHtml",
+      "readback": ["DashboardProfile.theme", "DashboardProfile.components[].config.visual_style", "DashboardProfile.components[].config.text_content_html"],
+      "scope": "strict component-type property allowlists and restricted rich-text tags/CSS"
+    },
+    {
+      "operation": "create_component_with_multiple_local_filters",
+      "evidence_sha256": "4b2a0d91627434321b2aae403a1651702e2a9c492a23adbadddd4d24459ee8ec",
+      "write_endpoint": "config/update/unit",
+      "readback": ["value/unit/detail.unitFilterList", "DashboardProfile.data_units[].field_groups.filter"],
+      "scope": "two local filters were bound during the same new-unit creation action"
+    },
+    {
+      "operation": "create_public_filter_qici",
+      "evidence_sha256": "51553d78d2907c79b6ec9f29f6a16b94420cc4597a88c8a483e141353ce12b39",
+      "write_endpoint": "config/update/public/relation/unit",
+      "readback": ["relation_id", "filter_id", "field_id", "target_component_ids", "target_unit_ids"]
+    },
+    {
+      "operation": "create_public_filter_rule_name",
+      "evidence_sha256": "f31d18eadab4ea704e004a26ab5ec78dc021e46a4c7d537530e59612ade95b14",
+      "write_endpoint": "config/update/public/relation/unit",
+      "readback": ["relation_id", "filter_id", "field_id", "target_component_ids", "target_unit_ids"]
+    }
+  ],
+  "negative_evidence": {
+    "resource": "unit_3994543971777298433",
+    "finding": "The multi-local-filter metric-group proof persisted two copies of daiban_guwen_cnt instead of the requested second v_lead metric.",
+    "governance_result": "The resource is retained as an unpublished anomalous evidence resource and is not counted as a successful two-metric component.",
+    "production_gate_added": "The production adapter compares Counter-based field identities from value/unit/detail with the exact plan and records a mismatched new unit as orphaned/manual_cleanup_required before stopping."
+  },
+  "limitations": [
+    "Tab-container production scope is exactly two slots with one newly created pivot per slot.",
+    "Nested slot pivots cannot carry local filters in this release; multiple local filters are supported only when creating a root data component.",
+    "Metric display-name plans are all-or-none across every measure instance in the build.",
+    "Styles are restricted to evidence-backed component property keys; text allows only p, span, strong and br with a restricted CSS property/value grammar.",
+    "Global-filter internal platform titles remained the platform default and are not represented as a verified rename capability.",
+    "Existing component dataset rebinding and existing component-local filter mutation remain blocked."
+  ],
+  "safety": {
+    "publish_attempted": false,
+    "delete_attempted": false,
+    "permission_write_attempted": false,
+    "folder_write_attempted": false,
+    "authentication_write_attempted": false,
+    "raw_payload_values_retained": false,
+    "cookies_or_tokens_retained": false,
+    "screenshots_retained_in_repository": false
+  }
+}

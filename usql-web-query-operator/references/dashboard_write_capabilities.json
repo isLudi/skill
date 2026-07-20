@@ -29,12 +29,12 @@
         },
         {
           "source_path": "scripts/read_dashboard/dashboard_build_adapters.py",
-          "source_sha256": "4d7788c9bd90ac15132e59d0f37adb4fd0123db8fa153cb8455aee5079c17632",
+          "source_sha256": "f9a99d08d8ce9325e70fa1534b2eda50bc33a333a0604d9bc391ff34fbf71723",
           "note": "Production creation-saga adapter with drift, idempotency, complete-profile, draft-value, and no-auto-delete gates."
         },
         {
           "source_path": "tests/test_dashboard_build.py",
-          "source_sha256": "8a9448c39588e14a012f44d02fe684c5756e46eb5d3fa30aff55291d30198deb",
+          "source_sha256": "c308abd9a8bb56312b0d2d6487a2086ba417f3684728dca8eedba2250471ad45",
           "note": "Artifact, preflight, failure-injection, resume, adapter, type-aware value, filter-target, and formula-conflict tests."
         }
       ],
@@ -128,12 +128,12 @@
         },
         {
           "source_path": "scripts/read_dashboard/dashboard_build_adapters.py",
-          "source_sha256": "4d7788c9bd90ac15132e59d0f37adb4fd0123db8fa153cb8455aee5079c17632",
+          "source_sha256": "f9a99d08d8ce9325e70fa1534b2eda50bc33a333a0604d9bc391ff34fbf71723",
           "note": "Production creation-saga adapter with drift, idempotency, complete-profile, draft-value, and no-auto-delete gates."
         },
         {
           "source_path": "tests/test_dashboard_build.py",
-          "source_sha256": "8a9448c39588e14a012f44d02fe684c5756e46eb5d3fa30aff55291d30198deb",
+          "source_sha256": "c308abd9a8bb56312b0d2d6487a2086ba417f3684728dca8eedba2250471ad45",
           "note": "Artifact, preflight, failure-injection, resume, adapter, type-aware value, filter-target, and formula-conflict tests."
         }
       ],
@@ -171,12 +171,12 @@
         },
         {
           "source_path": "scripts/read_dashboard/dashboard_build_adapters.py",
-          "source_sha256": "4d7788c9bd90ac15132e59d0f37adb4fd0123db8fa153cb8455aee5079c17632",
+          "source_sha256": "f9a99d08d8ce9325e70fa1534b2eda50bc33a333a0604d9bc391ff34fbf71723",
           "note": "Production creation-saga adapter with drift, idempotency, complete-profile, draft-value, and no-auto-delete gates."
         },
         {
           "source_path": "tests/test_dashboard_build.py",
-          "source_sha256": "8a9448c39588e14a012f44d02fe684c5756e46eb5d3fa30aff55291d30198deb",
+          "source_sha256": "c308abd9a8bb56312b0d2d6487a2086ba417f3684728dca8eedba2250471ad45",
           "note": "Artifact, preflight, failure-injection, resume, adapter, type-aware value, filter-target, and formula-conflict tests."
         }
       ],
@@ -214,12 +214,12 @@
         },
         {
           "source_path": "scripts/read_dashboard/dashboard_build_adapters.py",
-          "source_sha256": "4d7788c9bd90ac15132e59d0f37adb4fd0123db8fa153cb8455aee5079c17632",
+          "source_sha256": "f9a99d08d8ce9325e70fa1534b2eda50bc33a333a0604d9bc391ff34fbf71723",
           "note": "Production creation-saga adapter with drift, idempotency, complete-profile, draft-value, and no-auto-delete gates."
         },
         {
           "source_path": "tests/test_dashboard_build.py",
-          "source_sha256": "8a9448c39588e14a012f44d02fe684c5756e46eb5d3fa30aff55291d30198deb",
+          "source_sha256": "c308abd9a8bb56312b0d2d6487a2086ba417f3684728dca8eedba2250471ad45",
           "note": "Artifact, preflight, failure-injection, resume, adapter, type-aware value, filter-target, and formula-conflict tests."
         }
       ],
@@ -257,12 +257,12 @@
         },
         {
           "source_path": "scripts/read_dashboard/dashboard_build_adapters.py",
-          "source_sha256": "4d7788c9bd90ac15132e59d0f37adb4fd0123db8fa153cb8455aee5079c17632",
+          "source_sha256": "f9a99d08d8ce9325e70fa1534b2eda50bc33a333a0604d9bc391ff34fbf71723",
           "note": "Production creation-saga adapter with drift, idempotency, complete-profile, draft-value, and no-auto-delete gates."
         },
         {
           "source_path": "tests/test_dashboard_build.py",
-          "source_sha256": "8a9448c39588e14a012f44d02fe684c5756e46eb5d3fa30aff55291d30198deb",
+          "source_sha256": "c308abd9a8bb56312b0d2d6487a2086ba417f3684728dca8eedba2250471ad45",
           "note": "Artifact, preflight, failure-injection, resume, adapter, type-aware value, filter-target, and formula-conflict tests."
         }
       ],
@@ -298,12 +298,12 @@
         },
         {
           "source_path": "scripts/read_dashboard/dashboard_build_adapters.py",
-          "source_sha256": "4d7788c9bd90ac15132e59d0f37adb4fd0123db8fa153cb8455aee5079c17632",
+          "source_sha256": "f9a99d08d8ce9325e70fa1534b2eda50bc33a333a0604d9bc391ff34fbf71723",
           "note": "Production creation-saga adapter with drift, idempotency, complete-profile, draft-value, and no-auto-delete gates."
         },
         {
           "source_path": "tests/test_dashboard_build.py",
-          "source_sha256": "8a9448c39588e14a012f44d02fe684c5756e46eb5d3fa30aff55291d30198deb",
+          "source_sha256": "c308abd9a8bb56312b0d2d6487a2086ba417f3684728dca8eedba2250471ad45",
           "note": "Artifact, preflight, failure-injection, resume, adapter, type-aware value, filter-target, and formula-conflict tests."
         }
       ],
@@ -426,12 +426,12 @@
         },
         {
           "source_path": "scripts/read_dashboard/dashboard_build_adapters.py",
-          "source_sha256": "4d7788c9bd90ac15132e59d0f37adb4fd0123db8fa153cb8455aee5079c17632",
+          "source_sha256": "f9a99d08d8ce9325e70fa1534b2eda50bc33a333a0604d9bc391ff34fbf71723",
           "note": "Production creation-saga adapter with drift, idempotency, complete-profile, draft-value, and no-auto-delete gates."
         },
         {
           "source_path": "tests/test_dashboard_build.py",
-          "source_sha256": "8a9448c39588e14a012f44d02fe684c5756e46eb5d3fa30aff55291d30198deb",
+          "source_sha256": "c308abd9a8bb56312b0d2d6487a2086ba417f3684728dca8eedba2250471ad45",
           "note": "Artifact, preflight, failure-injection, resume, adapter, type-aware value, filter-target, and formula-conflict tests."
         }
       ],
@@ -507,12 +507,12 @@
         },
         {
           "source_path": "scripts/read_dashboard/dashboard_build_adapters.py",
-          "source_sha256": "4d7788c9bd90ac15132e59d0f37adb4fd0123db8fa153cb8455aee5079c17632",
+          "source_sha256": "f9a99d08d8ce9325e70fa1534b2eda50bc33a333a0604d9bc391ff34fbf71723",
           "note": "Production creation-saga adapter with drift, idempotency, complete-profile, draft-value, and no-auto-delete gates."
         },
         {
           "source_path": "tests/test_dashboard_build.py",
-          "source_sha256": "8a9448c39588e14a012f44d02fe684c5756e46eb5d3fa30aff55291d30198deb",
+          "source_sha256": "c308abd9a8bb56312b0d2d6487a2086ba417f3684728dca8eedba2250471ad45",
           "note": "Artifact, preflight, failure-injection, resume, adapter, type-aware value, filter-target, and formula-conflict tests."
         }
       ],
@@ -651,7 +651,205 @@
         }
       ],
       "limitations": [
-        "Allowlisted only for an explicit #RRGGBB dashboard-root background color; theme identity, palette tokens, and per-component styling remain blocked."
+        "Allowlisted only for an explicit #RRGGBB dashboard-root background color on an existing dashboard. Evidence-backed styling of resources created by the same P4C plan uses the separate style_new_components capability; arbitrary existing-component styling remains blocked."
+      ]
+    },
+    {
+      "operation": "rename_new_component_metrics",
+      "phase": "draft",
+      "maturity": "verified",
+      "write_policy": "allowlisted",
+      "transaction_class": "creation_saga",
+      "recovery_policy": "creation_saga_no_auto_delete",
+      "readback_coverage": "full",
+      "risk": "high",
+      "adapter": "taitan_dashboard_build_v1",
+      "write_endpoints": [
+        "config/update/unit"
+      ],
+      "readback_endpoints": [
+        "value/unit/detail",
+        "config/dashBoard"
+      ],
+      "evidence": [
+        {
+          "source_path": "references/dashboard_build_advanced_evidence_20260718.json",
+          "source_sha256": "bd245dc59c78d7f628a7add3242bdd9e403e303411012597b058a2b3b77644e3",
+          "note": "Redacted evidence-stage proof plus production E2E proof that all eleven metric instances across seven new data components were renamed and read back."
+        },
+        {
+          "source_path": "scripts/read_dashboard/dashboard_build_adapters.py",
+          "source_sha256": "f9a99d08d8ce9325e70fa1534b2eda50bc33a333a0604d9bc391ff34fbf71723",
+          "note": "All-or-none metric-instance adapter with exact field coverage, readback, resume drift gate, and compensation."
+        },
+        {
+          "source_path": "tests/test_dashboard_build.py",
+          "source_sha256": "c308abd9a8bb56312b0d2d6487a2086ba417f3684728dca8eedba2250471ad45",
+          "note": "Advanced Saga ordering, fault, orphan, and full metric-name coverage tests."
+        }
+      ],
+      "limitations": [
+        "Only metric instances on components created by the same exact DashboardBuildPlan are in scope.",
+        "A metric rename plan must name every measure instance; partial coverage is rejected before browser launch.",
+        "Existing-component metric renames are not authorized by this capability."
+      ]
+    },
+    {
+      "operation": "style_new_components",
+      "phase": "draft",
+      "maturity": "verified",
+      "write_policy": "allowlisted",
+      "transaction_class": "creation_saga",
+      "recovery_policy": "creation_saga_no_auto_delete",
+      "readback_coverage": "full",
+      "risk": "critical",
+      "adapter": "taitan_dashboard_build_v1",
+      "write_endpoints": [
+        "config/save/dashboardHtml"
+      ],
+      "readback_endpoints": [
+        "config/dashBoard"
+      ],
+      "evidence": [
+        {
+          "source_path": "references/dashboard_build_advanced_evidence_20260718.json",
+          "source_sha256": "bd245dc59c78d7f628a7add3242bdd9e403e303411012597b058a2b3b77644e3",
+          "note": "Live Page, Text, SingleTabs, and four-PivotTable style readback with immutable evidence hashes."
+        },
+        {
+          "source_path": "scripts/read_dashboard/dashboard_build_adapters.py",
+          "source_sha256": "f9a99d08d8ce9325e70fa1534b2eda50bc33a333a0604d9bc391ff34fbf71723",
+          "note": "Component-type property allowlists, restricted rich text, exact before/after hashes, full schema compensation, and Profile readback."
+        },
+        {
+          "source_path": "tests/test_dashboard_build.py",
+          "source_sha256": "c308abd9a8bb56312b0d2d6487a2086ba417f3684728dca8eedba2250471ad45",
+          "note": "Advanced style Plan/Saga, zero-write preflight, failure, and orphan tests."
+        }
+      ],
+      "limitations": [
+        "Production styling is limited to Page background, the arco_blue PivotTable preset, the wide SingleTabs preset, and the default restricted-rich-text preset; IndicatorCard, BarChart, and PieChart raw styles are not yet exposed.",
+        "Text markup is restricted to p, span, strong, and br with color, background-color, font-size, and font-weight declarations.",
+        "Only resources created by the same exact DashboardBuildPlan may be styled; arbitrary existing-component styling remains blocked."
+      ]
+    },
+    {
+      "operation": "create_tab_container",
+      "phase": "draft",
+      "maturity": "verified",
+      "write_policy": "allowlisted",
+      "transaction_class": "creation_saga",
+      "recovery_policy": "creation_saga_no_auto_delete",
+      "readback_coverage": "full",
+      "risk": "critical",
+      "adapter": "taitan_dashboard_build_v1",
+      "write_endpoints": [
+        "config/update/unit",
+        "config/save/dashboardHtml"
+      ],
+      "readback_endpoints": [
+        "config/dashBoard",
+        "value/unit/detail",
+        "value/unit"
+      ],
+      "evidence": [
+        {
+          "source_path": "references/dashboard_build_advanced_evidence_20260718.json",
+          "source_sha256": "bd245dc59c78d7f628a7add3242bdd9e403e303411012597b058a2b3b77644e3",
+          "note": "Live SingleTabs creation with two named slots and two persisted, value-readable nested pivots."
+        },
+        {
+          "source_path": "scripts/read_dashboard/dashboard_build_adapters.py",
+          "source_sha256": "f9a99d08d8ce9325e70fa1534b2eda50bc33a333a0604d9bc391ff34fbf71723",
+          "note": "Composite tab Saga adapter with slot-label, child identity, Counter-based binding, Profile, value, and resume readback."
+        },
+        {
+          "source_path": "tests/test_dashboard_build.py",
+          "source_sha256": "c308abd9a8bb56312b0d2d6487a2086ba417f3684728dca8eedba2250471ad45",
+          "note": "Tab child-resource, failure, resume, orphan, and target verification tests."
+        }
+      ],
+      "limitations": [
+        "Production scope is exactly one SingleTabs container with exactly two named slots per declaration and one new pivot in each slot.",
+        "Nested pivots may use governed dimensions, metrics, display names, and styles, but nested local filters are not supported in this release.",
+        "Other container types and adding slots to existing containers remain blocked."
+      ]
+    },
+    {
+      "operation": "assemble_tab_slots",
+      "phase": "draft",
+      "maturity": "verified",
+      "write_policy": "allowlisted",
+      "transaction_class": "creation_saga",
+      "recovery_policy": "creation_saga_no_auto_delete",
+      "readback_coverage": "full",
+      "risk": "critical",
+      "adapter": "taitan_dashboard_build_v1",
+      "write_endpoints": [
+        "config/save/dashboardHtml"
+      ],
+      "readback_endpoints": [
+        "config/dashBoard",
+        "value/unit/detail"
+      ],
+      "evidence": [
+        {
+          "source_path": "references/dashboard_build_advanced_evidence_20260718.json",
+          "source_sha256": "bd245dc59c78d7f628a7add3242bdd9e403e303411012597b058a2b3b77644e3",
+          "note": "Live slot_id, slot_name, label, nested component ID, and unit ID closure."
+        },
+        {
+          "source_path": "scripts/read_dashboard/dashboard_build_adapters.py",
+          "source_sha256": "f9a99d08d8ce9325e70fa1534b2eda50bc33a333a0604d9bc391ff34fbf71723",
+          "note": "Exact logical slot-to-platform component mapping and complete target Profile verification."
+        },
+        {
+          "source_path": "tests/test_dashboard_build.py",
+          "source_sha256": "c308abd9a8bb56312b0d2d6487a2086ba417f3684728dca8eedba2250471ad45",
+          "note": "Slot child-resource and target-state tests."
+        }
+      ],
+      "limitations": [
+        "This capability is inseparable from create_tab_container in the same creation Saga.",
+        "Existing container slot mutation remains blocked."
+      ]
+    },
+    {
+      "operation": "create_text_component",
+      "phase": "draft",
+      "maturity": "verified",
+      "write_policy": "allowlisted",
+      "transaction_class": "creation_saga",
+      "recovery_policy": "creation_saga_no_auto_delete",
+      "readback_coverage": "full",
+      "risk": "high",
+      "adapter": "taitan_dashboard_build_v1",
+      "write_endpoints": [
+        "config/save/dashboardHtml"
+      ],
+      "readback_endpoints": [
+        "config/dashBoard"
+      ],
+      "evidence": [
+        {
+          "source_path": "references/dashboard_build_advanced_evidence_20260718.json",
+          "source_sha256": "bd245dc59c78d7f628a7add3242bdd9e403e303411012597b058a2b3b77644e3",
+          "note": "Live Text palette creation followed by restricted rich-text styling and complete Profile readback."
+        },
+        {
+          "source_path": "scripts/read_dashboard/dashboard_build_adapters.py",
+          "source_sha256": "f9a99d08d8ce9325e70fa1534b2eda50bc33a333a0604d9bc391ff34fbf71723",
+          "note": "Text identity, layout, restricted content/style, resume, and Profile target adapter."
+        },
+        {
+          "source_path": "tests/test_dashboard_build.py",
+          "source_sha256": "c308abd9a8bb56312b0d2d6487a2086ba417f3684728dca8eedba2250471ad45",
+          "note": "Text creation, style, failure, and orphan tests."
+        }
+      ],
+      "limitations": [
+        "Only new text resources declared by the exact DashboardBuildPlan are in scope.",
+        "Arbitrary HTML, links, scripts, images, event handlers, and unsupported CSS are rejected."
       ]
     },
     {
@@ -705,5 +903,5 @@
       ]
     }
   ],
-  "registry_sha256": "ed668852543f2dade5b20d6e34ea3a2a4c24c5a0bc3cf6cbad47d2a27e34e04e"
+  "registry_sha256": "eca954cb5177229450232e11e25805db67eb30aa09a50014fed9734553ce3335"
 }

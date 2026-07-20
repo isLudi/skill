@@ -386,6 +386,27 @@ class DashboardBuildAdapter(Protocol):
         resource_map: Mapping[str, Any],
     ) -> Mapping[str, Any]: ...
 
+    def ensure_text_component(
+        self,
+        plan: Mapping[str, Any],
+        text_component: Mapping[str, Any],
+        resource_map: Mapping[str, Any],
+    ) -> Mapping[str, Any]: ...
+
+    def ensure_tab_container(
+        self,
+        plan: Mapping[str, Any],
+        container: Mapping[str, Any],
+        resource_map: Mapping[str, Any],
+    ) -> Mapping[str, Any]: ...
+
+    def ensure_metric_names(
+        self,
+        plan: Mapping[str, Any],
+        component: Mapping[str, Any],
+        resource_map: Mapping[str, Any],
+    ) -> Mapping[str, Any]: ...
+
     def ensure_global_filter(
         self,
         plan: Mapping[str, Any],
@@ -394,6 +415,10 @@ class DashboardBuildAdapter(Protocol):
     ) -> Mapping[str, Any]: ...
 
     def assemble_dashboard(
+        self, plan: Mapping[str, Any], resource_map: Mapping[str, Any]
+    ) -> Mapping[str, Any]: ...
+
+    def apply_styles(
         self, plan: Mapping[str, Any], resource_map: Mapping[str, Any]
     ) -> Mapping[str, Any]: ...
 
@@ -509,8 +534,14 @@ def execute_dashboard_build_saga(
         if not (
             folder_readback.get("ok") is True
             and folder_readback.get("dashboard_name_available") is True
-            and folder_readback.get("folder_snapshot_sha256")
-            == plan.get("folder_snapshot_sha256")
+            and (
+                folder_readback.get("folder_snapshot_sha256")
+                == plan.get("folder_snapshot_sha256")
+                or (
+                    resume_receipt is not None
+                    and folder_readback.get("resume_safe_drift") is True
+                )
+            )
         ):
             raise UsageError("Target folder identity or dashboard-name uniqueness drifted before creation.")
         operations.append(
@@ -558,6 +589,9 @@ def execute_dashboard_build_saga(
         html_id = str(dashboard_resource.get("html_id") or "") or None
 
         indexed_components = list(enumerate(plan.get("components") or [], start=1))
+        root_components = [
+            item for item in indexed_components if not item[1].get("container_ref")
+        ]
         dashboard_scoped_subject = any(
             isinstance(dataset, Mapping)
             and isinstance(dataset.get("config"), Mapping)
@@ -582,7 +616,7 @@ def execute_dashboard_build_saga(
             )
 
         allocation_components = (
-            [item for item in indexed_components if not component_uses_calculated_column(item[1])]
+            [item for item in root_components if not component_uses_calculated_column(item[1])]
             if dashboard_scoped_subject and plan.get("calculated_columns")
             else []
         )
@@ -602,6 +636,8 @@ def execute_dashboard_build_saga(
             }[str(component["type"])]
             result = adapter.ensure_component(plan, component, resource_map)
             record(f"step_03_component_{index:03d}", operation_type, result, f"component:{logical_id}")
+            if result.get("verification_error"):
+                raise UsageError(str(result["verification_error"]))
 
         for index, component in allocation_components:
             ensure_planned_component(index, component)
@@ -612,10 +648,79 @@ def execute_dashboard_build_saga(
             record(f"step_02_formula_{index:03d}", "create_formula", result, f"formula:{logical_id}")
 
         allocated_indexes = {index for index, _ in allocation_components}
-        for index, component in indexed_components:
+        for index, component in root_components:
             if index in allocated_indexes:
                 continue
             ensure_planned_component(index, component)
+
+        for index, text_component in enumerate(plan.get("text_components") or [], start=1):
+            logical_id = str(text_component["text_id"])
+            result = adapter.ensure_text_component(plan, text_component, resource_map)
+            record(
+                f"step_03_text_{index:03d}",
+                "create_text_component",
+                result,
+                f"text:{logical_id}",
+            )
+
+        for index, container in enumerate(plan.get("containers") or [], start=1):
+            logical_id = str(container["container_id"])
+            result = adapter.ensure_tab_container(plan, container, resource_map)
+            record(
+                f"step_03_container_{index:03d}",
+                "create_tab_container",
+                result,
+                f"container:{logical_id}",
+            )
+            for child_index, child_result in enumerate(
+                result.get("component_resources") or [], start=1
+            ):
+                child_resource = (
+                    child_result.get("resource")
+                    if isinstance(child_result, Mapping)
+                    else None
+                )
+                if not isinstance(child_resource, Mapping) or not child_resource.get(
+                    "logical_id"
+                ):
+                    raise UsageError(
+                        f"Tab container {logical_id} returned an invalid child resource."
+                    )
+                child_logical_id = str(child_resource["logical_id"])
+                record(
+                    f"step_03_container_{index:03d}_child_{child_index:03d}",
+                    "assemble_tab_slots",
+                    child_result,
+                    child_logical_id,
+                )
+            if result.get("verification_error"):
+                raise UsageError(str(result["verification_error"]))
+
+        if "rename_new_component_metrics" in set(plan.get("required_capabilities") or []):
+            for index, component in indexed_components:
+                result = adapter.ensure_metric_names(plan, component, resource_map)
+                status = str(result.get("status") or "")
+                if status not in {"applied", "reused"}:
+                    raise UsageError(
+                        f"Metric rename returned unsupported status for {component['component_id']}."
+                    )
+                operations.append(
+                    {
+                        "operation_id": f"step_03_metric_names_{index:03d}",
+                        "operation_type": "rename_new_component_metrics",
+                        "status": status,
+                        "resource_id": str(
+                            (
+                                resource_map.get(
+                                    f"component:{component['component_id']}"
+                                )
+                                or {}
+                            ).get("resource_id")
+                            or ""
+                        )
+                        or None,
+                    }
+                )
 
         for index, global_filter in enumerate(plan.get("global_filters") or [], start=1):
             logical_id = str(global_filter["filter_id"])
@@ -624,6 +729,20 @@ def execute_dashboard_build_saga(
 
         assemble_result = adapter.assemble_dashboard(plan, resource_map)
         record("step_05_assemble", "assemble_new_dashboard", assemble_result, "dashboard_html")
+
+        if "style_new_components" in set(plan.get("required_capabilities") or []):
+            style_result = adapter.apply_styles(plan, resource_map)
+            style_status = str(style_result.get("status") or "")
+            if style_status not in {"applied", "reused"}:
+                raise UsageError("Style adapter returned an unsupported status.")
+            operations.append(
+                {
+                    "operation_id": "step_05_styles",
+                    "operation_type": "style_new_components",
+                    "status": style_status,
+                    "resource_id": dashboard_id,
+                }
+            )
 
         profile = require_complete_profile(
             dict(adapter.read_complete_profile(plan, resource_map)),

@@ -7,7 +7,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 
 SKILL_ROOT = Path(__file__).resolve().parents[1]
@@ -141,6 +141,74 @@ def ready_plan() -> dict:
     )
 
 
+def advanced_ready_plan() -> dict:
+    spec = raw_spec()
+    for component in spec["components"]:
+        component["measures"] = [
+            {"field_ref": value, "display_name": f"Display {value}"}
+            for value in component["measures"]
+        ]
+    spec["components"].extend(
+        [
+            {
+                "component_id": "slot_grade",
+                "type": "pivot",
+                "dataset_ref": "main",
+                "dimensions": ["grade"],
+                "measures": [
+                    {"field_ref": "amount", "display_name": "Slot amount by grade"}
+                ],
+                "container_ref": "analysis_tabs",
+                "slot_ref": "grade_view",
+                "style_preset": "arco_blue",
+                "layout": {"x": 0, "y": 0, "w": 24, "h": 8},
+            },
+            {
+                "component_id": "slot_period",
+                "type": "pivot",
+                "dataset_ref": "main",
+                "dimensions": ["period"],
+                "measures": [
+                    {"field_ref": "amount", "display_name": "Slot amount by period"}
+                ],
+                "container_ref": "analysis_tabs",
+                "slot_ref": "period_view",
+                "layout": {"x": 0, "y": 0, "w": 24, "h": 8},
+            },
+        ]
+    )
+    spec["containers"] = [
+        {
+            "container_id": "analysis_tabs",
+            "type": "tabs",
+            "title": "Analysis tabs",
+            "description": "Two views",
+            "slots": [
+                {"slot_id": "grade_view", "label": "By grade"},
+                {"slot_id": "period_view", "label": "By period"},
+            ],
+            "style_preset": "wide",
+            "layout": {"x": 0, "y": 8, "w": 24, "h": 10},
+        }
+    ]
+    spec["text_components"] = [
+        {
+            "text_id": "header",
+            "title": "Header",
+            "initial_text": "Advanced dashboard",
+            "content_html": "<p><strong>Advanced dashboard</strong></p>",
+            "style_preset": "default",
+            "layout": {"x": 0, "y": 6, "w": 24, "h": 2},
+        }
+    ]
+    return plan_dashboard_build(
+        normalize_build_spec(spec),
+        resolution(),
+        folder_snapshot_sha256="5" * 64,
+        dashboard_name_available=True,
+    )
+
+
 def complete_profile() -> dict:
     return normalize_profile(
         {
@@ -217,12 +285,61 @@ class FakeBuildAdapter:
         logical = f"component:{component['component_id']}"
         return self._result(logical, {"logical_id": logical, "resource_id": f"unit_{component['component_id']}"}, resources)
 
+    def ensure_text_component(self, plan, text_component, resources):
+        logical = f"text:{text_component['text_id']}"
+        return self._result(
+            logical,
+            {
+                "logical_id": logical,
+                "resource_id": f"node_{text_component['text_id']}",
+                "actual_component_id": f"node_{text_component['text_id']}",
+            },
+            resources,
+        )
+
+    def ensure_tab_container(self, plan, container, resources):
+        logical = f"container:{container['container_id']}"
+        child_results = []
+        for component in plan["components"]:
+            if component.get("container_ref") != container["container_id"]:
+                continue
+            child_logical = f"component:{component['component_id']}"
+            child_results.append(
+                self._result(
+                    child_logical,
+                    {
+                        "logical_id": child_logical,
+                        "resource_id": f"unit_{component['component_id']}",
+                        "unit_id": f"unit_{component['component_id']}",
+                        "actual_component_id": f"node_{component['component_id']}",
+                    },
+                    resources,
+                )
+            )
+        result = self._result(
+            logical,
+            {
+                "logical_id": logical,
+                "resource_id": f"node_{container['container_id']}",
+                "actual_component_id": f"node_{container['container_id']}",
+            },
+            resources,
+        )
+        result["component_resources"] = child_results
+        return result
+
+    def ensure_metric_names(self, plan, component, resources):
+        return {"status": "reused" if f"component:{component['component_id']}" in resources else "applied"}
+
     def ensure_global_filter(self, plan, global_filter, resources):
         logical = f"filter:{global_filter['filter_id']}"
         return self._result(logical, {"logical_id": logical, "resource_id": "public_filter_999"}, resources)
 
     def assemble_dashboard(self, plan, resources):
         return self._result("dashboard_html", {"logical_id": "dashboard_html", "resource_id": "html_999"}, resources)
+
+    def apply_styles(self, plan, resources):
+        return {"status": "applied"}
 
     def read_complete_profile(self, plan, resources):
         return complete_profile()
@@ -286,6 +403,18 @@ class FaultInjectingBuildAdapter(FakeBuildAdapter):
         self._raise("component")
         return super().ensure_component(plan, component, resources)
 
+    def ensure_text_component(self, plan, text_component, resources):
+        self._raise("text")
+        return super().ensure_text_component(plan, text_component, resources)
+
+    def ensure_tab_container(self, plan, container, resources):
+        self._raise("container")
+        return super().ensure_tab_container(plan, container, resources)
+
+    def ensure_metric_names(self, plan, component, resources):
+        self._raise("metric_names")
+        return super().ensure_metric_names(plan, component, resources)
+
     def ensure_global_filter(self, plan, global_filter, resources):
         self._raise("filter")
         return super().ensure_global_filter(plan, global_filter, resources)
@@ -293,6 +422,10 @@ class FaultInjectingBuildAdapter(FakeBuildAdapter):
     def assemble_dashboard(self, plan, resources):
         self._raise("assemble")
         return super().assemble_dashboard(plan, resources)
+
+    def apply_styles(self, plan, resources):
+        self._raise("style")
+        return super().apply_styles(plan, resources)
 
     def read_complete_profile(self, plan, resources):
         self._raise("profile")
@@ -415,6 +548,125 @@ class DashboardBuildOperatorTests(unittest.TestCase):
             "theme": {"background_color": "#FFFFFF"},
         }
         result = adapter.verify_profile_target(plan, profile, resource_map)
+        self.assertTrue(result["ok"], result["mismatches"])
+
+    def test_production_public_filter_passes_planned_title_to_verified_action(self) -> None:
+        plan = ready_plan()
+        global_filter = dict(plan["global_filters"][0])
+        global_filter["title"] = "Period Filter"
+        adapter = object.__new__(TaitanDashboardBuildV1Adapter)
+        adapter.page = object()
+        adapter.artifacts_dir = Path("artifacts")
+        adapter._open_dashboard = lambda _resources: ("dashboard_1", "html_1")
+        adapter._profile = Mock(
+            side_effect=[
+                {"public_filters": []},
+                {
+                    "public_filters": [
+                        {
+                            "relation_id": "relation_1",
+                            "filter_id": "filter_1",
+                            "field_id": global_filter["field"]["field_id"],
+                        }
+                    ]
+                },
+            ]
+        )
+        adapter._manifest_field = lambda field, _resources: dict(field)
+        resource_map = {
+            f"component:{component['component_id']}": {
+                "resource_name": component.get("title") or component["component_id"],
+                "actual_component_id": f"node_{component['component_id']}",
+                "unit_id": f"unit_{component['component_id']}",
+            }
+            for component in plan["components"]
+        }
+        captured: dict = {}
+
+        def capture_action(_page, _args, manifest, _artifacts_dir):
+            captured.update(manifest)
+
+        with patch(
+            "read_dashboard.commands.capture_dashboard_build_evidence._automate_dashboard_component_creation",
+            side_effect=capture_action,
+        ):
+            result = adapter.ensure_global_filter(
+                plan, global_filter, resource_map
+            )
+
+        self.assertEqual("applied", result["status"])
+        self.assertEqual("Period Filter", captured["filter_name"])
+
+    def test_production_public_filter_resume_reads_exact_relation_without_write(self) -> None:
+        plan = ready_plan()
+        global_filter = plan["global_filters"][0]
+        adapter = object.__new__(TaitanDashboardBuildV1Adapter)
+        adapter.page = object()
+        adapter._open_dashboard = lambda _resources: ("dashboard_1", "html_1")
+        existing = {
+            "resource_type": "global_filter",
+            "resource_id": "relation_1",
+            "relation_id": "relation_1",
+        }
+        resource_map = {"filter:period": existing}
+
+        with patch(
+            "read_dashboard.dashboard_build_adapters.fetch_public_filter_detail",
+            return_value={"id": "relation_1"},
+        ) as fetch, patch(
+            "read_dashboard.commands.capture_dashboard_build_evidence._automate_dashboard_component_creation"
+        ) as create_action:
+            result = adapter.ensure_global_filter(
+                plan, global_filter, resource_map
+            )
+
+        self.assertEqual("reused", result["status"])
+        fetch.assert_called_once_with(adapter.page, "dashboard_1", "relation_1")
+        create_action.assert_not_called()
+
+    def test_production_profile_accepts_normalized_u_text_component(self) -> None:
+        adapter = object.__new__(TaitanDashboardBuildV1Adapter)
+        content = "<p>Production dashboard</p>"
+        plan = {
+            "dashboard_name": "P4C dashboard",
+            "components": [],
+            "containers": [],
+            "text_components": [
+                {
+                    "text_id": "header",
+                    "content_html": content,
+                    "style": {"themeType": "default"},
+                    "layout": {"x": 0, "y": 0, "w": 24, "h": 4},
+                }
+            ],
+            "global_filters": [],
+            "theme": {"background_color": "#EEF4FB"},
+        }
+        resource_map = {
+            "text:header": {"actual_component_id": "node_text"}
+        }
+        profile = {
+            "dashboard_name": "P4C dashboard",
+            "data_units": [],
+            "components": [
+                {
+                    "component_id": "node_text",
+                    "component_type": "u_text",
+                    "config": {
+                        "text_content_html": content,
+                        "visual_style": {"themeType": "default"},
+                    },
+                }
+            ],
+            "layout": [
+                {"component_id": "node_text", "x": 0, "y": 0, "w": 24, "h": 4}
+            ],
+            "public_filters": [],
+            "theme": {"background_color": "#EEF4FB"},
+        }
+
+        result = adapter.verify_profile_target(plan, profile, resource_map)
+
         self.assertTrue(result["ok"], result["mismatches"])
 
     def test_component_value_adapter_uses_draft_endpoint_and_type_shapes(self) -> None:
@@ -667,6 +919,81 @@ class DashboardBuildOperatorTests(unittest.TestCase):
         ):
             self.assertIn(command, commands)
 
+    def test_assemble_tab_slots_has_operator_owned_evidence_automation(self) -> None:
+        from read_dashboard.commands.capture_dashboard_build_evidence import (
+            COMPONENT_PALETTE_TITLES,
+            PALETTE_ONLY_OPERATIONS,
+            _validate_tab_slot_profile_readback,
+        )
+
+        self.assertEqual("标签页", COMPONENT_PALETTE_TITLES["assemble_tab_slots"])
+        self.assertIn("assemble_tab_slots", PALETTE_ONLY_OPERATIONS)
+        before = {
+            "components": [{"component_id": "root", "component_type": "Page"}],
+        }
+        after = {
+            "components": [
+                {"component_id": "root", "component_type": "Page"},
+                {
+                    "component_id": "tabs-1",
+                    "component_type": "SingleTabs",
+                    "title": "Analysis Tabs",
+                },
+                {
+                    "component_id": "pivot-1",
+                    "component_type": "u_pivot",
+                    "title": "Pivot One",
+                    "container_id": "tabs-1",
+                },
+                {
+                    "component_id": "pivot-2",
+                    "component_type": "u_pivot",
+                    "title": "Pivot Two",
+                    "container_id": "tabs-1",
+                },
+            ],
+            "data_units": [
+                {
+                    "component_id": "pivot-1",
+                    "unit_type": "u_pivot",
+                    "model_identity": {"application_model_id": 3131, "model_type": 2},
+                    "field_groups": {"row_dimension": ["d1"], "measure": ["m1", "m2"]},
+                },
+                {
+                    "component_id": "pivot-2",
+                    "unit_type": "u_pivot",
+                    "model_identity": {"application_model_id": 3131, "model_type": 2},
+                    "field_groups": {"row_dimension": ["d2"], "measure": ["m1", "m2"]},
+                },
+            ],
+        }
+        manifest = {
+            "component_name": "Analysis Tabs",
+            "slots": [
+                {
+                    "component": {
+                        "component_name": "Pivot One",
+                        "dataset": {"application_model_id": "3131", "model_type": 2},
+                        "dimensions": [{"field_id": "d1"}],
+                        "measures": [{"field_id": "m1"}, {"field_id": "m2"}],
+                    }
+                },
+                {
+                    "component": {
+                        "component_name": "Pivot Two",
+                        "dataset": {"application_model_id": "3131", "model_type": 2},
+                        "dimensions": [{"field_id": "d2"}],
+                        "measures": [{"field_id": "m1"}, {"field_id": "m2"}],
+                    }
+                },
+            ],
+        }
+        _validate_tab_slot_profile_readback(before, after, manifest)
+        broken = json.loads(json.dumps(after))
+        broken["components"][3]["container_id"] = "root"
+        with self.assertRaisesRegex(UsageError, "slot 2"):
+            _validate_tab_slot_profile_readback(before, broken, manifest)
+
     def test_invalid_production_plan_is_blocked_before_browser_import(self) -> None:
         plan = ready_plan()
         plan["status"] = "blocked"
@@ -731,6 +1058,135 @@ class DashboardBuildOperatorTests(unittest.TestCase):
         self.assertFalse(receipt["recovery"]["automatic_delete_attempted"])
         self.assertEqual(0, len(receipt["orphaned_resources"]))
 
+    def test_advanced_saga_creates_text_tabs_children_metric_names_and_styles(self) -> None:
+        plan = advanced_ready_plan()
+        receipt = execute_dashboard_build_saga(plan, FakeBuildAdapter())
+        self.assertTrue(receipt["ok"], receipt.get("failure"))
+        operation_types = {
+            item.get("operation_type") for item in receipt["operation_results"]
+        }
+        self.assertTrue(
+            {
+                "create_text_component",
+                "create_tab_container",
+                "assemble_tab_slots",
+                "rename_new_component_metrics",
+                "style_new_components",
+            }.issubset(operation_types)
+        )
+        logical_ids = {
+            item.get("logical_id")
+            for item in [
+                *receipt["created_resources"],
+                *receipt["reused_resources"],
+            ]
+        }
+        self.assertTrue(
+            {
+                "text:header",
+                "container:analysis_tabs",
+                "component:slot_grade",
+                "component:slot_period",
+            }.issubset(logical_ids)
+        )
+
+    def test_advanced_stage_failures_preserve_created_resources_as_orphans(self) -> None:
+        plan = advanced_ready_plan()
+        for step in ("text", "container", "metric_names", "style"):
+            with self.subTest(step=step):
+                receipt = execute_dashboard_build_saga(
+                    plan, FaultInjectingBuildAdapter(step)
+                )
+                self.assertFalse(receipt["ok"])
+                self.assertTrue(receipt["manual_cleanup_required"])
+                self.assertGreater(len(receipt["orphaned_resources"]), 0)
+                self.assertFalse(receipt["recovery"]["automatic_delete_attempted"])
+
+    def test_component_binding_verification_failure_records_new_unit_as_orphan(self) -> None:
+        class BindingMismatchAdapter(FakeBuildAdapter):
+            def ensure_component(self, plan, component, resources):
+                result = super().ensure_component(plan, component, resources)
+                if component["component_id"] == "card":
+                    result["verification_error"] = "duplicate or missing bound metric"
+                return result
+
+        receipt = execute_dashboard_build_saga(ready_plan(), BindingMismatchAdapter())
+        self.assertFalse(receipt["ok"])
+        self.assertIn("bound metric", receipt["failure"])
+        self.assertTrue(
+            any(
+                item.get("logical_id") == "component:card"
+                for item in receipt["orphaned_resources"]
+            )
+        )
+
+    def test_new_unit_binding_repair_uses_only_exact_same_build_donor_fields(self) -> None:
+        adapter = object.__new__(TaitanDashboardBuildV1Adapter)
+        adapter.page = SimpleNamespace(wait_for_timeout=lambda _value: None)
+        component = {
+            "component_id": "pie",
+            "dataset_ref": "main",
+            "dimensions": [{"field_id": "dimension_rule"}],
+            "measures": [{"field_id": "measure_v_lead"}],
+            "local_filters": [],
+        }
+        target = {
+            "unitId": "unit_target",
+            "unitDimensionList": [{"fieldId": "dimension_rule", "showName": "rule"}],
+            "unitMeasureList": [{"fieldId": "measure_wrong", "showName": "wrong"}],
+            "unitAideMeasureList": [],
+            "unitFilterList": [],
+        }
+        donor = {
+            "unitId": "unit_donor",
+            "unitDimensionList": [{"fieldId": "dimension_rule", "showName": "rule"}],
+            "unitMeasureList": [{"fieldId": "measure_v_lead", "showName": "v_lead"}],
+            "unitAideMeasureList": [],
+            "unitFilterList": [],
+        }
+        written: dict = {}
+
+        def read_detail(_page, unit_id, _dashboard_id, _version):
+            if unit_id == "unit_donor":
+                return json.loads(json.dumps(donor))
+            if unit_id == "unit_target" and written:
+                return json.loads(json.dumps(written))
+            raise AssertionError(f"unexpected donor read: {unit_id}")
+
+        def write_detail(_page, _dashboard_id, value, _observations):
+            written.update(json.loads(json.dumps(value)))
+
+        resources = {
+            "component:target": {
+                "dataset_ref": "main",
+                "unit_id": "unit_target",
+            },
+            "component:donor": {
+                "dataset_ref": "main",
+                "unit_id": "unit_donor",
+            },
+            "component:other_dataset": {
+                "dataset_ref": "other",
+                "unit_id": "unit_forbidden",
+            },
+        }
+        with patch(
+            "read_dashboard.dashboard_build_adapters.fetch_edit_unit_detail",
+            side_effect=read_detail,
+        ), patch(
+            "read_dashboard.dashboard_build_adapters._write_unit_detail",
+            side_effect=write_detail,
+        ):
+            readback, mismatches = adapter._repair_new_component_bindings(
+                dashboard_id="dashboard_1",
+                component=component,
+                detail=target,
+                resource_map=resources,
+            )
+        self.assertEqual([], mismatches)
+        self.assertEqual(["measure_v_lead"], [item["fieldId"] for item in readback["unitMeasureList"]])
+        self.assertNotIn("unit_forbidden", json.dumps(written))
+
     def test_fault_injection_records_orphans_and_resume_reuses_exact_resources(self) -> None:
         plan = ready_plan()
         failed = execute_dashboard_build_saga(plan, FakeBuildAdapter(fail_component="bar"))
@@ -741,6 +1197,26 @@ class DashboardBuildOperatorTests(unittest.TestCase):
         self.assertTrue(resumed["ok"])
         self.assertFalse(resumed["manual_cleanup_required"])
         self.assertGreater(len(resumed["reused_resources"]), 0)
+
+    def test_resume_allows_unrelated_folder_membership_drift_when_shell_is_exact(self) -> None:
+        plan = ready_plan()
+        failed = execute_dashboard_build_saga(
+            plan, FakeBuildAdapter(fail_component="bar")
+        )
+
+        class SafeResumeDriftAdapter(FakeBuildAdapter):
+            def verify_target_folder(self, _plan):
+                return {
+                    "ok": True,
+                    "dashboard_name_available": True,
+                    "folder_snapshot_sha256": "9" * 64,
+                    "resume_safe_drift": True,
+                }
+
+        resumed = execute_dashboard_build_saga(
+            plan, SafeResumeDriftAdapter(), resume_receipt=failed
+        )
+        self.assertTrue(resumed["ok"], resumed.get("failure"))
 
     def test_publish_preflight_requires_successful_receipt_and_separate_confirmation(self) -> None:
         plan = ready_plan()

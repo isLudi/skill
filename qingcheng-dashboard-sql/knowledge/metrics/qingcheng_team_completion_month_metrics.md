@@ -22,6 +22,7 @@
 | `refund` | `sum(case when name_total_price < 0 then abs(name_total_price) else 0 end)` 后逐层求和 | 全部退款金额 | 已从 SQL 入库 |
 | `promit` | `income - refund`，后逐层求和 | 净收，不剔除行课阈值退款 | 已从 SQL 入库 |
 | `refund_4` | 按行课阈值计入的退款金额 | 剔除行课阈值退款 | 已从 SQL 入库 |
+| `class_refund_4` | `sum(case when course_first_level_department_name = 'H业务线' and course_second_level_department_name = '一对一学部' then 0 else refund_4 end)` 后逐层求和 | 班课行课阈值退款；用于替代前端旧公式 `sum(refund)-sum(Y_refund_4)` | 已从 SQL 入库 |
 | `promit_4` | `income - refund_4`，后逐层求和 | 剔除行课阈值退款后的净收 | 已从 SQL 入库 |
 
 ## 4. 行课阈值退款指标

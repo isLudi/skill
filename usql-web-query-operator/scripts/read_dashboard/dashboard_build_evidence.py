@@ -22,6 +22,11 @@ BUILD_EVIDENCE_OPERATIONS = {
     "create_bar_component",
     "create_pie_component",
     "create_public_filter",
+    "create_tab_container",
+    "create_text_component",
+    "rename_new_component_metrics",
+    "style_new_components",
+    "assemble_tab_slots",
     "assemble_new_dashboard",
 }
 SKILL_ROOT = Path(__file__).resolve().parents[2]

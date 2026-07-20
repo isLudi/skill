@@ -7,11 +7,11 @@
   "required": [
     "schema_version", "artifact_type", "mode", "domain", "build_id",
     "target_folder", "dashboard_name", "datasets", "calculated_columns",
-    "components", "global_filters", "theme", "validation_checks",
+    "components", "containers", "text_components", "global_filters", "theme", "validation_checks",
     "publish_requested", "write_boundary", "dashboard_build_spec_sha256"
   ],
   "properties": {
-    "schema_version": {"const": "1.0.0"},
+    "schema_version": {"const": "1.1.0"},
     "artifact_type": {"const": "dashboard_build_spec"},
     "mode": {"const": "read_only_declaration"},
     "domain": {"enum": ["market_consultant", "qingcheng"]},
@@ -21,6 +21,8 @@
     "datasets": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/dataset"}},
     "calculated_columns": {"type": "array", "items": {"$ref": "#/$defs/calculated_column"}},
     "components": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/component"}},
+    "containers": {"type": "array", "items": {"$ref": "#/$defs/container"}},
+    "text_components": {"type": "array", "items": {"$ref": "#/$defs/text_component"}},
     "global_filters": {"type": "array", "items": {"$ref": "#/$defs/global_filter"}},
     "theme": {"type": "object"},
     "validation_checks": {"type": "array", "minItems": 1},
@@ -122,7 +124,7 @@
     "component": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["component_id", "type", "unit_type", "dataset_ref", "title", "dimensions", "measures", "local_filters", "display", "layout"],
+      "required": ["component_id", "type", "unit_type", "dataset_ref", "title", "dimensions", "measures", "local_filters", "display", "style", "container_ref", "slot_ref", "layout"],
       "properties": {
         "component_id": {"$ref": "#/$defs/logical_id"},
         "type": {"enum": ["metric_group", "pivot", "bar", "pie"]},
@@ -130,9 +132,61 @@
         "dataset_ref": {"$ref": "#/$defs/logical_id"},
         "title": {"type": "string"},
         "dimensions": {"type": "array", "items": {"type": "string", "minLength": 1}},
-        "measures": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "measures": {"type": "array", "items": {"$ref": "#/$defs/measure"}},
         "local_filters": {"type": "array", "items": {"$ref": "#/$defs/filter"}},
         "display": {"type": "object"},
+        "style": {"type": "object"},
+        "container_ref": {"type": ["string", "null"]},
+        "slot_ref": {"type": ["string", "null"]},
+        "layout": {"$ref": "#/$defs/layout"}
+      }
+    },
+    "measure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["field_ref", "display_name"],
+      "properties": {
+        "field_ref": {"type": "string", "minLength": 1},
+        "display_name": {"type": ["string", "null"]}
+      }
+    },
+    "container": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["container_id", "type", "component_name", "title", "description", "slots", "style", "layout"],
+      "properties": {
+        "container_id": {"$ref": "#/$defs/logical_id"},
+        "type": {"const": "tabs"},
+        "component_name": {"const": "SingleTabs"},
+        "title": {"type": "string", "minLength": 1},
+        "description": {"type": "string"},
+        "slots": {
+          "type": "array", "minItems": 2, "maxItems": 2,
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["slot_id", "label"],
+            "properties": {
+              "slot_id": {"$ref": "#/$defs/logical_id"},
+              "label": {"type": "string", "minLength": 1}
+            }
+          }
+        },
+        "style": {"type": "object"},
+        "layout": {"$ref": "#/$defs/layout"}
+      }
+    },
+    "text_component": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["text_id", "type", "component_name", "title", "initial_text", "content_html", "style", "layout"],
+      "properties": {
+        "text_id": {"$ref": "#/$defs/logical_id"},
+        "type": {"const": "text"},
+        "component_name": {"const": "Text"},
+        "title": {"type": "string"},
+        "initial_text": {"type": "string", "minLength": 1},
+        "content_html": {"type": "string", "minLength": 1, "maxLength": 20000},
+        "style": {"type": "object"},
         "layout": {"$ref": "#/$defs/layout"}
       }
     },

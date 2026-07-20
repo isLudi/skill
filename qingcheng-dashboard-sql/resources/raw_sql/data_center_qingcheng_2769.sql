@@ -569,6 +569,7 @@ from (
         sum(case when course_first_level_department_name = 'H业务线' then promit_4 else 0 end) as H_promit_4,
         sum(case when course_first_level_department_name = 'H业务线' then income else 0 end) as H_income_4,
         sum(case when course_first_level_department_name = 'H业务线' then refund_4 else 0 end) as H_refund_4,
+        sum(case when course_first_level_department_name = 'H业务线' and course_second_level_department_name = '一对一学部' then 0 else refund_4 end) as class_refund_4,
         sum(case when course_first_level_department_name = 'H业务线' then 0 else promit_4 end) as n_H_promit_4,
         count(distinct case when refund_4 > 0 then user_id1 end) as re_payer_4,
         count(distinct case when promit > 0 then user_id1 end) as in_payer_4,
@@ -637,7 +638,8 @@ from (
         coalesce(sum(r.H_income_4), 0) as H_income_4,
         coalesce(sum(r.Y_refund_4), 0) as Y_refund_4,
         coalesce(sum(r.H_refund_4), 0) as H_refund_4,
-        coalesce(sum(r.n_H_promit_4), 0) as n_H_promit_4
+        coalesce(sum(r.n_H_promit_4), 0) as n_H_promit_4,
+        coalesce(sum(r.class_refund_4), 0) as class_refund_4
     from renchan r
     left join goal_qici gq
         on gq.qici = r.qici
@@ -688,7 +690,8 @@ select
     H_income_4,
     Y_refund_4,
     H_refund_4,
-    n_H_promit_4
+    n_H_promit_4,
+    class_refund_4
 from final_base
 
 union all
@@ -719,6 +722,7 @@ select
     sum(H_income_4) as H_income_4,
     sum(Y_refund_4) as Y_refund_4,
     sum(H_refund_4) as H_refund_4,
-    sum(n_H_promit_4) as n_H_promit_4
+    sum(n_H_promit_4) as n_H_promit_4,
+    sum(class_refund_4) as class_refund_4
 from final_base
 group by moth, name, leader_employee_email_name

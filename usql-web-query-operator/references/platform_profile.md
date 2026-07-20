@@ -276,7 +276,7 @@ iframe 编辑器工具栏中的运行按钮回退方案：
 
 2026-07-11 起，Text2SQL 下游看板设计和修改使用独立的 `profile-edit-dashboard → design-dashboard → plan-dashboard-change → apply-dashboard-change → publish-dashboard-change` 链路。完整 Artifact、Hash、stable-ID、单 relation 原子性和阻断规则见 `references/dashboard_change_workflow.md`。
 
-当前 Registry 生产 allowlist 包括既有稳定字段显示名、同容器布局、依赖不变的既有局部公式、公共筛选器动态默认、根背景色、独立治理的透视表 copy-rebind，以及 P4C 的八项新看板创建操作。它们仍受各自精确目标、Hash、回读和恢复门禁；未登记或 blocked 的既有组件重绑/筛选修改、克隆、文件夹移动、权限和删除操作不得调用。
+当前 Registry 生产 allowlist 包括既有稳定字段显示名、同容器布局、依赖不变的既有局部公式、公共筛选器动态默认、根背景色、独立治理的透视表 copy-rebind，以及 P4C 的十三项新看板创建操作。它们仍受各自精确目标、Hash、回读和恢复门禁；未登记或 blocked 的既有组件重绑/筛选修改、克隆、文件夹移动、权限和删除操作不得调用。
 
 `apply-dashboard-change` 只写 draft；`publish-dashboard-change` 必须在独立进程中消费成功 ApplyReceipt 并显式确认。新链路不允许同一次命令 apply + publish。
 
@@ -284,7 +284,9 @@ iframe 编辑器工具栏中的运行按钮回退方案：
 
 ## P4C 从零创建看板
 
-P4C 使用与既有修改完全独立的 `DashboardBuildSpec → DashboardBuildPlan → DashboardBuildReceipt → DashboardBuildPublishReceipt` 创建 Saga，详见 `references/dashboard_build_workflow.md`。2026-07-18 已在“P4C看板构建沙箱”完成真实从零草稿验收，四类组件、计算列、公共筛选器、dashboard shell 和 dashboardHtml 组装八项能力由 `taitan_dashboard_build_v1` 晋级为 `verified/allowlisted`。`apply-dashboard-build` 仍会在缺少 exact Plan Hash、显式确认、完整证据或发生字段/文件夹漂移时于写入前拒绝；不允许用模板克隆或预建空板代替。
+P4C 使用与既有修改完全独立的 `DashboardBuildSpec → DashboardBuildPlan → DashboardBuildReceipt → DashboardBuildPublishReceipt` 创建 Saga，详见 `references/dashboard_build_workflow.md`。2026-07-18 已在“P4C看板构建沙箱”完成两轮真实从零草稿验收：基础轮覆盖 dashboard shell、计算列、四类数据组件、公共筛选器和 dashboardHtml；高级轮进一步覆盖全部 11 个指标实例重命名、2 个组件内局部筛选器、2 个全局筛选器及 8 条目标边、四个带 ARCO 样式的透视表、双插槽 `SingleTabs`、受限富文本和页面主题。十三项 P4C capability 已由 `taitan_dashboard_build_v1` 晋级为 `verified/allowlisted`。`apply-dashboard-build` 仍会在缺少 exact Plan Hash、显式确认、完整证据或发生字段/文件夹/字段树漂移时于写入前拒绝；不允许用模板克隆或预建空板代替。
+
+高级样式不是任意 JSON 透传：平台节点 `Page` 只开放 `#RRGGBB` 背景色，`u_pivot` 只开放取证固定的 `arco_blue` 预设，`SingleTabs` 只开放 `wide` 间距预设，`u_text` 只允许 `p/span/strong/br` 和受限颜色、背景色、字号。画像将画布节点 `Text` 规范为数据侧组件类型 `u_text`；Profile 目标验证同时接受旧节点名和规范类型，但内容、样式和布局必须精确一致。
 
 subject 级自定义计算列保存路径为 `model/customized/column/saveAndUpdate`。新看板选中数据集后，平台会分配 dashboard-scoped subject；计算列必须写入这个真实 subject，不能继续写源 subject。生产 Saga 先以无公式组件取得 subject，再创建计算列；同名同表达式可复用，同名不同表达式阻断。抽取字段树 Hash 排除 `customized_*` 列，自定义列身份与定义由独立资源回读治理。
 

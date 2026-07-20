@@ -28,6 +28,7 @@ qici + moth + name + leader_employee_email_name + dazu + jingli + xuebu
 | `refund` | `sum(case when name_total_price < 0 then abs(name_total_price) else 0 end)` 后逐层求和 | 全部退款金额 | 已从 SQL 入库 |
 | `promit` | `income - refund`，后逐层求和 | 净收，不剔除行课阈值退款 | 已从 SQL 入库 |
 | `refund_4` | 按行课阈值计入的退款金额 | 剔除行课阈值退款 | 已从 SQL 入库 |
+| `class_refund_4` | `sum(case when course_first_level_department_name = 'H业务线' and course_second_level_department_name = '一对一学部' then 0 else refund_4 end)` 后逐层求和 | 班课行课阈值退款；用于替代前端旧公式 `sum(refund)-sum(Y_refund_4)` | 已从 SQL 入库 |
 | `promit_4` | `income - refund_4` | 剔除行课阈值退款后的净收 | 已从 SQL 入库 |
 
 ## 4. 行课阈值退款指标
@@ -106,6 +107,7 @@ ifnull(sum(${n_H_promit_4}) * 0.5 + (sum(${H_promit_4}) - sum(${Y_promit_4})), 0
 - `n_H_promit_4`：非 H 业务线剔除行课阈值退款后的原始净收，前端再乘 0.5。
 - `Y_promit_4`：H 一对一剔除行课阈值退款后的净收，前端从 H 中扣除。
 - `refund_4`：按班课 4 节、点睛班 2 节、一对一全额规则计入的退款。
+- `class_refund_4`：班课行课阈值退款；班课退费前端公式应使用 `sum(class_refund_4)`，不再使用 `sum(refund)-sum(Y_refund_4)`。
 
 若支付订单流水与看板不一致，优先排查 `course_first_level_department_name` / `course_second_level_department_name` 空值兜底、`gmv_t` 调课调班聚合粒度，以及 service 明细 `transfer_in_amount/transfer_out_amount` 是否补充命中内部调课调班。详细风险、诊断 SQL 和已验证样例见 `knowledge/sql_patterns/qingcheng_personal_completion_discounted_output_risks.md`。
 

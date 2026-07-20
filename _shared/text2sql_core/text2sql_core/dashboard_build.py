@@ -10,6 +10,7 @@ silently described as rolled back because P4C forbids automatic deletion.
 from __future__ import annotations
 
 import copy
+import html
 import re
 from collections import defaultdict
 from datetime import datetime, timezone
@@ -18,7 +19,7 @@ from typing import Any, Iterable, Mapping, Sequence
 from .dashboard_change import artifact_sha256, canonical_sha256
 
 
-SCHEMA_VERSION = "1.0.0"
+SCHEMA_VERSION = "1.1.0"
 SUPPORTED_DOMAINS = {"market_consultant", "qingcheng"}
 COMPONENT_TYPES = {
     "metric_group": "card",
@@ -36,6 +37,98 @@ REQUIRED_CAPABILITIES = (
     "create_public_filter",
     "assemble_new_dashboard",
 )
+STYLE_KEYS_BY_RESOURCE = {
+    "metric_group": set(),
+    "pivot": {
+        "themeType",
+        "pivotTableConfig",
+        "headerStyle",
+        "bodyStyle",
+        "cornerHeaderStyle",
+        "rowHeaderStyle",
+        "componentOtherConfig",
+        "animationAppear",
+    },
+    "bar": set(),
+    "pie": set(),
+    "tabs": {"componentOtherConfig"},
+    "text": {"themeType"},
+}
+STYLE_PRESETS = {
+    "pivot": {
+        "arco_blue": {
+            "themeType": "default",
+            "pivotTableConfig": {
+                "theme": "ARCO",
+                "widthMode": "autoWidth",
+                "heightMode": "autoHeight",
+                "autoWrapText": True,
+                "autoFillWidth": True,
+                "autoFillHeight": False,
+                "maxCharactersNumber": 50,
+                "limitMinWidth": 10,
+                "cellInnerBorder": True,
+            },
+            "headerStyle": {
+                "padding": "[4, 6, 4, 6]",
+                "textAlign": "center",
+                "fontSize": 12,
+                "borderColor": "",
+                "bgColor": "rgba(74,144,226,0.35)",
+            },
+            "bodyStyle": {
+                "padding": "[8, 12, 8, 12]",
+                "textAlign": "center",
+                "fontSize": 12,
+            },
+            "cornerHeaderStyle": {
+                "bgColor": "rgba(74,144,226,0.26)",
+                "padding": "[8, 12, 8, 12]",
+                "textAlign": "center",
+                "fontSize": 13,
+                "lineHeight": 11,
+                "fontWeight": 600,
+            },
+            "rowHeaderStyle": {
+                "bgColor": "rgba(74,144,226,0.15)",
+                "padding": "[8, 12, 8, 12]",
+                "textAlign": "center",
+            },
+            "componentOtherConfig": {
+                "componentPaddingType": "narrow",
+                "titleBottomMargin": 0,
+                "componentPadding": {
+                    "paddingTop": "10px",
+                    "paddingRight": "10px",
+                    "paddingBottom": "10px",
+                    "paddingLeft": "10px",
+                },
+            },
+            "animationAppear": {
+                "enable": False,
+                "type": "one-by-one",
+                "direction": "row",
+                "duration": 500,
+                "delay": 0,
+            },
+        }
+    },
+    "tabs": {
+        "wide": {
+            "componentOtherConfig": {
+                "componentPaddingType": "wide",
+                "titleBottomMargin": 14,
+                "componentPadding": {
+                    "paddingTop": "20px",
+                    "paddingRight": "20px",
+                    "paddingBottom": "20px",
+                    "paddingLeft": "20px",
+                },
+            }
+        }
+    },
+    "text": {"default": {"themeType": "default"}},
+}
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 LOGICAL_ID_RE = re.compile(r"^[a-z][a-z0-9_\-]*$")
 
@@ -93,6 +186,46 @@ def _field_ref(value: Any, label: str) -> str:
     return _text(value, label)
 
 
+def _normalize_measure(value: Any, label: str) -> dict[str, Any]:
+    display_name = None
+    if isinstance(value, Mapping):
+        display_name = _optional_text(value.get("display_name") or value.get("show_name"))
+    return {
+        "field_ref": _field_ref(value, f"{label}.field_ref"),
+        "display_name": display_name,
+    }
+
+
+def _normalize_style(
+    value: Any, resource_type: str, label: str, *, preset: Any = None
+) -> dict[str, Any]:
+    preset_name = _optional_text(preset)
+    presets = STYLE_PRESETS.get(resource_type, {})
+    if preset_name:
+        if preset_name not in presets:
+            raise ValueError(
+                f"{label} uses unsupported preset {preset_name}; allowed: {', '.join(sorted(presets)) or '<none>'}"
+            )
+        if value not in (None, {}):
+            raise ValueError(f"{label} cannot combine style_preset with a raw style object")
+        return copy.deepcopy(presets[preset_name])
+    if value in (None, {}):
+        return {}
+    if not isinstance(value, Mapping):
+        raise ValueError(f"{label} must be an object")
+    allowed = STYLE_KEYS_BY_RESOURCE[resource_type]
+    unknown = sorted(set(str(key) for key in value) - allowed)
+    if unknown:
+        raise ValueError(f"{label} contains unsupported keys: {', '.join(unknown)}")
+    normalized = _json_value(value)
+    if normalized not in presets.values():
+        raise ValueError(
+            f"{label} must exactly match an evidence-backed preset: "
+            f"{', '.join(sorted(presets)) or '<none>'}"
+        )
+    return normalized
+
+
 def _normalize_filter(item: Mapping[str, Any], label: str) -> dict[str, Any]:
     return {
         "field_ref": _field_ref(item.get("field_ref"), f"{label}.field_ref"),
@@ -103,7 +236,9 @@ def _normalize_filter(item: Mapping[str, Any], label: str) -> dict[str, Any]:
     }
 
 
-def _normalize_layout(value: Mapping[str, Any], component_id: str) -> dict[str, Any]:
+def _normalize_layout(
+    value: Mapping[str, Any], component_id: str, *, container_ref: str = "root"
+) -> dict[str, Any]:
     def number(key: str, default: int) -> int | float:
         raw = value.get(key, default)
         if isinstance(raw, bool):
@@ -112,7 +247,7 @@ def _normalize_layout(value: Mapping[str, Any], component_id: str) -> dict[str, 
         return int(parsed) if parsed.is_integer() else parsed
 
     return {
-        "container_ref": str(value.get("container_ref") or "root"),
+        "container_ref": container_ref,
         "x": number("x", 0),
         "y": number("y", 0),
         "w": number("w", 6),
@@ -201,6 +336,28 @@ def _normalize_component(item: Mapping[str, Any]) -> dict[str, Any]:
     component_type = _text(item.get("type"), f"component {component_id}.type")
     if component_type not in COMPONENT_TYPES:
         raise ValueError(f"unsupported component type: {component_type}")
+    container_ref = _optional_text(item.get("container_ref"))
+    slot_ref = _optional_text(item.get("slot_ref"))
+    if bool(container_ref) != bool(slot_ref):
+        raise ValueError(
+            f"component {component_id} must declare container_ref and slot_ref together"
+        )
+    layout_container = f"{container_ref}:{slot_ref}" if container_ref else "root"
+    measures = [
+        _normalize_measure(value, f"component {component_id}.measures")
+        for value in item.get("measures", [])
+    ]
+    measure_refs = [item["field_ref"] for item in measures]
+    if len(measure_refs) != len(set(measure_refs)):
+        raise ValueError(f"component {component_id} contains duplicate measures")
+    local_filters = [
+        _normalize_filter(value, f"component {component_id}.local_filters")
+        for value in item.get("local_filters", [])
+        if isinstance(value, Mapping)
+    ]
+    local_filter_refs = [value["field_ref"] for value in local_filters]
+    if len(local_filter_refs) != len(set(local_filter_refs)):
+        raise ValueError(f"component {component_id} contains duplicate local filters")
     return {
         "component_id": component_id,
         "type": component_type,
@@ -213,21 +370,112 @@ def _normalize_component(item: Mapping[str, Any]) -> dict[str, Any]:
             _field_ref(value, f"component {component_id}.dimensions")
             for value in item.get("dimensions", [])
         ],
-        "measures": [
-            _field_ref(value, f"component {component_id}.measures")
-            for value in item.get("measures", [])
-        ],
-        "local_filters": [
-            _normalize_filter(value, f"component {component_id}.local_filters")
-            for value in item.get("local_filters", [])
-            if isinstance(value, Mapping)
-        ],
+        "measures": measures,
+        "local_filters": local_filters,
         "display": _json_value(item.get("display", {})),
+        "style": _normalize_style(
+            item.get("style", {}),
+            component_type,
+            f"component {component_id}.style",
+            preset=item.get("style_preset"),
+        ),
+        "container_ref": container_ref,
+        "slot_ref": slot_ref,
         "layout": _normalize_layout(
             item.get("layout") if isinstance(item.get("layout"), Mapping) else {},
             component_id,
+            container_ref=layout_container,
         ),
     }
+
+
+def _normalize_container(item: Mapping[str, Any]) -> dict[str, Any]:
+    container_id = _logical_id(item.get("container_id"), "container.container_id")
+    container_type = _text(item.get("type") or "tabs", f"container {container_id}.type")
+    if container_type != "tabs":
+        raise ValueError(f"unsupported container type: {container_type}")
+    slots: list[dict[str, Any]] = []
+    for raw_slot in item.get("slots", []):
+        if not isinstance(raw_slot, Mapping):
+            raise ValueError(f"container {container_id} slots must be objects")
+        slots.append(
+            {
+                "slot_id": _logical_id(
+                    raw_slot.get("slot_id"), f"container {container_id}.slot_id"
+                ),
+                "label": _text(
+                    raw_slot.get("label"), f"container {container_id}.slot.label"
+                ),
+            }
+        )
+    if len(slots) != 2:
+        raise ValueError(
+            f"container {container_id} requires exactly two evidence-backed tab slots"
+        )
+    _unique(slots, "slot_id", f"container {container_id} slot_id")
+    return {
+        "container_id": container_id,
+        "type": container_type,
+        "component_name": "SingleTabs",
+        "title": _text(item.get("title"), f"container {container_id}.title"),
+        "description": str(item.get("description") or ""),
+        "slots": slots,
+        "style": _normalize_style(
+            item.get("style", {}),
+            "tabs",
+            f"container {container_id}.style",
+            preset=item.get("style_preset"),
+        ),
+        "layout": _normalize_layout(
+            item.get("layout") if isinstance(item.get("layout"), Mapping) else {},
+            container_id,
+        ),
+    }
+
+
+def _normalize_text_component(item: Mapping[str, Any]) -> dict[str, Any]:
+    text_id = _logical_id(item.get("text_id"), "text_component.text_id")
+    initial_text = _text(
+        item.get("initial_text") or item.get("text"),
+        f"text component {text_id}.initial_text",
+    )
+    content_html = _optional_text(item.get("content_html")) or (
+        f"<p>{html.escape(initial_text)}</p>"
+    )
+    if len(content_html.encode("utf-8")) > 20_000:
+        raise ValueError(f"text component {text_id}.content_html exceeds 20 KB")
+    return {
+        "text_id": text_id,
+        "type": "text",
+        "component_name": "Text",
+        "title": str(item.get("title") or ""),
+        "initial_text": initial_text,
+        "content_html": content_html,
+        "style": _normalize_style(
+            item.get("style", {}),
+            "text",
+            f"text component {text_id}.style",
+            preset=item.get("style_preset"),
+        ),
+        "layout": _normalize_layout(
+            item.get("layout") if isinstance(item.get("layout"), Mapping) else {},
+            text_id,
+        ),
+    }
+
+
+def _normalize_theme(value: Any) -> dict[str, Any]:
+    if value in (None, {}):
+        return {}
+    if not isinstance(value, Mapping):
+        raise ValueError("theme must be an object")
+    unknown = sorted(set(value) - {"background_color"})
+    if unknown:
+        raise ValueError(f"theme contains unsupported keys: {', '.join(unknown)}")
+    color = _text(value.get("background_color"), "theme.background_color").upper()
+    if not re.fullmatch(r"#[0-9A-F]{6}", color):
+        raise ValueError("theme.background_color must be #RRGGBB")
+    return {"background_color": color}
 
 
 def _normalize_global_filter(item: Mapping[str, Any]) -> dict[str, Any]:
@@ -324,14 +572,21 @@ def normalize_dashboard_build_spec(value: Mapping[str, Any]) -> dict[str, Any]:
         _normalize_calculated_column(item) for item in value.get("calculated_columns", [])
     ]
     components = [_normalize_component(item) for item in value.get("components", [])]
+    containers = [_normalize_container(item) for item in value.get("containers", [])]
+    text_components = [
+        _normalize_text_component(item) for item in value.get("text_components", [])
+    ]
     filters = [_normalize_global_filter(item) for item in value.get("global_filters", [])]
     _unique(datasets, "dataset_ref", "dataset_ref")
     _unique(columns, "logical_id", "calculated column logical_id")
     _unique(columns, "name", "calculated column name")
     _unique(components, "component_id", "component_id")
+    _unique(containers, "container_id", "container_id")
+    _unique(text_components, "text_id", "text component text_id")
     _unique(filters, "filter_id", "global filter_id")
     dataset_refs = {item["dataset_ref"] for item in datasets}
     component_ids = {item["component_id"] for item in components}
+    container_by_id = {item["container_id"]: item for item in containers}
     for item in [*columns, *components, *filters]:
         if item["dataset_ref"] not in dataset_refs:
             raise ValueError(
@@ -355,6 +610,50 @@ def normalize_dashboard_build_spec(value: Mapping[str, Any]) -> dict[str, Any]:
                 f"global filter {item['filter_id']} targets components from another dataset: "
                 + ", ".join(cross_dataset_targets)
             )
+    slot_members: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
+    for component in components:
+        container_ref = component.get("container_ref")
+        slot_ref = component.get("slot_ref")
+        if not container_ref:
+            continue
+        container = container_by_id.get(str(container_ref))
+        if not container:
+            raise ValueError(
+                f"component {component['component_id']} references unknown container {container_ref}"
+            )
+        slot_ids = {slot["slot_id"] for slot in container["slots"]}
+        if slot_ref not in slot_ids:
+            raise ValueError(
+                f"component {component['component_id']} references unknown slot {slot_ref}"
+            )
+        if component["type"] != "pivot":
+            raise ValueError(
+                f"container slot component {component['component_id']} must be a pivot"
+            )
+        if component["local_filters"]:
+            raise ValueError(
+                f"container slot component {component['component_id']} cannot carry local filters; "
+                "the current evidence-backed slot adapter supports pivot fields only"
+            )
+        slot_members[(str(container_ref), str(slot_ref))].append(component)
+    for container in containers:
+        for slot in container["slots"]:
+            members = slot_members.get((container["container_id"], slot["slot_id"]), [])
+            if len(members) != 1:
+                raise ValueError(
+                    f"container {container['container_id']} slot {slot['slot_id']} must contain "
+                    "exactly one evidence-backed pivot"
+                )
+    metric_usages = [
+        measure
+        for component in components
+        for measure in component.get("measures", [])
+    ]
+    named_metric_count = sum(bool(item.get("display_name")) for item in metric_usages)
+    if named_metric_count not in {0, len(metric_usages)}:
+        raise ValueError(
+            "metric display-name changes are all-or-none; every planned measure must be named"
+        )
     spec = {
         "schema_version": SCHEMA_VERSION,
         "artifact_type": "dashboard_build_spec",
@@ -373,8 +672,10 @@ def normalize_dashboard_build_spec(value: Mapping[str, Any]) -> dict[str, Any]:
         "datasets": datasets,
         "calculated_columns": columns,
         "components": components,
+        "containers": containers,
+        "text_components": text_components,
         "global_filters": filters,
-        "theme": _json_value(value.get("theme", {})),
+        "theme": _normalize_theme(value.get("theme", {})),
         "validation_checks": _json_value(value.get("validation_checks", [])),
         "publish_requested": bool(value.get("publish_requested", False)),
         "write_boundary": {
@@ -389,7 +690,18 @@ def normalize_dashboard_build_spec(value: Mapping[str, Any]) -> dict[str, Any]:
         raise ValueError("DashboardBuildSpec requires at least one value validation check")
     if spec["publish_requested"]:
         raise ValueError("DashboardBuildSpec.publish_requested must be false")
-    structural_errors = [*_layout_errors(components), *_formula_cycle_errors(columns)]
+    layout_entities = [
+        *components,
+        *(
+            {"component_id": f"container:{item['container_id']}", "layout": item["layout"]}
+            for item in containers
+        ),
+        *(
+            {"component_id": f"text:{item['text_id']}", "layout": item["layout"]}
+            for item in text_components
+        ),
+    ]
+    structural_errors = [*_layout_errors(layout_entities), *_formula_cycle_errors(columns)]
     if structural_errors:
         raise ValueError("; ".join(structural_errors))
     if not datasets:
@@ -462,7 +774,12 @@ def _used_field_refs(spec: Mapping[str, Any], dataset_ref: str) -> set[str]:
         if component.get("dataset_ref") != dataset_ref:
             continue
         refs.update(component.get("dimensions", []))
-        refs.update(value for value in component.get("measures", []) if not value.startswith("calc:"))
+        refs.update(
+            str(value.get("field_ref") or "")
+            for value in component.get("measures", [])
+            if isinstance(value, Mapping)
+            and not str(value.get("field_ref") or "").startswith("calc:")
+        )
         refs.update(item["field_ref"] for item in component.get("local_filters", []))
     for item in spec.get("global_filters", []):
         if item.get("dataset_ref") == dataset_ref:
@@ -605,7 +922,8 @@ def build_dashboard_build_plan(
                     blocked_reasons.append(
                         f"dataset {dataset_ref} field {field_ref} is type-incompatible with dimension"
                     )
-            for field_ref in component["measures"]:
+            for measure in component["measures"]:
+                field_ref = str(measure["field_ref"])
                 if field_ref.startswith("calc:"):
                     continue
                 group = str(bindings.get(field_ref, {}).get("field_group") or "").lower()
@@ -682,11 +1000,16 @@ def build_dashboard_build_plan(
                 return {"field_ref": ref, "calculated_column_ref": ref.removeprefix("calc:")}
             return copy.deepcopy(bindings.get(ref, {"field_ref": ref, "unresolved": True}))
 
+        resolved_measures: list[dict[str, Any]] = []
+        for measure in component["measures"]:
+            resolved_measure = resolve(str(measure["field_ref"]))
+            resolved_measure["display_name"] = measure.get("display_name")
+            resolved_measures.append(resolved_measure)
         resolved_components.append(
             {
                 **copy.deepcopy(component),
                 "dimensions": [resolve(ref) for ref in component["dimensions"]],
-                "measures": [resolve(ref) for ref in component["measures"]],
+                "measures": resolved_measures,
                 "local_filters": [
                     {**copy.deepcopy(item), "field": resolve(item["field_ref"])}
                     for item in component["local_filters"]
@@ -710,6 +1033,38 @@ def build_dashboard_build_plan(
         status = "pending_dataset_creation"
     else:
         status = "ready"
+    required_capabilities = {"create_dashboard", "assemble_new_dashboard"}
+    required_capabilities.update(
+        OPERATION
+        for component_type, OPERATION in {
+            "metric_group": "create_metric_group_component",
+            "pivot": "create_pivot_component",
+            "bar": "create_bar_component",
+            "pie": "create_pie_component",
+        }.items()
+        if any(item["type"] == component_type for item in spec["components"])
+    )
+    if spec["calculated_columns"]:
+        required_capabilities.add("create_formula")
+    if spec["global_filters"]:
+        required_capabilities.add("create_public_filter")
+    if any(
+        measure.get("display_name")
+        for component in spec["components"]
+        for measure in component["measures"]
+    ):
+        required_capabilities.add("rename_new_component_metrics")
+    if spec["containers"]:
+        required_capabilities.update({"create_tab_container", "assemble_tab_slots"})
+    if spec["text_components"]:
+        required_capabilities.add("create_text_component")
+    if (
+        any(item.get("style") for item in spec["components"])
+        or any(item.get("style") for item in spec["containers"])
+        or spec["text_components"]
+    ):
+        required_capabilities.add("style_new_components")
+
     plan = {
         "schema_version": SCHEMA_VERSION,
         "artifact_type": "dashboard_build_plan",
@@ -725,10 +1080,12 @@ def build_dashboard_build_plan(
         "datasets": resolved_datasets,
         "calculated_columns": resolved_columns,
         "components": resolved_components,
+        "containers": copy.deepcopy(spec["containers"]),
+        "text_components": copy.deepcopy(spec["text_components"]),
         "global_filters": resolved_filters,
         "theme": copy.deepcopy(spec["theme"]),
         "validation_checks": copy.deepcopy(spec["validation_checks"]),
-        "required_capabilities": list(REQUIRED_CAPABILITIES),
+        "required_capabilities": sorted(required_capabilities),
         "production_adapter": "taitan_dashboard_build_v1",
         "pending_reasons": sorted(set(pending_reasons)),
         "blocked_reasons": sorted(set(blocked_reasons)),
@@ -749,6 +1106,8 @@ def build_dashboard_build_plan(
                 "datasets",
                 "calculated_columns",
                 "components",
+                "containers",
+                "text_components",
                 "global_filters",
                 "theme",
             )

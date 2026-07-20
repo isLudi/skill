@@ -73,6 +73,89 @@ def _layout_map(value: Any) -> dict[str, dict[str, Any]]:
     return result
 
 
+VISUAL_PROP_KEYS = (
+    "style",
+    "themeType",
+    "pivotTableConfig",
+    "headerStyle",
+    "bodyStyle",
+    "cornerHeaderStyle",
+    "rowHeaderStyle",
+    "indicatorCardConfig",
+    "commonGraphConfig",
+    "barChartConfig",
+    "pieChartConfig",
+    "legendConfig",
+    "labelConfig",
+    "tooltipConfig",
+    "backgroundConfig",
+    "componentOtherConfig",
+    "animationAppear",
+)
+
+
+def _component_profile_config(props: dict[str, Any]) -> dict[str, Any]:
+    """Project style, text, and slot truth without volatile runtime settings."""
+
+    config: dict[str, Any] = {}
+    visual_style = {
+        key: props[key]
+        for key in VISUAL_PROP_KEYS
+        if key in props and props[key] not in (None, {}, [])
+    }
+    if visual_style:
+        config["visual_style"] = visual_style
+    settings = props.get("settings") if isinstance(props.get("settings"), dict) else {}
+    rich_text = (
+        settings.get("richTextFormat")
+        if isinstance(settings.get("richTextFormat"), dict)
+        else {}
+    )
+    text_box = (
+        rich_text.get("textBoxConfig")
+        if isinstance(rich_text.get("textBoxConfig"), dict)
+        else {}
+    )
+    if text_box:
+        config["text_content_html"] = str(
+            text_box.get("textContent") or text_box.get("tempTextContent") or ""
+        )
+    tabs = props.get("list") if isinstance(props.get("list"), list) else []
+    if tabs:
+        slots: list[dict[str, Any]] = []
+        for index, tab in enumerate(tabs):
+            if not isinstance(tab, dict):
+                continue
+            children = tab.get("children")
+            slot_value = (
+                children.get("value")
+                if isinstance(children, dict) and isinstance(children.get("value"), list)
+                else []
+            )
+            slots.append(
+                {
+                    "key": str(tab.get("key") or index),
+                    "label": str(tab.get("label") or ""),
+                    "slot_id": str(children.get("id") or "")
+                    if isinstance(children, dict)
+                    else "",
+                    "slot_name": str(children.get("name") or "")
+                    if isinstance(children, dict)
+                    else "",
+                    "component_ids": sorted(
+                        str(item.get("id"))
+                        for item in slot_value
+                        if isinstance(item, dict) and item.get("id")
+                    ),
+                }
+            )
+        config["slots"] = slots
+        config["component_description"] = str(props.get("componentDesc") or "")
+        config["hide_tab"] = bool(props.get("hideTab", False))
+        config["tab_position"] = str(props.get("tabPosition") or "")
+    return config
+
+
 def extract_design_components(dashboard_html: dict[str, Any]) -> list[dict[str, Any]]:
     """Return stable component identities, container paths, and normalized layouts."""
 
@@ -133,6 +216,7 @@ def extract_design_components(dashboard_html: dict[str, Any]) -> list[dict[str, 
                 "hidden": bool(node.get("hidden", False)),
                 "locked": bool(node.get("isLocked", False)),
                 "layout": layout,
+                "config": _component_profile_config(props),
             }
         )
 
@@ -449,6 +533,7 @@ def enrich_component_snapshot(
                 "group": field.get("group"),
                 "role": field.get("role"),
                 "business_name": field.get("business_name") or field.get("show_name") or "",
+                "display_name": field.get("show_name") or field.get("business_name") or "",
                 "sort_value": field.get("sort_value"),
             }
             if field.get("group") in {"row_dimension", "column_dimension"}:
@@ -468,6 +553,11 @@ def enrich_component_snapshot(
         component["formula_ids"] = sorted(set(formula_ids))
         component["filter_ids"] = sorted(set(filter_ids))
         component["config"] = {
+            **(
+                component.get("config")
+                if isinstance(component.get("config"), dict)
+                else {}
+            ),
             "model_identity": model_identity,
             "model_id": unit.get("model_id"),
             "model_name": unit.get("model_name"),

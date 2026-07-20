@@ -218,6 +218,138 @@ class DashboardBuildContractTests(unittest.TestCase):
         self.assertEqual([], validate_dashboard_build_publish_receipt(publish, receipt))
         self.assert_schema("dashboard_build_publish_receipt.schema.json", publish)
 
+    def test_advanced_build_contract_resolves_metric_names_tabs_text_and_styles(self) -> None:
+        raw = build_spec()
+        for component in raw["components"]:
+            component["measures"] = [
+                {"field_ref": value, "display_name": f"Display {value}"}
+                for value in component["measures"]
+            ]
+        raw["components"].extend(
+            [
+                {
+                    "component_id": "slot_pivot_grade",
+                    "type": "pivot",
+                    "dataset_ref": "primary",
+                    "dimensions": ["grade"],
+                    "measures": [
+                        {"field_ref": "revenue", "display_name": "Slot revenue by grade"}
+                    ],
+                    "container_ref": "analysis_tabs",
+                    "slot_ref": "grade_view",
+                    "style_preset": "arco_blue",
+                    "layout": {"x": 0, "y": 0, "w": 24, "h": 8},
+                },
+                {
+                    "component_id": "slot_pivot_period",
+                    "type": "pivot",
+                    "dataset_ref": "primary",
+                    "dimensions": ["period"],
+                    "measures": [
+                        {"field_ref": "revenue", "display_name": "Slot revenue by period"}
+                    ],
+                    "container_ref": "analysis_tabs",
+                    "slot_ref": "period_view",
+                    "layout": {"x": 0, "y": 0, "w": 24, "h": 8},
+                },
+            ]
+        )
+        raw["containers"] = [
+            {
+                "container_id": "analysis_tabs",
+                "type": "tabs",
+                "title": "Analysis tabs",
+                "description": "Two governed perspectives",
+                "slots": [
+                    {"slot_id": "grade_view", "label": "By grade"},
+                    {"slot_id": "period_view", "label": "By period"},
+                ],
+                "style_preset": "wide",
+                "layout": {"x": 0, "y": 8, "w": 24, "h": 10},
+            }
+        ]
+        raw["text_components"] = [
+            {
+                "text_id": "header",
+                "title": "Dashboard heading",
+                "initial_text": "Advanced dashboard",
+                "content_html": "<p><strong>Advanced dashboard</strong></p>",
+                "style_preset": "default",
+                "layout": {"x": 0, "y": 6, "w": 24, "h": 2},
+            }
+        ]
+        spec = normalize_dashboard_build_spec(raw)
+        plan = build_dashboard_build_plan(
+            spec,
+            resolutions(),
+            folder_snapshot_sha256="5" * 64,
+            dashboard_name_available=True,
+        )
+        self.assertEqual("1.1.0", spec["schema_version"])
+        self.assertEqual("ready", plan["status"])
+        self.assertEqual("Display revenue", plan["components"][0]["measures"][0]["display_name"])
+        self.assertEqual(1, len(plan["containers"]))
+        self.assertEqual(1, len(plan["text_components"]))
+        self.assertTrue(
+            {
+                "rename_new_component_metrics",
+                "create_tab_container",
+                "assemble_tab_slots",
+                "create_text_component",
+                "style_new_components",
+            }.issubset(set(plan["required_capabilities"]))
+        )
+        self.assert_schema("dashboard_build_spec.schema.json", spec)
+        self.assert_schema("dashboard_build_plan.schema.json", plan)
+
+    def test_advanced_build_rejects_partial_metric_names_and_unproven_slot_filters(self) -> None:
+        partial = build_spec()
+        partial["components"][0]["measures"][0] = {
+            "field_ref": "revenue",
+            "display_name": "Revenue display",
+        }
+        with self.assertRaisesRegex(ValueError, "all-or-none"):
+            normalize_dashboard_build_spec(partial)
+
+        nested = build_spec()
+        nested["containers"] = [
+            {
+                "container_id": "tabs",
+                "type": "tabs",
+                "title": "Tabs",
+                "slots": [
+                    {"slot_id": "left", "label": "Left"},
+                    {"slot_id": "right", "label": "Right"},
+                ],
+                "layout": {"x": 0, "y": 6, "w": 24, "h": 8},
+            }
+        ]
+        nested["components"].extend(
+            [
+                {
+                    "component_id": "left_pivot",
+                    "type": "pivot",
+                    "dataset_ref": "primary",
+                    "dimensions": ["grade"],
+                    "measures": ["revenue"],
+                    "local_filters": [{"field_ref": "period"}],
+                    "container_ref": "tabs",
+                    "slot_ref": "left",
+                },
+                {
+                    "component_id": "right_pivot",
+                    "type": "pivot",
+                    "dataset_ref": "primary",
+                    "dimensions": ["period"],
+                    "measures": ["revenue"],
+                    "container_ref": "tabs",
+                    "slot_ref": "right",
+                },
+            ]
+        )
+        with self.assertRaisesRegex(ValueError, "cannot carry local filters"):
+            normalize_dashboard_build_spec(nested)
+
     def test_hash_tamper_is_rejected(self) -> None:
         spec, plan = self.ready_plan()
         tampered_spec = copy.deepcopy(spec)
