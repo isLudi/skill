@@ -13,7 +13,7 @@ from urllib.parse import urlparse
 from _shared.errors import UsageError
 
 from .edit_profile import fetch_edit_dashboard_config, fetch_edit_unit_detail
-from .filter_edit import fetch_public_filter_detail
+from .filter_edit import fetch_public_filter_detail, find_public_filter_unit
 from .profile import post_json
 from .write_capabilities import request_key_paths
 
@@ -86,6 +86,44 @@ def find_layout_item(schema: dict[str, Any], node_id: str) -> dict[str, Any]:
         elif isinstance(item, list):
             stack.extend(item)
     raise UsageError(f"Stable layout target not found: {node_id}")
+
+
+def find_component_node(schema: dict[str, Any], component_id: str) -> dict[str, Any]:
+    matches: list[dict[str, Any]] = []
+    stack: list[Any] = [schema]
+    while stack:
+        item = stack.pop()
+        if isinstance(item, dict):
+            if str(item.get("id") or "") == str(component_id):
+                matches.append(item)
+            stack.extend(item.values())
+        elif isinstance(item, list):
+            stack.extend(item)
+    if len(matches) != 1:
+        raise UsageError(
+            f"Stable component target must resolve exactly once: {component_id}"
+        )
+    return matches[0]
+
+
+def find_tab_slot(
+    schema: dict[str, Any], component_id: str, slot_key: str, slot_id: str
+) -> dict[str, Any]:
+    node = find_component_node(schema, component_id)
+    props = node.get("props") if isinstance(node.get("props"), dict) else {}
+    tabs = props.get("list") if isinstance(props.get("list"), list) else []
+    matches = []
+    for tab in tabs:
+        if not isinstance(tab, dict) or str(tab.get("key") or "") != str(slot_key):
+            continue
+        children = tab.get("children") if isinstance(tab.get("children"), dict) else {}
+        if str(children.get("id") or "") == str(slot_id):
+            matches.append(tab)
+    if len(matches) != 1:
+        raise UsageError(
+            f"Stable tab slot must resolve exactly once: {component_id}/{slot_key}/{slot_id}"
+        )
+    return matches[0]
 
 
 def find_unit_field(detail: dict[str, Any], group: str, field_id: str) -> dict[str, Any]:
@@ -355,6 +393,151 @@ def _component_restore(current: dict[str, Any], before: dict[str, Any], target: 
     return current
 
 
+def _component_title_value(schema: dict[str, Any], component_id: str) -> str:
+    node = find_component_node(schema, component_id)
+    props = node.get("props") if isinstance(node.get("props"), dict) else {}
+    settings = props.get("settings") if isinstance(props.get("settings"), dict) else None
+    if isinstance(settings, dict) and "componentName" in settings:
+        return str(settings.get("componentName") or "")
+    if "componentName" in props:
+        return str(props.get("componentName") or "")
+    if "title" in node:
+        return str(node.get("title") or "")
+    raise UsageError(f"Component title path was not found: {component_id}")
+
+
+def _set_component_title(schema: dict[str, Any], component_id: str, title: str) -> None:
+    node = find_component_node(schema, component_id)
+    props = node.get("props") if isinstance(node.get("props"), dict) else {}
+    settings = props.get("settings") if isinstance(props.get("settings"), dict) else None
+    if isinstance(settings, dict) and "componentName" in settings:
+        settings["componentName"] = title
+        return
+    if "componentName" in props:
+        props["componentName"] = title
+        return
+    if "title" in node:
+        node["title"] = title
+        return
+    raise UsageError(f"Component title path was not found: {component_id}")
+
+
+def _read_component_title(page: Any, dashboard_id: str, target: Mapping[str, Any]) -> dict[str, Any]:
+    raw: dict[str, Any] = {"schema": _read_schema(page, dashboard_id, target), "unit": None}
+    if str(target.get("unit_id") or ""):
+        raw["unit"] = _read_unit(page, dashboard_id, target)
+    return raw
+
+
+def _component_title_project(raw: dict[str, Any], target: Mapping[str, Any]) -> dict[str, Any]:
+    component_id = str(target["component_id"])
+    unit = raw.get("unit") if isinstance(raw.get("unit"), dict) else None
+    return {
+        "component_id": component_id,
+        "unit_id": str(target.get("unit_id") or "") or None,
+        "schema_title": _component_title_value(raw["schema"], component_id),
+        "unit_name": str(unit.get("unitName") or "") if unit is not None else None,
+    }
+
+
+def _component_title_mutate(raw: dict[str, Any], target: Mapping[str, Any]) -> dict[str, Any]:
+    title = str(target.get("probe_title") or "").strip()
+    if not title:
+        raise UsageError("Component-title adapter requires a non-empty probe_title.")
+    _set_component_title(raw["schema"], str(target["component_id"]), title)
+    if isinstance(raw.get("unit"), dict):
+        raw["unit"]["unitName"] = title
+    return raw
+
+
+def _component_title_restore(
+    current: dict[str, Any], before: dict[str, Any], target: Mapping[str, Any]
+) -> dict[str, Any]:
+    component_id = str(target["component_id"])
+    _set_component_title(
+        current["schema"], component_id, _component_title_value(before["schema"], component_id)
+    )
+    if isinstance(current.get("unit"), dict) and isinstance(before.get("unit"), dict):
+        current["unit"]["unitName"] = before["unit"].get("unitName")
+    return current
+
+
+def _public_filter_title_project(raw: dict[str, Any], target: Mapping[str, Any]) -> dict[str, Any]:
+    find_filter_formats(raw, str(target["filter_id"]), str(target["field_id"]))
+    unit = find_public_filter_unit(raw, str(target["filter_id"]))
+    return {
+        "relation_id": str(target["relation_id"]),
+        "filter_id": str(target["filter_id"]),
+        "field_id": str(target["field_id"]),
+        "title": str(unit.get("unitName") or ""),
+    }
+
+
+def _public_filter_title_mutate(raw: dict[str, Any], target: Mapping[str, Any]) -> dict[str, Any]:
+    title = str(target.get("probe_title") or "").strip()
+    if not title:
+        raise UsageError("Public-filter title adapter requires a non-empty probe_title.")
+    find_filter_formats(raw, str(target["filter_id"]), str(target["field_id"]))
+    find_public_filter_unit(raw, str(target["filter_id"]))["unitName"] = title
+    return raw
+
+
+def _public_filter_title_restore(
+    current: dict[str, Any], before: dict[str, Any], target: Mapping[str, Any]
+) -> dict[str, Any]:
+    current_unit = find_public_filter_unit(current, str(target["filter_id"]))
+    before_unit = find_public_filter_unit(before, str(target["filter_id"]))
+    current_unit["unitName"] = before_unit.get("unitName")
+    return current
+
+
+def _tab_label_project(raw: dict[str, Any], target: Mapping[str, Any]) -> dict[str, Any]:
+    tab = find_tab_slot(
+        raw,
+        str(target["component_id"]),
+        str(target["slot_key"]),
+        str(target["slot_id"]),
+    )
+    return {
+        "component_id": str(target["component_id"]),
+        "slot_key": str(target["slot_key"]),
+        "slot_id": str(target["slot_id"]),
+        "label": str(tab.get("label") or ""),
+    }
+
+
+def _tab_label_mutate(raw: dict[str, Any], target: Mapping[str, Any]) -> dict[str, Any]:
+    label = str(target.get("probe_label") or "").strip()
+    if not label:
+        raise UsageError("Tab-label adapter requires a non-empty probe_label.")
+    find_tab_slot(
+        raw,
+        str(target["component_id"]),
+        str(target["slot_key"]),
+        str(target["slot_id"]),
+    )["label"] = label
+    return raw
+
+
+def _tab_label_restore(
+    current: dict[str, Any], before: dict[str, Any], target: Mapping[str, Any]
+) -> dict[str, Any]:
+    current_tab = find_tab_slot(
+        current,
+        str(target["component_id"]),
+        str(target["slot_key"]),
+        str(target["slot_id"]),
+    )
+    before_tab = find_tab_slot(
+        before,
+        str(target["component_id"]),
+        str(target["slot_key"]),
+        str(target["slot_id"]),
+    )
+    current_tab["label"] = before_tab.get("label")
+    return current
+
+
 def _read_formula(page: Any, dashboard_id: str, target: Mapping[str, Any]) -> dict[str, Any]:
     return _formula_item(page, str(target["formula_id"]))
 
@@ -411,12 +594,16 @@ def _filter_restore(current: dict[str, Any], before: dict[str, Any], target: Map
 
 
 def _filter_after_matches(expected: dict[str, Any], actual: dict[str, Any], target: Mapping[str, Any]) -> bool:
-    copies = actual.get("copies") or []
-    return bool(copies) and all(
-        item.get("dynamicsFilter") is True
-        and str(item.get("dynamicsFilterValue")) == str(target["probe_value"])
-        and item.get("autoSearchDefaultValue") is False
-        for item in copies
+    expected_copies = expected.get("copies") or []
+    actual_copies = actual.get("copies") or []
+    authoritative_keys = (
+        "dynamicsFilter",
+        "dynamicsFilterValue",
+        "autoSearchDefaultValue",
+    )
+    return bool(expected_copies) and len(expected_copies) == len(actual_copies) and all(
+        all(expected_item.get(key) == actual_item.get(key) for key in authoritative_keys)
+        for expected_item, actual_item in zip(expected_copies, actual_copies)
     )
 
 
@@ -463,6 +650,20 @@ def _write_unit_adapter(
     return _write_unit_detail(page, dashboard_id, raw, observations)
 
 
+def _write_component_title_adapter(
+    page: Any,
+    dashboard_id: str,
+    dashboard_name: str,
+    raw: dict[str, Any],
+    observations: list[dict[str, Any]],
+) -> dict[str, Any]:
+    if isinstance(raw.get("unit"), dict):
+        _write_unit_detail(page, dashboard_id, raw["unit"], observations)
+    return _write_dashboard_schema(
+        page, dashboard_id, dashboard_name, raw["schema"], observations
+    )
+
+
 def _write_formula_adapter(
     page: Any,
     dashboard_id: str,
@@ -496,6 +697,15 @@ ADAPTERS: dict[str, ReversibleAdapter] = {
         "update_component_fields", _read_unit, _component_project, _component_mutate,
         _component_restore, _write_unit_adapter, _exact_after,
     ),
+    "update_component_filter_label": ReversibleAdapter(
+        "update_component_filter_label", _read_unit, _component_project, _component_mutate,
+        _component_restore, _write_unit_adapter, _exact_after,
+    ),
+    "update_component_title": ReversibleAdapter(
+        "update_component_title", _read_component_title, _component_title_project,
+        _component_title_mutate, _component_title_restore,
+        _write_component_title_adapter, _exact_after,
+    ),
     "update_formula": ReversibleAdapter(
         "update_formula", _read_formula, _formula_project, _formula_mutate,
         _formula_restore, _write_formula_adapter, _exact_after,
@@ -503,6 +713,15 @@ ADAPTERS: dict[str, ReversibleAdapter] = {
     "update_filter_dynamic_default": ReversibleAdapter(
         "update_filter_dynamic_default", _read_filter, _filter_project, _filter_mutate,
         _filter_restore, _write_filter_adapter, _filter_after_matches,
+    ),
+    "update_public_filter_title": ReversibleAdapter(
+        "update_public_filter_title", _read_filter, _public_filter_title_project,
+        _public_filter_title_mutate, _public_filter_title_restore,
+        _write_filter_adapter, _exact_after,
+    ),
+    "update_tab_label": ReversibleAdapter(
+        "update_tab_label", _read_schema, _tab_label_project, _tab_label_mutate,
+        _tab_label_restore, _write_schema_adapter, _exact_after,
     ),
     "update_theme": ReversibleAdapter(
         "update_theme", _read_schema, _theme_project, _theme_mutate, _theme_restore,
@@ -521,9 +740,26 @@ def _planned_component_show_name(operation: Mapping[str, Any]) -> str:
         if isinstance(values, list):
             candidates.extend(item for item in values if isinstance(item, Mapping))
     matches = [item for item in candidates if str(item.get("field_id") or "") == str(target.get("field_id") or "")]
-    if len(matches) != 1 or not str(matches[0].get("business_name") or "").strip():
+    if len(matches) != 1 or not str(matches[0].get("display_name") or "").strip():
         raise UsageError("Planned component field rename has no unique non-empty target name.")
-    return str(matches[0]["business_name"])
+    return str(matches[0]["display_name"])
+
+
+def _planned_tab_label(operation: Mapping[str, Any]) -> str:
+    target = operation.get("target") if isinstance(operation.get("target"), Mapping) else {}
+    after = operation.get("after") if isinstance(operation.get("after"), Mapping) else {}
+    config = after.get("config") if isinstance(after.get("config"), Mapping) else {}
+    slots = config.get("slots") if isinstance(config.get("slots"), list) else []
+    matches = [
+        item
+        for item in slots
+        if isinstance(item, Mapping)
+        and str(item.get("key") or "") == str(target.get("slot_key") or "")
+        and str(item.get("slot_id") or "") == str(target.get("slot_id") or "")
+    ]
+    if len(matches) != 1 or not str(matches[0].get("label") or "").strip():
+        raise UsageError("Planned tab-label change has no unique non-empty target label.")
+    return str(matches[0]["label"])
 
 
 def planned_operation_target(operation: Mapping[str, Any]) -> dict[str, Any]:
@@ -540,10 +776,18 @@ def planned_operation_target(operation: Mapping[str, Any]) -> dict[str, Any]:
         }
     elif operation_type == "update_component_fields":
         target["probe_show_name"] = _planned_component_show_name(operation)
+    elif operation_type == "update_component_filter_label":
+        target["probe_show_name"] = str(after.get("business_name") or "")
+    elif operation_type == "update_component_title":
+        target["probe_title"] = str(after.get("title") or "")
     elif operation_type == "update_formula":
         target["probe_formula"] = str(after.get("expression") or "")
     elif operation_type == "update_filter_dynamic_default":
         target["probe_value"] = str(after.get("dynamics_filter_value") or "")
+    elif operation_type == "update_public_filter_title":
+        target["probe_title"] = str(after.get("title") or "")
+    elif operation_type == "update_tab_label":
+        target["probe_label"] = _planned_tab_label(operation)
     elif operation_type == "update_theme":
         target["probe_value"] = str(after.get("background_color") or "")
     else:
@@ -588,16 +832,16 @@ def apply_adapter_target(
         try:
             current_raw = adapter.read(page, dashboard_id, target)
             current_state = adapter.project(current_raw, target)
-            if adapter.after_matches(expected_after, current_state, target):
+            if current_state != before_state:
                 restore_raw = adapter.restore(
                     copy.deepcopy(current_raw), before_raw, target
                 )
                 adapter.write(page, dashboard_id, dashboard_name, restore_raw, observations)
                 restored_raw = adapter.read(page, dashboard_id, target)
-                if adapter.project(restored_raw, target) != before_state:
+                if not adapter.after_matches(
+                    before_state, adapter.project(restored_raw, target), target
+                ):
                     raise UsageError("compensating readback did not restore the original state")
-            elif current_state != before_state:
-                raise UsageError("target is neither the original nor requested state")
         except Exception as recovery_exc:  # noqa: BLE001
             raise UsageError(
                 f"{operation_type} failed and immediate compensation was not provable: {recovery_exc}"
@@ -653,7 +897,7 @@ def restore_planned_operation(
     adapter.write(page, dashboard_id, dashboard_name, restore_raw, observations)
     restored_raw = adapter.read(page, dashboard_id, mutation.target)
     restored_state = adapter.project(restored_raw, mutation.target)
-    if restored_state != mutation.before_state:
+    if not adapter.after_matches(mutation.before_state, restored_state, mutation.target):
         raise UsageError(f"{mutation.operation} recovery readback does not match the original state.")
     return {
         "operation_id": mutation.operation_id,
@@ -711,22 +955,22 @@ def verify_reversible_adapter(
     except Exception as exc:  # noqa: BLE001
         error = f"{type(exc).__name__}: {exc}"
     finally:
-        if write_succeeded:
-            try:
-                current_raw = adapter.read(page, dashboard_id, target)
-                current_state = adapter.project(current_raw, target)
-                if after_state is not None and not adapter.after_matches(after_state, current_state, target):
-                    raise UsageError(f"{operation} target drifted before recovery write.")
+        try:
+            current_raw = adapter.read(page, dashboard_id, target)
+            current_state = adapter.project(current_raw, target)
+            if adapter.after_matches(before_state, current_state, target):
+                restored = True
+            else:
                 restore_raw = adapter.restore(copy.deepcopy(current_raw), before_raw, target)
                 adapter.write(page, dashboard_id, dashboard_name, restore_raw, observations)
                 restored_raw = adapter.read(page, dashboard_id, target)
                 restored_state = adapter.project(restored_raw, target)
-                restored = restored_state == before_state
+                restored = adapter.after_matches(before_state, restored_state, target)
                 if not restored and error is None:
                     error = f"{operation} recovery readback did not match the original state."
-            except Exception as restore_exc:  # noqa: BLE001
-                if error is None:
-                    error = f"Recovery failed: {type(restore_exc).__name__}: {restore_exc}"
+        except Exception as restore_exc:  # noqa: BLE001
+            if error is None:
+                error = f"Recovery failed: {type(restore_exc).__name__}: {restore_exc}"
 
     status = "verified_and_restored" if write_succeeded and restored and error is None else "failed"
     return {

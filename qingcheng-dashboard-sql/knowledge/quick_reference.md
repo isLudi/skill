@@ -21,7 +21,7 @@
 1. 先读取最新 `DashboardProfile`，确认 dashboard/draft、组件、模型、relation/filter/field identity 和 profile hash。
 2. 按 `QuerySpec -> QueryPlan -> DashboardDatasetSpec -> DashboardDesignSpec` 正向生成青橙设计；每个指标、维度、范围和公式依赖必须携带 `qingcheng:*` confirmed contract ID 与 `source_path`。
 3. 使用 `DashboardDesignSpec + DashboardProfile` 生成 `DashboardChangePlan`，依次执行 `design-dashboard -> plan-dashboard-change`；后者默认 dry-run，不调用写接口。
-4. component、layout、formula、filter 均可做 P3A 画像、设计、diff 和 dry-run。P3B 只允许 `update_filter_dynamic_default`，且必须稳定定位 `relation_id + filter_id + field_id`；计划含任一 blocked operation 时整次 Apply 零写入。
+4. component、layout、formula、filter 均可做 P3A 画像、设计、diff 和 dry-run。P3B 只允许 operator Registry 中九类窄操作：字段显示名、局部筛选标签、组件标题、公共筛选标题、Tab 标签、同容器布局、依赖不变公式、公共筛选动态默认项和根背景色；每项必须稳定定位，计划含任一 blocked operation 时整次 Apply 零写入。
 5. Apply 仅由 operator 的 `apply-dashboard-change` 写 draft；发布必须另用 `publish-dashboard-change --confirm-publish`，消费成功 ApplyReceipt 并校验最新草稿 profile hash。
 6. 完整门禁和反向路由见 `knowledge/sql_patterns/dashboard_design_change_workflow.md`；普通 SQL 任务不要加载该文档。
 
@@ -41,8 +41,8 @@
 | 状态/对象 | 允许动作 | 禁止动作 |
 |---|---|---|
 | component / layout / formula / filter | profile、DesignSpec、结构化 diff、dry-run | 把设计成功视为平台写入授权 |
-| 已有公共筛选器动态默认项，稳定 identity 完整 | 生成 `update_filter_dynamic_default` 并交 operator dry-run/显式 Apply | 用筛选器序号或显示名定位 |
-| 组件字段、布局、公式、数据集重绑、新建/删除 | 保留完整 diff，标记 `blocked_unsupported` | 调用未知写接口或部分执行计划 |
+| 九类窄修改且对应 stable identity 完整 | 生成 allowlisted operation 并交 operator dry-run/显式 Apply | 用序号/显示名定位，或扩大到同对象其他配置 |
+| 超出九类边界的组件、布局、公式、筛选器、数据集重绑、新建/删除 | 保留完整 diff，标记 `blocked_unsupported` | 调用未知写接口或部分执行计划 |
 | profile hash 漂移、契约待确认或跨域依赖 | 重新 profile、回到青橙 contract/source 取证 | 继续 Apply 或借市场顾问口径补齐 |
 
 ## 高频看板入口

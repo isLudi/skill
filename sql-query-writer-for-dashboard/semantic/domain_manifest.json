@@ -120,7 +120,7 @@
   },
   "current_model_registry": {
     "source_path": "semantic/current_model_bindings.json",
-    "source_sha256": "02a817fd85b7d3dfa8becff72bc598aaf45fc4ecf2eb4f2ca5d67520256c78ec",
+    "source_sha256": "51b6f543b705a2894eef8e87d0d5e8b928c5b68e278c4430c9cc1a2a5863ec15",
     "policy": "one_current_model_per_id_and_semantic_slot",
     "canonical_filename_policy": "data_center_market_<model_id>.sql",
     "model_count": 37,
@@ -1124,7 +1124,7 @@
       {
         "id": "market_consultant:dashboards:data_center_market_datasets",
         "source_path": "knowledge/dashboards/data_center_market_datasets.md",
-        "sha256": "2e80f8221b99731e0eabf1f69999dbd9b8ae5f74491f2e025c222ddd351d53e1",
+        "sha256": "2827fec027f1927ffb3bf65478b6b66b2e4c3f46b8fe191f7b898ed8d612839d",
         "bytes": 15144,
         "title": "数据中心数据集源 SQL（市场顾问部）",
         "table_refs": [],
@@ -1633,8 +1633,8 @@
       {
         "id": "market_consultant:governance:decision_tree",
         "source_path": "knowledge/decision_tree.md",
-        "sha256": "7ac8abd1ba9df523985fe1b809eed5c8e967cd3b6ba32a35fb8926c583b733c7",
-        "bytes": 13894,
+        "sha256": "5e1eae67c8cb8a91b5f1f44ae1dfad647c3c0d13905e415dec8af982119103da",
+        "bytes": 13965,
         "title": "用户需求到知识库路由",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -1657,8 +1657,8 @@
       {
         "id": "market_consultant:governance:quick_reference",
         "source_path": "knowledge/quick_reference.md",
-        "sha256": "65b40a0a853bc06b2b7e886b94e8e9050b908f27050ed65811aefc05bacdf46e",
-        "bytes": 10153,
+        "sha256": "0b707727aadd4ca872eb0f61c5e68b8471acd682002f8f09faa145a45ad8ed87",
+        "bytes": 10244,
         "title": "快速参考卡",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -2979,8 +2979,8 @@
       {
         "id": "market_consultant:raw_sql:data_center_market_3039",
         "source_path": "resources/raw_sql/data_center_market_3039.sql",
-        "sha256": "f3fda910e90f5b9dfd83c4ff751d825b35c8444839cf12020d682c1bad981f82",
-        "bytes": 67823,
+        "sha256": "50aadec9543a195e45bd61afbe9ad5a6a1eb583e312843c795e0a9451552b137",
+        "bytes": 71234,
         "title": "data_center_market_3039",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -3424,8 +3424,8 @@
       {
         "id": "market_consultant:reverse_index:join_risk_index",
         "source_path": "knowledge/reverse_index/join_risk_index.md",
-        "sha256": "019778a7dcafe629e7f52b2b01f52aa7f6f48fc8892e361201fc75dd8c52210f",
-        "bytes": 37177,
+        "sha256": "d4ed28d9fbc6e35173a37071ba125cf486978deab55b7d873ef4a9941473c08c",
+        "bytes": 37243,
         "title": "JOIN 与结果异常风险索引",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -3622,8 +3622,8 @@
       {
         "id": "market_consultant:sql_patterns:dashboard_design_change_workflow",
         "source_path": "knowledge/sql_patterns/dashboard_design_change_workflow.md",
-        "sha256": "6ff65905431f82d8573dbd1df44ccbe3928085ec07f23119f49c91970e936ae1",
-        "bytes": 5778,
+        "sha256": "c7e61461267c6b09d958067fcd77cdac21d1c61cfb2929ec49afa997ddd8dec1",
+        "bytes": 6823,
         "title": "市场顾问 P3 看板设计与受控变更工作流",
         "table_refs": [],
         "raw_sql_refs": [],
@@ -4350,8 +4350,8 @@
       {
         "id": "market_consultant:update_log:changelog",
         "source_path": "knowledge/update_log/changelog.md",
-        "sha256": "250d77276bed37991223ee5ee3bc29ab3c498a5577ab262de0f20be2396bba77",
-        "bytes": 99517,
+        "sha256": "6da8ca8cfec096082297ad1db7d01ebff212bb02bb4544ae1abe650c570d532a",
+        "bytes": 100501,
         "title": "更新记录",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -5822,7 +5822,7 @@
     },
     {
       "source_path": "knowledge/dashboards/data_center_market_datasets.md",
-      "sha256": "2e80f8221b99731e0eabf1f69999dbd9b8ae5f74491f2e025c222ddd351d53e1",
+      "sha256": "2827fec027f1927ffb3bf65478b6b66b2e4c3f46b8fe191f7b898ed8d612839d",
       "bytes": 15144,
       "category": "dashboards"
     },
@@ -5918,8 +5918,8 @@
     },
     {
       "source_path": "knowledge/decision_tree.md",
-      "sha256": "7ac8abd1ba9df523985fe1b809eed5c8e967cd3b6ba32a35fb8926c583b733c7",
-      "bytes": 13894,
+      "sha256": "5e1eae67c8cb8a91b5f1f44ae1dfad647c3c0d13905e415dec8af982119103da",
+      "bytes": 13965,
       "category": "governance"
     },
     {
@@ -6056,8 +6056,8 @@
     },
     {
       "source_path": "knowledge/quick_reference.md",
-      "sha256": "65b40a0a853bc06b2b7e886b94e8e9050b908f27050ed65811aefc05bacdf46e",
-      "bytes": 10153,
+      "sha256": "0b707727aadd4ca872eb0f61c5e68b8471acd682002f8f09faa145a45ad8ed87",
+      "bytes": 10244,
       "category": "governance"
     },
     {
@@ -6068,8 +6068,8 @@
     },
     {
       "source_path": "knowledge/reverse_index/join_risk_index.md",
-      "sha256": "019778a7dcafe629e7f52b2b01f52aa7f6f48fc8892e361201fc75dd8c52210f",
-      "bytes": 37177,
+      "sha256": "d4ed28d9fbc6e35173a37071ba125cf486978deab55b7d873ef4a9941473c08c",
+      "bytes": 37243,
       "category": "reverse_index"
     },
     {
@@ -6104,8 +6104,8 @@
     },
     {
       "source_path": "knowledge/sql_patterns/dashboard_design_change_workflow.md",
-      "sha256": "6ff65905431f82d8573dbd1df44ccbe3928085ec07f23119f49c91970e936ae1",
-      "bytes": 5778,
+      "sha256": "c7e61461267c6b09d958067fcd77cdac21d1c61cfb2929ec49afa997ddd8dec1",
+      "bytes": 6823,
       "category": "sql_patterns"
     },
     {
@@ -6356,8 +6356,8 @@
     },
     {
       "source_path": "knowledge/update_log/changelog.md",
-      "sha256": "250d77276bed37991223ee5ee3bc29ab3c498a5577ab262de0f20be2396bba77",
-      "bytes": 99517,
+      "sha256": "6da8ca8cfec096082297ad1db7d01ebff212bb02bb4544ae1abe650c570d532a",
+      "bytes": 100501,
       "category": "update_log"
     },
     {
@@ -6608,8 +6608,8 @@
     },
     {
       "source_path": "resources/raw_sql/data_center_market_3039.sql",
-      "sha256": "f3fda910e90f5b9dfd83c4ff751d825b35c8444839cf12020d682c1bad981f82",
-      "bytes": 67823,
+      "sha256": "50aadec9543a195e45bd61afbe9ad5a6a1eb583e312843c795e0a9451552b137",
+      "bytes": 71234,
       "category": "raw_sql"
     },
     {

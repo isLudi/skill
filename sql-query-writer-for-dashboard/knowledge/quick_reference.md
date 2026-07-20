@@ -16,7 +16,7 @@
 
 1. 读取最新 `DashboardProfile`，按 `QuerySpec -> QueryPlan -> DashboardDatasetSpec -> DashboardDesignSpec` 生成市场顾问域内设计；业务依赖必须携带 `market_consultant:*` confirmed contract ID 与 `source_path`。
 2. 运行 `design-dashboard -> plan-dashboard-change` 生成 component/layout/formula/filter 的 diff；默认 dry-run，不调用写接口。
-3. P3B 当前只允许 stable-ID `update_filter_dynamic_default`。组件字段、布局、公式、数据集重绑、新建和删除必须 `blocked_unsupported`；计划含任一 blocked operation 时整次 Apply 零写入。
+3. P3B 只允许 operator Registry 中九类窄操作：字段显示名、局部筛选标签、组件标题、公共筛选标题、Tab 标签、同容器布局、依赖不变公式、公共筛选动态默认项和根背景色；每项必须稳定定位，计划含任一 blocked operation 时整次 Apply 零写入。
 4. `apply-dashboard-change` 只写 draft；`publish-dashboard-change --confirm-publish` 必须独立执行并校验成功 ApplyReceipt 与最新草稿 hash。
 5. 完整正反向路由和域隔离见 `knowledge/sql_patterns/dashboard_design_change_workflow.md`；普通 SQL 任务不要加载。
 

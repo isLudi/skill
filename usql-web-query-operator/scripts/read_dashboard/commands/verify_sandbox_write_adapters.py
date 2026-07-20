@@ -24,7 +24,11 @@ from ..edit_profile import build_edit_url, fetch_edit_dashboard_config, open_edi
 
 OPERATION_ORDER = (
     "update_component_fields",
+    "update_component_filter_label",
+    "update_component_title",
     "update_filter_dynamic_default",
+    "update_public_filter_title",
+    "update_tab_label",
     "update_formula",
     "update_layout",
     "update_theme",

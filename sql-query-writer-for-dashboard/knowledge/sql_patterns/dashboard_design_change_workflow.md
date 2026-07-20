@@ -46,17 +46,26 @@ P3A 不调用写接口。Dry-run 必须基于最新 profile，输出 before/afte
 
 ## 4. P3B：当前 Apply 白名单
 
-当前唯一允许交给 operator Apply 的变更是：
+当前允许交给 operator Apply 的九类窄变更是：
 
-- operation 为 `update_filter_dynamic_default`，并按稳定 `relation_id + filter_id(unit_id) + field_id` 定位的**已有公共筛选器动态默认项更新**。
+- `update_component_fields`：稳定 `component_id + unit_id + field_group + field_id` 的一个既有字段显示名。
+- `update_component_filter_label`：稳定 `unit_id + field_id` 的一个既有局部筛选器显示标签。
+- `update_component_title`：一个稳定既有组件的非空标题；数据组件保持 schema 与 unit 名称一致。
+- `update_public_filter_title`：稳定 `relation_id + filter_id + field_id` 的一个公共筛选器标题。
+- `update_tab_label`：稳定 `component_id + slot_key + slot_id` 的一个既有 Tab 标签。
+- `update_layout`：同容器/Tab 内既有节点的 `x/y/w/h`，通过边界与碰撞校验。
+- `update_formula`：一个既有、组件内、非共享公式的表达式，依赖不变。
+- `update_filter_dynamic_default`：稳定 `relation_id + filter_id + field_id` 的显式动态默认项。
+- `update_theme`：看板根节点的显式 `#RRGGBB` 背景色。
 
 以下对象即使已完成 DesignSpec、diff 和 dry-run，也必须标为 `blocked_unsupported`，不得写入：
 
-- component 新建、删除、克隆、类型或字段配置修改。
-- layout 移动、缩放、跨容器调整。
-- formula 新建、覆盖、删除或组件公式切换。
+- component 新建、删除、克隆、换类型、字段增删/排序、数据集/公式/筛选器绑定或任意展示配置修改。
+- layout 跨容器/Tab 移动、z 轴或未通过边界/碰撞校验的调整。
+- formula 新建、删除、共享/跨组件修改、依赖变化或组件公式切换。
 - dataset 新建、替换、重绑或 SQL 变更。
-- filter 新建、删除、字段重绑或关系重构。
+- filter 新建、删除、字段/目标重绑、条件/值修改或关系重构；泛化 `update_component_filter` 继续阻断。
+- Tab 插槽增删、排序、成员、容器配置、样式或布局修改。
 
 Apply 只能写 draft，且必须由 `usql-web-query-operator` 按其当前 `--help` 与 allowlist 执行。ChangePlan 含任一 blocked operation 时整次 Apply 必须零写入，不得只执行其中白名单子集。本 Skill 不保存登录态、不调用看板写接口，也不把 QueryPlan、DesignSpec 或 ChangePlan 当作写入授权。发布必须通过独立的 `publish-dashboard-change --confirm-publish`，并由 operator 校验成功的 `DashboardApplyReceipt` 与最新 draft profile hash。
 

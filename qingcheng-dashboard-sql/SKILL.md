@@ -45,7 +45,7 @@ description: Resolve, plan, compile, explain, validate, repair, and maintain gov
 - 青橙相关 Web BI 结构快照、README 索引和调试结论只写入本 Skill 的 `knowledge/dashboard_web_profiles/`，不得写回 `sql-query-writer-for-dashboard`。
 - 青橙 `DashboardDesignSpec` 中的指标、维度、范围和公式依赖只能引用 `qingcheng:*` 的 `confirmed` contract ID 及其 `source_path`；不得因 live profile 出现同名字段而借用市场顾问口径。
 - 看板 `dashboard_id` 必须已由本 Skill 的 `knowledge/dashboard_web_profiles/` 注册并通过源文件 Hash 回查；未注册或同时出现在另一域的看板只允许只读画像，先完成青橙知识同步和 catalog 重建再进入 Design。
-- 本 Skill 只提供青橙业务设计约束，不保存看板登录态、不调用写接口。P3A 的组件/布局/公式/筛选器均可设计、diff 和 dry-run；P3B Apply 当前只允许 operator 已验证的已有公共筛选器动态默认项白名单。
+- 本 Skill 只提供青橙业务设计约束，不保存看板登录态、不调用写接口。P3A 的组件/布局/公式/筛选器均可设计、diff 和 dry-run；P3B Apply 只允许 operator Registry 已验证的九类窄操作，并继续阻断泛化组件、筛选器、数据集、新建和删除修改。
 - 不在缺少 `dt`、必要 `hour`、部门/项目范围限定或必要 `limit` 时直接给出生产查询。
 - 如果 SQL 或用户材料中出现市场顾问部、评优架构、参评名单、市场顾问专属临时表或市场顾问专属渠道 CASE，默认视为跨域污染；除非用户明确说明这是青橙也复用的逻辑，否则必须标注“待人工确认”，不得直接入库为青橙口径。
 - 若用户只要求“给参考 SQL，不修改 Skill”，不得改写 `resources/raw_sql/` 或 `knowledge/`。
@@ -115,7 +115,7 @@ QuerySpec 至少包含：
 - 正向链路固定为 `QuerySpec -> QueryPlan -> DashboardDatasetSpec -> DashboardDesignSpec -> DashboardChangePlan -> dry-run`。DesignSpec 必须绑定本域 confirmed contract ID、`source_path`、QueryPlan/DatasetSpec hash 和基线 `DashboardProfile` hash。
 - 反向链路固定为 `live DashboardProfile -> component/model/relation/filter/field identity -> 字段/公式 -> contract_index -> qingcheng contract -> source_path -> dashboard/metric/raw SQL`；无法唯一反查时保留 `unknown/ambiguous`。
 - P3A 可覆盖 component、layout、formula、filter 的画像、设计、diff 与 dry-run，但不写平台。
-- P3B 只把 `update_filter_dynamic_default` 交给 `usql-web-query-operator`，并要求稳定的 `relation_id + filter_id(unit_id) + field_id`。组件字段、布局、公式、数据集重绑、新建和删除一律 `blocked_unsupported`。
+- P3B 只把以下九类 `verified/allowlisted` 操作交给 `usql-web-query-operator`：`update_component_fields`、`update_component_filter_label`、`update_component_title`、`update_public_filter_title`、`update_tab_label`、`update_layout`、`update_formula`、`update_filter_dynamic_default`、`update_theme`。每类必须使用对应稳定 ID 且只改一个已验证槽位；字段增删/排序、筛选条件/值/关系、Tab 成员、跨容器移动、公式依赖、数据集重绑、新建和删除仍为 `blocked_unsupported`。
 - Apply 只能写 draft，必须消费精确匹配的 ChangePlan/hash，写前后重新 profile；QueryPlan、DesignSpec 和 ChangePlan 都不构成写入或发布授权。同次 apply+publish 禁止，发布必须独立确认。
 - 详细字段、风险和路由见 `knowledge/sql_patterns/dashboard_design_change_workflow.md`；业务请求不涉及看板设计/编辑时不要加载该文档。
 

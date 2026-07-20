@@ -120,8 +120,8 @@ QuerySpec -> QueryPlan -> DashboardDatasetSpec -> DashboardDesignSpec
 
 - `DashboardDesignSpec.domain` 固定为 `market_consultant`；每个指标、维度、范围和公式依赖必须引用本域 `confirmed` contract ID 与 `source_path`，并绑定 QueryPlan/DatasetSpec/Profile hash。
 - component、layout、formula、filter 均可 profile、设计、diff 和 dry-run；P3A 不写平台。
-- P3B 当前唯一 Apply operation 为 `update_filter_dynamic_default`，必须使用稳定 `relation_id + filter_id + field_id`；任一 blocked operation 使整份计划零写入。
-- 组件字段、布局、公式、数据集重绑、新建或删除均保留 diff，但必须 `blocked_unsupported`。
+- P3B 仅允许 operator Registry 的九类窄 Apply：字段显示名、局部筛选标签、组件标题、公共筛选标题、Tab 标签、同容器布局、依赖不变公式、公共筛选动态默认项和根背景色；每项必须使用对应稳定 ID，任一 blocked operation 使整份计划零写入。
+- 超出九类窄边界的组件字段/标题、局部或公共筛选器、Tab、布局、公式、主题，以及数据集重绑、新建或删除均保留 diff，但必须 `blocked_unsupported`。
 - 命令链为 `profile-edit-dashboard -> design-dashboard -> plan-dashboard-change -> apply-dashboard-change -> publish-dashboard-change`。Apply 只写 draft；Publish 消费成功 ApplyReceipt、要求 `--confirm-publish` 并校验草稿 profile hash。
 - 反向路由固定为 `live profile -> component/model/filter/field/formula -> contract_index -> market_consultant contract -> source_path/raw SQL`；无法唯一映射或跨域时停止。
 - 完整细节按需读取 `knowledge/sql_patterns/dashboard_design_change_workflow.md`；普通 Text2SQL 不加载。

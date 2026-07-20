@@ -72,7 +72,7 @@
 | [knowledge/sql_patterns/dashboard_design_change_workflow.md](../sql_patterns/dashboard_design_change_workflow.md) | 1. 域与证据门禁 | - 任一 contract 为 `pending_confirmation`、别名歧义、来源哈希漂移、字段无法反查或 profile 域不明时，只允许画像和 diff，禁止形成可 apply 的变更计划。 |
 | [knowledge/sql_patterns/dashboard_design_change_workflow.md](../sql_patterns/dashboard_design_change_workflow.md) | 2. 正向链路 | - `query_plan_sha256`、`dataset_spec_sha256` 和 `profile_sha256`；后续按 `design_sha256 -> change_plan_sha256 -> apply_receipt_sha256 -> publish_receipt_sha256` 逐级绑定，任一前序 hash 漂移都必须重新规划。 |
 | [knowledge/sql_patterns/dashboard_design_change_workflow.md](../sql_patterns/dashboard_design_change_workflow.md) | 3. P3A：全类型设计、Diff 与 Dry-run | P3A 不调用写接口。Dry-run 必须基于最新 profile，输出 before/after、风险、阻断项和拟议 payload；profile hash 漂移时重新画像并重新 diff。 |
-| [knowledge/sql_patterns/dashboard_design_change_workflow.md](../sql_patterns/dashboard_design_change_workflow.md) | 4. P3B：当前 Apply 白名单 | 当前唯一允许交给 operator Apply 的变更是： |
+| [knowledge/sql_patterns/dashboard_design_change_workflow.md](../sql_patterns/dashboard_design_change_workflow.md) | 4. P3B：当前 Apply 白名单 | - `update_component_title`：一个稳定既有组件的非空标题；数据组件保持 schema 与 unit 名称一致。 |
 | [knowledge/sql_patterns/dashboard_design_change_workflow.md](../sql_patterns/dashboard_design_change_workflow.md) | 5. 反向链路 | - 反向解析必须产出唯一市场顾问 contract ID；无法唯一映射时保留 `unknown/ambiguous`，不得根据字段显示名猜测。 |
 | [knowledge/sql_patterns/dashboard_query_patterns.md](../sql_patterns/dashboard_query_patterns.md) | 多 CTE 看板结构 | count(distinct case when 待确认有效线索条件 then b.lead_id end) as valid_lead_cnt, |
 | [knowledge/sql_patterns/dashboard_query_patterns.md](../sql_patterns/dashboard_query_patterns.md) | 排名指标粒度与前端聚合 | 排名、比率、目标、差值等非明细粒度指标必须先确定计算粒度。若计算粒度与最终输出粒度不一致，前端聚合可能把指标重复累加。 |

@@ -1,40 +1,42 @@
 {
   "schema_version": "1.0.0",
   "artifact_type": "P4ARedactedSandboxEvidence",
-  "verification_sha256": "2a66541bf4fa5ae72dd87352b2523bf5ef8edbf5b387bd9c8cc2649ea1b73d27",
-  "expected_profile_sha256": "aa7d6de135af7e3dbfc87a25096de5ef8a14c56ee7f35c0387b607a5fea8ae0a",
-  "final_profile_sha256": "aa7d6de135af7e3dbfc87a25096de5ef8a14c56ee7f35c0387b607a5fea8ae0a",
+  "verification_sha256": "ccc9bbccc7d6cad3d26ecfae93c1691ddc19256d2a274fcb8db68d26b3762231",
+  "expected_profile_sha256": "64856e0fdd685f9c8ffe1027c5fc8985dd2d87c3e82fa97e063a9d0d046f750e",
+  "final_profile_sha256": "64856e0fdd685f9c8ffe1027c5fc8985dd2d87c3e82fa97e063a9d0d046f750e",
   "restored_to_baseline": true,
   "operations": [
-    {
-      "operation": "update_layout",
-      "endpoint": "/uanalysis-intelligence/config/save/dashboardHtml",
-      "write_response_statuses": [200, 200],
-      "payload_sha256": [
-        "255d59a104e57137f29bf32b39b1adc78f540c85e43068ef01d44ff8f312670a",
-        "ad19e8b83dd01a3889e0fe993cc5b94a1502368806e3e031de8958ab0ad71e4c"
-      ],
-      "drift_blocked_without_write": true,
-      "restored": true
-    },
     {
       "operation": "update_component_fields",
       "endpoint": "/uanalysis-intelligence/config/update/unit",
       "write_response_statuses": [200, 200],
       "payload_sha256": [
-        "8e3286383b7260302bb58973324e792f8f34f419ced684d27f2deece354d4602",
-        "25e8d2eeae6b1c2e5355a844d1b63db7b3095c79c5ad1ea923438444d38ed5a4"
+        "97f0f54703b8e36df761cbd6ed4106d95c3c1fea9ee2721bf0098b3b9fb12f2b",
+        "d6b85fc0048a17ab125cf4de5a78e827522f6e45778787bc06c34e58c861032a"
       ],
       "drift_blocked_without_write": true,
       "restored": true
     },
     {
-      "operation": "update_formula",
-      "endpoint": "/uanalysis-intelligence/model/customized/column/saveAndUpdate",
+      "operation": "update_component_filter_label",
+      "endpoint": "/uanalysis-intelligence/config/update/unit",
       "write_response_statuses": [200, 200],
       "payload_sha256": [
-        "eed83051d1666fb68f3563cf368c3f90f180cff18121c22e00c96d50c2ac6d02",
-        "83eb65d554712a00be82286f483b38760afb721b91007e5daf0136df9ba93e62"
+        "200bd67c376029bf2edc64619086f9328d650b4ebe8966bce01db04758b4f8f0",
+        "b3eb0e37e0e80e651e6ae80da8db6ec87b5bc0301f19757bbc7332ad547641b5"
+      ],
+      "drift_blocked_without_write": true,
+      "restored": true
+    },
+    {
+      "operation": "update_component_title",
+      "endpoint": "/uanalysis-intelligence/config/update/unit + config/save/dashboardHtml",
+      "write_response_statuses": [200, 200, 200, 200],
+      "payload_sha256": [
+        "3edb9a546f458666a15e4e130810474097b063d82bc96dc029bd2afe6d9e1ef2",
+        "e6f6f82127db6f4ede2c7f2f7a67feb61c9fc94d2efa0ca66ed0c74542e15f7c",
+        "07346f668019caa8eed6bdfef09919eb733d0fdea0cdb15b2a41c5644c131531",
+        "287e2d2250f104cc005a3553dcc3883a873b5dec561ef1aec1d571bb190dda97"
       ],
       "drift_blocked_without_write": true,
       "restored": true
@@ -44,8 +46,52 @@
       "endpoint": "/uanalysis-intelligence/config/update/public/relation/unit",
       "write_response_statuses": [200, 200],
       "payload_sha256": [
-        "6b05ea645e01ed82f7878ef8c2f437ddfda712664afe318e0eb8b86c183d4f09",
-        "425469d6b1bdd69bcda477ef1698096339fc614e04d820c9bbd6b8aa37afe9e1"
+        "cc89059482fb3deaab891099957a8ecd765eea2e468b6eb08d756132bb4376dd",
+        "ee827d3fb52010677f26d61a801c1c04c5e05038390355e5a8c7377583e6519e"
+      ],
+      "drift_blocked_without_write": true,
+      "restored": true
+    },
+    {
+      "operation": "update_public_filter_title",
+      "endpoint": "/uanalysis-intelligence/config/update/public/relation/unit",
+      "write_response_statuses": [200, 200],
+      "payload_sha256": [
+        "9f427bdaf38bf220f06028d754bf63cb18eb00678bba4a66caa6feaf50022b48",
+        "29669cc538823f8761f43009e9c9685356459ae7d236839bf9a648f006654a00"
+      ],
+      "drift_blocked_without_write": true,
+      "restored": true
+    },
+    {
+      "operation": "update_tab_label",
+      "endpoint": "/uanalysis-intelligence/config/save/dashboardHtml",
+      "write_response_statuses": [200, 200],
+      "payload_sha256": [
+        "a33119a4f461045f9a0db147c122a12a47494a767eafce1f47a6663baba06909",
+        "4f3f4c49b224d7b13f5d9efdf7d17c3a0a66950aa1c653bb1a02edcf4e11fe52"
+      ],
+      "drift_blocked_without_write": true,
+      "restored": true
+    },
+    {
+      "operation": "update_formula",
+      "endpoint": "/uanalysis-intelligence/model/customized/column/saveAndUpdate",
+      "write_response_statuses": [200, 200],
+      "payload_sha256": [
+        "5fb45376f55eaba54652ed2f19fe7a218c28def353494d2544b3717ae26c8fac",
+        "bd5d1a3fc523eca531dc07be8baecde351bd1d93e9e0ab90ce8a02bd15f03303"
+      ],
+      "drift_blocked_without_write": true,
+      "restored": true
+    },
+    {
+      "operation": "update_layout",
+      "endpoint": "/uanalysis-intelligence/config/save/dashboardHtml",
+      "write_response_statuses": [200, 200],
+      "payload_sha256": [
+        "922871806bec0f47118f0e92b007e88e5dfde4a5e66df404a21825f49175a36b",
+        "c14cf1aa5fe75e22670478c082d9220fe2e7f059dae18ab9a599cb0686cca1ef"
       ],
       "drift_blocked_without_write": true,
       "restored": true
@@ -55,8 +101,8 @@
       "endpoint": "/uanalysis-intelligence/config/save/dashboardHtml",
       "write_response_statuses": [200, 200],
       "payload_sha256": [
-        "53467fc129f7e05adc704a870afc21c3065d0c40c475098692a849954a2548f3",
-        "b45d567ba8a9b56b4c3c83496b1057f3a20c8d0c27b3c8eabda2494d8f478304"
+        "c26dc9df552707dc0c33e5681fd852d2a331d24f4b073d8b7ff0df81d6c90616",
+        "9d877b3884541ca1f8155841899bcfc6f5782dce42b463a1f73d3012dfda32c2"
       ],
       "drift_blocked_without_write": true,
       "restored": true

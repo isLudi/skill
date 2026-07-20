@@ -13,6 +13,8 @@ sys.path.insert(0, str(SKILL_ROOT / "scripts"))
 from _shared.errors import UsageError  # noqa: E402
 from read_dashboard.dashboard_write_adapters import (  # noqa: E402
     ADAPTERS,
+    ReversibleAdapter,
+    apply_adapter_target,
     assert_expected_state,
     canonical_sha256,
     find_filter_formats,
@@ -32,8 +34,11 @@ class DashboardWriteAdapterTests(unittest.TestCase):
             with self.subTest(operation=operation):
                 self.assertTrue(item["drift_blocked_without_write"])
                 self.assertTrue(item["restored"])
-                self.assertEqual([200, 200], item["write_response_statuses"])
-                self.assertEqual(2, len(item["payload_sha256"]))
+                self.assertGreaterEqual(len(item["write_response_statuses"]), 2)
+                self.assertTrue(all(status == 200 for status in item["write_response_statuses"]))
+                self.assertEqual(
+                    len(item["write_response_statuses"]), len(item["payload_sha256"])
+                )
 
     def test_redacted_p4b_evidence_proves_forward_and_reverse_transaction_order(self) -> None:
         evidence = json.loads(
@@ -83,6 +88,168 @@ class DashboardWriteAdapterTests(unittest.TestCase):
         self.assertEqual("Metric P4A", adapter.project(changed, target)["show_name"])
         restored = adapter.restore(changed, before, target)
         self.assertEqual("Metric", adapter.project(restored, target)["show_name"])
+
+    def test_component_filter_label_adapter_is_limited_to_unit_filter_show_name(self) -> None:
+        adapter = ADAPTERS["update_component_filter_label"]
+        target = {
+            "unit_id": "unit_1",
+            "field_group": "unitFilterList",
+            "field_id": "dimension_1",
+            "probe_show_name": "Owner",
+        }
+        before = {
+            "unitId": "unit_1",
+            "unitFilterList": [
+                {"fieldId": "dimension_1", "showName": "Manager", "format": {"condition": "in"}}
+            ],
+        }
+        changed = adapter.mutate(copy.deepcopy(before), target)
+        self.assertEqual("Owner", adapter.project(changed, target)["show_name"])
+        self.assertEqual("in", changed["unitFilterList"][0]["format"]["condition"])
+        restored = adapter.restore(changed, before, target)
+        self.assertEqual("Manager", adapter.project(restored, target)["show_name"])
+
+    def test_component_title_adapter_updates_schema_and_unit_name_together(self) -> None:
+        adapter = ADAPTERS["update_component_title"]
+        target = {
+            "component_id": "node_1",
+            "unit_id": "unit_1",
+            "probe_title": "Owner analysis",
+        }
+        before = {
+            "schema": {
+                "componentsTree": [
+                    {
+                        "id": "node_1",
+                        "componentName": "PivotTable",
+                        "props": {"settings": {"componentName": "Manager analysis", "unitId": "unit_1"}},
+                    }
+                ]
+            },
+            "unit": {"unitId": "unit_1", "unitName": "Manager analysis"},
+        }
+        changed = adapter.mutate(copy.deepcopy(before), target)
+        self.assertEqual("Owner analysis", adapter.project(changed, target)["schema_title"])
+        self.assertEqual("Owner analysis", adapter.project(changed, target)["unit_name"])
+        restored = adapter.restore(changed, before, target)
+        self.assertEqual(adapter.project(before, target), adapter.project(restored, target))
+
+    def test_ambiguous_partial_write_is_compensated_before_error_returns(self) -> None:
+        state = {"value": "before"}
+        write_count = 0
+
+        def read(_page, _dashboard_id, _target):
+            return copy.deepcopy(state)
+
+        def project(raw, _target):
+            return {"value": raw["value"]}
+
+        def mutate(raw, _target):
+            raw["value"] = "after"
+            return raw
+
+        def restore(current, before, _target):
+            current["value"] = before["value"]
+            return current
+
+        def write(_page, _dashboard_id, _dashboard_name, raw, _observations):
+            nonlocal write_count
+            write_count += 1
+            state.update(copy.deepcopy(raw))
+            if write_count == 1:
+                raise UsageError("ambiguous transport failure")
+            return {"status": "success"}
+
+        operation = "test_partial_compensation"
+        ADAPTERS[operation] = ReversibleAdapter(
+            operation, read, project, mutate, restore, write, lambda expected, actual, _target: expected == actual
+        )
+        try:
+            with self.assertRaisesRegex(UsageError, "any observed write was restored"):
+                apply_adapter_target(
+                    page=None,
+                    dashboard_id="dashboard_1",
+                    dashboard_name="sandbox",
+                    operation_id="op_1",
+                    operation_type=operation,
+                    target={},
+                )
+        finally:
+            ADAPTERS.pop(operation, None)
+        self.assertEqual({"value": "before"}, state)
+        self.assertEqual(2, write_count)
+
+    def test_tab_label_adapter_uses_component_slot_key_and_slot_id(self) -> None:
+        adapter = ADAPTERS["update_tab_label"]
+        target = {
+            "component_id": "tabs_1",
+            "slot_key": "manager",
+            "slot_id": "slot_node_1",
+            "probe_label": "Owner",
+        }
+        before = {
+            "componentsTree": [
+                {
+                    "id": "tabs_1",
+                    "componentName": "SingleTabs",
+                    "props": {
+                        "list": [
+                            {
+                                "key": "manager",
+                                "label": "Manager",
+                                "children": {"id": "slot_node_1", "name": "slot_a", "value": []},
+                            },
+                            {
+                                "key": "team",
+                                "label": "Team",
+                                "children": {"id": "slot_node_2", "name": "slot_b", "value": []},
+                            },
+                        ]
+                    },
+                }
+            ]
+        }
+        changed = adapter.mutate(copy.deepcopy(before), target)
+        self.assertEqual("Owner", adapter.project(changed, target)["label"])
+        self.assertEqual("Team", changed["componentsTree"][0]["props"]["list"][1]["label"])
+        restored = adapter.restore(changed, before, target)
+        self.assertEqual("Manager", adapter.project(restored, target)["label"])
+
+    def test_public_filter_title_adapter_uses_stable_filter_triple(self) -> None:
+        adapter = ADAPTERS["update_public_filter_title"]
+        target = {
+            "relation_id": "public_filter_relation_1",
+            "filter_id": "public_filter_1",
+            "field_id": "field_1",
+            "probe_title": "Owner",
+        }
+        before = {
+            "unitList": [
+                {
+                    "unitList": [
+                        {
+                            "unitId": "public_filter_1",
+                            "unitName": "Manager",
+                            "format": {
+                                "unitConfig": {
+                                    "unitDimensionList": [
+                                        {
+                                            "filterUnitId": "public_filter_1",
+                                            "fieldId": "field_1",
+                                            "format": {},
+                                        }
+                                    ]
+                                }
+                            },
+                        }
+                    ]
+                }
+            ]
+        }
+        changed = adapter.mutate(copy.deepcopy(before), target)
+        self.assertEqual("Owner", adapter.project(changed, target)["title"])
+        restored = adapter.restore(changed, before, target)
+        self.assertEqual("Manager", adapter.project(restored, target)["title"])
 
     def test_formula_projection_ignores_volatile_server_metadata(self) -> None:
         adapter = ADAPTERS["update_formula"]
@@ -218,13 +385,71 @@ class DashboardWriteAdapterTests(unittest.TestCase):
                     "fields": {
                         "dimensions": [],
                         "metrics": [
-                            {"field_id": "metric_1", "business_name": "Renamed"}
+                            {"field_id": "metric_1", "display_name": "Renamed"}
                         ],
                     }
                 },
             }
         )
         self.assertEqual("Renamed", component["probe_show_name"])
+
+        component_filter = planned_operation_target(
+            {
+                "type": "update_component_filter_label",
+                "target": {
+                    "unit_id": "unit_1",
+                    "field_group": "unitFilterList",
+                    "field_id": "dimension_1",
+                },
+                "after": {"business_name": "Owner"},
+            }
+        )
+        self.assertEqual("Owner", component_filter["probe_show_name"])
+
+        component_title = planned_operation_target(
+            {
+                "type": "update_component_title",
+                "target": {"component_id": "node_1", "unit_id": "unit_1"},
+                "after": {"title": "Owner analysis"},
+            }
+        )
+        self.assertEqual("Owner analysis", component_title["probe_title"])
+
+        public_title = planned_operation_target(
+            {
+                "type": "update_public_filter_title",
+                "target": {
+                    "relation_id": "relation_1",
+                    "filter_id": "filter_1",
+                    "field_id": "field_1",
+                },
+                "after": {"title": "Owner"},
+            }
+        )
+        self.assertEqual("Owner", public_title["probe_title"])
+
+        tab_label = planned_operation_target(
+            {
+                "type": "update_tab_label",
+                "target": {
+                    "component_id": "tabs_1",
+                    "slot_key": "manager",
+                    "slot_id": "slot_node_1",
+                },
+                "after": {
+                    "config": {
+                        "slots": [
+                            {
+                                "key": "manager",
+                                "slot_id": "slot_node_1",
+                                "label": "Owner",
+                            }
+                        ]
+                    }
+                },
+            }
+        )
+        self.assertEqual("Owner", tab_label["probe_label"])
 
         formula = planned_operation_target(
             {

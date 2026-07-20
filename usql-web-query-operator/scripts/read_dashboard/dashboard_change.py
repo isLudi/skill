@@ -33,9 +33,13 @@ from .write_capabilities import capability_by_operation, load_capability_registr
 SUPPORTED_DOMAINS = {"market_consultant", "qingcheng"}
 SUPPORTED_APPLY_OPERATIONS = {
     "update_component_fields",
+    "update_component_filter_label",
+    "update_component_title",
     "update_filter_dynamic_default",
     "update_formula",
     "update_layout",
+    "update_public_filter_title",
+    "update_tab_label",
     "update_theme",
 }
 

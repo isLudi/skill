@@ -1,12 +1,13 @@
 {
   "schema_version": "1.0.0",
   "artifact_type": "P4BSandboxTransactionEvidence",
-  "dashboard_id": "dashboard_3984457934065463296",
-  "domain": "market_consultant",
-  "expected_profile_sha256": "91e256f1ecd56bd16e7924444e05975048c6156c70aabdbeae4461200e43c086",
-  "final_profile_sha256": "91e256f1ecd56bd16e7924444e05975048c6156c70aabdbeae4461200e43c086",
+  "dashboard_id": "dashboard_3994584279860838400",
+  "domain": "qingcheng",
+  "expected_profile_sha256": "64856e0fdd685f9c8ffe1027c5fc8985dd2d87c3e82fa97e063a9d0d046f750e",
+  "final_profile_sha256": "64856e0fdd685f9c8ffe1027c5fc8985dd2d87c3e82fa97e063a9d0d046f750e",
   "restored_to_baseline": true,
-  "verification_sha256": "3f8219dc7bda13b7c30d2306692765de7653fe8c3cfe2a5584fd5abc3431a11c",
+  "verification_sha256": "ccc9bbccc7d6cad3d26ecfae93c1691ddc19256d2a274fcb8db68d26b3762231",
+  "manifest_sha256": "2123701f859a2c1b7204ada74ab45e792ae3d0cc844b654e8f44cb86fe823c71",
   "operations": [
     {
       "operation": "update_component_fields",
@@ -16,8 +17,34 @@
       "restored": true,
       "write_response_statuses": [200, 200],
       "payload_sha256": [
-        "9acaca4545b2e4788cd94008ec212c6bbdc261add6c11c33777d041ffa984e77",
-        "b9f9a0516e5744ae55d62d0f3909bbd792dfa7fedfcaa8111c746f6ae2f7b589"
+        "97f0f54703b8e36df761cbd6ed4106d95c3c1fea9ee2721bf0098b3b9fb12f2b",
+        "d6b85fc0048a17ab125cf4de5a78e827522f6e45778787bc06c34e58c861032a"
+      ]
+    },
+    {
+      "operation": "update_component_filter_label",
+      "status": "verified_and_restored",
+      "drift_blocked_without_write": true,
+      "write_succeeded": true,
+      "restored": true,
+      "write_response_statuses": [200, 200],
+      "payload_sha256": [
+        "200bd67c376029bf2edc64619086f9328d650b4ebe8966bce01db04758b4f8f0",
+        "b3eb0e37e0e80e651e6ae80da8db6ec87b5bc0301f19757bbc7332ad547641b5"
+      ]
+    },
+    {
+      "operation": "update_component_title",
+      "status": "verified_and_restored",
+      "drift_blocked_without_write": true,
+      "write_succeeded": true,
+      "restored": true,
+      "write_response_statuses": [200, 200, 200, 200],
+      "payload_sha256": [
+        "3edb9a546f458666a15e4e130810474097b063d82bc96dc029bd2afe6d9e1ef2",
+        "e6f6f82127db6f4ede2c7f2f7a67feb61c9fc94d2efa0ca66ed0c74542e15f7c",
+        "07346f668019caa8eed6bdfef09919eb733d0fdea0cdb15b2a41c5644c131531",
+        "287e2d2250f104cc005a3553dcc3883a873b5dec561ef1aec1d571bb190dda97"
       ]
     },
     {
@@ -28,8 +55,32 @@
       "restored": true,
       "write_response_statuses": [200, 200],
       "payload_sha256": [
-        "1227ceb73c2a1e65847d5ba8a02d574bc4a9fb60838071d44ff165642e15ced6",
-        "072856cd36d7e264dcf045fe55b395b55c577f312544c55372d5a58e1881a813"
+        "cc89059482fb3deaab891099957a8ecd765eea2e468b6eb08d756132bb4376dd",
+        "ee827d3fb52010677f26d61a801c1c04c5e05038390355e5a8c7377583e6519e"
+      ]
+    },
+    {
+      "operation": "update_public_filter_title",
+      "status": "verified_and_restored",
+      "drift_blocked_without_write": true,
+      "write_succeeded": true,
+      "restored": true,
+      "write_response_statuses": [200, 200],
+      "payload_sha256": [
+        "9f427bdaf38bf220f06028d754bf63cb18eb00678bba4a66caa6feaf50022b48",
+        "29669cc538823f8761f43009e9c9685356459ae7d236839bf9a648f006654a00"
+      ]
+    },
+    {
+      "operation": "update_tab_label",
+      "status": "verified_and_restored",
+      "drift_blocked_without_write": true,
+      "write_succeeded": true,
+      "restored": true,
+      "write_response_statuses": [200, 200],
+      "payload_sha256": [
+        "a33119a4f461045f9a0db147c122a12a47494a767eafce1f47a6663baba06909",
+        "4f3f4c49b224d7b13f5d9efdf7d17c3a0a66950aa1c653bb1a02edcf4e11fe52"
       ]
     },
     {
@@ -40,8 +91,8 @@
       "restored": true,
       "write_response_statuses": [200, 200],
       "payload_sha256": [
-        "eed83051d1666fb68f3563cf368c3f90f180cff18121c22e00c96d50c2ac6d02",
-        "83eb65d554712a00be82286f483b38760afb721b91007e5daf0136df9ba93e62"
+        "5fb45376f55eaba54652ed2f19fe7a218c28def353494d2544b3717ae26c8fac",
+        "bd5d1a3fc523eca531dc07be8baecde351bd1d93e9e0ab90ce8a02bd15f03303"
       ]
     },
     {
@@ -52,8 +103,8 @@
       "restored": true,
       "write_response_statuses": [200, 200],
       "payload_sha256": [
-        "d7b0553fe940f4f7d9395c64fc08a790d22f773b2bf37235fcc4a5c959ecb349",
-        "887bb3d7d3137cf7f6723aa2921bab60073b02efce7bb3399b5d8fe81b0dae13"
+        "922871806bec0f47118f0e92b007e88e5dfde4a5e66df404a21825f49175a36b",
+        "c14cf1aa5fe75e22670478c082d9220fe2e7f059dae18ab9a599cb0686cca1ef"
       ]
     },
     {
@@ -64,8 +115,8 @@
       "restored": true,
       "write_response_statuses": [200, 200],
       "payload_sha256": [
-        "64f5c71abbf1ec5feba759511cae854df7312aa5ad03014c6b78d5a5c3fdd9e6",
-        "e12b29daaece18af0d8918f1bcc9129808b79b5a4ab124730b2dffe0ff0d519a"
+        "c26dc9df552707dc0c33e5681fd852d2a331d24f4b073d8b7ff0df81d6c90616",
+        "9d877b3884541ca1f8155841899bcfc6f5782dce42b463a1f73d3012dfda32c2"
       ]
     }
   ],
@@ -73,7 +124,11 @@
     "status": "verified_and_restored",
     "applied_operations": [
       "update_component_fields",
+      "update_component_filter_label",
+      "update_component_title",
       "update_filter_dynamic_default",
+      "update_public_filter_title",
+      "update_tab_label",
       "update_formula",
       "update_layout",
       "update_theme"
@@ -82,7 +137,11 @@
       "update_theme",
       "update_layout",
       "update_formula",
+      "update_tab_label",
+      "update_public_filter_title",
       "update_filter_dynamic_default",
+      "update_component_title",
+      "update_component_filter_label",
       "update_component_fields"
     ],
     "error": null

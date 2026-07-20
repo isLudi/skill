@@ -25,9 +25,13 @@ SUPPORTED_DOMAINS = {"market_consultant", "qingcheng"}
 PROFILE_DOMAINS = {*SUPPORTED_DOMAINS, "unresolved"}
 SAFE_OPERATION_TYPES = {
     "update_component_fields",
+    "update_component_filter_label",
+    "update_component_title",
     "update_filter_dynamic_default",
     "update_formula",
     "update_layout",
+    "update_public_filter_title",
+    "update_tab_label",
     "update_theme",
 }
 RECOGNIZED_DESIGN_OPERATION_TYPES = {
@@ -38,6 +42,8 @@ RECOGNIZED_DESIGN_OPERATION_TYPES = {
     "move_component_container",
     "update_existing_component",
     "update_component_fields",
+    "update_component_filter_label",
+    "update_component_title",
     "update_layout",
     "create_formula",
     "delete_formula",
@@ -47,7 +53,9 @@ RECOGNIZED_DESIGN_OPERATION_TYPES = {
     "rebind_filter",
     "update_filter",
     "update_filter_dynamic_default",
+    "update_public_filter_title",
     "update_component_filter",
+    "update_tab_label",
     "update_theme",
     "create_dataset",
     "delete_dataset",
@@ -1118,6 +1126,7 @@ def _component_field_group(item: Mapping[str, Any]) -> str | None:
         "row_dimension": "unitRowDimensionList",
         "column_dimension": "unitColumnDimensionList",
         "measure": "unitMeasureList",
+        "aide_measure": "unitAideMeasureList",
     }.get(group)
 
 
@@ -1139,12 +1148,12 @@ def _single_component_field_rename(
         if old_identity != new_identity:
             reasons.append("component field identity or ordering changed")
             return None, reasons
-        old_without_name = {key: value for key, value in old.items() if key != "business_name"}
-        new_without_name = {key: value for key, value in new.items() if key != "business_name"}
+        old_without_name = {key: value for key, value in old.items() if key != "display_name"}
+        new_without_name = {key: value for key, value in new.items() if key != "display_name"}
         if old_without_name != new_without_name:
             reasons.append("only an existing field display name may change")
             return None, reasons
-        if old.get("business_name") != new.get("business_name"):
+        if old.get("display_name") != new.get("display_name"):
             changes.append((old, new))
     if len(changes) != 1:
         reasons.append("P4B component apply requires exactly one field display-name change")
@@ -1154,7 +1163,7 @@ def _single_component_field_rename(
     if not field_group:
         reasons.append("component field group has no verified write mapping")
         return None, reasons
-    if not str(new.get("business_name") or "").strip():
+    if not str(new.get("display_name") or "").strip():
         reasons.append("component field display name must be non-empty")
         return None, reasons
     if reasons:
@@ -1164,6 +1173,57 @@ def _single_component_field_rename(
         "unit_id": after.get("unit_id"),
         "field_group": field_group,
         "field_id": new.get("field_id"),
+    }, []
+
+
+def _single_tab_label_change(
+    before: Mapping[str, Any], after: Mapping[str, Any]
+) -> tuple[dict[str, Any] | None, list[str]]:
+    reasons: list[str] = []
+    before_config = before.get("config") if isinstance(before.get("config"), Mapping) else {}
+    after_config = after.get("config") if isinstance(after.get("config"), Mapping) else {}
+    before_slots = before_config.get("slots") if isinstance(before_config.get("slots"), list) else []
+    after_slots = after_config.get("slots") if isinstance(after_config.get("slots"), list) else []
+    if str(before.get("component_type") or "").casefold() != "singletabs":
+        reasons.append("tab-label apply requires one existing SingleTabs component")
+    if len(before_slots) != len(after_slots) or not before_slots:
+        reasons.append("tab add/delete is outside P4B")
+        return None, reasons
+    before_without_slots = {key: value for key, value in before_config.items() if key != "slots"}
+    after_without_slots = {key: value for key, value in after_config.items() if key != "slots"}
+    if before_without_slots != after_without_slots:
+        reasons.append("only one existing tab label may change")
+        return None, reasons
+    changes: list[tuple[Mapping[str, Any], Mapping[str, Any]]] = []
+    for old, new in zip(before_slots, after_slots):
+        if not isinstance(old, Mapping) or not isinstance(new, Mapping):
+            reasons.append("tab slots must be stable objects")
+            return None, reasons
+        stable_keys = ("key", "slot_id", "slot_name", "component_ids")
+        if any(old.get(key) != new.get(key) for key in stable_keys):
+            reasons.append("tab slot identity or membership changed")
+            return None, reasons
+        old_without_label = {key: value for key, value in old.items() if key != "label"}
+        new_without_label = {key: value for key, value in new.items() if key != "label"}
+        if old_without_label != new_without_label:
+            reasons.append("only one existing tab label may change")
+            return None, reasons
+        if old.get("label") != new.get("label"):
+            changes.append((old, new))
+    if len(changes) != 1:
+        reasons.append("P4B tab apply requires exactly one label change")
+        return None, reasons
+    _old, new = changes[0]
+    if not all(str(new.get(key) or "").strip() for key in ("key", "slot_id")):
+        reasons.append("tab-label apply requires stable slot key and slot_id")
+    if not str(new.get("label") or "").strip():
+        reasons.append("tab label must be non-empty")
+    if reasons:
+        return None, reasons
+    return {
+        "component_id": after.get("component_id"),
+        "slot_key": new.get("key"),
+        "slot_id": new.get("slot_id"),
     }, []
 
 
@@ -1199,6 +1259,29 @@ def _component_operations(
                 blocked_reasons=["cross-container or cross-tab moves are outside P3B"],
             )
         )
+    if before.get("title") != after.get("title"):
+        stable_title_target = bool(
+            after.get("component_id")
+            and before.get("component_id") == after.get("component_id")
+            and before.get("unit_id") == after.get("unit_id")
+            and str(after.get("title") or "").strip()
+        )
+        operations.append(
+            _operation(
+                "update_component_title", "components", before, after,
+                risk="low" if stable_title_target else "high",
+                allowed=stable_title_target,
+                blocked_reasons=(
+                    []
+                    if stable_title_target
+                    else ["component title apply requires one stable component_id and a non-empty title"]
+                ),
+                target_override={
+                    "component_id": after.get("component_id"),
+                    "unit_id": after.get("unit_id"),
+                },
+            )
+        )
     field_keys = {"fields", "formula_ids", "filter_ids"}
     if any(before.get(key) != after.get(key) for key in field_keys):
         target, reasons = _single_component_field_rename(before, after)
@@ -1219,8 +1302,20 @@ def _component_operations(
                 target_override=target,
             )
         )
+    if before.get("config") != after.get("config"):
+        target, reasons = _single_tab_label_change(before, after)
+        operations.append(
+            _operation(
+                "update_tab_label", "components", before, after,
+                risk="low" if target is not None else "high",
+                allowed=target is not None,
+                blocked_reasons=reasons,
+                target_override=target,
+            )
+        )
     ignored = field_keys | {
-        "component_id", "unit_id", "component_type", "dataset_id", "container_id", "tab_id"
+        "component_id", "unit_id", "component_type", "dataset_id", "container_id", "tab_id",
+        "title", "config",
     }
     if any(before.get(key) != after.get(key) for key in set(before) | set(after) if key not in ignored):
         operations.append(
@@ -1349,6 +1444,7 @@ def _diff_collection(
                 if old.get(key) != new.get(key)
             }
             dynamic_default_only = bool(changed_keys) and changed_keys <= dynamic_keys
+            title_only = changed_keys == {"title"}
             stable_identity = all(
                 old.get(key) and old.get(key) == new.get(key)
                 for key in ("filter_id", "relation_id", "field_id")
@@ -1365,6 +1461,12 @@ def _diff_collection(
                 and valid_dynamic_value
                 and valid_dynamic_mode
             )
+            supported_title = (
+                not binding_changed
+                and title_only
+                and stable_identity
+                and bool(str(new.get("title") or "").strip())
+            )
             reasons: list[str] = []
             if binding_changed:
                 reasons.append("filter binding changes are outside P3B")
@@ -1378,8 +1480,15 @@ def _diff_collection(
                 reasons.append(
                     "supported dynamic defaults require dynamics_filter=true and auto_search_default_value=false"
                 )
+            elif title_only and not stable_identity:
+                reasons.append(
+                    "filter-title apply requires stable filter_id, relation_id, and field_id"
+                )
+            elif title_only and not str(new.get("title") or "").strip():
+                reasons.append("public-filter title must be non-empty")
             elif not dynamic_default_only:
-                reasons.append("generic filter edits are diff-only in P3A")
+                if not title_only:
+                    reasons.append("generic filter edits are diff-only in P3A")
             operations.append(
                 _operation(
                     (
@@ -1387,20 +1496,60 @@ def _diff_collection(
                         if binding_changed
                         else "update_filter_dynamic_default"
                         if dynamic_default_only
+                        else "update_public_filter_title"
+                        if title_only
                         else "update_filter"
                     ),
                     collection, old, new,
-                    risk="low" if supported_dynamic_default else "high" if binding_changed else "medium",
-                    allowed=supported_dynamic_default,
+                    risk=(
+                        "low"
+                        if supported_dynamic_default or supported_title
+                        else "high"
+                        if binding_changed
+                        else "medium"
+                    ),
+                    allowed=supported_dynamic_default or supported_title,
                     blocked_reasons=reasons,
                 )
             )
         elif collection == "component_filters":
+            changed_keys = {
+                key for key in set(old) | set(new)
+                if old.get(key) != new.get(key)
+            }
+            stable_identity = all(
+                old.get(key) and old.get(key) == new.get(key)
+                for key in ("component_filter_key", "unit_id", "field_id")
+            )
+            label_only = changed_keys == {"business_name"}
+            supported_label = (
+                stable_identity
+                and label_only
+                and bool(str(new.get("business_name") or "").strip())
+            )
+            reasons = []
+            if not stable_identity:
+                reasons.append("component-filter label apply requires stable unit_id and field_id")
+            if not label_only:
+                reasons.append("generic component-filter edits are diff-only in P3A")
+            if label_only and not str(new.get("business_name") or "").strip():
+                reasons.append("component-filter display label must be non-empty")
             operations.append(
                 _operation(
-                    "update_component_filter", collection, old, new,
-                    risk="medium", allowed=False,
-                    blocked_reasons=["component filter edits are diff-only in P3A"],
+                    "update_component_filter_label" if label_only else "update_component_filter",
+                    collection, old, new,
+                    risk="low" if supported_label else "medium",
+                    allowed=supported_label,
+                    blocked_reasons=reasons,
+                    target_override=(
+                        {
+                            "unit_id": new.get("unit_id"),
+                            "field_group": "unitFilterList",
+                            "field_id": new.get("field_id"),
+                        }
+                        if label_only
+                        else None
+                    ),
                 )
             )
         else:
@@ -1848,6 +1997,44 @@ def validate_dashboard_change_plan(
                 _diagnostic(
                     "DASHBOARD_COMPONENT_FIELD_STABLE_ID_REQUIRED", "error",
                     "component field apply requires component_id, unit_id, field_group, and field_id",
+                    f"operations[{index}].target",
+                )
+            )
+        if operation_type == "update_component_filter_label" and not all(
+            target.get(key) for key in ("unit_id", "field_group", "field_id")
+        ):
+            diagnostics.append(
+                _diagnostic(
+                    "DASHBOARD_COMPONENT_FILTER_LABEL_STABLE_ID_REQUIRED", "error",
+                    "component-filter label apply requires unit_id, field_group, and field_id",
+                    f"operations[{index}].target",
+                )
+            )
+        if operation_type == "update_component_title" and not target.get("component_id"):
+            diagnostics.append(
+                _diagnostic(
+                    "DASHBOARD_COMPONENT_TITLE_STABLE_ID_REQUIRED", "error",
+                    "component-title apply requires a stable component_id",
+                    f"operations[{index}].target",
+                )
+            )
+        if operation_type == "update_public_filter_title" and not all(
+            target.get(key) for key in ("relation_id", "filter_id", "field_id")
+        ):
+            diagnostics.append(
+                _diagnostic(
+                    "DASHBOARD_PUBLIC_FILTER_TITLE_STABLE_ID_REQUIRED", "error",
+                    "public-filter title apply requires relation_id, filter_id, and field_id",
+                    f"operations[{index}].target",
+                )
+            )
+        if operation_type == "update_tab_label" and not all(
+            target.get(key) for key in ("component_id", "slot_key", "slot_id")
+        ):
+            diagnostics.append(
+                _diagnostic(
+                    "DASHBOARD_TAB_LABEL_STABLE_ID_REQUIRED", "error",
+                    "tab-label apply requires component_id, slot_key, and slot_id",
                     f"operations[{index}].target",
                 )
             )

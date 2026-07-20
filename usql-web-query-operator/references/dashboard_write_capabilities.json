@@ -383,22 +383,98 @@
       "evidence": [
         {
           "source_path": "scripts/read_dashboard/dashboard_write_adapters.py",
-          "source_sha256": "b58117a35a7fc8f2a82c7eb901e459b1a7c3a8bde3d3acfe56add85b901f8329",
+          "source_sha256": "323364ef3a359f459d2a24b8d4e3f3c2b398a1bed05e97c874ea31cc94ae314c",
           "note": "Stable unit/group/field adapter with target-state readback and reversible recovery."
         },
         {
           "source_path": "tests/test_dashboard_write_adapters.py",
-          "source_sha256": "1951886b0023be6880f86b040de652337999902379315aa1ac5b6f155d5eb9ef",
+          "source_sha256": "49970ff849a9ef720cc8deb85d25bdfba798b672801a794c38afeb942e77c620",
           "note": "Drift, stable identity, unrelated-state preservation, and recovery tests."
         },
         {
           "source_path": "tests/fixtures/p4b_sandbox_transaction_evidence.json",
-          "source_sha256": "209091ad1aeabff82e48d765c6b97db26131e0fc3005110a871394839525a838",
+          "source_sha256": "8dfbfe0f41f4a858f2d657eeb7f7ebf9cd5938bcce598caf62cd99673448ef0a",
           "note": "Redacted live sandbox HTTP 200, multi-operation apply, reverse recovery, and full-profile restoration evidence."
         }
       ],
       "limitations": [
         "Allowlisted only for one existing stable field display-name change; add/remove/reorder, formula/filter binding changes, and dataset rebinding remain blocked."
+      ]
+    },
+    {
+      "operation": "update_component_filter_label",
+      "phase": "draft",
+      "maturity": "verified",
+      "write_policy": "allowlisted",
+      "transaction_class": "compensating_restore",
+      "recovery_policy": "compensating_restore",
+      "readback_coverage": "full",
+      "risk": "high",
+      "adapter": "read_dashboard.dashboard_write_adapters.ADAPTERS[update_component_filter_label]",
+      "write_endpoints": [
+        "config/update/unit"
+      ],
+      "readback_endpoints": [
+        "value/unit/consumer/detail"
+      ],
+      "evidence": [
+        {
+          "source_path": "scripts/read_dashboard/dashboard_write_adapters.py",
+          "source_sha256": "323364ef3a359f459d2a24b8d4e3f3c2b398a1bed05e97c874ea31cc94ae314c",
+          "note": "Stable unitFilterList field adapter changes only showName and restores the exact original label."
+        },
+        {
+          "source_path": "tests/test_dashboard_write_adapters.py",
+          "source_sha256": "49970ff849a9ef720cc8deb85d25bdfba798b672801a794c38afeb942e77c620",
+          "note": "Stable identity, target-only mutation, readback, and recovery tests."
+        },
+        {
+          "source_path": "tests/fixtures/p4b_sandbox_transaction_evidence.json",
+          "source_sha256": "8dfbfe0f41f4a858f2d657eeb7f7ebf9cd5938bcce598caf62cd99673448ef0a",
+          "note": "Redacted Qingcheng P4C sandbox HTTP 200, reverse recovery, and full-profile restoration evidence."
+        }
+      ],
+      "limitations": [
+        "Allowlisted only for showName on one existing component-local filter identified by stable unit_id + field_id; condition, values, add/remove, and binding changes remain blocked."
+      ]
+    },
+    {
+      "operation": "update_component_title",
+      "phase": "draft",
+      "maturity": "verified",
+      "write_policy": "allowlisted",
+      "transaction_class": "compensating_restore",
+      "recovery_policy": "compensating_restore",
+      "readback_coverage": "full",
+      "risk": "high",
+      "adapter": "read_dashboard.dashboard_write_adapters.ADAPTERS[update_component_title]",
+      "write_endpoints": [
+        "config/update/unit",
+        "config/save/dashboardHtml"
+      ],
+      "readback_endpoints": [
+        "value/unit/consumer/detail",
+        "config/dashboard"
+      ],
+      "evidence": [
+        {
+          "source_path": "scripts/read_dashboard/dashboard_write_adapters.py",
+          "source_sha256": "323364ef3a359f459d2a24b8d4e3f3c2b398a1bed05e97c874ea31cc94ae314c",
+          "note": "Stable component adapter keeps schema componentName and data-unit unitName consistent with compensating recovery."
+        },
+        {
+          "source_path": "tests/test_dashboard_write_adapters.py",
+          "source_sha256": "49970ff849a9ef720cc8deb85d25bdfba798b672801a794c38afeb942e77c620",
+          "note": "Schema plus unit-name projection, partial-write compensation, and exact recovery tests."
+        },
+        {
+          "source_path": "tests/fixtures/p4b_sandbox_transaction_evidence.json",
+          "source_sha256": "8dfbfe0f41f4a858f2d657eeb7f7ebf9cd5938bcce598caf62cd99673448ef0a",
+          "note": "Redacted Qingcheng P4C sandbox dual-endpoint write, reverse recovery, and full-profile restoration evidence."
+        }
+      ],
+      "limitations": [
+        "Allowlisted only for one non-empty title on an existing stable component; type, dataset, fields, style, layout, create/delete, and publication remain blocked."
       ]
     },
     {
@@ -462,17 +538,17 @@
       "evidence": [
         {
           "source_path": "scripts/read_dashboard/dashboard_write_adapters.py",
-          "source_sha256": "b58117a35a7fc8f2a82c7eb901e459b1a7c3a8bde3d3acfe56add85b901f8329",
+          "source_sha256": "323364ef3a359f459d2a24b8d4e3f3c2b398a1bed05e97c874ea31cc94ae314c",
           "note": "Existing-formula adapter excludes volatile server metadata and restores exact expression."
         },
         {
           "source_path": "tests/test_dashboard_write_adapters.py",
-          "source_sha256": "1951886b0023be6880f86b040de652337999902379315aa1ac5b6f155d5eb9ef",
+          "source_sha256": "49970ff849a9ef720cc8deb85d25bdfba798b672801a794c38afeb942e77c620",
           "note": "Formula metadata normalization, drift, and recovery tests."
         },
         {
           "source_path": "tests/fixtures/p4b_sandbox_transaction_evidence.json",
-          "source_sha256": "209091ad1aeabff82e48d765c6b97db26131e0fc3005110a871394839525a838",
+          "source_sha256": "8dfbfe0f41f4a858f2d657eeb7f7ebf9cd5938bcce598caf62cd99673448ef0a",
           "note": "Redacted live sandbox HTTP 200, multi-operation apply, reverse recovery, and full-profile restoration evidence."
         }
       ],
@@ -553,12 +629,50 @@
         },
         {
           "source_path": "tests/fixtures/p4b_sandbox_transaction_evidence.json",
-          "source_sha256": "209091ad1aeabff82e48d765c6b97db26131e0fc3005110a871394839525a838",
+          "source_sha256": "8dfbfe0f41f4a858f2d657eeb7f7ebf9cd5938bcce598caf62cd99673448ef0a",
           "note": "Redacted live sandbox HTTP 200, multi-operation apply, reverse recovery, and full-profile restoration evidence."
         }
       ],
       "limitations": [
         "The platform has no server-side transaction API; P4B uses immediate readback plus compensating reverse recovery and blocks publication on any failure."
+      ]
+    },
+    {
+      "operation": "update_public_filter_title",
+      "phase": "draft",
+      "maturity": "verified",
+      "write_policy": "allowlisted",
+      "transaction_class": "compensating_restore",
+      "recovery_policy": "compensating_restore",
+      "readback_coverage": "full",
+      "risk": "medium",
+      "adapter": "read_dashboard.dashboard_write_adapters.ADAPTERS[update_public_filter_title]",
+      "write_endpoints": [
+        "config/update/public/relation/unit"
+      ],
+      "readback_endpoints": [
+        "value/public/unit/relation/detail",
+        "config/dashboard"
+      ],
+      "evidence": [
+        {
+          "source_path": "scripts/read_dashboard/dashboard_write_adapters.py",
+          "source_sha256": "323364ef3a359f459d2a24b8d4e3f3c2b398a1bed05e97c874ea31cc94ae314c",
+          "note": "Stable relation_id + filter_id + field_id adapter changes only unitName and restores the original title."
+        },
+        {
+          "source_path": "tests/test_dashboard_write_adapters.py",
+          "source_sha256": "49970ff849a9ef720cc8deb85d25bdfba798b672801a794c38afeb942e77c620",
+          "note": "Stable triple, target-only title mutation, readback, and recovery tests."
+        },
+        {
+          "source_path": "tests/fixtures/p4b_sandbox_transaction_evidence.json",
+          "source_sha256": "8dfbfe0f41f4a858f2d657eeb7f7ebf9cd5938bcce598caf62cd99673448ef0a",
+          "note": "Redacted Qingcheng P4C sandbox HTTP 200, reverse recovery, and full-profile restoration evidence."
+        }
+      ],
+      "limitations": [
+        "Allowlisted only for one non-empty title on an existing public filter identified by stable relation_id + filter_id + field_id; field, targets, values, and defaults remain unchanged."
       ]
     },
     {
@@ -577,7 +691,44 @@
       ],
       "evidence": [],
       "limitations": [
-        "Component filter identity is profiled; update endpoint is not verified."
+        "Generic component-filter edits remain blocked. Only the separate update_component_filter_label operation may change showName; condition, values, add/remove, and binding changes have no production adapter."
+      ]
+    },
+    {
+      "operation": "update_tab_label",
+      "phase": "draft",
+      "maturity": "verified",
+      "write_policy": "allowlisted",
+      "transaction_class": "compensating_restore",
+      "recovery_policy": "compensating_restore",
+      "readback_coverage": "full",
+      "risk": "high",
+      "adapter": "read_dashboard.dashboard_write_adapters.ADAPTERS[update_tab_label]",
+      "write_endpoints": [
+        "config/save/dashboardHtml"
+      ],
+      "readback_endpoints": [
+        "config/dashboard"
+      ],
+      "evidence": [
+        {
+          "source_path": "scripts/read_dashboard/dashboard_write_adapters.py",
+          "source_sha256": "323364ef3a359f459d2a24b8d4e3f3c2b398a1bed05e97c874ea31cc94ae314c",
+          "note": "Stable component_id + slot_key + slot_id adapter changes only one existing tab label."
+        },
+        {
+          "source_path": "tests/test_dashboard_write_adapters.py",
+          "source_sha256": "49970ff849a9ef720cc8deb85d25bdfba798b672801a794c38afeb942e77c620",
+          "note": "Stable slot identity, membership preservation, target-only mutation, and recovery tests."
+        },
+        {
+          "source_path": "tests/fixtures/p4b_sandbox_transaction_evidence.json",
+          "source_sha256": "8dfbfe0f41f4a858f2d657eeb7f7ebf9cd5938bcce598caf62cd99673448ef0a",
+          "note": "Redacted Qingcheng P4C sandbox HTTP 200, reverse recovery, and full-profile restoration evidence."
+        }
+      ],
+      "limitations": [
+        "Allowlisted only for one non-empty label on an existing stable tab slot; slot add/delete/reorder, membership, container configuration, style, and layout remain blocked."
       ]
     },
     {
@@ -599,17 +750,17 @@
       "evidence": [
         {
           "source_path": "scripts/read_dashboard/dashboard_write_adapters.py",
-          "source_sha256": "b58117a35a7fc8f2a82c7eb901e459b1a7c3a8bde3d3acfe56add85b901f8329",
+          "source_sha256": "323364ef3a359f459d2a24b8d4e3f3c2b398a1bed05e97c874ea31cc94ae314c",
           "note": "Stable node layout patch with full schema readback and target-only recovery."
         },
         {
           "source_path": "tests/test_dashboard_write_adapters.py",
-          "source_sha256": "1951886b0023be6880f86b040de652337999902379315aa1ac5b6f155d5eb9ef",
+          "source_sha256": "49970ff849a9ef720cc8deb85d25bdfba798b672801a794c38afeb942e77c620",
           "note": "Layout key allowlist, drift, unrelated-state preservation, and recovery tests."
         },
         {
           "source_path": "tests/fixtures/p4b_sandbox_transaction_evidence.json",
-          "source_sha256": "209091ad1aeabff82e48d765c6b97db26131e0fc3005110a871394839525a838",
+          "source_sha256": "8dfbfe0f41f4a858f2d657eeb7f7ebf9cd5938bcce598caf62cd99673448ef0a",
           "note": "Redacted live sandbox HTTP 200, multi-operation apply, reverse recovery, and full-profile restoration evidence."
         }
       ],
@@ -636,17 +787,17 @@
       "evidence": [
         {
           "source_path": "scripts/read_dashboard/dashboard_write_adapters.py",
-          "source_sha256": "b58117a35a7fc8f2a82c7eb901e459b1a7c3a8bde3d3acfe56add85b901f8329",
+          "source_sha256": "323364ef3a359f459d2a24b8d4e3f3c2b398a1bed05e97c874ea31cc94ae314c",
           "note": "Root background-color adapter with theme identity readback and target-only recovery."
         },
         {
           "source_path": "tests/test_dashboard_write_adapters.py",
-          "source_sha256": "1951886b0023be6880f86b040de652337999902379315aa1ac5b6f155d5eb9ef",
+          "source_sha256": "49970ff849a9ef720cc8deb85d25bdfba798b672801a794c38afeb942e77c620",
           "note": "Theme identity, unrelated-state preservation, drift, and recovery tests."
         },
         {
           "source_path": "tests/fixtures/p4b_sandbox_transaction_evidence.json",
-          "source_sha256": "209091ad1aeabff82e48d765c6b97db26131e0fc3005110a871394839525a838",
+          "source_sha256": "8dfbfe0f41f4a858f2d657eeb7f7ebf9cd5938bcce598caf62cd99673448ef0a",
           "note": "Redacted live sandbox HTTP 200, multi-operation apply, reverse recovery, and full-profile restoration evidence."
         }
       ],
@@ -872,7 +1023,7 @@
       "evidence": [
         {
           "source_path": "scripts/read_dashboard/dashboard_change.py",
-          "source_sha256": "a9d820698d3a97fef9d693bed8ec3cd7d2e2fe4e42db6c28e98f49c7957de3ba",
+          "source_sha256": "fbb4e8aa32ce32ceb274765ab78f0c6c1df91aec8334b9d9fb9bf630dcddb0f0",
           "note": "Separate publish confirmation bound to ChangePlan and ApplyReceipt hashes."
         },
         {
@@ -903,5 +1054,5 @@
       ]
     }
   ],
-  "registry_sha256": "eca954cb5177229450232e11e25805db67eb30aa09a50014fed9734553ce3335"
+  "registry_sha256": "63a518d4e71250020d98dfd08a65274a025c9e83b47a0bafc3bb501f6ed6b312"
 }

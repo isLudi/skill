@@ -44,7 +44,7 @@ description: Resolve market-consultant semantic contracts, build governed QueryS
 - 共享物理目录只能提供表名、字段、类型、分区、物理粒度和候选键；市场顾问范围、指标和 join 仍以本 Skill 文档为准。
 - 市场顾问 `DashboardDesignSpec` 中的指标、维度、范围和公式依赖只能引用 `market_consultant:*` 的 `confirmed` contract ID 及其 `source_path`；不得因 live profile 出现同名字段而借用青橙口径。
 - 看板 `dashboard_id` 必须已由本 Skill 的 `knowledge/dashboard_web_profiles/` 注册并通过源文件 Hash 回查；未注册或同时出现在另一域的看板只允许只读画像，先完成市场顾问知识同步和 catalog 重建再进入 Design。
-- 本 Skill 只提供市场顾问业务设计约束，不保存看板登录态、不调用写接口。P3A 的组件/布局/公式/筛选器均可设计、diff 和 dry-run；P3B Apply 当前只允许 operator 已验证的已有公共筛选器动态默认项白名单。
+- 本 Skill 只提供市场顾问业务设计约束，不保存看板登录态、不调用写接口。P3A 的组件/布局/公式/筛选器均可设计、diff 和 dry-run；P3B Apply 只允许 operator Registry 已验证的九类窄操作，并继续阻断泛化组件、筛选器、数据集、新建和删除修改。
 - 不脱离知识库编造表、字段、join key 或指标口径。
 - 不在缺少 `dt`、`hour`、部门范围限定或必要 `limit` 时直接给出生产查询。
 - `confirmed` contract 只有在当前 QuerySpec 同时满足时间、范围、粒度、证据和 Join 门禁后才能进入 QueryPlan；`pending_confirmation` contract 只能用于候选解释、定向取证或只读 Probe，不得编译生产 SQL。
@@ -132,7 +132,7 @@ QuerySpec 至少包含：
 - 正向链路固定为 `QuerySpec -> QueryPlan -> DashboardDatasetSpec -> DashboardDesignSpec -> DashboardChangePlan -> dry-run`。DesignSpec 必须绑定本域 confirmed contract ID、`source_path`、QueryPlan/DatasetSpec hash 和基线 `DashboardProfile` hash。
 - 反向链路固定为 `live DashboardProfile -> component/model/relation/filter/field identity -> 字段/公式 -> contract_index -> market_consultant contract -> source_path -> dashboard/metric/raw SQL`；无法唯一反查时保留 `unknown/ambiguous`。
 - P3A 可覆盖 component、layout、formula、filter 的画像、设计、diff 与 dry-run，但不写平台。
-- P3B 只把 `update_filter_dynamic_default` 交给 `usql-web-query-operator`，并要求稳定的 `relation_id + filter_id(unit_id) + field_id`。组件字段、布局、公式、数据集重绑、新建和删除一律 `blocked_unsupported`。
+- P3B 只把以下九类 `verified/allowlisted` 操作交给 `usql-web-query-operator`：`update_component_fields`、`update_component_filter_label`、`update_component_title`、`update_public_filter_title`、`update_tab_label`、`update_layout`、`update_formula`、`update_filter_dynamic_default`、`update_theme`。每类必须使用对应稳定 ID 且只改一个已验证槽位；字段增删/排序、筛选条件/值/关系、Tab 成员、跨容器移动、公式依赖、数据集重绑、新建和删除仍为 `blocked_unsupported`。
 - Apply 只能写 draft，必须消费精确匹配的 ChangePlan/hash，写前后重新 profile；QueryPlan、DesignSpec 和 ChangePlan 都不构成写入或发布授权。同次 apply+publish 禁止，发布必须独立确认。
 - 详细字段、风险和路由见 `knowledge/sql_patterns/dashboard_design_change_workflow.md`；业务请求不涉及看板设计/编辑时不要加载该文档。
 

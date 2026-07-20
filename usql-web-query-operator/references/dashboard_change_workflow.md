@@ -114,7 +114,7 @@ D:\anaconda3\python.exe scripts\read_dashboard.py plan-dashboard-change `
   --output C:\runtime\dashboard_change_plan.json
 ```
 
-该命令不启动浏览器、不调用写接口，并输出 before/after、risk、`write_status`、阻断原因和 `change_plan_sha256`。Diff 可以覆盖全部设计状态；只有满足下文窄约束的五类操作会得到 `write_status=supported`。
+该命令不启动浏览器、不调用写接口，并输出 before/after、risk、`write_status`、阻断原因和 `change_plan_sha256`。Diff 可以覆盖全部设计状态；只有满足下文窄约束的九类操作会得到 `write_status=supported`。
 
 ## P4B：草稿 Apply
 
@@ -183,8 +183,12 @@ P3B 不再使用“第一个/第二个筛选器”定位。每个可写 operatio
 | operation | P3A Diff | P3B Apply |
 |---|---:|---:|
 | `update_filter_dynamic_default` | 支持 | 支持，仅稳定三元组和显式动态默认值 |
+| `update_public_filter_title` | 支持 | 支持，仅稳定三元组对应的一个非空叶子标题 |
 | `update_existing_component` | 支持 | `blocked_unsupported` |
 | `update_component_fields` | 支持 | 支持，仅既有稳定 field ID 的单个显示名修改 |
+| `update_component_filter_label` | 支持 | 支持，仅稳定 unit/field 的局部筛选器显示标签 |
+| `update_component_title` | 支持 | 支持，仅一个稳定既有组件的非空标题 |
+| `update_tab_label` | 支持 | 支持，仅稳定 component/slot key/slot ID 的一个标签 |
 | `update_layout` | 支持 | 支持，仅同容器/Tab 既有节点 `x/y/w/h`，通过边界与碰撞检查 |
 | `update_formula` | 支持 | 支持，仅既有单组件非共享公式表达式，依赖不变 |
 | `update_theme` | 支持 | 支持，仅根 `background_color=#RRGGBB` |

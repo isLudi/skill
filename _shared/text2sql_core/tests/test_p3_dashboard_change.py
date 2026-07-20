@@ -590,9 +590,13 @@ class P3DashboardChangeTest(unittest.TestCase):
         self.assertEqual(
             {
                 "update_component_fields",
+                "update_component_filter_label",
+                "update_component_title",
                 "update_filter_dynamic_default",
                 "update_formula",
                 "update_layout",
+                "update_public_filter_title",
+                "update_tab_label",
                 "update_theme",
             },
             SAFE_OPERATION_TYPES,
@@ -607,6 +611,7 @@ class P3DashboardChangeTest(unittest.TestCase):
                 {
                     "field_id": "metric-physical-1",
                     "business_name": "Old name",
+                    "display_name": "Old name",
                     "group": "measure",
                     "role": "measure",
                     "sort_value": None,
@@ -616,7 +621,7 @@ class P3DashboardChangeTest(unittest.TestCase):
         profile = normalize_dashboard_profile(profile)
 
         components = copy.deepcopy(profile["components"])
-        components[0]["fields"]["metrics"][0]["business_name"] = "New name"
+        components[0]["fields"]["metrics"][0]["display_name"] = "New name"
         component_plan = diff_dashboard(
             profile, self.design(profile, desired_components=components)
         )
@@ -675,6 +680,80 @@ class P3DashboardChangeTest(unittest.TestCase):
         )
         self.assertEqual("blocked", theme_plan["status"])
 
+    def test_p4b_tab_and_component_filter_labels_are_stable_narrow_operations(self) -> None:
+        profile = normalize_dashboard_profile(raw_profile())
+        profile["components"].append(
+            {
+                "component_id": "tabs-1",
+                "unit_id": None,
+                "component_type": "SingleTabs",
+                "title": "Analysis tabs",
+                "container_id": "root",
+                "tab_id": None,
+                "dataset_id": None,
+                "fields": {"dimensions": [], "metrics": []},
+                "formula_ids": [],
+                "filter_ids": [],
+                "sort": [],
+                "pagination": {},
+                "display": {"hidden": False, "locked": False},
+                "config": {
+                    "slots": [
+                        {
+                            "key": "slot-a",
+                            "label": "Manager",
+                            "slot_id": "slot-node-a",
+                            "slot_name": "slot_a",
+                            "component_ids": ["node-1"],
+                        },
+                        {
+                            "key": "slot-b",
+                            "label": "Team",
+                            "slot_id": "slot-node-b",
+                            "slot_name": "slot_b",
+                            "component_ids": [],
+                        },
+                    ]
+                },
+                "extensions": {},
+            }
+        )
+        profile["component_filters"][0]["business_name"] = "Manager"
+        profile = normalize_dashboard_profile(profile)
+
+        components = copy.deepcopy(profile["components"])
+        tabs = next(item for item in components if item["component_id"] == "tabs-1")
+        tabs["config"]["slots"][0]["label"] = "Owner"
+        tab_plan = diff_dashboard(
+            profile, self.design(profile, desired_components=components)
+        )
+        self.assertEqual("ready_for_dry_run", tab_plan["status"])
+        tab_operation = tab_plan["operations"][0]
+        self.assertEqual("update_tab_label", tab_operation["type"])
+        self.assertEqual(
+            {
+                "component_id": "tabs-1",
+                "slot_key": "slot-a",
+                "slot_id": "slot-node-a",
+            },
+            tab_operation["target"],
+        )
+
+        component_filters = copy.deepcopy(profile["component_filters"])
+        component_filters[0]["business_name"] = "Owner"
+        filter_plan = diff_dashboard(
+            profile,
+            build_dashboard_design_spec(
+                dataset_spec(),
+                profile,
+                desired_component_filters=component_filters,
+            ),
+        )
+        self.assertEqual("ready_for_dry_run", filter_plan["status"])
+        filter_operation = filter_plan["operations"][0]
+        self.assertEqual("update_component_filter_label", filter_operation["type"])
+        self.assertEqual("unitFilterList", filter_operation["target"]["field_group"])
+
     def test_dynamic_default_without_stable_triple_is_blocked(self) -> None:
         raw = raw_profile()
         raw["snapshot"]["public_filters"][0]["relation_id"] = ""
@@ -696,7 +775,7 @@ class P3DashboardChangeTest(unittest.TestCase):
 
         components = copy.deepcopy(profile["components"])
         components[0]["title"] = "Changed"
-        cases.append(("update_existing_component", self.design(profile, desired_components=components)))
+        cases.append(("update_component_title", self.design(profile, desired_components=components)))
 
         layout = copy.deepcopy(profile["layout"])
         layout[0]["x"] = 1
@@ -708,7 +787,7 @@ class P3DashboardChangeTest(unittest.TestCase):
 
         filters = copy.deepcopy(profile["public_filters"])
         filters[0]["title"] = "Changed"
-        cases.append(("update_filter", self.design(profile, desired_public_filters=filters)))
+        cases.append(("update_public_filter_title", self.design(profile, desired_public_filters=filters)))
 
         component_filters = copy.deepcopy(profile["component_filters"])
         component_filters[0]["condition"] = "not_empty"
@@ -724,10 +803,10 @@ class P3DashboardChangeTest(unittest.TestCase):
         )
 
         expected_write_status = {
-            "update_existing_component": "blocked_unsupported",
+            "update_component_title": "supported",
             "update_layout": "supported",
             "update_formula": "supported",
-            "update_filter": "blocked_unsupported",
+            "update_public_filter_title": "supported",
             "update_component_filter": "blocked_unsupported",
         }
         for expected_type, design in cases:
@@ -857,7 +936,7 @@ class P3DashboardChangeTest(unittest.TestCase):
     def test_apply_receipt_fails_for_blocked_mixed_plan(self) -> None:
         profile, design, desired = self.dynamic_design()
         components = copy.deepcopy(design["desired_components"])
-        components[0]["title"] = "Also changed"
+        components[0]["display"]["hidden"] = True
         mixed_design = self.design(
             profile,
             desired_components=components,

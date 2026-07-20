@@ -276,7 +276,7 @@ iframe 编辑器工具栏中的运行按钮回退方案：
 
 2026-07-11 起，Text2SQL 下游看板设计和修改使用独立的 `profile-edit-dashboard → design-dashboard → plan-dashboard-change → apply-dashboard-change → publish-dashboard-change` 链路。完整 Artifact、Hash、stable-ID、单 relation 原子性和阻断规则见 `references/dashboard_change_workflow.md`。
 
-当前 Registry 生产 allowlist 包括既有稳定字段显示名、同容器布局、依赖不变的既有局部公式、公共筛选器动态默认、根背景色、独立治理的透视表 copy-rebind，以及 P4C 的十三项新看板创建操作。它们仍受各自精确目标、Hash、回读和恢复门禁；未登记或 blocked 的既有组件重绑/筛选修改、克隆、文件夹移动、权限和删除操作不得调用。
+当前 Registry 生产 allowlist 包括既有稳定字段显示名、既有组件局部筛选器显示标签、既有组件标题、公共筛选器标题、既有 Tab 标签、同容器布局、依赖不变的既有局部公式、公共筛选器动态默认、根背景色、独立治理的透视表 copy-rebind，以及 P4C 的十三项新看板创建操作。它们仍受各自精确目标、Hash、回读和恢复门禁；未登记或 blocked 的既有组件重绑、泛化筛选条件/值/关系修改、克隆、文件夹移动、权限和删除操作不得调用。
 
 `apply-dashboard-change` 只写 draft；`publish-dashboard-change` 必须在独立进程中消费成功 ApplyReceipt 并显式确认。新链路不允许同一次命令 apply + publish。
 
