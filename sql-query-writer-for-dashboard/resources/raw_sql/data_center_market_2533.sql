@@ -1,3 +1,5 @@
+-- 2026-07-21 update: map summer business dates 2026-07-14..2026-08-12 to actual operation qici ranges.
+-- Dataset: 2533 process text data
 -------------------APP天级+小时级
 with d_ap as (
 select distinct 
@@ -42,7 +44,23 @@ from d_ap left join h_ap on d_ap.user_number = h_ap.user_number),
 data as (
     select distinct 
         f.*,
-concat(cast(date_format(date_add('day',4,date_trunc('week',date_add('day',-1,date_parse(replace(concat(f.group_period_year,f.group_period_term),'期',''),'%Y%m%d')))),'%Y%m%d')as varchar),'期') as qici
+        case
+            when cast(date_parse(replace(concat(f.group_period_year, f.group_period_term), '期', ''), '%Y%m%d') as date) between date '2026-07-14' and date '2026-07-19' then '20260716期'
+            when cast(date_parse(replace(concat(f.group_period_year, f.group_period_term), '期', ''), '%Y%m%d') as date) between date '2026-07-20' and date '2026-07-25' then '20260722期'
+            when cast(date_parse(replace(concat(f.group_period_year, f.group_period_term), '期', ''), '%Y%m%d') as date) between date '2026-07-26' and date '2026-07-31' then '20260728期'
+            when cast(date_parse(replace(concat(f.group_period_year, f.group_period_term), '期', ''), '%Y%m%d') as date) between date '2026-08-01' and date '2026-08-06' then '20260803期'
+            when cast(date_parse(replace(concat(f.group_period_year, f.group_period_term), '期', ''), '%Y%m%d') as date) between date '2026-08-07' and date '2026-08-12' then '20260809期'
+            else concat(
+                date_format(
+                    date_trunc(
+                        'week',
+                        date_parse(replace(concat(f.group_period_year, f.group_period_term), '期', ''), '%Y%m%d') - interval '1' day
+                    ) + interval '4' day,
+                    '%Y%m%d'
+                ),
+                '期'
+            )
+        end as qici
   ,-- 市场顾问渠道 CASE 映射
 -- 来源：D:\Feishu\0612.txt
 -- 更新时间：2026-06-12
@@ -411,7 +429,12 @@ from service_dw.app_h_crm_lead_task_process_info_detail_hf t1
                 user_number,
                 begin_time,
                 substr(begin_time, 12, 5) as ke_time,
-case 
+                case
+	when cast(begin_time as date) between date '2026-07-14' and date '2026-07-19' then '20260716期'
+	when cast(begin_time as date) between date '2026-07-20' and date '2026-07-25' then '20260722期'
+	when cast(begin_time as date) between date '2026-07-26' and date '2026-07-31' then '20260728期'
+	when cast(begin_time as date) between date '2026-08-01' and date '2026-08-06' then '20260803期'
+	when cast(begin_time as date) between date '2026-08-07' and date '2026-08-12' then '20260809期'
 	when cast(begin_time as date) >= date '2026-02-25' and cast(begin_time as date) <= date '2026-03-02' then '20260227期'
 	when cast(begin_time as date) >= date '2026-02-17' and cast(begin_time as date) <= date '2026-02-24' then '20260220期'		
 	when cast(begin_time as date) >= date '2026-02-09' and cast(begin_time as date) <= date '2026-02-16' then '20260213期'
@@ -420,8 +443,8 @@ case
     else 
         case 
             when day_of_week(cast(begin_time as date)) = 2 
-                then date_format(date_add('day', -3, date_trunc('week', cast(begin_time as date))), '%Y%m%d') || '期'
-            else date_format(date_add('day', 4, date_trunc('week', cast(begin_time as date))), '%Y%m%d') || '期'
+                then date_format(date_trunc('week', cast(begin_time as timestamp)) - interval '3' day, '%Y%m%d') || '期'
+            else date_format(date_trunc('week', cast(begin_time as timestamp)) + interval '4' day, '%Y%m%d') || '期'
         end
 end as qici,
                 mod(date_diff('day', cast('2021-02-01' as date), cast(begin_time as date)), 7) as dow,

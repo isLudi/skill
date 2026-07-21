@@ -1,0 +1,4 @@
+interface:
+  display_name: "训记训练数据"
+  short_description: "安全读取、整理并受控写回训记训练数据和官方训练计划"
+  default_prompt: "使用 $xunji-training-data 读取并整理我指定日期的训记训练数据；任何写回都先展示变更摘要并等待确认。"

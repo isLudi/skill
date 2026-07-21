@@ -2,7 +2,7 @@
 
 ## 1. 来源与范围
 
-- 最近同步计划日期：2026-07-20
+- 最近同步计划日期：2026-07-21
 - 来源页面：https://uanalysis.baijia.com/data-center/data-set
 - 同步范围：市场顾问部目录下从 `(内部渠道)外呼过程数据` 开始到末尾的 SQL 数据集。
 - canonical SQL 使用稳定文件名；更新时间与 SHA-256 由 `semantic/current_model_bindings.json` 记录。
@@ -26,7 +26,7 @@
 | 12 | `每日转化情况` | `menu_set_3823450751436996609` | `2423` | `2413` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/每日转化情况 | [data_center_market_2423.sql](../../resources/raw_sql/data_center_market_2423.sql) | `8c79f7966400750be577b1e986a07b52979f024f0ea090002b3e94bd85a06e9e` | 190 |
 | 13 | `每日转化数据表` | `menu_set_3823600047361425408` | `2424` | `2414` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/每日转化数据表 | [data_center_market_2424.sql](../../resources/raw_sql/data_center_market_2424.sql) | `2dad4b21d2d24229c581156dcdaecbb96d2026b301f06015cbf6c59b83a5ad54` | 514 |
 | 14 | `前期用户画像` | `menu_set_3833908289888309248` | `2461` | `2451` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/前期用户画像 | [data_center_market_2461.sql](../../resources/raw_sql/data_center_market_2461.sql) | `1335d248833ce3f975982696c64d391023c5cfefe9ffb0bd6cdfbc1a7fd2d8ba` | 573 |
-| 15 | `过程文本数据` | `menu_set_3845530621211140096` | `2533` | `2523` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/过程文本数据 | [data_center_market_2533.sql](../../resources/raw_sql/data_center_market_2533.sql) | `7bc06f61b63cc4faecf47e50ec0379b3e50ef4493ed2130830f7c6f4d9440565` | 598 |
+| 15 | `过程文本数据` | `menu_set_3845530621211140096` | `2533` | `2523` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/过程文本数据 | [data_center_market_2533.sql](../../resources/raw_sql/data_center_market_2533.sql) | `f1af248404149a7dd97f5ca17afb456a97758d1bec485a8e8fa7f8505df04aaf` | 621 |
 | 16 | `抖音私信- 分时间段` | `menu_set_3861038899901222912` | `2623` | `2613` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/抖音私信- 分时间段 | [data_center_market_2623.sql](../../resources/raw_sql/data_center_market_2623.sql) | `c0b4865dd691c1f51af61810c67ff267471184ae43e2a0e3d3b1e64fda1bf02a` | 559 |
 | 17 | `分触达时间段--抖音咨询` | `menu_set_3861085202969292800` | `2625` | `2615` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/分触达时间段--抖音咨询 | [data_center_market_2625.sql](../../resources/raw_sql/data_center_market_2625.sql) | `4e548fe6e06f5b10ab84992a8649f10467035853d166cf6117d87aa552f987d0` | 562 |
 | 18 | `月度评优` | `menu_set_3862900336085241857` | `2632` | `2622` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/月度评优 | [data_center_market_2632.sql](../../resources/raw_sql/data_center_market_2632.sql) | `fb0a907937b810c874794a07d7a2f04800c581f33b9308a8a1b044d6844c4b94` | 193 |

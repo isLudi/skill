@@ -221,10 +221,10 @@
       "model_id": "2533",
       "ordinal": 16,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/过程文本数据",
-      "source_observed_on": "2026-07-05",
-      "sql_bytes": 57794,
-      "sql_lines": 598,
-      "sql_sha256": "7bc06f61b63cc4faecf47e50ec0379b3e50ef4493ed2130830f7c6f4d9440565",
+      "source_observed_on": "2026-07-21",
+      "sql_bytes": 59597,
+      "sql_lines": 621,
+      "sql_sha256": "f1af248404149a7dd97f5ca17afb456a97758d1bec485a8e8fa7f8505df04aaf",
       "subject_id": "2523"
     },
     {
