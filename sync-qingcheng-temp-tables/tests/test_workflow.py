@@ -12,9 +12,11 @@ SKILL_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(SKILL_ROOT / "scripts"))
 
 from qingcheng_temp_table_sync import (  # noqa: E402
+    build_selection_spec,
     merge_records,
     load_registry,
     resolve_lark_cli,
+    select_messages,
     validate_source_records,
 )
 
@@ -110,6 +112,59 @@ class MergeWorkflowTests(unittest.TestCase):
         issues = validate_source_records(family, rows)
 
         self.assertTrue(any(issue["rule"] == "unique_key" for issue in issues))
+
+    def test_subset_selection_uses_only_requested_families(self) -> None:
+        registry = {
+            "families": [
+                {"id": "a", "source_filename_patterns": ["^a\\.xlsx$"]},
+                {"id": "b", "source_filename_patterns": ["^b\\.xlsx$"]},
+            ],
+            "upload_order": ["a", "b"],
+        }
+        selection = build_selection_spec(registry, family_ids=["b"])
+        messages = [
+            {"message_id": "om_a", "file_name": "a.xlsx", "create_time": "1000"},
+            {"message_id": "om_b", "file_name": "b.xlsx", "create_time": "2000"},
+        ]
+
+        selected, _, _ = select_messages(registry, messages, selection)
+
+        self.assertEqual(selection["family_ids"], ["b"])
+        self.assertEqual(selected["b"]["message_id"], "om_b")
+
+    def test_explicit_message_binding_does_not_float_to_a_newer_message(self) -> None:
+        registry = {
+            "families": [{"id": "a", "source_filename_patterns": ["^a\\.xlsx$"]}],
+            "upload_order": ["a"],
+        }
+        selection = build_selection_spec(
+            registry,
+            family_ids=["a"],
+            explicit_message_specs=["a=om_old"],
+        )
+        messages = [
+            {"message_id": "om_old", "file_name": "a.xlsx", "create_time": "1000"},
+            {"message_id": "om_new", "file_name": "a.xlsx", "create_time": "2000"},
+        ]
+
+        selected, _, _ = select_messages(registry, messages, selection)
+
+        self.assertEqual(selected["a"]["message_id"], "om_old")
+
+    def test_after_cutoff_is_strict(self) -> None:
+        registry = {
+            "families": [{"id": "a", "source_filename_patterns": ["^a\\.xlsx$"]}],
+            "upload_order": ["a"],
+        }
+        selection = build_selection_spec(registry, family_ids=["a"], after="1970-01-01T00:00:01Z")
+        messages = [
+            {"message_id": "om_equal", "file_name": "a.xlsx", "create_time": "1000"},
+            {"message_id": "om_after", "file_name": "a.xlsx", "create_time": "2000"},
+        ]
+
+        selected, _, _ = select_messages(registry, messages, selection)
+
+        self.assertEqual(selected["a"]["message_id"], "om_after")
 
 
 if __name__ == "__main__":

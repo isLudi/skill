@@ -57,6 +57,7 @@
       "temp_table.dingxi01_cost",
       "temp_table.dingxi01_daoke_1_6_t",
       "temp_table.dingxi01_jiagou_zx",
+      "temp_table.dingxi01_pingyou_jg",
       "temp_table.dingxi01_plan_id",
       "temp_table.zhangjunyan01_pingyou_jg"
     ],
@@ -120,7 +121,7 @@
   },
   "current_model_registry": {
     "source_path": "semantic/current_model_bindings.json",
-    "source_sha256": "6f2f65b2367a3daae9a9e40f49908b07abed51302b5d937ad82a084f235c5780",
+    "source_sha256": "3f823a6c8d5ebf04bbbd9e2171e4b9a5ab364d65e3d3bd14fcdb01adb93a2051",
     "policy": "one_current_model_per_id_and_semantic_slot",
     "canonical_filename_policy": "data_center_qingcheng_<model_id>.sql",
     "model_count": 7,
@@ -343,7 +344,7 @@
           },
           {
             "source_path": "knowledge/dashboard_web_profiles/edit_metrics/dashboard_3873038327756636161_edit_metrics.md",
-            "source_sha256": "8f49c6f44810b44adb806255dccb6f60e6474c2bfdd34ab215d98c1f4dc7dd3b"
+            "source_sha256": "b5665f3ced9065839329b45152b74d3491a8b48d282d319bb2fcf5768ad0f8cb"
           },
           {
             "source_path": "knowledge/dashboard_web_profiles/qingcheng_personal_conversion_web_profile.md",
@@ -1117,8 +1118,8 @@
       {
         "id": "qingcheng:dashboard_web_profiles:dashboard_3873038327756636161_edit_metrics",
         "source_path": "knowledge/dashboard_web_profiles/edit_metrics/dashboard_3873038327756636161_edit_metrics.md",
-        "sha256": "8f49c6f44810b44adb806255dccb6f60e6474c2bfdd34ab215d98c1f4dc7dd3b",
-        "bytes": 16473,
+        "sha256": "b5665f3ced9065839329b45152b74d3491a8b48d282d319bb2fcf5768ad0f8cb",
+        "bytes": 16318,
         "title": "个人转化数据-青橙 编辑器组件与字段快照",
         "table_refs": [],
         "raw_sql_refs": [],
@@ -1511,7 +1512,7 @@
       {
         "id": "qingcheng:dashboards:data_center_qingcheng_datasets",
         "source_path": "knowledge/dashboards/data_center_qingcheng_datasets.md",
-        "sha256": "d3c4d77db8f28790ce2ba2b230a167e004a636b3ad4a7b72c8bfcf02916ce96d",
+        "sha256": "929cf6c3395d2dd7c71b82fc136e19b6a805bfeaa6652463512ca9ecd958e63e",
         "bytes": 3621,
         "title": "数据中心数据集源 SQL（青橙项目部）",
         "table_refs": [],
@@ -2612,8 +2613,8 @@
       {
         "id": "qingcheng:raw_sql:data_center_qingcheng_2460",
         "source_path": "resources/raw_sql/data_center_qingcheng_2460.sql",
-        "sha256": "e137d83e0e68c5116b60e8ffaf45a58ea19229f3506f6a2c75bba46f96eb39dc",
-        "bytes": 32253,
+        "sha256": "59f336d5f0150cde29f6c5c9e60d6e3bb2f382820e6b9dc75cc1ed09aadcc76f",
+        "bytes": 32153,
         "title": "data_center_qingcheng_2460",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -3277,8 +3278,8 @@
       {
         "id": "qingcheng:sql_patterns:qingcheng_summer_qici_corrections",
         "source_path": "knowledge/sql_patterns/qingcheng_summer_qici_corrections.md",
-        "sha256": "949cbb43c0100f2646ee9e55340aa197d611de419152c70cbb3044fa12953aa4",
-        "bytes": 4356,
+        "sha256": "cabeb84f8b3a1bbe3133153e4247f4e01449ab64b41a555051fde6956f7b9579",
+        "bytes": 4987,
         "title": "青橙暑期期次修正规则",
         "table_refs": [
           "temp_table.dingxi01_qing_team_jg"
@@ -3882,8 +3883,8 @@
       {
         "id": "qingcheng:update_log:changelog",
         "source_path": "knowledge/update_log/changelog.md",
-        "sha256": "7f4e7ed5c8728d898d8ade785b97ad3aeba5d6450a048567543cef0446d67264",
-        "bytes": 62334,
+        "sha256": "f0bbad1baad422b3f4a477496cd8bddcdaa313cf58fcfec371fe1e0bb005a9bf",
+        "bytes": 63031,
         "title": "更新日志",
         "table_refs": [
           "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf",
@@ -4788,8 +4789,8 @@
     },
     {
       "source_path": "knowledge/dashboard_web_profiles/edit_metrics/dashboard_3873038327756636161_edit_metrics.md",
-      "sha256": "8f49c6f44810b44adb806255dccb6f60e6474c2bfdd34ab215d98c1f4dc7dd3b",
-      "bytes": 16473,
+      "sha256": "b5665f3ced9065839329b45152b74d3491a8b48d282d319bb2fcf5768ad0f8cb",
+      "bytes": 16318,
       "category": "dashboard_web_profiles"
     },
     {
@@ -4956,7 +4957,7 @@
     },
     {
       "source_path": "knowledge/dashboards/data_center_qingcheng_datasets.md",
-      "sha256": "d3c4d77db8f28790ce2ba2b230a167e004a636b3ad4a7b72c8bfcf02916ce96d",
+      "sha256": "929cf6c3395d2dd7c71b82fc136e19b6a805bfeaa6652463512ca9ecd958e63e",
       "bytes": 3621,
       "category": "dashboards"
     },
@@ -5364,8 +5365,8 @@
     },
     {
       "source_path": "knowledge/sql_patterns/qingcheng_summer_qici_corrections.md",
-      "sha256": "949cbb43c0100f2646ee9e55340aa197d611de419152c70cbb3044fa12953aa4",
-      "bytes": 4356,
+      "sha256": "cabeb84f8b3a1bbe3133153e4247f4e01449ab64b41a555051fde6956f7b9579",
+      "bytes": 4987,
       "category": "sql_patterns"
     },
     {
@@ -5574,8 +5575,8 @@
     },
     {
       "source_path": "knowledge/update_log/changelog.md",
-      "sha256": "7f4e7ed5c8728d898d8ade785b97ad3aeba5d6450a048567543cef0446d67264",
-      "bytes": 62334,
+      "sha256": "f0bbad1baad422b3f4a477496cd8bddcdaa313cf58fcfec371fe1e0bb005a9bf",
+      "bytes": 63031,
       "category": "update_log"
     },
     {
@@ -5592,8 +5593,8 @@
     },
     {
       "source_path": "resources/raw_sql/data_center_qingcheng_2460.sql",
-      "sha256": "e137d83e0e68c5116b60e8ffaf45a58ea19229f3506f6a2c75bba46f96eb39dc",
-      "bytes": 32253,
+      "sha256": "59f336d5f0150cde29f6c5c9e60d6e3bb2f382820e6b9dc75cc1ed09aadcc76f",
+      "bytes": 32153,
       "category": "raw_sql"
     },
     {

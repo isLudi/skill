@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0.0",
+  "mode": "shadow",
+  "chat_name": "青橙数据对接",
+  "chat_id": "oc_e604e064976c022ab4289fc2fb979332",
+  "source_sender_ids": [
+    "ou_bf111effd2d71a52ee40c58c7cb4d105"
+  ],
+  "approver_ids": [
+    "ou_adde1ef52a52e60a272fb4b8a416eb01"
+  ],
+  "bot_open_id": "ou_f3907e865135732c15a1dfce27828411",
+  "bot_names": [
+    "管家"
+  ],
+  "mention_required": true,
+  "auto_plan_source_attachments": true,
+  "attachment_quiet_seconds": 20,
+  "send_replies": false,
+  "reply_on_commands": true,
+  "reply_on_unknown_commands": false,
+  "reply_on_source_attachments": false,
+  "reply_progress_updates": false,
+  "reply_identity": "bot",
+  "allow_local_apply": false,
+  "allow_production_upload": false,
+  "event_key": "im.message.receive_v1",
+  "event_ready_timeout_seconds": 30,
+  "command_timeout_seconds": 1800,
+  "python_executable": "D:\\anaconda3\\python.exe",
+  "sync_script": "C:\\Users\\Ludim\\.codex\\skills\\sync-qingcheng-temp-tables\\scripts\\qingcheng_temp_table_sync.py",
+  "workflow_registry": "C:\\Users\\Ludim\\.codex\\skills\\sync-qingcheng-temp-tables\\references\\workflow_registry.json",
+  "runtime_root": "C:\\Users\\Ludim\\.codex\\runtime\\sync-qingcheng-temp-tables\\event-service",
+  "sync_runtime_root": "C:\\Users\\Ludim\\.codex\\runtime\\sync-qingcheng-temp-tables"
+}

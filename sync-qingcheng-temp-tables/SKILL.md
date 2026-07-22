@@ -1,6 +1,6 @@
 ---
 name: sync-qingcheng-temp-tables
-description: Synchronize the latest Excel files posted by 郅玲玉 in the Feishu group 青橙数据对接 into the Qingcheng and shared architecture maintenance workbooks, then upload the complete verified workbooks to their existing USQL temporary tables. Use for requests such as “上传郅玲玉在青橙数据对接内发布的最新临时表到线上平台”, for dry-run comparisons of those files, or for explaining and auditing this workflow.
+description: Synchronize the latest or explicitly selected Excel files posted by 郅玲玉 in the Feishu group 青橙数据对接 into the Qingcheng and shared architecture maintenance workbooks, then upload the complete verified workbooks to their existing USQL temporary tables. Also use to configure or operate the governed local lark-event service that turns @管家 commands and source attachments into plan, approval, local-apply, and upload jobs. Use for requests such as “上传郅玲玉在青橙数据对接内发布的最新临时表到线上平台”, scoped dry-run comparisons, event-service setup, or workflow auditing.
 ---
 
 # Sync Qingcheng Temp Tables
@@ -21,7 +21,7 @@ The workflow downloads the newest matching attachment from 郅玲玉, compares e
 
 Before acting, read and follow these skills completely:
 
-1. `lark-shared`, then `lark-im`, including the message-search and resource-download references needed for attachment discovery.
+1. `lark-shared`, then `lark-event` for persistent consumption, then `lark-im`, including the message mget/search, resource-download, and reply references needed for attachment discovery and governed status replies.
 2. `xlsx` for workbook inspection, formula-cache handling, recalculation, and QA.
 3. `usql-web-query-operator` for manual-table validation and production upload.
 
@@ -35,7 +35,9 @@ Treat the stages as separate authorization boundaries:
 
 1. `plan` is read-only with respect to the E-drive workbooks and the platform. It may search Feishu, download attachments to runtime storage, build staged copies, recalculate them, and validate them.
 2. `apply-local` may update the named E-drive workbooks only with the exact reviewed plan hash and `--confirm-local-write`. It creates timestamped backups before replacement and rolls back on failure.
-3. `upload` may overwrite the five existing platform temporary tables only with the exact successful local receipt hash and `--confirm-production-upload`.
+3. `upload` may overwrite only the selected existing platform temporary tables, and only with the exact successful local receipt hash and `--confirm-production-upload`.
+
+The persistent service adds separate runtime gates. `shadow` may only create plans; `send_replies` is only the master switch for visible bot replies and never grants workbook or platform writes. Reply policy defaults to known `@管家` commands only, suppresses unknown commands and automatic-source replies, and emits final results rather than progress chatter. `allow_local_apply` and `allow_production_upload` must both be enabled in `production` mode before an approver command can write. A recognized source attachment always remains plan-only. Public replies must not contain local paths, artifact hashes, receipt paths, or raw exceptions, and reply delivery failures must never change the underlying job status.
 
 A request only to analyze, explain, audit, or design the workflow stops after `plan`. The explicit request “上传郅玲玉在青橙数据对接内发布的最新临时表到线上平台” authorizes the intended end-to-end operation, but still execute and verify all three stages in order; never bypass the hashes, drift checks, backups, or receipts.
 
@@ -50,7 +52,7 @@ Do not treat these historical or intermediate files as current inputs:
 - `task_*.xlsx`
 - `CRM线索数据*.xlsx`
 
-If any required family is absent, ambiguous, malformed, or has duplicate business keys, block the plan. Do not silently reuse an older local slice.
+If any selected family is absent, ambiguous, malformed, or has duplicate business keys, block the plan. Do not silently reuse an older local slice. A plan may select a subset using `--family`, restrict messages using `--after`, or bind a family to an exact message with `--message-id <family>=<om_id>`. Exact bindings must still pass the configured chat, sender, filename, schema, and workbook validation.
 
 ## Merge Rules
 
@@ -76,11 +78,22 @@ D:\anaconda3\python.exe C:\Users\Ludim\.codex\skills\sync-qingcheng-temp-tables\
 
 Review `sync_plan.json`, especially:
 
-- the five selected Feishu message IDs and source hashes;
+- every selected Feishu message ID and source hash;
 - source slices, row counts, key uniqueness, and validation results;
 - per-table added, replaced, removed, and unchanged counts;
 - staged workbook hashes and any blockers;
-- whether the result is a five-table no-op.
+- whether every selected table is a no-op.
+
+For a scoped plan, repeat `--family`; for example, the three goal tables:
+
+```powershell
+D:\anaconda3\python.exe C:\Users\Ludim\.codex\skills\sync-qingcheng-temp-tables\scripts\qingcheng_temp_table_sync.py plan `
+  --family personal_period_goal `
+  --family team_period_goal `
+  --family team_month_goal
+```
+
+Use `--after '2026-07-21T22:00:00+08:00'` for a strict time lower bound, or `--message-id period_architecture=om_xxx` for a reply-bound source message. Omitting all selection flags preserves the five-family behavior.
 
 Apply the reviewed local plan using the exact printed values:
 
@@ -100,7 +113,22 @@ D:\anaconda3\python.exe C:\Users\Ludim\.codex\skills\sync-qingcheng-temp-tables\
   --confirm-production-upload
 ```
 
-The upload stage must re-check that each selected Feishu message is still latest, verify that all local hashes still match the receipt, validate each workbook with the operator, and upload in registry order using the existing-table overwrite workflow.
+The upload stage must re-check the plan's selection contract (`latest_matching` or `explicit_message`), verify that all local hashes still match the receipt, validate each workbook with the operator, and upload the selected families in registry order using the existing-table overwrite workflow.
+
+## Persistent lark-event Service
+
+Read and follow [event_service.md](references/event_service.md) before starting, enabling replies, installing login startup, or switching to production. The checked-in configuration template is [event_service_config.example.json](references/event_service_config.example.json); the live config and all service state belong under runtime, never the skill directory.
+
+The service must:
+
+- hold the `lark-event` child stdin open, wait for its `[event] ready` marker, and close stdin for graceful shutdown;
+- filter the exact group before claiming an event and use `message_id` as the idempotency key;
+- require a bot mention for text commands, except for allowlisted source attachments;
+- make role decisions from stable open IDs and deterministic commands, never from an LLM-generated permission decision;
+- serialize workbook jobs through one worker and persist job/outbound state in SQLite;
+- keep source-attachment automation plan-only, even in production mode;
+- allow production only after an approver's explicit `上传...` or `确认上传 <job_id>` command plus all configuration gates;
+- never force-kill the event consumer or silently retry an interrupted production job.
 
 ## Failure Handling
 
@@ -121,4 +149,4 @@ Report:
 - platform upload status per family and the final receipt;
 - any excluded files, pre-existing baseline warnings, blockers, or partial failures.
 
-State explicitly when all five families were already aligned and no production upload was performed.
+State explicitly when every selected family was already aligned and no production upload was performed.

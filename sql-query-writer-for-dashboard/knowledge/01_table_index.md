@@ -29,5 +29,6 @@
 | temp_table.dingxi01_daoke_1_6_t | 到课课次映射表 | 渠道-期次-年级-开课时间-课次粒度。来自 `daoke_t_one_six.xlsx`，数据行 2862 行、字段 7 个，存在 1 条空行；join key 存在重复，使用前建议去重。 | 无 | 否 | 已确认 | 已按 Excel 补全字段、样例和 key 重复检查 |
 | temp_table.dingxi01_jiagou_db | 架构映射表 | 顾问-期次-架构映射粒度。来自 `jiagou_xian_zhengzhou.xlsx`，数据行 5017 行、字段 10 个，存在 7 条空行；join key 存在少量重复。 | 无 | 否 | 已确认 | 已按 Excel 补全字段、样例和 key 重复检查 |
 | temp_table.dingxi01_jiagou_zx | 员工专项架构映射表 | 顾问-专项架构粒度。来自 `jiagou2026_zx.xlsx`，数据行 885 行、字段 7 个；无 qici 字段，跨期使用需确认。 | 无 | 否 | 已确认 | 已按 Excel 补全字段、样例和 key 重复检查 |
+| temp_table.dingxi01_pingyou_jg | 评优架构 / 新人承接期次临时表 | 顾问-期次-架构粒度。当前 `pingyou_jg.xlsx` 仅含 `Sheet4`，数据行 5920 行、字段 14 个；`employee_email_name + qici` 唯一。 | 无 | 否 | 已确认 | 2026-07-21 已验证 `x_qi_count` 仅为 1/2/3/4/9，顾问有效序号不重复，模型 2688 使用本表 |
 | temp_table.zhangjunyan01_pingyou_jg | 评优架构人产临时表 | 顾问-期次-渠道-年级-架构粒度。来自 `pingyou_jg.xlsx`，数据行 1220 行、字段 14 个，存在 1 个空表头列且已忽略。 | 无 | 否 | 已确认 | 已按 Excel 补全字段、样例和 key 重复检查 |
 | temp_table.dingxi01_plan_id | 市场顾问分配计划组 ID 维护表 | 期次-规则组粒度；来自 `plan_id.xlsx`，数据行 51 行、字段 4 个；`qici + group_id` 唯一，`group_id` 单字段跨期重复 | 无 | 否 | 已确认 | 已按 Excel `E:\2000_work\GAOTU\20002_市场顾问部看板维护表格\plan_id.xlsx` 补全字段、样例和 key 重复检查 |

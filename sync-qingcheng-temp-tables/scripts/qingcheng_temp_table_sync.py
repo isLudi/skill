@@ -11,7 +11,7 @@ import subprocess
 import sys
 import time
 from collections import Counter, defaultdict
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -138,61 +138,115 @@ def resolve_lark_cli() -> str:
     return str(Path(executable).resolve())
 
 
-def discover_live_messages(registry: dict[str, Any]) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+def discover_live_messages(
+    registry: dict[str, Any],
+    explicit_message_ids: set[str] | None = None,
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     cli = resolve_lark_cli()
     chat_cfg = registry["chat"]
-    search = run_json_command(
-        cli,
-        [
-            "im",
-            "+chat-search",
-            "--query",
-            chat_cfg["name"],
-            "--as",
-            "user",
-            "--page-size",
-            "20",
-            "--format",
-            "json",
-        ],
-        timeout=60,
-    )
-    chats = search.get("data", {}).get("chats", [])
-    exact = [chat for chat in chats if chat.get("name") == chat_cfg["name"]]
     expected_id = chat_cfg.get("expected_chat_id")
     if expected_id:
-        exact = [chat for chat in exact if chat.get("chat_id") == expected_id]
-    if len(exact) != 1:
-        raise WorkflowError(f"Expected exactly one visible chat named {chat_cfg['name']}; found {len(exact)}.")
-    chat = exact[0]
-    result = run_json_command(
-        cli,
-        [
-            "im",
-            "+messages-search",
-            "--chat-id",
-            chat["chat_id"],
-            "--sender",
-            chat_cfg["sender_open_id"],
-            "--include-attachment-type",
-            "file",
-            "--page-size",
-            "50",
-            "--page-all",
-            "--no-reactions",
-            "--as",
-            "user",
-            "--format",
-            "json",
-        ],
-        timeout=120,
-    )
+        chat = {"name": chat_cfg["name"], "chat_id": expected_id}
+    else:
+        search = run_json_command(
+            cli,
+            [
+                "im",
+                "+chat-search",
+                "--query",
+                chat_cfg["name"],
+                "--as",
+                "user",
+                "--page-size",
+                "20",
+                "--format",
+                "json",
+            ],
+            timeout=60,
+        )
+        chats = search.get("data", {}).get("chats", [])
+        exact = [item for item in chats if item.get("name") == chat_cfg["name"]]
+        if len(exact) != 1:
+            raise WorkflowError(f"Expected exactly one visible chat named {chat_cfg['name']}; found {len(exact)}.")
+        chat = exact[0]
+    try:
+        result = run_json_command(
+            cli,
+            [
+                "im",
+                "+messages-search",
+                "--chat-id",
+                chat["chat_id"],
+                "--sender",
+                chat_cfg["sender_open_id"],
+                "--include-attachment-type",
+                "file",
+                "--page-size",
+                "50",
+                "--page-all",
+                "--no-reactions",
+                "--as",
+                "user",
+                "--format",
+                "json",
+            ],
+            timeout=120,
+        )
+    except WorkflowError:
+        if not expected_id:
+            raise
+        result = run_json_command(
+            cli,
+            [
+                "im",
+                "+chat-messages-list",
+                "--chat-id",
+                chat["chat_id"],
+                "--sort",
+                "desc",
+                "--page-size",
+                "50",
+                "--page-all",
+                "--no-reactions",
+                "--as",
+                "bot",
+                "--format",
+                "json",
+            ],
+            timeout=180,
+        )
+    raw_messages = list(result.get("data", {}).get("messages", []))
+    explicit_message_ids = explicit_message_ids or set()
+    if explicit_message_ids:
+        exact = run_json_command(
+            cli,
+            [
+                "im",
+                "+messages-mget",
+                "--message-ids",
+                ",".join(sorted(explicit_message_ids)),
+                "--no-reactions",
+                "--as",
+                "bot",
+                "--format",
+                "json",
+            ],
+            timeout=60,
+        )
+        existing_ids = {message.get("message_id") for message in raw_messages}
+        raw_messages.extend(
+            message
+            for message in exact.get("data", {}).get("messages", [])
+            if message.get("message_id") not in existing_ids
+        )
     normalized = []
     pattern = re.compile(r'<file\s+key="([^"]+)"\s+name="([^"]+)"\s*/>')
-    for message in result.get("data", {}).get("messages", []):
+    for message in raw_messages:
         match = pattern.search(str(message.get("content", "")))
         sender = message.get("sender") or {}
         if not match or message.get("deleted"):
+            continue
+        if message.get("chat_id") and message.get("chat_id") != chat["chat_id"]:
             continue
         if sender.get("id") != chat_cfg["sender_open_id"] or sender.get("name") != chat_cfg["sender_name"]:
             continue
@@ -243,21 +297,109 @@ def message_sort_key(message: dict[str, Any]) -> tuple[str, int, str]:
     return str(message.get("create_time") or ""), position, str(message.get("message_id") or "")
 
 
+def parse_datetime(value: str) -> datetime:
+    text = str(value).strip()
+    if not text:
+        raise WorkflowError("Datetime value cannot be blank.")
+    if re.fullmatch(r"\d+(?:\.\d+)?", text):
+        timestamp = float(text)
+        if timestamp > 10_000_000_000:
+            timestamp /= 1000
+        return datetime.fromtimestamp(timestamp, tz=timezone.utc)
+    normalized = text[:-1] + "+00:00" if text.endswith("Z") else text
+    try:
+        parsed = datetime.fromisoformat(normalized)
+    except ValueError as exc:
+        raise WorkflowError(f"Invalid datetime value: {value}") from exc
+    if parsed.tzinfo is None:
+        parsed = parsed.astimezone()
+    return parsed.astimezone(timezone.utc)
+
+
+def build_selection_spec(
+    registry: dict[str, Any],
+    family_ids: list[str] | None = None,
+    after: str | None = None,
+    explicit_message_specs: list[str] | None = None,
+) -> dict[str, Any]:
+    known = family_map(registry)
+    requested = list(family_ids or registry["upload_order"])
+    if not requested:
+        raise WorkflowError("At least one workbook family must be selected.")
+    if len(requested) != len(set(requested)):
+        raise WorkflowError(f"Workbook family selection contains duplicates: {requested}")
+    unknown = [family_id for family_id in requested if family_id not in known]
+    if unknown:
+        raise WorkflowError(f"Unknown workbook family ids: {unknown}")
+    requested_set = set(requested)
+    ordered = [family_id for family_id in registry["upload_order"] if family_id in requested_set]
+    explicit: dict[str, str] = {}
+    for raw_spec in explicit_message_specs or []:
+        family_id, separator, message_id = raw_spec.partition("=")
+        family_id = family_id.strip()
+        message_id = message_id.strip()
+        if not separator or family_id not in known or not re.fullmatch(r"om_[A-Za-z0-9]+", message_id):
+            raise WorkflowError(
+                f"Invalid --message-id value {raw_spec!r}; expected <family_id>=<om_message_id>."
+            )
+        if family_id not in requested_set:
+            raise WorkflowError(f"Explicit message family is not selected by --family: {family_id}")
+        if family_id in explicit:
+            raise WorkflowError(f"Only one explicit message may be bound to family {family_id}.")
+        explicit[family_id] = message_id
+    after_iso = parse_datetime(after).isoformat() if after else None
+    return {
+        "family_ids": ordered,
+        "after": after_iso,
+        "explicit_message_ids": explicit,
+        "selection_modes": {
+            family_id: "explicit_message" if family_id in explicit else "latest_matching"
+            for family_id in ordered
+        },
+    }
+
+
+def select_messages(
+    registry: dict[str, Any],
+    messages: list[dict[str, Any]],
+    selection: dict[str, Any],
+) -> tuple[dict[str, dict[str, Any]], dict[str, list[dict[str, Any]]], list[dict[str, Any]]]:
+    after = parse_datetime(selection["after"]) if selection.get("after") else None
+    eligible = []
+    for message in messages:
+        if after is not None:
+            try:
+                created = parse_datetime(str(message.get("create_time") or ""))
+            except WorkflowError:
+                continue
+            if created <= after:
+                continue
+        eligible.append(message)
+    classified, unclassified = classify_messages(registry, eligible)
+    selected: dict[str, dict[str, Any]] = {}
+    missing = []
+    explicit = selection.get("explicit_message_ids") or {}
+    for family_id in selection["family_ids"]:
+        candidates = classified.get(family_id, [])
+        if family_id in explicit:
+            candidates = [message for message in candidates if message.get("message_id") == explicit[family_id]]
+        if not candidates:
+            missing.append(family_id)
+        elif len(candidates) > 1 and family_id in explicit:
+            raise WorkflowError(f"Explicit message id is not unique in search results: {explicit[family_id]}")
+        else:
+            selected[family_id] = max(candidates, key=message_sort_key)
+    if missing:
+        details = {family_id: explicit.get(family_id) for family_id in missing}
+        raise WorkflowError(f"No matching file message found for selected families: {details}")
+    return selected, classified, unclassified
+
+
 def select_latest_messages(
     registry: dict[str, Any], messages: list[dict[str, Any]]
 ) -> tuple[dict[str, dict[str, Any]], dict[str, list[dict[str, Any]]], list[dict[str, Any]]]:
-    classified, unclassified = classify_messages(registry, messages)
-    selected = {}
-    missing = []
-    for family in registry["families"]:
-        candidates = classified.get(family["id"], [])
-        if not candidates:
-            missing.append(family["id"])
-        else:
-            selected[family["id"]] = max(candidates, key=message_sort_key)
-    if missing:
-        raise WorkflowError(f"No matching file message found for required families: {missing}")
-    return selected, classified, unclassified
+    selection = build_selection_spec(registry)
+    return select_messages(registry, messages, selection)
 
 
 def download_message(message: dict[str, Any], family_id: str, output_dir: Path) -> Path:
@@ -278,7 +420,7 @@ def download_message(message: dict[str, Any], family_id: str, output_dir: Path) 
             "--output",
             f".\\{output_name}",
             "--as",
-            "user",
+            "bot",
         ],
         cwd=output_dir,
         timeout=120,
@@ -629,8 +771,15 @@ def validation_regressions(before: dict[str, Any], after: dict[str, Any]) -> lis
 def plan_sync(args: argparse.Namespace) -> int:
     registry_path = args.registry.resolve()
     registry = load_registry(registry_path)
-    chat, messages = discover_live_messages(registry)
-    selected, classified, unclassified = select_latest_messages(registry, messages)
+    selection = build_selection_spec(
+        registry,
+        family_ids=args.family,
+        after=args.after,
+        explicit_message_specs=args.message_id,
+    )
+    explicit_ids = set(selection.get("explicit_message_ids", {}).values())
+    chat, messages = discover_live_messages(registry, explicit_ids)
+    selected, classified, unclassified = select_messages(registry, messages, selection)
     run_id = datetime.now().strftime("%Y%m%d-%H%M%S") + f"-{os.getpid()}"
     run_dir = args.runtime_root.resolve() / run_id
     downloads_dir = run_dir / "downloads"
@@ -639,7 +788,7 @@ def plan_sync(args: argparse.Namespace) -> int:
     blockers = []
     tables = []
     families = family_map(registry)
-    for family_id in registry["upload_order"]:
+    for family_id in selection["family_ids"]:
         family = families[family_id]
         message = dict(selected[family_id])
         try:
@@ -733,7 +882,7 @@ def plan_sync(args: argparse.Namespace) -> int:
         "schema_version": "1.0.0",
         "artifact_type": "QingchengTempTableSyncPlan",
         "generated_at": datetime.now().astimezone().isoformat(timespec="seconds"),
-        "status": "ready" if not blockers and len(tables) == len(registry["families"]) else "blocked",
+        "status": "ready" if not blockers and len(tables) == len(selection["family_ids"]) else "blocked",
         "registry_path": str(registry_path),
         "registry_sha256": sha256_file(registry_path),
         "runtime_dir": str(run_dir),
@@ -744,6 +893,7 @@ def plan_sync(args: argparse.Namespace) -> int:
             "sender_open_id": registry["chat"]["sender_open_id"],
             "attachment_message_count": len(messages),
         },
+        "selection": selection,
         "selected_message_ids": {family_id: message["message_id"] for family_id, message in selected.items()},
         "history_counts": {family_id: len(items) for family_id, items in classified.items()},
         "unclassified_files": unclassified,
@@ -786,8 +936,10 @@ def apply_local(args: argparse.Namespace) -> int:
     if not registry_path.exists() or sha256_file(registry_path) != plan["registry_sha256"]:
         raise WorkflowError("Workflow registry drifted after planning.")
     registry = load_registry(registry_path)
-    _, current_messages = discover_live_messages(registry)
-    current_selected, _, _ = select_latest_messages(registry, current_messages)
+    selection = plan.get("selection") or build_selection_spec(registry)
+    explicit_ids = set(selection.get("explicit_message_ids", {}).values())
+    _, current_messages = discover_live_messages(registry, explicit_ids)
+    current_selected, _, _ = select_messages(registry, current_messages, selection)
     current_ids = {family_id: message["message_id"] for family_id, message in current_selected.items()}
     if current_ids != plan["selected_message_ids"]:
         raise WorkflowError("Newer matching Feishu files appeared after planning; create a fresh plan.")
@@ -882,8 +1034,10 @@ def upload_production(args: argparse.Namespace) -> int:
     if sha256_file(registry_path) != plan["registry_sha256"]:
         raise WorkflowError("Workflow registry drifted after planning.")
     registry = load_registry(registry_path)
-    _, current_messages = discover_live_messages(registry)
-    current_selected, _, _ = select_latest_messages(registry, current_messages)
+    selection = plan.get("selection") or build_selection_spec(registry)
+    explicit_ids = set(selection.get("explicit_message_ids", {}).values())
+    _, current_messages = discover_live_messages(registry, explicit_ids)
+    current_selected, _, _ = select_messages(registry, current_messages, selection)
     current_ids = {family_id: message["message_id"] for family_id, message in current_selected.items()}
     if current_ids != plan["selected_message_ids"]:
         raise WorkflowError("Newer matching Feishu files appeared after planning; create a fresh plan.")
@@ -894,7 +1048,8 @@ def upload_production(args: argparse.Namespace) -> int:
             raise WorkflowError(f"Local target drifted after apply: {target}")
     uploads = []
     failed = None
-    for family_id in registry["upload_order"]:
+    selected_order = selection["family_ids"]
+    for family_id in selected_order:
         table = tables_by_id[family_id]
         command = [
             str(OPERATOR_SCRIPT),
@@ -933,12 +1088,12 @@ def upload_production(args: argparse.Namespace) -> int:
         "schema_version": "1.0.0",
         "artifact_type": "QingchengTempTableUploadReceipt",
         "created_at": datetime.now().astimezone().isoformat(timespec="seconds"),
-        "status": "success" if failed is None and len(uploads) == len(registry["upload_order"]) else "partial_failure",
+        "status": "success" if failed is None and len(uploads) == len(selected_order) else "partial_failure",
         "local_receipt_path": str(args.local_receipt.resolve()),
         "local_receipt_sha256": receipt["receipt_sha256"],
         "uploads": uploads,
         "failure": failed,
-        "pending_families": registry["upload_order"][len(uploads) :] if failed else [],
+        "pending_families": selected_order[len(uploads) :] if failed else [],
     }
     upload_receipt_path = Path(plan["runtime_dir"]) / "upload_receipt.json"
     upload_sha = write_artifact(upload_receipt_path, upload_receipt, "receipt_sha256")
@@ -962,6 +1117,20 @@ def build_parser() -> argparse.ArgumentParser:
     plan = subparsers.add_parser("plan", help="Discover and download current group files, then build a local dry-run plan.")
     plan.add_argument("--registry", type=Path, default=DEFAULT_REGISTRY)
     plan.add_argument("--runtime-root", type=Path, default=DEFAULT_RUNTIME_ROOT)
+    plan.add_argument(
+        "--family",
+        action="append",
+        help="Limit the plan to a registered workbook family id; repeat for multiple families.",
+    )
+    plan.add_argument(
+        "--after",
+        help="Only consider messages strictly after this ISO datetime or Unix timestamp.",
+    )
+    plan.add_argument(
+        "--message-id",
+        action="append",
+        help="Bind one selected family to an exact Feishu message: <family_id>=<om_message_id>.",
+    )
     plan.set_defaults(func=plan_sync)
 
     local = subparsers.add_parser("apply-local", help="Apply a reviewed plan to local maintenance workbooks only.")

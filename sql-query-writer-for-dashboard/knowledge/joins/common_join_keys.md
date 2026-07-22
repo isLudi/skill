@@ -22,7 +22,8 @@
 | dt, hour | 小时表 | 分区对齐 | 小时表建议同时对齐 dt 和 hour |
 | lead_period_number | dm_crm_lead_stats_detail_hf | 期次关联 | 需确认是否与期次映射表一致 |
 | biz_number | gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf | 顾问首 call 任务期 number | 与 `qici`/`period_name` 不是同一字段，使用前需确认期次映射 |
-| qici | temp_table.dingxi01_jiagou_db, temp_table.dingxi01_daoke_1_6_t, temp_table.zhangjunyan01_pingyou_jg | 期次范围和临时映射表关联 | 临时表无分区，查询时建议必须限定期次 |
+| qici | temp_table.dingxi01_jiagou_db, temp_table.dingxi01_daoke_1_6_t, temp_table.dingxi01_pingyou_jg, temp_table.zhangjunyan01_pingyou_jg | 期次范围和临时映射表关联 | 临时表无分区，查询时建议必须限定期次 |
+| employee_email_name + qici | temp_table.dingxi01_pingyou_jg, data_center_market_2688.sql 最终聚合结果 | 新人过程转化的架构、人产和 `x_qi_count` 关联 | 2026-07-21 平台回读确认临时表键唯一；同一顾问的有效 `x_qi_count` 1—4 也必须跨期唯一 |
 | substr(qici, -5) | temp_table.dingxi01_jiagou_db | 期次尾号关联 | `lead_assign_plan_actual_valid_count.sql` 用规则名拆出的期次片段匹配该字段；跨年份可能重复，优先确认能否改用完整期次 |
 | qici + qudao + grade + begin_time | temp_table.dingxi01_daoke_1_6_t | 到课手工课次映射 | 市场顾问线索转化到课最新 raw SQL 用 `channel_map_1 = qudao` 补充 `manual_ke_1`；该表只作 manual 诊断，最终主到课口径使用按 `qici + channel_map_1 + grade_1` 内实际 `begin_time` 排序得到的自动课次 `auto_ke_1` |
 | channel, grade, begin_time | temp_table.dingxi01_daoke_1_6_t | 历史/其他看板课次映射 | 流量画像等历史 SQL 可能使用 `channel`；不得默认套用到最新到课衰减 SQL |
@@ -39,5 +40,5 @@
 | user_number + lead_id | service_dw.dwd_crm_assign_private_detail_hf, bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df | 市场渠道用户画像深沟/双沟阶段回连 | 私海表按 `user_number + lead_id` 取最新 `private_sea_update_time`；若只按 `user_number` 取最新，可能把同一用户其他线索阶段带入 |
 | period_name + channel_map + grade_name + manager_name | bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df | 市场渠道用户画像整体数据集最终聚合键 | 不是跨表 join key；用于 `data_center_market_2809.sql` 的 `agg` 输出粒度。`manager_name` 来自 `virtual_leader_email_name`，空值归为 `未知`，经理字段口径待人工确认 |
 | period_name + channel_map + grade_name + jingli + zhuguan + employee_email_name | bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df | 市场渠道用户画像多维退费率数据集最终聚合键 | 不是跨表 join key；用于 `data_center_market_2890.sql` 的 `agg` 输出粒度。退费率字段按分子/分母输出，透视表中用 `sum(分子) / sum(分母)` 重算；经理/主管/顾问字段来自主表虚拟架构，最终展示口径待人工确认 |
-| employee_email_name / name | temp_table.dingxi01_jiagou_db, temp_table.dingxi01_jiagou_zx, temp_table.zhangjunyan01_pingyou_jg, bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df, finance_dw.app_finance_performance_extend_details_hf, dw.dim_employee_chain | 员工架构/财务流水/组织链映射 | 姓名可能不唯一，优先确认是否可用邮箱前缀替代；`data_center_market_2727.sql` 暂用 `org_t.name = dd_0.name` |
+| employee_email_name / name | temp_table.dingxi01_jiagou_db, temp_table.dingxi01_jiagou_zx, temp_table.dingxi01_pingyou_jg, temp_table.zhangjunyan01_pingyou_jg, bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df, finance_dw.app_finance_performance_extend_details_hf, dw.dim_employee_chain | 员工架构/财务流水/组织链映射 | 姓名可能不唯一，优先确认是否可用邮箱前缀替代；`data_center_market_2727.sql` 暂用 `org_t.name = dd_0.name` |
 | user_id + employee_email_name | bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df, gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf (via finance_dw.dim_finance_employee_df.account_id bridge) | H业务线二级部门转化看板首 call 关联 | 首 call 表通过 `account_id` → 员工维表 `employee_email_name` 桥接后，再用 `user_id + employee_email_name` 关联主数据；该组合并非全局唯一，多条有效线索关联时 `is_f_call` 是 0/1 标记 |

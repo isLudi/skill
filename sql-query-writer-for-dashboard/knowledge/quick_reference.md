@@ -28,6 +28,7 @@
 | `finance_dw.app_finance_performance_extend_details_hf` | 财务业绩、收款、退款、评优 | Web 查询可用 |
 | `temp_table.dingxi01_jiagou_zx` | 当前在职架构、顾问名单 | 限定 `zaizhi` 和部门，按顾问去重 |
 | `temp_table.dingxi01_jiagou_db` | 期次架构、小组经理 | 同时限定 `qici` 和目标部门 |
+| `temp_table.dingxi01_pingyou_jg` | 新人过程转化承接期次、模型 2688 架构/人产 | `x_qi_count` 为 1—4 有效序号、9 为排除；上传前读专项踩坑 |
 | `temp_table.zhangjunyan01_pingyou_jg` | 评优/参评名单/人产 | 仅在评优口径使用 |
 | `temp_table.dingxi01_cost` | 渠道成本、GMV 目标 | join 时处理 `grade='0'` 通配 |
 | `temp_table.dingxi01_daoke_1_6_t` | 到课手工课次映射 | 最新到课 canonical 仅用于 `manual_*` 和自动/手工对照诊断；主课次按实际开课时间自动排序 |
@@ -63,7 +64,8 @@
 | 渠道财务正价课科目结构 | `knowledge/dashboards/market_finance_positive_subject_structure_template.md` | `knowledge/metrics/market_finance_positive_subject_structure_metrics.md`；先确认使用财务正价课识别而非 2809 运营转化识别 |
 | 渠道内 TOP10 顾问转化/净 GMV 排名 | `knowledge/dashboards/market_channel_top10_consultant_conversion_template.md` | `knowledge/metrics/market_channel_top10_consultant_conversion_metrics.md`；渠道用当前 canonical 映射，学部+渠道使用显式配对 |
 | 渠道专项正价课科目、课程和班课拆分 | `knowledge/sql_patterns/market_channel_positive_subject_course_worked_example.md` | 作为 M6 worked example；渠道、订单类型、版本关键词和课程粒度均为参数，不固化西安直播江苏 |
-| 市场顾问看板指标含义/前端公式/数据集 SQL 联动 | `knowledge/metrics/market_consultant_dashboard_metric_formula_linkage.md` | 再读 `knowledge/dashboard_web_profiles/edit_metrics/` 中对应看板明细和 `resources/raw_sql/data_center_market_*_*.sql` |
+| 市场顾问看板指标含义/前端公式/数据集 SQL 联动 | `knowledge/metrics/market_consultant_dashboard_metric_formula_linkage.md` | 再读 `knowledge/dashboard_web_profiles/edit_metrics/` 中对应看板明细和 `resources/raw_sql/data_center_market_<model_id>.sql` |
+| 【新人】前期过程转化、`x_qi_count` 重复、`pingyou_jg` 上传错位或最新期次缺失 | `knowledge/pitfalls/newcomer_x_qi_count_and_pingyou_upload.md` | `knowledge/tables/temp_table.dingxi01_pingyou_jg.md`、`resources/raw_sql/data_center_market_2688.sql`；缺暑期期次再读 `knowledge/sql_patterns/market_summer_qici_corrections.md` |
 | 运营侧暑期期次、`20260717期` 应归 `20260716期`、7 月后期次不按周五 | `knowledge/sql_patterns/market_summer_qici_corrections.md` | 再读 `knowledge/dashboard_web_profiles/operation_side_dashboard_web_profile.md` 和 `knowledge/dashboards/data_center_market_datasets.md` |
 | 退费分析 | `knowledge/metrics/market_channel_conversion_profile_metrics.md` | 唯一入口为 `knowledge/dashboards/market_channel_conversion_profile.md`；按 2349、2890、2353 三个当前模型选择对应字段 |
 | 分配计划实际有效量 | `knowledge/dashboards/lead_assign_plan_actual_valid_count.md` | `knowledge/joins/common_join_keys.md` |

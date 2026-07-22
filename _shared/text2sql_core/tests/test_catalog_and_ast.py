@@ -60,7 +60,7 @@ class CatalogAndAstTest(unittest.TestCase):
 
     def test_domain_manifests_cover_every_knowledge_and_raw_sql_file(self) -> None:
         expected_baseline = {
-            "market_consultant": (135, 63),
+            "market_consultant": (137, 63),
             "qingcheng": (166, 17),
         }
         for domain, config in DOMAIN_CONFIG.items():

@@ -26,10 +26,10 @@
       "model_id": "2460",
       "ordinal": 2,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/青橙项目部/转化数据",
-      "source_observed_on": "2026-07-16",
-      "sql_bytes": 32252,
-      "sql_lines": 577,
-      "sql_sha256": "e137d83e0e68c5116b60e8ffaf45a58ea19229f3506f6a2c75bba46f96eb39dc",
+      "source_observed_on": "2026-07-21",
+      "sql_bytes": 32152,
+      "sql_lines": 576,
+      "sql_sha256": "59f336d5f0150cde29f6c5c9e60d6e3bb2f382820e6b9dc75cc1ed09aadcc76f",
       "subject_id": "2450"
     },
     {

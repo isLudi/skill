@@ -167,6 +167,19 @@ coalesce(jg.jingli, zx.jingli, zz.jingli) as jingli_11
 
 ---
 
+## 4.3 新人过程转化 `x_qi_count` 跨期重复
+
+如果模型 `2688` 中同一顾问重复出现相同 `x_qi_count`，不要默认判断为 join 放大。先分别检查：
+
+1. `period_name + employee_email_name` 是否重复；重复才优先排查最终 join 基数。
+2. `temp_table.dingxi01_pingyou_jg` 中 `employee_email_name + qici` 是否唯一。
+3. 同一顾问在 `x_qi_count in (1,2,3,4)` 中是否跨期重复；若是，则是手工序号维护问题。
+4. 上传后是否出现 `qici='1'` 或字段错位；本次空 `grade` 行触发过该问题。
+
+完整根因、Excel 公式、上传和暑期日历闭环见 `newcomer_x_qi_count_and_pingyou_upload.md`。
+
+---
+
 ## 5. CRM 开课后转移/退费状态无法回写导致顾问仍有退前/退后线索
 
 **症状**：CRM 前台显示某顾问当期线索已经全部转移、退费或转移给其他顾问，但运营侧看板、GMV communication 类数据集或全链路宽表仍能按该顾问拉出 `退前线索` / `退后线索` / 线索量。

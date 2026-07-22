@@ -341,10 +341,10 @@
       "model_id": "2688",
       "ordinal": 24,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/新人过程转化数据",
-      "source_observed_on": "2026-07-05",
-      "sql_bytes": 54903,
-      "sql_lines": 559,
-      "sql_sha256": "3d79b44a31e339afce7d45722a350c10b6a4ba94aa606c93907165eab9379227",
+      "source_observed_on": "2026-07-21",
+      "sql_bytes": 58403,
+      "sql_lines": 645,
+      "sql_sha256": "617cc607e7f584d165042a26a66f1d4ea4875390e07c0f62bb2cb97e54ee89ab",
       "subject_id": "2678"
     },
     {

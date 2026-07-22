@@ -1,5 +1,21 @@
 -------------------APP天级+小时级
-with d_ap as (
+with biz_qici_calendar as (
+    select *
+    from (
+        values
+            ('market_consultant', 'lead_period', '20260716期', date '2026-07-14', date '2026-07-19', 1),
+            ('market_consultant', 'class_period', '20260716期', date '2026-07-14', date '2026-07-19', 1),
+            ('market_consultant', 'lead_period', '20260722期', date '2026-07-20', date '2026-07-25', 1),
+            ('market_consultant', 'class_period', '20260722期', date '2026-07-20', date '2026-07-25', 1),
+            ('market_consultant', 'lead_period', '20260728期', date '2026-07-26', date '2026-07-31', 1),
+            ('market_consultant', 'class_period', '20260728期', date '2026-07-26', date '2026-07-31', 1),
+            ('market_consultant', 'lead_period', '20260803期', date '2026-08-01', date '2026-08-06', 1),
+            ('market_consultant', 'class_period', '20260803期', date '2026-08-01', date '2026-08-06', 1),
+            ('market_consultant', 'lead_period', '20260809期', date '2026-08-07', date '2026-08-12', 1),
+            ('market_consultant', 'class_period', '20260809期', date '2026-08-07', date '2026-08-12', 1)
+    ) as t(business_domain, date_role, qici, period_start_date, period_end_date, enabled)
+),
+d_ap as (
 select distinct 
         user_latest.user_number,
         user_latest.last_event_time,
@@ -40,8 +56,12 @@ from d_ap left join h_ap on d_ap.user_number = h_ap.user_number)
 ----------------------------- 伙伴在部门开始时间+期次
 ,org_t as (
     select 
-concat(date_format(date_add('day', 4, date_trunc('week', date_add('day', -1, cast(begin_time as timestamp)))), '%Y%m%d'), '期') as qici,
-email_prefix,name
+coalesce(
+    org_cal.qici,
+    concat(date_format(date_trunc('week', cast(org_base.begin_time as timestamp) - interval '1' day) + interval '4' day, '%Y%m%d'), '期')
+) as qici,
+org_base.email_prefix,
+org_base.name
 from(
     select 
         email_prefix,
@@ -52,11 +72,19 @@ from(
     where dt = format_datetime(now() - interval '24' hour, 'YYYYMMdd')
       and path_name like '高途-H业务线-市场部-市场顾问部%'
     group by email_prefix, name
-))
+) org_base
+left join biz_qici_calendar org_cal
+  on org_cal.business_domain = 'market_consultant'
+ and org_cal.date_role = 'lead_period'
+ and cast(org_base.begin_time as date) between org_cal.period_start_date and org_cal.period_end_date
+ and org_cal.enabled = 1)
 ------------------------基础数据	
 ,data as
 (select distinct
-concat(cast(date_format(date_add('day',4,date_trunc('week',date_add('day',-1,date_parse(replace(concat(group_period_year,group_period_term),'期',''),'%Y%m%d')))),'%Y%m%d')as varchar),'期') period_name,
+ coalesce(
+     lead_cal.qici,
+     concat(cast(date_format(date_trunc('week', date_parse(replace(concat(group_period_year,group_period_term),'期',''),'%Y%m%d') - interval '1' day) + interval '4' day,'%Y%m%d')as varchar),'期')
+ ) period_name,
  virtual_third_department_name  depart_1,
 virtual_fourth_department_name  depart,
     virtual_leader_email_name  jingli,-- 大组长
@@ -70,7 +98,7 @@ virtual_fourth_department_name  depart,
  -- 新增：顾问的部门期次（顾问开始在部门的第一期）
     org.qici as employee_dept_start_qici,
 -- 新增：计算当前期次与顾问部门开始期次的差值（用于筛选前两期）
-    case when org.qici is not null then (cast(substr(concat(cast(date_format(date_add('day',4,date_trunc('week',date_add('day',-1,date_parse(replace(concat(group_period_year,group_period_term),'期',''),'%Y%m%d')))),'%Y%m%d')as varchar),'期'), 1, 8) as bigint) - cast(substr(org.qici, 1, 8) as bigint)) / 7 else null 
+    case when org.qici is not null then (cast(substr(coalesce(lead_cal.qici, concat(cast(date_format(date_trunc('week', date_parse(replace(concat(group_period_year,group_period_term),'期',''),'%Y%m%d') - interval '1' day) + interval '4' day,'%Y%m%d')as varchar),'期')), 1, 8) as bigint) - cast(substr(org.qici, 1, 8) as bigint)) / 7 else null 
     end as period_diff,
 case when flow_pool_name in ('高途学习规划','智辉老师讲规划') then '市场私域视频号'
 when rule_name like '%语数英%' and third_department_name = '新媒体内容运营部' then '语数英'
@@ -278,8 +306,14 @@ coalesce(date_diff('hour', cast(t1.section_assign_time as timestamp), cast(t1.fi
     coalesce(case when t.jieduan in ('深沟','已双沟') then 1 else 0 end, 0) as is_shengou,
  	coalesce(case when intention_level in ('A', 'B') and t.jieduan in ('深沟','已双沟') then 1 else 0 end, 0) as AB_intention_level,
     coalesce(case when intention_level in ('A', 'B') and conversion_lead_count = '1' then 1 else 0 end, 0) as AB_zhuanhua 
-from bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df t1
-left join org_t org on org.email_prefix = t1.employee_email_prefix
+ from bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df t1
+ left join biz_qici_calendar lead_cal
+   on lead_cal.business_domain = 'market_consultant'
+  and lead_cal.date_role = 'lead_period'
+  and cast(date_parse(replace(concat(t1.group_period_year, t1.group_period_term), '期', ''), '%Y%m%d') as date)
+      between lead_cal.period_start_date and lead_cal.period_end_date
+  and lead_cal.enabled = 1
+ left join org_t org on org.email_prefix = t1.employee_email_prefix
 left join 
     (
         select 
@@ -415,32 +449,40 @@ where dt=format_datetime(NOW()-interval '2' hour,'YYYYMMdd') and hour=format_dat
         ) t1
         left join (
             select 
-                user_number,
-                begin_time,
-                substr(begin_time, 12, 5) as ke_time,
-case 
-	when cast(begin_time as date) >= date '2026-02-25' and cast(begin_time as date) <= date '2026-03-02' then '20260227期'
-	when cast(begin_time as date) >= date '2026-02-17' and cast(begin_time as date) <= date '2026-02-24' then '20260220期'		
-	when cast(begin_time as date) >= date '2026-02-09' and cast(begin_time as date) <= date '2026-02-16' then '20260213期'
-	when cast(begin_time as date) >= date '2026-02-03' and cast(begin_time as date) <= date '2026-02-08' then '20260206期'
-    -- 对于其他日期，使用原有的周逻辑
-    else 
-        case 
-            when day_of_week(cast(begin_time as date)) = 2 
-                then date_format(date_add('day', -3, date_trunc('week', cast(begin_time as date))), '%Y%m%d') || '期'
-            else date_format(date_add('day', 4, date_trunc('week', cast(begin_time as date))), '%Y%m%d') || '期'
-        end
-end as qici,
-                mod(date_diff('day', cast('2021-02-01' as date), cast(begin_time as date)), 7) as dow,
-                is_need_attend,
-                live_learn_duration,
-                is_valid_live_learn
-            from service_dw.dws_service_user_learn_detail_hf  
-            where dt = date_format(now() - interval '2' hour, '%Y%m%d') 
-                and hour = date_format(now() - interval '2' hour, '%H')
-                and course_first_level_department_name = 'H业务线'
-                and course_second_level_department_name in ('精品班学部','市场部','青橙项目部')
-                and is_need_attend = 1
+                learn.user_number,
+                learn.begin_time,
+                substr(learn.begin_time, 12, 5) as ke_time,
+coalesce(
+    class_cal.qici,
+    case 
+	    when cast(learn.begin_time as date) >= date '2026-02-25' and cast(learn.begin_time as date) <= date '2026-03-02' then '20260227期'
+	    when cast(learn.begin_time as date) >= date '2026-02-17' and cast(learn.begin_time as date) <= date '2026-02-24' then '20260220期'		
+	    when cast(learn.begin_time as date) >= date '2026-02-09' and cast(learn.begin_time as date) <= date '2026-02-16' then '20260213期'
+	    when cast(learn.begin_time as date) >= date '2026-02-03' and cast(learn.begin_time as date) <= date '2026-02-08' then '20260206期'
+        -- 对于其他日期，使用原有的周逻辑
+        else 
+            case 
+                when day_of_week(cast(learn.begin_time as date)) = 2 
+                    then date_format(date_trunc('week', cast(learn.begin_time as date)) - interval '3' day, '%Y%m%d') || '期'
+                else date_format(date_trunc('week', cast(learn.begin_time as date)) + interval '4' day, '%Y%m%d') || '期'
+            end
+    end
+) as qici,
+                mod(date_diff('day', cast('2021-02-01' as date), cast(learn.begin_time as date)), 7) as dow,
+                learn.is_need_attend,
+                learn.live_learn_duration,
+                learn.is_valid_live_learn
+            from service_dw.dws_service_user_learn_detail_hf learn
+            left join biz_qici_calendar class_cal
+              on class_cal.business_domain = 'market_consultant'
+             and class_cal.date_role = 'class_period'
+             and cast(learn.begin_time as date) between class_cal.period_start_date and class_cal.period_end_date
+             and class_cal.enabled = 1
+            where learn.dt = date_format(now() - interval '2' hour, '%Y%m%d') 
+                and learn.hour = date_format(now() - interval '2' hour, '%H')
+                and learn.course_first_level_department_name = 'H业务线'
+                and learn.course_second_level_department_name in ('精品班学部','市场部','青橙项目部')
+                and learn.is_need_attend = 1
         ) t2 on t1.period_name = t2.qici and t1.user_id = t2.user_number) dk
 	left join temp_table.dingxi01_daoke_1_6_t ke on dk.period_name = ke.qici and dk.channel_map = ke.channel and dk.grade_1 = ke.grade and dk.begin_time = ke.begin_time)
 -----------------------整合 
@@ -550,10 +592,54 @@ group by
     zhuguan, -- 小组长
    employee_email_name
 )
+
+,zhuanhua_join_key as (
+    select
+        period_name,
+        depart_1,
+        depart,
+        jingli,
+        zhuguan,
+        employee_email_name,
+        max(employee_email_prefix) as employee_email_prefix
+    from base
+    group by
+        period_name,
+        depart_1,
+        depart,
+        jingli,
+        zhuguan,
+        employee_email_name
+)
+,jiagou_xinren as (
+    select
+        employee_email_prefix,
+        employee_email_name,
+        max(new_qici) as new_qici
+    from temp_table.dingxi01_jiagou_xinren
+    group by
+        employee_email_prefix,
+        employee_email_name
+)
 -------------结果指标
 select  zz.*,
-ppg.department,ppg.xiaozu,ppg.jingli as jingli_1,ppg.channel,cast(ppg.renchan as decimal) as renchan,ppg.dept,ppg.x_qi_count
+ppg.department,
+ppg.xiaozu,
+ppg.jingli as jingli_1,
+ppg.channel,
+cast(ppg.renchan as decimal) as renchan,
+ppg.dept,
+ppg.x_qi_count,
+jx.new_qici
 from zhuanhua zz
 ----渠道
 left join temp_table.dingxi01_pingyou_jg ppg on ppg.employee_email_name = zz.employee_email_name and ppg.qici = zz.period_name
+left join zhuanhua_join_key zk on zk.period_name = zz.period_name
+    and zk.depart_1 = zz.depart_1
+    and zk.depart = zz.depart
+    and zk.jingli = zz.jingli
+    and zk.zhuguan = zz.zhuguan
+    and zk.employee_email_name = zz.employee_email_name
+left join jiagou_xinren jx on jx.employee_email_prefix = zk.employee_email_prefix
+    and jx.employee_email_name = zz.employee_email_name
 where ppg.x_qi_count not in ('9')

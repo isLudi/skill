@@ -564,3 +564,10 @@
 - 青橙 Web BI 批量画像默认改为 runtime-only；只有 `profile-all --write-knowledge --confirm-skill-maintenance` 才可写固定的青橙知识目标，任一画像失败时整批不写。
 - 青橙物理 schema 权威统一为 `usql-web-query-operator sync-datamap-fields --target-skill qingcheng`；PDF、截图、OCR 和旧版文档提取资源不再作为字段目录写入入口。
 - 移除完整性检查对旧版 PDF/图片/渲染目录的强制要求，并刷新反向索引、域清单和共享 physical catalog；未修改任何远端数据集或看板。
+
+## 2026-07-21 数据中心 stable canonical SQL 同步
+
+- 按已审阅同步计划原子更新 model_id：`2460`；每个 model_id 只保留稳定 canonical 路径。
+- 仅校准 `转化数据` 的暑期 `biz_qici_calendar`：`0710=07-07~07-13`、`0716=07-14~07-19`、`0722=07-20~07-25`、`0728=07-26~07-31`、`0803=08-01~08-06`、`0809=08-07~08-12`；未修改快照、内部转单、渠道映射或指标公式。
+- 生产保存后 SQL SHA-256 为 `59f336d5f0150cde29f6c5c9e60d6e3bb2f382820e6b9dc75cc1ed09aadcc76f`，立即抽数记录 `160164065` 为 `SUCCESS`。
+- 写入后已强制重建反向索引和目录，并运行唯一版本审计、域内 integrity 与完整 Text2SQL 栈验证。

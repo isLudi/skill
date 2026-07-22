@@ -65,6 +65,13 @@
 | `2751` | 暑期激励v2 | [data_center_market_2751.sql](../../resources/raw_sql/data_center_market_2751.sql) | 昆仑山战役-暑期激励数据看板 (`dashboard_3881610656431284224`) | 顾问 / `name`<br>主管 / `zhuguan`<br>dept<br>jingli<br>qici | 收款目标=`receive_target`; `sum(8817105288980484)`<br>目标完成度=`target_completion_rate`; `sum(8817105288980501)`<br>排名=`target_completion_period_dept_rank_no`; `sum(8817105288980502)`<br>差值=`target_completion_gap_to_previous`; `sum(8817105288980503)`<br>拓课率=`tuoke_rate`; `sum(8817105288980504)` |
 | `2842` | 暑期激励v3-月份 | [data_center_market_2842.sql](../../resources/raw_sql/data_center_market_2842.sql) | 昆仑山战役-暑期激励数据看板 (`dashboard_3881610656431284224`) | 顾问 / `name`<br>主管 / `xiaozu`<br>dept<br>natural_month<br>jingli | 收款目标=`receive_target`; `sum(8817002150389772)`<br>目标完成度=`target_completion_rate`; `sum(8817002150389789)`<br>排名=`target_completion_period_dept_rank_no`; `sum(8817002150389790)`<br>差值=`差值`; `sum(8817002150389791)`<br>拓课率=`tuoke_rate`; `sum(8817002150389792)` |
 
+## Model 2688 `x_qi_count` 维护说明
+
+- 看板显示名“承接期次”对应字段 `x_qi_count`，它是维度，不是可求和指标。
+- 模型最终层按 `employee_email_name + period_name/qici` 关联 `temp_table.dingxi01_pingyou_jg`，直接输出该表的 `x_qi_count`，并过滤值 `9`；模型不会自动重排 `1`—`4`。
+- `1`—`4` 表示顾问前四个有效新人承接期次，`9` 表示不进入该新人展示口径。维护公式和上传约束见 [temp_table.dingxi01_pingyou_jg](../tables/temp_table.dingxi01_pingyou_jg.md)。
+- 出现重复、非法值、上传字段错位或最新暑期期次缺失时，先按 [专项故障复盘](../pitfalls/newcomer_x_qi_count_and_pingyou_upload.md) 分层判断，不要直接在数据集最终层加 `distinct`。
+
 ## Key conversion metrics
 
 | dashboard | metric | business_name / metric id | frontend formula | dataset |
@@ -108,6 +115,6 @@
 
 1. Start from a dashboard web profile to identify the visible unit and model_id.
 2. Open the corresponding edit-metrics file to confirm the frontend metric formula and visible dimensions.
-3. Use the model_id to open the single latest `data_center_market_*_20260705.sql` SQL file.
+3. Use the model_id to open the single stable canonical `data_center_market_<model_id>.sql` SQL file.
 4. Align the SQL field grain and CASE logic with the frontend metric formula before changing a dashboard query.
 5. For current-period vs section LTV/ROI questions, first compare the formula numerator and denominator fields, then trace the SQL fields that create those numerators and denominators.

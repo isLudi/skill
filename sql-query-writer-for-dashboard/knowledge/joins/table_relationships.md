@@ -159,6 +159,7 @@
 
 - `temp_table.dingxi01_jiagou_db`：架构映射表，来源 Excel `jiagou_xian_zhengzhou.xlsx`。常用字段包括 `employee_email_prefix`、`qici`、`dept_1`、`dept_2`、`department`、`xiaozu`、`jingli`。常用于按员工邮箱前缀补充期次、部门、小组和经理口径。
 - `temp_table.dingxi01_daoke_1_6_t`：到课课次映射表，来源 Excel `daoke_t_one_six.xlsx`。常用字段包括 `qici`、`qudao`、`grade`、`begin_time`、`ke_1`、`channel`。常用于首节到课或第 1-6 课课次口径。
+- `temp_table.dingxi01_pingyou_jg`：当前 `pingyou_jg.xlsx` 对应的标准临时表；模型 `2688` 按 `employee_email_name + qici` 取得新人过程转化的架构、人产和 `x_qi_count`。2026-07-21 已确认该键唯一，且有效 `x_qi_count` 1—4 在同一顾问内不跨期重复；完整维护规则见 `../tables/temp_table.dingxi01_pingyou_jg.md`。
 - `temp_table.zhangjunyan01_pingyou_jg`：评优架构人产临时表，来源待确认。常用字段包括 `qici`、`employee_email_name`、`dept`、`jingli`、`xiaozu`、`channel`、`renchan`、`grade`、`zaizhi`、`is_emp`。常用于顾问销售评优、人产 ROI 和排名口径；`is_emp` 是是否参与评优字段，`是` 表示参与，`否` 表示不参与。
 
 ### 临时表关联注意事项

@@ -149,7 +149,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/joins/common_join_keys.md",
-      "source_sha256": "e21ca99aae41753cb65127e8d168641a5d4f352bb5129d91a0025e89b540eadc"
+      "source_sha256": "ee5efb5db4071fce299c46089f839b4dea0484334f2cfd895c434405521910fa"
     },
     {
       "id": "market_consultant:join:lead_to_cost_goal",
@@ -162,7 +162,7 @@
       ],
       "status": "pending_confirmation",
       "source_path": "knowledge/joins/table_relationships.md",
-      "source_sha256": "0838db758fdbafb0566e9e46403fc572bc2c24f482d4de1233b651c203e9301c"
+      "source_sha256": "f7619e131fba2b37c0c504f4b3a58a20c65cfddeda18e6acd659d071093b3c32"
     },
     {
       "id": "market_consultant:join:lead_to_learning_detail",
@@ -175,7 +175,7 @@
       ],
       "status": "pending_confirmation",
       "source_path": "knowledge/joins/common_join_keys.md",
-      "source_sha256": "e21ca99aae41753cb65127e8d168641a5d4f352bb5129d91a0025e89b540eadc"
+      "source_sha256": "ee5efb5db4071fce299c46089f839b4dea0484334f2cfd895c434405521910fa"
     },
     {
       "id": "market_consultant:join:lead_to_outbound_workload",
@@ -188,7 +188,7 @@
       ],
       "status": "pending_confirmation",
       "source_path": "knowledge/joins/common_join_keys.md",
-      "source_sha256": "e21ca99aae41753cb65127e8d168641a5d4f352bb5129d91a0025e89b540eadc"
+      "source_sha256": "ee5efb5db4071fce299c46089f839b4dea0484334f2cfd895c434405521910fa"
     },
     {
       "id": "market_consultant:metric:channel_top_consultant_ranking_bundle",

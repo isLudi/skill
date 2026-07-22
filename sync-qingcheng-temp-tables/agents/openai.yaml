@@ -1,4 +1,4 @@
 interface:
-  display_name: "同步青橙临时表"
-  short_description: "从飞书群下载最新表格，完成切片合并、校验与受控线上上传"
-  default_prompt: "使用 $sync-qingcheng-temp-tables 下载郅玲玉在青橙数据对接群发布的最新临时表，校验并按授权边界同步到本地和线上平台。"
+  display_name: "青橙临时表与群机器人"
+  short_description: "同步青橙群表格，并运行分权审批的本机事件服务"
+  default_prompt: "使用 $sync-qingcheng-temp-tables 预检或同步青橙群临时表，并按需配置受控的本机 lark-event 管家服务。"
