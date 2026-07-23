@@ -32,7 +32,8 @@ data as (
         employee_email_name,
         lead_id,
         user_id,
-case when flow_pool_name in ('高途学习规划','智辉老师讲规划') then '市场私域视频号'
+case when rule_name like '%北京直播江苏%' then '北京直播江苏'
+when flow_pool_name in ('高途学习规划','智辉老师讲规划') then '市场私域视频号'
 when rule_name like '%语数英%' and third_department_name = '新媒体内容运营部' then '语数英'
 when flow_pool_name like '%星义大大%' or flow_pool_name like '%星义物理%' then '赵星义'
 when rule_name like '%途途私域%' or (rule_name like '%私域%' and first_department_name = 'TT' and rule_name not like '%集团%') then '途途私域'

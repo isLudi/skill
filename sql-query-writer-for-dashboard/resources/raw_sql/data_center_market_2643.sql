@@ -17,6 +17,11 @@ with dd as (
         biz_number, course_grade as grade_list,
         course_subject as subject,
  	    case
+			when substr(trade_time, 1, 10) between '2026-07-14' and '2026-07-19' then '20260716期'
+			when substr(trade_time, 1, 10) between '2026-07-20' and '2026-07-25' then '20260722期'
+			when substr(trade_time, 1, 10) between '2026-07-26' and '2026-07-31' then '20260728期'
+			when substr(trade_time, 1, 10) between '2026-08-01' and '2026-08-06' then '20260803期'
+			when substr(trade_time, 1, 10) between '2026-08-07' and '2026-08-12' then '20260809期'
  			when substr(trade_time, 1, 10) >= '2026-02-16' and substr(trade_time, 1, 10) <= '2026-03-02' then '20260227期'
  			when substr(trade_time, 1, 10) >= '2026-02-09' and substr(trade_time, 1, 10) <= '2026-02-15' then '20260211期'
  			when substr(trade_time, 1, 10) >= '2026-02-03' and substr(trade_time, 1, 10) <= '2026-02-08' then '20260205期'

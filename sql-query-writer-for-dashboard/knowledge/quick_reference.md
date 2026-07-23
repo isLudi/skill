@@ -81,5 +81,5 @@
 - 排查平台“模板取数”中存储的最新 SQL 时，先读 `knowledge/dashboards/template_query_market_datasets.md`，不要默认用数据中心或 Web BI canonical SQL 替代；回答时说明使用口径为“模板取数”。
 - 生成平台模板取数 SQL 时，日期/时间区间必须使用 `字段名 >= ${字段名:1} and 字段名 < ${字段名:2}`，参数名和过滤列名一致，不能加 `cast()`，详见 `knowledge/sql_patterns/template_parameter_rules.md`。
 - `馒头_订单明细_支付时间` 当前发布版使用窗口统计控制 stage 数；不要恢复 `user_stats`、`subject_stats` 和 `lianbao_stats` 同时重复读取重 CTE `cs` 的旧结构。
-- 需要最新渠道归因时，读 `knowledge/sql_patterns/channel_mapping_case_when.md`，完整 CASE 用 `resources/raw_sql/market_channel_case_when_0612.sql`。
+- 需要最新渠道归因时，读 `knowledge/sql_patterns/channel_mapping_case_when.md`，完整 CASE 用 `resources/raw_sql/market_channel_case_when_0723.sql`。
 - 涉及 Web 查询执行、下载、权限问题时，读 `knowledge/sql_patterns/web_permission_guide.md`。

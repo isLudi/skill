@@ -281,4 +281,4 @@ qici + channel_1 + jingli + xiaozu + grade_list + analysis_type + dim_value
 - 整体画像数据集中 `pay_user_head_count` 与 `regular_course_user_count` 的业务区别和展示优先级。
 - 整体画像中的有效线索数是否必须始终使用标准 `valid_lead_count`，不得对抖音私信切换 `merge_valid_lead_count`。
 - `period_mapping_second_level_department_name is null` 的放宽是否应保留。
-- 渠道 CASE 是否需要与最新 `market_channel_case_when_0612.sql` 完全同步。
+- 渠道 CASE 是否需要与最新 `market_channel_case_when_0723.sql` 完全同步。

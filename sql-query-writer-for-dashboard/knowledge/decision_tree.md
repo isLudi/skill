@@ -50,4 +50,4 @@
 - 指标或看板口径问题：先读对应 `dashboards/*.md` 和 `metrics/*.md`，再补 join 或 SQL pattern。
 - 看板设计或编辑问题：只在域内语义已确认后读取 `knowledge/sql_patterns/dashboard_design_change_workflow.md`；依次执行 profile、DesignSpec、ChangePlan/diff、dry-run。Apply 与 publish 必须由 operator 独立命令完成，不能由业务 Skill 授权。
 - SQL 报错或结果异常：先读全局规则、范围限定、权限边界，再读相关 pitfalls。
-- 生成新市场顾问渠道归因 SQL：默认使用 `resources/raw_sql/market_channel_case_when_0612.sql`，除非用户明确要求沿用历史 SQL 旧口径。
+- 生成新市场顾问渠道归因 SQL：默认使用 `resources/raw_sql/market_channel_case_when_0723.sql`，除非用户明确要求沿用历史 SQL 旧口径。

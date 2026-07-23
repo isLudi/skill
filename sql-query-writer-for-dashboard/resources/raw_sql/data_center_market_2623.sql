@@ -58,7 +58,8 @@ case
     else '其他'
 end as assign_day,
  rule_name,
-CASE 
+CASE
+            WHEN rule_name like '%北京直播江苏%' THEN '北京直播江苏'
             -- 【区域定向】
             WHEN business_id IN ('57029778626','2341336699374492') THEN '浙江'
             WHEN business_id IN ('2112613999450528','1424583025506685','106714775353','405059263533203') THEN '广东'

@@ -129,7 +129,7 @@ zz.period_name > '20260417期'
 
 - `data_base` → `data` 两层 CTE：先在全链路表计算 `calc_period_name`，再在第二层做渠道 CASE、指标空值处理和派生字段；两层的 `select distinct` 确保了去重。
 - 首 call 桥接：`first_call_task` + `employee_map` + `f_call0` 三 CTE 的标准首 call 标记模式，详见 `knowledge/tables/gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf.md`。
-- 渠道 CASE 使用 `resources/raw_sql/market_channel_case_when_0612.sql`（0612 版本），仅将输出别名从 `qudao` 改为 `channel_map`。
+- 渠道 CASE 使用 `resources/raw_sql/market_channel_case_when_0723.sql`（0723 版本），仅将输出别名从 `qudao` 改为 `channel_map`。
 - 年级在 `zhuanhua` CTE 中派生，相比在 `data` CTE 中派生可避免同层别名引用问题。
 - `nvl` 函数用于空值处理（Hive 兼容），Presto 标准写法应使用 `coalesce`。
 

@@ -90,6 +90,7 @@ where n_uid.rn =1)
 lead_gmv.*,
 rr.rule_name,
 case
+when rr.rule_name like '%北京直播江苏%' then '北京直播江苏'
 when rr.rule_name like '%tmk3元周帅%' then 'tmk3元周帅'
 when rr.rule_name like '%tmk9元沈阳%' then 'tmk9元沈阳'
 when rr.rule_name like '%tmk9元启师%' then 'tmk9元启师'

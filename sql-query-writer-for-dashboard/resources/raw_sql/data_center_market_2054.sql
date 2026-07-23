@@ -1,5 +1,3 @@
--- 2026-07-16 update: map summer business dates 2026-07-14..2026-08-12 to actual operation qici ranges.
--- Dataset: 2054 outbound process
 with d_ap as (
     select distinct
         user_latest.user_number,
@@ -97,7 +95,8 @@ data as (
             '期'
         )
         end as qici,
-case when flow_pool_name in ('高途学习规划','智辉老师讲规划') then '市场私域视频号'
+case when rule_name like '%北京直播江苏%' then '北京直播江苏'
+when flow_pool_name in ('高途学习规划','智辉老师讲规划') then '市场私域视频号'
 when rule_name like '%语数英%' and third_department_name = '新媒体内容运营部' then '语数英'
 when flow_pool_name like '%星义大大%' then '赵星义'
 when third_department_name='图书营销部' and (sku_id_name like '%孟亚飞99%' or sku_id_name like '%亚飞%') then '孟亚飞99-2组'
@@ -390,7 +389,7 @@ else '其他未知流量' end as channel_map_1,
                 ) as rn
             from service_dw.dwd_crm_assign_private_detail_hf
             where dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
-              and hour = format_datetime(now() - interval '3' hour, 'HH')
+              and hour = format_datetime(now() - interval '2' hour, 'HH')
               and assign_employee_first_level_department_name = 'H业务线'
               and assign_employee_second_level_department_name = '市场部'
               and assign_employee_third_level_department_name = '市场顾问部'
@@ -410,7 +409,7 @@ else '其他未知流量' end as channel_map_1,
             ) as first_call_connected_time_diff_hour
         from service_dw.dm_crm_lead_stats_detail_hf cd
         where dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
-          and hour = format_datetime(now() - interval '3' hour, 'HH')
+          and hour = format_datetime(now() - interval '2' hour, 'HH')
           and mapping_first_level_department_name = 'H业务线'
           and mapping_second_level_department_name in ('精品班学部', '菁英班学部', '市场部', '本地化大班学部')
     ) jt on f.lead_id = jt.lead_id
@@ -458,7 +457,7 @@ else '其他未知流量' end as channel_map_1,
                 ) as rn
             from service_dw.app_h_crm_lead_task_process_info_detail_hf
             where dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
-              and hour = format_datetime(now() - interval '3' hour, 'HH')
+              and hour = format_datetime(now() - interval '2' hour, 'HH')
               and virtual_department_name_2 = 'H业务线'
               and virtual_department_name_3 = '市场部'
         )
@@ -466,7 +465,7 @@ else '其他未知流量' end as channel_map_1,
     ) sbb on sbb.assign_employee_email_name = f.employee_email_name
           and sbb.user_id = f.user_id
     where f.dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
-      and f.hour = format_datetime(now() - interval '3' hour, 'HH')
+      and f.hour = format_datetime(now() - interval '2' hour, 'HH')
       and f.section_assign_employee_first_level_department_name = 'H业务线'
       and f.section_assign_employee_second_level_department_name = '市场部'
       and f.section_assign_employee_third_level_department_name = '市场顾问部'
@@ -496,7 +495,7 @@ call_c as (
             wf.msg_type_name
         from service_dw.app_h_crm_lead_employee_workload_detail_hf wf
         where wf.dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
-          and wf.hour = format_datetime(now() - interval '3' hour, 'HH')
+          and wf.hour = format_datetime(now() - interval '2' hour, 'HH')
     ) sub
     group by
         sub.user_number,
@@ -528,7 +527,7 @@ f_call0 as (
             update_time
         from gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf
         where dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
-          and hour = format_datetime(now() - interval '3' hour, 'HH')
+          and hour = format_datetime(now() - interval '2' hour, 'HH')
           and start_time > '2026-01-01'
           and is_del = 0
     ) a

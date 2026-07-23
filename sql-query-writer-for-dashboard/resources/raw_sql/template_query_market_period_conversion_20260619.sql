@@ -125,6 +125,7 @@ where n_uid.rn =1)
 lead_gmv.*,
 rr.rule_name
 ,case
+when rr.rule_name like '%北京直播江苏%' then '北京直播江苏'
 when rr.rule_name like '%亚飞99元西安直播%' then '亚飞99元西安直播'
 when rr.rule_name like '%koc测试5元%' then 'koc测试5元'
 when rr.rule_name like '%百度搜索%' then '百度搜索'

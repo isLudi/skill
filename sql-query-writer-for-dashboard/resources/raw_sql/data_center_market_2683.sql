@@ -98,7 +98,8 @@ virtual_fourth_department_name  depart,
     t1.lead_id,
     user_id,
     substr(section_assign_time, 1, 10) as assign_day,
-case when flow_pool_name in ('高途学习规划','智辉老师讲规划') then '市场私域视频号'
+case when rule_name like '%北京直播江苏%' then '北京直播江苏'
+when flow_pool_name in ('高途学习规划','智辉老师讲规划') then '市场私域视频号'
 when rule_name like '%语数英%' and third_department_name = '新媒体内容运营部' then '语数英'
 when third_department_name='图书营销部' and sku_id_name like '%孟亚飞99%' then '孟亚飞99'
 when third_department_name = '投放部' and ad_account_name like '%周帅%' then '信息流-周帅'

@@ -65,7 +65,8 @@ virtual_fourth_department_name  depart,
     t1.lead_id,
     user_id,
     substr(section_assign_time, 1, 10) as assign_day,
-case when flow_pool_name in ('高途学习规划','智辉老师讲规划') then '市场私域视频号'
+case when rule_name like '%北京直播江苏%' then '北京直播江苏'
+when flow_pool_name in ('高途学习规划','智辉老师讲规划') then '市场私域视频号'
 when third_department_name = '私域运营部' and source_manager_name in ('陈雷19','崔慧敏01','侯佳林01','郑天琪02','杨彬屹','曹义鹏','王硕阳','于超研','岳一帆02','田起帆') then '进校私域合作'
 when channel_name_1='市场私域' and (virtual_fourth_department_name in ('郑州学习顾问二部','郑州学习顾问七部','郑州训练营') or virtual_fifth_department_name in ('罗江博团队')) then '市场私域入群'
 when put_plan_name like '%周司鹏%' then '品宣组KOC'

@@ -89,7 +89,8 @@ lead_base AS (
         employee_email_name, employee_email_prefix,
         virtual_leader_email_name AS jingli,
         virtual_direct_leader_email_name AS zhuguan,
-        CASE WHEN flow_pool_name IN ('高途学习规划','智辉老师讲规划') THEN '市场私域视频号'
+        CASE WHEN rule_name like '%北京直播江苏%' then '北京直播江苏'
+        WHEN flow_pool_name IN ('高途学习规划','智辉老师讲规划') THEN '市场私域视频号'
 WHEN rule_name LIKE '%语数英%' AND third_department_name = '新媒体内容运营部' THEN '语数英'
 WHEN flow_pool_name LIKE '%星义大大%' THEN '赵星义'
 WHEN third_department_name='图书营销部' AND (sku_id_name LIKE '%孟亚飞99%' OR sku_id_name LIKE '%亚飞%') THEN '孟亚飞99-2组'

@@ -21,7 +21,7 @@
 - 实际进入顾问名下的线索量和有效线索量；
 - 顾问所在小组和经理。
 
-如果需要将规则侧或实际量侧按最新渠道口径归因，可引用 `resources/raw_sql/market_channel_case_when_0612.sql` 中的渠道 CASE。该 CASE 输出别名为 `qudao`，说明见 `knowledge/sql_patterns/channel_mapping_case_when.md`。
+如果需要将规则侧或实际量侧按最新渠道口径归因，可引用 `resources/raw_sql/market_channel_case_when_0723.sql` 中的渠道 CASE。该 CASE 输出别名为 `qudao`，说明见 `knowledge/sql_patterns/channel_mapping_case_when.md`。
 
 ## 4. 使用表
 
@@ -130,6 +130,6 @@ and employee_email_name = fp.employee_email_name
 - `vd` 使用 `dt = now() - 2 hour` 但 `hour = now() - 3 hour`，和 `fp/t` 的 `hour = now() - 2 hour` 不一致；是否为业务延迟口径需确认。
 - `vd` 只限定了截面分配一级/二级部门和期次映射一级部门，未限定 `section_assign_employee_third_level_department_name`、`period_mapping_second_level_department_name`；生成新 SQL 时应按需求补充或保留占位。
 - `rule_name` 通过 `split_part(..., '-', n)` 拆期次、渠道和年级，依赖规则名格式稳定；规则名中若渠道含 `-` 会导致拆分错位。
-- 分配规则表本身没有完整渠道 CASE 依赖字段；若要按最新渠道口径识别“抖音私信”等渠道，应优先在全链路宽表中按 `market_channel_case_when_0612.sql` 派生 `qudao/channel_map`，或确认规则表是否具备 CASE 所需字段。
+- 分配规则表本身没有完整渠道 CASE 依赖字段；若要按最新渠道口径识别“抖音私信”等渠道，应优先在全链路宽表中按 `market_channel_case_when_0723.sql` 派生 `qudao/channel_map`，或确认规则表是否具备 CASE 所需字段。
 - `fp` CTE 中 `group by` 后又 `order by`，在 CTE 内排序对最终结果通常无稳定语义；改写生产 SQL 时建议将排序放到最终输出层。
 - `temp_table.dingxi01_jiagou_db` 通过 `substr(qici, -5)` 关联期次尾号，可能跨年份重复；若数据跨多年，建议改为完整期次匹配。

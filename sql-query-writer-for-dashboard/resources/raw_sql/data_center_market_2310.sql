@@ -57,7 +57,8 @@ data as (
         employee_email_name,
         lead_id,
         user_id,
-  case when (
+  case when rule_name like '%北京直播江苏%' then '北京直播江苏'
+  when (
         (
             period_mapping_second_level_department_name = '本地化大班学部'
             and rule_name like '浙江-%期-领跑新初三%'

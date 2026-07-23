@@ -125,6 +125,7 @@ where n_uid.rn =1)
 lead_gmv.*,
 rr.rule_name,
 case
+when rr.rule_name like '%北京直播江苏%' then '北京直播江苏'
 when rr.rule_name like '%koc测试5元%' then 'koc测试5元'
 when rr.rule_name like '%百度搜索%' then '百度搜索'
 when rr.rule_name like '%孟亚飞ip0元B站%'  or  rr.rule_name like '%B站孟亚飞%' then 'B站孟亚飞' 
@@ -221,7 +222,8 @@ group by qici, channel_1, jingli, grade_list)
     select distinct 
 f.*,
 concat(cast(date_format(date_add('day',4,date_trunc('week',date_add('day',-1,date_parse(replace(concat(f.group_period_year,f.group_period_term),'期',''),'%Y%m%d')))),'%Y%m%d')as varchar),'期') as qici,
-case when f.rule_name like '%koc测试5元%' then 'koc测试5元'
+case when f.rule_name like '%北京直播江苏%' then '北京直播江苏'
+when f.rule_name like '%koc测试5元%' then 'koc测试5元'
 when f.rule_name like '%百度搜索%' then '百度搜索'
 when f.rule_name like '%亚飞9元百度%'  then '亚飞9元百度'
 when f.rule_name like '%孟亚飞ip0元B站%'  then '孟亚飞ip0元B站'

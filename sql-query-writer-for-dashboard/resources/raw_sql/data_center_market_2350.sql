@@ -14,12 +14,7 @@ sum(case when trade_type = '调课调班' then price else 0 end) over (partition
             else 0 end as zong_price 
  from 
 	(select *,
-		case
-			when substr(trade_time, 1, 10) >= '2026-07-14' and substr(trade_time, 1, 10) <= '2026-07-19' then '20260716期'
-			when substr(trade_time, 1, 10) >= '2026-07-20' and substr(trade_time, 1, 10) <= '2026-07-25' then '20260722期'
-			when substr(trade_time, 1, 10) >= '2026-07-26' and substr(trade_time, 1, 10) <= '2026-07-31' then '20260728期'
-			when substr(trade_time, 1, 10) >= '2026-08-01' and substr(trade_time, 1, 10) <= '2026-08-06' then '20260803期'
-			when substr(trade_time, 1, 10) >= '2026-08-07' and substr(trade_time, 1, 10) <= '2026-08-12' then '20260809期'
+        case 
 			when substr(trade_time, 1, 10) >= '2026-02-25' and substr(trade_time, 1, 10) <= '2026-03-02' then '20260227期'
 			when substr(trade_time, 1, 10) >= '2026-02-17' and substr(trade_time, 1, 10) <= '2026-02-24' then '20260220期'
 			when substr(trade_time, 1, 10) >= '2026-02-09' and substr(trade_time, 1, 10) <= '2026-02-16' then '20260213期'
@@ -33,7 +28,7 @@ sum(case when trade_type = '调课调班' then price else 0 end) over (partition
 end as qici
     from finance_dw.app_finance_performance_extend_details_hf 
     where dt = FORMAT_DATETIME(NOW() - INTERVAL '2' HOUR,'YYYYMMdd')
-        and hour = FORMAT_DATETIME(NOW() - INTERVAL '3' HOUR,'HH')
+        and hour = FORMAT_DATETIME(NOW() - INTERVAL '2' HOUR,'HH')
         and employee_first_level_department_name = 'H业务线'
 	    and employee_second_level_department_name = '市场部'
         and employee_third_level_department_name = '市场顾问部'
@@ -62,14 +57,7 @@ where dup_rn = 1 and zong_price <> 0 and zong_price0 <>0)
 ------依据期次获取最新uid
 ,n_uid as (
 select aa.*,row_number() over (partition by original_order_user_number order by qici desc) as rn
-from (select lead_id,original_order_user_number,performance_employee_email_name,case
-    when cast(date_parse(replace(concat(trade_group_period_year,trade_group_period_term),'期',''),'%Y%m%d') as date) between date '2026-07-14' and date '2026-07-19' then '20260716期'
-    when cast(date_parse(replace(concat(trade_group_period_year,trade_group_period_term),'期',''),'%Y%m%d') as date) between date '2026-07-20' and date '2026-07-25' then '20260722期'
-    when cast(date_parse(replace(concat(trade_group_period_year,trade_group_period_term),'期',''),'%Y%m%d') as date) between date '2026-07-26' and date '2026-07-31' then '20260728期'
-    when cast(date_parse(replace(concat(trade_group_period_year,trade_group_period_term),'期',''),'%Y%m%d') as date) between date '2026-08-01' and date '2026-08-06' then '20260803期'
-    when cast(date_parse(replace(concat(trade_group_period_year,trade_group_period_term),'期',''),'%Y%m%d') as date) between date '2026-08-07' and date '2026-08-12' then '20260809期'
-    else concat(cast(date_format(date_add('day',4,date_trunc('week',date_add('day',-1,date_parse(replace(concat(trade_group_period_year,trade_group_period_term),'期',''),'%Y%m%d')))),'%Y%m%d')as varchar),'期')
-end qici
+from (select lead_id,original_order_user_number,performance_employee_email_name,concat(cast(date_format(date_add('day',4,date_trunc('week',date_add('day',-1,date_parse(replace(concat(trade_group_period_year,trade_group_period_term),'期',''),'%Y%m%d')))),'%Y%m%d')as varchar),'期') qici
 from service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf 
 where dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
         and hour = format_datetime(now() - interval '2' hour, 'HH')
@@ -126,17 +114,7 @@ when rr.rule_name like '%汐子ip%' or rr.rule_name like '%ip百度%' or rr.rule
 when rr.rule_name like '%9KM%' then '9KM'
 when rr.rule_name like '%百度星耀数学%' or rr.rule_name like '%数学%' or rr.rule_name like '%百度星耀物理%' or rr.rule_name like '%物理%'then '百度星耀'
 else '未知' end as channel_1,
-case
-        when substr(lead_gmv.qici, 1, 4) = '2026' and substr(rr.group_period_term, 1, 4) between '0714' and '0719'
-        then '20260716期'
-        when substr(lead_gmv.qici, 1, 4) = '2026' and substr(rr.group_period_term, 1, 4) between '0720' and '0725'
-        then '20260722期'
-        when substr(lead_gmv.qici, 1, 4) = '2026' and substr(rr.group_period_term, 1, 4) between '0726' and '0731'
-        then '20260728期'
-        when substr(lead_gmv.qici, 1, 4) = '2026' and substr(rr.group_period_term, 1, 4) between '0801' and '0806'
-        then '20260803期'
-        when substr(lead_gmv.qici, 1, 4) = '2026' and substr(rr.group_period_term, 1, 4) between '0807' and '0812'
-        then '20260809期'
+case 
         -- 如果月份 >= 6，年份为2025
         when cast(substr(rr.group_period_term, 1, 2) as int) >= 6 
         then date_format(date_add('day', 5 - day_of_week(date_parse('2025' || rr.group_period_term, '%Y%m%d')),date_parse('2025' || rr.group_period_term, '%Y%m%d')), '%Y%m%d') || '期'
@@ -162,9 +140,8 @@ select rule.*,zx.xiaozu,zx.jingli,
     else 3 end as week_diff
 from rule
 left join temp_table.dingxi01_jiagou_zx zx on zx.employee_email_name = rule.name)
-
------------------------- 计算总收款
-,gmv_1 as (
+------------------------ 按渠道、年级等维度统计每个用户购买的科目数量
+,user_subject as (
     select 
         qici,
         name,
@@ -172,30 +149,30 @@ left join temp_table.dingxi01_jiagou_zx zx on zx.employee_email_name = rule.name
         jingli,
         xiaozu,
         grade_list,
+        user_id1,
+        count(distinct subject) as subject_count,
         sum(case when zong_price < 0 then abs(zong_price) else 0 end) as refund_amount,
         sum(case when zong_price > 0 then zong_price else 0 end) as income_amount
     from base
     where zong_price <> 0
-    group by qici, name, channel_1, jingli, xiaozu, grade_list
+    group by qici, name, channel_1, jingli, xiaozu, grade_list, user_id1
 )
-    select 
-        base.qici,
-        base.name,
-        base.channel_1,
-        base.jingli,
-        base.xiaozu,
-        base.grade_list,
-		rs.refund_reason,
-		gmv_1.income_amount,
-        sum(case when zong_price < 0 then abs(zong_price) else 0 end) as refund_amount
-    from base
-	left join (
-                select 
-		        order_number,
-                refund_reason
-                from finance_dw.dwd_finance_order_refund_df
-                where dt = FORMAT_DATETIME(NOW() - INTERVAL '24' HOUR,'YYYYMMdd')
-                and refund_type = '1') rs on base.order_number = rs.order_number
-	left join gmv_1 on gmv_1.qici =base.qici and gmv_1.name =base.name and gmv_1.channel_1 =base.channel_1 and gmv_1.grade_list =base.grade_list and gmv_1.jingli =base.jingli and gmv_1.xiaozu =base.xiaozu
-	where zong_price <> 0
-    group by 1,2,3,4,5,6,7,8
+----------------聚合到人
+select 
+        qici,
+        name,
+        channel_1,
+        jingli,
+        xiaozu,
+        grade_list,
+	sum(case when subject_count = 1 then refund_amount else 0 end) as refund_1,
+	sum(case when subject_count between 2 and 3 then refund_amount else 0 end) as refund_2,
+	sum(case when subject_count > 3 then refund_amount else 0 end) as refund_3,
+        -- 用户数
+     count(distinct user_id1) as user_count,
+        -- 退款金额
+     sum(refund_amount) as total_refund,
+        -- 总收款
+     sum(income_amount) as total_income
+    from user_subject
+    group by qici, name, channel_1, jingli, xiaozu, grade_list

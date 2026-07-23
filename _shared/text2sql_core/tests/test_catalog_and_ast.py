@@ -60,7 +60,7 @@ class CatalogAndAstTest(unittest.TestCase):
 
     def test_domain_manifests_cover_every_knowledge_and_raw_sql_file(self) -> None:
         expected_baseline = {
-            "market_consultant": (137, 63),
+            "market_consultant": (137, 65),
             "qingcheng": (166, 17),
         }
         for domain, config in DOMAIN_CONFIG.items():
@@ -218,7 +218,7 @@ class CatalogAndAstTest(unittest.TestCase):
     def test_retained_sql_corpus_is_parsed_or_explicitly_classified(self) -> None:
         result = audit_raw_sql(REPO_ROOT, CORE_ROOT / "config" / "corpus_exceptions.json")
         self.assertTrue(result["ok"], result)
-        self.assertEqual(63, result["domains"]["market_consultant"]["total"])
+        self.assertEqual(65, result["domains"]["market_consultant"]["total"])
         self.assertEqual(4, result["domains"]["market_consultant"]["templates"])
         self.assertEqual(1, result["domains"]["market_consultant"]["allowed_legacy_failures"])
         self.assertEqual(17, result["domains"]["qingcheng"]["total"])

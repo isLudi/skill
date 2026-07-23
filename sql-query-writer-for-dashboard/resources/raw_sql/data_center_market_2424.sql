@@ -251,6 +251,7 @@ rule as (
         lead_gmv.*,
         rr.rule_name,
         case
+            when rr.rule_name like '%北京直播江苏%' then '北京直播江苏'
             when rr.rule_name like '%koc测试5元%' then 'koc测试5元'
             when rr.rule_name like '%百度搜索%' then '百度搜索'
             when rr.rule_name like '%孟亚飞ip0元B站%' or rr.rule_name like '%B站孟亚飞%' then 'B站孟亚飞'
@@ -381,6 +382,7 @@ data as (
         )
         end as qici,
         case
+            when f.rule_name like '%北京直播江苏%' then '北京直播江苏'
             when f.rule_name like '%koc测试5元%' then 'koc测试5元'
             when f.rule_name like '%百度搜索%' then '百度搜索'
             when f.rule_name like '%亚飞9元百度%' then '亚飞9元百度'

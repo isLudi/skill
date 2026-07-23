@@ -6,12 +6,13 @@
 
 ## 2. 最新来源
 
-- 原始文件：`D:\Feishu\0612.txt`
-- Skill 归档：`resources/raw_sql/market_channel_case_when_0612.sql`
-- 来源文件最后修改时间：2026-06-12 21:54:25
-- 入库日期：2026-05-09
-- 最近更新日期：2026-06-18
-- 代码规模：源码 181 行；175 个 `then` 分支，107 个去重后的渠道输出值
+- 基线来源：`D:\Feishu\0612.txt`
+- 本次增量来源：用户于 2026-07-23 明确提供的渠道规则
+- Skill 归档：`resources/raw_sql/market_channel_case_when_0723.sql`
+- 基线来源文件最后修改时间：2026-06-12 21:54:25
+- 基线入库日期：2026-05-09
+- 最近更新日期：2026-07-23
+- 代码规模：源码 183 行；排除注释后 173 个 `then` 分支，107 个去重后的渠道输出值
 - 输出字段：`qudao`
 
 ### 0524 → 0612 增量变更
@@ -22,6 +23,19 @@
 - **新增** `进校直推`、`信息流-陈瑞春`。
 - **移除或合并**一批旧输出值，例如 `周帅-百度数字人`、`孟亚飞百度数字人`、`孟亚飞99-2组`、`信息流-肖晗`、`市场私域小红书`、`正价课判单补录`、`转介绍` 等；旧口径 raw SQL 已清理，不再作为活跃维护入口。
 
+### 0612 → 0723 增量变更
+
+- 新增期次无关规则：
+
+```sql
+when rule_name like '%北京直播江苏%'
+then '北京直播江苏'
+```
+
+- 不得把 `0728期`、年级或其他当期字段写死在渠道 CASE 中；未来期次只要 `rule_name` 包含 `北京直播江苏`，均统一归因为 `北京直播江苏`。
+- 该规则必须位于所有宽泛流量池、老师 IP、渠道树条件之前。2026-07-23 在线探针 query `1495639193` 显示，最新可见分区 `dt='20260723' and hour='13'` 中纯值等于 `北京直播江苏` 命中 0 条，而 `like '%北京直播江苏%'` 命中 15 条明细，`sum(lead_count)=14`、`sum(valid_lead_count)=14`；既有 query `1495469885` 显示其中 8 条线索的 `flow_pool_name` 含 `星义物理`，若不前置会先命中 `赵星义`。
+- 规则在不同数据集可输出为 `channel_map`、`channel_map_1` 或 `qudao`；展示值统一为 `北京直播江苏`，不因最终字段别名变化。
+
 ## 3. 适用范围
 
 用于市场顾问相关看板中的渠道归因 CASE 映射。现有历史 SQL 中同类字段包括：
@@ -30,7 +44,7 @@
 - `channel_map_1`
 - `qudao`
 
-生成或改写市场顾问转化、线索转化到课、外呼过程、分配计划实际有效量等看板 SQL 时，如果需要“最新渠道 CASE”，优先引用 `resources/raw_sql/market_channel_case_when_0612.sql`，不要直接照抄旧看板中的长 CASE。
+生成或改写市场顾问转化、线索转化到课、外呼过程、分配计划实际有效量等看板 SQL 时，如果需要“最新渠道 CASE”，优先引用 `resources/raw_sql/market_channel_case_when_0723.sql`，不要直接照抄旧看板中的长 CASE。
 
 ## 4. 主要依赖字段
 
@@ -58,7 +72,7 @@
 
 ## 5. 关键渠道规则提示
 
-该 CASE 顺序敏感，前面的规则会覆盖后面的规则。改写时必须整体保留顺序，除非用户明确要求局部调整。
+该 CASE 顺序敏感，前面的规则会覆盖后面的规则。新增已验证的高优先级规则时，应放在会抢先命中的宽泛分支之前；除此之外必须整体保留原有顺序。
 
 ### 5.1 超长 CASE 顺序风险
 
@@ -66,6 +80,7 @@
 
 典型风险：
 
+- `rule_name like '%北京直播江苏%'` 必须先于 `flow_pool_name like '%星义物理%' then '赵星义'`，且不得写死期次。
 - `rule_name like '%孟亚飞ip99%'` 应先于 `flow_pool_name like '%孟帝%' ... then '孟亚飞9元'`、`sku_id_name like '%孟亚飞%' then '孟亚飞9元'` 等宽泛规则。
 - `B站信息流-亚飞`、`孟亚飞IP99元`、`孟亚飞IP9元`、`孟亚飞常规99元`、`亚飞99元西安直播` 这类相邻口径不能只看最终输出名称，还要检查它们在 CASE 中的相对位置。
 - 不能把“当前没有命中目标渠道”直接判断为事实表无数据；应先模拟现有 CASE 的实际命中结果，确认是否被前序分支归到了其他渠道。
@@ -117,7 +132,7 @@ with base as (
         t.user_id,
         t.employee_email_name,
         t.rule_name,
-        -- 粘贴 resources/raw_sql/market_channel_case_when_0612.sql
+        -- 粘贴 resources/raw_sql/market_channel_case_when_0723.sql
         -- 并按需要将输出别名 qudao 改为 channel_map
         <latest_channel_case_when>
     from bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df t
@@ -137,7 +152,7 @@ limit 100;
 else '其他未知流量' end as channel_map
 ```
 
-不要改 CASE 分支顺序。
+除已验证需要前置的精确规则外，不要改动其余 CASE 分支顺序。
 
 ## 7. 定期更新流程
 

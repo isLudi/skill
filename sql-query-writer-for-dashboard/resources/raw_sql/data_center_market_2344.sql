@@ -186,8 +186,9 @@ where n_uid.rn =1)
 ,rule as (select
 lead_gmv.*,
 lf.virtual_fourth_department_name as depart,
--- ★ 0612渠道映射（使用 lead_info 字段）
-case when lf.flow_pool_name in ('高途学习规划','智辉老师讲规划') then '市场私域视频号'
+-- ★ 0723渠道映射（使用 lead_info 字段）
+case when lf.rule_name like '%北京直播江苏%' then '北京直播江苏'
+when lf.flow_pool_name in ('高途学习规划','智辉老师讲规划') then '市场私域视频号'
 when lf.rule_name like '%语数英%' and lf.third_department_name = '新媒体内容运营部' then '语数英'
 when lf.flow_pool_name like '%星义大大%' or lf.flow_pool_name like '%星义物理%' then '赵星义'
 when lf.rule_name like '%途途私域%' or (lf.rule_name like '%私域%' and lf.first_department_name = 'TT' and lf.rule_name not like '%集团%') then '途途私域'
@@ -450,7 +451,8 @@ end as group_period_term
 ,lead_metric_mapped as (
     select
         lf.*,
-        case when lf.flow_pool_name in ('高途学习规划','智辉老师讲规划') then '市场私域视频号'
+        case when lf.rule_name like '%北京直播江苏%' then '北京直播江苏'
+        when lf.flow_pool_name in ('高途学习规划','智辉老师讲规划') then '市场私域视频号'
 when lf.rule_name like '%语数英%' and lf.third_department_name = '新媒体内容运营部' then '语数英'
 when lf.flow_pool_name like '%星义大大%' or lf.flow_pool_name like '%星义物理%' then '赵星义'
 when lf.rule_name like '%途途私域%' or (lf.rule_name like '%私域%' and lf.first_department_name = 'TT' and lf.rule_name not like '%集团%') then '途途私域'
@@ -754,7 +756,8 @@ when third_department_name is null and valid_lead_count = 1 then 1
 when third_department_name  not in ('直播部','新媒体内容运营部','市场一组') and valid_lead_count = 1 then 1
 when third_department_name  in ('图书营销部') and rule_name like '%亚飞%' and (assign_lead_count = 1 or valid_lead_count = 1)  then 1
  else 0 end as xiansuo,
-case when flow_pool_name in ('高途学习规划','智辉老师讲规划') then '市场私域视频号'
+case when rule_name like '%北京直播江苏%' then '北京直播江苏'
+when flow_pool_name in ('高途学习规划','智辉老师讲规划') then '市场私域视频号'
 when rule_name like '%语数英%' and third_department_name = '新媒体内容运营部' then '语数英'
 when flow_pool_name like '%星义大大%' or flow_pool_name like '%星义物理%' then '赵星义'
 when rule_name like '%途途私域%' or (rule_name like '%私域%' and first_department_name = 'TT' and rule_name not like '%集团%') then '途途私域'

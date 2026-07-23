@@ -346,7 +346,7 @@ koc_channel_broadcast_text_detail as (
             broadcast_channel,
             ' 5min率均值为 ',
             concat(cast(cast(round(coalesce(rate_long_call_manager_avg_value, 0) * 100, 2) as decimal(10, 2)) as varchar), '%'),
-            '，低于平均值的经理：',
+            '，低于平均值的负责人：',
             coalesce(rate_long_call_below_avg_manager_detail, '无')
         ) as broadcast_line_text
     from koc_channel_broadcast

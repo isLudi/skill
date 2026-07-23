@@ -334,4 +334,3 @@ order by
     pus.order_course_name,
     pus.order_class_name,
     pus.subject
-limit 1000

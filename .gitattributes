@@ -2,4 +2,4 @@
 AGENTS.md text eol=lf
 
 # Data Center canonical SQL is an exact production-source snapshot; preserve its hash.
-sql-query-writer-for-dashboard/resources/raw_sql/data_center_market_2688.sql whitespace=-blank-at-eol
+sql-query-writer-for-dashboard/resources/raw_sql/*.sql whitespace=-blank-at-eol
