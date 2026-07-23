@@ -1,6 +1,6 @@
 ---
 name: sync-qingcheng-temp-tables
-description: Synchronize the latest or explicitly selected Excel files posted by 郅玲玉 in the Feishu group 青橙数据对接 into the Qingcheng and shared architecture maintenance workbooks, then upload the complete verified workbooks to their existing USQL temporary tables. Also use to configure or operate the governed local lark-event service that turns @管家 commands and source attachments into plan, approval, local-apply, and upload jobs. Use for requests such as “上传郅玲玉在青橙数据对接内发布的最新临时表到线上平台”, scoped dry-run comparisons, event-service setup, or workflow auditing.
+description: Synchronize the latest or explicitly selected Excel files posted by 郅玲玉 in the Feishu group 青橙数据对接 into the Qingcheng and shared architecture maintenance workbooks, then upload the complete verified workbooks to their existing USQL temporary tables. Also use to configure or operate the governed local lark-event service that turns @管家 commands and source attachments into plan, approval, local-apply, and upload jobs, and for recurring lark-cli upgrades followed by a governed production event-service restart. Use for requests such as “上传郅玲玉在青橙数据对接内发布的最新临时表到线上平台”, scoped dry-run comparisons, event-service setup, lark-cli upgrade/restart maintenance, or workflow auditing.
 ---
 
 # Sync Qingcheng Temp Tables
@@ -129,6 +129,12 @@ The service must:
 - keep source-attachment automation plan-only, even in production mode;
 - allow production only after an approver's explicit `上传...` or `确认上传 <job_id>` command plus all configuration gates;
 - never force-kill the event consumer or silently retry an interrupted production job.
+
+### Mandatory lark-cli Upgrade Gate
+
+For every `lark-cli` upgrade that can affect this workflow, read and execute the fixed eight-step runbook in [event_service.md](references/event_service.md#14-lark-cli-常态升级与生产服务重启固定八步). Do not skip or reorder its gates. Any failure before the final step blocks restoration of the production listener.
+
+Treat “restart production” as restoring the exact reviewed pre-upgrade service configuration after compatibility validation. It never means silently switching `mode`, enabling `allow_local_apply` or `allow_production_upload`, widening identities/scopes, or granting a new workbook/platform write authorization.
 
 ## Failure Handling
 

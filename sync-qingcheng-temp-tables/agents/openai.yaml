@@ -1,4 +1,4 @@
 interface:
   display_name: "青橙临时表与群机器人"
-  short_description: "同步青橙群表格，并运行分权审批的本机事件服务"
-  default_prompt: "使用 $sync-qingcheng-temp-tables 预检或同步青橙群临时表，并按需配置受控的本机 lark-event 管家服务。"
+  short_description: "同步青橙群表格，并维护管家事件服务与 lark-cli 升级重启"
+  default_prompt: "使用 $sync-qingcheng-temp-tables 预检或同步青橙群临时表，或按固定八步升级 lark-cli 并安全重启生产事件服务。"

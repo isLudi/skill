@@ -1,5 +1,22 @@
 # 青橙 lark-event 本机常驻服务
 
+## 目录
+
+- [1. 目标与边界](#1-目标与边界)
+- [2. 已实现组件](#2-已实现组件)
+- [3. 身份与权限模型](#3-身份与权限模型)
+- [4. 两种模式与回复策略](#4-两种模式与回复策略)
+- [5. 飞书前置条件](#5-飞书前置条件)
+- [6. 首次配置](#6-首次配置)
+- [7. 启动、状态、日志与停止](#7-启动状态日志与停止)
+- [8. 登录自启](#8-登录自启)
+- [9. 群内使用方法](#9-群内使用方法)
+- [10. 郅玲玉发布附件时的行为](#10-郅玲玉发布附件时的行为)
+- [11. 任务状态](#11-任务状态)
+- [12. 范围化 CLI](#12-范围化-cli)
+- [13. 上线顺序](#13-上线顺序)
+- [14. lark-cli 常态升级与生产服务重启（固定八步）](#14-lark-cli-常态升级与生产服务重启固定八步)
+
 ## 1. 目标与边界
 
 本服务把 `青橙数据对接` 群消息转换为受控的青橙临时表任务。它只处理配置中的固定群、固定来源人、固定五类 Excel 和固定本地/平台映射，不执行任意 shell、任意 SQL 或自由生成的写操作。
@@ -322,3 +339,56 @@ D:\anaconda3\python.exe `
 5. 最后安装登录自启。
 
 任何阶段都不要通过关闭 Hash、漂移、校验或回执检查来“修复”失败。
+
+## 14. lark-cli 常态升级与生产服务重启（固定八步）
+
+每次 `lark-cli` 升级都必须依次执行以下八步。任一步失败都阻断后续生产恢复，不得跳步、调序或用一次历史成功替代当前版本验证。
+
+这里的“生产服务”指实际承载群事件的常驻监听实例。“恢复生产”只恢复升级前已审阅的原配置和权限，不自动把 `shadow` 改为 `production`，不自动开启 `allow_local_apply` / `allow_production_upload`，也不授予新的本地或平台写入权限。
+
+### 1. 冻结生产并建立安全验证副本
+
+- 读取管理器状态和 SQLite 账本；存在 `planning`、`applying_local` 或 `uploading` 任务时，等待其安全结束或完成人工核验，不得直接升级。
+- 记录实时配置的 SHA-256，以及 `mode`、全部回复开关、`allow_local_apply`、`allow_production_upload`、群和角色 ID；把配置逐字节备份到本次升级的 runtime 维护目录。
+- 从备份创建独立验证配置和独立 `runtime_root`，强制使用 `mode=shadow`、`allow_local_apply=false`、`allow_production_upload=false`。不要覆盖实时生产配置。
+
+### 2. 固化升级前版本、路径与回滚证据
+
+- 记录 `Get-Command lark-cli -All`、本地和全局命令的绝对路径与 `--version` 输出，并记录青橙脚本 `resolve_lark_cli()` 实际解析的路径。
+- 执行 `lark-cli update --check --json`，保存当前版本、目标版本和 `skills_status`，但不要把 `_notice` 当作升级完成证据。
+- 逐字节备份 `package.json`、`package-lock.json`、相关 CLI 包元数据及本次将变化的 Skill 文件，并记录 SHA-256。禁止把凭据、token 或浏览器状态写入维护制品。
+
+### 3. 优雅停止生产事件服务
+
+- 使用 `manage_event_service.ps1 -Action stop`，让父进程关闭 `lark-event` 子进程的 stdin；禁止强杀、`kill -9` 或无条件 `event stop --force`。
+- 确认服务不再运行、该事件键无遗留活动消费者，并保留停止日志。停止失败或出现孤儿消费者时先排查，不得边运行边替换 CLI。
+
+### 4. 统一升级 CLI 与官方 Skills
+
+- 按 `lark-shared` 要求，对明确的目标安装使用官方 `lark-cli update`；本机同时保留本地和全局安装时，把两者升级到同一精确版本，禁止只更新未限定路径的一个命令。
+- 让本地 `package.json`、锁文件、已安装包和真实命令版本保持一致；任何一处仍指向旧版本都视为版本漂移。
+- 核验 `skills_status.in_sync=true`，并把本地 `skills\lark-*` 与对应上游版本的完整文件树比较。同步官方文件时保留本地 `agents/openai.yaml` 注册信息；不得借升级修改青橙业务映射、运行配置或生产权限。
+
+### 5. 执行离线兼容性与 Windows 回归
+
+- 对青橙事件服务和同步脚本执行 `py_compile`，再运行 `D:\anaconda3\python.exe -m unittest discover -s tests -p 'test_*.py' -v`；任何失败都阻断启动。
+- 必须覆盖 Windows `.cmd` 多行 JSON 回复、换行转义、`--as bot`、幂等键位于 `--content` 前、50 字符幂等键上限，以及 `{ok,data,error}` JSON 信封解析。
+- 通过 `--help`、`event schema im.message.receive_v1 --json` 和无写入 dry-run 核验 `im +messages-mget`、`im +messages-reply`、`--content`、`--msg-type`、`--idempotency-key`、事件 NDJSON 与 `[event] ready` 契约。发现 CLI 漂移时先修复脚本和测试，不得直接上线。
+
+### 6. 仅用 shadow 验证配置启动新版本
+
+- 使用验证配置启动服务，确认实际解析的 CLI 路径和版本正是本次目标版本；不得先用实时生产配置试启动。
+- 核验 `status=running`、`event_ready=true`、目标事件键只有一个活动消费者、`dropped=0`，并检查 bot 身份、最小 scope 和最近日志无启动错误。
+- 再次确认验证实例的本地 Apply 和生产 Upload 门禁均为 `false`，且升级过程未创建业务写入回执。
+
+### 7. 执行一次受控群回复与幂等回读
+
+- 使用预先指定的维护测试消息；发送前明确记录目标消息、三行测试正文、`bot` 身份和本次唯一幂等键。不得向未确认的消息或群发送测试内容。
+- 通过当前 `LarkGateway.reply()` 路径用同一幂等键调用两次，要求两次返回同一个消息 ID 且群内只出现一条回复。
+- 使用 `im +messages-mget --as bot` 回读，核对发送者为“管家”应用、三行正文完整、`reply_to` 正确；同时确认没有递归任务、没有新增 Apply/Upload 回执、写入门禁仍关闭。
+
+### 8. 恢复原配置并重启生产服务
+
+- 先优雅停止 shadow 验证实例，再重新读取实时配置并与第 1 步记录的 SHA-256 比较；配置漂移时阻断恢复，禁止自动合并或扩大权限。
+- 使用逐字节一致的升级前实时配置启动服务。启动后回读 `mode`、所有回复开关和两道写入门禁，要求与升级前完全一致；升级流程本身不得改变这些值。
+- 最终核验 `status=running`、`event_ready=true`、单一活动消费者、`dropped=0`、精确 CLI 路径/版本及无错误启动日志，并保存升级回执。任何核验失败都保持生产停止或退回 shadow，不得宣称升级完成。
