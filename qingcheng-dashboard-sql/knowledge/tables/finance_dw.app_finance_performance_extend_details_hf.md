@@ -8,6 +8,8 @@
 
 在青橙年季月营收、团队完成度【月/期】和个人转化 SQL 中作为财务业绩来源，提供订单、用户、交易、课程、员工、金额和部门归属字段。
 
+model 2460 从 2026-07-20 起还使用本表补充“课程转移到 B 用户且 B 用户处于青橙顾问保护期”的正向支付；该用途必须先由 `finance_dw.dim_finance_order_change_df` 限定课程转移最新子订单。
+
 ## 3. 数据粒度
 
 待人工确认。当前 SQL 以订单/交易明细使用，字段包含 `id`、`order_number`、`biz_number`、`user_id`、`trade_time`。
@@ -201,6 +203,7 @@ where dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
 - `employee_email_name = temp_table.dingxi01_qing_zz.employee_email_name`
 - `employee_email_name + qici = temp_table.dingxi01_qing_team_jg.employee_email_name + qici`
 - `trade_time between org_t.begin_time and org_t.end_time`
+- 课程转移补数：`order_number = dim_finance_order_change_df.latest_child_order_number`
 
 ## 10. 常用 SQL 片段
 
@@ -218,3 +221,5 @@ end as trade_status
 - `real_price_0` 计算后未参与后续营收指标。
 - 期次计算使用三参数 `date_add`，后续生成新 SQL 时需改为 `interval` 写法。
 - 个人完成度/个人转化中，`course_first_level_department_name` 和 `course_second_level_department_name` 可能为空；生成折算后产出相关 SQL 时必须按 `grade_list` 兜底课程部门，否则空部门流水不会进入 H/非 H/一对一桶。
+- model 2460 课程转移补数只取 `trade_type = '调课调班'`、支付状态、`price > 0` 的正向行，并按订单、B 用户、顾问、科目先聚合；不得把退款行或非课程转移订单带入。
+- 本表 `price` 的单位是元；课程转移补数直接使用 `price`，不能按 service 金额字段口径再除以 100。

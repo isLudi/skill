@@ -338,6 +338,7 @@ tmk_data as (
             when rule_name like '%西安图书%' then '西安图书'
             when rule_name like '%公域学霸%'
               or rule_name like '%公域%' then '公域学霸'
+            when rule_name like '%抖音正价退费%' then '抖音正价退费'
             when rule_name like '%SEC招生退费%'
               or rule_name like '%招生退费%' then 'SEC招生退费'
             when rule_name like '%SEC首期掉海%'

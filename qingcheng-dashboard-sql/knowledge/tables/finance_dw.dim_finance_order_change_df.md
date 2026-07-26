@@ -62,6 +62,13 @@ where dt = format_datetime(now() - interval '24' hour, 'YYYYMMdd')
   and biz_type in (2, 7)
 ```
 
+model 2460 的保护期课程转移补数还必须增加：
+
+```sql
+and order_change_type = 1
+and latest_child_order_number is not null
+```
+
 ## 9. 常用 join key
 
 - 主交易层：将 `order_number`、`parent_order_number`、`original_order_number`、`latest_child_order_number` 展开为 `join_order_number` 后，按 `rd.order_number = order_change.order_number` 关联。
@@ -84,3 +91,5 @@ end as refund_type
 - 主交易层识别为内部调课调班调入/调出后，应从 `income`、`refund`、`refund_4` 和科目数中排除，不按外部支付/退款入桶。
 - 个人完成度/个人转化中的 `gmv_t` 调课调班聚合必须保留订单、课程、期次、科目和课程部门粒度；不要按 `name + user_id1` 粗粒度汇总，否则同一顾问同一用户多笔调课调班可能吃掉退款或错配课程部门。
 - 本表漏匹配不代表订单一定不是内部调课调班；若 service 订单明细同订单存在 `transfer_in_amount/transfer_out_amount`，完成度 SQL 会把该 service transfer 作为补充识别，避免正向调入误入外部收入。
+- 保护期课程转移补数只用 `latest_child_order_number` 关联财务正向支付；`parent_order_number` 和 `original_order_number` 仅保留链路证据，不能作为 B 用户补数订单重复 union。
+- 该补数是 model 2460 从 2026-07-20 起的窄例外，不改变普通 `order_change_type = 0` 或 service transfer 行继续被剔除的规则。

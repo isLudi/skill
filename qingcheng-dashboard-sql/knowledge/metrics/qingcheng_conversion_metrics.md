@@ -10,7 +10,7 @@
 
 该 SQL 分三层计算：
 
-1. `gmv`：订单明细层，来自订单业绩表。
+1. `gmv`：订单明细层，由原 service 订单分支 `service_gmv` 和 20260722 期起的保护期课程转移补数分支 `course_transfer_gmv` 合并。
 2. `udd`：用户层，按 `qici + qudao + grade_0 + zhuguan + name + uid` 汇总。
 3. `ud`：顾问层，按 `qici + qudao + grade_0 + zhuguan + name` 汇总。
 
@@ -33,6 +33,14 @@
 - 先用 `filled_course_first_level_department_name` / `filled_course_second_level_department_name` 兜底空课程部门。
 - 再基于 service 明细自带的 `transfer_in_amount` / `transfer_out_amount`，剔除已在主明细中体现的内部调课调班金额，避免把 `调出退款` 当成外部退费。
 - `order_change` 与 `re_ke` 只用于识别内部调课调班链路和计算 `refund_4` / 点睛退 2 节，不直接替代 service 主明细营收。
+
+课程转移例外从 `2026-07-20` 起生效：
+
+- `finance_dw.dim_finance_order_change_df` 仅取 `order_change_type = 1` 的最新子订单。
+- `finance_dw.app_finance_performance_extend_details_hf` 仅取青橙顾问、正向支付、`trade_type = '调课调班'`、`price > 0` 的财务行。
+- B 用户必须在交易时点命中 `service_dw.dwd_crm_assign_private_detail_hf` 的有效青橙私海保护期，且私海顾问与财务业绩顾问一致。
+- 补数分支复用 `lead_map` 的渠道、年级和主管，单独生成 `course_transfer_gmv`；原 service 内部转单剔除逻辑不变。
+- 详细门禁见 `knowledge/sql_patterns/qingcheng_protected_course_transfer_conversion.md`。
 
 ## 4. 用户和科目指标
 
@@ -73,6 +81,7 @@
 - 当前版本已修复 `bb_dedup` 未按年级对齐导致的吞数问题；若同顾问同一期次同渠道同年级同主管仍有多行，保留 `rn = 1` 是否合理待人工确认。
 - `pay_sub` 和 `p_pay_sub` 在用户层计 distinct 科目，顾问层直接求和；如果同一用户跨渠道/顾问重复，需确认是否符合口径。
 - `sc` 顾问层求和是否应改为平均周期、有效用户平均周期或中位数待确认。
+- `prc` 当前只按 `qici_lead desc` 排序；同一 lead 存在并列期次时，重复执行可能选中不同分配时间并造成 `sc` 漂移。课程转移补数必须单独验证新增分支的 `sc`，不能只比较两次全量执行结果。
 - `p_` 前缀当前表示当期，即 `dd.qici0 = dd.period`；20260716 热修必须同步修正 `qici0`，否则 `p_pay_user`、`p_pay_sub`、`p_income` 会被误归为往期。
 - 2026-06-26 canonical 版本课程一级部门白名单包含 `H业务线`、`LL业务线`、`TUTU`、`TT`、`A业务线`、`EM业务线`、`KA业务线`、`TT业务线`、`创新中心`；二级部门白名单包含 `创新学部`、`升学规划中心`、`线上考研学部`。
 - `cost_lead` 是硬编码，不依赖成本表；后续如果成本口径变化必须更新 SQL 和本文档。

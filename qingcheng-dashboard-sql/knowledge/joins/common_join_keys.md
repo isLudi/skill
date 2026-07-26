@@ -29,6 +29,7 @@
 | `finance_dw.dm_finance_order_refund_detail_df ord` | `finance_dw.dim_finance_order_change_df order_change` | `order_number = order_change.order_number` | left join | 补充退款订单调课调班类型；`order_change` 先展开订单号/父订单号/原始订单号/最新子订单号并按订单号聚合 | 已从 SQL 入库 |
 | `gmv_order` | `finance_dw.dwd_finance_order_refund_df r` | `gmv_order.order_number = r.order_number` | inner/left join | 青橙退费订单补退款原因和原因源金额；先用青橙订单集合限域，再按 `order_number + refund_reason` 聚合 | 原因源金额只作分摊权重；退款类型 `in (1,2)`、主键和枚举待确认 |
 | `rd` 主交易层 | `finance_dw.dim_finance_order_change_df order_change` + service transfer 标记 | `rd.order_number = order_change.order_number`；service transfer 从 `order_attr` 按 `order_number + performance_employee_email_name` 聚合并随 `dd/gmv/rd` 传递 | left join / 字段传递 | 识别内部调课调班调入/调出，避免误入外部收入/退款桶；覆盖 `biz_type in (2,7)`，并用 service `transfer_in_amount/transfer_out_amount` 补充漏链路 | 已从 SQL 入库，service 明细需先聚合后回连避免放大 |
+| `course_transfer_finance` | `service_dw.dwd_crm_assign_private_detail_hf` | `target_user_number = user_number and employee_email_name = employee_email_name`，并校验 `assign_time <= trade_time < close_time/fall_sea_time` | inner join 后窗口去重 | 证明 B 用户在交易时点处于同一青橙顾问保护期；只用于 model 2460 自 2026-07-20 起的课程转移补数 | 已从 SQL 入库；同订单科目按分配时间、更新时间、私海 ID 倒序取 1 条 |
 | `rd` | `re_ke` | `order_number + qici = qici_re` | left join | 给财务交易补充全退时调课链路完课课节数 | 已从 SQL 入库 |
 | `rd_0` | `temp_table.dingxi01_qing_qi_moth` | `qici` | left join | 期次映射月份 | 已从 SQL 入库 |
 | `wa` | `temp_table.dingxi01_qing_team_jg` | `name = employee_email_name` | left join | 补充最新直属主管 | 已从 SQL 入库 |

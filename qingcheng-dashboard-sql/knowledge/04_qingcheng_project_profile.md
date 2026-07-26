@@ -75,6 +75,7 @@
 | 看板结构 | `knowledge/dashboards/qingcheng_conversion_raw_20260626.md` |
 | 指标集合 | `knowledge/metrics/qingcheng_conversion_metrics.md` |
 | 订单业绩表 | `knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md` |
+| 课程转移保护期补数 | `knowledge/sql_patterns/qingcheng_protected_course_transfer_conversion.md` |
 | 团队架构临时表 | `knowledge/temp_tables/temp_table.dingxi01_qing_team_jg.md` |
 | 渠道/成本映射 | `knowledge/sql_patterns/qingcheng_channel_grade_mapping.md` |
 | join 关系 | `knowledge/joins/table_relationships.md` |
@@ -83,6 +84,7 @@
 
 - 结果期次 `qici` 由业务日历优先、`trade_timestamp` 周五逻辑兜底生成；2026-07-09 热修已将 `2026-07-14` 至 `2026-07-18` 归为 `20260716期`。
 - 营收以 `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` 为主明细来源，并剔除已落在 service 明细 `transfer_in_amount / transfer_out_amount` 的内部调课调班链路。
+- 从 20260722 期起，课程转移到 B 用户且交易时 B 用户处于同一青橙顾问保护期时，以财务最新子订单正向支付隔离补回；原 service 内部转单剔除不变。
 - `podan` 不再按简单 `promit > 0` 统计，而是按折算净收 `((H_promit_4 - Y_promit_4) + n_H_promit_4 * 0.5) > 0` 统计。
 - 团队架构补充改为 `employee_email_name + qici`，避免未来架构表覆盖历史结果期次归属。
 

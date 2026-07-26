@@ -5,7 +5,7 @@
 | 指标文档 | 来源 raw SQL | 相关表 |
 |---|---|---|
 | [青橙渠道订单明细指标与派生字段](../metrics/qingcheng_channel_order_detail_metrics.md) | [qingcheng_channel_order_detail_raw_20260627.sql](../../resources/raw_sql/qingcheng_channel_order_detail_raw_20260627.sql) | `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df`<br>`service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` |
-| [青橙转化指标](../metrics/qingcheng_conversion_metrics.md) | [data_center_qingcheng_2460.sql](../../resources/raw_sql/data_center_qingcheng_2460.sql) | `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` |
+| [青橙转化指标](../metrics/qingcheng_conversion_metrics.md) | [data_center_qingcheng_2460.sql](../../resources/raw_sql/data_center_qingcheng_2460.sql) | `finance_dw.app_finance_performance_extend_details_hf`<br>`finance_dw.dim_finance_order_change_df`<br>`service_dw.dwd_crm_assign_private_detail_hf`<br>`service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` |
 | [qingcheng_conversion_wide_table_market_channel_20260611_metric_1](../metrics/qingcheng_conversion_wide_table_market_channel_20260611_metric_1.md) | - | - |
 | [qingcheng_conversion_wide_table_market_channel_20260611_metric_10](../metrics/qingcheng_conversion_wide_table_market_channel_20260611_metric_10.md) | - | - |
 | [qingcheng_conversion_wide_table_market_channel_20260611_metric_11](../metrics/qingcheng_conversion_wide_table_market_channel_20260611_metric_11.md) | - | - |

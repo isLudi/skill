@@ -57,6 +57,7 @@ and assign_employee_second_level_department_name in (
 | `assign_time` | 该私海记录的分配时间 | 排序历史承接顺序 |
 | `private_sea_update_time` | 私海记录更新时间 | 同分配时间时的排序兜底 |
 | `close_time` | 私海关闭时间 | `1970-01-01 08:00:00` 为未关闭默认值的 live 证据 |
+| `fall_sea_time` | 计划掉海时间 | 交易时点保护期判断必须晚于交易时间 |
 | `close_reason`, `close_reason_desc` | 关闭原因 | `2/转移` 可识别转手关闭 |
 | `is_del` | 私海记录是否删除/失效 | 与关闭时间联合判断活跃状态 |
 | `assign_employee_*_department_name` | 顾问当前组织字段 | 范围限定和承接学部输出 |
@@ -223,3 +224,29 @@ row_number() over (
 - 活跃状态与排序边界：query id `1466174917`。
 - TMK 覆盖与截面一致性：query id `1466178403`。
 - 多次分配和未命中边界明细：query id `1466187134`。
+
+## 16. 交易时点保护期归因
+
+model 2460 从 `2026-07-20` 起使用本表处理 B 用户课程转移成单。该用途判断的是“交易发生时是否处于保护期”，不是当前截面顾问：
+
+```sql
+private.user_number = finance.target_user_number
+and private.employee_email_name = finance.employee_email_name
+and private.assign_time <= finance.trade_time
+and private.is_del = 0
+and (
+    private.close_time is null
+    or private.close_time = timestamp '1970-01-01 08:00:00'
+    or private.close_time > finance.trade_time
+)
+and coalesce(
+    try_cast(private.fall_sea_time as timestamp),
+    timestamp '9999-12-31 23:59:59'
+)
+    > finance.trade_time
+```
+
+- 此场景要求 `assign_employee_first_level_department_name = 'H业务线'` 且 `assign_employee_second_level_department_name = '青橙项目部'`，因为目标是证明交易时青橙顾问保护，不沿用 TMK 承接探查的扩展学部范围。
+- 同一订单、科目多条记录按 `assign_time desc, private_sea_update_time desc, private_sea_id desc` 取 1 条。
+- 得到的 `lead_id` 必须继续按同一顾问命中 model 2460 `lead_map`；私海命中本身不足以生成渠道归因。
+- 2026-07-26 目标 case 保护期证据 query id `1500557811`。
