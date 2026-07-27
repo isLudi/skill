@@ -6,13 +6,11 @@
 
 ## 2. 最新来源
 
-- 基线来源：`D:\Feishu\0612.txt`
-- 本次增量来源：用户于 2026-07-23 明确提供的渠道规则
-- Skill 归档：`resources/raw_sql/market_channel_case_when_0723.sql`
-- 基线来源文件最后修改时间：2026-06-12 21:54:25
-- 基线入库日期：2026-05-09
-- 最近更新日期：2026-07-23
-- 代码规模：源码 183 行；排除注释后 173 个 `then` 分支，107 个去重后的渠道输出值
+- 合并基线：0723 版本，历史 SHA-256 `fb57458a6fcf13a0cbe20ad1cfb5d226cef58504e88d5fe47ac2658983b02955`
+- 本次增量来源：`D:\Feishu\1.txt`，按用户确认范围只吸收区域、KOC、进校规则
+- Skill 最新归档：`resources/raw_sql/market_channel_case_when_0726.sql`
+- 最近更新日期：2026-07-26
+- 代码规模：源码 163 行；156 个 `then` 分支，98 个去重后的渠道输出值
 - 输出字段：`qudao`
 
 ### 0524 → 0612 增量变更
@@ -36,6 +34,16 @@ then '北京直播江苏'
 - 该规则必须位于所有宽泛流量池、老师 IP、渠道树条件之前。2026-07-23 在线探针 query `1495639193` 显示，最新可见分区 `dt='20260723' and hour='13'` 中纯值等于 `北京直播江苏` 命中 0 条，而 `like '%北京直播江苏%'` 命中 15 条明细，`sum(lead_count)=14`、`sum(valid_lead_count)=14`；既有 query `1495469885` 显示其中 8 条线索的 `flow_pool_name` 含 `星义物理`，若不前置会先命中 `赵星义`。
 - 规则在不同数据集可输出为 `channel_map`、`channel_map_1` 或 `qudao`；展示值统一为 `北京直播江苏`，不因最终字段别名变化。
 
+### 0723 → 0726 合并变更
+
+- 以 0723 版本为合并基线，继续将 `rule_name like '%北京直播江苏%' then '北京直播江苏'` 保持为第一优先级规则。
+- 保留孟亚飞 1 组视频号合并口径：符合该分支的记录继续输出 `孟亚飞9元`，不拆成独立的 `孟亚飞-1组-视频号`。
+- 从 `D:\Feishu\1.txt` 吸收 16 条区域/KOC/进校新增分支，新增或补齐河南进校、广东/浙江/上海/江苏图书、曹忆、北京直播山东、北京直播河南、锋途KOC、西安直播江苏（抖音/视频号）和西安直播北京。
+- 接受 17 处 KOC/进校条件扩展：包括 KOC 人员名单补充曲默晗、孟亚飞数学补充 `rule_name like '%初二%'`、周帅数学补充新高二 SKU、进校名单补充赵艺雅、TMK1元补充禾顺云、进校私域合作补充肖佳兴/姚佳03。
+- 按新稿差异删除 34 条旧规则实例；其中北京直播江苏按相同业务条件重新插入最高优先级，因此实际不再保留的是另外 33 条旧业务分支。
+- 未吸收超出本次范围的 `赠课失败`、`EM-小红书合作`、`转介绍`、`搜索1元`、`集团私域`、`郭艺`、`B站信息流-赵星义`、`APP` 等新增条件；同时拒绝 7 处与本次区域/KOC/进校无关的输出值变化，继续沿用 0723 输出口径。
+- 0726 canonical SQL 的 SHA-256 为 `ae19deefce5c646b51c85e51e7df7f5449161d3f0c3d36dab07723e05ead443d`；完整选择与排除证据见本次 runtime 合并清单。
+
 ## 3. 适用范围
 
 用于市场顾问相关看板中的渠道归因 CASE 映射。现有历史 SQL 中同类字段包括：
@@ -44,7 +52,7 @@ then '北京直播江苏'
 - `channel_map_1`
 - `qudao`
 
-生成或改写市场顾问转化、线索转化到课、外呼过程、分配计划实际有效量等看板 SQL 时，如果需要“最新渠道 CASE”，优先引用 `resources/raw_sql/market_channel_case_when_0723.sql`，不要直接照抄旧看板中的长 CASE。
+生成或改写市场顾问转化、线索转化到课、外呼过程、分配计划实际有效量等看板 SQL 时，如果需要“最新渠道 CASE”，优先引用 `resources/raw_sql/market_channel_case_when_0726.sql`，不要直接照抄旧看板中的长 CASE。
 
 ## 4. 主要依赖字段
 
@@ -132,7 +140,7 @@ with base as (
         t.user_id,
         t.employee_email_name,
         t.rule_name,
-        -- 粘贴 resources/raw_sql/market_channel_case_when_0723.sql
+        -- 粘贴 resources/raw_sql/market_channel_case_when_0726.sql
         -- 并按需要将输出别名 qudao 改为 channel_map
         <latest_channel_case_when>
     from bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df t

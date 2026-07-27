@@ -12,13 +12,13 @@
         "pay_users"
       ],
       "status": "confirmed",
+      "automatic_compile": true,
       "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
-      "source_sha256": "79b574438a0f266d58db983af0de45653563b345da6cb0bc0791628e6af88937",
+      "source_sha256": "a92e72d15e570ad9ca673445772dc1c8a509a478ff459b3ae911363131e7ae12",
       "description": "历史市场顾问转化看板明确输出的截面转化线索人数。",
       "sql_expression": "sum({base}.conversion_lead_count)",
       "output_alias": "pay_users",
       "aggregation": "sum",
-      "automatic_compile": true,
       "candidate_tables": [
         "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df"
       ],
@@ -56,13 +56,13 @@
         "pay_users_on_period"
       ],
       "status": "confirmed",
+      "automatic_compile": true,
       "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
-      "source_sha256": "79b574438a0f266d58db983af0de45653563b345da6cb0bc0791628e6af88937",
+      "source_sha256": "a92e72d15e570ad9ca673445772dc1c8a509a478ff459b3ae911363131e7ae12",
       "description": "同一线索期内完成转化的线索人数。",
       "sql_expression": "sum({base}.same_lead_period_conversion_lead_count)",
       "output_alias": "pay_users_on_period",
       "aggregation": "sum",
-      "automatic_compile": true,
       "candidate_tables": [
         "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df"
       ],
@@ -99,7 +99,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
-      "source_sha256": "79b574438a0f266d58db983af0de45653563b345da6cb0bc0791628e6af88937",
+      "source_sha256": "a92e72d15e570ad9ca673445772dc1c8a509a478ff459b3ae911363131e7ae12",
       "description": "截面转化人数扣除同线索期转化人数。",
       "sql_expression": "sum({base}.conversion_lead_count - {base}.same_lead_period_conversion_lead_count)",
       "output_alias": "pay_users_not_on_period",
@@ -141,7 +141,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
-      "source_sha256": "79b574438a0f266d58db983af0de45653563b345da6cb0bc0791628e6af88937",
+      "source_sha256": "a92e72d15e570ad9ca673445772dc1c8a509a478ff459b3ae911363131e7ae12",
       "description": "截面转化科目人次，不等同于去重用户数。",
       "sql_expression": "sum({base}.subject_count)",
       "output_alias": "pay_user_subs",
@@ -184,7 +184,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
-      "source_sha256": "79b574438a0f266d58db983af0de45653563b345da6cb0bc0791628e6af88937",
+      "source_sha256": "a92e72d15e570ad9ca673445772dc1c8a509a478ff459b3ae911363131e7ae12",
       "description": "同一线索期内完成转化的科目人次。",
       "sql_expression": "sum({base}.same_lead_period_subject_count)",
       "output_alias": "pay_user_subs_on_period",
@@ -226,7 +226,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
-      "source_sha256": "79b574438a0f266d58db983af0de45653563b345da6cb0bc0791628e6af88937",
+      "source_sha256": "a92e72d15e570ad9ca673445772dc1c8a509a478ff459b3ae911363131e7ae12",
       "description": "截面转化科目人次扣除同线索期转化科目人次。",
       "sql_expression": "sum({base}.subject_count - {base}.same_lead_period_subject_count)",
       "output_alias": "pay_user_subs_not_on_period",
@@ -357,7 +357,7 @@
       ],
       "status": "pending_confirmation",
       "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
-      "source_sha256": "79b574438a0f266d58db983af0de45653563b345da6cb0bc0791628e6af88937",
+      "source_sha256": "a92e72d15e570ad9ca673445772dc1c8a509a478ff459b3ae911363131e7ae12",
       "description": "历史转化看板对抖音私域使用 merge_assign_lead_count，其他渠道使用 lead_count。",
       "sql_expression": "sum(case when {base}.channel_map = '抖音私域' then {base}.merge_assign_lead_count else {base}.lead_count end)",
       "output_alias": "lead_count",
@@ -384,7 +384,8 @@
         "section_assign_employee_third_level_department_name",
         "period_mapping_first_level_department_name"
       ],
-      "notes": "抖音私域合并线索口径尚未由独立业务指标文档确认，生产编译前必须确认是否沿用该特殊分支。"
+      "notes": "抖音私域合并线索口径尚未由独立业务指标文档确认，生产编译前必须确认是否沿用该特殊分支。",
+      "automatic_compile": false
     },
     {
       "id": "market_consultant:metric:valid_lead_count",
@@ -397,7 +398,7 @@
       ],
       "status": "pending_confirmation",
       "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
-      "source_sha256": "79b574438a0f266d58db983af0de45653563b345da6cb0bc0791628e6af88937",
+      "source_sha256": "a92e72d15e570ad9ca673445772dc1c8a509a478ff459b3ae911363131e7ae12",
       "description": "历史转化看板对抖音私域使用 merge_valid_lead_count，其他渠道使用 valid_lead_count。",
       "sql_expression": "sum(case when {base}.channel_map = '抖音私域' then {base}.merge_valid_lead_count else {base}.valid_lead_count end)",
       "output_alias": "can_renew_ds_count_a",
@@ -424,7 +425,8 @@
         "section_assign_employee_third_level_department_name",
         "period_mapping_first_level_department_name"
       ],
-      "notes": "抖音私域合并有效线索口径尚未由独立业务指标文档确认；其他看板可能直接 sum(valid_lead_count)，不得静默混用。"
+      "notes": "抖音私域合并有效线索口径尚未由独立业务指标文档确认；其他看板可能直接 sum(valid_lead_count)，不得静默混用。",
+      "automatic_compile": false
     },
     {
       "id": "market_consultant:metric:finance_positive_order_count_dedup",

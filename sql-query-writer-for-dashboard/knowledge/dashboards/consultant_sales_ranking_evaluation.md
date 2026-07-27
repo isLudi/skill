@@ -222,7 +222,7 @@ inner join jiagou_zx_active zx
 
 ### 待确认事项
 
-- channel_map CASE 版本未同步最新 `market_channel_case_when_0723.sql`；如与转化看板在同一前端展示，会出现渠道口径不一致。
+- channel_map CASE 版本未同步最新 `market_channel_case_when_0726.sql`；如与转化看板在同一前端展示，会出现渠道口径不一致。
 - `period_mapping_first_level_department_name is null` 和 `period_mapping_second_level_department_name is null` 的放宽条件。
 - `conversion_base` 使用 `select fl.*`（全字段扫描宽表 283 列），违反知识库规则。
 - `temp_table.dingxi01_cost` 中 `cost` 字段为字符串，需 `try_cast` 且 `> 0` 过滤；`trim(channel)` 后 `max(cost)` 取最大唯一值，如存在同一渠道多行不同成本值会丢失信息。

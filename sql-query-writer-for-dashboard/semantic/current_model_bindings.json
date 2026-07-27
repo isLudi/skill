@@ -11,10 +11,10 @@
       "model_id": "2054",
       "ordinal": 1,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/(内部渠道)外呼过程数据",
-      "source_observed_on": "2026-07-23",
-      "sql_bytes": 61219,
-      "sql_lines": 751,
-      "sql_sha256": "6836fa44044a5d6a5c609ed643a0f9f12c87cc4d21fa065749c9bde8e6ccb420",
+      "source_observed_on": "2026-07-26",
+      "sql_bytes": 61074,
+      "sql_lines": 738,
+      "sql_sha256": "098cab40c4db881dcf9af13200e210e35bc667bdd1c57458a1774cccc465ff19",
       "subject_id": "2044"
     },
     {
@@ -26,10 +26,10 @@
       "model_id": "2132",
       "ordinal": 2,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/(内部)到课衰减情况",
-      "source_observed_on": "2026-07-23",
-      "sql_bytes": 48817,
-      "sql_lines": 442,
-      "sql_sha256": "0e93569e9857bd5fe81fb66a9043da1416780aba79914ac8e147eef08cc84558",
+      "source_observed_on": "2026-07-26",
+      "sql_bytes": 46755,
+      "sql_lines": 421,
+      "sql_sha256": "264babba19336a706f34515e6b58c4f0e1cd20e959fd581be59f7000d2edb540",
       "subject_id": "2121"
     },
     {
@@ -41,10 +41,10 @@
       "model_id": "2253",
       "ordinal": 3,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/转化数据_市场顾问",
-      "source_observed_on": "2026-07-23",
-      "sql_bytes": 47715,
-      "sql_lines": 469,
-      "sql_sha256": "4414d311da3fc8a64b97fe5578c367e64b68d220bd648aec629c1e52686ed91d",
+      "source_observed_on": "2026-07-26",
+      "sql_bytes": 46162,
+      "sql_lines": 444,
+      "sql_sha256": "6418416cfbb9943b3809164b7c110c9135d5b7e1b773de2609030f2aa8a3c054",
       "subject_id": "2242"
     },
     {
@@ -56,10 +56,10 @@
       "model_id": "2293",
       "ordinal": 4,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/运营侧个人数据",
-      "source_observed_on": "2026-07-23",
-      "sql_bytes": 66920,
-      "sql_lines": 959,
-      "sql_sha256": "5994433bcdcbb16a86c8c8016b85d35343721b07ef8dd371c2dad55ff2591e56",
+      "source_observed_on": "2026-07-26",
+      "sql_bytes": 68624,
+      "sql_lines": 1016,
+      "sql_sha256": "d3639aff3fc62f803e446c3a85243f68441a11861447d517ff92ccfcf7f015cd",
       "subject_id": "2282"
     },
     {
@@ -86,10 +86,10 @@
       "model_id": "2310",
       "ordinal": 6,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/分二级部门转化",
-      "source_observed_on": "2026-07-23",
-      "sql_bytes": 47525,
-      "sql_lines": 437,
-      "sql_sha256": "b286cecfa9e2dd1865fdb4f192859c864b39e8ef46f1e912763b57e0c41fc983",
+      "source_observed_on": "2026-07-26",
+      "sql_bytes": 45073,
+      "sql_lines": 380,
+      "sql_sha256": "213f9a743a04e69419e76786a2ea7c7be5314649b53a90155cf36f9929a2a31b",
       "subject_id": "2299"
     },
     {
@@ -101,10 +101,10 @@
       "model_id": "2344",
       "ordinal": 7,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/分析--分周期转化",
-      "source_observed_on": "2026-07-23",
-      "sql_bytes": 149378,
-      "sql_lines": 1291,
-      "sql_sha256": "b750c76e5a3ccedb90fbda3f4e70726b23f747f10270f4c5701feaeaab4c3c54",
+      "source_observed_on": "2026-07-26",
+      "sql_bytes": 146805,
+      "sql_lines": 1247,
+      "sql_sha256": "8ad249cd77605f9357768219a7f1131abce9bb36d4fe952d3865041e95fa6546",
       "subject_id": "2334"
     },
     {
@@ -116,10 +116,10 @@
       "model_id": "2345",
       "ordinal": 8,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/进量测试(市场渠道)",
-      "source_observed_on": "2026-07-23",
-      "sql_bytes": 56463,
-      "sql_lines": 571,
-      "sql_sha256": "691c650fc7275580ca7d75a103b61f33faf5d468092ee40cf0fecda7d5bdbcd8",
+      "source_observed_on": "2026-07-26",
+      "sql_bytes": 54924,
+      "sql_lines": 553,
+      "sql_sha256": "23f6337baaf31a7d04845fc48fbf62c445ea807334c5df0501e0a46c3a6644c6",
       "subject_id": "2335"
     },
     {
@@ -206,10 +206,10 @@
       "model_id": "2424",
       "ordinal": 14,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/每日转化数据表",
-      "source_observed_on": "2026-07-23",
-      "sql_bytes": 30393,
-      "sql_lines": 516,
-      "sql_sha256": "9690d5eb6196e07fc05684203a7b846245be73b25cf6bcbf83eaabd6f27f9a76",
+      "source_observed_on": "2026-07-26",
+      "sql_bytes": 31004,
+      "sql_lines": 522,
+      "sql_sha256": "7ca6af3252b73370e10fad74095151c5a9f431c6ccae2c4ecda66de9b87a265a",
       "subject_id": "2414"
     },
     {
@@ -221,10 +221,10 @@
       "model_id": "2461",
       "ordinal": 15,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/前期用户画像",
-      "source_observed_on": "2026-07-23",
-      "sql_bytes": 50320,
-      "sql_lines": 574,
-      "sql_sha256": "913b03abf854854cb4e6f9f4100723e2a80f0eb250479c66360f725499195b5f",
+      "source_observed_on": "2026-07-26",
+      "sql_bytes": 49820,
+      "sql_lines": 561,
+      "sql_sha256": "6bfaba0f612b3c89f61787ae39ab21861163780cec6a44ac2754075fa5c4b03a",
       "subject_id": "2451"
     },
     {
@@ -236,10 +236,10 @@
       "model_id": "2533",
       "ordinal": 16,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/过程文本数据",
-      "source_observed_on": "2026-07-23",
-      "sql_bytes": 59750,
-      "sql_lines": 622,
-      "sql_sha256": "06e2b3d16aec291fc1c8c8f1ae82418946080b4c9227fbbe9b9fd43c82a73dd5",
+      "source_observed_on": "2026-07-26",
+      "sql_bytes": 58211,
+      "sql_lines": 604,
+      "sql_sha256": "324756cdafd2c87208e12501a20cb750cf84bc9062b74677e609942d98452d40",
       "subject_id": "2523"
     },
     {
@@ -251,10 +251,10 @@
       "model_id": "2623",
       "ordinal": 17,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/抖音私信- 分时间段",
-      "source_observed_on": "2026-07-23",
-      "sql_bytes": 49581,
-      "sql_lines": 560,
-      "sql_sha256": "a03c67778718b1f9468e479357734ca20ab33c7fcc295d554bb8abe455d1b3d4",
+      "source_observed_on": "2026-07-26",
+      "sql_bytes": 49005,
+      "sql_lines": 545,
+      "sql_sha256": "2ea6b015fcd31719fdeaa0dc6dac997549bae6fac9587aef16767624f4f6f55c",
       "subject_id": "2613"
     },
     {
@@ -281,10 +281,10 @@
       "model_id": "2634",
       "ordinal": 19,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/每日转化数据表测试",
-      "source_observed_on": "2026-07-23",
-      "sql_bytes": 23248,
-      "sql_lines": 309,
-      "sql_sha256": "086a504f5b7ee54b198124831f0b5585faef4989e82be2db5ad8f9d9b97914f0",
+      "source_observed_on": "2026-07-26",
+      "sql_bytes": 24545,
+      "sql_lines": 317,
+      "sql_sha256": "0c180602c438c94fc0bb554dc4061e68f796b8846a468ee8e5ceaa6438844cce",
       "subject_id": "2624"
     },
     {
@@ -326,10 +326,10 @@
       "model_id": "2683",
       "ordinal": 22,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/前期流量画像-城市",
-      "source_observed_on": "2026-07-23",
-      "sql_bytes": 58143,
-      "sql_lines": 661,
-      "sql_sha256": "b2387b53ca14cf3f691932c9e81334534b396e865ef79c8ba1ab273ec3074d5a",
+      "source_observed_on": "2026-07-26",
+      "sql_bytes": 57821,
+      "sql_lines": 648,
+      "sql_sha256": "9933e5d29637d5666225e40b1f2ed5789266f0530db56d6e4cd050c046a55b5f",
       "subject_id": "2673"
     },
     {
@@ -341,10 +341,10 @@
       "model_id": "2688",
       "ordinal": 23,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/新人过程转化数据",
-      "source_observed_on": "2026-07-23",
-      "sql_bytes": 58472,
-      "sql_lines": 646,
-      "sql_sha256": "6ef43e7f4fc9fb86602d89f2198dcf3656cee19c5b1e31d57881eec320fa96c5",
+      "source_observed_on": "2026-07-26",
+      "sql_bytes": 56933,
+      "sql_lines": 628,
+      "sql_sha256": "7e92b8eeaf6001197bd01f0270f659523d806cea3fbad5f3127fd7efd96ca20b",
       "subject_id": "2678"
     },
     {
@@ -386,10 +386,10 @@
       "model_id": "2751",
       "ordinal": 26,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/暑期激励v2",
-      "source_observed_on": "2026-07-23",
-      "sql_bytes": 61716,
-      "sql_lines": 949,
-      "sql_sha256": "6c45e193860090d247001990d958cac291448a7de8c427c84d07e023adc51f85",
+      "source_observed_on": "2026-07-26",
+      "sql_bytes": 60177,
+      "sql_lines": 931,
+      "sql_sha256": "ddd9dc87f754fb1082a4876198ff46f4802a520c74ba1242044323d07ab2e16d",
       "subject_id": "2741"
     },
     {
@@ -401,10 +401,10 @@
       "model_id": "2774",
       "ordinal": 27,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/用户成单画像",
-      "source_observed_on": "2026-07-23",
-      "sql_bytes": 56013,
-      "sql_lines": 684,
-      "sql_sha256": "613d03781a34814b75868ade6189be3153b51c8deb1388a3121fa592ebeae01b",
+      "source_observed_on": "2026-07-26",
+      "sql_bytes": 55836,
+      "sql_lines": 671,
+      "sql_sha256": "6103deff45c79d9c0131e36e398314276109039c66ec8208c76ce28faab44641",
       "subject_id": "2764"
     },
     {
@@ -416,10 +416,10 @@
       "model_id": "2809",
       "ordinal": 28,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/成单用户画像整体数据",
-      "source_observed_on": "2026-07-23",
-      "sql_bytes": 44962,
-      "sql_lines": 380,
-      "sql_sha256": "c71482b6c3cb932f19c903ed7b3f5299f6ca59727cbe80aac0916d5d4150f37d",
+      "source_observed_on": "2026-07-26",
+      "sql_bytes": 43423,
+      "sql_lines": 362,
+      "sql_sha256": "87b5717f107cd50fd530efbb6047a9e6ec3d1b059d9e9882fd7913ea0f61fd82",
       "subject_id": "2799"
     },
     {
@@ -431,10 +431,10 @@
       "model_id": "2812",
       "ordinal": 29,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/用户画像成单用户城市标签",
-      "source_observed_on": "2026-07-23",
-      "sql_bytes": 41602,
-      "sql_lines": 329,
-      "sql_sha256": "9fc135f14ac9bcb82dbc3f7260dfd19ca986b7a57a5849fce450f91c6b33b516",
+      "source_observed_on": "2026-07-26",
+      "sql_bytes": 40582,
+      "sql_lines": 314,
+      "sql_sha256": "cd42eab4983d07038f6bb4de72259ab6aafa07c2a74e0544e71dda99614eb013",
       "subject_id": "2802"
     },
     {
@@ -446,10 +446,10 @@
       "model_id": "2836",
       "ordinal": 30,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/市场渠道用户成单分析",
-      "source_observed_on": "2026-07-23",
-      "sql_bytes": 49811,
-      "sql_lines": 492,
-      "sql_sha256": "26af14ba29ea47268a1490bb982fbd0280c14c2d0b677a40ee6b72819a5c28f9",
+      "source_observed_on": "2026-07-26",
+      "sql_bytes": 52672,
+      "sql_lines": 509,
+      "sql_sha256": "44281b0b3f1a8cb59a08ae893d58e29adeed597d7180761b20de64e3de20e35a",
       "subject_id": "2824"
     },
     {
@@ -461,10 +461,10 @@
       "model_id": "2842",
       "ordinal": 31,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/暑期激励v3-月份",
-      "source_observed_on": "2026-07-23",
-      "sql_bytes": 61327,
-      "sql_lines": 960,
-      "sql_sha256": "a50ab50add8c51bbfa523f62a308440519f3fb983aa7b94c6a50e0f620949afe",
+      "source_observed_on": "2026-07-26",
+      "sql_bytes": 60898,
+      "sql_lines": 946,
+      "sql_sha256": "2cd113bb3bb436028e216bcda28dc23fc01a1bfc1273f5371fa269bcff07ebdb",
       "subject_id": "2830"
     },
     {
@@ -491,10 +491,10 @@
       "model_id": "2883",
       "ordinal": 33,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/市场渠道用户成单分析2",
-      "source_observed_on": "2026-07-23",
-      "sql_bytes": 48895,
-      "sql_lines": 485,
-      "sql_sha256": "5e8a6f835239fc82cd278d08b5e22080bdd9ab03c1cd2fd1e0542746859eed84",
+      "source_observed_on": "2026-07-26",
+      "sql_bytes": 51756,
+      "sql_lines": 502,
+      "sql_sha256": "c63e1f88b4dbfb7cd9d222c232d0f09221796f57de154d135d22d0da6ca70614",
       "subject_id": "2871"
     },
     {
@@ -506,10 +506,10 @@
       "model_id": "2885",
       "ordinal": 34,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/市场渠道用户成单分析3",
-      "source_observed_on": "2026-07-23",
-      "sql_bytes": 50556,
-      "sql_lines": 488,
-      "sql_sha256": "2fc731d5c88e6f67b9bc46178958204c638c20fafd097a3e1937c39f6068a88e",
+      "source_observed_on": "2026-07-26",
+      "sql_bytes": 53417,
+      "sql_lines": 505,
+      "sql_sha256": "fee3cdccbc6211a87c9014bd8d272d58114fd4d2c4c484649b8f111d9ffec557",
       "subject_id": "2873"
     },
     {
@@ -521,10 +521,10 @@
       "model_id": "2886",
       "ordinal": 35,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/退费整体数据",
-      "source_observed_on": "2026-07-23",
-      "sql_bytes": 44881,
-      "sql_lines": 377,
-      "sql_sha256": "c20f27f02f6204d05f18f126661b4eb6d8bb5dfc8d41dcf44632e3b39b964565",
+      "source_observed_on": "2026-07-26",
+      "sql_bytes": 47744,
+      "sql_lines": 394,
+      "sql_sha256": "8dd3b067536d740f25d593380a2dd84587c230e14b35aa684679ba8ad3dcbbff",
       "subject_id": "2874"
     },
     {
@@ -536,10 +536,10 @@
       "model_id": "2890",
       "ordinal": 36,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/多科用户退费",
-      "source_observed_on": "2026-07-23",
-      "sql_bytes": 48466,
-      "sql_lines": 411,
-      "sql_sha256": "7da9e96d76dd08d240897508161e9106394d81dee9e2968a61d79700c645d4c0",
+      "source_observed_on": "2026-07-26",
+      "sql_bytes": 51329,
+      "sql_lines": 428,
+      "sql_sha256": "57837c96651ddc8bc17ce5eed91e13de97f56b527309740f987f5e99d4b8f7a3",
       "subject_id": "2878"
     },
     {
@@ -566,10 +566,10 @@
       "model_id": "3039",
       "ordinal": 38,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/新老人转化对比",
-      "source_observed_on": "2026-07-23",
-      "sql_bytes": 70259,
-      "sql_lines": 1046,
-      "sql_sha256": "b2633843418550c8323a86dec2f5ef56126b91c75ecc56aa34cb3ee687b61383",
+      "source_observed_on": "2026-07-26",
+      "sql_bytes": 68731,
+      "sql_lines": 1028,
+      "sql_sha256": "a131f53e96a7c3189808719bfcd5d1c270312f5c5fed6b119acec8bf83d683e1",
       "subject_id": "3027"
     },
     {
@@ -581,10 +581,10 @@
       "model_id": "3153",
       "ordinal": 39,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/wlx",
-      "source_observed_on": "2026-07-23",
-      "sql_bytes": 62630,
-      "sql_lines": 729,
-      "sql_sha256": "952e54508425e699fb670a1d1b16be382bf15b8f53ec454ebded8281bb57de8b",
+      "source_observed_on": "2026-07-26",
+      "sql_bytes": 59533,
+      "sql_lines": 712,
+      "sql_sha256": "a45c84717086413509407a6b371b192ae96d5d7560b191ba0027cba295780512",
       "subject_id": "3141"
     }
   ],

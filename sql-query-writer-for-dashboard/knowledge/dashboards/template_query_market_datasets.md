@@ -1,6 +1,6 @@
 # 市场顾问部模板取数源 SQL 清单
 
-维护日期：2026-07-23
+维护日期：2026-07-26
 
 本文件记录从 `模板取数 -> 模板查询 -> 我的模板 -> 我创建的` 中抓取的市场顾问部模板 SQL。所有条目的使用口径均为 **模板取数**，与数据中心数据集源 SQL、Web BI 看板 canonical SQL 分开维护。后续排查模板取数代码时优先读取本清单和下表中的具体 raw SQL 文件。
 
@@ -12,11 +12,13 @@
 - 口径说明：本清单 SQL 的使用口径统一标记为 `模板取数`。若与数据中心或看板 SQL 同名/同类，默认先按来源区分，不自动互相替代。
 - 2026-07-23 将 5 个仍有效且已发布的市场顾问渠道归因模板原位更新为 `rule_name like '%北京直播江苏%' then '北京直播江苏'`；模板 id 保持不变，发布后逐个新建查询验证。
 - 最新 SQL 查询验证均为 `SUCCESS`：`8882 -> 379800 (2523 行)`、`8866 -> 379801 (5237 行)`、`8796 -> 379810 (1566 行)`、`8797 -> 379812 (582 行)`、`8801 -> 379804 (1053 行)`。其中 `8796/8797` 使用单期次范围 `20260710期 <= qici < 20260711期`；整月首轮仅因平台 5 分钟上限失败，不作为最新版 SQL 不可执行的证据。
+- 2026-07-26 仅原位更新 `AI分析市场顾问部_宽表`（模板 id `9002`）：基于宽表现有字段别名和辅助字段整合 0726 渠道归因，未直接粘贴标准 CASE；保留 `${qici:1}`、`${qici:2}` 两个参数和原 122 个输出字段，并将相同期次半开区间下推至 `lead_raw` 主链。最终 SQL SHA-256 为 `444df1af42594534d06f1afc78549c76aabc75a35ff487632efa2fb922289a9c`，验证查询 `381050` 返回 373 行且状态为 `SUCCESS`。按本轮范围，另外四个既有模板不再重复验证。
 
 ## 模板清单
 
 | 模板名称 | 模板 id | 状态 | 更新时间 | 使用口径 | raw SQL | SQL 行数 | SQL 字节 | 主要依赖表 | 模板参数 | 用途与说明 | 注意事项 |
 |---|---:|---|---|---|---|---:|---:|---|---|---|---|
+| AI分析市场顾问部_宽表 | 9002 | published | 2026-07-26 19:42:19 | 模板取数 | [`template_query_market_wide_20260726.sql`](../../resources/raw_sql/template_query_market_wide_20260726.sql) | 159 | 60872 | `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df`<br>`finance_dw.app_finance_performance_extend_details_hf`<br>`service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf`<br>`service_dw.dwd_crm_assign_private_detail_hf`<br>`service_dw.dm_crm_lead_stats_detail_hf`<br>`service_dw.app_h_crm_lead_task_process_info_detail_hf`<br>`service_dw.app_h_crm_lead_employee_workload_detail_hf`<br>`gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf`<br>... +5 | `${qici:1}`<br>`${qici:2}` | 综合沉淀市场顾问考勤、转化、过程、线索、多科与期次数据；0726 渠道归因通过宽表源别名和辅助字段整合。 | 原位更新并保持模板 id、权限关系、参数和 122 个最终字段不变；验证查询 `381050` 为 `SUCCESS`，返回 373 行。 |
 | AI分析市场顾问部多科用户成单数据 | 8882 | published | 2026-07-23 17:48:29 | 模板取数 | [`template_query_market_multi_subject_order_user_20260619.sql`](../../resources/raw_sql/template_query_market_multi_subject_order_user_20260619.sql) | 371 | 44193 | `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df` | - | 多科用户成单分析，按用户/期次/渠道/年级等维度沉淀成单与多科相关字段。 | 2026-07-23 已原位更新并保持模板 id；渠道归因包含北京直播江苏。 |
 | AI分析市场顾问部分周期转化数据 | 8866 | published | 2026-07-23 17:48:39 | 模板取数 | [`template_query_market_period_conversion_20260619.sql`](../../resources/raw_sql/template_query_market_period_conversion_20260619.sql) | 257 | 17631 | `finance_dw.app_finance_performance_extend_details_hf`<br>`service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf`<br>`service_dw.dim_crm_assign_rule_lead_detail_hf`<br>`temp_table.dingxi01_jiagou_zx` | - | 分周期转化分析，按期次、渠道、年级、人员等维度输出 GMV、退款等周期转化字段。 | 2026-07-23 已原位更新并保持模板 id；渠道归因包含北京直播江苏。 |
 | AI分析市场顾问部转化数据 | 8796 | published | 2026-07-23 17:54:58 | 模板取数 | [`template_query_market_conversion_20260619.sql`](../../resources/raw_sql/template_query_market_conversion_20260619.sql) | 624 | 55309 | `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df`<br>`service_dw.dwd_crm_assign_private_detail_hf`<br>`service_dw.app_h_crm_lead_employee_workload_detail_hf`<br>`gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf`<br>`finance_dw.dim_finance_employee_df`<br>`service_dw.dws_service_user_learn_detail_hf`<br>`temp_table.dingxi01_daoke_1_6_t`<br>`temp_table.dingxi01_cost`<br>`temp_table.dingxi01_jiagou_db`<br>`temp_table.dingxi01_jiagou_zx` | `${period_name1}`<br>`${period_name2}` | 市场顾问部转化数据模板，沉淀线索、成单、GMV、退款、渠道和人员维度的转化宽表。 | 2026-07-23 已原位更新、重新发布并保持模板 id；参数名和比较符不变。 |
