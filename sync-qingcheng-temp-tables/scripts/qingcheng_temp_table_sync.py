@@ -2,21 +2,27 @@ from __future__ import annotations
 
 import argparse
 import copy
+import errno
 import hashlib
 import json
 import os
+import posixpath
 import re
 import shutil
 import subprocess
 import sys
 import time
+import zipfile
 from collections import Counter, defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any, Callable, Iterable
+from xml.etree import ElementTree
 
 from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
+
+from docs_sheet_downloader import download_docs_sheet
 
 
 SKILL_ROOT = Path(__file__).resolve().parents[1]
@@ -29,10 +35,26 @@ OPERATOR_SCRIPT = OPERATOR_ROOT / "scripts" / "usql_web_query.py"
 OPERATOR_SCRIPTS = OPERATOR_ROOT / "scripts"
 RECALC_SCRIPT = SKILLS_ROOT / "xlsx" / "scripts" / "recalc.py"
 ERROR_VALUES = {"#REF!", "#DIV/0!", "#VALUE!", "#NAME?", "#NUM!", "#NULL!"}
+SPREADSHEET_MAIN_NS = "http://schemas.openxmlformats.org/spreadsheetml/2006/main"
+OFFICE_REL_NS = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+PACKAGE_REL_NS = "http://schemas.openxmlformats.org/package/2006/relationships"
+EXTERNAL_LINK_REL_TYPE = f"{OFFICE_REL_NS}/externalLink"
+EXTERNAL_LINK_PART_PREFIX = "xl/externalLinks/"
+REPLACE_MAX_ATTEMPTS = 8
+REPLACE_INITIAL_DELAY_SECONDS = 0.25
+REPLACE_MAX_DELAY_SECONDS = 2.0
+RETRYABLE_REPLACE_ERRNOS = {errno.EACCES, errno.EPERM}
+RETRYABLE_REPLACE_WINERRORS = {5, 32, 33}
 
 
 class WorkflowError(RuntimeError):
     pass
+
+
+class AtomicReplaceError(WorkflowError):
+    def __init__(self, message: str, details: dict[str, Any]) -> None:
+        super().__init__(message)
+        self.details = details
 
 
 def sha256_file(path: Path) -> str:
@@ -41,6 +63,79 @@ def sha256_file(path: Path) -> str:
         for chunk in iter(lambda: stream.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def exception_summary(exc: BaseException) -> dict[str, Any]:
+    return {
+        "type": type(exc).__name__,
+        "message": str(exc),
+        "errno": getattr(exc, "errno", None),
+        "winerror": getattr(exc, "winerror", None),
+    }
+
+
+def sibling_temp_path(target: Path, label: str) -> Path:
+    return target.with_name(
+        f".{target.name}.{os.getpid()}.{time.time_ns()}.{label}.tmp"
+    )
+
+
+def replace_file_with_retry(
+    source: Path,
+    target: Path,
+    *,
+    max_attempts: int = REPLACE_MAX_ATTEMPTS,
+    initial_delay_seconds: float = REPLACE_INITIAL_DELAY_SECONDS,
+    replace_func: Callable[[Path, Path], None] | None = None,
+    sleep_func: Callable[[float], None] | None = None,
+) -> dict[str, Any]:
+    if max_attempts < 1:
+        raise ValueError("max_attempts must be at least 1")
+    replace = replace_func or os.replace
+    sleep = sleep_func or time.sleep
+    delay = max(initial_delay_seconds, 0.0)
+    retry_errors: list[dict[str, Any]] = []
+    for attempt in range(1, max_attempts + 1):
+        try:
+            replace(source, target)
+            return {
+                "status": "success",
+                "attempts": attempt,
+                "retries": attempt - 1,
+                "retry_errors": retry_errors,
+            }
+        except OSError as exc:
+            details = exception_summary(exc)
+            details["attempt"] = attempt
+            retry_errors.append(details)
+            retryable = (
+                isinstance(exc, PermissionError)
+                or details["errno"] in RETRYABLE_REPLACE_ERRNOS
+                or details["winerror"] in RETRYABLE_REPLACE_WINERRORS
+            )
+            if not retryable or attempt == max_attempts:
+                raise AtomicReplaceError(
+                    (
+                        "Atomic workbook replacement failed "
+                        f"after {attempt} attempt(s) "
+                        f"(errno={details['errno']}, "
+                        f"winerror={details['winerror']}). "
+                        "The target may be open or temporarily locked: "
+                        f"{target}"
+                    ),
+                    {
+                        "status": "failed",
+                        "attempts": attempt,
+                        "retries": attempt - 1,
+                        "retry_errors": retry_errors,
+                    },
+                ) from exc
+            if delay:
+                sleep(delay)
+            delay = min(
+                max(delay * 2, REPLACE_INITIAL_DELAY_SECONDS),
+                REPLACE_MAX_DELAY_SECONDS,
+            )
 
 
 def canonical_json(value: Any) -> bytes:
@@ -78,6 +173,23 @@ def load_registry(path: Path) -> dict[str, Any]:
     upload_order = registry.get("upload_order") or []
     if len(upload_order) != len(set(upload_order)) or set(upload_order) != set(ids):
         raise WorkflowError("Workflow registry upload_order must contain every family id exactly once.")
+    for family in registry.get("families", []):
+        source_kind = family.get("source_kind", "file_attachment")
+        if source_kind not in {"file_attachment", "link_workbook"}:
+            raise WorkflowError(f"Unsupported source_kind for {family['id']}: {source_kind}")
+        if source_kind == "file_attachment" and not family.get("source_filename_patterns"):
+            raise WorkflowError(f"File source family has no filename patterns: {family['id']}")
+        if source_kind == "link_workbook":
+            required = (
+                "source_sender_open_id",
+                "source_url_patterns",
+                "source_expected_title_pattern",
+                "source_env_file",
+                "source_filename",
+            )
+            missing = [key for key in required if not family.get(key)]
+            if missing:
+                raise WorkflowError(f"Link source family {family['id']} is missing: {missing}")
     return registry
 
 
@@ -138,9 +250,140 @@ def resolve_lark_cli() -> str:
     return str(Path(executable).resolve())
 
 
+def source_kind(family: dict[str, Any]) -> str:
+    return str(family.get("source_kind") or "file_attachment")
+
+
+def source_sender_id(registry: dict[str, Any], family: dict[str, Any]) -> str:
+    return str(
+        family.get("source_sender_open_id")
+        or registry.get("chat", {}).get("sender_open_id")
+        or ""
+    )
+
+
+def source_sender_name(registry: dict[str, Any], family: dict[str, Any]) -> str:
+    return str(
+        family.get("source_sender_name")
+        or registry.get("chat", {}).get("sender_name")
+        or ""
+    )
+
+
+def _extract_file_resource(content: str) -> tuple[str, str] | None:
+    match = re.search(r'<file\s+key="([^"]+)"\s+name="([^"]+)"\s*/>', content)
+    return (match.group(1), match.group(2)) if match else None
+
+
+def _extract_docs_sheet_url(content: str) -> str | None:
+    match = re.search(r"https://docs\.baijia\.com/sheet/[^\s<>\"']+", content)
+    return match.group(0).rstrip(".,，。；;") if match else None
+
+
+def normalize_source_message(message: dict[str, Any]) -> dict[str, Any] | None:
+    content = str(message.get("content") or "")
+    file_resource = _extract_file_resource(content)
+    source_url = _extract_docs_sheet_url(content)
+    if file_resource is None and source_url is None:
+        return None
+    sender = message.get("sender") or {}
+    sender_id = sender.get("id") or sender.get("open_id") or message.get("sender_id")
+    sender_name = sender.get("name") or message.get("sender_name")
+    normalized = {
+        "message_id": message.get("message_id"),
+        "create_time": message.get("create_time"),
+        "message_position": str(message.get("message_position") or ""),
+        "message_app_link": message.get("message_app_link"),
+        "message_type": message.get("msg_type") or message.get("message_type"),
+        "content": content,
+        "chat_id": message.get("chat_id"),
+        "sender_id": sender_id,
+        "sender_name": sender_name,
+    }
+    if file_resource is not None:
+        normalized.update(
+            {
+                "source_kind": "file_attachment",
+                "file_key": file_resource[0],
+                "file_name": file_resource[1],
+            }
+        )
+    else:
+        normalized.update({"source_kind": "link_workbook", "source_url": source_url})
+    return normalized
+
+
+def message_matches_family(
+    registry: dict[str, Any],
+    family: dict[str, Any],
+    message: dict[str, Any],
+) -> bool:
+    message_kind = message.get("source_kind")
+    if not message_kind and message.get("file_name"):
+        message_kind = "file_attachment"
+    if message_kind != source_kind(family):
+        return False
+    expected_sender = source_sender_id(registry, family)
+    if expected_sender and message.get("sender_id") != expected_sender:
+        return False
+    if source_kind(family) == "file_attachment":
+        filename = str(message.get("file_name") or "")
+        return any(
+            re.fullmatch(pattern, filename)
+            for pattern in family.get("source_filename_patterns", [])
+        )
+    source_url = str(message.get("source_url") or "")
+    content = str(message.get("content") or "")
+    if not any(
+        re.fullmatch(pattern, source_url)
+        for pattern in family.get("source_url_patterns", [])
+    ):
+        return False
+    return all(
+        re.search(pattern, content)
+        for pattern in family.get("source_message_patterns", [])
+    )
+
+
+def classify_source_message(registry: dict[str, Any], message: dict[str, Any]) -> str | None:
+    normalized = normalize_source_message(message)
+    if normalized is None:
+        return None
+    matches = [
+        family["id"]
+        for family in registry["families"]
+        if message_matches_family(registry, family, normalized)
+    ]
+    if len(matches) > 1:
+        raise WorkflowError(f"Source message matches multiple families: {matches}")
+    return matches[0] if matches else None
+
+
+def _source_search_profiles(
+    registry: dict[str, Any],
+    family_ids: list[str],
+) -> list[dict[str, str]]:
+    families = family_map(registry)
+    profiles: dict[tuple[str, str, str], dict[str, str]] = {}
+    for family_id in family_ids:
+        family = families[family_id]
+        sender_id = source_sender_id(registry, family)
+        if not sender_id:
+            raise WorkflowError(f"Source sender open_id is not configured for {family_id}.")
+        kind = source_kind(family)
+        query = str(family.get("source_search_query") or "")
+        profiles[(sender_id, kind, query)] = {
+            "sender_id": sender_id,
+            "source_kind": kind,
+            "query": query,
+        }
+    return list(profiles.values())
+
+
 def discover_live_messages(
     registry: dict[str, Any],
     explicit_message_ids: set[str] | None = None,
+    family_ids: list[str] | None = None,
 ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     cli = resolve_lark_cli()
     chat_cfg = registry["chat"]
@@ -169,18 +412,24 @@ def discover_live_messages(
         if len(exact) != 1:
             raise WorkflowError(f"Expected exactly one visible chat named {chat_cfg['name']}; found {len(exact)}.")
         chat = exact[0]
-    try:
-        result = run_json_command(
-            cli,
+    selected_family_ids = list(family_ids or registry["upload_order"])
+    raw_messages: list[dict[str, Any]] = []
+    fallback_needed = False
+    for profile in _source_search_profiles(registry, selected_family_ids):
+        command = [
+            "im",
+            "+messages-search",
+            "--chat-id",
+            chat["chat_id"],
+            "--sender",
+            profile["sender_id"],
+        ]
+        if profile["query"]:
+            command.extend(["--query", profile["query"]])
+        if profile["source_kind"] == "file_attachment":
+            command.extend(["--include-attachment-type", "file"])
+        command.extend(
             [
-                "im",
-                "+messages-search",
-                "--chat-id",
-                chat["chat_id"],
-                "--sender",
-                chat_cfg["sender_open_id"],
-                "--include-attachment-type",
-                "file",
                 "--page-size",
                 "50",
                 "--page-all",
@@ -189,12 +438,18 @@ def discover_live_messages(
                 "user",
                 "--format",
                 "json",
-            ],
-            timeout=120,
+            ]
         )
-    except WorkflowError:
+        try:
+            result = run_json_command(cli, command, timeout=120)
+            items = list(result.get("data", {}).get("messages", []))
+            raw_messages.extend(items)
+            fallback_needed = fallback_needed or not items
+        except WorkflowError:
+            fallback_needed = True
+    if fallback_needed:
         if not expected_id:
-            raise
+            raise WorkflowError("Source message search failed and no fixed chat id is configured.")
         result = run_json_command(
             cli,
             [
@@ -202,7 +457,7 @@ def discover_live_messages(
                 "+chat-messages-list",
                 "--chat-id",
                 chat["chat_id"],
-                "--sort",
+                "--order",
                 "desc",
                 "--page-size",
                 "50",
@@ -215,7 +470,7 @@ def discover_live_messages(
             ],
             timeout=180,
         )
-    raw_messages = list(result.get("data", {}).get("messages", []))
+        raw_messages.extend(result.get("data", {}).get("messages", []))
     explicit_message_ids = explicit_message_ids or set()
     if explicit_message_ids:
         exact = run_json_command(
@@ -233,35 +488,20 @@ def discover_live_messages(
             ],
             timeout=60,
         )
-        existing_ids = {message.get("message_id") for message in raw_messages}
-        raw_messages.extend(
-            message
-            for message in exact.get("data", {}).get("messages", [])
-            if message.get("message_id") not in existing_ids
-        )
+        raw_messages.extend(exact.get("data", {}).get("messages", []))
+    unique_messages = {
+        str(message.get("message_id")): message
+        for message in raw_messages
+        if message.get("message_id")
+    }
     normalized = []
-    pattern = re.compile(r'<file\s+key="([^"]+)"\s+name="([^"]+)"\s*/>')
-    for message in raw_messages:
-        match = pattern.search(str(message.get("content", "")))
-        sender = message.get("sender") or {}
-        if not match or message.get("deleted"):
+    for message in unique_messages.values():
+        item = normalize_source_message(message)
+        if item is None or message.get("deleted"):
             continue
-        if message.get("chat_id") and message.get("chat_id") != chat["chat_id"]:
+        if item.get("chat_id") and item.get("chat_id") != chat["chat_id"]:
             continue
-        if sender.get("id") != chat_cfg["sender_open_id"] or sender.get("name") != chat_cfg["sender_name"]:
-            continue
-        normalized.append(
-            {
-                "message_id": message.get("message_id"),
-                "file_key": match.group(1),
-                "file_name": match.group(2),
-                "create_time": message.get("create_time"),
-                "message_position": str(message.get("message_position") or ""),
-                "message_app_link": message.get("message_app_link"),
-                "sender_id": sender.get("id"),
-                "sender_name": sender.get("name"),
-            }
-        )
+        normalized.append(item)
     return chat, normalized
 
 
@@ -272,18 +512,30 @@ def classify_messages(
     deferred_patterns = [re.compile(pattern) for pattern in registry.get("deferred_filename_patterns", [])]
     unclassified = []
     for message in messages:
-        matches = []
-        for family in registry["families"]:
-            if any(re.fullmatch(pattern, message["file_name"]) for pattern in family["source_filename_patterns"]):
-                matches.append(family["id"])
+        matches = [
+            family
+            for family in registry["families"]
+            if message_matches_family(registry, family, message)
+        ]
         if len(matches) > 1:
-            raise WorkflowError(f"File {message['file_name']} matches multiple families: {matches}")
+            raise WorkflowError(
+                f"Source message {message.get('message_id')} matches multiple families: "
+                f"{[family['id'] for family in matches]}"
+            )
         if matches:
-            classified[matches[0]].append(message)
+            family = matches[0]
+            item = dict(message)
+            item["family_id"] = family["id"]
+            item["file_name"] = item.get("file_name") or family.get("source_filename")
+            item["sender_name"] = item.get("sender_name") or source_sender_name(registry, family)
+            classified[family["id"]].append(item)
         else:
             item = dict(message)
+            filename = str(message.get("file_name") or "")
             item["classification"] = (
-                "deferred" if any(pattern.fullmatch(message["file_name"]) for pattern in deferred_patterns) else "excluded"
+                "deferred"
+                if filename and any(pattern.fullmatch(filename) for pattern in deferred_patterns)
+                else "excluded"
             )
             unclassified.append(item)
     return classified, unclassified
@@ -391,7 +643,7 @@ def select_messages(
             selected[family_id] = max(candidates, key=message_sort_key)
     if missing:
         details = {family_id: explicit.get(family_id) for family_id in missing}
-        raise WorkflowError(f"No matching file message found for selected families: {details}")
+        raise WorkflowError(f"No matching source message found for selected families: {details}")
     return selected, classified, unclassified
 
 
@@ -402,10 +654,30 @@ def select_latest_messages(
     return select_messages(registry, messages, selection)
 
 
-def download_message(message: dict[str, Any], family_id: str, output_dir: Path) -> Path:
+def download_message(
+    message: dict[str, Any],
+    family: dict[str, Any],
+    output_dir: Path,
+) -> Path:
     output_dir.mkdir(parents=True, exist_ok=True)
-    cli = resolve_lark_cli()
+    family_id = family["id"]
     output_name = f"{family_id}__{message['message_id']}.xlsx"
+    if source_kind(family) == "link_workbook":
+        env_key = str(family.get("source_env_file_env") or "")
+        env_file_value = os.environ.get(env_key) if env_key else None
+        env_file = Path(env_file_value or family["source_env_file"]).resolve()
+        output_path = (output_dir / output_name).resolve()
+        download_docs_sheet(
+            url=str(message["source_url"]),
+            output_path=output_path,
+            env_file=env_file,
+            url_patterns=list(family["source_url_patterns"]),
+            expected_title_pattern=str(family["source_expected_title_pattern"]),
+            browser_channel=str(family.get("source_browser_channel") or "msedge"),
+            timeout_seconds=int(family.get("source_download_timeout_seconds") or 120),
+        )
+        return output_path
+    cli = resolve_lark_cli()
     payload = run_json_command(
         cli,
         [
@@ -441,6 +713,20 @@ def normalize_cell(value: Any) -> Any:
     return value
 
 
+def transform_cell(value: Any, transforms: list[str]) -> Any:
+    transformed = normalize_cell(value)
+    for transform in transforms:
+        if transform == "collapse_whitespace":
+            if isinstance(transformed, str):
+                transformed = re.sub(r"\s+", " ", transformed).strip()
+        elif transform == "to_text":
+            if transformed is not None:
+                transformed = str(transformed).strip()
+        else:
+            raise WorkflowError(f"Unsupported source column transform: {transform}")
+    return transformed
+
+
 def normalized_record(record: dict[str, Any], columns: list[str]) -> tuple[Any, ...]:
     values = []
     for column in columns:
@@ -458,12 +744,19 @@ def read_records(
     *,
     aliases: dict[str, str] | None = None,
     constants: dict[str, Any] | None = None,
+    ignored_columns: list[str] | None = None,
+    column_transforms: dict[str, list[str]] | None = None,
     data_only: bool,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     aliases = aliases or {}
     constants = constants or {}
+    ignored = set(ignored_columns or [])
+    column_transforms = column_transforms or {}
     workbook = load_workbook(path, read_only=False, data_only=data_only, keep_links=True)
     try:
+        requested_sheet = sheet_name
+        if sheet_name == "$active":
+            sheet_name = workbook.active.title
         if sheet_name not in workbook.sheetnames:
             raise WorkflowError(f"Sheet {sheet_name} not found in {path.name}; found {workbook.sheetnames}")
         sheet = workbook[sheet_name]
@@ -475,7 +768,11 @@ def read_records(
         if len(nonblank_headers) != len(set(nonblank_headers)):
             raise WorkflowError(f"Duplicate headers after alias mapping in {path.name}: {headers}")
         missing = [column for column in target_columns if column not in nonblank_headers and column not in constants]
-        extras = [header for header in nonblank_headers if header not in target_columns]
+        extras = [
+            header
+            for header in nonblank_headers
+            if header not in target_columns and header not in ignored
+        ]
         if missing or extras:
             raise WorkflowError(f"Schema mismatch in {path.name}: missing={missing}, extras={extras}, headers={headers}")
         positions = {header: index for index, header in enumerate(headers) if header}
@@ -489,11 +786,15 @@ def read_records(
                     record[column] = constants[column]
                 else:
                     index = positions[column]
-                    record[column] = normalize_cell(row[index] if index < len(row) else None)
+                    value = row[index] if index < len(row) else None
+                    record[column] = transform_cell(value, column_transforms.get(column, []))
             records.append(record)
         metadata = {
             "sheet": sheet_name,
+            "requested_sheet": requested_sheet,
             "headers": headers,
+            "ignored_columns": sorted(ignored),
+            "column_transforms": column_transforms,
             "row_count": len(records),
             "formula_count": sum(
                 1
@@ -512,7 +813,11 @@ def _text(value: Any) -> str:
     return "" if value is None else str(value).strip()
 
 
-def validate_source_records(family: dict[str, Any], records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def validate_source_records(
+    family: dict[str, Any],
+    records: list[dict[str, Any]],
+    source_metadata: dict[str, Any] | None = None,
+) -> list[dict[str, Any]]:
     issues: list[dict[str, Any]] = []
     if not records:
         return [{"severity": "error", "rule": "nonempty_source", "message": "Source workbook has no data rows."}]
@@ -575,6 +880,36 @@ def validate_source_records(family: dict[str, Any], records: list[dict[str, Any]
                 {"row": index, "value": _text(record.get(rule["column"]))}
                 for index, record in enumerate(records, start=2)
                 if _text(record.get(rule["column"])) != _text(rule["value"])
+            ]
+        elif rule_type == "required_nonblank":
+            invalid = []
+            for index, record in enumerate(records, start=2):
+                for column in rule["columns"]:
+                    if not _text(record.get(column)):
+                        invalid.append({"row": index, "column": column})
+        elif rule_type == "allowed_values":
+            allowed = {_text(value) for value in rule["values"]}
+            invalid = [
+                {"row": index, "value": _text(record.get(rule["column"]))}
+                for index, record in enumerate(records, start=2)
+                if _text(record.get(rule["column"])) not in allowed
+            ]
+        elif rule_type == "datetime_format":
+            invalid = []
+            for index, record in enumerate(records, start=2):
+                value = record.get(rule["column"])
+                if isinstance(value, datetime):
+                    continue
+                try:
+                    datetime.strptime(_text(value), rule["format"])
+                except ValueError:
+                    invalid.append({"row": index, "value": _text(value)})
+        elif rule_type == "sheet_slice_suffix":
+            sheet = str((source_metadata or {}).get("sheet") or "")
+            invalid = [
+                {"row": index, "value": _text(record.get(rule["column"])), "sheet": sheet}
+                for index, record in enumerate(records, start=2)
+                if not sheet or not _text(record.get(rule["column"])).endswith(sheet)
             ]
         else:
             invalid = [{"rule": rule_type}]
@@ -682,6 +1017,180 @@ def count_formula_values(records: Iterable[dict[str, Any]]) -> int:
     return sum(isinstance(value, str) and value.startswith("=") for record in records for value in record.values())
 
 
+def inspect_external_link_integrity(path: Path) -> dict[str, Any]:
+    with zipfile.ZipFile(path) as archive:
+        names = set(archive.namelist())
+        external_parts = sorted(
+            name for name in names if name.startswith(EXTERNAL_LINK_PART_PREFIX)
+        )
+        link_xml_parts = sorted(
+            name
+            for name in external_parts
+            if "/_rels/" not in name and name.endswith(".xml")
+        )
+        workbook_relationships = ElementTree.fromstring(
+            archive.read("xl/_rels/workbook.xml.rels")
+        )
+        workbook_relations = {
+            relation.attrib.get("Id"): relation
+            for relation in workbook_relationships.findall(
+                f"{{{PACKAGE_REL_NS}}}Relationship"
+            )
+        }
+        workbook = ElementTree.fromstring(archive.read("xl/workbook.xml"))
+        workbook_targets = []
+        unresolved_workbook_relationship_ids = []
+        missing_workbook_targets = []
+        for reference in workbook.findall(
+            f".//{{{SPREADSHEET_MAIN_NS}}}externalReference"
+        ):
+            relationship_id = reference.attrib.get(f"{{{OFFICE_REL_NS}}}id")
+            relation = workbook_relations.get(relationship_id)
+            if (
+                relation is None
+                or relation.attrib.get("Type") != EXTERNAL_LINK_REL_TYPE
+            ):
+                unresolved_workbook_relationship_ids.append(relationship_id)
+                continue
+            raw_target = str(relation.attrib.get("Target") or "").replace(
+                "\\", "/"
+            )
+            target = posixpath.normpath(
+                raw_target
+                if raw_target.startswith("/")
+                else posixpath.join("xl", raw_target)
+            ).lstrip("/")
+            workbook_targets.append(
+                {"relationship_id": relationship_id, "target": target}
+            )
+            if target not in names:
+                missing_workbook_targets.append(target)
+
+        unresolved_external_relationships = []
+        for part in link_xml_parts:
+            external_link = ElementTree.fromstring(archive.read(part))
+            referenced_ids = {
+                value
+                for element in external_link.iter()
+                for key, value in element.attrib.items()
+                if key == f"{{{OFFICE_REL_NS}}}id"
+            }
+            rels_path = (
+                f"{posixpath.dirname(part)}/_rels/{posixpath.basename(part)}.rels"
+            )
+            defined_ids: set[str] = set()
+            if rels_path in names:
+                relations = ElementTree.fromstring(archive.read(rels_path))
+                defined_ids = {
+                    relation.attrib.get("Id")
+                    for relation in relations.findall(
+                        f"{{{PACKAGE_REL_NS}}}Relationship"
+                    )
+                    if relation.attrib.get("Id")
+                }
+            missing_ids = sorted(referenced_ids - defined_ids)
+            if missing_ids:
+                unresolved_external_relationships.append(
+                    {"part": part, "relationship_ids": missing_ids}
+                )
+
+    result = {
+        "external_link_count": len(link_xml_parts),
+        "external_link_parts": external_parts,
+        "workbook_targets": workbook_targets,
+        "unresolved_workbook_relationship_ids": sorted(
+            value
+            for value in unresolved_workbook_relationship_ids
+            if value is not None
+        ),
+        "missing_workbook_targets": sorted(set(missing_workbook_targets)),
+        "unresolved_external_relationships": unresolved_external_relationships,
+    }
+    result["ok"] = not (
+        result["unresolved_workbook_relationship_ids"]
+        or result["missing_workbook_targets"]
+        or result["unresolved_external_relationships"]
+    )
+    return result
+
+
+def preserve_external_link_parts(source_path: Path, stage_path: Path) -> dict[str, Any]:
+    source_integrity = inspect_external_link_integrity(source_path)
+    if not source_integrity["ok"]:
+        raise WorkflowError(
+            f"Source workbook external links are invalid: {source_integrity}"
+        )
+    if source_integrity["external_link_count"] == 0:
+        return {
+            "restored": False,
+            "reason": "source_has_no_external_links",
+            "source_integrity": source_integrity,
+            "stage_integrity": inspect_external_link_integrity(stage_path),
+        }
+
+    stage_before = inspect_external_link_integrity(stage_path)
+    source_targets = sorted(
+        item["target"] for item in source_integrity["workbook_targets"]
+    )
+    stage_targets = sorted(item["target"] for item in stage_before["workbook_targets"])
+    if stage_targets != source_targets:
+        raise WorkflowError(
+            "Staged workbook external-link targets changed before preservation: "
+            f"source={source_targets}, staged={stage_targets}"
+        )
+
+    temporary_path = stage_path.with_name(
+        f"{stage_path.name}.{os.getpid()}.external-links.tmp"
+    )
+    try:
+        with (
+            zipfile.ZipFile(source_path) as source_archive,
+            zipfile.ZipFile(stage_path) as stage_archive,
+            zipfile.ZipFile(temporary_path, "w") as output_archive,
+        ):
+            source_parts = {
+                info.filename: (info, source_archive.read(info.filename))
+                for info in source_archive.infolist()
+                if info.filename.startswith(EXTERNAL_LINK_PART_PREFIX)
+            }
+            for info in stage_archive.infolist():
+                if info.filename.startswith(EXTERNAL_LINK_PART_PREFIX):
+                    continue
+                output_archive.writestr(info, stage_archive.read(info.filename))
+            for name in sorted(source_parts):
+                info, payload = source_parts[name]
+                output_archive.writestr(info, payload)
+        replace_file_with_retry(temporary_path, stage_path)
+    finally:
+        temporary_path.unlink(missing_ok=True)
+
+    stage_after = inspect_external_link_integrity(stage_path)
+    if not stage_after["ok"]:
+        raise WorkflowError(
+            f"Staged workbook external links remain invalid: {stage_after}"
+        )
+    with zipfile.ZipFile(source_path) as source_archive, zipfile.ZipFile(
+        stage_path
+    ) as stage_archive:
+        source_hashes = {
+            name: hashlib.sha256(source_archive.read(name)).hexdigest()
+            for name in source_integrity["external_link_parts"]
+        }
+        stage_hashes = {
+            name: hashlib.sha256(stage_archive.read(name)).hexdigest()
+            for name in stage_after["external_link_parts"]
+        }
+    if stage_hashes != source_hashes:
+        raise WorkflowError("Staged workbook external-link parts were not preserved byte-for-byte.")
+    return {
+        "restored": True,
+        "source_integrity": source_integrity,
+        "stage_before_integrity": stage_before,
+        "stage_after_integrity": stage_after,
+        "part_sha256": stage_hashes,
+    }
+
+
 def rebuild_workbook(
     target_path: Path,
     stage_path: Path,
@@ -713,11 +1222,29 @@ def rebuild_workbook(
         calculation.calcMode = "auto"
     workbook.save(stage_path)
     workbook.close()
+    external_link_preservation = None
+    if family.get("preserve_external_links"):
+        external_link_preservation = preserve_external_link_parts(
+            target_path, stage_path
+        )
     formula_count = count_formula_values(records)
     recalc = None
     if formula_count:
         recalc = recalculate_workbook(stage_path)
-    return {"formula_count": formula_count, "recalculation": recalc}
+    external_link_integrity = None
+    if family.get("preserve_external_links"):
+        external_link_integrity = inspect_external_link_integrity(stage_path)
+        if not external_link_integrity["ok"]:
+            raise WorkflowError(
+                "Excel recalculation left invalid external links: "
+                f"{external_link_integrity}"
+            )
+    return {
+        "formula_count": formula_count,
+        "recalculation": recalc,
+        "external_link_preservation": external_link_preservation,
+        "external_link_integrity": external_link_integrity,
+    }
 
 
 def recalculate_workbook(path: Path) -> dict[str, Any]:
@@ -778,7 +1305,11 @@ def plan_sync(args: argparse.Namespace) -> int:
         explicit_message_specs=args.message_id,
     )
     explicit_ids = set(selection.get("explicit_message_ids", {}).values())
-    chat, messages = discover_live_messages(registry, explicit_ids)
+    chat, messages = discover_live_messages(
+        registry,
+        explicit_ids,
+        selection["family_ids"],
+    )
     selected, classified, unclassified = select_messages(registry, messages, selection)
     run_id = datetime.now().strftime("%Y%m%d-%H%M%S") + f"-{os.getpid()}"
     run_dir = args.runtime_root.resolve() / run_id
@@ -792,7 +1323,7 @@ def plan_sync(args: argparse.Namespace) -> int:
         family = families[family_id]
         message = dict(selected[family_id])
         try:
-            source_path = download_message(message, family_id, downloads_dir)
+            source_path = download_message(message, family, downloads_dir)
             message["download_path"] = str(source_path)
             message["source_sha256"] = sha256_file(source_path)
             target_path = Path(family["target_workbook"]).resolve()
@@ -804,6 +1335,8 @@ def plan_sync(args: argparse.Namespace) -> int:
                 family["target_columns"],
                 aliases=family.get("column_aliases"),
                 constants=family.get("constant_columns"),
+                ignored_columns=family.get("ignored_source_columns"),
+                column_transforms=family.get("column_transforms"),
                 data_only=False,
             )
             source_effective, _ = read_records(
@@ -812,9 +1345,13 @@ def plan_sync(args: argparse.Namespace) -> int:
                 family["target_columns"],
                 aliases=family.get("column_aliases"),
                 constants=family.get("constant_columns"),
+                ignored_columns=family.get("ignored_source_columns"),
+                column_transforms=family.get("column_transforms"),
                 data_only=True,
             )
-            source_issues = validate_source_records(family, source_effective)
+            if family.get("materialize_source_values"):
+                source_write = [dict(record) for record in source_effective]
+            source_issues = validate_source_records(family, source_effective, source_meta)
             if source_issues:
                 raise WorkflowError(f"Source validation failed: {source_issues}")
             target_write, target_meta = read_records(
@@ -889,9 +1426,16 @@ def plan_sync(args: argparse.Namespace) -> int:
         "chat": {
             "name": chat.get("name"),
             "chat_id": chat.get("chat_id"),
-            "sender_name": registry["chat"]["sender_name"],
-            "sender_open_id": registry["chat"]["sender_open_id"],
-            "attachment_message_count": len(messages),
+            "registered_sources": [
+                {
+                    "family_id": family_id,
+                    "source_kind": source_kind(families[family_id]),
+                    "sender_name": source_sender_name(registry, families[family_id]),
+                    "sender_open_id": source_sender_id(registry, families[family_id]),
+                }
+                for family_id in selection["family_ids"]
+            ],
+            "source_message_count": len(messages),
         },
         "selection": selection,
         "selected_message_ids": {family_id: message["message_id"] for family_id, message in selected.items()},
@@ -938,11 +1482,15 @@ def apply_local(args: argparse.Namespace) -> int:
     registry = load_registry(registry_path)
     selection = plan.get("selection") or build_selection_spec(registry)
     explicit_ids = set(selection.get("explicit_message_ids", {}).values())
-    _, current_messages = discover_live_messages(registry, explicit_ids)
+    _, current_messages = discover_live_messages(
+        registry,
+        explicit_ids,
+        selection["family_ids"],
+    )
     current_selected, _, _ = select_messages(registry, current_messages, selection)
     current_ids = {family_id: message["message_id"] for family_id, message in current_selected.items()}
     if current_ids != plan["selected_message_ids"]:
-        raise WorkflowError("Newer matching Feishu files appeared after planning; create a fresh plan.")
+        raise WorkflowError("Newer matching Feishu source messages appeared after planning; create a fresh plan.")
     for table in plan["tables"]:
         target = Path(table["target_path"])
         source = Path(table["source_message"]["download_path"])
@@ -956,6 +1504,8 @@ def apply_local(args: argparse.Namespace) -> int:
                 raise WorkflowError(f"Staged workbook drifted after planning: {stage}")
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     backups = []
+    replacements = []
+    applied_tables = []
     changed_tables = [table for table in plan["tables"] if table["diff"]["changed"]]
     try:
         for table in changed_tables:
@@ -968,9 +1518,26 @@ def apply_local(args: argparse.Namespace) -> int:
         for table in changed_tables:
             target = Path(table["target_path"])
             stage = Path(table["stage_path"])
-            temp_target = target.with_name(f".{target.name}.{os.getpid()}.tmp")
+            temp_target = sibling_temp_path(target, "apply")
+            replacement = {
+                "family_id": table["family_id"],
+                "target": str(target),
+                "temporary_path": str(temp_target),
+                "status": "copying",
+            }
+            replacements.append(replacement)
             shutil.copy2(stage, temp_target)
-            os.replace(temp_target, target)
+            replacement["status"] = "replacing"
+            try:
+                replacement.update(replace_file_with_retry(temp_target, target))
+            except Exception as exc:
+                if isinstance(exc, AtomicReplaceError):
+                    replacement.update(exc.details)
+                else:
+                    replacement["status"] = "failed"
+                replacement["error"] = exception_summary(exc)
+                raise
+            applied_tables.append(table)
             if sha256_file(target) != table["target_after_sha256"]:
                 raise WorkflowError(f"Applied target hash mismatch: {target}")
             validation = operator_validation(target, target)
@@ -980,10 +1547,95 @@ def apply_local(args: argparse.Namespace) -> int:
                     raise WorkflowError(f"Applied validation regressed for {target}: {regressions}")
             elif validation.get("error_count", 0):
                 raise WorkflowError(f"Applied validation failed for {target}: {validation.get('issues', [])}")
-    except Exception:
-        for item in reversed(backups):
-            shutil.copy2(Path(item["backup"]), Path(item["target"]))
-        raise
+    except Exception as exc:
+        backup_by_target = {item["target"]: item for item in backups}
+        rollback_entries = []
+        for table in reversed(applied_tables):
+            target = Path(table["target_path"])
+            backup = Path(backup_by_target[str(target)]["backup"])
+            rollback_temp = sibling_temp_path(target, "rollback")
+            rollback_entry = {
+                "family_id": table["family_id"],
+                "target": str(target),
+                "backup": str(backup),
+                "temporary_path": str(rollback_temp),
+                "status": "copying",
+            }
+            rollback_entries.append(rollback_entry)
+            try:
+                shutil.copy2(backup, rollback_temp)
+                rollback_entry["status"] = "replacing"
+                rollback_entry.update(
+                    replace_file_with_retry(rollback_temp, target)
+                )
+                if sha256_file(target) != table["target_before_sha256"]:
+                    raise WorkflowError(
+                        f"Rollback target hash mismatch: {target}"
+                    )
+                rollback_entry["verified"] = True
+            except Exception as rollback_exc:
+                if isinstance(rollback_exc, AtomicReplaceError):
+                    rollback_entry.update(rollback_exc.details)
+                else:
+                    rollback_entry["status"] = "failed"
+                rollback_entry["verified"] = False
+                rollback_entry["error"] = exception_summary(rollback_exc)
+
+        rollback_verification = []
+        for table in changed_tables:
+            target = Path(table["target_path"])
+            current_sha256 = sha256_file(target) if target.exists() else None
+            rollback_verification.append(
+                {
+                    "family_id": table["family_id"],
+                    "target": str(target),
+                    "current_sha256": current_sha256,
+                    "expected_sha256": table["target_before_sha256"],
+                    "verified": current_sha256
+                    == table["target_before_sha256"],
+                }
+            )
+        rollback_verified = all(
+            item["verified"] for item in rollback_verification
+        )
+        failure_receipt = {
+            "schema_version": "1.0.0",
+            "artifact_type": "QingchengTempTableLocalApplyFailureReceipt",
+            "created_at": datetime.now().astimezone().isoformat(
+                timespec="seconds"
+            ),
+            "status": (
+                "failed_rolled_back"
+                if rollback_verified
+                else "failed_rollback_incomplete"
+            ),
+            "plan_path": str(args.plan.resolve()),
+            "plan_sha256": plan["plan_sha256"],
+            "failure": exception_summary(exc),
+            "backups": backups,
+            "replacements": replacements,
+            "rollback_entries": rollback_entries,
+            "rollback_verification": rollback_verification,
+        }
+        failure_receipt_path = (
+            Path(plan["runtime_dir"]) / "local_apply_failure_receipt.json"
+        )
+        write_artifact(
+            failure_receipt_path,
+            failure_receipt,
+            "receipt_sha256",
+        )
+        if rollback_verified:
+            raise WorkflowError(
+                "Local apply failed and all targets remain at their "
+                f"pre-plan hashes. Failure receipt: {failure_receipt_path}. "
+                f"Cause: {exc}"
+            ) from exc
+        raise WorkflowError(
+            "Local apply failed and rollback could not be fully verified. "
+            f"Manual inspection is required. Failure receipt: "
+            f"{failure_receipt_path}. Cause: {exc}"
+        ) from exc
     receipt = {
         "schema_version": "1.0.0",
         "artifact_type": "QingchengTempTableLocalApplyReceipt",
@@ -992,6 +1644,7 @@ def apply_local(args: argparse.Namespace) -> int:
         "plan_path": str(args.plan.resolve()),
         "plan_sha256": plan["plan_sha256"],
         "backups": backups,
+        "replacements": replacements,
         "tables": [
             {
                 "family_id": table["family_id"],
@@ -1036,11 +1689,15 @@ def upload_production(args: argparse.Namespace) -> int:
     registry = load_registry(registry_path)
     selection = plan.get("selection") or build_selection_spec(registry)
     explicit_ids = set(selection.get("explicit_message_ids", {}).values())
-    _, current_messages = discover_live_messages(registry, explicit_ids)
+    _, current_messages = discover_live_messages(
+        registry,
+        explicit_ids,
+        selection["family_ids"],
+    )
     current_selected, _, _ = select_messages(registry, current_messages, selection)
     current_ids = {family_id: message["message_id"] for family_id, message in current_selected.items()}
     if current_ids != plan["selected_message_ids"]:
-        raise WorkflowError("Newer matching Feishu files appeared after planning; create a fresh plan.")
+        raise WorkflowError("Newer matching Feishu source messages appeared after planning; create a fresh plan.")
     tables_by_id = {table["family_id"]: table for table in plan["tables"]}
     for item in receipt["tables"]:
         target = Path(item["target_path"])
@@ -1156,6 +1813,25 @@ def main(argv: list[str] | None = None) -> int:
         return int(args.func(args))
     except WorkflowError as exc:
         print(json.dumps({"ok": False, "error": {"type": "workflow", "message": str(exc)}}, ensure_ascii=False, indent=2))
+        return 1
+    except Exception as exc:  # noqa: BLE001
+        print(
+            json.dumps(
+                {
+                    "ok": False,
+                    "error": {
+                        "type": "internal",
+                        "subtype": type(exc).__name__,
+                        "message": (
+                            "Unexpected workflow failure "
+                            f"({type(exc).__name__}): {exc}"
+                        ),
+                    },
+                },
+                ensure_ascii=False,
+                indent=2,
+            )
+        )
         return 1
 
 

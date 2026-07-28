@@ -1,6 +1,6 @@
 {
-  "version": 1,
-  "updated_at": "2026-07-20",
+  "version": 2,
+  "updated_at": "2026-07-27",
   "chat": {
     "name": "青橙数据对接",
     "expected_chat_id": "oc_e604e064976c022ab4289fc2fb979332",
@@ -86,6 +86,7 @@
       "target_columns": ["employee_name", "employee_email_name", "email_prefix", "leader_employee_email_name", "leader_email_prefix", "dazu", "jingli", "xuebu", "qici"],
       "column_aliases": {},
       "constant_columns": {},
+      "preserve_external_links": true,
       "slice_column": "qici",
       "slice_order": "asc",
       "key_columns": ["qici", "employee_email_name"],
@@ -118,6 +119,57 @@
         {"type": "lowercase_ascii_prefix", "columns": ["xiaozu_z", "employee_email_prefix"]},
         {"type": "required_value", "column": "dept_1", "value": "青橙项目部"}
       ]
+    },
+    {
+      "id": "course_schedule",
+      "business_name": "青橙行课开课时间",
+      "source_kind": "link_workbook",
+      "source_sender_name": "李怡青",
+      "source_sender_open_id": "ou_3168c83ffe93b49a192755c8e31e2bc5",
+      "source_search_query": "青橙行课",
+      "source_url_patterns": [
+        "^https://docs\\.baijia\\.com/sheet/[A-Za-z0-9_-]+(?:\\?[^\\s]*)?$"
+      ],
+      "source_message_patterns": [
+        "青橙行课--开课时间\\(1-6节课\\)"
+      ],
+      "source_expected_title_pattern": "^青橙行课--开课时间\\(1-6节课\\)$",
+      "source_filename": "青橙行课--开课时间(1-6节课).xlsx",
+      "source_env_file_env": "QINGCHENG_DOCS_ENV_FILE",
+      "source_env_file": "E:\\1900_work\\GAOTU\\19002_市场顾问部看板维护表格\\usql_api.env",
+      "source_browser_channel": "msedge",
+      "source_download_timeout_seconds": 120,
+      "source_sheet": "$active",
+      "target_workbook": "E:\\1900_work\\GAOTU\\19003_青橙项目部看板维护表格\\qing_daoke.xlsx",
+      "target_sheet": "Sheet1",
+      "platform_temp_table": "dingxi01_qing_daoke",
+      "target_columns": ["qudao", "begin_time", "qici", "dow", "grade", "ke_1"],
+      "column_aliases": {
+        "渠道": "qudao",
+        "开课时间": "begin_time",
+        "期次": "qici",
+        "工作日-1": "dow",
+        "年级": "grade",
+        "课节数(第几节课)": "ke_1"
+      },
+      "ignored_source_columns": ["工作日"],
+      "column_transforms": {
+        "begin_time": ["collapse_whitespace"],
+        "ke_1": ["to_text"]
+      },
+      "materialize_source_values": true,
+      "constant_columns": {},
+      "slice_column": "qici",
+      "slice_order": "asc",
+      "key_columns": ["qici", "qudao", "grade", "ke_1", "begin_time", "dow"],
+      "validation_rules": [
+        {"type": "slice_format", "column": "qici", "pattern": "^\\d{8}期$"},
+        {"type": "required_nonblank", "columns": ["qudao", "begin_time", "qici", "dow", "grade", "ke_1"]},
+        {"type": "datetime_format", "column": "begin_time", "format": "%Y-%m-%d %H:%M:%S"},
+        {"type": "allowed_values", "column": "dow", "values": ["1", "2", "3", "4", "5", "6", "7"]},
+        {"type": "allowed_values", "column": "ke_1", "values": ["1", "2", "3", "4", "5", "6"]},
+        {"type": "sheet_slice_suffix", "column": "qici"}
+      ]
     }
   ],
   "upload_order": [
@@ -125,7 +177,8 @@
     "team_period_goal",
     "team_month_goal",
     "result_architecture",
-    "period_architecture"
+    "period_architecture",
+    "course_schedule"
   ],
   "deferred_filename_patterns": [
     "^qi\\d+daibanguocheng\\.xlsx$",

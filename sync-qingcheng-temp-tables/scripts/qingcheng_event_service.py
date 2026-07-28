@@ -157,6 +157,35 @@ def load_config(path: Path) -> dict[str, Any]:
     return merged
 
 
+def validate_registered_sources(
+    config: dict[str, Any],
+    registry: dict[str, Any],
+) -> None:
+    registered_source_ids = {
+        workflow.source_sender_id(registry, family)
+        for family in registry["families"]
+    }
+    registered_source_ids.discard("")
+    missing_source_ids = sorted(
+        registered_source_ids.difference(config["source_sender_ids"])
+    )
+    if missing_source_ids:
+        raise ServiceError(
+            "Config source_sender_ids is missing registered workflow senders: "
+            + ", ".join(missing_source_ids)
+        )
+    for family in registry["families"]:
+        if workflow.source_kind(family) != "link_workbook":
+            continue
+        env_key = str(family.get("source_env_file_env") or "")
+        env_file_value = os.environ.get(env_key) if env_key else None
+        env_file = Path(env_file_value or family["source_env_file"])
+        if not env_file.is_file():
+            raise ServiceError(
+                f"Registered link source credential file is unavailable for {family['id']}."
+            )
+
+
 def configure_logging(runtime_root: Path) -> logging.Logger:
     runtime_root.mkdir(parents=True, exist_ok=True)
     logger = logging.getLogger("qingcheng_event_service")
@@ -503,7 +532,11 @@ def classify_filename(registry: dict[str, Any], filename: str) -> str | None:
     matches = [
         family["id"]
         for family in registry["families"]
-        if any(re.fullmatch(pattern, filename) for pattern in family["source_filename_patterns"])
+        if workflow.source_kind(family) == "file_attachment"
+        and any(
+            re.fullmatch(pattern, filename)
+            for pattern in family.get("source_filename_patterns", [])
+        )
     ]
     if len(matches) > 1:
         raise ServiceError(f"Filename matches multiple workbook families: {filename} -> {matches}")
@@ -550,10 +583,11 @@ def parse_family_phrase(phrase: str, registry: dict[str, Any]) -> list[str] | No
         "team_month_goal": ("团队月度", "团队月度目标表", "月度目标表"),
         "result_architecture": ("全员结果数据架构", "结果数据架构", "全员架构"),
         "period_architecture": ("期次带班架构", "期度带班架构", "带班架构"),
+        "course_schedule": ("开课时间", "开课时间表", "到课", "到课表", "行课时间", "青橙行课"),
     }
     found = []
     for family_id in registry["upload_order"]:
-        if any(alias in normalized for alias in aliases[family_id]):
+        if any(alias in normalized for alias in aliases.get(family_id, ())):
             found.append(family_id)
     if not found and normalized in {"架构", "两个架构", "两张架构"}:
         found = ["result_architecture", "period_architecture"]
@@ -573,9 +607,9 @@ def parse_command(content: str, config: dict[str, Any], registry: dict[str, Any]
     match = re.fullmatch(r"确认上传\s+(qc_[A-Za-z0-9_]+)", command)
     if match:
         return Intent("approve", job_id=match.group(1))
-    if command in {"预检此文件", "检查此文件"}:
+    if command in {"预检此文件", "检查此文件", "预检此表", "检查此表", "预检此链接", "检查此链接"}:
         return Intent("plan", use_replied_file=True)
-    if command == "上传此文件":
+    if command in {"上传此文件", "上传此表", "上传此链接"}:
         return Intent("upload", use_replied_file=True)
     match = re.fullmatch(r"(?:预检|检查|生成计划)(.*)", command)
     if match:
@@ -607,7 +641,11 @@ def stored_public_error_code(job: dict[str, Any]) -> str:
 
 
 def job_reply_category(job: dict[str, Any]) -> str:
-    return "source_attachment" if job.get("source") == "source_attachment_batch" else "command"
+    return (
+        "source_attachment"
+        if job.get("source") in {"source_attachment_batch", "source_message_batch"}
+        else "command"
+    )
 
 
 def help_text(config: dict[str, Any]) -> str:
@@ -617,11 +655,13 @@ def help_text(config: dict[str, Any]) -> str:
         "可用指令：\n"
         "- @管家 预检最新临时表\n"
         "- @管家 预检最新目标表\n"
+        "- @管家 预检最新开课时间表\n"
         "- @管家 预检 个人期度 团队期度 团队月度\n"
-        "- 回复一个源附件并 @管家 预检此文件\n"
+        "- 回复一个源附件或开课时间链接并 @管家 预检此表\n"
         "- @管家 状态 [job_id]\n"
         "- @管家 取消 <job_id>\n"
         "- 审批人：@管家 确认上传 <job_id>\n"
+        "- 审批人：@管家 上传最新开课时间表\n"
         "- 审批人：@管家 上传最新临时表\n"
         "shadow 模式只生成计划，不修改本地表、不上传平台。"
     )
@@ -1101,6 +1141,7 @@ class EventProcessor:
         self.worker = worker
         self.gateway = gateway
         self.logger = logger
+        validate_registered_sources(config, registry)
 
     def _submit(self, job_id: str) -> None:
         if self.worker is not None:
@@ -1135,20 +1176,15 @@ class EventProcessor:
     def _resolve_replied_file(self, event: dict[str, Any]) -> tuple[list[str], dict[str, str]]:
         replied_id = event.get("reply_to")
         if not replied_id:
-            raise ServiceError("“此文件”指令必须回复一条 Excel 附件消息。")
+            raise ServiceError("“此表”指令必须回复一条已登记的 Excel 附件或开课时间链接消息。")
         if self.gateway is None:
             raise ServiceError("Offline processor cannot resolve the replied-to message.")
         message = self.gateway.get_message(str(replied_id))
-        sender = message.get("sender") or {}
-        sender_id = sender.get("id") or sender.get("open_id")
-        if sender_id not in self.config["source_sender_ids"]:
-            raise ServiceError("Replied-to attachment was not posted by an allowed source sender.")
         if message.get("chat_id") and message.get("chat_id") != self.config["chat_id"]:
-            raise ServiceError("Replied-to attachment is outside the configured chat.")
-        filename = extract_xlsx_filename(str(message.get("content") or ""))
-        family_id = classify_filename(self.registry, filename or "") if filename else None
+            raise ServiceError("Replied-to source message is outside the configured chat.")
+        family_id = workflow.classify_source_message(self.registry, message)
         if family_id is None:
-            raise ServiceError("Replied-to message is not a recognized Qingcheng Excel source file.")
+            raise ServiceError("Replied-to message is not a recognized Qingcheng source table.")
         return [family_id], {family_id: str(replied_id)}
 
     def _deny(self, event: dict[str, Any], text: str) -> None:
@@ -1175,14 +1211,20 @@ class EventProcessor:
         if (
             self.config["auto_plan_source_attachments"]
             and sender_id in self.config["source_sender_ids"]
-            and event.get("message_type") == "file"
         ):
-            filename = extract_xlsx_filename(content)
-            family_id = classify_filename(self.registry, filename or "") if filename else None
+            try:
+                family_id = workflow.classify_source_message(self.registry, event)
+            except workflow.WorkflowError as exc:
+                self.logger.warning(
+                    "Rejected ambiguous source message %s: %s",
+                    message_id,
+                    exc,
+                )
+                return "source_message_rejected"
             if family_id:
                 self.ledger.add_pending_attachment(event, family_id)
-                self.logger.info("Queued source attachment %s as %s", message_id, family_id)
-                return "attachment_queued"
+                self.logger.info("Queued source message %s as %s", message_id, family_id)
+                return "source_message_queued"
         if event.get("message_type") not in {"text", "post"}:
             return "ignored_type"
         if self.config["mention_required"] and not event_mentions_bot(event, self.config):
@@ -1280,7 +1322,7 @@ class EventProcessor:
             )
             self._deny(
                 event,
-                "无法安全读取或校验被回复的附件。\n"
+                "无法安全读取或校验被回复的源表消息。\n"
                 f"错误编号：{error_code}\n"
                 "详细原因已记录在本机日志中。",
             )
@@ -1341,7 +1383,7 @@ class EventProcessor:
         job_id = self.ledger.create_job(
             request_message_id=reply_item["message_id"],
             requester_id=reply_item["sender_id"],
-            source="source_attachment_batch",
+            source="source_message_batch",
             action="plan",
             family_ids=family_ids,
             message_bindings=bindings,
@@ -1352,7 +1394,7 @@ class EventProcessor:
             reply_item["message_id"],
             f"已识别并开始预检：{job_id}\n范围：{', '.join(family_ids)}",
             job_id=job_id,
-            suffix="attachment_batch",
+            suffix="source_message_batch",
             category="source_attachment",
             phase="progress",
         )
@@ -1564,6 +1606,8 @@ def main(argv: list[str] | None = None) -> int:
         else:
             config = load_config(args.config)
             if args.command == "validate-config":
+                registry = workflow.load_registry(Path(config["workflow_registry"]))
+                validate_registered_sources(config, registry)
                 result = {
                     "ok": True,
                     "config_path": config["config_path"],
@@ -1576,6 +1620,12 @@ def main(argv: list[str] | None = None) -> int:
                     "reply_progress_updates": config["reply_progress_updates"],
                     "allow_local_apply": config["allow_local_apply"],
                     "allow_production_upload": config["allow_production_upload"],
+                    "registered_source_count": len(
+                        {
+                            workflow.source_sender_id(registry, family)
+                            for family in registry["families"]
+                        }
+                    ),
                 }
             elif args.command == "status":
                 result = status_summary(config)

@@ -11,7 +11,7 @@
 - [7. 启动、状态、日志与停止](#7-启动状态日志与停止)
 - [8. 登录自启](#8-登录自启)
 - [9. 群内使用方法](#9-群内使用方法)
-- [10. 郅玲玉发布附件时的行为](#10-郅玲玉发布附件时的行为)
+- [10. 登记来源人发布源表时的行为](#10-登记来源人发布源表时的行为)
 - [11. 任务状态](#11-任务状态)
 - [12. 范围化 CLI](#12-范围化-cli)
 - [13. 上线顺序](#13-上线顺序)
@@ -19,29 +19,32 @@
 
 ## 1. 目标与边界
 
-本服务把 `青橙数据对接` 群消息转换为受控的青橙临时表任务。它只处理配置中的固定群、固定来源人、固定五类 Excel 和固定本地/平台映射，不执行任意 shell、任意 SQL 或自由生成的写操作。
+本服务把 `青橙数据对接` 群消息转换为受控的青橙临时表任务。它只处理配置中的固定群、固定来源人、五类登记 Excel 附件、一类登记开课时间文档链接和固定本地/平台映射，不执行任意 shell、任意 SQL 或自由生成的写操作。
 
 完整链路为：
 
 1. `lark-cli event consume im.message.receive_v1 --as bot` 接收消息。
 2. 按 `chat_id` 过滤，用 `message_id` 去重。
-3. 将文本指令解析为固定意图，或把郅玲玉发布的可识别 Excel 放入附件批次。
+3. 将文本指令解析为固定意图，或把登记来源人发布的可识别附件/链接放入源消息批次。
 4. 生成带 Hash 的 `QingchengTempTableSyncPlan`。
 5. 只有配置中的审批人发出明确上传指令，且生产三道开关同时启用时，才执行本地 Apply 和平台 Upload。
 6. 每个阶段写入 SQLite 账本、计划和回执；失败立即停止，不跳过 Hash、漂移、备份或校验门禁。
 
-自动识别郅玲玉的附件只会生成计划，永远不会因为“看到附件”自动修改本地文件或上传平台。
+自动识别登记源消息只会生成计划，永远不会因为“看到附件或链接”自动修改本地文件或上传平台。
+
+Windows 本地 Apply 使用同目录临时文件做原子替换，并对瞬时共享/权限冲突做有限退避重试。重试耗尽时必须输出结构化错误并写 `local_apply_failure_receipt.json`；只有全部目标仍为预检前 Hash 或已完成可验证回滚时，才允许结束失败处理，且绝不进入平台 Upload。
 
 ## 2. 已实现组件
 
 | 组件 | 路径 | 用途 |
 |---|---|---|
 | 范围化同步 CLI | `scripts/qingcheng_temp_table_sync.py` | 支持整批、指定文件族、时间下限、精确消息绑定，以及 Plan → Local Apply → Upload |
-| 事件服务 | `scripts/qingcheng_event_service.py` | 常驻消费、权限路由、附件批处理、单线程任务执行、账本与状态 |
+| 登记文档下载器 | `scripts/docs_sheet_downloader.py` | 校验文档域名/标题、临时登录、下载 XLSX 和活动页检查 |
+| 事件服务 | `scripts/qingcheng_event_service.py` | 常驻消费、权限路由、源消息批处理、单线程任务执行、账本与状态 |
 | Windows 管理器 | `scripts/manage_event_service.ps1` | 隐藏窗口启动、优雅停止、状态、日志、登录自启安装/卸载 |
 | 配置模板 | `references/event_service_config.example.json` | 不含凭据的安全 `shadow` 模板 |
 | 运行配置 | `C:\Users\Ludim\.codex\runtime\sync-qingcheng-temp-tables\event-service\config.json` | 本机实际配置，不进入技能 Git 目录 |
-| 任务账本 | `...\event-service\jobs.sqlite3` | 事件去重、任务状态、附件批次、待发/已发回复 |
+| 任务账本 | `...\event-service\jobs.sqlite3` | 事件去重、任务状态、源消息批次、待发/已发回复 |
 | 服务状态 | `...\event-service\status.json` | PID、模式、心跳、生产门禁、账本摘要 |
 | 服务日志 | `...\event-service\service.log` | 轮转日志；单文件上限 5 MiB，保留 5 份 |
 
@@ -50,6 +53,7 @@
 | 身份 | 可以做什么 | 不可以做什么 |
 |---|---|---|
 | 郅玲玉（来源人） | 发布已登记 Excel；服务静默合批并生成预检计划 | 仅凭附件触发本地写入或生产上传 |
+| 李怡青（来源人） | 发布已登记开课时间链接；服务下载工作簿并生成预检计划 | 仅凭链接触发本地写入或生产上传 |
 | 普通群成员 | `帮助`、`状态`、`预检...` | 本地 Apply、生产上传、确认他人的生产任务 |
 | 配置中的审批人 | 普通成员能力；`确认上传 <job_id>`；`上传最新...` | 绕过配置开关、Hash、漂移、备份、校验或既有表映射 |
 | 管家机器人 | 监听、读取回复上下文、按配置回复 | 以用户身份发消息、处理其他群、执行任意自然语言代码 |
@@ -58,10 +62,11 @@
 
 - 群：`oc_e604e064976c022ab4289fc2fb979332`
 - 来源人郅玲玉：`ou_bf111effd2d71a52ee40c58c7cb4d105`
+- 来源人李怡青（`liyiqing02`）：`ou_3168c83ffe93b49a192755c8e31e2bc5`
 - 审批人吕帅：`ou_adde1ef52a52e60a272fb4b8a416eb01`
 - 管家机器人：`ou_f3907e865135732c15a1dfce27828411`
 
-服务以 bot 身份接收事件、读取精确消息、下载群附件和回复。最新历史文件检索优先复用已登录的 user 身份；user 不可用时，对固定 `chat_id` 回退为 bot 分页读取。附件下载本身使用 bot 身份。
+服务以 bot 身份接收事件、读取精确消息、下载群附件和回复。最新历史消息检索优先复用已登录的 user 身份；user 不可用时，对固定 `chat_id` 回退为 bot 分页读取。附件下载本身使用 bot 身份。开课时间链接下载使用临时 Edge/Playwright 上下文，并只从本地环境文件读取登录信息；凭据值不得进入配置、日志、计划或群回复。
 
 ## 4. 两种模式与回复策略
 
@@ -86,7 +91,8 @@
 - `send_replies=false`：回复内容只写入 `outbound_messages` 账本，不发送到群；它是回复总开关，不授予任何数据写入权限。
 - `reply_on_commands=true`：总开关启用后，只响应已识别的显式 `@管家` 指令。
 - `reply_on_unknown_commands=false`：随意 `@管家` 的未知自然语言默认静默，避免帮助消息刷屏。
-- `reply_on_source_attachments=false`：郅玲玉发布登记附件时默认静默预检，不自动在群里回执。
+- `reply_on_source_attachments=false`：登记来源人发布附件或链接时默认静默预检，不自动在群里回执；字段名为兼容旧配置而保留。
+- `auto_plan_source_attachments=true`：自动把登记附件和登记开课时间链接放入预检批次；字段名同样为兼容旧配置而保留，自动任务仍只能是 `plan`。
 - `reply_progress_updates=false`：默认不发“已受理/开始处理”等过程消息，只发最终结果；帮助、状态和拒绝说明不属于过程消息。
 - `allow_local_apply=false`：事件服务不能改 E 盘维护表。
 - `allow_production_upload=false`：事件服务不能调用平台上传。
@@ -117,6 +123,7 @@
 3. bot 已具备 `lark-cli event schema im.message.receive_v1 --json` 当前返回的事件 scope。
 4. 读取消息/附件需要 `im:message:readonly`；bot 回复需要 `im:message:send_as_bot`。
 5. `lark-cli auth status --json --verify` 中 bot 必须为 `ready/verified`。user 身份建议保持可刷新，以便高效检索历史附件；user 失效不会改变生产权限边界。
+6. `source_sender_ids` 必须同时包含 Registry 中的郅玲玉和李怡青 open_id；开课时间下载所用环境文件必须存在并包含可用的 `BAIJIA_USERNAME`、`BAIJIA_PASSWORD`，但不得把值复制进事件服务配置。
 
 检查命令：
 
@@ -157,6 +164,7 @@ D:\anaconda3\python.exe `
 - 启用生产上传却未启用本地 Apply；
 - 非 bot 回复身份；
 - 群 ID、审批人、来源人、脚本或 Registry 缺失；
+- Registry 登记的来源人未全部出现在 `source_sender_ids`，或登记文档的环境文件不可用；
 - 关键超时不是正整数。
 
 ## 7. 启动、状态、日志与停止
@@ -217,9 +225,9 @@ $manager = 'C:\Users\Ludim\.codex\skills\sync-qingcheng-temp-tables\scripts\mana
 
 ## 9. 群内使用方法
 
-除郅玲玉的登记附件自动预检外，文本指令默认必须 `@管家`。
+除登记来源人的可识别附件/链接自动预检外，文本指令默认必须 `@管家`。
 
-默认回复策略只响应下列已识别指令并只发送最终结果。未知文本默认不回复；若需要提示，可显式设置 `reply_on_unknown_commands=true`。自动附件预检默认不回复；若需要最终回执，可设置 `reply_on_source_attachments=true`。只有同时设置 `reply_progress_updates=true` 才会增加“已受理/开始处理”过程消息。
+默认回复策略只响应下列已识别指令并只发送最终结果。未知文本默认不回复；若需要提示，可显式设置 `reply_on_unknown_commands=true`。自动源消息预检默认不回复；若需要最终回执，可设置 `reply_on_source_attachments=true`。只有同时设置 `reply_progress_updates=true` 才会增加“已受理/开始处理”过程消息。
 
 ### 普通成员
 
@@ -227,6 +235,7 @@ $manager = 'C:\Users\Ludim\.codex\skills\sync-qingcheng-temp-tables\scripts\mana
 @管家 帮助
 @管家 预检最新临时表
 @管家 预检最新目标表
+@管家 预检最新开课时间表
 @管家 预检 个人期度 团队期度 团队月度
 @管家 预检 全员结果数据架构
 @管家 预检 带班架构
@@ -235,13 +244,13 @@ $manager = 'C:\Users\Ludim\.codex\skills\sync-qingcheng-temp-tables\scripts\mana
 @管家 取消 qc_20260721123456_ab12cd34
 ```
 
-回复郅玲玉发布的一条已登记 Excel 消息后发送：
+回复郅玲玉发布的一条已登记 Excel 消息，或李怡青发布的登记开课时间链接后发送：
 
 ```text
-@管家 预检此文件
+@管家 预检此表
 ```
 
-服务会用 `im +messages-mget` 回读回复对象，核对群、来源人和文件名，再把该 family 绑定到精确 `message_id`。后续出现同名新文件不会把这项任务悄悄漂移到新消息。
+服务会用 `im +messages-mget` 回读回复对象，核对群、来源人、附件文件名或文档 URL/标题标记，再把该 family 绑定到精确 `message_id`。后续出现同族新消息不会把这项任务悄悄漂移到新消息。
 
 ### 审批人
 
@@ -257,23 +266,25 @@ $manager = 'C:\Users\Ludim\.codex\skills\sync-qingcheng-temp-tables\scripts\mana
 ```text
 @管家 上传最新临时表
 @管家 上传最新目标表
+@管家 上传最新开课时间表
 ```
 
-回复单个源附件：
+回复单个源附件或登记开课时间链接：
 
 ```text
-@管家 上传此文件
+@管家 上传此表
 ```
 
 在 `shadow` 模式或生产开关未全部开启时，上传指令只生成计划并明确记录为降级，不会写入本地或平台。
 
-## 10. 郅玲玉发布附件时的行为
+## 10. 登记来源人发布源表时的行为
 
-1. 只接受固定群、固定来源 open_id、`message_type=file`。
-2. 用 Registry 文件名正则识别五类输入；其他文件忽略。
+1. 只接受固定群和每个 family 登记的固定来源 open_id。
+2. 郅玲玉的附件用 Registry 文件名正则识别五类输入；李怡青的文本/富文本消息必须同时匹配登记文档域名与标题标记。其他消息忽略。
 3. 等待 `attachment_quiet_seconds` 的静默窗口，把连续发布的多张表合成一项任务。
 4. 同一文件族在一个批次出现多次时，绑定该批次中最新 `message_id`。
 5. 生成 `plan` 任务并等待审批；不自动 Apply、不自动 Upload，默认也不向群里回复。
+6. 开课时间 Plan 使用临时浏览器下载完整 XLSX，读取活动页并与 `qing_daoke.xlsx` 对比；链接消息本身不携带或记录登录凭据。
 
 这样能支持“22:00 后连续发布三个目标表”的场景，又避免每收到一张表就重复跑整套流程。
 
@@ -295,6 +306,7 @@ $manager = 'C:\Users\Ludim\.codex\skills\sync-qingcheng-temp-tables\scripts\mana
 - 未开始的 `queued` 任务会在下次启动时恢复排队；
 - 当时处于 `planning/applying_local/uploading` 的任务标记为 `failed/interrupted`，不会盲目重跑；
 - 必须检查计划、备份、Local Receipt、Upload Receipt 和平台导入历史后再重新发起。
+- `local_apply_failure_receipt.json` 为本地 Apply 失败证据；先核对其中的替换尝试、回滚状态和目标 Hash。失败任务不能直接复用，应排除文件占用后重新预检并由审批人再次确认。
 
 ## 12. 范围化 CLI
 
@@ -326,15 +338,23 @@ D:\anaconda3\python.exe `
   --message-id period_architecture=om_xxx
 ```
 
-不带 `--family` 时保持旧行为，处理 Registry 中全部五类文件。Local Apply 和 Upload 会复用 Plan 中的选择条件：`latest_matching` 会阻断后来出现的同族新文件；`explicit_message` 则始终绑定原消息。
+精确绑定李怡青发布的开课时间链接：
+
+```powershell
+...\qingcheng_temp_table_sync.py plan `
+  --family course_schedule `
+  --message-id course_schedule=om_xxx
+```
+
+不带 `--family` 时处理 Registry 中全部六类源表。Local Apply 和 Upload 会复用 Plan 中的选择条件：`latest_matching` 会阻断后来出现的同族新消息；`explicit_message` 则始终绑定原消息。
 
 ## 13. 上线顺序
 
 推荐按以下顺序推进：
 
-1. 保持 `shadow + send_replies=false`，运行至少一个真实附件批次，只核对账本、计划、下载和 staged workbook。
-2. 仍保持 `shadow`，经明确同意后仅开启 `send_replies=true`，保持未知指令、自动附件和过程消息关闭，验证群内帮助、状态、预检完成和安全失败回复。
-3. 审阅角色 ID、五类映射、备份与上传回执后，切换 `production` 并同时开启两个写开关。
+1. 保持 `shadow + send_replies=false`，分别运行至少一个真实附件和一个登记链接预检，只核对账本、计划、下载和 staged workbook。
+2. 仍保持 `shadow`，经明确同意后仅开启 `send_replies=true`，保持未知指令、自动源消息和过程消息关闭，验证群内帮助、状态、预检完成和安全失败回复。
+3. 审阅角色 ID、六类映射、备份与上传回执后，切换 `production` 并同时开启两个写开关。
 4. 先用“预检 → 确认上传”两步指令做一轮；确认平台导入历史后再使用“一步上传”。
 5. 最后安装登录自启。
 

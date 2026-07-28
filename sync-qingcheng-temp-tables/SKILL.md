@@ -1,31 +1,33 @@
 ---
 name: sync-qingcheng-temp-tables
-description: Synchronize the latest or explicitly selected Excel files posted by 郅玲玉 in the Feishu group 青橙数据对接 into the Qingcheng and shared architecture maintenance workbooks, then upload the complete verified workbooks to their existing USQL temporary tables. Also use to configure or operate the governed local lark-event service that turns @管家 commands and source attachments into plan, approval, local-apply, and upload jobs, and for recurring lark-cli upgrades followed by a governed production event-service restart. Use for requests such as “上传郅玲玉在青橙数据对接内发布的最新临时表到线上平台”, scoped dry-run comparisons, event-service setup, lark-cli upgrade/restart maintenance, or workflow auditing.
+description: Synchronize registered Excel attachments from 郅玲玉 and the registered 青橙行课开课时间 document link from 李怡青 in the Feishu group 青橙数据对接 into Qingcheng and shared maintenance workbooks, then upload the complete verified workbooks to their existing USQL temporary tables. Also use to configure or operate the governed local lark-event service that turns @管家 commands and registered source messages into plan, approval, local-apply, and upload jobs, and for recurring lark-cli upgrades followed by a governed production event-service restart. Use for requests such as “上传最新开课时间表”, “上传郅玲玉在青橙数据对接内发布的最新临时表到线上平台”, scoped dry-run comparisons, event-service setup, lark-cli upgrade/restart maintenance, or workflow auditing.
 ---
 
 # Sync Qingcheng Temp Tables
 
 ## Purpose
 
-Turn one natural-language request into a governed Feishu-to-local-to-USQL workflow for five incoming workbook families:
+Turn one natural-language request into a governed Feishu-to-local-to-USQL workflow for six incoming workbook families:
 
 - 个人期度目标表
 - 团队期度目标表
 - 团队月度目标表
 - 全员结果数据架构
 - `****期带班架构`
+- 青橙行课开课时间（李怡青发布的登记文档链接）
 
-The workflow downloads the newest matching attachment from 郅玲玉, compares effective cell values with the local cumulative workbook, performs a slice replacement or append in a staged copy, validates the result, writes the reviewed local copy only after confirmation, and uploads the complete local workbook only after a separate production confirmation.
+The workflow downloads the newest registered attachment or document link from the exact configured sender, compares effective cell values with the local cumulative workbook, performs a slice replacement or append in a staged copy, validates the result, writes the reviewed local copy only after confirmation, and uploads the complete local workbook only after a separate production confirmation.
 
 ## Required Skill Order
 
 Before acting, read and follow these skills completely:
 
-1. `lark-shared`, then `lark-event` for persistent consumption, then `lark-im`, including the message mget/search, resource-download, and reply references needed for attachment discovery and governed status replies.
-2. `xlsx` for workbook inspection, formula-cache handling, recalculation, and QA.
-3. `usql-web-query-operator` for manual-table validation and production upload.
+1. `lark-shared`, then `lark-event` for persistent consumption, then `lark-im`, including the message mget/search, resource-download, and reply references needed for source discovery and governed status replies.
+2. `playwright` when the selected family is `course_schedule`, for the registered non-USQL document login and download path.
+3. `xlsx` for workbook inspection, formula-cache handling, recalculation, and QA.
+4. `usql-web-query-operator` for manual-table validation and production upload.
 
-For historical mapping or workflow maintenance, also read [historical_file_mapping.md](references/historical_file_mapping.md) and [workflow_registry.json](references/workflow_registry.json).
+For historical mapping or workflow maintenance, also read [historical_file_mapping.md](references/historical_file_mapping.md), [course_schedule_source.md](references/course_schedule_source.md), and [workflow_registry.json](references/workflow_registry.json).
 
 Do not use the Qingcheng or market SQL-generation skills to reinterpret these workbook schemas. The destination workbooks span both domains, but this workflow only performs the explicit file mappings in the registry.
 
@@ -37,13 +39,15 @@ Treat the stages as separate authorization boundaries:
 2. `apply-local` may update the named E-drive workbooks only with the exact reviewed plan hash and `--confirm-local-write`. It creates timestamped backups before replacement and rolls back on failure.
 3. `upload` may overwrite only the selected existing platform temporary tables, and only with the exact successful local receipt hash and `--confirm-production-upload`.
 
-The persistent service adds separate runtime gates. `shadow` may only create plans; `send_replies` is only the master switch for visible bot replies and never grants workbook or platform writes. Reply policy defaults to known `@管家` commands only, suppresses unknown commands and automatic-source replies, and emits final results rather than progress chatter. `allow_local_apply` and `allow_production_upload` must both be enabled in `production` mode before an approver command can write. A recognized source attachment always remains plan-only. Public replies must not contain local paths, artifact hashes, receipt paths, or raw exceptions, and reply delivery failures must never change the underlying job status.
+The persistent service adds separate runtime gates. `shadow` may only create plans; `send_replies` is only the master switch for visible bot replies and never grants workbook or platform writes. Reply policy defaults to known `@管家` commands only, suppresses unknown commands and automatic-source replies, and emits final results rather than progress chatter. `allow_local_apply` and `allow_production_upload` must both be enabled in `production` mode before an approver command can write. A recognized source attachment or link always remains plan-only. Public replies must not contain local paths, artifact hashes, receipt paths, credentials, or raw exceptions, and reply delivery failures must never change the underlying job status.
 
-A request only to analyze, explain, audit, or design the workflow stops after `plan`. The explicit request “上传郅玲玉在青橙数据对接内发布的最新临时表到线上平台” authorizes the intended end-to-end operation, but still execute and verify all three stages in order; never bypass the hashes, drift checks, backups, or receipts.
+A request only to analyze, explain, audit, or design the workflow stops after `plan`. The explicit requests “上传郅玲玉在青橙数据对接内发布的最新临时表到线上平台” and “上传最新开课时间表” authorize their selected end-to-end operation, but still execute and verify all three stages in order; never bypass the hashes, drift checks, backups, or receipts.
 
 ## Source Selection
 
-Resolve the group and sender by their stable IDs from the registry, not by display name alone. Search all file messages in the group, keep only the configured sender, and choose the newest message matching each family’s filename patterns.
+Resolve the group and sender by their stable IDs from the registry, not by display name alone. Attachment families accept only 郅玲玉's registered file patterns. `course_schedule` accepts only 李怡青's registered `docs.baijia.com` HTTPS URL plus the exact registered document-title marker. Choose the newest matching message for each selected family.
+
+For `course_schedule`, authenticate from `QINGCHENG_DOCS_ENV_FILE` when set, otherwise from the registered local environment file. Never print, copy, or persist its credential values. Use an ephemeral browser context, validate the final URL and document title, save the downloaded XLSX under runtime, and validate it before reading. The current active worksheet is the only source period.
 
 Do not treat these historical or intermediate files as current inputs:
 
@@ -61,6 +65,8 @@ Never blindly append rows.
 - Normalize only the explicit column aliases and constants in the registry.
 - Compare effective cached values, not formula strings. This prevents needless rewrites of workbooks containing external-link formulas.
 - For each source `qici` or `month`, remove the corresponding target slice and insert the current source slice.
+- For `result_architecture`, preserve the target workbook's `xl/externalLinks/**` package byte-for-byte when rebuilding a staged candidate, validate every workbook-level and external-link `r:id` before Excel COM opens it, and validate the relationships again after recalculation.
+- For `course_schedule`, map the registered Chinese headers to `qing_daoke.xlsx`, ignore only the extra source column `工作日`, collapse repeated whitespace in `begin_time`, store `ke_1` as text, and materialize effective values so external-link formulas are never copied into the maintenance workbook.
 - Preserve every target slice not present in the source.
 - For `jiagou_db.xlsx`, replace rows only where `dept_1 = 青橙项目部` and the `qici` overlaps. Preserve all market-consultant rows, including those in the same period.
 - Enforce the configured business key after merging.
@@ -93,7 +99,7 @@ D:\anaconda3\python.exe C:\Users\Ludim\.codex\skills\sync-qingcheng-temp-tables\
   --family team_month_goal
 ```
 
-Use `--after '2026-07-21T22:00:00+08:00'` for a strict time lower bound, or `--message-id period_architecture=om_xxx` for a reply-bound source message. Omitting all selection flags preserves the five-family behavior.
+Use `--after '2026-07-21T22:00:00+08:00'` for a strict time lower bound, or `--message-id period_architecture=om_xxx` for a reply-bound source message. For the exact 李怡青 link, use `--family course_schedule --message-id course_schedule=om_xxx`. Omitting all selection flags processes all six registered families.
 
 Apply the reviewed local plan using the exact printed values:
 
@@ -123,10 +129,10 @@ The service must:
 
 - hold the `lark-event` child stdin open, wait for its `[event] ready` marker, and close stdin for graceful shutdown;
 - filter the exact group before claiming an event and use `message_id` as the idempotency key;
-- require a bot mention for text commands, except for allowlisted source attachments;
+- require a bot mention for text commands, except for allowlisted source attachments and registered source links;
 - make role decisions from stable open IDs and deterministic commands, never from an LLM-generated permission decision;
 - serialize workbook jobs through one worker and persist job/outbound state in SQLite;
-- keep source-attachment automation plan-only, even in production mode;
+- keep automatic source-message processing plan-only, even in production mode;
 - allow production only after an approver's explicit `上传...` or `确认上传 <job_id>` command plus all configuration gates;
 - never force-kill the event consumer or silently retry an interrupted production job.
 
@@ -140,7 +146,8 @@ Treat “restart production” as restoring the exact reviewed pre-upgrade servi
 
 - Stop before local writes when the plan has blockers or any staged validation regression.
 - Preserve a baseline validation finding in the shared `jiagou_db.xlsx` only when the candidate introduces no new or worsened finding. Do not repair unrelated market-consultant data in this workflow.
-- If local replacement fails, roll back every workbook already replaced and report the backup paths.
+- On Windows, local Apply must copy each staged workbook to a unique sibling file and retry the atomic replacement for transient sharing/permission failures. If replacement still fails, keep the candidate and backup evidence, write `local_apply_failure_receipt.json`, verify every target remains at its pre-plan hash, and report a structured failure instead of a non-JSON traceback.
+- If local replacement fails after any workbook was replaced, atomically roll back only those replaced workbooks, verify every selected target against its pre-plan hash, and block upload unless rollback is fully verified.
 - If an upload fails, stop immediately. Record the successful uploads, the failed family, and the failed plus later families as pending. Never report a partial upload as success.
 - Do not delete downloads, staged files, plans, backups, or receipts during the run.
 

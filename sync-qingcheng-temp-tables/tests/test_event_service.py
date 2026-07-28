@@ -28,7 +28,8 @@ from qingcheng_event_service import (  # noqa: E402
 
 
 APPROVER = "ou_approver"
-SOURCE = "ou_source"
+SOURCE = "ou_bf111effd2d71a52ee40c58c7cb4d105"
+COURSE_SOURCE = "ou_3168c83ffe93b49a192755c8e31e2bc5"
 CHAT = "oc_testchat"
 
 
@@ -36,7 +37,7 @@ def test_config(runtime_root: Path, **overrides: object) -> dict[str, object]:
     value: dict[str, object] = {
         "mode": "shadow",
         "chat_id": CHAT,
-        "source_sender_ids": [SOURCE],
+        "source_sender_ids": [SOURCE, COURSE_SOURCE],
         "approver_ids": [APPROVER],
         "bot_open_id": None,
         "bot_names": ["管家"],
@@ -136,6 +137,12 @@ class EventServiceTests(unittest.TestCase):
             ["personal_period_goal", "team_period_goal", "team_month_goal"],
         )
 
+    def test_command_parser_resolves_latest_course_schedule(self) -> None:
+        intent = parse_command("@管家 预检最新开课时间表", self.config, self.registry)
+
+        self.assertEqual(intent.action, "plan")
+        self.assertEqual(intent.family_ids, ["course_schedule"])
+
     def test_config_rejects_shadow_mode_with_write_gates(self) -> None:
         path = self.runtime_root / "unsafe-config.json"
         unsafe = test_config(self.runtime_root, allow_local_apply=True)
@@ -151,6 +158,20 @@ class EventServiceTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ServiceError, "JSON boolean"):
             load_config(path)
+
+    def test_processor_rejects_missing_registered_source_sender(self) -> None:
+        incomplete = test_config(self.runtime_root, source_sender_ids=[SOURCE])
+
+        with self.assertRaisesRegex(ServiceError, "missing registered workflow senders"):
+            EventProcessor(
+                incomplete,
+                self.registry,
+                self.ledger,
+                self.replies,
+                None,
+                None,
+                self.logger,
+            )
 
     def test_reply_policy_defaults_to_final_known_commands_only(self) -> None:
         config = test_config(self.runtime_root, send_replies=True)
@@ -317,7 +338,12 @@ class EventServiceTests(unittest.TestCase):
 
     def test_source_attachment_is_batched_into_an_exact_message_plan(self) -> None:
         queued = self.processor.process(
-            event("om_file1", SOURCE, "个人期度目标表.xlsx", message_type="file")
+            event(
+                "om_file1",
+                SOURCE,
+                '<file key="file_key_1" name="个人期度目标表.xlsx" />',
+                message_type="file",
+            )
         )
         with sqlite3.connect(self.ledger.path) as connection:
             connection.execute(
@@ -328,11 +354,66 @@ class EventServiceTests(unittest.TestCase):
         job_id = self.processor.flush_pending()
         job = self.ledger.get_job(job_id or "")
 
-        self.assertEqual(queued, "attachment_queued")
+        self.assertEqual(queued, "source_message_queued")
         self.assertIsNotNone(job)
         self.assertEqual(job["family_ids"], ["personal_period_goal"])
         self.assertEqual(job["message_bindings"], {"personal_period_goal": "om_file1"})
         self.assertEqual(job["action"], "plan")
+
+    def test_course_link_from_registered_sender_is_auto_batched(self) -> None:
+        source = event(
+            "om_course1",
+            COURSE_SOURCE,
+            (
+                "【青橙行课--开课时间(1-6节课)】\n"
+                "https://docs.baijia.com/sheet/DQUZrYU50dkZPa1FtZWJSU1JE?tab=vhzqxm"
+            ),
+        )
+        source["mentions"] = []
+
+        queued = self.processor.process(source)
+        with sqlite3.connect(self.ledger.path) as connection:
+            connection.execute(
+                "UPDATE pending_attachments SET queued_epoch = ? WHERE message_id = ?",
+                (time.time() - 10, "om_course1"),
+            )
+
+        job_id = self.processor.flush_pending()
+        job = self.ledger.get_job(job_id or "")
+
+        self.assertEqual(queued, "source_message_queued")
+        self.assertEqual(job["family_ids"], ["course_schedule"])
+        self.assertEqual(job["message_bindings"], {"course_schedule": "om_course1"})
+
+    def test_reply_bound_course_link_creates_exact_message_plan(self) -> None:
+        gateway = mock.Mock()
+        gateway.get_message.return_value = {
+            "message_id": "om_coursesource",
+            "chat_id": CHAT,
+            "sender": {"id": COURSE_SOURCE, "name": "李怡青"},
+            "content": (
+                "【青橙行课--开课时间(1-6节课)】\n"
+                "https://docs.baijia.com/sheet/DQUZrYU50dkZPa1FtZWJSU1JE?tab=vhzqxm"
+            ),
+        }
+        processor = EventProcessor(
+            self.config,
+            self.registry,
+            self.ledger,
+            self.replies,
+            None,
+            gateway,
+            self.logger,
+        )
+        request = event("om_courserequest", APPROVER, "@管家 预检此表")
+        request["reply_to"] = "om_coursesource"
+
+        result = processor.process(request)
+        job = self.ledger.recent_jobs(1)[0]
+
+        self.assertEqual(result, "job_queued")
+        self.assertEqual(job["family_ids"], ["course_schedule"])
+        self.assertEqual(job["message_bindings"], {"course_schedule": "om_coursesource"})
 
     def test_executor_runs_plan_apply_upload_in_order_only_with_gates(self) -> None:
         production = test_config(
