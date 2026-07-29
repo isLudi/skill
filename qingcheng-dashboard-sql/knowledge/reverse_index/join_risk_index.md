@@ -64,6 +64,7 @@
 | [knowledge/sql_patterns/latest_record_patterns.md](../sql_patterns/latest_record_patterns.md) | 注意 | - 范围过滤字段应替换成当前查询已确认的青橙范围字段。 |
 | [knowledge/sql_patterns/latest_record_patterns.md](../sql_patterns/latest_record_patterns.md) | 注意 | - 如果存在同一主键多条同一更新时间记录，需增加二级排序字段并标记待确认。 |
 | [knowledge/sql_patterns/presto_date_partition_patterns.md](../sql_patterns/presto_date_partition_patterns.md) | 3. 单日小时表 | 如果 `hour` 类型待确认，先保持与历史 SQL 一致，并标记待确认。 |
+| [knowledge/sql_patterns/qingcheng_channel_grade_mapping.md](../sql_patterns/qingcheng_channel_grade_mapping.md) | 1.4 IP 退费普通线索规则 | - 先用 `replace(coalesce(rule_name, ''), ' ', '')` 去除规则名中的普通空格，再匹配 `%青橙IP-招生退费-春春%`、`%青橙IP-招生退费-朱博士%`、`%青橙IP-招生退费-郭艺%`。匹配串不包含期次前缀，因此适配后续变化的 `****期`。 |
 | [knowledge/sql_patterns/qingcheng_channel_grade_mapping.md](../sql_patterns/qingcheng_channel_grade_mapping.md) | 5. 维护注意事项 | - CASE 顺序会影响命中结果，新增规则必须检查是否被上游更宽泛的规则吞掉。 |
 | [knowledge/sql_patterns/qingcheng_channel_grade_mapping.md](../sql_patterns/qingcheng_channel_grade_mapping.md) | 8. 转化成本映射 | 成本为硬编码，不来自成本表；更新成本口径时必须同步更新 SQL 和 `knowledge/metrics/qingcheng_conversion_metrics.md`。 |
 | [knowledge/sql_patterns/qingcheng_channel_grade_mapping.md](../sql_patterns/qingcheng_channel_grade_mapping.md) | 9.2 渠道大类分组 | 以下按渠道大类对 channel_map 输出值进行分组（大类来源：`temp_table.shenbaoxin_channel_group.channel_group`，以下归类为推断，待人工确认）： |

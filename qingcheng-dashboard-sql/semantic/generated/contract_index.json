@@ -98,7 +98,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/sql_patterns/qingcheng_channel_grade_mapping.md",
-      "source_sha256": "b990ece8806475b765f47fa5276efb54c2bef27165caab73bc006bb2ab63319b",
+      "source_sha256": "0f5147deb5cff605ed62257f51f56334a2c0426269360d94273f40868ee80a01",
       "automatic_compile": true
     },
     {
@@ -112,7 +112,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/sql_patterns/qingcheng_channel_grade_mapping.md",
-      "source_sha256": "b990ece8806475b765f47fa5276efb54c2bef27165caab73bc006bb2ab63319b",
+      "source_sha256": "0f5147deb5cff605ed62257f51f56334a2c0426269360d94273f40868ee80a01",
       "automatic_compile": true
     },
     {

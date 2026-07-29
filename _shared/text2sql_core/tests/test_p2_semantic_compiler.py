@@ -226,7 +226,13 @@ class P2SemanticCompilerTest(unittest.TestCase):
                 compiled_sql = compiled.sql.lower()
                 if output_alias == "channel_map_1":
                     self.assertIn(
-                        "case when t.rule_name like '%抖音正价退费%' then '抖音复用'",
+                        "case when replace(coalesce(t.rule_name, ''), ' ', '') "
+                        "like '%青橙ip-招生退费-春春%'",
+                        compiled_sql,
+                    )
+                    self.assertIn(
+                        "then 'ip退费' when t.rule_name like '%抖音正价退费%' "
+                        "then '抖音复用'",
                         compiled_sql,
                     )
                     self.assertIn(
@@ -235,7 +241,14 @@ class P2SemanticCompilerTest(unittest.TestCase):
                     )
                 else:
                     self.assertIn(
-                        "case when t.rule_name like '%抖音正价退费%' then '抖音正价退费'",
+                        "case when replace(coalesce(t.rule_name, ''), ' ', '') "
+                        "like '%青橙ip-招生退费-春春%' then '春春'",
+                        compiled_sql,
+                    )
+                    self.assertIn("then '朱博士'", compiled_sql)
+                    self.assertIn("then '郭艺'", compiled_sql)
+                    self.assertIn(
+                        "when t.rule_name like '%抖音正价退费%' then '抖音正价退费'",
                         compiled_sql,
                     )
                     self.assertIn("then '星义ip'", compiled_sql)

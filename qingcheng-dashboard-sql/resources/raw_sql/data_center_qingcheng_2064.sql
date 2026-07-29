@@ -405,6 +405,12 @@ data as (
               and r.tmk_channel_detail in ('武汉图书', '西安图书') then '图书'
             when r.record_source = 'tmk_prelead'
               and r.tmk_channel_detail in ('SEC未加好友', 'SEC首期掉海', 'SEC招生退费') then '订单复用'
+            when r.record_source = 'normal_lead'
+              and (
+                  replace(coalesce(r.rule_name, ''), ' ', '') like '%青橙IP-招生退费-春春%'
+                  or replace(coalesce(r.rule_name, ''), ' ', '') like '%青橙IP-招生退费-朱博士%'
+                  or replace(coalesce(r.rule_name, ''), ' ', '') like '%青橙IP-招生退费-郭艺%'
+              ) then 'IP退费'
             when r.rule_name like '%抖音正价退费%' then '抖音复用'
             when r.rule_name like '%赠失-星义%'
               or r.rule_name like '%赠失-朱博士%'
@@ -436,6 +442,12 @@ data as (
         end as channel_map_1,
         case
             when r.record_source = 'tmk_prelead' then r.tmk_channel_detail
+            when r.record_source = 'normal_lead'
+              and replace(coalesce(r.rule_name, ''), ' ', '') like '%青橙IP-招生退费-春春%' then '春春'
+            when r.record_source = 'normal_lead'
+              and replace(coalesce(r.rule_name, ''), ' ', '') like '%青橙IP-招生退费-朱博士%' then '朱博士'
+            when r.record_source = 'normal_lead'
+              and replace(coalesce(r.rule_name, ''), ' ', '') like '%青橙IP-招生退费-郭艺%' then '郭艺'
             when r.rule_name like '%抖音正价退费%' then '抖音正价退费'
             when r.rule_name like '%赠失-星义%' then '星义IP'
             when r.rule_name like '%赠失-朱博士%' then '朱博士IP'

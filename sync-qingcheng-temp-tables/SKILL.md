@@ -1,13 +1,13 @@
 ---
 name: sync-qingcheng-temp-tables
-description: Synchronize registered Excel attachments from 郅玲玉 and the registered 青橙行课开课时间 document link from 李怡青 in the Feishu group 青橙数据对接 into Qingcheng and shared maintenance workbooks, then upload the complete verified workbooks to their existing USQL temporary tables. Also use to configure or operate the governed local lark-event service that turns @管家 commands and registered source messages into plan, approval, local-apply, and upload jobs, and for recurring lark-cli upgrades followed by a governed production event-service restart. Use for requests such as “上传最新开课时间表”, “上传郅玲玉在青橙数据对接内发布的最新临时表到线上平台”, scoped dry-run comparisons, event-service setup, lark-cli upgrade/restart maintenance, or workflow auditing.
+description: 将飞书群“青橙数据对接”中郅玲玉发布的已登记 Excel 附件，以及李怡青发布的已登记“青橙行课开课时间”文档链接，同步到青橙及共享维护工作簿；完成整表校验后，再上传到各自已有的 USQL 临时表。也用于配置或运行受治理的本地 lark-event 服务：把“@管家”命令及已登记来源消息转化为计划、审批、本地应用和上传任务；还用于 lark-cli 的常态升级及升级后受治理的生产事件服务重启。适用于“上传最新开课时间表”“上传郅玲玉在青橙数据对接内发布的最新临时表到线上平台”、限定范围的预演对比、事件服务配置、lark-cli 升级/重启维护或工作流审计等请求。
 ---
 
-# Sync Qingcheng Temp Tables
+# 同步青橙临时表
 
-## Purpose
+## 适用目标
 
-Turn one natural-language request into a governed Feishu-to-local-to-USQL workflow for six incoming workbook families:
+将一条自然语言请求转化为受治理的“飞书 → 本地 → USQL”工作流，处理以下六类传入工作簿：
 
 - 个人期度目标表
 - 团队期度目标表
@@ -16,81 +16,81 @@ Turn one natural-language request into a governed Feishu-to-local-to-USQL workfl
 - `****期带班架构`
 - 青橙行课开课时间（李怡青发布的登记文档链接）
 
-The workflow downloads the newest registered attachment or document link from the exact configured sender, compares effective cell values with the local cumulative workbook, performs a slice replacement or append in a staged copy, validates the result, writes the reviewed local copy only after confirmation, and uploads the complete local workbook only after a separate production confirmation.
+该工作流从精确配置的发布人处下载最新的已登记附件或文档链接，将单元格有效值与本地累计工作簿进行比较，在暂存副本中执行切片替换或追加并校验结果；只有经过确认后才写入已审核的本地副本，并且只有获得独立的生产确认后才上传完整的本地工作簿。
 
-## Required Skill Order
+## 必须加载的 Skill 顺序
 
-Before acting, read and follow these skills completely:
+执行操作前，必须完整阅读并遵循以下 Skill：
 
-1. `lark-shared`, then `lark-event` for persistent consumption, then `lark-im`, including the message mget/search, resource-download, and reply references needed for source discovery and governed status replies.
-2. `playwright` when the selected family is `course_schedule`, for the registered non-USQL document login and download path.
-3. `xlsx` for workbook inspection, formula-cache handling, recalculation, and QA.
-4. `usql-web-query-operator` for manual-table validation and production upload.
+1. 先用 `lark-shared`，再用 `lark-event` 进行持久事件消费，然后用 `lark-im`；必须同时阅读来源发现和受治理状态回复所需的消息 mget/search、资源下载及回复参考说明。
+2. 当选中的文件族为 `course_schedule` 时，使用 `playwright` 完成已登记的非 USQL 文档登录与下载。
+3. 使用 `xlsx` 检查工作簿、处理公式缓存、重新计算并执行质量检查。
+4. 使用 `usql-web-query-operator` 校验手工表并执行生产上传。
 
-For historical mapping or workflow maintenance, also read [historical_file_mapping.md](references/historical_file_mapping.md), [course_schedule_source.md](references/course_schedule_source.md), and [workflow_registry.json](references/workflow_registry.json).
+进行历史映射或工作流维护时，还必须阅读 [historical_file_mapping.md](references/historical_file_mapping.md)、[course_schedule_source.md](references/course_schedule_source.md) 和 [workflow_registry.json](references/workflow_registry.json)。
 
-Do not use the Qingcheng or market SQL-generation skills to reinterpret these workbook schemas. The destination workbooks span both domains, but this workflow only performs the explicit file mappings in the registry.
+不得使用青橙或市场 SQL 生成 Skill 重新解释这些工作簿结构。目标工作簿虽跨越两个业务域，但本工作流只执行注册表中明确定义的文件映射。
 
-## Authorization Boundaries
+## 授权边界
 
-Treat the stages as separate authorization boundaries:
+各阶段必须视为彼此独立的授权边界：
 
-1. `plan` is read-only with respect to the E-drive workbooks and the platform. It may search Feishu, download attachments to runtime storage, build staged copies, recalculate them, and validate them.
-2. `apply-local` may update the named E-drive workbooks only with the exact reviewed plan hash and `--confirm-local-write`. It creates timestamped backups before replacement and rolls back on failure.
-3. `upload` may overwrite only the selected existing platform temporary tables, and only with the exact successful local receipt hash and `--confirm-production-upload`.
+1. 对 E 盘工作簿和平台而言，`plan` 是只读阶段。它可以搜索飞书、将附件下载到运行时存储、构建暂存副本、重新计算并校验。
+2. `apply-local` 只有在提供精确且已审核的计划哈希及 `--confirm-local-write` 时，才可以更新指定的 E 盘工作簿。替换前必须创建带时间戳的备份，失败时必须回滚。
+3. `upload` 只能覆盖选中的既有平台临时表，并且必须提供精确且成功的本地回执哈希及 `--confirm-production-upload`。
 
-The persistent service adds separate runtime gates. `shadow` may only create plans; `send_replies` is only the master switch for visible bot replies and never grants workbook or platform writes. Reply policy defaults to known `@管家` commands only, suppresses unknown commands and automatic-source replies, and emits final results rather than progress chatter. `allow_local_apply` and `allow_production_upload` must both be enabled in `production` mode before an approver command can write. A recognized source attachment or link always remains plan-only. Public replies must not contain local paths, artifact hashes, receipt paths, credentials, or raw exceptions, and reply delivery failures must never change the underlying job status.
+持久服务还设有独立的运行时门禁。`shadow` 只能创建计划；`send_replies` 只是机器人可见回复的总开关，绝不授予工作簿或平台写权限。默认回复策略只响应已知的 `@管家` 命令，忽略未知命令和自动来源消息的回复，并只发送最终结果，不发送过程噪声。在 `production` 模式下，只有同时启用 `allow_local_apply` 与 `allow_production_upload`，审批人命令才可能触发写入。识别到的来源附件或链接始终只能生成计划。公开回复不得包含本地路径、制品哈希、回执路径、凭据或原始异常；回复发送失败也绝不能改变底层任务状态。
 
-A request only to analyze, explain, audit, or design the workflow stops after `plan`. The explicit requests “上传郅玲玉在青橙数据对接内发布的最新临时表到线上平台” and “上传最新开课时间表” authorize their selected end-to-end operation, but still execute and verify all three stages in order; never bypass the hashes, drift checks, backups, or receipts.
+如果请求仅要求分析、解释、审计或设计工作流，则必须在 `plan` 后停止。明确请求“上传郅玲玉在青橙数据对接内发布的最新临时表到线上平台”或“上传最新开课时间表”时，才授权所选范围的端到端操作；即便如此，也必须依次执行并验证全部三个阶段，不得绕过哈希、漂移检查、备份或回执。
 
-## Source Selection
+## 来源选择
 
-Resolve the group and sender by their stable IDs from the registry, not by display name alone. Attachment families accept only 郅玲玉's registered file patterns. `course_schedule` accepts only 李怡青's registered `docs.baijia.com` HTTPS URL plus the exact registered document-title marker. Choose the newest matching message for each selected family.
+必须使用注册表中的稳定 ID 解析群聊和发布人，不能只依赖显示名称。附件文件族只接受郅玲玉发布且符合登记模式的文件。`course_schedule` 只接受李怡青发布的已登记 `docs.baijia.com` HTTPS URL，并且文档标题标记必须精确匹配登记值。每个选中文件族都应选择最新的匹配消息。
 
-For `course_schedule`, authenticate from `QINGCHENG_DOCS_ENV_FILE` when set, otherwise from the registered local environment file. Never print, copy, or persist its credential values. Use an ephemeral browser context, validate the final URL and document title, save the downloaded XLSX under runtime, and validate it before reading. The current active worksheet is the only source period.
+处理 `course_schedule` 时，如果已设置 `QINGCHENG_DOCS_ENV_FILE`，则从该文件完成认证；否则使用注册表登记的本地环境文件。不得打印、复制或持久化其中的凭据值。必须使用临时浏览器上下文，校验最终 URL 和文档标题，将下载的 XLSX 保存到运行时目录，并在读取前完成校验。当前活动工作表是唯一的来源期次。
 
-Do not treat these historical or intermediate files as current inputs:
+不得将以下历史文件或中间文件视为当前输入：
 
 - `qi*daibanguocheng.xlsx`
 - `qing_team_moth_jg.xlsx`
 - `task_*.xlsx`
 - `CRM线索数据*.xlsx`
 
-If any selected family is absent, ambiguous, malformed, or has duplicate business keys, block the plan. Do not silently reuse an older local slice. A plan may select a subset using `--family`, restrict messages using `--after`, or bind a family to an exact message with `--message-id <family>=<om_id>`. Exact bindings must still pass the configured chat, sender, filename, schema, and workbook validation.
+如果任何选中文件族缺失、存在歧义、格式异常或含有重复业务键，必须阻断计划。不得静默复用较旧的本地切片。计划可以用 `--family` 选择子集，用 `--after` 限定消息范围，或用 `--message-id <family>=<om_id>` 将文件族绑定到精确消息。即使采用精确绑定，也仍须通过已配置的群聊、发布人、文件名、结构和工作簿校验。
 
-## Merge Rules
+## 合并规则
 
-Never blindly append rows.
+绝不能盲目追加行。
 
-- Normalize only the explicit column aliases and constants in the registry.
-- Compare effective cached values, not formula strings. This prevents needless rewrites of workbooks containing external-link formulas.
-- For each source `qici` or `month`, remove the corresponding target slice and insert the current source slice.
-- For `result_architecture`, preserve the target workbook's `xl/externalLinks/**` package byte-for-byte when rebuilding a staged candidate, validate every workbook-level and external-link `r:id` before Excel COM opens it, and validate the relationships again after recalculation.
-- For `course_schedule`, map the registered Chinese headers to `qing_daoke.xlsx`, ignore only the extra source column `工作日`, collapse repeated whitespace in `begin_time`, store `ke_1` as text, and materialize effective values so external-link formulas are never copied into the maintenance workbook.
-- Preserve every target slice not present in the source.
-- For `jiagou_db.xlsx`, replace rows only where `dept_1 = 青橙项目部` and the `qici` overlaps. Preserve all market-consultant rows, including those in the same period.
-- Enforce the configured business key after merging.
-- Preserve the configured sort direction and target column order.
+- 只规范化注册表中明确配置的列别名和常量。
+- 比较公式缓存的有效值，而不是公式字符串，避免无意义地重写含外部链接公式的工作簿。
+- 对来源中的每个 `qici` 或 `month`，先删除对应目标切片，再插入当前来源切片。
+- 重建 `result_architecture` 暂存候选时，必须逐字节保留目标工作簿的 `xl/externalLinks/**` 包；在 Excel COM 打开前校验所有工作簿级和外部链接 `r:id`，重新计算后再次校验这些关系。
+- 对于 `course_schedule`，将已登记的中文表头映射到 `qing_daoke.xlsx`；只忽略多出的来源列 `工作日`，折叠 `begin_time` 中的重复空白，将 `ke_1` 保存为文本，并物化有效值，确保外部链接公式不会被复制到维护工作簿。
+- 保留来源中未出现的所有目标切片。
+- 对于 `jiagou_db.xlsx`，只替换 `dept_1 = 青橙项目部` 且 `qici` 重叠的行。必须保留所有市场顾问部行，包括同一期次的行。
+- 合并后强制校验已配置的业务键。
+- 保持已配置的排序方向和目标列顺序。
 
-An unchanged effective-value comparison is a valid local no-op. Do not rebuild a workbook merely because formulas or workbook metadata differ. A production upload still requires the explicit upload request and the successful local receipt.
+有效值比较结果不变时，应视为有效的本地无操作（no-op）。不得仅因公式或工作簿元数据不同就重建工作簿。生产上传仍须有明确的上传请求和成功的本地回执。
 
-## Run the Workflow
+## 运行工作流
 
-Use the mandated Python runtime:
+使用指定的 Python 运行时：
 
 ```powershell
 D:\anaconda3\python.exe C:\Users\Ludim\.codex\skills\sync-qingcheng-temp-tables\scripts\qingcheng_temp_table_sync.py plan
 ```
 
-Review `sync_plan.json`, especially:
+审核 `sync_plan.json`，尤其要检查：
 
-- every selected Feishu message ID and source hash;
-- source slices, row counts, key uniqueness, and validation results;
-- per-table added, replaced, removed, and unchanged counts;
-- staged workbook hashes and any blockers;
-- whether every selected table is a no-op.
+- 每条选中飞书消息的 ID 和来源哈希；
+- 来源切片、行数、键唯一性和校验结果；
+- 每张表的新增、替换、移除和未变化数量；
+- 暂存工作簿哈希及所有阻断项；
+- 每张选中表是否均为 no-op。
 
-For a scoped plan, repeat `--family`; for example, the three goal tables:
+如需限定计划范围，可重复传入 `--family`；例如选择三张目标表：
 
 ```powershell
 D:\anaconda3\python.exe C:\Users\Ludim\.codex\skills\sync-qingcheng-temp-tables\scripts\qingcheng_temp_table_sync.py plan `
@@ -99,9 +99,9 @@ D:\anaconda3\python.exe C:\Users\Ludim\.codex\skills\sync-qingcheng-temp-tables\
   --family team_month_goal
 ```
 
-Use `--after '2026-07-21T22:00:00+08:00'` for a strict time lower bound, or `--message-id period_architecture=om_xxx` for a reply-bound source message. For the exact 李怡青 link, use `--family course_schedule --message-id course_schedule=om_xxx`. Omitting all selection flags processes all six registered families.
+使用 `--after '2026-07-21T22:00:00+08:00'` 设置严格的时间下界，或使用 `--message-id period_architecture=om_xxx` 绑定回复所指向的来源消息。绑定精确的李怡青链接时，使用 `--family course_schedule --message-id course_schedule=om_xxx`。省略全部选择参数时，将处理六个已登记文件族。
 
-Apply the reviewed local plan using the exact printed values:
+使用输出的精确值应用已审核的本地计划：
 
 ```powershell
 D:\anaconda3\python.exe C:\Users\Ludim\.codex\skills\sync-qingcheng-temp-tables\scripts\qingcheng_temp_table_sync.py apply-local `
@@ -110,7 +110,7 @@ D:\anaconda3\python.exe C:\Users\Ludim\.codex\skills\sync-qingcheng-temp-tables\
   --confirm-local-write
 ```
 
-Review `local_apply_receipt.json`, the backups, final local hashes, and post-write validation. Then upload the complete local workbooks:
+审核 `local_apply_receipt.json`、备份、最终本地哈希和写入后校验结果，然后上传完整的本地工作簿：
 
 ```powershell
 D:\anaconda3\python.exe C:\Users\Ludim\.codex\skills\sync-qingcheng-temp-tables\scripts\qingcheng_temp_table_sync.py upload `
@@ -119,47 +119,47 @@ D:\anaconda3\python.exe C:\Users\Ludim\.codex\skills\sync-qingcheng-temp-tables\
   --confirm-production-upload
 ```
 
-The upload stage must re-check the plan's selection contract (`latest_matching` or `explicit_message`), verify that all local hashes still match the receipt, validate each workbook with the operator, and upload the selected families in registry order using the existing-table overwrite workflow.
+上传阶段必须重新检查计划的选择契约（`latest_matching` 或 `explicit_message`），确认所有本地哈希仍与回执一致，使用 operator 校验每个工作簿，并按注册表顺序通过既有表覆盖工作流上传选中的文件族。
 
-## Persistent lark-event Service
+## 持久 lark-event 服务
 
-Read and follow [event_service.md](references/event_service.md) before starting, enabling replies, installing login startup, or switching to production. The checked-in configuration template is [event_service_config.example.json](references/event_service_config.example.json); the live config and all service state belong under runtime, never the skill directory.
+在启动服务、启用回复、安装登录启动项或切换到生产模式前，必须阅读并遵循 [event_service.md](references/event_service.md)。纳入版本控制的配置模板为 [event_service_config.example.json](references/event_service_config.example.json)；实时配置和全部服务状态只能存放在运行时目录中，绝不能放在 Skill 目录中。
 
-The service must:
+该服务必须：
 
-- hold the `lark-event` child stdin open, wait for its `[event] ready` marker, and close stdin for graceful shutdown;
-- filter the exact group before claiming an event and use `message_id` as the idempotency key;
-- require a bot mention for text commands, except for allowlisted source attachments and registered source links;
-- make role decisions from stable open IDs and deterministic commands, never from an LLM-generated permission decision;
-- serialize workbook jobs through one worker and persist job/outbound state in SQLite;
-- keep automatic source-message processing plan-only, even in production mode;
-- allow production only after an approver's explicit `上传...` or `确认上传 <job_id>` command plus all configuration gates;
-- never force-kill the event consumer or silently retry an interrupted production job.
+- 保持 `lark-event` 子进程的 stdin 打开，等待其 `[event] ready` 标记，并通过关闭 stdin 实现优雅停止；
+- 在认领事件前精确过滤目标群，并使用 `message_id` 作为幂等键；
+- 除白名单来源附件和已登记来源链接外，文本命令必须提及机器人；
+- 基于稳定 open ID 和确定性命令做角色判定，绝不能根据 LLM 生成的权限判断作出决定；
+- 通过单一工作进程串行处理工作簿任务，并将任务及出站状态持久化到 SQLite；
+- 即使在生产模式下，自动来源消息也始终只能触发计划；
+- 只有收到审批人明确的 `上传...` 或 `确认上传 <job_id>` 命令，且全部配置门禁均通过后，才允许执行生产操作；
+- 绝不能强制终止事件消费者，也不能静默重试被中断的生产任务。
 
-### Mandatory lark-cli Upgrade Gate
+### lark-cli 强制升级门禁
 
-For every `lark-cli` upgrade that can affect this workflow, read and execute the fixed eight-step runbook in [event_service.md](references/event_service.md#14-lark-cli-常态升级与生产服务重启固定八步). Do not skip or reorder its gates. Any failure before the final step blocks restoration of the production listener.
+每次可能影响本工作流的 `lark-cli` 升级，都必须阅读并执行 [event_service.md](references/event_service.md#14-lark-cli-常态升级与生产服务重启固定八步) 中固定的八步操作手册。不得跳过或调整门禁顺序。最终步骤之前发生任何失败，都必须阻止恢复生产监听器。
 
-Treat “restart production” as restoring the exact reviewed pre-upgrade service configuration after compatibility validation. It never means silently switching `mode`, enabling `allow_local_apply` or `allow_production_upload`, widening identities/scopes, or granting a new workbook/platform write authorization.
+“重启生产”只表示：完成兼容性校验后，精确恢复升级前已审核的服务配置。它绝不表示可以静默切换 `mode`、启用 `allow_local_apply` 或 `allow_production_upload`、扩大身份/权限范围，或授予新的工作簿/平台写权限。
 
-## Failure Handling
+## 失败处理
 
-- Stop before local writes when the plan has blockers or any staged validation regression.
-- Preserve a baseline validation finding in the shared `jiagou_db.xlsx` only when the candidate introduces no new or worsened finding. Do not repair unrelated market-consultant data in this workflow.
-- On Windows, local Apply must copy each staged workbook to a unique sibling file and retry the atomic replacement for transient sharing/permission failures. If replacement still fails, keep the candidate and backup evidence, write `local_apply_failure_receipt.json`, verify every target remains at its pre-plan hash, and report a structured failure instead of a non-JSON traceback.
-- If local replacement fails after any workbook was replaced, atomically roll back only those replaced workbooks, verify every selected target against its pre-plan hash, and block upload unless rollback is fully verified.
-- If an upload fails, stop immediately. Record the successful uploads, the failed family, and the failed plus later families as pending. Never report a partial upload as success.
-- Do not delete downloads, staged files, plans, backups, or receipts during the run.
+- 如果计划存在阻断项或任何暂存校验结果退化，必须在本地写入前停止。
+- 仅当候选版本没有新增或加重问题时，才允许保留共享 `jiagou_db.xlsx` 中的基线校验问题。不得在本工作流中修复无关的市场顾问部数据。
+- 在 Windows 上，本地 Apply 必须先把每个暂存工作簿复制到唯一的同级文件，再针对临时共享/权限故障重试原子替换。若替换仍失败，必须保留候选文件和备份证据，写出 `local_apply_failure_receipt.json`，验证每个目标仍处于计划前哈希，并报告结构化失败，不能只返回非 JSON traceback。
+- 如果已经替换任一工作簿后本地替换失败，只能原子回滚本轮已替换的工作簿；必须逐一验证所有选中目标均恢复至计划前哈希。除非回滚得到完整验证，否则必须阻断上传。
+- 如果上传失败，必须立即停止。记录已成功上传的文件族、失败文件族，并将失败文件族及其后续文件族标记为待处理。绝不能把部分上传报告为成功。
+- 执行期间不得删除下载文件、暂存文件、计划、备份或回执。
 
-## Completion Report
+## 完成报告
 
-Report:
+报告必须包含：
 
-- selected source files with message time and message ID;
-- source-to-local-to-platform mapping;
-- slice-level diff and whether each family changed;
-- local backup and receipt paths when writes occurred;
-- platform upload status per family and the final receipt;
-- any excluded files, pre-existing baseline warnings, blockers, or partial failures.
+- 选中的来源文件、消息时间和消息 ID；
+- 来源 → 本地 → 平台的映射关系；
+- 切片级差异以及各文件族是否发生变化；
+- 发生写入时的本地备份路径和回执路径；
+- 每个文件族的平台上传状态及最终回执；
+- 所有排除文件、既有基线警告、阻断项或部分失败。
 
-State explicitly when every selected family was already aligned and no production upload was performed.
+如果所有选中文件族均已对齐且未执行生产上传，必须明确说明。
