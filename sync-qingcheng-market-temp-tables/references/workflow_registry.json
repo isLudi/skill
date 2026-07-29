@@ -1,0 +1,741 @@
+{
+  "version": 5,
+  "updated_at": "2026-07-29",
+  "require_source_quality_gates": true,
+  "domains": {
+    "qingcheng": {
+      "business_name": "青橙项目部",
+      "chat": {
+        "name": "青橙数据对接",
+        "expected_chat_id": "oc_e604e064976c022ab4289fc2fb979332"
+      },
+      "default_sender_name": "郅玲玉",
+      "default_sender_open_id": "ou_bf111effd2d71a52ee40c58c7cb4d105"
+    },
+    "market_consultant": {
+      "business_name": "市场顾问部",
+      "chat": {
+        "name": "市场顾问部临时表上传",
+        "expected_chat_id": "oc_7b9873ee89b18d11cf60c8768c6eba9e"
+      },
+      "default_sender_name": "张君言",
+      "default_sender_open_id": "ou_04f543bec3cdd195bbdd53a582f68443"
+    }
+  },
+  "local_temp_table_inventories": {
+    "market_consultant": {
+      "root": "E:\\1900_work\\GAOTU\\19002_市场顾问部看板维护表格",
+      "platform_database": "temp_table",
+      "observed_at": "2026-07-29",
+      "verification": {
+        "method": "zero_row_resolution_probe",
+        "query_id": "1506786567",
+        "status": "success"
+      },
+      "mappings": [
+        {
+          "business_name": "测试渠道品优",
+          "local_filename": "ceshiqudao_pingyou.xlsx",
+          "platform_temp_table": "dingxi01_ceshiqudao_pingyou",
+          "mapping_status": "live_verified_exact_name",
+          "automation_scope": "mapping_only",
+          "notes": "已登记名称映射，但没有新群来源、合并规则和四类质量门禁；不得自动同步或上传。"
+        },
+        {
+          "business_name": "成本目标",
+          "local_filename": "cost.xlsx",
+          "platform_temp_table": "dingxi01_cost",
+          "mapping_status": "live_verified_exact_name",
+          "automation_scope": "managed",
+          "workflow_family_id": "market_cost"
+        },
+        {
+          "business_name": "到课课次",
+          "local_filename": "daoke_1_6_t.xlsx",
+          "platform_temp_table": "dingxi01_daoke_1_6_t",
+          "mapping_status": "live_verified_exact_name",
+          "automation_scope": "managed",
+          "workflow_family_id": "market_attendance_schedule"
+        },
+        {
+          "business_name": "每期带班架构",
+          "local_filename": "jiagou_db.xlsx",
+          "platform_temp_table": "dingxi01_jiagou_db",
+          "mapping_status": "live_verified_exact_name",
+          "automation_scope": "managed",
+          "workflow_family_id": "market_period_architecture"
+        },
+        {
+          "business_name": "新人期次架构",
+          "local_filename": "jiagou_xinren.xlsx",
+          "platform_temp_table": "dingxi01_jiagou_xinren",
+          "mapping_status": "live_verified_exact_name",
+          "automation_scope": "mapping_only",
+          "notes": "已登记名称映射，但没有新群来源、合并规则和四类质量门禁；不得自动同步或上传。"
+        },
+        {
+          "business_name": "中心架构",
+          "local_filename": "jiagou_zx.xlsx",
+          "platform_temp_table": "dingxi01_jiagou_zx",
+          "mapping_status": "live_verified_exact_name",
+          "automation_scope": "mapping_only",
+          "notes": "已登记名称映射，但没有新群来源、合并规则和四类质量门禁；不得自动同步或上传。"
+        },
+        {
+          "business_name": "进量目标",
+          "local_filename": "jinliang_goal.xlsx",
+          "platform_temp_table": "dingxi01_jinliang_goal",
+          "mapping_status": "live_verified_exact_name",
+          "automation_scope": "managed",
+          "workflow_family_id": "market_lead_goal"
+        },
+        {
+          "business_name": "评优架构",
+          "local_filename": "pingyou_jg.xlsx",
+          "platform_temp_table": "dingxi01_pingyou_jg",
+          "mapping_status": "live_verified_exact_name",
+          "automation_scope": "managed",
+          "workflow_family_id": "market_evaluation_architecture"
+        },
+        {
+          "business_name": "分配计划组 ID",
+          "local_filename": "plan_id.xlsx",
+          "platform_temp_table": "dingxi01_plan_id",
+          "mapping_status": "live_verified_exact_name",
+          "automation_scope": "managed",
+          "workflow_family_id": "market_plan_id"
+        }
+      ]
+    }
+  },
+  "families": [
+    {
+      "id": "personal_period_goal",
+      "domain": "qingcheng",
+      "business_name": "个人期度目标表",
+      "command_aliases": ["个人期度", "个人期次", "个人期次目标表"],
+      "command_groups": ["goal"],
+      "source_filename_patterns": [
+        "^个人期度目标表\\.xlsx$",
+        "^个人期次目标表\\.xlsx$"
+      ],
+      "source_sheet": "Sheet1",
+      "target_workbook": "E:\\1900_work\\GAOTU\\19003_青橙项目部看板维护表格\\qing_goal.xlsx",
+      "target_sheet": "Sheet1",
+      "platform_temp_table": "dingxi01_qing_goal",
+      "target_columns": ["month", "qici", "xuebu", "jingli", "dazu", "xiaozu", "name", "qudao", "goal"],
+      "column_aliases": {"guwen": "name"},
+      "constant_columns": {"qudao": "-"},
+      "slice_column": "qici",
+      "slice_order": "asc",
+      "key_columns": ["qici", "name"],
+      "source_merge_mode": "all_source_slices",
+      "source_quality": {
+        "policy_version": "1.0.0",
+        "max_age_hours": 360,
+        "row_count": {"min": 50, "max": 2000},
+        "relative_change": {
+          "baseline": "same_slice_or_latest_target",
+          "max_ratio": 0.5
+        },
+        "required_column_null_rate": {
+          "month": 0,
+          "qici": 0,
+          "xuebu": 0.02,
+          "jingli": 0.02,
+          "name": 0,
+          "goal": 0
+        }
+      },
+      "validation_rules": [
+        {"type": "slice_format", "column": "qici", "pattern": "^\\d{8}期$"},
+        {"type": "month_format", "column": "month"}
+      ]
+    },
+    {
+      "id": "team_period_goal",
+      "domain": "qingcheng",
+      "business_name": "团队期度目标表",
+      "command_aliases": ["团队期度", "团队期次", "团队期次目标表"],
+      "command_groups": ["goal"],
+      "source_filename_patterns": [
+        "^团队期度目标表\\.xlsx$",
+        "^团队期次目标表\\.xlsx$"
+      ],
+      "source_sheet": "Sheet1",
+      "target_workbook": "E:\\1900_work\\GAOTU\\19003_青橙项目部看板维护表格\\qing_team_goal_qi.xlsx",
+      "target_sheet": "Sheet1",
+      "platform_temp_table": "dingxi01_qing_team_g_qi",
+      "target_columns": ["month", "qici", "xuebu", "jingli", "dazu", "xiaozu", "emye_c", "goal"],
+      "column_aliases": {},
+      "constant_columns": {},
+      "slice_column": "qici",
+      "slice_order": "asc",
+      "key_columns": ["qici", "xuebu", "jingli", "dazu", "xiaozu"],
+      "source_merge_mode": "all_source_slices",
+      "source_quality": {
+        "policy_version": "1.0.0",
+        "max_age_hours": 360,
+        "row_count": {"min": 10, "max": 500},
+        "relative_change": {
+          "baseline": "same_slice_or_latest_target",
+          "max_ratio": 0.5
+        },
+        "required_column_null_rate": {
+          "month": 0,
+          "qici": 0,
+          "xuebu": 0,
+          "jingli": 0,
+          "goal": 0
+        }
+      },
+      "validation_rules": [
+        {"type": "slice_format", "column": "qici", "pattern": "^\\d{8}期$"},
+        {"type": "month_format", "column": "month"}
+      ]
+    },
+    {
+      "id": "team_month_goal",
+      "domain": "qingcheng",
+      "business_name": "团队月度目标表",
+      "command_aliases": ["团队月度", "月度目标表"],
+      "command_groups": ["goal"],
+      "source_filename_patterns": [
+        "^团队月度目标表\\.xlsx$",
+        "^月度目标表\\.xlsx$"
+      ],
+      "source_sheet": "Sheet1",
+      "target_workbook": "E:\\1900_work\\GAOTU\\19003_青橙项目部看板维护表格\\qing_team_goal_moth.xlsx",
+      "target_sheet": "Sheet1",
+      "platform_temp_table": "dingxi01_qing_team_goal",
+      "target_columns": ["month", "xuebu", "jingli", "dazu", "xiaozu", "emye_c", "goal"],
+      "column_aliases": {},
+      "constant_columns": {},
+      "slice_column": "month",
+      "slice_order": "asc",
+      "key_columns": ["month", "xuebu", "jingli", "dazu", "xiaozu"],
+      "source_merge_mode": "all_source_slices",
+      "source_quality": {
+        "policy_version": "1.0.0",
+        "max_age_hours": 840,
+        "row_count": {"min": 5, "max": 200},
+        "relative_change": {
+          "baseline": "same_slice_or_latest_target",
+          "max_ratio": 0.5
+        },
+        "required_column_null_rate": {
+          "month": 0,
+          "xuebu": 0,
+          "jingli": 0,
+          "goal": 0
+        }
+      },
+      "validation_rules": [
+        {"type": "month_format", "column": "month"}
+      ]
+    },
+    {
+      "id": "result_architecture",
+      "domain": "qingcheng",
+      "business_name": "全员结果数据架构",
+      "command_aliases": ["结果数据架构", "全员架构"],
+      "command_groups": ["architecture"],
+      "source_filename_patterns": [
+        "^全员结果数据架构\\.xlsx$"
+      ],
+      "source_sheet": "data",
+      "target_workbook": "E:\\1900_work\\GAOTU\\19003_青橙项目部看板维护表格\\qing_team_jg.xlsx",
+      "target_sheet": "data",
+      "platform_temp_table": "dingxi01_qing_team_jg",
+      "target_columns": ["employee_name", "employee_email_name", "email_prefix", "leader_employee_email_name", "leader_email_prefix", "dazu", "jingli", "xuebu", "qici"],
+      "column_aliases": {},
+      "constant_columns": {},
+      "preserve_external_links": true,
+      "slice_column": "qici",
+      "slice_order": "asc",
+      "key_columns": ["qici", "employee_email_name"],
+      "source_merge_mode": "all_source_slices",
+      "source_quality": {
+        "policy_version": "1.0.0",
+        "max_age_hours": 360,
+        "row_count": {"min": 50, "max": 2000},
+        "relative_change": {
+          "baseline": "same_slice_or_latest_target",
+          "max_ratio": 0.35
+        },
+        "required_column_null_rate": {
+          "employee_name": 0,
+          "employee_email_name": 0,
+          "email_prefix": 0,
+          "qici": 0
+        }
+      },
+      "validation_rules": [
+        {"type": "slice_format", "column": "qici", "pattern": "^\\d{8}期$"},
+        {"type": "lowercase_ascii_prefix", "columns": ["email_prefix", "leader_email_prefix"]},
+        {"type": "disallow_values", "column": "dazu", "values": ["0"]}
+      ]
+    },
+    {
+      "id": "period_architecture",
+      "domain": "qingcheng",
+      "business_name": "青橙期次带班架构",
+      "command_aliases": ["青橙带班架构", "期次带班架构", "期度带班架构", "带班架构"],
+      "command_groups": ["architecture"],
+      "source_filename_patterns": [
+        "^(?:\\d{4}期)?(?:青橙)?(?:带班)?架构\\.xlsx$"
+      ],
+      "source_sheet": "Sheet1",
+      "target_workbook": "E:\\1900_work\\GAOTU\\19002_市场顾问部看板维护表格\\jiagou_db.xlsx",
+      "target_sheet": "zhengzhou",
+      "platform_temp_table": "dingxi01_jiagou_db",
+      "target_columns": ["xiaozu_z", "employee_email_prefix", "xiaozu", "employee_email_name", "department", "zaizhi", "qici", "dept_1", "dept_2", "jingli"],
+      "column_aliases": {},
+      "constant_columns": {},
+      "slice_column": "qici",
+      "slice_order": "desc",
+      "key_columns": ["qici", "employee_email_name"],
+      "target_scope": {"column": "dept_1", "equals": "青橙项目部"},
+      "source_merge_mode": "all_source_slices",
+      "allow_baseline_target_errors": true,
+      "source_quality": {
+        "policy_version": "1.0.0",
+        "max_age_hours": 360,
+        "row_count": {"min": 20, "max": 800},
+        "relative_change": {
+          "baseline": "same_slice_or_latest_target",
+          "max_ratio": 0.35
+        },
+        "required_column_null_rate": {
+          "employee_email_prefix": 0,
+          "employee_email_name": 0,
+          "department": 0,
+          "zaizhi": 0,
+          "qici": 0,
+          "dept_1": 0
+        }
+      },
+      "validation_rules": [
+        {"type": "slice_format", "column": "qici", "pattern": "^\\d{8}期$"},
+        {"type": "lowercase_ascii_prefix", "columns": ["xiaozu_z", "employee_email_prefix"]},
+        {"type": "required_value", "column": "dept_1", "value": "青橙项目部"}
+      ]
+    },
+    {
+      "id": "course_schedule",
+      "domain": "qingcheng",
+      "business_name": "青橙行课开课时间",
+      "command_aliases": ["开课时间", "开课时间表", "到课", "到课表", "行课时间", "青橙行课"],
+      "command_groups": ["attendance"],
+      "source_kind": "link_workbook",
+      "source_sender_name": "李怡青",
+      "source_sender_open_id": "ou_3168c83ffe93b49a192755c8e31e2bc5",
+      "source_search_query": "青橙行课",
+      "source_url_patterns": [
+        "^https://docs\\.baijia\\.com/sheet/[A-Za-z0-9_-]+(?:\\?[^\\s]*)?$"
+      ],
+      "source_message_patterns": [
+        "青橙行课--开课时间\\(1-6节课\\)"
+      ],
+      "source_expected_title_pattern": "^青橙行课--开课时间\\(1-6节课\\)$",
+      "source_filename": "青橙行课--开课时间(1-6节课).xlsx",
+      "source_env_file_env": "QINGCHENG_DOCS_ENV_FILE",
+      "source_env_file": "E:\\1900_work\\GAOTU\\19002_市场顾问部看板维护表格\\usql_api.env",
+      "source_browser_channel": "msedge",
+      "source_download_timeout_seconds": 120,
+      "source_sheet": "$active",
+      "target_workbook": "E:\\1900_work\\GAOTU\\19003_青橙项目部看板维护表格\\qing_daoke.xlsx",
+      "target_sheet": "Sheet1",
+      "platform_temp_table": "dingxi01_qing_daoke",
+      "target_columns": ["qudao", "begin_time", "qici", "dow", "grade", "ke_1"],
+      "column_aliases": {
+        "渠道": "qudao",
+        "开课时间": "begin_time",
+        "期次": "qici",
+        "工作日-1": "dow",
+        "年级": "grade",
+        "课节数(第几节课)": "ke_1"
+      },
+      "ignored_source_columns": ["工作日"],
+      "column_transforms": {
+        "begin_time": ["collapse_whitespace"],
+        "ke_1": ["to_text"]
+      },
+      "materialize_source_values": true,
+      "constant_columns": {},
+      "slice_column": "qici",
+      "slice_order": "asc",
+      "key_columns": ["qici", "qudao", "grade", "ke_1", "begin_time", "dow"],
+      "source_merge_mode": "all_source_slices",
+      "source_quality": {
+        "policy_version": "1.0.0",
+        "max_age_hours": 240,
+        "row_count": {"min": 20, "max": 500},
+        "relative_change": {
+          "baseline": "same_slice_or_latest_target",
+          "max_ratio": 0.5
+        },
+        "required_column_null_rate": {
+          "qudao": 0,
+          "begin_time": 0,
+          "qici": 0,
+          "dow": 0,
+          "grade": 0,
+          "ke_1": 0
+        }
+      },
+      "validation_rules": [
+        {"type": "slice_format", "column": "qici", "pattern": "^\\d{8}期$"},
+        {"type": "required_nonblank", "columns": ["qudao", "begin_time", "qici", "dow", "grade", "ke_1"]},
+        {"type": "datetime_format", "column": "begin_time", "format": "%Y-%m-%d %H:%M:%S"},
+        {"type": "allowed_values", "column": "dow", "values": ["1", "2", "3", "4", "5", "6", "7"]},
+        {"type": "allowed_values", "column": "ke_1", "values": ["1", "2", "3", "4", "5", "6"]},
+        {"type": "sheet_slice_suffix", "column": "qici"}
+      ]
+    },
+    {
+      "id": "market_cost",
+      "domain": "market_consultant",
+      "business_name": "市场渠道成本目标表",
+      "command_aliases": ["成本", "成本表", "渠道成本", "cost"],
+      "command_groups": ["goal", "cost"],
+      "source_filename_patterns": ["^cost\\.xlsx$"],
+      "source_sheet": "Sheet1",
+      "target_workbook": "E:\\1900_work\\GAOTU\\19002_市场顾问部看板维护表格\\cost.xlsx",
+      "target_sheet": "Sheet1",
+      "platform_temp_table": "dingxi01_cost",
+      "target_columns": ["channel", "grade", "cost", "goal", "qici"],
+      "column_aliases": {},
+      "constant_columns": {},
+      "slice_column": "qici",
+      "slice_order": "asc",
+      "key_columns": ["qici", "channel", "grade"],
+      "source_merge_mode": "all_source_slices",
+      "validate_candidate_records": true,
+      "source_quality": {
+        "policy_version": "1.0.0",
+        "max_age_hours": 360,
+        "row_count": {"min": 10, "max": 200},
+        "relative_change": {
+          "baseline": "same_slice_or_latest_target",
+          "max_ratio": 0.6
+        },
+        "required_column_null_rate": {
+          "channel": 0,
+          "grade": 0,
+          "cost": 0,
+          "goal": 0,
+          "qici": 0
+        }
+      },
+      "validation_rules": [
+        {"type": "slice_format", "column": "qici", "pattern": "^\\d{8}期$"},
+        {"type": "numeric_nonnegative", "column": "cost"},
+        {"type": "numeric_nonnegative", "column": "goal"},
+        {"type": "formula_count_max", "max": 0}
+      ]
+    },
+    {
+      "id": "market_period_architecture",
+      "domain": "market_consultant",
+      "business_name": "市场期次带班架构",
+      "command_aliases": ["市场带班架构", "带班架构", "架构表", "daiban_jg_db"],
+      "command_groups": ["architecture"],
+      "source_filename_patterns": [
+        "^daiban_jg_db\\.xlsx$",
+        "^\\d{4}期带班架构\\.xlsx$"
+      ],
+      "source_sheet": "zhengzhou",
+      "target_workbook": "E:\\1900_work\\GAOTU\\19002_市场顾问部看板维护表格\\jiagou_db.xlsx",
+      "target_sheet": "zhengzhou",
+      "platform_temp_table": "dingxi01_jiagou_db",
+      "target_columns": ["xiaozu_z", "employee_email_prefix", "xiaozu", "employee_email_name", "department", "zaizhi", "qici", "dept_1", "dept_2", "jingli"],
+      "column_aliases": {},
+      "constant_columns": {"dept_1": "市场顾问部"},
+      "materialize_source_values": true,
+      "source_scope": {
+        "column": "dept_2",
+        "allowed_values": ["西安一部", "西安二部", "西安顾问部", "郑州顾问部"]
+      },
+      "source_record_transforms": [
+        {"type": "deduplicate_exact"},
+        {"type": "lowercase_columns", "columns": ["xiaozu_z", "employee_email_prefix"]}
+      ],
+      "slice_column": "qici",
+      "slice_order": "desc",
+      "key_columns": ["qici", "employee_email_prefix"],
+      "target_scope": {"column": "dept_1", "equals": "市场顾问部"},
+      "source_merge_mode": "changed_source_slices",
+      "source_baseline_id": "market_period_architecture",
+      "max_changed_slices": 4,
+      "recent_slice_window": 4,
+      "allow_baseline_target_errors": true,
+      "source_quality": {
+        "policy_version": "1.0.0",
+        "max_age_hours": 360,
+        "row_count": {"min": 4000, "max": 9000},
+        "relative_change": {
+          "baseline": "same_slice_or_latest_target",
+          "max_ratio": 0.35
+        },
+        "required_column_null_rate": {
+          "employee_email_prefix": 0,
+          "employee_email_name": 0,
+          "department": 0,
+          "zaizhi": 0,
+          "qici": 0,
+          "dept_1": 0,
+          "dept_2": 0,
+          "jingli": 0
+        }
+      },
+      "validation_rules": [
+        {"type": "slice_format", "column": "qici", "pattern": "^\\d{8}期$"},
+        {"type": "lowercase_ascii_prefix", "columns": ["xiaozu_z", "employee_email_prefix"]},
+        {"type": "required_value", "column": "dept_1", "value": "市场顾问部"}
+      ]
+    },
+    {
+      "id": "market_attendance_schedule",
+      "domain": "market_consultant",
+      "business_name": "市场到课课次表",
+      "command_aliases": ["到课", "到课表", "课次", "课次表", "daoke_1_6_t"],
+      "command_groups": ["attendance"],
+      "source_filename_patterns": [
+        "^daoke_1_6_t(?: \\(\\d+\\))?\\.xlsx$"
+      ],
+      "source_sheet": "Sheet1",
+      "target_workbook": "E:\\1900_work\\GAOTU\\19002_市场顾问部看板维护表格\\daoke_1_6_t.xlsx",
+      "target_sheet": "Sheet1",
+      "platform_temp_table": "dingxi01_daoke_1_6_t",
+      "target_columns": ["qudao", "begin_time", "qici", "dow", "grade", "ke_1", "channel"],
+      "column_aliases": {},
+      "constant_columns": {},
+      "column_transforms": {
+        "begin_time": ["normalize_datetime_text"],
+        "dow": ["to_text"],
+        "ke_1": ["to_text"]
+      },
+      "source_record_transforms": [
+        {
+          "type": "fill_from_reference_mapping",
+          "column": "channel",
+          "key_columns": ["qici", "qudao", "grade", "begin_time", "dow", "ke_1"],
+          "block_ambiguous_keys": true
+        }
+      ],
+      "slice_column": "qici",
+      "slice_order": "asc",
+      "key_columns": ["qici", "qudao", "grade", "begin_time", "dow", "ke_1", "channel"],
+      "source_merge_mode": "changed_source_slices",
+      "source_baseline_id": "market_attendance_schedule",
+      "max_changed_slices": 3,
+      "recent_slice_window": 4,
+      "allow_baseline_target_errors": true,
+      "source_quality": {
+        "policy_version": "1.0.0",
+        "max_age_hours": 360,
+        "row_count": {"min": 5000, "max": 8000},
+        "relative_change": {
+          "baseline": "same_slice_or_latest_target",
+          "max_ratio": 0.35
+        },
+        "required_column_null_rate": {
+          "qudao": 0,
+          "begin_time": 0,
+          "qici": 0,
+          "dow": 0,
+          "grade": 0,
+          "ke_1": 0,
+          "channel": 0
+        }
+      },
+      "validation_rules": [
+        {"type": "slice_format", "column": "qici", "pattern": "^\\d{8}期$"},
+        {"type": "required_nonblank", "columns": ["qudao", "begin_time", "qici", "dow", "grade", "ke_1", "channel"]},
+        {"type": "datetime_format", "column": "begin_time", "format": "%Y-%m-%d %H:%M:%S"},
+        {"type": "allowed_values", "column": "dow", "values": ["1", "2", "3", "4", "5", "6", "7"]},
+        {"type": "allowed_values", "column": "ke_1", "values": ["1", "2", "3", "4", "5", "6"]},
+        {"type": "formula_count_max", "max": 0}
+      ]
+    },
+    {
+      "id": "market_lead_goal",
+      "domain": "market_consultant",
+      "business_name": "市场进量目标表",
+      "command_aliases": ["进量目标", "进量目标表", "leads_goal", "jinliang_goal"],
+      "command_groups": ["goal"],
+      "source_filename_patterns": [
+        "^leads_goal\\.xlsx$",
+        "^\\d{4}期人产\\.xlsx$"
+      ],
+      "source_sheet": "Sheet1",
+      "target_workbook": "E:\\1900_work\\GAOTU\\19002_市场顾问部看板维护表格\\jinliang_goal.xlsx",
+      "target_sheet": "Sheet1",
+      "platform_temp_table": "dingxi01_jinliang_goal",
+      "target_columns": ["channel_2", "grade", "goal", "qici"],
+      "column_aliases": {},
+      "constant_columns": {},
+      "slice_column": "qici",
+      "slice_order": "asc",
+      "key_columns": ["qici", "channel_2", "grade"],
+      "source_merge_mode": "all_source_slices",
+      "validate_candidate_records": true,
+      "source_quality": {
+        "policy_version": "1.0.0",
+        "max_age_hours": 360,
+        "row_count": {"min": 5, "max": 100},
+        "relative_change": {
+          "baseline": "same_slice_or_latest_target",
+          "max_ratio": 0.5
+        },
+        "required_column_null_rate": {
+          "channel_2": 0,
+          "grade": 0,
+          "goal": 0,
+          "qici": 0
+        }
+      },
+      "validation_rules": [
+        {"type": "slice_format", "column": "qici", "pattern": "^\\d{4}期$"},
+        {"type": "numeric_nonnegative", "column": "goal"},
+        {"type": "formula_count_max", "max": 0}
+      ]
+    },
+    {
+      "id": "market_evaluation_architecture",
+      "domain": "market_consultant",
+      "business_name": "市场评优架构表",
+      "command_aliases": ["评优", "评优架构", "pingyou_jg"],
+      "command_groups": ["architecture", "evaluation"],
+      "source_filename_patterns": [
+        "^pingyou_jg\\.xlsx$",
+        "^\\d{4}期评优架构\\.xlsx$"
+      ],
+      "source_sheet": "Sheet4",
+      "target_workbook": "E:\\1900_work\\GAOTU\\19002_市场顾问部看板维护表格\\pingyou_jg.xlsx",
+      "target_sheet": "Sheet4",
+      "platform_temp_table": "dingxi01_pingyou_jg",
+      "target_columns": ["xiaozu_z", "employee_email_prefix", "xiaozu", "employee_email_name", "department", "zaizhi", "qici", "dept", "jingli", "channel", "renchan", "grade", "is_emp", "x_qi_count"],
+      "column_aliases": {},
+      "constant_columns": {},
+      "materialize_source_values": true,
+      "source_record_transforms": [
+        {"type": "deduplicate_exact"},
+        {"type": "lowercase_columns", "columns": ["xiaozu_z", "employee_email_prefix"]},
+        {"type": "fill_market_evaluation_grade"},
+        {"type": "resequence_market_x_qi_count"}
+      ],
+      "slice_column": "qici",
+      "slice_order": "asc",
+      "key_columns": ["qici", "employee_email_name"],
+      "source_merge_mode": "full_source_replace",
+      "validate_candidate_records": true,
+      "source_quality": {
+        "policy_version": "1.0.0",
+        "max_age_hours": 480,
+        "row_count": {"min": 4500, "max": 7500},
+        "relative_change": {
+          "baseline": "same_slice_or_latest_target",
+          "max_ratio": 0.25
+        },
+        "required_column_null_rate": {
+          "xiaozu_z": 0,
+          "employee_email_prefix": 0,
+          "xiaozu": 0,
+          "employee_email_name": 0,
+          "department": 0,
+          "zaizhi": 0,
+          "qici": 0,
+          "dept": 0,
+          "jingli": 0,
+          "channel": 0,
+          "renchan": 0,
+          "grade": 0,
+          "is_emp": 0,
+          "x_qi_count": 0
+        }
+      },
+      "validation_rules": [
+        {"type": "slice_format", "column": "qici", "pattern": "^\\d{8}期$"},
+        {"type": "required_nonblank", "columns": ["xiaozu_z", "employee_email_prefix", "xiaozu", "employee_email_name", "department", "zaizhi", "qici", "dept", "jingli", "channel", "renchan", "grade", "is_emp", "x_qi_count"]},
+        {"type": "lowercase_ascii_prefix", "columns": ["xiaozu_z", "employee_email_prefix"]},
+        {"type": "market_x_qi_sequence"},
+        {"type": "formula_count_max", "max": 0}
+      ]
+    },
+    {
+      "id": "market_plan_id",
+      "domain": "market_consultant",
+      "business_name": "市场分配计划组 ID 表",
+      "command_aliases": ["计划ID", "计划id", "plan_id"],
+      "command_groups": ["plan"],
+      "source_filename_patterns": [
+        "^plan_id(?:-\\d+)?\\.xlsx$"
+      ],
+      "source_sheet": "Sheet1",
+      "target_workbook": "E:\\1900_work\\GAOTU\\19002_市场顾问部看板维护表格\\plan_id.xlsx",
+      "target_sheet": "Sheet1",
+      "platform_temp_table": "dingxi01_plan_id",
+      "target_columns": ["year", "qici", "group_id", "group_name"],
+      "column_aliases": {},
+      "constant_columns": {},
+      "source_record_transforms": [
+        {"type": "deduplicate_exact"}
+      ],
+      "slice_column": "qici",
+      "slice_order": "asc",
+      "key_columns": ["year", "qici", "group_id"],
+      "source_merge_mode": "changed_source_slices",
+      "source_baseline_id": "market_plan_id",
+      "max_changed_slices": 4,
+      "recent_slice_window": 4,
+      "bootstrap_slices": ["0529期", "0605期"],
+      "reviewed_historical_slices": ["0529期", "0605期"],
+      "allow_baseline_target_errors": true,
+      "source_quality": {
+        "policy_version": "1.0.0",
+        "max_age_hours": 360,
+        "row_count": {"min": 50, "max": 200},
+        "relative_change": {
+          "baseline": "same_slice_or_latest_target",
+          "max_ratio": 0.5
+        },
+        "required_column_null_rate": {
+          "year": 0,
+          "qici": 0,
+          "group_id": 0,
+          "group_name": 0
+        }
+      },
+      "validation_rules": [
+        {"type": "slice_format", "column": "qici", "pattern": "^\\d{4}期$"},
+        {"type": "group_name_qici_prefix", "qici_column": "qici", "name_column": "group_name"},
+        {"type": "formula_count_max", "max": 0}
+      ]
+    }
+  ],
+  "upload_order": [
+    "personal_period_goal",
+    "team_period_goal",
+    "team_month_goal",
+    "result_architecture",
+    "period_architecture",
+    "course_schedule",
+    "market_cost",
+    "market_period_architecture",
+    "market_attendance_schedule",
+    "market_lead_goal",
+    "market_evaluation_architecture",
+    "market_plan_id"
+  ],
+  "deferred_filename_patterns": [
+    "^qi\\d+daibanguocheng\\.xlsx$",
+    "^qing_team_moth_jg\\.xlsx$",
+    "^task_.*\\.xlsx$",
+    "^CRM线索数据.*\\.xlsx$",
+    "^jiagou_xinren\\.xlsx$",
+    "^jiagou_zx\\.xlsx$",
+    "^ceshiqudao_pingyou\\.xlsx$"
+  ]
+}

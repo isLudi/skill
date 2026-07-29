@@ -1,0 +1,4 @@
+interface:
+  display_name: "青橙与市场临时表管家"
+  short_description: "登记本地平台映射并治理十二类临时表同步"
+  default_prompt: "使用 $sync-qingcheng-market-temp-tables 先解析本地工作簿与大航海 temp table 的精确身份映射，再按精确群聊和来源人路由青橙项目部或市场顾问部临时表；严格执行来源最大年龄、行数上下界、逐切片相对变化和必要列空值率门禁，异常默认阻断，并把 plan、apply-local、upload 作为独立授权阶段处理。"

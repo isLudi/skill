@@ -2,8 +2,8 @@
 param(
     [ValidateSet('start', 'stop', 'restart', 'status', 'logs', 'install-startup', 'uninstall-startup')]
     [string]$Action = 'status',
-    [string]$Config = 'C:\Users\Ludim\.codex\runtime\sync-qingcheng-temp-tables\event-service\config.json',
-    [string]$TaskName = 'Codex-Qingcheng-LarkEvent'
+    [string]$Config = 'C:\Users\Ludim\.codex\runtime\sync-qingcheng-market-temp-tables\event-service\config.json',
+    [string]$TaskName = 'Codex-Governed-TempTables-LarkEvent'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -15,7 +15,7 @@ $OutputEncoding = [Console]::OutputEncoding
 
 $Python = 'D:\anaconda3\python.exe'
 $SkillRoot = Split-Path -Parent (Split-Path -Parent $PSCommandPath)
-$ServiceScript = Join-Path $SkillRoot 'scripts\qingcheng_event_service.py'
+$ServiceScript = Join-Path $SkillRoot 'scripts\governed_temp_table_event_service.py'
 $ConfigPath = [System.IO.Path]::GetFullPath($Config)
 
 function Get-RuntimeRoot {
@@ -155,7 +155,7 @@ switch ($Action) {
             -TaskName $TaskName `
             -Action $taskAction `
             -Trigger $taskTrigger `
-            -Description 'Start the governed Qingcheng lark-event service at user logon.' `
+            -Description 'Start the governed Qingcheng and market-consultant temp-table event service at user logon.' `
             -Force | Out-Null
         Get-ScheduledTask -TaskName $TaskName | Select-Object TaskName, State
     }

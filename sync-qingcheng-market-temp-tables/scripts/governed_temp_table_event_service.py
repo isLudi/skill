@@ -16,12 +16,13 @@ import sys
 import threading
 import time
 import uuid
+from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-import qingcheng_temp_table_sync as workflow
+import governed_temp_table_sync as workflow
 
 
 SKILL_ROOT = Path(__file__).resolve().parents[1]
@@ -83,6 +84,7 @@ def load_config(path: Path) -> dict[str, Any]:
     defaults = {
         "schema_version": "1.0.0",
         "mode": "shadow",
+        "chat_ids": [],
         "mention_required": True,
         "bot_names": ["管家"],
         "bot_open_id": None,
@@ -100,12 +102,23 @@ def load_config(path: Path) -> dict[str, Any]:
         "event_ready_timeout_seconds": 30,
         "event_key": "im.message.receive_v1",
         "python_executable": r"D:\anaconda3\python.exe",
-        "sync_script": str(SKILL_ROOT / "scripts" / "qingcheng_temp_table_sync.py"),
+        "sync_script": str(
+            SKILL_ROOT / "scripts" / "governed_temp_table_sync.py"
+        ),
         "workflow_registry": str(workflow.DEFAULT_REGISTRY),
         "runtime_root": str(workflow.DEFAULT_RUNTIME_ROOT / "event-service"),
         "sync_runtime_root": str(workflow.DEFAULT_RUNTIME_ROOT),
     }
     merged = {**defaults, **config}
+    configured_chat_ids = merged.get("chat_ids")
+    if not configured_chat_ids and merged.get("chat_id"):
+        configured_chat_ids = [merged["chat_id"]]
+    merged["chat_ids"] = configured_chat_ids
+    merged["chat_id"] = (
+        configured_chat_ids[0]
+        if isinstance(configured_chat_ids, list) and configured_chat_ids
+        else None
+    )
     base = config_path.parent
     for key in ("python_executable", "sync_script", "workflow_registry", "runtime_root", "sync_runtime_root"):
         merged[key] = str(resolve_path(merged[key], base))
@@ -135,8 +148,20 @@ def load_config(path: Path) -> dict[str, Any]:
     ):
         if not isinstance(merged[key], bool):
             raise ServiceError(f"Config field {key} must be a JSON boolean.")
-    if not re.fullmatch(r"oc_[A-Za-z0-9]+", str(merged.get("chat_id") or "")):
-        raise ServiceError("Config field chat_id must be an oc_ id.")
+    if (
+        not isinstance(merged.get("chat_ids"), list)
+        or not merged["chat_ids"]
+        or not all(
+            isinstance(value, str)
+            and re.fullmatch(r"oc_[A-Za-z0-9]+", value)
+            for value in merged["chat_ids"]
+        )
+    ):
+        raise ServiceError(
+            "Config field chat_ids must be a non-empty list of oc_ ids."
+        )
+    if len(merged["chat_ids"]) != len(set(merged["chat_ids"])):
+        raise ServiceError("Config field chat_ids contains duplicates.")
     if merged["mode"] not in {"shadow", "production"}:
         raise ServiceError("Config mode must be shadow or production.")
     if merged["reply_identity"] != "bot":
@@ -174,6 +199,19 @@ def validate_registered_sources(
             "Config source_sender_ids is missing registered workflow senders: "
             + ", ".join(missing_source_ids)
         )
+    registered_chat_ids = {
+        workflow.source_chat_id(registry, family)
+        for family in registry["families"]
+    }
+    registered_chat_ids.discard("")
+    missing_chat_ids = sorted(
+        registered_chat_ids.difference(config["chat_ids"])
+    )
+    if missing_chat_ids:
+        raise ServiceError(
+            "Config chat_ids is missing registered workflow chats: "
+            + ", ".join(missing_chat_ids)
+        )
     for family in registry["families"]:
         if workflow.source_kind(family) != "link_workbook":
             continue
@@ -188,7 +226,7 @@ def validate_registered_sources(
 
 def configure_logging(runtime_root: Path) -> logging.Logger:
     runtime_root.mkdir(parents=True, exist_ok=True)
-    logger = logging.getLogger("qingcheng_event_service")
+    logger = logging.getLogger("governed_temp_table_event_service")
     logger.setLevel(logging.INFO)
     logger.handlers.clear()
     formatter = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
@@ -231,7 +269,9 @@ class ServiceLock:
         except OSError as exc:
             self.stream.close()
             self.stream = None
-            raise ServiceError("Another Qingcheng event service instance is already running.") from exc
+            raise ServiceError(
+                "Another governed temp-table event service instance is already running."
+            ) from exc
         return self
 
     def __exit__(self, *_: Any) -> None:
@@ -277,6 +317,7 @@ class Ledger:
                 CREATE TABLE IF NOT EXISTS jobs (
                     job_id TEXT PRIMARY KEY,
                     request_message_id TEXT NOT NULL,
+                    chat_id TEXT NOT NULL DEFAULT '',
                     requester_id TEXT NOT NULL,
                     source TEXT NOT NULL,
                     action TEXT NOT NULL,
@@ -298,6 +339,7 @@ class Ledger:
                 CREATE TABLE IF NOT EXISTS pending_attachments (
                     message_id TEXT PRIMARY KEY,
                     family_id TEXT NOT NULL,
+                    chat_id TEXT NOT NULL DEFAULT '',
                     sender_id TEXT NOT NULL,
                     create_time TEXT,
                     queued_epoch REAL NOT NULL,
@@ -316,6 +358,28 @@ class Ledger:
                 );
                 """
             )
+            pending_columns = {
+                row["name"]
+                for row in connection.execute(
+                    "PRAGMA table_info(pending_attachments)"
+                ).fetchall()
+            }
+            if "chat_id" not in pending_columns:
+                connection.execute(
+                    "ALTER TABLE pending_attachments "
+                    "ADD COLUMN chat_id TEXT NOT NULL DEFAULT ''"
+                )
+            job_columns = {
+                row["name"]
+                for row in connection.execute(
+                    "PRAGMA table_info(jobs)"
+                ).fetchall()
+            }
+            if "chat_id" not in job_columns:
+                connection.execute(
+                    "ALTER TABLE jobs "
+                    "ADD COLUMN chat_id TEXT NOT NULL DEFAULT ''"
+                )
 
     def claim_event(self, event: dict[str, Any]) -> bool:
         try:
@@ -339,6 +403,7 @@ class Ledger:
         self,
         *,
         request_message_id: str,
+        chat_id: str = "",
         requester_id: str,
         source: str,
         action: str,
@@ -346,19 +411,26 @@ class Ledger:
         message_bindings: dict[str, str] | None = None,
         authorized_by: str | None = None,
     ) -> str:
-        job_id = "qc_" + datetime.now().strftime("%Y%m%d%H%M%S") + "_" + uuid.uuid4().hex[:8]
+        job_id = (
+            "tt_"
+            + datetime.now().strftime("%Y%m%d%H%M%S")
+            + "_"
+            + uuid.uuid4().hex[:8]
+        )
         timestamp = now_iso()
         with self.connect() as connection:
             connection.execute(
                 """
                 INSERT INTO jobs (
-                    job_id, request_message_id, requester_id, source, action, status, stage,
+                    job_id, request_message_id, chat_id, requester_id,
+                    source, action, status, stage,
                     family_ids, message_bindings, authorized_by, created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, 'queued', 'queued', ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, 'queued', 'queued', ?, ?, ?, ?, ?)
                 """,
                 (
                     job_id,
                     request_message_id,
+                    chat_id,
                     requester_id,
                     source,
                     action,
@@ -396,11 +468,24 @@ class Ledger:
             if cursor.rowcount != 1:
                 raise ServiceError(f"Unknown job id: {job_id}")
 
-    def recent_jobs(self, limit: int = 10) -> list[dict[str, Any]]:
+    def recent_jobs(
+        self,
+        limit: int = 10,
+        *,
+        chat_id: str | None = None,
+    ) -> list[dict[str, Any]]:
         with self.connect() as connection:
-            rows = connection.execute(
-                "SELECT * FROM jobs ORDER BY created_at DESC LIMIT ?", (limit,)
-            ).fetchall()
+            if chat_id is None:
+                rows = connection.execute(
+                    "SELECT * FROM jobs ORDER BY created_at DESC LIMIT ?",
+                    (limit,),
+                ).fetchall()
+            else:
+                rows = connection.execute(
+                    "SELECT * FROM jobs WHERE chat_id = ? "
+                    "ORDER BY created_at DESC LIMIT ?",
+                    (chat_id, limit),
+                ).fetchall()
         values = []
         for row in rows:
             value = dict(row)
@@ -414,12 +499,16 @@ class Ledger:
             connection.execute(
                 """
                 INSERT OR IGNORE INTO pending_attachments
-                (message_id, family_id, sender_id, create_time, queued_epoch, status)
-                VALUES (?, ?, ?, ?, ?, 'pending')
+                (
+                    message_id, family_id, chat_id, sender_id,
+                    create_time, queued_epoch, status
+                )
+                VALUES (?, ?, ?, ?, ?, ?, 'pending')
                 """,
                 (
                     event["message_id"],
                     family_id,
+                    event.get("chat_id") or "",
                     event.get("sender_id") or "",
                     event.get("create_time"),
                     time.time(),
@@ -431,9 +520,16 @@ class Ledger:
             rows = connection.execute(
                 "SELECT * FROM pending_attachments WHERE status = 'pending' ORDER BY queued_epoch, message_id"
             ).fetchall()
-        if not rows or time.time() - max(float(row["queued_epoch"]) for row in rows) < quiet_seconds:
-            return []
-        return [dict(row) for row in rows]
+        grouped: dict[str, list[sqlite3.Row]] = {}
+        for row in rows:
+            grouped.setdefault(str(row["chat_id"] or ""), []).append(row)
+        current = time.time()
+        due = []
+        for group_rows in grouped.values():
+            latest = max(float(row["queued_epoch"]) for row in group_rows)
+            if current - latest >= quiet_seconds:
+                due.extend(dict(row) for row in group_rows)
+        return due
 
     def mark_pending_batched(self, message_ids: list[str], job_id: str) -> None:
         if not message_ids:
@@ -570,41 +666,77 @@ def strip_bot_mentions(content: str, bot_names: list[str]) -> str:
     return value.strip()
 
 
-def parse_family_phrase(phrase: str, registry: dict[str, Any]) -> list[str] | None:
+def families_for_chat(
+    registry: dict[str, Any], chat_id: str
+) -> list[str]:
+    return [
+        family_id
+        for family_id in registry["upload_order"]
+        if workflow.source_chat_id(
+            registry, workflow.family_map(registry)[family_id]
+        )
+        == chat_id
+    ]
+
+
+def parse_family_phrase(
+    phrase: str,
+    registry: dict[str, Any],
+    allowed_family_ids: list[str] | None = None,
+) -> list[str] | None:
     normalized = re.sub(r"[\s,，、]+", "", phrase)
-    goal_families = ["personal_period_goal", "team_period_goal", "team_month_goal"]
+    allowed = list(allowed_family_ids or registry["upload_order"])
+    families = workflow.family_map(registry)
     if not normalized or normalized in {"最新", "最新临时表", "临时表", "全部", "全部临时表"}:
-        return list(registry["upload_order"])
+        return allowed
     if normalized in {"最新目标表", "目标表", "三个目标表", "三张目标表"}:
-        return goal_families
-    aliases = {
-        "personal_period_goal": ("个人期度", "个人期次", "个人期度目标表", "个人期次目标表"),
-        "team_period_goal": ("团队期度", "团队期次", "团队期度目标表", "团队期次目标表"),
-        "team_month_goal": ("团队月度", "团队月度目标表", "月度目标表"),
-        "result_architecture": ("全员结果数据架构", "结果数据架构", "全员架构"),
-        "period_architecture": ("期次带班架构", "期度带班架构", "带班架构"),
-        "course_schedule": ("开课时间", "开课时间表", "到课", "到课表", "行课时间", "青橙行课"),
-    }
+        found = [
+            family_id
+            for family_id in allowed
+            if "goal" in families[family_id].get("command_groups", [])
+        ]
+        return found or None
     found = []
-    for family_id in registry["upload_order"]:
-        if any(alias in normalized for alias in aliases.get(family_id, ())):
+    for family_id in allowed:
+        family = families[family_id]
+        aliases = [
+            family_id,
+            str(family.get("business_name") or ""),
+            *family.get("command_aliases", []),
+        ]
+        if any(alias and alias in normalized for alias in aliases):
             found.append(family_id)
     if not found and normalized in {"架构", "两个架构", "两张架构"}:
-        found = ["result_architecture", "period_architecture"]
+        found = [
+            family_id
+            for family_id in allowed
+            if "architecture" in families[family_id].get(
+                "command_groups", []
+            )
+        ]
     return found or None
 
 
-def parse_command(content: str, config: dict[str, Any], registry: dict[str, Any]) -> Intent:
+def parse_command(
+    content: str,
+    config: dict[str, Any],
+    registry: dict[str, Any],
+    allowed_family_ids: list[str] | None = None,
+) -> Intent:
     command = strip_bot_mentions(content, config["bot_names"])
     if command in {"帮助", "help", "?", "？"}:
         return Intent("help")
-    match = re.fullmatch(r"状态(?:\s+(qc_[A-Za-z0-9_]+))?", command)
+    match = re.fullmatch(
+        r"状态(?:\s+((?:qc|tt)_[A-Za-z0-9_]+))?", command
+    )
     if match:
         return Intent("status", job_id=match.group(1))
-    match = re.fullmatch(r"取消\s+(qc_[A-Za-z0-9_]+)", command)
+    match = re.fullmatch(r"取消\s+((?:qc|tt)_[A-Za-z0-9_]+)", command)
     if match:
         return Intent("cancel", job_id=match.group(1))
-    match = re.fullmatch(r"确认上传\s+(qc_[A-Za-z0-9_]+)", command)
+    match = re.fullmatch(
+        r"确认上传\s+((?:qc|tt)_[A-Za-z0-9_]+)", command
+    )
     if match:
         return Intent("approve", job_id=match.group(1))
     if command in {"预检此文件", "检查此文件", "预检此表", "检查此表", "预检此链接", "检查此链接"}:
@@ -613,11 +745,15 @@ def parse_command(content: str, config: dict[str, Any], registry: dict[str, Any]
         return Intent("upload", use_replied_file=True)
     match = re.fullmatch(r"(?:预检|检查|生成计划)(.*)", command)
     if match:
-        families = parse_family_phrase(match.group(1), registry)
+        families = parse_family_phrase(
+            match.group(1), registry, allowed_family_ids
+        )
         return Intent("plan", family_ids=families) if families else Intent("unknown")
     match = re.fullmatch(r"上传(.*)", command)
     if match:
-        families = parse_family_phrase(match.group(1), registry)
+        families = parse_family_phrase(
+            match.group(1), registry, allowed_family_ids
+        )
         return Intent("upload", family_ids=families) if families else Intent("unknown")
     return Intent("unknown")
 
@@ -628,7 +764,7 @@ def public_error_code(job_id: str, error: BaseException | str) -> str:
     else:
         detail = str(error)
     digest = hashlib.sha256(f"{job_id}:{detail}".encode("utf-8")).hexdigest()[:10]
-    return "QC-" + digest.upper()
+    return "TT-" + digest.upper()
 
 
 def stored_public_error_code(job: dict[str, Any]) -> str:
@@ -648,20 +784,29 @@ def job_reply_category(job: dict[str, Any]) -> str:
     )
 
 
-def help_text(config: dict[str, Any]) -> str:
+def help_text(
+    config: dict[str, Any],
+    registry: dict[str, Any],
+    chat_id: str,
+) -> str:
     mode = config["mode"]
+    families = workflow.family_map(registry)
+    available = families_for_chat(registry, chat_id)
+    family_lines = "\n".join(
+        f"  - {family_id}: {families[family_id]['business_name']}"
+        for family_id in available
+    )
     return (
-        f"青橙临时表管家（当前模式：{mode}）\n"
+        f"青橙/市场顾问部临时表管家（当前模式：{mode}）\n"
+        "本群登记表：\n"
+        f"{family_lines}\n"
         "可用指令：\n"
         "- @管家 预检最新临时表\n"
-        "- @管家 预检最新目标表\n"
-        "- @管家 预检最新开课时间表\n"
-        "- @管家 预检 个人期度 团队期度 团队月度\n"
-        "- 回复一个源附件或开课时间链接并 @管家 预检此表\n"
+        "- @管家 预检 <表名或别名>\n"
+        "- 回复一个已登记源附件/链接并 @管家 预检此表\n"
         "- @管家 状态 [job_id]\n"
         "- @管家 取消 <job_id>\n"
         "- 审批人：@管家 确认上传 <job_id>\n"
-        "- 审批人：@管家 上传最新开课时间表\n"
         "- 审批人：@管家 上传最新临时表\n"
         "shadow 模式只生成计划，不修改本地表、不上传平台。"
     )
@@ -732,7 +877,9 @@ class ReplyDispatcher:
         self.config = config
         self.ledger = ledger
         self.gateway = gateway
-        self.logger = logger or logging.getLogger("qingcheng_event_service")
+        self.logger = logger or logging.getLogger(
+            "governed_temp_table_event_service"
+        )
 
     def _suppression_reason(self, category: str, phase: str) -> str | None:
         if category not in REPLY_CATEGORIES:
@@ -1096,7 +1243,11 @@ class JobWorker:
         self.logger = logger
         self.queue: queue.Queue[str | None] = queue.Queue()
         self.stop_event = threading.Event()
-        self.thread = threading.Thread(target=self._run, name="qingcheng-job-worker", daemon=False)
+        self.thread = threading.Thread(
+            target=self._run,
+            name="governed-temp-table-job-worker",
+            daemon=False,
+        )
 
     def start(self) -> None:
         self.thread.start()
@@ -1148,9 +1299,10 @@ class EventProcessor:
             self.worker.submit(job_id)
 
     def _reply_job_status(self, event: dict[str, Any], job_id: str | None) -> None:
+        chat_id = str(event.get("chat_id") or "")
         if job_id:
             job = self.ledger.get_job(job_id)
-            if job is None:
+            if job is None or job.get("chat_id") != chat_id:
                 text = f"未找到任务：{job_id}"
             else:
                 text = (
@@ -1160,7 +1312,7 @@ class EventProcessor:
                 if job.get("error"):
                     text += "\n错误编号：" + stored_public_error_code(job)
         else:
-            jobs = self.ledger.recent_jobs(5)
+            jobs = self.ledger.recent_jobs(5, chat_id=chat_id)
             text = "最近任务：\n" + "\n".join(
                 f"- {job['job_id']} | {job['status']} | {','.join(job['family_ids'])}"
                 for job in jobs
@@ -1180,11 +1332,16 @@ class EventProcessor:
         if self.gateway is None:
             raise ServiceError("Offline processor cannot resolve the replied-to message.")
         message = self.gateway.get_message(str(replied_id))
-        if message.get("chat_id") and message.get("chat_id") != self.config["chat_id"]:
+        if (
+            message.get("chat_id")
+            and message.get("chat_id") != event.get("chat_id")
+        ):
             raise ServiceError("Replied-to source message is outside the configured chat.")
         family_id = workflow.classify_source_message(self.registry, message)
         if family_id is None:
-            raise ServiceError("Replied-to message is not a recognized Qingcheng source table.")
+            raise ServiceError(
+                "Replied-to message is not a recognized registered source table."
+            )
         return [family_id], {family_id: str(replied_id)}
 
     def _deny(self, event: dict[str, Any], text: str) -> None:
@@ -1197,8 +1354,12 @@ class EventProcessor:
         )
 
     def process(self, event: dict[str, Any]) -> str:
-        if event.get("chat_id") != self.config["chat_id"]:
+        chat_id = str(event.get("chat_id") or "")
+        if chat_id not in self.config["chat_ids"]:
             return "ignored_chat"
+        allowed_family_ids = families_for_chat(self.registry, chat_id)
+        if not allowed_family_ids:
+            return "ignored_unregistered_chat"
         message_id = str(event.get("message_id") or "")
         sender_id = str(event.get("sender_id") or "")
         if not re.fullmatch(r"om_[A-Za-z0-9]+", message_id) or not sender_id:
@@ -1229,11 +1390,20 @@ class EventProcessor:
             return "ignored_type"
         if self.config["mention_required"] and not event_mentions_bot(event, self.config):
             return "ignored_no_mention"
-        intent = parse_command(content, self.config, self.registry)
+        intent = parse_command(
+            content,
+            self.config,
+            self.registry,
+            allowed_family_ids,
+        )
         if intent.action == "help":
             self.replies.send(
                 message_id,
-                help_text(self.config),
+                help_text(
+                    self.config,
+                    self.registry,
+                    chat_id,
+                ),
                 suffix="help",
                 category="command",
                 phase="direct",
@@ -1253,7 +1423,7 @@ class EventProcessor:
             return "status"
         if intent.action == "cancel":
             job = self.ledger.get_job(intent.job_id or "")
-            if job is None:
+            if job is None or job.get("chat_id") != chat_id:
                 self._deny(event, f"未找到任务：{intent.job_id}")
                 return "cancel_missing"
             if sender_id != job["requester_id"] and sender_id not in self.config["approver_ids"]:
@@ -1284,7 +1454,11 @@ class EventProcessor:
                 self._deny(event, "当前服务未启用生产写入门禁；该指令不会修改本地表或平台。")
                 return "approve_gated"
             job = self.ledger.get_job(intent.job_id or "")
-            if job is None or job["status"] != "planned":
+            if (
+                job is None
+                or job.get("chat_id") != chat_id
+                or job["status"] != "planned"
+            ):
                 self._deny(event, f"任务不存在或不处于 planned：{intent.job_id}")
                 return "approve_conflict"
             self.ledger.update_job(
@@ -1311,7 +1485,7 @@ class EventProcessor:
             if intent.use_replied_file:
                 family_ids, bindings = self._resolve_replied_file(event)
             else:
-                family_ids = intent.family_ids or list(self.registry["upload_order"])
+                family_ids = intent.family_ids or allowed_family_ids
                 bindings = {}
         except Exception as exc:  # noqa: BLE001
             error_code = public_error_code(message_id, exc)
@@ -1345,6 +1519,7 @@ class EventProcessor:
                 authorized_by = sender_id
         job_id = self.ledger.create_job(
             request_message_id=message_id,
+            chat_id=chat_id,
             requester_id=sender_id,
             source="chat_command",
             action=action,
@@ -1367,41 +1542,70 @@ class EventProcessor:
         pending = self.ledger.due_pending_attachments(self.config["attachment_quiet_seconds"])
         if not pending:
             return None
-        latest_by_family: dict[str, dict[str, Any]] = {}
+        pending_by_chat: dict[str, list[dict[str, Any]]] = defaultdict(list)
         for item in pending:
-            existing = latest_by_family.get(item["family_id"])
-            if existing is None or (str(item.get("create_time") or ""), item["message_id"]) > (
-                str(existing.get("create_time") or ""),
-                existing["message_id"],
-            ):
-                latest_by_family[item["family_id"]] = item
-        family_ids = [
-            family_id for family_id in self.registry["upload_order"] if family_id in latest_by_family
-        ]
-        bindings = {family_id: latest_by_family[family_id]["message_id"] for family_id in family_ids}
-        reply_item = max(pending, key=lambda item: (item["queued_epoch"], item["message_id"]))
-        job_id = self.ledger.create_job(
-            request_message_id=reply_item["message_id"],
-            requester_id=reply_item["sender_id"],
-            source="source_message_batch",
-            action="plan",
-            family_ids=family_ids,
-            message_bindings=bindings,
-        )
-        self.ledger.mark_pending_batched([item["message_id"] for item in pending], job_id)
-        self._submit(job_id)
-        self.replies.send(
-            reply_item["message_id"],
-            f"已识别并开始预检：{job_id}\n范围：{', '.join(family_ids)}",
-            job_id=job_id,
-            suffix="source_message_batch",
-            category="source_attachment",
-            phase="progress",
-        )
-        return job_id
+            pending_by_chat[str(item.get("chat_id") or "")].append(item)
+        created_job_ids = []
+        for chat_id, chat_items in sorted(pending_by_chat.items()):
+            allowed = set(families_for_chat(self.registry, chat_id))
+            latest_by_family: dict[str, dict[str, Any]] = {}
+            for item in chat_items:
+                if item["family_id"] not in allowed:
+                    continue
+                existing = latest_by_family.get(item["family_id"])
+                if existing is None or (
+                    str(item.get("create_time") or ""),
+                    item["message_id"],
+                ) > (
+                    str(existing.get("create_time") or ""),
+                    existing["message_id"],
+                ):
+                    latest_by_family[item["family_id"]] = item
+            family_ids = [
+                family_id
+                for family_id in self.registry["upload_order"]
+                if family_id in latest_by_family
+            ]
+            if not family_ids:
+                continue
+            bindings = {
+                family_id: latest_by_family[family_id]["message_id"]
+                for family_id in family_ids
+            }
+            reply_item = max(
+                chat_items,
+                key=lambda item: (
+                    item["queued_epoch"],
+                    item["message_id"],
+                ),
+            )
+            job_id = self.ledger.create_job(
+                request_message_id=reply_item["message_id"],
+                chat_id=chat_id,
+                requester_id=reply_item["sender_id"],
+                source="source_message_batch",
+                action="plan",
+                family_ids=family_ids,
+                message_bindings=bindings,
+            )
+            self.ledger.mark_pending_batched(
+                [item["message_id"] for item in chat_items],
+                job_id,
+            )
+            self._submit(job_id)
+            self.replies.send(
+                reply_item["message_id"],
+                f"已识别并开始预检：{job_id}\n范围：{', '.join(family_ids)}",
+                job_id=job_id,
+                suffix="source_message_batch",
+                category="source_attachment",
+                phase="progress",
+            )
+            created_job_ids.append(job_id)
+        return created_job_ids[-1] if created_job_ids else None
 
 
-class QingchengEventService:
+class GovernedTempTableEventService:
     def __init__(self, config: dict[str, Any]) -> None:
         self.config = config
         self.runtime_root = Path(config["runtime_root"])
@@ -1465,9 +1669,10 @@ class QingchengEventService:
                     self.worker.submit(job_id)
                 self.write_status("running", event_ready=True)
                 self.logger.info(
-                    "Qingcheng event service is running in %s mode for chat %s",
+                    "Governed temp-table event service is running in %s "
+                    "mode for chats %s",
                     self.config["mode"],
-                    self.config["chat_id"],
+                    ",".join(self.config["chat_ids"]),
                 )
                 last_status = 0.0
                 while not self.stop_event.is_set():
@@ -1505,7 +1710,7 @@ class QingchengEventService:
                 current = read_json(self.status_path) if self.status_path.exists() else {}
                 if current.get("status") != "failed":
                     self.write_status("stopped", event_ready=False)
-                self.logger.info("Qingcheng event service stopped.")
+                self.logger.info("Governed temp-table event service stopped.")
 
 
 def initialize_config(output: Path, force: bool) -> dict[str, Any]:
@@ -1572,7 +1777,10 @@ def process_event_offline(config: dict[str, Any], event_file: Path) -> dict[str,
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Persistent Feishu event service for the governed Qingcheng temp-table workflow."
+        description=(
+            "Persistent Feishu event service for the governed Qingcheng and "
+            "market-consultant temp-table workflow."
+        )
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -1612,7 +1820,7 @@ def main(argv: list[str] | None = None) -> int:
                     "ok": True,
                     "config_path": config["config_path"],
                     "mode": config["mode"],
-                    "chat_id": config["chat_id"],
+                    "chat_ids": config["chat_ids"],
                     "send_replies": config["send_replies"],
                     "reply_on_commands": config["reply_on_commands"],
                     "reply_on_unknown_commands": config["reply_on_unknown_commands"],
@@ -1632,7 +1840,7 @@ def main(argv: list[str] | None = None) -> int:
             elif args.command == "process-event":
                 result = process_event_offline(config, args.event_file)
             elif args.command == "run":
-                return QingchengEventService(config).run()
+                return GovernedTempTableEventService(config).run()
             else:
                 raise ServiceError(f"Unsupported command: {args.command}")
         print(json.dumps(result, ensure_ascii=False, indent=2))

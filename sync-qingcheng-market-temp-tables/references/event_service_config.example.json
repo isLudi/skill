@@ -1,11 +1,14 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "2.0.0",
   "mode": "shadow",
-  "chat_name": "青橙数据对接",
-  "chat_id": "oc_e604e064976c022ab4289fc2fb979332",
+  "chat_ids": [
+    "oc_e604e064976c022ab4289fc2fb979332",
+    "oc_7b9873ee89b18d11cf60c8768c6eba9e"
+  ],
   "source_sender_ids": [
     "ou_bf111effd2d71a52ee40c58c7cb4d105",
-    "ou_3168c83ffe93b49a192755c8e31e2bc5"
+    "ou_3168c83ffe93b49a192755c8e31e2bc5",
+    "ou_04f543bec3cdd195bbdd53a582f68443"
   ],
   "approver_ids": [
     "ou_adde1ef52a52e60a272fb4b8a416eb01"
@@ -29,8 +32,8 @@
   "event_ready_timeout_seconds": 30,
   "command_timeout_seconds": 1800,
   "python_executable": "D:\\anaconda3\\python.exe",
-  "sync_script": "C:\\Users\\Ludim\\.codex\\skills\\sync-qingcheng-temp-tables\\scripts\\qingcheng_temp_table_sync.py",
-  "workflow_registry": "C:\\Users\\Ludim\\.codex\\skills\\sync-qingcheng-temp-tables\\references\\workflow_registry.json",
-  "runtime_root": "C:\\Users\\Ludim\\.codex\\runtime\\sync-qingcheng-temp-tables\\event-service",
-  "sync_runtime_root": "C:\\Users\\Ludim\\.codex\\runtime\\sync-qingcheng-temp-tables"
+  "sync_script": "C:\\Users\\Ludim\\.codex\\skills\\sync-qingcheng-market-temp-tables\\scripts\\governed_temp_table_sync.py",
+  "workflow_registry": "C:\\Users\\Ludim\\.codex\\skills\\sync-qingcheng-market-temp-tables\\references\\workflow_registry.json",
+  "runtime_root": "C:\\Users\\Ludim\\.codex\\runtime\\sync-qingcheng-market-temp-tables\\event-service",
+  "sync_runtime_root": "C:\\Users\\Ludim\\.codex\\runtime\\sync-qingcheng-market-temp-tables"
 }

@@ -21,7 +21,7 @@ from openpyxl import Workbook, load_workbook
 SKILL_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(SKILL_ROOT / "scripts"))
 
-from qingcheng_temp_table_sync import (  # noqa: E402
+from governed_temp_table_sync import (  # noqa: E402
     WorkflowError,
     apply_local,
     assert_plan_source_quality_current,
@@ -29,6 +29,7 @@ from qingcheng_temp_table_sync import (  # noqa: E402
     classify_source_message,
     evaluate_source_quality,
     inspect_external_link_integrity,
+    list_chat_messages_bot,
     main,
     merge_records,
     load_registry,
@@ -37,7 +38,10 @@ from qingcheng_temp_table_sync import (  # noqa: E402
     replace_file_with_retry,
     resolve_lark_cli,
     select_messages,
+    select_source_records_for_merge,
     sha256_file,
+    source_slice_snapshot,
+    transform_source_records,
     validate_source_records,
     write_artifact,
 )
@@ -279,9 +283,21 @@ class MergeWorkflowTests(unittest.TestCase):
             stage.write_bytes(b"new")
 
             registry = {
+                "domains": {
+                    "test": {
+                        "business_name": "Test",
+                        "chat": {
+                            "name": "Test chat",
+                            "expected_chat_id": "oc_test",
+                        },
+                        "default_sender_name": "Source",
+                        "default_sender_open_id": "ou_source",
+                    }
+                },
                 "families": [
                     {
                         "id": "test_family",
+                        "domain": "test",
                         "source_filename_patterns": ["^source\\.xlsx$"],
                     }
                 ],
@@ -351,14 +367,14 @@ class MergeWorkflowTests(unittest.TestCase):
 
             with (
                 mock.patch(
-                    "qingcheng_temp_table_sync.discover_live_messages",
+                    "governed_temp_table_sync.discover_live_messages",
                     return_value=(
                         {"name": "test", "chat_id": "oc_test"},
                         [],
                     ),
                 ),
                 mock.patch(
-                    "qingcheng_temp_table_sync.select_messages",
+                    "governed_temp_table_sync.select_messages",
                     return_value=(
                         {
                             "test_family": {
@@ -370,10 +386,10 @@ class MergeWorkflowTests(unittest.TestCase):
                     ),
                 ),
                 mock.patch(
-                    "qingcheng_temp_table_sync.os.replace",
+                    "governed_temp_table_sync.os.replace",
                     side_effect=persistent_lock,
                 ),
-                mock.patch("qingcheng_temp_table_sync.time.sleep"),
+                mock.patch("governed_temp_table_sync.time.sleep"),
                 self.assertRaisesRegex(
                     WorkflowError,
                     "all targets remain at their pre-plan hashes",
@@ -411,7 +427,7 @@ class MergeWorkflowTests(unittest.TestCase):
         captured_stdout = io.StringIO()
         with (
             mock.patch(
-                "qingcheng_temp_table_sync.plan_sync",
+                "governed_temp_table_sync.plan_sync",
                 side_effect=PermissionError(
                     errno.EACCES,
                     "simulated internal failure",
@@ -429,7 +445,27 @@ class MergeWorkflowTests(unittest.TestCase):
 
     def test_registry_upload_order_must_cover_each_family_once(self) -> None:
         registry = {
-            "families": [{"id": "a"}, {"id": "b"}],
+            "domains": {
+                "test": {
+                    "business_name": "Test",
+                    "chat": {
+                        "name": "Test chat",
+                        "expected_chat_id": "oc_test",
+                    },
+                }
+            },
+            "families": [
+                {
+                    "id": "a",
+                    "domain": "test",
+                    "source_filename_patterns": ["^a\\.xlsx$"],
+                },
+                {
+                    "id": "b",
+                    "domain": "test",
+                    "source_filename_patterns": ["^b\\.xlsx$"],
+                },
+            ],
             "upload_order": ["a", "a"],
         }
         with tempfile.TemporaryDirectory() as directory:
@@ -441,7 +477,17 @@ class MergeWorkflowTests(unittest.TestCase):
     def test_registered_families_require_complete_source_quality_gates(self) -> None:
         registry = load_registry(SKILL_ROOT / "references" / "workflow_registry.json")
         self.assertTrue(registry["require_source_quality_gates"])
-        self.assertEqual(len(registry["families"]), 6)
+        self.assertEqual(len(registry["families"]), 12)
+        self.assertEqual(
+            {
+                domain: sum(
+                    family["domain"] == domain
+                    for family in registry["families"]
+                )
+                for domain in registry["domains"]
+            },
+            {"qingcheng": 6, "market_consultant": 6},
+        )
         for family in registry["families"]:
             quality = family["source_quality"]
             self.assertGreater(quality["max_age_hours"], 0)
@@ -452,12 +498,76 @@ class MergeWorkflowTests(unittest.TestCase):
             )
             self.assertTrue(quality["required_column_null_rate"])
 
+    def test_market_local_temp_table_inventory_is_one_to_one(self) -> None:
+        registry = load_registry(SKILL_ROOT / "references" / "workflow_registry.json")
+        inventory = registry["local_temp_table_inventories"]["market_consultant"]
+        mappings = inventory["mappings"]
+
+        self.assertEqual(inventory["platform_database"], "temp_table")
+        self.assertEqual(inventory["verification"]["query_id"], "1506786567")
+        self.assertEqual(len(mappings), 9)
+        self.assertEqual(
+            {
+                mapping["local_filename"]: mapping["platform_temp_table"]
+                for mapping in mappings
+            },
+            {
+                "ceshiqudao_pingyou.xlsx": "dingxi01_ceshiqudao_pingyou",
+                "cost.xlsx": "dingxi01_cost",
+                "daoke_1_6_t.xlsx": "dingxi01_daoke_1_6_t",
+                "jiagou_db.xlsx": "dingxi01_jiagou_db",
+                "jiagou_xinren.xlsx": "dingxi01_jiagou_xinren",
+                "jiagou_zx.xlsx": "dingxi01_jiagou_zx",
+                "jinliang_goal.xlsx": "dingxi01_jinliang_goal",
+                "pingyou_jg.xlsx": "dingxi01_pingyou_jg",
+                "plan_id.xlsx": "dingxi01_plan_id",
+            },
+        )
+        self.assertEqual(
+            sum(mapping["automation_scope"] == "managed" for mapping in mappings),
+            6,
+        )
+        self.assertEqual(
+            sum(mapping["automation_scope"] == "mapping_only" for mapping in mappings),
+            3,
+        )
+
+    def test_registry_rejects_duplicate_platform_temp_table_mapping(self) -> None:
+        registry_path = SKILL_ROOT / "references" / "workflow_registry.json"
+        registry = json.loads(registry_path.read_text(encoding="utf-8"))
+        mappings = registry["local_temp_table_inventories"]["market_consultant"][
+            "mappings"
+        ]
+        mappings[1]["platform_temp_table"] = mappings[0]["platform_temp_table"]
+
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "registry.json"
+            path.write_text(
+                json.dumps(registry, ensure_ascii=False),
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(
+                WorkflowError,
+                "Duplicate platform temp-table target",
+            ):
+                load_registry(path)
+
     def test_registry_rejects_missing_required_source_quality_gate(self) -> None:
         registry = {
             "require_source_quality_gates": True,
+            "domains": {
+                "test": {
+                    "business_name": "Test",
+                    "chat": {
+                        "name": "Test chat",
+                        "expected_chat_id": "oc_test",
+                    },
+                }
+            },
             "families": [
                 {
                     "id": "a",
+                    "domain": "test",
                     "source_filename_patterns": ["^a\\.xlsx$"],
                 }
             ],
@@ -470,11 +580,46 @@ class MergeWorkflowTests(unittest.TestCase):
                 load_registry(path)
 
     def test_lark_cli_is_resolved_before_download_cwd_changes(self) -> None:
-        with mock.patch("qingcheng_temp_table_sync.shutil.which", return_value=r".\lark-cli.cmd"):
+        with mock.patch("governed_temp_table_sync.shutil.which", return_value=r".\lark-cli.cmd"):
             resolved = resolve_lark_cli()
 
         self.assertTrue(Path(resolved).is_absolute())
         self.assertEqual(Path(resolved).name, "lark-cli.cmd")
+
+    def test_bot_chat_message_listing_uses_explicit_pagination(self) -> None:
+        responses = [
+            {
+                "data": {
+                    "has_more": True,
+                    "page_token": "next-page",
+                    "messages": [{"message_id": "m1"}],
+                }
+            },
+            {
+                "data": {
+                    "has_more": False,
+                    "page_token": "",
+                    "messages": [{"message_id": "m2"}],
+                }
+            },
+        ]
+        with mock.patch(
+            "governed_temp_table_sync.run_json_command",
+            side_effect=responses,
+        ) as run:
+            messages = list_chat_messages_bot("lark-cli", "oc_test")
+
+        self.assertEqual(
+            [message["message_id"] for message in messages],
+            ["m1", "m2"],
+        )
+        commands = [call.args[1] for call in run.call_args_list]
+        self.assertTrue(all("--page-all" not in command for command in commands))
+        self.assertNotIn("--page-token", commands[0])
+        self.assertEqual(
+            commands[1][commands[1].index("--page-token") + 1],
+            "next-page",
+        )
 
     def test_overlapping_slice_is_replaced_instead_of_appended(self) -> None:
         family = {
@@ -534,6 +679,218 @@ class MergeWorkflowTests(unittest.TestCase):
 
         self.assertFalse(diff["changed"])
         self.assertEqual(diff["unchanged_slices"], ["20260716期"])
+
+    def test_changed_slice_noop_preserves_original_row_order(self) -> None:
+        family = {
+            "target_columns": ["qici", "name"],
+            "slice_column": "qici",
+            "slice_order": "desc",
+            "source_merge_mode": "changed_source_slices",
+        }
+        target = [
+            {"qici": "20260101期", "name": "oldest"},
+            {"qici": "20260728期", "name": "latest"},
+        ]
+
+        merged_write, merged_effective, diff = merge_records(
+            family,
+            target,
+            target,
+            [],
+            [],
+        )
+
+        self.assertFalse(diff["changed"])
+        self.assertEqual(merged_write, target)
+        self.assertEqual(merged_effective, target)
+
+    def test_bootstrap_slices_are_one_time_pending_work(self) -> None:
+        family = {
+            "id": "market_plan_id",
+            "target_columns": ["qici", "group_id"],
+            "slice_column": "qici",
+            "source_merge_mode": "changed_source_slices",
+            "source_baseline_id": "market_plan_id",
+            "max_changed_slices": 2,
+            "recent_slice_window": 1,
+            "bootstrap_slices": ["0529期"],
+            "reviewed_historical_slices": ["0529期"],
+        }
+        records = [{"qici": "0529期", "group_id": "1"}]
+        snapshot = source_slice_snapshot(family, records)
+        baseline = {
+            "families": {
+                "market_plan_id": {
+                    "message_id": "om_seed",
+                    **snapshot,
+                    "bootstrap_pending": True,
+                }
+            }
+        }
+
+        selected, selection = select_source_records_for_merge(
+            family,
+            records,
+            snapshot,
+            baseline,
+        )
+        self.assertEqual(selected, records)
+        self.assertEqual(selection["bootstrap_slices"], ["0529期"])
+
+        baseline["families"]["market_plan_id"].pop(
+            "bootstrap_pending"
+        )
+        selected, selection = select_source_records_for_merge(
+            family,
+            records,
+            snapshot,
+            baseline,
+        )
+        self.assertEqual(selected, [])
+        self.assertEqual(selection["bootstrap_slices"], [])
+
+    def test_unreviewed_added_historical_slice_is_blocking(self) -> None:
+        family = {
+            "id": "market_period_architecture",
+            "target_columns": ["qici", "name"],
+            "slice_column": "qici",
+            "source_merge_mode": "changed_source_slices",
+            "source_baseline_id": "market_period_architecture",
+            "max_changed_slices": 2,
+            "recent_slice_window": 1,
+        }
+        baseline_records = [
+            {"qici": "20260728期", "name": "A"},
+        ]
+        baseline_snapshot = source_slice_snapshot(
+            family,
+            baseline_records,
+        )
+        current_records = [
+            {"qici": "20260101期", "name": "legacy"},
+            *baseline_records,
+        ]
+        current_snapshot = source_slice_snapshot(
+            family,
+            current_records,
+        )
+        baselines = {
+            "families": {
+                "market_period_architecture": baseline_snapshot,
+            }
+        }
+
+        with self.assertRaisesRegex(
+            WorkflowError,
+            "unreviewed historical slices",
+        ):
+            select_source_records_for_merge(
+                family,
+                current_records,
+                current_snapshot,
+                baselines,
+            )
+
+    def test_plan_group_name_prefix_checks_only_period_prefixed_names(
+        self,
+    ) -> None:
+        family = {
+            "target_columns": [
+                "year",
+                "qici",
+                "group_id",
+                "group_name",
+            ],
+            "key_columns": ["year", "qici", "group_id"],
+            "validation_rules": [
+                {
+                    "type": "group_name_qici_prefix",
+                    "qici_column": "qici",
+                    "name_column": "group_name",
+                }
+            ],
+        }
+        accepted = [
+            {
+                "year": 2026,
+                "qici": "0529期",
+                "group_id": "1",
+                "group_name": "0529期-市场-高中年级",
+            },
+            {
+                "year": 2026,
+                "qici": "0529期",
+                "group_id": "2",
+                "group_name": "2026年-短期班-抖音私信",
+            },
+        ]
+        self.assertEqual(validate_source_records(family, accepted), [])
+
+        rejected = [
+            dict(
+                accepted[0],
+                group_name="0522期-市场-高中年级",
+            )
+        ]
+        issues = validate_source_records(family, rejected)
+        self.assertEqual(issues[0]["rule"], "group_name_qici_prefix")
+
+    def test_required_reference_mapping_blocks_unknown_channel(
+        self,
+    ) -> None:
+        family = {
+            "id": "market_attendance_schedule",
+            "target_columns": [
+                "qici",
+                "qudao",
+                "grade",
+                "begin_time",
+                "dow",
+                "ke_1",
+                "channel",
+            ],
+            "source_record_transforms": [
+                {
+                    "type": "fill_from_reference_mapping",
+                    "column": "channel",
+                    "key_columns": [
+                        "qici",
+                        "qudao",
+                        "grade",
+                        "begin_time",
+                        "dow",
+                        "ke_1",
+                    ],
+                    "block_ambiguous_keys": True,
+                }
+            ],
+        }
+        source = [
+            {
+                "qici": "20260728期",
+                "qudao": "A",
+                "grade": "初一",
+                "begin_time": "2026-07-28 10:00:00",
+                "dow": "1",
+                "ke_1": "1",
+                "channel": "",
+            }
+        ]
+
+        with self.assertRaisesRegex(
+            WorkflowError,
+            "Cannot fill required source column channel",
+        ):
+            transform_source_records(family, source, [])
+
+        reference = [dict(source[0], channel="paid")]
+        transformed, _, audit = transform_source_records(
+            family,
+            source,
+            reference,
+        )
+        self.assertEqual(transformed[0]["channel"], "paid")
+        self.assertEqual(audit["transforms"][0]["filled"], 1)
 
     def test_duplicate_source_key_is_blocking(self) -> None:
         family = {
@@ -667,16 +1024,46 @@ class MergeWorkflowTests(unittest.TestCase):
 
     def test_subset_selection_uses_only_requested_families(self) -> None:
         registry = {
+            "domains": {
+                "test": {
+                    "business_name": "Test",
+                    "chat": {
+                        "name": "Test chat",
+                        "expected_chat_id": "oc_test",
+                    },
+                    "default_sender_open_id": "ou_source",
+                }
+            },
             "families": [
-                {"id": "a", "source_filename_patterns": ["^a\\.xlsx$"]},
-                {"id": "b", "source_filename_patterns": ["^b\\.xlsx$"]},
+                {
+                    "id": "a",
+                    "domain": "test",
+                    "source_filename_patterns": ["^a\\.xlsx$"],
+                },
+                {
+                    "id": "b",
+                    "domain": "test",
+                    "source_filename_patterns": ["^b\\.xlsx$"],
+                },
             ],
             "upload_order": ["a", "b"],
         }
         selection = build_selection_spec(registry, family_ids=["b"])
         messages = [
-            {"message_id": "om_a", "file_name": "a.xlsx", "create_time": "1000"},
-            {"message_id": "om_b", "file_name": "b.xlsx", "create_time": "2000"},
+            {
+                "message_id": "om_a",
+                "file_name": "a.xlsx",
+                "create_time": "1000",
+                "chat_id": "oc_test",
+                "sender_id": "ou_source",
+            },
+            {
+                "message_id": "om_b",
+                "file_name": "b.xlsx",
+                "create_time": "2000",
+                "chat_id": "oc_test",
+                "sender_id": "ou_source",
+            },
         ]
 
         selected, _, _ = select_messages(registry, messages, selection)
@@ -686,7 +1073,23 @@ class MergeWorkflowTests(unittest.TestCase):
 
     def test_explicit_message_binding_does_not_float_to_a_newer_message(self) -> None:
         registry = {
-            "families": [{"id": "a", "source_filename_patterns": ["^a\\.xlsx$"]}],
+            "domains": {
+                "test": {
+                    "business_name": "Test",
+                    "chat": {
+                        "name": "Test chat",
+                        "expected_chat_id": "oc_test",
+                    },
+                    "default_sender_open_id": "ou_source",
+                }
+            },
+            "families": [
+                {
+                    "id": "a",
+                    "domain": "test",
+                    "source_filename_patterns": ["^a\\.xlsx$"],
+                }
+            ],
             "upload_order": ["a"],
         }
         selection = build_selection_spec(
@@ -695,8 +1098,20 @@ class MergeWorkflowTests(unittest.TestCase):
             explicit_message_specs=["a=om_old"],
         )
         messages = [
-            {"message_id": "om_old", "file_name": "a.xlsx", "create_time": "1000"},
-            {"message_id": "om_new", "file_name": "a.xlsx", "create_time": "2000"},
+            {
+                "message_id": "om_old",
+                "file_name": "a.xlsx",
+                "create_time": "1000",
+                "chat_id": "oc_test",
+                "sender_id": "ou_source",
+            },
+            {
+                "message_id": "om_new",
+                "file_name": "a.xlsx",
+                "create_time": "2000",
+                "chat_id": "oc_test",
+                "sender_id": "ou_source",
+            },
         ]
 
         selected, _, _ = select_messages(registry, messages, selection)
@@ -705,13 +1120,41 @@ class MergeWorkflowTests(unittest.TestCase):
 
     def test_after_cutoff_is_strict(self) -> None:
         registry = {
-            "families": [{"id": "a", "source_filename_patterns": ["^a\\.xlsx$"]}],
+            "domains": {
+                "test": {
+                    "business_name": "Test",
+                    "chat": {
+                        "name": "Test chat",
+                        "expected_chat_id": "oc_test",
+                    },
+                    "default_sender_open_id": "ou_source",
+                }
+            },
+            "families": [
+                {
+                    "id": "a",
+                    "domain": "test",
+                    "source_filename_patterns": ["^a\\.xlsx$"],
+                }
+            ],
             "upload_order": ["a"],
         }
         selection = build_selection_spec(registry, family_ids=["a"], after="1970-01-01T00:00:01Z")
         messages = [
-            {"message_id": "om_equal", "file_name": "a.xlsx", "create_time": "1000"},
-            {"message_id": "om_after", "file_name": "a.xlsx", "create_time": "2000"},
+            {
+                "message_id": "om_equal",
+                "file_name": "a.xlsx",
+                "create_time": "1000",
+                "chat_id": "oc_test",
+                "sender_id": "ou_source",
+            },
+            {
+                "message_id": "om_after",
+                "file_name": "a.xlsx",
+                "create_time": "2000",
+                "chat_id": "oc_test",
+                "sender_id": "ou_source",
+            },
         ]
 
         selected, _, _ = select_messages(registry, messages, selection)
@@ -722,7 +1165,7 @@ class MergeWorkflowTests(unittest.TestCase):
         registry = load_registry(SKILL_ROOT / "references" / "workflow_registry.json")
         message = {
             "message_id": "om_course",
-            "chat_id": "oc_test",
+            "chat_id": "oc_e604e064976c022ab4289fc2fb979332",
             "sender": {
                 "id": "ou_3168c83ffe93b49a192755c8e31e2bc5",
                 "name": "李怡青",
@@ -867,6 +1310,7 @@ class MergeWorkflowTests(unittest.TestCase):
 
             family = {
                 "id": "result_architecture",
+                "domain": "qingcheng",
                 "business_name": "全员结果数据架构",
                 "source_filename_patterns": ["^全员结果数据架构\\.xlsx$"],
                 "source_sheet": "data",
@@ -899,11 +1343,16 @@ class MergeWorkflowTests(unittest.TestCase):
             }
             registry = {
                 "version": 2,
-                "chat": {
-                    "name": "青橙数据对接",
-                    "expected_chat_id": "oc_test",
-                    "sender_name": "郅玲玉",
-                    "sender_open_id": "ou_source",
+                "domains": {
+                    "qingcheng": {
+                        "business_name": "青橙项目部",
+                        "chat": {
+                            "name": "青橙数据对接",
+                            "expected_chat_id": "oc_test",
+                        },
+                        "default_sender_name": "郅玲玉",
+                        "default_sender_open_id": "ou_source",
+                    }
                 },
                 "families": [family],
                 "upload_order": ["result_architecture"],
@@ -943,22 +1392,22 @@ class MergeWorkflowTests(unittest.TestCase):
 
             with (
                 mock.patch(
-                    "qingcheng_temp_table_sync.discover_live_messages",
+                    "governed_temp_table_sync.discover_live_messages",
                     return_value=(
                         {"name": "青橙数据对接", "chat_id": "oc_test"},
                         [message],
                     ),
                 ),
                 mock.patch(
-                    "qingcheng_temp_table_sync.download_message",
+                    "governed_temp_table_sync.download_message",
                     return_value=source_path,
                 ),
                 mock.patch(
-                    "qingcheng_temp_table_sync.operator_validation",
+                    "governed_temp_table_sync.operator_validation",
                     return_value=validation,
                 ),
                 mock.patch(
-                    "qingcheng_temp_table_sync.upload_production"
+                    "governed_temp_table_sync.upload_production"
                 ) as upload_production,
                 redirect_stdout(captured_stdout),
             ):
@@ -1033,24 +1482,24 @@ class MergeWorkflowTests(unittest.TestCase):
             apply_stdout = io.StringIO()
             with (
                 mock.patch(
-                    "qingcheng_temp_table_sync.discover_live_messages",
+                    "governed_temp_table_sync.discover_live_messages",
                     return_value=(
                         {"name": "青橙数据对接", "chat_id": "oc_test"},
                         [message],
                     ),
                 ),
                 mock.patch(
-                    "qingcheng_temp_table_sync.operator_validation",
+                    "governed_temp_table_sync.operator_validation",
                     return_value=validation,
                 ),
                 mock.patch(
-                    "qingcheng_temp_table_sync.upload_production"
+                    "governed_temp_table_sync.upload_production"
                 ) as upload_production_after_apply,
                 mock.patch(
-                    "qingcheng_temp_table_sync.os.replace",
+                    "governed_temp_table_sync.os.replace",
                     side_effect=transient_target_lock,
                 ),
-                mock.patch("qingcheng_temp_table_sync.time.sleep"),
+                mock.patch("governed_temp_table_sync.time.sleep"),
                 redirect_stdout(apply_stdout),
             ):
                 apply_exit_code = apply_local(apply_args)

@@ -29,7 +29,13 @@ SKILL_ROOT = Path(__file__).resolve().parents[1]
 SKILLS_ROOT = SKILL_ROOT.parent
 CODEX_ROOT = SKILLS_ROOT.parent
 DEFAULT_REGISTRY = SKILL_ROOT / "references" / "workflow_registry.json"
-DEFAULT_RUNTIME_ROOT = CODEX_ROOT / "runtime" / "sync-qingcheng-temp-tables"
+DEFAULT_RUNTIME_ROOT = CODEX_ROOT / "runtime" / "sync-qingcheng-market-temp-tables"
+DEFAULT_SOURCE_BASELINE_SEED = (
+    SKILL_ROOT / "references" / "source_slice_baselines.json"
+)
+DEFAULT_SOURCE_BASELINE_STATE = (
+    DEFAULT_RUNTIME_ROOT / "state" / "source_slice_baselines.json"
+)
 OPERATOR_ROOT = SKILLS_ROOT / "usql-web-query-operator"
 OPERATOR_SCRIPT = OPERATOR_ROOT / "scripts" / "usql_web_query.py"
 OPERATOR_SCRIPTS = OPERATOR_ROOT / "scripts"
@@ -167,6 +173,24 @@ def load_artifact(path: Path, hash_field: str, expected_hash: str | None = None)
 
 def load_registry(path: Path) -> dict[str, Any]:
     registry = json.loads(path.read_text(encoding="utf-8"))
+    domains = registry.get("domains")
+    if not isinstance(domains, dict) or not domains:
+        raise WorkflowError("Workflow registry domains must be a non-empty object.")
+    chat_ids = []
+    for domain_id, domain in domains.items():
+        if not re.fullmatch(r"[a-z][a-z0-9_]*", domain_id):
+            raise WorkflowError(f"Invalid domain id: {domain_id}")
+        chat = domain.get("chat") or {}
+        chat_id = str(chat.get("expected_chat_id") or "")
+        if not re.fullmatch(r"oc_[A-Za-z0-9]+", chat_id):
+            raise WorkflowError(
+                f"Domain {domain_id} must configure one exact expected_chat_id."
+            )
+        if not str(chat.get("name") or "").strip():
+            raise WorkflowError(f"Domain {domain_id} must configure a chat name.")
+        chat_ids.append(chat_id)
+    if len(chat_ids) != len(set(chat_ids)):
+        raise WorkflowError("Each workflow domain must use a distinct chat id.")
     ids = [family["id"] for family in registry.get("families", [])]
     if len(ids) != len(set(ids)):
         raise WorkflowError("Workflow registry contains duplicate family ids.")
@@ -174,6 +198,11 @@ def load_registry(path: Path) -> dict[str, Any]:
     if len(upload_order) != len(set(upload_order)) or set(upload_order) != set(ids):
         raise WorkflowError("Workflow registry upload_order must contain every family id exactly once.")
     for family in registry.get("families", []):
+        domain_id = family.get("domain")
+        if domain_id not in domains:
+            raise WorkflowError(
+                f"Family {family.get('id')} has unknown domain: {domain_id}"
+            )
         source_kind = family.get("source_kind", "file_attachment")
         if source_kind not in {"file_attachment", "link_workbook"}:
             raise WorkflowError(f"Unsupported source_kind for {family['id']}: {source_kind}")
@@ -195,7 +224,182 @@ def load_registry(path: Path) -> dict[str, Any]:
             raise WorkflowError(f"Source quality gate is required for family {family['id']}.")
         if quality:
             _validate_source_quality_config(family, quality)
+        merge_mode = family.get("source_merge_mode", "all_source_slices")
+        if merge_mode not in {
+            "all_source_slices",
+            "changed_source_slices",
+            "full_source_replace",
+        }:
+            raise WorkflowError(
+                f"Unsupported source_merge_mode for {family['id']}: {merge_mode}"
+            )
+        if merge_mode == "changed_source_slices":
+            baseline_id = str(family.get("source_baseline_id") or "")
+            if not baseline_id:
+                raise WorkflowError(
+                    f"Changed-slice family {family['id']} needs source_baseline_id."
+                )
+            maximum = family.get("max_changed_slices")
+            if not isinstance(maximum, int) or isinstance(maximum, bool) or maximum < 1:
+                raise WorkflowError(
+                    f"Changed-slice family {family['id']} needs max_changed_slices >= 1."
+                )
+    _validate_local_temp_table_inventories(registry)
     return registry
+
+
+def _validate_local_temp_table_inventories(registry: dict[str, Any]) -> None:
+    inventories = registry.get("local_temp_table_inventories")
+    if inventories is None:
+        return
+    if not isinstance(inventories, dict) or not inventories:
+        raise WorkflowError(
+            "Workflow registry local_temp_table_inventories must be a non-empty object."
+        )
+
+    domains = registry["domains"]
+    families = {
+        str(family["id"]): family for family in registry.get("families", [])
+    }
+    deferred_patterns = list(registry.get("deferred_filename_patterns") or [])
+    for domain_id, inventory in inventories.items():
+        if domain_id not in domains:
+            raise WorkflowError(
+                f"Local temp-table inventory has unknown domain: {domain_id}"
+            )
+        root = str(inventory.get("root") or "")
+        if not root or not Path(root).is_absolute():
+            raise WorkflowError(
+                f"Local temp-table inventory {domain_id} needs an absolute root."
+            )
+        platform_database = str(inventory.get("platform_database") or "")
+        if platform_database != "temp_table":
+            raise WorkflowError(
+                f"Local temp-table inventory {domain_id} must use platform_database=temp_table."
+            )
+        verification = inventory.get("verification") or {}
+        if (
+            verification.get("method") != "zero_row_resolution_probe"
+            or verification.get("status") != "success"
+            or not re.fullmatch(r"\d+", str(verification.get("query_id") or ""))
+        ):
+            raise WorkflowError(
+                f"Local temp-table inventory {domain_id} lacks successful live verification."
+            )
+        mappings = inventory.get("mappings")
+        if not isinstance(mappings, list) or not mappings:
+            raise WorkflowError(
+                f"Local temp-table inventory {domain_id} has no mappings."
+            )
+
+        local_names: set[str] = set()
+        platform_names: set[str] = set()
+        managed_family_ids: set[str] = set()
+        normalized_root = os.path.normcase(os.path.normpath(root))
+        for mapping in mappings:
+            local_filename = str(mapping.get("local_filename") or "")
+            local_key = local_filename.casefold()
+            if (
+                not local_filename
+                or Path(local_filename).name != local_filename
+                or Path(local_filename).suffix.casefold() != ".xlsx"
+            ):
+                raise WorkflowError(
+                    f"Invalid local temp-table filename in {domain_id}: {local_filename}"
+                )
+            if local_key in local_names:
+                raise WorkflowError(
+                    f"Duplicate local temp-table filename in {domain_id}: {local_filename}"
+                )
+            local_names.add(local_key)
+
+            platform_temp_table = str(mapping.get("platform_temp_table") or "")
+            platform_key = platform_temp_table.casefold()
+            if not re.fullmatch(r"dingxi01_[a-z0-9_]+", platform_temp_table):
+                raise WorkflowError(
+                    f"Invalid platform temp-table name in {domain_id}: {platform_temp_table}"
+                )
+            if platform_key in platform_names:
+                raise WorkflowError(
+                    f"Duplicate platform temp-table target in {domain_id}: "
+                    f"{platform_temp_table}"
+                )
+            platform_names.add(platform_key)
+            if mapping.get("mapping_status") != "live_verified_exact_name":
+                raise WorkflowError(
+                    f"Unverified local/platform mapping in {domain_id}: {local_filename}"
+                )
+
+            automation_scope = str(mapping.get("automation_scope") or "")
+            family_id = str(mapping.get("workflow_family_id") or "")
+            if automation_scope == "managed":
+                if not family_id or family_id not in families:
+                    raise WorkflowError(
+                        f"Managed mapping {local_filename} needs a valid workflow_family_id."
+                    )
+                family = families[family_id]
+                if family.get("domain") != domain_id:
+                    raise WorkflowError(
+                        f"Managed mapping {local_filename} crosses workflow domains."
+                    )
+                target_workbook = Path(str(family.get("target_workbook") or ""))
+                if target_workbook.name.casefold() != local_key:
+                    raise WorkflowError(
+                        f"Managed mapping filename drifts from family {family_id}."
+                    )
+                if (
+                    os.path.normcase(os.path.normpath(str(target_workbook.parent)))
+                    != normalized_root
+                ):
+                    raise WorkflowError(
+                        f"Managed mapping root drifts from family {family_id}."
+                    )
+                if family.get("platform_temp_table") != platform_temp_table:
+                    raise WorkflowError(
+                        f"Managed mapping target drifts from family {family_id}."
+                    )
+                if family_id in managed_family_ids:
+                    raise WorkflowError(
+                        f"Workflow family is mapped more than once: {family_id}"
+                    )
+                managed_family_ids.add(family_id)
+            elif automation_scope == "mapping_only":
+                if family_id:
+                    raise WorkflowError(
+                        f"Mapping-only workbook must not bind a workflow family: "
+                        f"{local_filename}"
+                    )
+                if not any(
+                    re.fullmatch(pattern, local_filename)
+                    for pattern in deferred_patterns
+                ):
+                    raise WorkflowError(
+                        f"Mapping-only workbook is not deferred from automation: "
+                        f"{local_filename}"
+                    )
+            else:
+                raise WorkflowError(
+                    f"Unsupported automation_scope for {local_filename}: "
+                    f"{automation_scope}"
+                )
+
+        expected_family_ids = {
+            str(family["id"])
+            for family in families.values()
+            if family.get("domain") == domain_id
+            and os.path.normcase(
+                os.path.normpath(
+                    str(Path(str(family.get("target_workbook") or "")).parent)
+                )
+            )
+            == normalized_root
+        }
+        if managed_family_ids != expected_family_ids:
+            raise WorkflowError(
+                f"Managed local temp-table mappings do not cover the workflow families "
+                f"for {domain_id}: expected={sorted(expected_family_ids)}, "
+                f"actual={sorted(managed_family_ids)}"
+            )
 
 
 def _validate_source_quality_config(
@@ -252,6 +456,32 @@ def _validate_source_quality_config(
 
 def family_map(registry: dict[str, Any]) -> dict[str, dict[str, Any]]:
     return {family["id"]: family for family in registry["families"]}
+
+
+def domain_map(registry: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    return dict(registry["domains"])
+
+
+def family_domain(
+    registry: dict[str, Any], family: dict[str, Any]
+) -> dict[str, Any]:
+    return domain_map(registry)[str(family["domain"])]
+
+
+def source_chat_id(registry: dict[str, Any], family: dict[str, Any]) -> str:
+    return str(
+        family.get("source_chat_id")
+        or family_domain(registry, family).get("chat", {}).get("expected_chat_id")
+        or ""
+    )
+
+
+def source_chat_name(registry: dict[str, Any], family: dict[str, Any]) -> str:
+    return str(
+        family.get("source_chat_name")
+        or family_domain(registry, family).get("chat", {}).get("name")
+        or ""
+    )
 
 
 def _command_argv(executable: str, args: list[str]) -> list[str]:
@@ -314,7 +544,7 @@ def source_kind(family: dict[str, Any]) -> str:
 def source_sender_id(registry: dict[str, Any], family: dict[str, Any]) -> str:
     return str(
         family.get("source_sender_open_id")
-        or registry.get("chat", {}).get("sender_open_id")
+        or family_domain(registry, family).get("default_sender_open_id")
         or ""
     )
 
@@ -322,7 +552,7 @@ def source_sender_id(registry: dict[str, Any], family: dict[str, Any]) -> str:
 def source_sender_name(registry: dict[str, Any], family: dict[str, Any]) -> str:
     return str(
         family.get("source_sender_name")
-        or registry.get("chat", {}).get("sender_name")
+        or family_domain(registry, family).get("default_sender_name")
         or ""
     )
 
@@ -380,6 +610,9 @@ def message_matches_family(
         message_kind = "file_attachment"
     if message_kind != source_kind(family):
         return False
+    expected_chat = source_chat_id(registry, family)
+    if expected_chat and message.get("chat_id") != expected_chat:
+        return False
     expected_sender = source_sender_id(registry, family)
     if expected_sender and message.get("sender_id") != expected_sender:
         return False
@@ -421,20 +654,74 @@ def _source_search_profiles(
     family_ids: list[str],
 ) -> list[dict[str, str]]:
     families = family_map(registry)
-    profiles: dict[tuple[str, str, str], dict[str, str]] = {}
+    profiles: dict[tuple[str, str, str, str], dict[str, str]] = {}
     for family_id in family_ids:
         family = families[family_id]
         sender_id = source_sender_id(registry, family)
         if not sender_id:
             raise WorkflowError(f"Source sender open_id is not configured for {family_id}.")
+        chat_id = source_chat_id(registry, family)
+        if not chat_id:
+            raise WorkflowError(f"Source chat id is not configured for {family_id}.")
         kind = source_kind(family)
         query = str(family.get("source_search_query") or "")
-        profiles[(sender_id, kind, query)] = {
+        profiles[(chat_id, sender_id, kind, query)] = {
+            "chat_id": chat_id,
+            "chat_name": source_chat_name(registry, family),
             "sender_id": sender_id,
             "source_kind": kind,
             "query": query,
         }
     return list(profiles.values())
+
+
+def list_chat_messages_bot(
+    cli: str,
+    chat_id: str,
+    *,
+    page_limit: int = 100,
+) -> list[dict[str, Any]]:
+    page_token = ""
+    seen_tokens: set[str] = set()
+    messages: list[dict[str, Any]] = []
+    for _ in range(page_limit):
+        command = [
+            "im",
+            "+chat-messages-list",
+            "--chat-id",
+            chat_id,
+            "--order",
+            "desc",
+            "--page-size",
+            "50",
+            "--no-reactions",
+            "--as",
+            "bot",
+            "--format",
+            "json",
+        ]
+        if page_token:
+            command.extend(["--page-token", page_token])
+        result = run_json_command(
+            cli,
+            command,
+            timeout=180,
+        )
+        data = result.get("data", {})
+        messages.extend(data.get("messages", []))
+        if not data.get("has_more"):
+            return messages
+        next_token = str(data.get("page_token") or "")
+        if not next_token or next_token in seen_tokens:
+            raise WorkflowError(
+                "Bot chat-message pagination returned an invalid page token "
+                f"for {chat_id}."
+            )
+        seen_tokens.add(next_token)
+        page_token = next_token
+    raise WorkflowError(
+        f"Bot chat-message pagination exceeded {page_limit} pages for {chat_id}."
+    )
 
 
 def discover_live_messages(
@@ -443,41 +730,22 @@ def discover_live_messages(
     family_ids: list[str] | None = None,
 ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     cli = resolve_lark_cli()
-    chat_cfg = registry["chat"]
-    expected_id = chat_cfg.get("expected_chat_id")
-    if expected_id:
-        chat = {"name": chat_cfg["name"], "chat_id": expected_id}
-    else:
-        search = run_json_command(
-            cli,
-            [
-                "im",
-                "+chat-search",
-                "--query",
-                chat_cfg["name"],
-                "--as",
-                "user",
-                "--page-size",
-                "20",
-                "--format",
-                "json",
-            ],
-            timeout=60,
-        )
-        chats = search.get("data", {}).get("chats", [])
-        exact = [item for item in chats if item.get("name") == chat_cfg["name"]]
-        if len(exact) != 1:
-            raise WorkflowError(f"Expected exactly one visible chat named {chat_cfg['name']}; found {len(exact)}.")
-        chat = exact[0]
     selected_family_ids = list(family_ids or registry["upload_order"])
+    profiles = _source_search_profiles(registry, selected_family_ids)
+    registered_chats = {
+        profile["chat_id"]: {
+            "chat_id": profile["chat_id"],
+            "name": profile["chat_name"],
+        }
+        for profile in profiles
+    }
     raw_messages: list[dict[str, Any]] = []
-    fallback_needed = False
-    for profile in _source_search_profiles(registry, selected_family_ids):
+    for profile in profiles:
         command = [
             "im",
             "+messages-search",
             "--chat-id",
-            chat["chat_id"],
+            profile["chat_id"],
             "--sender",
             profile["sender_id"],
         ]
@@ -501,33 +769,15 @@ def discover_live_messages(
             result = run_json_command(cli, command, timeout=120)
             items = list(result.get("data", {}).get("messages", []))
             raw_messages.extend(items)
-            fallback_needed = fallback_needed or not items
         except WorkflowError:
-            fallback_needed = True
-    if fallback_needed:
-        if not expected_id:
-            raise WorkflowError("Source message search failed and no fixed chat id is configured.")
-        result = run_json_command(
-            cli,
-            [
-                "im",
-                "+chat-messages-list",
-                "--chat-id",
-                chat["chat_id"],
-                "--order",
-                "desc",
-                "--page-size",
-                "50",
-                "--page-all",
-                "--no-reactions",
-                "--as",
-                "bot",
-                "--format",
-                "json",
-            ],
-            timeout=180,
-        )
-        raw_messages.extend(result.get("data", {}).get("messages", []))
+            items = []
+        if not items:
+            raw_messages.extend(
+                list_chat_messages_bot(
+                    cli,
+                    profile["chat_id"],
+                )
+            )
     explicit_message_ids = explicit_message_ids or set()
     if explicit_message_ids:
         exact = run_json_command(
@@ -552,14 +802,15 @@ def discover_live_messages(
         if message.get("message_id")
     }
     normalized = []
+    allowed_chat_ids = set(registered_chats)
     for message in unique_messages.values():
         item = normalize_source_message(message)
         if item is None or message.get("deleted"):
             continue
-        if item.get("chat_id") and item.get("chat_id") != chat["chat_id"]:
+        if item.get("chat_id") not in allowed_chat_ids:
             continue
         normalized.append(item)
-    return chat, normalized
+    return {"registered_chats": list(registered_chats.values())}, normalized
 
 
 def classify_messages(
@@ -628,11 +879,27 @@ def parse_datetime(value: str) -> datetime:
 def build_selection_spec(
     registry: dict[str, Any],
     family_ids: list[str] | None = None,
+    domains: list[str] | None = None,
     after: str | None = None,
     explicit_message_specs: list[str] | None = None,
 ) -> dict[str, Any]:
     known = family_map(registry)
-    requested = list(family_ids or registry["upload_order"])
+    requested_domains = list(domains or [])
+    unknown_domains = [
+        domain_id for domain_id in requested_domains if domain_id not in domain_map(registry)
+    ]
+    if unknown_domains:
+        raise WorkflowError(f"Unknown workflow domains: {unknown_domains}")
+    if family_ids:
+        requested = list(family_ids)
+    elif requested_domains:
+        requested = [
+            family_id
+            for family_id in registry["upload_order"]
+            if known[family_id]["domain"] in set(requested_domains)
+        ]
+    else:
+        requested = list(registry["upload_order"])
     if not requested:
         raise WorkflowError("At least one workbook family must be selected.")
     if len(requested) != len(set(requested)):
@@ -640,6 +907,15 @@ def build_selection_spec(
     unknown = [family_id for family_id in requested if family_id not in known]
     if unknown:
         raise WorkflowError(f"Unknown workbook family ids: {unknown}")
+    outside_domains = [
+        family_id
+        for family_id in requested
+        if requested_domains and known[family_id]["domain"] not in set(requested_domains)
+    ]
+    if outside_domains:
+        raise WorkflowError(
+            f"Selected families are outside --domain: {outside_domains}"
+        )
     requested_set = set(requested)
     ordered = [family_id for family_id in registry["upload_order"] if family_id in requested_set]
     explicit: dict[str, str] = {}
@@ -659,6 +935,7 @@ def build_selection_spec(
     after_iso = parse_datetime(after).isoformat() if after else None
     return {
         "family_ids": ordered,
+        "domains": sorted({known[family_id]["domain"] for family_id in ordered}),
         "after": after_iso,
         "explicit_message_ids": explicit,
         "selection_modes": {
@@ -779,6 +1056,17 @@ def transform_cell(value: Any, transforms: list[str]) -> Any:
         elif transform == "to_text":
             if transformed is not None:
                 transformed = str(transformed).strip()
+        elif transform == "normalize_datetime_text":
+            if isinstance(transformed, datetime):
+                transformed = transformed.strftime("%Y-%m-%d %H:%M:%S")
+            elif transformed is not None:
+                text = str(transformed).strip().replace("/", "-")
+                try:
+                    transformed = datetime.fromisoformat(text).strftime(
+                        "%Y-%m-%d %H:%M:%S"
+                    )
+                except ValueError:
+                    transformed = re.sub(r"\s+", " ", text).strip()
         else:
             raise WorkflowError(f"Unsupported source column transform: {transform}")
     return transformed
@@ -863,6 +1151,504 @@ def read_records(
         return records, metadata
     finally:
         workbook.close()
+
+
+def _copy_records(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return [dict(record) for record in records]
+
+
+def _deduplicate_exact_records(
+    records: list[dict[str, Any]], columns: list[str]
+) -> tuple[list[dict[str, Any]], int]:
+    seen: set[tuple[Any, ...]] = set()
+    output = []
+    removed = 0
+    for record in records:
+        key = normalized_record(record, columns)
+        if key in seen:
+            removed += 1
+            continue
+        seen.add(key)
+        output.append(dict(record))
+    return output, removed
+
+
+def _source_scope_matches(record: dict[str, Any], family: dict[str, Any]) -> bool:
+    scope = family.get("source_scope")
+    if not scope:
+        return True
+    value = _text(record.get(scope["column"]))
+    if "equals" in scope:
+        return value == _text(scope["equals"])
+    if "allowed_values" in scope:
+        return value in {_text(item) for item in scope["allowed_values"]}
+    raise WorkflowError(
+        f"Unsupported source_scope for {family['id']}: {scope}"
+    )
+
+
+def _fill_from_reference_mapping(
+    records: list[dict[str, Any]],
+    reference_records: list[dict[str, Any]],
+    transform: dict[str, Any],
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    column = str(transform["column"])
+    key_columns = list(transform["key_columns"])
+    mapping: dict[tuple[str, ...], set[str]] = defaultdict(set)
+    for record in [*reference_records, *records]:
+        value = _text(record.get(column))
+        if not value:
+            continue
+        key = tuple(_text(record.get(key_column)) for key_column in key_columns)
+        if all(key):
+            mapping[key].add(value)
+    ambiguous = {
+        key: sorted(values)
+        for key, values in mapping.items()
+        if len(values) > 1
+    }
+    output = _copy_records(records)
+    filled = 0
+    unresolved = []
+    for row_number, record in enumerate(output, start=2):
+        if _text(record.get(column)):
+            continue
+        key = tuple(_text(record.get(key_column)) for key_column in key_columns)
+        values = mapping.get(key, set())
+        if len(values) == 1:
+            record[column] = next(iter(values))
+            filled += 1
+        else:
+            unresolved.append(
+                {
+                    "row": row_number,
+                    "key": list(key),
+                    "candidate_count": len(values),
+                }
+            )
+    if ambiguous and transform.get("block_ambiguous_keys", True):
+        used_ambiguous = [
+            {
+                "key": list(key),
+                "values": values,
+            }
+            for key, values in ambiguous.items()
+            if any(
+                not _text(record.get(column))
+                and tuple(_text(record.get(item)) for item in key_columns) == key
+                for record in records
+            )
+        ]
+        if used_ambiguous:
+            raise WorkflowError(
+                f"Ambiguous reference mapping for {column}: {used_ambiguous[:20]}"
+            )
+    if unresolved:
+        raise WorkflowError(
+            f"Cannot fill required source column {column}: {unresolved[:20]}"
+        )
+    return output, {
+        "type": "fill_from_reference_mapping",
+        "column": column,
+        "key_columns": key_columns,
+        "filled": filled,
+    }
+
+
+def _qici_date(value: Any) -> datetime:
+    text = _text(value)
+    if not re.fullmatch(r"\d{8}期", text):
+        raise WorkflowError(f"Cannot order non-standard qici value: {text!r}")
+    return datetime.strptime(text[:8], "%Y%m%d")
+
+
+def _mode_value(values: Iterable[Any]) -> Any | None:
+    counts = Counter(value for value in values if _text(value))
+    if not counts:
+        return None
+    maximum = max(counts.values())
+    return sorted(
+        (value for value, count in counts.items() if count == maximum),
+        key=lambda value: _text(value),
+    )[0]
+
+
+def _fill_market_evaluation_grade(
+    records: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    output = _copy_records(records)
+    filled = 0
+    unresolved = []
+    for row_number, record in enumerate(output, start=2):
+        if _text(record.get("grade")):
+            continue
+        candidates = [
+            candidate
+            for candidate in output
+            if _text(candidate.get("grade"))
+            and _text(candidate.get("employee_email_name"))
+            == _text(record.get("employee_email_name"))
+            and _text(candidate.get("channel")) == _text(record.get("channel"))
+        ]
+        if candidates:
+            candidates.sort(
+                key=lambda candidate: (
+                    abs(
+                        (
+                            _qici_date(candidate.get("qici"))
+                            - _qici_date(record.get("qici"))
+                        ).days
+                    ),
+                    _text(candidate.get("qici")),
+                    _text(candidate.get("grade")),
+                )
+            )
+            value = candidates[0].get("grade")
+        else:
+            value = _mode_value(
+                candidate.get("grade")
+                for candidate in output
+                if _text(candidate.get("qici")) == _text(record.get("qici"))
+                and _text(candidate.get("department"))
+                == _text(record.get("department"))
+                and _text(candidate.get("channel"))
+                == _text(record.get("channel"))
+            )
+        if value is None:
+            unresolved.append({"row": row_number})
+            continue
+        record["grade"] = value
+        filled += 1
+    if unresolved:
+        raise WorkflowError(
+            "Cannot fill market evaluation grade with registered evidence: "
+            f"{unresolved[:20]}"
+        )
+    return output, {
+        "type": "fill_market_evaluation_grade",
+        "filled": filled,
+    }
+
+
+def _resequence_market_x_qi_count(
+    records: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    output = _copy_records(records)
+    original_is_nine = {
+        id(record): _text(record.get("x_qi_count")) == "9"
+        for record in output
+    }
+    grouped: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for record in output:
+        grouped[_text(record.get("employee_email_name"))].append(record)
+    changes = 0
+    for employee_records in grouped.values():
+        eligible = [
+            record
+            for record in employee_records
+            if not original_is_nine[id(record)]
+        ]
+        eligible.sort(
+            key=lambda record: (
+                _text(record.get("qici")),
+                _text(record.get("channel")),
+                _text(record.get("grade")),
+            )
+        )
+        for index, record in enumerate(eligible, start=1):
+            new_value = index if index <= 4 else 9
+            if _text(record.get("x_qi_count")) != str(new_value):
+                changes += 1
+            record["x_qi_count"] = new_value
+        for record in employee_records:
+            if original_is_nine[id(record)]:
+                record["x_qi_count"] = 9
+    return output, {
+        "type": "resequence_market_x_qi_count",
+        "changed_cells": changes,
+    }
+
+
+def transform_source_records(
+    family: dict[str, Any],
+    source_records: list[dict[str, Any]],
+    target_records: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], dict[str, Any]]:
+    scoped = [
+        dict(record)
+        for record in source_records
+        if _source_scope_matches(record, family)
+    ]
+    snapshot_records = _copy_records(scoped)
+    output = _copy_records(scoped)
+    audit: list[dict[str, Any]] = []
+    for transform in family.get("source_record_transforms", []):
+        transform_type = transform["type"]
+        if transform_type == "deduplicate_exact":
+            before = len(output)
+            output, removed = _deduplicate_exact_records(
+                output, family["target_columns"]
+            )
+            audit.append(
+                {
+                    "type": transform_type,
+                    "before": before,
+                    "after": len(output),
+                    "removed": removed,
+                }
+            )
+        elif transform_type == "lowercase_columns":
+            columns = list(transform["columns"])
+            changed = 0
+            for record in output:
+                for column in columns:
+                    value = record.get(column)
+                    if isinstance(value, str) and value != value.lower():
+                        record[column] = value.lower()
+                        changed += 1
+            audit.append(
+                {
+                    "type": transform_type,
+                    "columns": columns,
+                    "changed_cells": changed,
+                }
+            )
+        elif transform_type == "fill_from_reference_mapping":
+            output, details = _fill_from_reference_mapping(
+                output, target_records, transform
+            )
+            audit.append(details)
+        elif transform_type == "fill_market_evaluation_grade":
+            output, details = _fill_market_evaluation_grade(output)
+            audit.append(details)
+        elif transform_type == "resequence_market_x_qi_count":
+            output, details = _resequence_market_x_qi_count(output)
+            audit.append(details)
+        else:
+            raise WorkflowError(
+                f"Unsupported source record transform for {family['id']}: "
+                f"{transform_type}"
+            )
+    return output, snapshot_records, {
+        "source_rows_before_scope": len(source_records),
+        "source_rows_after_scope": len(scoped),
+        "transforms": audit,
+    }
+
+
+def source_slice_snapshot(
+    family: dict[str, Any],
+    records: list[dict[str, Any]],
+) -> dict[str, Any]:
+    slice_column = family["slice_column"]
+    columns = family["target_columns"]
+    grouped: dict[str, list[tuple[Any, ...]]] = defaultdict(list)
+    for record in records:
+        grouped[_text(record.get(slice_column))].append(
+            normalized_record(record, columns)
+        )
+    slices = {}
+    for slice_value, rows in sorted(
+        grouped.items(), key=lambda item: slice_sort_key(item[0])
+    ):
+        rows.sort(key=repr)
+        payload = json.dumps(
+            rows,
+            ensure_ascii=True,
+            separators=(",", ":"),
+            default=str,
+        ).encode("utf-8")
+        slices[slice_value] = {
+            "row_count": len(rows),
+            "sha256": hashlib.sha256(payload).hexdigest(),
+        }
+    return {"slices": slices, "row_count": len(records)}
+
+
+def _load_source_baselines(
+    seed_path: Path,
+    state_path: Path,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    if not seed_path.is_file():
+        raise WorkflowError(f"Source baseline seed does not exist: {seed_path}")
+    seed = json.loads(seed_path.read_text(encoding="utf-8"))
+    if not isinstance(seed.get("families"), dict):
+        raise WorkflowError("Source baseline seed has no families object.")
+    if state_path.is_file():
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+        if not isinstance(state.get("families"), dict):
+            raise WorkflowError("Source baseline state has no families object.")
+        selected = state
+        selected_kind = "runtime_state"
+        selected_path = state_path
+    else:
+        selected = seed
+        selected_kind = "seed"
+        selected_path = seed_path
+    return selected, {
+        "kind": selected_kind,
+        "path": str(selected_path.resolve()),
+        "sha256": sha256_file(selected_path),
+        "seed_path": str(seed_path.resolve()),
+        "seed_sha256": sha256_file(seed_path),
+        "state_path": str(state_path.resolve()),
+        "state_sha256": sha256_file(state_path) if state_path.is_file() else None,
+    }
+
+
+def assert_source_baseline_state_current(plan: dict[str, Any]) -> None:
+    context = plan.get("source_baseline_context") or {}
+    state_path_value = context.get("state_path")
+    if not state_path_value:
+        return
+    state_path = Path(state_path_value)
+    current_sha256 = sha256_file(state_path) if state_path.is_file() else None
+    if current_sha256 != context.get("state_sha256"):
+        raise WorkflowError(
+            "Source baseline state drifted after planning; create a fresh plan."
+        )
+
+
+def _write_json_atomic(path: Path, value: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(f".{path.name}.{os.getpid()}.tmp")
+    temporary.write_text(
+        json.dumps(value, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    os.replace(temporary, path)
+
+
+def update_source_baseline_state(
+    plan: dict[str, Any],
+    uploaded_tables: list[dict[str, Any]],
+) -> dict[str, Any] | None:
+    eligible = [
+        table
+        for table in uploaded_tables
+        if table.get("source_slice_snapshot")
+        and table.get("source_selection", {}).get("mode")
+        == "changed_source_slices"
+    ]
+    if not eligible:
+        return None
+    context = plan["source_baseline_context"]
+    state_path = Path(context["state_path"])
+    seed_path = Path(context["seed_path"])
+    if state_path.is_file():
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+    else:
+        state = json.loads(seed_path.read_text(encoding="utf-8"))
+    families = state.setdefault("families", {})
+    for table in eligible:
+        baseline_id = table["source_selection"]["baseline_id"]
+        families[baseline_id] = {
+            "message_id": table["source_message"]["message_id"],
+            "create_time": table["source_message"]["create_time"],
+            "source_sha256": table["source_message"]["source_sha256"],
+            **table["source_slice_snapshot"],
+        }
+    state["schema_version"] = "1.0.0"
+    state["updated_at"] = datetime.now().astimezone().isoformat(
+        timespec="seconds"
+    )
+    _write_json_atomic(state_path, state)
+    return {
+        "path": str(state_path),
+        "sha256": sha256_file(state_path),
+        "updated_family_ids": [
+            table["family_id"] for table in eligible
+        ],
+    }
+
+
+def select_source_records_for_merge(
+    family: dict[str, Any],
+    transformed_records: list[dict[str, Any]],
+    snapshot: dict[str, Any],
+    baselines: dict[str, Any],
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    mode = family.get("source_merge_mode", "all_source_slices")
+    current_slices = snapshot["slices"]
+    if mode in {"all_source_slices", "full_source_replace"}:
+        selected = sorted(current_slices, key=slice_sort_key)
+        return _copy_records(transformed_records), {
+            "mode": mode,
+            "selected_slices": selected,
+            "changed_slices": selected,
+            "added_slices": [],
+            "removed_slices": [],
+        }
+    baseline_id = family["source_baseline_id"]
+    baseline = baselines.get("families", {}).get(baseline_id)
+    if not baseline or not isinstance(baseline.get("slices"), dict):
+        raise WorkflowError(
+            f"Source slice baseline is missing for {family['id']}: {baseline_id}"
+        )
+    baseline_slices = baseline["slices"]
+    removed = sorted(
+        set(baseline_slices) - set(current_slices), key=slice_sort_key
+    )
+    if removed:
+        raise WorkflowError(
+            f"Cumulative source removed registered slices for {family['id']}: {removed}"
+        )
+    added = sorted(
+        set(current_slices) - set(baseline_slices), key=slice_sort_key
+    )
+    changed = sorted(
+        (
+            slice_value
+            for slice_value in set(current_slices) & set(baseline_slices)
+            if current_slices[slice_value].get("sha256")
+            != baseline_slices[slice_value].get("sha256")
+        ),
+        key=slice_sort_key,
+    )
+    bootstrap = [
+        value
+        for value in family.get("bootstrap_slices", [])
+        if baseline.get("bootstrap_pending") is True
+        and value in current_slices
+    ]
+    selected = sorted(set(added + changed + bootstrap), key=slice_sort_key)
+    maximum = int(family["max_changed_slices"])
+    if len(selected) > maximum:
+        raise WorkflowError(
+            f"Source changed too many slices for {family['id']}: "
+            f"{len(selected)} > {maximum}; slices={selected}"
+        )
+    window = int(family.get("recent_slice_window") or 4)
+    recent = set(sorted(current_slices, key=slice_sort_key)[-window:])
+    reviewed_historical = set(family.get("reviewed_historical_slices", []))
+    unreviewed_historical = [
+        value
+        for value in selected
+        if value not in recent
+        and value not in reviewed_historical
+    ]
+    if unreviewed_historical:
+        raise WorkflowError(
+            f"Source changed unreviewed historical slices for {family['id']}: "
+            f"{unreviewed_historical}"
+        )
+    selected_set = set(selected)
+    records = [
+        dict(record)
+        for record in transformed_records
+        if _text(record.get(family["slice_column"])) in selected_set
+    ]
+    return records, {
+        "mode": mode,
+        "baseline_id": baseline_id,
+        "baseline_message_id": baseline.get("message_id"),
+        "selected_slices": selected,
+        "changed_slices": changed,
+        "added_slices": added,
+        "bootstrap_slices": sorted(set(bootstrap), key=slice_sort_key),
+        "removed_slices": removed,
+        "recent_slice_window": window,
+    }
 
 
 def _text(value: Any) -> str:
@@ -968,6 +1754,67 @@ def validate_source_records(
                 for index, record in enumerate(records, start=2)
                 if not sheet or not _text(record.get(rule["column"])).endswith(sheet)
             ]
+        elif rule_type == "formula_count_max":
+            formula_count = int((source_metadata or {}).get("formula_count") or 0)
+            invalid = (
+                [{"formula_count": formula_count, "max": int(rule["max"])}]
+                if formula_count > int(rule["max"])
+                else []
+            )
+        elif rule_type == "numeric_nonnegative":
+            invalid = []
+            for index, record in enumerate(records, start=2):
+                value = record.get(rule["column"])
+                try:
+                    numeric = float(value)
+                except (TypeError, ValueError):
+                    invalid.append({"row": index, "value": _text(value)})
+                    continue
+                if numeric < 0:
+                    invalid.append({"row": index, "value": _text(value)})
+        elif rule_type == "group_name_qici_prefix":
+            invalid = []
+            prefix_pattern = re.compile(r"^(?P<qici>\d{4}期)-")
+            for index, record in enumerate(records, start=2):
+                group_name = _text(record.get(rule["name_column"]))
+                matched = prefix_pattern.match(group_name)
+                if (
+                    matched
+                    and matched.group("qici")
+                    != _text(record.get(rule["qici_column"]))
+                ):
+                    invalid.append(
+                        {
+                            "row": index,
+                            "qici": _text(
+                                record.get(rule["qici_column"])
+                            ),
+                            "group_name": group_name,
+                        }
+                    )
+        elif rule_type == "market_x_qi_sequence":
+            allowed = {"1", "2", "3", "4", "9"}
+            invalid = []
+            seen_active: dict[tuple[str, str], list[int]] = defaultdict(list)
+            for index, record in enumerate(records, start=2):
+                employee = _text(record.get("employee_email_name"))
+                value = _text(record.get("x_qi_count"))
+                if value not in allowed:
+                    invalid.append(
+                        {"row": index, "value": value, "reason": "invalid_value"}
+                    )
+                elif value != "9":
+                    seen_active[(employee, value)].append(index)
+            invalid.extend(
+                {
+                    "employee_email_name": employee,
+                    "x_qi_count": value,
+                    "rows": rows,
+                    "reason": "duplicate_active_sequence",
+                }
+                for (employee, value), rows in seen_active.items()
+                if len(rows) > 1
+            )
         else:
             invalid = [{"rule": rule_type}]
         if invalid:
@@ -1002,6 +1849,7 @@ def evaluate_source_quality(
     source_records: list[dict[str, Any]],
     target_records: list[dict[str, Any]],
     *,
+    relative_source_records: list[dict[str, Any]] | None = None,
     now: datetime | None = None,
 ) -> dict[str, Any]:
     quality = family.get("source_quality")
@@ -1088,8 +1936,13 @@ def evaluate_source_quality(
             )
 
     slice_column = family["slice_column"]
+    relative_records = (
+        source_records
+        if relative_source_records is None
+        else relative_source_records
+    )
     source_by_slice: dict[str, int] = Counter(
-        _text(record.get(slice_column)) for record in source_records
+        _text(record.get(slice_column)) for record in relative_records
     )
     scoped_target_records = [
         record for record in target_records if scope_matches(record, family)
@@ -1224,6 +2077,23 @@ def merge_records(
         raise WorkflowError("Formula and effective record streams are not aligned.")
     slice_column = family["slice_column"]
     columns = family["target_columns"]
+    if (
+        not source_effective
+        and family.get("source_merge_mode") != "full_source_replace"
+    ):
+        return _copy_records(target_write), _copy_records(target_effective), {
+            "changed": False,
+            "slice_column": slice_column,
+            "source_slices": [],
+            "new_slices": [],
+            "replaced_slices": [],
+            "unchanged_slices": [],
+            "deleted_slices": [],
+            "target_rows_before": len(target_effective),
+            "source_rows": 0,
+            "scoped_rows_removed": 0,
+            "target_rows_after": len(target_effective),
+        }
     target_by_slice: dict[str, list[tuple[dict[str, Any], dict[str, Any]]]] = defaultdict(list)
     source_by_slice: dict[str, list[tuple[dict[str, Any], dict[str, Any]]]] = defaultdict(list)
     for write_record, effective_record in zip(target_write, target_effective):
@@ -1242,12 +2112,29 @@ def merge_records(
     new_slices = []
     replaced_slices = []
     unchanged_slices = []
+    deleted_slices = []
     removed_rows = 0
+    replace_full_scope = (
+        family.get("source_merge_mode") == "full_source_replace"
+    )
     for slice_value in all_slices:
         target_pairs = target_by_slice.get(slice_value, [])
         source_pairs = source_by_slice.get(slice_value)
         if source_pairs is None:
-            output_pairs = target_pairs
+            if replace_full_scope:
+                scoped_target = [
+                    pair for pair in target_pairs if scope_matches(pair[1], family)
+                ]
+                output_pairs = [
+                    pair
+                    for pair in target_pairs
+                    if not scope_matches(pair[1], family)
+                ]
+                removed_rows += len(scoped_target)
+                if scoped_target:
+                    deleted_slices.append(slice_value)
+            else:
+                output_pairs = target_pairs
         else:
             scoped_target = [pair for pair in target_pairs if scope_matches(pair[1], family)]
             preserved_target = [pair for pair in target_pairs if not scope_matches(pair[1], family)]
@@ -1273,6 +2160,7 @@ def merge_records(
         "new_slices": new_slices,
         "replaced_slices": replaced_slices,
         "unchanged_slices": unchanged_slices,
+        "deleted_slices": deleted_slices,
         "target_rows_before": len(target_effective),
         "source_rows": len(source_effective),
         "scoped_rows_removed": removed_rows,
@@ -1564,11 +2452,32 @@ def validation_regressions(before: dict[str, Any], after: dict[str, Any]) -> lis
 
 
 def plan_sync(args: argparse.Namespace) -> int:
-    registry_path = args.registry.resolve()
+    registry_path = Path(
+        getattr(args, "registry", DEFAULT_REGISTRY)
+    ).resolve()
     registry = load_registry(registry_path)
+    baseline_seed_path = Path(
+        getattr(
+            args,
+            "source_baseline_seed",
+            DEFAULT_SOURCE_BASELINE_SEED,
+        )
+    ).resolve()
+    baseline_state_path = Path(
+        getattr(
+            args,
+            "source_baseline_state",
+            DEFAULT_SOURCE_BASELINE_STATE,
+        )
+    ).resolve()
+    source_baselines, source_baseline_context = _load_source_baselines(
+        baseline_seed_path,
+        baseline_state_path,
+    )
     selection = build_selection_spec(
         registry,
         family_ids=args.family,
+        domains=getattr(args, "domain", None),
         after=args.after,
         explicit_message_specs=args.message_id,
     )
@@ -1620,9 +2529,6 @@ def plan_sync(args: argparse.Namespace) -> int:
             )
             if family.get("materialize_source_values"):
                 source_write = [dict(record) for record in source_effective]
-            source_issues = validate_source_records(family, source_effective, source_meta)
-            if source_issues:
-                raise WorkflowError(f"Source validation failed: {source_issues}")
             target_write, target_meta = read_records(
                 target_path,
                 family["target_sheet"],
@@ -1635,11 +2541,71 @@ def plan_sync(args: argparse.Namespace) -> int:
                 family["target_columns"],
                 data_only=True,
             )
+            requires_materialized_transform = bool(
+                family.get("source_scope")
+                or family.get("source_record_transforms")
+            )
+            if requires_materialized_transform:
+                transformed_effective, snapshot_records, transform_audit = (
+                    transform_source_records(
+                        family,
+                        source_effective,
+                        target_effective,
+                    )
+                )
+                transformed_write = _copy_records(transformed_effective)
+            else:
+                transformed_write = source_write
+                transformed_effective = source_effective
+                snapshot_records = _copy_records(source_effective)
+                transform_audit = {
+                    "source_rows_before_scope": len(source_effective),
+                    "source_rows_after_scope": len(source_effective),
+                    "transforms": [],
+                }
+            snapshot = source_slice_snapshot(family, snapshot_records)
+            selected_effective, source_selection = (
+                select_source_records_for_merge(
+                    family,
+                    transformed_effective,
+                    snapshot,
+                    source_baselines,
+                )
+            )
+            selected_slice_values = set(source_selection["selected_slices"])
+            selected_write = [
+                dict(record)
+                for record in transformed_write
+                if _text(record.get(family["slice_column"]))
+                in selected_slice_values
+            ]
+            if len(selected_write) != len(selected_effective):
+                raise WorkflowError(
+                    f"Selected source streams are not aligned: {family_id}"
+                )
+            validation_records = transformed_effective
+            if (
+                family.get("source_merge_mode")
+                == "changed_source_slices"
+            ):
+                validation_records = selected_effective
+            source_issues = (
+                validate_source_records(
+                    family,
+                    validation_records,
+                    source_meta,
+                )
+                if validation_records
+                else []
+            )
+            if source_issues:
+                raise WorkflowError(f"Source validation failed: {source_issues}")
             source_quality = evaluate_source_quality(
                 family,
                 message,
-                source_effective,
+                transformed_effective,
                 target_effective,
+                relative_source_records=selected_effective,
             )
             if (
                 registry.get("require_source_quality_gates")
@@ -1649,8 +2615,27 @@ def plan_sync(args: argparse.Namespace) -> int:
                     f"Source quality gate blocked {family_id}: {source_quality['issues']}"
                 )
             merged_write, merged_effective, diff = merge_records(
-                family, target_write, target_effective, source_write, source_effective
+                family,
+                target_write,
+                target_effective,
+                selected_write,
+                selected_effective,
             )
+            candidate_record_issues = []
+            if family.get("validate_candidate_records"):
+                candidate_record_issues = validate_source_records(
+                    family,
+                    merged_effective,
+                    {
+                        "sheet": family["target_sheet"],
+                        "formula_count": count_formula_values(merged_write),
+                    },
+                )
+                if candidate_record_issues:
+                    raise WorkflowError(
+                        f"Candidate record validation failed: "
+                        f"{candidate_record_issues}"
+                    )
             before_validation = operator_validation(target_path, target_path)
             stage_path = None
             stage_meta = None
@@ -1680,6 +2665,9 @@ def plan_sync(args: argparse.Namespace) -> int:
                     "business_name": family["business_name"],
                     "source_message": message,
                     "source_metadata": source_meta,
+                    "source_transform_audit": transform_audit,
+                    "source_slice_snapshot": snapshot,
+                    "source_selection": source_selection,
                     "source_validation": {"ok": True, "issues": []},
                     "source_quality": source_quality,
                     "target_path": str(target_path),
@@ -1693,6 +2681,10 @@ def plan_sync(args: argparse.Namespace) -> int:
                     "validation_before": before_validation,
                     "validation_after": after_validation,
                     "validation_regressions": regressions,
+                    "candidate_record_validation": {
+                        "ok": not candidate_record_issues,
+                        "issues": candidate_record_issues,
+                    },
                     "allow_baseline_target_errors": bool(family.get("allow_baseline_target_errors")),
                 }
             )
@@ -1707,18 +2699,21 @@ def plan_sync(args: argparse.Namespace) -> int:
             blockers.append(blocker)
     plan = {
         "schema_version": "1.1.0",
-        "artifact_type": "QingchengTempTableSyncPlan",
+        "artifact_type": "GovernedDepartmentTempTableSyncPlan",
         "generated_at": datetime.now().astimezone().isoformat(timespec="seconds"),
         "status": "ready" if not blockers and len(tables) == len(selection["family_ids"]) else "blocked",
         "registry_path": str(registry_path),
         "registry_sha256": sha256_file(registry_path),
+        "source_baseline_context": source_baseline_context,
         "runtime_dir": str(run_dir),
-        "chat": {
-            "name": chat.get("name"),
-            "chat_id": chat.get("chat_id"),
+        "source_context": {
+            "registered_chats": chat.get("registered_chats", []),
             "registered_sources": [
                 {
                     "family_id": family_id,
+                    "domain": families[family_id]["domain"],
+                    "chat_name": source_chat_name(registry, families[family_id]),
+                    "chat_id": source_chat_id(registry, families[family_id]),
                     "source_kind": source_kind(families[family_id]),
                     "sender_name": source_sender_name(registry, families[family_id]),
                     "sender_open_id": source_sender_id(registry, families[family_id]),
@@ -1747,9 +2742,12 @@ def plan_sync(args: argparse.Namespace) -> int:
         "tables": [
             {
                 "family_id": table["family_id"],
+                "domain": families[table["family_id"]]["domain"],
                 "source_file": table["source_message"]["file_name"],
                 "source_time": table["source_message"]["create_time"],
                 "source_quality": table["source_quality"],
+                "source_selection": table["source_selection"],
+                "source_transform_audit": table["source_transform_audit"],
                 "target_path": table["target_path"],
                 "platform_temp_table": table["platform_temp_table"],
                 "diff": table["diff"],
@@ -1770,6 +2768,7 @@ def apply_local(args: argparse.Namespace) -> int:
     registry_path = Path(plan["registry_path"])
     if not registry_path.exists() or sha256_file(registry_path) != plan["registry_sha256"]:
         raise WorkflowError("Workflow registry drifted after planning.")
+    assert_source_baseline_state_current(plan)
     registry = load_registry(registry_path)
     assert_plan_source_quality_current(plan, registry)
     selection = plan.get("selection") or build_selection_spec(registry)
@@ -1892,7 +2891,7 @@ def apply_local(args: argparse.Namespace) -> int:
         )
         failure_receipt = {
             "schema_version": "1.0.0",
-            "artifact_type": "QingchengTempTableLocalApplyFailureReceipt",
+            "artifact_type": "GovernedDepartmentTempTableLocalApplyFailureReceipt",
             "created_at": datetime.now().astimezone().isoformat(
                 timespec="seconds"
             ),
@@ -1930,7 +2929,7 @@ def apply_local(args: argparse.Namespace) -> int:
         ) from exc
     receipt = {
         "schema_version": "1.0.0",
-        "artifact_type": "QingchengTempTableLocalApplyReceipt",
+        "artifact_type": "GovernedDepartmentTempTableLocalApplyReceipt",
         "created_at": datetime.now().astimezone().isoformat(timespec="seconds"),
         "status": "success" if changed_tables else "success_no_local_changes",
         "plan_path": str(args.plan.resolve()),
@@ -1978,6 +2977,7 @@ def upload_production(args: argparse.Namespace) -> int:
     registry_path = Path(plan["registry_path"])
     if sha256_file(registry_path) != plan["registry_sha256"]:
         raise WorkflowError("Workflow registry drifted after planning.")
+    assert_source_baseline_state_current(plan)
     registry = load_registry(registry_path)
     assert_plan_source_quality_current(plan, registry)
     selection = plan.get("selection") or build_selection_spec(registry)
@@ -1998,9 +2998,27 @@ def upload_production(args: argparse.Namespace) -> int:
             raise WorkflowError(f"Local target drifted after apply: {target}")
     uploads = []
     failed = None
+    accepted_baseline_tables = []
+    processed_family_ids = []
     selected_order = selection["family_ids"]
     for family_id in selected_order:
         table = tables_by_id[family_id]
+        if not table["diff"]["changed"]:
+            uploads.append(
+                {
+                    "family_id": family_id,
+                    "target_path": table["target_path"],
+                    "platform_temp_table": table["platform_temp_table"],
+                    "ok": True,
+                    "status": "accepted_no_upload",
+                    "import_history_row": None,
+                    "validation_result": table["validation_after"],
+                    "elapsed_seconds": 0,
+                }
+            )
+            accepted_baseline_tables.append(table)
+            processed_family_ids.append(family_id)
+            continue
         command = [
             str(OPERATOR_SCRIPT),
             "upload-temp-table",
@@ -2019,6 +3037,11 @@ def upload_production(args: argparse.Namespace) -> int:
             command.append("--strict-validation")
         try:
             result = run_json_command(sys.executable, command, cwd=OPERATOR_ROOT, timeout=args.timeout_seconds)
+            if not result.get("ok"):
+                raise WorkflowError(
+                    f"Operator upload did not succeed for {family_id}: "
+                    f"{result.get('status')}"
+                )
             uploads.append(
                 {
                     "family_id": family_id,
@@ -2031,19 +3054,31 @@ def upload_production(args: argparse.Namespace) -> int:
                     "elapsed_seconds": result.get("elapsed_seconds"),
                 }
             )
+            accepted_baseline_tables.append(table)
+            processed_family_ids.append(family_id)
         except Exception as exc:  # noqa: BLE001
             failed = {"family_id": family_id, "message": str(exc), "error_type": type(exc).__name__}
             break
+    baseline_update = update_source_baseline_state(
+        plan,
+        accepted_baseline_tables,
+    )
+    pending_families = [
+        family_id
+        for family_id in selected_order
+        if family_id not in set(processed_family_ids)
+    ]
     upload_receipt = {
         "schema_version": "1.0.0",
-        "artifact_type": "QingchengTempTableUploadReceipt",
+        "artifact_type": "GovernedDepartmentTempTableUploadReceipt",
         "created_at": datetime.now().astimezone().isoformat(timespec="seconds"),
         "status": "success" if failed is None and len(uploads) == len(selected_order) else "partial_failure",
         "local_receipt_path": str(args.local_receipt.resolve()),
         "local_receipt_sha256": receipt["receipt_sha256"],
         "uploads": uploads,
+        "source_baseline_update": baseline_update,
         "failure": failed,
-        "pending_families": selected_order[len(uploads) :] if failed else [],
+        "pending_families": pending_families if failed else [],
     }
     upload_receipt_path = Path(plan["runtime_dir"]) / "upload_receipt.json"
     upload_sha = write_artifact(upload_receipt_path, upload_receipt, "receipt_sha256")
@@ -2061,16 +3096,36 @@ def upload_production(args: argparse.Namespace) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Plan and execute the Qingcheng Feishu-to-temp-table workflow.")
+    parser = argparse.ArgumentParser(
+        description=(
+            "Plan and execute the governed Qingcheng and market-consultant "
+            "Feishu-to-temp-table workflow."
+        )
+    )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     plan = subparsers.add_parser("plan", help="Discover and download current group files, then build a local dry-run plan.")
     plan.add_argument("--registry", type=Path, default=DEFAULT_REGISTRY)
     plan.add_argument("--runtime-root", type=Path, default=DEFAULT_RUNTIME_ROOT)
     plan.add_argument(
+        "--source-baseline-seed",
+        type=Path,
+        default=DEFAULT_SOURCE_BASELINE_SEED,
+    )
+    plan.add_argument(
+        "--source-baseline-state",
+        type=Path,
+        default=DEFAULT_SOURCE_BASELINE_STATE,
+    )
+    plan.add_argument(
         "--family",
         action="append",
         help="Limit the plan to a registered workbook family id; repeat for multiple families.",
+    )
+    plan.add_argument(
+        "--domain",
+        action="append",
+        help="Limit the plan to a registered domain id; repeat for multiple domains.",
     )
     plan.add_argument(
         "--after",

@@ -57,7 +57,7 @@ Auto-detect the smallest sufficient Skill set from the request and current artif
 ### Files, Documents, and Feishu
 
 - Select the spreadsheet Skill for `.xlsx`, `.xlsm`, `.csv`, or `.tsv` work, spreadsheet exports, formatting, formulas, recalculation, and tabular deliverables. It does not generate or execute SQL.
-- Select `sync-qingcheng-temp-tables` for the six registered Qingcheng/shared-maintenance workbook families sourced from the “青橙数据对接” group, including read-only comparison, confirmed local slice upsert, or separately confirmed overwrite upload to existing USQL temp tables. It owns source identity, workbook mapping, upload order, source-quality gates, local backup/rollback, and upload receipts; do not route these workbook structures through either business SQL Skill.
+- Select `sync-qingcheng-market-temp-tables` for the twelve registered Qingcheng and market-consultant workbook families sourced from the exact “青橙数据对接” and “市场顾问部临时表上传” groups. It owns source identity, per-group routing, workbook mapping, changed-source-slice baselines, deterministic file repairs, upload order, source-quality gates, local backup/rollback, and upload receipts. Do not route these workbook structures through either business SQL Skill.
 - Use native visual inspection for images/screenshots and the matching PDF/Office Skill for document files.
 - For Feishu/Lark, use the most specific `lark-*` Skill. Use `lark-shared` first for CLI setup, login/status, user-vs-bot identity, missing scopes, or permission recovery; then hand off to the domain Skill.
 - Route docs/wiki to `lark-doc`/`lark-wiki`, Drive files to `lark-drive`, sheets to `lark-sheets`, Base to `lark-base`, Miaoda/Spark apps to `lark-apps`, chat to `lark-im`, native Markdown to `lark-markdown`, real-time events to `lark-event`, reusable wrappers to `lark-skill-maker`, and uncovered native APIs to `lark-openapi-explorer`. Calendar, contacts, mail, slides, tasks, approvals, OKRs, minutes, VC, whiteboard, attendance, and workflow synthesis use their matching `lark-*` Skill; meeting-summary synthesis routes to `lark-workflow-meeting-summary`, and standup-style calendar/task summaries route to `lark-workflow-standup-report`.
@@ -155,13 +155,17 @@ Resolve domain and reviewed concrete SQL → operator `plan-data-center-sql-repl
 
 Resolve domain and reviewed concrete SQL → operator `plan-data-center-dataset-creation` resolves one exact folder, unique name, SQL hash, data source, and schedule without writes → only explicit production authorization may call the matching Apply with exact plan hash and `--confirm-production-write` → create draft, set name/source/full SQL, preview, configure schedule, save/read back unique `menu_set_*` identity/SQL/schedule, run `executeOnce`, and wait for a new `SUCCESS`. Save alone is incomplete.
 
+### P. Qingcheng and Market Temp-table Maintenance
+
+`sync-qingcheng-market-temp-tables` resolves the exact group, sender, registered family, latest message, deterministic transformation, source-quality gates, and target-scope merge → `plan` may download only into runtime and build a staged candidate → explicitly confirmed `apply-local` consumes the exact Plan hash and writes the E-drive workbook with backup/readback → separately confirmed `upload` consumes the exact successful local receipt and calls the operator's existing-table upload adapter. Qingcheng and market messages, batches, jobs, approvals, and shared-workbook scopes remain isolated even though one Skill and one event-service process implement the workflow.
+
 ## Cross-Skill Execution and Production Boundaries
 
 ### Core Contracts and Knowledge Isolation
 
 - When a QueryPlan is supplied to the operator, reject it before browser launch unless `status=executable`, `unresolved_slots=[]`, and the submitted SQL SHA-256 matches exactly. QueryPlan execution policy must separately allow any requested download.
 - QueryPlan, DashboardDatasetSpec, DashboardDesignSpec, DashboardChangePlan, DashboardBuildSpec/Plan, Data Center plans, profiles, and receipts are descriptive/review artifacts. None authorizes execution, download, knowledge writeback, remote mutation, or publication by itself.
-- Market metrics, dashboards, temporary tables, mappings, joins, raw SQL, profiles, contracts, and indexes stay under `market-consultant-dashboard-sql`; Qingcheng equivalents stay under `qingcheng-dashboard-sql`. Never copy semantics across domains.
+- Market business semantics, metrics, dashboards, joins, raw SQL, profiles, contracts, and indexes stay under `market-consultant-dashboard-sql`; Qingcheng equivalents stay under `qingcheng-dashboard-sql`. Registered Feishu source identities, workbook shapes, deterministic file transformations, local target paths, physical upload targets, and maintenance receipts for both domains stay under `sync-qingcheng-market-temp-tables`. The unified maintenance Skill must not copy or reinterpret business semantics across domains.
 - The shared physical catalog contains neutral physical schema facts only, never department metrics, ranges, mappings, business joins, dashboard semantics, or raw SQL definitions.
 - Business-Skill knowledge is read-only unless the user explicitly requests that domain's knowledge maintenance. Runtime artifacts do not become durable knowledge automatically.
 
@@ -172,11 +176,12 @@ Resolve domain and reviewed concrete SQL → operator `plan-data-center-dataset-
 - Canonical Data Center SQL uses only `resources/raw_sql/data_center_market_<model_id>.sql` or `resources/raw_sql/data_center_qingcheng_<model_id>.sql`. Local sync must use operator `sync-data-center-sql`, review dry-run hash, bind each domain's `semantic/current_model_bindings.json`, hold the exclusive lock, run all catalog/integrity gates, and restore the pre-write snapshot if a local knowledge gate fails. Local `--write` never means remote production write.
 - Operator domain routing is defined only by `usql-web-query-operator/references/domain_adapters.json`. The loader must validate target/domain/Skill metadata, safe relative paths, and unique dashboard-folder ownership before any domain knowledge write. Registry resolution does not authorize `--write`, Apply, Publish, or remote production changes.
 
-### Qingcheng Temp-table Source Quality
+### Unified Temp-table Source Quality
 
-- Every registered family in `sync-qingcheng-temp-tables/references/workflow_registry.json` must define maximum source age, source row-count bounds, per-slice relative-change threshold, and required-column null-rate thresholds.
+- Every registered family in `sync-qingcheng-market-temp-tables/references/workflow_registry.json` must define maximum source age, source row-count bounds, per-slice relative-change threshold, and required-column null-rate thresholds.
 - `plan` must block on a missing/expired source, missing comparison baseline, row-count breach, relative-change breach, required-column null-rate breach, duplicate business key, schema error, or target-validation regression. Quality findings must be present in the Hash-bound plan artifact.
 - `apply-local` and `upload` must recheck the plan's source expiry; a previously valid plan cannot bypass a later freshness failure. Threshold changes require a reviewed registry edit and new plan Hash, never a runtime bypass flag.
+- Cumulative market sources configured for changed-source-slice handling must also block on deleted registered slices, too many changed slices, or an unreviewed historical-slice change. The runtime baseline may advance only after a successful explicitly authorized upload.
 - Upload remains full-workbook overwrite of the registered existing table, consumes a successful exact local receipt, rechecks source selection drift and local hashes, and stops on the first failure with explicit completed/failed/pending families.
 
 ### SQL Download and Template Safety

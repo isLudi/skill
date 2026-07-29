@@ -14,14 +14,15 @@ from unittest import mock
 SKILL_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(SKILL_ROOT / "scripts"))
 
-import qingcheng_temp_table_sync as workflow  # noqa: E402
-from qingcheng_event_service import (  # noqa: E402
+import governed_temp_table_sync as workflow  # noqa: E402
+from governed_temp_table_event_service import (  # noqa: E402
     EventProcessor,
     Ledger,
     LarkGateway,
     ReplyDispatcher,
     ServiceError,
     SyncExecutor,
+    families_for_chat,
     load_config,
     parse_command,
 )
@@ -30,14 +31,16 @@ from qingcheng_event_service import (  # noqa: E402
 APPROVER = "ou_approver"
 SOURCE = "ou_bf111effd2d71a52ee40c58c7cb4d105"
 COURSE_SOURCE = "ou_3168c83ffe93b49a192755c8e31e2bc5"
-CHAT = "oc_testchat"
+MARKET_SOURCE = "ou_04f543bec3cdd195bbdd53a582f68443"
+CHAT = "oc_e604e064976c022ab4289fc2fb979332"
+MARKET_CHAT = "oc_7b9873ee89b18d11cf60c8768c6eba9e"
 
 
 def test_config(runtime_root: Path, **overrides: object) -> dict[str, object]:
     value: dict[str, object] = {
         "mode": "shadow",
-        "chat_id": CHAT,
-        "source_sender_ids": [SOURCE, COURSE_SOURCE],
+        "chat_ids": [CHAT, MARKET_CHAT],
+        "source_sender_ids": [SOURCE, COURSE_SOURCE, MARKET_SOURCE],
         "approver_ids": [APPROVER],
         "bot_open_id": None,
         "bot_names": ["管家"],
@@ -53,7 +56,9 @@ def test_config(runtime_root: Path, **overrides: object) -> dict[str, object]:
         "allow_production_upload": False,
         "command_timeout_seconds": 60,
         "python_executable": r"D:\anaconda3\python.exe",
-        "sync_script": str(SKILL_ROOT / "scripts" / "qingcheng_temp_table_sync.py"),
+        "sync_script": str(
+            SKILL_ROOT / "scripts" / "governed_temp_table_sync.py"
+        ),
         "workflow_registry": str(SKILL_ROOT / "references" / "workflow_registry.json"),
         "runtime_root": str(runtime_root),
         "sync_runtime_root": str(runtime_root / "sync"),
@@ -129,7 +134,12 @@ class EventServiceTests(unittest.TestCase):
         self.temporary.cleanup()
 
     def test_command_parser_resolves_three_goal_tables(self) -> None:
-        intent = parse_command("@管家 预检最新目标表", self.config, self.registry)
+        intent = parse_command(
+            "@管家 预检最新目标表",
+            self.config,
+            self.registry,
+            families_for_chat(self.registry, CHAT),
+        )
 
         self.assertEqual(intent.action, "plan")
         self.assertEqual(
@@ -138,10 +148,98 @@ class EventServiceTests(unittest.TestCase):
         )
 
     def test_command_parser_resolves_latest_course_schedule(self) -> None:
-        intent = parse_command("@管家 预检最新开课时间表", self.config, self.registry)
+        intent = parse_command(
+            "@管家 预检最新开课时间表",
+            self.config,
+            self.registry,
+            families_for_chat(self.registry, CHAT),
+        )
 
         self.assertEqual(intent.action, "plan")
         self.assertEqual(intent.family_ids, ["course_schedule"])
+
+    def test_market_chat_command_is_domain_scoped(self) -> None:
+        allowed = families_for_chat(self.registry, MARKET_CHAT)
+        intent = parse_command(
+            "@管家 预检最新临时表",
+            self.config,
+            self.registry,
+            allowed,
+        )
+
+        self.assertEqual(
+            allowed,
+            [
+                "market_cost",
+                "market_period_architecture",
+                "market_attendance_schedule",
+                "market_lead_goal",
+                "market_evaluation_architecture",
+                "market_plan_id",
+            ],
+        )
+        self.assertEqual(intent.action, "plan")
+        self.assertEqual(intent.family_ids, allowed)
+
+    def test_market_attachment_routes_only_in_registered_market_chat(
+        self,
+    ) -> None:
+        market_event = event(
+            "om_marketcost",
+            MARKET_SOURCE,
+            '<file key="file_cost" name="cost.xlsx"/>',
+            "file",
+        )
+        market_event["chat_id"] = MARKET_CHAT
+
+        self.assertEqual(
+            self.processor.process(market_event),
+            "source_message_queued",
+        )
+        with sqlite3.connect(self.ledger.path) as connection:
+            row = connection.execute(
+                "SELECT family_id, chat_id FROM pending_attachments "
+                "WHERE message_id = ?",
+                ("om_marketcost",),
+            ).fetchone()
+        self.assertEqual(row, ("market_cost", MARKET_CHAT))
+
+        wrong_chat_event = event(
+            "om_marketcostwrongchat",
+            MARKET_SOURCE,
+            '<file key="file_cost_2" name="cost.xlsx"/>',
+            "file",
+        )
+        self.assertEqual(
+            self.processor.process(wrong_chat_event),
+            "ignored_type",
+        )
+
+    def test_job_status_isolated_by_chat(self) -> None:
+        job_id = self.ledger.create_job(
+            request_message_id="om_marketjob",
+            chat_id=MARKET_CHAT,
+            requester_id=APPROVER,
+            source="chat_command",
+            action="plan",
+            family_ids=["market_cost"],
+        )
+
+        result = self.processor.process(
+            event(
+                "om_crosschatstatus",
+                APPROVER,
+                f"@管家 状态 {job_id}",
+            )
+        )
+
+        self.assertEqual(result, "status")
+        with sqlite3.connect(self.ledger.path) as connection:
+            content = connection.execute(
+                "SELECT content FROM outbound_messages "
+                "ORDER BY id DESC LIMIT 1"
+            ).fetchone()[0]
+        self.assertEqual(content, f"未找到任务：{job_id}")
 
     def test_config_rejects_shadow_mode_with_write_gates(self) -> None:
         path = self.runtime_root / "unsafe-config.json"
@@ -311,7 +409,7 @@ class EventServiceTests(unittest.TestCase):
         self.assertEqual(result, "reply_file_error")
         self.assertNotIn(raw_error, reply_text)
         self.assertNotIn("C:\\internal", reply_text)
-        self.assertRegex(reply_text, r"错误编号：QC-[A-F0-9]{10}")
+        self.assertRegex(reply_text, r"错误编号：TT-[A-F0-9]{10}")
 
     def test_non_approver_cannot_create_upload_job(self) -> None:
         result = self.processor.process(event("om_evt1", "ou_regular", "@管家 上传最新目标表"))
@@ -426,6 +524,7 @@ class EventServiceTests(unittest.TestCase):
         executor = SyncExecutor(production, self.ledger, replies, self.logger)
         job_id = self.ledger.create_job(
             request_message_id="om_upload1",
+            chat_id=CHAT,
             requester_id=APPROVER,
             source="test",
             action="upload",
@@ -455,6 +554,7 @@ class EventServiceTests(unittest.TestCase):
         executor = SyncExecutor(self.config, self.ledger, replies, self.logger)
         job_id = self.ledger.create_job(
             request_message_id="om_plan_safe_reply",
+            chat_id=CHAT,
             requester_id=APPROVER,
             source="chat_command",
             action="plan",
@@ -486,6 +586,7 @@ class EventServiceTests(unittest.TestCase):
         executor = SyncExecutor(production, self.ledger, replies, self.logger)
         job_id = self.ledger.create_job(
             request_message_id="om_upload_reply_failure",
+            chat_id=CHAT,
             requester_id=APPROVER,
             source="chat_command",
             action="upload",
@@ -525,6 +626,7 @@ class EventServiceTests(unittest.TestCase):
         executor = SyncExecutor(self.config, self.ledger, replies, self.logger)
         job_id = self.ledger.create_job(
             request_message_id="om_plan_failure",
+            chat_id=CHAT,
             requester_id=APPROVER,
             source="chat_command",
             action="plan",
@@ -542,11 +644,12 @@ class EventServiceTests(unittest.TestCase):
         self.assertEqual(stored_error["message"], raw_error)
         self.assertNotIn(raw_error, reply_text)
         self.assertNotIn("C:\\internal", reply_text)
-        self.assertRegex(reply_text, r"错误编号：QC-[A-F0-9]{10}")
+        self.assertRegex(reply_text, r"错误编号：TT-[A-F0-9]{10}")
 
     def test_status_reply_redacts_stored_error(self) -> None:
         job_id = self.ledger.create_job(
             request_message_id="om_status_source",
+            chat_id=CHAT,
             requester_id=APPROVER,
             source="chat_command",
             action="plan",
@@ -566,7 +669,7 @@ class EventServiceTests(unittest.TestCase):
             ).fetchone()[0]
         self.assertNotIn(raw_error, content)
         self.assertNotIn("C:\\internal", content)
-        self.assertRegex(content, r"错误编号：QC-[A-F0-9]{10}")
+        self.assertRegex(content, r"错误编号：TT-[A-F0-9]{10}")
 
 
 if __name__ == "__main__":

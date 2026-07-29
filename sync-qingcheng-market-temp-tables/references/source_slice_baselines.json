@@ -1,0 +1,360 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-07-29T14:42:18+08:00",
+  "purpose": "Initial changed-slice baselines derived from the latest historical source attachments; row content is represented only by counts and SHA-256 hashes.",
+  "families": {
+    "market_period_architecture": {
+      "message_id": "om_x100b69b00fc1acacb49633d669caa7d",
+      "create_time": "2026-07-28 13:54",
+      "source_sha256": "5ec0fa01c1c312906746d98f0d94f6a12eef6c524413b4b8ac3a91b7431e4a4f",
+      "slices": {
+        "20260109期": {
+          "row_count": 227,
+          "sha256": "4ead7730e2740094ea0c85edb9db53c4d882560aaf6c0e088784ef198b195d3f"
+        },
+        "20260116期": {
+          "row_count": 225,
+          "sha256": "b4438f2b85e4d4caf39c9f143c2ca515d6f555d1c9724767d08175392bf75bc0"
+        },
+        "20260123期": {
+          "row_count": 243,
+          "sha256": "6d47ff4c4d3e354c3b7283997066c645eab9d750b1415c2a52f05fc7cdd99eaf"
+        },
+        "20260130期": {
+          "row_count": 234,
+          "sha256": "ce2578a03b306bdfb72cbff0bec9929fa19a36e7ce24a83d063c1e3d156ddaf2"
+        },
+        "20260206期": {
+          "row_count": 245,
+          "sha256": "f81a67eb204fa71e66e2571fb0d3e927a725b727a4a7c1ed90629d16e0fd4750"
+        },
+        "20260213期": {
+          "row_count": 204,
+          "sha256": "66a80e255968f9cc94a34511f876d1b502a673bd5c7656d0d9a3bca8a4a4f8a3"
+        },
+        "20260227期": {
+          "row_count": 186,
+          "sha256": "10f4550183b3d2eecbb5cca3d7bbbc777fd0ab7e0721c35b3e0d0d261e4d1ba5"
+        },
+        "20260306期": {
+          "row_count": 206,
+          "sha256": "c9372d9b0a9c9cc7394822c6565a9730f0504705c8669582e6e0118a7c61283c"
+        },
+        "20260313期": {
+          "row_count": 199,
+          "sha256": "5de27ebcc69c3c13e6a7caef1a3050b9ad3278e4f8a4438610a4d1bbe31fc794"
+        },
+        "20260320期": {
+          "row_count": 200,
+          "sha256": "80fed5aa7117894b833da4e128b353a43f97a431c040b0daacdbb57495c680c7"
+        },
+        "20260327期": {
+          "row_count": 208,
+          "sha256": "05c77d1da5ff188bac4a72eede2331b3c9bcc62614be9a61388f18f29da05d05"
+        },
+        "20260403期": {
+          "row_count": 219,
+          "sha256": "18887a0e396e9cb527b5d46dc45bc97aa1dea4ced3d2fb52b54953124901233a"
+        },
+        "20260410期": {
+          "row_count": 211,
+          "sha256": "2222a91e228416686eaa97c8aacd623c51e988d6ff0fe291a4f48747b34022de"
+        },
+        "20260417期": {
+          "row_count": 198,
+          "sha256": "148038042e85fd1f7b0e60f737e9182e81a4d3ed63b89085910e394121cee97a"
+        },
+        "20260424期": {
+          "row_count": 196,
+          "sha256": "2fc4e9a1dd13d949dbf917bf9381d8edf5350f7a3d62e208f8437194d8c78bc9"
+        },
+        "20260501期": {
+          "row_count": 205,
+          "sha256": "c25869d52d500c369ab48676621b59a8013745936c14d45c50986dfde399b7d2"
+        },
+        "20260508期": {
+          "row_count": 201,
+          "sha256": "ee6ce65ba2f5c527e44f6a555a382ffa94797017f1bf9caa095bfb4139595536"
+        },
+        "20260515期": {
+          "row_count": 206,
+          "sha256": "17c8449c98533b9fc209528b3b97d9ddcb0925b2176ebfafbbe33ae475cae5a6"
+        },
+        "20260522期": {
+          "row_count": 206,
+          "sha256": "84eaf8b67f0c51955efa8192b403e4ec309cc5fb5715e39496d688ebc11332a3"
+        },
+        "20260529期": {
+          "row_count": 212,
+          "sha256": "23f95c179b5c529efdbe53b4d411df9460c8b0fb3325973a685aeff796363580"
+        },
+        "20260605期": {
+          "row_count": 214,
+          "sha256": "ba95f4c501f683663d27ee93949e8c9274976f5d677fa7e2f2662861baa76e05"
+        },
+        "20260612期": {
+          "row_count": 215,
+          "sha256": "a884efa353e475ced92b782898afc625cfa694d406f33327b470e6ab71f00919"
+        },
+        "20260619期": {
+          "row_count": 230,
+          "sha256": "3513cabe50c359ba9658915e0ce9a2c873d30406fa66486cfa85466dc5669186"
+        },
+        "20260626期": {
+          "row_count": 233,
+          "sha256": "75732924a1de92c89555cca385356954e21dead71eeff64709468f3f10453a27"
+        },
+        "20260703期": {
+          "row_count": 231,
+          "sha256": "377a3d7f39215b4a10a4ff78db7cf405c6459b05229399a0d77d05315f2c647d"
+        },
+        "20260710期": {
+          "row_count": 223,
+          "sha256": "466588e0976e1cadef40f7c02f5d644e90a0bf9cda86ef7bbe4a69d1bf91d4da"
+        },
+        "20260716期": {
+          "row_count": 221,
+          "sha256": "caf707d6043d4e38a1a2cd4325bdf9ccefcd9ee32060291bd16ac84429613443"
+        },
+        "20260722期": {
+          "row_count": 210,
+          "sha256": "521db7b917b01ec4eb580e0af9a016f1184940e57549ab491345da005dfe20f3"
+        },
+        "20260728期": {
+          "row_count": 206,
+          "sha256": "8d70ff7229ab11247a74e2edcc6072550c818f492defdd809c9f2ccd7ec3e14a"
+        },
+        "20260803期": {
+          "row_count": 208,
+          "sha256": "b7458e6f472db1dc33306d5a248963fc7b282d532b64bd29ed5350dbfb62d56d"
+        }
+      },
+      "row_count": 6422
+    },
+    "market_attendance_schedule": {
+      "message_id": "om_x100b6945858ec0acb1dcbd727187aa0",
+      "create_time": "2026-07-27 16:54",
+      "source_sha256": "e52a0a3ff7012917ff75ce6e70915d49efa3914a7367f783ae2ae95bec5440ba",
+      "slices": {
+        "20260109期": {
+          "row_count": 102,
+          "sha256": "07b3c48742141762e4c9c9b7951f3ff9d0b4467f9d46a8340e1ce61933c26e4d"
+        },
+        "20260116期": {
+          "row_count": 102,
+          "sha256": "961fa3a457e8cde8252d97577cbf4dfe329b5a2cd543353006135086e6ae851c"
+        },
+        "20260123期": {
+          "row_count": 96,
+          "sha256": "58e137466670f09f01d453faa6f5728d6d592a3b7182de578028242332e5b7e2"
+        },
+        "20260130期": {
+          "row_count": 96,
+          "sha256": "b5daa40576494472ab7ac0c4366323c70b2c6aeca9fe1007094e4c7dd16af73b"
+        },
+        "20260206期": {
+          "row_count": 96,
+          "sha256": "bcdffa4acb2c9ccd4e38e1064b19dafd409e562bc7814040edd2b1ba3a92686b"
+        },
+        "20260213期": {
+          "row_count": 114,
+          "sha256": "10199669f0edbcb420deb6a8b71de28420f91b187af0166739025d394c1065a3"
+        },
+        "20260227期": {
+          "row_count": 114,
+          "sha256": "fddc00143068d6bffec137b0ad8568ccb32c0ad8092738616f12ba6346eb6df4"
+        },
+        "20260306期": {
+          "row_count": 132,
+          "sha256": "c3c038c5f548faa7015323a1df29de76754f62e018611416d10bdb4f555d60c4"
+        },
+        "20260313期": {
+          "row_count": 132,
+          "sha256": "65da1c0133fbce557632a999df8ee7bab21c9a54c1805a1f4c0338fbf6b53f3c"
+        },
+        "20260320期": {
+          "row_count": 150,
+          "sha256": "09f827526b51e66173c8bdadd10746ae84773114aa9a9a76237b060f1abb71b6"
+        },
+        "20260327期": {
+          "row_count": 204,
+          "sha256": "a6492417c71e57d00f3f9d95b8b885d6317f8c16bdcde38bc46946c16f47ccec"
+        },
+        "20260403期": {
+          "row_count": 282,
+          "sha256": "78ccc1d4175d8c3ce474a53e0c129080d123d707a3e123fd3c194b1fadae08dc"
+        },
+        "20260410期": {
+          "row_count": 588,
+          "sha256": "80923f0db31011041ac7eba743d5a900ef9243af03f6f51f00be93f8166a4651"
+        },
+        "20260417期": {
+          "row_count": 306,
+          "sha256": "2f2a1d599c29a50c9094dd38d25cf04b36c02788b4da13d1526738fcd1e6b207"
+        },
+        "20260424期": {
+          "row_count": 336,
+          "sha256": "f01608da6faec675b5a2f417bfbc5d50d1fcf2453309fb1d6086225063269f23"
+        },
+        "20260501期": {
+          "row_count": 402,
+          "sha256": "84d176151ade4a009c061acb1cbb0a307d34a5003530f140a33474e226985bc2"
+        },
+        "20260508期": {
+          "row_count": 402,
+          "sha256": "0dd961361c865c772adac45466a29f7eacd794bba4f582449b0404126cdb4c09"
+        },
+        "20260515期": {
+          "row_count": 432,
+          "sha256": "0fd79d59ecd93023a97dcffc6c8e1cf6f8a5879f7161f37ff4d67c3cb09c6865"
+        },
+        "20260522期": {
+          "row_count": 564,
+          "sha256": "89842128d46d9ec235901d2e7beee6708bca97a52c82709c8b00746c9a7c816d"
+        },
+        "20260529期": {
+          "row_count": 245,
+          "sha256": "c2872bfd4604391b54989497d609ac954ffbee196d0b0f1dfc4bcda09791a4b1"
+        },
+        "20260605期": {
+          "row_count": 264,
+          "sha256": "e1672827b9be9fe3ce4cac64de75ac458db21321f235f5c7a56e995b6624312c"
+        },
+        "20260612期": {
+          "row_count": 360,
+          "sha256": "57e6c888320d49d295e0a505a374b289179f8c4ef36392059d1c5b4e738c1133"
+        },
+        "20260619期": {
+          "row_count": 294,
+          "sha256": "adec41cfb3935997d3f712c456b86f64a735fabbfb575ce212d57b4b97abc765"
+        },
+        "20260626期": {
+          "row_count": 240,
+          "sha256": "e229d7be8aa685928374ba2d8335b975a2749f09f7e92db2e07bc7f77ec3aff0"
+        },
+        "20260703期": {
+          "row_count": 336,
+          "sha256": "29cafb6fe60cd1cb29443291a7a87fa9f5c1e91ff59b8fcb4de8127752a5d0cb"
+        },
+        "20260710期": {
+          "row_count": 120,
+          "sha256": "91c18922087027f207094c364c44c6a592450f344bb01bfcb6f5e3bebe407193"
+        },
+        "20260716期": {
+          "row_count": 120,
+          "sha256": "45eb3114848b2eb5c69bc80bbd99ae97b33b678a29af5fe92d21ad9a0aa81f41"
+        },
+        "20260722期": {
+          "row_count": 126,
+          "sha256": "1ba3ef59799783fc1ad9558972480a1d10a2deb8c059ee1e80662c2ac40b8ece"
+        },
+        "20260728期": {
+          "row_count": 126,
+          "sha256": "71c8fd5701734371fdabb6b5b86e56996e61ffc85c64d9b1eafb32c4ca26aa68"
+        }
+      },
+      "row_count": 6881
+    },
+    "market_plan_id": {
+      "message_id": "om_x100b69b00f644c84b12f05184ba842b",
+      "create_time": "2026-07-28 13:54",
+      "source_sha256": "3ac9f5b5648b13d1a078ddc64679e46a13dd4ab1453e9cff63be202e0ab424f6",
+      "slices": {
+        "0306期": {
+          "row_count": 5,
+          "sha256": "887a0b9f2f1bbb68ec2d067bf9132aedd63285435011a100c5c3cbac4864744b"
+        },
+        "0313期": {
+          "row_count": 5,
+          "sha256": "32bfa5bbd90a6fb4126d90a97090427b96c8e13d4d4c759f61ccf778db04fb3e"
+        },
+        "0320期": {
+          "row_count": 5,
+          "sha256": "00cc13caec6194e088c61400907b84a5a341c18ad0ead1cb55609b9d68287c76"
+        },
+        "0327期": {
+          "row_count": 5,
+          "sha256": "404cf5ecf7fa8df81265394b16226f15d25758f8681fcc4ea53e5f671e1551b4"
+        },
+        "0403期": {
+          "row_count": 5,
+          "sha256": "0ee939ea84bb88b03caf34b04eb3afcd0c5743c8bc0734cd53760125c036ddb8"
+        },
+        "0410期": {
+          "row_count": 5,
+          "sha256": "538ccdc1368f1edccb0967d76fda87de822170d12fe67d4ee204cd8025e01de8"
+        },
+        "0417期": {
+          "row_count": 5,
+          "sha256": "afea445a98fd58f8647b0428323193a25d1d047d785116b54983f4dc70ecf60b"
+        },
+        "0424期": {
+          "row_count": 4,
+          "sha256": "cfb54cb31579c0faf42f483598d1f98a4b2c136de1d369c3b629c4f8f2ff238b"
+        },
+        "0501期": {
+          "row_count": 4,
+          "sha256": "26d636f96566e2a96dd09aeec0feded766bacbe1c7985656a83de5fad832c85c"
+        },
+        "0508期": {
+          "row_count": 4,
+          "sha256": "a601393bdfe5771f16b8f1112e4625b73ea015039764ba51270606b26411669a"
+        },
+        "0515期": {
+          "row_count": 4,
+          "sha256": "d019ccf21ae8315a14fe9a5c8592707d2a1ed0c0f756c423707ea345d84e780f"
+        },
+        "0522期": {
+          "row_count": 4,
+          "sha256": "5634acc2677f1c56079d75612f4975589e50bbc40fdf7f056e73e9f4e46ada82"
+        },
+        "0529期": {
+          "row_count": 5,
+          "sha256": "7ffbe2d2831257f17ae5b38d8021b12c163d72c1a2a58f0b899be29ed72f35b0"
+        },
+        "0605期": {
+          "row_count": 5,
+          "sha256": "f478db713344c59467e4181de3df98e477a1cc4e45786d4c5dcde546104a7ba3"
+        },
+        "0612期": {
+          "row_count": 5,
+          "sha256": "cc7e68c2b0e9b50dffa07d6cb1ecea0931223f08593ff4f785dfae70c21efd92"
+        },
+        "0619期": {
+          "row_count": 5,
+          "sha256": "456b679a4f767263655dd1e9d6ab7da6b5202edbf4139b3dc49d1ffd862b2aa1"
+        },
+        "0626期": {
+          "row_count": 5,
+          "sha256": "96a20dd412a5fa43ebadf2aa23ac49608c23ed4320fcb6f6a2ab9ff29a890fe3"
+        },
+        "0703期": {
+          "row_count": 3,
+          "sha256": "2efc11efa1fb3b87d854d3a56fb19dcf869d751f9c19275bd94843b1b843b63b"
+        },
+        "0710期": {
+          "row_count": 2,
+          "sha256": "e719f8cbb50390b824f747fd6dabf754c508876c390a006f31436dfe2511d74f"
+        },
+        "0716期": {
+          "row_count": 2,
+          "sha256": "44ba7c005a48e771283c458a981869c5c32fc7e261fa3ae0d8ac9c44a098645d"
+        },
+        "0722期": {
+          "row_count": 3,
+          "sha256": "cbc638d71c2d7ed50d0fb72c50d54548d00cb98f5432f134bc6a9598896134a9"
+        },
+        "0728期": {
+          "row_count": 3,
+          "sha256": "74c64569c33352235b25faa9acadc61600e0814880a82ec214c21e07d7162ef6"
+        },
+        "0803期": {
+          "row_count": 3,
+          "sha256": "2e6279cf5fcefda22450b2695f3c85875aed12cbc99003b9da98374a63d04ef0"
+        }
+      },
+      "row_count": 96,
+      "bootstrap_pending": true
+    }
+  }
+}
