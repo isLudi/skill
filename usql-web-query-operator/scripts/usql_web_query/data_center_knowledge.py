@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Any
 
 from _shared.config import DATA_CENTER_DATASET_URL
+from _shared.domain_adapters import load_domain_adapters
 from _shared.errors import UsageError
 
 from .data_center import DataCenterDatasetSql
@@ -40,9 +41,13 @@ class DataCenterSkillTarget:
     doc_filename: str
     title: str
     scope_note: str
+    selector: str = ""
+    registered_domain: str = ""
 
     @property
     def domain(self) -> str:
+        if self.registered_domain:
+            return self.registered_domain
         return "market_consultant" if self.name == "market" else "qingcheng"
 
 
@@ -578,8 +583,13 @@ def _maintenance_output_paths(plans: list[DataCenterSkillSyncPlan]) -> set[Path]
     for plan in plans:
         reverse_root = plan.target.root / "knowledge" / "reverse_index"
         paths.update(reverse_root / name for name in REVERSE_INDEX_FILES)
-    for skill_name in ("sql-query-writer-for-dashboard", "qingcheng-dashboard-sql"):
-        root = skills_root / skill_name
+    domain_roots = {plan.target.root.resolve() for plan in plans}
+    domain_roots.update(
+        adapter.skill_root
+        for adapter in load_domain_adapters()
+        if adapter.skill_root.parent == skills_root.resolve()
+    )
+    for root in domain_roots:
         paths.add(root / "semantic" / "domain_manifest.json")
         paths.add(root / "semantic" / "generated" / "contract_index.json")
     paths.add(skills_root / "_shared" / "text2sql_core" / "catalog" / "physical_catalog.json")

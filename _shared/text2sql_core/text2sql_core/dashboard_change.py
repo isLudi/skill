@@ -74,7 +74,7 @@ PROFILE_REQUIRED_SECTIONS = (
 )
 SUPPORTED_DATA_UNIT_TYPES = {"card", "u_pivot", "u_bar", "u_pie"}
 DOMAIN_SKILL_NAMES = {
-    "market_consultant": "sql-query-writer-for-dashboard",
+    "market_consultant": "market-consultant-dashboard-sql",
     "qingcheng": "qingcheng-dashboard-sql",
 }
 

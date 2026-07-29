@@ -1,4 +1,4 @@
 interface:
   display_name: "青橙临时表与群机器人"
-  short_description: "同步青橙群附件与开课时间表，并维护管家生产事件链路"
-  default_prompt: "使用 $sync-qingcheng-temp-tables 预检或同步郅玲玉发布的临时表、李怡青发布的开课时间表，或维护 @管家 事件服务与 lark-cli 升级重启。"
+  short_description: "受治理同步六类青橙临时表，并校验来源新鲜度与数据异常"
+  default_prompt: "使用 $sync-qingcheng-temp-tables 预检或同步六类已登记来源，严格执行来源最大年龄、行数上下界、逐切片相对变化和必要列空值率门禁，再按独立 plan、apply-local、upload 确认与回执处理；也可维护 @管家 事件服务与 lark-cli 升级重启。"

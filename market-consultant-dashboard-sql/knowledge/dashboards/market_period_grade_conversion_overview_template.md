@@ -6,7 +6,7 @@
 - 模板编号：M5
 - 用途：按期次和初一/初二/初三输出线索、转化、订单、净收款和单效的可加总分子/分母。
 - 历史 SQL：`resources/raw_sql/market_period_grade_conversion_overview_20260718.sql`
-- 历史结果：`runtime/sql-query-writer-for-dashboard/h_biz_junior_conversion_20250502_20251226.xlsx`
+- 历史结果：`runtime/market-consultant-dashboard-sql/h_biz_junior_conversion_20250502_20251226.xlsx`
 - 复用口径：`knowledge/metrics/h_biz_line_department_conversion_metrics.md`
 
 ## 2. 输出字段

@@ -49,14 +49,15 @@ Auto-detect the smallest sufficient Skill set from the request and current artif
 
 ### Business SQL Skills
 
-- Select `sql-query-writer-for-dashboard` for explicit 市场顾问部 / market-consultant metrics, dashboards, tables, joins, ranges, channels, evaluation, attendance, outbound calls, refunds, traffic, registered artifacts, or market knowledge maintenance. It owns market semantic contracts, QuerySpec/QueryPlan, governed SQL generation/repair, bounded probes, and dashboard design artifacts. It does not execute SQL, manipulate Excel, or supply Qingcheng semantics.
+- Select `market-consultant-dashboard-sql` for explicit 市场顾问部 / market-consultant metrics, dashboards, tables, joins, ranges, channels, evaluation, attendance, outbound calls, refunds, traffic, registered artifacts, or market knowledge maintenance. It owns market semantic contracts, QuerySpec/QueryPlan, governed SQL generation/repair, bounded probes, and dashboard design artifacts. It does not execute SQL, manipulate Excel, or supply Qingcheng semantics.
 - Select `qingcheng-dashboard-sql` for explicit 青橙项目部 / Qingcheng metrics, dashboards, temporary tables, joins, ranges, Web BI profiles, governed SQL generation/repair, or Qingcheng knowledge maintenance. All Qingcheng contracts, profiles, indexes, and documentation stay inside that Skill; it must not borrow market semantics.
-- Select `usql-web-query-operator` when the user asks to run/execute SQL, preview or download results, fetch stored Template Query SQL, perform a large-result template download, scan/profile dashboards, read edit-page metrics/formulas, plan/apply/publish governed Taitan changes, or read/sync/replace/create Data Center datasets. It executes approved workflows but does not generate business SQL or infer metric definitions.
+- Select `usql-web-query-operator` when the user asks to run/execute SQL, preview or download results, fetch stored Template Query SQL, perform a large-result template download, scan/profile dashboards, read edit-page metrics/formulas, plan/apply/publish governed Taitan changes, or read/sync/replace/create Data Center datasets. It executes approved workflows but does not generate business SQL or infer metric definitions. Business Skill names, knowledge roots, dashboard folders, and Data Center local-sync targets must resolve through its validated domain-adapter registry rather than command-local path constants.
 - Select generic `playwright` only for non-USQL sites or bounded DOM/selector diagnosis after the operator has reproduced an SQL/BI UI problem. Generic Playwright must not own USQL login state or replace operator workflows.
 
 ### Files, Documents, and Feishu
 
 - Select the spreadsheet Skill for `.xlsx`, `.xlsm`, `.csv`, or `.tsv` work, spreadsheet exports, formatting, formulas, recalculation, and tabular deliverables. It does not generate or execute SQL.
+- Select `sync-qingcheng-temp-tables` for the six registered Qingcheng/shared-maintenance workbook families sourced from the “青橙数据对接” group, including read-only comparison, confirmed local slice upsert, or separately confirmed overwrite upload to existing USQL temp tables. It owns source identity, workbook mapping, upload order, source-quality gates, local backup/rollback, and upload receipts; do not route these workbook structures through either business SQL Skill.
 - Use native visual inspection for images/screenshots and the matching PDF/Office Skill for document files.
 - For Feishu/Lark, use the most specific `lark-*` Skill. Use `lark-shared` first for CLI setup, login/status, user-vs-bot identity, missing scopes, or permission recovery; then hand off to the domain Skill.
 - Route docs/wiki to `lark-doc`/`lark-wiki`, Drive files to `lark-drive`, sheets to `lark-sheets`, Base to `lark-base`, Miaoda/Spark apps to `lark-apps`, chat to `lark-im`, native Markdown to `lark-markdown`, real-time events to `lark-event`, reusable wrappers to `lark-skill-maker`, and uncovered native APIs to `lark-openapi-explorer`. Calendar, contacts, mail, slides, tasks, approvals, OKRs, minutes, VC, whiteboard, attendance, and workflow synthesis use their matching `lark-*` Skill; meeting-summary synthesis routes to `lark-workflow-meeting-summary`, and standup-style calendar/task summaries route to `lark-workflow-standup-report`.
@@ -66,7 +67,7 @@ Auto-detect the smallest sufficient Skill set from the request and current artif
 
 Resolve the business domain before semantic retrieval or production SQL generation:
 
-1. Explicit market-consultant language or a registered `market_consultant` artifact selects `sql-query-writer-for-dashboard`.
+1. Explicit market-consultant language or a registered `market_consultant` artifact selects `market-consultant-dashboard-sql`.
 2. Explicit Qingcheng language or a registered `qingcheng` artifact selects `qingcheng-dashboard-sql`.
 3. Ambiguous metrics, joins, ranges, dashboards, or business definitions remain `domain: unresolved`; never default them to market-consultant.
 4. An unresolved request may inspect only neutral physical facts such as table names, fields, types, partitions, and candidate keys. It must not inherit a department metric, scope, range, temporary table, mapping, business join, dashboard definition, or raw SQL.
@@ -160,7 +161,7 @@ Resolve domain and reviewed concrete SQL → operator `plan-data-center-dataset-
 
 - When a QueryPlan is supplied to the operator, reject it before browser launch unless `status=executable`, `unresolved_slots=[]`, and the submitted SQL SHA-256 matches exactly. QueryPlan execution policy must separately allow any requested download.
 - QueryPlan, DashboardDatasetSpec, DashboardDesignSpec, DashboardChangePlan, DashboardBuildSpec/Plan, Data Center plans, profiles, and receipts are descriptive/review artifacts. None authorizes execution, download, knowledge writeback, remote mutation, or publication by itself.
-- Market metrics, dashboards, temporary tables, mappings, joins, raw SQL, profiles, contracts, and indexes stay under `sql-query-writer-for-dashboard`; Qingcheng equivalents stay under `qingcheng-dashboard-sql`. Never copy semantics across domains.
+- Market metrics, dashboards, temporary tables, mappings, joins, raw SQL, profiles, contracts, and indexes stay under `market-consultant-dashboard-sql`; Qingcheng equivalents stay under `qingcheng-dashboard-sql`. Never copy semantics across domains.
 - The shared physical catalog contains neutral physical schema facts only, never department metrics, ranges, mappings, business joins, dashboard semantics, or raw SQL definitions.
 - Business-Skill knowledge is read-only unless the user explicitly requests that domain's knowledge maintenance. Runtime artifacts do not become durable knowledge automatically.
 
@@ -169,6 +170,14 @@ Resolve domain and reviewed concrete SQL → operator `plan-data-center-dataset-
 - After changing dashboards, metrics, tables, temporary tables, joins, raw SQL, or semantic contracts, run the selected Skill's `scripts/build_reverse_indexes.py`, repository `scripts/build_text2sql_catalog.py`, the selected Skill's `scripts/check_skill_integrity.py`, then repository `scripts/validate_text2sql_stack.py`.
 - Refresh market physical schema only through operator `sync-datamap-fields`; Data Map owns neutral fields/types/partitions/DDL, while market semantics stay in domain contracts. Do not recreate raw PDF/image extraction or hand-maintained physical catalogs.
 - Canonical Data Center SQL uses only `resources/raw_sql/data_center_market_<model_id>.sql` or `resources/raw_sql/data_center_qingcheng_<model_id>.sql`. Local sync must use operator `sync-data-center-sql`, review dry-run hash, bind each domain's `semantic/current_model_bindings.json`, hold the exclusive lock, run all catalog/integrity gates, and restore the pre-write snapshot if a local knowledge gate fails. Local `--write` never means remote production write.
+- Operator domain routing is defined only by `usql-web-query-operator/references/domain_adapters.json`. The loader must validate target/domain/Skill metadata, safe relative paths, and unique dashboard-folder ownership before any domain knowledge write. Registry resolution does not authorize `--write`, Apply, Publish, or remote production changes.
+
+### Qingcheng Temp-table Source Quality
+
+- Every registered family in `sync-qingcheng-temp-tables/references/workflow_registry.json` must define maximum source age, source row-count bounds, per-slice relative-change threshold, and required-column null-rate thresholds.
+- `plan` must block on a missing/expired source, missing comparison baseline, row-count breach, relative-change breach, required-column null-rate breach, duplicate business key, schema error, or target-validation regression. Quality findings must be present in the Hash-bound plan artifact.
+- `apply-local` and `upload` must recheck the plan's source expiry; a previously valid plan cannot bypass a later freshness failure. Threshold changes require a reviewed registry edit and new plan Hash, never a runtime bypass flag.
+- Upload remains full-workbook overwrite of the registered existing table, consumes a successful exact local receipt, rechecks source selection drift and local hashes, and stops on the first failure with explicit completed/failed/pending families.
 
 ### SQL Download and Template Safety
 

@@ -14,7 +14,7 @@ import sys
 import time
 import zipfile
 from collections import Counter, defaultdict
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Callable, Iterable
 from xml.etree import ElementTree
@@ -190,7 +190,64 @@ def load_registry(path: Path) -> dict[str, Any]:
             missing = [key for key in required if not family.get(key)]
             if missing:
                 raise WorkflowError(f"Link source family {family['id']} is missing: {missing}")
+        quality = family.get("source_quality")
+        if registry.get("require_source_quality_gates") and not quality:
+            raise WorkflowError(f"Source quality gate is required for family {family['id']}.")
+        if quality:
+            _validate_source_quality_config(family, quality)
     return registry
+
+
+def _validate_source_quality_config(
+    family: dict[str, Any],
+    quality: dict[str, Any],
+) -> None:
+    family_id = family["id"]
+    max_age_hours = quality.get("max_age_hours")
+    if not isinstance(max_age_hours, (int, float)) or isinstance(max_age_hours, bool) or max_age_hours <= 0:
+        raise WorkflowError(f"Invalid max_age_hours for family {family_id}.")
+
+    row_count = quality.get("row_count") or {}
+    minimum = row_count.get("min")
+    maximum = row_count.get("max")
+    if (
+        not isinstance(minimum, int)
+        or isinstance(minimum, bool)
+        or not isinstance(maximum, int)
+        or isinstance(maximum, bool)
+        or minimum < 1
+        or maximum < minimum
+    ):
+        raise WorkflowError(f"Invalid row_count bounds for family {family_id}.")
+
+    relative_change = quality.get("relative_change") or {}
+    max_ratio = relative_change.get("max_ratio")
+    if (
+        not isinstance(max_ratio, (int, float))
+        or isinstance(max_ratio, bool)
+        or max_ratio < 0
+    ):
+        raise WorkflowError(f"Invalid relative_change.max_ratio for family {family_id}.")
+    if relative_change.get("baseline") != "same_slice_or_latest_target":
+        raise WorkflowError(f"Unsupported relative_change baseline for family {family_id}.")
+
+    required_columns = quality.get("required_column_null_rate") or {}
+    if not required_columns:
+        raise WorkflowError(f"required_column_null_rate is empty for family {family_id}.")
+    unknown_columns = sorted(set(required_columns) - set(family.get("target_columns", [])))
+    if unknown_columns:
+        raise WorkflowError(
+            f"Unknown required-column null thresholds for family {family_id}: {unknown_columns}"
+        )
+    for column, threshold in required_columns.items():
+        if (
+            not isinstance(threshold, (int, float))
+            or isinstance(threshold, bool)
+            or not 0 <= threshold <= 1
+        ):
+            raise WorkflowError(
+                f"Invalid null-rate threshold for {family_id}.{column}: {threshold}"
+            )
 
 
 def family_map(registry: dict[str, Any]) -> dict[str, dict[str, Any]]:
@@ -939,6 +996,217 @@ def scope_matches(record: dict[str, Any], family: dict[str, Any]) -> bool:
     return _text(record.get(scope["column"])) == _text(scope["equals"])
 
 
+def evaluate_source_quality(
+    family: dict[str, Any],
+    message: dict[str, Any],
+    source_records: list[dict[str, Any]],
+    target_records: list[dict[str, Any]],
+    *,
+    now: datetime | None = None,
+) -> dict[str, Any]:
+    quality = family.get("source_quality")
+    evaluated_at = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
+    if not quality:
+        return {
+            "policy_version": None,
+            "status": "not_configured",
+            "evaluated_at": evaluated_at.isoformat(timespec="seconds"),
+            "issues": [],
+        }
+
+    issues: list[dict[str, Any]] = []
+    source_created_at: datetime | None = None
+    source_expires_at: datetime | None = None
+    source_age_hours: float | None = None
+    try:
+        source_created_at = parse_datetime(str(message.get("create_time") or ""))
+        source_age_hours = (evaluated_at - source_created_at).total_seconds() / 3600
+        source_expires_at = source_created_at + timedelta(hours=float(quality["max_age_hours"]))
+        if source_age_hours < -1:
+            issues.append(
+                {
+                    "severity": "error",
+                    "rule": "source_time_in_future",
+                    "message": "Source message time is more than one hour in the future.",
+                    "source_age_hours": round(source_age_hours, 3),
+                }
+            )
+        if evaluated_at > source_expires_at:
+            issues.append(
+                {
+                    "severity": "error",
+                    "rule": "source_max_age",
+                    "message": "Source message exceeds the configured maximum age.",
+                    "source_age_hours": round(source_age_hours, 3),
+                    "max_age_hours": quality["max_age_hours"],
+                }
+            )
+    except WorkflowError as exc:
+        issues.append(
+            {
+                "severity": "error",
+                "rule": "source_time_parse",
+                "message": str(exc),
+            }
+        )
+
+    row_count = len(source_records)
+    row_bounds = quality["row_count"]
+    if not row_bounds["min"] <= row_count <= row_bounds["max"]:
+        issues.append(
+            {
+                "severity": "error",
+                "rule": "source_row_count",
+                "message": "Source row count is outside the configured bounds.",
+                "row_count": row_count,
+                "min": row_bounds["min"],
+                "max": row_bounds["max"],
+            }
+        )
+
+    required_column_results = []
+    for column, threshold in quality["required_column_null_rate"].items():
+        null_count = sum(1 for record in source_records if not _text(record.get(column)))
+        null_rate = null_count / row_count if row_count else 1.0
+        result = {
+            "column": column,
+            "null_count": null_count,
+            "row_count": row_count,
+            "null_rate": round(null_rate, 6),
+            "max_null_rate": threshold,
+            "ok": null_rate <= threshold,
+        }
+        required_column_results.append(result)
+        if not result["ok"]:
+            issues.append(
+                {
+                    "severity": "error",
+                    "rule": "required_column_null_rate",
+                    "message": f"Required column {column} exceeds its null-rate threshold.",
+                    **result,
+                }
+            )
+
+    slice_column = family["slice_column"]
+    source_by_slice: dict[str, int] = Counter(
+        _text(record.get(slice_column)) for record in source_records
+    )
+    scoped_target_records = [
+        record for record in target_records if scope_matches(record, family)
+    ]
+    target_by_slice: dict[str, int] = Counter(
+        _text(record.get(slice_column)) for record in scoped_target_records
+    )
+    target_slices = sorted(target_by_slice, key=slice_sort_key)
+    latest_target_slice = target_slices[-1] if target_slices else None
+    relative_results = []
+    max_ratio = float(quality["relative_change"]["max_ratio"])
+    for slice_value in sorted(source_by_slice, key=slice_sort_key):
+        source_count = source_by_slice[slice_value]
+        if slice_value in target_by_slice:
+            baseline_slice = slice_value
+            baseline_kind = "same_slice"
+        else:
+            baseline_slice = latest_target_slice
+            baseline_kind = "latest_target_slice"
+        baseline_count = target_by_slice.get(baseline_slice, 0) if baseline_slice else 0
+        if baseline_count <= 0:
+            result = {
+                "slice": slice_value,
+                "source_count": source_count,
+                "baseline_slice": baseline_slice,
+                "baseline_count": baseline_count,
+                "baseline_kind": baseline_kind,
+                "relative_change": None,
+                "max_ratio": max_ratio,
+                "ok": False,
+            }
+            relative_results.append(result)
+            issues.append(
+                {
+                    "severity": "error",
+                    "rule": "relative_change_baseline_missing",
+                    "message": f"No non-empty target baseline is available for source slice {slice_value}.",
+                    **result,
+                }
+            )
+            continue
+        relative_change = abs(source_count - baseline_count) / baseline_count
+        result = {
+            "slice": slice_value,
+            "source_count": source_count,
+            "baseline_slice": baseline_slice,
+            "baseline_count": baseline_count,
+            "baseline_kind": baseline_kind,
+            "relative_change": round(relative_change, 6),
+            "max_ratio": max_ratio,
+            "ok": relative_change <= max_ratio,
+        }
+        relative_results.append(result)
+        if not result["ok"]:
+            issues.append(
+                {
+                    "severity": "error",
+                    "rule": "source_relative_change",
+                    "message": f"Source slice {slice_value} exceeds the configured relative-change threshold.",
+                    **result,
+                }
+            )
+
+    return {
+        "policy_version": str(quality.get("policy_version") or "1.0.0"),
+        "status": "blocked" if issues else "pass",
+        "evaluated_at": evaluated_at.isoformat(timespec="seconds"),
+        "source_created_at": (
+            source_created_at.isoformat(timespec="seconds") if source_created_at else None
+        ),
+        "source_expires_at": (
+            source_expires_at.isoformat(timespec="seconds") if source_expires_at else None
+        ),
+        "source_age_hours": (
+            round(source_age_hours, 3) if source_age_hours is not None else None
+        ),
+        "max_age_hours": quality["max_age_hours"],
+        "row_count": {
+            "actual": row_count,
+            "min": row_bounds["min"],
+            "max": row_bounds["max"],
+            "ok": row_bounds["min"] <= row_count <= row_bounds["max"],
+        },
+        "required_columns": required_column_results,
+        "relative_change": {
+            "baseline": quality["relative_change"]["baseline"],
+            "max_ratio": max_ratio,
+            "slices": relative_results,
+        },
+        "issues": issues,
+    }
+
+
+def assert_plan_source_quality_current(
+    plan: dict[str, Any],
+    registry: dict[str, Any],
+    *,
+    now: datetime | None = None,
+) -> None:
+    if not registry.get("require_source_quality_gates"):
+        return
+    current_time = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
+    tables_by_id = {table.get("family_id"): table for table in plan.get("tables", [])}
+    for family_id in (plan.get("selection") or {}).get("family_ids", []):
+        table = tables_by_id.get(family_id)
+        report = (table or {}).get("source_quality") or {}
+        if report.get("status") != "pass":
+            raise WorkflowError(
+                f"Source quality gate is not passing for {family_id}; create a fresh plan."
+            )
+        expires_at = report.get("source_expires_at")
+        if not expires_at or current_time > parse_datetime(str(expires_at)):
+            raise WorkflowError(
+                f"Source quality gate expired for {family_id}; create a fresh plan."
+            )
+
+
 def records_equal(left: list[dict[str, Any]], right: list[dict[str, Any]], columns: list[str]) -> bool:
     return [normalized_record(record, columns) for record in left] == [
         normalized_record(record, columns) for record in right
@@ -1322,6 +1590,7 @@ def plan_sync(args: argparse.Namespace) -> int:
     for family_id in selection["family_ids"]:
         family = families[family_id]
         message = dict(selected[family_id])
+        source_quality = None
         try:
             source_path = download_message(message, family, downloads_dir)
             message["download_path"] = str(source_path)
@@ -1366,6 +1635,19 @@ def plan_sync(args: argparse.Namespace) -> int:
                 family["target_columns"],
                 data_only=True,
             )
+            source_quality = evaluate_source_quality(
+                family,
+                message,
+                source_effective,
+                target_effective,
+            )
+            if (
+                registry.get("require_source_quality_gates")
+                and source_quality["status"] != "pass"
+            ):
+                raise WorkflowError(
+                    f"Source quality gate blocked {family_id}: {source_quality['issues']}"
+                )
             merged_write, merged_effective, diff = merge_records(
                 family, target_write, target_effective, source_write, source_effective
             )
@@ -1399,6 +1681,7 @@ def plan_sync(args: argparse.Namespace) -> int:
                     "source_message": message,
                     "source_metadata": source_meta,
                     "source_validation": {"ok": True, "issues": []},
+                    "source_quality": source_quality,
                     "target_path": str(target_path),
                     "target_sheet": family["target_sheet"],
                     "platform_temp_table": family["platform_temp_table"],
@@ -1414,9 +1697,16 @@ def plan_sync(args: argparse.Namespace) -> int:
                 }
             )
         except Exception as exc:  # noqa: BLE001
-            blockers.append({"family_id": family_id, "message": str(exc), "error_type": type(exc).__name__})
+            blocker = {
+                "family_id": family_id,
+                "message": str(exc),
+                "error_type": type(exc).__name__,
+            }
+            if source_quality is not None:
+                blocker["source_quality"] = source_quality
+            blockers.append(blocker)
     plan = {
-        "schema_version": "1.0.0",
+        "schema_version": "1.1.0",
         "artifact_type": "QingchengTempTableSyncPlan",
         "generated_at": datetime.now().astimezone().isoformat(timespec="seconds"),
         "status": "ready" if not blockers and len(tables) == len(selection["family_ids"]) else "blocked",
@@ -1459,6 +1749,7 @@ def plan_sync(args: argparse.Namespace) -> int:
                 "family_id": table["family_id"],
                 "source_file": table["source_message"]["file_name"],
                 "source_time": table["source_message"]["create_time"],
+                "source_quality": table["source_quality"],
                 "target_path": table["target_path"],
                 "platform_temp_table": table["platform_temp_table"],
                 "diff": table["diff"],
@@ -1480,6 +1771,7 @@ def apply_local(args: argparse.Namespace) -> int:
     if not registry_path.exists() or sha256_file(registry_path) != plan["registry_sha256"]:
         raise WorkflowError("Workflow registry drifted after planning.")
     registry = load_registry(registry_path)
+    assert_plan_source_quality_current(plan, registry)
     selection = plan.get("selection") or build_selection_spec(registry)
     explicit_ids = set(selection.get("explicit_message_ids", {}).values())
     _, current_messages = discover_live_messages(
@@ -1687,6 +1979,7 @@ def upload_production(args: argparse.Namespace) -> int:
     if sha256_file(registry_path) != plan["registry_sha256"]:
         raise WorkflowError("Workflow registry drifted after planning.")
     registry = load_registry(registry_path)
+    assert_plan_source_quality_current(plan, registry)
     selection = plan.get("selection") or build_selection_spec(registry)
     explicit_ids = set(selection.get("explicit_message_ids", {}).values())
     _, current_messages = discover_live_messages(

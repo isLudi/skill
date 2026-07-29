@@ -2,7 +2,7 @@
 
 ## 2026-05-01
 
-- 创建 `sql-query-writer-for-dashboard` Skill。
+- 创建 `market-consultant-dashboard-sql` Skill。
 - 复制初始 PDF：`resources/raw_pdfs/数据地图概览.pdf`。
 - 渲染 PDF 页面到 `resources/rendered_pages/`。
 - 初始化 9 张 PDF 表和 2 张稳定临时表的知识库。
@@ -727,7 +727,7 @@
 
 ## 2026-07-10 Text2SQL P0 注册、配置与验证门禁修复
 
-- 移除 `SKILL.md` 文件头 BOM，修正 `agents/openai.yaml` 的 `$sql-query-writer-for-dashboard` 调用入口，并将 metadata 版本更新为 `0.2.4`。
+- 移除 `SKILL.md` 文件头 BOM，修正 `agents/openai.yaml` 的 `$market-consultant-dashboard-sql` 调用入口，并将 metadata 版本更新为 `0.2.4`。
 - 将 SQL 网页执行说明统一改为通过命令行 `--env-file` 或环境变量 `USQL_ENV_FILE` 指定凭证文件，不再在运行入口硬编码易漂移路径。
 - 在 skills 仓库新增统一 Text2SQL 栈验证入口，串行运行三个 Skill 的 `quick_validate`、两个业务 SQL Skill 的 integrity、当前文档引用检查和 USQL P0 安全测试。
 - 本次只修复 Skill 发现、运行配置和安全验证，不修改指标口径、表结构、看板 SQL、Raw SQL 或反向索引。

@@ -1,14 +1,14 @@
-# sql-query-writer-for-dashboard
+# market-consultant-dashboard-sql
 
 ## 0. 如何在新对话中调用
 
 推荐在 Codex 新对话开头直接写：
 
 ```text
-请加载并使用 Codex Skill：sql-query-writer-for-dashboard。
+请加载并使用 Codex Skill：market-consultant-dashboard-sql。
 
 Skill 路径优先使用：
-C:\Users\Ludim\.codex\skills\sql-query-writer-for-dashboard
+C:\Users\Ludim\.codex\skills\market-consultant-dashboard-sql
 
 请先读取该 Skill 的 SKILL.md、metadata.json 和 knowledge/01_table_index.md，再按我的需求检索相关的 knowledge/tables、knowledge/metrics、knowledge/dashboards、knowledge/dashboard_web_profiles、knowledge/joins 和 knowledge/sql_patterns。
 

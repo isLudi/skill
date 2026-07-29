@@ -9,7 +9,7 @@ description: Resolve, plan, compile, explain, validate, repair, and maintain gov
 
 当用户明确要求加载 `qingcheng-dashboard-sql`、`.codex/skills/qingcheng-dashboard-sql`，或需求属于青橙项目部看板取数 SQL、青橙指标口径、青橙临时表、青橙历史看板 SQL 入库、青橙 SQL 报错修复时，必须按本 Skill 执行。
 
-本 Skill 与 `sql-query-writer-for-dashboard` 独立。除非用户明确要求跨部门对比或迁移，不得加载、套用或推断市场顾问部/市场顾问部评优/市场渠道 CASE/市场顾问临时表的业务口径。
+本 Skill 与 `market-consultant-dashboard-sql` 独立。除非用户明确要求跨部门对比或迁移，不得加载、套用或推断市场顾问部/市场顾问部评优/市场渠道 CASE/市场顾问临时表的业务口径。
 
 加载后先确认 Skill 根目录，再按需读取以下入口：
 
@@ -42,7 +42,7 @@ description: Resolve, plan, compile, explain, validate, repair, and maintain gov
 - `semantic/contracts/` 只能引用本 Skill 的青橙文档或 Raw SQL；契约与来源 SHA-256 不一致时必须停止，不能用生成索引覆盖来源。
 - 用户只说“顾问”时必须在 `qingcheng:dimension:section_consultant`（线索分配顾问）和 `qingcheng:dimension:performance_consultant`（业绩归属顾问）之间消歧；不得根据当前查询表静默猜测。
 - 不脱离本 Skill 知识库编造表、字段、join key、临时表语义或指标口径。
-- 青橙相关 Web BI 结构快照、README 索引和调试结论只写入本 Skill 的 `knowledge/dashboard_web_profiles/`，不得写回 `sql-query-writer-for-dashboard`。
+- 青橙相关 Web BI 结构快照、README 索引和调试结论只写入本 Skill 的 `knowledge/dashboard_web_profiles/`，不得写回 `market-consultant-dashboard-sql`。
 - 青橙 `DashboardDesignSpec` 中的指标、维度、范围和公式依赖只能引用 `qingcheng:*` 的 `confirmed` contract ID 及其 `source_path`；不得因 live profile 出现同名字段而借用市场顾问口径。
 - 看板 `dashboard_id` 必须已由本 Skill 的 `knowledge/dashboard_web_profiles/` 注册并通过源文件 Hash 回查；未注册或同时出现在另一域的看板只允许只读画像，先完成青橙知识同步和 catalog 重建再进入 Design。
 - 本 Skill 只提供青橙业务设计约束，不保存看板登录态、不调用写接口。P3A 的组件/布局/公式/筛选器均可设计、diff 和 dry-run；P3B Apply 只允许 operator Registry 已验证的九类窄操作，并继续阻断泛化组件、筛选器、数据集、新建和删除修改。
@@ -246,4 +246,4 @@ QuerySpec 至少包含：
 
 - 单看板/文件夹命令只把原始画像写入 runtime。需要批量写入知识库时，必须显式运行 `usql-web-query-operator/scripts/read_dashboard.py profile-all --write-knowledge --confirm-skill-maintenance`；少任一参数都不得修改本 Skill。
 - 所有青橙快照、README 索引和相关说明只写入本 Skill 的 `knowledge/dashboard_web_profiles/`。
-- 不得把 `青橙项目部` 文件夹下的结构快照写入 `sql-query-writer-for-dashboard`。
+- 不得把 `青橙项目部` 文件夹下的结构快照写入 `market-consultant-dashboard-sql`。

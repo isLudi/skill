@@ -1,6 +1,7 @@
 {
-  "version": 2,
-  "updated_at": "2026-07-27",
+  "version": 3,
+  "updated_at": "2026-07-29",
+  "require_source_quality_gates": true,
   "chat": {
     "name": "青橙数据对接",
     "expected_chat_id": "oc_e604e064976c022ab4289fc2fb979332",
@@ -25,6 +26,23 @@
       "slice_column": "qici",
       "slice_order": "asc",
       "key_columns": ["qici", "name"],
+      "source_quality": {
+        "policy_version": "1.0.0",
+        "max_age_hours": 360,
+        "row_count": {"min": 50, "max": 2000},
+        "relative_change": {
+          "baseline": "same_slice_or_latest_target",
+          "max_ratio": 0.5
+        },
+        "required_column_null_rate": {
+          "month": 0,
+          "qici": 0,
+          "xuebu": 0.02,
+          "jingli": 0.02,
+          "name": 0,
+          "goal": 0
+        }
+      },
       "validation_rules": [
         {"type": "slice_format", "column": "qici", "pattern": "^\\d{8}期$"},
         {"type": "month_format", "column": "month"}
@@ -47,6 +65,22 @@
       "slice_column": "qici",
       "slice_order": "asc",
       "key_columns": ["qici", "xuebu", "jingli", "dazu", "xiaozu"],
+      "source_quality": {
+        "policy_version": "1.0.0",
+        "max_age_hours": 360,
+        "row_count": {"min": 10, "max": 500},
+        "relative_change": {
+          "baseline": "same_slice_or_latest_target",
+          "max_ratio": 0.5
+        },
+        "required_column_null_rate": {
+          "month": 0,
+          "qici": 0,
+          "xuebu": 0,
+          "jingli": 0,
+          "goal": 0
+        }
+      },
       "validation_rules": [
         {"type": "slice_format", "column": "qici", "pattern": "^\\d{8}期$"},
         {"type": "month_format", "column": "month"}
@@ -69,6 +103,21 @@
       "slice_column": "month",
       "slice_order": "asc",
       "key_columns": ["month", "xuebu", "jingli", "dazu", "xiaozu"],
+      "source_quality": {
+        "policy_version": "1.0.0",
+        "max_age_hours": 840,
+        "row_count": {"min": 5, "max": 200},
+        "relative_change": {
+          "baseline": "same_slice_or_latest_target",
+          "max_ratio": 0.5
+        },
+        "required_column_null_rate": {
+          "month": 0,
+          "xuebu": 0,
+          "jingli": 0,
+          "goal": 0
+        }
+      },
       "validation_rules": [
         {"type": "month_format", "column": "month"}
       ]
@@ -90,6 +139,21 @@
       "slice_column": "qici",
       "slice_order": "asc",
       "key_columns": ["qici", "employee_email_name"],
+      "source_quality": {
+        "policy_version": "1.0.0",
+        "max_age_hours": 360,
+        "row_count": {"min": 50, "max": 2000},
+        "relative_change": {
+          "baseline": "same_slice_or_latest_target",
+          "max_ratio": 0.35
+        },
+        "required_column_null_rate": {
+          "employee_name": 0,
+          "employee_email_name": 0,
+          "email_prefix": 0,
+          "qici": 0
+        }
+      },
       "validation_rules": [
         {"type": "slice_format", "column": "qici", "pattern": "^\\d{8}期$"},
         {"type": "lowercase_ascii_prefix", "columns": ["email_prefix", "leader_email_prefix"]},
@@ -114,6 +178,23 @@
       "key_columns": ["qici", "employee_email_name"],
       "target_scope": {"column": "dept_1", "equals": "青橙项目部"},
       "allow_baseline_target_errors": true,
+      "source_quality": {
+        "policy_version": "1.0.0",
+        "max_age_hours": 360,
+        "row_count": {"min": 20, "max": 800},
+        "relative_change": {
+          "baseline": "same_slice_or_latest_target",
+          "max_ratio": 0.35
+        },
+        "required_column_null_rate": {
+          "employee_email_prefix": 0,
+          "employee_email_name": 0,
+          "department": 0,
+          "zaizhi": 0,
+          "qici": 0,
+          "dept_1": 0
+        }
+      },
       "validation_rules": [
         {"type": "slice_format", "column": "qici", "pattern": "^\\d{8}期$"},
         {"type": "lowercase_ascii_prefix", "columns": ["xiaozu_z", "employee_email_prefix"]},
@@ -162,6 +243,23 @@
       "slice_column": "qici",
       "slice_order": "asc",
       "key_columns": ["qici", "qudao", "grade", "ke_1", "begin_time", "dow"],
+      "source_quality": {
+        "policy_version": "1.0.0",
+        "max_age_hours": 240,
+        "row_count": {"min": 20, "max": 500},
+        "relative_change": {
+          "baseline": "same_slice_or_latest_target",
+          "max_ratio": 0.5
+        },
+        "required_column_null_rate": {
+          "qudao": 0,
+          "begin_time": 0,
+          "qici": 0,
+          "dow": 0,
+          "grade": 0,
+          "ke_1": 0
+        }
+      },
       "validation_rules": [
         {"type": "slice_format", "column": "qici", "pattern": "^\\d{8}期$"},
         {"type": "required_nonblank", "columns": ["qudao", "begin_time", "qici", "dow", "grade", "ke_1"]},

@@ -115,13 +115,13 @@ SQL 或结果：
 
 ## 和本地 SQL skill 的配合方式
 
-`validate-data` 适合作为 `sql-query-writer-for-dashboard` 的后置校验工具：
+`validate-data` 适合作为 `market-consultant-dashboard-sql` 的后置校验工具：
 
-- 先用 `sql-query-writer-for-dashboard` 生成或修复 Presto SQL。
+- 先用 `market-consultant-dashboard-sql` 生成或修复 Presto SQL。
 - 再用 USQL RestAPI 或查询平台拿到结果。
 - 最后用 `validate-data` 检查结果、口径、结论和交付风险。
 
-如果任务是“生成 SQL”，优先使用 `sql-query-writer-for-dashboard`；如果任务是“检查这份分析是否可靠”，优先使用 `validate-data`。
+如果任务是“生成 SQL”，优先使用 `market-consultant-dashboard-sql`；如果任务是“检查这份分析是否可靠”，优先使用 `validate-data`。
 
 ## 使用注意
 

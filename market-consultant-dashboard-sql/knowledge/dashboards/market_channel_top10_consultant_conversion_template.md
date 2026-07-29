@@ -5,7 +5,7 @@
 - 业务域：`market_consultant`
 - 模板编号：M7
 - 用途：在每个“顾问学部 + 渠道”组合内，按当期净 GMV 选择前 N 名顾问，并输出承接线索、正价课人头/科目人次和单效分子分母。
-- 历史结果：`runtime/sql-query-writer-for-dashboard/top10_consultant_conversion_20260710_jpb_koc_zhou_jyb_xian_link.xlsx`
+- 历史结果：`runtime/market-consultant-dashboard-sql/top10_consultant_conversion_20260710_jpb_koc_zhou_jyb_xian_link.xlsx`
 - 指标文档：`knowledge/metrics/market_channel_top10_consultant_conversion_metrics.md`
 - 基础口径：`knowledge/dashboards/market_consultant_conversion.md`
 

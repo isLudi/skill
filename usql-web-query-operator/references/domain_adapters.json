@@ -1,0 +1,49 @@
+{
+  "schema_version": "1.0.0",
+  "adapters": [
+    {
+      "target": "market",
+      "domain_id": "market_consultant",
+      "skill_name": "market-consultant-dashboard-sql",
+      "row_style": "market",
+      "dashboard": {
+        "profile_folders": ["市场顾问数据"],
+        "edit_folders": ["市场顾问数据"],
+        "knowledge_folders": ["市场顾问数据"],
+        "profiles_dir": "knowledge/dashboard_web_profiles",
+        "profiles_readme": "knowledge/dashboard_web_profiles/README.md",
+        "dashboards_readme": "knowledge/dashboards/README.md",
+        "changelog": "knowledge/update_log/changelog.md"
+      },
+      "data_center": {
+        "selector": "market_from_start",
+        "dataset_prefix": "market",
+        "doc_filename": "data_center_market_datasets.md",
+        "title": "数据中心数据集源 SQL（市场顾问部）",
+        "scope_note_template": "市场顾问部目录下从 `{market_start_name}` 开始到末尾的 SQL 数据集。"
+      }
+    },
+    {
+      "target": "qingcheng",
+      "domain_id": "qingcheng",
+      "skill_name": "qingcheng-dashboard-sql",
+      "row_style": "qingcheng",
+      "dashboard": {
+        "profile_folders": ["青橙项目部"],
+        "edit_folders": ["青橙项目部", "青橙播报"],
+        "knowledge_folders": ["青橙项目部", "青橙播报"],
+        "profiles_dir": "knowledge/dashboard_web_profiles",
+        "profiles_readme": "knowledge/dashboard_web_profiles/README.md",
+        "dashboards_readme": null,
+        "changelog": "knowledge/update_log/changelog.md"
+      },
+      "data_center": {
+        "selector": "qingcheng_folder",
+        "dataset_prefix": "qingcheng",
+        "doc_filename": "data_center_qingcheng_datasets.md",
+        "title": "数据中心数据集源 SQL（青橙项目部）",
+        "scope_note_template": "青橙项目部目录下的全部 SQL 数据集。"
+      }
+    }
+  ]
+}

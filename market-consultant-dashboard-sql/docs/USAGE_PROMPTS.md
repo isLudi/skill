@@ -5,10 +5,10 @@
 ## 1. 标准加载模板
 
 ```text
-#加载并使用 Codex Skill：sql-query-writer-for-dashboard。
+#加载并使用 Codex Skill：market-consultant-dashboard-sql。
 
 #Skill 路径优先使用：
-C:\Users\Ludim\.codex\skills\sql-query-writer-for-dashboard
+C:\Users\Ludim\.codex\skills\market-consultant-dashboard-sql
 
 #先读取该 Skill 的 SKILL.md、metadata.json 和 knowledge/01_table_index.md，再按我的需求检索相关的 knowledge/tables、knowledge/metrics、knowledge/dashboards、knowledge/joins 和 knowledge/sql_patterns。
 
@@ -34,7 +34,7 @@ C:\Users\Ludim\.codex\skills\sql-query-writer-for-dashboard
 ## 2. 简短加载模板
 
 ```text
-请使用 sql-query-writer-for-dashboard skill 处理下面的公司内部看板取数 SQL 需求。先检索 skill 的 knowledge，再生成或修复 Presto SQL，并按 skill 规则输出解释。
+请使用 market-consultant-dashboard-sql skill 处理下面的公司内部看板取数 SQL 需求。先检索 skill 的 knowledge，再生成或修复 Presto SQL，并按 skill 规则输出解释。
 
 除非我特别明确要求更新 Skill 知识库，否则不要修改现有 Skill 文件，只在对话中给出 SQL 参考。
 
@@ -45,7 +45,7 @@ C:\Users\Ludim\.codex\skills\sql-query-writer-for-dashboard
 ## 3. SQL 报错修复模板
 
 ```text
-请加载 sql-query-writer-for-dashboard skill，按 Presto 和公司查询平台规则帮我修复 SQL 报错。
+请加载 market-consultant-dashboard-sql skill，按 Presto 和公司查询平台规则帮我修复 SQL 报错。
 
 要求：
 1. 先判断报错属于语法、字段、表权限、分区、范围限定、group by、类型混用还是平台解析问题；
@@ -63,7 +63,7 @@ SQL：
 ## 4. 看板 SQL 改写模板
 
 ```text
-#请加载 sql-query-writer-for-dashboard skill，并基于已有看板知识库改写 SQL。
+#请加载 market-consultant-dashboard-sql skill，并基于已有看板知识库改写 SQL。
 #请优先检索：
 - knowledge/dashboards/
 - knowledge/metrics/
@@ -82,7 +82,7 @@ SQL：
 ## 5. 知识库维护模板
 
 ```text
-请加载 sql-query-writer-for-dashboard skill，更新 skill 知识库。
+请加载 market-consultant-dashboard-sql skill，更新 skill 知识库。
 
 资料来源：
 【写文件路径，例如 E:\2000_work\GAOTU\xxx.docx 或 resources/raw_sql/xxx.sql】

@@ -6,7 +6,7 @@
 - 模板编号：M8
 - 用途：在 M6 财务正价课科目结构上，继续拆分订单类型、课程部门、版本关键词、课程、班级和子班。
 - 历史 SQL：`resources/raw_sql/market_channel_positive_subject_course_example_20260718.sql`
-- 历史结果：`runtime/sql-query-writer-for-dashboard/xian_live_jiangsu_positive_subjects_20260626_20260703.xlsx`
+- 历史结果：`runtime/market-consultant-dashboard-sql/xian_live_jiangsu_positive_subjects_20260626_20260703.xlsx`
 - 母模板：`knowledge/dashboards/market_finance_positive_subject_structure_template.md`
 
 历史样例使用“西安直播江苏”规则和“江苏专版”关键词。二者都只是 worked example，不是固定渠道或固定产品；未来更换渠道时保留同一指标和 Join 结构，替换渠道/产品分类参数。

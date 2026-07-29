@@ -32,7 +32,7 @@ from text2sql_core.contracts import ContractRegistry  # noqa: E402
 
 
 DOMAIN_SKILLS = {
-    "market_consultant": "sql-query-writer-for-dashboard",
+    "market_consultant": "market-consultant-dashboard-sql",
     "qingcheng": "qingcheng-dashboard-sql",
 }
 DASHBOARD_IDS = {
@@ -313,7 +313,7 @@ class P3DashboardChangeTest(unittest.TestCase):
             ("source_sha256", None, "DASHBOARD_CONTRACT_SOURCE_HASH_INVALID"),
             (
                 "source_path",
-                "sql-query-writer-for-dashboard/knowledge/metrics/foreign.md",
+                "market-consultant-dashboard-sql/knowledge/metrics/foreign.md",
                 "DASHBOARD_CONTRACT_SOURCE_CROSS_DOMAIN",
             ),
             ("source_path", "C:/absolute/evidence.md", "DASHBOARD_CONTRACT_SOURCE_PATH_INVALID"),

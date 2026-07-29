@@ -8,7 +8,7 @@ from typing import Any, Iterable
 
 SUPPORTED_DOMAINS = {"market_consultant", "qingcheng"}
 DOMAIN_SKILLS = {
-    "market_consultant": "sql-query-writer-for-dashboard",
+    "market_consultant": "market-consultant-dashboard-sql",
     "qingcheng": "qingcheng-dashboard-sql",
 }
 

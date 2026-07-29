@@ -20,12 +20,12 @@ AGENTS_LAYOUT_CHECK = REPO_ROOT / "scripts" / "check_agents_layout.py"
 EXPECTED_SQLGLOT_VERSION = "30.12.0"
 SKILL_NAMES = (
     "qingcheng-dashboard-sql",
-    "sql-query-writer-for-dashboard",
+    "market-consultant-dashboard-sql",
     "usql-web-query-operator",
 )
 BUSINESS_SKILLS = (
     "qingcheng-dashboard-sql",
-    "sql-query-writer-for-dashboard",
+    "market-consultant-dashboard-sql",
 )
 REFERENCE_PREFIXES = (
     "knowledge/",

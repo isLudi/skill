@@ -6,7 +6,7 @@
 - 模板编号：M6
 - 用途：查询指定渠道集合在各期次、年级、经理下的财务正价课科目用户、人次、金额和订单结构。
 - 历史 SQL：`resources/raw_sql/market_finance_positive_subject_structure_example_20260718.sql`
-- 历史结果：`runtime/sql-query-writer-for-dashboard/koc_finance_positive_subjects_20260605_20260703.xlsx`
+- 历史结果：`runtime/market-consultant-dashboard-sql/koc_finance_positive_subjects_20260605_20260703.xlsx`
 - 指标文档：`knowledge/metrics/market_finance_positive_subject_structure_metrics.md`
 
 ## 2. 为什么使用财务识别

@@ -33,7 +33,7 @@ from usql_web_query.query_contract import load_query_plan_contract  # noqa: E402
 
 DOMAIN_CASES = {
     "market_consultant": {
-        "skill": "sql-query-writer-for-dashboard",
+        "skill": "market-consultant-dashboard-sql",
         "metric": "market_consultant:metric:conversion_users",
         "dimension": "market_consultant:dimension:period_name",
         "scope": "market_consultant:scope:conversion_dashboard",
@@ -392,7 +392,7 @@ class P2SemanticCompilerTest(unittest.TestCase):
         self.assertIn("PLAN_METRIC_MANUAL_RECIPE_REQUIRED", {item.code for item in manual_plan.diagnostics})
 
     def test_probes_are_bounded_read_only_and_catalog_checked(self) -> None:
-        bundle = CatalogBundle.load(REPO_ROOT / "sql-query-writer-for-dashboard", CORE_ROOT)
+        bundle = CatalogBundle.load(REPO_ROOT / "market-consultant-dashboard-sql", CORE_ROOT)
         for kind, kwargs in (
             ("freshness", {}),
             ("distribution", {"field": "period_name"}),

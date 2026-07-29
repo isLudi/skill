@@ -9,6 +9,7 @@ import tempfile
 import unittest
 import zipfile
 from contextlib import redirect_stdout
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
@@ -23,8 +24,10 @@ sys.path.insert(0, str(SKILL_ROOT / "scripts"))
 from qingcheng_temp_table_sync import (  # noqa: E402
     WorkflowError,
     apply_local,
+    assert_plan_source_quality_current,
     build_selection_spec,
     classify_source_message,
+    evaluate_source_quality,
     inspect_external_link_integrity,
     main,
     merge_records,
@@ -435,6 +438,37 @@ class MergeWorkflowTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "upload_order"):
                 load_registry(path)
 
+    def test_registered_families_require_complete_source_quality_gates(self) -> None:
+        registry = load_registry(SKILL_ROOT / "references" / "workflow_registry.json")
+        self.assertTrue(registry["require_source_quality_gates"])
+        self.assertEqual(len(registry["families"]), 6)
+        for family in registry["families"]:
+            quality = family["source_quality"]
+            self.assertGreater(quality["max_age_hours"], 0)
+            self.assertGreaterEqual(quality["row_count"]["max"], quality["row_count"]["min"])
+            self.assertEqual(
+                quality["relative_change"]["baseline"],
+                "same_slice_or_latest_target",
+            )
+            self.assertTrue(quality["required_column_null_rate"])
+
+    def test_registry_rejects_missing_required_source_quality_gate(self) -> None:
+        registry = {
+            "require_source_quality_gates": True,
+            "families": [
+                {
+                    "id": "a",
+                    "source_filename_patterns": ["^a\\.xlsx$"],
+                }
+            ],
+            "upload_order": ["a"],
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "registry.json"
+            path.write_text(json.dumps(registry), encoding="utf-8")
+            with self.assertRaisesRegex(WorkflowError, "Source quality gate is required"):
+                load_registry(path)
+
     def test_lark_cli_is_resolved_before_download_cwd_changes(self) -> None:
         with mock.patch("qingcheng_temp_table_sync.shutil.which", return_value=r".\lark-cli.cmd"):
             resolved = resolve_lark_cli()
@@ -514,6 +548,122 @@ class MergeWorkflowTests(unittest.TestCase):
         issues = validate_source_records(family, rows)
 
         self.assertTrue(any(issue["rule"] == "unique_key" for issue in issues))
+
+    def test_source_quality_passes_all_four_gate_types(self) -> None:
+        family = {
+            "id": "quality",
+            "slice_column": "qici",
+            "target_columns": ["qici", "name", "goal"],
+            "source_quality": {
+                "policy_version": "1.0.0",
+                "max_age_hours": 48,
+                "row_count": {"min": 2, "max": 4},
+                "relative_change": {
+                    "baseline": "same_slice_or_latest_target",
+                    "max_ratio": 0.5,
+                },
+                "required_column_null_rate": {
+                    "qici": 0,
+                    "name": 0,
+                    "goal": 0,
+                },
+            },
+        }
+        now = datetime(2026, 7, 29, 0, 0, tzinfo=timezone.utc)
+        source = [
+            {"qici": "20260729期", "name": "A", "goal": 1},
+            {"qici": "20260729期", "name": "B", "goal": 2},
+        ]
+        target = [
+            {"qici": "20260722期", "name": "A", "goal": 1},
+            {"qici": "20260722期", "name": "B", "goal": 2},
+        ]
+
+        report = evaluate_source_quality(
+            family,
+            {"create_time": (now - timedelta(hours=2)).isoformat()},
+            source,
+            target,
+            now=now,
+        )
+
+        self.assertEqual(report["status"], "pass")
+        self.assertTrue(report["row_count"]["ok"])
+        self.assertEqual(
+            report["relative_change"]["slices"][0]["baseline_kind"],
+            "latest_target_slice",
+        )
+        self.assertFalse(report["issues"])
+
+    def test_source_quality_blocks_age_rows_relative_change_and_null_rate(self) -> None:
+        family = {
+            "id": "quality",
+            "slice_column": "qici",
+            "target_columns": ["qici", "name", "goal"],
+            "source_quality": {
+                "policy_version": "1.0.0",
+                "max_age_hours": 24,
+                "row_count": {"min": 3, "max": 4},
+                "relative_change": {
+                    "baseline": "same_slice_or_latest_target",
+                    "max_ratio": 0.25,
+                },
+                "required_column_null_rate": {
+                    "qici": 0,
+                    "name": 0,
+                    "goal": 0,
+                },
+            },
+        }
+        now = datetime(2026, 7, 29, 0, 0, tzinfo=timezone.utc)
+        source = [
+            {"qici": "20260722期", "name": "A", "goal": None},
+            {"qici": "20260722期", "name": "B", "goal": 2},
+        ]
+        target = [
+            {"qici": "20260722期", "name": "A", "goal": 1},
+            {"qici": "20260722期", "name": "B", "goal": 2},
+            {"qici": "20260722期", "name": "C", "goal": 3},
+            {"qici": "20260722期", "name": "D", "goal": 4},
+        ]
+
+        report = evaluate_source_quality(
+            family,
+            {"create_time": (now - timedelta(hours=25)).isoformat()},
+            source,
+            target,
+            now=now,
+        )
+
+        self.assertEqual(report["status"], "blocked")
+        self.assertEqual(
+            {issue["rule"] for issue in report["issues"]},
+            {
+                "source_max_age",
+                "source_row_count",
+                "required_column_null_rate",
+                "source_relative_change",
+            },
+        )
+
+    def test_apply_and_upload_gate_rejects_expired_quality_report(self) -> None:
+        now = datetime(2026, 7, 29, 0, 0, tzinfo=timezone.utc)
+        registry = {"require_source_quality_gates": True}
+        plan = {
+            "selection": {"family_ids": ["a"]},
+            "tables": [
+                {
+                    "family_id": "a",
+                    "source_quality": {
+                        "status": "pass",
+                        "source_expires_at": (now - timedelta(seconds=1)).isoformat(),
+                    },
+                }
+            ],
+        }
+
+        with self.assertRaisesRegex(WorkflowError, "expired"):
+            assert_plan_source_quality_current(plan, registry, now=now)
 
     def test_subset_selection_uses_only_requested_families(self) -> None:
         registry = {

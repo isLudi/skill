@@ -12,7 +12,7 @@ from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DOMAIN_SKILLS = (
-    "sql-query-writer-for-dashboard",
+    "market-consultant-dashboard-sql",
     "qingcheng-dashboard-sql",
 )
 CANONICAL_VERSION_PATTERNS = (
@@ -21,11 +21,11 @@ CANONICAL_VERSION_PATTERNS = (
     re.compile(r"^(market_channel_case_when)_(?:20\d{6}|\d{4})\.sql$"),
 )
 STABLE_DATA_CENTER_PATTERNS = {
-    "sql-query-writer-for-dashboard": re.compile(r"^data_center_market_(\d+)\.sql$"),
+    "market-consultant-dashboard-sql": re.compile(r"^data_center_market_(\d+)\.sql$"),
     "qingcheng-dashboard-sql": re.compile(r"^data_center_qingcheng_(\d+)\.sql$"),
 }
 LEGACY_DATA_CENTER_PATTERNS = {
-    "sql-query-writer-for-dashboard": re.compile(r"^data_center_market_(\d+)_20\d{6}\.sql$"),
+    "market-consultant-dashboard-sql": re.compile(r"^data_center_market_(\d+)_20\d{6}\.sql$"),
     "qingcheng-dashboard-sql": re.compile(r"^data_center_qingcheng_(\d+)_20\d{6}\.sql$"),
 }
 
@@ -135,7 +135,7 @@ def _audit_current_model_registry(skill_root: Path, stable_files: dict[str, Path
         return [{"code": "INVALID_CURRENT_MODEL_REGISTRY", "detail": str(exc)}]
 
     issues: list[dict[str, Any]] = []
-    expected_domain = "market_consultant" if skill_root.name == "sql-query-writer-for-dashboard" else "qingcheng"
+    expected_domain = "market_consultant" if skill_root.name == "market-consultant-dashboard-sql" else "qingcheng"
     if registry.get("domain") != expected_domain:
         issues.append({"code": "CURRENT_MODEL_DOMAIN_MISMATCH", "actual": registry.get("domain")})
 

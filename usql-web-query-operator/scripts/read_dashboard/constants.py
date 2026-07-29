@@ -5,6 +5,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
+from _shared.domain_adapters import (
+    dashboard_folder_adapters,
+    default_edit_folders,
+    default_profile_folders,
+    load_domain_adapters,
+)
+
 
 DASHBOARD_MARKET_URL = "https://uanalysis.baijia.com/dashboard-market"
 DASHBOARD_MENU_API = "https://uanalysis.baijia.com/uanalysis-intelligence/data/menu/manage"
@@ -13,17 +20,22 @@ UNIT_DETAIL_API = "https://uanalysis.baijia.com/uanalysis-intelligence/value/uni
 PUBLIC_FILTER_DETAIL_API = "https://uanalysis.baijia.com/uanalysis-intelligence/value/public/unit/relation/detail"
 UNIT_VALUE_API = "https://uanalysis.baijia.com/uanalysis-intelligence/value/unit"
 
-DEFAULT_PROFILE_ALL_FOLDERS = ("市场顾问数据", "青橙项目部")
-DEFAULT_PROFILE_EDIT_ALL_FOLDERS = ("市场顾问数据", "青橙项目部", "青橙播报")
+DOMAIN_ADAPTERS = load_domain_adapters()
+DOMAIN_ADAPTERS_BY_FOLDER = dashboard_folder_adapters(DOMAIN_ADAPTERS)
+DOMAIN_ADAPTERS_BY_TARGET = {adapter.target: adapter for adapter in DOMAIN_ADAPTERS}
 
-SKILLS_ROOT = Path(__file__).resolve().parents[3]
-MARKET_KNOWLEDGE_ROOT = SKILLS_ROOT / "sql-query-writer-for-dashboard" / "knowledge"
-QINGCHENG_KNOWLEDGE_ROOT = SKILLS_ROOT / "qingcheng-dashboard-sql" / "knowledge"
+DEFAULT_PROFILE_ALL_FOLDERS = default_profile_folders(DOMAIN_ADAPTERS)
+DEFAULT_PROFILE_EDIT_ALL_FOLDERS = default_edit_folders(DOMAIN_ADAPTERS)
 
-DEFAULT_WEB_PROFILE_DIR = MARKET_KNOWLEDGE_ROOT / "dashboard_web_profiles"
-DEFAULT_WEB_PROFILE_README = DEFAULT_WEB_PROFILE_DIR / "README.md"
-DEFAULT_DASHBOARDS_README = MARKET_KNOWLEDGE_ROOT / "dashboards" / "README.md"
-DEFAULT_CHANGELOG = MARKET_KNOWLEDGE_ROOT / "update_log" / "changelog.md"
+MARKET_ADAPTER = DOMAIN_ADAPTERS_BY_TARGET["market"]
+DEFAULT_WEB_PROFILE_DIR = MARKET_ADAPTER.skill_root / MARKET_ADAPTER.dashboard.profiles_dir
+DEFAULT_WEB_PROFILE_README = MARKET_ADAPTER.skill_root / MARKET_ADAPTER.dashboard.profiles_readme
+DEFAULT_DASHBOARDS_README = (
+    MARKET_ADAPTER.skill_root / MARKET_ADAPTER.dashboard.dashboards_readme
+    if MARKET_ADAPTER.dashboard.dashboards_readme is not None
+    else None
+)
+DEFAULT_CHANGELOG = MARKET_ADAPTER.skill_root / MARKET_ADAPTER.dashboard.changelog
 
 
 @dataclass(frozen=True)
@@ -36,25 +48,18 @@ class DashboardKnowledgeTarget:
 
 
 FOLDER_KNOWLEDGE_TARGETS = {
-    "市场顾问数据": DashboardKnowledgeTarget(
-        skill_name="sql-query-writer-for-dashboard",
-        knowledge_dir=MARKET_KNOWLEDGE_ROOT / "dashboard_web_profiles",
-        readme_path=MARKET_KNOWLEDGE_ROOT / "dashboard_web_profiles" / "README.md",
-        dashboards_readme_path=MARKET_KNOWLEDGE_ROOT / "dashboards" / "README.md",
-        changelog_path=MARKET_KNOWLEDGE_ROOT / "update_log" / "changelog.md",
-    ),
-    "青橙项目部": DashboardKnowledgeTarget(
-        skill_name="qingcheng-dashboard-sql",
-        knowledge_dir=QINGCHENG_KNOWLEDGE_ROOT / "dashboard_web_profiles",
-        readme_path=QINGCHENG_KNOWLEDGE_ROOT / "dashboard_web_profiles" / "README.md",
-        changelog_path=QINGCHENG_KNOWLEDGE_ROOT / "update_log" / "changelog.md",
-    ),
-    "青橙播报": DashboardKnowledgeTarget(
-        skill_name="qingcheng-dashboard-sql",
-        knowledge_dir=QINGCHENG_KNOWLEDGE_ROOT / "dashboard_web_profiles",
-        readme_path=QINGCHENG_KNOWLEDGE_ROOT / "dashboard_web_profiles" / "README.md",
-        changelog_path=QINGCHENG_KNOWLEDGE_ROOT / "update_log" / "changelog.md",
-    ),
+    folder: DashboardKnowledgeTarget(
+        skill_name=adapter.skill_name,
+        knowledge_dir=adapter.skill_root / adapter.dashboard.profiles_dir,
+        readme_path=adapter.skill_root / adapter.dashboard.profiles_readme,
+        dashboards_readme_path=(
+            adapter.skill_root / adapter.dashboard.dashboards_readme
+            if adapter.dashboard.dashboards_readme is not None
+            else None
+        ),
+        changelog_path=adapter.skill_root / adapter.dashboard.changelog,
+    )
+    for folder, adapter in DOMAIN_ADAPTERS_BY_FOLDER.items()
 }
 
 DASHBOARD_FILENAME_OVERRIDES = {

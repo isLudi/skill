@@ -61,7 +61,7 @@ class QuerySpecTest(unittest.TestCase):
         spec = valid_spec("qingcheng")
         spec.evidence.append(
             {
-                "source_path": "sql-query-writer-for-dashboard/knowledge/metrics/market.md",
+                "source_path": "market-consultant-dashboard-sql/knowledge/metrics/market.md",
                 "kind": "metric",
                 "supports": ["market metric"],
             }

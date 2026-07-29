@@ -8,7 +8,7 @@
   "domain_id": "qingcheng",
   "entrypoint": "SKILL.md",
   "isolated_from": [
-    "sql-query-writer-for-dashboard",
+    "market-consultant-dashboard-sql",
     "市场顾问部",
     "市场顾问部评优口径"
   ],

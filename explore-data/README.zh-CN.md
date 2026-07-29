@@ -97,7 +97,7 @@ dt = '<YYYYMMDD>'
 
 ### 结构理解
 
-先确认数据来源、范围条件和表粒度。对内部表，优先读取 `sql-query-writer-for-dashboard` 中已有的表文档和表索引；对文件，先读取表头和少量样例行。
+先确认数据来源、范围条件和表粒度。对内部表，优先读取 `market-consultant-dashboard-sql` 中已有的表文档和表索引；对文件，先读取表头和少量样例行。
 
 ### 安全探查
 
@@ -135,13 +135,13 @@ dt = '<YYYYMMDD>'
 
 ## 和本地 SQL skill 的配合方式
 
-`explore-data` 适合作为 `sql-query-writer-for-dashboard` 的前置探查工具：
+`explore-data` 适合作为 `market-consultant-dashboard-sql` 的前置探查工具：
 
 - 先用 `explore-data` 了解表结构、字段质量、粒度和 join key。
-- 再用 `sql-query-writer-for-dashboard` 生成符合公司规则的 Presto SQL。
+- 再用 `market-consultant-dashboard-sql` 生成符合公司规则的 Presto SQL。
 - 查询结果出来后，再用 `validate-data` 做交付前审阅和风险检查。
 
-如果任务是“写生产可用 SQL”，优先使用 `sql-query-writer-for-dashboard`；如果任务是“先看看这张表/文件长什么样”，优先使用 `explore-data`。
+如果任务是“写生产可用 SQL”，优先使用 `market-consultant-dashboard-sql`；如果任务是“先看看这张表/文件长什么样”，优先使用 `explore-data`。
 
 ## 依赖和环境
 
@@ -150,7 +150,7 @@ dt = '<YYYYMMDD>'
 - `D:\anaconda3\python.exe`：本机 Codex 默认 Python 解释器。
 - `pandas`：读取和分析 CSV、Excel、Parquet、JSON 等数据。
 - `openpyxl`、`python-calamine`：读取 Excel 文件。
-- `sql-query-writer-for-dashboard` 中的 USQL RestAPI 规则：对内部 Presto 表做小范围只读查询。
+- `market-consultant-dashboard-sql` 中的 USQL RestAPI 规则：对内部 Presto 表做小范围只读查询。
 
 ## 使用注意
 

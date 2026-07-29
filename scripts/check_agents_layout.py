@@ -45,7 +45,7 @@ REQUIRED_CPLUS_CAPABILITIES = {
     ),
     "skill_routing": (
         "## Skill Auto-Orchestration",
-        "sql-query-writer-for-dashboard",
+        "market-consultant-dashboard-sql",
         "qingcheng-dashboard-sql",
         "usql-web-query-operator",
         "lark-shared",

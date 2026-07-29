@@ -1,7 +1,7 @@
 {
-  "name": "sql-query-writer-for-dashboard",
+  "name": "market-consultant-dashboard-sql",
   "description": "Resolve market-consultant semantic contracts, build governed QuerySpec and QueryPlan artifacts, compile explicitly approved Presto SQL, and generate bounded read-only probes without supplying Qingcheng semantics.",
-  "version": "0.4.2",
+  "version": "0.5.0",
   "language": "zh-CN",
   "query_engine": "Presto",
   "business_domain": "市场顾问部",

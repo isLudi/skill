@@ -15,7 +15,7 @@ from .contracts import CONTRACT_FILES, ContractRegistry
 SCHEMA_VERSION = "2.0.0"
 DOMAIN_CONFIG = {
     "market_consultant": {
-        "skill": "sql-query-writer-for-dashboard",
+        "skill": "market-consultant-dashboard-sql",
         "name": "市场顾问部",
         "isolated_from": "qingcheng",
     },

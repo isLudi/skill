@@ -8,6 +8,7 @@ from datetime import date
 from pathlib import Path
 
 from _shared.browser import import_playwright, launch_context
+from _shared.domain_adapters import adapters_by_target
 from _shared.env import load_env_file
 from _shared.errors import UsageError
 
@@ -145,19 +146,13 @@ def _resolve_targets(args: argparse.Namespace) -> list[SkillTarget]:
             for root in args.skill_root
         ]
 
-    skill_root = Path(__file__).resolve().parents[3]
-    skills_root = skill_root.parent
     configured = {
-        "market": SkillTarget(
-            name="market",
-            root=skills_root / "sql-query-writer-for-dashboard",
-            row_style="market",
-        ),
-        "qingcheng": SkillTarget(
-            name="qingcheng",
-            root=skills_root / "qingcheng-dashboard-sql",
-            row_style="qingcheng",
-        ),
+        target: SkillTarget(
+            name=target,
+            root=adapter.skill_root,
+            row_style=adapter.row_style,
+        )
+        for target, adapter in adapters_by_target().items()
     }
     if args.target_skill == "all":
         return [configured["market"], configured["qingcheng"]]
@@ -168,6 +163,6 @@ def _infer_row_style(root: Path, default: str) -> str:
     lowered = root.name.lower()
     if "qingcheng" in lowered:
         return "qingcheng"
-    if "sql-query-writer" in lowered:
+    if "market-consultant" in lowered:
         return "market"
     return default

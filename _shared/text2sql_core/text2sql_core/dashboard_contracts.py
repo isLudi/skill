@@ -10,7 +10,7 @@ from .contracts import ContractRegistry
 
 
 DOMAIN_SKILL_NAMES = {
-    "market_consultant": "sql-query-writer-for-dashboard",
+    "market_consultant": "market-consultant-dashboard-sql",
     "qingcheng": "qingcheng-dashboard-sql",
 }
 

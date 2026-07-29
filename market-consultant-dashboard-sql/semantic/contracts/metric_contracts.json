@@ -480,7 +480,7 @@
       "status": "pending_confirmation",
       "automatic_compile": false,
       "source_path": "knowledge/dashboards/market_period_grade_conversion_overview_template.md",
-      "source_sha256": "d81b8d10bce33ca6134b1c6e765c4b6b1b2a4fbcf741c124d3f54a386cb9583f",
+      "source_sha256": "3db750866d2be74164e894bb8f50ae6fde62c6919a3acebfa9083ab273e5f78b",
       "description": "M5 按期次和初中年级输出线索、人头/订单转化分子分母、净收款和单效分子分母。",
       "candidate_tables": [
         "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df"

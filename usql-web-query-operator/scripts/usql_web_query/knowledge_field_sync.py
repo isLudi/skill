@@ -165,7 +165,7 @@ def append_changelog(target: SkillTarget, result: SkillSyncResult, *, run_date: 
         result.changelog_skipped = "heading_exists"
         return
     scope_note = (
-        "\u672c\u6b21\u7ef4\u62a4\u4e25\u683c\u9650\u5b9a\u5728 `qingcheng-dashboard-sql` \u5185\uff0c\u672a\u540c\u6b65\u5230\u5e02\u573a\u987e\u95ee Skill\uff1b"
+        f"\u672c\u6b21\u7ef4\u62a4\u4e25\u683c\u9650\u5b9a\u5728 `{target.root.name}` \u5185\uff0c\u672a\u540c\u6b65\u5230\u5e02\u573a\u987e\u95ee Skill\uff1b"
         if target.name == "qingcheng"
         else ""
     )

@@ -54,7 +54,7 @@ class DataCenterCanonicalSyncTests(unittest.TestCase):
     def setUp(self) -> None:
         self.temp_dir = tempfile.TemporaryDirectory()
         self.skills_root = Path(self.temp_dir.name)
-        self.skill_root = self.skills_root / "sql-query-writer-for-dashboard"
+        self.skill_root = self.skills_root / "market-consultant-dashboard-sql"
         for relative in (
             "resources/raw_sql",
             "knowledge/dashboards",

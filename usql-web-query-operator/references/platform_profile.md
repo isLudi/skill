@@ -201,11 +201,11 @@ iframe 编辑器工具栏中的运行按钮回退方案：
 - 立即执行：POST `/uanalysis-intelligence/data/set/schedules/executeOnce`，body 为 `{"id":"<comma-separated task ids>"}`。
 - 生产完成必须同时满足：保存后详情 SQL Hash 与计划一致、出现不属于执行前基线的新同步记录、该新记录 `status=SUCCESS`。仅保存成功或仅收到立即执行响应均不算完成。
 
-目标范围规则：
+目标范围规则由 `references/domain_adapters.json` 注册，当前值为：
 
 - 青橙项目部：目录路径以 `市场顾问部/青橙项目部/<数据集名>` 结尾的 SQL 数据集全部同步到 `qingcheng-dashboard-sql`。
-- 市场顾问部：目录路径以 `市场顾问部/市场顾问部/<数据集名>` 结尾的 SQL 数据集，从 `(内部渠道)外呼过程数据` 开始同步到末尾，写入 `sql-query-writer-for-dashboard`。
-- 同步命令是 `usql_web_query.py sync-data-center-sql`。默认 dry-run；只有加 `--write` 后才写 raw SQL、数据集清单和 changelog，并运行目标 skill 的索引与完整性检查。
+- 市场顾问部：目录路径以 `市场顾问部/市场顾问部/<数据集名>` 结尾的 SQL 数据集，从 `(内部渠道)外呼过程数据` 开始同步到末尾，写入 `market-consultant-dashboard-sql`。
+- 同步命令是 `usql_web_query.py sync-data-center-sql`。默认 dry-run；只有加 `--write` 后才按领域适配器写 raw SQL、数据集清单和 changelog，并运行目标 Skill 的索引与完整性检查。执行器代码不得另行硬编码业务 Skill 目录。
 
 ## 未确认问题
 

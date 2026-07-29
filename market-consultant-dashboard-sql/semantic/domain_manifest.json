@@ -3,7 +3,7 @@
   "domain": {
     "id": "market_consultant",
     "name": "市场顾问部",
-    "skill": "sql-query-writer-for-dashboard",
+    "skill": "market-consultant-dashboard-sql",
     "isolated_from": [
       "qingcheng"
     ]
@@ -104,7 +104,7 @@
     "source_files": [
       {
         "source_path": "semantic/contracts/metric_contracts.json",
-        "sha256": "049e6b76d1cf34dd9e4775e107f109fc54be59ab19f64e84bee3125cd12c7768"
+        "sha256": "33cfcfdbaf2ec5033573a7a98f32e03cd6242a061e04ecab4a07368b837484db"
       },
       {
         "source_path": "semantic/contracts/dimension_contracts.json",
@@ -1278,8 +1278,8 @@
       {
         "id": "market_consultant:dashboards:market_channel_top10_consultant_conversion_template",
         "source_path": "knowledge/dashboards/market_channel_top10_consultant_conversion_template.md",
-        "sha256": "b1a76d34817c76d6934b487ce573a586591be8cf67dbb86b40c558af2bcec50d",
-        "bytes": 2917,
+        "sha256": "adaca26c7bb6495b602571ab2920fecb7e2576181fa3b0f938a23995ce0bd83f",
+        "bytes": 2918,
         "title": "市场渠道内 TOP10 顾问转化模板",
         "table_refs": [],
         "raw_sql_refs": [],
@@ -1357,8 +1357,8 @@
       {
         "id": "market_consultant:dashboards:market_finance_positive_subject_structure_template",
         "source_path": "knowledge/dashboards/market_finance_positive_subject_structure_template.md",
-        "sha256": "5bd25c61a98028f04b34a1eb663da13f0103c376e7a472637a99ccb86586c7a7",
-        "bytes": 3177,
+        "sha256": "e88913f2d138c0b44aa031c7679969e77d852a84440333b1f45e7017dc2934fd",
+        "bytes": 3178,
         "title": "市场渠道财务正价课科目结构模板",
         "table_refs": [],
         "raw_sql_refs": [
@@ -1389,8 +1389,8 @@
       {
         "id": "market_consultant:dashboards:market_period_grade_conversion_overview_template",
         "source_path": "knowledge/dashboards/market_period_grade_conversion_overview_template.md",
-        "sha256": "d81b8d10bce33ca6134b1c6e765c4b6b1b2a4fbcf741c124d3f54a386cb9583f",
-        "bytes": 3185,
+        "sha256": "3db750866d2be74164e894bb8f50ae6fde62c6919a3acebfa9083ab273e5f78b",
+        "bytes": 3186,
         "title": "H 业务线初中期次×年级转化概览模板",
         "table_refs": [],
         "raw_sql_refs": [
@@ -3830,8 +3830,8 @@
       {
         "id": "market_consultant:sql_patterns:market_channel_positive_subject_course_worked_example",
         "source_path": "knowledge/sql_patterns/market_channel_positive_subject_course_worked_example.md",
-        "sha256": "9a74a63aac6abbf058cb79c85e7e712d9f9a0c93a04ecf86e3047149c1a7b825",
-        "bytes": 2774,
+        "sha256": "ecaaeb366b8319b1353c5384c69d911a033597312cd0c44956e68d5dd6adeace",
+        "bytes": 2775,
         "title": "渠道专项正价课科目与班课 worked example",
         "table_refs": [],
         "raw_sql_refs": [
@@ -4470,8 +4470,8 @@
       {
         "id": "market_consultant:update_log:changelog",
         "source_path": "knowledge/update_log/changelog.md",
-        "sha256": "3801a3f4b3621300b969060cb95bd9cf0c93c8f36de062c91864e201e2098f41",
-        "bytes": 109609,
+        "sha256": "591dfdee02ca2733d1b5f56885be8f8d111de97b37e8d3805163e0a341cbc10b",
+        "bytes": 109611,
         "title": "更新记录",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -6027,8 +6027,8 @@
     },
     {
       "source_path": "knowledge/dashboards/market_channel_top10_consultant_conversion_template.md",
-      "sha256": "b1a76d34817c76d6934b487ce573a586591be8cf67dbb86b40c558af2bcec50d",
-      "bytes": 2917,
+      "sha256": "adaca26c7bb6495b602571ab2920fecb7e2576181fa3b0f938a23995ce0bd83f",
+      "bytes": 2918,
       "category": "dashboards"
     },
     {
@@ -6051,8 +6051,8 @@
     },
     {
       "source_path": "knowledge/dashboards/market_finance_positive_subject_structure_template.md",
-      "sha256": "5bd25c61a98028f04b34a1eb663da13f0103c376e7a472637a99ccb86586c7a7",
-      "bytes": 3177,
+      "sha256": "e88913f2d138c0b44aa031c7679969e77d852a84440333b1f45e7017dc2934fd",
+      "bytes": 3178,
       "category": "dashboards"
     },
     {
@@ -6063,8 +6063,8 @@
     },
     {
       "source_path": "knowledge/dashboards/market_period_grade_conversion_overview_template.md",
-      "sha256": "d81b8d10bce33ca6134b1c6e765c4b6b1b2a4fbcf741c124d3f54a386cb9583f",
-      "bytes": 3185,
+      "sha256": "3db750866d2be74164e894bb8f50ae6fde62c6919a3acebfa9083ab273e5f78b",
+      "bytes": 3186,
       "category": "dashboards"
     },
     {
@@ -6321,8 +6321,8 @@
     },
     {
       "source_path": "knowledge/sql_patterns/market_channel_positive_subject_course_worked_example.md",
-      "sha256": "9a74a63aac6abbf058cb79c85e7e712d9f9a0c93a04ecf86e3047149c1a7b825",
-      "bytes": 2774,
+      "sha256": "ecaaeb366b8319b1353c5384c69d911a033597312cd0c44956e68d5dd6adeace",
+      "bytes": 2775,
       "category": "sql_patterns"
     },
     {
@@ -6543,8 +6543,8 @@
     },
     {
       "source_path": "knowledge/update_log/changelog.md",
-      "sha256": "3801a3f4b3621300b969060cb95bd9cf0c93c8f36de062c91864e201e2098f41",
-      "bytes": 109609,
+      "sha256": "591dfdee02ca2733d1b5f56885be8f8d111de97b37e8d3805163e0a341cbc10b",
+      "bytes": 109611,
       "category": "update_log"
     },
     {

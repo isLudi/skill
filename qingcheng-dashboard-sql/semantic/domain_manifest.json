@@ -3916,8 +3916,8 @@
       {
         "id": "qingcheng:update_log:changelog",
         "source_path": "knowledge/update_log/changelog.md",
-        "sha256": "910392baaccf47cdc8fc7b974c52692ba6f39308519a8c56e7a25501cae4d7e4",
-        "bytes": 66259,
+        "sha256": "ed07456abe61e944852f25daa23e608411fa5978c48ded1043724c0880d02155",
+        "bytes": 66260,
         "title": "更新日志",
         "table_refs": [
           "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf",
@@ -5632,8 +5632,8 @@
     },
     {
       "source_path": "knowledge/update_log/changelog.md",
-      "sha256": "910392baaccf47cdc8fc7b974c52692ba6f39308519a8c56e7a25501cae4d7e4",
-      "bytes": 66259,
+      "sha256": "ed07456abe61e944852f25daa23e608411fa5978c48ded1043724c0880d02155",
+      "bytes": 66260,
       "category": "update_log"
     },
     {

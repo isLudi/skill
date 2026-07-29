@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from _shared.browser import import_playwright, launch_context
+from _shared.domain_adapters import adapters_by_target
 from _shared.env import load_env_file
 from _shared.errors import UsageError
 
@@ -193,12 +194,17 @@ def _select_target_datasets(
 ) -> dict[str, list[DataCenterDataset]]:
     selected: dict[str, list[DataCenterDataset]] = {}
     for target in targets:
-        if target.name == "qingcheng":
+        selector = target.selector or (
+            "qingcheng_folder" if target.name == "qingcheng" else "market_from_start"
+        )
+        if selector == "qingcheng_folder":
             datasets = select_qingcheng_datasets(discovered)
-        elif target.name == "market":
+        elif selector == "market_from_start":
             datasets = select_market_datasets(discovered, start_name=args.market_start_name)
         else:
-            raise UsageError(f"Unsupported built-in Data Center target: {target.name}")
+            raise UsageError(
+                f"Unsupported Data Center selector {selector!r} for target {target.name}"
+            )
         selected[target.name] = filter_datasets_by_name(datasets, args.dataset_name)
     return selected
 
@@ -216,25 +222,20 @@ def _unique_datasets(target_datasets: dict[str, list[DataCenterDataset]]) -> lis
 
 
 def _resolve_targets(args: argparse.Namespace) -> list[DataCenterSkillTarget]:
-    skill_root = Path(__file__).resolve().parents[3]
-    skills_root = skill_root.parent
     configured = {
-        "qingcheng": DataCenterSkillTarget(
-            name="qingcheng",
-            root=skills_root / "qingcheng-dashboard-sql",
-            dataset_prefix="qingcheng",
-            doc_filename="data_center_qingcheng_datasets.md",
-            title="数据中心数据集源 SQL（青橙项目部）",
-            scope_note="青橙项目部目录下的全部 SQL 数据集。",
-        ),
-        "market": DataCenterSkillTarget(
-            name="market",
-            root=skills_root / "sql-query-writer-for-dashboard",
-            dataset_prefix="market",
-            doc_filename="data_center_market_datasets.md",
-            title="数据中心数据集源 SQL（市场顾问部）",
-            scope_note=f"市场顾问部目录下从 `{args.market_start_name}` 开始到末尾的 SQL 数据集。",
-        ),
+        target: DataCenterSkillTarget(
+            name=target,
+            root=adapter.skill_root,
+            dataset_prefix=adapter.data_center.dataset_prefix,
+            doc_filename=adapter.data_center.doc_filename,
+            title=adapter.data_center.title,
+            scope_note=adapter.data_center.scope_note_template.format(
+                market_start_name=args.market_start_name
+            ),
+            selector=adapter.data_center.selector,
+            registered_domain=adapter.domain_id,
+        )
+        for target, adapter in adapters_by_target().items()
     }
     if args.target_skill == "all":
         return [configured["qingcheng"], configured["market"]]

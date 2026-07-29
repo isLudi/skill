@@ -58,6 +58,16 @@ description: 将飞书群“青橙数据对接”中郅玲玉发布的已登记 
 
 如果任何选中文件族缺失、存在歧义、格式异常或含有重复业务键，必须阻断计划。不得静默复用较旧的本地切片。计划可以用 `--family` 选择子集，用 `--after` 限定消息范围，或用 `--message-id <family>=<om_id>` 将文件族绑定到精确消息。即使采用精确绑定，也仍须通过已配置的群聊、发布人、文件名、结构和工作簿校验。
 
+每个文件族还必须通过 `workflow_registry.json` 中的 `source_quality` 门禁：
+
+- 来源消息年龄不得超过该文件族的 `max_age_hours`；
+- 来源总行数必须落在 `row_count.min/max` 范围内；
+- 每个来源切片优先与目标同切片比较；新切片与目标最新切片比较，变化率不得超过 `relative_change.max_ratio`；
+- `required_column_null_rate` 中每个必要列的空值率不得超过各自阈值；
+- 缺少比较基线、门禁配置缺失、门禁过期或任一检查超限都必须使计划进入 `blocked`，不得本地 Apply 或上传。
+
+阈值是受版本控制的安全策略。确认属于正常业务结构变化时，应先审阅并修改注册表、补充测试，再重新生成计划；不得用命令行参数临时绕过。
+
 ## 合并规则
 
 绝不能盲目追加行。
@@ -86,6 +96,7 @@ D:\anaconda3\python.exe C:\Users\Ludim\.codex\skills\sync-qingcheng-temp-tables\
 
 - 每条选中飞书消息的 ID 和来源哈希；
 - 来源切片、行数、键唯一性和校验结果；
+- 来源年龄、行数上下界、逐切片相对变化和必要列空值率；
 - 每张表的新增、替换、移除和未变化数量；
 - 暂存工作簿哈希及所有阻断项；
 - 每张选中表是否均为 no-op。
@@ -120,6 +131,8 @@ D:\anaconda3\python.exe C:\Users\Ludim\.codex\skills\sync-qingcheng-temp-tables\
 ```
 
 上传阶段必须重新检查计划的选择契约（`latest_matching` 或 `explicit_message`），确认所有本地哈希仍与回执一致，使用 operator 校验每个工作簿，并按注册表顺序通过既有表覆盖工作流上传选中的文件族。
+
+上传前还必须重新检查计划中的 `source_expires_at`。只要任一来源在 Apply 或 Upload 前已经超过最大年龄，就必须停止并创建新计划；旧计划 Hash 不能豁免新鲜度门禁。
 
 ## 持久 lark-event 服务
 

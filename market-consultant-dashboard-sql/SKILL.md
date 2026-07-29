@@ -1,13 +1,13 @@
 ---
-name: sql-query-writer-for-dashboard
+name: market-consultant-dashboard-sql
 description: Resolve market-consultant semantic contracts, build governed QuerySpec, QueryPlan, and domain-bound dashboard design artifacts, compile supported Presto SQL, generate bounded data probes, and explain, validate, or repair market consultant department (市场顾问部) dashboard queries using its isolated metrics, dashboards, historical SQL, table overlays, joins, channel mappings, and platform constraints. Use for market-consultant conversion, traffic, outbound-call, attendance, refund, evaluation, Text2SQL planning, dashboard design/diff/dry-run, data-definition exploration, or knowledge maintenance; do not use for Qingcheng/青橙 semantics.
 ---
 
-# sql-query-writer-for-dashboard
+# market-consultant-dashboard-sql
 
 ## 0. 加载与封装边界
 
-当用户明确要求加载 `sql-query-writer-for-dashboard`、`sql-query-writer-for-dashboard.skill`、`.codex/skills/sql-query-writer-for-dashboard`，或需求经 domain resolution 确认为 `market_consultant`，属于市场顾问部看板取数 SQL、表结构覆盖层、指标口径、SQL 报错修复或知识维护时，必须按本 Skill 执行。
+当用户明确要求加载 `market-consultant-dashboard-sql`、`market-consultant-dashboard-sql.skill`、`.codex/skills/market-consultant-dashboard-sql`，或需求经 domain resolution 确认为 `market_consultant`，属于市场顾问部看板取数 SQL、表结构覆盖层、指标口径、SQL 报错修复或知识维护时，必须按本 Skill 执行。
 
 本 Skill 是市场顾问部业务 Skill，与 `qingcheng-dashboard-sql` 独立。若业务域未决，不得默认加载本 Skill 的指标、范围、临时表、渠道 CASE 或 join 语义；若需求属于青橙项目部，必须改用 `qingcheng-dashboard-sql`。
 

@@ -1,6 +1,6 @@
 ---
 name: explore-data
-description: Profile and explore datasets, database tables, SQL query results, CSV/Excel/Parquet/JSON files, and internal Presto/USQL table samples to understand shape, grain, columns, null rates, distributions, duplicates, date coverage, suspicious values, candidate dimensions/metrics, join keys, and query permission boundaries. Use when Codex is asked to inspect a new table, generate a data profile, check nulls/outliers/duplicates, verify which internal tables can be queried through USQL RestAPI, identify department or row-scope restrictions, understand table quality before writing SQL, or decide which dimensions and metrics are suitable for analysis. For internal dashboard tables, coordinate with sql-query-writer-for-dashboard and its USQL RestAPI rules.
+description: Profile and explore datasets, database tables, SQL query results, CSV/Excel/Parquet/JSON files, and internal Presto/USQL table samples to understand shape, grain, columns, null rates, distributions, duplicates, date coverage, suspicious values, candidate dimensions/metrics, join keys, and query permission boundaries. Use when Codex is asked to inspect a new table, generate a data profile, check nulls/outliers/duplicates, verify which internal tables can be queried through USQL RestAPI, identify department or row-scope restrictions, understand table quality before writing SQL, or decide which dimensions and metrics are suitable for analysis. For internal dashboard tables, coordinate with market-consultant-dashboard-sql and its USQL RestAPI rules.
 ---
 
 # Explore Data
@@ -11,7 +11,7 @@ Use this skill to build a compact, evidence-based profile of a dataset before de
 
 - Use this skill for data discovery, table profiling, field quality checks, candidate join-key discovery, and exploratory recommendations.
 - Use this skill for USQL permission-boundary discovery: which tables can be queried, which fields are blocked, where department or row-scope limits apply, and what evidence is needed to request more access.
-- Use `sql-query-writer-for-dashboard` when the main task is governed dashboard SQL generation or SQL repair.
+- Use `market-consultant-dashboard-sql` when the main task is governed dashboard SQL generation or SQL repair.
 - Use `validate-data` after an analysis exists and the task is to assess whether the methodology, result, chart, or conclusion is safe to share.
 - For spreadsheet deliverables, use `xlsx`; for file profiling only, this skill may inspect CSV/XLSX/Parquet/JSON data with Python.
 
@@ -21,8 +21,8 @@ Use this skill to build a compact, evidence-based profile of a dataset before de
 
 When the user gives an internal table name or asks to explore a company dashboard table:
 
-1. First check whether `../sql-query-writer-for-dashboard/knowledge/tables/` or `../sql-query-writer-for-dashboard/knowledge/01_table_index.md` already documents the table.
-2. If the user wants live data profiling, read `../sql-query-writer-for-dashboard/knowledge/sql_patterns/usql_rest_api_python.md` and use the documented USQL RestAPI flow.
+1. First check whether `../market-consultant-dashboard-sql/knowledge/tables/` or `../market-consultant-dashboard-sql/knowledge/01_table_index.md` already documents the table.
+2. If the user wants live data profiling, read `../market-consultant-dashboard-sql/knowledge/sql_patterns/usql_rest_api_python.md` and use the documented USQL RestAPI flow.
 3. Use only read-only `SELECT` queries. Never run DDL, DML, deletes, inserts, updates, or writes.
 4. Avoid full table scans. Require or infer a tight `dt`, `hour`, date, department, or other range condition before querying large partitioned tables.
 5. For exploratory table samples, use `limit`; for large counts and distinct counts, prefer approximate or partition-scoped checks when exact scans are risky.
@@ -38,7 +38,7 @@ When the user's goal is to learn API permission boundaries, run the smallest saf
 2. For each candidate table, test a minimal scoped read such as `select 1 from <table> where <safe_partition_filter> limit 1`.
 3. If the table is readable, test scoped row counts and sample rows only within approved filters.
 4. Identify required filters from docs and errors: `dt`, `hour`, date, department, qici, project, business line, tenant, or other row-scope fields.
-5. Test likely department/range fields one at a time with conservative `limit` or grouped counts. Prefer fields already documented in `sql-query-writer-for-dashboard`.
+5. Test likely department/range fields one at a time with conservative `limit` or grouped counts. Prefer fields already documented in `market-consultant-dashboard-sql`.
 6. Classify failures as API config, table permission, field permission, row-scope restriction, parser false block, SQL syntax, missing partition/filter, or empty-but-readable result.
 7. Record enough evidence to support a permission request: table, field(s), intended business scope, minimum SQL attempted, error signature, and why access is needed. Do not record token values or full sensitive responses.
 
@@ -212,9 +212,9 @@ Recommend:
 
 When permission checks reveal reusable facts, update the relevant knowledge base only if the user asks to preserve the finding or the task is clearly about maintaining the skill:
 
-- Add table-specific notes to `../sql-query-writer-for-dashboard/knowledge/tables/<table>.md` when a known table has USQL access constraints.
-- Add general API permission behavior to `../sql-query-writer-for-dashboard/knowledge/sql_patterns/usql_rest_api_python.md`.
-- Append a dated entry to `../sql-query-writer-for-dashboard/knowledge/update_log/changelog.md`.
+- Add table-specific notes to `../market-consultant-dashboard-sql/knowledge/tables/<table>.md` when a known table has USQL access constraints.
+- Add general API permission behavior to `../market-consultant-dashboard-sql/knowledge/sql_patterns/usql_rest_api_python.md`.
+- Append a dated entry to `../market-consultant-dashboard-sql/knowledge/update_log/changelog.md`.
 - Never write token values, account identifiers, cookies, raw credentials, or sensitive response payloads.
 
 ## Output Format

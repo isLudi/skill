@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check the sql-query-writer-for-dashboard skill package structure."""
+"""Check the market-consultant-dashboard-sql skill package structure."""
 
 from __future__ import annotations
 
@@ -106,8 +106,8 @@ def check_metadata(failures: list[str]) -> None:
         fail(f"metadata.json is not valid JSON: {exc}", failures)
         return
 
-    if metadata.get("name") != "sql-query-writer-for-dashboard":
-        fail("metadata.name must be sql-query-writer-for-dashboard", failures)
+    if metadata.get("name") != "market-consultant-dashboard-sql":
+        fail("metadata.name must be market-consultant-dashboard-sql", failures)
     if metadata.get("query_engine") != "Presto":
         fail("metadata.query_engine must be Presto", failures)
     if metadata.get("entrypoint") != "SKILL.md":

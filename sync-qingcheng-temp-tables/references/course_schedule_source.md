@@ -36,6 +36,8 @@
 - 合并方式：按 `qici` 整期 slice upsert；先移除目标中重叠期次，再插入当前源期次。
 - 非重叠历史期次必须保留，目标列顺序固定为 `qudao,begin_time,qici,dow,grade,ke_1`。
 - 若有效值与目标整期完全一致，计划必须报告 no-op，不重建工作簿。
+- 来源消息最大年龄为 240 小时，来源行数必须为 20–500；新期次相对目标最新期次、修订期次相对目标同一期次的行数变化不得超过 50%。
+- `qudao,begin_time,qici,dow,grade,ke_1` 的空值率上限均为 0。任一来源质量门禁失败时，计划必须阻断。
 - `plan` 可下载、比较和生成 staged 候选，不改 E 盘、不上传。
 - `apply-local` 需要精确 Plan Hash 和本地写确认，且必须先备份。
 - `upload` 需要成功 Local ApplyReceipt、精确 Hash 和生产上传确认，使用完整 `qing_daoke.xlsx` 覆盖既有临时表。

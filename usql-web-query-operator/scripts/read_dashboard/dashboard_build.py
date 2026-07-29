@@ -9,6 +9,8 @@ import sys
 from pathlib import Path
 from typing import Any, Mapping, Protocol, Sequence
 
+from _shared.domain_adapters import adapters_by_domain
+
 from _shared.errors import UsageError
 
 from .dashboard_change import (
@@ -27,10 +29,7 @@ from .filter_edit import fetch_edit_config, publish_dashboard
 from .write_capabilities import capability_by_operation, load_capability_registry
 
 
-DOMAIN_SKILL_NAMES = {
-    "market_consultant": "sql-query-writer-for-dashboard",
-    "qingcheng": "qingcheng-dashboard-sql",
-}
+DOMAIN_ADAPTERS = adapters_by_domain()
 
 
 def _core_api() -> Any:
@@ -89,7 +88,6 @@ def bind_build_upstream_artifacts(
         for item in raw_items
         if isinstance(item, Mapping) and item.get("dataset_ref")
     }
-    skills_root = Path(__file__).resolve().parents[3]
     output: list[dict[str, Any]] = []
 
     for dataset in normalized["datasets"]:
@@ -173,7 +171,7 @@ def bind_build_upstream_artifacts(
             for item in evidence_records
         )
         source_hashes_valid = contracts_confirmed
-        skill_root = skills_root / DOMAIN_SKILL_NAMES[normalized["domain"]]
+        skill_root = DOMAIN_ADAPTERS[normalized["domain"]].skill_root
         for item in evidence_records:
             source_path = str(item.get("source_path") or "")
             source_sha = str(item.get("source_sha256") or "")
