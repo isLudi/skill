@@ -108,6 +108,11 @@ where l.model_type = 0
 ,lead_map as (
 select lead_id,put_plan_name,employee_email_name,channel_name_1,channel_name_2,channel_name_3,flow_pool_name,get_customer_way_name
   ,rule_name,case
+when (
+    replace(coalesce(rule_name, ''), ' ', '') like '%青橙IP-招生退费-春春%'
+    or replace(coalesce(rule_name, ''), ' ', '') like '%青橙IP-招生退费-朱博士%'
+    or replace(coalesce(rule_name, ''), ' ', '') like '%青橙IP-招生退费-郭艺%'
+) then 'IP退费'
 when rule_name like '%抖音正价退费%' then '抖音复用'
 when (rule_name like '%赠失-星义%'
   or rule_name like '%赠失-朱博士%'
@@ -138,6 +143,9 @@ when (rule_name like '%进校9元%'
   or rule_name like '%进校%') then '进校9元'
 else '未知' end as channel_map_1
 ,case
+when replace(coalesce(rule_name, ''), ' ', '') like '%青橙IP-招生退费-春春%' then '春春'
+when replace(coalesce(rule_name, ''), ' ', '') like '%青橙IP-招生退费-朱博士%' then '朱博士'
+when replace(coalesce(rule_name, ''), ' ', '') like '%青橙IP-招生退费-郭艺%' then '郭艺'
 when rule_name like '%抖音正价退费%' then '抖音正价退费'
 when rule_name like '%赠失-星义%' then '星义IP'
 when rule_name like '%赠失-朱博士%' then '朱博士IP'
@@ -753,6 +761,11 @@ from(
 select distinct f.*
 ,f.derived_qici as qici
 ,case
+when (
+    replace(coalesce(f.rule_name, ''), ' ', '') like '%青橙IP-招生退费-春春%'
+    or replace(coalesce(f.rule_name, ''), ' ', '') like '%青橙IP-招生退费-朱博士%'
+    or replace(coalesce(f.rule_name, ''), ' ', '') like '%青橙IP-招生退费-郭艺%'
+) then 'IP退费'
 when f.rule_name like '%抖音正价退费%' then '抖音复用'
 when (f.rule_name like '%赠失-星义%'
   or f.rule_name like '%赠失-朱博士%'
@@ -784,6 +797,9 @@ when (f.rule_name like '%进校9元%'
 else '未知'
 end as channel_map_1
   ,case
+when replace(coalesce(f.rule_name, ''), ' ', '') like '%青橙IP-招生退费-春春%' then '春春'
+when replace(coalesce(f.rule_name, ''), ' ', '') like '%青橙IP-招生退费-朱博士%' then '朱博士'
+when replace(coalesce(f.rule_name, ''), ' ', '') like '%青橙IP-招生退费-郭艺%' then '郭艺'
 when f.rule_name like '%抖音正价退费%' then '抖音正价退费'
 when f.rule_name like '%赠失-星义%' then '星义IP'
 when f.rule_name like '%赠失-朱博士%' then '朱博士IP'

@@ -48,6 +48,12 @@ resources/raw_sql/data_center_qingcheng_2460.sql
 - 本次只修改 `biz_qici_calendar`，未修改快照分区、内部转单排除、渠道映射或指标公式。
 - 生产数据中心保存后 SQL SHA-256 为 `59f336d5f0150cde29f6c5c9e60d6e3bb2f382820e6b9dc75cc1ed09aadcc76f`；立即抽数记录 `160164065` 状态为 `SUCCESS`。
 
+2026-07-29 将相同六个运营窗口同步到 `resources/raw_sql/data_center_qingcheng_2740.sql`：
+
+- 2740 与 2460 共用同一 `biz_qici_calendar`，并复用 2460 的标准订单集。
+- 规则短期次和交易期次分别归一后再计算 7/14/30 天等时间分层。
+- 生产保存后 SQL SHA-256 为 `d85b1f745c20935a9a29046655a05b48174b9a351bda93af4b0c5b3995f225c0`；立即抽数记录 `161603511` 状态为 `SUCCESS`。
+
 ## 影响指标
 
 期次修正会影响看板全局筛选器 `qici`，以及所有按 `qici` 分组、筛选或 join 的组件。

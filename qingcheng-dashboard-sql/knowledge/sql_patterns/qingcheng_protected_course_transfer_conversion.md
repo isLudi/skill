@@ -10,7 +10,7 @@
 - service 行带 `transfer_in_amount` / `transfer_out_amount` 时，原转化逻辑会把内部转单金额置 0。
 - B 用户的有效归因必须同时证明“课程转移子订单”“财务正向支付”“交易时处于青橙私海保护期”“顾问一致”。
 
-当前仅用于 `转化数据` / model `2460`，从 `2026-07-20`（`20260722期`）起生效，不回刷更早期次。
+该逻辑以 `转化数据` / model `2460` 为标准订单集权威，并由 `抖私-转化` / model `2740` 完整复用；从 `2026-07-20`（`20260722期`）起生效，不回刷更早期次。
 
 ## 2. 四层证据链
 
@@ -107,6 +107,7 @@ select * from course_transfer_gmv
 4. 历史边界：`20260722期` 之前不得出现补数行。
 5. 并发修改：生产计划前重新读取线上 SQL；候选去除本次新增段后必须等于线上最新哈希。
 6. 数据中心：必须完成 Preview、保存后 SQL hash 回读、`executeOnce` 和新的 `SUCCESS` 同步记录。
+7. 2740 复用验证：按 `qici + channel_1 + channel_2` 与 2460 标准订单集逐组合比较净营收、退款，并验证所有时间桶闭合。
 
 `sc` 当前依赖 `prc` 的 `row_number() over (partition by lead_id order by qici_lead desc)`；同一 `lead_id` 存在并列 `qici_lead` 时，完全相同的基线 SQL重复执行也可能漂移。应单独验证新增分支的 `sc` 增量，不把跨次执行的全量 `sc` 差异误判为本次补数影响。
 
@@ -117,3 +118,10 @@ select * from course_transfer_gmv
 - 完整候选 query id `1500653571`：`Success`。
 - 基线/候选渠道分桶 query id `1500621493`、`1500658395`：除目标桶外，核心指标无差异。
 - Data Center Preview task `1500672337`；新抽数记录 `161027733` 为 `SUCCESS`。
+
+## 6. 2026-07-29 2740 复用验证
+
+- `2740` 已改为复用 `2460` 的 `service_gmv + course_transfer_gmv` 标准订单集，仅在其后增加时间分层。
+- 标准订单结果与 2740 均得到 46 个 `qici + channel_1 + channel_2` 组合；逐组合净营收、退款最大差额均为 `0.00`。
+- 2740 每行 `gmv_total` 与五个净营收桶、`refund_total` 与五个退款桶的闭合差均为 `0.00`。
+- 生产 SQL SHA-256 `d85b1f745c20935a9a29046655a05b48174b9a351bda93af4b0c5b3995f225c0`；Preview task `1507319914`；新抽数记录 `161603511` 为 `SUCCESS`。

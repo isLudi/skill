@@ -27253,7 +27253,7 @@
         {
           "domain": "qingcheng",
           "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md",
-          "sha256": "f7976e80e7cc3ed8a5f52a8d2d219a260eb5ee4e5d4ead06d4a2cca7134194a8"
+          "sha256": "8a9f1c686a431874f182d7b336381c3d2537b0e224f6ad4c190c9930a720665f"
         }
       ],
       "columns": [

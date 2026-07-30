@@ -26,10 +26,10 @@
       "model_id": "2460",
       "ordinal": 2,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/青橙项目部/转化数据",
-      "source_observed_on": "2026-07-26",
-      "sql_bytes": 46999,
-      "sql_lines": 1000,
-      "sql_sha256": "8416e707d618bc5b959936035edac3d10809215e8adc2d7822c7b0f2580288a7",
+      "source_observed_on": "2026-07-29",
+      "sql_bytes": 48189,
+      "sql_lines": 1016,
+      "sql_sha256": "9cbdc5535317ec07473ef9469555dbd3ce9f1b6390ea8a3a181646e6ad4bdf5a",
       "subject_id": "2450"
     },
     {
@@ -94,18 +94,18 @@
     },
     {
       "canonical_sql": "resources/raw_sql/data_center_qingcheng_2740.sql",
-      "data_source_id": "",
-      "dataset_id": "",
+      "data_source_id": "menu_source_817034371567951872",
+      "dataset_id": "menu_set_3884599059235647488",
       "dataset_name": "抖私-转化",
       "file_value": "2740",
       "model_id": "2740",
       "ordinal": 102740,
-      "path": "青橙项目部/抖私-转化",
-      "source_observed_on": "2026-06-24",
-      "sql_bytes": 14787,
-      "sql_lines": 235,
-      "sql_sha256": "ba008980d05b30c1702a88cd933e8a7533144b1bd1872ee736af7d73a3f9c704",
-      "subject_id": ""
+      "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/青橙项目部/抖私-转化",
+      "source_observed_on": "2026-07-29",
+      "sql_bytes": 41114,
+      "sql_lines": 832,
+      "sql_sha256": "d85b1f745c20935a9a29046655a05b48174b9a351bda93af4b0c5b3995f225c0",
+      "subject_id": "2730"
     }
   ],
   "schema_version": "1.0.0",

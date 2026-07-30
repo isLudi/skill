@@ -82,11 +82,12 @@
 
 当前 retained snapshot 的关键特点：
 
-- 结果期次 `qici` 由业务日历优先、`trade_timestamp` 周五逻辑兜底生成；2026-07-09 热修已将 `2026-07-14` 至 `2026-07-18` 归为 `20260716期`。
+- 结果期次 `qici` 由六个暑期运营窗口的业务日历优先、`trade_timestamp` 周五逻辑兜底生成，当前覆盖 `20260710期` 至 `20260809期`。
 - 营收以 `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` 为主明细来源，并剔除已落在 service 明细 `transfer_in_amount / transfer_out_amount` 的内部调课调班链路。
 - 从 20260722 期起，课程转移到 B 用户且交易时 B 用户处于同一青橙顾问保护期时，以财务最新子订单正向支付隔离补回；原 service 内部转单剔除不变。
 - `podan` 不再按简单 `promit > 0` 统计，而是按折算净收 `((H_promit_4 - Y_promit_4) + n_H_promit_4 * 0.5) > 0` 统计。
 - 团队架构补充改为 `employee_email_name + qici`，避免未来架构表覆盖历史结果期次归属。
+- `抖私-转化` / model `2740` 复用上述标准订单集，只额外计算规则期次与交易期次的时间分层，并使用相同的员工+期次团队架构 Join。
 
 ## 10. 已入库年季月营收口径
 

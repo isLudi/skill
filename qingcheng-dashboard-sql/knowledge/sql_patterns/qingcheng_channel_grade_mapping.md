@@ -11,18 +11,20 @@
 ### 1.1 权威渠道契约
 
 - 契约 ID：`qingcheng:channel_mapping:process_2064`
-- 适用域：青橙项目部过程数据模型 `2064` 与转化数据模型 `2460`。
+- 适用域：青橙项目部过程数据模型 `2064`、转化数据模型 `2460` 与抖私转化模型 `2740`。
 - 输入字段：`bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.rule_name`。
 - 输出维度：
   - 过程数据：`channel_map_1`（一级渠道）与 `channel_map_2`（二级渠道）。
   - 转化数据：`channel_1`（一级渠道）与 `channel_map_2`（二级渠道）。
+  - 抖私转化：`channel_1`（一级渠道）与 `channel_2`（二级渠道）。
 - 权威实现：
   - `resources/raw_sql/data_center_qingcheng_2064.sql` 的 `tmk_data`、`data` CTE。
-  - `resources/raw_sql/data_center_qingcheng_2460.sql` 的 `lead_map`、`bb`、`mm` CTE。
+  - `resources/raw_sql/data_center_qingcheng_2460.sql` 的 `lead_map`、`normal_bb`、`bb`、`mm` CTE。
+  - `resources/raw_sql/data_center_qingcheng_2740.sql` 的 `lead_map` 与最终渠道输出。
 - 一致性约束：同一个规则若同时定义一级、二级渠道，两套 CASE 必须同步维护；输出名称必须使用下方图片标准命名，不再输出旧展示名 `青橙私域`、`青橙IP`、`青橙公海`、`青橙公域`、`青橙图书`、`青橙本地化`、`青橙训练营`、`进校`、`IP星义`、`IP朱博士`、`IP春春`、`IP郭艺`、`IP亚飞`。
 - 优先级约束：`%青橙IP-招生退费-(春春|朱博士|郭艺)%`、`%抖音正价退费%`、`%赠失-*%`、`%私域本地化%`、`%河南本地化%` 等精确规则必须位于宽泛分支之前。
 - Text2SQL 契约：`semantic/contracts/dimension_contracts.json` 中的 `qingcheng:dimension:process_channel_level_1` 与 `qingcheng:dimension:process_channel_level_2` 使用相同规则，支持在青橙有效线索单表路径中确定性编译。
-- `IP退费` 当前只在过程模型 `2064` 生效；转化模型 `2460` 未经本次业务确认，不得据此自动同步修改。
+- `IP退费` 已同步到 `2064`、`2460` 和 `2740`。后续修改必须同时核对三套 canonical SQL，不能只更新过程模型。
 
 ### 1.2 图片标准渠道表
 
@@ -61,6 +63,8 @@
 - 先用 `replace(coalesce(rule_name, ''), ' ', '')` 去除规则名中的普通空格，再匹配 `%青橙IP-招生退费-春春%`、`%青橙IP-招生退费-朱博士%`、`%青橙IP-招生退费-郭艺%`。匹配串不包含期次前缀，因此适配后续变化的 `****期`。
 - 一级输出 `IP退费`；二级分别输出 `春春`、`朱博士`、`郭艺`。这些分支必须位于宽泛 `%青橙IP%` 和 `%招生退费%` 之前。
 - 2026-07-28 上线回归：5 个目标规则、770 条有效线索发生预期改名；其余 24 个青橙 IP 历史规则、5,482 条有效线索保持原映射。
+- 2026-07-29 转化侧回归：`2460` 的 `lead_map` 与 `normal_bb` 四处一级/二级 CASE 同步更新；785 条有效线索命中目标规则，其中 `20260728期` 春春 182、朱博士 147，`20260803期` 春春 172、朱博士 259、郭艺 25。验证时目标规则尚无标准订单金额，因此渠道改名未改变订单金额合计。
+- `2740` 复用与 `2460` 相同的 `lead_map` 和标准订单集，不能维护另一套渠道 CASE。
 
 ## 2. 一级渠道 channel_map_1
 
@@ -202,6 +206,9 @@ f.lead_purchase_intention_level2_category_name
 
 | 匹配规则 | 输出 |
 |---|---|
+| `%青橙IP-招生退费-春春%` | `春春` |
+| `%青橙IP-招生退费-朱博士%` | `朱博士` |
+| `%青橙IP-招生退费-郭艺%` | `郭艺` |
 | `%抖音正价退费%` | `抖音正价退费` |
 | `%赠失-星义%` | `星义IP` |
 | `%赠失-朱博士%` | `朱博士IP` |
@@ -229,11 +236,11 @@ f.lead_purchase_intention_level2_category_name
 
 ### bb.channel_map_1
 
-与第 2 节标准一级渠道一致，未命中输出 `未知`。
+`normal_bb` 与第 2 节标准一级渠道一致，未命中输出 `未知`。`IP退费` 精确分支必须和 `lead_map` 同步。
 
 ### bb.channel_map_2
 
-与 `lead_map / dd` 二级渠道一致，未命中输出 `未知`。
+`normal_bb` 与 `lead_map / dd` 二级渠道一致，未命中输出 `未知`。`IP退费` 对应输出 `春春`、`朱博士`、`郭艺`。
 
 ### 转化最终 channel_1
 
