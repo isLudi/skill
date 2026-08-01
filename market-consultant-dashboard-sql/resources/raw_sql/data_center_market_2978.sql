@@ -64,6 +64,13 @@ lead_with_channel as (
     select
         lb.*,
         case
+            -- 2026-08-01: 0728期退款复用误入0803期KOC渠道，按业务确认统一归入退款订单复用。
+            when lb.period_name = '20260803期'
+             and lb.third_department_name = '线上商务部'
+             and lb.source_manager_name in ('曲默晗','何木玲')
+             and lb.sku_id_name like '0728期-%'
+             and (lb.sku_id_name like '%帅师%' or lb.sku_id_name like '%孟帝%')
+            then '退款订单复用'
             when lb.flow_pool_name = '中考加油'
              and lb.sku_id_name like '%孟帝%' then 'KOC-孟亚飞数学'
             when lb.flow_pool_name = '中考加油'

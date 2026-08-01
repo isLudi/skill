@@ -117,7 +117,15 @@ end as grade_1,
             then 1 else 0
         end, 0) as ssg_payers,
         coalesce(case when t1.intention_level in ('A', 'B') and t.jieduan in ('深沟','已双沟') then 1 else 0 end, 0) as AB_intention_level,
-        coalesce(case when t1.intention_level in ('A', 'B') and t1.conversion_lead_count = 1 then 1 else 0 end, 0) as AB_zhuanhua
+        coalesce(case when t1.intention_level in ('A', 'B') and t1.conversion_lead_count = 1 then 1 else 0 end, 0) as AB_zhuanhua,
+        case
+            when upper(trim(cast(t1.intention_level as varchar))) in ('A', 'B') then 1
+            else 0
+        end as consultant_ab_flag,
+        case
+            when trim(cast(t1.crm_intention_level as varchar)) in ('1', '2') then 1
+            else 0
+        end as system_ab_flag
     from bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df t1
     left join biz_qici_calendar lead_cal
       on lead_cal.business_domain = 'market_consultant'
@@ -275,6 +283,13 @@ data as (
   when flow_pool_name = '百度搜索引擎' or channel_name_1='搜索营销' then '信息流搜索'
   when flow_pool_name like '%小红书班课%' then '小红书投放'
   when third_department_name = '投放部' and get_customer_way_name = '短视频信息流' and flow_original_order_activity_price like '%100%' then '信息流'
+  -- 2026-08-01: 0728期退款复用误入0803期KOC渠道，按业务确认统一归入退款订单复用。
+  when period_name = '20260803期'
+   and third_department_name = '线上商务部'
+   and source_manager_name in ('曲默晗','何木玲')
+   and sku_id_name like '0728期-%'
+   and (sku_id_name like '%帅师%' or sku_id_name like '%孟帝%')
+  then '退款订单复用'
   when flow_pool_name = '中考加油' and sku_id_name like '%孟帝%' then 'KOC-孟亚飞数学'
   when flow_pool_name = '中考加油' and sku_id_name  like '%帅师%' then 'KOC-周帅数学'
   when source_manager_name in ('孙晗01','方俊结01','刘亦鹏02','何木玲','杨梓月','张可意03','任颖迪','曹蕊07','曲默晗') and (sku_id_name like '%孟帝%' or sku_id_name like '%dudu%' or sku_id_name like '%市场初二%' or rule_name like '%亚飞%' or sku_id_name like '%初二高阳%' or sku_id_name like '%高阳初二%' or sku_id_name like '%精品初二%' or rule_name like '%初二%' or sku_id_name like '%菁英初三%' or (virtual_second_department_name = '菁英班学部' and lead_purchase_intention_level2_category_name='初级' and lead_create_time>= '2026-04-15 00:00:00')) then 'KOC-孟亚飞数学'
@@ -371,7 +386,9 @@ end as channel_map,
         sg_payers,
         ssg_payers,
         AB_intention_level,
-        AB_zhuanhua
+        AB_zhuanhua,
+        consultant_ab_flag,
+        system_ab_flag
     from data_pre
 )
 --------------------------5min比例、外呼次数、外呼接通次数
@@ -510,6 +527,105 @@ coalesce(
                 and tlearn.is_need_attend = 1
         ) t2 on t1.period_name = t2.qici and t1.user_id = t2.user_number) dk
 	left join temp_table.dingxi01_daoke_1_6_t ke on dk.period_name = ke.qici and dk.channel_map = ke.channel and dk.grade_1 = ke.grade and dk.begin_time = ke.begin_time)
+,first_lesson_ke_manual as (
+    select
+        qudao,
+        begin_time,
+        qici,
+        grade,
+        cast(ke_1 as varchar) as ke_1
+    from (
+        select
+            ke.*,
+            row_number() over (
+                partition by ke.qici, ke.qudao, ke.grade, ke.begin_time
+                order by cast(ke.ke_1 as varchar), ke.channel
+            ) as rn
+        from temp_table.dingxi01_daoke_1_6_t ke
+        where ke.qici > '20260410期'
+    ) t
+    where rn = 1
+)
+,first_lesson_learn_raw as (
+    select
+        learn_source.user_number,
+        learn_source.begin_time,
+        cast(learn_source.begin_time as date) as begin_date,
+        learn_source.live_learn_duration,
+        learn_source.is_valid_live_learn
+    from service_dw.dws_service_user_learn_detail_hf learn_source
+    where learn_source.dt = date_format(now() - interval '2' hour, '%Y%m%d')
+      and learn_source.hour = date_format(now() - interval '2' hour, '%H')
+      and learn_source.course_first_level_department_name = 'H业务线'
+      and learn_source.course_second_level_department_name in ('精品班学部','市场部','青橙项目部')
+      and learn_source.is_need_attend = 1
+)
+,first_lesson_attendance as (
+    select
+        lead_period.lead_id,
+        lead_period.user_id,
+        lead_period.employee_email_prefix,
+        lead_period.period_name,
+        lead_period.channel_map,
+        lead_period.grade_1,
+        case
+            when sum(
+                case
+                    when ke.ke_1 = '1'
+                     and learn.live_learn_duration > 0 then 1
+                    else 0
+                end
+            ) > 0 then 1
+            else 0
+        end as first_lesson_attended,
+        case
+            when sum(
+                case
+                    when ke.ke_1 = '1'
+                     and cast(learn.is_valid_live_learn as varchar) = '1' then 1
+                    else 0
+                end
+            ) > 0 then 1
+            else 0
+        end as first_lesson_valid_attended
+    from (
+        select
+            lead_id,
+            user_id,
+            employee_email_prefix,
+            period_name,
+            channel_map,
+            grade_1,
+            cast(date_parse(substr(period_name, 1, 8), '%Y%m%d') as date) as period_date
+        from data
+        where cast(valid_lead_count as varchar) = '1'
+          and period_name > '20260410期'
+        group by
+            lead_id,
+            user_id,
+            employee_email_prefix,
+            period_name,
+            channel_map,
+            grade_1,
+            cast(date_parse(substr(period_name, 1, 8), '%Y%m%d') as date)
+    ) lead_period
+    join first_lesson_ke_manual ke
+      on lead_period.period_name = ke.qici
+     and lead_period.channel_map = ke.qudao
+     and lead_period.grade_1 = ke.grade
+    left join first_lesson_learn_raw learn
+      on cast(lead_period.user_id as varchar) = cast(learn.user_number as varchar)
+     and date_format(cast(learn.begin_time as timestamp), '%Y-%m-%d %H:%i:00') = ke.begin_time
+     and learn.begin_date >= lead_period.period_date - interval '3' day
+     and learn.begin_date < lead_period.period_date + interval '4' day
+    group by
+        lead_period.lead_id,
+        lead_period.user_id,
+        lead_period.employee_email_prefix,
+        lead_period.period_name,
+        lead_period.channel_map,
+        lead_period.grade_1
+)
 -----------------------整合 
 ,base_raw as 
 (select distinct
@@ -548,54 +664,125 @@ case when  conversion_lead_count = '1' and call_c.call_duration_1 >= 2400 then 1
                         and daoke.live_learn_duration > 0
                 ) then 1 else 0 end
         end as daoke1,
-        case when exists (
-            select 1
-            from daoke
-            where daoke.user_id = data.user_id
-                and daoke.employee_email_prefix = data.employee_email_prefix
-                and daoke.period_name = data.period_name
-                and data.channel_map = daoke.channel_map
-                and daoke.ke_1 = '1'
-                and daoke.live_learn_duration > 0
-        ) then 1 else 0 end as first_lesson_attended
+        coalesce(first_lesson_attendance.first_lesson_attended, 0) as first_lesson_attended,
+        coalesce(first_lesson_attendance.first_lesson_valid_attended, 0) as first_lesson_valid_attended
     from data 
 left join call_c on call_c.user_number = data.user_id and call_c.section_assign_employee_email_prefix = data.employee_email_prefix and call_c.lead_id = data.lead_id
 left join f_call0 on f_call0.assign_employee_email_name = data.employee_email_name and f_call0.user_id = data.user_id 
+left join first_lesson_attendance
+  on first_lesson_attendance.lead_id = data.lead_id
+ and cast(first_lesson_attendance.user_id as varchar) = cast(data.user_id as varchar)
+ and first_lesson_attendance.employee_email_prefix = data.employee_email_prefix
+ and first_lesson_attendance.period_name = data.period_name
+ and first_lesson_attendance.channel_map = data.channel_map
+ and first_lesson_attendance.grade_1 = data.grade_1
 )
 ,base as (
     select
         base_raw.*,
         case
             when cast(valid_lead_count as varchar) = '1'
+             and period_name > '20260410期'
              and first_lesson_attended = 1 then 1
             else 0
         end as first_lesson_attendance_num,
         case
-            when cast(valid_lead_count as varchar) = '1' then 1
+            when cast(valid_lead_count as varchar) = '1'
+             and period_name > '20260410期' then 1
             else 0
         end as first_lesson_attendance_den,
         case
             when cast(valid_lead_count as varchar) = '1'
+             and period_name > '20260410期'
              and has_reached_shengou = 1
              and first_lesson_attended = 1 then 1
             else 0
         end as deep_effective_attendance_num,
         case
             when cast(valid_lead_count as varchar) = '1'
+             and period_name > '20260410期'
              and has_reached_shengou = 1 then 1
             else 0
         end as deep_effective_attendance_den,
         case
             when cast(valid_lead_count as varchar) = '1'
+             and period_name > '20260410期'
              and has_reached_shuanggou = 1
              and first_lesson_attended = 1 then 1
             else 0
         end as double_effective_attendance_num,
         case
             when cast(valid_lead_count as varchar) = '1'
+             and period_name > '20260410期'
              and has_reached_shuanggou = 1 then 1
             else 0
-        end as double_effective_attendance_den
+        end as double_effective_attendance_den,
+        case
+            when cast(valid_lead_count as varchar) = '1'
+             and consultant_ab_flag = 1 then 1
+            else 0
+        end as consultant_ab_share_num,
+        case
+            when cast(valid_lead_count as varchar) = '1' then 1
+            else 0
+        end as consultant_ab_share_den,
+        case
+            when cast(valid_lead_count as varchar) = '1'
+             and consultant_ab_flag = 1
+             and coalesce(conversion_lead_count, 0) > 0 then 1
+            else 0
+        end as consultant_ab_conversion_num,
+        case
+            when cast(valid_lead_count as varchar) = '1'
+             and consultant_ab_flag = 1 then 1
+            else 0
+        end as consultant_ab_conversion_den,
+        case
+            when cast(valid_lead_count as varchar) = '1'
+             and period_name > '20260410期'
+             and consultant_ab_flag = 1
+             and first_lesson_valid_attended = 1 then 1
+            else 0
+        end as consultant_ab_valid_attendance_num,
+        case
+            when cast(valid_lead_count as varchar) = '1'
+             and period_name > '20260410期'
+             and consultant_ab_flag = 1 then 1
+            else 0
+        end as consultant_ab_valid_attendance_den,
+        case
+            when cast(valid_lead_count as varchar) = '1'
+             and system_ab_flag = 1 then 1
+            else 0
+        end as system_ab_share_num,
+        case
+            when cast(valid_lead_count as varchar) = '1' then 1
+            else 0
+        end as system_ab_share_den,
+        case
+            when cast(valid_lead_count as varchar) = '1'
+             and system_ab_flag = 1
+             and coalesce(conversion_lead_count, 0) > 0 then 1
+            else 0
+        end as system_ab_conversion_num,
+        case
+            when cast(valid_lead_count as varchar) = '1'
+             and system_ab_flag = 1 then 1
+            else 0
+        end as system_ab_conversion_den,
+        case
+            when cast(valid_lead_count as varchar) = '1'
+             and period_name > '20260410期'
+             and system_ab_flag = 1
+             and first_lesson_valid_attended = 1 then 1
+            else 0
+        end as system_ab_valid_attendance_num,
+        case
+            when cast(valid_lead_count as varchar) = '1'
+             and period_name > '20260410期'
+             and system_ab_flag = 1 then 1
+            else 0
+        end as system_ab_valid_attendance_den
     from base_raw
 )
 ---------------------------转化
@@ -632,6 +819,18 @@ left join f_call0 on f_call0.assign_employee_email_name = data.employee_email_na
     sum(deep_effective_attendance_den) deep_effective_attendance_den,
     sum(double_effective_attendance_num) double_effective_attendance_num,
     sum(double_effective_attendance_den) double_effective_attendance_den,
+    sum(consultant_ab_share_num) consultant_ab_share_num,
+    sum(consultant_ab_share_den) consultant_ab_share_den,
+    sum(consultant_ab_conversion_num) consultant_ab_conversion_num,
+    sum(consultant_ab_conversion_den) consultant_ab_conversion_den,
+    sum(consultant_ab_valid_attendance_num) consultant_ab_valid_attendance_num,
+    sum(consultant_ab_valid_attendance_den) consultant_ab_valid_attendance_den,
+    sum(system_ab_share_num) system_ab_share_num,
+    sum(system_ab_share_den) system_ab_share_den,
+    sum(system_ab_conversion_num) system_ab_conversion_num,
+    sum(system_ab_conversion_den) system_ab_conversion_den,
+    sum(system_ab_valid_attendance_num) system_ab_valid_attendance_num,
+    sum(system_ab_valid_attendance_den) system_ab_valid_attendance_den,
     sum(conversion_lead_count) pay_users,
     sum(same_lead_period_conversion_lead_count)  pay_users_on_period,
     sum(conversion_lead_count-same_lead_period_conversion_lead_count) pay_users_not_on_period,
@@ -774,6 +973,18 @@ select
     zz.deep_effective_attendance_den,
     zz.double_effective_attendance_num,
     zz.double_effective_attendance_den,
+    zz.consultant_ab_share_num,
+    zz.consultant_ab_share_den,
+    zz.consultant_ab_conversion_num,
+    zz.consultant_ab_conversion_den,
+    zz.consultant_ab_valid_attendance_num,
+    zz.consultant_ab_valid_attendance_den,
+    zz.system_ab_share_num,
+    zz.system_ab_share_den,
+    zz.system_ab_conversion_num,
+    zz.system_ab_conversion_den,
+    zz.system_ab_valid_attendance_num,
+    zz.system_ab_valid_attendance_den,
     zz.pay_users,
     zz.pay_users_on_period,
     zz.pay_users_not_on_period,
@@ -929,6 +1140,18 @@ final_result_enriched as (
         frh.deep_effective_attendance_den,
         frh.double_effective_attendance_num,
         frh.double_effective_attendance_den,
+        frh.consultant_ab_share_num,
+        frh.consultant_ab_share_den,
+        frh.consultant_ab_conversion_num,
+        frh.consultant_ab_conversion_den,
+        frh.consultant_ab_valid_attendance_num,
+        frh.consultant_ab_valid_attendance_den,
+        frh.system_ab_share_num,
+        frh.system_ab_share_den,
+        frh.system_ab_conversion_num,
+        frh.system_ab_conversion_den,
+        frh.system_ab_valid_attendance_num,
+        frh.system_ab_valid_attendance_den,
         frh.pay_users,
         frh.pay_users_on_period,
         frh.pay_users_not_on_period,

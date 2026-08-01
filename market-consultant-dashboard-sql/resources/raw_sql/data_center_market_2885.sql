@@ -219,6 +219,13 @@ lead_base AS (
   when flow_pool_name LIKE '%小红书班课%' then '小红书投放'
   when third_department_name = '投放部' AND get_customer_way_name = '短视频信息流' AND flow_original_order_activity_price LIKE '%100%' then '信息流'
   when source_manager_name IN ('孙晗01','方俊结01','刘亦鹏02','何木玲','杨梓月','张可意03','任颖迪') AND (sku_id_name LIKE '%原型题%') then 'KOC-书课包'
+  -- 2026-08-01: 0728期退款复用误入0803期KOC渠道，按业务确认统一归入退款订单复用。
+  when period_name = '20260803期'
+   and third_department_name = '线上商务部'
+   and source_manager_name in ('曲默晗','何木玲')
+   and sku_id_name like '0728期-%'
+   and (sku_id_name like '%帅师%' or sku_id_name like '%孟帝%')
+  then '退款订单复用'
   when flow_pool_name = '中考加油' AND sku_id_name LIKE '%孟帝%' then 'KOC-孟亚飞数学'
   when flow_pool_name = '中考加油' AND sku_id_name LIKE '%帅师%' then 'KOC-周帅数学'
   when flow_pool_name = '中考加油' AND sku_id_name LIKE '%肖晗%' then 'KOC-肖晗'
