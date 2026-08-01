@@ -957,9 +957,15 @@ class ReplyDispatcher:
 
 
 class LarkEventConsumer:
-    def __init__(self, config: dict[str, Any], logger: logging.Logger) -> None:
+    def __init__(
+        self,
+        config: dict[str, Any],
+        logger: logging.Logger,
+        cli: str,
+    ) -> None:
         self.config = config
         self.logger = logger
+        self.cli = cli
         self.process: subprocess.Popen[str] | None = None
         self.stdout_queue: queue.Queue[str | None] = queue.Queue()
         self.stderr_queue: queue.Queue[str | None] = queue.Queue()
@@ -973,9 +979,8 @@ class LarkEventConsumer:
             destination.put(None)
 
     def start(self) -> None:
-        cli = workflow.resolve_lark_cli()
         argv = workflow._command_argv(
-            cli,
+            self.cli,
             ["event", "consume", self.config["event_key"], "--as", "bot"],
         )
         environment = os.environ.copy()
@@ -1617,6 +1622,7 @@ class GovernedTempTableEventService:
         self.stop_event = threading.Event()
         self.consumer: LarkEventConsumer | None = None
         self.worker: JobWorker | None = None
+        self.lark_cli_path: str | None = None
 
     def write_status(self, status: str, **extra: Any) -> None:
         value = {
@@ -1631,6 +1637,7 @@ class GovernedTempTableEventService:
             "reply_progress_updates": self.config["reply_progress_updates"],
             "allow_local_apply": self.config["allow_local_apply"],
             "allow_production_upload": self.config["allow_production_upload"],
+            "lark_cli_path": self.lark_cli_path,
             "config_path": self.config["config_path"],
             "updated_at": now_iso(),
             "ledger": self.ledger.summary(),
@@ -1646,6 +1653,8 @@ class GovernedTempTableEventService:
             self.stop_path.unlink(missing_ok=True)
             self.write_status("starting")
             gateway = LarkGateway(self.config)
+            self.lark_cli_path = gateway.cli
+            self.logger.info("Resolved lark-cli executable: %s", self.lark_cli_path)
             replies = ReplyDispatcher(self.config, self.ledger, gateway, self.logger)
             executor = SyncExecutor(self.config, self.ledger, replies, self.logger)
             self.worker = JobWorker(executor, self.logger)
@@ -1659,7 +1668,11 @@ class GovernedTempTableEventService:
                 gateway,
                 self.logger,
             )
-            self.consumer = LarkEventConsumer(self.config, self.logger)
+            self.consumer = LarkEventConsumer(
+                self.config,
+                self.logger,
+                self.lark_cli_path,
+            )
             signal.signal(signal.SIGINT, self.request_stop)
             signal.signal(signal.SIGTERM, self.request_stop)
             try:

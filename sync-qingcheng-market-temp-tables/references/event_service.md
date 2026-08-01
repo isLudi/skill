@@ -167,3 +167,63 @@ runtime 中保存：
 7. 用户明确同意重新启用。
 
 任何一项失败都保持服务停用。
+
+## lark-cli 常态升级与生产重启（固定八步）
+
+每次 `lark-cli` 升级都必须依次执行以下八步。任一步失败都阻断生产恢复，不得跳步、调序或使用历史成功回执替代当前版本验证。恢复生产只恢复升级前已审阅的配置和权限，不自动改变 `mode`、回复策略或两道写入门禁。
+
+### 事故基线：Windows 批处理启动器不可进入生产
+
+2026-08-01 升级到 `lark-cli 1.0.81` 后，本地和全局版本号及原生二进制 SHA-256 均一致，但 Python 解析器仍优先命中了工作区根目录的 `lark-cli.cmd`。服务随后通过 `cmd.exe /c` 传递 `--content`：帮助正文中的 `<表名或别名>` 被解释为输入重定向，状态正文中的 `|` 被解释为管道，导致事件和指令均已成功处理、出站回复却分别以 1/255 退出。
+
+因此，版本一致只证明包版本没有漂移，不能证明生产回复链路安全。Windows 上必须直接执行 npm 包内的 `node_modules\@larksuite\cli\bin\lark-cli.exe`；`.cmd` / `.bat` 解析结果属于阻断项。回复 dry-run 必须同时覆盖换行和 shell 元字符，不能只测普通三行文本。
+
+### 1. 冻结生产并记录基线
+
+- 读取管理器状态和 SQLite 账本；存在 `queued`、`planning`、`applying_local` 或 `uploading` 任务时，等待安全结束并人工核验，不得直接升级。
+- 记录实时配置 SHA-256，以及 `mode`、全部回复开关、两道写入门禁、群和角色 ID；逐字节备份配置到本次 runtime 维护目录。
+- 记录当前消费者数量、`received`、`dropped`、失败出站消息数和最近错误；验证副本必须使用独立 runtime，并强制 `shadow`、禁本地 Apply、禁生产 Upload。
+
+### 2. 固化升级前版本、路径和回滚证据
+
+- 记录 `Get-Command lark-cli -All`、本地/全局 `package.json` 版本、原生 `lark-cli.exe` 路径和 SHA-256。
+- 调用同步脚本的 `resolve_lark_cli()` 并记录真实解析路径；Windows 结果若以 `.cmd` / `.bat` 结尾，立即阻断。
+- 执行 `lark-cli update --check --json`，保存版本和 `skills_status`；备份本次会变化的包元数据和 Skill 文件，但不得保存凭据、token 或浏览器状态。
+
+### 3. 优雅停止生产事件服务
+
+- 使用 `manage_event_service.ps1 -Action stop`，由父进程关闭事件消费者；禁止强杀或无条件 `event stop --force`。
+- 确认服务状态为 `stopped`、事件键无遗留消费者并保留停止日志。停止失败或出现孤儿消费者时先排查，不得边运行边替换 CLI。
+
+### 4. 统一升级 CLI 与官方 Skills
+
+- 按 `lark-shared` 使用官方 `lark-cli update`；同时存在本地和全局安装时，二者必须升级到同一精确版本。
+- 核对本地/全局 `package.json`、锁文件、`--version` 和原生 exe SHA-256；任一处仍指向旧版本都属于版本漂移。
+- 核验 `skills_status.in_sync=true`，同步官方 `lark-*` 文件时保留 `agents/openai.yaml`；不得借升级修改业务注册表、运行配置或生产权限。
+
+### 5. 执行离线兼容性和 Windows 元字符回归
+
+- 执行两个生产脚本的 `py_compile` 和 Skill 全部 `unittest`；任何失败都阻断启动。
+- `resolve_lark_cli()` 必须返回原生 `...\node_modules\@larksuite\cli\bin\lark-cli.exe`，且执行层必须拒绝 `.cmd` / `.bat`。
+- 回复回归正文必须至少包含三行文本及 `<target> | failed & retry > audit`、`%PATH% ^ (test)`；要求这些字符逐字保留、换行只作为 JSON 转义、不得被 shell 展开或执行。
+- 核对 `--as bot` 和 50 字符以内的 `--idempotency-key` 位于 `--content` 之前，`--content` 是可重新解析的 JSON；同时验证 `{ok,data,error}` 信封。
+- 通过当前原生 exe 执行无写入 `--dry-run`，并核验 `im +messages-mget`、`im +messages-reply`、事件 NDJSON 和 `[event] ready` 契约。仅普通文本成功不足以通过此门禁。
+
+### 6. 只用 shadow 验证新版本启动
+
+- 使用独立 shadow 配置启动，确认实际 CLI 路径和版本正是本次目标版本；不得先用实时生产配置试启动。
+- 核验 `status=running`、`event_ready=true`、单一活动消费者、`dropped=0`，并确认本地 Apply 和生产 Upload 均为 `false`。
+- 检查 bot 身份、最小 scope 和启动日志；升级验证不得创建业务写入回执。
+
+### 7. 在登记群执行帮助/状态端到端回复测试
+
+- 经明确授权后，以用户身份在一个登记群分别发送带真实 mention 的 `@管家 帮助` 和 `@管家 状态`；这两条指令不得创建 Plan、Apply 或 Upload。
+- 必须观察到事件消费者各新增一次接收，日志结果分别为 `help`、`status`，SQLite 出站账本新增两条 `sent` 且没有新增 `failed`。
+- 以 bot 身份回读群消息，确认两条回复的 `reply_to`、发送者和完整正文。帮助回复覆盖 `< >`，状态回复覆盖 `|`，因此两者都是升级后的强制真实回归，而不是可选冒烟测试。
+- 若还执行幂等测试，同一目标消息和同一幂等键调用两次必须只出现一条回复；机器人自发消息不得递归生成任务。
+
+### 8. 恢复原配置并重启生产服务
+
+- 优雅停止 shadow 实例，重新读取实时配置并与第 1 步 SHA-256 比较；配置漂移时阻断恢复。
+- 用逐字节一致的原生产配置启动，回读 `mode`、所有回复开关和两道写入门禁，要求与升级前一致。
+- 最终核验 `status=running`、`event_ready=true`、单一消费者、`dropped=0`、原生 exe 精确路径/版本、日志无启动错误，并保存升级回执。任一条件失败都保持生产停止或退回 shadow，不得宣称升级完成。

@@ -486,7 +486,11 @@ def source_chat_name(registry: dict[str, Any], family: dict[str, Any]) -> str:
 
 def _command_argv(executable: str, args: list[str]) -> list[str]:
     if Path(executable).suffix.casefold() in {".cmd", ".bat"}:
-        return [os.environ.get("COMSPEC", "cmd.exe"), "/d", "/c", executable, *args]
+        raise WorkflowError(
+            "Refusing to launch lark-cli through a Windows batch shim. "
+            "Use the package-native lark-cli.exe so JSON content cannot be "
+            "reinterpreted by cmd.exe."
+        )
     return [executable, *args]
 
 
@@ -527,13 +531,62 @@ def run_json_command(
     return payload
 
 
+def _windows_lark_cli_launchers() -> list[Path]:
+    directories = [Path.cwd()]
+    directories.extend(
+        Path(value.strip('"'))
+        for value in os.environ.get("PATH", "").split(os.pathsep)
+        if value.strip('"')
+    )
+    launchers: list[Path] = []
+    seen: set[str] = set()
+    for directory in directories:
+        for name in ("lark-cli.exe", "lark-cli.cmd", "lark-cli.bat", "lark-cli"):
+            candidate = directory / name
+            try:
+                resolved = candidate.resolve()
+            except OSError:
+                continue
+            key = str(resolved).casefold()
+            if key in seen or not resolved.is_file():
+                continue
+            seen.add(key)
+            launchers.append(resolved)
+    return launchers
+
+
+def _native_lark_cli_for_windows_launcher(launcher: Path) -> Path | None:
+    if launcher.suffix.casefold() == ".exe":
+        return launcher
+    candidate = (
+        launcher.parent
+        / "node_modules"
+        / "@larksuite"
+        / "cli"
+        / "bin"
+        / "lark-cli.exe"
+    )
+    return candidate.resolve() if candidate.is_file() else None
+
+
 def resolve_lark_cli() -> str:
-    executable = shutil.which("lark-cli.cmd") or shutil.which("lark-cli")
+    if os.name == "nt":
+        launchers = _windows_lark_cli_launchers()
+        for launcher in launchers:
+            native = _native_lark_cli_for_windows_launcher(launcher)
+            if native is not None:
+                return str(native)
+        if launchers:
+            raise WorkflowError(
+                "lark-cli was found, but no package-native lark-cli.exe is "
+                "available. Refusing the Windows .cmd/.bat shim because it can "
+                "reinterpret JSON reply content containing <, >, |, or &."
+            )
+        raise WorkflowError("lark-cli is not available on PATH.")
+
+    executable = shutil.which("lark-cli")
     if not executable:
         raise WorkflowError("lark-cli is not available on PATH.")
-    # `shutil.which` can return a path relative to the process working directory
-    # (for example, `.\lark-cli.cmd`). Downloads deliberately run with a separate
-    # cwd, so preserve the executable location as an absolute path first.
     return str(Path(executable).resolve())
 
 

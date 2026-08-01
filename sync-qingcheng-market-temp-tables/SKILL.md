@@ -98,6 +98,8 @@ D:\anaconda3\python.exe C:\Users\Ludim\.codex\skills\sync-qingcheng-market-temp-
 
 配置、群隔离、命令语法、审批和安全停启见 [event_service.md](references/event_service.md)。服务必须同时覆盖注册表中的两个精确群，但每条消息只能路由到其所在群的文件族；任务状态和审批也按群隔离。
 
+每次升级 `lark-cli` 后，必须完整执行 `event_service.md` 中的“lark-cli 常态升级与生产重启（固定八步）”。Windows 生产解析路径必须指向 npm 包内的原生 `bin\lark-cli.exe`；解析为 `.cmd` / `.bat`、缺少多行及 `< > | &` 元字符 dry-run、或未在登记群验证“帮助/状态”真实回复，均阻断生产恢复。版本号一致不能替代这些门禁。
+
 维护或验证服务时使用：
 
 - `scripts/governed_temp_table_event_service.py`

@@ -330,25 +330,36 @@ class EventServiceTests(unittest.TestCase):
         self.assertNotIn("\n", argv[content_index + 1])
         self.assertEqual(json.loads(argv[content_index + 1]), {"text": content})
 
-    @unittest.skipUnless(sys.platform == "win32", "Windows .cmd regression")
-    def test_windows_cmd_preserves_multiline_json_reply(self) -> None:
-        capture_script = self.runtime_root / "capture_cli_args.py"
-        fake_cli = self.runtime_root / "fake-lark-cli.cmd"
-        capture_script.write_text(
-            "import json, sys\n"
-            "print(json.dumps({'ok': True, 'data': {'argv': sys.argv[1:]}}, "
-            "ensure_ascii=True))\n",
-            encoding="utf-8",
+    @unittest.skipUnless(sys.platform == "win32", "Windows native argv regression")
+    def test_windows_native_exe_preserves_multiline_and_shell_metacharacters(self) -> None:
+        original_run_json_command = workflow.run_json_command
+        capture_script = (
+            "import json,sys; "
+            "print(json.dumps({'ok':True,'data':{'argv':sys.argv[1:]}}, "
+            "ensure_ascii=True))"
         )
-        fake_cli.write_text(
-            f'@echo off\r\n"{sys.executable}" "{capture_script}" %*\r\n',
-            encoding="utf-8",
-        )
-        gateway = LarkGateway(self.config)
-        gateway.cli = str(fake_cli)
-        content = "line one\nline two\nline three"
 
-        result = gateway.reply("om_target", content, "qc-windows-multiline")
+        def capture_with_native_executable(
+            _executable: str,
+            argv: list[str],
+            **kwargs: object,
+        ) -> dict[str, object]:
+            return original_run_json_command(
+                sys.executable,
+                ["-c", capture_script, *argv],
+                timeout=int(kwargs.get("timeout", 60)),
+            )
+
+        gateway = LarkGateway(self.config)
+        gateway.cli = str(Path(sys.executable).resolve())
+        content = "line one\n<target> | failed & retry > audit\n%PATH% ^ (test)"
+
+        with mock.patch.object(
+            workflow,
+            "run_json_command",
+            side_effect=capture_with_native_executable,
+        ):
+            result = gateway.reply("om_target", content, "qc-windows-metacharacters")
 
         argv = result["data"]["argv"]
         content_index = argv.index("--content")

@@ -23,6 +23,7 @@ sys.path.insert(0, str(SKILL_ROOT / "scripts"))
 
 from governed_temp_table_sync import (  # noqa: E402
     WorkflowError,
+    _command_argv,
     apply_local,
     assert_plan_source_quality_current,
     build_selection_spec,
@@ -579,12 +580,51 @@ class MergeWorkflowTests(unittest.TestCase):
             with self.assertRaisesRegex(WorkflowError, "Source quality gate is required"):
                 load_registry(path)
 
-    def test_lark_cli_is_resolved_before_download_cwd_changes(self) -> None:
-        with mock.patch("governed_temp_table_sync.shutil.which", return_value=r".\lark-cli.cmd"):
-            resolved = resolve_lark_cli()
+    @unittest.skipUnless(os.name == "nt", "Windows lark-cli resolver")
+    def test_lark_cli_resolver_prefers_package_native_exe(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            launcher = root / "lark-cli.cmd"
+            native = (
+                root
+                / "node_modules"
+                / "@larksuite"
+                / "cli"
+                / "bin"
+                / "lark-cli.exe"
+            )
+            launcher.write_text("@echo off\r\n", encoding="utf-8")
+            native.parent.mkdir(parents=True)
+            native.write_bytes(b"native")
+            with mock.patch(
+                "governed_temp_table_sync._windows_lark_cli_launchers",
+                return_value=[launcher],
+            ):
+                resolved = resolve_lark_cli()
 
-        self.assertTrue(Path(resolved).is_absolute())
-        self.assertEqual(Path(resolved).name, "lark-cli.cmd")
+        self.assertEqual(Path(resolved), native.resolve())
+
+    @unittest.skipUnless(os.name == "nt", "Windows lark-cli resolver")
+    def test_lark_cli_resolver_rejects_batch_only_installation(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            launcher = Path(directory) / "lark-cli.cmd"
+            launcher.write_text("@echo off\r\n", encoding="utf-8")
+            with mock.patch(
+                "governed_temp_table_sync._windows_lark_cli_launchers",
+                return_value=[launcher],
+            ):
+                with self.assertRaisesRegex(
+                    WorkflowError,
+                    "no package-native lark-cli.exe",
+                ):
+                    resolve_lark_cli()
+
+    def test_batch_launcher_is_rejected_before_json_arguments_reach_cmd(self) -> None:
+        with self.assertRaisesRegex(WorkflowError, "Windows batch shim"):
+            _command_argv(
+                r"C:\tools\lark-cli.cmd",
+                ["im", "+messages-reply", "--content", '{"text":"a | b"}'],
+            )
 
     def test_bot_chat_message_listing_uses_explicit_pagination(self) -> None:
         responses = [
