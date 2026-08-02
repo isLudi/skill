@@ -1201,24 +1201,65 @@ class MergeWorkflowTests(unittest.TestCase):
 
         self.assertEqual(selected["a"]["message_id"], "om_after")
 
-    def test_course_schedule_link_is_bound_to_registered_sender(self) -> None:
+    def test_course_schedule_link_accepts_common_wording_with_strict_source_guards(
+        self,
+    ) -> None:
         registry = load_registry(SKILL_ROOT / "references" / "workflow_registry.json")
-        message = {
-            "message_id": "om_course",
-            "chat_id": "oc_e604e064976c022ab4289fc2fb979332",
-            "sender": {
-                "id": "ou_3168c83ffe93b49a192755c8e31e2bc5",
-                "name": "李怡青",
-            },
-            "content": (
-                "【青橙行课--开课时间(1-6节课)】\n"
-                "https://docs.baijia.com/sheet/DQUZrYU50dkZPa1FtZWJSU1JE?tab=vhzqxm"
-            ),
-        }
+        source_url = (
+            "https://docs.baijia.com/sheet/"
+            "DQUZrYU50dkZPa1FtZWJSU1JE?tab=vhzqxm"
+        )
 
-        self.assertEqual(classify_source_message(registry, message), "course_schedule")
-        message["sender"] = {"id": "ou_unregistered", "name": "其他人"}
-        self.assertIsNone(classify_source_message(registry, message))
+        def message(content: str) -> dict[str, object]:
+            return {
+                "message_id": "om_course",
+                "chat_id": "oc_e604e064976c022ab4289fc2fb979332",
+                "sender": {
+                    "id": "ou_3168c83ffe93b49a192755c8e31e2bc5",
+                    "name": "李怡青",
+                },
+                "content": f"{content}{source_url}",
+            }
+
+        common_wording = [
+            "【青橙行课--开课时间(1-6节课)】\n",
+            "@吕帅 帅~辛苦上传上课时间",
+            "请更新最新开课时间表：",
+            "青橙行课安排 ",
+            "本期到课表 ",
+            "课程信息：",
+            "课 表更新：",
+        ]
+        for wording in common_wording:
+            with self.subTest(wording=wording):
+                self.assertEqual(
+                    classify_source_message(registry, message(wording)),
+                    "course_schedule",
+                )
+
+        unrelated = message("辛苦上传数据表：")
+        self.assertIsNone(classify_source_message(registry, unrelated))
+
+        wrong_sender = message("辛苦上传上课时间：")
+        wrong_sender["sender"] = {"id": "ou_unregistered", "name": "其他人"}
+        self.assertIsNone(classify_source_message(registry, wrong_sender))
+
+        wrong_chat = message("辛苦上传上课时间：")
+        wrong_chat["chat_id"] = "oc_unregistered"
+        self.assertIsNone(classify_source_message(registry, wrong_chat))
+
+        wrong_domain = message("辛苦上传上课时间：")
+        wrong_domain["content"] = (
+            "辛苦上传上课时间：https://example.com/sheet/not-registered"
+        )
+        self.assertIsNone(classify_source_message(registry, wrong_domain))
+
+        family = next(
+            item
+            for item in registry["families"]
+            if item["id"] == "course_schedule"
+        )
+        self.assertEqual(family["source_search_query"], "")
 
     def test_active_course_sheet_maps_and_normalizes_registered_columns(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

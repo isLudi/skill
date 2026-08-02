@@ -474,7 +474,7 @@ class EventServiceTests(unittest.TestCase):
             "om_course1",
             COURSE_SOURCE,
             (
-                "【青橙行课--开课时间(1-6节课)】\n"
+                "@吕帅 帅~辛苦上传上课时间"
                 "https://docs.baijia.com/sheet/DQUZrYU50dkZPa1FtZWJSU1JE?tab=vhzqxm"
             ),
         )
@@ -501,7 +501,7 @@ class EventServiceTests(unittest.TestCase):
             "chat_id": CHAT,
             "sender": {"id": COURSE_SOURCE, "name": "李怡青"},
             "content": (
-                "【青橙行课--开课时间(1-6节课)】\n"
+                "@吕帅 帅~辛苦上传上课时间"
                 "https://docs.baijia.com/sheet/DQUZrYU50dkZPa1FtZWJSU1JE?tab=vhzqxm"
             ),
         }

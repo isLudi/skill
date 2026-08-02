@@ -330,12 +330,12 @@
       "source_kind": "link_workbook",
       "source_sender_name": "李怡青",
       "source_sender_open_id": "ou_3168c83ffe93b49a192755c8e31e2bc5",
-      "source_search_query": "青橙行课",
+      "source_search_query": "",
       "source_url_patterns": [
         "^https://docs\\.baijia\\.com/sheet/[A-Za-z0-9_-]+(?:\\?[^\\s]*)?$"
       ],
       "source_message_patterns": [
-        "青橙行课--开课时间\\(1-6节课\\)"
+        "(?:青橙\\s*行课|(?:开课|上课|行课|到课|课程)\\s*(?:时间|安排|信息|表|课表|链接)|课\\s*表)"
       ],
       "source_expected_title_pattern": "^青橙行课--开课时间\\(1-6节课\\)$",
       "source_filename": "青橙行课--开课时间(1-6节课).xlsx",

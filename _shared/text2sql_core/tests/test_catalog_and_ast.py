@@ -61,7 +61,7 @@ class CatalogAndAstTest(unittest.TestCase):
     def test_domain_manifests_cover_every_knowledge_and_raw_sql_file(self) -> None:
         expected_baseline = {
             "market_consultant": (137, 66),
-            "qingcheng": (169, 17),
+            "qingcheng": (169, 18),
         }
         for domain, config in DOMAIN_CONFIG.items():
             skill_root = REPO_ROOT / config["skill"]
@@ -221,7 +221,7 @@ class CatalogAndAstTest(unittest.TestCase):
         self.assertEqual(66, result["domains"]["market_consultant"]["total"])
         self.assertEqual(5, result["domains"]["market_consultant"]["templates"])
         self.assertEqual(1, result["domains"]["market_consultant"]["allowed_legacy_failures"])
-        self.assertEqual(17, result["domains"]["qingcheng"]["total"])
+        self.assertEqual(18, result["domains"]["qingcheng"]["total"])
         self.assertEqual(1, result["domains"]["qingcheng"]["templates"])
 
 
