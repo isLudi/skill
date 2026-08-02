@@ -13,7 +13,7 @@ biz_qici_calendar as (
             ('20260722期', date '2026-07-20', date '2026-07-25'),
             ('20260728期', date '2026-07-26', date '2026-07-31'),
             ('20260803期', date '2026-08-01', date '2026-08-06'),
-            ('20260809期', date '2026-08-07', date '2026-08-12')
+            ('20260808期', date '2026-08-07', date '2026-08-12')
     ) as t(qici, start_date, end_date)
 ),
 lead_base as (
@@ -44,6 +44,8 @@ lead_base as (
         t1.third_department_name,
         t1.sku_id_name,
         t1.source_manager_name,
+        t1.put_plan_name,
+        t1.channel_name_1,
         t1.channel_name_2,
         t1.virtual_second_department_name,
         t1.lead_purchase_intention_level2_category_name,
@@ -64,6 +66,16 @@ lead_with_channel as (
     select
         lb.*,
         case
+            -- 2026-08-02: 0728期线上商务部退款复用误归KOC周帅，按流量池证据归入退款订单复用。
+            when lb.period_name = '20260728期'
+             and lb.third_department_name = '线上商务部'
+             and lb.flow_pool_name = '电商退款用户池'
+             and lb.put_plan_name = '0728期退款用户计划'
+             and lb.channel_name_1 = '内部'
+             and lb.channel_name_2 = '流量复用'
+             and lb.source_manager_name = '曲默晗'
+             and lb.sku_id_name like '0728期-%帅师%'
+            then '退款订单复用'
             -- 2026-08-01: 0728期退款复用误入0803期KOC渠道，按业务确认统一归入退款订单复用。
             when lb.period_name = '20260803期'
              and lb.third_department_name = '线上商务部'

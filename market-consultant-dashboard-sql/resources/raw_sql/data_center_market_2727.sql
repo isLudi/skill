@@ -60,7 +60,7 @@ dd_0 as (
             when cast(cast(trade_time as timestamp) as date) between date '2026-07-20' and date '2026-07-25' then '20260722期'
             when cast(cast(trade_time as timestamp) as date) between date '2026-07-26' and date '2026-07-31' then '20260728期'
             when cast(cast(trade_time as timestamp) as date) between date '2026-08-01' and date '2026-08-06' then '20260803期'
-            when cast(cast(trade_time as timestamp) as date) between date '2026-08-07' and date '2026-08-12' then '20260809期'
+            when cast(cast(trade_time as timestamp) as date) between date '2026-08-07' and date '2026-08-12' then '20260808期'
             else concat(
             date_format(
                 date_add(

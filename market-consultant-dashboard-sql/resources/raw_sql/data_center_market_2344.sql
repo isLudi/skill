@@ -20,7 +20,7 @@ from (
 			when substr(trade_time, 1, 10) >= '2026-07-20' and substr(trade_time, 1, 10) <= '2026-07-25' then '20260722期'
 			when substr(trade_time, 1, 10) >= '2026-07-26' and substr(trade_time, 1, 10) <= '2026-07-31' then '20260728期'
 			when substr(trade_time, 1, 10) >= '2026-08-01' and substr(trade_time, 1, 10) <= '2026-08-06' then '20260803期'
-			when substr(trade_time, 1, 10) >= '2026-08-07' and substr(trade_time, 1, 10) <= '2026-08-12' then '20260809期'
+			when substr(trade_time, 1, 10) >= '2026-08-07' and substr(trade_time, 1, 10) <= '2026-08-12' then '20260808期'
 			when substr(trade_time, 1, 10) >= '2026-02-25' and substr(trade_time, 1, 10) <= '2026-03-02' then '20260227期'
 			when substr(trade_time, 1, 10) >= '2026-02-17' and substr(trade_time, 1, 10) <= '2026-02-24' then '20260220期'
 			when substr(trade_time, 1, 10) >= '2026-02-09' and substr(trade_time, 1, 10) <= '2026-02-16' then '20260213期'
@@ -110,7 +110,7 @@ from (select lead_id,original_order_user_number,performance_employee_email_name,
     when cast(date_parse(replace(concat(trade_group_period_year,trade_group_period_term),'期',''),'%Y%m%d') as date) between date '2026-07-20' and date '2026-07-25' then '20260722期'
     when cast(date_parse(replace(concat(trade_group_period_year,trade_group_period_term),'期',''),'%Y%m%d') as date) between date '2026-07-26' and date '2026-07-31' then '20260728期'
     when cast(date_parse(replace(concat(trade_group_period_year,trade_group_period_term),'期',''),'%Y%m%d') as date) between date '2026-08-01' and date '2026-08-06' then '20260803期'
-    when cast(date_parse(replace(concat(trade_group_period_year,trade_group_period_term),'期',''),'%Y%m%d') as date) between date '2026-08-07' and date '2026-08-12' then '20260809期'
+    when cast(date_parse(replace(concat(trade_group_period_year,trade_group_period_term),'期',''),'%Y%m%d') as date) between date '2026-08-07' and date '2026-08-12' then '20260808期'
     else concat(cast(date_format(date_trunc('week',date_parse(replace(concat(trade_group_period_year,trade_group_period_term),'期',''),'%Y%m%d') - interval '1' day) + interval '4' day,'%Y%m%d')as varchar),'期')
 end qici
 from service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf
@@ -172,7 +172,7 @@ where n_uid.rn =1)
             when cast(date_parse(replace(concat(t.group_period_year, t.group_period_term), '期', ''), '%Y%m%d') as date) between date '2026-07-20' and date '2026-07-25' then '20260722期'
             when cast(date_parse(replace(concat(t.group_period_year, t.group_period_term), '期', ''), '%Y%m%d') as date) between date '2026-07-26' and date '2026-07-31' then '20260728期'
             when cast(date_parse(replace(concat(t.group_period_year, t.group_period_term), '期', ''), '%Y%m%d') as date) between date '2026-08-01' and date '2026-08-06' then '20260803期'
-            when cast(date_parse(replace(concat(t.group_period_year, t.group_period_term), '期', ''), '%Y%m%d') as date) between date '2026-08-07' and date '2026-08-12' then '20260809期'
+            when cast(date_parse(replace(concat(t.group_period_year, t.group_period_term), '期', ''), '%Y%m%d') as date) between date '2026-08-07' and date '2026-08-12' then '20260808期'
             else concat(cast(date_format(date_trunc('week', date_parse(replace(concat(t.group_period_year, t.group_period_term), '期', ''), '%Y%m%d') - interval '1' day) + interval '4' day, '%Y%m%d') as varchar), '期')
         end as lf_period_name
     from bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df t
@@ -281,6 +281,16 @@ case
   when lf.flow_pool_name = '百度搜索引擎' or lf.channel_name_1='搜索营销' then '信息流搜索'
   when lf.flow_pool_name like '%小红书班课%' then '小红书投放'
   when lf.third_department_name = '投放部' and lf.get_customer_way_name = '短视频信息流' and lf.flow_original_order_activity_price like '%100%' then '信息流'
+  -- 2026-08-02: 0728期线上商务部退款复用误归KOC周帅，按流量池证据归入退款订单复用。
+  when lf_period_name = '20260728期'
+   and lf.third_department_name = '线上商务部'
+   and lf.flow_pool_name = '电商退款用户池'
+   and lf.put_plan_name = '0728期退款用户计划'
+   and lf.channel_name_1 = '内部'
+   and lf.channel_name_2 = '流量复用'
+   and lf.source_manager_name = '曲默晗'
+   and lf.sku_id_name like '0728期-%帅师%'
+  then '退款订单复用'
   -- 2026-08-01: 0728期退款复用误入0803期KOC渠道，按业务确认统一归入退款订单复用。
   when lf_period_name = '20260803期'
    and lf.third_department_name = '线上商务部'
@@ -376,7 +386,7 @@ rr.rule_name as rr_rule_name
         then '20260803期'
         when regexp_like(rr.group_period_term, '^[0-9]{8}期$')
              and cast(date_parse(substr(rr.group_period_term, 1, 8), '%Y%m%d') as date) between date '2026-08-07' and date '2026-08-12'
-        then '20260809期'
+        then '20260808期'
         when regexp_like(rr.group_period_term, '^[0-9]{4}期$')
              and substr(lead_gmv.qici, 1, 4) = '2026'
              and substr(rr.group_period_term, 1, 4) between '0714' and '0719'
@@ -396,7 +406,7 @@ rr.rule_name as rr_rule_name
         when regexp_like(rr.group_period_term, '^[0-9]{4}期$')
              and substr(lead_gmv.qici, 1, 4) = '2026'
              and substr(rr.group_period_term, 1, 4) between '0807' and '0812'
-        then '20260809期'
+        then '20260808期'
         when regexp_like(rr.group_period_term, '^[0-9]{8}期$')
         then date_format(
             date_trunc('week', date_parse(substr(rr.group_period_term, 1, 8), '%Y%m%d') - interval '1' day) + interval '4' day,
@@ -539,6 +549,16 @@ end as group_period_term
   when lf.flow_pool_name = '百度搜索引擎' or lf.channel_name_1='搜索营销' then '信息流搜索'
   when lf.flow_pool_name like '%小红书班课%' then '小红书投放'
   when lf.third_department_name = '投放部' and lf.get_customer_way_name = '短视频信息流' and lf.flow_original_order_activity_price like '%100%' then '信息流'
+  -- 2026-08-02: 0728期线上商务部退款复用误归KOC周帅，按流量池证据归入退款订单复用。
+  when lf_period_name = '20260728期'
+   and lf.third_department_name = '线上商务部'
+   and lf.flow_pool_name = '电商退款用户池'
+   and lf.put_plan_name = '0728期退款用户计划'
+   and lf.channel_name_1 = '内部'
+   and lf.channel_name_2 = '流量复用'
+   and lf.source_manager_name = '曲默晗'
+   and lf.sku_id_name like '0728期-%帅师%'
+  then '退款订单复用'
   -- 2026-08-01: 0728期退款复用误入0803期KOC渠道，按业务确认统一归入退款订单复用。
   when lf_period_name = '20260803期'
    and lf.third_department_name = '线上商务部'
@@ -721,7 +741,7 @@ case
     when cast(date_parse(replace(concat(group_period_year, group_period_term), '期', ''), '%Y%m%d') as date) between date '2026-07-20' and date '2026-07-25' then '20260722期'
     when cast(date_parse(replace(concat(group_period_year, group_period_term), '期', ''), '%Y%m%d') as date) between date '2026-07-26' and date '2026-07-31' then '20260728期'
     when cast(date_parse(replace(concat(group_period_year, group_period_term), '期', ''), '%Y%m%d') as date) between date '2026-08-01' and date '2026-08-06' then '20260803期'
-    when cast(date_parse(replace(concat(group_period_year, group_period_term), '期', ''), '%Y%m%d') as date) between date '2026-08-07' and date '2026-08-12' then '20260809期'
+    when cast(date_parse(replace(concat(group_period_year, group_period_term), '期', ''), '%Y%m%d') as date) between date '2026-08-07' and date '2026-08-12' then '20260808期'
     else concat(cast(date_format(date_trunc('week', date_parse(replace(concat(group_period_year, group_period_term), '期', ''), '%Y%m%d') - interval '1' day) + interval '4' day, '%Y%m%d') as varchar), '期')
 end period_name,
  virtual_third_department_name  depart_1,
@@ -834,6 +854,16 @@ case
   when flow_pool_name = '百度搜索引擎' or channel_name_1='搜索营销' then '信息流搜索'
   when flow_pool_name like '%小红书班课%' then '小红书投放'
   when third_department_name = '投放部' and get_customer_way_name = '短视频信息流' and flow_original_order_activity_price like '%100%' then '信息流'
+  -- 2026-08-02: 0728期线上商务部退款复用误归KOC周帅，按流量池证据归入退款订单复用。
+  when period_name = '20260728期'
+   and third_department_name = '线上商务部'
+   and flow_pool_name = '电商退款用户池'
+   and put_plan_name = '0728期退款用户计划'
+   and channel_name_1 = '内部'
+   and channel_name_2 = '流量复用'
+   and source_manager_name = '曲默晗'
+   and sku_id_name like '0728期-%帅师%'
+  then '退款订单复用'
   -- 2026-08-01: 0728期退款复用误入0803期KOC渠道，按业务确认统一归入退款订单复用。
   when period_name = '20260803期'
    and third_department_name = '线上商务部'

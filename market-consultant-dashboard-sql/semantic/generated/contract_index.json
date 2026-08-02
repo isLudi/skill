@@ -22,7 +22,7 @@
       ],
       "status": "pending_confirmation",
       "source_path": "knowledge/sql_patterns/channel_mapping_case_when.md",
-      "source_sha256": "ecde0fc5a82ee8e5b4525b8ad0a4f2a58d954f8236fb3c49bc7c6bf618ca603e"
+      "source_sha256": "d32f79be3946c9caaf375329f0cbd59a2c37f8bb4cdf626724924218f860a418"
     },
     {
       "id": "market_consultant:dimension:city_name",

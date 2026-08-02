@@ -162,6 +162,16 @@ data as (
   when flow_pool_name like '%小红书班课%' then '小红书投放'
   when third_department_name = '投放部' and get_customer_way_name = '短视频信息流' and flow_original_order_activity_price like '%100%' then '信息流'
   when source_manager_name in ('孙晗01','方俊结01','刘亦鹏02','何木玲','杨梓月','张可意03','任颖迪') and (sku_id_name like '%原型题%') then 'KOC-书课包'
+  -- 2026-08-02: 0728期线上商务部退款复用误归KOC周帅，按流量池证据归入退款订单复用。
+  when period_name = '20260728期'
+   and third_department_name = '线上商务部'
+   and flow_pool_name = '电商退款用户池'
+   and put_plan_name = '0728期退款用户计划'
+   and channel_name_1 = '内部'
+   and channel_name_2 = '流量复用'
+   and source_manager_name = '曲默晗'
+   and sku_id_name like '0728期-%帅师%'
+  then '退款订单复用'
   -- 2026-08-01: 0728期退款复用误入0803期KOC渠道，按业务确认统一归入退款订单复用。
   when period_name = '20260803期'
    and third_department_name = '线上商务部'

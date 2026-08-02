@@ -49,7 +49,7 @@ data as (
             when cast(date_parse(replace(concat(f.group_period_year, f.group_period_term), '期', ''), '%Y%m%d') as date) between date '2026-07-20' and date '2026-07-25' then '20260722期'
             when cast(date_parse(replace(concat(f.group_period_year, f.group_period_term), '期', ''), '%Y%m%d') as date) between date '2026-07-26' and date '2026-07-31' then '20260728期'
             when cast(date_parse(replace(concat(f.group_period_year, f.group_period_term), '期', ''), '%Y%m%d') as date) between date '2026-08-01' and date '2026-08-06' then '20260803期'
-            when cast(date_parse(replace(concat(f.group_period_year, f.group_period_term), '期', ''), '%Y%m%d') as date) between date '2026-08-07' and date '2026-08-12' then '20260809期'
+            when cast(date_parse(replace(concat(f.group_period_year, f.group_period_term), '期', ''), '%Y%m%d') as date) between date '2026-08-07' and date '2026-08-12' then '20260808期'
             else concat(
                 date_format(
                     date_trunc(
@@ -156,6 +156,16 @@ case
   when flow_pool_name = '百度搜索引擎' or channel_name_1='搜索营销' then '信息流搜索'
   when flow_pool_name like '%小红书班课%' then '小红书投放'
   when third_department_name = '投放部' and get_customer_way_name = '短视频信息流' and flow_original_order_activity_price like '%100%' then '信息流'
+  -- 2026-08-02: 0728期线上商务部退款复用误归KOC周帅，按流量池证据归入退款订单复用。
+  when period_name = '20260728期'
+   and third_department_name = '线上商务部'
+   and flow_pool_name = '电商退款用户池'
+   and put_plan_name = '0728期退款用户计划'
+   and channel_name_1 = '内部'
+   and channel_name_2 = '流量复用'
+   and source_manager_name = '曲默晗'
+   and sku_id_name like '0728期-%帅师%'
+  then '退款订单复用'
   -- 2026-08-01: 0728期退款复用误入0803期KOC渠道，按业务确认统一归入退款订单复用。
   when period_name = '20260803期'
    and third_department_name = '线上商务部'
@@ -424,7 +434,7 @@ from service_dw.app_h_crm_lead_task_process_info_detail_hf t1
 	when cast(begin_time as date) between date '2026-07-20' and date '2026-07-25' then '20260722期'
 	when cast(begin_time as date) between date '2026-07-26' and date '2026-07-31' then '20260728期'
 	when cast(begin_time as date) between date '2026-08-01' and date '2026-08-06' then '20260803期'
-	when cast(begin_time as date) between date '2026-08-07' and date '2026-08-12' then '20260809期'
+	when cast(begin_time as date) between date '2026-08-07' and date '2026-08-12' then '20260808期'
 	when cast(begin_time as date) >= date '2026-02-25' and cast(begin_time as date) <= date '2026-03-02' then '20260227期'
 	when cast(begin_time as date) >= date '2026-02-17' and cast(begin_time as date) <= date '2026-02-24' then '20260220期'		
 	when cast(begin_time as date) >= date '2026-02-09' and cast(begin_time as date) <= date '2026-02-16' then '20260213期'

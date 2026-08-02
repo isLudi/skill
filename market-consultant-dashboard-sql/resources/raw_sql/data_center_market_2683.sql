@@ -15,9 +15,9 @@ with biz_qici_calendar as (
             ('market_consultant', 'lead_period', '20260803期', date '2026-08-01', date '2026-08-06', 1),
             ('market_consultant', 'class_period', '20260803期', date '2026-08-01', date '2026-08-06', 1),
             ('market_consultant', 'trade_period', '20260803期', date '2026-08-01', date '2026-08-06', 1),
-            ('market_consultant', 'lead_period', '20260809期', date '2026-08-07', date '2026-08-12', 1),
-            ('market_consultant', 'class_period', '20260809期', date '2026-08-07', date '2026-08-12', 1),
-            ('market_consultant', 'trade_period', '20260809期', date '2026-08-07', date '2026-08-12', 1)
+            ('market_consultant', 'lead_period', '20260808期', date '2026-08-07', date '2026-08-12', 1),
+            ('market_consultant', 'class_period', '20260808期', date '2026-08-07', date '2026-08-12', 1),
+            ('market_consultant', 'trade_period', '20260808期', date '2026-08-07', date '2026-08-12', 1)
     ) as t(business_domain, date_role, qici, period_start_date, period_end_date, enabled)
 ),
 denglu_app as
