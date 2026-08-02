@@ -88,6 +88,18 @@ where ...
 
 复现看板口径时，应优先使用业财宽表 `rule_name`，并保留缺失时回退到购买意向年级的逻辑。若业务目标是按 CRM 当前可见规则或后续调课调班后的规则修正年级，需要额外 join 规则明细或线索统计留痕表，并明确优先级，不能把业财宽表 `rule_name` 缺失直接解释为 CRM 没有分配规则。
 
+### 3.1 运营侧个人数据 2293 的无 Join 年级兜底
+
+自 2026-08-02 起，`resources/raw_sql/data_center_market_2293.sql` 的 `grade_1` 使用以下优先级：
+
+1. `rule_name` 中的高一、高二、高三、初一、初二、初三关键词；
+2. 非空的 `lead_purchase_intention_level2_category_name`；
+3. 非空的同一业财宽表字段 `stats_grade_name`。
+
+第三层只在前两层均为空时生效，不改变既有非空购买意向年级。`stats_grade_name` 已由 `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df` 直接提供，因此不要为了该兜底额外 join `service_dw.dm_crm_lead_stats_detail_hf`；额外 join 会引入不必要的最新记录去重和 1:N 放大风险。
+
+已验证案例：`20260803期` 的退款复用批次在业财宽表主留痕 `rule_name` 和购买意向二级品类均为空，但 `stats_grade_name` 可将 `sum(lead_count)=1407` 完整分为高一 1066、初三 294、高二 38、高三 9；剩余 2 个空年级物理行的 `lead_count`、`valid_lead_count` 均为 0。
+
 ## 4. 修复优先级
 
 1. 先确认业务目标：是复现当前看板口径，还是按 CRM 当前/后续规则修正年级。

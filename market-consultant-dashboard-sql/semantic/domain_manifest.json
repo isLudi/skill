@@ -122,7 +122,7 @@
   },
   "current_model_registry": {
     "source_path": "semantic/current_model_bindings.json",
-    "source_sha256": "9b1d2be4c8b322b2cc9738152d35d289287042eb87e5c68bdd1cde48fdf458a0",
+    "source_sha256": "8530fed1cab94b6db9f8650466fa40caf83c6176ac8222af2d7f38af5019c637",
     "policy": "one_current_model_per_id_and_semantic_slot",
     "canonical_filename_policy": "data_center_market_<model_id>.sql",
     "model_count": 39,
@@ -1126,7 +1126,7 @@
       {
         "id": "market_consultant:dashboards:data_center_market_datasets",
         "source_path": "knowledge/dashboards/data_center_market_datasets.md",
-        "sha256": "e421ff3e70dab8a8e0c54f42ac7e2a153eb2ee0baf51380f989290ab8599a37f",
+        "sha256": "2857cb3e9c4123e2c2fb3a9d1385f4da9445732d700e52b72650f31248411ed8",
         "bytes": 15845,
         "title": "数据中心数据集源 SQL（市场顾问部）",
         "table_refs": [],
@@ -2178,8 +2178,8 @@
       {
         "id": "market_consultant:pitfalls:grade_extraction_gotchas",
         "source_path": "knowledge/pitfalls/grade_extraction_gotchas.md",
-        "sha256": "84857db75861fd99aed196ab35b1ddefe98cc8d9b94953046bd555a64e3f03b4",
-        "bytes": 4453,
+        "sha256": "f3c62eb5e40d97b428ad3d573b77e73496c0ce9bc5e115504503875114181544",
+        "bytes": 5505,
         "title": "grade_1 年级提取常见坑",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -2187,7 +2187,9 @@
           "service_dw.dm_crm_lead_stats_detail_hf",
           "temp_table.dingxi01_daoke_1_6_t"
         ],
-        "raw_sql_refs": [],
+        "raw_sql_refs": [
+          "data_center_market_2293.sql"
+        ],
         "status": "documented",
         "aliases": [
           "grade_1 年级提取常见坑",
@@ -2383,8 +2385,8 @@
       {
         "id": "market_consultant:raw_sql:data_center_market_2293",
         "source_path": "resources/raw_sql/data_center_market_2293.sql",
-        "sha256": "4f4eeb67fe8e193db755eb65a11d7bc3b612ae6754616256ad5c84037942390f",
-        "bytes": 77796,
+        "sha256": "65445d00a60c84fa066763d04a7c7e6c3d7d8dae1edbb351983384c99bf18878",
+        "bytes": 77919,
         "title": "data_center_market_2293",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -3511,8 +3513,8 @@
       {
         "id": "market_consultant:reverse_index:join_risk_index",
         "source_path": "knowledge/reverse_index/join_risk_index.md",
-        "sha256": "b1a97c30f7a35dccde1c09775c0bb064fb67b719bc83aeb04ace2ac96b0726a8",
-        "bytes": 46400,
+        "sha256": "7b2377751ee0bfe643f4c8443839d17fd5b997a9449f6e234d440e1a9791709e",
+        "bytes": 47810,
         "title": "JOIN 与结果异常风险索引",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -3523,6 +3525,7 @@
           "service_dw.app_h_crm_lead_employee_workload_detail_hf",
           "service_dw.dim_crm_assign_rule_lead_detail_hf",
           "service_dw.dim_crm_assign_rule_plan_item_info_hf",
+          "service_dw.dm_crm_lead_stats_detail_hf",
           "service_dw.dws_service_user_learn_detail_hf",
           "temp_table.dingxi01_channel_group",
           "temp_table.dingxi01_cost",
@@ -4466,8 +4469,8 @@
       {
         "id": "market_consultant:update_log:changelog",
         "source_path": "knowledge/update_log/changelog.md",
-        "sha256": "1e8f0a70081cda562fd3867a95074bbd023200b5230a02c2603b31498f1a7cc6",
-        "bytes": 116884,
+        "sha256": "7138905222b067bdb4e57302e8bcfef5f8b5a383a04a72530464875840fe18a2",
+        "bytes": 118395,
         "title": "更新记录",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -4918,6 +4921,7 @@
         "knowledge/joins/table_relationships.md",
         "knowledge/metrics/outbound_call_process_metrics.md",
         "knowledge/pitfalls/grade_extraction_gotchas.md",
+        "knowledge/reverse_index/join_risk_index.md",
         "knowledge/reverse_index/metric_to_raw_sql.md",
         "knowledge/reverse_index/table_to_dashboards.md",
         "knowledge/sql_patterns/outbound_call_process_export_template.md",
@@ -5380,6 +5384,7 @@
         "knowledge/dashboards/data_center_market_datasets.md",
         "knowledge/metrics/market_consultant_dashboard_metric_formula_linkage.md",
         "knowledge/pitfalls/common_join_failures.md",
+        "knowledge/pitfalls/grade_extraction_gotchas.md",
         "knowledge/sql_patterns/dashboard_query_patterns.md",
         "knowledge/tables/temp_table.dingxi01_jiagou_db.md",
         "knowledge/tables/temp_table.dingxi01_jiagou_zx.md"
@@ -5989,7 +5994,7 @@
     },
     {
       "source_path": "knowledge/dashboards/data_center_market_datasets.md",
-      "sha256": "e421ff3e70dab8a8e0c54f42ac7e2a153eb2ee0baf51380f989290ab8599a37f",
+      "sha256": "2857cb3e9c4123e2c2fb3a9d1385f4da9445732d700e52b72650f31248411ed8",
       "bytes": 15845,
       "category": "dashboards"
     },
@@ -6211,8 +6216,8 @@
     },
     {
       "source_path": "knowledge/pitfalls/grade_extraction_gotchas.md",
-      "sha256": "84857db75861fd99aed196ab35b1ddefe98cc8d9b94953046bd555a64e3f03b4",
-      "bytes": 4453,
+      "sha256": "f3c62eb5e40d97b428ad3d573b77e73496c0ce9bc5e115504503875114181544",
+      "bytes": 5505,
       "category": "pitfalls"
     },
     {
@@ -6241,8 +6246,8 @@
     },
     {
       "source_path": "knowledge/reverse_index/join_risk_index.md",
-      "sha256": "b1a97c30f7a35dccde1c09775c0bb064fb67b719bc83aeb04ace2ac96b0726a8",
-      "bytes": 46400,
+      "sha256": "7b2377751ee0bfe643f4c8443839d17fd5b997a9449f6e234d440e1a9791709e",
+      "bytes": 47810,
       "category": "reverse_index"
     },
     {
@@ -6535,8 +6540,8 @@
     },
     {
       "source_path": "knowledge/update_log/changelog.md",
-      "sha256": "1e8f0a70081cda562fd3867a95074bbd023200b5230a02c2603b31498f1a7cc6",
-      "bytes": 116884,
+      "sha256": "7138905222b067bdb4e57302e8bcfef5f8b5a383a04a72530464875840fe18a2",
+      "bytes": 118395,
       "category": "update_log"
     },
     {
@@ -6589,8 +6594,8 @@
     },
     {
       "source_path": "resources/raw_sql/data_center_market_2293.sql",
-      "sha256": "4f4eeb67fe8e193db755eb65a11d7bc3b612ae6754616256ad5c84037942390f",
-      "bytes": 77796,
+      "sha256": "65445d00a60c84fa066763d04a7c7e6c3d7d8dae1edbb351983384c99bf18878",
+      "bytes": 77919,
       "category": "raw_sql"
     },
     {

@@ -57,9 +57,9 @@
       "ordinal": 4,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/运营侧个人数据",
       "source_observed_on": "2026-08-02",
-      "sql_bytes": 77795,
-      "sql_lines": 1249,
-      "sql_sha256": "4f4eeb67fe8e193db755eb65a11d7bc3b612ae6754616256ad5c84037942390f",
+      "sql_bytes": 77918,
+      "sql_lines": 1252,
+      "sql_sha256": "65445d00a60c84fa066763d04a7c7e6c3d7d8dae1edbb351983384c99bf18878",
       "subject_id": "2282"
     },
     {

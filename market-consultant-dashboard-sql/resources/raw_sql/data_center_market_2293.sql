@@ -72,7 +72,10 @@ case
     when rule_name like '%初二%' then '初二'
     when rule_name like '%初三%' then '初三'
     when rule_name like '%初一%' then '初一'
-    else lead_purchase_intention_level2_category_name
+    else coalesce(
+        nullif(trim(cast(lead_purchase_intention_level2_category_name as varchar)), ''),
+        nullif(trim(cast(t1.stats_grade_name as varchar)), '')
+    )
 end as grade_1,
         coalesce(t1.lead_count, 0) as lead_count,
         coalesce(t1.valid_lead_count, 0) as valid_lead_count,
