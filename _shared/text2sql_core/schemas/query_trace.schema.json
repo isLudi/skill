@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.codex/text2sql/query_trace.schema.json",
+  "title": "Text2SQL QueryTrace sidecar",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "artifact_type",
+    "schema_version",
+    "trace_id",
+    "created_at",
+    "updated_at",
+    "domain",
+    "references",
+    "catalog_snapshot",
+    "stages",
+    "execution",
+    "result_artifact"
+  ],
+  "properties": {
+    "artifact_type": {"const": "query_trace"},
+    "schema_version": {"const": "1.0.0"},
+    "trace_id": {"type": "string", "pattern": "^trace_[0-9a-f]{32}$"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "updated_at": {"type": "string", "format": "date-time"},
+    "domain": {"enum": ["market_consultant", "qingcheng", "unresolved"]},
+    "question_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "references": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["spec_id", "spec_sha256", "plan_id", "plan_sha256", "sql_sha256"],
+      "properties": {
+        "spec_id": {"type": ["string", "null"]},
+        "spec_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+        "plan_id": {"type": ["string", "null"]},
+        "plan_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+        "sql_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "catalog_snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["domain_manifest_sha256", "contract_index_sha256", "physical_catalog_sha256"],
+      "properties": {
+        "domain_manifest_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+        "contract_index_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+        "physical_catalog_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "stages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "status", "recorded_at", "duration_ms", "details"],
+        "properties": {
+          "name": {"type": "string", "minLength": 1},
+          "status": {"enum": ["started", "success", "warning", "blocked", "error", "skipped"]},
+          "recorded_at": {"type": "string", "format": "date-time"},
+          "duration_ms": {"type": ["number", "null"], "minimum": 0},
+          "details": {"type": "object"}
+        }
+      }
+    },
+    "execution": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["status", "query_id", "engine", "elapsed_seconds", "policy_report_sha256"],
+      "properties": {
+        "status": {"type": "string"},
+        "query_id": {"type": ["string", "null"]},
+        "engine": {"type": ["string", "null"]},
+        "elapsed_seconds": {"type": ["number", "null"], "minimum": 0},
+        "policy_report_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "result_artifact": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["artifact_id", "artifact_sha256"],
+      "properties": {
+        "artifact_id": {"type": "string"},
+        "artifact_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    }
+  }
+}

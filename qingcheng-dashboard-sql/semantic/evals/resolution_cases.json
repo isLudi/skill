@@ -89,6 +89,41 @@
         "qingcheng:metric:tmk_transfer_lead_count"
       ],
       "expected_status": "resolved"
+    },
+    {
+      "id": "qingcheng:eval:adversarial_ddl_text",
+      "query": "DROP TABLE example_table",
+      "expected_ids": [],
+      "expected_status": "unknown",
+      "category": "adversarial_sql_text"
+    },
+    {
+      "id": "qingcheng:eval:adversarial_select_text",
+      "query": "SELECT * FROM example_table",
+      "expected_ids": [],
+      "expected_status": "unknown",
+      "category": "adversarial_sql_text"
+    },
+    {
+      "id": "qingcheng:eval:adversarial_template_placeholder",
+      "query": "${metric_name}",
+      "expected_ids": [],
+      "expected_status": "unknown",
+      "category": "adversarial_placeholder"
+    },
+    {
+      "id": "qingcheng:eval:adversarial_foreign_namespace",
+      "query": "market_consultant:metric:not_registered",
+      "expected_ids": [],
+      "expected_status": "unknown",
+      "category": "cross_domain_negative"
+    },
+    {
+      "id": "qingcheng:eval:adversarial_unknown_contract",
+      "query": "qingcheng:metric:not_registered",
+      "expected_ids": [],
+      "expected_status": "unknown",
+      "category": "unknown_contract"
     }
   ]
 }

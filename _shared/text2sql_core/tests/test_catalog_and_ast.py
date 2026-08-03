@@ -59,10 +59,6 @@ class CatalogAndAstTest(unittest.TestCase):
         self.assertEqual(["dashboard_100"], [item["dashboard_id"] for item in registry["registered"]])
 
     def test_domain_manifests_cover_every_knowledge_and_raw_sql_file(self) -> None:
-        expected_baseline = {
-            "market_consultant": (137, 66),
-            "qingcheng": (169, 18),
-        }
         for domain, config in DOMAIN_CONFIG.items():
             skill_root = REPO_ROOT / config["skill"]
             manifest_path = skill_root / "semantic" / "domain_manifest.json"
@@ -80,8 +76,12 @@ class CatalogAndAstTest(unittest.TestCase):
             for path in actual:
                 relative = path.relative_to(skill_root).as_posix()
                 self.assertEqual(hashlib.sha256(path.read_bytes()).hexdigest(), inventory[relative]["sha256"])
-            self.assertEqual(expected_baseline[domain][0], manifest["counts"]["knowledge_files"])
-            self.assertEqual(expected_baseline[domain][1], manifest["counts"]["raw_sql_files"])
+            actual_knowledge = sum(path.relative_to(skill_root).as_posix().startswith("knowledge/") for path in actual)
+            actual_raw_sql = sum(path.relative_to(skill_root).as_posix().startswith("resources/raw_sql/") for path in actual)
+            self.assertEqual(actual_knowledge, manifest["counts"]["knowledge_files"])
+            self.assertEqual(actual_raw_sql, manifest["counts"]["raw_sql_files"])
+            self.assertGreater(actual_knowledge, 0)
+            self.assertGreater(actual_raw_sql, 0)
             current_registry = manifest["current_model_registry"]
             current_registry_path = skill_root / current_registry["source_path"]
             current_registry_payload = json.loads(current_registry_path.read_text(encoding="utf-8"))
@@ -99,6 +99,18 @@ class CatalogAndAstTest(unittest.TestCase):
                 current_registry_payload["canonical_filename_policy"],
                 current_registry["canonical_filename_policy"],
             )
+            for model in current_registry_payload["models"]:
+                canonical_path = str(model["canonical_sql"])
+                self.assertIn(canonical_path, inventory)
+                self.assertEqual(model["sql_sha256"], inventory[canonical_path]["sha256"])
+                self.assertTrue((skill_root / canonical_path).is_file())
+            for contract_path in sorted((skill_root / "semantic" / "contracts").glob("*_contracts.json")):
+                envelope = json.loads(contract_path.read_text(encoding="utf-8"))
+                self.assertEqual(domain, envelope["domain"])
+                for contract in envelope["contracts"]:
+                    source_path = contract["source_path"]
+                    self.assertIn(source_path, inventory, contract["id"])
+                    self.assertEqual(contract["source_sha256"], inventory[source_path]["sha256"], contract["id"])
             self.assertIn(
                 "semantic/current_model_bindings.json",
                 manifest["progressive_disclosure"]["forward"],
@@ -218,11 +230,20 @@ class CatalogAndAstTest(unittest.TestCase):
     def test_retained_sql_corpus_is_parsed_or_explicitly_classified(self) -> None:
         result = audit_raw_sql(REPO_ROOT, CORE_ROOT / "config" / "corpus_exceptions.json")
         self.assertTrue(result["ok"], result)
-        self.assertEqual(66, result["domains"]["market_consultant"]["total"])
-        self.assertEqual(5, result["domains"]["market_consultant"]["templates"])
-        self.assertEqual(1, result["domains"]["market_consultant"]["allowed_legacy_failures"])
-        self.assertEqual(18, result["domains"]["qingcheng"]["total"])
-        self.assertEqual(1, result["domains"]["qingcheng"]["templates"])
+        for domain, counts in result["domains"].items():
+            self.assertGreater(counts["total"], 0, domain)
+            self.assertEqual(
+                counts["total"],
+                counts["parsed"] + counts["templates"] + counts["allowed_legacy_failures"],
+                domain,
+            )
+        configured_exceptions = json.loads(
+            (CORE_ROOT / "config" / "corpus_exceptions.json").read_text(encoding="utf-8")
+        )["exceptions"]
+        self.assertEqual(
+            len(configured_exceptions),
+            sum(item["allowed_legacy_failures"] for item in result["domains"].values()),
+        )
 
 
 if __name__ == "__main__":

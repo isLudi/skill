@@ -79,6 +79,12 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--download", action="store_true", help="Download the result when local row-limit policy allows it.")
     run.add_argument("--no-download", action="store_false", dest="download")
     run.add_argument("--debug-artifacts", action="store_true", help="Save screenshots and HTML under the runtime artifacts directory.")
+    run.add_argument("--policy-mode", choices=["audit", "enforce"], default="enforce", help="Audit complexity or enforce all SQL policy diagnostics; unsafe statement types are always blocked.")
+    run.add_argument("--policy-report", type=Path, default=None, help="Optional SQL policy report path. Defaults to the run artifact directory.")
+    run.add_argument("--required-partition-field", action="append", default=[], help="Require this field in a WHERE clause. Repeatable; no business fields are inferred.")
+    run.add_argument("--require-limit", action="store_true", help="Require an explicit LIMIT before browser launch.")
+    run.add_argument("--trace-file", type=Path, default=None, help="Continue an existing QueryTrace or create one at this path. Defaults to the run artifact directory.")
+    run.add_argument("--result-artifact", type=Path, default=None, help="Optional ResultArtifact path. Defaults to the run artifact directory.")
     run.set_defaults(func=cmd_run)
 
     upload = subparsers.add_parser("upload-temp-table", help="Upload a local CSV/Excel file as a SQL temporary table.")

@@ -27,6 +27,7 @@ class RunSummary:
     error_category_label: str | None = None
     repair_guidance: str | None = None
     query_plan_contract: dict[str, Any] | None = None
+    provenance: dict[str, Any] | None = None
 
     def to_json(self) -> str:
         payload = {
@@ -50,4 +51,6 @@ class RunSummary:
         }
         if self.query_plan_contract is not None:
             payload["query_plan_contract"] = self.query_plan_contract
+        if self.provenance is not None:
+            payload["provenance"] = self.provenance
         return json.dumps(payload, ensure_ascii=False, indent=2)

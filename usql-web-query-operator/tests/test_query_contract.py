@@ -68,6 +68,7 @@ class QueryPlanContractTests(unittest.TestCase):
         summary = contract.to_summary()
         self.assertEqual(summary["schema_version"], "2.0.0")
         self.assertEqual(summary["sql_sha256"], exact_sql_sha256(self.sql))
+        self.assertRegex(summary["source_sha256"], r"^[0-9a-f]{64}$")
         self.assertNotIn("max_direct_download_rows", summary)
 
     def test_hash_mismatch_is_rejected(self) -> None:

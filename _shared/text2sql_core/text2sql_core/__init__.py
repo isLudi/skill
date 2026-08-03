@@ -27,6 +27,18 @@ from .dashboard_build import (
     validate_dashboard_build_spec,
 )
 from .models import Diagnostic, QueryPlan, QuerySpec, ValidationResult
+from .trace import (
+    append_trace_stage,
+    bind_execution,
+    bind_plan_reference,
+    bind_query_plan,
+    bind_result_artifact,
+    bind_sql_sha256,
+    canonical_json_sha256,
+    create_query_trace,
+    load_query_trace,
+    write_query_trace,
+)
 
 __all__ = [
     "Diagnostic",
@@ -55,5 +67,15 @@ __all__ = [
     "validate_dashboard_build_spec",
     "validate_dashboard_change_plan",
     "validate_publish_receipt",
+    "append_trace_stage",
+    "bind_execution",
+    "bind_plan_reference",
+    "bind_query_plan",
+    "bind_result_artifact",
+    "bind_sql_sha256",
+    "canonical_json_sha256",
+    "create_query_trace",
+    "load_query_trace",
+    "write_query_trace",
 ]
 __version__ = "2.0.0"

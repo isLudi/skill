@@ -108,6 +108,8 @@ QuerySpec 至少包含：
 6. `compile`：仅对全部 confirmed、指标 `automatic_compile=true`、无未决槽位且单基础表的 QueryPlan 自动编译；复杂公式、多阶段聚合和多表 join 只输出计划并回到历史 SQL/Join 文档人工审阅。
 7. `probe`：生成带具体分区和边界的只读探查 SQL，用于新鲜度、分布、重复键、粒度或 join 放大检查；生成探查 SQL 不等于授权 USQL 执行。
 
+`plan` / `compile` 可用 `--trace-output` 生成不含问题原文、SQL 文本和结果行的 QueryTrace；执行时将同一路径交给 operator `run --trace-file`，由其追加 Policy 与 ResultArtifact Hash。Trace 不授权执行或下载。
+
 编译后的 SQL 仍须经过 AST、青橙平台规则和证据校验。任何执行或下载继续交给 `usql-web-query-operator`，本 Skill 不保存凭证、不管理登录态，也不直接执行 SQL。
 
 ### P3A/P3B 看板设计与变更边界

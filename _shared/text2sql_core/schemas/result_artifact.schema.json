@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.codex/text2sql/result_artifact.schema.json",
+  "title": "Text2SQL ResultArtifact",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "artifact_type",
+    "schema_version",
+    "artifact_id",
+    "artifact_sha256",
+    "created_at",
+    "trace_id",
+    "domain",
+    "plan_id",
+    "sql_sha256",
+    "policy_report_sha256",
+    "query_id",
+    "status",
+    "ok",
+    "engine",
+    "timing",
+    "result",
+    "download",
+    "validation"
+  ],
+  "properties": {
+    "artifact_type": {"const": "result_artifact"},
+    "schema_version": {"const": "1.0.0"},
+    "artifact_id": {"type": "string", "pattern": "^result_[0-9a-f]{32}$"},
+    "artifact_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "trace_id": {"type": "string", "pattern": "^trace_[0-9a-f]{32}$"},
+    "domain": {"enum": ["market_consultant", "qingcheng", "unresolved"]},
+    "plan_id": {"type": ["string", "null"]},
+    "sql_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "policy_report_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "query_id": {"type": ["string", "null"]},
+    "status": {"type": "string"},
+    "ok": {"type": "boolean"},
+    "engine": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["requested", "selected_label", "history_value"],
+      "properties": {
+        "requested": {"type": ["string", "null"]},
+        "selected_label": {"type": ["string", "null"]},
+        "history_value": {"type": ["string", "null"]}
+      }
+    },
+    "timing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["query_duration_seconds", "elapsed_seconds"],
+      "properties": {
+        "query_duration_seconds": {"type": ["number", "null"], "minimum": 0},
+        "elapsed_seconds": {"type": ["number", "null"], "minimum": 0}
+      }
+    },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["headers", "row_count_visible", "no_more", "preview_sha256", "preview_rows_redacted"],
+      "properties": {
+        "headers": {"type": "array", "items": {"type": "string"}},
+        "row_count_visible": {"type": ["integer", "null"], "minimum": 0},
+        "no_more": {"type": ["boolean", "null"]},
+        "preview_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+        "preview_rows_redacted": {"const": true}
+      }
+    },
+    "download": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["path", "sha256", "size_bytes"],
+      "properties": {
+        "path": {"type": "string"},
+        "sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+        "size_bytes": {"type": ["integer", "null"], "minimum": 0}
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "expected_columns", "diagnostics"],
+      "properties": {
+        "status": {"enum": ["passed", "warning", "failed"]},
+        "expected_columns": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "diagnostics": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["code", "severity", "message"],
+            "properties": {
+              "code": {"type": "string"},
+              "severity": {"enum": ["warning", "error"]},
+              "message": {"type": "string"}
+            }
+          }
+        }
+      }
+    }
+  }
+}

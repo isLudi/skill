@@ -42,8 +42,10 @@ SQL Hash 不做去空格、去注释、大小写转换或结尾分号归一化�
 3. 校验 `sql_sha256` 是否匹配本次完整 SQL 文本。
 4. 请求下载时，先检查 `execution_policy.allow_download`。
 5. 继续执行原有本地下载预检查。
-6. 只有以上校验通过后才导入 Playwright、打开浏览器并提交 SQL。
-7. 查询成功后，下载仍要通过结果页行数策略。
+6. 生成并校验 SQL Policy Report；只读语句硬门禁通过后才继续。
+7. 创建或续写 QueryTrace，并校验 domain、plan hash 与 SQL hash 连续性。
+8. 只有以上校验通过后才导入 Playwright、打开浏览器并提交 SQL。
+9. 查询成功后，下载仍要通过结果页行数策略，并生成不含结果行的 ResultArtifact。
 
 契约无效时，命令返回使用错误并在浏览器启动前停止。不要把这类错误当成平台 SQL 报错重复提交。
 
@@ -66,8 +68,11 @@ QueryPlan 只会收紧下载权限，不会放宽原有 1000 行限制。未携�
 - `status`；
 - `sql_sha256`；
 - `allow_download`。
+- canonical QueryPlan `source_sha256`、可选 `plan_id` 和预期输出列数量。
 
 摘要不会复制完整 QueryPlan，也不会写入 SQL、凭证、cookie 或浏览器状态。不使用 `--query-plan` 时，不输出该字段，从而保持原有 summary 结构。
+
+`RunSummary` 还会新增 `provenance`，只包含 QueryTrace、Policy Report、ResultArtifact 的路径、ID、Hash 与校验状态；详见 [text2sql_runtime_artifacts.md](text2sql_runtime_artifacts.md)。
 
 ## 看板边界
 

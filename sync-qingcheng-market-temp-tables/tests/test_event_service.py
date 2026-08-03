@@ -450,7 +450,7 @@ class EventServiceTests(unittest.TestCase):
             event(
                 "om_file1",
                 SOURCE,
-                '<file key="file_key_1" name="个人期度目标表.xlsx" />',
+                '<file key="file_key_1" name="8月个人期度目标表.xlsx" />',
                 message_type="file",
             )
         )

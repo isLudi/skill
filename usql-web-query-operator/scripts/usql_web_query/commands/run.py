@@ -29,9 +29,18 @@ from usql_web_query.executor import click_run
 from usql_web_query.models import RunSummary
 from usql_web_query.page_helpers import create_query_tab, wait_for_query_page
 from usql_web_query.query_contract import (
+    exact_sql_sha256,
     enforce_query_plan_download_policy,
     load_query_plan_contract,
 )
+from usql_web_query.query_trace_bridge import (
+    append_trace_stage,
+    bind_execution,
+    bind_result_artifact,
+    prepare_query_trace,
+    write_query_trace,
+)
+from usql_web_query.result_artifact import build_result_artifact, write_result_artifact
 from usql_web_query.query_history import (
     extract_open_query_tab_ids,
     extract_query_history_ids,
@@ -41,6 +50,7 @@ from usql_web_query.query_history import (
 )
 from usql_web_query.result_panel import _wait_for_result_panel, extract_result_preview
 from usql_web_query.sql_utils import enforce_download_policy_before_run, parse_duration_seconds, read_sql
+from usql_web_query.sql_policy import analyze_sql_policy, enforce_sql_policy, write_policy_report
 from usql_web_query.status_poller_api import wait_for_status
 
 
@@ -79,9 +89,51 @@ def cmd_run(args: argparse.Namespace) -> int:
         query_plan_contract = load_query_plan_contract(query_plan_path, sql)
         enforce_query_plan_download_policy(query_plan_contract, download=args.download)
     enforce_download_policy_before_run(sql, download=args.download)
-    sync_playwright, _ = import_playwright(include_timeout_error=True)
     ensure_runtime([args.state_path.parent, args.artifacts_dir])
     artifacts_dir = safe_artifact_dir(args.artifacts_dir)
+    policy_report = analyze_sql_policy(
+        sql,
+        mode=getattr(args, "policy_mode", "enforce"),
+        required_partition_fields=getattr(args, "required_partition_field", []),
+        require_limit=(
+            bool(getattr(args, "require_limit", False))
+            or bool(
+                query_plan_contract
+                and query_plan_contract.execution_policy.get("execution_mode") == "exploratory"
+            )
+        ),
+    )
+    policy_report_path = getattr(args, "policy_report", None) or artifacts_dir / "sql_policy_report.json"
+    write_policy_report(policy_report_path, policy_report)
+    trace, trace_path = prepare_query_trace(
+        requested_path=getattr(args, "trace_file", None),
+        artifacts_dir=artifacts_dir,
+        sql_sha256=exact_sql_sha256(sql),
+        query_plan_contract=query_plan_contract,
+    )
+    append_trace_stage(
+        trace,
+        name="sql_policy",
+        status="success" if policy_report["allowed"] else "blocked",
+        details={
+            "mode": policy_report["mode"],
+            "report_sha256": policy_report["report_sha256"],
+            "diagnostic_codes": [item["code"] for item in policy_report["diagnostics"]],
+        },
+    )
+    write_query_trace(trace_path, trace)
+    try:
+        enforce_sql_policy(policy_report)
+    except UsageError:
+        append_trace_stage(
+            trace,
+            name="execute",
+            status="skipped",
+            details={"reason": "sql_policy_blocked"},
+        )
+        write_query_trace(trace_path, trace)
+        raise
+    sync_playwright, _ = import_playwright(include_timeout_error=True)
 
     with sync_playwright() as playwright:
         browser, context = launch_context(playwright, args.state_path, args.headed, args.browser_channel, args.executable_path)
@@ -230,5 +282,67 @@ def cmd_run(args: argparse.Namespace) -> int:
         finally:
             browser.close()
 
+    result_artifact_path = getattr(args, "result_artifact", None) or artifacts_dir / "result_artifact.json"
+    result_artifact = build_result_artifact(
+        trace_id=trace["trace_id"],
+        domain=query_plan_contract.domain if query_plan_contract else trace["domain"],
+        plan_id=query_plan_contract.plan_id if query_plan_contract else None,
+        sql_sha256=exact_sql_sha256(sql),
+        policy_report_sha256=policy_report["report_sha256"],
+        ok=summary.ok,
+        status=summary.status,
+        query_id=summary.query_id,
+        requested_engine=summary.requested_engine,
+        selected_engine_label=summary.selected_engine_label,
+        history_engine=summary.history_engine,
+        query_duration_seconds=summary.query_duration_seconds,
+        elapsed_seconds=summary.elapsed_seconds,
+        result_preview=summary.result_preview,
+        download_path=summary.download_path,
+        expected_columns=query_plan_contract.expected_columns if query_plan_contract else (),
+    )
+    write_result_artifact(result_artifact_path, result_artifact)
+    bind_execution(
+        trace,
+        status=summary.status,
+        query_id=summary.query_id,
+        engine=summary.history_engine or summary.selected_engine_label or summary.requested_engine,
+        elapsed_seconds=summary.elapsed_seconds,
+        policy_report_sha256=policy_report["report_sha256"],
+    )
+    append_trace_stage(
+        trace,
+        name="execute",
+        status="success" if summary.ok else "error",
+        duration_ms=(summary.elapsed_seconds * 1000) if summary.elapsed_seconds is not None else None,
+        details={
+            "status": summary.status,
+            "result_validation_status": result_artifact["validation"]["status"],
+        },
+    )
+    bind_result_artifact(
+        trace,
+        artifact_id=result_artifact["artifact_id"],
+        artifact_sha256=result_artifact["artifact_sha256"],
+    )
+    write_query_trace(trace_path, trace)
+    summary.provenance = {
+        "query_trace": {
+            "path": str(trace_path),
+            "trace_id": trace["trace_id"],
+        },
+        "sql_policy_report": {
+            "path": str(policy_report_path),
+            "report_sha256": policy_report["report_sha256"],
+            "mode": policy_report["mode"],
+            "allowed": policy_report["allowed"],
+        },
+        "result_artifact": {
+            "path": str(result_artifact_path),
+            "artifact_id": result_artifact["artifact_id"],
+            "artifact_sha256": result_artifact["artifact_sha256"],
+            "validation_status": result_artifact["validation"]["status"],
+        },
+    }
     print(summary.to_json())
     return 0 if summary.ok else 1

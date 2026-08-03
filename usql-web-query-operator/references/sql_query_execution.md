@@ -9,7 +9,7 @@
 - `market_consultant` → `market-consultant-dashboard-sql`
 - `qingcheng` → `qingcheng-dashboard-sql`
 
-域未解析、QueryPlan 不可执行或 SQL Hash 不一致时，在浏览器启动前停止。
+域未解析、QueryPlan 不可执行、SQL Hash 不一致或 SQL Policy 不通过时，在浏览器启动前停止。
 
 ## 2. 依赖和登录
 
@@ -36,12 +36,15 @@ D:\anaconda3\python.exe scripts\usql_web_query.py run `
 ```powershell
 D:\anaconda3\python.exe scripts\usql_web_query.py run `
   --sql-file C:\path\to\query.sql `
+  --trace-file C:\path\to\query_trace.json `
   --query-plan C:\path\to\query_plan.json `
   --headed `
   --no-download
 ```
 
 QueryPlan 必须满足 `schema_version=2.0.0`、受支持业务域、`status=executable`、`unresolved_slots=[]`、SQL SHA-256 完全一致并包含 `execution_policy`。完整契约见 [query_plan_contract.md](query_plan_contract.md)。
+
+每次 `run` 都会在浏览器启动前生成 SQL Policy Report，并在运行结束后生成 QueryTrace 与 ResultArtifact；默认落在本次 runtime artifact 目录。完整字段与隐私边界见 [text2sql_runtime_artifacts.md](text2sql_runtime_artifacts.md)。
 
 默认引擎为 `presto`。只有 Presto 成功但结果疑似为空、需要补充验证或排查引擎差异时，才显式使用 `--engine doris-presto`。
 
@@ -73,3 +76,4 @@ QueryPlan 必须满足 `schema_version=2.0.0`、受支持业务域、`status=exe
 - 通用 Playwright 不得管理或替换 operator 登录态。
 - SQL、结果预览、截图、HTML、下载文件和 API 缓存只写 runtime。
 - CAPTCHA、MFA 和风控挑战只识别并报告。
+- QueryTrace、Policy Report 和 ResultArtifact 只保存 Hash、状态与列级元数据；ResultArtifact 不复制预览结果行。

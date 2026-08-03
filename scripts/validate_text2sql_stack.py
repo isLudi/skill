@@ -17,6 +17,7 @@ BUILD_CATALOG = REPO_ROOT / "scripts" / "build_text2sql_catalog.py"
 AUDIT_CORPUS = REPO_ROOT / "scripts" / "audit_text2sql_corpus.py"
 AUDIT_KNOWLEDGE_VERSIONS = REPO_ROOT / "scripts" / "audit_knowledge_versions.py"
 AGENTS_LAYOUT_CHECK = REPO_ROOT / "scripts" / "check_agents_layout.py"
+COMMAND_REFERENCE_BUILDER = REPO_ROOT / "usql-web-query-operator" / "scripts" / "build_command_reference.py"
 EXPECTED_SQLGLOT_VERSION = "30.12.0"
 SKILL_NAMES = (
     "qingcheng-dashboard-sql",
@@ -258,6 +259,13 @@ def main() -> int:
             skill_root,
         ):
             failures.append(f"P2-P3 semantic resolution evals failed for {skill_name}")
+
+    if not run_command(
+        "USQL command capability registry and generated reference",
+        [sys.executable, str(COMMAND_REFERENCE_BUILDER), "--check"],
+        REPO_ROOT,
+    ):
+        failures.append("USQL command capability registry or generated reference is stale")
 
     for skill_name in SKILL_NAMES:
         skill_root = REPO_ROOT / skill_name

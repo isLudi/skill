@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import time
 from pathlib import Path
 from typing import Any, Sequence
 
@@ -19,6 +20,14 @@ from .evaluator import evaluate_resolution_cases
 from .models import QueryPlan, QuerySpec
 from .planner import build_query_plan
 from .probe import generate_probe
+from .trace import (
+    append_trace_stage,
+    bind_query_plan,
+    bind_sql_sha256,
+    catalog_snapshot,
+    create_query_trace,
+    write_query_trace,
+)
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -46,11 +55,15 @@ def _parser() -> argparse.ArgumentParser:
     plan = subparsers.add_parser("plan", help="build a governed QueryPlan from a QuerySpec")
     plan.add_argument("--spec", required=True, type=Path)
     plan.add_argument("--output", type=Path)
+    plan.add_argument("--trace-output", type=Path, help="Optional privacy-preserving QueryTrace sidecar.")
+    plan.add_argument("--question-sha256", help="Optional SHA-256 of the source question; raw question text is never stored.")
 
     compile_command = subparsers.add_parser("compile", help="compile a safe single-table QueryPlan")
     compile_command.add_argument("--spec", required=True, type=Path)
     compile_command.add_argument("--sql-output", required=True, type=Path)
     compile_command.add_argument("--plan-output", type=Path)
+    compile_command.add_argument("--trace-output", type=Path, help="Optional privacy-preserving QueryTrace sidecar.")
+    compile_command.add_argument("--question-sha256", help="Optional SHA-256 of the source question; raw question text is never stored.")
 
     probe = subparsers.add_parser("probe", help="generate a bounded data-quality probe")
     probe.add_argument("--kind", required=True, choices=("freshness", "distribution", "duplicates", "join-cardinality"))
@@ -265,26 +278,83 @@ def main_for_domain(
         if query_spec is None:
             print("QuerySpec is required", file=sys.stderr)
             return 1
+        planning_started = time.monotonic()
         query_plan = build_query_plan(query_spec, skill_root=skill_root, core_root=core_root)
+        planning_duration_ms = (time.monotonic() - planning_started) * 1000
         plan_errors = _schema_errors(query_plan.to_dict(), core_root / "schemas" / "query_plan.schema.json")
         if plan_errors:
             print("QueryPlan schema validation failed:\n" + "\n".join(plan_errors), file=sys.stderr)
             return 1
+        trace = None
+        if args.trace_output:
+            try:
+                trace = create_query_trace(
+                    domain=domain,
+                    question_sha256=args.question_sha256,
+                    spec=query_spec.to_dict(),
+                    snapshot=catalog_snapshot(skill_root, core_root),
+                )
+                bind_query_plan(trace, query_plan.to_dict())
+                append_trace_stage(
+                    trace,
+                    name="plan",
+                    status="success" if query_plan.status == "executable" else "blocked",
+                    duration_ms=planning_duration_ms,
+                    details={
+                        "plan_status": query_plan.status,
+                        "unresolved_count": len(query_plan.unresolved_slots),
+                        "diagnostic_codes": [item.code for item in query_plan.diagnostics],
+                    },
+                )
+            except ValueError as exc:
+                print(str(exc), file=sys.stderr)
+                return 1
         if args.command == "plan":
             _emit_json(query_plan.to_dict(), args.output)
+            if trace is not None:
+                write_query_trace(args.trace_output, trace)
             return 1 if query_plan.status == "blocked" else 0
         if not query_plan.executable:
+            if trace is not None:
+                append_trace_stage(
+                    trace,
+                    name="compile",
+                    status="skipped",
+                    details={"reason": "query_plan_not_executable"},
+                )
+                write_query_trace(args.trace_output, trace)
             if args.plan_output:
                 _emit_json(query_plan.to_dict(), args.plan_output)
             else:
                 _emit_json(query_plan.to_dict())
             print(f"QueryPlan is not executable: {query_plan.status}", file=sys.stderr)
             return 1
+        compilation_started = time.monotonic()
         try:
             compiled = compile_query_plan(query_plan, registry)
         except ValueError as exc:
+            if trace is not None:
+                append_trace_stage(
+                    trace,
+                    name="compile",
+                    status="error",
+                    duration_ms=(time.monotonic() - compilation_started) * 1000,
+                    details={"error_type": type(exc).__name__},
+                )
+                write_query_trace(args.trace_output, trace)
             print(str(exc), file=sys.stderr)
             return 1
+        if trace is not None:
+            bind_query_plan(trace, compiled.plan.to_dict())
+            bind_sql_sha256(trace, str(compiled.plan.sql_sha256))
+            append_trace_stage(
+                trace,
+                name="compile",
+                status="success",
+                duration_ms=(time.monotonic() - compilation_started) * 1000,
+                details={"output_field_count": len(compiled.plan.dimensions) + len(compiled.plan.metrics)},
+            )
+            write_query_trace(args.trace_output, trace)
         _write_text(args.sql_output, compiled.sql)
         print(f"Wrote {args.sql_output.resolve()}")
         if args.plan_output:

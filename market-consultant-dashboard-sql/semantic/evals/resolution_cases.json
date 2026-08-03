@@ -122,6 +122,41 @@
         "market_consultant:metric:channel_top_consultant_ranking_bundle"
       ],
       "expected_status": "resolved"
+    },
+    {
+      "id": "market_consultant:eval:adversarial_ddl_text",
+      "query": "DROP TABLE example_table",
+      "expected_ids": [],
+      "expected_status": "unknown",
+      "category": "adversarial_sql_text"
+    },
+    {
+      "id": "market_consultant:eval:adversarial_select_text",
+      "query": "SELECT * FROM example_table",
+      "expected_ids": [],
+      "expected_status": "unknown",
+      "category": "adversarial_sql_text"
+    },
+    {
+      "id": "market_consultant:eval:adversarial_template_placeholder",
+      "query": "${metric_name}",
+      "expected_ids": [],
+      "expected_status": "unknown",
+      "category": "adversarial_placeholder"
+    },
+    {
+      "id": "market_consultant:eval:adversarial_foreign_namespace",
+      "query": "qingcheng:metric:not_registered",
+      "expected_ids": [],
+      "expected_status": "unknown",
+      "category": "cross_domain_negative"
+    },
+    {
+      "id": "market_consultant:eval:adversarial_unknown_contract",
+      "query": "market_consultant:metric:not_registered",
+      "expected_ids": [],
+      "expected_status": "unknown",
+      "category": "unknown_contract"
     }
   ]
 }

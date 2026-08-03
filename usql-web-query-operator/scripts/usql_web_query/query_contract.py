@@ -22,11 +22,14 @@ class QueryPlanContract:
     """The execution-critical subset of a validated QueryPlan."""
 
     source_path: Path
+    source_sha256: str
     schema_version: str
     domain: str
     status: str
     sql_sha256: str
     execution_policy: dict[str, Any]
+    plan_id: str | None = None
+    expected_columns: tuple[str, ...] = ()
 
     @property
     def allow_download(self) -> bool:
@@ -37,11 +40,14 @@ class QueryPlanContract:
 
         return {
             "source_path": str(self.source_path),
+            "source_sha256": self.source_sha256,
             "schema_version": self.schema_version,
             "domain": self.domain,
             "status": self.status,
             "sql_sha256": self.sql_sha256,
             "allow_download": self.allow_download,
+            "plan_id": self.plan_id,
+            "expected_column_count": len(self.expected_columns),
         }
 
 
@@ -133,13 +139,29 @@ def load_query_plan_contract(path: Path, sql: str) -> QueryPlanContract:
             "QueryPlan execution_policy.execution_mode must be 'production' or 'exploratory'."
         )
 
+    expected_columns: list[str] = []
+    for collection_name in ("dimensions", "metrics"):
+        collection = payload.get(collection_name, [])
+        if not isinstance(collection, list):
+            raise UsageError(f"QueryPlan {collection_name} must be a JSON array when present.")
+        for item in collection:
+            if not isinstance(item, dict):
+                continue
+            output_alias = item.get("output_alias")
+            if isinstance(output_alias, str) and output_alias.strip():
+                expected_columns.append(output_alias.strip())
+
+    canonical_plan = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     return QueryPlanContract(
         source_path=path,
+        source_sha256=hashlib.sha256(canonical_plan.encode("utf-8")).hexdigest(),
         schema_version=schema_version,
         domain=domain,
         status=status,
         sql_sha256=sql_sha256,
         execution_policy=dict(execution_policy),
+        plan_id=str(payload["plan_id"]) if payload.get("plan_id") is not None else None,
+        expected_columns=tuple(dict.fromkeys(expected_columns)),
     )
 
 

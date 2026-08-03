@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.codex/usql/sql_policy_report.schema.json",
+  "title": "USQL SQL policy report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "artifact_type",
+    "schema_version",
+    "report_sha256",
+    "created_at",
+    "sql_sha256",
+    "mode",
+    "allowed",
+    "statement_type",
+    "counts",
+    "budgets",
+    "requirements",
+    "observed",
+    "diagnostics"
+  ],
+  "properties": {
+    "artifact_type": {"const": "sql_policy_report"},
+    "schema_version": {"const": "1.0.0"},
+    "report_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "sql_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "mode": {"enum": ["audit", "enforce"]},
+    "allowed": {"type": "boolean"},
+    "statement_type": {"type": ["string", "null"]},
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["statements", "joins", "ctes", "subqueries", "set_operations", "windows"],
+      "properties": {
+        "statements": {"type": "integer", "minimum": 0},
+        "joins": {"type": "integer", "minimum": 0},
+        "ctes": {"type": "integer", "minimum": 0},
+        "subqueries": {"type": "integer", "minimum": 0},
+        "set_operations": {"type": "integer", "minimum": 0},
+        "windows": {"type": "integer", "minimum": 0}
+      }
+    },
+    "budgets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["joins", "ctes", "subqueries", "set_operations", "windows"],
+      "properties": {
+        "joins": {"type": "integer", "minimum": 0},
+        "ctes": {"type": "integer", "minimum": 0},
+        "subqueries": {"type": "integer", "minimum": 0},
+        "set_operations": {"type": "integer", "minimum": 0},
+        "windows": {"type": "integer", "minimum": 0}
+      }
+    },
+    "requirements": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["require_limit", "required_partition_fields"],
+      "properties": {
+        "require_limit": {"type": "boolean"},
+        "required_partition_fields": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+      }
+    },
+    "observed": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["has_limit", "where_fields"],
+      "properties": {
+        "has_limit": {"type": "boolean"},
+        "where_fields": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+      }
+    },
+    "diagnostics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["code", "severity", "message", "hard_block"],
+        "properties": {
+          "code": {"type": "string"},
+          "severity": {"enum": ["warning", "error"]},
+          "message": {"type": "string"},
+          "hard_block": {"type": "boolean"}
+        }
+      }
+    }
+  }
+}

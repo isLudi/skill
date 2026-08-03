@@ -34,7 +34,7 @@ D:\anaconda3\python.exe scripts/text2sql.py resolve --query '<metric or dimensio
 D:\anaconda3\python.exe scripts/text2sql.py init-spec --intent metric_query
 D:\anaconda3\python.exe scripts/text2sql.py validate-spec --spec '<query-spec.json>'
 D:\anaconda3\python.exe scripts/text2sql.py plan --spec '<query-spec.json>' --output '<query-plan.json>'
-D:\anaconda3\python.exe scripts/text2sql.py compile --spec '<query-spec.json>' --sql-output '<query.sql>' --plan-output '<query-plan.json>'
+D:\anaconda3\python.exe scripts/text2sql.py compile --spec '<query-spec.json>' --sql-output '<query.sql>' --plan-output '<query-plan.json>' --trace-output '<query-trace.json>'
 D:\anaconda3\python.exe scripts/text2sql.py probe --kind freshness --table '<schema.table>' --start-value '<YYYYMMDD>' --end-value '<YYYYMMDD>'
 D:\anaconda3\python.exe scripts/text2sql.py dataset-spec --plan '<query-plan.json>' --output '<dataset-spec.json>'
 D:\anaconda3\python.exe scripts/text2sql.py evaluate
@@ -49,6 +49,13 @@ Ambiguous aliases, pending contracts, metrics without explicit
 unreviewed join produce a blocked or `requires_manual_sql` plan instead of
 guessed SQL. Bounded probes are read-only diagnostics. Dashboard dataset
 specs are read-only designs and cannot authorize edits or publication.
+
+`plan` and `compile` accept optional `--trace-output` and `--question-sha256`.
+The QueryTrace sidecar binds the domain catalog snapshot, QuerySpec, QueryPlan,
+compiled SQL hash, stage status, and duration without storing the raw question,
+SQL text, or result rows. Operator execution continues the same trace and binds
+the SQL Policy Report and row-redacted ResultArtifact. These additive v1
+artifacts do not change QuerySpec/QueryPlan schema version `2.0.0`.
 
 ## P3 dashboard design and controlled change artifacts
 

@@ -123,6 +123,7 @@ QuerySpec 至少包含：
 - QueryPlan 必须由已验证 QuerySpec 和本域 confirmed contracts 构建；confirmed 只表示口径有证据，仍须由 `automatic_compile=true` 明确允许确定性编译。不得手工删除 diagnostics 或 unresolved slots 伪造 executable 状态。
 - 可执行 QueryPlan 必须明确 base table、metrics、dimensions、filters、计算与输出粒度、evidence、lineage、execution policy 和 SQL SHA-256。
 - `compile` 只处理当前 Core 明确支持的结构。复杂 Join、长渠道 CASE、历史看板 CTE 或尚未注册的公式必须按 QueryPlan 定向引用源文档/Raw SQL，再运行 AST 和平台规则校验。
+- `plan` / `compile` 可用 `--trace-output` 生成不含问题原文、SQL 文本和结果行的 QueryTrace；执行时将同一路径交给 operator `run --trace-file`，由其追加 Policy 与 ResultArtifact Hash。Trace 不授权执行或下载。
 - `probe` 只验证分区新鲜度、字段分布、候选键重复和 Join 基数等物理事实；必须使用具体且有界的分区范围。Probe 结果不得自动升级 contract 状态或改写业务口径。
 - 看板设计先从可执行 QueryPlan 派生 `DashboardDatasetSpec`；P3 再生成域内 `DashboardDesignSpec` 与 `DashboardChangePlan`，但任何工件都不授权平台写入。
 - 完整分支和门禁见 `references/quick_reference.md` 与 `references/decision_tree.md`。

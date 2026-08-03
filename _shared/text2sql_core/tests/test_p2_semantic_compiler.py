@@ -118,10 +118,6 @@ class P2SemanticCompilerTest(unittest.TestCase):
         )
 
     def test_contracts_are_hash_bound_and_resolution_evals_pass(self) -> None:
-        expected_eval_counts = {
-            "market_consultant": 15,
-            "qingcheng": 11,
-        }
         for domain, config in DOMAIN_CASES.items():
             with self.subTest(domain=domain):
                 skill_root = REPO_ROOT / config["skill"]
@@ -129,7 +125,9 @@ class P2SemanticCompilerTest(unittest.TestCase):
                 self.assertTrue(registry.ok, [item.to_dict() for item in registry.diagnostics])
                 report = evaluate_resolution_cases(skill_root, domain)
                 self.assertTrue(report["ok"], report)
-                self.assertEqual(expected_eval_counts[domain], report["passed"])
+                self.assertEqual(report["total"], report["passed"])
+                self.assertGreaterEqual(report["curated"]["total"], 16)
+                self.assertEqual(1.0, report["alias_recall"]["recall"])
                 for filename in CONTRACT_FILES.values():
                     envelope = json.loads(
                         (skill_root / "semantic" / "contracts" / filename).read_text(encoding="utf-8")
@@ -444,6 +442,7 @@ class P2SemanticCompilerTest(unittest.TestCase):
             spec_path = temp_root / "query_spec.json"
             sql_path = temp_root / "query.sql"
             plan_path = temp_root / "query_plan.json"
+            trace_path = temp_root / "query_trace.json"
             dataset_path = temp_root / "dataset_spec.json"
             spec_path.write_text(
                 json.dumps(self._spec(domain).to_dict(), ensure_ascii=False, indent=2) + "\n",
@@ -464,12 +463,18 @@ class P2SemanticCompilerTest(unittest.TestCase):
                         str(sql_path),
                         "--plan-output",
                         str(plan_path),
+                        "--trace-output",
+                        str(trace_path),
                     ],
                 )
             self.assertEqual(0, result, output.getvalue())
             self.assertTrue(sql_path.is_file())
             self.assertTrue(plan_path.is_file())
+            self.assertTrue(trace_path.is_file())
             plan_payload = json.loads(plan_path.read_text(encoding="utf-8"))
+            trace_payload = json.loads(trace_path.read_text(encoding="utf-8"))
+            self.assertEqual(plan_payload["plan_id"], trace_payload["references"]["plan_id"])
+            self.assertEqual(plan_payload["sql_sha256"], trace_payload["references"]["sql_sha256"])
             self.assertEqual(
                 hashlib.sha256(sql_path.read_text(encoding="utf-8").encode("utf-8")).hexdigest(),
                 plan_payload["sql_sha256"],

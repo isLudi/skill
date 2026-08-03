@@ -116,8 +116,8 @@
       "command_aliases": ["个人期度", "个人期次", "个人期次目标表"],
       "command_groups": ["goal"],
       "source_filename_patterns": [
-        "^个人期度目标表\\.xlsx$",
-        "^个人期次目标表\\.xlsx$"
+        "^(?:(?:0?[1-9]|1[0-2])月)?个人期度目标表\\.xlsx$",
+        "^(?:(?:0?[1-9]|1[0-2])月)?个人期次目标表\\.xlsx$"
       ],
       "source_sheet": "Sheet1",
       "target_workbook": "E:\\1900_work\\GAOTU\\19003_青橙项目部看板维护表格\\qing_goal.xlsx",
@@ -159,8 +159,8 @@
       "command_aliases": ["团队期度", "团队期次", "团队期次目标表"],
       "command_groups": ["goal"],
       "source_filename_patterns": [
-        "^团队期度目标表\\.xlsx$",
-        "^团队期次目标表\\.xlsx$"
+        "^(?:(?:0?[1-9]|1[0-2])月)?团队期度目标表\\.xlsx$",
+        "^(?:(?:0?[1-9]|1[0-2])月)?团队期次目标表\\.xlsx$"
       ],
       "source_sheet": "Sheet1",
       "target_workbook": "E:\\1900_work\\GAOTU\\19003_青橙项目部看板维护表格\\qing_team_goal_qi.xlsx",
@@ -201,8 +201,8 @@
       "command_aliases": ["团队月度", "月度目标表"],
       "command_groups": ["goal"],
       "source_filename_patterns": [
-        "^团队月度目标表\\.xlsx$",
-        "^月度目标表\\.xlsx$"
+        "^(?:(?:0?[1-9]|1[0-2])月)?团队月度目标表\\.xlsx$",
+        "^(?:(?:0?[1-9]|1[0-2])月)?月度目标表\\.xlsx$"
       ],
       "source_sheet": "Sheet1",
       "target_workbook": "E:\\1900_work\\GAOTU\\19003_青橙项目部看板维护表格\\qing_team_goal_moth.xlsx",

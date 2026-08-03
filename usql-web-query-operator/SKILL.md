@@ -22,7 +22,7 @@ description: 通过 Playwright 执行受治理的 USQL 网页查询、小结果�
 
 | 任务 | 必读 reference | 稳定入口 |
 |---|---|---|
-| SQL 执行、错误、小结果下载 | [sql_query_execution.md](references/sql_query_execution.md)；有 QueryPlan 再读 [query_plan_contract.md](references/query_plan_contract.md) | `scripts/usql_web_query.py` |
+| SQL 执行、错误、小结果下载 | [sql_query_execution.md](references/sql_query_execution.md)；有 QueryPlan 再读 [query_plan_contract.md](references/query_plan_contract.md)；追踪和结果工件见 [text2sql_runtime_artifacts.md](references/text2sql_runtime_artifacts.md) | `scripts/usql_web_query.py` |
 | 模板 SQL、模板市场、大结果下载 | [template_query.md](references/template_query.md) | `scripts/usql_web_query.py` |
 | 手工临时表检查或上传 | [manual_temp_table_registry.md](references/manual_temp_table_registry.md) | `scripts/usql_web_query.py` |
 | 数据地图/Data Center 本地知识同步 | [data_knowledge_sync.md](references/data_knowledge_sync.md) 和 [domain_adapters.md](references/domain_adapters.md) | `scripts/usql_web_query.py` |
@@ -41,6 +41,8 @@ description: 通过 Playwright 执行受治理的 USQL 网页查询、小结果�
 - 密码、Cookie、Token、登录态、截图、SQL 结果和下载文件不得进入 Skill 目录。
 - 登录态固定保存在 `C:\Users\Ludim\.codex\runtime\usql-web-query-operator\state.json`；通用 Playwright 不得读取、替换或管理它。
 - QueryPlan 仅约束 `run`：必须为受支持域、`status=executable`、`unresolved_slots=[]` 且 SQL SHA-256 完全一致。
+- `run` 在浏览器启动前强制执行只读 SQL Policy；DDL/DML、命令语句、多语句、解析失败和未解析模板参数不得通过 audit 模式绕过。
+- QueryTrace、SQL Policy Report 和 ResultArtifact 只记录 Hash、状态、列级元数据与脱敏结果证据，不保存问题原文、SQL 文本或结果行，也不构成任何后续授权。
 - QueryPlan 不授予下载、模板、临时表、数据集、看板或权限写入能力。
 - 直接下载同时要求结果不超过 1000 行；携带 QueryPlan 时还要求 `execution_policy.allow_download=true`。
 - `profile-*`、数据地图和 Data Center 本地同步默认只写 runtime/dry-run；领域知识落点只由 [domain_adapters.json](references/domain_adapters.json) 决定。
@@ -84,6 +86,8 @@ SQL 执行失败必须把结构化错误交回原领域 Skill 修复，不能通
 D:\anaconda3\python.exe -m pytest tests -q
 D:\anaconda3\python.exe C:\Users\Ludim\.codex\skills\.system\skill-creator\scripts\quick_validate.py C:\Users\Ludim\.codex\skills\usql-web-query-operator
 ```
+
+修改 CLI 命令或能力边界时，先更新 `references/command_capabilities.json`，再运行 `scripts/build_command_reference.py`；`--check` 必须确认注册表、两个 parser 和生成的 `references/command_reference.md` 完全一致。
 
 若改动领域注册、知识同步、QueryPlan、看板工件或 Data Center 流程，还必须运行两个领域 Skill 的完整性检查和仓库 `../scripts/validate_text2sql_stack.py`。
 

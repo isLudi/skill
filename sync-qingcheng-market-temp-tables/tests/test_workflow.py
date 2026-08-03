@@ -533,6 +533,51 @@ class MergeWorkflowTests(unittest.TestCase):
             3,
         )
 
+    def test_goal_source_filenames_accept_only_bounded_month_prefixes(self) -> None:
+        registry = load_registry(SKILL_ROOT / "references" / "workflow_registry.json")
+
+        def source_message(filename: str) -> dict[str, object]:
+            return {
+                "message_id": f"om_{filename}",
+                "chat_id": "oc_e604e064976c022ab4289fc2fb979332",
+                "sender": {
+                    "id": "ou_bf111effd2d71a52ee40c58c7cb4d105",
+                    "name": "郅玲玉",
+                },
+                "msg_type": "file",
+                "content": f'<file key="file_test" name="{filename}"/>',
+            }
+
+        accepted = {
+            "个人期度目标表.xlsx": "personal_period_goal",
+            "8月个人期度目标表.xlsx": "personal_period_goal",
+            "08月个人期次目标表.xlsx": "personal_period_goal",
+            "12月团队期度目标表.xlsx": "team_period_goal",
+            "1月团队期次目标表.xlsx": "team_period_goal",
+            "8月团队月度目标表.xlsx": "team_month_goal",
+            "09月月度目标表.xlsx": "team_month_goal",
+        }
+        for filename, family_id in accepted.items():
+            with self.subTest(filename=filename):
+                self.assertEqual(
+                    classify_source_message(registry, source_message(filename)),
+                    family_id,
+                )
+
+        for filename in (
+            "0月个人期度目标表.xlsx",
+            "13月团队期度目标表.xlsx",
+            "008月团队月度目标表.xlsx",
+            "八月个人期度目标表.xlsx",
+            "2026年8月团队期度目标表.xlsx",
+            "本月团队月度目标表.xlsx",
+            "8月个人期度目标表.xls",
+        ):
+            with self.subTest(filename=filename):
+                self.assertIsNone(
+                    classify_source_message(registry, source_message(filename))
+                )
+
     def test_registry_rejects_duplicate_platform_temp_table_mapping(self) -> None:
         registry_path = SKILL_ROOT / "references" / "workflow_registry.json"
         registry = json.loads(registry_path.read_text(encoding="utf-8"))

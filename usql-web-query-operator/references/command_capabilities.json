@@ -1,0 +1,52 @@
+{
+  "schema_version": "1.0.0",
+  "entrypoints": [
+    {
+      "entrypoint": "usql_web_query.py",
+      "commands": [
+        {"name": "doctor", "effect": "local_read_only", "authorization": "none", "reference": "sql_query_execution.md"},
+        {"name": "login", "effect": "local_write_explicit", "authorization": "explicit_command", "reference": "sql_query_execution.md"},
+        {"name": "run", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "sql_query_execution.md"},
+        {"name": "upload-temp-table", "effect": "remote_write_explicit", "authorization": "explicit_flags", "reference": "manual_temp_table_registry.md"},
+        {"name": "check-manual-table", "effect": "local_read_only", "authorization": "none", "reference": "manual_temp_table_registry.md"},
+        {"name": "sync-datamap-fields", "effect": "local_write_explicit", "authorization": "explicit_flags", "reference": "data_knowledge_sync.md"},
+        {"name": "sync-data-center-sql", "effect": "local_write_explicit", "authorization": "exact_plan_hash_and_confirmation", "reference": "data_knowledge_sync.md"},
+        {"name": "plan-data-center-sql-replacement", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "data_center_replacement.md"},
+        {"name": "apply-data-center-sql-replacement", "effect": "remote_write_explicit", "authorization": "exact_plan_hash_and_confirmation", "reference": "data_center_replacement.md"},
+        {"name": "plan-data-center-dataset-creation", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "data_center_creation.md"},
+        {"name": "apply-data-center-dataset-creation", "effect": "remote_write_explicit", "authorization": "exact_plan_hash_and_confirmation", "reference": "data_center_creation.md"},
+        {"name": "fetch-template-sql", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "template_query.md"},
+        {"name": "fetch-market-template-sql", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "template_query.md"},
+        {"name": "template-download", "effect": "temporary_remote_write", "authorization": "explicit_command", "reference": "template_query.md"}
+      ]
+    },
+    {
+      "entrypoint": "read_dashboard.py",
+      "commands": [
+        {"name": "scan-folder", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "platform_profile.md"},
+        {"name": "capture-dashboard", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "platform_profile.md"},
+        {"name": "profile-dashboard", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "platform_profile.md"},
+        {"name": "check-dashboard-values", "effect": "local_read_only", "authorization": "none", "reference": "platform_profile.md"},
+        {"name": "profile-edit-dashboard", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "platform_profile.md"},
+        {"name": "profile-edit-folder", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "platform_profile.md"},
+        {"name": "profile-edit-all", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "platform_profile.md"},
+        {"name": "design-dashboard", "effect": "local_read_only", "authorization": "none", "reference": "dashboard_change_workflow.md"},
+        {"name": "plan-dashboard-change", "effect": "local_read_only", "authorization": "none", "reference": "dashboard_change_workflow.md"},
+        {"name": "plan-dashboard-build", "effect": "local_read_only", "authorization": "none", "reference": "dashboard_build_workflow.md"},
+        {"name": "apply-dashboard-change", "effect": "draft_write", "authorization": "exact_plan_hash_and_confirmation", "reference": "dashboard_change_workflow.md"},
+        {"name": "apply-dashboard-build", "effect": "draft_write", "authorization": "exact_plan_hash_and_confirmation", "reference": "dashboard_build_workflow.md"},
+        {"name": "publish-dashboard-change", "effect": "publish", "authorization": "separate_publish_confirmation", "reference": "dashboard_change_workflow.md"},
+        {"name": "publish-dashboard-build", "effect": "publish", "authorization": "separate_publish_confirmation", "reference": "dashboard_build_workflow.md"},
+        {"name": "inspect-write-capabilities", "effect": "local_read_only", "authorization": "none", "reference": "dashboard_write_capabilities.md"},
+        {"name": "capture-write-evidence", "effect": "sandbox_write", "authorization": "sandbox_confirmation", "reference": "dashboard_write_capabilities.md"},
+        {"name": "capture-dashboard-build-evidence", "effect": "sandbox_write", "authorization": "sandbox_confirmation", "reference": "dashboard_build_workflow.md"},
+        {"name": "verify-sandbox-dashboard-build", "effect": "local_read_only", "authorization": "none", "reference": "dashboard_build_workflow.md"},
+        {"name": "verify-sandbox-write-adapters", "effect": "sandbox_write", "authorization": "sandbox_confirmation", "reference": "dashboard_write_capabilities.md"},
+        {"name": "rebind-pivot-fields-sandbox", "effect": "sandbox_write", "authorization": "sandbox_confirmation", "reference": "dashboard_change_workflow.md"},
+        {"name": "edit-public-filters", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "platform_profile.md"},
+        {"name": "profile-folder", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "platform_profile.md"},
+        {"name": "profile-all", "effect": "local_write_explicit", "authorization": "explicit_flags", "reference": "platform_profile.md"}
+      ]
+    }
+  ]
+}
