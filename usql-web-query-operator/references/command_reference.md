@@ -18,6 +18,9 @@
 | `apply-data-center-sql-replacement` | Apply one reviewed SQL replacement, save it, trigger refresh, and verify SUCCESS. | `remote_write_explicit` | `exact_plan_hash_and_confirmation` | [data_center_replacement.md](data_center_replacement.md) |
 | `plan-data-center-dataset-creation` | Read a target folder and create a hash-bound Data Center dataset creation plan. | `remote_read_only` | `explicit_command` | [data_center_creation.md](data_center_creation.md) |
 | `apply-data-center-dataset-creation` | Create one reviewed dataset, save it, trigger extraction, and verify SUCCESS. | `remote_write_explicit` | `exact_plan_hash_and_confirmation` | [data_center_creation.md](data_center_creation.md) |
+| `plan-template-creation` | Read and hash a permanent parameterized Template Query creation plan. | `remote_read_only` | `explicit_command` | [template_query.md](template_query.md) |
+| `apply-template-creation` | Create one reviewed permanent template as an unpublished draft and read it back. | `remote_write_explicit` | `exact_plan_hash_and_confirmation` | [template_query.md](template_query.md) |
+| `publish-template` | Publish one exact verified permanent-template creation receipt and read it back. | `publish` | `separate_publish_confirmation` | [template_query.md](template_query.md) |
 | `fetch-template-sql` | Fetch stored SQL for a template in Template Query > My created templates. | `remote_read_only` | `explicit_command` | [template_query.md](template_query.md) |
 | `fetch-market-template-sql` | Fetch stored SQL for a template in Template Query > Template Market. | `remote_read_only` | `explicit_command` | [template_query.md](template_query.md) |
 | `template-download` | Create a temporary Template Query, run it, download the result, and clean up the template. | `temporary_remote_write` | `explicit_command` | [template_query.md](template_query.md) |

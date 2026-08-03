@@ -1,4 +1,4 @@
 interface:
   display_name: "USQL Web Query Operator"
-  short_description: "执行 USQL，并通过领域注册适配器治理 Data Center 与 Taitan 流程。"
-  default_prompt: "Use $usql-web-query-operator only as the platform execution layer. Route business knowledge through the validated domain adapter registry, require the matching domain SQL skill for business semantics, and preserve read-only defaults, exact hashes, explicit write confirmations, structured receipts, draft Apply versus separate Publish, Data Center fresh SUCCESS verification, download limits, login-state isolation, and capability allowlists. Read only the reference selected by SKILL.md for the requested command."
+  short_description: "执行 USQL，并治理参数化模板、Data Center 与 Taitan 流程。"
+  default_prompt: "Use $usql-web-query-operator only as the platform execution layer. Route business knowledge through the validated domain adapter registry, require the matching domain SQL skill for business semantics, and preserve read-only defaults, exact hashes, explicit write confirmations, structured receipts, permanent-template create versus separate publish and readback, dashboard draft Apply versus separate Publish, Data Center fresh SUCCESS verification, download limits, login-state isolation, and capability allowlists. Read only the reference selected by SKILL.md for the requested command."

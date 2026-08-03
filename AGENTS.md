@@ -51,7 +51,7 @@ Auto-detect the smallest sufficient Skill set from the request and current artif
 
 - Select `market-consultant-dashboard-sql` for explicit 市场顾问部 / market-consultant metrics, dashboards, tables, joins, ranges, channels, evaluation, attendance, outbound calls, refunds, traffic, registered artifacts, or market knowledge maintenance. It owns market semantic contracts, QuerySpec/QueryPlan, governed SQL generation/repair, bounded probes, and dashboard design artifacts. It does not execute SQL, manipulate Excel, or supply Qingcheng semantics.
 - Select `qingcheng-dashboard-sql` for explicit 青橙项目部 / Qingcheng metrics, dashboards, temporary tables, joins, ranges, Web BI profiles, governed SQL generation/repair, or Qingcheng knowledge maintenance. All Qingcheng contracts, profiles, indexes, and documentation stay inside that Skill; it must not borrow market semantics.
-- Select `usql-web-query-operator` when the user asks to run/execute SQL, preview or download results, fetch stored Template Query SQL, perform a large-result template download, scan/profile dashboards, read edit-page metrics/formulas, plan/apply/publish governed Taitan changes, or read/sync/replace/create Data Center datasets. It executes approved workflows but does not generate business SQL or infer metric definitions. Business Skill names, knowledge roots, dashboard folders, and Data Center local-sync targets must resolve through its validated domain-adapter registry rather than command-local path constants.
+- Select `usql-web-query-operator` when the user asks to run/execute SQL, preview or download results, fetch stored Template Query SQL, plan/create/publish/read back a permanent parameterized template, perform a large-result template download, scan/profile dashboards, read edit-page metrics/formulas, plan/apply/publish governed Taitan changes, or read/sync/replace/create Data Center datasets. It executes approved workflows but does not generate business SQL or infer metric definitions. Business Skill names, knowledge roots, dashboard folders, and Data Center local-sync targets must resolve through its validated domain-adapter registry rather than command-local path constants.
 - Select generic `playwright` only for non-USQL sites or bounded DOM/selector diagnosis after the operator has reproduced an SQL/BI UI problem. Generic Playwright must not own USQL login state or replace operator workflows.
 
 ### Files, Documents, and Feishu
@@ -159,6 +159,10 @@ Resolve domain and reviewed concrete SQL → operator `plan-data-center-dataset-
 
 `sync-qingcheng-market-temp-tables` resolves the exact group, sender, registered family, latest message, deterministic transformation, source-quality gates, and target-scope merge → `plan` may download only into runtime and build a staged candidate → explicitly confirmed `apply-local` consumes the exact Plan hash and writes the E-drive workbook with backup/readback → separately confirmed `upload` consumes the exact successful local receipt and calls the operator's existing-table upload adapter. Qingcheng and market messages, batches, jobs, approvals, and shared-workbook scopes remain isolated even though one Skill and one event-service process implement the workflow.
 
+### Q. Permanent Parameterized Template Creation
+
+Selected business SQL Skill finalizes the reviewed parameterized SQL and field semantics → operator `plan-template-creation` reads exact-name collision state, authenticated creator, data-source instance, platform parser variables/parameters/tables, parameter presentation config, SQL Policy and exact hashes without remote writes → explicitly authorized `apply-template-creation` consumes the exact Plan hash, rechecks drift, creates one unpublished template, and reads back identity, status, SQL and metadata hashes → separately authorized `publish-template` consumes the exact successful creation receipt hash, verifies the unpublished state, publishes, and reads back the published state. A QueryPlan, creation Plan, or creation readback never authorizes publication; failures never auto-offline, delete, or roll back the permanent template.
+
 ## Cross-Skill Execution and Production Boundaries
 
 ### Core Contracts and Knowledge Isolation
@@ -188,6 +192,7 @@ Resolve domain and reviewed concrete SQL → operator `plan-data-center-dataset-
 
 - Direct `SQL取数` download requires `limit <= 1000` or reliable result-page proof that rows do not exceed 1000, plus any QueryPlan download policy. For an explicitly required larger concrete result, use Workflow L and mandatory temporary-template cleanup; never silently switch paths.
 - Failed or malformed downloads must be reported as failures. Never expose credentials or create Template Query assets without the workflow's explicit user authorization.
+- Permanent parameterized templates require Workflow Q's exact SQL/parser/metadata hashes, unique exact name, explicit production creation confirmation, separate publication confirmation, and post-create/post-publish readback. Apply creates only an unpublished template; neither failure path may auto-offline or delete it.
 
 ### Existing-dashboard Governance (P3/P4A/P4B)
 

@@ -133,3 +133,10 @@ limit 100;
 - 该表为日分区表，查询必须加 `dt`。
 - 字段描述已按 Word 文档补充，指标口径仍需结合看板 SQL 和业务确认。
 - 青橙场景下应使用 `<青橙一级部门名称>`、`<青橙二级部门名称>`、`<青橙三级部门/项目名称>` 占位符或已确认取值，不要沿用其他部门的默认组织范围。
+
+## 12. TMK 线索转移数据集用法
+
+- Model `3180` 使用 T-1 `dt`、`first_level_department_name='H业务线'` 和 `is_main_job=1` 构建员工唯一映射。
+- 业务表 `tmk_consultant_email_prefix` 关联本表 `email_prefix`，取 `leader_employee_email_name` 并命名为 `xiaozu`。
+- 员工映射先按 `email_prefix` 去重，再以 `left join` 回连潜客；不得以架构未匹配为由过滤原有线索。
+- 2026-08-03 验证时，T-1 分区的当前 69 名 TMK 顾问邮箱前缀和姓名均 69/69 匹配，直属上级 69/69 非空，邮箱前缀重复数为 0。

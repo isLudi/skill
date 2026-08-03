@@ -231,4 +231,5 @@ QuerySpec 至少包含：
 - 新增或修改 `semantic/contracts/*.json` 时，必须引用本域现有 `source_path` 和精确 SHA-256；业务证据不足的条目标为 `pending_confirmation`。更新后运行仓库级 catalog builder 生成 contract index，再运行域内完整性与离线 resolution eval；不得只刷新哈希而不核对业务变化。
 - 新增指标口径时，必须落入 `knowledge/metrics/`、对应 dashboard/raw SQL 和 semantic contract，并绑定可复核证据；临时截图或页面图片只允许放在 runtime 调试目录，不作为本 Skill 的长期权威来源。
 - 更新市场顾问最新渠道 CASE 时，如果来源文件名包含日期后缀，例如 `D:\Feishu\MMDD.txt`，归档 SQL 文件名必须同步使用相同后缀：`resources/raw_sql/market_channel_case_when_MMDD.sql`。后续若来源日期变化，应将旧归档重命名或替换为新的 `market_channel_case_when_MMDD.sql`，同步更新所有知识库引用、`knowledge/sql_patterns/channel_mapping_case_when.md` 和更新日志；不得保留过期日期后缀作为最新入口。
+- 模板取数 `业财用户出单明细`（模板 id `7689`）是共享渠道 CASE 的强制同步消费者。每次更新 `market_channel_case_when_MMDD.sql`，必须同步检查并原位更新该模板的 `channel_map`，保持模板 id、申请关系、参数、期次逻辑、来源表和最终字段不变；发布后必须回读 SQL/参数/字段并完成真实期次查询，再刷新其模板 raw SQL 与 `knowledge/dashboards/template_query_market_datasets.md`。Data Center 定向覆盖只有在业务明确提升为共享规则或明确要求模板吸收时才进入该模板。
 - 更新记录写入 `knowledge/update_log/changelog.md`，必须按时间正序追加在文件末尾；不要把新记录插到文件顶部。同一天多次维护按发生顺序继续向后追加，必要时使用 `YYYY-MM-DD HH:mm:ss` 标题区分顺序。

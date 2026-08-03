@@ -2,7 +2,7 @@
 
 ## 1. 来源与范围
 
-- 最近同步计划日期：2026-08-02
+- 最近同步计划日期：2026-08-03
 - 来源页面：https://uanalysis.baijia.com/data-center/data-set
 - 同步范围：青橙项目部目录下的全部 SQL 数据集。
 - canonical SQL 使用稳定文件名；更新时间与 SHA-256 由 `semantic/current_model_bindings.json` 记录。
@@ -18,7 +18,7 @@
 | 4 | `团队完成度【月】` | `menu_set_3872620822275268609` | `2677` | `2667` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/青橙项目部/团队完成度【月】 | [data_center_qingcheng_2677.sql](../../resources/raw_sql/data_center_qingcheng_2677.sql) | `10f2e804dbc1bbb7794d20137adcc7b53b75fb1d2f533cd7261ab41d7eb7503a` | 459 |
 | 5 | `团队完成度【期】` | `menu_set_3873036408401260544` | `2680` | `2670` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/青橙项目部/团队完成度【期】 | [data_center_qingcheng_2680.sql](../../resources/raw_sql/data_center_qingcheng_2680.sql) | `f98d393cefa70a5df04a53386c840b99a23943723c4b2040b222f43bec22fcd3` | 458 |
 | 6 | `青橙个人转化` | `menu_set_3893030630962376704` | `2769` | `2759` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/青橙项目部/青橙个人转化 | [data_center_qingcheng_2769.sql](../../resources/raw_sql/data_center_qingcheng_2769.sql) | `1f89b179752cf6aafe5c8007f2c1c024956e8f0be76ca0e0d4ddf9796b755fd2` | 728 |
-| 7 | `TMK线索转移明细` | `menu_set_4006225706505322496` | `3180` | `3168` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/青橙项目部/TMK线索转移明细 | [data_center_qingcheng_3180.sql](../../resources/raw_sql/data_center_qingcheng_3180.sql) | `7eec4d57ae288468b1040e9a4f16568133c3b532c86315223472cf009f1402eb` | 985 |
+| 7 | `TMK线索转移明细` | `menu_set_4006225706505322496` | `3180` | `3168` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/青橙项目部/TMK线索转移明细 | [data_center_qingcheng_3180.sql](../../resources/raw_sql/data_center_qingcheng_3180.sql) | `4aff14a536c209bbfe485c5ac94734704ee15bc3ae0e7efce6627a126e0fb34c` | 1021 |
 | 8 | `抖私-转化` | `menu_set_3884599059235647488` | `2740` | `2730` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/青橙项目部/抖私-转化 | [data_center_qingcheng_2740.sql](../../resources/raw_sql/data_center_qingcheng_2740.sql) | `cdf02c3cef6af336b737b0e4e7f8289567abe37a6dcd49949a0f2f3fc0c9a277` | 832 |
 
 ## 3. 维护说明

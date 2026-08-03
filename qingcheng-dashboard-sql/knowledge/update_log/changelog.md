@@ -619,3 +619,17 @@
 - 全目录回读确认 7 个受影响模型的旧完整/短期次标签计数均为 0；未含映射的 `2064`、`2576`、`2834`、`3131` Hash 与修改前一致，未执行无内容刷新。
 - 本地 canonical 同步计划 SHA-256 为 `496c717954f72fc1a4e9146b64dd9a6fb772526447665f388dc8e36e3ccd0121`；新增 model `3180` 后 Qingcheng raw SQL 基线由 17 份调整为 18 份。
 - 写入后已强制重建反向索引和目录，并运行唯一版本审计、域内 integrity 与完整 Text2SQL 栈验证。
+
+## 2026-08-03 数据中心 stable canonical SQL 同步
+
+- 按已审阅同步计划原子更新 model_id：`3180`；每个 model_id 只保留稳定 canonical 路径。
+- 写入后已强制重建反向索引和目录，并运行唯一版本审计、域内 integrity 与完整 Text2SQL 栈验证。
+
+## 2026-08-03 TMK 线索转移明细新增小组字段
+
+- 在 `TMK线索转移明细` / model `3180` 新增 `xiaozu`，取值为 `finance_dw.dim_finance_employee_df.leader_employee_email_name`，表示 `tmk_consultant_name` 的直属上级带数字员工名。
+- 员工维表使用 T-1 `dt`、`first_level_department_name='H业务线'` 和 `is_main_job=1`，按 `email_prefix` 去重后通过 `tmk_consultant_email_prefix` left join；不使用姓名作生产 Join key，不过滤架构未匹配线索。
+- 覆盖探查 query `1522332746`：69 名当前 TMK 顾问按邮箱前缀和姓名都 69/69 匹配，直属上级 69/69 非空，邮箱前缀重复数为 0。
+- 回归 query `1522351329` / `1522366854`：新旧均为 2,146 行和 2,146 个唯一转移线索，匹配订单 113，营收 210,395.00，退费 27,585.96，净收 182,809.04；1,832 行 TMK 顾问非空且 `xiaozu` 全部非空，剩余 314 行原始 TMK 顾问本身为空。
+- 生产替换计划 `891a8438af4ff97b6065a6480fad8988da9b5811defd54732febafdbec403e9b`；保存后 SQL SHA-256 `4aff14a536c209bbfe485c5ac94734704ee15bc3ae0e7efce6627a126e0fb34c`；Preview task `1522382107` 成功，44 列、100 行；新抽数记录 `162538939` 为 `SUCCESS`，receipt `fully_verified=true`。
+- 本地 canonical 同步计划 SHA-256 为 `38d32e9f999cd2a2b8f0648ef3d433b1c86d8fdd7cfbd3c928f3e8e8698111e6`。

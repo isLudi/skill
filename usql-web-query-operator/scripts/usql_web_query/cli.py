@@ -29,10 +29,13 @@ from .commands.doctor import cmd_doctor
 from .commands.fetch_market_template_sql import cmd_fetch_market_template_sql
 from .commands.fetch_template_sql import cmd_fetch_template_sql
 from .commands.login import cmd_login
+from .commands.apply_template_creation import cmd_apply_template_creation
 from .commands.apply_data_center_dataset_creation import cmd_apply_data_center_dataset_creation
 from .commands.apply_data_center_sql_replacement import cmd_apply_data_center_sql_replacement
+from .commands.plan_template_creation import cmd_plan_template_creation
 from .commands.plan_data_center_dataset_creation import cmd_plan_data_center_dataset_creation
 from .commands.plan_data_center_sql_replacement import cmd_plan_data_center_sql_replacement
+from .commands.publish_template import cmd_publish_template
 from .commands.run import cmd_run
 from .commands.sync_data_center_sql import cmd_sync_data_center_sql
 from .commands.sync_datamap_fields import cmd_sync_datamap_fields
@@ -41,6 +44,7 @@ from .commands.upload_temp_table import cmd_upload_temp_table
 from .config import DEFAULT_QUERY_ENGINE
 from .data_center import DEFAULT_MARKET_START_DATASET
 from .data_center_creation import DEFAULT_DATA_SOURCE_ID, DEFAULT_DATA_SOURCE_NAME
+from .template_permanent import DEFAULT_INSTANCE_KEY
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -342,6 +346,66 @@ def build_parser() -> argparse.ArgumentParser:
     apply_data_center_creation.add_argument("--executable-path", default=None)
     apply_data_center_creation.add_argument("--debug-artifacts", action="store_true")
     apply_data_center_creation.set_defaults(func=cmd_apply_data_center_dataset_creation)
+
+    plan_template_creation = subparsers.add_parser(
+        "plan-template-creation",
+        help="Read and hash a permanent parameterized Template Query creation plan.",
+    )
+    plan_template_creation.add_argument("--template-name", required=True, help="Exact new template name; 20 characters or fewer.")
+    plan_template_creation.add_argument("--template-description", default="", help="Permanent template description.")
+    plan_template_creation.add_argument("--sql-file", type=Path, required=True, help="UTF-8 without BOM parameterized SQL file.")
+    plan_template_creation.add_argument("--parameter-config", type=Path, required=True, help="Reviewed UTF-8 JSON config keyed by every ${name} parameter.")
+    plan_template_creation.add_argument("--variable-display-name", action="append", default=[], help="Override one parser output label as parser_name=display_name. Repeatable.")
+    plan_template_creation.add_argument("--owner", default="", help="Optional owner value saved with the template.")
+    plan_template_creation.add_argument("--instance-key", default=DEFAULT_INSTANCE_KEY, help="Exact Template Query data-source instanceKey.")
+    plan_template_creation.add_argument("--output-file", type=Path, default=None, help="Exact plan artifact path.")
+    plan_template_creation.add_argument("--state-path", type=Path, default=DEFAULT_STATE)
+    plan_template_creation.add_argument("--artifacts-dir", type=Path, default=TEMPLATE_QUERY_RUNTIME_DIR / "permanent")
+    plan_template_creation.add_argument("--env-file", type=Path, default=DEFAULT_ENV_FILE)
+    plan_template_creation.add_argument("--username", default=os.environ.get("BAIJIA_USERNAME"))
+    plan_template_creation.add_argument("--password", default=os.environ.get("BAIJIA_PASSWORD"))
+    plan_template_creation.add_argument("--headed", action="store_true")
+    plan_template_creation.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL)
+    plan_template_creation.add_argument("--executable-path", default=None)
+    plan_template_creation.set_defaults(func=cmd_plan_template_creation)
+
+    apply_template_creation = subparsers.add_parser(
+        "apply-template-creation",
+        help="Create one reviewed permanent template as an unpublished draft and read it back.",
+    )
+    apply_template_creation.add_argument("--plan-file", type=Path, required=True, help="Reviewed permanent-template creation plan.")
+    apply_template_creation.add_argument("--expected-plan-sha256", required=True, help="Exact plan hash emitted by plan-template-creation.")
+    apply_template_creation.add_argument("--confirm-production-write", action="store_true", help="Explicitly authorize creation of the remote unpublished template.")
+    apply_template_creation.add_argument("--output-file", type=Path, default=None, help="Exact creation receipt path.")
+    apply_template_creation.add_argument("--state-path", type=Path, default=DEFAULT_STATE)
+    apply_template_creation.add_argument("--artifacts-dir", type=Path, default=TEMPLATE_QUERY_RUNTIME_DIR / "permanent")
+    apply_template_creation.add_argument("--env-file", type=Path, default=DEFAULT_ENV_FILE)
+    apply_template_creation.add_argument("--username", default=os.environ.get("BAIJIA_USERNAME"))
+    apply_template_creation.add_argument("--password", default=os.environ.get("BAIJIA_PASSWORD"))
+    apply_template_creation.add_argument("--headed", action="store_true")
+    apply_template_creation.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL)
+    apply_template_creation.add_argument("--executable-path", default=None)
+    apply_template_creation.add_argument("--debug-artifacts", action="store_true")
+    apply_template_creation.set_defaults(func=cmd_apply_template_creation)
+
+    publish_template = subparsers.add_parser(
+        "publish-template",
+        help="Publish one exact verified permanent-template creation receipt and read it back.",
+    )
+    publish_template.add_argument("--receipt-file", type=Path, required=True, help="Successful permanent-template creation receipt.")
+    publish_template.add_argument("--expected-receipt-sha256", required=True, help="Exact hash embedded in the creation receipt.")
+    publish_template.add_argument("--confirm-publish", action="store_true", help="Separately authorize publication of the exact created template.")
+    publish_template.add_argument("--output-file", type=Path, default=None, help="Exact publication receipt path.")
+    publish_template.add_argument("--state-path", type=Path, default=DEFAULT_STATE)
+    publish_template.add_argument("--artifacts-dir", type=Path, default=TEMPLATE_QUERY_RUNTIME_DIR / "permanent")
+    publish_template.add_argument("--env-file", type=Path, default=DEFAULT_ENV_FILE)
+    publish_template.add_argument("--username", default=os.environ.get("BAIJIA_USERNAME"))
+    publish_template.add_argument("--password", default=os.environ.get("BAIJIA_PASSWORD"))
+    publish_template.add_argument("--headed", action="store_true")
+    publish_template.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL)
+    publish_template.add_argument("--executable-path", default=None)
+    publish_template.add_argument("--debug-artifacts", action="store_true")
+    publish_template.set_defaults(func=cmd_publish_template)
 
     fetch_template = subparsers.add_parser(
         "fetch-template-sql",

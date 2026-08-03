@@ -1,6 +1,6 @@
 # 模板取数自动化
 
-模板取数自动化目前分为三类场景，分别对应“读取我创建的模板 SQL”“读取模板市场中的模板 SQL”和“用临时模板完成大结果下载”。
+模板取数自动化目前分为四类场景，分别对应“读取我创建的模板 SQL”“读取模板市场中的模板 SQL”“永久参数化模板创建/发布/回读”和“用临时模板完成大结果下载”。永久模板与临时下载模板是两条独立生命周期，不能互相降级。
 
 ## 读取模板中已保存的 SQL
 
@@ -58,6 +58,89 @@ D:\anaconda3\python.exe scripts\usql_web_query.py fetch-market-template-sql `
 - 返回行包含 `sqlDetail` 字段，它与页面上“查看模板 -> 模板SQL -> 查看SQL”展示的是同一份 SQL。
 
 该命令是只读的：不会创建模板、不会执行 SQL、不会下载结果，也不会修改模板市场中的任何内容。
+
+## 永久参数化模板创建、发布和回读
+
+当用户明确要求把一份已核对的参数化 SQL 上线为长期使用的模板时，必须使用三个独立命令：
+
+1. `plan-template-creation`：远端只读。读取精确重名状态、当前登录创建人和平台 `sqlParser` 元数据，绑定 SQL、字段/参数元数据和 Plan Hash。
+2. `apply-template-creation`：生产写入。只创建状态为 `unpublished` 的模板，并立即回读模板 ID、名称、状态、SQL Hash、`instanceKey`、输出字段和参数元数据 Hash。
+3. `publish-template`：独立发布。绑定成功创建回执的精确 Hash，发布前重读未发布状态，发布后再回读 `published` 状态和全部 Hash。
+
+参数配置文件是 UTF-8 JSON，对 SQL 中每一个 `${name}` 参数提供一条明确配置。当前受支持的已验证模式为：
+
+- `date`：平台日期控件，固定 `paramType=3`，格式 `yyyy-MM-dd`。
+- `condition`：普通条件控件，固定 `paramType=1`，需要字段类型。
+- 两种模式当前都要求 `mandatory=2`；SQL parser 解析出的比较符（例如 `>=`、`<`）会进入 Plan 和回读 Hash。
+
+日期区间示例：
+
+```json
+{
+  "day:1": {
+    "showName": "维护日期开始",
+    "mode": "date",
+    "mandatory": 2,
+    "format": "yyyy-MM-dd"
+  },
+  "day:2": {
+    "showName": "维护日期结束",
+    "mode": "date",
+    "mandatory": 2,
+    "format": "yyyy-MM-dd"
+  }
+}
+```
+
+创建计划：
+
+```powershell
+D:\anaconda3\python.exe scripts\usql_web_query.py plan-template-creation `
+  --template-name "<永久模板名>" `
+  --template-description "<模板说明>" `
+  --sql-file C:\path\to\parameterized.sql `
+  --parameter-config C:\path\to\parameters.json `
+  --variable-display-name "parser_name=业务展示名" `
+  --output-file C:\path\to\template_plan.json
+```
+
+创建未发布模板：
+
+```powershell
+D:\anaconda3\python.exe scripts\usql_web_query.py apply-template-creation `
+  --plan-file C:\path\to\template_plan.json `
+  --expected-plan-sha256 <reviewed_plan_hash> `
+  --confirm-production-write `
+  --output-file C:\path\to\create_receipt.json
+```
+
+独立发布：
+
+```powershell
+D:\anaconda3\python.exe scripts\usql_web_query.py publish-template `
+  --receipt-file C:\path\to\create_receipt.json `
+  --expected-receipt-sha256 <reviewed_create_receipt_hash> `
+  --confirm-publish `
+  --output-file C:\path\to\publish_receipt.json
+```
+
+治理边界：
+
+- 模板名必须为 1–20 个字符且精确唯一；Plan 发现重名即阻断。
+- SQL 必须是 UTF-8 无 BOM、单条只读查询，且至少含一个合法 `${name}` 参数。安全检查只为解析而把参数替换为 `NULL`，不会改变保存的原 SQL 或其 Hash。
+- 参数配置必须与 parser 参数全集一一对应；未知配置、遗漏配置、字段别名漂移、数据源或登录创建人漂移均阻断。同一参数可在 SQL 的多个谓词中复用，但只配置一次。
+- 默认数据源实例为已验证的 `dlc_presto`；该值和 parser 表/字段/参数全部进入 Hash。
+- `apply-template-creation` 只创建未发布模板，绝不自动发布；`publish-template` 只能消费成功且完整回读的创建回执。
+- 创建或发布失败时不自动下线、删除或回滚永久模板。远端写入可能已发生时，失败回执会设置 `manual_attention_required=true`。
+- Plan、创建回执和 QueryPlan 都不构成下一阶段授权；每个生产阶段仍需本命令要求的精确 Hash 和显式确认。
+
+2026-08-03 已验证的永久模板接口：
+
+- `POST .../template/sqlParser`，请求同时携带参数化 SQL 和 `instanceKey`。
+- `POST .../template/saveAndUpdate`，保存 `templateVariable`、`templateParam`、创建人、所有者和 `instanceKey`。
+- `POST .../template/detail`，回读 SQL、状态、参数、字段、表和数据源实例。
+- `POST .../template/publish`，只由独立发布命令调用。
+- 日期参数回读为 `paramType=3`、`format=yyyy-MM-dd`；普通条件参数为 `paramType=1`。
 
 ## 临时模板大结果下载
 

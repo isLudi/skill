@@ -965,3 +965,11 @@
 - 上线前 query `1518276925` 验证宽表 `stats_grade_name` 可覆盖目标批次；候选 query `1518286219` 验证高一 1066、初三 294、高二 38、高三 9，合计 1407，空年级有效线索量为 0。剩余 2 个空年级物理行的 `lead_count`、`valid_lead_count` 均为 0。
 - 远端数据中心预览 task `1518299829` 成功，保存后 SQL SHA-256 为 `65445d00a60c84fa066763d04a7c7e6c3d7d8dae1edbb351983384c99bf18878`，新抽数记录 `162344821` 为 `SUCCESS`；只读回查确认当前远端 SQL Hash 一致。
 - 使用 scoped 同步计划 `be2dfdd1f15606131e97f17cb68081b92a5df622220e17a4a0c0dbaa9005e854` 更新 canonical SQL、数据集目录、current-model binding 和生成 manifest；随后重建反向索引与共享 catalog，并通过唯一版本审计、市场域 integrity 和完整 Text2SQL 栈校验。
+
+## 2026-08-03 业财用户出单明细渠道 CASE 同步
+
+- 线上模板 `业财用户出单明细`（id `7689`）仍使用旧渠道 CASE：196 个分支中仅 100 个与 `market_channel_case_when_0726.sql` 完全一致，缺少 56 个最新分支并保留 96 个旧/已改分支；其中 2 条条件相同但输出值不同。
+- 仅将 `channel_map` 替换为 0726 共享基线的 156 条分支，别名由 `qudao` 等价适配为 `channel_map`；`${dt}`、暑期期次表达式、来源表、模板身份/申请关系和 26 个最终字段均保持不变，未新增 JOIN。
+- 上线前旧/新探针 query `1522210028`、`1522214548` 均为 `SUCCESS`。20260728 期的 9354 行、9269 个去重线索、8639 条线索量、6964 条有效线索、363 个转化和 244825893 收入逐项守恒，仅渠道桶由 26 个重分配为 34 个。
+- 按计划 hash `0a6b9d75502e8a0b085508cd7384edb3caf5673b43af86099c8fe228a825714a` 原位保存并重新发布；线上回读 SQL 文本 SHA-256 为 `8704c71c2962a75173e66873e3b9d5388d63e7eb0623bfa7b5ae35ad37a38cfa`。发布后模板查询 `384631` 为 `SUCCESS`，返回 9354 行并命中新规则渠道 `锋途KOC`。
+- 将发布 SQL 归档为 `resources/raw_sql/template_query_market_finance_order_detail_20260803.sql`，补充模板清单、快速路由、渠道维护流程和 Skill 强制规则：以后每次更新共享渠道 CASE，必须同步维护模板 7689，并保持同 id/申请关系后完成回读和真实查询验证。

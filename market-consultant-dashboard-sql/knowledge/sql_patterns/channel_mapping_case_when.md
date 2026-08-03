@@ -95,6 +95,13 @@ then '退款订单复用'
 
 生成或改写市场顾问转化、线索转化到课、外呼过程、分配计划实际有效量等看板 SQL 时，如果需要“最新渠道 CASE”，优先引用 `resources/raw_sql/market_channel_case_when_0726.sql`，不要直接照抄旧看板中的长 CASE。
 
+### 3.1 模板取数强制同步消费者
+
+- `业财用户出单明细`（模板 id `7689`）必须与共享渠道 CASE 保持规则顺序、条件和输出值一致；目标别名仅由 `qudao` 等价改为 `channel_map`。
+- 当前发布 SQL 归档为 `resources/raw_sql/template_query_market_finance_order_detail_20260803.sql`，模板登记见 `knowledge/dashboards/template_query_market_datasets.md`。
+- 每次更新 `market_channel_case_when_MMDD.sql` 时，必须同时读取线上模板 7689、做规则级差异比较、原位保存并发布同一模板 id、回读 SQL/参数/26 个最终字段，再完成至少一个真实期次查询；已有申请关系不得因重建模板而失效。
+- 当前 2026-08-01/02 两条退款批次规则仍属于指定 Data Center 模型的定向覆盖，不是共享 `market_channel_case_when_0726.sql` 的组成部分；只有业务明确将其提升为共享规则或明确要求模板吸收时，才同步进模板 7689，避免把模型定向条件误当作共享 CASE。
+
 ## 4. 主要依赖字段
 
 该 CASE 片段依赖主线索/全链路宽表中的渠道、投放、流量池、规则和部门字段。常见字段包括：
@@ -212,8 +219,9 @@ else '其他未知流量' end as channel_map
 2. 将来源文件同步覆盖到对应日期后缀的归档 SQL；如果已有旧日期后缀文件作为最新入口，应重命名或替换为新后缀，并同步更新所有知识库引用。
 3. 重新统计行数、`then` 分支数、去重渠道数和关键字段变化。
 4. 更新本文件的原始文件、Skill 归档、来源文件最后修改时间、代码规模、关键渠道规则和待确认事项。
-5. 更新 `knowledge/update_log/changelog.md`，按时间正序追加到文件末尾。
-6. 运行 `python scripts/check_skill_integrity.py`。
+5. 将模板 id `7689` 作为强制同步消费者：按 3.1 的流程原位更新、发布、回读、查询验证，并用线上回读 SQL 刷新其模板 raw SQL 和模板清单。
+6. 更新 `knowledge/update_log/changelog.md`，按时间正序追加到文件末尾。
+7. 依次运行 `scripts/build_reverse_indexes.py`、仓库级 `../scripts/build_text2sql_catalog.py`、`scripts/check_skill_integrity.py` 和仓库级 `../scripts/validate_text2sql_stack.py`。
 
 该文件是 CASE 片段，不是完整 SQL；通常不直接运行 `scripts/validate_sql_rules.py`，除非先包成完整可执行查询。
 

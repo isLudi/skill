@@ -53,6 +53,7 @@ DOWNLOAD_TYPE_VALUES = {
 }
 
 RUNNING_QUERY_STATUSES = {1, 2}
+DEFAULT_TEMPLATE_INSTANCE_KEY = "dlc_presto"
 
 
 @dataclass(frozen=True)
@@ -205,9 +206,15 @@ class TemplateQueryClient:
             raise UsageError("Template Query auth profile returned non-dict data.")
         return data
 
-    def parse_sql(self, sql: str) -> dict[str, Any]:
+    def parse_sql(
+        self,
+        sql: str,
+        *,
+        instance_key: str = DEFAULT_TEMPLATE_INSTANCE_KEY,
+    ) -> dict[str, Any]:
         payload = {
             "value": sql,
+            "instanceKey": instance_key,
             "sqlParserVO": {
                 "templateVariable": [],
                 "templateParam": [],
@@ -227,25 +234,56 @@ class TemplateQueryClient:
         sql: str,
         creator: str,
         owner: str = "",
+        instance_key: str = DEFAULT_TEMPLATE_INSTANCE_KEY,
+        template_variables: list[dict[str, Any]] | None = None,
+        template_params: list[dict[str, Any]] | None = None,
+        baseline_template_ids: set[int] | None = None,
         max_lookup_attempts: int = 5,
     ) -> TemplateQuery:
-        parsed = self.parse_sql(sql)
+        parsed = None
+        if template_variables is None or template_params is None:
+            parsed = self.parse_sql(sql, instance_key=instance_key)
         payload = {
             "id": None,
             "name": name,
             "description": description,
             "sqlDetail": sql,
-            "templateVariable": normalize_template_variables(parsed.get("templateVariable")),
-            "templateParam": normalize_template_params(parsed.get("templateParam")),
+            "templateVariable": (
+                normalize_template_variables(parsed.get("templateVariable"))
+                if template_variables is None and parsed is not None
+                else normalize_template_variables(template_variables)
+            ),
+            "templateParam": (
+                normalize_template_params(parsed.get("templateParam"))
+                if template_params is None and parsed is not None
+                else normalize_template_params(template_params)
+            ),
             "creator": creator,
             "owner": owner,
+            "instanceKey": instance_key,
         }
         self.post_json("template/saveAndUpdate", payload)
         last_error: UsageError | None = None
+        baseline_ids = set(baseline_template_ids or set())
         for attempt in range(max_lookup_attempts):
             try:
-                saved, _ = self.find_template(name=name, match="exact", page_size=20, max_pages=5)
-                return saved
+                candidates = self.fetch_created_templates(
+                    name=name,
+                    page_size=20,
+                    max_pages=5,
+                )
+                matches = [
+                    template
+                    for template in candidates
+                    if template.name == name and template.id not in baseline_ids
+                ]
+                if len(matches) == 1:
+                    return matches[0]
+                if len(matches) > 1:
+                    raise UsageError(
+                        f"Template Query save created an ambiguous exact-name result: {name}"
+                    )
+                raise UsageError(f"Template Query template was not found after save: {name}")
             except UsageError as exc:
                 last_error = exc
                 if attempt + 1 >= max_lookup_attempts:
@@ -261,6 +299,12 @@ class TemplateQueryClient:
 
     def delete_template(self, template_id: int) -> None:
         self.post_json("template/delete", {"id": template_id})
+
+    def fetch_template_detail(self, template_id: int) -> dict[str, Any]:
+        data = self.post_json("template/detail", {"id": template_id}).get("data") or {}
+        if not isinstance(data, dict):
+            raise UsageError("Template Query template/detail returned non-dict data.")
+        return data
 
     def fetch_created_templates(
         self,

@@ -4,6 +4,7 @@ runtime_parameters as (
         format_datetime(current_timestamp - interval '2' hour, 'YYYYMMdd') as app_snapshot_dt,
         format_datetime(current_timestamp - interval '2' hour, 'HH') as app_snapshot_hour,
         format_datetime(current_timestamp - interval '2' hour, 'YYYYMMddHH') as app_snapshot_key,
+        format_datetime(current_timestamp - interval '1' day, 'YYYYMMdd') as employee_snapshot_dt,
         format_datetime(current_timestamp - interval '2' hour, 'YYYYMMdd') as private_snapshot_dt,
         format_datetime(current_timestamp - interval '2' hour, 'HH') as private_snapshot_hour,
         format_datetime(current_timestamp - interval '2' hour, 'YYYYMMddHH') as private_snapshot_key,
@@ -31,6 +32,31 @@ app_partition as (
         app_snapshot_hour as snapshot_hour,
         app_snapshot_key as snapshot_key
     from runtime_parameters
+),
+employee_org_ranked as (
+    select
+        nullif(trim(e.email_prefix), '') as employee_email_prefix,
+        nullif(trim(e.leader_employee_email_name), '') as xiaozu,
+        row_number() over (
+            partition by nullif(trim(e.email_prefix), '')
+            order by
+                e.is_on_job desc,
+                e.last_enroll_date desc nulls last,
+                e.display_number desc
+        ) as rn
+    from finance_dw.dim_finance_employee_df e
+    cross join runtime_parameters p
+    where e.dt = p.employee_snapshot_dt
+      and e.first_level_department_name = 'H业务线'
+      and e.is_main_job = 1
+      and nullif(trim(e.email_prefix), '') is not null
+),
+employee_org as (
+    select
+        employee_email_prefix,
+        xiaozu
+    from employee_org_ranked
+    where rn = 1
 ),
 private_partition as (
     select
@@ -176,6 +202,7 @@ app_prelead_base as (
         try_cast(f.user_id as bigint) as app_user_id,
         f.employee_email_name as tmk_consultant_name,
         f.employee_email_prefix as tmk_consultant_email_prefix,
+        e.xiaozu,
         try_cast(f.section_assign_time as timestamp) as tmk_assign_time,
         f.rule_name as raw_rule_name,
         case
@@ -242,6 +269,8 @@ app_prelead_base as (
     from app_prelead_source f
     left join biz_qici_calendar cal
       on f.source_qici_date between cal.period_start_date and cal.period_end_date
+    left join employee_org e
+      on nullif(trim(f.employee_email_prefix), '') = e.employee_email_prefix
 ),
 app_prelead as (
     select
@@ -257,6 +286,10 @@ app_prelead as (
             min_by(coalesce(tmk_consultant_name, '__NULL__'), app_sort_key),
             '__NULL__'
         ) as tmk_consultant_name,
+        nullif(
+            min_by(coalesce(xiaozu, '__NULL__'), app_sort_key),
+            '__NULL__'
+        ) as xiaozu,
         nullif(
             min_by(coalesce(tmk_consultant_email_prefix, '__NULL__'), app_sort_key),
             '__NULL__'
@@ -513,6 +546,7 @@ transfer_enriched as (
         end as qici_source,
         cast(p.first_receiver_time as date) as assign_day,
         a.tmk_consultant_name,
+        a.xiaozu,
         a.tmk_consultant_email_prefix,
         a.tmk_assign_time,
         a.tmk_first_department,
@@ -820,6 +854,7 @@ order_attribution as (
         max(qici) as qici,
         max(assign_day) as assign_day,
         max(tmk_consultant_name) as tmk_consultant_name,
+        max(xiaozu) as xiaozu,
         max(user_id) as user_id,
         max(lead_grade) as lead_grade,
         max(lead_channel) as lead_channel,
@@ -927,6 +962,7 @@ select
     o.qici,
     o.assign_day,
     o.tmk_consultant_name,
+    o.xiaozu,
     o.user_id,
     cast(o.transfer_lead_id as varchar) as transfer_lead_id,
     o.lead_grade,
