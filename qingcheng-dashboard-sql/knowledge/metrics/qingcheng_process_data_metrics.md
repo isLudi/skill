@@ -37,6 +37,7 @@
 | `first_call_in_24h` | `first_call_time_diff_hour between 0 and 24 and valid_lead_count > 0` | 24 小时内触达线索数 | 已从 SQL 入库 |
 | `first_call_in_48h` | `first_call_time_diff_hour between 0 and 48 and valid_lead_count > 0` | 48 小时内触达线索数 | 已从 SQL 入库 |
 | `first_call_cnt` | `first_call_time_diff_hour between 0 and 168 and valid_lead_count > 0` | 168 小时内触达线索数 | 已从 SQL 入库 |
+| `cumulative_first_call_cnt` | `first_call_time_diff_hour >= 0 and valid_lead_count > 0` | 不限制168小时的累计首call人数；仍要求首call发生在分配之后 | 已从历史SQL入库 |
 
 ## 5. 首次沟通指标
 

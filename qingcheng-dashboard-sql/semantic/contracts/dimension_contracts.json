@@ -81,7 +81,10 @@
       "data_type": "string",
       "automatic_compile": true,
       "sql_expression": "case when replace(coalesce({base}.rule_name, ''), ' ', '') like '%青橙IP-招生退费-春春%' or replace(coalesce({base}.rule_name, ''), ' ', '') like '%青橙IP-招生退费-朱博士%' or replace(coalesce({base}.rule_name, ''), ' ', '') like '%青橙IP-招生退费-郭艺%' then 'IP退费' when {base}.rule_name like '%抖音正价退费%' then '抖音复用' when {base}.rule_name like '%赠失-星义%' or {base}.rule_name like '%赠失-朱博士%' or {base}.rule_name like '%赠失-春春%' or {base}.rule_name like '%赠失-郭艺%' or {base}.rule_name like '%赠失-亚飞%' or {base}.rule_name like '%青橙IP%' then concat('IP', chr(36192), chr(35838), chr(22833), chr(36133)) when {base}.rule_name like '%私域本地化%' or {base}.rule_name like '%河南本地化%' or {base}.rule_name like '%青橙本地化%' then '本地化' when {base}.rule_name like '%私域会话%' or {base}.rule_name like '%私域表单%' or {base}.rule_name like '%私域品效%' or {base}.rule_name like '%私域图书%' then '私域' when {base}.rule_name like '%公域学霸%' or {base}.rule_name like '%青橙公域%' then '公域' when {base}.rule_name like '%武汉图书%' or {base}.rule_name like '%西安图书%' then '图书' when {base}.rule_name like '%亚飞IP%' then '主讲IP' when {base}.rule_name like '%SEC未加好友%' or {base}.rule_name like '%SEC首期掉海%' or {base}.rule_name like '%SEC招生退费%' or {base}.rule_name like '%招生退费%' then '订单复用' when {base}.rule_name like '%顾问未加好友%' or {base}.rule_name like '%青橙公海%' then '公海' when {base}.rule_name like '%抖音私信%' then '抖音私信' when {base}.rule_name like '%进校9元%' or {base}.rule_name like '%进校%' then '进校9元' end",
-      "description": "2064 data CTE 的一级渠道派生维度；普通线索 IP 招生退费三人规则优先输出 IP退费，其余输出名称按图片标准渠道表重命名。2460 与 2740 的对应渠道 CASE 必须同步。"
+      "description": "2064 data CTE 的一级渠道派生维度；普通线索 IP 招生退费三人规则优先输出 IP退费，其余输出名称按图片标准渠道表重命名。2460 与 2740 的对应渠道 CASE 必须同步。",
+      "candidate_tables": [
+        "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf"
+      ]
     },
     {
       "id": "qingcheng:dimension:process_channel_level_2",
@@ -100,7 +103,10 @@
       "data_type": "string",
       "automatic_compile": true,
       "sql_expression": "case when replace(coalesce({base}.rule_name, ''), ' ', '') like '%青橙IP-招生退费-春春%' then '春春' when replace(coalesce({base}.rule_name, ''), ' ', '') like '%青橙IP-招生退费-朱博士%' then '朱博士' when replace(coalesce({base}.rule_name, ''), ' ', '') like '%青橙IP-招生退费-郭艺%' then '郭艺' when {base}.rule_name like '%抖音正价退费%' then '抖音正价退费' when {base}.rule_name like '%赠失-星义%' then '星义IP' when {base}.rule_name like '%赠失-朱博士%' then '朱博士IP' when {base}.rule_name like '%赠失-春春%' then '春春IP' when {base}.rule_name like '%赠失-郭艺%' then '郭艺IP' when {base}.rule_name like '%赠失-亚飞%' then '亚飞IP' when {base}.rule_name like '%青橙IP%' then '亚飞IP' when {base}.rule_name like '%私域会话%' then '私域会话' when {base}.rule_name like '%私域表单%' then '私域表单' when {base}.rule_name like '%私域图书%' then '私域图书' when {base}.rule_name like '%私域品效%' then '私域品效' when {base}.rule_name like '%私域本地化%' then '私域本地化' when {base}.rule_name like '%河南本地化%' or {base}.rule_name like '%青橙本地化%' then '河南本地化' when {base}.rule_name like '%亚飞IP%' then '亚飞IP' when {base}.rule_name like '%SEC未加好友%' then 'SEC未加好友' when {base}.rule_name like '%SEC首期掉海%' then 'SEC首期掉海' when {base}.rule_name like '%SEC招生退费%' or {base}.rule_name like '%招生退费%' then 'SEC招生退费' when {base}.rule_name like '%顾问未加好友%' or {base}.rule_name like '%青橙公海%' then '顾问未加好友' when {base}.rule_name like '%武汉图书%' then '武汉图书' when {base}.rule_name like '%西安图书%' then '西安图书' when {base}.rule_name like '%公域学霸%' or {base}.rule_name like '%青橙公域%' then '公域学霸' when {base}.rule_name like '%抖音私信%' then '抖音私信' when {base}.rule_name like '%进校9元%' or {base}.rule_name like '%进校%' then '进校9元' end",
-      "description": "2064 data CTE 的二级渠道派生维度；普通线索 IP 招生退费三人规则优先输出春春、朱博士、郭艺，其余输出名称按图片标准渠道表重命名。2460 与 2740 的对应渠道 CASE 必须同步。"
+      "description": "2064 data CTE 的二级渠道派生维度；普通线索 IP 招生退费三人规则优先输出春春、朱博士、郭艺，其余输出名称按图片标准渠道表重命名。2460 与 2740 的对应渠道 CASE 必须同步。",
+      "candidate_tables": [
+        "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf"
+      ]
     },
     {
       "id": "qingcheng:dimension:section_consultant",
@@ -117,7 +123,10 @@
       "field": "employee_email_name",
       "table": "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
       "data_type": "string",
-      "description": "线索分配侧员工姓名/邮箱名；不得与订单业绩归属顾问静默互换。"
+      "description": "线索分配侧员工姓名/邮箱名；不得与订单业绩归属顾问静默互换。",
+      "candidate_tables": [
+        "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf"
+      ]
     },
     {
       "id": "qingcheng:dimension:order_user_id",
@@ -194,15 +203,142 @@
         "退费原因",
         "refund_reason"
       ],
-      "status": "pending_confirmation",
+      "status": "confirmed",
       "automatic_compile": false,
       "source_path": "knowledge/metrics/qingcheng_refund_reason_metrics.md",
-      "source_sha256": "2777c300e9593fb209b916c6992d067628cbb248e5481bd444b813364981daee",
-      "description": "Q1 从财务退款原因明细读取；空原因归未获取到退费原因，退款类型枚举和原因事务粒度仍待确认。",
+      "source_sha256": "94e29ddc33d5ca7aa804acd4390859ddb51331c633243de05eb5f5b3bfaf5b38",
+      "description": "从财务退款原因明细读取；空原因归未获取到退费原因；业务已确认退款类型范围 refund_type in (1, 2) 和原因粒度。",
       "field": "refund_reason",
       "table": "finance_dw.dwd_finance_order_refund_df",
       "data_type": "string",
-      "notes": "仅允许候选解释和人工 SQL 计划。"
+      "notes": "已确认：退款类型范围、原因金额分摊规则和 500 元人头阈值。"
+    },
+    {
+      "id": "qingcheng:dimension:result_period_name",
+      "name": "青橙过程结果期次",
+      "aliases": [
+        "结果期次",
+        "过程期次",
+        "qici"
+      ],
+      "status": "confirmed",
+      "automatic_compile": false,
+      "source_path": "knowledge/sql_patterns/qingcheng_period_channel_process_export_template.md",
+      "source_sha256": "6e1c189f74bc804ebfdfe01747533188350261d16f17b7cda6ee12ade175f3cb",
+      "field": "qici",
+      "table": "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+      "data_type": "string",
+      "description": "过程数据结果期次；暑期指定期次优先按青橙业务日历映射，普通自然周规则只作兜底。",
+      "candidate_tables": [
+        "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf"
+      ]
+    },
+    {
+      "id": "qingcheng:dimension:process_rule_name",
+      "name": "青橙过程规则",
+      "aliases": [
+        "规则",
+        "规则名称",
+        "rule_name"
+      ],
+      "status": "confirmed",
+      "automatic_compile": true,
+      "source_path": "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
+      "source_sha256": "ea297289bbf05ad5b909599e458e221c60a664b13321d407f2c6e9f42d3554b1",
+      "field": "rule_name",
+      "table": "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+      "data_type": "string",
+      "description": "线索分配规则原始字段，用于青橙过程渠道和年级映射。",
+      "candidate_tables": [
+        "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf"
+      ]
+    },
+    {
+      "id": "qingcheng:dimension:assign_day",
+      "name": "青橙分配日期",
+      "aliases": [
+        "分配日期",
+        "assign_day"
+      ],
+      "status": "confirmed",
+      "automatic_compile": false,
+      "source_path": "knowledge/sql_patterns/qingcheng_period_channel_process_export_template.md",
+      "source_sha256": "6e1c189f74bc804ebfdfe01747533188350261d16f17b7cda6ee12ade175f3cb",
+      "field": "assign_day",
+      "table": "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+      "data_type": "string",
+      "description": "section_assign_time 的日期部分，保留过程导出维度。",
+      "candidate_tables": [
+        "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf"
+      ]
+    },
+    {
+      "id": "qingcheng:dimension:grade_1",
+      "name": "青橙过程年级",
+      "aliases": [
+        "年级",
+        "过程年级",
+        "grade_1"
+      ],
+      "status": "confirmed",
+      "automatic_compile": false,
+      "source_path": "knowledge/sql_patterns/qingcheng_period_channel_process_export_template.md",
+      "source_sha256": "6e1c189f74bc804ebfdfe01747533188350261d16f17b7cda6ee12ade175f3cb",
+      "field": "grade_1",
+      "table": "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+      "data_type": "string",
+      "description": "优先从规则名映射高一/高二/高三/初二/初三，否则使用线索意向年级字段。",
+      "candidate_tables": [
+        "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf"
+      ]
+    },
+    {
+      "id": "qingcheng:dimension:department",
+      "name": "青橙学部",
+      "aliases": [
+        "学部",
+        "department"
+      ],
+      "status": "confirmed",
+      "automatic_compile": false,
+      "source_path": "knowledge/sql_patterns/qingcheng_period_channel_process_export_template.md",
+      "source_sha256": "6e1c189f74bc804ebfdfe01747533188350261d16f17b7cda6ee12ade175f3cb",
+      "field": "department",
+      "table": "temp_table.dingxi01_jiagou_db",
+      "data_type": "string",
+      "description": "按结果期次和顾问关联青橙架构表后的学部字段。"
+    },
+    {
+      "id": "qingcheng:dimension:dept_2",
+      "name": "青橙团队",
+      "aliases": [
+        "团队",
+        "dept_2"
+      ],
+      "status": "confirmed",
+      "automatic_compile": false,
+      "source_path": "knowledge/sql_patterns/qingcheng_period_channel_process_export_template.md",
+      "source_sha256": "6e1c189f74bc804ebfdfe01747533188350261d16f17b7cda6ee12ade175f3cb",
+      "field": "dept_2",
+      "table": "temp_table.dingxi01_jiagou_db",
+      "data_type": "string",
+      "description": "按结果期次和顾问关联青橙架构表后的团队字段。"
+    },
+    {
+      "id": "qingcheng:dimension:xiaozu",
+      "name": "青橙主管",
+      "aliases": [
+        "主管",
+        "xiaozu"
+      ],
+      "status": "confirmed",
+      "automatic_compile": false,
+      "source_path": "knowledge/sql_patterns/qingcheng_period_channel_process_export_template.md",
+      "source_sha256": "6e1c189f74bc804ebfdfe01747533188350261d16f17b7cda6ee12ade175f3cb",
+      "field": "xiaozu",
+      "table": "temp_table.dingxi01_jiagou_db",
+      "data_type": "string",
+      "description": "按结果期次和顾问关联青橙架构表后的主管字段。"
     }
   ]
 }

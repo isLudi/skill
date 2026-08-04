@@ -19,7 +19,8 @@
       "aggregation": "sum",
       "automatic_compile": true,
       "candidate_tables": [
-        "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df"
+        "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+        "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf"
       ],
       "calculation_grain": "lead_id",
       "allowed_dimensions": [
@@ -28,7 +29,14 @@
         "qingcheng:dimension:channel_name_2",
         "qingcheng:dimension:process_channel_level_1",
         "qingcheng:dimension:process_channel_level_2",
-        "qingcheng:dimension:section_consultant"
+        "qingcheng:dimension:section_consultant",
+        "qingcheng:dimension:result_period_name",
+        "qingcheng:dimension:process_rule_name",
+        "qingcheng:dimension:assign_day",
+        "qingcheng:dimension:grade_1",
+        "qingcheng:dimension:department",
+        "qingcheng:dimension:dept_2",
+        "qingcheng:dimension:xiaozu"
       ],
       "required_scope_fields": [
         "dt",
@@ -50,7 +58,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/qingcheng_process_data_metrics.md",
-      "source_sha256": "28e2727e9d8e0ad6b78239691cbb8c7c2f6f356980b723b6f840b050529ca923",
+      "source_sha256": "06150071753aacc75253d9e00e436c0f9eff94726f83205f7967da85f9506b31",
       "description": "同一线索/用户分组中，第 1 讲存在 live_learn_duration>0 的学习明细即记为 1；汇总前必须先压缩为明细标记。",
       "sql_expression": "MAX(CASE WHEN CAST({base}.ke_1 AS VARCHAR) = '1' AND {base}.live_learn_duration > 0 THEN 1 ELSE 0 END)",
       "output_alias": "daoke1",
@@ -66,7 +74,16 @@
         "qingcheng:dimension:user_id",
         "qingcheng:dimension:period_name",
         "qingcheng:dimension:channel_name_2",
-        "qingcheng:dimension:section_consultant"
+        "qingcheng:dimension:section_consultant",
+        "qingcheng:dimension:result_period_name",
+        "qingcheng:dimension:process_rule_name",
+        "qingcheng:dimension:assign_day",
+        "qingcheng:dimension:process_channel_level_1",
+        "qingcheng:dimension:process_channel_level_2",
+        "qingcheng:dimension:grade_1",
+        "qingcheng:dimension:department",
+        "qingcheng:dimension:dept_2",
+        "qingcheng:dimension:xiaozu"
       ],
       "required_scope_fields": [
         "dt",
@@ -86,7 +103,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/qingcheng_process_data_metrics.md",
-      "source_sha256": "28e2727e9d8e0ad6b78239691cbb8c7c2f6f356980b723b6f840b050529ca923",
+      "source_sha256": "06150071753aacc75253d9e00e436c0f9eff94726f83205f7967da85f9506b31",
       "description": "同一线索/用户分组中，第 1 讲存在 is_valid_live_learn=1 的学习明细即记为 1；汇总前必须先压缩为明细标记。",
       "sql_expression": "MAX(CASE WHEN CAST({base}.ke_1 AS VARCHAR) = '1' AND CAST({base}.is_valid_live_learn AS VARCHAR) = '1' THEN 1 ELSE 0 END)",
       "output_alias": "valid_daoke_1",
@@ -102,7 +119,16 @@
         "qingcheng:dimension:user_id",
         "qingcheng:dimension:period_name",
         "qingcheng:dimension:channel_name_2",
-        "qingcheng:dimension:section_consultant"
+        "qingcheng:dimension:section_consultant",
+        "qingcheng:dimension:result_period_name",
+        "qingcheng:dimension:process_rule_name",
+        "qingcheng:dimension:assign_day",
+        "qingcheng:dimension:process_channel_level_1",
+        "qingcheng:dimension:process_channel_level_2",
+        "qingcheng:dimension:grade_1",
+        "qingcheng:dimension:department",
+        "qingcheng:dimension:dept_2",
+        "qingcheng:dimension:xiaozu"
       ],
       "required_scope_fields": [
         "dt",
@@ -302,18 +328,36 @@
         "退费原因金额",
         "按原因分摊退费金额"
       ],
-      "status": "pending_confirmation",
+      "status": "confirmed",
       "automatic_compile": false,
       "source_path": "knowledge/metrics/qingcheng_refund_reason_metrics.md",
-      "source_sha256": "2777c300e9593fb209b916c6992d067628cbb248e5481bd444b813364981daee",
-      "description": "Q1 将青橙订单退款金额按财务原因源金额比例分摊；无权重时均分，无原因时归未获取到退费原因。",
+      "source_sha256": "94e29ddc33d5ca7aa804acd4390859ddb51331c633243de05eb5f5b3bfaf5b38",
+      "description": "按财务退款原因源金额占比，将青橙订单退款金额分摊到每个退款原因；原因源金额合计为 0 时等额分摊；无原因时归未获取到退费原因。退款类型范围固定为 refund_type in (1, 2)。",
       "candidate_tables": [
         "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
         "finance_dw.dwd_finance_order_refund_df",
         "temp_table.dingxi01_qing_team_jg"
       ],
       "calculation_grain": "qici + order_number + refund_reason, then user + refund_reason",
-      "notes": "原因权重、refund_type 枚举、渠道 CASE 和结果期次架构仍待确认。"
+      "notes": "业务已确认退款类型范围、原因金额分摊规则和 500 元退费正价课人头阈值；仍需执行订单级金额守恒和用户级去重。",
+      "sql_expression": "SUM({base}.refund_amount)",
+      "output_alias": "refund_reason_amount",
+      "aggregation": "sum",
+      "allowed_dimensions": [
+        "qingcheng:dimension:period_name",
+        "qingcheng:dimension:process_channel_level_1",
+        "qingcheng:dimension:process_channel_level_2",
+        "qingcheng:dimension:performance_consultant",
+        "qingcheng:dimension:grade_name",
+        "qingcheng:dimension:order_user_id",
+        "qingcheng:dimension:refund_reason"
+      ],
+      "required_scope_fields": [
+        "dt",
+        "performance_second_level_department_name",
+        "course_first_level_department_name",
+        "course_second_level_department_name"
+      ]
     },
     {
       "id": "qingcheng:metric:tmk_transfer_lead_count",
@@ -497,6 +541,533 @@
         "hour"
       ],
       "notes": "分母为 0 时返回空值；禁止以 matched_order_count 作为析出数。"
+    },
+    {
+      "id": "qingcheng:metric:friend_leads",
+      "name": "青橙加微线索数",
+      "aliases": [
+        "好友数",
+        "加微数",
+        "is_friend_lead"
+      ],
+      "status": "confirmed",
+      "automatic_compile": false,
+      "source_path": "knowledge/metrics/qingcheng_process_data_metrics.md",
+      "source_sha256": "06150071753aacc75253d9e00e436c0f9eff94726f83205f7967da85f9506b31",
+      "description": "有效线索中 friend_lead_count 的加总；保留历史过程导出字段语义。",
+      "sql_expression": "SUM(CASE WHEN CAST({base}.valid_lead_count AS VARCHAR) = '1' THEN COALESCE(CAST({base}.friend_lead_count AS BIGINT), 0) ELSE 0 END)",
+      "output_alias": "is_friend_lead",
+      "aggregation": "sum",
+      "candidate_tables": [
+        "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+        "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf"
+      ],
+      "calculation_grain": "lead_id",
+      "allowed_dimensions": [
+        "qingcheng:dimension:result_period_name",
+        "qingcheng:dimension:process_rule_name",
+        "qingcheng:dimension:assign_day",
+        "qingcheng:dimension:process_channel_level_1",
+        "qingcheng:dimension:process_channel_level_2",
+        "qingcheng:dimension:grade_1",
+        "qingcheng:dimension:department",
+        "qingcheng:dimension:dept_2",
+        "qingcheng:dimension:xiaozu",
+        "qingcheng:dimension:section_consultant"
+      ],
+      "required_scope_fields": [
+        "dt",
+        "hour"
+      ]
+    },
+    {
+      "id": "qingcheng:metric:first_call_time_diff_hour",
+      "name": "青橙首call等待时长小时",
+      "aliases": [
+        "首call等待时长",
+        "first_call_time_diff_hour"
+      ],
+      "status": "confirmed",
+      "automatic_compile": false,
+      "source_path": "knowledge/metrics/qingcheng_process_data_metrics.md",
+      "source_sha256": "06150071753aacc75253d9e00e436c0f9eff94726f83205f7967da85f9506b31",
+      "description": "分配时间到首次外呼时间的小时差，按历史过程导出在最终粒度求和；该字段用于兼容旧Excel，分析性统计需另行确认。",
+      "sql_expression": "SUM(date_diff('hour', CAST({base}.section_assign_time AS timestamp), CAST({base}.first_call_time AS timestamp)))",
+      "output_alias": "first_call_time_diff_hour",
+      "aggregation": "sum",
+      "candidate_tables": [
+        "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+        "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf"
+      ],
+      "calculation_grain": "lead_id",
+      "allowed_dimensions": [
+        "qingcheng:dimension:result_period_name",
+        "qingcheng:dimension:process_rule_name",
+        "qingcheng:dimension:assign_day",
+        "qingcheng:dimension:process_channel_level_1",
+        "qingcheng:dimension:process_channel_level_2",
+        "qingcheng:dimension:grade_1",
+        "qingcheng:dimension:department",
+        "qingcheng:dimension:dept_2",
+        "qingcheng:dimension:xiaozu",
+        "qingcheng:dimension:section_consultant"
+      ],
+      "required_scope_fields": [
+        "dt",
+        "hour"
+      ]
+    },
+    {
+      "id": "qingcheng:metric:first_call_in_24h",
+      "name": "青橙24小时首call人数",
+      "aliases": [
+        "24h首call人数",
+        "first_call_in_24h"
+      ],
+      "status": "confirmed",
+      "automatic_compile": false,
+      "source_path": "knowledge/metrics/qingcheng_process_data_metrics.md",
+      "source_sha256": "06150071753aacc75253d9e00e436c0f9eff94726f83205f7967da85f9506b31",
+      "description": "分配后0至24小时完成首call且为有效线索的标记。",
+      "sql_expression": "SUM(CASE WHEN {base}.first_call_time_diff_hour BETWEEN 0 AND 24 AND CAST({base}.valid_lead_count AS VARCHAR) = '1' THEN 1 ELSE 0 END)",
+      "output_alias": "first_call_in_24h",
+      "aggregation": "sum",
+      "candidate_tables": [
+        "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+        "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf"
+      ],
+      "calculation_grain": "lead_id",
+      "allowed_dimensions": [
+        "qingcheng:dimension:result_period_name",
+        "qingcheng:dimension:process_rule_name",
+        "qingcheng:dimension:assign_day",
+        "qingcheng:dimension:process_channel_level_1",
+        "qingcheng:dimension:process_channel_level_2",
+        "qingcheng:dimension:grade_1",
+        "qingcheng:dimension:department",
+        "qingcheng:dimension:dept_2",
+        "qingcheng:dimension:xiaozu",
+        "qingcheng:dimension:section_consultant"
+      ],
+      "required_scope_fields": [
+        "dt",
+        "hour"
+      ]
+    },
+    {
+      "id": "qingcheng:metric:first_call_in_48h",
+      "name": "青橙48小时首call人数",
+      "aliases": [
+        "48h首call人数",
+        "first_call_in_48h"
+      ],
+      "status": "confirmed",
+      "automatic_compile": false,
+      "source_path": "knowledge/metrics/qingcheng_process_data_metrics.md",
+      "source_sha256": "06150071753aacc75253d9e00e436c0f9eff94726f83205f7967da85f9506b31",
+      "description": "分配后0至48小时完成首call且为有效线索的标记。",
+      "sql_expression": "SUM(CASE WHEN {base}.first_call_time_diff_hour BETWEEN 0 AND 48 AND CAST({base}.valid_lead_count AS VARCHAR) = '1' THEN 1 ELSE 0 END)",
+      "output_alias": "first_call_in_48h",
+      "aggregation": "sum",
+      "candidate_tables": [
+        "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+        "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf"
+      ],
+      "calculation_grain": "lead_id",
+      "allowed_dimensions": [
+        "qingcheng:dimension:result_period_name",
+        "qingcheng:dimension:process_rule_name",
+        "qingcheng:dimension:assign_day",
+        "qingcheng:dimension:process_channel_level_1",
+        "qingcheng:dimension:process_channel_level_2",
+        "qingcheng:dimension:grade_1",
+        "qingcheng:dimension:department",
+        "qingcheng:dimension:dept_2",
+        "qingcheng:dimension:xiaozu",
+        "qingcheng:dimension:section_consultant"
+      ],
+      "required_scope_fields": [
+        "dt",
+        "hour"
+      ]
+    },
+    {
+      "id": "qingcheng:metric:first_call_7d",
+      "name": "青橙7天首call人数",
+      "aliases": [
+        "首call人数",
+        "7天首call人数",
+        "first_call_cnt"
+      ],
+      "status": "confirmed",
+      "automatic_compile": false,
+      "source_path": "knowledge/metrics/qingcheng_process_data_metrics.md",
+      "source_sha256": "06150071753aacc75253d9e00e436c0f9eff94726f83205f7967da85f9506b31",
+      "description": "分配后0至168小时完成首call且为有效线索的标记。",
+      "sql_expression": "SUM(CASE WHEN {base}.first_call_time_diff_hour BETWEEN 0 AND 168 AND CAST({base}.valid_lead_count AS VARCHAR) = '1' THEN 1 ELSE 0 END)",
+      "output_alias": "first_call_cnt",
+      "aggregation": "sum",
+      "candidate_tables": [
+        "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+        "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf"
+      ],
+      "calculation_grain": "lead_id",
+      "allowed_dimensions": [
+        "qingcheng:dimension:result_period_name",
+        "qingcheng:dimension:process_rule_name",
+        "qingcheng:dimension:assign_day",
+        "qingcheng:dimension:process_channel_level_1",
+        "qingcheng:dimension:process_channel_level_2",
+        "qingcheng:dimension:grade_1",
+        "qingcheng:dimension:department",
+        "qingcheng:dimension:dept_2",
+        "qingcheng:dimension:xiaozu",
+        "qingcheng:dimension:section_consultant"
+      ],
+      "required_scope_fields": [
+        "dt",
+        "hour"
+      ]
+    },
+    {
+      "id": "qingcheng:metric:cumulative_first_call",
+      "name": "青橙累计首call人数",
+      "aliases": [
+        "累计首call人数",
+        "cumulative_first_call_cnt"
+      ],
+      "status": "confirmed",
+      "automatic_compile": false,
+      "source_path": "knowledge/metrics/qingcheng_process_data_metrics.md",
+      "source_sha256": "06150071753aacc75253d9e00e436c0f9eff94726f83205f7967da85f9506b31",
+      "description": "不限制168小时，只要求首次外呼发生在分配之后且为有效线索。",
+      "sql_expression": "SUM(CASE WHEN {base}.first_call_time_diff_hour >= 0 AND CAST({base}.valid_lead_count AS VARCHAR) = '1' THEN 1 ELSE 0 END)",
+      "output_alias": "cumulative_first_call_cnt",
+      "aggregation": "sum",
+      "candidate_tables": [
+        "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+        "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf"
+      ],
+      "calculation_grain": "lead_id",
+      "allowed_dimensions": [
+        "qingcheng:dimension:result_period_name",
+        "qingcheng:dimension:process_rule_name",
+        "qingcheng:dimension:assign_day",
+        "qingcheng:dimension:process_channel_level_1",
+        "qingcheng:dimension:process_channel_level_2",
+        "qingcheng:dimension:grade_1",
+        "qingcheng:dimension:department",
+        "qingcheng:dimension:dept_2",
+        "qingcheng:dimension:xiaozu",
+        "qingcheng:dimension:section_consultant"
+      ],
+      "required_scope_fields": [
+        "dt",
+        "hour"
+      ]
+    },
+    {
+      "id": "qingcheng:metric:first_connected_in_24h",
+      "name": "青橙24小时沟通人数",
+      "aliases": [
+        "24h沟通人数",
+        "first_call_connected_in_24h"
+      ],
+      "status": "confirmed",
+      "automatic_compile": false,
+      "source_path": "knowledge/metrics/qingcheng_process_data_metrics.md",
+      "source_sha256": "06150071753aacc75253d9e00e436c0f9eff94726f83205f7967da85f9506b31",
+      "description": "分配后0至24小时首次接通且为有效线索的标记。",
+      "sql_expression": "SUM(CASE WHEN {base}.first_call_connected_time_diff_hour_1 BETWEEN 0 AND 24 AND CAST({base}.valid_lead_count AS VARCHAR) = '1' THEN 1 ELSE 0 END)",
+      "output_alias": "first_call_connected_in_24h",
+      "aggregation": "sum",
+      "candidate_tables": [
+        "service_dw.dm_crm_lead_stats_detail_hf",
+        "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf"
+      ],
+      "calculation_grain": "lead_id",
+      "allowed_dimensions": [
+        "qingcheng:dimension:result_period_name",
+        "qingcheng:dimension:process_rule_name",
+        "qingcheng:dimension:assign_day",
+        "qingcheng:dimension:process_channel_level_1",
+        "qingcheng:dimension:process_channel_level_2",
+        "qingcheng:dimension:grade_1",
+        "qingcheng:dimension:department",
+        "qingcheng:dimension:dept_2",
+        "qingcheng:dimension:xiaozu",
+        "qingcheng:dimension:section_consultant"
+      ],
+      "required_scope_fields": [
+        "dt",
+        "hour"
+      ]
+    },
+    {
+      "id": "qingcheng:metric:first_connected_in_48h",
+      "name": "青橙48小时沟通人数",
+      "aliases": [
+        "48h沟通人数",
+        "first_call_connected_in_48h"
+      ],
+      "status": "confirmed",
+      "automatic_compile": false,
+      "source_path": "knowledge/metrics/qingcheng_process_data_metrics.md",
+      "source_sha256": "06150071753aacc75253d9e00e436c0f9eff94726f83205f7967da85f9506b31",
+      "description": "分配后0至48小时首次接通且为有效线索的标记。",
+      "sql_expression": "SUM(CASE WHEN {base}.first_call_connected_time_diff_hour_1 BETWEEN 0 AND 48 AND CAST({base}.valid_lead_count AS VARCHAR) = '1' THEN 1 ELSE 0 END)",
+      "output_alias": "first_call_connected_in_48h",
+      "aggregation": "sum",
+      "candidate_tables": [
+        "service_dw.dm_crm_lead_stats_detail_hf",
+        "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf"
+      ],
+      "calculation_grain": "lead_id",
+      "allowed_dimensions": [
+        "qingcheng:dimension:result_period_name",
+        "qingcheng:dimension:process_rule_name",
+        "qingcheng:dimension:assign_day",
+        "qingcheng:dimension:process_channel_level_1",
+        "qingcheng:dimension:process_channel_level_2",
+        "qingcheng:dimension:grade_1",
+        "qingcheng:dimension:department",
+        "qingcheng:dimension:dept_2",
+        "qingcheng:dimension:xiaozu",
+        "qingcheng:dimension:section_consultant"
+      ],
+      "required_scope_fields": [
+        "dt",
+        "hour"
+      ]
+    },
+    {
+      "id": "qingcheng:metric:first_connected_7d",
+      "name": "青橙7天沟通人数",
+      "aliases": [
+        "沟通人数",
+        "7天沟通人数",
+        "first_call_connected_cnt"
+      ],
+      "status": "confirmed",
+      "automatic_compile": false,
+      "source_path": "knowledge/metrics/qingcheng_process_data_metrics.md",
+      "source_sha256": "06150071753aacc75253d9e00e436c0f9eff94726f83205f7967da85f9506b31",
+      "description": "分配后0至168小时首次接通且为有效线索的标记。",
+      "sql_expression": "SUM(CASE WHEN {base}.first_call_connected_time_diff_hour_1 BETWEEN 0 AND 168 AND CAST({base}.valid_lead_count AS VARCHAR) = '1' THEN 1 ELSE 0 END)",
+      "output_alias": "first_call_connected_cnt",
+      "aggregation": "sum",
+      "candidate_tables": [
+        "service_dw.dm_crm_lead_stats_detail_hf",
+        "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf"
+      ],
+      "calculation_grain": "lead_id",
+      "allowed_dimensions": [
+        "qingcheng:dimension:result_period_name",
+        "qingcheng:dimension:process_rule_name",
+        "qingcheng:dimension:assign_day",
+        "qingcheng:dimension:process_channel_level_1",
+        "qingcheng:dimension:process_channel_level_2",
+        "qingcheng:dimension:grade_1",
+        "qingcheng:dimension:department",
+        "qingcheng:dimension:dept_2",
+        "qingcheng:dimension:xiaozu",
+        "qingcheng:dimension:section_consultant"
+      ],
+      "required_scope_fields": [
+        "dt",
+        "hour"
+      ]
+    },
+    {
+      "id": "qingcheng:metric:outbound_duration",
+      "name": "青橙外呼总通时",
+      "aliases": [
+        "总通时",
+        "外呼时长",
+        "call_duration"
+      ],
+      "status": "confirmed",
+      "automatic_compile": false,
+      "source_path": "knowledge/metrics/qingcheng_process_data_metrics.md",
+      "source_sha256": "06150071753aacc75253d9e00e436c0f9eff94726f83205f7967da85f9506b31",
+      "description": "外呼通话秒数按线索/顾问聚合后除以60，最终单位为分钟。",
+      "sql_expression": "SUM(COALESCE({base}.call_duration, 0) / 60.0)",
+      "output_alias": "call_duration",
+      "aggregation": "sum",
+      "candidate_tables": [
+        "service_dw.app_h_crm_lead_employee_workload_detail_hf"
+      ],
+      "calculation_grain": "user_number + lead_id + section_assign_employee_email_prefix",
+      "allowed_dimensions": [
+        "qingcheng:dimension:result_period_name",
+        "qingcheng:dimension:process_rule_name",
+        "qingcheng:dimension:assign_day",
+        "qingcheng:dimension:process_channel_level_1",
+        "qingcheng:dimension:process_channel_level_2",
+        "qingcheng:dimension:grade_1",
+        "qingcheng:dimension:department",
+        "qingcheng:dimension:dept_2",
+        "qingcheng:dimension:xiaozu",
+        "qingcheng:dimension:section_consultant"
+      ],
+      "required_scope_fields": [
+        "dt",
+        "hour"
+      ]
+    },
+    {
+      "id": "qingcheng:metric:long_call_leads",
+      "name": "青橙8min人数",
+      "aliases": [
+        "8min人数",
+        "长通话人数",
+        "is_long_call"
+      ],
+      "status": "confirmed",
+      "automatic_compile": false,
+      "source_path": "knowledge/metrics/qingcheng_process_data_metrics.md",
+      "source_sha256": "06150071753aacc75253d9e00e436c0f9eff94726f83205f7967da85f9506b31",
+      "description": "同一线索/顾问组合内存在单次通话超过480秒则标记1，最终求和。",
+      "sql_expression": "SUM(MAX(CASE WHEN {base}.call_duration > 480 THEN 1 ELSE 0 END))",
+      "output_alias": "is_long_call",
+      "aggregation": "max_then_sum",
+      "candidate_tables": [
+        "service_dw.app_h_crm_lead_employee_workload_detail_hf"
+      ],
+      "calculation_grain": "user_number + lead_id + section_assign_employee_email_prefix",
+      "allowed_dimensions": [
+        "qingcheng:dimension:result_period_name",
+        "qingcheng:dimension:process_rule_name",
+        "qingcheng:dimension:assign_day",
+        "qingcheng:dimension:process_channel_level_1",
+        "qingcheng:dimension:process_channel_level_2",
+        "qingcheng:dimension:grade_1",
+        "qingcheng:dimension:department",
+        "qingcheng:dimension:dept_2",
+        "qingcheng:dimension:xiaozu",
+        "qingcheng:dimension:section_consultant"
+      ],
+      "required_scope_fields": [
+        "dt",
+        "hour"
+      ]
+    },
+    {
+      "id": "qingcheng:metric:outbound_call_count",
+      "name": "青橙外呼次数",
+      "aliases": [
+        "外呼次数",
+        "外呼频次分子",
+        "zong_call_ci"
+      ],
+      "status": "confirmed",
+      "automatic_compile": false,
+      "source_path": "knowledge/metrics/qingcheng_process_data_metrics.md",
+      "source_sha256": "06150071753aacc75253d9e00e436c0f9eff94726f83205f7967da85f9506b31",
+      "description": "call_status为0或1的外呼事件数量。",
+      "sql_expression": "SUM(CASE WHEN {base}.call_status IN ('1', '0') THEN 1 ELSE 0 END)",
+      "output_alias": "zong_call_ci",
+      "aggregation": "sum",
+      "candidate_tables": [
+        "service_dw.app_h_crm_lead_employee_workload_detail_hf"
+      ],
+      "calculation_grain": "user_number + lead_id + section_assign_employee_email_prefix",
+      "allowed_dimensions": [
+        "qingcheng:dimension:result_period_name",
+        "qingcheng:dimension:process_rule_name",
+        "qingcheng:dimension:assign_day",
+        "qingcheng:dimension:process_channel_level_1",
+        "qingcheng:dimension:process_channel_level_2",
+        "qingcheng:dimension:grade_1",
+        "qingcheng:dimension:department",
+        "qingcheng:dimension:dept_2",
+        "qingcheng:dimension:xiaozu",
+        "qingcheng:dimension:section_consultant"
+      ],
+      "required_scope_fields": [
+        "dt",
+        "hour"
+      ]
+    },
+    {
+      "id": "qingcheng:metric:outbound_connected_count",
+      "name": "青橙外呼接通次数",
+      "aliases": [
+        "外呼接通次数",
+        "接通次数",
+        "call_status"
+      ],
+      "status": "confirmed",
+      "automatic_compile": false,
+      "source_path": "knowledge/metrics/qingcheng_process_data_metrics.md",
+      "source_sha256": "06150071753aacc75253d9e00e436c0f9eff94726f83205f7967da85f9506b31",
+      "description": "call_status为1的外呼接通事件数量。",
+      "sql_expression": "SUM(CASE WHEN {base}.call_status = '1' THEN 1 ELSE 0 END)",
+      "output_alias": "call_status",
+      "aggregation": "sum",
+      "candidate_tables": [
+        "service_dw.app_h_crm_lead_employee_workload_detail_hf"
+      ],
+      "calculation_grain": "user_number + lead_id + section_assign_employee_email_prefix",
+      "allowed_dimensions": [
+        "qingcheng:dimension:result_period_name",
+        "qingcheng:dimension:process_rule_name",
+        "qingcheng:dimension:assign_day",
+        "qingcheng:dimension:process_channel_level_1",
+        "qingcheng:dimension:process_channel_level_2",
+        "qingcheng:dimension:grade_1",
+        "qingcheng:dimension:department",
+        "qingcheng:dimension:dept_2",
+        "qingcheng:dimension:xiaozu",
+        "qingcheng:dimension:section_consultant"
+      ],
+      "required_scope_fields": [
+        "dt",
+        "hour"
+      ]
+    },
+    {
+      "id": "qingcheng:metric:app_login_flag",
+      "name": "青橙APP登录标记",
+      "aliases": [
+        "APP登录数",
+        "APP率分子",
+        "is_app_denglu"
+      ],
+      "status": "confirmed",
+      "automatic_compile": false,
+      "source_path": "knowledge/metrics/qingcheng_process_data_metrics.md",
+      "source_sha256": "06150071753aacc75253d9e00e436c0f9eff94726f83205f7967da85f9506b31",
+      "description": "天级近7日APP/PC登录标记与小时级APP/PC登录标记取OR后，按user_id关联到线索并在过程输出粒度汇总。",
+      "sql_expression": "SUM(CASE WHEN COALESCE({base}.is_app_denglu, 0) = 1 THEN 1 ELSE 0 END)",
+      "output_alias": "is_app_denglu",
+      "aggregation": "sum",
+      "candidate_tables": [
+        "dw.dim_cstm_active_user_c_appliction_mb_df",
+        "dw.dws_user_active_user_c_appliction_hf",
+        "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+        "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf"
+      ],
+      "calculation_grain": "user_id joined to lead_id",
+      "allowed_dimensions": [
+        "qingcheng:dimension:result_period_name",
+        "qingcheng:dimension:process_rule_name",
+        "qingcheng:dimension:assign_day",
+        "qingcheng:dimension:process_channel_level_1",
+        "qingcheng:dimension:process_channel_level_2",
+        "qingcheng:dimension:grade_1",
+        "qingcheng:dimension:department",
+        "qingcheng:dimension:dept_2",
+        "qingcheng:dimension:xiaozu",
+        "qingcheng:dimension:section_consultant"
+      ],
+      "notes": [
+        "同一user_id多条线索时，线索粒度汇总可能放大，不等同于去重用户数。"
+      ],
+      "required_scope_fields": [
+        "dt",
+        "hour"
+      ]
     }
   ]
 }

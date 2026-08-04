@@ -641,3 +641,36 @@
 - 登记后续看板口径：线索析出率=`sum(deal_lead_count)/sum(lead_count)`，全量单效=`sum(net_amount)/sum(lead_count)`，后转单效=`sum(net_amount)/sum(deal_lead_count)`；分母均使用 `nullif(...,0)`，并要求在最终分组粒度按分子分母重算。
 - 生产替换计划 SHA-256 为 `d58c9ecc9e3ed7a03394c1ced2001461d2f865823033fa6ef3ad287ab8e26508`；保存后 SQL SHA-256 为 `b1861eb4d1fa6b6e6d71dfeb8bbc8146f17b05aee9c531822a8d0459b8ca5a4c`；Preview task `1522874258` 成功，32 列、100 行；新抽数记录 `162559838` 为 `SUCCESS`，receipt `fully_verified=true`。
 - 本地 canonical 同步计划 SHA-256 为 `d62db5a22a7b57af648a1e6954d1e30e6e4eac56d164723f4eba9a028a3ebae7`；另回读同步 current model `2064` 作为渠道口径基线，其线上渠道 CASE 未发生本次远程修改。
+
+## 2026-08-04 青橙抖音正价复用过程导出契约补齐
+
+- 为“青橙-过程数据”历史过程导出补齐加微、首 call 等待时长、24/48 小时及 7 天首 call、累计首 call、24/48 小时及 7 天沟通、外呼时长/长通话/外呼次数/接通次数、APP 登录等过程指标契约；指标保留可加总分子字段，比例由最终透视粒度的分子/分母重算。
+- 登记结果期次、过程规则、分配日、年级、学部、二级部门、小组等导出维度，并补充 `20260728期` 暑期结果期次日历映射；本次只维护青橙本地语义与 runtime 查询文件，未修改线上数据集或看板。
+- 依据过程看板校验补入 TMK/潜客路径候选源 `bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf`；固定 `20260804` 快照后 canonical 查询回读 `20260626期=3,685`、`20260728期=2,509` 有效线索，避免只查普通线索路径造成漏数。
+
+## 2026-08-04 15:36:53
+
+- 入库青橙看板 SQL `qingcheng_refund_rate_analysis_20260710_20260728.sql`，生成 `qingcheng_refund_rate_analysis_20260710_20260728` 初始看板知识文档和指标/临时表待确认项。
+
+## 2026-08-04 15:36:53
+
+- 入库青橙看板 SQL `qingcheng_refund_structure_share_analysis_20260710_20260728.sql`，生成 `qingcheng_refund_structure_share_analysis_20260710_20260728` 初始看板知识文档和指标/临时表待确认项。
+
+## 2026-08-04 15:36:53
+
+- 入库青橙看板 SQL `qingcheng_refund_reason_analysis_20260710_20260728.sql`，生成 `qingcheng_refund_reason_analysis_20260710_20260728` 初始看板知识文档和指标/临时表待确认项。
+
+## 2026-08-04 青橙退费分析查询与口径沉淀
+
+- 将 20260710 期至 20260728 期的退费率、退费结构和退费原因查询代码登记到 `resources/raw_sql/`，并保留查询 SHA-256，便于按代码版本复核。
+- 新增 `knowledge/dashboards/qingcheng_refund_analysis_20260710_20260728.md`、`knowledge/metrics/qingcheng_refund_analysis_metrics.md` 和 `knowledge/sql_patterns/qingcheng_refund_analysis.md`，沉淀 2460 订单归属、期次日历、退费原因分摊、500 元退费人头阈值、分子/分母及金额守恒规则。
+- 退费原因 SQL 显式保留订单号，并将 NULL 渠道、二级渠道和年级归一为“未知”，修复 `refund_head_key` 因 NULL 丢失导致的退费人头不一致；本期快照退费人头与转化看板核对为 337。
+- 更新 `01_table_index.md`、`quick_reference.md`、`decision_tree.md`、`joins/common_join_keys.md` 和 `joins/table_relationships.md`，将本期查询和方法文档纳入导航；退款类型、原因金额分摊和 500 元人头阈值已由业务确认。
+- 20260804 追加诊断：20260710-20260728 产品 CASE 仅按 `clazz_name` 识别小班/大班，精品班学部的“目标一本班”等非标准班型会落入“其他”；修复前需先确认二级部门到产品的业务映射，不能直接把全部“其他”改成“大班”。
+
+## 2026-08-04 青橙产品退费归类迁移
+
+- 将 `qingcheng_refund_structure_share_analysis_20260710_20260728.sql` 的产品归类迁移为 `course_second_level_department_name` 优先匹配：`精品班学部 -> 大班`、`菁英班学部 -> 小班`、`一对一学部 -> 一对一`、`本地化学部 -> 本地化`、`清北班学部 -> 清北`，其余为 `其他`；结构查询 SQL SHA-256 为 `ACFA35AE0138441B7892E641FFA0DE456CDDA906697E8CE20F7AFA30A21062E1`。
+- 通过一次性临时模板 `QingProdRefund0804`（template id `9726`）下载产品粒度结果，查询记录 `385023`、任务 `1525289328`，返回 234 条记录；临时模板已完成下线和删除，未保留线上模板。
+- 新规则下产品退费金额合计 `1,347,448.07`：大班 `1,089,504.33 / 80.86%`、一对一 `117,336.50 / 8.71%`、小班 `102,626.24 / 7.62%`、清北 `20,531.70 / 1.52%`、其他 `17,449.30 / 1.30%`。原 20260710-20260728 版本的其他为 `81.61%`，其主要差额被重新识别为大班；剩余其他仍表示未命中上述二级部门规则的产品，不能继续整体并入大班。
+- 退费结构透视表的产品占比改为由退费金额分子除以产品分类退费金额分母计算，并在 Excel 中保留新归类原始数据、业务口径说明和结果核验。
