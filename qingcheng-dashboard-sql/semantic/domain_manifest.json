@@ -91,19 +91,19 @@
     "counts": {
       "dimension": 12,
       "join": 5,
-      "metric": 10,
+      "metric": 14,
       "scope": 4
     },
     "confirmed_counts": {
       "dimension": 11,
       "join": 3,
-      "metric": 7,
+      "metric": 12,
       "scope": 3
     },
     "source_files": [
       {
         "source_path": "semantic/contracts/metric_contracts.json",
-        "sha256": "58d5b7bc11b9de6f94b3be41f369231c8eb82f43c48f7d3f72691ca2ffe19f9d"
+        "sha256": "0614bdddbe7a6e2cb8248378fc287941b3ab32b7af7750faffd8b41b263d567b"
       },
       {
         "source_path": "semantic/contracts/dimension_contracts.json",
@@ -121,7 +121,7 @@
   },
   "current_model_registry": {
     "source_path": "semantic/current_model_bindings.json",
-    "source_sha256": "0ca9e449eac6e3c0205831ae2c2035a93e601c38ccf0624d09bc7bb5efee8a41",
+    "source_sha256": "c808a14c70fdab1b6f4d4ad98318420f728c620d3e49a93cec8fa41e7e4f12ed",
     "policy": "one_current_model_per_id_and_semantic_slot",
     "canonical_filename_policy": "data_center_qingcheng_<model_id>.sql",
     "model_count": 8,
@@ -1512,7 +1512,7 @@
       {
         "id": "qingcheng:dashboards:data_center_qingcheng_datasets",
         "source_path": "knowledge/dashboards/data_center_qingcheng_datasets.md",
-        "sha256": "27eec0d997e6726234eacc2e19f1b59af766a297f75b3cdddf306adc4620f507",
+        "sha256": "01534cff0dd4a9d46c8822ef75d9358ba313c5a92f7abfbfd92411f9eec11367",
         "bytes": 4129,
         "title": "数据中心数据集源 SQL（青橙项目部）",
         "table_refs": [],
@@ -1778,8 +1778,8 @@
       {
         "id": "qingcheng:dashboards:qingcheng_tmk_transfer_order_trace_template",
         "source_path": "knowledge/dashboards/qingcheng_tmk_transfer_order_trace_template.md",
-        "sha256": "6a00b07d90a337f061d761963af530e1c381cbd81b951267074ee5994d9d482d",
-        "bytes": 4939,
+        "sha256": "060e23880e9f83bae70e4a11e7ae5aeaf23280842f8452597bbe598b8abd67b5",
+        "bytes": 7631,
         "title": "青橙 TMK 转移、承接与订单链路模板",
         "table_refs": [
           "finance_dw.dim_finance_employee_df",
@@ -1948,8 +1948,8 @@
       {
         "id": "qingcheng:governance:decision_tree",
         "source_path": "knowledge/decision_tree.md",
-        "sha256": "ece2e5d7ab91555223b09599407343ab577192f592b0cd4b6a517e02fc5b7659",
-        "bytes": 11134,
+        "sha256": "db7c7f37c417ccd4eeaa7d267e0e5ef20d9f8d3b58b9c98d8c5255ea61871806",
+        "bytes": 11203,
         "title": "用户需求到知识库路由",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -1970,8 +1970,8 @@
       {
         "id": "qingcheng:governance:quick_reference",
         "source_path": "knowledge/quick_reference.md",
-        "sha256": "6911de4af23b15e28b2b29bc6732ba0febf221e00194012ba932dfc447263a03",
-        "bytes": 14868,
+        "sha256": "5376d8d9ec85e45316e5e5aa2bfbc0d54b9ac1703f067aaac4b6c9e356ef5941",
+        "bytes": 14974,
         "title": "快速参考卡",
         "table_refs": [
           "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf",
@@ -2598,11 +2598,12 @@
       {
         "id": "qingcheng:metrics:qingcheng_tmk_transfer_order_trace_metrics",
         "source_path": "knowledge/metrics/qingcheng_tmk_transfer_order_trace_metrics.md",
-        "sha256": "f56a6924101af73fab288fbdf198b63c0a3accc8ed704b03f91861b8bb48b35e",
-        "bytes": 1308,
+        "sha256": "9e408683b0a4e887a2085c486d9f80b57a62dc4ec1bf681a14e3662af79aad3a",
+        "bytes": 2715,
         "title": "青橙 TMK 转移与订单追踪字段",
         "table_refs": [],
         "raw_sql_refs": [
+          "data_center_qingcheng_3180.sql",
           "qingcheng_tmk_transfer_order_trace_20260718.sql"
         ],
         "status": "documented",
@@ -2616,7 +2617,7 @@
       {
         "id": "qingcheng:raw_sql:data_center_qingcheng_2064",
         "source_path": "resources/raw_sql/data_center_qingcheng_2064.sql",
-        "sha256": "a5e32e446328ca48201a314a28394dae2dbb5bf0f264071699795fe6072b500d",
+        "sha256": "6c1cf44364b9d09b25c7363bf89857e5b599750e8126a1723f1077262d018b0e",
         "bytes": 36818,
         "title": "data_center_qingcheng_2064",
         "table_refs": [
@@ -2772,8 +2773,8 @@
       {
         "id": "qingcheng:raw_sql:data_center_qingcheng_3180",
         "source_path": "resources/raw_sql/data_center_qingcheng_3180.sql",
-        "sha256": "4aff14a536c209bbfe485c5ac94734704ee15bc3ae0e7efce6627a126e0fb34c",
-        "bytes": 36229,
+        "sha256": "b1861eb4d1fa6b6e6d71dfeb8bbc8146f17b05aee9c531822a8d0459b8ca5a4c",
+        "bytes": 38858,
         "title": "data_center_qingcheng_3180",
         "table_refs": [
           "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf",
@@ -2989,14 +2990,15 @@
       {
         "id": "qingcheng:reverse_index:field_to_metrics",
         "source_path": "knowledge/reverse_index/field_to_metrics.md",
-        "sha256": "b8097a12c49df581a39e344ec4b9f391f3fad22eab9ac5808aa4fbccc3e3cdd7",
-        "bytes": 96552,
+        "sha256": "8a68757c496bbe059e6f5b9a982e2e8b8cc8f3bdf9d7e93a71bc2fe063c2091d",
+        "bytes": 99077,
         "title": "字段到指标反向索引",
         "table_refs": [],
         "raw_sql_refs": [
           "data_center_qingcheng_2064.sql",
           "data_center_qingcheng_2460.sql",
           "data_center_qingcheng_2740.sql",
+          "data_center_qingcheng_3180.sql",
           "qingcheng_channel_order_detail_raw_20260627.sql",
           "qingcheng_conversion_wide_table_market_channel_20260611.sql",
           "qingcheng_daoke_raw_20260522.sql",
@@ -3049,8 +3051,8 @@
       {
         "id": "qingcheng:reverse_index:metric_to_raw_sql",
         "source_path": "knowledge/reverse_index/metric_to_raw_sql.md",
-        "sha256": "b991a8dc085b213718f5d253b4120a3ec836abe5643e5a5a921e5d0e0fa66851",
-        "bytes": 7535,
+        "sha256": "4da4793439571c979b2dcf85839340914f2af60c6fb0cccf1e9647859068b668",
+        "bytes": 7627,
         "title": "指标到 raw SQL 反向索引",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -3070,6 +3072,7 @@
           "data_center_qingcheng_2064.sql",
           "data_center_qingcheng_2460.sql",
           "data_center_qingcheng_2740.sql",
+          "data_center_qingcheng_3180.sql",
           "qingcheng_channel_order_detail_raw_20260627.sql",
           "qingcheng_conversion_wide_table_market_channel_20260611.sql",
           "qingcheng_daoke_raw_20260522.sql",
@@ -3985,8 +3988,8 @@
       {
         "id": "qingcheng:update_log:changelog",
         "source_path": "knowledge/update_log/changelog.md",
-        "sha256": "0e00556af68a178e2f6f7832cd2e74a1b2f821e4c96457e24cee282497d4b226",
-        "bytes": 71321,
+        "sha256": "718afc71770da1ba1d884dc6fa9a56b102dd46bd52cb3b72f49482d4c2ced125",
+        "bytes": 73038,
         "title": "更新日志",
         "table_refs": [
           "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf",
@@ -4620,6 +4623,9 @@
       "data_center_qingcheng_3180.sql": [
         "knowledge/dashboards/data_center_qingcheng_datasets.md",
         "knowledge/dashboards/qingcheng_tmk_transfer_order_trace_template.md",
+        "knowledge/metrics/qingcheng_tmk_transfer_order_trace_metrics.md",
+        "knowledge/reverse_index/field_to_metrics.md",
+        "knowledge/reverse_index/metric_to_raw_sql.md",
         "knowledge/reverse_index/table_to_dashboards.md"
       ],
       "qingcheng_channel_order_detail_raw_20260627.sql": [
@@ -5103,7 +5109,7 @@
     },
     {
       "source_path": "knowledge/dashboards/data_center_qingcheng_datasets.md",
-      "sha256": "27eec0d997e6726234eacc2e19f1b59af766a297f75b3cdddf306adc4620f507",
+      "sha256": "01534cff0dd4a9d46c8822ef75d9358ba313c5a92f7abfbfd92411f9eec11367",
       "bytes": 4129,
       "category": "dashboards"
     },
@@ -5175,14 +5181,14 @@
     },
     {
       "source_path": "knowledge/dashboards/qingcheng_tmk_transfer_order_trace_template.md",
-      "sha256": "6a00b07d90a337f061d761963af530e1c381cbd81b951267074ee5994d9d482d",
-      "bytes": 4939,
+      "sha256": "060e23880e9f83bae70e4a11e7ae5aeaf23280842f8452597bbe598b8abd67b5",
+      "bytes": 7631,
       "category": "dashboards"
     },
     {
       "source_path": "knowledge/decision_tree.md",
-      "sha256": "ece2e5d7ab91555223b09599407343ab577192f592b0cd4b6a517e02fc5b7659",
-      "bytes": 11134,
+      "sha256": "db7c7f37c417ccd4eeaa7d267e0e5ef20d9f8d3b58b9c98d8c5255ea61871806",
+      "bytes": 11203,
       "category": "governance"
     },
     {
@@ -5409,20 +5415,20 @@
     },
     {
       "source_path": "knowledge/metrics/qingcheng_tmk_transfer_order_trace_metrics.md",
-      "sha256": "f56a6924101af73fab288fbdf198b63c0a3accc8ed704b03f91861b8bb48b35e",
-      "bytes": 1308,
+      "sha256": "9e408683b0a4e887a2085c486d9f80b57a62dc4ec1bf681a14e3662af79aad3a",
+      "bytes": 2715,
       "category": "metrics"
     },
     {
       "source_path": "knowledge/quick_reference.md",
-      "sha256": "6911de4af23b15e28b2b29bc6732ba0febf221e00194012ba932dfc447263a03",
-      "bytes": 14868,
+      "sha256": "5376d8d9ec85e45316e5e5aa2bfbc0d54b9ac1703f067aaac4b6c9e356ef5941",
+      "bytes": 14974,
       "category": "governance"
     },
     {
       "source_path": "knowledge/reverse_index/field_to_metrics.md",
-      "sha256": "b8097a12c49df581a39e344ec4b9f391f3fad22eab9ac5808aa4fbccc3e3cdd7",
-      "bytes": 96552,
+      "sha256": "8a68757c496bbe059e6f5b9a982e2e8b8cc8f3bdf9d7e93a71bc2fe063c2091d",
+      "bytes": 99077,
       "category": "reverse_index"
     },
     {
@@ -5433,8 +5439,8 @@
     },
     {
       "source_path": "knowledge/reverse_index/metric_to_raw_sql.md",
-      "sha256": "b991a8dc085b213718f5d253b4120a3ec836abe5643e5a5a921e5d0e0fa66851",
-      "bytes": 7535,
+      "sha256": "4da4793439571c979b2dcf85839340914f2af60c6fb0cccf1e9647859068b668",
+      "bytes": 7627,
       "category": "reverse_index"
     },
     {
@@ -5739,13 +5745,13 @@
     },
     {
       "source_path": "knowledge/update_log/changelog.md",
-      "sha256": "0e00556af68a178e2f6f7832cd2e74a1b2f821e4c96457e24cee282497d4b226",
-      "bytes": 71321,
+      "sha256": "718afc71770da1ba1d884dc6fa9a56b102dd46bd52cb3b72f49482d4c2ced125",
+      "bytes": 73038,
       "category": "update_log"
     },
     {
       "source_path": "resources/raw_sql/data_center_qingcheng_2064.sql",
-      "sha256": "a5e32e446328ca48201a314a28394dae2dbb5bf0f264071699795fe6072b500d",
+      "sha256": "6c1cf44364b9d09b25c7363bf89857e5b599750e8126a1723f1077262d018b0e",
       "bytes": 36818,
       "category": "raw_sql"
     },
@@ -5787,8 +5793,8 @@
     },
     {
       "source_path": "resources/raw_sql/data_center_qingcheng_3180.sql",
-      "sha256": "4aff14a536c209bbfe485c5ac94734704ee15bc3ae0e7efce6627a126e0fb34c",
-      "bytes": 36229,
+      "sha256": "b1861eb4d1fa6b6e6d71dfeb8bbc8146f17b05aee9c531822a8d0459b8ca5a4c",
+      "bytes": 38858,
       "category": "raw_sql"
     },
     {

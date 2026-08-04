@@ -6,7 +6,7 @@ biz_qici_seed as (
     union all select date '2026-07-22'
     union all select date '2026-07-28'
     union all select date '2026-08-03'
-    union all select date '2026-08-09'
+    union all select date '2026-08-08'
     union all select date '2026-08-15'
     union all select date '2026-08-21'
 ),

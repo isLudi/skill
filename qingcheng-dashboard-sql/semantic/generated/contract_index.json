@@ -4,7 +4,7 @@
   "counts": {
     "dimension": 12,
     "join": 5,
-    "metric": 10,
+    "metric": 14,
     "scope": 4
   },
   "entries": [
@@ -349,6 +349,66 @@
       "source_sha256": "3ac710b1a89ee19c970b3a86fe4180dfb43874cce936052c776224833cd1b6df"
     },
     {
+      "id": "qingcheng:metric:tmk_all_lead_unit_efficiency",
+      "kind": "metric",
+      "name": "青橙 TMK 全量单效",
+      "aliases": [
+        "全量单效",
+        "TMK全量单效",
+        "线索单效",
+        "tmk_all_lead_unit_efficiency"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/qingcheng_tmk_transfer_order_trace_metrics.md",
+      "source_sha256": "9e408683b0a4e887a2085c486d9f80b57a62dc4ec1bf681a14e3662af79aad3a",
+      "automatic_compile": false
+    },
+    {
+      "id": "qingcheng:metric:tmk_deal_lead_count",
+      "kind": "metric",
+      "name": "青橙 TMK 成交线索数",
+      "aliases": [
+        "成交线索数",
+        "析出数",
+        "TMK析出数",
+        "deal_lead_count"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/qingcheng_tmk_transfer_order_trace_metrics.md",
+      "source_sha256": "9e408683b0a4e887a2085c486d9f80b57a62dc4ec1bf681a14e3662af79aad3a",
+      "automatic_compile": false
+    },
+    {
+      "id": "qingcheng:metric:tmk_lead_extraction_rate",
+      "kind": "metric",
+      "name": "青橙 TMK 线索析出率",
+      "aliases": [
+        "线索析出率",
+        "TMK析出率",
+        "成交线索率",
+        "tmk_lead_extraction_rate"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/qingcheng_tmk_transfer_order_trace_metrics.md",
+      "source_sha256": "9e408683b0a4e887a2085c486d9f80b57a62dc4ec1bf681a14e3662af79aad3a",
+      "automatic_compile": false
+    },
+    {
+      "id": "qingcheng:metric:tmk_post_transfer_unit_efficiency",
+      "kind": "metric",
+      "name": "青橙 TMK 后转单效",
+      "aliases": [
+        "后转单效",
+        "TMK后转单效",
+        "析出单效",
+        "tmk_post_transfer_unit_efficiency"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/qingcheng_tmk_transfer_order_trace_metrics.md",
+      "source_sha256": "9e408683b0a4e887a2085c486d9f80b57a62dc4ec1bf681a14e3662af79aad3a",
+      "automatic_compile": false
+    },
+    {
       "id": "qingcheng:metric:tmk_transfer_lead_count",
       "kind": "metric",
       "name": "青橙 TMK 转移线索数",
@@ -357,9 +417,9 @@
         "TMK转正常线索",
         "SEC后转线索数"
       ],
-      "status": "pending_confirmation",
+      "status": "confirmed",
       "source_path": "knowledge/metrics/qingcheng_tmk_transfer_order_trace_metrics.md",
-      "source_sha256": "f56a6924101af73fab288fbdf198b63c0a3accc8ed704b03f91861b8bb48b35e",
+      "source_sha256": "9e408683b0a4e887a2085c486d9f80b57a62dc4ec1bf681a14e3662af79aad3a",
       "automatic_compile": false
     },
     {

@@ -527,7 +527,7 @@ private_roles as (
     from private_history_base
     group by transfer_lead_id
 ),
-transfer_enriched as (
+transfer_enriched_channel_base as (
     select
         t.prelead_id,
         t.prelead_purchase_intention_name,
@@ -582,6 +582,21 @@ transfer_enriched as (
         end as lead_grade_source,
         a.lead_channel,
         a.raw_rule_name,
+        case
+            when a.raw_rule_name like '%武汉图书%' then '武汉图书'
+            when a.raw_rule_name like '%西安图书%' then '西安图书'
+            when a.raw_rule_name like '%公域学霸%'
+              or a.raw_rule_name like '%公域%' then '公域学霸'
+            when a.raw_rule_name like '%抖音正价退费%' then '抖音正价退费'
+            when a.raw_rule_name like '%SEC招生退费%'
+              or a.raw_rule_name like '%招生退费%' then 'SEC招生退费'
+            when a.raw_rule_name like '%SEC首期掉海%'
+              or a.raw_rule_name like '%首期掉海%' then 'SEC首期掉海'
+            when a.raw_rule_name like '%SEC未加好友%'
+              or a.raw_rule_name like '%未加好友%'
+              or t.prelead_purchase_intention_name like '规划系统%'
+                then 'SEC未加好友'
+        end as channel_map_2,
         a.app_valid_lead_count,
         p.first_receiver_name,
         p.first_receiver_email_prefix,
@@ -612,6 +627,46 @@ transfer_enriched as (
       on a.prelead_id = t.prelead_id
     left join private_roles p
       on p.transfer_lead_id = t.transfer_lead_id
+),
+transfer_enriched as (
+    select
+        b.*,
+        case
+            when b.channel_map_2 = '公域学霸' then '公域'
+            when b.channel_map_2 in ('武汉图书', '西安图书') then '图书'
+            when b.channel_map_2 in ('SEC未加好友', 'SEC首期掉海', 'SEC招生退费')
+                then '订单复用'
+            when b.raw_rule_name like '%抖音正价退费%' then '抖音复用'
+            when b.raw_rule_name like '%赠失-星义%'
+              or b.raw_rule_name like '%赠失-朱博士%'
+              or b.raw_rule_name like '%赠失-春春%'
+              or b.raw_rule_name like '%赠失-郭艺%'
+              or b.raw_rule_name like '%赠失-亚飞%'
+              or b.raw_rule_name like '%青橙IP%'
+                then concat('IP', chr(36192), chr(35838), chr(22833), chr(36133))
+            when b.raw_rule_name like '%私域本地化%'
+              or b.raw_rule_name like '%河南本地化%'
+              or b.raw_rule_name like '%青橙本地化%' then '本地化'
+            when b.raw_rule_name like '%私域会话%'
+              or b.raw_rule_name like '%私域表单%'
+              or b.raw_rule_name like '%私域品效%'
+              or b.raw_rule_name like '%私域图书%' then '私域'
+            when b.raw_rule_name like '%公域学霸%'
+              or b.raw_rule_name like '%青橙公域%' then '公域'
+            when b.raw_rule_name like '%武汉图书%'
+              or b.raw_rule_name like '%西安图书%' then '图书'
+            when b.raw_rule_name like '%亚飞IP%' then '主讲IP'
+            when b.raw_rule_name like '%SEC未加好友%'
+              or b.raw_rule_name like '%SEC首期掉海%'
+              or b.raw_rule_name like '%SEC招生退费%'
+              or b.raw_rule_name like '%招生退费%' then '订单复用'
+            when b.raw_rule_name like '%顾问未加好友%'
+              or b.raw_rule_name like '%青橙公海%' then '公海'
+            when b.raw_rule_name like '%抖音私信%' then '抖音私信'
+            when b.raw_rule_name like '%进校9元%'
+              or b.raw_rule_name like '%进校%' then '进校9元'
+        end as channel_map_1
+    from transfer_enriched_channel_base b
 ),
 finance_order_grouped as (
     select
@@ -858,6 +913,8 @@ order_attribution as (
         max(user_id) as user_id,
         max(lead_grade) as lead_grade,
         max(lead_channel) as lead_channel,
+        max(channel_map_1) as channel_map_1,
+        max(channel_map_2) as channel_map_2,
         max(first_receiver_name) as first_receiver_name,
         max(prelead_id) as prelead_id,
         max(qici_source) as qici_source,
@@ -967,12 +1024,14 @@ select
     cast(o.transfer_lead_id as varchar) as transfer_lead_id,
     o.lead_grade,
     cast(1 as bigint) as lead_count,
+    cast(
+        case when coalesce(o.has_deal, 0) = 1 then 1 else 0 end
+        as bigint
+    ) as deal_lead_count,
     o.lead_channel,
+    o.channel_map_1,
+    o.channel_map_2,
     o.first_receiver_name,
-    case
-        when coalesce(o.has_deal, 0) = 1 then '是'
-        else '否'
-    end as transfer_deal_status,
     o.deal_grade,
     o.deal_subject,
     o.deal_main_teacher,
@@ -989,33 +1048,16 @@ select
         else o.net_amount_yuan
     end as net_amount,
     o.prelead_id,
-    o.qici_source,
     o.lead_grade_source,
     o.prelead_purchase_intention_name,
     o.transfer_purchase_intention_name,
-    o.first_receiver_time,
     o.current_consultant_name,
     o.current_consultant_source,
     o.performance_consultant_names,
     o.matched_order_count,
-    o.deal_attribution_type,
-    o.deal_time_relation,
     o.raw_rule_name,
     o.tmk_assign_time,
     o.tmk_first_department,
     o.tmk_second_department,
-    o.first_receiver_department,
-    o.current_private_candidate,
-    o.current_private_assign_time,
-    o.current_private_is_active,
-    o.private_history_count,
-    o.transfer_lead_create_time,
-    o.transfer_lead_period_name,
-    coalesce(o.app_snapshot_key, ap.snapshot_key) as app_snapshot_key,
-    coalesce(o.private_snapshot_key, pp.snapshot_key) as private_snapshot_key,
-    o.lead_snapshot_key,
-    coalesce(o.finance_snapshot_key, fp.snapshot_key) as finance_snapshot_key
+    o.first_receiver_department
 from order_attribution o
-cross join app_partition ap
-cross join private_partition pp
-cross join finance_partition fp

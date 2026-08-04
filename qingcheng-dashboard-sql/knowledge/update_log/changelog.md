@@ -633,3 +633,11 @@
 - 回归 query `1522351329` / `1522366854`：新旧均为 2,146 行和 2,146 个唯一转移线索，匹配订单 113，营收 210,395.00，退费 27,585.96，净收 182,809.04；1,832 行 TMK 顾问非空且 `xiaozu` 全部非空，剩余 314 行原始 TMK 顾问本身为空。
 - 生产替换计划 `891a8438af4ff97b6065a6480fad8988da9b5811defd54732febafdbec403e9b`；保存后 SQL SHA-256 `4aff14a536c209bbfe485c5ac94734704ee15bc3ae0e7efce6627a126e0fb34c`；Preview task `1522382107` 成功，44 列、100 行；新抽数记录 `162538939` 为 `SUCCESS`，receipt `fully_verified=true`。
 - 本地 canonical 同步计划 SHA-256 为 `38d32e9f999cd2a2b8f0648ef3d433b1c86d8fdd7cfbd3c928f3e8e8698111e6`。
+
+## 2026-08-03 TMK 线索转移明细渠道、成交线索与输出精简上线
+
+- `TMK线索转移明细` / model `3180` 新增 `channel_map_1`、`channel_map_2`，复用 current model `2064`“青橙-过程数据”的 TMK 特殊渠道识别与一级渠道归并规则；新增 `deal_lead_count`，在一行一个 `transfer_lead_id` 粒度按 `has_deal=1` 计 1。
+- 最终输出移除 15 个不用于看板的诊断/快照字段：`transfer_lead_create_time`、`transfer_lead_period_name`、`lead_snapshot_key`、`app_snapshot_key`、`private_snapshot_key`、`finance_snapshot_key`、`qici_source`、`deal_attribution_type`、`deal_time_relation`、`transfer_deal_status`、`current_private_is_active`、`private_history_count`、`first_receiver_time`、`current_private_assign_time`、`current_private_candidate`；必要内部字段仍保留在 CTE 中参与归因和校验。
+- 登记后续看板口径：线索析出率=`sum(deal_lead_count)/sum(lead_count)`，全量单效=`sum(net_amount)/sum(lead_count)`，后转单效=`sum(net_amount)/sum(deal_lead_count)`；分母均使用 `nullif(...,0)`，并要求在最终分组粒度按分子分母重算。
+- 生产替换计划 SHA-256 为 `d58c9ecc9e3ed7a03394c1ced2001461d2f865823033fa6ef3ad287ab8e26508`；保存后 SQL SHA-256 为 `b1861eb4d1fa6b6e6d71dfeb8bbc8146f17b05aee9c531822a8d0459b8ca5a4c`；Preview task `1522874258` 成功，32 列、100 行；新抽数记录 `162559838` 为 `SUCCESS`，receipt `fully_verified=true`。
+- 本地 canonical 同步计划 SHA-256 为 `d62db5a22a7b57af648a1e6954d1e30e6e4eac56d164723f4eba9a028a3ebae7`；另回读同步 current model `2064` 作为渠道口径基线，其线上渠道 CASE 未发生本次远程修改。

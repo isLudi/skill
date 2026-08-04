@@ -11,10 +11,10 @@
       "model_id": "2064",
       "ordinal": 1,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/青橙项目部/青橙-过程数据",
-      "source_observed_on": "2026-07-28",
+      "source_observed_on": "2026-08-03",
       "sql_bytes": 36817,
       "sql_lines": 947,
-      "sql_sha256": "a5e32e446328ca48201a314a28394dae2dbb5bf0f264071699795fe6072b500d",
+      "sql_sha256": "6c1cf44364b9d09b25c7363bf89857e5b599750e8126a1723f1077262d018b0e",
       "subject_id": "2054"
     },
     {
@@ -102,9 +102,9 @@
       "ordinal": 100007,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/青橙项目部/TMK线索转移明细",
       "source_observed_on": "2026-08-03",
-      "sql_bytes": 36228,
-      "sql_lines": 1021,
-      "sql_sha256": "4aff14a536c209bbfe485c5ac94734704ee15bc3ae0e7efce6627a126e0fb34c",
+      "sql_bytes": 38857,
+      "sql_lines": 1063,
+      "sql_sha256": "b1861eb4d1fa6b6e6d71dfeb8bbc8146f17b05aee9c531822a8d0459b8ca5a4c",
       "subject_id": "3168"
     },
     {

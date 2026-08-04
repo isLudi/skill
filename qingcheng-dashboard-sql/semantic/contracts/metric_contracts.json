@@ -323,18 +323,180 @@
         "TMK转正常线索",
         "SEC后转线索数"
       ],
-      "status": "pending_confirmation",
+      "status": "confirmed",
       "automatic_compile": false,
       "source_path": "knowledge/metrics/qingcheng_tmk_transfer_order_trace_metrics.md",
-      "source_sha256": "f56a6924101af73fab288fbdf198b63c0a3accc8ed704b03f91861b8bb48b35e",
-      "description": "Q2 对已按 transfer_lead_id 去重的潜客转正常线索每条计 1；范围依赖业务期次、TMK 意向和 SEC 架构。",
+      "source_sha256": "9e408683b0a4e887a2085c486d9f80b57a62dc4ec1bf681a14e3662af79aad3a",
+      "description": "Current model 3180 在一行一个 transfer_lead_id 粒度固定输出 lead_count=1，按看板目标维度求和得到 TMK 转移线索数。",
+      "sql_expression": "SUM({base}.lead_count)",
+      "output_alias": "lead_count",
+      "aggregation": "sum",
       "candidate_tables": [
         "data_lake_fuwu.dwd_crm_leads_rt",
         "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf",
         "temp_table.dingxi01_jiagou_db"
       ],
       "calculation_grain": "transfer_lead_id",
-      "notes": "Join 契约已确认，但完整明细是多表人工 SQL；扩大期次范围仍需复核覆盖和重复。"
+      "allowed_dimensions": [
+        "qingcheng:dimension:lead_id",
+        "qingcheng:dimension:user_id",
+        "qingcheng:dimension:period_name",
+        "qingcheng:dimension:process_channel_level_1",
+        "qingcheng:dimension:process_channel_level_2",
+        "qingcheng:dimension:performance_consultant",
+        "qingcheng:dimension:grade_name"
+      ],
+      "required_scope_fields": [
+        "dt",
+        "hour"
+      ],
+      "notes": "完整明细是多表人工 SQL，automatic_compile=false；扩大期次范围仍需复核覆盖、重复和 SEC 架构。"
+    },
+    {
+      "id": "qingcheng:metric:tmk_deal_lead_count",
+      "name": "青橙 TMK 成交线索数",
+      "aliases": [
+        "成交线索数",
+        "析出数",
+        "TMK析出数",
+        "deal_lead_count"
+      ],
+      "status": "confirmed",
+      "automatic_compile": false,
+      "source_path": "knowledge/metrics/qingcheng_tmk_transfer_order_trace_metrics.md",
+      "source_sha256": "9e408683b0a4e887a2085c486d9f80b57a62dc4ec1bf681a14e3662af79aad3a",
+      "description": "Current model 3180 在一行一个 transfer_lead_id 粒度按归因后的 has_deal=1 输出 deal_lead_count=1，否则为 0；每条转移线索最多计 1。",
+      "sql_expression": "SUM({base}.deal_lead_count)",
+      "output_alias": "deal_lead_count",
+      "aggregation": "sum",
+      "candidate_tables": [
+        "data_lake_fuwu.dwd_crm_leads_rt",
+        "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
+        "temp_table.dingxi01_jiagou_db"
+      ],
+      "calculation_grain": "transfer_lead_id",
+      "allowed_dimensions": [
+        "qingcheng:dimension:lead_id",
+        "qingcheng:dimension:user_id",
+        "qingcheng:dimension:period_name",
+        "qingcheng:dimension:process_channel_level_1",
+        "qingcheng:dimension:process_channel_level_2",
+        "qingcheng:dimension:performance_consultant",
+        "qingcheng:dimension:grade_name"
+      ],
+      "required_scope_fields": [
+        "dt",
+        "hour"
+      ],
+      "notes": "析出数与成交线索数同义；matched_order_count 是订单条数，不能替代本指标。"
+    },
+    {
+      "id": "qingcheng:metric:tmk_lead_extraction_rate",
+      "name": "青橙 TMK 线索析出率",
+      "aliases": [
+        "线索析出率",
+        "TMK析出率",
+        "成交线索率",
+        "tmk_lead_extraction_rate"
+      ],
+      "status": "confirmed",
+      "automatic_compile": false,
+      "source_path": "knowledge/metrics/qingcheng_tmk_transfer_order_trace_metrics.md",
+      "source_sha256": "9e408683b0a4e887a2085c486d9f80b57a62dc4ec1bf681a14e3662af79aad3a",
+      "description": "成交线索数除以线索量；必须在最终看板筛选与分组粒度分别汇总 deal_lead_count 和 lead_count 后相除。",
+      "sql_expression": "CAST(SUM({base}.deal_lead_count) AS DOUBLE) / NULLIF(SUM({base}.lead_count), 0)",
+      "output_alias": "tmk_lead_extraction_rate",
+      "aggregation": "ratio_of_sums",
+      "candidate_tables": [
+        "data_lake_fuwu.dwd_crm_leads_rt",
+        "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
+        "temp_table.dingxi01_jiagou_db"
+      ],
+      "calculation_grain": "dashboard grouping over transfer_lead_id rows",
+      "allowed_dimensions": [
+        "qingcheng:dimension:period_name",
+        "qingcheng:dimension:process_channel_level_1",
+        "qingcheng:dimension:process_channel_level_2",
+        "qingcheng:dimension:performance_consultant",
+        "qingcheng:dimension:grade_name"
+      ],
+      "required_scope_fields": [
+        "dt",
+        "hour"
+      ],
+      "notes": "分母为 0 时返回空值；禁止汇总或平均行级比率。"
+    },
+    {
+      "id": "qingcheng:metric:tmk_all_lead_unit_efficiency",
+      "name": "青橙 TMK 全量单效",
+      "aliases": [
+        "全量单效",
+        "TMK全量单效",
+        "线索单效",
+        "tmk_all_lead_unit_efficiency"
+      ],
+      "status": "confirmed",
+      "automatic_compile": false,
+      "source_path": "knowledge/metrics/qingcheng_tmk_transfer_order_trace_metrics.md",
+      "source_sha256": "9e408683b0a4e887a2085c486d9f80b57a62dc4ec1bf681a14e3662af79aad3a",
+      "description": "净产出除以全部转移线索量；必须在最终看板筛选与分组粒度分别汇总 net_amount 和 lead_count 后相除。",
+      "sql_expression": "SUM({base}.net_amount) / NULLIF(SUM({base}.lead_count), 0)",
+      "output_alias": "tmk_all_lead_unit_efficiency",
+      "aggregation": "ratio_of_sums",
+      "candidate_tables": [
+        "data_lake_fuwu.dwd_crm_leads_rt",
+        "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
+        "temp_table.dingxi01_jiagou_db"
+      ],
+      "calculation_grain": "dashboard grouping over transfer_lead_id rows",
+      "allowed_dimensions": [
+        "qingcheng:dimension:period_name",
+        "qingcheng:dimension:process_channel_level_1",
+        "qingcheng:dimension:process_channel_level_2",
+        "qingcheng:dimension:performance_consultant",
+        "qingcheng:dimension:grade_name"
+      ],
+      "required_scope_fields": [
+        "dt",
+        "hour"
+      ],
+      "notes": "分母为 0 时返回空值；净产出使用 model 3180 的 net_amount。"
+    },
+    {
+      "id": "qingcheng:metric:tmk_post_transfer_unit_efficiency",
+      "name": "青橙 TMK 后转单效",
+      "aliases": [
+        "后转单效",
+        "TMK后转单效",
+        "析出单效",
+        "tmk_post_transfer_unit_efficiency"
+      ],
+      "status": "confirmed",
+      "automatic_compile": false,
+      "source_path": "knowledge/metrics/qingcheng_tmk_transfer_order_trace_metrics.md",
+      "source_sha256": "9e408683b0a4e887a2085c486d9f80b57a62dc4ec1bf681a14e3662af79aad3a",
+      "description": "净产出除以析出数；这里析出数等于成交线索数，必须在最终看板筛选与分组粒度分别汇总 net_amount 和 deal_lead_count 后相除。",
+      "sql_expression": "SUM({base}.net_amount) / NULLIF(SUM({base}.deal_lead_count), 0)",
+      "output_alias": "tmk_post_transfer_unit_efficiency",
+      "aggregation": "ratio_of_sums",
+      "candidate_tables": [
+        "data_lake_fuwu.dwd_crm_leads_rt",
+        "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
+        "temp_table.dingxi01_jiagou_db"
+      ],
+      "calculation_grain": "dashboard grouping over transfer_lead_id rows",
+      "allowed_dimensions": [
+        "qingcheng:dimension:period_name",
+        "qingcheng:dimension:process_channel_level_1",
+        "qingcheng:dimension:process_channel_level_2",
+        "qingcheng:dimension:performance_consultant",
+        "qingcheng:dimension:grade_name"
+      ],
+      "required_scope_fields": [
+        "dt",
+        "hour"
+      ],
+      "notes": "分母为 0 时返回空值；禁止以 matched_order_count 作为析出数。"
     }
   ]
 }
