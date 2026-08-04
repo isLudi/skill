@@ -9,7 +9,8 @@
 |---|---|---|---|---|
 | `doctor` | Check local Playwright availability. | `local_read_only` | `none` | [sql_query_execution.md](sql_query_execution.md) |
 | `login` | Authenticate and save browser storage state. | `local_write_explicit` | `explicit_command` | [sql_query_execution.md](sql_query_execution.md) |
-| `run` | Run SQL in the web UI. | `remote_read_only` | `explicit_command` | [sql_query_execution.md](sql_query_execution.md) |
+| `run` | Run one SQL attempt in the web UI. | `remote_read_only` | `explicit_command` | [sql_query_execution.md](sql_query_execution.md) |
+| `run-with-fallback` | Run fallback_once: one primary SQL attempt and, only when eligible, one fallback attempt. | `remote_read_only` | `explicit_command` | [sql_query_execution.md](sql_query_execution.md) |
 | `upload-temp-table` | Upload a local CSV/Excel file as a SQL temporary table. | `remote_write_explicit` | `explicit_flags` | [manual_temp_table_registry.md](manual_temp_table_registry.md) |
 | `check-manual-table` | Check local manual Excel files against the temp-table registry without opening the browser. | `local_read_only` | `none` | [manual_temp_table_registry.md](manual_temp_table_registry.md) |
 | `sync-datamap-fields` | Refresh business skill table fields from Data Map. | `local_write_explicit` | `explicit_flags` | [data_knowledge_sync.md](data_knowledge_sync.md) |

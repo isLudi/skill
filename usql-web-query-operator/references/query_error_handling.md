@@ -70,6 +70,20 @@
 
 测试中，网页平台并不总是稳定拦截缺失 `dt`/`hour` 过滤的 SQL。这不代表可以放松 SQL 生成规则：运行前仍必须校验分区和必要范围过滤。
 
+## 成功但结果未决
+
+平台任务 `Success` 与结果已取得是两个状态。`run` 现在额外返回 `result_state`：
+
+- `success_empty_verified` 才能解释为精确 Query ID 已验证 0 行；
+- `success_ui_missing_recovered` 表示 UI 没有表格，但结果 API 已恢复数据；
+- `result_unresolved` 表示任务成功、结果证据不足，命令退出失败，不能修改业务 SQL 或自动换引擎来掩盖该状态。
+
+当 `result_unresolved` 出现时，依次查看 `submission_evidence`、`result_evidence`、`ui_result_state` 和 ResultArtifact。普通 `run` 不会重试；只有显式 `run-with-fallback` 可按 `fallback_once` 使用注册备用一次。
+
+明确暂态错误只包括受控白名单，例如终态 HTTP 502/503/504、服务临时不可用、连接失败或引擎/集群临时不可用。语法、字段、表、类型、Join、权限、403/429、stage 上限、分区规则和普通 Timeout 都不属于暂态回退；Timeout 时旧任务可能仍在运行。
+
+`success_empty_verified` 不属于失败。默认结束；`--empty-result-policy crosscheck-only` 只能比较备用结果，不能采用或下载备用行。只有出现 403、429、CAPTCHA/MFA 或明确风控错误时，才按平台限制/风控处理；不得使用指纹伪装或模拟随机人工输入绕过。
+
 ## 下载规则
 
 只有 `status=Success` 后才能使用 `--download`。脚本会执行本地下载安全策略：SQL 必须明显包含 `LIMIT 1000` 或更低限制，或者结果页能证明输出不超过 1000 行。

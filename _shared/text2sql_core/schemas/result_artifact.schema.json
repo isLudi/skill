@@ -19,6 +19,8 @@
     "status",
     "ok",
     "engine",
+    "editor",
+    "submission",
     "timing",
     "result",
     "download",
@@ -26,7 +28,7 @@
   ],
   "properties": {
     "artifact_type": {"const": "result_artifact"},
-    "schema_version": {"const": "1.0.0"},
+    "schema_version": {"const": "1.1.0"},
     "artifact_id": {"type": "string", "pattern": "^result_[0-9a-f]{32}$"},
     "artifact_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
     "created_at": {"type": "string", "format": "date-time"},
@@ -41,11 +43,44 @@
     "engine": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["requested", "selected_label", "history_value"],
+      "required": ["requested", "selected_key", "selected_label", "history_value"],
       "properties": {
         "requested": {"type": ["string", "null"]},
+        "selected_key": {"type": ["string", "null"]},
         "selected_label": {"type": ["string", "null"]},
         "history_value": {"type": ["string", "null"]}
+      }
+    },
+    "editor": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["sql_sha256", "byte_length", "stable_reads"],
+      "properties": {
+        "sql_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+        "byte_length": {"type": ["integer", "null"], "minimum": 0},
+        "stable_reads": {"type": ["integer", "null"], "minimum": 1}
+      }
+    },
+    "submission": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": [
+        "query_id_source",
+        "mechanism",
+        "attempt_count",
+        "request_path",
+        "http_status",
+        "submitted_sql_sha256",
+        "submitted_engine"
+      ],
+      "properties": {
+        "query_id_source": {"type": ["string", "null"]},
+        "mechanism": {"type": ["string", "null"]},
+        "attempt_count": {"type": ["integer", "null"], "minimum": 1},
+        "request_path": {"type": ["string", "null"]},
+        "http_status": {"type": ["integer", "null"], "minimum": 100, "maximum": 599},
+        "submitted_sql_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+        "submitted_engine": {"type": ["string", "null"]}
       }
     },
     "timing": {
@@ -60,13 +95,54 @@
     "result": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["headers", "row_count_visible", "no_more", "preview_sha256", "preview_rows_redacted"],
+      "required": [
+        "state",
+        "source",
+        "headers",
+        "row_count_visible",
+        "no_more",
+        "preview_sha256",
+        "preview_rows_redacted",
+        "api_http_status",
+        "api_error_code",
+        "api_meta_count",
+        "api_row_count_page",
+        "api_total_rows",
+        "completion_source",
+        "evidence_conflict",
+        "ui_state"
+      ],
       "properties": {
+        "state": {
+          "enum": [
+            "success_with_rows",
+            "success_ui_missing_recovered",
+            "success_empty_verified",
+            "success_with_rows_ui",
+            "result_unresolved",
+            null
+          ]
+        },
+        "source": {"enum": ["result_api", "result_api_and_ui", "ui", null]},
         "headers": {"type": "array", "items": {"type": "string"}},
         "row_count_visible": {"type": ["integer", "null"], "minimum": 0},
         "no_more": {"type": ["boolean", "null"]},
         "preview_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
-        "preview_rows_redacted": {"const": true}
+        "preview_rows_redacted": {"const": true},
+        "api_http_status": {"type": ["integer", "null"], "minimum": 100, "maximum": 599},
+        "api_error_code": {"type": ["integer", "string", "null"]},
+        "api_meta_count": {"type": ["integer", "null"], "minimum": 0},
+        "api_row_count_page": {"type": ["integer", "null"], "minimum": 0},
+        "api_total_rows": {"type": ["integer", "null"], "minimum": 0},
+        "completion_source": {
+          "enum": ["result_api", "log_api", "history", "ui_result", "ui_error", "legacy_ui", null]
+        },
+        "evidence_conflict": {
+          "enum": ["api_zero_ui_rows", "api_failure_ui_rows", null]
+        },
+        "ui_state": {
+          "enum": ["ui_with_rows", "ui_panel_visible", "ui_empty_stable", "ui_timeout", null]
+        }
       }
     },
     "download": {

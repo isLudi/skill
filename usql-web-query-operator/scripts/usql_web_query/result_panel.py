@@ -8,7 +8,34 @@ from typing import Any
 from .page_helpers import get_sql_frame
 
 
-def _wait_for_result_panel(page: Any) -> None:
+def activate_query_result_tab(page: Any, query_id: str | None) -> bool:
+    if not query_id:
+        return False
+    for frame_obj in getattr(page, "frames", []):
+        if not str(getattr(frame_obj, "url", "")).startswith("https://uanalysis.baijia.com/sql/"):
+            continue
+        try:
+            active = frame_obj.locator(".ant-tabs-tab-active").filter(has_text=query_id)
+            if active.count() > 0:
+                return True
+            tabs = frame_obj.locator(".ant-tabs-tab").filter(has_text=query_id)
+            if tabs.count() > 0:
+                tabs.last.click(timeout=3000)
+                page.wait_for_timeout(250)
+                active = frame_obj.locator(".ant-tabs-tab-active").filter(has_text=query_id)
+                if active.count() > 0:
+                    return True
+        except Exception:
+            continue
+    return False
+
+
+def _wait_for_result_panel(
+    page: Any,
+    *,
+    query_id: str | None = None,
+    timeout_ms: int = 60_000,
+) -> str:
     """Wait for the result panel to render after query success.
 
     The platform shows "Success" in query history when the query is accepted,
@@ -18,12 +45,11 @@ def _wait_for_result_panel(page: Any) -> None:
     We wait for: log loading spinner gone → auto-jump → result table visible.
     """
     frame = get_sql_frame(page)
-    # The platform can be slow — wait up to the full query timeout.
-    deadline = time.monotonic() + 600.0  # 10 min max
+    activate_query_result_tab(page, query_id)
+    deadline = time.monotonic() + max(timeout_ms, 0) / 1000
 
     scroll_script = "el => { el.scrollTop = el.scrollHeight; }"
     prev_url = ""
-    result_seen_at = None
     empty_result_seen_at = None
 
     while time.monotonic() < deadline:
@@ -44,7 +70,7 @@ def _wait_for_result_panel(page: Any) -> None:
             if cur_url != prev_url:
                 prev_url = cur_url
 
-            check = frame_obj.evaluate("""() => {
+            check = frame_obj.evaluate(r"""queryId => {
                 function visible(el) {
                     const rect = el.getBoundingClientRect();
                     const style = window.getComputedStyle(el);
@@ -54,6 +80,14 @@ def _wait_for_result_panel(page: Any) -> None:
                 function isHistoryTable(headers) {
                     const needles = ['查询ID', '查询时间', '主要内容', '引擎', '持续时间', '状态', '下载状态', '操作'];
                     return headers.some(h => needles.some(n => h.includes(n)));
+                }
+
+                const activeTabText = Array.from(document.querySelectorAll('.ant-tabs-tab-active'))
+                    .map(el => (el.innerText || el.textContent || '').trim())
+                    .join(' ');
+                const activeQueryIds = activeTabText.match(/\d{9,11}/g) || [];
+                if (queryId && !activeQueryIds.includes(queryId)) {
+                    return 'wrong-query-tab';
                 }
 
                 // 1. Is the log loading spinner still active?
@@ -76,11 +110,8 @@ def _wait_for_result_panel(page: Any) -> None:
                     }
                 }
 
-                // 3. Check for result data text anywhere in the body.
                 const bt = document.body.innerText;
-                if (bt.includes('row_cnt') || bt.includes('lead_cnt')) return 'result-text';
-
-                // 4. Check for a visible empty result table. This can be transient,
+                // 3. Check for a visible empty result table. This can be transient,
                 // so Python waits for it to remain stable before returning.
                 for (const t of tables) {
                     if (!visible(t)) continue;
@@ -92,34 +123,35 @@ def _wait_for_result_panel(page: Any) -> None:
                     }
                 }
 
-                // 5. Check for collapsed/expandable result panel.
+                // 4. Check for collapsed/expandable result panel.
                 const collapses = document.querySelectorAll('.ant-collapse-item');
                 if (collapses.length > 0) return 'collapse-panels:' + collapses.length;
 
-                // 6. "结果"/"表格" tabs present?
+                // 5. "结果"/"表格" tabs present?
                 if (bt.includes('结果') && bt.includes('表格')) return 'result-tabs';
 
                 return 'waiting';
-            }""")
+            }""", query_id)
 
-            if check.startswith('result-table') or check == 'result-text' or check.startswith('collapse-'):
+            if check.startswith('result-table') or check.startswith('collapse-'):
                 page.wait_for_timeout(1000)
-                return
+                return 'ui_with_rows' if check.startswith('result-table') else 'ui_panel_visible'
             if check in {'result-tabs', 'result-empty'}:
                 now = time.monotonic()
-                if result_seen_at is None:
-                    result_seen_at = now
                 if check == 'result-empty':
                     if empty_result_seen_at is None:
                         empty_result_seen_at = now
                     if now - empty_result_seen_at >= 30.0:
-                        return
+                        return 'ui_empty_stable'
                 try:
                     open_result_table(page)
                 except Exception:
                     pass
                 continue
             if check == 'log-loading':
+                continue
+            if check == 'wrong-query-tab':
+                activate_query_result_tab(page, query_id)
                 continue
 
     # Timeout: one last attempt.
@@ -128,6 +160,7 @@ def _wait_for_result_panel(page: Any) -> None:
         page.wait_for_timeout(3000)
     except Exception:
         pass
+    return 'ui_timeout'
 
 def open_result_table(page: Any) -> None:
     """The result panel auto-appears at the page bottom after query success.
@@ -156,7 +189,14 @@ def open_result_table(page: Any) -> None:
             except Exception:
                 continue
 
-def extract_result_preview(page: Any, max_rows: int = 5) -> dict[str, Any] | None:
+def extract_result_preview(
+    page: Any,
+    max_rows: int = 5,
+    *,
+    query_id: str | None = None,
+) -> dict[str, Any] | None:
+    if query_id and not activate_query_result_tab(page, query_id):
+        return None
     open_result_table(page)
     body_text = page.locator("body").inner_text(timeout=5000)
 

@@ -1,12 +1,13 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "1.2.0",
   "entrypoints": [
     {
       "entrypoint": "usql_web_query.py",
       "commands": [
         {"name": "doctor", "effect": "local_read_only", "authorization": "none", "reference": "sql_query_execution.md"},
         {"name": "login", "effect": "local_write_explicit", "authorization": "explicit_command", "reference": "sql_query_execution.md"},
-        {"name": "run", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "sql_query_execution.md"},
+        {"name": "run", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "sql_query_execution.md", "parameters": {"engine_choices": ["presto", "presto-lakehouse", "doris-presto"]}},
+        {"name": "run-with-fallback", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "sql_query_execution.md", "parameters": {"engine_choices": ["presto", "presto-lakehouse", "doris-presto"], "fallback_engine_choices": ["presto", "presto-lakehouse", "doris-presto"], "empty_result_policy_choices": ["stop", "crosscheck-only"]}},
         {"name": "upload-temp-table", "effect": "remote_write_explicit", "authorization": "explicit_flags", "reference": "manual_temp_table_registry.md"},
         {"name": "check-manual-table", "effect": "local_read_only", "authorization": "none", "reference": "manual_temp_table_registry.md"},
         {"name": "sync-datamap-fields", "effect": "local_write_explicit", "authorization": "explicit_flags", "reference": "data_knowledge_sync.md"},

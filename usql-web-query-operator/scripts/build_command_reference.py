@@ -41,6 +41,24 @@ def _command_help(parser: argparse.ArgumentParser) -> dict[str, str]:
     return {name: help_by_name.get(name, "") for name in subparsers.choices}
 
 
+def _subparser(parser: argparse.ArgumentParser, command: str) -> argparse.ArgumentParser:
+    subparsers = next(
+        action for action in parser._actions if isinstance(action, argparse._SubParsersAction)
+    )
+    return subparsers.choices[command]
+
+
+def _option_choices(parser: argparse.ArgumentParser, command: str, option: str) -> list[str]:
+    command_parser = _subparser(parser, command)
+    action = next(
+        (item for item in command_parser._actions if option in item.option_strings),
+        None,
+    )
+    if action is None or action.choices is None:
+        return []
+    return [str(item) for item in action.choices]
+
+
 def load_registry() -> dict[str, Any]:
     registry = json.loads(REGISTRY_PATH.read_text(encoding="utf-8"))
     schema = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
@@ -78,6 +96,42 @@ def validate_registry(registry: dict[str, Any]) -> dict[str, dict[str, str]]:
             reference_path = REFERENCES_DIR / item["reference"]
             if not reference_path.is_file():
                 raise ValueError(f"Command reference does not exist: {reference_path}")
+            registered_engine_choices = (item.get("parameters") or {}).get("engine_choices")
+            if registered_engine_choices is not None:
+                parser_engine_choices = _option_choices(
+                    PARSER_BUILDERS[entrypoint](),
+                    item["name"],
+                    "--engine",
+                )
+                if registered_engine_choices != parser_engine_choices:
+                    raise ValueError(
+                        f"Command engine choices drift for {entrypoint} {item['name']}: "
+                        f"registry={registered_engine_choices}, parser={parser_engine_choices}"
+                    )
+            registered_fallback_choices = (item.get("parameters") or {}).get("fallback_engine_choices")
+            if registered_fallback_choices is not None:
+                parser_fallback_choices = _option_choices(
+                    PARSER_BUILDERS[entrypoint](),
+                    item["name"],
+                    "--fallback-engine",
+                )
+                if registered_fallback_choices != parser_fallback_choices:
+                    raise ValueError(
+                        f"Command fallback engine choices drift for {entrypoint} {item['name']}: "
+                        f"registry={registered_fallback_choices}, parser={parser_fallback_choices}"
+                    )
+            registered_empty_choices = (item.get("parameters") or {}).get("empty_result_policy_choices")
+            if registered_empty_choices is not None:
+                parser_empty_choices = _option_choices(
+                    PARSER_BUILDERS[entrypoint](),
+                    item["name"],
+                    "--empty-result-policy",
+                )
+                if registered_empty_choices != parser_empty_choices:
+                    raise ValueError(
+                        f"Command empty-result policy choices drift for {entrypoint} {item['name']}: "
+                        f"registry={registered_empty_choices}, parser={parser_empty_choices}"
+                    )
         help_index[entrypoint] = parser_help
     return help_index
 

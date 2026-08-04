@@ -6,7 +6,7 @@
   "additionalProperties": false,
   "required": ["schema_version", "entrypoints"],
   "properties": {
-    "schema_version": {"const": "1.0.0"},
+    "schema_version": {"const": "1.2.0"},
     "entrypoints": {
       "type": "array",
       "minItems": 1,
@@ -46,7 +46,31 @@
                     "sandbox_confirmation"
                   ]
                 },
-                "reference": {"type": "string", "pattern": "^[a-z0-9_]+\\.md$"}
+                "reference": {"type": "string", "pattern": "^[a-z0-9_]+\\.md$"},
+                "parameters": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "engine_choices": {
+                      "type": "array",
+                      "minItems": 1,
+                      "items": {"type": "string", "minLength": 1},
+                      "uniqueItems": true
+                    },
+                    "fallback_engine_choices": {
+                      "type": "array",
+                      "minItems": 1,
+                      "items": {"type": "string", "minLength": 1},
+                      "uniqueItems": true
+                    },
+                    "empty_result_policy_choices": {
+                      "type": "array",
+                      "minItems": 1,
+                      "items": {"type": "string", "minLength": 1},
+                      "uniqueItems": true
+                    }
+                  }
+                }
               }
             }
           }

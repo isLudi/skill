@@ -37,14 +37,51 @@ from .commands.plan_data_center_dataset_creation import cmd_plan_data_center_dat
 from .commands.plan_data_center_sql_replacement import cmd_plan_data_center_sql_replacement
 from .commands.publish_template import cmd_publish_template
 from .commands.run import cmd_run
+from .commands.run_with_fallback import cmd_run_with_fallback
 from .commands.sync_data_center_sql import cmd_sync_data_center_sql
 from .commands.sync_datamap_fields import cmd_sync_datamap_fields
 from .commands.template_download import cmd_template_download
 from .commands.upload_temp_table import cmd_upload_temp_table
 from .config import DEFAULT_QUERY_ENGINE
+from .engine import QUERY_ENGINE_CHOICES
 from .data_center import DEFAULT_MARKET_START_DATASET
 from .data_center_creation import DEFAULT_DATA_SOURCE_ID, DEFAULT_DATA_SOURCE_NAME
 from .template_permanent import DEFAULT_INSTANCE_KEY
+
+
+def _add_query_run_arguments(
+    command: argparse.ArgumentParser,
+    *,
+    include_single_attempt_paths: bool,
+) -> None:
+    command.add_argument("--sql-file", type=Path, required=True)
+    command.add_argument("--query-plan", type=Path, default=None, help="Optional QueryPlan JSON execution contract for this exact SQL file.")
+    command.add_argument("--headed", action="store_true", help="Show browser window.")
+    command.add_argument("--state-path", type=Path, default=DEFAULT_STATE)
+    command.add_argument("--artifacts-dir", type=Path, default=DEFAULT_ARTIFACTS)
+    command.add_argument("--env-file", type=Path, default=DEFAULT_ENV_FILE)
+    command.add_argument("--username", default=os.environ.get("BAIJIA_USERNAME"))
+    command.add_argument("--password", default=os.environ.get("BAIJIA_PASSWORD"))
+    command.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL, help="Installed browser channel, e.g. msedge or chrome.")
+    command.add_argument("--executable-path", default=None, help="Explicit browser executable path; overrides --browser-channel.")
+    command.add_argument("--engine", choices=list(QUERY_ENGINE_CHOICES), default=DEFAULT_QUERY_ENGINE, help="Primary query engine to select and verify. Default: presto.")
+    command.add_argument("--timeout-ms", type=int, default=10 * 60 * 1000)
+    command.add_argument("--engine-ready-timeout-ms", type=int, default=10_000, help="Maximum deterministic wait for a stable selected-engine label.")
+    command.add_argument("--editor-ready-timeout-ms", type=int, default=10_000, help="Maximum deterministic wait for exact stable editor SQL readback.")
+    command.add_argument("--submission-ack-timeout-ms", type=int, default=15_000, help="Maximum wait for one submitted query to return a unique query ID; no automatic resubmit.")
+    command.add_argument("--result-api-timeout-ms", type=int, default=30_000, help="Maximum wait for exact-query result API metadata after execution success.")
+    command.add_argument("--result-ui-timeout-ms", type=int, default=60_000, help="Fallback wait for the exact-query UI result panel when API evidence is unavailable.")
+    command.add_argument("--new-tab", action=argparse.BooleanOptionalAction, default=True)
+    command.add_argument("--download", action="store_true", help="Download the result when local row-limit policy allows it.")
+    command.add_argument("--no-download", action="store_false", dest="download")
+    command.add_argument("--debug-artifacts", action="store_true", help="Save screenshots and HTML under the runtime artifacts directory.")
+    command.add_argument("--policy-mode", choices=["audit", "enforce"], default="enforce", help="Audit complexity or enforce all SQL policy diagnostics; unsafe statement types are always blocked.")
+    command.add_argument("--required-partition-field", action="append", default=[], help="Require this field in a WHERE clause. Repeatable; no business fields are inferred.")
+    command.add_argument("--require-limit", action="store_true", help="Require an explicit LIMIT before browser launch.")
+    if include_single_attempt_paths:
+        command.add_argument("--policy-report", type=Path, default=None, help="Optional SQL policy report path. Defaults to the run artifact directory.")
+        command.add_argument("--trace-file", type=Path, default=None, help="Continue an existing QueryTrace or create one at this path. Defaults to the run artifact directory.")
+        command.add_argument("--result-artifact", type=Path, default=None, help="Optional ResultArtifact path. Defaults to the run artifact directory.")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -66,30 +103,34 @@ def build_parser() -> argparse.ArgumentParser:
     login.add_argument("--executable-path", default=None, help="Explicit browser executable path; overrides --browser-channel.")
     login.set_defaults(func=cmd_login)
 
-    run = subparsers.add_parser("run", help="Run SQL in the web UI.")
-    run.add_argument("--sql-file", type=Path, required=True)
-    run.add_argument("--query-plan", type=Path, default=None, help="Optional QueryPlan JSON execution contract for this exact SQL file.")
-    run.add_argument("--headed", action="store_true", help="Show browser window.")
-    run.add_argument("--state-path", type=Path, default=DEFAULT_STATE)
-    run.add_argument("--artifacts-dir", type=Path, default=DEFAULT_ARTIFACTS)
-    run.add_argument("--env-file", type=Path, default=DEFAULT_ENV_FILE)
-    run.add_argument("--username", default=os.environ.get("BAIJIA_USERNAME"))
-    run.add_argument("--password", default=os.environ.get("BAIJIA_PASSWORD"))
-    run.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL, help="Installed browser channel, e.g. msedge or chrome.")
-    run.add_argument("--executable-path", default=None, help="Explicit browser executable path; overrides --browser-channel.")
-    run.add_argument("--engine", choices=["doris-presto", "presto"], default=DEFAULT_QUERY_ENGINE, help="Query engine to select before writing SQL. Default: presto.")
-    run.add_argument("--timeout-ms", type=int, default=10 * 60 * 1000)
-    run.add_argument("--new-tab", action=argparse.BooleanOptionalAction, default=True)
-    run.add_argument("--download", action="store_true", help="Download the result when local row-limit policy allows it.")
-    run.add_argument("--no-download", action="store_false", dest="download")
-    run.add_argument("--debug-artifacts", action="store_true", help="Save screenshots and HTML under the runtime artifacts directory.")
-    run.add_argument("--policy-mode", choices=["audit", "enforce"], default="enforce", help="Audit complexity or enforce all SQL policy diagnostics; unsafe statement types are always blocked.")
-    run.add_argument("--policy-report", type=Path, default=None, help="Optional SQL policy report path. Defaults to the run artifact directory.")
-    run.add_argument("--required-partition-field", action="append", default=[], help="Require this field in a WHERE clause. Repeatable; no business fields are inferred.")
-    run.add_argument("--require-limit", action="store_true", help="Require an explicit LIMIT before browser launch.")
-    run.add_argument("--trace-file", type=Path, default=None, help="Continue an existing QueryTrace or create one at this path. Defaults to the run artifact directory.")
-    run.add_argument("--result-artifact", type=Path, default=None, help="Optional ResultArtifact path. Defaults to the run artifact directory.")
+    run = subparsers.add_parser("run", help="Run one SQL attempt in the web UI.")
+    _add_query_run_arguments(run, include_single_attempt_paths=True)
     run.set_defaults(func=cmd_run)
+
+    run_with_fallback = subparsers.add_parser(
+        "run-with-fallback",
+        help="Run fallback_once: one primary SQL attempt and, only when eligible, one fallback attempt.",
+    )
+    _add_query_run_arguments(run_with_fallback, include_single_attempt_paths=False)
+    run_with_fallback.add_argument(
+        "--fallback-engine",
+        choices=list(QUERY_ENGINE_CHOICES),
+        default=None,
+        help="Explicit fallback engine. Default registry mapping: presto -> presto-lakehouse.",
+    )
+    run_with_fallback.add_argument(
+        "--empty-result-policy",
+        choices=["stop", "crosscheck-only"],
+        default="stop",
+        help="Verified empty results stop by default; crosscheck-only runs the alternate without adopting it.",
+    )
+    run_with_fallback.add_argument(
+        "--group-artifact",
+        type=Path,
+        default=None,
+        help="Optional QueryExecutionGroupArtifact path. Defaults to the fallback group runtime directory.",
+    )
+    run_with_fallback.set_defaults(func=cmd_run_with_fallback)
 
     upload = subparsers.add_parser("upload-temp-table", help="Upload a local CSV/Excel file as a SQL temporary table.")
     upload.add_argument("--file", type=Path, required=True, help="Local .csv/.xls/.xlsx file to upload.")

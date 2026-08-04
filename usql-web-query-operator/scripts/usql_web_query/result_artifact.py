@@ -13,7 +13,7 @@ from typing import Any
 from jsonschema import Draft202012Validator
 
 
-RESULT_SCHEMA_VERSION = "1.0.0"
+RESULT_SCHEMA_VERSION = "1.1.0"
 SKILLS_ROOT = Path(__file__).resolve().parents[3]
 RESULT_SCHEMA_PATH = SKILLS_ROOT / "_shared" / "text2sql_core" / "schemas" / "result_artifact.schema.json"
 
@@ -36,10 +36,18 @@ def build_result_artifact(
     result_preview: dict[str, Any] | None,
     download_path: str | None,
     expected_columns: tuple[str, ...] | list[str] = (),
+    selected_engine_key: str | None = None,
+    editor_evidence: dict[str, Any] | None = None,
+    submission_evidence: dict[str, Any] | None = None,
+    result_state: str | None = None,
+    result_evidence: dict[str, Any] | None = None,
+    ui_result_state: str | None = None,
 ) -> dict[str, Any]:
     headers = [str(item) for item in (result_preview or {}).get("headers", [])]
     diagnostics = _validate_result(
         ok=ok,
+        status=status,
+        result_state=result_state,
         result_preview=result_preview,
         headers=headers,
         expected_columns=expected_columns,
@@ -75,19 +83,32 @@ def build_result_artifact(
         "ok": ok,
         "engine": {
             "requested": requested_engine,
+            "selected_key": selected_engine_key,
             "selected_label": selected_engine_label,
             "history_value": history_engine,
         },
+        "editor": _editor_summary(editor_evidence),
+        "submission": _submission_summary(submission_evidence),
         "timing": {
             "query_duration_seconds": query_duration_seconds,
             "elapsed_seconds": elapsed_seconds,
         },
         "result": {
+            "state": result_state,
+            "source": (result_evidence or {}).get("source"),
             "headers": headers,
             "row_count_visible": (result_preview or {}).get("row_count_visible"),
             "no_more": (result_preview or {}).get("no_more"),
             "preview_sha256": _preview_sha256(result_preview) if result_preview else None,
             "preview_rows_redacted": True,
+            "api_http_status": (result_evidence or {}).get("http_status"),
+            "api_error_code": (result_evidence or {}).get("error_code"),
+            "api_meta_count": (result_evidence or {}).get("meta_count"),
+            "api_row_count_page": (result_evidence or {}).get("row_count_page"),
+            "api_total_rows": (result_evidence or {}).get("total_rows"),
+            "completion_source": (result_evidence or {}).get("completion_source"),
+            "evidence_conflict": (result_evidence or {}).get("evidence_conflict"),
+            "ui_state": ui_result_state,
         },
         "download": download,
         "validation": {
@@ -139,13 +160,23 @@ def write_result_artifact(path: Path, artifact: dict[str, Any]) -> None:
 def _validate_result(
     *,
     ok: bool,
+    status: str,
+    result_state: str | None,
     result_preview: dict[str, Any] | None,
     headers: list[str],
     expected_columns: tuple[str, ...] | list[str],
     download_path: str | None,
 ) -> list[dict[str, str]]:
     diagnostics: list[dict[str, str]] = []
-    if ok and result_preview is None:
+    if status == "Success" and result_state == "result_unresolved":
+        diagnostics.append(
+            _diagnostic(
+                "RESULT_STATE_UNRESOLVED",
+                "error",
+                "Query execution succeeded but exact-query result state was not verified.",
+            )
+        )
+    elif ok and result_preview is None and result_state != "success_empty_verified":
         diagnostics.append(_diagnostic("RESULT_PREVIEW_MISSING", "warning", "Successful query has no visible result preview metadata."))
     normalized_headers = [item.strip().lower() for item in headers]
     if len(normalized_headers) != len(set(normalized_headers)):
@@ -175,3 +206,27 @@ def _diagnostic(code: str, severity: str, message: str) -> dict[str, str]:
 def _preview_sha256(result_preview: dict[str, Any]) -> str:
     rendered = json.dumps(result_preview, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(rendered.encode("utf-8")).hexdigest()
+
+
+def _editor_summary(evidence: dict[str, Any] | None) -> dict[str, Any] | None:
+    if not evidence:
+        return None
+    return {
+        "sql_sha256": evidence.get("sql_sha256"),
+        "byte_length": evidence.get("byte_length"),
+        "stable_reads": evidence.get("stable_reads"),
+    }
+
+
+def _submission_summary(evidence: dict[str, Any] | None) -> dict[str, Any] | None:
+    if not evidence:
+        return None
+    return {
+        "query_id_source": evidence.get("query_id_source"),
+        "mechanism": evidence.get("mechanism"),
+        "attempt_count": evidence.get("attempt_count"),
+        "request_path": evidence.get("request_path"),
+        "http_status": evidence.get("http_status"),
+        "submitted_sql_sha256": evidence.get("submitted_sql_sha256"),
+        "submitted_engine": evidence.get("submitted_engine"),
+    }

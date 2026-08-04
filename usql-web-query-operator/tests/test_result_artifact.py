@@ -80,6 +80,90 @@ class ResultArtifactTests(unittest.TestCase):
             {item["code"] for item in artifact["validation"]["diagnostics"]},
         )
 
+    def test_submission_and_api_evidence_are_redacted_and_versioned(self) -> None:
+        artifact = build_result_artifact(
+            trace_id="trace_" + "8" * 32,
+            domain="unresolved",
+            plan_id=None,
+            sql_sha256="9" * 64,
+            policy_report_sha256="a" * 64,
+            ok=True,
+            status="Success",
+            query_id="1525000004",
+            requested_engine="presto-lakehouse",
+            selected_engine_label="Presto_lakehouse",
+            history_engine=None,
+            query_duration_seconds=1.2,
+            elapsed_seconds=2.3,
+            result_preview={
+                "headers": ["probe_value"],
+                "rows": [["sensitive-row"]],
+                "row_count_visible": 1,
+                "no_more": True,
+            },
+            download_path=None,
+            selected_engine_key="presto-lakehouse",
+            editor_evidence={"sql_sha256": "9" * 64, "byte_length": 42, "stable_reads": 2},
+            submission_evidence={
+                "query_id_source": "submission_response",
+                "mechanism": "button",
+                "attempt_count": 1,
+                "request_path": "/uanalysis-sql/api/query/execute",
+                "http_status": 200,
+                "submitted_sql_sha256": "9" * 64,
+                "submitted_engine": "Presto_lakehouse",
+            },
+            result_state="success_ui_missing_recovered",
+            result_evidence={
+                "source": "result_api",
+                "http_status": 200,
+                "error_code": 0,
+                "meta_count": 1,
+                "row_count_page": 1,
+                "total_rows": 1,
+                "completion_source": "result_api",
+                "evidence_conflict": None,
+                "preview": {"rows": [["sensitive-row"]]},
+            },
+            ui_result_state="ui_timeout",
+        )
+        rendered = json.dumps(artifact, ensure_ascii=False)
+        self.assertEqual(artifact["schema_version"], "1.1.0")
+        self.assertEqual(artifact["result"]["state"], "success_ui_missing_recovered")
+        self.assertEqual(artifact["result"]["api_row_count_page"], 1)
+        self.assertEqual(artifact["result"]["completion_source"], "result_api")
+        self.assertIsNone(artifact["result"]["evidence_conflict"])
+        self.assertEqual(artifact["submission"]["attempt_count"], 1)
+        self.assertNotIn("sensitive-row", rendered)
+        self.assertNotIn('"preview"', rendered)
+
+    def test_unresolved_success_is_a_failed_result_validation(self) -> None:
+        artifact = build_result_artifact(
+            trace_id="trace_" + "7" * 32,
+            domain="unresolved",
+            plan_id=None,
+            sql_sha256="6" * 64,
+            policy_report_sha256="5" * 64,
+            ok=False,
+            status="Success",
+            query_id="1525000005",
+            requested_engine="presto",
+            selected_engine_label="Presto",
+            history_engine=None,
+            query_duration_seconds=None,
+            elapsed_seconds=3.0,
+            result_preview=None,
+            download_path=None,
+            result_state="result_unresolved",
+            result_evidence={"source": "result_api", "http_status": 200},
+            ui_result_state="ui_timeout",
+        )
+        self.assertEqual(artifact["validation"]["status"], "failed")
+        self.assertIn(
+            "RESULT_STATE_UNRESOLVED",
+            {item["code"] for item in artifact["validation"]["diagnostics"]},
+        )
+
     def test_artifact_and_trace_round_trip(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)

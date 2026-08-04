@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0.0",
+  "supported_engines": ["presto", "presto-lakehouse", "doris-presto"],
+  "default_primary": "presto",
+  "default_fallback_by_primary": {
+    "presto": "presto-lakehouse"
+  },
+  "equivalence_groups": [
+    {
+      "group_id": "presto_equivalent_directory",
+      "engines": ["presto", "presto-lakehouse"],
+      "directory_equivalence": true,
+      "confirmation": "user_confirmed",
+      "confirmed_on": "2026-08-04"
+    }
+  ],
+  "explicit_only_engines": ["doris-presto"],
+  "domain_overrides": {
+    "market_consultant": {},
+    "qingcheng": {}
+  }
+}

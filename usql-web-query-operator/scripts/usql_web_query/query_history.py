@@ -38,30 +38,43 @@ def extract_query_history_rows(page: Any) -> list[dict[str, str]]:
                             style.visibility !== 'hidden' &&
                             style.display !== 'none';
                     }
-                    return Array.from(document.querySelectorAll('tr'))
-                        .map((row) => {
-                            const cells = Array.from(row.querySelectorAll('td,th'))
-                                .filter(visible)
-                                .map((cell) => (cell.innerText || cell.textContent || '').trim())
-                                .filter(Boolean);
+                    function headerIndex(headers, patterns) {
+                        return headers.findIndex(text => patterns.some(pattern => pattern.test(text)));
+                    }
+                    const output = [];
+                    for (const table of Array.from(document.querySelectorAll('table'))) {
+                        const headers = Array.from(table.querySelectorAll('thead th'))
+                            .map(cell => (cell.innerText || cell.textContent || '').trim());
+                        const idIndex = headerIndex(headers, [/查询\\s*ID/i, /^ID$/i]);
+                        const engineIndex = headerIndex(headers, [/引擎/, /engine/i]);
+                        const durationIndex = headerIndex(headers, [/持续时间/, /duration/i]);
+                        const statusIndex = headerIndex(headers, [/状态/, /status/i]);
+                        if (idIndex < 0 || (statusIndex < 0 && engineIndex < 0)) continue;
+                        const bodyRows = Array.from(table.querySelectorAll('tbody tr')).filter(visible);
+                        for (const row of bodyRows) {
+                            const cells = Array.from(row.querySelectorAll('td'))
+                                .map((cell) => (cell.innerText || cell.textContent || '').trim());
                             const text = cells.join('\\n');
-                            const idMatch = text.match(/^\\s*(\\d{9,11})\\b/) || text.match(/\\b(\\d{9,11})\\b/);
+                            const idText = idIndex >= 0 ? cells[idIndex] || '' : text;
+                            const idMatch = idText.match(/\\b(\\d{9,11})\\b/) || text.match(/\\b(\\d{9,11})\\b/);
+                            if (!idMatch) continue;
                             let status = '';
-                            if (/\\bSuccess\\b/.test(text)) status = 'Success';
-                            else if (/\\bFail(?:ed)?\\b|失败/.test(text)) status = 'Failed';
-                            else if (/\\bRunning\\b|运行中|执行中|查询中/.test(text)) status = 'Running';
-                            else if (/\\bQueued\\b|等待|排队/.test(text)) status = 'Queued';
-                            const engine = cells.length >= 4 ? cells[cells.length - 4] : '';
-                            const duration_text = cells.length >= 3 ? cells[cells.length - 3] : '';
-                            return {
+                            const statusText = statusIndex >= 0 ? cells[statusIndex] || '' : text;
+                            if (/\\bSuccess\\b/.test(statusText)) status = 'Success';
+                            else if (/\\bFail(?:ed)?\\b|失败/.test(statusText)) status = 'Failed';
+                            else if (/\\bRunning\\b|运行中|执行中|查询中/.test(statusText)) status = 'Running';
+                            else if (/\\bQueued\\b|等待|排队/.test(statusText)) status = 'Queued';
+                            const detectedEngine = cells.find(cell => /presto|doris|lakehouse/i.test(cell)) || '';
+                            output.push({
                                 query_id: idMatch ? idMatch[1] : '',
                                 status,
-                                engine,
-                                duration_text,
+                                engine: engineIndex >= 0 ? cells[engineIndex] || detectedEngine : detectedEngine,
+                                duration_text: durationIndex >= 0 ? cells[durationIndex] || '' : '',
                                 text,
-                            };
-                        })
-                        .filter((row) => row.query_id && row.text.includes('Presto'));
+                            });
+                        }
+                    }
+                    return output;
                 }"""
             )
             rows.extend(frame_rows)
@@ -69,11 +82,22 @@ def extract_query_history_rows(page: Any) -> list[dict[str, str]]:
             continue
     return rows
 
+
 def extract_query_history_ids(page: Any) -> set[str]:
     return (
         {row["query_id"] for row in extract_query_history_rows(page) if row.get("query_id")}
         | extract_open_query_tab_ids(page)
     )
+
+
+def find_query_history_row(page: Any, query_id: str | None) -> dict[str, str] | None:
+    if not query_id:
+        return None
+    return next(
+        (row for row in extract_query_history_rows(page) if row.get("query_id") == query_id),
+        None,
+    )
+
 
 def lookup_query_history_row_by_text(page: Any, query_id: str | None) -> dict[str, str] | None:
     if not query_id:
@@ -110,6 +134,7 @@ def lookup_query_history_row_by_text(page: Any, query_id: str | None) -> dict[st
             }
     return None
 
+
 def extract_open_query_tab_ids(page: Any) -> set[str]:
     query_ids: set[str] = set()
     for frame_obj in getattr(page, "frames", []):
@@ -121,6 +146,7 @@ def extract_open_query_tab_ids(page: Any) -> set[str]:
         except Exception:
             continue
     return query_ids
+
 
 def extract_query_id(text: str) -> str | None:
     match = re.search(r"\b(\d{9,11})\b", text)

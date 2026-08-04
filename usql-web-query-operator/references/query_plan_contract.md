@@ -1,6 +1,6 @@
 # QueryPlan 执行契约
 
-`run --query-plan` 为 SQL 页面执行增加一个可选的只读前置契约。它用于确认上游业务 SQL skill 产出的 QueryPlan 与本次提交的 SQL 完全对应，并且已经达到可执行状态。
+`run --query-plan` 和显式 `run-with-fallback --query-plan` 为 SQL 页面执行增加一个可选的只读前置契约。它用于确认上游业务 SQL skill 产出的 QueryPlan 与每次提交的 SQL 完全对应，并且已经达到可执行状态。
 
 该能力只验证计划，不生成或修改 SQL，不修复 QueryPlan，也不打开任何新的看板、模板、临时表、数据集或权限写入能力。不传 `--query-plan` 时，`run` 保持原有行为。
 
@@ -14,6 +14,8 @@ D:\anaconda3\python.exe scripts\usql_web_query.py run `
 ```
 
 `--sql-file` 仍是实际提交到 SQL 页面中的内容；QueryPlan 不能内嵌或替代 SQL 文件。
+
+`run-with-fallback` 最多产生两个独立 attempt。两次都必须重新校验同一 QueryPlan 与完全相同的 SQL SHA-256，各自产生 QueryTrace/ResultArtifact；QueryPlan 不会授权第三次执行、备用引擎结果采用或越过下载门禁。引擎回退规则见 [sql_query_execution.md](sql_query_execution.md)。
 
 ## 必需契约
 

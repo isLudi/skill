@@ -40,8 +40,12 @@ description: 通过 Playwright 执行受治理的 USQL 网页查询、小结果�
 
 - 密码、Cookie、Token、登录态、截图、SQL 结果和下载文件不得进入 Skill 目录。
 - 登录态固定保存在 `C:\Users\Ludim\.codex\runtime\usql-web-query-operator\state.json`；通用 Playwright 不得读取、替换或管理它。
-- QueryPlan 仅约束 `run`：必须为受支持域、`status=executable`、`unresolved_slots=[]` 且 SQL SHA-256 完全一致。
+- QueryPlan 约束 `run` 以及 `run-with-fallback` 的每个独立 attempt：必须为受支持域、`status=executable`、`unresolved_slots=[]` 且 SQL SHA-256 完全一致。
 - `run` 在浏览器启动前强制执行只读 SQL Policy；DDL/DML、命令语句、多语句、解析失败和未解析模板参数不得通过 audit 模式绕过。
+- `run` 提交前必须稳定回读精确 SQL Hash 和引擎标签；一次运行只触发一次提交，平台受理后绑定一个新 Query ID，不得因页面响应慢而自动重复点击。
+- 普通 `run` 永远只有一次 attempt，`fallback_once` 默认关闭。只有显式 `run-with-fallback` 才可创建最多两个相同 SQL Hash 的独立 attempt；每个 attempt 仍各自只提交一次并产生独立 QueryTrace 和 ResultArtifact，平台受理的 attempt 各自绑定独立 Query ID。
+- `run-with-fallback` 只在 `result_unresolved` 或白名单明确暂态引擎错误后采用备用结果。`success_empty_verified` 默认停止；显式 `--empty-result-policy crosscheck-only` 只做一致性检查，备用结果不得下载或自动采用。
+- SQL 结果以精确 Query ID 的结果 API 为主、对应 UI 面板为辅；只有 API/完成状态证明 0 行时才能报告已验证空结果，API 与 UI 均无法确认时必须返回 `result_unresolved`。
 - QueryTrace、SQL Policy Report 和 ResultArtifact 只记录 Hash、状态、列级元数据与脱敏结果证据，不保存问题原文、SQL 文本或结果行，也不构成任何后续授权。
 - QueryPlan 不授予下载、模板、临时表、数据集、看板或权限写入能力。
 - 直接下载同时要求结果不超过 1000 行；携带 QueryPlan 时还要求 `execution_policy.allow_download=true`。
@@ -67,6 +71,8 @@ description: 通过 Playwright 执行受治理的 USQL 网页查询、小结果�
 - 为看板画像写回、数据地图同步、Data Center canonical SQL 同步和 P4C 上游绑定提供同一领域根目录。
 
 注册表只保存路由和平台范围，不保存业务指标或 SQL 语义。新增领域必须先有独立业务 Skill、稳定 `domain_id`、领域测试和经审阅的知识写回范围。
+
+查询引擎回退只由 `references/query_engine_fallbacks.json` 决定。当前用户已确认 `presto` 与 `presto-lakehouse` 使用等价目录，因此后者是前者的默认一次性备用；`doris-presto` 只能由 `--fallback-engine doris-presto` 显式选择，或经审阅写入领域 override。注册表解析不扩大 SQL、下载或生产写权限。
 
 ## 标准协作顺序
 
