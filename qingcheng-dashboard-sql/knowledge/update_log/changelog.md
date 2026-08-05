@@ -674,3 +674,13 @@
 - 通过一次性临时模板 `QingProdRefund0804`（template id `9726`）下载产品粒度结果，查询记录 `385023`、任务 `1525289328`，返回 234 条记录；临时模板已完成下线和删除，未保留线上模板。
 - 新规则下产品退费金额合计 `1,347,448.07`：大班 `1,089,504.33 / 80.86%`、一对一 `117,336.50 / 8.71%`、小班 `102,626.24 / 7.62%`、清北 `20,531.70 / 1.52%`、其他 `17,449.30 / 1.30%`。原 20260710-20260728 版本的其他为 `81.61%`，其主要差额被重新识别为大班；剩余其他仍表示未命中上述二级部门规则的产品，不能继续整体并入大班。
 - 退费结构透视表的产品占比改为由退费金额分子除以产品分类退费金额分母计算，并在 Excel 中保留新归类原始数据、业务口径说明和结果核验。
+
+## 2026-08-04 修复 finance 源表重复行导致业绩多算
+
+- 诊断确认 `finance_dw.app_finance_performance_extend_details_hf` 存在业务键完全相同但 `id` 不同的重复行：全表约 39% 订单受影响，其中 52,949 笔订单每笔 ≥6 行重复，185 名顾问被多算。
+- 修复 `data_center_qingcheng_2769.sql`（青橙个人转化）、`data_center_qingcheng_2677.sql`（团队完成度【月】）、`data_center_qingcheng_2680.sql`（团队完成度【期】）三个数据集 SQL：
+  1. 将 `dd` CTE 中 `org_t` 的 LEFT JOIN + WHERE 窗口判断改为 `EXISTS` 子查询，避免组织链多行导致的笛卡尔积；
+  2. 新增 `dd2` CTE，用 `row_number() over (partition by 16 列业务键 order by id) = 1` 消除源表重复行，避免 `gmv_z`/`gmv_t` 的 `sum(price)` 倍乘。
+- 三个数据集均已在 Data Center 完成替换上线并确认抽数 `SUCCESS`：个人转化 run `162756633`、团队完成度【期】run `162763410`、团队完成度【月】run `162763412`。
+- 更新 `semantic/current_model_bindings.json` 三个 model 的 SQL SHA-256 与字节数。
+- 相关字段/表知识补充：`finance_dw.app_finance_performance_extend_details_hf` 的 `id` 字段不保证业务唯一，按订单/课程/交易维度聚合前必须先按业务键去重。

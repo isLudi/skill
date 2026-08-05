@@ -14,6 +14,8 @@ model 2460 从 2026-07-20 起还使用本表补充“课程转移到 B 用户且
 
 待人工确认。当前 SQL 以订单/交易明细使用，字段包含 `id`、`order_number`、`biz_number`、`user_id`、`trade_time`。
 
+**注意：`id` 字段不保证业务唯一。** 2026-08-04 诊断确认同一 `order_number + clazz_name + user_id + trade_status + trade_type + trade_time + employee_email_name + course_grade` 业务键下存在多条 `id` 不同、数据完全相同的重复行：全表约 39% 订单受影响，其中 52,949 笔订单每笔 ≥6 行重复，覆盖 185 名青橙顾问。按订单/课程/交易维度做 `sum(price)` 等金额聚合前，必须先用 `row_number() over (partition by <业务键> order by id) = 1` 去重（参见 `data_center_qingcheng_2769.sql` 的 `dd2` CTE）。
+
 ## 4. 查询引擎
 
 Presto

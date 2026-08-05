@@ -139,8 +139,9 @@ This applies to ALL calculations - totals, percentages, ratios, differences, etc
 1. **Choose tool**: pandas for data, openpyxl for formulas/formatting
 2. **Create/Load**: Create new workbook or load existing file
 3. **Modify**: Add/edit data, formulas, and formatting
-4. **Save**: Write to file
-5. **Recalculate formulas (MANDATORY IF USING FORMULAS)**: Use the scripts/recalc.py script
+4. **Apply styling (MANDATORY for new files)**: Use `auto_style_sheet()` or individual functions from `scripts/style_apply.py`
+5. **Save**: Write to file
+6. **Recalculate formulas (MANDATORY IF USING FORMULAS)**: Use the scripts/recalc.py script
    ```bash
    # Windows
    D:\anaconda3\python.exe scripts/recalc.py output.xlsx
@@ -186,6 +187,123 @@ sheet.column_dimensions['A'].width = 20
 
 wb.save('output.xlsx')
 ```
+
+## Style Rules — Automatic Beautification
+
+**Every new Excel file created MUST apply beautification.** Use the functions in `scripts/style_apply.py` rather than hand-coding styles. This ensures consistent, professional output without the model needing to remember color codes, font sizes, or border styles.
+
+### Quick start: one-call auto-style
+
+For most data sheets, a single call covers all the basics:
+
+```python
+from style_apply import auto_style_sheet
+
+auto_style_sheet(
+    ws,
+    title='Department Refund Analysis',
+    subtitle='Period: 20260501–20260722 | Source: CRM full-link | Updated: 2026-07-28',
+    header_row=1,
+    value_cols=[4, 5, 6, 7],
+    category_col='A',
+    category_map={'Junior High': 'E3F2FD', 'Senior High': 'FFF3E0'},
+    add_color_scale=True,
+)
+```
+
+### Individual functions (for fine-grained control)
+
+```python
+from style_apply import (
+    apply_title_banner, apply_header_style, apply_banded_rows,
+    apply_number_format, apply_data_bars, apply_color_scale,
+    apply_pivot_style, apply_sort_indicator, apply_category_colors,
+    apply_border_grid, apply_section_header, apply_subtotal_row,
+    apply_grand_total_row, apply_kpi_card, apply_kpi_cards_row,
+    apply_auto_fit_columns,
+)
+```
+
+### Mandatory defaults (apply to EVERY new data sheet)
+
+1. **Header styling**: `apply_header_style(ws, row=<header_row>)` — dark blue background, white bold text, frozen panes
+2. **Auto-fit columns**: `apply_auto_fit_columns(ws)` — Chinese-aware width calculation
+3. **Number formats**: `apply_number_format(ws, start_row=<data_start>)` — auto-detects from header keywords
+4. **Grid borders**: `apply_border_grid(ws, start_row, end_row, max_col)` — thin gray grid on data cells
+
+### Title & banner (if the sheet has a title)
+
+```python
+apply_title_banner(ws, '报告标题', subtitle='数据范围说明', max_col=10)
+```
+- Dark blue merged row with 16pt white bold title
+- Optional gray subtitle row below
+
+### Conditional formatting (apply to numeric value columns)
+
+**Data bars** — for comparing magnitudes (amounts, headcounts):
+```python
+apply_data_bars(ws, 'E2:E50', color='5B9BD5')
+```
+
+**Color scales** — for ratios and rates:
+```python
+apply_color_scale(ws, 'F2:F50', scheme='red_white_green')
+```
+Schemes: `red_white_green`, `green_white`, `red_white`, `blue_white`, `blue_white_red`.
+
+### Pivot tables
+
+```python
+apply_pivot_style(
+    ws,
+    data_start_row=4, data_end_row=50, max_col=8,
+    row_label_cols=[1, 2],    # text dimensions (left-aligned, bold)
+    value_cols=[3, 4, 5, 6],  # numeric measures (right-aligned)
+    has_total_row=True,
+)
+```
+
+### Sort indicators
+
+After sorting a pivot on a value column:
+```python
+apply_sort_indicator(ws, 'D', direction='desc', header_row=3)
+```
+
+### Category color blocks
+
+For sheets grouped by channel/dept/grade:
+```python
+# Explicit color mapping
+apply_category_colors(ws, 'B',
+    {'KOC': 'E3F2FD', 'Douyin': 'FFF3E0', 'Info Feed': 'E8F5E9'},
+    start_row=2)
+
+# Auto-assign from the preset palette
+apply_category_colors(ws, 'A',
+    ['Junior High', 'Senior High', 'Primary School'],
+    start_row=2)
+```
+
+### Section headers, subtotals, KPI cards
+
+```python
+apply_section_header(ws, row=10, max_col=8, text='Core Findings', color='accent_green')
+apply_subtotal_row(ws, row=25, max_col=8)
+apply_grand_total_row(ws, row=50, max_col=8)
+apply_kpi_card(ws, row=3, col=2, value='12.5%', label='Overall Refund Rate')
+apply_kpi_cards_row(ws, row=3, metrics=[
+    ('12.5%', 'Refund Rate'),
+    ('¥8.2M', 'Total Refunds'),
+    ('342', 'Active Periods'),
+], start_col=2, card_width=3)
+```
+
+### When NOT to apply beautification
+
+- **Preserving existing templates**: When editing a file that already has its own formatting conventions, match those conventions instead. DO NOT overwrite existing template styles.
+- **User explicitly requests no styling**: e.g., "just dump the data", "raw data only"
 
 ### Editing existing Excel files
 

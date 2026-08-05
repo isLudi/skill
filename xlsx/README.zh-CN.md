@@ -15,6 +15,7 @@
 - 创建带动态公式的财务模型或运营分析模型。
 - 将 PDF 或其他来源抽取的表格整理为 Excel。
 - 检查公式错误，例如 `#REF!`、`#DIV/0!`、`#VALUE!`。
+- 自动美化表格：深蓝表头、交替行着色、数据条、色阶、分类色块、KPI 卡片、透视表专项美化。
 
 ## 基本使用方法
 
@@ -51,7 +52,7 @@
 4. 新增一个“数据质量问题”工作表记录清洗日志。
 ```
 
-### 生成 Excel 报表
+### 生成 Excel 报表（带自动美化）
 
 ```text
 请使用 xlsx skill 根据以下数据生成 Excel 报表，输出为 <报表.xlsx>。
@@ -60,7 +61,18 @@
 2. 汇总分析表；
 3. 趋势图或柱状图；
 4. 关键指标说明。
-请使用清晰的标题、冻结首行、自动筛选和专业数字格式。
+请使用 quick_style() 自动美化所有数据表。
+```
+
+### 生成透视表（带美化）
+
+```text
+请使用 xlsx skill 创建透视表，输出为 <透视表.xlsx>。
+要求：
+1. 对数值列自动应用数据条和色阶；
+2. 按渠道/分类字段设置分类色块；
+3. 汇总行使用特殊样式；
+4. 降序排列的指标列表头添加排序箭头。
 ```
 
 ### 修改已有模板
@@ -101,6 +113,58 @@ df.to_excel("output.xlsx", index=False)
 
 通常使用 `openpyxl` 做单元格级别处理，保留模板时必须先研究原文件格式，再做局部修改。
 
+### 自动美化表格（新增）
+
+skill 内置了完整的表格美化模块（`scripts/style_apply.py` + `scripts/style_palette.py`），**所有新建 Excel 文件都应自动调用**，无需用户每次手动声明。
+
+**最简调用：**
+
+```python
+from style_apply import quick_style
+
+# 一个函数覆盖标题、表头、交替行、数字格式、列宽、边框
+quick_style(ws, title='报表标题', value_cols=[3, 4, 5], category_col='A')
+```
+
+**一键全表美化（更细粒度控制）：**
+
+```python
+from style_apply import auto_style_sheet
+
+auto_style_sheet(
+    ws,
+    title='市场顾问部 退费分析',
+    subtitle='Period: 2026-05 ~ 2026-07 | Source: CRM',
+    value_cols=[4, 5, 6],
+    category_col='A',
+    category_map={'KOC': 'E3F2FD', '抖音': 'FFF3E0'},
+    add_color_scale=True,
+    add_data_bars=True,
+)
+```
+
+**单功能函数（按需使用）：**
+
+| 函数 | 用途 |
+|------|------|
+| `apply_title_banner(ws, title, ...)` | 深蓝标题横幅 |
+| `apply_header_style(ws, row, ...)` | 表头样式 + 冻结窗格 |
+| `apply_banded_rows(ws, ...)` | 交替行着色 |
+| `apply_number_format(ws, ...)` | 中文关键词自动识别数字格式 |
+| `apply_auto_fit_columns(ws)` | 中文感知自动列宽 |
+| `apply_border_grid(ws, ...)` | 数据区网格边框 |
+| `apply_data_bars(ws, col_range)` | 单元格内数据条 |
+| `apply_color_scale(ws, col_range)` | 红-白-绿 色阶 |
+| `apply_pivot_style(ws, ...)` | 透视表专项美化 |
+| `apply_sort_indicator(ws, col)` | 排序箭头指示器 |
+| `apply_category_colors(ws, col, mapping)` | 分类色块 |
+| `apply_kpi_card(ws, ...)` | KPI 指标卡片 |
+| `apply_section_header(ws, ...)` | 分段标题 |
+| `apply_subtotal_row(ws, ...)` / `apply_grand_total_row(ws, ...)` | 汇总行样式 |
+| `detect_existing_template(ws)` | 检测已有模板（避免覆盖） |
+
+**模板保护：** 修改已有模板时，`detect_existing_template()` 会自动检测已有样式，`quick_style()` 遇到模板时会跳过破坏性修改，仅执行非破坏性操作（如自动列宽）。
+
 ### 重算和检查公式
 
 官方 skill 提供 `scripts/recalc.py`，用于重算公式值并检查错误。Windows 自动使用 Excel COM，Linux/macOS 自动使用 LibreOffice。
@@ -126,7 +190,8 @@ python3 scripts/recalc.py workbook.xlsx
 ## 使用注意
 
 - 生成 Excel 模型时优先使用 Excel 公式，不要把计算结果硬编码。
-- 修改模板时必须保留已有格式和约定，除非用户明确要求重做样式。
+- 新建文件必须调用美化函数：每次生成新的 xlsx 文件，默认使用 `quick_style()` 或 `auto_style_sheet()` 自动美化，确保输出风格统一稳定。
+- 修改模板时必须保留已有格式和约定，`detect_existing_template()` 会自动检测已有样式并跳过覆盖。
 - 财务模型中输入、公式、跨表链接和外部链接应使用不同颜色区分。
 - 输出前应检查公式错误、循环引用、范围偏移和除零问题。
 - 不要对 Excel Table 已覆盖的同一区域再设置工作表级 `auto_filter`，重叠筛选器可能导致 Excel COM 无法打开工作簿。

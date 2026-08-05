@@ -5804,8 +5804,8 @@
     },
     {
       "source_path": "knowledge/tables/finance_dw.app_finance_performance_extend_details_hf.md",
-      "sha256": "4673b32619837e23204626ce1544c20265f35b65c99773ae76bffdff594419b4",
-      "bytes": 20874,
+      "sha256": "4466fbe23b7ae329f1d3c18b7fe5a633f6f091340bc0763932645a97a4bc99e6",
+      "bytes": 21462,
       "category": "tables"
     },
     {
@@ -5960,8 +5960,8 @@
     },
     {
       "source_path": "knowledge/update_log/changelog.md",
-      "sha256": "866bed2ac729f299d2f97d009cb7424514ff7dbe151a3475ba26d172555f6ad4",
-      "bytes": 77987,
+      "sha256": "044098ea3185bf77a4d3f636b48a6a66d5adccda0a8ae3642bd893c8605c7a15",
+      "bytes": 79327,
       "category": "update_log"
     },
     {
@@ -5984,14 +5984,14 @@
     },
     {
       "source_path": "resources/raw_sql/data_center_qingcheng_2677.sql",
-      "sha256": "10f2e804dbc1bbb7794d20137adcc7b53b75fb1d2f533cd7261ab41d7eb7503a",
-      "bytes": 22869,
+      "sha256": "464af4149a7b71bc9d2c6f7b9b96b5019f74c5e9b253d117524d5f1c512ed2a0",
+      "bytes": 23653,
       "category": "raw_sql"
     },
     {
       "source_path": "resources/raw_sql/data_center_qingcheng_2680.sql",
-      "sha256": "f98d393cefa70a5df04a53386c840b99a23943723c4b2040b222f43bec22fcd3",
-      "bytes": 22819,
+      "sha256": "6e9e9185d0625ce7068964746c246e74c37bbb3bd0dbee591e17c73d7e81f46c",
+      "bytes": 23603,
       "category": "raw_sql"
     },
     {
@@ -6002,8 +6002,8 @@
     },
     {
       "source_path": "resources/raw_sql/data_center_qingcheng_2769.sql",
-      "sha256": "1f89b179752cf6aafe5c8007f2c1c024956e8f0be76ca0e0d4ddf9796b755fd2",
-      "bytes": 27387,
+      "sha256": "4c6fb17070015d41c56aff525b4b9faac95544dac5cf5c2ac1b6f23a96ea4f09",
+      "bytes": 28171,
       "category": "raw_sql"
     },
     {

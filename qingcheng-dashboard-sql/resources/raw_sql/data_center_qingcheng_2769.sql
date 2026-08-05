@@ -160,8 +160,6 @@ from (
     left join order_attr oa
         on oa.order_number = a.order_number
        and oa.performance_employee_email_name = a.name
-    left join org_t ot
-        on ot.name = a.name
     left join biz_qici_calendar hist_cal
         on cast(cast(coalesce(oa.original_paid_time, a.paid_time, a.trade_time) as timestamp) as date) >= hist_cal.period_start_date
        and cast(cast(coalesce(oa.original_paid_time, a.paid_time, a.trade_time) as timestamp) as date) <= hist_cal.period_end_date
@@ -175,13 +173,34 @@ from (
             '期'
         ))
     where (
-        cast(coalesce(oa.original_paid_time, a.paid_time, a.trade_time) as timestamp) >= cast(ot.begin_time as timestamp)
-        and (
-            ot.end_time is null
-            or cast(coalesce(oa.original_paid_time, a.paid_time, a.trade_time) as timestamp) <= cast(ot.end_time as timestamp)
+        exists (
+            select 1 from org_t ot
+            where ot.name = a.name
+              and cast(coalesce(oa.original_paid_time, a.paid_time, a.trade_time) as timestamp) >= cast(ot.begin_time as timestamp)
+              and (ot.end_time is null
+                   or cast(coalesce(oa.original_paid_time, a.paid_time, a.trade_time) as timestamp) <= cast(ot.end_time as timestamp))
         )
     )
     or th.employee_email_name is not null
+)
+-- 源表 finance_dw 存在业务键完全相同的重复行（不同 id），row_number 去重避免 sum(price) 倍乘
+,dd2 as (
+    select *
+    from (
+        select
+            dd.*,
+            row_number() over (
+                partition by
+                    order_number, clazz_name, user_id1, trade_status, trade_type,
+                    trade_time, email_prefix, name, grade_list, subject, qici,
+                    school_term_id, teacher_name, course_first_level_department_name,
+                    course_second_level_department_name,
+                    service_transfer_in_amount_yuan, service_transfer_out_amount_yuan
+                order by id
+            ) as _dd_rn
+        from dd
+    )
+    where _dd_rn = 1
 )
 -- 调课调班（按订单/课程维度汇总，避免把同一顾问同一用户的多笔调课调班揉成一条）
 ,gmv_t as (
@@ -205,7 +224,7 @@ from (
         max(service_transfer_in_amount_yuan) as service_transfer_in_amount_yuan,
         max(service_transfer_out_amount_yuan) as service_transfer_out_amount_yuan,
         round(sum(price), 3) as name_total_price
-    from dd
+    from dd2
     where trade_type = '调课调班'
     group by
         order_number,
@@ -247,7 +266,7 @@ from (
         max(service_transfer_in_amount_yuan) as service_transfer_in_amount_yuan,
         max(service_transfer_out_amount_yuan) as service_transfer_out_amount_yuan,
         sum(price) as name_total_price
-    from dd
+    from dd2
     where coalesce(trade_type, '') <> '调课调班'
     group by
         id,
