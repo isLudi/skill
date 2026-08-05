@@ -95,6 +95,13 @@ description: Resolve market-consultant semantic contracts, build governed QueryS
 - 禁止使用知识库不存在的字段。
 - 如果指标口径不完整，优先从已有看板 SQL 中抽取定义，并标注“待人工确认”。
 
+### SQL 性能与准确性门禁（新增或修改 SQL 文件）
+
+- 平台单次查询的硬上限为 300 秒；达到上限后平台会自动 kill 查询流程。300 秒不是性能目标。每次新增或修改本 Skill 管理的 `.sql` 文件（包括 `resources/raw_sql/` 和数据中心 SQL）时，都必须在入库、交付或允许生产执行前完成性能审查与优化；没有性能检查证据，不得标记为可执行或生产就绪。
+- 准确性永远优先于速度。优化前先固定并核对 QuerySpec 的业务范围、时间边界、计算粒度、输出粒度、join 语义、去重规则、NULL 处理和分子/分母口径；优化后必须证明这些语义未被改变。任何仅为提速而删行、改范围、改变 `LEFT JOIN`/`INNER JOIN`、改变时间边界、去掉必要去重或改变聚合粒度的做法都禁止；如果优化造成非业务要求的结果变化，必须回退或阻断。
+- 性能优化至少应检查并在不改变结果的前提下尽可能做到：每个物理分区表在本层/对应 CTE 下推精确的 `dt`，小时表按需限定 `hour`，尽早下推明确的时间、部门/业务线/学部/团队范围、期次或渠道条件；只读取必要字段；避免对分区键和 join key 包裹函数；避免无界扫描、无界 `CROSS JOIN`、不必要的重复全表读取、过晚过滤、无必要的 `DISTINCT`/`ORDER BY`；并在多表 join 前按已确认的业务粒度检查基数，只有在不丢失业务记录的前提下才可预聚合或去重。
+- 修改 SQL 必须做候选版本与原版本的准确性回归核对；新 SQL 必须用有界 Probe、源数据或已确认不变量核对行数、键唯一性、关键金额/计数、NULL/未匹配情况及比率的分子分母。性能验证应记录扫描范围、优化动作和实际耗时；在有执行授权且平台提供测试条件时必须进行受控实际运行，未实际运行不得声称性能已通过。运行达到或超过 300 秒、被自动 kill、或结果无法证明准确时，必须阻断并继续拆分范围/优化，不能靠放宽或删除业务过滤绕过上限。
+
 ## 3. QuerySpec 门禁
 
 生成生产 SQL 前，先通过 `semantic/domain_manifest.json -> semantic/generated/contract_index.json -> semantic/contracts/*.json -> source_path` 完成域内解析和定向取证，再用 `scripts/text2sql.py` 构建并校验 QuerySpec。脚本参数和子命令以 `scripts/text2sql.py --help` 为准；不要绕过脚本自行把未决请求标记为可执行。
@@ -203,6 +210,7 @@ QuerySpec 至少包含：
 - 检查 join key 是否合理。
 - 检查是否存在字符串数字混用问题，例如 `lead_count >= '2'` 应优先改为 `lead_count >= 2`。
 - 检查是否混入青橙专属指标、临时表、目标表、渠道/期次映射或完成度口径。
+- 按“SQL 性能与准确性门禁”检查每个物理表/CTE 的分区和范围下推、字段裁剪、join 基数、重复扫描、无界连接和不必要排序；同时确认任何性能优化没有改变业务范围、粒度、join、去重、NULL 或分子/分母结果。
 
 可用脚本：`scripts/validate_sql_rules.py`。生成复杂 SQL 后，优先运行该脚本做规则校验。
 
@@ -220,9 +228,12 @@ QuerySpec 至少包含：
 - join 关系
 - 证据路径
 - 是否加了 `limit`
+- SQL 性能检查状态（已完成/待实际运行/阻断）、扫描范围、优化动作、准确性回归结果和实际耗时（如已执行）
 - 待确认事项
 
 ## 5. 维护入口
+
+新增或修改任何本 Skill 管理的 `.sql` 文件时，必须先完成“SQL 性能与准确性门禁”：先保证业务口径和结果准确，再通过分区/时间/部门范围下推等方式减少扫描范围、降低 join 和聚合成本，核对结果不变量，并记录实际耗时或明确标记为待运行。未完成或未通过该门禁的 SQL 不得入库为生产版本。
 
 - 新增或刷新物理表字段时，统一调用 `usql-web-query-operator sync-datamap-fields`。先 dry-run 核对目标表、字段缺口、类型和说明，再显式 `--write`；物理字段以天工数据地图及 DDL 返回为准，业务含义、范围、Join 和指标仍由本 Skill 的 confirmed contract 与业务文档治理。不要在本 Skill 中保存或解析表结构 PDF、截图、页面渲染图或手工字段目录 JSON。
 - 新增或刷新 Web BI 结构快照时，`profile-dashboard`、`profile-folder` 和默认 `profile-all` 只写 runtime。只有用户明确要求市场顾问知识维护后，才可运行 `profile-all --write-knowledge --confirm-skill-maintenance`；目标固定路由到本 Skill，任一画像失败时整批不写，且不得把青橙快照混入本目录。

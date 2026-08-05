@@ -18,7 +18,7 @@
 | SQL 执行失败、需要分类错误 | `references/query_error_handling.md` | `scripts\usql_web_query.py run` | 只有错误信息不足或页面结构变了，才看 `references/platform_profile.md` 或相关命令实现 |
 | 模板取数中读取我创建的模板 SQL | `references/template_query.md` | `scripts\usql_web_query.py fetch-template-sql` | 只有模板匹配或页面状态异常时，才看 `references/platform_profile.md` 或相关实现 |
 | 模板市场中按模板名读取 SQL | `references/template_query.md` | `scripts\usql_web_query.py fetch-market-template-sql` | 只有市场搜索、模板匹配或页面状态异常时，才看 `references/platform_profile.md` 或相关实现 |
-| 永久参数化模板创建、发布和回读 | `references/template_query.md` | `plan-template-creation` → `apply-template-creation` → `publish-template` | Plan 只读；Apply 只创建未发布模板并回读；Publish 绑定成功创建回执并独立确认，发布后再次回读 |
+| 永久参数化模板创建、原地更新、发布和回读 | `references/template_query.md` | 新建：`plan-template-creation` → `apply-template-creation` → `publish-template`；更新：`plan-template-update` → `apply-template-update` → `publish-template` | 更新必须绑定精确模板 ID/名称/基线 Hash，保留既有模板 ID 与申请权限；Plan 只读，Apply/Publish 分开确认 |
 | 结果超过 1000 行，需要绕开 `SQL取数` 直接下载审批 | `references/template_query.md` | `scripts\usql_web_query.py template-download` | 只有 SQL 仍带模板参数、下载链路异常、或清理逻辑异常时，才看相关命令实现 |
 | 看板配置画像 / 实时取值健康检查 | `references/platform_profile.md` | 默认 config-only：`profile-dashboard` / `profile-folder` / `profile-all`；知识维护另加 `--write-knowledge --confirm-skill-maintenance`；独立健康检查：`check-dashboard-values` | `profile-all` 默认只写 runtime，知识目标由领域适配器固定且任一画像失败时整批不写；不要让 value/unit 超时阻塞知识同步 |
 | Taitan 编辑页透视表字段、指标含义、自定义公式读取 | `references/platform_profile.md` 的“Taitan 编辑页指标公式 API” | 单张：`profile-edit-dashboard`；批量：`profile-edit-folder` / `profile-edit-all` | 只有字段详情接口变化、公式缺失、Hash 不稳定或 selector 回退验证失败时，才看 `read_dashboard/edit_profile.py`、`edit_batch.py` 和对应命令实现 |
@@ -53,6 +53,6 @@
 - 修改 Taitan 公共筛选器必须使用 `profile-edit-dashboard → design-dashboard → plan-dashboard-change → apply-dashboard-change → publish-dashboard-change`；`edit-public-filters` 只允许 legacy dry-run 检查。
 - 从零创建看板必须使用独立 P4C Artifact/Saga；不得把创建 operation 塞入 `DashboardChangePlan`，也不得用模板克隆或预建空板降级。
 - 不要把 QueryPlan 视为下载、看板写入、模板写入或权限变更授权；它只约束 `run`，且下载仍受 QueryPlan 与 1000 行策略双重门禁。
-- 不要把 `plan-template-creation` 或创建回读当作发布授权；`apply-template-creation` 只创建未发布模板，`publish-template` 必须使用成功回执的精确 Hash 和独立 `--confirm-publish`。
+- 不要把 `plan-template-creation`/`plan-template-update` 或创建/更新回读当作发布授权；Apply 只创建或原地更新未发布草稿，`publish-template` 必须使用成功回执的精确 Hash 和独立 `--confirm-publish`。
 - 不要把 `sync-data-center-sql --write`、Data Center Replacement Plan 或 Creation Plan 视为远端数据集写入授权；远端替换与创建必须分别走各自独立的生产 Apply 命令。
 - 不要在未经确认的情况下，对超过 1000 行的结果走 `SQL取数` 直接下载。

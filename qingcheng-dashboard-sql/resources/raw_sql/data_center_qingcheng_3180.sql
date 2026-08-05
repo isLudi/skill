@@ -352,84 +352,20 @@ private_history_base as (
         try_cast(a.private_sea_update_time as timestamp) as private_update_time,
         a.private_sea_id,
         a.assign_employee_second_level_department_name as private_second_department,
-        a.close_time,
+        try_cast(a.close_time as timestamp) as private_close_time,
+        try_cast(a.close_reason as bigint) as private_close_reason,
         a.close_reason_desc,
         a.is_del,
         case
             when coalesce(a.is_del, 0) = 0
-             and coalesce(a.close_time, '1970-01-01 08:00:00') = '1970-01-01 08:00:00'
+             and coalesce(
+                     try_cast(a.close_time as timestamp),
+                     timestamp '1970-01-01 08:00:00'
+                 ) = timestamp '1970-01-01 08:00:00'
                 then 1
             else 0
         end as is_active_private_record,
-        concat(a.dt, a.hour) as private_snapshot_key,
-        concat(
-            lpad(
-                cast(
-                    coalesce(
-                        cast(to_unixtime(try_cast(a.assign_time as timestamp)) as bigint),
-                        10000000000000
-                    )
-                    as varchar
-                ),
-                14,
-                '0'
-            ),
-            '|',
-            lpad(
-                cast(coalesce(a.private_sea_id, 9223372036854775807) as varchar),
-                19,
-                '0'
-            )
-        ) as first_receiver_sort_key,
-        concat(
-            cast(
-                case
-                    when coalesce(a.is_del, 0) = 0
-                     and coalesce(a.close_time, '1970-01-01 08:00:00') = '1970-01-01 08:00:00'
-                        then 0
-                    else 1
-                end
-                as varchar
-            ),
-            '|',
-            lpad(
-                cast(
-                    10000000000000
-                    - coalesce(
-                        cast(to_unixtime(try_cast(a.assign_time as timestamp)) as bigint),
-                        0
-                    )
-                    as varchar
-                ),
-                14,
-                '0'
-            ),
-            '|',
-            lpad(
-                cast(
-                    10000000000000
-                    - coalesce(
-                        cast(
-                            to_unixtime(try_cast(a.private_sea_update_time as timestamp))
-                            as bigint
-                        ),
-                        0
-                    )
-                    as varchar
-                ),
-                14,
-                '0'
-            ),
-            '|',
-            lpad(
-                cast(
-                    9223372036854775807 - coalesce(a.private_sea_id, 0)
-                    as varchar
-                ),
-                19,
-                '0'
-            )
-        ) as current_private_sort_key
+        concat(a.dt, a.hour) as private_snapshot_key
     from service_dw.dwd_crm_assign_private_detail_hf a
     cross join private_partition pp
     where a.dt = pp.snapshot_dt
@@ -441,91 +377,89 @@ private_history_base as (
           '菁英班学部',
           '市场部',
           '本地化大班学部',
-          '青橙项目部'
-      )
+           '青橙项目部'
+       )
+),
+private_history_ordered as (
+    select
+        h.*,
+        lead(h.private_user_id) over (
+            partition by h.transfer_lead_id
+            order by h.private_assign_time nulls last, h.private_sea_id nulls last
+        ) as next_private_user_id,
+        lead(h.private_consultant_name) over (
+            partition by h.transfer_lead_id
+            order by h.private_assign_time nulls last, h.private_sea_id nulls last
+        ) as next_private_consultant_name,
+        lead(h.private_consultant_email_prefix) over (
+            partition by h.transfer_lead_id
+            order by h.private_assign_time nulls last, h.private_sea_id nulls last
+        ) as next_private_consultant_email_prefix,
+        lead(h.private_assign_time) over (
+            partition by h.transfer_lead_id
+            order by h.private_assign_time nulls last, h.private_sea_id nulls last
+        ) as next_private_assign_time,
+        lead(h.private_sea_id) over (
+            partition by h.transfer_lead_id
+            order by h.private_assign_time nulls last, h.private_sea_id nulls last
+        ) as next_private_sea_id,
+        lead(h.private_second_department) over (
+            partition by h.transfer_lead_id
+            order by h.private_assign_time nulls last, h.private_sea_id nulls last
+        ) as next_private_second_department,
+        lead(h.is_active_private_record) over (
+            partition by h.transfer_lead_id
+            order by h.private_assign_time nulls last, h.private_sea_id nulls last
+        ) as next_private_is_active,
+        lead(h.is_del) over (
+            partition by h.transfer_lead_id
+            order by h.private_assign_time nulls last, h.private_sea_id nulls last
+        ) as next_private_is_del,
+        count(*) over (partition by h.transfer_lead_id) as private_history_count
+    from private_history_base h
+),
+private_transfer_events_ranked as (
+    select
+        transfer_lead_id,
+        next_private_user_id as private_user_id,
+        next_private_consultant_name as first_receiver_name,
+        next_private_consultant_email_prefix as first_receiver_email_prefix,
+        next_private_assign_time as first_receiver_time,
+        next_private_second_department as first_receiver_department,
+        next_private_consultant_name as current_private_candidate,
+        next_private_consultant_email_prefix as current_private_email_prefix,
+        next_private_assign_time as current_private_assign_time,
+        cast(next_private_is_active as bigint) as current_private_is_active,
+        private_snapshot_key,
+        private_history_count,
+        row_number() over (
+            partition by transfer_lead_id
+            order by private_assign_time nulls last, private_sea_id nulls last
+        ) as transfer_event_rn
+    from private_history_ordered
+    where private_close_reason = 2
+      and next_private_sea_id is not null
+      and next_private_assign_time is not null
+      and coalesce(next_private_is_del, 0) = 0
+      and next_private_is_active = 1
+      and next_private_consultant_name is not null
 ),
 private_roles as (
     select
         transfer_lead_id,
-        try_cast(
-            nullif(
-                min_by(
-                    coalesce(cast(private_user_id as varchar), '__NULL__'),
-                    first_receiver_sort_key
-                ),
-                '__NULL__'
-            )
-            as bigint
-        ) as private_user_id,
-        nullif(
-            min_by(
-                coalesce(private_consultant_name, '__NULL__'),
-                first_receiver_sort_key
-            ),
-            '__NULL__'
-        ) as first_receiver_name,
-        nullif(
-            min_by(
-                coalesce(private_consultant_email_prefix, '__NULL__'),
-                first_receiver_sort_key
-            ),
-            '__NULL__'
-        ) as first_receiver_email_prefix,
-        try_cast(
-            nullif(
-                min_by(
-                    coalesce(cast(private_assign_time as varchar), '__NULL__'),
-                    first_receiver_sort_key
-                ),
-                '__NULL__'
-            )
-            as timestamp
-        ) as first_receiver_time,
-        nullif(
-            min_by(
-                coalesce(private_second_department, '__NULL__'),
-                first_receiver_sort_key
-            ),
-            '__NULL__'
-        ) as first_receiver_department,
-        nullif(
-            min_by(
-                coalesce(private_consultant_name, '__NULL__'),
-                current_private_sort_key
-            ),
-            '__NULL__'
-        ) as current_private_candidate,
-        nullif(
-            min_by(
-                coalesce(private_consultant_email_prefix, '__NULL__'),
-                current_private_sort_key
-            ),
-            '__NULL__'
-        ) as current_private_email_prefix,
-        try_cast(
-            nullif(
-                min_by(
-                    coalesce(cast(private_assign_time as varchar), '__NULL__'),
-                    current_private_sort_key
-                ),
-                '__NULL__'
-            )
-            as timestamp
-        ) as current_private_assign_time,
-        try_cast(
-            nullif(
-                min_by(
-                    coalesce(cast(is_active_private_record as varchar), '__NULL__'),
-                    current_private_sort_key
-                ),
-                '__NULL__'
-            )
-            as bigint
-        ) as current_private_is_active,
-        max(private_snapshot_key) as private_snapshot_key,
-        count(*) as private_history_count
-    from private_history_base
-    group by transfer_lead_id
+        private_user_id,
+        first_receiver_name,
+        first_receiver_email_prefix,
+        first_receiver_time,
+        first_receiver_department,
+        current_private_candidate,
+        current_private_email_prefix,
+        current_private_assign_time,
+        current_private_is_active,
+        private_snapshot_key,
+        private_history_count
+    from private_transfer_events_ranked
+    where transfer_event_rn = 1
 ),
 transfer_enriched_channel_base as (
     select
@@ -625,7 +559,7 @@ transfer_enriched_channel_base as (
     from dwd_transfer t
     left join app_prelead a
       on a.prelead_id = t.prelead_id
-    left join private_roles p
+    inner join private_roles p
       on p.transfer_lead_id = t.transfer_lead_id
 ),
 transfer_enriched as (

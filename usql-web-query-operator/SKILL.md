@@ -1,6 +1,6 @@
 ---
 name: usql-web-query-operator
-description: 通过 Playwright 执行受治理的 USQL 网页查询、小结果下载、模板 SQL 读取、永久参数化模板创建/发布/回读与大结果临时模板下载、手工临时表上传、数据地图及 Data Center 本地知识同步、显式生产数据集替换/创建，以及 BI 看板只读画像、受控草稿变更和独立发布。使用本 Skill 运行或下载公司 SQL、读取或经 Hash 审阅后创建模板、检查或上传已登记临时表、扫描/画像 Taitan 看板、执行经 Hash 审阅的 Data Center 或看板 Plan；不要用它生成业务 SQL、推断指标口径、跨域写知识或调用未经验证的写接口。
+description: 通过 Playwright 执行受治理的 USQL 网页查询、小结果下载、模板 SQL 读取、永久参数化模板创建/原地更新/发布/回读与大结果临时模板下载、手工临时表上传、数据地图及 Data Center 本地知识同步、显式生产数据集替换/创建，以及 BI 看板只读画像、受控草稿变更和独立发布。使用本 Skill 运行或下载公司 SQL、读取或经 Hash 审阅后创建/更新模板、检查或上传已登记临时表、扫描/画像 Taitan 看板、执行经 Hash 审阅的 Data Center 或看板 Plan；不要用它生成业务 SQL、推断指标口径、跨域写知识或调用未经验证的写接口。
 ---
 
 # USQL Web Query Operator
@@ -57,7 +57,7 @@ description: 通过 Playwright 执行受治理的 USQL 网页查询、小结果�
 - P4C 使用独立创建 Saga；失败不自动删除资源，Receipt 必须列出孤立资源和人工清理要求。
 - Data Center 替换和创建分别要求独立只读 Plan、精确 Hash、`--confirm-production-write`、保存后回读、立即执行和新的 `SUCCESS`。
 - `sync-data-center-sql --write` 只写本地业务 Skill，绝不等于远端生产写入。
-- 永久参数化模板必须依次经过只读 Plan、精确 Plan Hash 与生产写确认、未发布模板回读、独立 Publish 确认和发布后回读；创建与发布失败均不得自动下线、删除或回滚远端模板。
+- 永久参数化模板创建或原地更新必须依次经过只读 Plan、精确 Plan Hash 与生产写确认、未发布模板回读、独立 Publish 确认和发布后回读；原地更新必须绑定精确模板 ID、名称、当前状态及基线 SQL/元数据 Hash，保留模板 ID 与既有申请权限；创建、更新与发布失败均不得自动下线、删除或回滚远端模板。
 - 模板大结果下载必须强制执行临时模板 `offline -> delete`；清理失败则整个命令失败。
 - 只在显式 `--debug-artifacts` 时保存截图；CAPTCHA、MFA 和风控只识别并报告。
 

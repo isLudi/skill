@@ -1,4 +1,4 @@
-"""Publish one exact, verified permanent-template creation receipt."""
+"""Publish one exact, verified permanent-template creation or update receipt."""
 
 from __future__ import annotations
 
@@ -31,7 +31,7 @@ def cmd_publish_template(args: argparse.Namespace) -> int:
     validate_publish_request(args, create_receipt)
     plan = load_plan(Path(str(create_receipt["plan_file"])))
     if create_receipt.get("plan_sha256") != plan.plan_sha256:
-        raise UsageError("creation receipt does not bind the loaded permanent-template plan")
+        raise UsageError("creation/update receipt does not bind the loaded permanent-template plan")
     sql_text = load_template_sql(Path(plan.sql_file))
     if template_sql_sha256(sql_text) != plan.sql_sha256:
         raise UsageError("template SQL file changed before publication")
@@ -139,7 +139,7 @@ def validate_publish_request(args: argparse.Namespace, receipt: dict[str, Any]) 
         raise UsageError("publish-template requires --confirm-publish")
     if args.expected_receipt_sha256 != receipt.get("receipt_sha256"):
         raise UsageError(
-            "permanent-template creation receipt hash mismatch: "
+            "permanent-template creation/update receipt hash mismatch: "
             f"expected={args.expected_receipt_sha256}, actual={receipt.get('receipt_sha256')}"
         )
     if not (
@@ -148,7 +148,7 @@ def validate_publish_request(args: argparse.Namespace, receipt: dict[str, Any]) 
         and receipt.get("fully_verified") is True
         and receipt.get("template_id")
     ):
-        raise UsageError("publish-template requires a successful fully verified creation receipt")
+        raise UsageError("publish-template requires a successful fully verified creation/update receipt")
 
 
 def _default_receipt_path(artifacts_dir: Path, template_id: int) -> Path:

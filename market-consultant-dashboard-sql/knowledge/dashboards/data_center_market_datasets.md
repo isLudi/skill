@@ -2,7 +2,7 @@
 
 ## 1. 来源与范围
 
-- 最近同步计划日期：2026-08-02
+- 最近同步计划日期：2026-08-05
 - 来源页面：https://uanalysis.baijia.com/data-center/data-set
 - 同步范围：市场顾问部目录下从 `(内部渠道)外呼过程数据` 开始到末尾的 SQL 数据集。
 - canonical SQL 使用稳定文件名；更新时间与 SHA-256 由 `semantic/current_model_bindings.json` 记录。
@@ -51,6 +51,7 @@
 | 37 | `koc数据播报` | `menu_set_3954191650309713920` | `2978` | `2966` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/koc数据播报 | [data_center_market_2978.sql](../../resources/raw_sql/data_center_market_2978.sql) | `bb89a01e6bd00e7abee52b9f3fe72e812654f76af04db2b42585425078850b6e` | 413 |
 | 38 | `新老人转化对比` | `menu_set_3975633867349405696` | `3039` | `3027` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/新老人转化对比 | [data_center_market_3039.sql](../../resources/raw_sql/data_center_market_3039.sql) | `f9fc2718b935ffc4f9660c44d1f6266d0d850370397bdb9bbd5a399ebae4422a` | 1045 |
 | 39 | `wlx` | `menu_set_4000290788801232896` | `3153` | `3141` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/wlx | [data_center_market_3153.sql](../../resources/raw_sql/data_center_market_3153.sql) | `23d9fbe7641ae2b78edf21d999ff5f002fbd7e7913daad1324128c57b1126289` | 729 |
+| 40 | `www` | `menu_set_4016360412577091585` | `3202` | `3190` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/www | [data_center_market_3202.sql](../../resources/raw_sql/data_center_market_3202.sql) | `18194ca74d9ffe85b0ecfa0a6f5553f0bb2ca47033b614e62549d7097b4a6c53` | 709 |
 
 ## 3. 维护说明
 

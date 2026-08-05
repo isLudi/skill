@@ -19,6 +19,8 @@ from usql_web_query.commands.apply_template_creation import validate_apply_reque
 from usql_web_query.commands.publish_template import validate_publish_request  # noqa: E402
 from usql_web_query.template_permanent import (  # noqa: E402
     CREATE_RECEIPT_OPERATION,
+    UPDATE_PLAN_OPERATION,
+    UPDATE_RECEIPT_OPERATION,
     PLAN_SCHEMA_VERSION,
     PermanentTemplateCreationPlan,
     build_permanent_template_plan,
@@ -157,6 +159,26 @@ class PermanentTemplatePlanTests(unittest.TestCase):
         self.assertIn("TEMPLATE_NAME_ALREADY_EXISTS", codes)
         self.assertIn("MISSING_PARAMETER_CONFIG", codes)
 
+    def test_update_plan_allows_exact_existing_target_and_preserves_id(self) -> None:
+        plan = build_plan(
+            existing_template_ids=[42],
+            target_template_id=42,
+            baseline_state={"id": 42, "name": "测试参数模板", "status": 2, "sql_sha256": "old"},
+        )
+        self.assertEqual(plan.status, "ready")
+        self.assertEqual(plan.operation, UPDATE_PLAN_OPERATION)
+        self.assertEqual(plan.policy["target_template_id"], 42)
+        self.assertTrue(plan.policy["preserve_existing_template_id_and_access"])
+
+    def test_update_plan_blocks_missing_exact_target(self) -> None:
+        plan = build_plan(
+            existing_template_ids=[99],
+            target_template_id=42,
+            baseline_state={"id": 42, "name": "测试参数模板", "status": 2},
+        )
+        self.assertEqual(plan.status, "blocked")
+        self.assertIn("TARGET_TEMPLATE_NOT_FOUND", {item["code"] for item in plan.diagnostics})
+
     def test_one_parameter_can_be_reused_in_multiple_predicates(self) -> None:
         sql = SQL.replace(
             "  and assign_day < ${day:2}",
@@ -231,6 +253,31 @@ class PermanentTemplateAuthorizationTests(unittest.TestCase):
             with self.assertRaisesRegex(UsageError, "hash is invalid"):
                 load_create_receipt(path)
 
+    def test_update_receipt_is_accepted(self) -> None:
+        plan = build_plan(
+            existing_template_ids=[42],
+            target_template_id=42,
+            baseline_state={"id": 42, "name": "测试参数模板", "status": 2},
+        )
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = Path(temp_dir) / "update.json"
+            receipt = write_receipt(
+                path,
+                {
+                    "schema_version": PLAN_SCHEMA_VERSION,
+                    "operation": UPDATE_RECEIPT_OPERATION,
+                    "ok": True,
+                    "status": "success",
+                    "fully_verified": True,
+                    "template_id": 42,
+                    "plan_file": "plan.json",
+                    "plan_sha256": plan.plan_sha256,
+                },
+            )
+            loaded = load_create_receipt(path)
+            self.assertEqual(loaded["operation"], UPDATE_RECEIPT_OPERATION)
+            self.assertEqual(loaded["receipt_sha256"], receipt["receipt_sha256"])
+
 
 class FakePage:
     context = object()
@@ -286,6 +333,22 @@ class TemplateQueryClientPayloadTests(unittest.TestCase):
         endpoint, payload = client.calls[0]
         self.assertEqual(endpoint, "template/sqlParser")
         self.assertEqual(payload["instanceKey"], "dlc_presto")
+
+    def test_save_update_includes_existing_template_id(self) -> None:
+        plan = build_plan()
+        client = RecordingTemplateClient()
+        saved = client.save_template(
+            name=plan.template_name,
+            description=plan.description,
+            sql=SQL,
+            creator=plan.creator,
+            instance_key=plan.instance_key,
+            template_variables=[dict(item) for item in plan.template_variables],
+            template_params=template_params_for_save(plan.template_params),
+            template_id=42,
+        )
+        self.assertEqual(saved.id, 42)
+        self.assertEqual(client.calls[0][1]["id"], 42)
 
 
 if __name__ == "__main__":

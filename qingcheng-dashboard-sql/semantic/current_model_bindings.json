@@ -101,10 +101,10 @@
       "model_id": "3180",
       "ordinal": 100007,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/青橙项目部/TMK线索转移明细",
-      "source_observed_on": "2026-08-03",
-      "sql_bytes": 38857,
-      "sql_lines": 1063,
-      "sql_sha256": "b1861eb4d1fa6b6e6d71dfeb8bbc8146f17b05aee9c531822a8d0459b8ca5a4c",
+      "source_observed_on": "2026-08-05",
+      "sql_bytes": 38103,
+      "sql_lines": 997,
+      "sql_sha256": "ea422f78520ef3a6e661d43bd49db89aa637acfb144dc94dd38b7a76da4c1183",
       "subject_id": "3168"
     },
     {

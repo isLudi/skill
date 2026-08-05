@@ -1,6 +1,6 @@
 # 模板取数自动化
 
-模板取数自动化目前分为四类场景，分别对应“读取我创建的模板 SQL”“读取模板市场中的模板 SQL”“永久参数化模板创建/发布/回读”和“用临时模板完成大结果下载”。永久模板与临时下载模板是两条独立生命周期，不能互相降级。
+模板取数自动化目前分为四类场景，分别对应“读取我创建的模板 SQL”“读取模板市场中的模板 SQL”“永久参数化模板创建/原地更新/发布/回读”和“用临时模板完成大结果下载”。永久模板与临时下载模板是两条独立生命周期，不能互相降级。
 
 ## 读取模板中已保存的 SQL
 
@@ -61,11 +61,17 @@ D:\anaconda3\python.exe scripts\usql_web_query.py fetch-market-template-sql `
 
 ## 永久参数化模板创建、发布和回读
 
-当用户明确要求把一份已核对的参数化 SQL 上线为长期使用的模板时，必须使用三个独立命令：
+当用户明确要求把一份已核对的参数化 SQL 新建并上线为长期使用的模板时，必须使用三个独立命令：
 
 1. `plan-template-creation`：远端只读。读取精确重名状态、当前登录创建人和平台 `sqlParser` 元数据，绑定 SQL、字段/参数元数据和 Plan Hash。
 2. `apply-template-creation`：生产写入。只创建状态为 `unpublished` 的模板，并立即回读模板 ID、名称、状态、SQL Hash、`instanceKey`、输出字段和参数元数据 Hash。
 3. `publish-template`：独立发布。绑定成功创建回执的精确 Hash，发布前重读未发布状态，发布后再回读 `published` 状态和全部 Hash。
+
+当用户要求修改已存在的永久模板且保留已有申请人/权限时，必须使用原地更新生命周期，不得按新名称创建副本：
+
+1. `plan-template-update --template-id <id> --template-name <exact-name>`：远端只读，绑定唯一模板 ID、名称、当前状态、当前 SQL/元数据基线 Hash，并解析新的 SQL 元数据。
+2. `apply-template-update`：消费精确更新 Plan Hash，重新检查基线后调用 `saveAndUpdate` 携带原模板 ID，只回读未发布草稿；不自动发布、下线或删除。
+3. `publish-template`：消费成功的更新回执，独立发布并回读同一模板 ID 的 published 状态和全部 Hash。
 
 参数配置文件是 UTF-8 JSON，对 SQL 中每一个 `${name}` 参数提供一条明确配置。当前受支持的已验证模式为：
 
@@ -130,7 +136,7 @@ D:\anaconda3\python.exe scripts\usql_web_query.py publish-template `
 - SQL 必须是 UTF-8 无 BOM、单条只读查询，且至少含一个合法 `${name}` 参数。安全检查只为解析而把参数替换为 `NULL`，不会改变保存的原 SQL 或其 Hash。
 - 参数配置必须与 parser 参数全集一一对应；未知配置、遗漏配置、字段别名漂移、数据源或登录创建人漂移均阻断。同一参数可在 SQL 的多个谓词中复用，但只配置一次。
 - 默认数据源实例为已验证的 `dlc_presto`；该值和 parser 表/字段/参数全部进入 Hash。
-- `apply-template-creation` 只创建未发布模板，绝不自动发布；`publish-template` 只能消费成功且完整回读的创建回执。
+- `apply-template-creation` 只创建未发布模板，绝不自动发布；`apply-template-update` 只更新原模板为未发布草稿并保留模板 ID/权限；`publish-template` 只能消费成功且完整回读的创建或更新回执。
 - 创建或发布失败时不自动下线、删除或回滚永久模板。远端写入可能已发生时，失败回执会设置 `manual_attention_required=true`。
 - Plan、创建回执和 QueryPlan 都不构成下一阶段授权；每个生产阶段仍需本命令要求的精确 Hash 和显式确认。
 

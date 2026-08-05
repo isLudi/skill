@@ -20,7 +20,9 @@ from .sql_policy import analyze_sql_policy
 
 PLAN_SCHEMA_VERSION = "1.0.0"
 PLAN_OPERATION = "create_permanent_parameterized_template"
+UPDATE_PLAN_OPERATION = "update_permanent_parameterized_template"
 CREATE_RECEIPT_OPERATION = "apply_permanent_parameterized_template_creation"
+UPDATE_RECEIPT_OPERATION = "apply_permanent_parameterized_template_update"
 PUBLISH_RECEIPT_OPERATION = "publish_permanent_parameterized_template"
 DEFAULT_INSTANCE_KEY = "dlc_presto"
 TEMPLATE_NAME_PATTERN = re.compile(r"^.{1,20}$", re.DOTALL)
@@ -92,8 +94,8 @@ class PermanentTemplateCreationPlan:
     def from_json(cls, payload: dict[str, Any]) -> "PermanentTemplateCreationPlan":
         if payload.get("schema_version") != PLAN_SCHEMA_VERSION:
             raise UsageError("unsupported permanent-template plan schema_version")
-        if payload.get("operation") != PLAN_OPERATION:
-            raise UsageError("artifact is not a permanent-template creation plan")
+        if payload.get("operation") not in {PLAN_OPERATION, UPDATE_PLAN_OPERATION}:
+            raise UsageError("artifact is not a permanent-template creation or update plan")
         try:
             plan = cls(
                 schema_version=str(payload["schema_version"]),
@@ -139,6 +141,8 @@ def build_permanent_template_plan(
     parser_payload: dict[str, Any],
     parameter_config: dict[str, Any],
     variable_display_names: dict[str, str],
+    target_template_id: int | None = None,
+    baseline_state: dict[str, Any] | None = None,
     created_at: datetime | None = None,
 ) -> PermanentTemplateCreationPlan:
     diagnostics: list[dict[str, str]] = []
@@ -150,13 +154,28 @@ def build_permanent_template_plan(
                 "Template name must be 1-20 characters without leading or trailing whitespace.",
             )
         )
-    if existing_template_ids:
+    if target_template_id is None and existing_template_ids:
         diagnostics.append(
             _diagnostic(
                 "TEMPLATE_NAME_ALREADY_EXISTS",
                 "A created template already uses the requested exact name.",
             )
         )
+    if target_template_id is not None:
+        if target_template_id not in set(existing_template_ids):
+            diagnostics.append(
+                _diagnostic(
+                    "TARGET_TEMPLATE_NOT_FOUND",
+                    "The exact target template id was not found in the authenticated created-template listing.",
+                )
+            )
+        if not isinstance(baseline_state, dict) or not baseline_state:
+            diagnostics.append(
+                _diagnostic(
+                    "MISSING_UPDATE_BASELINE",
+                    "An in-place template update requires a read-only baseline state.",
+                )
+            )
     if not creator.strip():
         diagnostics.append(_diagnostic("MISSING_CREATOR", "Authenticated creator name is required."))
     if not instance_key.strip():
@@ -213,9 +232,10 @@ def build_permanent_template_plan(
     )
     timestamp = created_at or datetime.now(timezone.utc)
     canonical_sql = canonical_template_sql(sql_text)
+    operation = UPDATE_PLAN_OPERATION if target_template_id is not None else PLAN_OPERATION
     plan = PermanentTemplateCreationPlan(
         schema_version=PLAN_SCHEMA_VERSION,
-        operation=PLAN_OPERATION,
+        operation=operation,
         created_at=timestamp.isoformat(),
         status="blocked" if diagnostics else "ready",
         template_name=name,
@@ -238,11 +258,15 @@ def build_permanent_template_plan(
             "read_only_plan": True,
             "apply_requires_exact_plan_sha256": True,
             "apply_requires_explicit_production_confirmation": True,
-            "apply_creates_unpublished_template_only": True,
+            "apply_creates_unpublished_template_only": target_template_id is None,
+            "apply_updates_existing_template_in_place": target_template_id is not None,
+            "preserve_existing_template_id_and_access": target_template_id is not None,
             "publish_requires_successful_exact_create_receipt": True,
             "publish_requires_separate_confirmation": True,
             "post_create_and_post_publish_readback": True,
             "automatic_delete_offline_or_rollback": False,
+            "target_template_id": target_template_id,
+            "baseline_state": dict(baseline_state or {}),
         },
         plan_sha256="",
     )
@@ -600,8 +624,11 @@ def write_receipt(path: Path, receipt: dict[str, Any]) -> dict[str, Any]:
 
 def load_create_receipt(path: Path) -> dict[str, Any]:
     payload = _load_json(path, "permanent-template creation receipt")
-    if payload.get("schema_version") != PLAN_SCHEMA_VERSION or payload.get("operation") != CREATE_RECEIPT_OPERATION:
-        raise UsageError("artifact is not a permanent-template creation receipt")
+    if payload.get("schema_version") != PLAN_SCHEMA_VERSION or payload.get("operation") not in {
+        CREATE_RECEIPT_OPERATION,
+        UPDATE_RECEIPT_OPERATION,
+    }:
+        raise UsageError("artifact is not a permanent-template creation or update receipt")
     supplied_hash = _text(payload.get("receipt_sha256"))
     if not supplied_hash or finalize_receipt(payload).get("receipt_sha256") != supplied_hash:
         raise UsageError("permanent-template creation receipt hash is invalid or modified")

@@ -14,10 +14,14 @@ from _shared.errors import UsageError
 
 from usql_web_query.template_permanent import (
     CREATE_RECEIPT_OPERATION,
+    UPDATE_PLAN_OPERATION,
+    UPDATE_RECEIPT_OPERATION,
     PLAN_SCHEMA_VERSION,
     load_plan,
     load_template_sql,
+    normalize_readback_metadata,
     permanent_template_lock,
+    sha256_json,
     template_params_for_save,
     template_sql_sha256,
     validate_parser_drift,
@@ -30,6 +34,7 @@ from usql_web_query.template_query import TemplateQueryClient
 def cmd_apply_template_creation(args: argparse.Namespace) -> int:
     plan = load_plan(args.plan_file)
     validate_apply_request(args, plan)
+    is_update = plan.operation == UPDATE_PLAN_OPERATION
     sql_text = load_template_sql(Path(plan.sql_file))
     if template_sql_sha256(sql_text) != plan.sql_sha256:
         raise UsageError("template SQL file changed after the reviewed plan was created")
@@ -39,7 +44,7 @@ def cmd_apply_template_creation(args: argparse.Namespace) -> int:
     receipt_path = args.output_file or _default_receipt_path(args.artifacts_dir, plan.plan_sha256)
     receipt: dict[str, Any] = {
         "schema_version": PLAN_SCHEMA_VERSION,
-        "operation": CREATE_RECEIPT_OPERATION,
+        "operation": UPDATE_RECEIPT_OPERATION if is_update else CREATE_RECEIPT_OPERATION,
         "ok": False,
         "status": "running",
         "started_at": datetime.now(timezone.utc).isoformat(),
@@ -50,6 +55,7 @@ def cmd_apply_template_creation(args: argparse.Namespace) -> int:
         "metadata_sha256": plan.metadata_sha256,
         "remote_write_performed": False,
         "automatic_delete_offline_or_rollback_attempted": False,
+        "in_place_update": is_update,
         "manual_attention_required": False,
     }
     sync_playwright = import_playwright()
@@ -85,6 +91,24 @@ def cmd_apply_template_creation(args: argparse.Namespace) -> int:
                 ]
                 if sorted(item.id for item in exact_matches) != sorted(plan.baseline_template_ids):
                     raise UsageError("exact-name Template Query state drifted after planning")
+                target_template_id = int(plan.policy.get("target_template_id") or 0)
+                if is_update:
+                    if target_template_id <= 0:
+                        raise UsageError("update plan is missing its exact target template id")
+                    if sorted(item.id for item in exact_matches) != [target_template_id]:
+                        raise UsageError("exact-name Template Query update target drifted after planning")
+                    baseline = plan.policy.get("baseline_state") or {}
+                    current = client.fetch_template_detail(target_template_id)
+                    if int(current.get("id") or 0) != target_template_id:
+                        raise UsageError("template update target id readback mismatch before save")
+                    if str(current.get("name") or "") != plan.template_name:
+                        raise UsageError("template update target name mismatch before save")
+                    if int(current.get("status") or 0) != int(baseline.get("status") or 0):
+                        raise UsageError("template update target status drifted after planning")
+                    if baseline.get("sql_sha256") and template_sql_sha256(str(current.get("sqlDetail") or "")) != baseline["sql_sha256"]:
+                        raise UsageError("template update target SQL drifted after planning")
+                    if baseline.get("metadata_sha256") and sha256_json(normalize_readback_metadata(current)) != baseline["metadata_sha256"]:
+                        raise UsageError("template update target metadata drifted after planning")
                 parser_payload = client.parse_sql(sql_text, instance_key=plan.instance_key)
                 validate_parser_drift(parser_payload, plan)
                 save_requested = True
@@ -98,6 +122,7 @@ def cmd_apply_template_creation(args: argparse.Namespace) -> int:
                     template_variables=[dict(item) for item in plan.template_variables],
                     template_params=template_params_for_save(plan.template_params),
                     baseline_template_ids=set(plan.baseline_template_ids),
+                    template_id=target_template_id if is_update else None,
                 )
                 saved_template_id = saved.id
                 detail = client.fetch_template_detail(saved.id)
@@ -141,7 +166,7 @@ def cmd_apply_template_creation(args: argparse.Namespace) -> int:
         write_receipt(receipt_path, receipt)
         if isinstance(exc, UsageError):
             raise
-        raise UsageError(f"permanent-template creation failed: {exc}") from exc
+        raise UsageError(f"permanent-template {'update' if is_update else 'creation'} failed: {exc}") from exc
     finally:
         if context is not None:
             try:
@@ -164,7 +189,9 @@ def validate_apply_request(args: argparse.Namespace, plan: Any) -> None:
             f"expected={args.expected_plan_sha256}, actual={plan.plan_sha256}"
         )
     if plan.status != "ready":
-        raise UsageError("permanent-template creation plan is blocked")
+        raise UsageError("permanent-template creation/update plan is blocked")
+    if plan.operation not in {"create_permanent_parameterized_template", UPDATE_PLAN_OPERATION}:
+        raise UsageError("unsupported permanent-template apply plan operation")
 
 
 def _default_receipt_path(artifacts_dir: Path, plan_sha256: str) -> Path:

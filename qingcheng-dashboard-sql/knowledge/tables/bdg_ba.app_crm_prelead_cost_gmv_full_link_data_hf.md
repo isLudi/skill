@@ -54,6 +54,8 @@ where dt = format_datetime(current_timestamp - interval '2' hour, 'YYYYMMdd')
 | `lead_model_type` | bigint | 线索模型类型 | `0`=线索，`1`=潜客 |
 | `lead_model_type_name` | string | 线索模型类型名称 | 数据地图说明同上 |
 | `user_id` | bigint | 用户 ID | 用户级补充字段 |
+| `province_name` | string | 用户地区省份 | 用户地区补充字段 |
+| `city_name` | string | 用户地区城市 | 用户地区补充字段 |
 | `employee_email_prefix` | string | 员工邮箱前缀 | 潜客阶段 TMK 顾问账号 |
 | `employee_email_name` | string | 员工姓名数字 | 潜客阶段 TMK 顾问姓名 |
 | `virtual_first_department_name` | string | 员工最新虚拟架构一级部门 | 数据地图确认；2026-07-11 TMK 样本主要为 `H业务线` |

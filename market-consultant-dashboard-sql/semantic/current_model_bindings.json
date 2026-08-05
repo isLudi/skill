@@ -586,6 +586,21 @@
       "sql_lines": 729,
       "sql_sha256": "23d9fbe7641ae2b78edf21d999ff5f002fbd7e7913daad1324128c57b1126289",
       "subject_id": "3141"
+    },
+    {
+      "canonical_sql": "resources/raw_sql/data_center_market_3202.sql",
+      "data_source_id": "menu_source_817034371567951872",
+      "dataset_id": "menu_set_4016360412577091585",
+      "dataset_name": "www",
+      "file_value": "3202",
+      "model_id": "3202",
+      "ordinal": 100001,
+      "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/www",
+      "source_observed_on": "2026-08-05",
+      "sql_bytes": 61018,
+      "sql_lines": 709,
+      "sql_sha256": "18194ca74d9ffe85b0ecfa0a6f5553f0bb2ca47033b614e62549d7097b4a6c53",
+      "subject_id": "3190"
     }
   ],
   "schema_version": "1.0.0",

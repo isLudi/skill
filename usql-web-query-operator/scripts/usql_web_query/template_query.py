@@ -238,13 +238,14 @@ class TemplateQueryClient:
         template_variables: list[dict[str, Any]] | None = None,
         template_params: list[dict[str, Any]] | None = None,
         baseline_template_ids: set[int] | None = None,
+        template_id: int | None = None,
         max_lookup_attempts: int = 5,
     ) -> TemplateQuery:
         parsed = None
         if template_variables is None or template_params is None:
             parsed = self.parse_sql(sql, instance_key=instance_key)
         payload = {
-            "id": None,
+            "id": template_id,
             "name": name,
             "description": description,
             "sqlDetail": sql,
@@ -272,11 +273,11 @@ class TemplateQueryClient:
                     page_size=20,
                     max_pages=5,
                 )
-                matches = [
-                    template
-                    for template in candidates
-                    if template.name == name and template.id not in baseline_ids
-                ]
+                matches = [template for template in candidates if template.name == name]
+                if template_id is None:
+                    matches = [template for template in matches if template.id not in baseline_ids]
+                else:
+                    matches = [template for template in matches if template.id == template_id]
                 if len(matches) == 1:
                     return matches[0]
                 if len(matches) > 1:

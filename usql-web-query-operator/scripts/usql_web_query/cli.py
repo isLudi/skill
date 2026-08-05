@@ -33,6 +33,7 @@ from .commands.apply_template_creation import cmd_apply_template_creation
 from .commands.apply_data_center_dataset_creation import cmd_apply_data_center_dataset_creation
 from .commands.apply_data_center_sql_replacement import cmd_apply_data_center_sql_replacement
 from .commands.plan_template_creation import cmd_plan_template_creation
+from .commands.plan_template_update import cmd_plan_template_update
 from .commands.plan_data_center_dataset_creation import cmd_plan_data_center_dataset_creation
 from .commands.plan_data_center_sql_replacement import cmd_plan_data_center_sql_replacement
 from .commands.publish_template import cmd_publish_template
@@ -410,6 +411,29 @@ def build_parser() -> argparse.ArgumentParser:
     plan_template_creation.add_argument("--executable-path", default=None)
     plan_template_creation.set_defaults(func=cmd_plan_template_creation)
 
+    plan_template_update = subparsers.add_parser(
+        "plan-template-update",
+        help="Read and hash an in-place update plan for one permanent parameterized Template Query.",
+    )
+    plan_template_update.add_argument("--template-id", type=int, required=True, help="Exact existing template id to update.")
+    plan_template_update.add_argument("--template-name", required=True, help="Exact existing template name; 20 characters or fewer.")
+    plan_template_update.add_argument("--template-description", default="", help="Permanent template description.")
+    plan_template_update.add_argument("--sql-file", type=Path, required=True, help="UTF-8 without BOM parameterized SQL file.")
+    plan_template_update.add_argument("--parameter-config", type=Path, required=True, help="Reviewed UTF-8 JSON config keyed by every ${name} parameter.")
+    plan_template_update.add_argument("--variable-display-name", action="append", default=[], help="Override one parser output label as parser_name=display_name. Repeatable.")
+    plan_template_update.add_argument("--owner", default="", help="Optional owner value saved with the template.")
+    plan_template_update.add_argument("--instance-key", default=DEFAULT_INSTANCE_KEY, help="Exact Template Query data-source instanceKey.")
+    plan_template_update.add_argument("--output-file", type=Path, default=None, help="Exact plan artifact path.")
+    plan_template_update.add_argument("--state-path", type=Path, default=DEFAULT_STATE)
+    plan_template_update.add_argument("--artifacts-dir", type=Path, default=TEMPLATE_QUERY_RUNTIME_DIR / "permanent")
+    plan_template_update.add_argument("--env-file", type=Path, default=DEFAULT_ENV_FILE)
+    plan_template_update.add_argument("--username", default=os.environ.get("BAIJIA_USERNAME"))
+    plan_template_update.add_argument("--password", default=os.environ.get("BAIJIA_PASSWORD"))
+    plan_template_update.add_argument("--headed", action="store_true")
+    plan_template_update.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL)
+    plan_template_update.add_argument("--executable-path", default=None)
+    plan_template_update.set_defaults(func=cmd_plan_template_update)
+
     apply_template_creation = subparsers.add_parser(
         "apply-template-creation",
         help="Create one reviewed permanent template as an unpublished draft and read it back.",
@@ -429,12 +453,31 @@ def build_parser() -> argparse.ArgumentParser:
     apply_template_creation.add_argument("--debug-artifacts", action="store_true")
     apply_template_creation.set_defaults(func=cmd_apply_template_creation)
 
+    apply_template_update = subparsers.add_parser(
+        "apply-template-update",
+        help="Apply one reviewed in-place permanent-template update as an unpublished draft and read it back.",
+    )
+    apply_template_update.add_argument("--plan-file", type=Path, required=True, help="Reviewed permanent-template update plan.")
+    apply_template_update.add_argument("--expected-plan-sha256", required=True, help="Exact plan hash emitted by plan-template-update.")
+    apply_template_update.add_argument("--confirm-production-write", action="store_true", help="Explicitly authorize the remote in-place template update.")
+    apply_template_update.add_argument("--output-file", type=Path, default=None, help="Exact update receipt path.")
+    apply_template_update.add_argument("--state-path", type=Path, default=DEFAULT_STATE)
+    apply_template_update.add_argument("--artifacts-dir", type=Path, default=TEMPLATE_QUERY_RUNTIME_DIR / "permanent")
+    apply_template_update.add_argument("--env-file", type=Path, default=DEFAULT_ENV_FILE)
+    apply_template_update.add_argument("--username", default=os.environ.get("BAIJIA_USERNAME"))
+    apply_template_update.add_argument("--password", default=os.environ.get("BAIJIA_PASSWORD"))
+    apply_template_update.add_argument("--headed", action="store_true")
+    apply_template_update.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL)
+    apply_template_update.add_argument("--executable-path", default=None)
+    apply_template_update.add_argument("--debug-artifacts", action="store_true")
+    apply_template_update.set_defaults(func=cmd_apply_template_creation)
+
     publish_template = subparsers.add_parser(
         "publish-template",
-        help="Publish one exact verified permanent-template creation receipt and read it back.",
+        help="Publish one exact verified permanent-template creation/update receipt and read it back.",
     )
-    publish_template.add_argument("--receipt-file", type=Path, required=True, help="Successful permanent-template creation receipt.")
-    publish_template.add_argument("--expected-receipt-sha256", required=True, help="Exact hash embedded in the creation receipt.")
+    publish_template.add_argument("--receipt-file", type=Path, required=True, help="Successful permanent-template creation/update receipt.")
+    publish_template.add_argument("--expected-receipt-sha256", required=True, help="Exact hash embedded in the creation/update receipt.")
     publish_template.add_argument("--confirm-publish", action="store_true", help="Separately authorize publication of the exact created template.")
     publish_template.add_argument("--output-file", type=Path, default=None, help="Exact publication receipt path.")
     publish_template.add_argument("--state-path", type=Path, default=DEFAULT_STATE)

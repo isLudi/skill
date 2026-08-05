@@ -65,10 +65,23 @@
         {
           "domain": "qingcheng",
           "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf.md",
-          "sha256": "8c33a0f01e755703c21e62af63756db0c4b6e3db23a0ff08de97d2acf2d67e92"
+          "sha256": "5d3d1b37f5db51e882842ab7491bfe0118cd1d2467a93289ad05d9cfd5c03c1c"
         }
       ],
       "columns": [
+        {
+          "name": "city_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf.md"
+            }
+          ]
+        },
         {
           "name": "dt",
           "types": [
@@ -253,6 +266,19 @@
         },
         {
           "name": "period_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "province_name",
           "types": [
             "string"
           ],
@@ -7782,7 +7808,7 @@
         {
           "domain": "qingcheng",
           "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_performance_extend_details_hf.md",
-          "sha256": "4673b32619837e23204626ce1544c20265f35b65c99773ae76bffdff594419b4"
+          "sha256": "4466fbe23b7ae329f1d3c18b7fe5a633f6f091340bc0763932645a97a4bc99e6"
         }
       ],
       "columns": [
