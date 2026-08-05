@@ -7,10 +7,10 @@
 - dashboard_id: `dashboard_3873038327756636161`
 - dashboard_name: `个人转化数据-青橙`
 - domain: `qingcheng`
-- captured_at: `2026-07-18 22:25:37`
+- captured_at: `2026-08-05 20:27:32`
 - menu_status: `1`
-- profile_sha256: `5de1b435126ded6b9f52ec6adb6bf23829167c3d732f53823711e075b900f6e3`
-- raw_profile: `C:\Users\Ludim\.codex\runtime\usql-web-query-operator\edit-profile-20260718-class-refund\20260718-222526-23512-db63c873\dashboard_3873038327756636161_edit_metrics_profile.json`
+- profile_sha256: `c79db30f804747cd5f6ff3079b8a5050ab9efc8ae2c46f63de804a07bbb6c369`
+- raw_profile: `C:\Users\Ludim\.codex\runtime\usql-web-query-operator\analysis\live_personal_edit_profile.json`
 
 ## Model coverage
 
@@ -36,7 +36,7 @@
 - unit_id: `unit_3873038340305993729`
 - model: `2769` / 青橙个人转化
 - dimensions: 顾问 / `name`; 小组 / `leader_employee_email_name`; 大组 / `dazu`; 学部 / `xuebu`; qici; xuebu; dazu; leader_employee_email_name
-- measures: 净用户数 / `in_payer_4`; 班课营收; 班课退费; 班课净收; 折算后产出; 一对一营收 / `Y_income_4`; 一对一退费 / `Y_refund_4`; 一对一净收 / `Y_promit_4`; 累计净营收; 目标 / `qici_goal`; 完成度
+- measures: 净用户数 / `in_payer_4`; 班课营收 / `income_all`; 班课退费 / `refund_all`; 班课净收; 折算后产出; 一对一营收 / `Y_income_4`; 一对一退费 / `Y_refund_4`; 一对一净收 / `Y_promit_4`; 累计净营收; 目标 / `qici_goal`; 完成度
 - component: `node_ocmodyldc81` / `期产出`
 
 ### 月度产出
@@ -44,7 +44,7 @@
 - unit_id: `unit_3893056410852823041`
 - model: `2769` / 青橙个人转化
 - dimensions: 顾问 / `name`; 部门 / `xuebu`; moth; xuebu; dazu; leader_employee_email_name; qici; data_level
-- measures: 净用户数 / `in_payer_4`; 班课营收; 班课退费; 班课净收; 折算后产出; 档位最高金额; 跳档差值; 一对一营收 / `Y_income_4`; 一对一退费 / `Y_refund_4`; 一对一净收 / `Y_promit_4`; 累计净营收; 月度目标 / `moth_goal`; 完成度 / `月完成度`
+- measures: 净用户数 / `in_payer_4`; 班课营收 / `income_all`; 班课退费 / `refund_all`; 班课净收; 折算后产出; 档位最高金额; 跳档差值; 一对一营收 / `Y_income_4`; 一对一退费 / `Y_refund_4`; 一对一净收 / `Y_promit_4`; 累计净营收; 月度目标 / `moth_goal`; 完成度 / `月完成度`
 - component: `node_ocmoy2u7kq1` / `月度产出`
 
 ## Configured field meanings
@@ -56,9 +56,9 @@
 | 大组 | dazu<br>`437993` | dimension / row_dimension |  |  |  | 期产出 |
 | 学部 | xuebu<br>`437995` | dimension / row_dimension |  |  |  | 期产出 |
 | 净用户数 | in_payer_4<br>`8743548131305472` | measure / measure | sum(8743548131305472) |  |  | 期产出 |
-| 班课营收 | 班课营收<br>`customized_998715889501208577` | custom_measure / measure | ifnull(sum(${income})-sum(${Y_income_4}),0) |  | [{"paramId": "8737961276237826", "orgParamType": 1, "needBoundaryValue": false}, {"paramId": "8737961276237833", "orgParamType": 1, "needBoundaryValue": false}] | 期产出 |
-| 班课退费 | 班课退费<br>`customized_998715889606066176` | custom_measure / measure | ifnull(sum(${class_refund_4}), 0) |  | [{"paramId": "9135722004047872", "orgParamType": 1, "needBoundaryValue": false}] | 期产出 |
-| 班课净收 | 班课净收<br>`customized_998715889710923777` | custom_measure / measure | ifnull(${班课营收}-${班课退费},0) |  | [{"paramId": "customized_998715889501208577", "orgParamType": 4, "needBoundaryValue": false}, {"paramId": "customized_998715889606066176", "orgParamType": 4, "needBoundaryValue": false}] | 期产出 |
+| 班课营收 | income_all<br>`9237098286114816` | measure / measure | sum(9237098286114816) |  |  | 期产出、月度产出 |
+| 班课退费 | refund_all<br>`9237098286114817` | measure / measure | sum(9237098286114817) |  |  | 期产出、月度产出 |
+| 班课净收 | 班课净收<br>`customized_1005205050535968768` | custom_measure / measure | ifnull(sum(${income_all})-sum(${refund_all}),0) |  | [{"paramId": "9237098286114816", "orgParamType": 1, "needBoundaryValue": false}, {"paramId": "9237098286114817", "orgParamType": 1, "needBoundaryValue": false}] | 期产出、月度产出 |
 | 折算后产出 | 折算后产出<br>`customized_998715888951754752` | custom_measure / measure | ifnull(sum(${n_H_promit_4})*0.5 + (sum(${H_promit_4}) - sum(${Y_promit_4})),0) |  | [{"paramId": "8737961276237837", "orgParamType": 1, "needBoundaryValue": false}, {"paramId": "8737961276237832", "orgParamType": 1, "needBoundaryValue": false}, {"paramId": "8737961276237831", "orgParamType": 1, "needBoundaryValue": false}] | 期产出 |
 | 一对一营收 | Y_income_4<br>`8737961276237833` | measure / measure | sum(8737961276237833) |  |  | 期产出 |
 | 一对一退费 | Y_refund_4<br>`8737961276237835` | measure / measure | sum(8737961276237835) |  |  | 期产出 |
@@ -77,6 +77,19 @@
 | 完成度 | 月完成度<br>`customized_998715889287299072` | custom_measure / measure | ifnull(${累计净营收} / sum(${moth_goal}),0) |  | [{"paramId": "customized_998715889060806656", "orgParamType": 4, "needBoundaryValue": false}, {"paramId": "8931278683858945", "orgParamType": 1, "needBoundaryValue": false}] | 月度产出 |
 | moth | moth<br>`437990` | dimension / filter |  |  |  | 月度产出 |
 | data_level | data_level<br>`496578` | dimension / filter |  |  |  | 月度产出 |
+
+## 2026-08-05 Current live authority
+
+The live draft profile supersedes the July snapshot rows above for the amount display fields:
+
+| display | live field | formula |
+|---|---|---|
+| 班课营收 | `income_all` / `9237098286114816` | `sum(9237098286114816)` |
+| 班课退费 | `refund_all` / `9237098286114817` | `sum(9237098286114817)` |
+| 班课净收 | `customized_1005205050535968768` | `ifnull(sum(${income_all})-sum(${refund_all}),0)` |
+| 折算后产出 | `customized_1005205049982320640` | `ifnull(sum(${n_H_promit_4})*0.5 + (sum(${H_promit_4}) - sum(${Y_promit_4})),0)` |
+
+`income_all/refund_all` are the direct service-main amount fields. They do not apply the退4/点睛退2 rule; that rule remains in the `*_promit_4` family.
 
 ## Dataset fields
 

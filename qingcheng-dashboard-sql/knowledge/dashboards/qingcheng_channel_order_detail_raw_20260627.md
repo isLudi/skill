@@ -84,7 +84,8 @@
 
 - 本 SQL 为明细抽取 SQL，不含 `group by`；不能直接复用为青橙聚合看板指标 SQL。
 - `ld` 子查询缺少明确的青橙部门范围过滤，是否存在跨部门同 `lead_id` 或同顾问姓名映射污染，待人工确认。
-- `select distinct lead_id, ... , employee_email_name` 只能去除完全重复行，不能保证 `lead_id + employee_email_name` 唯一；若不唯一会放大订单明细。
+- `select distinct lead_id, ... , employee_email_name` 只能去除完全重复行，不能保证 `lead_id + employee_email_name` 唯一；若不唯一会放大订单明细。2026-08-05 在五个青橙期次、同一员工范围的实际诊断中，`ld_duplicate_service_rows=0` 且额外收入/退款均为 0，因此本次看板与模板差异不是该 join 放大；这不是对全历史数据的永久唯一性保证，后续仍应保留唯一性探针。
+- 模板原始 SQL 未显式排除 `clazz_name like '%试听%'`，而当前个人/团队完成度 service 主事实使用 `coalesce(clazz_name, '') not like '%试听%'`。模板与完成度看板核对时，必须先统一试听过滤，否则少量 29/29.9/89.7 元级别差异会被误判为渠道 join 或 finance 重复。
 - 2026-06-27 模板版新增 `province_name`、`city_name`、`city_level_name` 三个字段；若后续模板继续扩列，需同步检查 dashboard 文档和字段说明是否遗漏。
 - `${begin_trade_time}`、`${end_trade_time}` 是模板占位符，不是可直接执行的 Presto 字面量。
 - `promit_amount` 为历史 SQL 字段名，疑似 `profit_amount`/净营收拼写，当前仅保留原名。

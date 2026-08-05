@@ -146,7 +146,7 @@ end as is_internal_order_change
 - `order_attr` 从 `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` 按 `order_number + performance_employee_email_name` 聚合 `transfer_in_amount/transfer_out_amount`，字段单位从分换算为元。
 - 聚合后的 service transfer 标记随 `dd -> gmv_t/gmv_z -> rd -> t4` 传递。
 - 仅当 `rd.trade_type = '调课调班'` 时，service transfer 非 0 才把 `is_internal_order_change` 置 1。
-- service transfer 只作为内部变更识别信号，不替代 `finance_dw.app_finance_performance_extend_details_hf` 的 `price/name_total_price` 金额事实源。
+- service transfer 只作为内部变更识别信号，不替代 service 的 `income_amount/refund_amount` 正常金额主事实；finance 只用于 service 缺失的课程转移补充和规则字段。
 
 ### 2.7 非 H 折算口径已经确认，不再是待确认项
 
@@ -179,22 +179,23 @@ where qici = (select max(qici) ...)
 
 ## 3. 对账时最容易猜错的坑
 
-### 3.1 不要把 service 订单明细当完成度唯一事实源
+### 3.1 当前金额字段使用 service 主事实，finance 只做受限补充
 
-`service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` 有两个用途要分开：
+`service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` 在当前完成度 SQL 中承担主金额事实和辅助属性两个用途：
 
 - 用 `original_order_pay_success_timestamp / pay_success_timestamp / trade_timestamp` 辅助确定原始支付归属期；
 - 用来补看 lead/order 属性。
 
-但完成度金额事实源仍以：
+当前看板全部收入/退款字段使用：
 
 ```text
-finance_dw.app_finance_performance_extend_details_hf
+income_all  = sum(case when source_type = 'service' then income_amount_yuan else 0 end)
+refund_all  = sum(case when source_type = 'service' then refund_amount_yuan else 0 end)
 ```
 
-为主。
+`income_all/refund_all` 不剔除 service 内部调课调班流水。`income/refund` 仍是内部调课识别后的 legacy/rule 字段，`refund_4/class_refund_4` 仍服务于退 4/点睛退 2 规则。finance 仅在 service 缺失课程转移链路时补充，并且必须先去重、聚合到唯一业务粒度后再 join。
 
-原因：service 侧对部分调课调班链路金额保留不完整，单独拿它核对完成度会天然有差。
+若与渠道模板核对，还必须先统一 `clazz_name` 含“试听”的过滤；当前完成度 SQL 排除试听，保留的模板原始 SQL 未排除试听。
 
 ### 3.2 不要只看看板前端自定义公式
 

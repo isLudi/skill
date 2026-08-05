@@ -8,8 +8,8 @@
 - 文件夹：`青橙项目部`
 - dashboard_id：`dashboard_3873038327756636161`
 - 打开入口：`https://uanalysis.baijia.com/dashboard-market?id=dashboard_3873038327756636161&sourceType=1`
-- profile 时间：2026-07-11 10:00:13
-- 原始结构 profile：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\p3-validation-20260711\profile-all\青橙项目部\个人转化数据-青橙\profile.json`
+- profile 时间：2026-08-05 20:54:28
+- 原始结构 profile：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\analysis\profile_all_qingcheng_20260805\20260805-205327-48464-2e1469f8\青橙项目部\个人转化数据-青橙\profile.json`
 - 页面渲染：成功
 
 ## 2. 刷新验证
@@ -17,12 +17,12 @@
 | 项目 | 数值 |
 |---|---:|
 | `unit_count` | 4 |
-| `value_unit_count` | 4 |
-| `data_ready_unit_count` | 3 |
+| `value_unit_count` | 0 |
+| `data_ready_unit_count` | 0 |
 | `analytic_unit_count` | 2 |
-| `analytic_data_ready_unit_count` | 2 |
+| `analytic_data_ready_unit_count` | 0 |
 | `error_count` | 0 |
-| `all_analytic_units_ready` | True |
+| `all_analytic_units_ready` | None |
 
 ## 3. 全局筛选器
 
@@ -34,21 +34,21 @@
 
 | 单元 | unit_id | 类型 | 模型 | 分页/下载 | 刷新状态 | task_id / 行数 |
 |---|---|---|---|---|---|---|
-| 标题图 | unit_3873038340305993730 | u_material | 1 主题分析 |  | loaded_empty | rows=0 |
-| 文本框 | unit_3893236780015427585 | u_text | 1 None | download=0 | data_ready | rows=0 |
-| 期产出 | unit_3873038340305993729 | u_pivot | 2769 青橙个人转化 | page=500<br>download=1 | data_ready | task=1459212746,1459212743<br>rows=193<br>total=193 |
-| 月度产出 | unit_3893056410852823041 | u_pivot | 2769 青橙个人转化 | page=500<br>download=1 | data_ready | task=1459212811,1459212810<br>rows=163<br>total=163 |
+| 标题图 | unit_3873038340305993730 | u_material | 1 主题分析 |  | unprofiled |  |
+| 文本框 | unit_3893236780015427585 | u_text | 1 None | download=0 | unprofiled |  |
+| 期产出 | unit_3873038340305993729 | u_pivot | 2769 青橙个人转化 | page=500<br>download=1 | unprofiled |  |
+| 月度产出 | unit_3893056410852823041 | u_pivot | 2769 青橙个人转化 | page=500<br>download=1 | unprofiled |  |
 
 ## 5. 分析单元字段结构
 
 ### 期产出
 
 - unit_id：`unit_3873038340305993729`；类型：`u_pivot`；模型：`2769` / 青橙个人转化
-- 刷新：data_ready；task_ids：`1459212746,1459212743`；行数：193；序列：0 / 0 点
+- 刷新：unknown；task_ids：``；行数：0；序列：0 / 0 点
 - 单元筛选字段：qici（id=437989）、xuebu（id=437995）、dazu（id=437993）、leader_employee_email_name（id=437992）
 
 ### 月度产出
 
 - unit_id：`unit_3893056410852823041`；类型：`u_pivot`；模型：`2769` / 青橙个人转化
-- 刷新：data_ready；task_ids：`1459212811,1459212810`；行数：163；序列：0 / 0 点
+- 刷新：unknown；task_ids：``；行数：0；序列：0 / 0 点
 - 单元筛选字段：moth（id=437990）、xuebu（id=437995）、dazu（id=437993）、leader_employee_email_name（id=437992）、qici（id=437989）、data_level（id=496578）

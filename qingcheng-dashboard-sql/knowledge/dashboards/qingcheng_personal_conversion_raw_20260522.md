@@ -2,13 +2,13 @@
 
 ## 1. 来源
 
-`resources/raw_sql/qingcheng_personal_conversion_raw_20260522.sql`
+`resources/raw_sql/data_center_qingcheng_2769.sql`
 
 入库时间：2026-05-22
 
 ## 2. 查询目标
 
-沉淀青橙个人转化 SQL。该 SQL 使用财务业绩扩展明细计算员工在青橙任职期间产生的收入、退款和净收，结合全退订单行课节数计算“剔除行课阈值退款”后的净收，再以青橙团队架构表为人员期次骨架输出个人维度的转化和产出指标。
+沉淀青橙个人转化 SQL。当前 canonical SQL 以 service 订单归因明细作为全部收入/退款主事实，结合内部调课调班识别、全退订单行课节数和退 4/点睛退 2 规则，再以青橙团队架构表为人员期次骨架输出个人维度的转化和产出指标。finance 只补 service 缺失的课程转移链路及规则所需字段，不直接替代 service 的正常金额。
 
 该 SQL 与团队完成度【月/期】共用订单处理、调课调班去重、全退课节和 H/非 H 折算口径，但最终不 join 团队目标表，而是 join 个人目标表，输出个人的期次粒度和月度汇总粒度。
 
@@ -31,7 +31,7 @@
 |---|---|---|
 | `dw.dim_employee_chain` | `org_t` | 确认员工在青橙项目部路径下的任职起止时间 |
 | `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` | `order_attr` | 提供订单原始支付时间 `original_paid_time`，辅助完成度按原始成交窗口归属；同时提供 `transfer_in_amount/transfer_out_amount` 作为内部调课调班补充识别 |
-| `finance_dw.app_finance_performance_extend_details_hf` | `dd_0` / `dd` | 财务业绩扩展明细，计算收入、退款和净收 |
+| `finance_dw.app_finance_performance_extend_details_hf` | `course_transfer_finance_raw` / `course_transfer_finance` | 仅补 service 缺失的课程转移链路，并为内部调课、退 4/点睛退 2 规则提供关联字段；补充前按业务键去重 |
 | `finance_dw.dm_finance_order_refund_detail_df` | `ord` | 全退订单明细，提供完全退款时已完课课节数 |
 | `finance_dw.dim_finance_order_change_df` | `order_change_raw` / `order_change` | 识别调课调班/课程转移主链路订单，覆盖订单号、父订单号、原始订单号和最新子订单号 |
 
@@ -51,11 +51,10 @@
 | `org_t` | 员工在青橙项目部路径下的任职时间窗口 | `email_prefix`, `name`, `begin_time`, `end_time` |
 | `order_attr` | 从订单明细侧按订单和顾问聚合原始支付时间及 service 转入/转出金额 | `original_order_pay_success_timestamp`, `pay_success_timestamp`, `trade_timestamp`, `transfer_in_amount`, `transfer_out_amount` |
 | `team_hist` | 组织链时间滞后时，按期次保留已在青橙架构中的顾问 | `qici`, `employee_email_name` |
-| `dd_0` | 财务业绩原始层，生成标准科目、期次和基础订单字段 | `order_number`, `user_id1`, `trade_status`, `trade_type`, `trade_time`, `price`, `subject`, `qici` |
-| `dd` | 优先按 `original_paid_time` 判定原始成交是否落在青橙任职期间；若组织链滞后，则允许 `team_hist` 期次命中兜底保留 | `coalesce(oa.original_paid_time, paid_time, trade_time)` |
-| `gmv_t` | 调课调班订单，按订单/课程/用户/期次/科目/课程部门粒度汇总，避免同一顾问同一用户多笔调课调班被揉成一条 | `order_number`, `qici`, `subject`, `course_first_level_department_name`, `name_total_price` |
-| `gmv_z` | 非调课调班订单，按订单和课程维度汇总金额 | `trade_type <> '调课调班'`, `name_total_price` |
-| `rd` | 合并正常订单和调课调班结果 | `union all` |
+| `service_base0` | service 主事实，限定青橙业绩范围、课程范围、交易起始日期，并排除试听订单 | `order_number`, `performance_employee_email_name`, `income_amount_yuan`, `refund_amount_yuan`, `transfer_in_amount_yuan`, `transfer_out_amount_yuan` |
+| `service_scope` | 按组织链/期次历史窗口保留员工有效 service 流水 | `qici`, `name`, `original_paid_time`, `income_amount_yuan`, `refund_amount_yuan` |
+| `course_transfer_finance_raw` / `course_transfer_finance` | finance 仅补 service 缺失的课程转移正向金额，先按 finance 业务键去重，再聚合到订单/用户/顾问/科目 | `order_number`, `target_user_number`, `employee_email_name`, `subject`, `income_amount_yuan` |
+| `rd` | 合并 service 主事实与 service 缺失的课程转移补充，并保留 `source_type` 区分金额来源 | `source_type`, `income_amount_yuan`, `refund_amount_yuan`, `qici` |
 | `ord` | 全退订单课节明细 | `full_refund_chain_finish_lesson_count`, `qici_re` |
 | `order_change_raw` / `order_change_order_map` / `order_change` | 调课调班/课程转移主链路订单映射，按订单号聚合后供主交易层和退款层复用 | `order_number`, `has_order_change`, `transfer_in_amount_yuan`, `transfer_out_amount_yuan`, `refund_type` |
 | `re_ke` | 合并全退课节和调课调班类型，按 `qici_re + order_number` 聚合避免回连放大 | `refund_type`, `full_refund_chain_finish_lesson_count` |
@@ -164,5 +163,18 @@
 
 - 错误原因：部分 `trade_type='调课调班'` 正向调入流水在 `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` 已有 `transfer_in_amount`，但未命中 `finance_dw.dim_finance_order_change_df` 展开的订单号映射。旧 SQL 只按 finance 订单变更维表或负金额剔除，导致调出退款被剔除、正向调入被保留。
 - 修复规则：`order_attr` 按 `order_number + performance_employee_email_name` 聚合 `transfer_in_amount/transfer_out_amount`，随 `dd -> gmv_t/gmv_z -> rd -> t4` 传递；`is_internal_order_change` 在 `trade_type='调课调班'` 且 service 转入/转出金额非 0 时也置 1。
-- 边界：service transfer 只作为内部调课调班识别信号，不替代 `finance_dw.app_finance_performance_extend_details_hf` 作为完成度金额事实源；正常订单即使命中订单变更链路仍保持绩效。
+- 边界：service transfer 只作为内部调课调班识别信号；`income_all/refund_all` 仍以 service 主事实为准，finance 仅补 service 缺失的课程转移链路；正常订单即使命中订单变更链路仍保持绩效。
 - 已验证样例：`李兵建` `20260703期` 两笔 service transfer 正向调入 `962.34` 和 `1050.00` 修复前误入个人班课营收/折算后产出，修复后个人 `class_income=0`、`discounted_output=0`。
+
+## 17. 2026-08-05 当前金额字段与模板核对
+
+当前最终输出新增并使用：
+
+```text
+income_all = sum(case when source_type = 'service' then income_amount_yuan else 0 end)
+refund_all = sum(case when source_type = 'service' then refund_amount_yuan else 0 end)
+```
+
+个人看板使用 `班课营收 = sum(income_all)`、`班课退费 = sum(refund_all)`、`班课净收 = 班课营收 - 班课退费`。折算后产出继续使用 `H_promit_4/n_H_promit_4/Y_promit_4`，不因新增全部金额字段而改变退 4/点睛退 2 或 H/非 H 规则。
+
+当前 SQL 的 `service_base0` 使用 `coalesce(clazz_name, '') not like '%试听%'`，而保留的渠道订单流水模板原始 SQL 未排除试听。2026-08-05 对 20260710期、20260716期、20260722期、20260728期、20260803期做个人/团队核对，差异全部由试听流水解释；未发现渠道 `ld` 重复放大或 finance 重复行导致的 `income_all/refund_all` 差异。详见 `knowledge/sql_patterns/qingcheng_template_dashboard_amount_reconciliation_20260805.md`。

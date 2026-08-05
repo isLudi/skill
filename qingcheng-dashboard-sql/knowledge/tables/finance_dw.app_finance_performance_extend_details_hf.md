@@ -8,13 +8,15 @@
 
 在青橙年季月营收、团队完成度【月/期】和个人转化 SQL 中作为财务业绩来源，提供订单、用户、交易、课程、员工、金额和部门归属字段。
 
+2026-08-05 当前完成度金额口径已切换为 service 主金额：`income_all/refund_all` 直接汇总 `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` 的 `income_amount/refund_amount`。本表不再作为正常全部收入/全部退款字段的直接求和来源，仅用于 service 缺失的课程转移补充、内部调课链路识别和退 4/点睛退 2 规则所需的订单/课节关联。
+
 model 2460 从 2026-07-20 起还使用本表补充“课程转移到 B 用户且 B 用户处于青橙顾问保护期”的正向支付；该用途必须先由 `finance_dw.dim_finance_order_change_df` 限定课程转移最新子订单。
 
 ## 3. 数据粒度
 
 待人工确认。当前 SQL 以订单/交易明细使用，字段包含 `id`、`order_number`、`biz_number`、`user_id`、`trade_time`。
 
-**注意：`id` 字段不保证业务唯一。** 2026-08-04 诊断确认同一 `order_number + clazz_name + user_id + trade_status + trade_type + trade_time + employee_email_name + course_grade` 业务键下存在多条 `id` 不同、数据完全相同的重复行：全表约 39% 订单受影响，其中 52,949 笔订单每笔 ≥6 行重复，覆盖 185 名青橙顾问。按订单/课程/交易维度做 `sum(price)` 等金额聚合前，必须先用 `row_number() over (partition by <业务键> order by id) = 1` 去重（参见 `data_center_qingcheng_2769.sql` 的 `dd2` CTE）。
+**注意：`id` 字段不保证业务唯一。** 2026-08-04 诊断确认同一 `order_number + clazz_name + user_id + trade_status + trade_type + trade_time + employee_email_name + course_grade` 业务键下存在多条 `id` 不同、数据完全相同的重复行：全表约 39% 订单受影响，其中 52,949 笔订单每笔 ≥6 行重复，覆盖 185 名青橙顾问。对本表做课程转移补充或规则聚合前，必须先用 `row_number() over (partition by <业务键> order by id) = 1` 去重，再聚合到唯一业务粒度。该重复风险仍需治理，但它不是当前 service-only `income_all/refund_all` 与模板五期差异的原因。
 
 ## 4. 查询引擎
 

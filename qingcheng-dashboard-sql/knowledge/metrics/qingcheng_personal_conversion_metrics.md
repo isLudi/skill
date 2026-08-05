@@ -2,7 +2,7 @@
 
 ## 1. 来源
 
-`resources/raw_sql/qingcheng_personal_conversion_raw_20260522.sql`
+`resources/raw_sql/data_center_qingcheng_2769.sql`
 
 适用看板：`knowledge/dashboards/qingcheng_personal_conversion_raw_20260522.md`
 
@@ -24,6 +24,8 @@ qici + moth + name + leader_employee_email_name + dazu + jingli + xuebu
 
 | 指标 | SQL 口径 | 说明 | 状态 |
 |---|---|---|---|
+| `income_all` | `sum(case when source_type = 'service' then income_amount_yuan else 0 end)` | service 主事实的全部收入；包含 service 明细中的内部调课调班流水，不由 finance 重复行放大 | 已从 2026-08-05 canonical SQL 入库 |
+| `refund_all` | `sum(case when source_type = 'service' then refund_amount_yuan else 0 end)` | service 主事实的全部退款；包含 service 明细中的内部调课调班流水，不由 finance 重复行放大 | 已从 2026-08-05 canonical SQL 入库 |
 | `income` | `sum(case when name_total_price >= 0 then name_total_price else 0 end)` 后逐层求和 | 收入金额 | 已从 SQL 入库 |
 | `refund` | `sum(case when name_total_price < 0 then abs(name_total_price) else 0 end)` 后逐层求和 | 全部退款金额 | 已从 SQL 入库 |
 | `promit` | `income - refund`，后逐层求和 | 净收，不剔除行课阈值退款 | 已从 SQL 入库 |
@@ -95,6 +97,16 @@ qici + moth + name + leader_employee_email_name + dazu + jingli + xuebu
 
 ## 10. 折算后产出前端公式与源指标风险
 
+2026-08-05 起，看板金额字段与折算字段分开维护。当前个人看板的金额公式为：
+
+```text
+班课营收 = sum(income_all)
+班课退费 = sum(refund_all)
+班课净收 = sum(income_all) - sum(refund_all)
+```
+
+这些字段不剔除调课调班，也不应用退 4/点睛退 2；`income`、`refund`、`refund_4`、`class_refund_4` 和 `promit_4` 继续保留给内部调课识别、退款规则、折算产出及其他历史指标。
+
 看板自定义字段 `折算后产出` 当前公式为：
 
 ```text
@@ -107,13 +119,17 @@ ifnull(sum(${n_H_promit_4}) * 0.5 + (sum(${H_promit_4}) - sum(${Y_promit_4})), 0
 - `n_H_promit_4`：非 H 业务线剔除行课阈值退款后的原始净收，前端再乘 0.5。
 - `Y_promit_4`：H 一对一剔除行课阈值退款后的净收，前端从 H 中扣除。
 - `refund_4`：按班课 4 节、点睛班 2 节、一对一全额规则计入的退款。
-- `class_refund_4`：班课行课阈值退款；班课退费前端公式应使用 `sum(class_refund_4)`，不再使用 `sum(refund)-sum(Y_refund_4)`。
+- `class_refund_4`：班课行课阈值退款，供退 4/点睛退 2 规则类指标使用；当前“班课退费”展示使用 `sum(refund_all)`，不再使用 `sum(class_refund_4)`。
 
 若支付订单流水与看板不一致，优先排查 `course_first_level_department_name` / `course_second_level_department_name` 空值兜底、`gmv_t` 调课调班聚合粒度，以及 service 明细 `transfer_in_amount/transfer_out_amount` 是否补充命中内部调课调班。详细风险、诊断 SQL 和已验证样例见 `knowledge/sql_patterns/qingcheng_personal_completion_discounted_output_risks.md`。
 
-2026-06-22 后补充：`income`、`refund`、`refund_4` 和科目数会先排除主交易层命中的内部调课调班调入/调出流水。该识别以 `dim_finance_order_change_df` 订单号映射为主，覆盖 `biz_type in (2,7)`，用于避免把内部 `调出退款` 当外部退费计入。
+2026-06-22 后补充：`income`、`refund`、`refund_4` 和科目数会先排除主交易层命中的内部调课调班调入/调出流水。该识别以 `dim_finance_order_change_df` 订单号映射为主，覆盖 `biz_type in (2,7)`，用于避免把内部 `调出退款` 当外部退费计入；`income_all/refund_all` 则保留 service 明细的全部收入/退款，用于当前看板金额展示。
 
 2026-07-03 后补充：当 `dim_finance_order_change_df` 漏掉链路，但 service 订单明细同订单已有 `transfer_in_amount/transfer_out_amount` 时，也会作为 `trade_type='调课调班'` 的内部变更补充识别。该规则影响 `income`、`refund`、`refund_4`、`p_sub/r_sub` 及其后续 `promit_4/H_promit_4/n_H_promit_4/Y_promit_4` 入桶。
+
+2026-08-05 后补充：service 是正常收入/退款金额主事实，finance 只用于课程转移缺失补充、调课调班识别和 `ord/re_ke` 退 4/点睛退 2 规则。finance 源表重复行必须在补充路径先按业务键去重；不得用 finance 直接替代 `income_all/refund_all`。
+
+模板核对结果见 `knowledge/sql_patterns/qingcheng_template_dashboard_amount_reconciliation_20260805.md`：五期个人员工键集合一致，差异由模板保留而看板排除的 `试听` 流水解释，不是 finance 重复行或渠道 join 放大。
 
 2026-06-28 后补充：
 

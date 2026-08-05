@@ -2,6 +2,15 @@
 
 本文件只记录青橙项目部已确认或从青橙历史 SQL 抽取的 join key。
 
+## 2026-08-05 完成度金额规则
+
+| 左表/CTE | 右表/CTE | join key | join 类型 | 适用场景 | 状态 |
+|---|---|---|---|---|---|
+| `service_scope` | `temp_table.dingxi01_qing_team_jg team_hist` | `employee_email_name + qici` | left join | 组织链滞后时按期次保留员工有效 service 流水 | 先确认员工/期次粒度唯一，不能固定取最新期次 |
+| `course_transfer_finance` | `service_scope` | `order_number + employee_email_name` | anti/left join | 仅补 service 缺失的课程转移链路 | finance 先按业务键去重并聚合；补充行不进入 `income_all/refund_all` |
+| `unified_amount` | `order_change` | `order_number` | left join | 识别内部调课调班 | 只影响 legacy/rule 金额；正常 service 金额主事实不被替换 |
+| `rd` | `re_ke` | `order_number + qici` | left join | 补全退 4/点睛退 2 所需完课节数 | 只影响 `refund_4/class_refund_4/promit_4`，不影响 `refund_all` |
+
 | 左表/CTE | 右表/CTE | join key | join 类型 | 适用场景 | 状态 |
 |---|---|---|---|---|---|
 | `d_ap` | `h_ap` | `user_number` | left join | 合并 APP/PC 天级和小时级登录 | 已从 SQL 入库 |

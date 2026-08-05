@@ -2,7 +2,7 @@
 
 ## 1. 来源
 
-`resources/raw_sql/qingcheng_team_completion_period_raw_20260522.sql`
+`resources/raw_sql/data_center_qingcheng_2680.sql`
 
 适用看板：`knowledge/dashboards/qingcheng_team_completion_period_raw_20260522.md`
 
@@ -28,6 +28,8 @@
 
 | 指标 | SQL 口径 | 说明 | 状态 |
 |---|---|---|---|
+| `income_all` | `sum(case when source_type = 'service' then income_amount_yuan else 0 end)` | service 主事实的全部收入；当前团队营收金额直接聚合该字段 | 已从 2026-08-05 canonical SQL 入库 |
+| `refund_all` | `sum(case when source_type = 'service' then refund_amount_yuan else 0 end)` | service 主事实的全部退款；当前团队退费金额直接聚合该字段 | 已从 2026-08-05 canonical SQL 入库 |
 | `income` | `sum(case when name_total_price >= 0 then name_total_price else 0 end)` 后逐层求和 | 收入金额 | 已从 SQL 入库 |
 | `refund` | `sum(case when name_total_price < 0 then abs(name_total_price) else 0 end)` 后逐层求和 | 全部退款金额 | 已从 SQL 入库 |
 | `promit` | `income - refund`，后逐层求和 | 净收，不剔除行课阈值退款 | 已从 SQL 入库 |
@@ -71,3 +73,18 @@
 - 2026-07-03 后，若 `dim_finance_order_change_df` 漏掉链路，但 service 订单明细同订单已有 `transfer_in_amount/transfer_out_amount`，也作为 `trade_type='调课调班'` 的内部变更补充识别；该规则不扩大到正常订单。
 - 业务已确认 `H业务线` 按 100% 计入、所有 `非H业务线` 统一按 50% 折算；SQL 输出保留非 H 原始净收，前端公式再乘 0.5。
 - 2026-06-28 起，任职窗口优先按 `order_attr.original_paid_time` 判定，并允许 `team_hist` 期次兜底；团队架构必须按 `qtg.qici = wa.qici` 回连，不能再固定取 `max(qici)`。
+
+## 9. 2026-08-05 当前金额口径
+
+团队期看板当前公式为：
+
+```text
+营收金额 = sum(income_all)
+退费金额 = sum(refund_all)
+净金额/净收款 = sum(income_all) - sum(refund_all)
+折算净收款-退4 = sum(n_H_promit_4) * 0.5 + sum(H_promit_4)
+```
+
+`income_all/refund_all` 不剔除调课调班；`income/refund` 仍是内部调课识别后的 legacy/rule 金额，供 `promit`、退款人数和退 4 规则链使用。`refund_4`、`class_refund_4` 不能替代当前“全部退费金额”。service 是金额主事实，finance 只补 service 缺失的课程转移链路并参与规则字段；所有 finance 补充先按唯一业务粒度去重。
+
+个人与团队五期模板核对证据见 `knowledge/sql_patterns/qingcheng_template_dashboard_amount_reconciliation_20260805.md`。

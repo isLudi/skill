@@ -57,9 +57,9 @@
 | 青橙退费原因分析（20260710-20260728） | `resources/raw_sql/qingcheng_refund_reason_analysis_20260710_20260728.sql` | `knowledge/metrics/qingcheng_refund_analysis_metrics.md` | 已入库；保留订单号、空渠道归一为“未知”，退款类型、原因金额分摊和 500 元人头阈值已确认 |
 | 青橙 TMK 转移与订单追踪模板 | `resources/raw_sql/qingcheng_tmk_transfer_order_trace_20260718.sql` | `knowledge/metrics/qingcheng_tmk_transfer_order_trace_metrics.md` | 已入库；复用已确认转移 Join，业财未回补使用三态和空金额 |
 | 青橙年季月营收 raw | `resources/raw_sql/qingcheng_revenue_year_quarter_month_raw_20260522.sql` | `knowledge/metrics/qingcheng_revenue_year_quarter_month_metrics.md` | 已入库，raw SQL 存在平台函数风险 |
-| 青橙团队完成度【月】raw | `resources/raw_sql/qingcheng_team_completion_month_raw_20260522.sql` | `knowledge/metrics/qingcheng_team_completion_month_metrics.md` | 已入库，raw SQL 存在平台函数风险 |
-| 青橙团队完成度【期】raw | `resources/raw_sql/qingcheng_team_completion_period_raw_20260522.sql` | `knowledge/metrics/qingcheng_team_completion_period_metrics.md` | 已入库，raw SQL 存在平台函数风险 |
-| 青橙个人转化 raw | `resources/raw_sql/qingcheng_personal_conversion_raw_20260522.sql` | `knowledge/metrics/qingcheng_personal_conversion_metrics.md` | 已入库，raw SQL 存在平台函数风险 |
+| 青橙团队完成度【月】 | `resources/raw_sql/data_center_qingcheng_2677.sql` | `knowledge/metrics/qingcheng_team_completion_month_metrics.md` | 当前 canonical SQL；service 主金额字段为 `income_all/refund_all`，finance 仅补 service 缺失链路和规则字段 |
+| 青橙团队完成度【期】 | `resources/raw_sql/data_center_qingcheng_2680.sql` | `knowledge/metrics/qingcheng_team_completion_period_metrics.md` | 当前 canonical SQL；service 主金额字段为 `income_all/refund_all`，finance 仅补 service 缺失链路和规则字段 |
+| 青橙个人转化 | `resources/raw_sql/data_center_qingcheng_2769.sql` | `knowledge/metrics/qingcheng_personal_conversion_metrics.md` | 当前 canonical SQL；service 主金额字段为 `income_all/refund_all`，finance 仅补 service 缺失链路和规则字段 |
 | 青橙转化宽表-市场渠道 raw | `resources/raw_sql/qingcheng_conversion_wide_table_market_channel_20260611.sql` | `knowledge/metrics/qingcheng_conversion_wide_table_market_channel_metrics.md` | 已入库，100+ 分支 CASE WHEN 渠道映射，含 AND/OR 优先级风险 |
 
 ## 4. 入库规则

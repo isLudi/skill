@@ -2,6 +2,17 @@
 
 本文件记录青橙项目部看板中表与表、表与临时表、CTE 与 CTE 的关系。
 
+## 0. 2026-08-05 完成度金额主链
+
+当前个人/团队完成度 canonical SQL 的金额关系如下，优先于历史 raw 快照中的 finance 主金额描述：
+
+| 主表/CTE | 关联表/CTE | 关联条件 | 关系类型 | 数据粒度影响 | 来源 |
+|---|---|---|---|---|---|
+| `service_base0/service_scope` | `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` | service 当前分区、青橙业绩部门、课程范围、员工/期次窗口 | 正常金额主事实 | `income_all/refund_all` 直接汇总 service `income_amount/refund_amount`；不因内部调课识别而删掉 service 流水；当前排除 `clazz_name` 含“试听” | `data_center_qingcheng_2769.sql`, `data_center_qingcheng_2680.sql`, `data_center_qingcheng_2677.sql` |
+| `unified_amount` | `course_transfer_scope` | service 缺失课程转移链路的受限补充；按唯一订单/目标用户/顾问/科目粒度 | 金额补充 | finance 补充标记为 `course_transfer_supplement`，只进入 legacy/rule 金额，不进入 `income_all/refund_all`；补充前必须 finance 业务键去重 | 三份 2026-08-05 canonical SQL |
+| `t4` | `order_change` + service transfer 聚合 | 订单号映射；`order_number + performance_employee_email_name` | 内部调课识别 | 只把 `trade_type='调课调班'` 流水标记为内部变更，影响 `income/refund/refund_4` 和规则字段，不替代 service 全部金额 | 三份 2026-08-05 canonical SQL |
+| `rd` | `re_ke` / `ord` | `qici + order_number` | 退 4/点睛退 2 规则 | 仅提供已完课节数和全退链路，影响 `refund_4/class_refund_4/promit_4`，不改变 `refund_all` | 三份 2026-08-05 canonical SQL |
+
 ## 1. 已确认或已入库关系
 
 | 主表/CTE | 关联表/CTE | 关联条件 | 关系类型 | 数据粒度影响 | 来源 |

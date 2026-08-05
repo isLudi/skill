@@ -126,16 +126,27 @@ and (
 
 只看到退款发生时间晚于入组时间，并不能说明它应该计入青橙。
 
-### 3.4 订单明细侧 service 表不能当完成度金额唯一事实源
+### 3.4 当前全部收入/退款使用 service 主金额，finance 仅补缺失链路
 
-`service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` 的原始 `income_amount`、`refund_amount` 在部分调课调班链路上可能直接缺失或为 0。用订单明细侧反查个人/团队完成度时，不能只按 service 原始金额核对，应采用以下补偿口径：
+`service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` 的原始 `income_amount`、`refund_amount` 是当前完成度 `income_all/refund_all` 的正常金额主事实，单位从分换算为元。内部调课调班识别仍看 `transfer_in_amount/transfer_out_amount`；只有 service 明确缺失的课程转移链路，才进入 finance 受限补充路径。
+
+当前看板主金额定义：
+
+```sql
+sum(case when source_type = 'service' then income_amount_yuan else 0 end) as income_all,
+sum(case when source_type = 'service' then refund_amount_yuan else 0 end) as refund_all
+```
+
+finance 补充口径必须先按业务键去重，再按订单、目标用户、顾问、科目聚合：
 
 ```sql
 cast(coalesce(income_amount, 0) + coalesce(transfer_in_amount, 0) as double) / 100.0 as income_amount,
 cast(coalesce(refund_amount, 0) + coalesce(transfer_out_amount, 0) as double) / 100.0 as refund_amount
 ```
 
-如果 service 侧仍缺少完整流水，应以 `finance_dw.app_finance_performance_extend_details_hf` 作为金额事实源补齐缺失事件。个人完成度、团队完成度【期】和团队完成度【月】的看板 SQL 不使用 `where f.trade_timestamp > ${begin_trade_time} and f.trade_timestamp < ${end_trade_time}` 这类模板时间参数；看板 SQL 继续通过 `qici > '20260424期'`、期次映射表和目标/架构表控制展示范围。
+如果 service 侧仍缺少课程转移完整流水，才以 `finance_dw.app_finance_performance_extend_details_hf` 补齐缺失事件；finance 不直接替代正常 `income_all/refund_all`，也不能未经去重直接 join。个人完成度、团队完成度【期】和团队完成度【月】的看板 SQL 不使用 `where f.trade_timestamp > ${begin_trade_time} and f.trade_timestamp < ${end_trade_time}` 这类模板时间参数；看板 SQL 继续通过 `qici > '20260424期'`、期次映射表和目标/架构表控制展示范围。
+
+与渠道订单模板对账时，模板原始 SQL 未排除 `clazz_name like '%试听%'`，而完成度 service 主事实使用 `coalesce(clazz_name, '') not like '%试听%'`；未先统一该条件，会形成少量试听收入/退款差异。
 
 ### 3.4.1 service transfer 已记录但 finance 订单变更维表漏链路
 

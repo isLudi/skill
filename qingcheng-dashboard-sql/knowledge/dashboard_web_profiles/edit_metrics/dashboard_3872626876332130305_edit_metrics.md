@@ -7,10 +7,10 @@
 - dashboard_id: `dashboard_3872626876332130305`
 - dashboard_name: `团队转化完成度-青橙`
 - domain: `qingcheng`
-- captured_at: `2026-07-18 22:26:05`
+- captured_at: `2026-08-05 20:27:51`
 - menu_status: `1`
-- profile_sha256: `4154ddbdc045bc1a2696981417cb09db0ee70ff78d5dfeb433ff7e4252efb977`
-- raw_profile: `C:\Users\Ludim\.codex\runtime\usql-web-query-operator\edit-profile-20260718-class-refund\20260718-222553-22428-75ebca4f\dashboard_3872626876332130305_edit_metrics_profile.json`
+- profile_sha256: `291d536863a1a4bfd23cc3e7403e8b7fe921cd7e4e0a8c1a7fc5beaf755b950f`
+- raw_profile: `C:\Users\Ludim\.codex\runtime\usql-web-query-operator\analysis\live_team_edit_profile.json`
 
 ## Model coverage
 
@@ -45,7 +45,7 @@
 - unit_id: `unit_3884268636652077057`
 - model: `2680` / 团队完成度【期】
 - dimensions: 小组 / `xiaozu`; 学部 / `xuebu`; xiaozu
-- measures: 团队人数 / `emye_c`; 营收金额 / `income`; 退费金额 / `refund`; 净金额 / `promit`; 破蛋人数 / `podan_4`; 破蛋率 / `破蛋率-退4`; 退费人数 / `re_payer_4`; 退费占比 / `退费占比-退4`; 期人效 / `期人效-退4`; 折算净收款 / `折算净收款-退4`; 期目标 / `goal`; 期目标完成率
+- measures: 团队人数 / `emye_c`; 营收金额 / `income_all`; 退费金额 / `refund_all`; 净金额 / `净收款`; 破蛋人数 / `podan_4`; 破蛋率 / `破蛋率-退4`; 退费人数 / `re_payer_4`; 退费占比 / `退费占比-退4`; 期人效 / `期人效-退4`; 折算净收款 / `折算净收款-退4`; 期目标 / `goal`; 期目标完成率
 - component: `node_ocmoprqx1n1` / `小组-期_退4`
 
 ### 大组-期_退4
@@ -53,7 +53,7 @@
 - unit_id: `unit_3884652049659666436`
 - model: `2680` / 团队完成度【期】
 - dimensions: 大组 / `dazu`
-- measures: 团队人数 / `emye_c`; 营收金额 / `income`; 退费金额 / `refund`; 净收款 / `promit`; 期目标 / `goal`; 破蛋人数 / `podan_4`; 破蛋率 / `破蛋率-退4`; 退费人数 / `re_payer_4`; 退费占比 / `退费占比-退4`; 期人效 / `期人效-退4`; 折算净收款 / `折算净收款-退4`; 期目标完成率 / `期目标完成率-退4`
+- measures: 团队人数 / `emye_c`; 营收金额 / `income_all`; 退费金额 / `refund_all`; 净收款 / `净收款`; 期目标 / `goal`; 破蛋人数 / `podan_4`; 破蛋率 / `破蛋率-退4`; 退费人数 / `re_payer_4`; 退费占比 / `退费占比-退4`; 期人效 / `期人效-退4`; 折算净收款 / `折算净收款-退4`; 期目标完成率 / `期目标完成率-退4`
 - component: `node_ocmopt186p1` / `大组-期_退4`
 
 ### 学部-期_退4
@@ -61,7 +61,7 @@
 - unit_id: `unit_3884652097619013635`
 - model: `2680` / 团队完成度【期】
 - dimensions: 学部 / `xuebu`
-- measures: 团队人数 / `emye_c`; 营收金额 / `income`; 退费金额 / `refund`; 净收款 / `promit`; 期目标 / `goal`; 破蛋人数 / `podan_4`; 破蛋率 / `破蛋率-退4`; 退费人数 / `re_payer_4`; 退费占比 / `退费占比-退4`; 期人效 / `期人效-退4`; 折算净收款; 期目标完成率 / `期目标完成率-退4`
+- measures: 团队人数 / `emye_c`; 营收金额 / `income_all`; 退费金额 / `refund_all`; 净收款 / `净收款`; 期目标 / `goal`; 破蛋人数 / `podan_4`; 破蛋率 / `破蛋率-退4`; 退费人数 / `re_payer_4`; 退费占比 / `退费占比-退4`; 期人效 / `期人效-退4`; 折算净收款; 期目标完成率 / `期目标完成率-退4`
 - component: `node_ocmopt186p2` / `学部-期_退4`
 
 ### 小组-月
@@ -69,7 +69,7 @@
 - unit_id: `unit_3872631539138375680`
 - model: `2677` / 团队完成度【月】
 - dimensions: 小组 / `xiaozu`; 学部 / `xuebu`; xiaozu
-- measures: 团队人数 / `emye_c`; 营收金额 / `income`; 退费金额 / `refund`; 净收款 / `promit`; 破蛋人数 / `podan`; 破蛋率 / `破蛋率-退4`; 退费人数 / `re_payer_4`; 退费占比 / `退费占比-退4`; 月人效 / `月人效-退4`; 折算净收款 / `折算净收款-退4`; 月目标 / `goal`; 月目标完成率 / `月目标完成率--退4`
+- measures: 团队人数 / `emye_c`; 营收金额 / `income_all`; 退费金额 / `refund_all`; 净收款 / `净收款`; 破蛋人数 / `podan`; 破蛋率 / `破蛋率-退4`; 退费人数 / `re_payer_4`; 退费占比 / `退费占比-退4`; 月人效 / `月人效-退4`; 折算净收款 / `折算净收款-退4`; 月目标 / `goal`; 月目标完成率 / `月目标完成率--退4`
 - component: `node_ocmoprqx1n3` / `小组-月`
 
 ### 大组-月
@@ -77,7 +77,7 @@
 - unit_id: `unit_3884667936917241860`
 - model: `2677` / 团队完成度【月】
 - dimensions: 大组 / `dazu`; 学部 / `xuebu`
-- measures: 团队人数 / `emye_c`; 营收金额 / `income`; 退费金额 / `refund`; 净收款 / `promit`; 月目标 / `goal`; 破蛋人数 / `podan`; 破蛋率 / `破蛋率-退4`; 退费人数 / `re_payer_4`; 退费占比 / `退费占比-退4`; 月人效 / `月人效-退4`; 折算净收款 / `折算净收款-退4`; 月目标完成率 / `月目标完成率--退4`
+- measures: 团队人数 / `emye_c`; 营收金额 / `income_all`; 退费金额 / `refund_all`; 净收款 / `净收款`; 月目标 / `goal`; 破蛋人数 / `podan`; 破蛋率 / `破蛋率-退4`; 退费人数 / `re_payer_4`; 退费占比 / `退费占比-退4`; 月人效 / `月人效-退4`; 折算净收款 / `折算净收款-退4`; 月目标完成率 / `月目标完成率--退4`
 - component: `node_ocmopt1cz41` / `大组-月`
 
 ### 学部-月
@@ -85,7 +85,7 @@
 - unit_id: `unit_3884668794603847684`
 - model: `2677` / 团队完成度【月】
 - dimensions: 学部 / `xuebu`
-- measures: 团队人数 / `emye_c`; 营收金额 / `income`; 退款金额 / `refund`; 净收款 / `promit`; 月目标 / `goal`; 破蛋人数 / `podan`; 破蛋率 / `破蛋率-退4`; 退费人数 / `re_payer_4`; 退费占比 / `退费占比-退4`; 月人效 / `月人效-退4`; 折算净收款; 月目标完成率 / `月目标完成率--退4`
+- measures: 团队人数 / `emye_c`; 营收金额 / `income_all`; 退款金额 / `refund_all`; 净收款 / `净收款`; 月目标 / `goal`; 破蛋人数 / `podan`; 破蛋率 / `破蛋率-退4`; 退费人数 / `re_payer_4`; 退费占比 / `退费占比-退4`; 月人效 / `月人效-退4`; 折算净收款; 月目标完成率 / `月目标完成率--退4`
 - component: `node_ocmopt1cz42` / `学部-月`
 
 ## Configured field meanings
@@ -95,9 +95,9 @@
 | 小组 | xiaozu<br>`414770` | dimension / row_dimension |  |  |  | 小组-期_退4 |
 | 学部 | xuebu<br>`414767` | dimension / row_dimension |  |  |  | 小组-期_退4 |
 | 团队人数 | emye_c<br>`8703823135205376` | measure / measure | sum(8703823135205376) |  |  | 小组-期_退4 |
-| 营收金额 | income<br>`8703823135205380` | measure / measure | sum(8703823135205380) |  |  | 小组-期_退4 |
-| 退费金额 | refund<br>`8703823135205381` | measure / measure | sum(8703823135205381) |  |  | 小组-期_退4 |
-| 净金额 | promit<br>`8703823135205382` | measure / measure | sum(8703823135205382) |  |  | 小组-期_退4 |
+| 营收金额 | income_all<br>`9237101932603392` | measure / measure | sum(9237101932603392) |  |  | 小组-期_退4、大组-期_退4、学部-期_退4 |
+| 退费金额 | refund_all<br>`9237101932603393` | measure / measure | sum(9237101932603393) |  |  | 小组-期_退4、大组-期_退4、学部-期_退4 |
+| 净金额 | 净收款<br>`customized_1005209397712175104` | custom_measure / measure | ifnull(sum(${income_all})-sum(${refund_all}),0) |  |  | 小组-期_退4、大组-期_退4、学部-期_退4 |
 | 破蛋人数 | podan_4<br>`8703823135205389` | measure / measure | sum(8703823135205389) |  |  | 小组-期_退4 |
 | 破蛋率 | 破蛋率-退4<br>`customized_987303565706842113` | custom_measure / measure | ifnull(sum(${podan_4})/sum(${emye_c}),0) |  | [{"paramId": "8703823135205389", "orgParamType": 1, "needBoundaryValue": false}, {"paramId": "8703823135205376", "orgParamType": 1, "needBoundaryValue": false}] | 小组-期_退4 |
 | 退费人数 | re_payer_4<br>`8703823135205388` | measure / measure | sum(8703823135205388) |  |  | 小组-期_退4 |
@@ -114,9 +114,9 @@
 | 小组 | xiaozu<br>`414316` | dimension / row_dimension |  |  |  | 小组-月 |
 | 学部 | xuebu<br>`414313` | dimension / row_dimension |  |  |  | 小组-月 |
 | 团队人数 | emye_c<br>`8703694032168960` | measure / measure | sum(8703694032168960) |  |  | 小组-月 |
-| 营收金额 | income<br>`8703521624254466` | measure / measure | sum(8703521624254466) |  |  | 小组-月 |
-| 退费金额 | refund<br>`8703521624254467` | measure / measure | sum(8703521624254467) |  |  | 小组-月 |
-| 净收款 | promit<br>`8703521624254468` | measure / measure | sum(8703521624254468) |  |  | 小组-月 |
+| 营收金额 | income_all<br>`9237105531774976` | measure / measure | sum(9237105531774976) |  |  | 小组-月、大组-月、学部-月 |
+| 退费金额 | refund_all<br>`9237105531774977` | measure / measure | sum(9237105531774977) |  |  | 小组-月、大组-月、学部-月 |
+| 净收款 | 净收款<br>`customized_1005209393102635009` | custom_measure / measure | ifnull(sum(${income_all})-sum(${refund_all}),0) |  |  | 小组-月、大组-月、学部-月 |
 | 破蛋人数 | podan<br>`8658235459921924` | measure / measure | sum(8658235459921924) |  |  | 小组-月 |
 | 破蛋率 | 破蛋率-退4<br>`customized_987303561843888128` | custom_measure / measure | ifnull(sum(${podan_4})/sum(${emye_c}),0) |  | [{"paramId": "8703521624254475", "orgParamType": 1, "needBoundaryValue": false}, {"paramId": "8703694032168960", "orgParamType": 1, "needBoundaryValue": false}] | 小组-月 |
 | 退费人数 | re_payer_4<br>`8703521624254474` | measure / measure | sum(8703521624254474) |  |  | 小组-月 |
@@ -127,8 +127,19 @@
 | 月目标完成率 | 月目标完成率--退4<br>`customized_987303561621590017` | custom_measure / measure | ifnull(${折算净收款-退4}/sum(${goal}),0) |  | [{"paramId": "customized_987303561181188096", "orgParamType": 4, "needBoundaryValue": false}, {"paramId": "8703694032168961", "orgParamType": 1, "needBoundaryValue": false}] | 小组-月 |
 | xiaozu | xiaozu<br>`414316` | dimension / filter |  |  |  | 小组-月 |
 | 大组 | dazu<br>`414315` | dimension / row_dimension |  |  |  | 大组-月 |
-| 退款金额 | refund<br>`8703521624254467` | measure / measure | sum(8703521624254467) |  |  | 学部-月 |
+| 退款金额 | refund_all<br>`9237105531774977` | measure / measure | sum(9237105531774977) |  |  | 学部-月 |
 | 折算净收款 | 折算净收款<br>`customized_987303561072136192` | custom_measure / measure | sum(${H_promit})+sum(${n_H_promit}) |  | [{"paramId": "8703521624254464", "orgParamType": 1, "needBoundaryValue": false}, {"paramId": "8703521624254465", "orgParamType": 1, "needBoundaryValue": false}] | 学部-月 |
+
+## 2026-08-05 Current live authority
+
+The live draft profile supersedes the July snapshot rows above for the amount display fields:
+
+| model / grain | revenue field | refund field | net formula | adjusted formula |
+|---|---|---|---|---|
+| `2680` period | `income_all` / `9237101932603392` | `refund_all` / `9237101932603393` | `ifnull(sum(${income_all})-sum(${refund_all}),0)` | `ifnull(sum(${n_H_promit_4})*0.5 + sum(${H_promit_4}),0)` |
+| `2677` month | `income_all` / `9237105531774976` | `refund_all` / `9237105531774977` | `ifnull(sum(${income_all})-sum(${refund_all}),0)` | `ifnull(sum(${n_H_promit_4})*0.5 + sum(${H_promit_4}),0)` |
+
+`income_all/refund_all` are the direct service-main amount fields. They do not apply the退4/点睛退2 rule; `折算净收款-退4` continues to use `n_H_promit_4/H_promit_4`.
 
 ## Dataset fields
 

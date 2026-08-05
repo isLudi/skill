@@ -684,3 +684,17 @@
 - 三个数据集均已在 Data Center 完成替换上线并确认抽数 `SUCCESS`：个人转化 run `162756633`、团队完成度【期】run `162763410`、团队完成度【月】run `162763412`。
 - 更新 `semantic/current_model_bindings.json` 三个 model 的 SQL SHA-256 与字节数。
 - 相关字段/表知识补充：`finance_dw.app_finance_performance_extend_details_hf` 的 `id` 字段不保证业务唯一，按订单/课程/交易维度聚合前必须先按业务键去重。
+
+## 2026-08-05 数据中心 stable canonical SQL 同步
+
+- 按已审阅同步计划原子更新 model_id：`2677, 2680, 2769`；每个 model_id 只保留稳定 canonical 路径。
+- 写入后已强制重建反向索引和目录，并运行唯一版本审计、域内 integrity 与完整 Text2SQL 栈验证。
+
+## 2026-08-05 青橙看板与模板金额五期核对
+
+- 对 `<个人转化数据-青橙>`、`<团队转化完成度-青橙>` 在 `20260710期`、`20260716期`、`20260722期`、`20260728期`、`20260803期` 做同员工范围、同团队范围的个人/团队双粒度核对：个人 575 个键、团队 110 个键，双方键集合均完全一致。
+- 五期合计模板收入 `11,841,407.12`、看板收入 `11,841,082.72`，差异 `-324.40`；模板退款 `1,452,160.60`、看板退款 `1,452,071.80`，差异 `-88.80`。`20260803期` 两个粒度的收入和退款均逐分一致。
+- 差异集中在 10 个员工/团队键，诊断显示全部由模板保留、看板 `service_base0` 排除的 `clazz_name` 含“试听”流水解释；非 H 流失为 0，渠道 `ld` 重复放大指标为 0。
+- 确认 `finance_dw.app_finance_performance_extend_details_hf` 虽存在独立的业务键重复风险，但当前 `income_all/refund_all` 是 service 主事实金额，不由 finance 直接求和，因此不是本次看板与模板差异原因。finance 继续仅用于 service 缺失的课程转移补充、内部调课识别和退 4/点睛退 2 规则，并在补充前去重。
+- 更新个人/团队 raw、metrics、公式链路、看板编辑器快照、表说明、join key、决策树、快速参考和修复清单；新增 `knowledge/sql_patterns/qingcheng_template_dashboard_amount_reconciliation_20260805.md` 作为证据与对齐建议。
+- 刷新青橙项目部 16 个线上看板的只读 profile 文档，全部 `ok_count=16`；本次未执行线上模板、看板保存或发布。

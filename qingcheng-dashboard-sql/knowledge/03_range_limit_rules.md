@@ -96,18 +96,19 @@
 
 ## 7. 团队完成度【月/期】和个人转化 SQL 范围口径
 
-来源：`resources/raw_sql/qingcheng_team_completion_month_raw_20260522.sql`。
-期次版来源：`resources/raw_sql/qingcheng_team_completion_period_raw_20260522.sql`。
-个人转化来源：`resources/raw_sql/qingcheng_personal_conversion_raw_20260522.sql`。
+月度版来源：`resources/raw_sql/data_center_qingcheng_2677.sql`。
+期次版来源：`resources/raw_sql/data_center_qingcheng_2680.sql`。
+个人转化来源：`resources/raw_sql/data_center_qingcheng_2769.sql`。
 
-这些 SQL 与年季月营收类似，也使用“员工组织链 + 财务员工部门”双重限制，但组织路径更宽：
+这些 SQL 使用“员工组织链 + service 业绩部门 + 课程部门白名单”限制；finance 只用于 service 缺失的课程转移补充和规则链。组织路径更宽：
 
 | 场景 | 字段/表达式 | 取值 |
 |---|---|---|
 | 员工组织链 | `path_name` | `like '高途-H业务线-青橙项目部%'` |
-| 财务业绩表 | `employee_first_level_department_name` | `'H业务线'` |
-| 财务业绩表 | `employee_second_level_department_name` | `'青橙项目部'` |
-| 任职期间 | `trade_time >= begin_time and (end_time is null or trade_time <= end_time)` | 交易发生在员工属于青橙期间 |
+| service 订单事实 | `performance_first_level_department_name` | `'H业务线'` |
+| service 订单事实 | `performance_second_level_department_name` | `'青橙项目部'` |
+| service 订单事实 | `course_first_level_department_name` / `course_second_level_department_name` | 当前 canonical SQL 的受控课程部门白名单 |
+| 任职期间 | `original_paid_time` 优先，按 `org_t` / `team_hist` 期次窗口兜底 | 原始成交归属在员工属于青橙期间；组织链滞后时允许已在该期架构中的员工 |
 | 退款课节表 | `course_first_level_department_name` | `'H业务线'` |
 | 退款课节表 | `course_second_level_department_name` | `('精品班学部','菁英班学部','一对一学部')` |
 

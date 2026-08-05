@@ -2,7 +2,7 @@
 
 ## 1. 来源
 
-`resources/raw_sql/qingcheng_team_completion_month_raw_20260522.sql`
+`resources/raw_sql/data_center_qingcheng_2677.sql`
 
 适用看板：`knowledge/dashboards/qingcheng_team_completion_month_raw_20260522.md`
 
@@ -18,6 +18,8 @@
 
 | 指标 | SQL 口径 | 说明 | 状态 |
 |---|---|---|---|
+| `income_all` | `sum(case when source_type = 'service' then income_amount_yuan else 0 end)` | service 主事实的全部收入；当前团队营收金额直接聚合该字段 | 已从 2026-08-05 canonical SQL 入库 |
+| `refund_all` | `sum(case when source_type = 'service' then refund_amount_yuan else 0 end)` | service 主事实的全部退款；当前团队退费金额直接聚合该字段 | 已从 2026-08-05 canonical SQL 入库 |
 | `income` | `sum(case when name_total_price >= 0 then name_total_price else 0 end)` 后逐层求和 | 收入金额 | 已从 SQL 入库 |
 | `refund` | `sum(case when name_total_price < 0 then abs(name_total_price) else 0 end)` 后逐层求和 | 全部退款金额 | 已从 SQL 入库 |
 | `promit` | `income - refund`，后逐层求和 | 净收，不剔除行课阈值退款 | 已从 SQL 入库 |
@@ -71,3 +73,18 @@
 - `temp_table.dingxi01_qing_team_goal.goal` 的目标单位需确认是否与 `promit` 同单位。
 - `moth` 字段拼写保留历史 SQL，语义为月份。
 - 2026-06-28 起，任职窗口优先按 `order_attr.original_paid_time` 判定，并允许 `team_hist` 期次兜底；同时 `is_internal_order_change` 只剔除调课调班流水本身。
+
+## 9. 2026-08-05 当前金额口径
+
+团队月看板当前公式为：
+
+```text
+营收金额 = sum(income_all)
+退费金额 = sum(refund_all)
+净收款 = sum(income_all) - sum(refund_all)
+折算净收款-退4 = sum(n_H_promit_4) * 0.5 + sum(H_promit_4)
+```
+
+`income_all/refund_all` 不剔除调课调班；`income/refund`、`refund_4`、`class_refund_4` 保留用于内部调课识别、退 4/点睛退 2 和其他历史规则指标。service 是正常金额主事实，finance 只补 service 缺失的课程转移链路并参与规则字段，补充表先聚合到唯一业务粒度再 join。
+
+个人与团队五期模板核对证据见 `knowledge/sql_patterns/qingcheng_template_dashboard_amount_reconciliation_20260805.md`。

@@ -7808,7 +7808,7 @@
         {
           "domain": "qingcheng",
           "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_performance_extend_details_hf.md",
-          "sha256": "4466fbe23b7ae329f1d3c18b7fe5a633f6f091340bc0763932645a97a4bc99e6"
+          "sha256": "e2edebcac23abd085ba4de941cde85008ac247a7750d3e2e6935549ae92ce023"
         }
       ],
       "columns": [
@@ -27279,7 +27279,7 @@
         {
           "domain": "qingcheng",
           "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md",
-          "sha256": "a4577f22cda21fb7c9e86b9d4d32c5d5a544b7b4e675e0cb43c5de6d40dcaf9c"
+          "sha256": "07c89b4aa029b14a6862ffecf239c7eed02d9b3dbf80556cfba8f39ec5f470e2"
         }
       ],
       "columns": [

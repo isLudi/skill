@@ -15,7 +15,7 @@
 | 业务部门名称 | 青橙项目部 | 已知 |
 | 查询引擎 | Presto | 已知 |
 | 核心看板 | 青橙过程数据 raw、青橙到课 raw、青橙转化 raw、青橙年季月营收 raw、青橙团队完成度【月】raw、青橙团队完成度【期】raw、青橙个人转化 raw | 已入库 |
-| 核心事实表 | `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df` | 已从 SQL 入库，字段待确认 |
+| 核心事实表 | `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df`；完成度金额主事实 `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` | 已从 SQL 入库；完成度 `income_all/refund_all` 由 service 主事实提供，finance 仅补 service 缺失链路和规则字段 |
 | 核心临时表 | `temp_table.dingxi01_qing_daoke`, `temp_table.dingxi01_jiagou_db`, `temp_table.dingxi01_qing_team_jg`, `temp_table.dingxi01_qing_zz`, `temp_table.dingxi01_qing_qi_moth`, `temp_table.dingxi01_qing_team_goal`, `temp_table.dingxi01_qing_team_g_qi` | 已从 SQL 入库，来源/刷新方式待确认 |
 | 核心范围字段 | `section_assign_employee_second_level_department_name`, `virtual_second_department_name` | 已从 SQL 入库 |
 | 核心范围取值 | `青橙项目部` | 已从 SQL 入库 |
@@ -105,7 +105,7 @@
 
 ## 11. 已入库团队完成度【月】口径
 
-来源：`resources/raw_sql/qingcheng_team_completion_month_raw_20260522.sql`
+来源：`resources/raw_sql/data_center_qingcheng_2677.sql`
 
 | 口径 | 文档 |
 |---|---|
@@ -121,7 +121,7 @@
 
 ## 12. 已入库团队完成度【期】口径
 
-来源：`resources/raw_sql/qingcheng_team_completion_period_raw_20260522.sql`
+来源：`resources/raw_sql/data_center_qingcheng_2680.sql`
 
 | 口径 | 文档 |
 |---|---|
@@ -136,7 +136,7 @@
 
 ## 13. 已入库个人转化口径
 
-来源：`resources/raw_sql/qingcheng_personal_conversion_raw_20260522.sql`
+来源：`resources/raw_sql/data_center_qingcheng_2769.sql`
 
 | 口径 | 文档 |
 |---|---|
