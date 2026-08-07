@@ -32,6 +32,40 @@ D:\anaconda3\python.exe scripts\usql_web_query.py fetch-template-sql `
 
 该命令是只读的：不会创建模板、不会执行 SQL、也不会下载结果。
 
+## 将线上发布 SQL 同步为 Skill stable canonical
+
+需要把线上模板 SQL 留存在业务 Skill 时，不能把 `fetch-template-sql --output-file` 指向 Skill 目录；该只读命令会拒绝知识库路径。使用 `sync-template-sql`，它只读取精确模板 ID/名称的 `published` 版本，计算线上 SQL SHA-256，并把结果绑定到无日期的 stable 文件。
+
+先 dry-run：
+
+```powershell
+D:\anaconda3\python.exe scripts\usql_web_query.py sync-template-sql `
+  --target-skill market `
+  --template-id 9002 `
+  --template-name "AI分析市场顾问部_宽表" `
+  --canonical-file resources/raw_sql/template_query_market_wide.sql
+```
+
+审阅输出中的 `plan_sha256`、线上 `remote_sql_sha256` 和模板状态后，再用同一组参数携带精确计划哈希写入：
+
+```powershell
+D:\anaconda3\python.exe scripts\usql_web_query.py sync-template-sql `
+  --target-skill market `
+  --template-id 9002 `
+  --template-name "AI分析市场顾问部_宽表" `
+  --canonical-file resources/raw_sql/template_query_market_wide.sql `
+  --write `
+  --expected-plan-sha256 <exact-plan-sha256>
+```
+
+写入规则：
+
+- 只接受已发布模板的线上回读 SQL；模板 ID、名称、域和 canonical 路径均精确绑定。
+- canonical 文件必须直接位于已登记 Skill 的域内 raw SQL 目录下（由 domain adapter 解析），且文件名不能包含日期后缀。
+- 写入前复核本地文件和旧日期副本的前置哈希；写入后用线上 SQL 哈希回读校验，按原位覆盖 stable 文件并删除同逻辑的日期副本。
+- 计划和回执只保存路径、状态和哈希，不保存旧 SQL 文本；写入后强制运行反向索引、共享 catalog、唯一版本审计、域内 integrity 和完整 Text2SQL 栈。
+- `fetch-template-sql` 和 `fetch-market-template-sql` 仍可把临时回读写到 runtime，但不能绕过上述流程写入 Skill 知识库。
+
 ## 读取模板市场中的模板 SQL
 
 当用户要查看 `模板取数 -> 模板市场` 中某个模板当前保存的 SQL 时，使用 `scripts/usql_web_query.py fetch-market-template-sql`：

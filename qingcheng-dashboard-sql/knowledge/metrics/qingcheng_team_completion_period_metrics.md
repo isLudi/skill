@@ -94,3 +94,15 @@
 - `order_attr` 只保留原始支付时间，transfer 标记改由 `service_base0` 当前明细行直接传递到 `t4`，不再按订单级 `max` 回灌。
 - finance raw 层删除不完整复合键的 `row_number()=1`，保留独立明细并按真实输出粒度聚合；`service_order_employee` 按 `order_number + employee_email_name` 抑制 service 已覆盖链路的重复补入。
 - 期次基线/候选均为 330 行且键集合一致，移除旧 finance 误补 `4,573.3206` 元；`income_all/refund_all` 不变。生产 Preview `1534870341`、run `163252065` 为 `SUCCESS`。
+
+## 11. 2026-08-07 service 真实退款补回与退款侧调课调班修复
+
+团队完成度【期】与个人转化统一采用收入侧/退款侧分离的调课调班判定：`income/p_sub` 只剔除当前 service 明细行有 transfer 金额的内部流水；`refund/r_sub/refund_4` 不因订单命中 `order_change` 而整体清零，先按 finance 退款事件与 transfer pool 分配内部部分，再使用 service 退款余额。`order_change` 只作 service 缺失、零金额异常和退款内部分配的链路依据。
+
+## 12. 2026-08-07 退款事件金额级分配
+
+当前期次版与个人版共用 `finance_refund_event_allocated`：finance 负退款明细先按真实退款事件粒度聚合，再以 `order_change` transfer pool 分配内部退款金额。精确匹配时按事件全额分配；不精确时按事件金额比例分配并封顶。service 的 `refund_all` 保持原始全部退款，`refund/refund_4` 只使用 `greatest(service refund - internal allocation, 0)` 的余额，防止同一订单的真实退款被内部调课链路整单清零。`ord/re_ke` 的班课 4 节、点睛 2 节和 H 一对一规则不变。
+
+20260803期个人基表与团队期基表的四名异常顾问金额一致；回归 query `1535375732` 返回王东亚01 `H_income_4=64,000`、`H_refund_4=6,772.61`、`H_promit_4=57,227.39`，张昊62 `15,000 / 2,210 / 12,790`，付金艳 `9,700 / 0 / 9,700`，张地43 `19,800 / 0 / 19,800`。
+
+班课开课 4 节、点睛班开课 2 节、H 一对一全额退款规则仍由 `re_ke/ord` 的 `re_lc` 驱动，`refund_4/class_refund_4` 和 `promit_4` 口径未改变；看板营收/退费/净金额仍为 `sum(income_all)`、`sum(refund_all)`、`sum(income_all)-sum(refund_all)`。候选回归 query `1535084952` 与个人五名顾问结果一致。生产 Preview `1535090729`、run `163259517` 均为 `SUCCESS`。

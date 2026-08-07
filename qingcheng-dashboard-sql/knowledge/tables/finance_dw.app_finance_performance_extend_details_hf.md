@@ -18,6 +18,8 @@ model 2460 从 2026-07-20 起还使用本表补充“课程转移到 B 用户且
 
 **注意：`id` 字段不保证业务唯一，且不完整投影键不能直接代表业务重复。** 2026-08-07 对 2769 个人转化中的调课调班链路复核发现：付金艳同一订单有 36 条独立明细、36 个 `id`、36 个 `pre_biz_number`，金额合计 `1,500` 元；谈梦玲两笔订单各有 38 条独立明细，金额分别为 `826.10`、`2,687.98` 元，均与 service `transfer_in` 守恒。旧版按 `order_number + clazz_name + user_id + trade_status + trade_type + trade_time + employee_email_name + course_grade` 使用 `row_number()=1` 会吞掉这些独立明细。当前 2769 不再按该投影键去重，而是保留明细后按真实输出粒度聚合，并以 `order_number + employee_email_name` 与 service 链路校验后决定是否补金额。其他历史分区是否存在完全重复行仍需单独探针确认，不能从本次链路外推。
 
+2026-08-07 退款修复补充：finance 的独立明细用于 service 缺失的课程转移补充、链路识别和诊断，不覆盖 service 当前行已有的真实 `refund_amount`。`trade_status='调出退款'` 或 `trade_type='调课调班'` 只能作为 finance 事件证据，不能按不完整复合键做整行判重；正常输出前仍需先按真实业务粒度聚合，再通过 `order_number + employee_email_name` 与 service 覆盖关系抑制补金额。
+
 ## 4. 查询引擎
 
 Presto
@@ -227,3 +229,13 @@ end as trade_status
 - 个人完成度/个人转化中，`course_first_level_department_name` 和 `course_second_level_department_name` 可能为空；生成折算后产出相关 SQL 时必须按 `grade_list` 兜底课程部门，否则空部门流水不会进入 H/非 H/一对一桶。
 - model 2460 课程转移补数只取 `trade_type = '调课调班'`、支付状态、`price > 0` 的正向行，并按订单、B 用户、顾问、科目先聚合；不得把退款行或非课程转移订单带入。
 - 本表 `price` 的单位是元；课程转移补数直接使用 `price`，不能按 service 金额字段口径再除以 100。
+- 完成度 2769/2680/2677 当前不使用 finance 直接求和生成 `income_all/refund_all`；service 存在真实退款时，finance 的调出退款事件不能覆盖或清零该退款。任何补充表都必须先聚合到唯一输出粒度后再 join。
+
+## 12. 青橙完成度退款事件归因（2026-08-07）
+
+在青橙个人转化、团队完成度【期】、团队完成度【月】中，本表的负价行用于识别调课调班订单的退款事件和内部退款分配，不是 `income_all/refund_all` 的金额主事实：
+
+- 同一复合展示键下不同 `id/pre_biz_number` 的课程明细可能是独立业务行，不能用不完整键 `row_number()=1` 判重。
+- 先按订单、用户、顾问、退款交易时间、班级、年级、课程/科目归属等事件粒度聚合，再结合 `dim_finance_order_change_df` 的 transfer pool 计算内部退款分配额。
+- 精确匹配 transfer pool 的退款事件按全额内部处理；无法精确匹配时按退款事件金额比例分配并封顶。该结果仅用于从 service 退款中扣除内部部分，不能直接替代或追加 service 正常收入/退款。
+- 班课 4 节、点睛班 2 节和 H 一对一规则在 service 退款余额上继续执行。

@@ -23,7 +23,7 @@ description: 通过 Playwright 执行受治理的 USQL 网页查询、小结果�
 | 任务 | 必读 reference | 稳定入口 |
 |---|---|---|
 | SQL 执行、错误、小结果下载 | [sql_query_execution.md](references/sql_query_execution.md)；有 QueryPlan 再读 [query_plan_contract.md](references/query_plan_contract.md)；追踪和结果工件见 [text2sql_runtime_artifacts.md](references/text2sql_runtime_artifacts.md) | `scripts/usql_web_query.py` |
-| 模板 SQL、永久参数化模板创建/发布/回读、模板市场、大结果下载 | [template_query.md](references/template_query.md) | `scripts/usql_web_query.py` |
+| 模板 SQL、永久参数化模板创建/发布/回读、模板市场、Skill stable canonical 同步、大结果下载 | [template_query.md](references/template_query.md) | `scripts/usql_web_query.py` |
 | 手工临时表检查或上传 | [manual_temp_table_registry.md](references/manual_temp_table_registry.md) | `scripts/usql_web_query.py` |
 | 数据地图/Data Center 本地知识同步 | [data_knowledge_sync.md](references/data_knowledge_sync.md) 和 [domain_adapters.md](references/domain_adapters.md) | `scripts/usql_web_query.py` |
 | 远端既有数据集替换 | [data_center_replacement.md](references/data_center_replacement.md) | `scripts/usql_web_query.py` |
@@ -57,6 +57,8 @@ description: 通过 Playwright 执行受治理的 USQL 网页查询、小结果�
 - P4C 使用独立创建 Saga；失败不自动删除资源，Receipt 必须列出孤立资源和人工清理要求。
 - Data Center 替换和创建分别要求独立只读 Plan、精确 Hash、`--confirm-production-write`、保存后回读、立即执行和新的 `SUCCESS`。
 - `sync-data-center-sql --write` 只写本地业务 Skill，绝不等于远端生产写入。
+- 模板 SQL 写入 Skill 只允许通过 `sync-template-sql` 的精确模板 ID/名称、`published` 回读、计划 Hash 和 `--write` 门禁；canonical 文件必须是已登记域 `resources/raw_sql/template_query_<domain>_<name>.sql` 的稳定路径，日期副本会在同一 Apply 中清理，旧 SQL 文本不进入计划、回执或知识库。
+- `fetch-template-sql` 和 `fetch-market-template-sql` 的输出仅属于 runtime 临时回读；若目标路径位于业务 Skill，会在浏览器写文件前阻断，避免绕过 stable canonical 同步。
 - 永久参数化模板创建或原地更新必须依次经过只读 Plan、精确 Plan Hash 与生产写确认、未发布模板回读、独立 Publish 确认和发布后回读；原地更新必须绑定精确模板 ID、名称、当前状态及基线 SQL/元数据 Hash，保留模板 ID 与既有申请权限；创建、更新与发布失败均不得自动下线、删除或回滚远端模板。
 - 模板大结果下载必须强制执行临时模板 `offline -> delete`；清理失败则整个命令失败。
 - 只在显式 `--debug-artifacts` 时保存截图；CAPTCHA、MFA 和风控只识别并报告。

@@ -85,7 +85,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md",
-      "source_sha256": "0b7c71f0a8869f33ae743ae81295a297be046b315a1e9b3392db020e06654af3"
+      "source_sha256": "ee5bbb901e872390f05147dec9da39f38d9aea98859793d071725acf9fb07779"
     },
     {
       "id": "qingcheng:dimension:lead_id",
@@ -111,7 +111,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md",
-      "source_sha256": "0b7c71f0a8869f33ae743ae81295a297be046b315a1e9b3392db020e06654af3"
+      "source_sha256": "ee5bbb901e872390f05147dec9da39f38d9aea98859793d071725acf9fb07779"
     },
     {
       "id": "qingcheng:dimension:performance_consultant",
@@ -125,7 +125,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md",
-      "source_sha256": "0b7c71f0a8869f33ae743ae81295a297be046b315a1e9b3392db020e06654af3"
+      "source_sha256": "ee5bbb901e872390f05147dec9da39f38d9aea98859793d071725acf9fb07779"
     },
     {
       "id": "qingcheng:dimension:period_name",
@@ -236,7 +236,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md",
-      "source_sha256": "0b7c71f0a8869f33ae743ae81295a297be046b315a1e9b3392db020e06654af3"
+      "source_sha256": "ee5bbb901e872390f05147dec9da39f38d9aea98859793d071725acf9fb07779"
     },
     {
       "id": "qingcheng:dimension:user_id",
@@ -367,7 +367,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/qingcheng_personal_conversion_metrics.md",
-      "source_sha256": "1a8640cbf800e9afd09199d4805346fcd62b82b02188323c30346d5cae1a4516",
+      "source_sha256": "986af815f1084961180c3f7e2f62c55e8e7ca66f497753ea4365aa2dd45d4064",
       "automatic_compile": false
     },
     {
@@ -630,7 +630,7 @@
       ],
       "status": "pending_confirmation",
       "source_path": "knowledge/metrics/qingcheng_team_completion_month_metrics.md",
-      "source_sha256": "d9b237ca4c69b5be7196b352dc55dea803f9ebd81e703de7f83d15687988d95b"
+      "source_sha256": "4dd55795e596f05eba44e72dc8e6b13f95aca90abb4c417b9479a11781da9b87"
     },
     {
       "id": "qingcheng:metric:tmk_all_lead_unit_efficiency",

@@ -20,6 +20,8 @@ CANONICAL_VERSION_PATTERNS = (
     re.compile(r"^(data_center_qingcheng_\d+)_(20\d{6})\.sql$"),
     re.compile(r"^(market_channel_case_when)_(?:20\d{6}|\d{4})\.sql$"),
 )
+TEMPLATE_VERSION_PATTERN = re.compile(r"^(template_query_[a-z0-9_]+)_(20\d{6})\.sql$")
+TEMPLATE_STABLE_PATTERN = re.compile(r"^template_query_[a-z0-9_]+\.sql$")
 STABLE_DATA_CENTER_PATTERNS = {
     "market-consultant-dashboard-sql": re.compile(r"^data_center_market_(\d+)\.sql$"),
     "qingcheng-dashboard-sql": re.compile(r"^data_center_qingcheng_(\d+)\.sql$"),
@@ -65,6 +67,21 @@ def audit_skill(skill_root: Path) -> dict[str, Any]:
     duplicate_versions = [
         {"family": family, "sources": sorted(sources)}
         for family, sources in sorted(version_groups.items())
+        if len(sources) > 1
+    ]
+    template_version_groups: dict[str, list[str]] = defaultdict(list)
+    template_legacy_files: list[str] = []
+    template_stable_files: list[str] = []
+    for path in raw_sql:
+        match = TEMPLATE_VERSION_PATTERN.match(path.name)
+        if match:
+            template_version_groups[match.group(1)].append(path.relative_to(skill_root).as_posix())
+            template_legacy_files.append(path.relative_to(skill_root).as_posix())
+        elif TEMPLATE_STABLE_PATTERN.match(path.name):
+            template_stable_files.append(path.relative_to(skill_root).as_posix())
+    duplicate_template_versions = [
+        {"family": family, "sources": sorted(sources)}
+        for family, sources in sorted(template_version_groups.items())
         if len(sources) > 1
     ]
 
@@ -115,13 +132,27 @@ def audit_skill(skill_root: Path) -> dict[str, Any]:
     result = {
         "duplicate_canonical_versions": duplicate_versions,
         "legacy_versioned_canonical_files": legacy_versioned_canonical_files,
+        "duplicate_template_versions": duplicate_template_versions,
+        "legacy_versioned_template_files": sorted(template_legacy_files),
+        "stable_template_files": sorted(template_stable_files),
         "current_model_registry_issues": registry_issues,
         "duplicate_raw_sql_content": _duplicates_by_hash(raw_sql, skill_root),
         "duplicate_knowledge_content": _duplicates_by_hash(knowledge, skill_root),
         "duplicate_contract_ids": duplicate_contract_ids,
         "duplicate_field_owners": duplicate_field_owners,
     }
-    result["ok"] = not any(result.values())
+    blocking_keys = (
+        "duplicate_canonical_versions",
+        "legacy_versioned_canonical_files",
+        "duplicate_template_versions",
+        "legacy_versioned_template_files",
+        "current_model_registry_issues",
+        "duplicate_raw_sql_content",
+        "duplicate_knowledge_content",
+        "duplicate_contract_ids",
+        "duplicate_field_owners",
+    )
+    result["ok"] = not any(result[key] for key in blocking_keys)
     return result
 
 

@@ -613,7 +613,7 @@
 - 新口径不再把手工课次表或课程名称作为主课次来源；先以 `data` 中的 `qici + channel_map_1 + grade_1` 为准圈定用户行课候选，再按实际 `begin_time` 在同一期次、渠道、年级内自动排序生成课 1-课 6。
 - 保留原看板最终输出字段，不在 SQL 中输出到课率或有效到课率；比例继续由看板用 `sum(ke_n) / sum(lead)`、`sum(v_ke_n) / sum(lead)` 计算。
 - 清理知识库中旧的 `lesson_index` / `lesson_index_add` / 班级内顺序驱动主课次描述，更新到课看板、指标、join、临时课次表和常见 join 失败排查说明。
-- `template_query_market_attendance_20260619.sql` 仍作为模板取数原文保留，不作为最新 canonical；模板清单已标注 2026-06-30 后 canonical 以 `market_consultant_lead_conversion_attendance.sql` 为准。
+- 旧模板到课 raw SQL 日期副本已清理，不作为最新 canonical；模板清单仍以线上当前模板或对应业务 canonical 为准。
 
 ## 2026-07-02 市场顾问年级 `rule_name` 主留痕边界补充
 
@@ -830,7 +830,7 @@
 ## 2026-07-16 馒头订单明细支付时间模板同步
 
 - 从模板取数平台重新读取 `馒头_订单明细_支付时间`（模板 ID `8735`）当前发布 SQL；发布时间为 `2026-07-16 20:01:40`，平台状态为 `published`。
-- 新增 `resources/raw_sql/template_query_market_mantou_order_detail_pay_time_20260716.sql`，完整保存线上 `sqlDetail`，SHA-256 为 `3781532fd35d262d615e1cabf9076567b5cbf92764ff7665af3139eed98c6aa0`。
+- 新增稳定入口 `resources/raw_sql/template_query_market_mantou_order_detail_pay_time.sql`，完整保存线上 `sqlDetail`，SHA-256 为 `3781532fd35d262d615e1cabf9076567b5cbf92764ff7665af3139eed98c6aa0`；不再保留日期副本。
 - 新增执行计划优化文档，记录旧版因重 CTE 多次内联产生 `197 > 130` stages 的原因，以及当前发布版使用窗口统计降低 `cs` 引用次数的修复。
 - 当前发布 SQL 已使用 Presto 验证成功，query ID 为 `1477690051`；模板参数继续保留 `${day:1}`、`${day:2}` 半开区间形式。
 
@@ -921,7 +921,7 @@
 - 26 个实际嵌入流量池渠道 CASE 的数据中心模型完成完整 SQL 替换、回读和立即抽数，全部产生新的 `SUCCESS`；仅按 `rule_name` 取值且不嵌入 CASE 的 `2349/2350/2353/2423` 保持不变。
 - 模板取数本轮仅原位更新 `AI分析市场顾问部_宽表`（模板 id `9002`）。渠道归因按宽表已有 27 个源字段别名和 12 个辅助字段整合，未直接替换整段 CASE；模板 id、权限关系、`${qici:1}`/`${qici:2}` 参数及 122 个最终字段保持不变。
 - 为避免主线索链扫描超出平台 5 分钟限制，将既有期次半开区间同步下推至 `lead_raw`；最终 SQL SHA-256 为 `444df1af42594534d06f1afc78549c76aabc75a35ff487632efa2fb922289a9c`。验证查询 `381050` 使用 `20260728期 <= qici < 20260729期`，返回 373 行并于 `2026-07-26 20:04:38` 完成，状态为 `SUCCESS`；此前较宽历史区间超时属于执行规模问题，不是 SQL 语法失败。
-- 按用户最终范围，另外四个既有模板不再重复查询或验证。本次宽表线上版本已回读一致，并归档为 `resources/raw_sql/template_query_market_wide_20260726.sql`。
+- 按用户最终范围，另外四个既有模板不再重复查询或验证。本次宽表历史版本已从知识库清理，当前线上版本统一路由到 `resources/raw_sql/template_query_market_wide.sql`。
 
 ## 2026-08-01 数据中心 stable canonical SQL 同步
 
@@ -972,7 +972,7 @@
 - 仅将 `channel_map` 替换为 0726 共享基线的 156 条分支，别名由 `qudao` 等价适配为 `channel_map`；`${dt}`、暑期期次表达式、来源表、模板身份/申请关系和 26 个最终字段均保持不变，未新增 JOIN。
 - 上线前旧/新探针 query `1522210028`、`1522214548` 均为 `SUCCESS`。20260728 期的 9354 行、9269 个去重线索、8639 条线索量、6964 条有效线索、363 个转化和 244825893 收入逐项守恒，仅渠道桶由 26 个重分配为 34 个。
 - 按计划 hash `0a6b9d75502e8a0b085508cd7384edb3caf5673b43af86099c8fe228a825714a` 原位保存并重新发布；线上回读 SQL 文本 SHA-256 为 `8704c71c2962a75173e66873e3b9d5388d63e7eb0623bfa7b5ae35ad37a38cfa`。发布后模板查询 `384631` 为 `SUCCESS`，返回 9354 行并命中新规则渠道 `锋途KOC`。
-- 将发布 SQL 归档为 `resources/raw_sql/template_query_market_finance_order_detail_20260803.sql`，补充模板清单、快速路由、渠道维护流程和 Skill 强制规则：以后每次更新共享渠道 CASE，必须同步维护模板 7689，并保持同 id/申请关系后完成回读和真实查询验证。
+- 将发布 SQL 归档为稳定入口 `resources/raw_sql/template_query_market_finance_order_detail.sql`，补充模板清单、快速路由、渠道维护流程和 Skill 强制规则：以后每次更新共享渠道 CASE，必须同步维护模板 7689，并保持同 id/申请关系后完成回读和真实查询验证。
 
 ## 2026-08-05 数据中心 stable canonical SQL 同步
 
@@ -991,5 +991,20 @@
 - 融合审计识别出相对 0726 的 30 个新增、16 个既有分支删除、7 个同条件输出变化、公开分支顺序移动及 15 个相邻同输出候选。经 2054 真实预览探针验证，安全相邻合并版本出现 Doris JDBC 无结果集，故生产 SQL 统一使用 0805 的精确 170 分支版本；性能优化只作用于分区/期次下推、显式字段投影、重复 CTE/无用字段/Join、最终展示排序等，不改变 CASE 优先级和业务口径。
 - 27 个完整渠道归因数据中心目标中，25 个完成候选 SQL 的语义投影修正与按数据集性能优化，并完成预览、保存/回读、立即抽数和新的 `SUCCESS`；覆盖 `2054, 2132, 2253, 2293, 2310, 2344, 2345, 2424, 2461, 2533, 2623, 2634, 2683, 2688, 2751, 2774, 2809, 2812, 2836, 2842, 2883, 2885, 3039, 3153, 3202`。其中 `3039` 直接验证 query `1531295146` 成功并将执行时间降至约 130.735 秒，`2886` 的候选 SQL query `1531232671` 成功约 24.14 秒，`2890` 去除仅用于展示的最终排序后 query `1531304557` 成功约 38 秒。
 - `2886`、`2890` 已确认当前 SQL 哈希读回正确且候选 SQL 可直接执行，但数据中心刷新触发后在等待窗口内均未产生新的执行记录，不能以 SQL 可执行或保存回读替代数据中心 `SUCCESS`；两者保留为平台同步待处理项，未写入本轮已成功 canonical 清单，也未继续重复刷新。
-- 8 个现有模板 `5962, 6529, 7689, 7808, 8006, 8101, 8882, 9002` 均按原模板 id 原位 Apply、独立 Publish，并在发布后读回 `status=2`；模板权限/申请关系、参数契约、输出字段和模板身份保持不变，线上 SQL hash 与候选 hash 全部一致，因此已申请用户无需重新申请。当前发布 SQL 分别归档为 `resources/raw_sql/template_query_market_*_20260806.sql`；直接 Presto 探针遇到平台编译器/执行限制的结果未被冒充为上线 `SUCCESS`，不作为替换失败。
+- 8 个现有模板 `5962, 6529, 7689, 7808, 8006, 8101, 8882, 9002` 均按原模板 id 原位 Apply、独立 Publish，并在发布后读回 `status=2`；模板权限/申请关系、参数契约、输出字段和模板身份保持不变，线上 SQL hash 与候选 hash 全部一致，因此已申请用户无需重新申请。其日期副本已在后续 canonical 清理中移除，当前只保留无日期 stable 入口；直接 Presto 探针遇到平台编译器/执行限制的结果未被冒充为上线 `SUCCESS`，不作为替换失败。
 - 按同步计划 `95d4c6352788af185f9afa471bddbd80adbb5e9fdffbafc7f7fae1defd9edf48` 回写 25 份数据中心 canonical SQL、当前模型绑定和数据集目录；随后重建市场反向索引、共享 Text2SQL catalog、唯一版本审计和市场域 integrity，完整 Text2SQL 栈校验通过。
+
+## 2026-08-07 市场顾问两个模板渠道 CASE 编译优化与发布
+
+- 延续 0805 逐分支融合结果：两个模板的渠道规则均核对为 170 条 `WHEN`，与 `resources/raw_sql/market_channel_case_when_0805.sql` 条件/输出/顺序逐条一致，未通过机械切片删除、相邻同值合并或规则重排改变渠道优先级。
+- `AI分析市场顾问部_宽表`（模板 `9002`）保留 `${qici:1}`/`${qici:2}`、122 个最终字段、owner `lvshuai01`、`dlc_presto` 和已有申请/权限关系；原地更新计划 hash 为 `c3cc8c12da577aa92d3e914a606de6b306f90266d2ee605dcd73a97ea3e07475`，Apply receipt `9d09b8856d68618723270495381bd13da2ad71f72c1ff84360ce068a6af00a3d`，Publish receipt `e22322b68ab0d26e67e83fdd24ce191b9fab5474e6aaff0c22357bfee6a9a0c2`；发布后 SQL SHA-256 为 `8d8391d22112ccc6bb9a46bd24bb92eb520fd0ee34f2206e7b89708baac08c10`。
+- `AI分析市场顾问部多科用户成单数据`（模板 `8882`）保留 22 个最终字段、owner `lvshuai01`、`dlc_presto` 和已有申请/权限关系；因永久模板发布门禁要求 SQL 至少有一个参数，将固定起始期次改为 `${qici:1} <= period_name < ${qici:2}`。原地更新计划 hash `ab0326e51e32457c18ad5537ca21cb586d9a02020f0855bb8ce90ccde1f49211`，Apply receipt `6c4b77ebef64583b69ab305e06355bb463f8b1c43474f08fe9e5fffd9a4197e7`，Publish receipt `5a57a85b91e911f53b137c2e464f3c6a83616c107814b688858b0a41e953bf26`；发布后 SQL SHA-256 为 `19804a820cb1a6dbd17e6b2fb7dde4747ae722df911fc6f5704c0b910bbf5fc6`。
+- 两个模板均使用五组连续 CASE（每组 34 条）+ `UNION ALL` + `min_by(channel, rule_group)`，并用覆盖全部规则字段的 NULL 安全、长度前缀 `mapping_key` 左连接回源行；六组方案已知为 132 stages、超过 130 上限，因此没有采用。该结构只降低编译字节码和重复规则展开，不改变 0805 first-match 语义、fallback `其他未知流量`、原始粒度或重复源行。
+- 发布后真实查询验收：`9002` query `1535311064` 返回 `success_with_rows`、122 列，约 109.578 秒；`8882` query `1535349113` 返回 `success_with_rows`、22 列，约 33.656 秒。两次均以 Result API 的 HTTP 200、error code 0 和字段元数据为成功证据；UI 结果面板缺失不改变查询成功判定。
+- 将线上回读 SQL 写入稳定入口 `resources/raw_sql/template_query_market_wide.sql` 和 `resources/raw_sql/template_query_market_multi_subject_order_user.sql`，并新增 `knowledge/sql_patterns/market_template_channel_case_bytecode_optimization.md`，记录规则审计、性能结构、参数约束、准确性和发布验收门禁。
+
+## 2026-08-07 市场顾问模板 raw SQL stable canonical 清理与保存逻辑治理
+
+- 逐个只读回读线上 `published` 模板并按模板 ID/名称核对 SQL SHA-256：保留 11 个仍有效模板的线上最新版，统一写入无日期 stable canonical 文件；7689、7808、8006、8101 和 8878 使用线上回读内容覆盖本地过期候选，9002/8882/5962/6529/8735/8866 与线上哈希一致。
+- 清理 `template_query_market_*` 的日期副本和 8796/8797/8801 三个当前模板列表已不存在的旧代码；历史验证记录保留在文字层面，但不再提供旧 SQL 文件或路由入口。唯一版本审计确认 `duplicate_template_versions=[]`、`legacy_versioned_template_files=[]`。
+- operator 新增 `sync-template-sql`：仅接受 `published` 线上回读，绑定精确模板 ID/名称、稳定路径和 reviewed plan SHA-256；原位覆盖 stable 文件、删除同逻辑日期副本，计划/回执只保留哈希和路径，不留存旧 SQL 文本；`fetch-template-sql` 直接写入 Skill 路径将被阻断。

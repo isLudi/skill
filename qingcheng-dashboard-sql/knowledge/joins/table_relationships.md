@@ -10,7 +10,7 @@
 |---|---|---|---|---|---|
 | `service_base0/service_scope` | `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` | service 当前分区、青橙业绩部门、课程范围、员工/期次窗口 | 正常金额主事实 | `income_all/refund_all` 直接汇总 service `income_amount/refund_amount`；不因内部调课识别而删掉 service 流水；当前排除 `clazz_name` 含“试听” | `data_center_qingcheng_2769.sql`, `data_center_qingcheng_2680.sql`, `data_center_qingcheng_2677.sql` |
 | `unified_amount` | `course_transfer_scope` | service 缺失课程转移链路的受限补充；finance 明细按真实输出粒度聚合，service 覆盖判断为 `order_number + employee_email_name` | 金额补充 | finance 补充标记为 `course_transfer_supplement`，只进入 legacy/rule 金额，不进入 `income_all/refund_all`；不得用不完整投影键吞掉独立明细 | 三份 2026-08-07 canonical SQL |
-| `t4` | `order_change` + 当前 service 行 transfer | 订单号映射；service transfer 以当前明细行传递 | 内部调课识别 | 只把当前调课调班流水标记为内部变更，影响 `income/refund/refund_4` 和规则字段，不替代 service 全部金额；finance 订单变更字段仅作 service 规则补充 | 三份 2026-08-07 canonical SQL |
+| `t4` | `order_change` + 当前 service 行 transfer | 订单号映射；service transfer 以当前明细行传递 | 内部调课识别 | 收入侧用 `is_internal_order_change`，退款侧用 `is_internal_refund_order_change`；service 真实 `refund_amount` 优先保留，不替代 service 全部金额；finance 订单变更字段仅作 service 规则补充 | 三份 2026-08-07 canonical SQL |
 | `rd` | `re_ke` / `ord` | `qici + order_number` | 退 4/点睛退 2 规则 | 仅提供已完课节数和全退链路，影响 `refund_4/class_refund_4/promit_4`，不改变 `refund_all` | 三份 2026-08-05 canonical SQL |
 
 ## 1. 已确认或已入库关系
@@ -51,7 +51,7 @@
 | `rd` | `temp_table.dingxi01_qing_zz zz` | `zz.employee_email_name = rd.name` | 组织架构补充 | 未按期次 join，若架构表多行会放大 | `qingcheng_revenue_year_quarter_month_raw_20260522.sql` |
 | `dd_0` | `org_t` | `ot.name = a.name and coalesce(a.paid_time, a.trade_time) between ot.begin_time and ot.end_time` | 员工任职期间过滤 | inner join，仅保留原始成交时间落在青橙任职窗口内的记录，避免历史订单在转岗后退款被误计入青橙 | `qingcheng_team_completion_month_raw_20260522.sql`, `qingcheng_team_completion_period_raw_20260522.sql`, `qingcheng_personal_conversion_raw_20260522.sql` |
 | `ord` | `order_change` | `ord.order_number = order_change.order_number` | 退款订单补充调课调班类型 | `order_change` 已从订单号、父订单号、原始订单号、最新子订单号展开并按订单号聚合 | `qingcheng_team_completion_month_raw_20260522.sql` |
-| `rd` | `order_change` + 当前 service 行 transfer 标记 | `rd.order_number = order_change.order_number`；service transfer 来自 `service_base0` 当前行并随 `service_scope -> rd -> t4` 传递 | 主交易层识别内部调课调班调入/调出 | 当前行命中 service transfer 或 service 缺失时命中受限 finance 退款补充，才不进入 `income`、`refund`、`refund_4` 和科目数；同订单正常支付行不能被整体剔除 | `data_center_qingcheng_2769.sql`, `data_center_qingcheng_2680.sql`, `data_center_qingcheng_2677.sql` |
+| `rd` | `order_change` + 当前 service 行 transfer 标记 | `rd.order_number = order_change.order_number`；service transfer 来自 `service_base0` 当前行并随 `service_scope -> rd -> t4` 传递 | 主交易层识别内部调课调班调入/调出 | 收入侧当前行命中 transfer 才不进入 `income/p_sub`；退款侧 service 有真实 `refund_amount` 时保留，只有 transfer 或 service 缺失/零金额异常才由 `order_change` 兜底排除；同订单正常支付行不能被整体剔除 | `data_center_qingcheng_2769.sql`, `data_center_qingcheng_2680.sql`, `data_center_qingcheng_2677.sql` |
 | `rd` | `re_ke` | `re_ke.qici_re = rd.qici and re_ke.order_number = rd.order_number` | 交易补充退款行课节数 | 用 `full_refund_chain_finish_lesson_count` 影响 `refund_4` | `qingcheng_team_completion_month_raw_20260522.sql` |
 | `rd_0` | `temp_table.dingxi01_qing_qi_moth qm` | `qm.qici = rd_0.qici` | 期次映射月份 | 若期次缺少月份映射，实际业绩无法匹配月目标 | `qingcheng_team_completion_month_raw_20260522.sql` |
 | `wa` | `temp_table.dingxi01_qing_team_jg qtg` | `qtg.employee_email_name = wa.name`，取最新 `qici` | 员工补充直属主管 | 使用最新团队架构，可能产生历史架构漂移 | `qingcheng_team_completion_month_raw_20260522.sql` |
@@ -89,3 +89,4 @@
 - 如果 join 到临时表，必须同步检查 `knowledge/temp_tables/` 的适用边界。
 - 用户后续提供修正版 SQL 时，应优先核对本文件中的待确认关系。
 - 青橙个人完成度/个人转化的 `gmv_t` 属于先聚合后 union 的特殊链路，调课调班必须按订单/课程粒度聚合；若按人员/用户粒度聚合，会改变退款和课程部门入桶结果。
+- 三份完成度 SQL 的 `order_change_order_map` 仅用 `select distinct` 消除完全相同的订单映射，不使用 `order_number + clazz_name + user_id + trade_status + trade_type + trade_time + employee_email_name + course_grade` 这类不完整投影键吞掉 finance 独立明细；`has_transfer_event` 只表示链路是否存在 transfer 事件，不能代替当前 service 明细行的真实退款判断。

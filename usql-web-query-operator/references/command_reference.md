@@ -15,6 +15,7 @@
 | `check-manual-table` | Check local manual Excel files against the temp-table registry without opening the browser. | `local_read_only` | `none` | [manual_temp_table_registry.md](manual_temp_table_registry.md) |
 | `sync-datamap-fields` | Refresh business skill table fields from Data Map. | `local_write_explicit` | `explicit_flags` | [data_knowledge_sync.md](data_knowledge_sync.md) |
 | `sync-data-center-sql` | Refresh business skill raw SQL from Data Center datasets. | `local_write_explicit` | `exact_plan_hash_and_confirmation` | [data_knowledge_sync.md](data_knowledge_sync.md) |
+| `sync-template-sql` | Refresh one published Template Query SQL into a stable Skill canonical file. | `local_write_explicit` | `exact_plan_hash_and_confirmation` | [template_query.md](template_query.md) |
 | `plan-data-center-sql-replacement` | Read one Data Center dataset and create a hash-bound remote replacement plan. | `remote_read_only` | `explicit_command` | [data_center_replacement.md](data_center_replacement.md) |
 | `apply-data-center-sql-replacement` | Apply one reviewed SQL replacement, save it, trigger refresh, and verify SUCCESS. | `remote_write_explicit` | `exact_plan_hash_and_confirmation` | [data_center_replacement.md](data_center_replacement.md) |
 | `plan-data-center-dataset-creation` | Read a target folder and create a hash-bound Data Center dataset creation plan. | `remote_read_only` | `explicit_command` | [data_center_creation.md](data_center_creation.md) |

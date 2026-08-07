@@ -408,7 +408,7 @@ and course_second_level_department_name in ('V项目部', '本地化部', '私�
 )
 
 ,order_change_order_map as (
-    select
+    select distinct
         u.join_order_number,
         r.transfer_in_amount_yuan,
         r.transfer_out_amount_yuan
@@ -425,9 +425,17 @@ and course_second_level_department_name in ('V项目部', '本地化部', '私�
 ,order_change as (
     select
         join_order_number as order_number,
-        1 as has_order_change,
+        max(1) as has_order_change,
+        max(case
+            when transfer_in_amount_yuan > 0 or transfer_out_amount_yuan > 0 then 1
+            else 0
+        end) as has_transfer_event,
         max(transfer_in_amount_yuan) as transfer_in_amount_yuan,
-        max(transfer_out_amount_yuan) as transfer_out_amount_yuan
+        max(transfer_out_amount_yuan) as transfer_out_amount_yuan,
+        greatest(
+            coalesce(max(transfer_in_amount_yuan), 0.0),
+            coalesce(max(transfer_out_amount_yuan), 0.0)
+        ) as transfer_pool_amount_yuan
     from order_change_order_map
     group by join_order_number
 )
@@ -442,34 +450,218 @@ and course_second_level_department_name in ('V项目部', '本地化部', '私�
     group by qici_re, order_number
 )
 
-------------------------连接各订单退费行课节数和主交易调课调班链路
+-------------------------按finance退款事件金额分配调课退款
+,finance_refund_event_allocated as (
+    select
+        e2.order_number,
+        e2.user_id1,
+        e2.name,
+        e2.trade_time,
+        e2.clazz_name,
+        e2.grade_list,
+        e2.subject,
+        e2.course_first_level_department_name,
+        e2.course_second_level_department_name,
+        e2.finance_refund_amount_yuan,
+        case
+            when e2.finance_refund_amount_yuan <= 0 then 0.0
+            when e2.has_exact_transfer_refund = 1
+             and e2.is_exact_transfer_refund = 1
+                then e2.finance_refund_amount_yuan
+            when e2.has_exact_transfer_refund = 1
+                then 0.0
+            else least(
+                e2.finance_refund_amount_yuan,
+                e2.transfer_pool_amount_yuan
+                    * e2.finance_refund_amount_yuan
+                    / nullif(e2.order_refund_amount_yuan, 0.0)
+            )
+        end as internal_refund_amount_yuan,
+        case
+            when e2.finance_refund_amount_yuan <= 0 then 0.0
+            when e2.has_exact_transfer_refund = 1
+             and e2.is_exact_transfer_refund = 1
+                then 1.0
+            when e2.has_exact_transfer_refund = 1
+                then 0.0
+            else least(
+                1.0,
+                e2.transfer_pool_amount_yuan
+                    / nullif(e2.order_refund_amount_yuan, 0.0)
+            )
+        end as internal_refund_ratio
+    from (
+        select
+            e1.*,
+            sum(e1.finance_refund_amount_yuan)
+                over (partition by e1.order_number) as order_refund_amount_yuan,
+            max(case
+                when e1.transfer_pool_amount_yuan > 0
+                 and abs(e1.finance_refund_amount_yuan - e1.transfer_pool_amount_yuan) < 0.01
+                then 1 else 0 end
+            ) over (partition by e1.order_number) as has_exact_transfer_refund,
+            case
+                when e1.transfer_pool_amount_yuan > 0
+                 and abs(e1.finance_refund_amount_yuan - e1.transfer_pool_amount_yuan) < 0.01
+                then 1 else 0
+            end as is_exact_transfer_refund
+        from (
+            select
+                e0.*,
+                coalesce((
+                    select max(oc.transfer_pool_amount_yuan)
+                    from order_change oc
+                    where oc.order_number = e0.order_number
+                ), 0.0) as transfer_pool_amount_yuan
+            from (
+                select
+                    f.order_number,
+                    cast(f.user_id as varchar) as user_id1,
+                    f.employee_email_name as name,
+                    cast(f.trade_time as timestamp) as trade_time,
+                    f.clazz_name,
+                    f.course_grade as grade_list,
+                    case
+                        when f.course_subject like '%英语%' or f.course_subject like '%英文%' then '英语'
+                        when f.course_subject like '%语文%' then '语文'
+                        when f.course_subject like '%数学%' then '数学'
+                        when f.course_subject like '%物理%' then '物理'
+                        when f.course_subject like '%化学%' then '化学'
+                        when f.course_subject like '%历史%' then '历史'
+                        when f.course_subject like '%政治%' then '政治'
+                        when f.course_subject like '%生物%' then '生物'
+                        when f.course_subject like '%地理%' then '地理'
+                        when f.course_subject like '%日语%' then '日语'
+                        else f.course_subject
+                    end as subject,
+                    f.course_first_level_department_name,
+                    f.course_second_level_department_name,
+                    round(-sum(cast(coalesce(f.price, 0) as double)), 2) as finance_refund_amount_yuan
+                from finance_dw.app_finance_performance_extend_details_hf f
+                where f.dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
+                  and f.hour = format_datetime(now() - interval '2' hour, 'HH')
+                  and f.employee_first_level_department_name = 'H业务线'
+                  and f.employee_second_level_department_name = '青橙项目部'
+                  and f.course_first_level_department_name in (
+                      'H业务线', 'LL业务线', 'TUTU', 'TT', 'A业务线',
+                      'EM业务线', 'KA业务线', 'TT业务线', '创新中心'
+                  )
+                  and f.course_second_level_department_name is not null
+                  and f.trade_status like '%退%'
+                  and cast(coalesce(f.price, 0) as double) < 0
+                  and exists (
+                      select 1
+                      from order_change oc
+                      where oc.order_number = f.order_number
+                        and oc.has_transfer_event = 1
+                  )
+                group by
+                    f.order_number,
+                    cast(f.user_id as varchar),
+                    f.employee_email_name,
+                    cast(f.trade_time as timestamp),
+                    f.clazz_name,
+                    f.course_grade,
+                    case
+                        when f.course_subject like '%英语%' or f.course_subject like '%英文%' then '英语'
+                        when f.course_subject like '%语文%' then '语文'
+                        when f.course_subject like '%数学%' then '数学'
+                        when f.course_subject like '%物理%' then '物理'
+                        when f.course_subject like '%化学%' then '化学'
+                        when f.course_subject like '%历史%' then '历史'
+                        when f.course_subject like '%政治%' then '政治'
+                        when f.course_subject like '%生物%' then '生物'
+                        when f.course_subject like '%地理%' then '地理'
+                        when f.course_subject like '%日语%' then '日语'
+                        else f.course_subject
+                    end,
+                    f.course_first_level_department_name,
+                    f.course_second_level_department_name
+            ) e0
+        ) e1
+    ) e2
+)
 ,t4 as (
     select
         rd.*,
         coalesce(re_ke.full_refund_chain_finish_lesson_count, 0) as re_lc,
+        coalesce((
+            select max(oc.has_transfer_event)
+            from order_change oc
+            where oc.order_number = rd.order_number
+        ), 0) as has_transfer_event,
         case
-            -- 只剔除调课调班流水本身；命中课程转移链路的正常订单仍然保留绩效。
-            -- service transfer 在明细行识别；finance 仅在 service 缺失时按实际退款行补充，不按订单整体剔除。
+            when rd.source_type = 'service'
+             and rd.refund_amount_yuan > 0
+            then least(
+                rd.refund_amount_yuan,
+                rd.refund_amount_yuan * coalesce((
+                    select max(fea.internal_refund_ratio)
+                    from finance_refund_event_allocated fea
+                    where fea.order_number = rd.order_number
+                      and fea.user_id1 = rd.user_id1
+                      and fea.name = rd.name
+                      and fea.trade_time = rd.trade_time
+                      and fea.clazz_name = rd.clazz_name
+                      and fea.grade_list = rd.grade_list
+                      and fea.subject = rd.subject
+                      and fea.course_first_level_department_name = rd.course_first_level_department_name
+                      and fea.course_second_level_department_name = rd.course_second_level_department_name
+                ), 0.0)
+            )
+            else 0.0
+        end as internal_refund_amount_yuan,
+        case
             when coalesce(rd.service_transfer_in_amount_yuan, 0) > 0
               or coalesce(rd.service_transfer_out_amount_yuan, 0) > 0
             then 1
             when rd.source_type = 'service'
-             and coalesce(order_change.has_order_change, 0) = 1
-             and (
-                    coalesce(order_change.transfer_in_amount_yuan, 0) > 0
-                    or coalesce(order_change.transfer_out_amount_yuan, 0) > 0
-                 )
+             and coalesce((
+                select max(oc.has_transfer_event)
+                from order_change oc
+                where oc.order_number = rd.order_number
+             ), 0) = 1
+             and coalesce(rd.service_transfer_in_amount_yuan, 0) = 0
+             and coalesce(rd.service_transfer_out_amount_yuan, 0) = 0
+             and coalesce(rd.income_amount_yuan, 0) = 0
+             and coalesce(rd.refund_amount_yuan, 0) = 0
              and rd.trade_status like '%退%'
-             and coalesce(rd.refund_amount_yuan, 0) > 0
             then 1
             else 0
-        end as is_internal_order_change
+        end as is_internal_order_change,
+        case
+            when coalesce(rd.refund_amount_yuan, 0) > 0
+             and coalesce(
+                    case
+                        when rd.source_type = 'service'
+                         and rd.refund_amount_yuan > 0
+                        then least(
+                            rd.refund_amount_yuan,
+                            rd.refund_amount_yuan * coalesce((
+                                select max(fea.internal_refund_ratio)
+                                from finance_refund_event_allocated fea
+                                where fea.order_number = rd.order_number
+                                  and fea.user_id1 = rd.user_id1
+                                  and fea.name = rd.name
+                                  and fea.trade_time = rd.trade_time
+                                  and fea.clazz_name = rd.clazz_name
+                                  and fea.grade_list = rd.grade_list
+                                  and fea.subject = rd.subject
+                                  and fea.course_first_level_department_name = rd.course_first_level_department_name
+                                  and fea.course_second_level_department_name = rd.course_second_level_department_name
+                            ), 0.0)
+                        )
+                        else 0.0
+                    end,
+                    0.0
+                ) >= coalesce(rd.refund_amount_yuan, 0) - 0.005
+            then 1
+            else 0
+        end as is_internal_refund_order_change
     from rd
     left join re_ke
         on re_ke.qici_re = rd.qici
        and re_ke.order_number = rd.order_number
-    left join order_change
-        on rd.order_number = order_change.order_number
 )
 
 --------------------
@@ -497,23 +689,26 @@ and course_second_level_department_name in ('V项目部', '本地化部', '私�
         sum(case when source_type = 'service' then income_amount_yuan else 0 end) as income_all,
         sum(
             case
-                when is_internal_order_change = 1
-                then 0
                 when course_second_level_department_name = '一对一学部'
                  and course_first_level_department_name = 'H业务线'
-                then case when refund_amount_yuan > 0 then refund_amount_yuan else 0 end
+                then greatest(coalesce(refund_amount_yuan, 0.0) - coalesce(internal_refund_amount_yuan, 0.0), 0.0)
                 else case
-                    when clazz_name like '%点睛%' and refund_amount_yuan > 0 and re_lc < 2 then refund_amount_yuan
-                    when (clazz_name not like '%点睛%' or clazz_name is null) and refund_amount_yuan > 0 and re_lc < 4 then refund_amount_yuan
+                    when clazz_name like '%点睛%'
+                     and greatest(coalesce(refund_amount_yuan, 0.0) - coalesce(internal_refund_amount_yuan, 0.0), 0.0) > 0
+                     and re_lc < 2
+                        then greatest(coalesce(refund_amount_yuan, 0.0) - coalesce(internal_refund_amount_yuan, 0.0), 0.0)
+                    when (clazz_name not like '%点睛%' or clazz_name is null)
+                     and greatest(coalesce(refund_amount_yuan, 0.0) - coalesce(internal_refund_amount_yuan, 0.0), 0.0) > 0
+                     and re_lc < 4
+                        then greatest(coalesce(refund_amount_yuan, 0.0) - coalesce(internal_refund_amount_yuan, 0.0), 0.0)
                     else 0
                 end
             end
         ) as refund_4,
         sum(
             case
-                when is_internal_order_change = 1
-                then 0
-                when refund_amount_yuan > 0 then refund_amount_yuan
+                when greatest(coalesce(refund_amount_yuan, 0.0) - coalesce(internal_refund_amount_yuan, 0.0), 0.0) > 0
+                    then greatest(coalesce(refund_amount_yuan, 0.0) - coalesce(internal_refund_amount_yuan, 0.0), 0.0)
                 else 0
             end
         ) as refund,
@@ -524,9 +719,9 @@ and course_second_level_department_name in ('V项目部', '本地化部', '私�
             when subject not in ('选科志愿', '定制方案') and income_amount_yuan > 0 then subject
         end) as p_sub,
         count(distinct case
-            when is_internal_order_change = 1
-            then null
-            when subject not in ('选科志愿', '定制方案') and refund_amount_yuan > 0 then subject
+            when subject not in ('选科志愿', '定制方案')
+             and greatest(coalesce(refund_amount_yuan, 0.0) - coalesce(internal_refund_amount_yuan, 0.0), 0.0) > 0
+                then subject
         end) as r_sub
     from t4
     group by

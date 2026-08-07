@@ -94,3 +94,15 @@
 - `order_attr` 不再按订单级 `max` 聚合 transfer；service 当前明细行直接带出 transfer 金额，避免同订单正常支付行被误标为内部流水。
 - finance raw 层删除不完整复合键的 `row_number()=1`，保留独立明细并按真实输出粒度聚合；`service_order_employee` 按 `order_number + employee_email_name` 抑制 service 已覆盖链路的重复补入，`ord/re_ke` 退 4/点睛退 2 规则不变。
 - 团队月基线/候选均为 88 行且键集合一致，移除旧 finance 误补 `4,573.3206` 元；`income_all/refund_all` 不变。生产 Preview `1534872315`、run `163252066` 为 `SUCCESS`。
+
+## 11. 2026-08-07 service 真实退款补回与退款侧调课调班修复
+
+团队完成度【月】与个人/团队期 SQL 保持同一条规则：收入侧 `income/p_sub` 只剔除当前 service 明细行有 transfer 金额的内部调课调班；退款侧 `refund/r_sub/refund_4` 不因订单命中 `order_change` 而整体清零，先按 finance 退款事件与 transfer pool 分配内部部分，再使用 service 退款余额。`order_change` 只作 service 缺失、零金额异常和退款内部分配的链路依据。
+
+班课 4 节、点睛班 2 节、H 一对一全额退款规则仍由 `re_ke/ord` 的 `re_lc` 驱动；看板营收、退费、净收款仍分别为 `sum(income_all)`、`sum(refund_all)`、`sum(income_all)-sum(refund_all)`。候选回归 query `1535084948` 已验证 20260803期多名顾问结果与个人/团队期一致。生产 Preview `1535092614`、run `163259522` 均为 `SUCCESS`。
+
+## 12. 2026-08-07 退款事件金额级分配
+
+当前月度版与个人版、团队期版共用 finance 退款事件金额级分配：保留 finance 独立退款明细并按真实事件粒度聚合，利用 `order_change` transfer pool 精确或按比例分配内部退款；service 原始 `refund_all` 不变，`refund/refund_4` 使用扣除内部分配后的非负余额。班课 4 节、点睛 2 节、H 一对一及非 H 0.5 折算规则均保持不变。
+
+202608月定向回归 query `1535381004` 与团队期、个人期基表保持同一顾问期次金额；20260803期王东亚01 `H_refund_4=6,772.61`、`H_promit_4=57,227.39`，付金艳 `H_refund_4=0`、`H_promit_4=9,700`，张地43 `H_refund_4=0`、`H_promit_4=19,800`。月度生产 Preview `1535395486`、run `163273848` 均为 `SUCCESS`。

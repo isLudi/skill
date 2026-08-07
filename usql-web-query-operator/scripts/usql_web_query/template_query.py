@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import re
 import time
 from dataclasses import dataclass
@@ -12,6 +13,7 @@ from urllib.parse import parse_qs, unquote, urlparse
 
 from _shared.auth import fill_login_if_present
 from _shared.config import TEMPLATE_QUERY_API_BASE, TEMPLATE_QUERY_MARKET_URL, TEMPLATE_QUERY_MY_CREATE_URL
+from _shared.domain_adapters import load_domain_adapters
 from _shared.errors import UsageError
 
 from .artifact_validation import validate_download_bytes
@@ -643,7 +645,35 @@ def parse_query_row(row: dict[str, Any]) -> TemplateQueryExecution:
 
 def write_template_sql(path: Path, sql: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(sql.rstrip() + "\n", encoding="utf-8", newline="\n")
+    path.write_text(canonical_template_sql_text(sql), encoding="utf-8", newline="\n")
+
+
+def canonical_template_sql_text(text: str) -> str:
+    """Normalize transport-only differences exactly once before hashing or saving."""
+
+    if text.startswith("\ufeff"):
+        text = text[1:]
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
+    return text.rstrip("\n") + "\n"
+
+
+def template_sql_sha256(text: str) -> str:
+    return hashlib.sha256(canonical_template_sql_text(text).encode("utf-8")).hexdigest()
+
+
+def reject_skill_knowledge_output(path: Path) -> None:
+    """Keep the read-only fetch commands from bypassing stable knowledge sync."""
+
+    resolved = path.expanduser().resolve()
+    for adapter in load_domain_adapters():
+        try:
+            resolved.relative_to(adapter.skill_root.resolve())
+        except ValueError:
+            continue
+        raise UsageError(
+            "fetch-template-sql is read-only and cannot write into a business Skill; "
+            "use sync-template-sql with a reviewed plan hash and stable canonical path"
+        )
 
 
 def _is_login_url(url: str) -> bool:

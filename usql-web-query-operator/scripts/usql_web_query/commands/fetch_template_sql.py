@@ -16,6 +16,7 @@ from _shared.fs_utils import ensure_runtime
 from usql_web_query.template_query import (
     TemplateQueryClient,
     parse_status,
+    reject_skill_knowledge_output,
     write_template_sql,
 )
 
@@ -53,6 +54,7 @@ def cmd_fetch_template_sql(args: argparse.Namespace) -> int:
 
     if output_file is None:
         output_file = _default_sql_path(args.artifacts_dir, selected.id)
+    reject_skill_knowledge_output(output_file)
     write_template_sql(output_file, selected.sql_detail)
 
     summary: dict[str, Any] = {

@@ -125,7 +125,7 @@ ifnull(sum(${n_H_promit_4}) * 0.5 + (sum(${H_promit_4}) - sum(${Y_promit_4})), 0
 
 2026-06-22 后补充：`income`、`refund`、`refund_4` 和科目数会先排除主交易层命中的内部调课调班调入/调出流水。该识别以 `dim_finance_order_change_df` 订单号映射为主，覆盖 `biz_type in (2,7)`，用于避免把内部 `调出退款` 当外部退费计入；`income_all/refund_all` 则保留 service 明细的全部收入/退款，用于当前看板金额展示。
 
-2026-07-03 后补充：当 `dim_finance_order_change_df` 漏掉链路，但 service 订单明细同订单已有 `transfer_in_amount/transfer_out_amount` 时，也会作为 `trade_type='调课调班'` 的内部变更补充识别。该规则影响 `income`、`refund`、`refund_4`、`p_sub/r_sub` 及其后续 `promit_4/H_promit_4/n_H_promit_4/Y_promit_4` 入桶。
+2026-07-03 后补充：当 `dim_finance_order_change_df` 漏掉链路，但 service 订单明细同订单已有 `transfer_in_amount/transfer_out_amount` 时，也会作为 `trade_type='调课调班'` 的内部变更补充识别。该规则影响收入侧 `income/p_sub`；退款侧由独立的 `is_internal_refund_order_change` 控制，不能因订单命中变更链路而把 service 真实退款整体清零。
 
 2026-08-05 后补充：service 是正常收入/退款金额主事实，finance 只用于课程转移缺失补充、调课调班识别和 `ord/re_ke` 退 4/点睛退 2 规则。finance 独立明细不得按不完整业务键直接判重；应保留明细并按真实输出粒度聚合，再以 service 同订单同顾问存在性校验防止重复补金额；不得用 finance 直接替代 `income_all/refund_all`。
 
@@ -147,3 +147,27 @@ ifnull(sum(${n_H_promit_4}) * 0.5 + (sum(${H_promit_4}) - sum(${Y_promit_4})), 0
 - `income_all/refund_all` 仍只汇总 service 主事实；`income/refund`、`refund_4/class_refund_4`、`H_promit_4/n_H_promit_4/Y_promit_4` 保持原有内部调课、退 4/点睛退 2 和 H/非 H 业务含义。
 
 20260803期 `张地43` 的行级回归查询 `1534542940`：修复后 `income_all=19,800`、`refund_all=0`、`income=19,800`、`H_promit_4=19,800`、个人折算后产出 `19,800`；旧版因订单级 transfer 回灌曾只剩 `7,800`。生产替换及三份数据中心 `SUCCESS` 证据见 `knowledge/update_log/changelog.md`。
+
+## 12. 2026-08-07 service 真实退款补回与退款侧调课调班修复
+
+本次个人转化 SQL 将调课调班识别拆成收入侧和退款侧两个 flag：
+
+- `income_all/refund_all` 仍直接汇总 service 的 `income_amount/refund_amount`，看板上的班课营收、班课退费和班课净收业务含义不变；
+- `income/p_sub` 使用 `is_internal_order_change`，只排除当前明细行确有 `transfer_in/transfer_out` 的内部调课调班流水；
+- `refund/r_sub/refund_4` 使用 `is_internal_refund_order_change`。service 当前行 `refund_amount > 0` 时不再因 `order_change` 命中而按订单整体置零；先按 finance 退款事件与 transfer pool 分配内部部分，再以 service 退款余额进入退款字段；
+- `refund_4/class_refund_4` 的业务规则不变：班课 `re_lc < 4`、点睛班 `re_lc < 2`、H 一对一退款全额计入；`promit_4 = income - refund_4`，H/非 H 折算仍由原 `H_promit_4/n_H_promit_4/Y_promit_4` 规则计算。
+
+候选回归 query `1535081501`（20260803期、五名异常顾问）结果：刘孟佳 `refund=4,550`、`class_refund_4=2,525.48`；王东亚01 `refund=13,505.26`、`class_refund_4=9,207.41`；樊盼盼 `refund=3,637.74`、`class_refund_4=2,625.48`；白君辉 `refund=2,481.81`、`class_refund_4=2,481.81`；宋佳鑫04 `refund=6,686.06`、`class_refund_4=5,198.78`。这证明 service 真实退款已补回，同时 4 节/点睛 2 节扣减仍生效。生产 Preview `1535088666`、run `163259511` 均为 `SUCCESS`。
+
+## 13. 2026-08-07 finance 退款事件金额级分配
+
+当前生产版在保留 service 主金额的前提下，进一步区分调课调班订单中的内部退款和真实退款：
+
+- `income_all` / `refund_all` 仍直接汇总 service 的 `income_amount_yuan` / `refund_amount_yuan`，看板班课营收、班课退费、班课净收业务含义不变。
+- `finance_refund_event_allocated` 先在 finance 真实退款事件粒度聚合负价明细；不使用不完整复合键 `row_number()=1`，也不把 finance 直接加到 `income_all/refund_all`。
+- 使用 `order_change` 的 transfer pool 计算 `internal_refund_amount_yuan`：精确匹配时按事件全额分配，不精确时按订单退款事件金额比例分配并封顶；`t4` 用 service 退款减去该内部分配额的非负余额计算 `refund/refund_4`。
+- `ord/re_ke` 的班课 4 节、点睛班 2 节、H 一对一全额退款规则保持不变；`H_promit_4`、`n_H_promit_4`、`Y_promit_4` 仍按原业务分类，非 H 由前端乘 0.5。
+
+20260803期定向结果：王东亚01 `H_income_4=64,000`、`refund_all=13,505.26`、`H_refund_4=6,772.61`、`H_promit_4=57,227.39`；张昊62 `15,000 / 2,210 / 12,790`；付金艳 `9,700 / 0 / 9,700`；张地43 `19,800 / 0 / 19,800`。个人、团队期、团队月回归 query 分别为 `1535361544`、`1535375732`、`1535381004`。
+
+三份生产替换均完成保存后 SQL 哈希回读、预览和新抽数 `SUCCESS`：个人 model `2769`（Preview `1535390346`，run `163273845`），团队期 model `2680`（Preview `1535392792`，run `163273846`），团队月 model `2677`（Preview `1535395486`，run `163273848`）。

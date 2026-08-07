@@ -7,7 +7,7 @@
 - 模板名称：`馒头_订单明细_支付时间`
 - 模板 ID：`8735`
 - 当前发布版本：2026-07-16 20:01:40
-- 当前 raw SQL：[`template_query_market_mantou_order_detail_pay_time_20260716.sql`](../../resources/raw_sql/template_query_market_mantou_order_detail_pay_time_20260716.sql)
+- 当前 stable raw SQL：[`template_query_market_mantou_order_detail_pay_time.sql`](../../resources/raw_sql/template_query_market_mantou_order_detail_pay_time.sql)
 - 当前 SQL SHA-256：`3781532fd35d262d615e1cabf9076567b5cbf92764ff7665af3139eed98c6aa0`
 
 本模板按 `top_paid_time` 派生的 `day` 使用半开区间参数：

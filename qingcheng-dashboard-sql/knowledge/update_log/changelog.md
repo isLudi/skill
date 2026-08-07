@@ -732,3 +732,32 @@
   - `团队完成度【期】` / model `2680`：SQL SHA-256 `3fb78491f8ae5ac8540d673f3e499e7e786404588f60fb1cd15b94b89d1bf4d7`，Preview `1534870341`，run `163252065`，`SUCCESS`。
   - `团队完成度【月】` / model `2677`：SQL SHA-256 `5152db09f17995d8d82851826ac2875764ecc144e63fe03d7e1a515d163679a4`，Preview `1534872315`，run `163252066`，`SUCCESS`。
 - 三模型（2677、2680、2769）本地 Data Center Skill 同步计划 SHA-256 `ef8add37de56320050ffd1af9ba17454a81dbd8912511b495515f7c193f081c5` 已应用；反向索引、catalog、唯一版本审计、青橙 integrity、351/351 语义评测和完整 Text2SQL 栈均通过。前次单模型同步因另一模型旧哈希漂移而回滚，未影响远端；随后已按三模型事务成功同步。
+
+## 2026-08-07 青橙 service 真实退款与 order_change 退款侧修复上线
+
+- 根因确认：service 真实退款行虽然已进入 `refund_all`，但旧版退款逻辑复用订单级 `order_change + transfer` 排除条件，把同一调课调班链路中的真实退款一起置零，造成 `refund`/`refund_4` 少算，折算后产出偏高。安全探针 `1535062058` 证明全表存在少量同一明细同时带 `refund_amount` 和 transfer 金额，不能使用“有 transfer 就整行退款置零”的规则。
+- 三份 canonical SQL 同步修复：`order_change_order_map` 仅用 `select distinct` 消除完全相同的订单映射；`order_change` 增加 `has_transfer_event`；`income/p_sub` 使用收入侧 `is_internal_order_change`，`refund/r_sub/refund_4` 使用退款侧 `is_internal_refund_order_change`。service 当前行 `refund_amount > 0` 时退款优先保留，finance 只补 service 缺失链路，不直接替代 service 金额。
+- `ord/re_ke` 退 4、点睛退 2、H 一对一全额退款、H/非 H 折算规则均未改变。个人/团队金额展示仍为 `income_all`、`refund_all`、`income_all-refund_all`，折算后产出仍基于 `promit_4 = income-refund_4`。
+- 候选 Presto 回归均成功：个人 query `1535081501`，团队期 query `1535084952`，团队月 query `1535084948`。个人五名异常顾问的 `refund` 已恢复为 service 真实退款：刘孟佳 `4,550`、王东亚01 `13,505.26`、樊盼盼 `3,637.74`、白君辉 `2,481.81`、宋佳鑫04 `6,686.06`；`class_refund_4` 仍分别按 4 节/点睛 2 节规则折减。
+- 三个数据中心均完成替换、Preview、SQL Hash 回读和新抽数：
+  - `青橙个人转化` / model `2769`：SQL SHA-256 `a9345d28e6de5c235e62355646ca83c21c773571b8a23e7436d468a9a9006e5e`，Preview `1535088666`，run `163259511`，`SUCCESS`。
+  - `团队完成度【期】` / model `2680`：SQL SHA-256 `9b10aa28042de69dda9b18ed6bf6c42c35ae9d4ea924d250afc7c3c6f09b0e5f`，Preview `1535090729`，run `163259517`，`SUCCESS`。
+  - `团队完成度【月】` / model `2677`：SQL SHA-256 `5faa86ec217f865bdbe8057c11fc860b169ec3526516a5ad44c34bd0fe609021`，Preview `1535092614`，run `163259522`，`SUCCESS`。
+- 本地 Data Center 同步计划 SHA-256 `94f4b2bdca15706037debb10dbb8624e9e506e7d59f3d5913d1e0b1195128343` 已应用；数据集说明和 current model bindings 已更新。后续已重建 Qingcheng 反向索引、Text2SQL catalog，并通过 Qingcheng integrity、唯一版本审计、语义评测和完整 Text2SQL 栈验证。
+
+## 2026-08-07 数据中心 stable canonical SQL 同步
+
+- 按已审阅同步计划原子更新 model_id：`2677, 2680, 2769`；每个 model_id 只保留稳定 canonical 路径。
+- 写入后已强制重建反向索引和目录，并运行唯一版本审计、域内 integrity 与完整 Text2SQL 栈验证。
+
+## 2026-08-07 青橙退款事件金额级分配修复与三模型重新上线
+
+- 根因：前一版虽然已改为 service 明细行识别 transfer，但退款侧仍可能把同一调课调班订单的真实退款按订单级二元规则整体排除；同时 finance 复合展示键不能代表独立课程退款事件。
+- 三份 canonical SQL（`2769`、`2680`、`2677`）新增 `finance_refund_event_allocated`：保留 finance 独立退款明细并按真实事件粒度聚合；以 `order_change` transfer pool 做精确匹配或按事件金额比例分配；`t4` 从 service 退款中扣除内部分配余额，`refund_all` 仍完全使用 service 主事实。
+- `ord/re_ke` 班课 4 节、点睛 2 节、H 一对一全额退款和 H/非 H 折算规则未改变；所有补充表先聚合到唯一业务粒度再 join，未使用 `order_number + clazz_name + user_id + trade_status + trade_type + trade_time + employee_email_name + course_grade` 判重。
+- 个人、团队期、团队月定向回归 query 分别为 `1535361544`、`1535375732`、`1535381004`；20260803期王东亚01 `H_income_4=64,000`、`refund_all=13,505.26`、`H_refund_4=6,772.61`、`H_promit_4=57,227.39`，张昊62 `15,000 / 2,210 / 12,790`，付金艳 `9,700 / 0 / 9,700`，张地43 `19,800 / 0 / 19,800`。
+- 三个数据中心均完成预览、保存后 SQL 哈希回读、刷新和新抽数 `SUCCESS`：
+  - 个人转化 `2769`：SQL SHA-256 `f4c545c9345efce20f4268b9f9b307be705e0716afbb5f07d0a243a2012c6630`，Preview `1535390346`，run `163273845`。
+  - 团队完成度【期】`2680`：SQL SHA-256 `37e0294f01e7aa40a1c93a7f2efe7b82652a430cef866ae2aab2704bfa7e7109`，Preview `1535392792`，run `163273846`。
+  - 团队完成度【月】`2677`：SQL SHA-256 `f84f2244b9474679d1ee5e2701ae5a9968097b1c8a4088a6648754e5d25318fd`，Preview `1535395486`，run `163273848`。
+- 本地 Skill 同步计划 SHA-256 `a3ff0a32f9d85594cc8522373b4d9f7b397b03f0ec4c2ffce3a99110ce0676e5` 已应用；反向索引、Text2SQL catalog、唯一版本审计、青橙 integrity、351/351 语义评测及完整 Text2SQL 栈均通过。完整栈中的既有 pending manual-confirmation 与历史引用告警未新增为错误。

@@ -40,6 +40,7 @@ from .commands.publish_template import cmd_publish_template
 from .commands.run import cmd_run
 from .commands.run_with_fallback import cmd_run_with_fallback
 from .commands.sync_data_center_sql import cmd_sync_data_center_sql
+from .commands.sync_template_sql import cmd_sync_template_sql
 from .commands.sync_datamap_fields import cmd_sync_datamap_fields
 from .commands.template_download import cmd_template_download
 from .commands.upload_temp_table import cmd_upload_temp_table
@@ -217,6 +218,33 @@ def build_parser() -> argparse.ArgumentParser:
     sync_data_center.add_argument("--check-integrity", action=argparse.BooleanOptionalAction, default=True, help="Run target skill check_skill_integrity.py after writes.")
     sync_data_center.add_argument("--validate-stack", action=argparse.BooleanOptionalAction, default=True, help="Run the complete Text2SQL stack after writes; disabling is rejected for Apply.")
     sync_data_center.set_defaults(func=cmd_sync_data_center_sql)
+
+    sync_template = subparsers.add_parser(
+        "sync-template-sql",
+        help="Refresh one published Template Query SQL into a stable Skill canonical file.",
+    )
+    sync_template.add_argument("--target-skill", choices=["market", "qingcheng"], required=True, help="Registered business Skill target.")
+    sync_template.add_argument("--template-id", type=int, required=True, help="Exact published Template Query id.")
+    sync_template.add_argument("--template-name", required=True, help="Exact published Template Query name.")
+    sync_template.add_argument("--canonical-file", type=Path, required=True, help="Stable path relative to the target Skill, e.g. resources/raw_sql/template_query_market_wide.sql.")
+    sync_template.add_argument("--write", action="store_true", help="Atomically overwrite the stable file, remove dated copies, and run all knowledge gates.")
+    sync_template.add_argument("--expected-plan-sha256", default=None, help="Exact hash emitted by a reviewed dry-run; required with --write.")
+    sync_template.add_argument("--run-date", default=None, help="Override changelog/plan date, format YYYY-MM-DD.")
+    sync_template.add_argument("--page-size", type=int, default=100, help="API page size for published-template discovery.")
+    sync_template.add_argument("--max-pages", type=int, default=20, help="Maximum pages to scan when needed.")
+    sync_template.add_argument("--state-path", type=Path, default=DEFAULT_STATE, help="Shared Baijia browser storage state path.")
+    sync_template.add_argument("--artifacts-dir", type=Path, default=TEMPLATE_QUERY_RUNTIME_DIR / "knowledge-sync", help="Runtime plan/receipt directory.")
+    sync_template.add_argument("--env-file", type=Path, default=DEFAULT_ENV_FILE)
+    sync_template.add_argument("--username", default=os.environ.get("BAIJIA_USERNAME"))
+    sync_template.add_argument("--password", default=os.environ.get("BAIJIA_PASSWORD"))
+    sync_template.add_argument("--headed", action="store_true", help="Show browser window while authenticating/fetching the published template.")
+    sync_template.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL, help="Installed browser channel, e.g. msedge or chrome.")
+    sync_template.add_argument("--executable-path", default=None, help="Explicit browser executable path; overrides --browser-channel.")
+    sync_template.add_argument("--update-changelog", action=argparse.BooleanOptionalAction, default=True, help="Append a stable canonical SQL knowledge entry when writing.")
+    sync_template.add_argument("--rebuild-indexes", action=argparse.BooleanOptionalAction, default=True, help="Run reverse-index maintenance after writing; disabling is rejected for Apply.")
+    sync_template.add_argument("--check-integrity", action=argparse.BooleanOptionalAction, default=True, help="Run domain integrity after writing; disabling is rejected for Apply.")
+    sync_template.add_argument("--validate-stack", action=argparse.BooleanOptionalAction, default=True, help="Run the complete Text2SQL stack after writing; disabling is rejected for Apply.")
+    sync_template.set_defaults(func=cmd_sync_template_sql)
 
     plan_data_center_replacement = subparsers.add_parser(
         "plan-data-center-sql-replacement",

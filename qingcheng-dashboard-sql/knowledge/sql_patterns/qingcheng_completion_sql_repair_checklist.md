@@ -113,29 +113,46 @@ biz_type in (2, 7)
 当前稳定写法：
 
 ```sql
+-- 收入侧：仅剔除当前 service 明细行的内部调课调班金额。
 case
-    -- service 明细中的 transfer 标记只在当前行生效。
     when coalesce(rd.service_transfer_in_amount_yuan, 0) > 0
       or coalesce(rd.service_transfer_out_amount_yuan, 0) > 0
     then 1
-    -- finance 只在 service 缺失时，按真实退款行补充调课调班识别。
     when rd.source_type = 'service'
      and coalesce(order_change.has_order_change, 0) = 1
-     and (
-            coalesce(order_change.transfer_in_amount_yuan, 0) > 0
-            or coalesce(order_change.transfer_out_amount_yuan, 0) > 0
-         )
+     and coalesce(order_change.has_transfer_event, 0) = 1
+     and coalesce(rd.service_transfer_in_amount_yuan, 0) = 0
+     and coalesce(rd.service_transfer_out_amount_yuan, 0) = 0
+     and coalesce(rd.income_amount_yuan, 0) = 0
+     and coalesce(rd.refund_amount_yuan, 0) = 0
      and rd.trade_status like '%退%'
-     and coalesce(rd.refund_amount_yuan, 0) > 0
     then 1
     else 0
 end as is_internal_order_change
+
+-- 退款侧：service 真实退款优先保留，再应用退 4/点睛退 2 的课节规则。
+case
+    when rd.source_type = 'service'
+     and coalesce(rd.refund_amount_yuan, 0) > 0
+    then 0
+    when coalesce(rd.service_transfer_in_amount_yuan, 0) > 0
+      or coalesce(rd.service_transfer_out_amount_yuan, 0) > 0
+    then 1
+    when rd.source_type = 'service'
+     and coalesce(order_change.has_order_change, 0) = 1
+     and coalesce(order_change.has_transfer_event, 0) = 1
+     and rd.trade_status like '%退%'
+    then 1
+    else 0
+end as is_internal_refund_order_change
 ```
 
 含义：
 
 - 只剔除 `trade_type='调课调班'` 的内部变更流水；
 - 命中变更链路但本身是正常成交的订单，绩效仍要保留。
+- `income/p_sub` 使用收入侧 flag，`refund/refund_4/r_sub` 使用退款侧 flag；两个侧别不能复用同一个订单级排除结果。
+- service 当前行 `refund_amount_yuan > 0` 时，不能因订单命中变更链路而整行清零；按 2.6.2 完成内部退款金额分配后，再由 `re_ke/ord` 判断班课开课 4 节、点睛班开课 2 节是否计入 `refund_4`。
 
 ### 2.6.1 service transfer 是内部调课调班补充识别
 
@@ -146,8 +163,17 @@ end as is_internal_order_change
 - `order_attr` 只按 `order_number + performance_employee_email_name` 聚合原始支付时间；不得在这里 `max(transfer_in_amount/transfer_out_amount)`。
 - `service_base0` 直接从当前 service 明细行生成 `trade_type`，并把该行的 `transfer_in_amount/transfer_out_amount` 换算为元后随 `service_scope -> rd -> t4` 传递。
 - `t4` 首先按当前 service 明细行的 transfer 金额识别内部调课调班；同一订单中的正常支付行没有 transfer 标记时，不能被订单级标记回灌。
-- finance 订单变更字段仅作为 service 缺失时的补充：必须是 `source_type='service'`、命中变更链路且变更金额非 0，同时当前行是实际退款行（`trade_status like '%退%'` 且 `refund_amount_yuan > 0`）。不能按订单整体剔除正常支付行。
+- finance 订单变更字段仅作为 service 缺失和退款内部分配的链路依据：必须命中变更链路且变更金额非 0；不能按订单整体剔除正常支付行，也不能把 service 当前行的真实退款整笔清零。退款侧按 2.6.2 将内部部分分配后再计算余额。
 - service transfer 只作为内部变更识别信号，不替代 service 的 `income_amount/refund_amount` 正常金额主事实；finance 只用于 service 缺失的课程转移补充和规则字段。finance 明细不能用 `order_number + clazz_name + user_id + trade_status + trade_type + trade_time + employee_email_name + course_grade` 这类不完整投影键判定重复；应保留独立明细、按真实输出粒度聚合，并用 `order_number + employee_email_name` 与 service 链路做补充抑制，避免多算或少算。
+
+### 2.6.2 退款侧必须按事件金额分配内部调课退款
+
+2026-08-07 的最新版本进一步处理“同一调课调班订单同时存在内部调课退款和真实外部退款”的混合场景。上一条“service 当前行有正退款就直接保留”只能防止整单清零，不能把同一退款事件中的内部部分和外部部分区分开。
+
+- 三份 SQL 新增 `finance_refund_event_allocated`：先将 finance 负退款明细按真实退款事件粒度聚合，不能用 `order_number + clazz_name + user_id + trade_status + trade_type + trade_time + employee_email_name + course_grade` 这类不完整投影键 `row_number()=1` 判重。
+- `order_change` 的 transfer 金额只作为该订单的内部退款池。若某 finance 退款事件金额与 transfer 池精确匹配，则该事件的内部分配金额取全额；没有精确匹配时，按各退款事件金额占订单退款事件总额的比例分配，并以 transfer 池和事件金额为上限。
+- `t4` 将 service 当前行的 `refund_amount_yuan` 减去匹配到的 `internal_refund_amount_yuan`，所得非负余额才进入 `refund`、`refund_4`、`r_sub`；`refund_all` 仍完全汇总 service 原始退款，不被 finance 替代或放大。
+- 余额进入退款规则后，`re_ke/ord` 的班课开课 4 节、点睛班开课 2 节和 H 一对一全额退款规则不变；该分配只解决“哪一部分是内部调课退款”，不改变退 4/点睛退 2 的业务含义。
 
 ### 2.7 非 H 折算口径已经确认，不再是待确认项
 

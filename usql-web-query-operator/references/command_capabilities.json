@@ -12,6 +12,7 @@
         {"name": "check-manual-table", "effect": "local_read_only", "authorization": "none", "reference": "manual_temp_table_registry.md"},
         {"name": "sync-datamap-fields", "effect": "local_write_explicit", "authorization": "explicit_flags", "reference": "data_knowledge_sync.md"},
         {"name": "sync-data-center-sql", "effect": "local_write_explicit", "authorization": "exact_plan_hash_and_confirmation", "reference": "data_knowledge_sync.md"},
+        {"name": "sync-template-sql", "effect": "local_write_explicit", "authorization": "exact_plan_hash_and_confirmation", "reference": "template_query.md"},
         {"name": "plan-data-center-sql-replacement", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "data_center_replacement.md"},
         {"name": "apply-data-center-sql-replacement", "effect": "remote_write_explicit", "authorization": "exact_plan_hash_and_confirmation", "reference": "data_center_replacement.md"},
         {"name": "plan-data-center-dataset-creation", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "data_center_creation.md"},

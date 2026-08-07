@@ -593,7 +593,12 @@ def load_template_sql(path: Path) -> str:
 
 
 def canonical_template_sql(sql_text: str) -> str:
-    return sql_text.replace("\r\n", "\n").replace("\r", "\n").rstrip() + "\n"
+    """Use the same transport-only canonicalization as Data Center SQL."""
+
+    if sql_text.startswith("\ufeff"):
+        sql_text = sql_text[1:]
+    sql_text = sql_text.replace("\r\n", "\n").replace("\r", "\n")
+    return sql_text.rstrip("\n") + "\n"
 
 
 def template_sql_sha256(sql_text: str) -> str:

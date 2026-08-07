@@ -261,5 +261,8 @@ coalesce(income_amount / 100, 0) - coalesce(refund_amount / 100, 0) as promit_am
 - `transfer_in_amount` / `transfer_out_amount` 只用于识别内部调课调班，支撑 legacy `income/refund` 和退 4/点睛退 2 规则；它们不替代正常金额主事实。
 - 订单明细侧核对个人/团队完成度时，若发现 service 缺失的课程转移链路，再用 `finance_dw.app_finance_performance_extend_details_hf` 做受限补充；finance 独立明细不能用不完整投影键判定重复，应保留后按真实业务粒度聚合，并通过 `order_number + employee_email_name` 判断 service 是否已覆盖，不能直接回连放大 service 金额。
 - 2026-07-03 至 2026-08-06 的历史版本曾从本表 `order_attr` 聚合 `transfer_in_amount/transfer_out_amount`。2026-08-07 起，个人完成度、团队完成度【期】、团队完成度【月】改为在 `service_base0` 当前 service 明细行识别并传递 transfer，避免同订单正常支付行被订单级标记误伤；该字段只作为识别信号，不替代 `income_all/refund_all`。
+- 2026-08-07 起，收入侧与退款侧分开判定调课调班：当前行有 transfer 时可剔除收入侧内部流水；当前行 `refund_amount > 0` 时不能因订单命中变更链路而整行清零，先按 finance 退款事件与 transfer pool 分配内部部分，再由 `re_ke/ord` 的 `re_lc` 应用班课 4 节、点睛 2 节规则。安全重叠探针 `1535062058` 已验证混合退款明细确实存在。
+
+- 2026-08-07 最新退款侧口径：`refund_all` 仍汇总本表全部 `refund_amount`；`refund/refund_4` 先扣除由 finance 退款事件与 order_change transfer pool 归因出的 `internal_refund_amount_yuan`，再在非负余额上执行退 4/点睛退 2。这样既保留 service 主事实，又不会把混合订单中的内部退款和真实退款混为一笔。
 - 当前 `service` 主事实在青橙完成度 SQL 中排除 `clazz_name` 含“试听”的流水；与未加该过滤的渠道订单模板核对时，必须先确认试听口径是否一致。
 - 2026-07-09 TMK 转移明细验证中，`desc service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` 成功，query id `1456920675`；小样本验证确认当前可用线索键为 `lead_id`，并可输出 `original_order_user_number`、`performance_employee_email_name`、`income_amount`、`refund_amount`、`grade_name`、`mapping_school_subject_name`、`school_subject_name`、`main_teacher_nickname`，query id `1456926952`。
