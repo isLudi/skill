@@ -85,6 +85,12 @@
 折算净收款-退4 = sum(n_H_promit_4) * 0.5 + sum(H_promit_4)
 ```
 
-`income_all/refund_all` 不剔除调课调班；`income/refund`、`refund_4`、`class_refund_4` 保留用于内部调课识别、退 4/点睛退 2 和其他历史规则指标。service 是正常金额主事实，finance 只补 service 缺失的课程转移链路并参与规则字段，补充表先聚合到唯一业务粒度再 join。
+`income_all/refund_all` 不剔除调课调班；`income/refund`、`refund_4`、`class_refund_4` 保留用于内部调课识别、退 4/点睛退 2 和其他历史规则指标。service 是正常金额主事实，finance 只补 service 缺失的课程转移链路并参与规则字段；finance 独立明细保留后按真实输出粒度聚合，不能用不完整投影键判定重复。
 
 个人与团队五期模板核对证据见 `knowledge/sql_patterns/qingcheng_template_dashboard_amount_reconciliation_20260805.md`。
+
+## 10. 2026-08-07 调课调班明细粒度与 finance 归因修复
+
+- `order_attr` 不再按订单级 `max` 聚合 transfer；service 当前明细行直接带出 transfer 金额，避免同订单正常支付行被误标为内部流水。
+- finance raw 层删除不完整复合键的 `row_number()=1`，保留独立明细并按真实输出粒度聚合；`service_order_employee` 按 `order_number + employee_email_name` 抑制 service 已覆盖链路的重复补入，`ord/re_ke` 退 4/点睛退 2 规则不变。
+- 团队月基线/候选均为 88 行且键集合一致，移除旧 finance 误补 `4,573.3206` 元；`income_all/refund_all` 不变。生产 Preview `1534872315`、run `163252066` 为 `SUCCESS`。

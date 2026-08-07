@@ -16,7 +16,7 @@ model 2460 从 2026-07-20 起还使用本表补充“课程转移到 B 用户且
 
 待人工确认。当前 SQL 以订单/交易明细使用，字段包含 `id`、`order_number`、`biz_number`、`user_id`、`trade_time`。
 
-**注意：`id` 字段不保证业务唯一。** 2026-08-04 诊断确认同一 `order_number + clazz_name + user_id + trade_status + trade_type + trade_time + employee_email_name + course_grade` 业务键下存在多条 `id` 不同、数据完全相同的重复行：全表约 39% 订单受影响，其中 52,949 笔订单每笔 ≥6 行重复，覆盖 185 名青橙顾问。对本表做课程转移补充或规则聚合前，必须先用 `row_number() over (partition by <业务键> order by id) = 1` 去重，再聚合到唯一业务粒度。该重复风险仍需治理，但它不是当前 service-only `income_all/refund_all` 与模板五期差异的原因。
+**注意：`id` 字段不保证业务唯一，且不完整投影键不能直接代表业务重复。** 2026-08-07 对 2769 个人转化中的调课调班链路复核发现：付金艳同一订单有 36 条独立明细、36 个 `id`、36 个 `pre_biz_number`，金额合计 `1,500` 元；谈梦玲两笔订单各有 38 条独立明细，金额分别为 `826.10`、`2,687.98` 元，均与 service `transfer_in` 守恒。旧版按 `order_number + clazz_name + user_id + trade_status + trade_type + trade_time + employee_email_name + course_grade` 使用 `row_number()=1` 会吞掉这些独立明细。当前 2769 不再按该投影键去重，而是保留明细后按真实输出粒度聚合，并以 `order_number + employee_email_name` 与 service 链路校验后决定是否补金额。其他历史分区是否存在完全重复行仍需单独探针确认，不能从本次链路外推。
 
 ## 4. 查询引擎
 
@@ -39,7 +39,7 @@ Presto
 
 | 字段名 | 类型 | 中文含义 | 备注 |
 |---|---|---|---|
-| `id` | bigint | 明细 ID | 调课调班去重排序 |
+| `id` | bigint | 明细 ID | 仅用于明细追溯；不能与不完整投影键一起作为重复判定依据 |
 | `order_number` | bigint | 订单号 | 输出明细字段 |
 | `biz_number` | string | 业务编号 | 截取 `sub_biz_number` |
 | `pre_biz_number` | string | 前置业务编号 | 当前 SQL 取出 |

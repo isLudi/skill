@@ -14,6 +14,10 @@ from .page_helpers import get_sql_frame
 
 
 QUERY_ENGINE_CHOICES = ("presto", "presto-lakehouse", "doris-presto")
+# The Doris selector is submitted by the current platform as an internal
+# PRESTO_<id> value.  Keep this exact allowlist so ordinary Presto values do
+# not get reclassified as Doris by a broad prefix match.
+DORIS_INTERNAL_ENGINE_VALUES = {"presto817034371362430977"}
 
 
 @dataclass(frozen=True)
@@ -68,6 +72,8 @@ def recognize_engine_value(value: str | None) -> str | None:
     compact = re.sub(r"[\s_-]+", "", (value or "").strip().lower())
     if not compact:
         return None
+    if compact in DORIS_INTERNAL_ENGINE_VALUES:
+        return "doris-presto"
     if "doris" in compact:
         return "doris-presto"
     if "lakehouse" in compact:

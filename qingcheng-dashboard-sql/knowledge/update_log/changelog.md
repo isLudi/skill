@@ -698,3 +698,37 @@
 - 确认 `finance_dw.app_finance_performance_extend_details_hf` 虽存在独立的业务键重复风险，但当前 `income_all/refund_all` 是 service 主事实金额，不由 finance 直接求和，因此不是本次看板与模板差异原因。finance 继续仅用于 service 缺失的课程转移补充、内部调课识别和退 4/点睛退 2 规则，并在补充前去重。
 - 更新个人/团队 raw、metrics、公式链路、看板编辑器快照、表说明、join key、决策树、快速参考和修复清单；新增 `knowledge/sql_patterns/qingcheng_template_dashboard_amount_reconciliation_20260805.md` 作为证据与对齐建议。
 - 刷新青橙项目部 16 个线上看板的只读 profile 文档，全部 `ok_count=16`；本次未执行线上模板、看板保存或发布。
+
+## 2026-08-07 青橙完成度调课调班行级识别修复与三模型上线
+
+- 根因确认：旧版三份完成度 SQL 在 `order_attr` 中按 `order_number + performance_employee_email_name` 取 `max(transfer_in_amount/transfer_out_amount)`，再将订单级 transfer 标记传给同订单全部 service 行。张地43 的 20260803期订单同时包含正常支付行和调课调班行，约 `12,000` 元正常支付因此被误标为内部流水，造成 `income_all=19,800` 但旧 legacy `income/折算后产出=7,800`。
+- 按五条排查建议统一修复：`order_attr` 只保留 `original_paid_time`；`service_base0` 在当前 service 明细行识别 transfer 并传递到 `t4`；finance 只在 service 缺失且当前行实际退款、变更金额非 0 时补充；`ord/re_ke` 退 4/点睛退 2 规则保持；finance 补充继续先按业务键去重，所有补充表先聚合到唯一业务粒度再 join。
+- 个人行级回归 query `1534542940`：张地43 修复后 `income_all=19,800`、`refund_all=0`、`income=19,800`、`H_promit_4=19,800`、折算后产出 `19,800`。
+- 团队期聚合回归 query `1534547907`：`output_rows=330`、`income_all=26,961,943.26`、`refund_all=3,507,394.74`、内部规则后 `promit=23,811,176.26`、折算后产出 `23,009,158.79`；canonical 全量 query `1534553633` 成功。
+- 团队月聚合回归 query `1534550261`：`output_rows=88`、`income_all=26,962,143.26`、`refund_all=3,507,394.74`、内部规则后 `promit=23,811,376.26`、折算后产出 `23,009,358.79`；canonical 全量 query `1534556864` 成功。个人 canonical 全量 query 为 `1534559704`。
+- 三个数据中心生产替换均完成 Preview、保存后 SQL Hash 回读、刷新和新抽数：
+  - `青橙个人转化` / model `2769`：SQL SHA-256 `491b3c9dfb4062cff47ca9b3faaf39b663a25aa044d03117ad11399db2ebc3f1`，Preview `1534567480`，run `163237842`，`SUCCESS`。
+  - `团队完成度【期】` / model `2680`：SQL SHA-256 `3d80ad72267fc071998a94e18878991757617d052d3c0b8933979c6d1adbec07`，Preview `1534569423`，run `163237888`，`SUCCESS`。
+  - `团队完成度【月】` / model `2677`：SQL SHA-256 `f8bfc3cf89cdb3e8cea4b9193da9294294c67f11dcccc3aff2b87aee4dbe2827`，Preview `1534571611`，run `163237923`，`SUCCESS`。
+- 三份替换 receipt 均 `fully_verified=true`；本地 Data Center 知识同步计划 SHA-256 为 `f8d780014c6c5cde290ba5dc19c7f6d219d4d82d6a4287461cc7e41caa96eba5`，已同步 current model bindings、数据集说明、反向索引和 Text2SQL 目录。
+- 维护收尾：`build_reverse_indexes.py`、`build_text2sql_catalog.py`、`check_skill_integrity.py`、`validate_text2sql_stack.py` 均通过；SQL 静态规则检查仅保留三份历史复杂 SQL 的既有非聚合表达式警告，Presto/Preview/生产抽数均成功。
+
+## 2026-08-07 青橙个人转化 finance 调课调班独立明细归因修复
+
+- 纠正前次对 finance 明细的泛化判断：`order_number + clazz_name + user_id + trade_status + trade_type + trade_time + employee_email_name + course_grade` 不是当前调课调班明细的可靠唯一粒度。付金艳订单的 36 条明细均有独立 `id/pre_biz_number`，价格合计 `1,500` 元；谈梦玲两笔订单分别为 38 条明细，价格合计 `826.10` 和 `2,687.98` 元，均与 service `transfer_in` 金额一致。
+- 修改 `resources/raw_sql/data_center_qingcheng_2769.sql`：删除 finance raw 层基于上述复合键的 `row_number()=1`；保留独立 finance 明细，并按订单、用户、顾问、交易时间、班级、科目、课程部门等真实输出粒度聚合。新增 `service_order_employee`，按 `order_number + employee_email_name` 识别 service 已覆盖的调课链路，避免 finance 用户 ID 与 service 原始用户 ID 不一致时重复补金额。
+- 20260803期基线与候选逐员工回归：113 个员工期次键均保留；仅付金艳 `income/H_promit_4` 减少 `30` 元、谈梦玲减少 `70.2816` 元，合计移除旧逻辑误选的 `100.2816` 元；`income_all=1,071,942`、`refund_all=144,332.22`、非 H 金额和退款规则字段不变。付金艳最终班课净收和折算后产出均为 `9,700`。
+- 关键验证：finance 明细查询 `1534686938`、付金艳 service 链路查询 `1534690105`、候选个人冒烟 `1534719894`、基线汇总 `1534737041`、候选汇总 `1534741393`、逐员工下载回归 `1534750249/1534760279`、旧 finance 补充明细 `1534794175`。
+- Data Center `青橙个人转化` / model `2769` 已完成生产替换：计划 SHA-256 `087613b394475ea8c2280617b229a20f3b5f52264632c22a258065a960107f35`，新 SQL SHA-256 `b92ad3f4bfa4eb1e98c0406138f4ec69232880fc39fd37898e5671de28091ad8`，Preview `1534800547`，新抽数 run `163245267`，状态 `SUCCESS`，receipt `fully_verified=true`。
+- 本地 Data Center 同步计划 SHA-256 `1b2b691eae2e45a83cd6cb735fef34c2f6203656fd72dabe0fae0a8766dec146` 已应用；反向索引、catalog、青橙 integrity、351/351 语义评测和完整 Text2SQL 栈均通过。团队完成度【期/月】本次未修改。
+
+## 2026-08-07 青橙团队完成度 finance 独立明细归因修复与双模型上线
+
+- 纠正团队期/月 SQL 中 finance 调课调班补充的现行口径：`order_number + clazz_name + user_id + trade_status + trade_type + trade_time + employee_email_name + course_grade` 不是可靠唯一粒度；该组合键相同的 finance 行可能是不同 `id/pre_biz_number` 的独立明细，不能用 `row_number()=1` 任意吞行。
+- 修改 `resources/raw_sql/data_center_qingcheng_2680.sql`、`data_center_qingcheng_2677.sql`：finance raw 层保留独立明细并按订单、目标用户、顾问、交易时间、班级、科目、课程部门、学期、教师等真实输出粒度聚合；新增 `service_order_employee`，按 `order_number + employee_email_name` 判断 service 已覆盖链路，避免 finance/service 用户 ID 不一致时重复补金额。
+- 团队期基线/候选均为 330 行、键集合完全一致，7 个团队键发生变化；团队月基线/候选均为 88 行、键集合完全一致，6 个团队键发生变化。两模型合计移除旧 finance 误补 `4,573.3206` 元；`income_all`、`refund_all`、退款及人数指标不变，变化只落在错误追加的 finance legacy 收入及其净收/折算规则金额。20260803期/202608月对应误补金额均为 `100.2816` 元。
+- 回归下载查询：团队期基线/候选 `1534860885` / `1534852526`；团队月基线/候选 `1534863973` / `1534857808`。两组结果均未达到 1000 行下载上限，键集合和金额差异已逐行核对。
+- Data Center 生产替换与新抽数均成功：
+  - `团队完成度【期】` / model `2680`：SQL SHA-256 `3fb78491f8ae5ac8540d673f3e499e7e786404588f60fb1cd15b94b89d1bf4d7`，Preview `1534870341`，run `163252065`，`SUCCESS`。
+  - `团队完成度【月】` / model `2677`：SQL SHA-256 `5152db09f17995d8d82851826ac2875764ecc144e63fe03d7e1a515d163679a4`，Preview `1534872315`，run `163252066`，`SUCCESS`。
+- 三模型（2677、2680、2769）本地 Data Center Skill 同步计划 SHA-256 `ef8add37de56320050ffd1af9ba17454a81dbd8912511b495515f7c193f081c5` 已应用；反向索引、catalog、唯一版本审计、青橙 integrity、351/351 语义评测和完整 Text2SQL 栈均通过。前次单模型同步因另一模型旧哈希漂移而回滚，未影响远端；随后已按三模型事务成功同步。

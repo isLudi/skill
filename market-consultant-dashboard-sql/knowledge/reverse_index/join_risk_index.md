@@ -94,6 +94,7 @@
 | [knowledge/pitfalls/virtual_vs_section_architecture.md](../pitfalls/virtual_vs_section_architecture.md) | 1. WHERE 用截面字段过滤，SELECT 用虚拟字段展示 | -- SELECT: 虚拟字段作为展示维度（风险） |
 | [knowledge/pitfalls/virtual_vs_section_architecture.md](../pitfalls/virtual_vs_section_architecture.md) | 修复方向 | 仅做范围过滤 / 用 `section_assign_*`（截面时点） / 主表 section_assign_* 字段 |
 | [knowledge/sql_patterns/aggregation_patterns.md](../sql_patterns/aggregation_patterns.md) | 条件聚合 | 如果 `is_valid_lead` 取值未确认，必须标记待人工确认。 |
+| [knowledge/sql_patterns/channel_mapping_case_when.md](../sql_patterns/channel_mapping_case_when.md) | 0726 → 0805 融合审计 | - 2054 的完整查询探针证明：相邻安全合并版本在 Doris JDBC 下出现无结果集失败，因此生产数据集继续使用 0805 精确有序 CASE；性能优化仅改已验证的分区过滤、投影、无用 CTE/JOIN 和展示层排序，不改渠道语义。 |
 | [knowledge/sql_patterns/channel_mapping_case_when.md](../sql_patterns/channel_mapping_case_when.md) | 5.1 超长 CASE 顺序风险 | 典型风险： |
 | [knowledge/sql_patterns/channel_mapping_case_when.md](../sql_patterns/channel_mapping_case_when.md) | 5.1 超长 CASE 顺序风险 | 3. 用 `case ... end as current_case_result` 模拟现有 CASE 的实际输出；如果目标记录落到别的渠道，优先调整 CASE 顺序，而不是新增重复分支。 |
 | [knowledge/sql_patterns/channel_mapping_case_when.md](../sql_patterns/channel_mapping_case_when.md) | 5.1 超长 CASE 顺序风险 | 4. 新增或调整规则时，优先使用大小写兼容写法，例如 `lower(rule_name) like '%孟亚飞ip99%'`；不要同时保留后置重复分支，避免读者误以为后置分支可命中。 |

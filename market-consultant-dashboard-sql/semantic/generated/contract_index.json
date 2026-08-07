@@ -22,7 +22,7 @@
       ],
       "status": "pending_confirmation",
       "source_path": "knowledge/sql_patterns/channel_mapping_case_when.md",
-      "source_sha256": "081ad0da22339c604cb53153da157071c9118b281ad79da2abeb47feb18427dc"
+      "source_sha256": "7da271d61613accff22c4d93f62fb46824e9c6b66c914c8878ebb44b29160dd9"
     },
     {
       "id": "market_consultant:dimension:city_name",
@@ -36,7 +36,7 @@
       ],
       "status": "pending_confirmation",
       "source_path": "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
-      "source_sha256": "a4c39a0d58d91dc4c21f38ac1d5c723bd8bfb0af81f448cd612e536662022a45"
+      "source_sha256": "abb7261803838ee104a691d2d76ab5684eb8de0c960cca6919c1e3629ba99e54"
     },
     {
       "id": "market_consultant:dimension:employee_email_name",
@@ -50,7 +50,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
-      "source_sha256": "a4c39a0d58d91dc4c21f38ac1d5c723bd8bfb0af81f448cd612e536662022a45"
+      "source_sha256": "abb7261803838ee104a691d2d76ab5684eb8de0c960cca6919c1e3629ba99e54"
     },
     {
       "id": "market_consultant:dimension:period_name",
@@ -64,7 +64,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
-      "source_sha256": "a4c39a0d58d91dc4c21f38ac1d5c723bd8bfb0af81f448cd612e536662022a45"
+      "source_sha256": "abb7261803838ee104a691d2d76ab5684eb8de0c960cca6919c1e3629ba99e54"
     },
     {
       "id": "market_consultant:dimension:province_name",
@@ -78,7 +78,7 @@
       ],
       "status": "pending_confirmation",
       "source_path": "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
-      "source_sha256": "a4c39a0d58d91dc4c21f38ac1d5c723bd8bfb0af81f448cd612e536662022a45"
+      "source_sha256": "abb7261803838ee104a691d2d76ab5684eb8de0c960cca6919c1e3629ba99e54"
     },
     {
       "id": "market_consultant:dimension:registration_type",
@@ -108,7 +108,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
-      "source_sha256": "a4c39a0d58d91dc4c21f38ac1d5c723bd8bfb0af81f448cd612e536662022a45"
+      "source_sha256": "abb7261803838ee104a691d2d76ab5684eb8de0c960cca6919c1e3629ba99e54"
     },
     {
       "id": "market_consultant:dimension:virtual_manager",
@@ -122,7 +122,7 @@
       ],
       "status": "pending_confirmation",
       "source_path": "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
-      "source_sha256": "a4c39a0d58d91dc4c21f38ac1d5c723bd8bfb0af81f448cd612e536662022a45"
+      "source_sha256": "abb7261803838ee104a691d2d76ab5684eb8de0c960cca6919c1e3629ba99e54"
     },
     {
       "id": "market_consultant:dimension:virtual_supervisor",
@@ -136,7 +136,7 @@
       ],
       "status": "pending_confirmation",
       "source_path": "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
-      "source_sha256": "a4c39a0d58d91dc4c21f38ac1d5c723bd8bfb0af81f448cd612e536662022a45"
+      "source_sha256": "abb7261803838ee104a691d2d76ab5684eb8de0c960cca6919c1e3629ba99e54"
     },
     {
       "id": "market_consultant:join:first_call_task_to_employee",
@@ -162,7 +162,7 @@
       ],
       "status": "pending_confirmation",
       "source_path": "knowledge/joins/table_relationships.md",
-      "source_sha256": "d91a8e5551deb1ae2d1180579bd8c1849d7166c284a3f415d60d09556fb4d51d"
+      "source_sha256": "f90efe103c7abf06fb91d4c399654626910e38d27cb44f5c89370a767de40b19"
     },
     {
       "id": "market_consultant:join:lead_to_learning_detail",
@@ -216,7 +216,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
-      "source_sha256": "a92e72d15e570ad9ca673445772dc1c8a509a478ff459b3ae911363131e7ae12",
+      "source_sha256": "481c57c5a2aac4f825af466806cece6b82e302b3f565f146720086e647e1a2c2",
       "automatic_compile": true
     },
     {
@@ -231,7 +231,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
-      "source_sha256": "a92e72d15e570ad9ca673445772dc1c8a509a478ff459b3ae911363131e7ae12",
+      "source_sha256": "481c57c5a2aac4f825af466806cece6b82e302b3f565f146720086e647e1a2c2",
       "automatic_compile": true
     },
     {
@@ -246,7 +246,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
-      "source_sha256": "a92e72d15e570ad9ca673445772dc1c8a509a478ff459b3ae911363131e7ae12",
+      "source_sha256": "481c57c5a2aac4f825af466806cece6b82e302b3f565f146720086e647e1a2c2",
       "automatic_compile": true
     },
     {
@@ -261,7 +261,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
-      "source_sha256": "a92e72d15e570ad9ca673445772dc1c8a509a478ff459b3ae911363131e7ae12",
+      "source_sha256": "481c57c5a2aac4f825af466806cece6b82e302b3f565f146720086e647e1a2c2",
       "automatic_compile": true
     },
     {
@@ -334,7 +334,7 @@
       ],
       "status": "pending_confirmation",
       "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
-      "source_sha256": "a92e72d15e570ad9ca673445772dc1c8a509a478ff459b3ae911363131e7ae12",
+      "source_sha256": "481c57c5a2aac4f825af466806cece6b82e302b3f565f146720086e647e1a2c2",
       "automatic_compile": false
     },
     {
@@ -378,7 +378,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
-      "source_sha256": "a92e72d15e570ad9ca673445772dc1c8a509a478ff459b3ae911363131e7ae12",
+      "source_sha256": "481c57c5a2aac4f825af466806cece6b82e302b3f565f146720086e647e1a2c2",
       "automatic_compile": true
     },
     {
@@ -394,7 +394,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
-      "source_sha256": "a92e72d15e570ad9ca673445772dc1c8a509a478ff459b3ae911363131e7ae12",
+      "source_sha256": "481c57c5a2aac4f825af466806cece6b82e302b3f565f146720086e647e1a2c2",
       "automatic_compile": true
     },
     {
@@ -409,7 +409,7 @@
       ],
       "status": "pending_confirmation",
       "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
-      "source_sha256": "a92e72d15e570ad9ca673445772dc1c8a509a478ff459b3ae911363131e7ae12",
+      "source_sha256": "481c57c5a2aac4f825af466806cece6b82e302b3f565f146720086e647e1a2c2",
       "automatic_compile": false
     },
     {
@@ -423,7 +423,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
-      "source_sha256": "a92e72d15e570ad9ca673445772dc1c8a509a478ff459b3ae911363131e7ae12"
+      "source_sha256": "481c57c5a2aac4f825af466806cece6b82e302b3f565f146720086e647e1a2c2"
     },
     {
       "id": "market_consultant:scope:finance_performance",

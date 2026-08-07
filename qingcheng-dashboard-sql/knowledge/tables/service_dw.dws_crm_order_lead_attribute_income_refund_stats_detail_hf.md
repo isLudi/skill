@@ -259,7 +259,7 @@ coalesce(income_amount / 100, 0) - coalesce(refund_amount / 100, 0) as promit_am
 - 交易期次 `qici` 由业务日历优先、`trade_timestamp` 周五规则兜底计算；当前 2460/2740 canonical SQL 使用业务确认的六个暑期窗口，覆盖 `2026-07-07` 至 `2026-08-12`，最后窗口输出 `20260808期`，且不使用三参数 `date_add`。
 - 青橙个人/团队完成度 canonical SQL 当前把本表作为 `income_all/refund_all` 的正常金额主事实，使用 `income_amount/refund_amount` 除以 100 转元；这些字段包含 service 明细中的全部收入/退款，不因内部调课调班识别而被删掉。
 - `transfer_in_amount` / `transfer_out_amount` 只用于识别内部调课调班，支撑 legacy `income/refund` 和退 4/点睛退 2 规则；它们不替代正常金额主事实。
-- 订单明细侧核对个人/团队完成度时，若发现 service 缺失的课程转移链路，再用 `finance_dw.app_finance_performance_extend_details_hf` 做受限补充；补充表必须先去重并聚合到唯一业务粒度，不能直接回连放大 service 金额。
-- 2026-07-03 起，个人完成度、团队完成度【期】、团队完成度【月】从本表 `order_attr` 聚合 `transfer_in_amount/transfer_out_amount`，用于补充识别 `dim_finance_order_change_df` 漏链路的内部调课调班；该字段只作为识别信号，不替代 `income_all/refund_all`。
+- 订单明细侧核对个人/团队完成度时，若发现 service 缺失的课程转移链路，再用 `finance_dw.app_finance_performance_extend_details_hf` 做受限补充；finance 独立明细不能用不完整投影键判定重复，应保留后按真实业务粒度聚合，并通过 `order_number + employee_email_name` 判断 service 是否已覆盖，不能直接回连放大 service 金额。
+- 2026-07-03 至 2026-08-06 的历史版本曾从本表 `order_attr` 聚合 `transfer_in_amount/transfer_out_amount`。2026-08-07 起，个人完成度、团队完成度【期】、团队完成度【月】改为在 `service_base0` 当前 service 明细行识别并传递 transfer，避免同订单正常支付行被订单级标记误伤；该字段只作为识别信号，不替代 `income_all/refund_all`。
 - 当前 `service` 主事实在青橙完成度 SQL 中排除 `clazz_name` 含“试听”的流水；与未加该过滤的渠道订单模板核对时，必须先确认试听口径是否一致。
 - 2026-07-09 TMK 转移明细验证中，`desc service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` 成功，query id `1456920675`；小样本验证确认当前可用线索键为 `lead_id`，并可输出 `original_order_user_number`、`performance_employee_email_name`、`income_amount`、`refund_amount`、`grade_name`、`mapping_school_subject_name`、`school_subject_name`、`main_teacher_nickname`，query id `1456926952`。

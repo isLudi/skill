@@ -24,9 +24,7 @@ from (
     select
         order_number,
         performance_employee_email_name,
-        min(cast(coalesce(original_order_pay_success_timestamp, pay_success_timestamp, trade_timestamp) as timestamp)) as original_paid_time,
-        max(cast(coalesce(transfer_in_amount, 0) as double) / 100.0) as service_transfer_in_amount_yuan,
-        max(cast(coalesce(transfer_out_amount, 0) as double) / 100.0) as service_transfer_out_amount_yuan
+        min(cast(coalesce(original_order_pay_success_timestamp, pay_success_timestamp, trade_timestamp) as timestamp)) as original_paid_time
     from service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf
     where dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
       and hour = format_datetime(now() - interval '2' hour, 'HH')
@@ -48,9 +46,10 @@ and course_second_level_department_name in ('V项目部', '本地化部', '私�
         s.clazz_name,
         cast(s.original_order_user_number as varchar) as user_id1,
         coalesce(s.pay_refund_type, '未知') as trade_status,
+        -- transfer 标记必须留在 service 明细行粒度；同一订单可能同时有正常支付行和调出退款行，不能按订单 max 后回灌到每一行。
         case
-            when coalesce(oa.service_transfer_in_amount_yuan, 0) > 0
-              or coalesce(oa.service_transfer_out_amount_yuan, 0) > 0
+            when coalesce(cast(s.transfer_in_amount as double), 0.0) > 0
+              or coalesce(cast(s.transfer_out_amount as double), 0.0) > 0
             then '调课调班'
             else ''
         end as trade_type,
@@ -98,8 +97,8 @@ and course_second_level_department_name in ('V项目部', '本地化部', '私�
         end as course_second_level_department_name,
         coalesce(cast(s.income_amount as double), 0.0) / 100.0 as income_amount_yuan,
         coalesce(cast(s.refund_amount as double), 0.0) / 100.0 as refund_amount_yuan,
-        coalesce(oa.service_transfer_in_amount_yuan, 0) as service_transfer_in_amount_yuan,
-        coalesce(oa.service_transfer_out_amount_yuan, 0) as service_transfer_out_amount_yuan,
+        coalesce(cast(s.transfer_in_amount as double), 0.0) / 100.0 as service_transfer_in_amount_yuan,
+        coalesce(cast(s.transfer_out_amount as double), 0.0) / 100.0 as service_transfer_out_amount_yuan,
         coalesce(
             oa.original_paid_time,
             cast(coalesce(s.original_order_pay_success_timestamp, s.pay_success_timestamp, s.trade_timestamp) as timestamp)
@@ -138,9 +137,16 @@ and course_second_level_department_name in ('V项目部', '本地化部', '私�
     or th.employee_email_name is not null
 )
 
+,service_order_employee as (
+    select distinct
+        order_number,
+        name
+    from service_scope
+)
+
 ,course_transfer_finance_raw as (
     select
-        f.id,
+        f.id as finance_detail_id,
         f.order_number,
         cast(f.user_id as varchar) as target_user_number,
         f.email_prefix,
@@ -171,25 +177,7 @@ and course_second_level_department_name in ('V项目部', '本地化部', '私�
             else '其他'
         end as school_term_id,
         f.teacher_name,
-        cast(coalesce(f.price, 0) as double) as income_amount_yuan,
-        row_number() over (
-            partition by
-                f.order_number,
-                f.clazz_name,
-                f.user_id,
-                f.trade_status,
-                f.trade_type,
-                f.trade_time,
-                f.email_prefix,
-                f.employee_email_name,
-                f.course_grade,
-                f.course_subject,
-                f.course_term_id,
-                f.teacher_name,
-                f.course_first_level_department_name,
-                f.course_second_level_department_name
-            order by f.id
-        ) as rn
+        cast(coalesce(f.price, 0) as double) as income_amount_yuan
     from finance_dw.app_finance_performance_extend_details_hf f
     where f.dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
       and f.hour = format_datetime(now() - interval '2' hour, 'HH')
@@ -216,22 +204,33 @@ and course_second_level_department_name in ('V项目部', '本地化部', '私�
 )
 ,course_transfer_finance as (
     select
-        order_number,
-        target_user_number,
-        max(email_prefix) as email_prefix,
-        employee_email_name,
-        min(trade_time) as trade_time,
-        max(clazz_name) as clazz_name,
-        max(course_grade) as course_grade,
-        subject,
-        max(course_first_level_department_name) as course_first_level_department_name,
-        max(course_second_level_department_name) as course_second_level_department_name,
-        max(school_term_id) as school_term_id,
-        max(teacher_name) as teacher_name,
-        sum(income_amount_yuan) as income_amount_yuan
-    from course_transfer_finance_raw
-    where rn = 1
-    group by order_number, target_user_number, employee_email_name, subject
+        f.order_number,
+        f.target_user_number,
+        f.email_prefix,
+        f.employee_email_name,
+        f.trade_time,
+        f.clazz_name,
+        f.course_grade,
+        f.subject,
+        f.course_first_level_department_name,
+        f.course_second_level_department_name,
+        f.school_term_id,
+        f.teacher_name,
+        sum(f.income_amount_yuan) as income_amount_yuan
+    from course_transfer_finance_raw f
+    group by
+        f.order_number,
+        f.target_user_number,
+        f.email_prefix,
+        f.employee_email_name,
+        f.trade_time,
+        f.clazz_name,
+        f.course_grade,
+        f.subject,
+        f.course_first_level_department_name,
+        f.course_second_level_department_name,
+        f.school_term_id,
+        f.teacher_name
 )
 ,course_transfer_scope as (
     select
@@ -310,10 +309,9 @@ and course_second_level_department_name in ('V项目部', '本地化部', '私�
       ) > '20260424期'
       and not exists (
           select 1
-          from service_scope s
+          from service_order_employee s
           where s.order_number = f.order_number
             and s.name = f.employee_email_name
-            and s.user_id1 = f.target_user_number
       )
 )
 ,rd as (
@@ -451,21 +449,18 @@ and course_second_level_department_name in ('V项目部', '本地化部', '私�
         coalesce(re_ke.full_refund_chain_finish_lesson_count, 0) as re_lc,
         case
             -- 只剔除调课调班流水本身；命中课程转移链路的正常订单仍然保留绩效。
-            -- service 订单明细侧有 transfer_in/transfer_out 但 dim_finance_order_change_df 漏链路时，也按内部调课调班剔除。
+            -- service transfer 在明细行识别；finance 仅在 service 缺失时按实际退款行补充，不按订单整体剔除。
             when coalesce(rd.service_transfer_in_amount_yuan, 0) > 0
               or coalesce(rd.service_transfer_out_amount_yuan, 0) > 0
             then 1
-            when rd.trade_type = '调课调班'
+            when rd.source_type = 'service'
+             and coalesce(order_change.has_order_change, 0) = 1
              and (
-                    (
-                        coalesce(order_change.has_order_change, 0) = 1
-                        and (
-                            coalesce(order_change.transfer_in_amount_yuan, 0) > 0
-                            or coalesce(order_change.transfer_out_amount_yuan, 0) > 0
-                        )
-                    )
-                    or coalesce(rd.refund_amount_yuan, 0) > 0
+                    coalesce(order_change.transfer_in_amount_yuan, 0) > 0
+                    or coalesce(order_change.transfer_out_amount_yuan, 0) > 0
                  )
+             and rd.trade_status like '%退%'
+             and coalesce(rd.refund_amount_yuan, 0) > 0
             then 1
             else 0
         end as is_internal_order_change

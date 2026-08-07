@@ -114,19 +114,19 @@ biz_type in (2, 7)
 
 ```sql
 case
-    when rd.trade_type = '调课调班'
+    -- service 明细中的 transfer 标记只在当前行生效。
+    when coalesce(rd.service_transfer_in_amount_yuan, 0) > 0
+      or coalesce(rd.service_transfer_out_amount_yuan, 0) > 0
+    then 1
+    -- finance 只在 service 缺失时，按真实退款行补充调课调班识别。
+    when rd.source_type = 'service'
+     and coalesce(order_change.has_order_change, 0) = 1
      and (
-            (
-                coalesce(order_change.has_order_change, 0) = 1
-                and (
-                    coalesce(order_change.transfer_in_amount_yuan, 0) > 0
-                    or coalesce(order_change.transfer_out_amount_yuan, 0) > 0
-                )
-            )
-            or coalesce(rd.service_transfer_in_amount_yuan, 0) > 0
-            or coalesce(rd.service_transfer_out_amount_yuan, 0) > 0
-            or rd.name_total_price < 0
+            coalesce(order_change.transfer_in_amount_yuan, 0) > 0
+            or coalesce(order_change.transfer_out_amount_yuan, 0) > 0
          )
+     and rd.trade_status like '%退%'
+     and coalesce(rd.refund_amount_yuan, 0) > 0
     then 1
     else 0
 end as is_internal_order_change
@@ -143,10 +143,11 @@ end as is_internal_order_change
 
 当前稳定规则：
 
-- `order_attr` 从 `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` 按 `order_number + performance_employee_email_name` 聚合 `transfer_in_amount/transfer_out_amount`，字段单位从分换算为元。
-- 聚合后的 service transfer 标记随 `dd -> gmv_t/gmv_z -> rd -> t4` 传递。
-- 仅当 `rd.trade_type = '调课调班'` 时，service transfer 非 0 才把 `is_internal_order_change` 置 1。
-- service transfer 只作为内部变更识别信号，不替代 service 的 `income_amount/refund_amount` 正常金额主事实；finance 只用于 service 缺失的课程转移补充和规则字段。
+- `order_attr` 只按 `order_number + performance_employee_email_name` 聚合原始支付时间；不得在这里 `max(transfer_in_amount/transfer_out_amount)`。
+- `service_base0` 直接从当前 service 明细行生成 `trade_type`，并把该行的 `transfer_in_amount/transfer_out_amount` 换算为元后随 `service_scope -> rd -> t4` 传递。
+- `t4` 首先按当前 service 明细行的 transfer 金额识别内部调课调班；同一订单中的正常支付行没有 transfer 标记时，不能被订单级标记回灌。
+- finance 订单变更字段仅作为 service 缺失时的补充：必须是 `source_type='service'`、命中变更链路且变更金额非 0，同时当前行是实际退款行（`trade_status like '%退%'` 且 `refund_amount_yuan > 0`）。不能按订单整体剔除正常支付行。
+- service transfer 只作为内部变更识别信号，不替代 service 的 `income_amount/refund_amount` 正常金额主事实；finance 只用于 service 缺失的课程转移补充和规则字段。finance 明细不能用 `order_number + clazz_name + user_id + trade_status + trade_type + trade_time + employee_email_name + course_grade` 这类不完整投影键判定重复；应保留独立明细、按真实输出粒度聚合，并用 `order_number + employee_email_name` 与 service 链路做补充抑制，避免多算或少算。
 
 ### 2.7 非 H 折算口径已经确认，不再是待确认项
 
@@ -193,7 +194,7 @@ income_all  = sum(case when source_type = 'service' then income_amount_yuan else
 refund_all  = sum(case when source_type = 'service' then refund_amount_yuan else 0 end)
 ```
 
-`income_all/refund_all` 不剔除 service 内部调课调班流水。`income/refund` 仍是内部调课识别后的 legacy/rule 字段，`refund_4/class_refund_4` 仍服务于退 4/点睛退 2 规则。finance 仅在 service 缺失课程转移链路时补充，并且必须先去重、聚合到唯一业务粒度后再 join。
+`income_all/refund_all` 不剔除 service 内部调课调班流水。`income/refund` 仍是内部调课识别后的 legacy/rule 字段，`refund_4/class_refund_4` 仍服务于退 4/点睛退 2 规则。finance 仅在 service 缺失课程转移链路时补充；独立明细先保留并按真实业务输出粒度聚合，再通过 service 同订单同顾问存在性校验后 join，不能用不完整复合键吞掉明细。
 
 若与渠道模板核对，还必须先统一 `clazz_name` 含“试听”的过滤；当前完成度 SQL 排除试听，保留的模板原始 SQL 未排除试听。
 

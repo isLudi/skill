@@ -6,12 +6,19 @@
 
 ## 2. 最新来源
 
-- 合并基线：0723 版本，历史 SHA-256 `fb57458a6fcf13a0cbe20ad1cfb5d226cef58504e88d5fe47ac2658983b02955`
-- 本次增量来源：`D:\Feishu\1.txt`，按用户确认范围只吸收区域、KOC、进校规则
-- Skill 最新归档：`resources/raw_sql/market_channel_case_when_0726.sql`
-- 最近共享 CASE 更新日期：2026-07-26；Data Center 定向覆盖补充日期：2026-08-02
-- 代码规模：源码 163 行；156 个 `then` 分支，98 个去重后的渠道输出值
+- 0805 版本原始来源：`C:\Users\Ludim\Desktop\CASE.txt`，来源文件 SHA-256 `7ae55aa357ac5f27b23a7f1e82a609c5479ca473667e758667191f42869b3842`
+- Skill 最新归档：`resources/raw_sql/market_channel_case_when_0805.sql`
+- 0805 与 0726 逐分支融合：保留 0805 的完整顺序，审计新增、删除、条件/输出变化及公共分支移位；不按固定行号切片替换
+- 0805 精确执行 CASE：170 个 `WHEN` 分支，109 个去重后的渠道输出值；CASE 文本 SHA-256 `73bc9bdc26c7719640c6a66352f1675743ae1f7655221e197ab87865068f236e`
+- 最近共享 CASE 更新日期：2026-08-05；Data Center 定向覆盖补充日期：2026-08-01 至 2026-08-05
 - 输出字段：`qudao`
+
+### 0726 → 0805 融合审计
+
+- 0805 相比 0726：新增 30 个分支、删除 16 个既有分支、7 处条件/输出变化，公共分支存在顺序调整；另保留 15 组相邻同输出规则作为审计信息，不以机械合并结果替代线上规则。
+- 0805 的 `北京直播江苏`、区域图书、曹忆、锋途 KOC、退款复用及进校相关分支均按原始顺序进入所有完整渠道 CASE 消费者；特异规则继续位于会抢先命中的宽泛规则之前。
+- 2054 的完整查询探针证明：相邻安全合并版本在 Doris JDBC 下出现无结果集失败，因此生产数据集继续使用 0805 精确有序 CASE；性能优化仅改已验证的分区过滤、投影、无用 CTE/JOIN 和展示层排序，不改渠道语义。
+- 当前 27 个完整 CASE 数据中心目标中 25 个完成新 SQL 保存、读回和新 `SUCCESS`，2886/2890 已读回优化 SQL 但刷新链暂无新执行记录，故不将其标记为上线成功。
 
 ### 0524 → 0612 增量变更
 
@@ -61,7 +68,7 @@ then '退款订单复用'
 - 这是按业务事实确认的单批次覆盖，不得移除期次、来源部门、source 负责人或 SKU 四组边界并泛化到其他期次。模型使用别名时仅做等价字段替换，例如 model `2344` 使用 `lf_period_name`/`lf.*`，model `2978` 使用 `lb.period_name`/`lb.*`。
 - 修正已写入 22 个当前 Data Center canonical SQL：`2054, 2132, 2253, 2293, 2310, 2344, 2345, 2533, 2688, 2751, 2774, 2809, 2812, 2836, 2842, 2883, 2885, 2886, 2890, 2978, 3039, 3153`。model `2344` 有 3 处同义 CASE，均需保持一致；model `2978` 是 KOC 范围播报，改归 `退款订单复用` 后该批次应从其 KOC-only 输出中排除。
 - 修正前精确批次 `sum(lead_count)=1444`，其中 `KOC-周帅数学=1121`、`KOC-孟亚飞数学=323`；1442 计入既有退款池/退款计划匹配，另 2 条未命中该物理池条件，但业务确认整批均为退款复用。修正后 query `1514422403` 验证 1444 全部归入 `退款订单复用`，两个错误 KOC 渠道残留为 0；截至 2026-08-01，`20260728期` 的周帅 KOC 209 尚未调整，2026-08-02 按新的退款池证据另行重分类，见下一节。
-- `resources/raw_sql/market_channel_case_when_0726.sql` 仍是通用共享基线；对上述当前 Data Center 模型做整体 CASE 替换时，必须在共享基线上继续保留本定向覆盖，不能因重新粘贴 0726 片段而丢失。
+- `resources/raw_sql/market_channel_case_when_0805.sql` 是通用共享基线；对上述当前 Data Center 模型做整体 CASE 替换时，必须在共享基线上继续保留本定向覆盖，不能因重新粘贴共享片段而丢失。
 
 ### 2026-08-02 20260728 期线上商务部退款复用高优先级覆盖
 
@@ -93,14 +100,14 @@ then '退款订单复用'
 - `channel_map_1`
 - `qudao`
 
-生成或改写市场顾问转化、线索转化到课、外呼过程、分配计划实际有效量等看板 SQL 时，如果需要“最新渠道 CASE”，优先引用 `resources/raw_sql/market_channel_case_when_0726.sql`，不要直接照抄旧看板中的长 CASE。
+生成或改写市场顾问转化、线索转化到课、外呼过程、分配计划实际有效量等看板 SQL 时，如果需要“最新渠道 CASE”，优先引用 `resources/raw_sql/market_channel_case_when_0805.sql`，不要直接照抄旧看板中的长 CASE。
 
 ### 3.1 模板取数强制同步消费者
 
-- `业财用户出单明细`（模板 id `7689`）必须与共享渠道 CASE 保持规则顺序、条件和输出值一致；目标别名仅由 `qudao` 等价改为 `channel_map`。
-- 当前发布 SQL 归档为 `resources/raw_sql/template_query_market_finance_order_detail_20260803.sql`，模板登记见 `knowledge/dashboards/template_query_market_datasets.md`。
-- 每次更新 `market_channel_case_when_MMDD.sql` 时，必须同时读取线上模板 7689、做规则级差异比较、原位保存并发布同一模板 id、回读 SQL/参数/26 个最终字段，再完成至少一个真实期次查询；已有申请关系不得因重建模板而失效。
-- 当前 2026-08-01/02 两条退款批次规则仍属于指定 Data Center 模型的定向覆盖，不是共享 `market_channel_case_when_0726.sql` 的组成部分；只有业务明确将其提升为共享规则或明确要求模板吸收时，才同步进模板 7689，避免把模型定向条件误当作共享 CASE。
+- 市场顾问部 8 个既有模板（`5962, 6529, 7689, 7808, 8006, 8101, 8882, 9002`）均必须与 0805 共享渠道 CASE 保持规则顺序、条件和输出值一致；目标别名仅按模板字段做等价适配。
+- 当前发布 SQL 以线上模板回读文件和 `knowledge/dashboards/template_query_market_datasets.md` 登记为准。
+- 每次更新 `market_channel_case_when_MMDD.sql` 时，必须同时读取上述 8 个线上模板、做规则级差异比较、原位保存并发布同一模板 id、回读 SQL/参数/最终字段；已有申请关系不得因重建模板而失效。
+- 当前 2026-08-01/02 两条退款批次规则仍属于指定 Data Center 模型的定向覆盖，不是共享 `market_channel_case_when_0805.sql` 的组成部分；只有业务明确将其提升为共享规则或明确要求模板吸收时，才同步进模板，避免把模型定向条件误当作共享 CASE。
 
 ## 4. 主要依赖字段
 
@@ -189,7 +196,7 @@ with base as (
         t.user_id,
         t.employee_email_name,
         t.rule_name,
-        -- 粘贴 resources/raw_sql/market_channel_case_when_0726.sql
+        -- 粘贴 resources/raw_sql/market_channel_case_when_0805.sql
         -- 并按需要将输出别名 qudao 改为 channel_map
         <latest_channel_case_when>
     from bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df t

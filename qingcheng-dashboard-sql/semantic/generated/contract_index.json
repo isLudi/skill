@@ -85,7 +85,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md",
-      "source_sha256": "07c89b4aa029b14a6862ffecf239c7eed02d9b3dbf80556cfba8f39ec5f470e2"
+      "source_sha256": "0b7c71f0a8869f33ae743ae81295a297be046b315a1e9b3392db020e06654af3"
     },
     {
       "id": "qingcheng:dimension:lead_id",
@@ -111,7 +111,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md",
-      "source_sha256": "07c89b4aa029b14a6862ffecf239c7eed02d9b3dbf80556cfba8f39ec5f470e2"
+      "source_sha256": "0b7c71f0a8869f33ae743ae81295a297be046b315a1e9b3392db020e06654af3"
     },
     {
       "id": "qingcheng:dimension:performance_consultant",
@@ -125,7 +125,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md",
-      "source_sha256": "07c89b4aa029b14a6862ffecf239c7eed02d9b3dbf80556cfba8f39ec5f470e2"
+      "source_sha256": "0b7c71f0a8869f33ae743ae81295a297be046b315a1e9b3392db020e06654af3"
     },
     {
       "id": "qingcheng:dimension:period_name",
@@ -236,7 +236,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md",
-      "source_sha256": "07c89b4aa029b14a6862ffecf239c7eed02d9b3dbf80556cfba8f39ec5f470e2"
+      "source_sha256": "0b7c71f0a8869f33ae743ae81295a297be046b315a1e9b3392db020e06654af3"
     },
     {
       "id": "qingcheng:dimension:user_id",
@@ -274,7 +274,7 @@
       ],
       "status": "pending_confirmation",
       "source_path": "knowledge/joins/common_join_keys.md",
-      "source_sha256": "5c5730d401bb94588c0ea42a6450b7cec2e876e6323f57f5a8e4967371357e39"
+      "source_sha256": "a5b3415578ed04c0f88bbd4ec7f0fc13626937dd75a03e6390ece22b186248a5"
     },
     {
       "id": "qingcheng:join:refund_to_order_change",
@@ -287,7 +287,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/joins/common_join_keys.md",
-      "source_sha256": "5c5730d401bb94588c0ea42a6450b7cec2e876e6323f57f5a8e4967371357e39"
+      "source_sha256": "a5b3415578ed04c0f88bbd4ec7f0fc13626937dd75a03e6390ece22b186248a5"
     },
     {
       "id": "qingcheng:join:team_structure_to_period_month",
@@ -300,7 +300,7 @@
       ],
       "status": "pending_confirmation",
       "source_path": "knowledge/joins/common_join_keys.md",
-      "source_sha256": "5c5730d401bb94588c0ea42a6450b7cec2e876e6323f57f5a8e4967371357e39"
+      "source_sha256": "a5b3415578ed04c0f88bbd4ec7f0fc13626937dd75a03e6390ece22b186248a5"
     },
     {
       "id": "qingcheng:join:transferred_lead_to_prelead",
@@ -313,7 +313,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/joins/common_join_keys.md",
-      "source_sha256": "5c5730d401bb94588c0ea42a6450b7cec2e876e6323f57f5a8e4967371357e39"
+      "source_sha256": "a5b3415578ed04c0f88bbd4ec7f0fc13626937dd75a03e6390ece22b186248a5"
     },
     {
       "id": "qingcheng:join:transferred_lead_to_private_assignment_history",
@@ -327,7 +327,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/joins/common_join_keys.md",
-      "source_sha256": "5c5730d401bb94588c0ea42a6450b7cec2e876e6323f57f5a8e4967371357e39"
+      "source_sha256": "a5b3415578ed04c0f88bbd4ec7f0fc13626937dd75a03e6390ece22b186248a5"
     },
     {
       "id": "qingcheng:metric:app_login_flag",
@@ -367,7 +367,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/qingcheng_personal_conversion_metrics.md",
-      "source_sha256": "71de1d52e0c19e78ab08ac18ea2647b56f70b34eac2e40c5dcfbdfc81e155401",
+      "source_sha256": "1a8640cbf800e9afd09199d4805346fcd62b82b02188323c30346d5cae1a4516",
       "automatic_compile": false
     },
     {
@@ -630,7 +630,7 @@
       ],
       "status": "pending_confirmation",
       "source_path": "knowledge/metrics/qingcheng_team_completion_month_metrics.md",
-      "source_sha256": "05bccf3aab4da1209d6113db5cb86a1945937619a5e1782b4821047b5a5a625a"
+      "source_sha256": "d9b237ca4c69b5be7196b352dc55dea803f9ebd81e703de7f83d15687988d95b"
     },
     {
       "id": "qingcheng:metric:tmk_all_lead_unit_efficiency",

@@ -127,7 +127,7 @@ ifnull(sum(${n_H_promit_4}) * 0.5 + (sum(${H_promit_4}) - sum(${Y_promit_4})), 0
 
 2026-07-03 后补充：当 `dim_finance_order_change_df` 漏掉链路，但 service 订单明细同订单已有 `transfer_in_amount/transfer_out_amount` 时，也会作为 `trade_type='调课调班'` 的内部变更补充识别。该规则影响 `income`、`refund`、`refund_4`、`p_sub/r_sub` 及其后续 `promit_4/H_promit_4/n_H_promit_4/Y_promit_4` 入桶。
 
-2026-08-05 后补充：service 是正常收入/退款金额主事实，finance 只用于课程转移缺失补充、调课调班识别和 `ord/re_ke` 退 4/点睛退 2 规则。finance 源表重复行必须在补充路径先按业务键去重；不得用 finance 直接替代 `income_all/refund_all`。
+2026-08-05 后补充：service 是正常收入/退款金额主事实，finance 只用于课程转移缺失补充、调课调班识别和 `ord/re_ke` 退 4/点睛退 2 规则。finance 独立明细不得按不完整业务键直接判重；应保留明细并按真实输出粒度聚合，再以 service 同订单同顾问存在性校验防止重复补金额；不得用 finance 直接替代 `income_all/refund_all`。
 
 模板核对结果见 `knowledge/sql_patterns/qingcheng_template_dashboard_amount_reconciliation_20260805.md`：五期个人员工键集合一致，差异由模板保留而看板排除的 `试听` 流水解释，不是 finance 重复行或渠道 join 放大。
 
@@ -136,3 +136,14 @@ ifnull(sum(${n_H_promit_4}) * 0.5 + (sum(${H_promit_4}) - sum(${Y_promit_4})), 0
 - 任职窗口优先按 `order_attr.original_paid_time` 判定，避免历史订单退款串入青橙。
 - 若组织链 `begin_time` 滞后，允许 `team_hist` 期次命中兜底保留当前有效订单。
 - 命中订单变更链路但本身是正常成交的订单不得排除；`is_internal_order_change` 只用于剔除 `trade_type='调课调班'` 的内部变更流水本身。
+
+## 11. 2026-08-07 调课调班明细粒度修复
+
+本次三份完成度 SQL 统一采用以下规则：
+
+- `order_attr` 只按订单和顾问聚合 `original_paid_time`，不再 `max(transfer_in_amount/transfer_out_amount)`。
+- `service_base0` 从当前 service 明细行直接识别 transfer，并将行级 transfer 金额传到 `t4`；因此同订单的正常支付行不会被另一条调课调班行的标记误伤。
+- finance 订单变更只在 service 缺失时受限补充：当前来源必须是 service、命中变更金额且当前行是实际退款（`trade_status like '%退%'`、`refund_amount_yuan > 0`）。finance 课程转移明细保留独立行，按真实输出粒度聚合；同订单同顾问已有 service 链路时不再补金额。
+- `income_all/refund_all` 仍只汇总 service 主事实；`income/refund`、`refund_4/class_refund_4`、`H_promit_4/n_H_promit_4/Y_promit_4` 保持原有内部调课、退 4/点睛退 2 和 H/非 H 业务含义。
+
+20260803期 `张地43` 的行级回归查询 `1534542940`：修复后 `income_all=19,800`、`refund_all=0`、`income=19,800`、`H_promit_4=19,800`、个人折算后产出 `19,800`；旧版因订单级 transfer 回灌曾只剩 `7,800`。生产替换及三份数据中心 `SUCCESS` 证据见 `knowledge/update_log/changelog.md`。

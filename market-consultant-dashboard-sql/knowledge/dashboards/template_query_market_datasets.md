@@ -1,6 +1,6 @@
 # 市场顾问部模板取数源 SQL 清单
 
-维护日期：2026-08-03
+维护日期：2026-08-06
 
 本文件记录从 `模板取数 -> 模板查询 -> 我的模板 -> 我创建的` 中抓取的市场顾问部模板 SQL。所有条目的使用口径均为 **模板取数**，与数据中心数据集源 SQL、Web BI 看板 canonical SQL 分开维护。后续排查模板取数代码时优先读取本清单和下表中的具体 raw SQL 文件。
 
@@ -10,12 +10,29 @@
 - 来源接口：`POST https://uanalysis.baijia.com/uanalysis-template/template/createList`，读取返回行中的 `sqlDetail`。
 - 同步策略：raw SQL 保存平台模板取数当前发布版本；治理变更必须原位更新远端、发布并回读一致后再登记，不用模板 SQL 覆盖数据中心或看板 canonical SQL。
 - 口径说明：本清单 SQL 的使用口径统一标记为 `模板取数`。若与数据中心或看板 SQL 同名/同类，默认先按来源区分，不自动互相替代。
+- 2026-08-06 0805 版本：8 个既有市场顾问部模板（`5962, 6529, 7689, 7808, 8006, 8101, 8882, 9002`）全部原位 Apply、独立 Publish，并在发布后读回为 `status=2`；模板 id、权限/申请关系、参数契约和输出字段保持不变，线上 SQL hash 与候选 hash 全部一致。
+- 0805 渠道 CASE 采用原始顺序逐分支融合结果：170 个 `WHEN` 分支；模板按源字段别名等价适配，不机械切片删除或合并改变优先级。
 - 2026-07-23 将 5 个仍有效且已发布的市场顾问渠道归因模板原位更新为 `rule_name like '%北京直播江苏%' then '北京直播江苏'`；模板 id 保持不变，发布后逐个新建查询验证。
 - 最新 SQL 查询验证均为 `SUCCESS`：`8882 -> 379800 (2523 行)`、`8866 -> 379801 (5237 行)`、`8796 -> 379810 (1566 行)`、`8797 -> 379812 (582 行)`、`8801 -> 379804 (1053 行)`。其中 `8796/8797` 使用单期次范围 `20260710期 <= qici < 20260711期`；整月首轮仅因平台 5 分钟上限失败，不作为最新版 SQL 不可执行的证据。
-- 2026-07-26 仅原位更新 `AI分析市场顾问部_宽表`（模板 id `9002`）：基于宽表现有字段别名和辅助字段整合 0726 渠道归因，未直接粘贴标准 CASE；保留 `${qici:1}`、`${qici:2}` 两个参数和原 122 个输出字段，并将相同期次半开区间下推至 `lead_raw` 主链。最终 SQL SHA-256 为 `444df1af42594534d06f1afc78549c76aabc75a35ff487632efa2fb922289a9c`，验证查询 `381050` 返回 373 行且状态为 `SUCCESS`。按本轮范围，另外四个既有模板不再重复验证。
-- 2026-08-03 原位更新 `业财用户出单明细`（模板 id `7689`）：仅用 `market_channel_case_when_0726.sql` 的 156 条共享渠道分支替换旧的 196 条 `channel_map` 分支，保留模板身份、申请关系、`${dt}`、暑期期次表达式、来源表和 26 个最终字段。线上 SQL 文本 SHA-256 为 `8704c71c2962a75173e66873e3b9d5388d63e7eb0623bfa7b5ae35ad37a38cfa`；发布后查询 `384631` 为 `SUCCESS`，返回 9354 行。
+- 2026-07-26 仅原位更新 `AI分析市场顾问部_宽表`（模板 id `9002`）：基于宽表现有字段别名和辅助字段整合 0726 渠道归因，未直接粘贴标准 CASE；保留 `${qici:1}`、`${qici:2}` 两个参数和原 122 个输出字段，并将相同期次半开区间下推至 `lead_raw` 主链。最终 SQL SHA-256 为 `444df1af42594534d06f1afc78549c76aabc75a35ff487632efa2fb922289a9c`，验证查询 `381050` 返回 373 行且状态为 `SUCCESS`。按本轮范围，另外四个既有模板不再重复验证；0726 CASE 仅作为历史归档保留。
+- 2026-08-03 原位更新 `业财用户出单明细`（模板 id `7689`）：仅用历史 `market_channel_case_when_0726_legacy.sql` 的 156 条共享渠道分支替换旧的 196 条 `channel_map` 分支，保留模板身份、申请关系、`${dt}`、暑期期次表达式、来源表和 26 个最终字段。线上 SQL 文本 SHA-256 为 `8704c71c2962a75173e66873e3b9d5388d63e7eb0623bfa7b5ae35ad37a38cfa`；发布后查询 `384631` 为 `SUCCESS`。本条为历史记录，当前线上口径以 0805 清单为准。
 
-## 模板清单
+## 0805 当前模板清单
+
+| 模板名称 | 模板 id | 状态 | 发布后 SQL SHA-256 | raw SQL | SQL 行数/字节 | 模板参数 | 发布后验证 |
+|---|---:|---|---|---|---:|---|---|
+| 市场部_首call率 | 5962 | published | `1795d0a588701f4e43d5d7e1fef529f108b6e2ca70cc1967d132e07240b78e66` | [`template_query_market_first_call_rate_20260806.sql`](../../resources/raw_sql/template_query_market_first_call_rate_20260806.sql) | 444 / 51228 | `${group_period_name}` | Apply/Publish/读回一致 |
+| 市场顾问部_触达_沟通UID明细 | 6529 | published | `65bf87319c2d9acb7c2b7d0274e99e5cb3809ab9f3fa912f5f8a75327099eb26` | [`template_query_market_contact_uid_detail_20260806.sql`](../../resources/raw_sql/template_query_market_contact_uid_detail_20260806.sql) | 280 / 41316 | `${group_period_name}`, `${begin_day}`, `${end_day}` | Apply/Publish/读回一致 |
+| 业财用户出单明细 | 7689 | published | `2339f22aa2f903f7712ed25a08f55b6cabebdeae92739650092f5e1bcd46ad70` | [`template_query_market_finance_order_detail_20260806.sql`](../../resources/raw_sql/template_query_market_finance_order_detail_20260806.sql) | 246 / 40399 | `${dt}` | Apply/Publish/读回一致 |
+| 市场运营专用_多维全链路分析 | 7808 | published | `109fd2a64409221900e22df7f1555f5bfdef14c629ca9caae2117cafd726e72f` | [`template_query_market_wide_analysis_20260806.sql`](../../resources/raw_sql/template_query_market_wide_analysis_20260806.sql) | 589 / 57780 | `${period_name1}`, `${period_name2}` | Apply/Publish/读回一致 |
+| B转A用户明细 | 8006 | published | `3bba3d0f8926ac349c79011f53f27e8c3c45359206ef1810f0b1d0401cd83327` | [`template_query_market_b_to_a_lead_detail_20260806.sql`](../../resources/raw_sql/template_query_market_b_to_a_lead_detail_20260806.sql) | 358 / 46798 | `${dt}` | Apply/Publish/读回一致 |
+| 市场_B转A过程_转化数据 | 8101 | published | `e7d48b084ec5f28331e667ba1f333d5fc3bbf08224e4a6b05d7405c89f55f07d` | [`template_query_market_b_to_a_conversion_20260806.sql`](../../resources/raw_sql/template_query_market_b_to_a_conversion_20260806.sql) | 421 / 49900 | `${period_name}` | Apply/Publish/读回一致 |
+| AI分析市场顾问部多科用户成单数据 | 8882 | published | `4ef34b7a8c17a82437ff4c1f25ffa0509598d20334ce3766c9cee926ed02373c` | [`template_query_market_multi_subject_order_user_20260806.sql`](../../resources/raw_sql/template_query_market_multi_subject_order_user_20260806.sql) | 351 / 43870 | 无（保留既有空参数契约） | Apply/Publish/读回一致 |
+| AI分析市场顾问部_宽表 | 9002 | published | `dd7f52564d09515532d45c015073e9fdec8e08c6d3d0a42ac382b249e72cebb0` | [`template_query_market_wide_20260806.sql`](../../resources/raw_sql/template_query_market_wide_20260806.sql) | 177 / 75116 | `${qici:1}`, `${qici:2}` | Apply/Publish/读回一致 |
+
+下方表格保留历史模板 SQL 归档和历史验证记录；当前线上口径以本节 0805 清单为准。
+
+## 历史模板归档
 
 | 模板名称 | 模板 id | 状态 | 更新时间 | 使用口径 | raw SQL | SQL 行数 | SQL 字节 | 主要依赖表 | 模板参数 | 用途与说明 | 注意事项 |
 |---|---:|---|---|---|---|---:|---:|---|---|---|---|

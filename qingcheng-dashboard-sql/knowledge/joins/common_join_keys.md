@@ -7,7 +7,7 @@
 | 左表/CTE | 右表/CTE | join key | join 类型 | 适用场景 | 状态 |
 |---|---|---|---|---|---|
 | `service_scope` | `temp_table.dingxi01_qing_team_jg team_hist` | `employee_email_name + qici` | left join | 组织链滞后时按期次保留员工有效 service 流水 | 先确认员工/期次粒度唯一，不能固定取最新期次 |
-| `course_transfer_finance` | `service_scope` | `order_number + employee_email_name` | anti/left join | 仅补 service 缺失的课程转移链路 | finance 先按业务键去重并聚合；补充行不进入 `income_all/refund_all` |
+| `course_transfer_finance` | `service_scope` | `order_number + employee_email_name` | anti/left join | 仅补 service 缺失的课程转移链路 | finance 保留独立明细后按真实输出粒度聚合；同订单同顾问已有 service 链路时不补入；补充行不进入 `income_all/refund_all` |
 | `unified_amount` | `order_change` | `order_number` | left join | 识别内部调课调班 | 只影响 legacy/rule 金额；正常 service 金额主事实不被替换 |
 | `rd` | `re_ke` | `order_number + qici` | left join | 补全退 4/点睛退 2 所需完课节数 | 只影响 `refund_4/class_refund_4/promit_4`，不影响 `refund_all` |
 
@@ -41,7 +41,7 @@
 | `share_order` | `temp_table.dingxi01_qing_team_jg jg` | `share_order.qici = jg.qici and share_order.name = jg.employee_email_name` | left join | 退费结构分析按结果期次补充学部、小组、大组和经理；同一订单参考集同时展开年级、产品、科目三类分析 | `qingcheng_refund_structure_share_analysis_20260710_20260728.sql`；架构表期次唯一性待确认 |
 | `order_reason_alloc` | `refund_reason_by_order` / `refund_reason_order_total` | `order_number` | left join | 将订单退款金额按财务原因源金额分摊；无原因时保留“未获取到退费原因”，并要求订单级金额守恒 | `qingcheng_refund_reason_analysis_20260710_20260728.sql`；分摊规则已确认 |
 | `reason_detail_with_org` | `temp_table.dingxi01_qing_team_jg jg` | `qici + name = qici + employee_email_name` | left join | 为原因金额和退费正价课人头补充历史期次组织；退费人头键包含归属切片，避免跨期串人 | `qingcheng_refund_reason_analysis_20260710_20260728.sql`；未命中架构不应静默改用最新期次 |
-| `rd` 主交易层 | `finance_dw.dim_finance_order_change_df order_change` + service transfer 标记 | `rd.order_number = order_change.order_number`；service transfer 从 `order_attr` 按 `order_number + performance_employee_email_name` 聚合并随 `dd/gmv/rd` 传递 | left join / 字段传递 | 识别内部调课调班调入/调出，避免误入外部收入/退款桶；覆盖 `biz_type in (2,7)`，并用 service `transfer_in_amount/transfer_out_amount` 补充漏链路 | 已从 SQL 入库，service 明细需先聚合后回连避免放大 |
+| `rd` 主交易层 | `finance_dw.dim_finance_order_change_df order_change` + 当前 service 行 transfer 标记 | `rd.order_number = order_change.order_number`；service transfer 从 `service_base0` 当前明细行随 `service_scope -> rd -> t4` 传递 | left join / 字段传递 | 识别内部调课调班调入/调出，避免误入外部收入/退款桶；覆盖 `biz_type in (2,7)`；finance 订单变更字段只作为 service 行规则补充 | 2026-08-07 起不得按订单级 max 回灌 transfer；finance 独立明细保留后按真实粒度聚合，避免吞行或放大 |
 | `course_transfer_finance` | `service_dw.dwd_crm_assign_private_detail_hf` | `target_user_number = user_number and employee_email_name = employee_email_name`，并校验 `assign_time <= trade_time < close_time/fall_sea_time` | inner join 后窗口去重 | 证明 B 用户在交易时点处于同一青橙顾问保护期；用于 2460 标准订单集及复用该订单集的 2740，自 2026-07-20 起补数 | 已从 SQL 入库；同订单科目按分配时间、更新时间、私海 ID 倒序取 1 条 |
 | `rd` | `re_ke` | `order_number + qici = qici_re` | left join | 给财务交易补充全退时调课链路完课课节数 | 已从 SQL 入库 |
 | `rd_0` | `temp_table.dingxi01_qing_qi_moth` | `qici` | left join | 期次映射月份 | 已从 SQL 入库 |

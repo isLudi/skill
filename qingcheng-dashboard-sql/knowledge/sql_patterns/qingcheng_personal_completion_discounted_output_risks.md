@@ -137,14 +137,14 @@ sum(case when source_type = 'service' then income_amount_yuan else 0 end) as inc
 sum(case when source_type = 'service' then refund_amount_yuan else 0 end) as refund_all
 ```
 
-finance 补充口径必须先按业务键去重，再按订单、目标用户、顾问、科目聚合：
+finance 补充口径不能先用不完整投影键判定重复。当前个人/团队三份 canonical SQL 保留 finance 独立明细（含 `finance_detail_id`），再按订单、目标用户、顾问、交易时间、班级、科目、课程部门等真实输出粒度聚合：
 
 ```sql
 cast(coalesce(income_amount, 0) + coalesce(transfer_in_amount, 0) as double) / 100.0 as income_amount,
 cast(coalesce(refund_amount, 0) + coalesce(transfer_out_amount, 0) as double) / 100.0 as refund_amount
 ```
 
-如果 service 侧仍缺少课程转移完整流水，才以 `finance_dw.app_finance_performance_extend_details_hf` 补齐缺失事件；finance 不直接替代正常 `income_all/refund_all`，也不能未经去重直接 join。个人完成度、团队完成度【期】和团队完成度【月】的看板 SQL 不使用 `where f.trade_timestamp > ${begin_trade_time} and f.trade_timestamp < ${end_trade_time}` 这类模板时间参数；看板 SQL 继续通过 `qici > '20260424期'`、期次映射表和目标/架构表控制展示范围。
+如果 service 侧仍缺少课程转移完整流水，才以 `finance_dw.app_finance_performance_extend_details_hf` 补齐缺失事件；finance 不直接替代正常 `income_all/refund_all`，也不能未经真实粒度聚合直接 join。补充前用 `order_number + employee_email_name` 判断 service 是否已覆盖同一链路，不使用可能不一致的 finance/service `user_id` 做唯一判断。个人完成度、团队完成度【期】和团队完成度【月】的看板 SQL 不使用 `where f.trade_timestamp > ${begin_trade_time} and f.trade_timestamp < ${end_trade_time}` 这类模板时间参数；看板 SQL 继续通过 `qici > '20260424期'`、期次映射表和目标/架构表控制展示范围。
 
 与渠道订单模板对账时，模板原始 SQL 未排除 `clazz_name like '%试听%'`，而完成度 service 主事实使用 `coalesce(clazz_name, '') not like '%试听%'`；未先统一该条件，会形成少量试听收入/退款差异。
 
@@ -154,9 +154,10 @@ cast(coalesce(refund_amount, 0) + coalesce(transfer_out_amount, 0) as double) / 
 
 当前修复规则：
 
-- `order_attr` 聚合 service `transfer_in_amount/transfer_out_amount`，只作为内部调课调班识别信号；
-- `t4.is_internal_order_change` 在 `trade_type='调课调班'` 且 service transfer 非 0 时置 1；
-- 正常订单即使命中 service 或 finance 链路，也不因此被剔除。
+- `order_attr` 只聚合 `original_paid_time`，不再按订单和顾问 `max(transfer_in_amount/transfer_out_amount)`；
+- `service_base0` 直接保留当前 service 明细行的 transfer 金额，`t4.is_internal_order_change` 先按当前行 transfer 非 0 识别；
+- finance 订单变更仅在 service 缺失时按实际退款行补充：来源为 service、命中变更金额、`trade_status like '%退%'` 且 `refund_amount_yuan > 0`；
+- 正常订单即使命中 service 或 finance 链路，也不因此被剔除；finance 独立明细保留后按真实业务粒度聚合，规则字段和补充表仍须先聚合到唯一 join 粒度。
 
 ### 3.5 调课调班链路只接退款明细层会误算主交易调出退款
 
@@ -182,17 +183,17 @@ cast(coalesce(refund_amount, 0) + coalesce(transfer_out_amount, 0) as double) / 
 
 ```sql
 case
-    when rd.trade_type = '调课调班'
+    when coalesce(rd.service_transfer_in_amount_yuan, 0) > 0
+      or coalesce(rd.service_transfer_out_amount_yuan, 0) > 0
+    then 1
+    when rd.source_type = 'service'
+     and coalesce(order_change.has_order_change, 0) = 1
      and (
-            (
-                coalesce(order_change.has_order_change, 0) = 1
-                and (
-                    coalesce(order_change.transfer_in_amount_yuan, 0) > 0
-                    or coalesce(order_change.transfer_out_amount_yuan, 0) > 0
-                )
-            )
-            or rd.name_total_price < 0
+            coalesce(order_change.transfer_in_amount_yuan, 0) > 0
+            or coalesce(order_change.transfer_out_amount_yuan, 0) > 0
          )
+     and rd.trade_status like '%退%'
+     and coalesce(rd.refund_amount_yuan, 0) > 0
     then 1
     else 0
 end as is_internal_order_change
@@ -206,6 +207,22 @@ end as is_internal_order_change
 已验证样例：
 
 - `李孟笛06`：错误版本会把 `20260626期` 多笔正常订单一起排除，个人看板累计净营收被压到 `9150`；修复后该期恢复到 `22550`，李嘉诚06 团队期次净收恢复到 `75244`。
+
+### 3.6.1 20260803期张地43：订单级 transfer 回灌造成折算后产出少算
+
+诊断查询 `1534514812` 对比了 service 原始明细与订单级 transfer 汇总：`张地43` 在 `20260803期` 的同一订单中，原始 transfer 标记只出现在调课调班明细行，但旧版 `order_attr` 取订单级 `max` 后，将约 `12,000` 元正常支付行一并标记为内部流水。finance 汇总查询 `1534522499` 同时显示该订单存在正常支付行和调课退款行，但这不是 `income_all/refund_all` 的直接金额来源。
+
+修复后的行级回归查询 `1534542940` 结果为：
+
+```text
+income_all   = 19,800
+refund_all   = 0
+income       = 19,800
+H_promit_4   = 19,800
+折算后产出    = 19,800
+```
+
+因此张地43 原先 `班课营收=19,800` 但折算后产出仅 `7,800` 的直接原因，是订单级 transfer 标记误伤正常支付行，不是 H/非 H 折算或 finance 重复行直接把金额乘大/乘小。修复后 `service_base0` 保留明细行 transfer；`order_change` 规则字段仍仅对 service 缺失的实际退款行补充，finance 课程转移金额则保留独立明细、按真实粒度聚合并用同订单同顾问存在性抑制重复，三份 SQL 已统一应用。
 
 ### 3.7 团队架构必须按期次 join，不能固定取最新期次
 

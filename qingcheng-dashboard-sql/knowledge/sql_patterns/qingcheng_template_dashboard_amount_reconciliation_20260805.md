@@ -47,14 +47,14 @@ and coalesce(s.clazz_name, '') not like '%试听%'
 
 ### 3.2 不是 finance 源表重复行导致的当前金额差异
 
-`finance_dw.app_finance_performance_extend_details_hf` 确实存在业务键重复行，仍需在 finance 补充和退 4/点睛退 2 规则路径中去重；但当前看板的 `income_all/refund_all` 由 service 明细直接汇总：
+`finance_dw.app_finance_performance_extend_details_hf` 的不完整投影键不能代表当前调课调班明细的唯一粒度；当前三份完成度 SQL 保留独立 finance 明细并按真实业务粒度聚合，再用 `order_number + employee_email_name` 判断 service 是否已覆盖链路。但当前看板的 `income_all/refund_all` 仍由 service 明细直接汇总：
 
 ```text
 income_all = sum(service income_amount / 100)
 refund_all = sum(service refund_amount / 100)
 ```
 
-finance 不参与这两个全部收入/全部退款字段的正常金额求和。当前五期、同一员工范围的诊断也未发现由渠道明细 join 造成的重复放大。因此，**不能通过修改 finance 源表来解决这组看板与模板的差异**。finance 重复仍是需要治理的独立数据质量问题，影响范围主要是旧 `income/refund`、调课调班补充链路和退 4/点睛退 2 规则字段。
+finance 不参与这两个全部收入/全部退款字段的正常金额求和。当前五期、同一员工范围的诊断也未发现由渠道明细 join 造成的重复放大。因此，**不能通过修改 finance 源表来解决这组看板与模板的差异**。finance 明细粒度风险仍需在各补充 SQL 中显式处理：不能用不完整投影键吞掉独立行，也不能未经真实粒度聚合直接 join；影响范围主要是 legacy `income/refund`、调课调班补充链路和退 4/点睛退 2 规则字段。
 
 ## 4. 当前看板金额公式
 
@@ -109,3 +109,28 @@ and coalesce(clazz_name, '') not like '%试听%'
 - 差异诊断：query `1530317495`，返回 10 个差异键；每个差异键均由试听金额解释，渠道重复指标为 0。
 - 个人看板只读 profile hash：`c79db30f804747cd5f6ff3079b8a5050ab9efc8ae2c46f63de804a07bbb6c369`。
 - 团队看板只读 profile hash：`291d536863a1a4bfd23cc3e7403e8b7fe921cd7e4e0a8c1a7fc5beaf755b950f`。
+
+## 7. 2026-08-07 调课调班行级回归与三模型上线
+
+### 7.1 根因与修复
+
+20260803期 `张地43` 的专项排查发现，旧版 `order_attr` 按订单和顾问取 `max(transfer_in_amount/transfer_out_amount)`，再将订单级标记回灌到同订单所有 service 明细；该订单约 `12,000` 元正常支付行没有原始 transfer 标记，却被旧规则当作内部流水排除。于是 `income_all=19,800`，但 legacy `income` 和折算后产出只剩 `7,800`。
+
+本次三份 canonical SQL 统一改为：
+
+- `order_attr` 只聚合原始支付时间；
+- `service_base0` 在当前明细行识别 transfer 并传递到 `t4`；
+- finance 仅在 service 缺失且当前行确为实际退款、变更金额非 0 时补充识别，不按订单整体剔除；
+- `finance_dw.app_finance_performance_extend_details_hf` 在当前三份完成度 SQL 中保留独立明细并按真实输出粒度聚合，`income_all/refund_all` 仍由 service 主事实汇总，不受 finance 补充路径影响。
+
+行级回归查询 `1534542940` 显示 `张地43` 修复后 `income=19,800`、`H_promit_4=19,800`、折算后产出 `19,800`。团队期聚合查询 `1534547907` 返回 `output_rows=330`、`income_all=26,961,943.26`、`refund_all=3,507,394.74`、折算后产出 `23,009,158.79`；团队月聚合查询 `1534550261` 返回 `output_rows=88`、`income_all=26,962,143.26`、`refund_all=3,507,394.74`、折算后产出 `23,009,358.79`。个人、团队期、团队月 canonical 全量查询分别为 `1534559704`、`1534553633`、`1534556864`，均成功。
+
+### 7.2 Data Center 生产回读与抽数
+
+| 数据集 | model | Data Center SQL SHA-256 | Preview task | 新抽数 run | 结果 |
+|---|---:|---|---:|---:|---|
+| 青橙个人转化 | `2769` | `491b3c9dfb4062cff47ca9b3faaf39b663a25aa044d03117ad11399db2ebc3f1` | `1534567480` | `163237842` | `SUCCESS` |
+| 团队完成度【期】 | `2680` | `3d80ad72267fc071998a94e18878991757617d052d3c0b8933979c6d1adbec07` | `1534569423` | `163237888` | `SUCCESS` |
+| 团队完成度【月】 | `2677` | `f8bfc3cf89cdb3e8cea4b9193da9294294c67f11dcccc3aff2b87aee4dbe2827` | `1534571611` | `163237923` | `SUCCESS` |
+
+三个替换 receipt 均为 `fully_verified=true`，包含 Preview、保存后 SQL 回读、刷新和新抽数成功记录。生产替换计划与 receipt 位于 `C:\Users\Ludim\.codex\runtime\usql-web-query-operator\data-center\replacement\`。
