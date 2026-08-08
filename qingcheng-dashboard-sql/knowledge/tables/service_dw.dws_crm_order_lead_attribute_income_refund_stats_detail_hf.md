@@ -256,7 +256,7 @@ coalesce(income_amount / 100, 0) - coalesce(refund_amount / 100, 0) as promit_am
 
 - 金额字段在原表疑似以分为单位，SQL 除以 100 转为元。
 - `promit_amount` 为历史 SQL 字段名，含义为净营收。
-- 交易期次 `qici` 由业务日历优先、`trade_timestamp` 周五规则兜底计算；当前 2460/2740 canonical SQL 使用业务确认的六个暑期窗口，覆盖 `2026-07-07` 至 `2026-08-12`，最后窗口输出 `20260808期`，且不使用三参数 `date_add`。
+- 交易期次 `qici` 由业务日历优先、`trade_timestamp` 周五规则兜底计算；当前 2460/2740 canonical SQL 使用业务确认的八个暑期窗口，覆盖 `2026-07-07` 至 `2026-08-23`，最新窗口输出 `20260808期`、`20260815期`、`20260821期`，且不使用三参数 `date_add`。
 - 青橙个人/团队完成度 canonical SQL 当前把本表作为 `income_all/refund_all` 的正常金额主事实，使用 `income_amount/refund_amount` 除以 100 转元；这些字段包含 service 明细中的全部收入/退款，不因内部调课调班识别而被删掉。
 - `transfer_in_amount` / `transfer_out_amount` 只用于识别内部调课调班，支撑 legacy `income/refund` 和退 4/点睛退 2 规则；它们不替代正常金额主事实。
 - 订单明细侧核对个人/团队完成度时，若发现 service 缺失的课程转移链路，再用 `finance_dw.app_finance_performance_extend_details_hf` 做受限补充；finance 独立明细不能用不完整投影键判定重复，应保留后按真实业务粒度聚合，并通过 `order_number + employee_email_name` 判断 service 是否已覆盖，不能直接回连放大 service 金额。

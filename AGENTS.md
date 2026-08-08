@@ -49,25 +49,25 @@ Auto-detect the smallest sufficient Skill set from the request and current artif
 
 ### Business SQL Skills
 
-- Select `market-consultant-dashboard-sql` for explicit 市场顾问部 / market-consultant metrics, dashboards, tables, joins, ranges, channels, evaluation, attendance, outbound calls, refunds, traffic, registered artifacts, or market knowledge maintenance. It owns market semantic contracts, QuerySpec/QueryPlan, governed SQL generation/repair, bounded probes, and dashboard design artifacts. It does not execute SQL, manipulate Excel, or supply Qingcheng semantics.
+- Select `market-consultant-dashboard-sql` for explicit 市场顾问部 / market-consultant metrics, dashboards, tables, joins, ranges, channels, evaluation, attendance, outbound calls, refunds, traffic, registered artifacts, market knowledge maintenance, and the registered `馒头_订单明细_支付时间` / `馒头_订单明细_流水时间` templates. Those two 馒头 templates permanently belong to `market_consultant` and need no repeated user declaration. The Skill owns market semantic contracts, QuerySpec/QueryPlan, governed SQL generation/repair, bounded probes, and dashboard design artifacts. It does not execute SQL, manipulate Excel, or supply Qingcheng semantics.
 - Select `qingcheng-dashboard-sql` for explicit 青橙项目部 / Qingcheng metrics, dashboards, temporary tables, joins, ranges, Web BI profiles, governed SQL generation/repair, or Qingcheng knowledge maintenance. All Qingcheng contracts, profiles, indexes, and documentation stay inside that Skill; it must not borrow market semantics.
 - Select `usql-web-query-operator` when the user asks to run/execute SQL, preview or download results, fetch stored Template Query SQL, plan/create/publish/read back a permanent parameterized template, perform a large-result template download, scan/profile dashboards, read edit-page metrics/formulas, plan/apply/publish governed Taitan changes, or read/sync/replace/create Data Center datasets. It executes approved workflows but does not generate business SQL or infer metric definitions. Business Skill names, knowledge roots, dashboard folders, and Data Center local-sync targets must resolve through its validated domain-adapter registry rather than command-local path constants.
 - Select generic `playwright` only for non-USQL sites or bounded DOM/selector diagnosis after the operator has reproduced an SQL/BI UI problem. Generic Playwright must not own USQL login state or replace operator workflows.
 
 ### Files, Documents, and Feishu
 
-- Select the spreadsheet Skill for `.xlsx`, `.xlsm`, `.csv`, or `.tsv` work, spreadsheet exports, formatting, formulas, recalculation, and tabular deliverables. It does not generate or execute SQL.
+- Select the spreadsheet Skill for `.xlsx`, `.xlsm`, `.csv`, or `.tsv` work, local Excel output, formatting, formulas, recalculation, and tabular deliverables. It does not generate or execute SQL. Explicit `lark_sheet` / 飞书电子表格 delivery uses `query-result-to-lark-sheet` after operator execution; its default target is a new root-level Sheet in the approved `openclaw` knowledge space. Use the mandatory title prefixes `市场顾问部_` for `market_consultant` and `青橙项目部_` for `qingcheng`, with underscores between period/data-description segments.
 - Select `sync-qingcheng-market-temp-tables` for the twelve registered Qingcheng and market-consultant workbook families sourced from the exact “青橙数据对接” and “市场顾问部临时表上传” groups. It owns source identity, per-group routing, workbook mapping, changed-source-slice baselines, deterministic file repairs, upload order, source-quality gates, local backup/rollback, and upload receipts. Do not route these workbook structures through either business SQL Skill.
 - Use native visual inspection for images/screenshots and the matching PDF/Office Skill for document files.
 - For Feishu/Lark, use the most specific `lark-*` Skill. Use `lark-shared` first for CLI setup, login/status, user-vs-bot identity, missing scopes, or permission recovery; then hand off to the domain Skill.
-- Route docs/wiki to `lark-doc`/`lark-wiki`, Drive files/permissions/comments/replies/subscriptions/secure labels/import-export to `lark-drive`, sheets to `lark-sheets`, Base records/views/forms/dashboards/workflows/role permissions to `lark-base`, Miaoda/Spark apps/cloud generation/creative design/prototypes/decks/app automation to `lark-apps`, chat to `lark-im`, native Markdown to `lark-markdown`, real-time events to `lark-event`, contact and visible bot/agent lookup to `lark-contact`, reusable wrappers to `lark-skill-maker`, and uncovered native APIs to `lark-openapi-explorer`. Calendar, mail, slides, tasks, approvals, OKRs, minutes, VC, whiteboard, attendance, and workflow synthesis use their matching `lark-*` Skill; meeting-summary synthesis routes to `lark-workflow-meeting-summary`, and standup-style calendar/task summaries route to `lark-workflow-standup-report`.
+- Route docs/wiki to `lark-doc`/`lark-wiki`, Drive files/permissions/comments/replies/subscriptions/secure labels/import-export to `lark-drive`, sheets to `lark-sheets`, Base records/views/forms/dashboards/workflows/role permissions to `lark-base`, Miaoda/Spark apps/cloud generation/creative design/prototypes/decks/app automation to `lark-apps`, chat to `lark-im`, native Markdown to `lark-markdown`, real-time events to `lark-event`, contact and visible bot/agent lookup to `lark-contact`, reusable wrappers to `lark-skill-maker`, and uncovered native APIs to `lark-openapi-explorer`. Query-result delivery to a new Sheet node uses `query-result-to-lark-sheet`, which delegates node/table operations to the official Lark Skills. Calendar, mail, slides, tasks, approvals, OKRs, minutes, VC, whiteboard, attendance, and workflow synthesis use their matching `lark-*` Skill; meeting-summary synthesis routes to `lark-workflow-meeting-summary`, and standup-style calendar/task summaries route to `lark-workflow-standup-report`.
 - A recognizable Feishu/Lark URL or token routes to its domain Skill rather than generic web fetch. On permission or identity failure, return to `lark-shared`, repair the minimum required authorization, then retry the same domain Skill.
 
 ## Text2SQL Domain Resolution
 
 Resolve the business domain before semantic retrieval or production SQL generation:
 
-1. Explicit market-consultant language or a registered `market_consultant` artifact selects `market-consultant-dashboard-sql`.
+1. Explicit market-consultant language, either registered 馒头订单明细 template, or another registered `market_consultant` artifact selects `market-consultant-dashboard-sql`.
 2. Explicit Qingcheng language or a registered `qingcheng` artifact selects `qingcheng-dashboard-sql`.
 3. Ambiguous metrics, joins, ranges, dashboards, or business definitions remain `domain: unresolved`; never default them to market-consultant.
 4. An unresolved request may inspect only neutral physical facts such as table names, fields, types, partitions, and candidate keys. It must not inherit a department metric, scope, range, temporary table, mapping, business join, dashboard definition, or raw SQL.
@@ -85,7 +85,7 @@ Selected business SQL Skill builds and validates QuerySpec/QueryPlan and SQL →
 
 ### B. Query and Excel Report
 
-Selected business SQL Skill → operator execution/download → spreadsheet Skill for formatting, formulas, QA, and the finished workbook. If direct download would exceed its boundary, use Workflow L before spreadsheet work.
+Selected business SQL Skill → operator execution/download → route by explicit output mode: `local_excel` uses the spreadsheet Skill; `lark_sheet` uses `query-result-to-lark-sheet`, which creates one new root-level Sheet node in the approved `openclaw` knowledge space by default, writes all requested child sheets through `lark-sheets`, creates native pivots when requested, reads them back, and returns a verified link. If direct download would exceed its boundary, use Workflow L before either delivery path.
 
 ### C. SQL Fix and Re-run
 
@@ -121,7 +121,7 @@ Use only the spreadsheet Skill for cleaning, analysis, formulas, formatting, rec
 
 ### G. Query and Analyze Results
 
-Selected business SQL Skill → operator execution/download (or Workflow L) → spreadsheet Skill for analysis, formulas, visualization, and validated delivery.
+Selected business SQL Skill → operator execution/download (or Workflow L) → spreadsheet Skill for explicitly local Excel analysis/delivery, or `query-result-to-lark-sheet` for explicitly requested Feishu Sheet delivery. Do not infer one output mode from the other.
 
 ### H. Document and Image Reading
 
@@ -141,7 +141,7 @@ Use only the operator's `fetch-template-sql` flow against Template Query → My 
 
 ### L. Large-result Template Download
 
-Selected business SQL Skill finalizes a concrete, fully resolved SQL file → operator `template-download` creates/publishes/queries/downloads a temporary template and enforces cleanup `offline -> delete` → spreadsheet Skill if formatting is requested. A QueryPlan does not itself authorize template writes or downloads.
+Selected business SQL Skill finalizes a concrete, fully resolved SQL file → operator `template-download` creates/publishes/queries/downloads a temporary template and enforces cleanup `offline -> delete` → spreadsheet Skill for local Excel or `query-result-to-lark-sheet` for explicit Feishu Sheet delivery. A QueryPlan does not itself authorize template writes or downloads.
 
 ### M. Feishu Setup and Domain Handoff
 

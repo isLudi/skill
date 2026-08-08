@@ -82,7 +82,7 @@
 
 当前 retained snapshot 的关键特点：
 
-- 结果期次 `qici` 由六个暑期运营窗口的业务日历优先、`trade_timestamp` 周五逻辑兜底生成，当前覆盖 `20260710期` 至 `20260808期`；最后一个窗口仍为 `2026-08-07` 至 `2026-08-12`。
+- 结果期次 `qici` 由八个暑期运营窗口的业务日历优先、`trade_timestamp` 周五逻辑兜底生成，当前覆盖 `20260710期` 至 `20260821期`；最新三个窗口分别为 `2026-08-07~2026-08-11`、`2026-08-12~2026-08-18`、`2026-08-19~2026-08-23`。
 - 营收以 `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` 为主明细来源，并剔除已落在 service 明细 `transfer_in_amount / transfer_out_amount` 的内部调课调班链路。
 - 从 20260722 期起，课程转移到 B 用户且交易时 B 用户处于同一青橙顾问保护期时，以财务最新子订单正向支付隔离补回；原 service 内部转单剔除不变。
 - `podan` 不再按简单 `promit > 0` 统计，而是按折算净收 `((H_promit_4 - Y_promit_4) + n_H_promit_4 * 0.5) > 0` 统计。

@@ -8,8 +8,8 @@
 - 文件夹：`市场顾问数据`
 - dashboard_id：`dashboard_3839499028752805888`
 - 打开入口：`https://uanalysis.baijia.com/dashboard-market?id=dashboard_3839499028752805888&sourceType=1`
-- profile 时间：2026-07-11 09:48:59
-- 原始结构 profile：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\p3-validation-20260711\profile-all\市场顾问数据\评优文字播报\profile.json`
+- profile 时间：2026-08-08 18:45:45
+- 原始结构 profile：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\dashboard-profiles\knowledge-market-20260808\市场顾问数据\评优文字播报\profile.json`
 - 页面渲染：成功
 
 ## 2. 刷新验证
@@ -17,12 +17,12 @@
 | 项目 | 数值 |
 |---|---:|
 | `unit_count` | 1 |
-| `value_unit_count` | 1 |
-| `data_ready_unit_count` | 1 |
+| `value_unit_count` | 0 |
+| `data_ready_unit_count` | 0 |
 | `analytic_unit_count` | 0 |
 | `analytic_data_ready_unit_count` | 0 |
 | `error_count` | 0 |
-| `all_analytic_units_ready` | False |
+| `all_analytic_units_ready` | None |
 
 ## 3. 全局筛选器
 
@@ -34,7 +34,7 @@
 
 | 单元 | unit_id | 类型 | 模型 | 分页/下载 | 刷新状态 | task_id / 行数 |
 |---|---|---|---|---|---|---|
-| 文本框 | unit_3839505972048355328 | u_text | 2421 评优看板 | download=0 | data_ready | task=1459208603,1459208604<br>rows=0 |
+| 文本框 | unit_3839505972048355328 | u_text | 2421 评优看板 | download=0 | unprofiled |  |
 
 ## 5. 分析单元字段结构
 

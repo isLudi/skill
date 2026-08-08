@@ -1,0 +1,4 @@
+interface:
+  display_name: "Query Result to Lark Sheet"
+  short_description: "Deliver verified query results to Feishu Sheets"
+  default_prompt: "Use $query-result-to-lark-sheet to deliver a verified query result to a new root-level Feishu Sheet in the openclaw knowledge space."

@@ -110,14 +110,23 @@ def _fetch_published_template(args: argparse.Namespace):
         try:
             client = TemplateQueryClient(page, args.state_path)
             client.ensure_authenticated(args.username, args.password)
-            selected, matches = client.find_template(
-                name=args.template_name,
-                match="exact",
-                status=2,
-                page_size=args.page_size,
-                max_pages=args.max_pages,
-            )
-            return selected, matches
+            selected = client.fetch_template_by_id(args.template_id)
+            if selected.name != args.template_name:
+                raise UsageError(
+                    f"exact template name mismatch for id {args.template_id}: "
+                    f"got {selected.name!r}, expected {args.template_name!r}"
+                )
+            if selected.is_del not in (None, 0):
+                raise UsageError(
+                    f"Template Query template is deleted and must not be synchronized: "
+                    f"{selected.name} ({selected.id}), isDel={selected.is_del}"
+                )
+            if selected.status != 2:
+                raise UsageError(
+                    f"Template Query template must be published before knowledge sync: "
+                    f"{selected.name} ({selected.id}), status={selected.status}"
+                )
+            return selected, [selected]
         finally:
             context.close()
             browser.close()

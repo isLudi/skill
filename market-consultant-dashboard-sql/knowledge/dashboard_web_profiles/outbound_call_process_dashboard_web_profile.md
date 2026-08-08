@@ -8,8 +8,8 @@
 - 文件夹：`市场顾问数据`
 - dashboard_id：`dashboard_3730722176629411841`
 - 打开入口：`https://uanalysis.baijia.com/dashboard-market?id=dashboard_3730722176629411841&sourceType=1`
-- profile 时间：2026-07-11 09:46:16
-- 原始结构 profile：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\p3-validation-20260711\profile-all\市场顾问数据\外呼过程数据看板\profile.json`
+- profile 时间：2026-08-08 18:44:35
+- 原始结构 profile：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\dashboard-profiles\knowledge-market-20260808\市场顾问数据\外呼过程数据看板\profile.json`
 - 页面渲染：成功
 
 ## 2. 刷新验证
@@ -17,12 +17,12 @@
 | 项目 | 数值 |
 |---|---:|
 | `unit_count` | 6 |
-| `value_unit_count` | 5 |
-| `data_ready_unit_count` | 4 |
+| `value_unit_count` | 0 |
+| `data_ready_unit_count` | 0 |
 | `analytic_unit_count` | 3 |
-| `analytic_data_ready_unit_count` | 3 |
+| `analytic_data_ready_unit_count` | 0 |
 | `error_count` | 0 |
-| `all_analytic_units_ready` | True |
+| `all_analytic_units_ready` | None |
 
 ## 3. 全局筛选器
 
@@ -32,35 +32,35 @@
 | 部门 | department | 273596 |  | 3 |
 | 线索渠道 | channel_map_1 | 273594 |  | 3 |
 | 年级 | grade_1 | 273595 |  | 3 |
-| 经理 | jingli | 322380 |  | 3 |
+| 负责人 | jingli | 322380 |  | 3 |
 | 主管 | xiaozu | 273597 |  | 3 |
 | 顾问 | employee_email_name | 273598 |  | 3 |
-| 规则 | rule_name | 273593 |  | 3 |
 
 ## 4. 组件和单元
 
 | 单元 | unit_id | 类型 | 模型 | 分页/下载 | 刷新状态 | task_id / 行数 |
 |---|---|---|---|---|---|---|
-| 标题图 | unit_3798750134270525441 | u_material | 1 主题分析 |  | loaded_empty | rows=0 |
-| 文本框 | unit_3798773484699615233 | u_text | 1 None | download=0 | data_ready | rows=0 |
+| 标题图 | unit_3798750134270525441 | u_material | 1 主题分析 |  | unprofiled |  |
+| 文本框 | unit_3798773484699615233 | u_text | 1 None | download=0 | unprofiled |  |
 | 全局筛选器 | public_filter_relation_3798754154607599616 | public_filter_relation |  |  | filter_relation |  |
-| 总体数据 | unit_3730781607175761920 | u_pivot | 2054 (内部渠道)外呼过程数据 | page=100<br>download=1 | data_ready | task=1459207337,1459207338<br>rows=4<br>total=4 |
-| 主管维度 | unit_3798743671868997638 | u_pivot | 2054 (内部渠道)外呼过程数据 | page=200<br>download=0 | data_ready | task=1459207355,1459207353<br>rows=156<br>total=156 |
-| 个人维度 | unit_3798745287165575173 | u_pivot | 2054 (内部渠道)外呼过程数据 | page=200<br>download=0 | data_ready | task=1459207373,1459207371<br>rows=200<br>total=543 |
+| 总体数据 | unit_3730781607175761920 | u_pivot | 2054 (内部渠道)外呼过程数据 | page=100<br>download=1 | unprofiled |  |
+| 主管维度 | unit_3798743671868997638 | u_pivot | 2054 (内部渠道)外呼过程数据 | page=200<br>download=0 | unprofiled |  |
+| 个人维度 | unit_3798745287165575173 | u_pivot | 2054 (内部渠道)外呼过程数据 | page=200<br>download=0 | unprofiled |  |
 
 ## 5. 分析单元字段结构
 
 ### 总体数据
 
 - unit_id：`unit_3730781607175761920`；类型：`u_pivot`；模型：`2054` / (内部渠道)外呼过程数据
-- 刷新：data_ready；task_ids：`1459207337,1459207338`；行数：4；序列：0 / 0 点
+- 刷新：unknown；task_ids：``；行数：0；序列：0 / 0 点
+- 单元筛选字段：valid_lead_count（id=8103974494234625）
 
 ### 主管维度
 
 - unit_id：`unit_3798743671868997638`；类型：`u_pivot`；模型：`2054` / (内部渠道)外呼过程数据
-- 刷新：data_ready；task_ids：`1459207355,1459207353`；行数：156；序列：0 / 0 点
+- 刷新：unknown；task_ids：``；行数：0；序列：0 / 0 点
 
 ### 个人维度
 
 - unit_id：`unit_3798745287165575173`；类型：`u_pivot`；模型：`2054` / (内部渠道)外呼过程数据
-- 刷新：data_ready；task_ids：`1459207373,1459207371`；行数：200；序列：0 / 0 点
+- 刷新：unknown；task_ids：``；行数：0；序列：0 / 0 点

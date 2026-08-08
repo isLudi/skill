@@ -24,6 +24,7 @@ from usql_web_query.template_permanent import (  # noqa: E402
     template_sql_sha256,
 )
 from usql_web_query.template_query import (  # noqa: E402
+    TemplateQueryClient,
     canonical_template_sql_text,
     template_sql_sha256 as fetched_template_sql_sha256,
 )
@@ -35,11 +36,18 @@ from usql_web_query.template_sql_knowledge import (  # noqa: E402
 )
 
 
-def template(*, template_id: int = 9002, status: int = 2, sql: str = "select 1\r\n") -> SimpleNamespace:
+def template(
+    *,
+    template_id: int = 9002,
+    status: int = 2,
+    is_del: int = 0,
+    sql: str = "select 1\r\n",
+) -> SimpleNamespace:
     return SimpleNamespace(
         id=template_id,
         name="AI分析市场顾问部_宽表",
         status=status,
+        is_del=is_del,
         update_time="2026-08-07 19:09:55",
         publish_time="2026-08-07 19:09:55",
         sql_detail=sql,
@@ -68,6 +76,30 @@ class TemplateSqlKnowledgeTests(unittest.TestCase):
             self.assertEqual(canonical_sql_text(sql), canonical_template_sql_text(sql))
             self.assertEqual(sql_sha256(sql), template_sql_sha256(sql))
             self.assertEqual(sql_sha256(sql), fetched_template_sql_sha256(sql))
+
+    def test_exact_template_id_read_does_not_depend_on_creator_listing(self) -> None:
+        client = object.__new__(TemplateQueryClient)
+        client.fetch_template_detail = lambda template_id: {
+            "id": template_id,
+            "name": "市场部_首call率",
+            "status": 2,
+            "sqlDetail": "select 1\r\n",
+        }
+        selected = client.fetch_template_by_id(5962)
+        self.assertEqual(5962, selected.id)
+        self.assertEqual("市场部_首call率", selected.name)
+        self.assertEqual("select 1", selected.sql_detail)
+
+    def test_exact_template_id_read_rejects_detail_identity_drift(self) -> None:
+        client = object.__new__(TemplateQueryClient)
+        client.fetch_template_detail = lambda _template_id: {
+            "id": 6529,
+            "name": "市场顾问部_触达_沟通UID明细",
+            "status": 2,
+            "sqlDetail": "select 1",
+        }
+        with self.assertRaisesRegex(UsageError, "identity mismatch"):
+            client.fetch_template_by_id(5962)
 
     def test_only_stable_template_filename_is_accepted(self) -> None:
         stable = resolve_template_canonical_path(
@@ -124,6 +156,18 @@ class TemplateSqlKnowledgeTests(unittest.TestCase):
         )
         self.assertEqual("blocked", plan.status)
         with self.assertRaisesRegex(UsageError, "published"):
+            apply_template_sql_plan(plan, expected_plan_sha256=combined_plan_sha256([plan]))
+
+    def test_deleted_template_is_blocked_even_when_status_is_published(self) -> None:
+        plan = plan_template_sql_sync(
+            self.target,
+            template(status=2, is_del=1),
+            canonical_file=Path("resources/raw_sql/template_query_market_wide.sql"),
+            run_date=date(2026, 8, 8),
+        )
+        self.assertEqual("blocked", plan.status)
+        self.assertIn("TEMPLATE_DELETED", {item["code"] for item in plan.diagnostics})
+        with self.assertRaisesRegex(UsageError, "deleted"):
             apply_template_sql_plan(plan, expected_plan_sha256=combined_plan_sha256([plan]))
 
 

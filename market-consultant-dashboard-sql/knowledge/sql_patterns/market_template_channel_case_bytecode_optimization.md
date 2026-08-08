@@ -4,28 +4,28 @@
 
 - 业务域：\`market_consultant\`
 - 平台来源：模板取数
-- 共享规则基线：\`resources/raw_sql/market_channel_case_when_0805.sql\`
-- 规则基线：170 条 \`WHEN\`、109 个去重渠道值；完整 CASE 文本 SHA-256 为 \`73bc9bdc26c7719640c6a66352f1675743ae1f7655221e197ab87865068f236e\`
+- 共享规则基线：\`resources/raw_sql/market_channel_case_when_0808.sql\`
+- 规则基线：175 条 \`WHEN\`、118 个去重渠道值；完整 CASE 文本 SHA-256 为 \`136accb16cf81580f2a2f97198a91225c174a5ee01b27ca6b9327ceac45df7e5\`
 - 适用模板：\`AI分析市场顾问部_宽表\`（id \`9002\`）、\`AI分析市场顾问部多科用户成单数据\`（id \`8882\`）
 
-本文件记录两个已发布模板的同类编译故障修复模式。它只描述模板取数口径，不替代数据中心 canonical SQL，也不改变 0805 CASE 的业务顺序。
+本文件记录两个已发布模板的同类编译故障修复模式。它只描述模板取数口径，不替代数据中心 canonical SQL，也不改变 0808 CASE 的业务顺序。
 
 ## 线上版本登记
 
 | 模板 | 发布后 SQL | 参数 | 输出字段 | 发布后真实查询 |
 |---|---|---|---:|---|
-| \`AI分析市场顾问部_宽表\`（9002） | [\`template_query_market_wide.sql\`](../../resources/raw_sql/template_query_market_wide.sql)，SHA-256 \`8d8391d22112ccc6bb9a46bd24bb92eb520fd0ee34f2206e7b89708baac08c10\` | \`\${qici:1}\`, \`\${qici:2}\` | 122 | query \`1535311064\`，Result API \`success_with_rows\`，约 109.578 秒 |
-| \`AI分析市场顾问部多科用户成单数据\`（8882） | [\`template_query_market_multi_subject_order_user.sql\`](../../resources/raw_sql/template_query_market_multi_subject_order_user.sql)，SHA-256 \`19804a820cb1a6dbd17e6b2fb7dde4747ae722df911fc6f5704c0b910bbf5fc6\` | \`\${qici:1}\`, \`\${qici:2}\` | 22 | query \`1535349113\`，Result API \`success_with_rows\`，约 33.656 秒 |
+| \`AI分析市场顾问部_宽表\`（9002） | [\`template_query_market_wide.sql\`](../../resources/raw_sql/template_query_market_wide.sql)，SHA-256 \`71274379824c29b4216041b0841a3696a41525589d80075fd3ca536941356138\` | \`\${qici:1}\`, \`\${qici:2}\` | 122 | query \`386622\`，540 行，130 秒，\`SUCCESS\` |
+| \`AI分析市场顾问部多科用户成单数据\`（8882） | [\`template_query_market_multi_subject_order_user.sql\`](../../resources/raw_sql/template_query_market_multi_subject_order_user.sql)，SHA-256 \`0a410a877c5895dae41f3bd46241a6fe003f2a20d7c2bf77f0e72fa87aa811ff\` | \`\${qici:1}\`, \`\${qici:2}\` | 22 | query \`386604\`，102 行，19 秒，\`SUCCESS\` |
 
 两个模板均保持原模板 id、名称、owner \`lvshuai01\`、数据源实例 \`dlc_presto\` 和已有申请/权限关系，均按 Apply、独立 Publish、线上 SQL 回读、发布后真实查询完成闭环。8882 原线上版本没有 SQL 参数；因永久模板发布门禁要求至少一个参数，本次将固定的 \`period_name >= '20260403期'\` 改为 \`\${qici:1}\`/\`\${qici:2}\` 同名半开区间过滤，输出字段和渠道口径不变，并减少无关期次扫描。
 
 ## 故障特征
 
-同类失败通常表现为 \`PRESTO_EXECUTE_DQL_ERROR(code=3021)\`、\`Compiler failed\` 或 \`Query results in large bytecode exceeding JVM\`。根因是 170 条渠道规则被编译为一个超长 CASE，叠加模板自身多层 CTE 后超过 Presto 编译器的字节码/stage 限制；不是渠道规则顺序错误，也不是结果为空。
+同类失败通常表现为 \`PRESTO_EXECUTE_DQL_ERROR(code=3021)\`、\`Compiler failed\`、\`Query results in large bytecode exceeding JVM\` 或平台 504。根因是 175 条渠道规则被编译为一个超长 CASE，叠加模板自身多层 CTE 后超过 Presto 编译器的字节码/stage 或查询时限；不是渠道规则顺序错误，也不是结果为空。
 
 不要用以下方式绕过：
 
-- 删除或机械截断 0805 分支；
+- 删除或机械截断 0808 分支；
 - 重排更具体或更宽泛规则；
 - 用 \`UNNEST\` 数组或未经验证的行类型比较替换规则；
 - 仅把固定期次改宽，或删除业务过滤来“避开”超时；
@@ -35,11 +35,11 @@
 
 ### 1. 规则级审计
 
-从线上已发布 SQL 和 0805 canonical SQL 分别提取 active \`WHEN\` 分支，必须同时满足：
+从线上已发布 SQL 和 0808 canonical SQL 分别提取 active \`WHEN\` 分支，必须同时满足：
 
-1. 分支数均为 170；
+1. 分支数均为 175；
 2. 条件文本和输出文本逐条、逐序一致；
-3. 渠道输出序列 SHA-256 为 \`2f1af75ae49e4e70ed53009e216a03939a3c94a8acc9d6bc13e781b82a2dcee1\`；
+3. canonical CASE 文本 SHA-256 为 \`136accb16cf81580f2a2f97198a91225c174a5ee01b27ca6b9327ceac45df7e5\`；
 4. \`其他未知流量\` fallback 保留；
 5. 期次、部门、流量池、source 负责人、SKU 等精确覆盖仍处在原优先级位置。
 
@@ -47,9 +47,9 @@
 
 ### 2. 五组连续 CASE + 最小规则组
 
-将 170 条分成五个连续组，每组 34 条：1-34、35-68、69-102、103-136、137-170。每组使用独立 CASE：命中返回渠道值，未命中返回 \`cast(null as varchar)\`；五组通过 \`UNION ALL\` 产出 \`(mapping_key, channel, rule_group)\`，再按 \`mapping_key\` 使用 \`min_by(channel, rule_group)\` 选择最早非空规则组。
+将 175 条分成五个连续组，每组 35 条：1-35、36-70、71-105、106-140、141-175。每组使用独立 CASE：命中返回渠道值，未命中返回 \`cast(null as varchar)\`；五组通过 \`UNION ALL\` 产出 \`(mapping_key, channel, rule_group)\`，再按 \`mapping_key\` 使用 \`min_by(channel, rule_group)\` 选择最早非空规则组。
 
-\`min_by\` 选择最早非空规则组，因此等价于原始 170 条 CASE 的 first-match 语义。实测六组方案达到 132 stages、超过平台 130 stages 上限；五组×34 是两个模板都能通过实际 Presto 查询的版本。
+\`min_by\` 选择最早非空规则组，因此等价于原始 175 条 CASE 的 first-match 语义。0808 版本采用五组×35，既保持完整规则顺序，又把单个编译单元控制在已验证范围内。
 
 ### 3. 无碰撞键和回连
 
@@ -68,12 +68,12 @@
 每次维护两个模板或其他共享 CASE 模板时，必须留下以下证据：
 
 1. 从线上 published 版本读取 baseline，确认唯一模板 id、owner、实例、参数和输出字段；
-2. 对候选 SQL 做 canonical 170 分支逐序比对，检查 fallback、关键字段覆盖和参数计数；
+2. 对候选 SQL 做 canonical 175 分支逐序比对，检查 fallback、关键字段覆盖和参数计数；
 3. 通过 \`text2sql.py validate-sql\` 的 concrete SQL 检查；\`validate_sql_rules.py\` 若命中旧模板 \`src\` 投影的已知解析器误报，必须同时保存未修改 baseline 对照，不能把误报写成 Presto 失败；
 4. 使用 Presto 实际运行候选 SQL，执行时间必须小于 300 秒且 Result API 为 \`success_with_rows\`；
 5. 按精确计划 hash 原位 Apply，回读未发布版本 SQL/metadata hash；
 6. 单独 Publish，回读 \`status=2\` 和线上 SQL hash；
 7. 必须用发布后回读 SQL 生成具体参数探针并再次实际查询；UI 结果面板缺失时以同一 query id 的 Result API、HTTP 200、error code 0 和字段元数据为准；
-8. 不创建新模板、不删除旧模板、不重新申请权限。
+8. 对有效模板不创建新模板、不重置权限；远端已经删除的模板不恢复、不同步，并从当前 canonical 路由移除。
 
-后续如规则源发生变化，先按 [\`channel_mapping_case_when.md\`](channel_mapping_case_when.md) 完成 0805 之后的逐分支新增/删除/顺序审计，再分别从两个模板的线上 SQL 生成候选；不得把本文件中的五组切分当作可独立维护的渠道规则副本。
+后续如规则源发生变化，先按 [\`channel_mapping_case_when.md\`](channel_mapping_case_when.md) 完成当前版本之后的逐分支新增/删除/顺序审计，再分别从两个模板的线上 SQL 生成候选；不得把本文件中的五组切分当作可独立维护的渠道规则副本。

@@ -1,21 +1,18 @@
 with
--- 青橙昆仑山战役期次日种子。后续只需追加新的期次日期；业务窗口自动取期次日前后各 2 天。
--- 例如 20260722期对应 2026-07-20 至 2026-07-24。
-biz_qici_seed as (
-    select date '2026-07-16' as qici_date
-    union all select date '2026-07-22'
-    union all select date '2026-07-28'
-    union all select date '2026-08-03'
-    union all select date '2026-08-08'
-    union all select date '2026-08-15'
-    union all select date '2026-08-21'
-),
+-- 青橙暑期运营日历。日期范围由业务确认，避免用期次日期前后固定天数近似运营周期。
 biz_qici_calendar as (
-    select
-        qici_date - interval '2' day as start_date,
-        qici_date + interval '2' day as end_date,
-        concat(date_format(cast(qici_date as timestamp), '%Y%m%d'), '期') as qici
-    from biz_qici_seed
+    select *
+    from (
+        values
+            ('20260710期', date '2026-07-07', date '2026-07-13'),
+            ('20260716期', date '2026-07-14', date '2026-07-19'),
+            ('20260722期', date '2026-07-20', date '2026-07-25'),
+            ('20260728期', date '2026-07-26', date '2026-07-31'),
+            ('20260803期', date '2026-08-01', date '2026-08-06'),
+            ('20260808期', date '2026-08-07', date '2026-08-11'),
+            ('20260815期', date '2026-08-12', date '2026-08-18'),
+            ('20260821期', date '2026-08-19', date '2026-08-23')
+    ) as t(qici, start_date, end_date)
 ),
 d_ap as (
     select distinct

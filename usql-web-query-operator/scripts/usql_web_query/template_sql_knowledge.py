@@ -186,6 +186,14 @@ def plan_template_sql_sync(
         diagnostics.append(_diagnostic("INVALID_TEMPLATE_ID", "error", "template id must be positive"))
     if not template.name:
         diagnostics.append(_diagnostic("EMPTY_TEMPLATE_NAME", "error", "template name is empty"))
+    if getattr(template, "is_del", 0) not in (None, 0):
+        diagnostics.append(
+            _diagnostic(
+                "TEMPLATE_DELETED",
+                "error",
+                f"template {template.id} is deleted (isDel={template.is_del}) and must not be synchronized",
+            )
+        )
     if template.status != 2:
         diagnostics.append(
             _diagnostic(

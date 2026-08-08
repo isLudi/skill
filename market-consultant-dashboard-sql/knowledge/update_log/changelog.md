@@ -1008,3 +1008,60 @@
 - 逐个只读回读线上 `published` 模板并按模板 ID/名称核对 SQL SHA-256：保留 11 个仍有效模板的线上最新版，统一写入无日期 stable canonical 文件；7689、7808、8006、8101 和 8878 使用线上回读内容覆盖本地过期候选，9002/8882/5962/6529/8735/8866 与线上哈希一致。
 - 清理 `template_query_market_*` 的日期副本和 8796/8797/8801 三个当前模板列表已不存在的旧代码；历史验证记录保留在文字层面，但不再提供旧 SQL 文件或路由入口。唯一版本审计确认 `duplicate_template_versions=[]`、`legacy_versioned_template_files=[]`。
 - operator 新增 `sync-template-sql`：仅接受 `published` 线上回读，绑定精确模板 ID/名称、稳定路径和 reviewed plan SHA-256；原位覆盖 stable 文件、删除同逻辑日期副本，计划/回执只保留哈希和路径，不留存旧 SQL 文本；`fetch-template-sql` 直接写入 Skill 路径将被阻断。
+
+## 2026-08-08 数据中心 stable canonical SQL 同步
+
+- 按已审阅同步计划原子更新 model_id：`2054, 2132, 2253, 2293, 2310, 2344, 2345, 2349, 2353, 2421, 2423, 2424, 2461, 2533, 2623, 2632, 2634, 2643, 2644, 2683, 2688, 2727, 2751, 2774, 2809, 2812, 2836, 2842, 2883, 2885, 2886, 2890, 2978, 3039`；每个 model_id 只保留稳定 canonical 路径。
+- 写入后已强制重建反向索引和目录，并运行唯一版本审计、域内 integrity 与完整 Text2SQL 栈验证。
+
+## 2026-08-08 模板取数 stable canonical SQL 同步（模板 7689）
+
+- 线上 `published` 模板 `业财用户出单明细`（id `7689`）回读 SQL SHA-256 为 `81c24d5a21dd747807e3641f2edd882693cd6cec50a60fb6a60f91a0f4e4394d`，只保留稳定入口 `resources/raw_sql/template_query_market_finance_order_detail.sql`。
+- 本次清理日期后缀历史副本 0 个；历史 SQL 文本不进入知识库，也不作为路由入口。
+- 保存后已重建反向索引、共享 catalog、唯一版本审计、域内 integrity 和完整 Text2SQL 栈。
+
+## 2026-08-08 模板取数 stable canonical SQL 同步（模板 7808）
+
+- 线上 `published` 模板 `市场运营专用_多维全链路分析`（id `7808`）回读 SQL SHA-256 为 `4f10fa2f7d76db7e3dd49aee115f78b539f19e69e82d04431c4bdbb769c5bf01`，只保留稳定入口 `resources/raw_sql/template_query_market_wide_analysis.sql`。
+- 本次清理日期后缀历史副本 0 个；历史 SQL 文本不进入知识库，也不作为路由入口。
+- 保存后已重建反向索引、共享 catalog、唯一版本审计、域内 integrity 和完整 Text2SQL 栈。
+
+## 2026-08-08 模板取数 stable canonical SQL 同步（模板 8735）
+
+- 线上 `published` 模板 `馒头_订单明细_支付时间`（id `8735`）回读 SQL SHA-256 为 `8c98bc59e61535395be51a77dd78b6a5637ec29ce56fba7a7e32a7104c13fc48`，只保留稳定入口 `resources/raw_sql/template_query_market_mantou_order_detail_pay_time.sql`。
+- 本次清理日期后缀历史副本 0 个；历史 SQL 文本不进入知识库，也不作为路由入口。
+- 保存后已重建反向索引、共享 catalog、唯一版本审计、域内 integrity 和完整 Text2SQL 栈。
+
+## 2026-08-08 模板取数 stable canonical SQL 同步（模板 8882）
+
+- 线上 `published` 模板 `AI分析市场顾问部多科用户成单数据`（id `8882`）回读 SQL SHA-256 为 `0a410a877c5895dae41f3bd46241a6fe003f2a20d7c2bf77f0e72fa87aa811ff`，只保留稳定入口 `resources/raw_sql/template_query_market_multi_subject_order_user.sql`。
+- 本次清理日期后缀历史副本 0 个；历史 SQL 文本不进入知识库，也不作为路由入口。
+- 保存后已重建反向索引、共享 catalog、唯一版本审计、域内 integrity 和完整 Text2SQL 栈。
+
+## 2026-08-08 模板取数 stable canonical SQL 同步（模板 8948）
+
+- 线上 `published` 模板 `馒头_订单明细_流水时间`（id `8948`）回读 SQL SHA-256 为 `79e98bd31a718e383adb97b238abd1b9527a1f5a4282b26aa8d136172694c84a`，只保留稳定入口 `resources/raw_sql/template_query_market_mantou_order_detail_trade_time.sql`。
+- 本次清理日期后缀历史副本 0 个；历史 SQL 文本不进入知识库，也不作为路由入口。
+- 保存后已重建反向索引、共享 catalog、唯一版本审计、域内 integrity 和完整 Text2SQL 栈。
+
+## 2026-08-08 模板取数 stable canonical SQL 同步（模板 9002）
+
+- 线上 `published` 模板 `AI分析市场顾问部_宽表`（id `9002`）回读 SQL SHA-256 为 `71274379824c29b4216041b0841a3696a41525589d80075fd3ca536941356138`，只保留稳定入口 `resources/raw_sql/template_query_market_wide.sql`。
+- 本次清理日期后缀历史副本 0 个；历史 SQL 文本不进入知识库，也不作为路由入口。
+- 保存后已重建反向索引、共享 catalog、唯一版本审计、域内 integrity 和完整 Text2SQL 栈。
+
+## 2026-08-08 市场顾问 0808 渠道归因、0815 暑期期次与当前模板路由收口
+
+- 从 `C:\Users\Ludim\Desktop\新建 文本文档.txt` 读取 0808 渠道规则，来源文件 SHA-256 为 `654eddfdf3bf0e4d334f0b1e976cb664dc9bc7ee6c0829603a4e3525bd2c6761`。与 0805 逐分支审计确认新增 15、删除 10、160 个公共分支顺序不变、同条件输出变化 0；当前共享 CASE 为 175 个 `WHEN`、118 个去重渠道值，CASE 文本 SHA-256 `136accb16cf81580f2a2f97198a91225c174a5ee01b27ca6b9327ceac45df7e5`，唯一当前入口为 `resources/raw_sql/market_channel_case_when_0808.sql`。
+- 27 个完整 CASE 初始数据中心目标中，25 个仍在线模型均完成预览、保存、SQL 哈希回读和新 `SUCCESS`；远端已删除的 `3153/3202` 已从 current binding 与 canonical SQL 退役。定向退款覆盖继续只保留在已确认模型内，没有错误提升为共享模板规则。
+- 新增 `20260815期=2026-08-13..2026-08-18`，`2026-08-19` 起恢复正常周五期次，首个正常期次为 `20260821期`。30 个当前数据中心模型完成 65 处既有 0808 映射核对和 65 处 0815 映射新增，全部完成哈希回读及保存后的新 `SUCCESS`；`2885` 最终以运行 `163307503`（18:07:02 开始、12 秒）补齐 30/30。
+- 当前有效渠道模板只维护 `7689, 7808, 8735, 8882, 8948, 9002`；两个馒头模板永久纳入 `market_consultant` 域。六个模板均按原 ID 更新/发布、线上哈希回读并实际查询成功：`7689->386621/11057`、`7808->386596/9623`、`8735->386603/141`、`8882->386604/102`、`8948->386605/243`、`9002->386622/540`。原模板身份和已有申请/权限关系保持不变。
+- 超长模板不删除规则：`8882/9002` 及两个馒头模板按连续 5×35 CASE、`UNION ALL`、`min_by(rule_group)` 保持 first-match，使用长度前缀无碰撞键回连；期次/日期过滤下推并去除重复源扫描。数据中心继续使用完整有序 CASE，只做已验证的分区、投影、去重源和无用 CTE/JOIN 优化。
+- 远端已删除模板 `5962, 6529, 8006, 8101` 不恢复、不再同步；其四份 stable raw SQL 及所有 current route 已删除，历史事件只留在 changelog。operator 的 `sync-template-sql` 改为按模板 ID 读取详情，并在 fetch 与 hash-bound plan 两层拒绝 `isDel=1`，防止逻辑删除模板因 `status=2` 被重新写回。
+- 当前模板 stable SQL、数据中心 canonical、共享 CASE、期次文档、模板清单与路由均已同步；随后重建反向索引/共享 catalog，并执行版本审计、市场域 integrity、operator 测试和完整 Text2SQL 验证。
+
+## 2026-08-08 18:46:49
+
+- 通过 `usql-web-query-operator/scripts/read_dashboard.py profile-all --write-knowledge --confirm-skill-maintenance` 扫描 `市场顾问数据` 文件夹，并将原始 `profile.json` 写入本地 runtime 目录。
+- 刷新 `knowledge/dashboard_web_profiles/README.md`，当前索引 15 个看板快照。
+- 本次 profile 结果：成功 15 个，失败 0 个。

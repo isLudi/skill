@@ -20,6 +20,7 @@ sum(case when trade_type = '调课调班' then price else 0 end) over (partition
 			when substr(trade_time, 1, 10) >= '2026-07-26' and substr(trade_time, 1, 10) <= '2026-07-31' then '20260728期'
 			when substr(trade_time, 1, 10) >= '2026-08-01' and substr(trade_time, 1, 10) <= '2026-08-06' then '20260803期'
 			when substr(trade_time, 1, 10) >= '2026-08-07' and substr(trade_time, 1, 10) <= '2026-08-12' then '20260808期'
+			when substr(trade_time, 1, 10) >= '2026-08-13' and substr(trade_time, 1, 10) <= '2026-08-18' then '20260815期'
 			when substr(trade_time, 1, 10) >= '2026-02-25' and substr(trade_time, 1, 10) <= '2026-03-02' then '20260227期'
 			when substr(trade_time, 1, 10) >= '2026-02-17' and substr(trade_time, 1, 10) <= '2026-02-24' then '20260220期'
 			when substr(trade_time, 1, 10) >= '2026-02-09' and substr(trade_time, 1, 10) <= '2026-02-16' then '20260213期'
@@ -68,6 +69,7 @@ from (select lead_id,original_order_user_number,performance_employee_email_name,
     when cast(date_parse(replace(concat(trade_group_period_year,trade_group_period_term),'期',''),'%Y%m%d') as date) between date '2026-07-26' and date '2026-07-31' then '20260728期'
     when cast(date_parse(replace(concat(trade_group_period_year,trade_group_period_term),'期',''),'%Y%m%d') as date) between date '2026-08-01' and date '2026-08-06' then '20260803期'
     when cast(date_parse(replace(concat(trade_group_period_year,trade_group_period_term),'期',''),'%Y%m%d') as date) between date '2026-08-07' and date '2026-08-12' then '20260808期'
+    when cast(date_parse(replace(concat(trade_group_period_year,trade_group_period_term),'期',''),'%Y%m%d') as date) between date '2026-08-13' and date '2026-08-18' then '20260815期'
     else concat(cast(date_format(date_add('day',4,date_trunc('week',date_add('day',-1,date_parse(replace(concat(trade_group_period_year,trade_group_period_term),'期',''),'%Y%m%d')))),'%Y%m%d')as varchar),'期')
 end qici
 from service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf 
@@ -137,6 +139,8 @@ case
         then '20260803期'
         when substr(lead_gmv.qici, 1, 4) = '2026' and substr(rr.group_period_term, 1, 4) between '0807' and '0812'
         then '20260808期'
+        when substr(lead_gmv.qici, 1, 4) = '2026' and substr(rr.group_period_term, 1, 4) between '0813' and '0818'
+        then '20260815期'
         -- 如果月份 >= 6，年份为2025
         when cast(substr(rr.group_period_term, 1, 2) as int) >= 6 
         then date_format(date_add('day', 5 - day_of_week(date_parse('2025' || rr.group_period_term, '%Y%m%d')),date_parse('2025' || rr.group_period_term, '%Y%m%d')), '%Y%m%d') || '期'
@@ -157,7 +161,20 @@ left join (
 ,base as (
 select rule.*,zx.xiaozu,zx.jingli,
     case when date_parse(substr(friday_period, 1, 8), '%Y%m%d') = date_parse(substr(qici, 1, 8), '%Y%m%d')then 0 
+	when (friday_period = '20260716期' and qici = '20260722期')
+	  or (friday_period = '20260722期' and qici = '20260728期')
+	  or (friday_period = '20260728期' and qici = '20260803期')
+	  or (friday_period = '20260803期' and qici = '20260808期')
+	  or (friday_period = '20260808期' and qici = '20260815期')
+	  or (friday_period = '20260815期' and qici = '20260821期')
+	then 1
 	when date_diff('week', date_parse(substr(friday_period, 1, 8), '%Y%m%d'),date_parse(substr(qici, 1, 8), '%Y%m%d')) = 1 then 1
+    when (friday_period = '20260716期' and qici = '20260728期')
+      or (friday_period = '20260722期' and qici = '20260803期')
+      or (friday_period = '20260728期' and qici = '20260808期')
+      or (friday_period = '20260803期' and qici = '20260815期')
+      or (friday_period = '20260808期' and qici = '20260821期')
+    then 2
     when date_diff('week', date_parse(substr(friday_period, 1, 8), '%Y%m%d'),date_parse(substr(qici, 1, 8), '%Y%m%d')) in (2,3) then 2
     else 3 end as week_diff
 from rule

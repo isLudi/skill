@@ -12,7 +12,7 @@
 - 2026-07-09 将 runtime 热修 SQL `runtime/qingcheng_qici_20260716_patch_20260709/data_center_qingcheng_2460_20260709_qici0716_hotfix.sql` 同步为当前 canonical raw SQL。
 - 2026-07-15 将暑期期次改为 SQL 内 `biz_qici_calendar` CTE，并修复 `lead_map` / `bb` 中 `select *` 引发的字段二义性风险。
 - 2026-07-26 保留已上线的抖音正价退费潜客渠道归因，并新增 20260722 期起的 B 用户私海保护期课程转移补数分支。
-- 2026-07-29 校准暑期运营周期并将 `IP退费 / 春春、朱博士、郭艺` 精确渠道规则同步到 `lead_map` 与 `normal_bb`；2026-08-02 按业务最终命名将最后窗口校正为 `0808=08-07~08-12`，日期范围不变。
+- 2026-07-29 校准暑期运营周期并将 `IP退费 / 春春、朱博士、郭艺` 精确渠道规则同步到 `lead_map` 与 `normal_bb`；2026-08-08 更新为 `0808=08-07~08-11`、`0815=08-12~08-18`、`0821=08-19~08-23`。
 - 该 canonical SQL 同时作为 `转化数据看板` 的当前知识库源 SQL。
 
 ## 2. 查询目标
@@ -27,7 +27,7 @@
 
 本版核心变化：
 
-- `qici` 以 SQL 内 `biz_qici_calendar` 业务日历优先、历史周五逻辑兜底：当前覆盖 `2026-07-07` 至 `2026-08-12`，避免 `20260717期`、`20260724期` 等旧周五期次进入筛选器。
+- `qici` 以 SQL 内 `biz_qici_calendar` 业务日历优先、历史周五逻辑兜底：当前覆盖 `2026-07-07` 至 `2026-08-23`，避免 `20260717期`、`20260724期` 等旧周五期次进入筛选器。
 - `qici0` 通过 `biz_qici_calendar` 的 `legacy_short_qici -> short_qici` 映射归一，避免暑期业务期次下的当期指标被误判为往期。
 - 线索侧 `bb.qici` 对 `group_period_year + group_period_term` 使用同一份业务日历，保证有效线索量和订单结果在业务期次上对齐。
 - `mm -> temp_table.dingxi01_qing_team_jg` 改为 `employee_email_name + qici` join，不再用最新架构回填历史结果期次。
@@ -110,7 +110,7 @@ coalesce(trade_cal.qici, <历史周五期次逻辑>)
 - Presto `day_of_week(...)=1` 表示周一。
 - 周一归上一周周五期次。
 - 周二到周日归当前周周五期次。
-- `biz_qici_calendar` 是暑期业务日历修正窗口，当前覆盖 `20260710期`、`20260716期`、`20260722期`、`20260728期`、`20260803期`、`20260808期`。
+- `biz_qici_calendar` 是暑期业务日历修正窗口，当前覆盖 `20260710期`、`20260716期`、`20260722期`、`20260728期`、`20260803期`、`20260808期`、`20260815期`、`20260821期`。
 
 ### 7.1.1 线索侧期次 `bb.qici`
 
@@ -253,7 +253,7 @@ count(distinct case
 ## 13. 已知风险
 
 - `qici0` 依赖 `rule_name` 中仍能稳定提取 `\d{4}期`；暑期期次热修当前依赖 `biz_qici_calendar` 中的 `legacy_short_qici -> short_qici` 映射，后续新增期次必须继续补充日历行。
-- `bb` 线索侧期次仍来自 `group_period_year + group_period_term`，和订单侧 `trade_timestamp` 不是同一来源；当前仅在 `biz_qici_calendar` 六个暑期运营窗口内做一致性修正。
+- `bb` 线索侧期次仍来自 `group_period_year + group_period_term`，和订单侧 `trade_timestamp` 不是同一来源；当前仅在 `biz_qici_calendar` 八个暑期运营窗口内做一致性修正。
 - `prc` 保持 `hour = now() - 3h`，与 `lead_map` / `bb` 的 `-2h` 存在快照时间差。
 - `prc` 的窗口排序只包含 `qici_lead desc`；并列期次可能导致全量重复执行时 `sc` 自身漂移，不能把两次查询的 `sc` 差异直接归因于课程转移补数。
 - 保护期课程转移补数从 `2026-07-20` 起生效；若业务要求回刷更早期次，必须单独评估历史增量后再调整日期门禁。

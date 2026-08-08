@@ -8,8 +8,8 @@
 - 文件夹：`市场顾问数据`
 - dashboard_id：`dashboard_3822396843512627200`
 - 打开入口：`https://uanalysis.baijia.com/dashboard-market?id=dashboard_3822396843512627200&sourceType=1`
-- profile 时间：2026-07-11 09:48:22
-- 原始结构 profile：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\p3-validation-20260711\profile-all\市场顾问数据\市场顾问--评优看板\profile.json`
+- profile 时间：2026-08-08 18:45:36
+- 原始结构 profile：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\dashboard-profiles\knowledge-market-20260808\市场顾问数据\市场顾问--评优看板\profile.json`
 - 页面渲染：成功
 
 ## 2. 刷新验证
@@ -17,12 +17,12 @@
 | 项目 | 数值 |
 |---|---:|
 | `unit_count` | 7 |
-| `value_unit_count` | 7 |
-| `data_ready_unit_count` | 6 |
+| `value_unit_count` | 0 |
+| `data_ready_unit_count` | 0 |
 | `analytic_unit_count` | 5 |
-| `analytic_data_ready_unit_count` | 5 |
+| `analytic_data_ready_unit_count` | 0 |
 | `error_count` | 0 |
-| `all_analytic_units_ready` | True |
+| `all_analytic_units_ready` | None |
 
 ## 3. 全局筛选器
 
@@ -34,42 +34,42 @@
 
 | 单元 | unit_id | 类型 | 模型 | 分页/下载 | 刷新状态 | task_id / 行数 |
 |---|---|---|---|---|---|---|
-| 标题图 | unit_3822397039671836672 | u_material | 1 主题分析 |  | loaded_empty | rows=0 |
-| 文本框 | unit_3839289622860058624 | u_text | 1 None | download=0 | data_ready | rows=0 |
-| 测试渠道 | unit_3921968339834413056 | u_table | 2856 评优看板测试渠道 | page=100<br>download=0 | data_ready | task=1459208305,1459208306<br>rows=100<br>total=208 |
-| 期次看板 | unit_3822404499349848065 | u_pivot | 2421 评优看板 | page=10<br>download=1 | data_ready | task=1459208363,1459208318<br>rows=10<br>total=5480 |
-| 月度看板 | unit_3862869318688346115 | u_pivot | 2632 月度评优 | page=10<br>download=1 | data_ready | task=1459208383,1459208378<br>rows=10<br>total=1668 |
-| 季度看板 | unit_3865819236965679107 | u_pivot | 2643 季度评优 | page=10<br>download=1 | data_ready | task=1459208398,1459208394<br>rows=10<br>total=682 |
-| 年度看板 | unit_3865826671804780546 | u_pivot | 2644 半年度评优 | page=50<br>download=1 | data_ready | task=1459208418,1459208415<br>rows=50<br>total=511 |
+| 标题图 | unit_3822397039671836672 | u_material | 1 主题分析 |  | unprofiled |  |
+| 文本框 | unit_3839289622860058624 | u_text | 1 None | download=0 | unprofiled |  |
+| 测试渠道 | unit_3921968339834413056 | u_table | 2856 评优看板测试渠道 | page=100<br>download=0 | unprofiled |  |
+| 期次看板 | unit_3822404499349848065 | u_pivot | 2421 评优看板 | page=10<br>download=1 | unprofiled |  |
+| 月度看板 | unit_3862869318688346115 | u_pivot | 2632 月度评优 | page=10<br>download=1 | unprofiled |  |
+| 季度看板 | unit_3865819236965679107 | u_pivot | 2643 季度评优 | page=10<br>download=1 | unprofiled |  |
+| 年度看板 | unit_3865826671804780546 | u_pivot | 2644 半年度评优 | page=50<br>download=1 | unprofiled |  |
 
 ## 5. 分析单元字段结构
 
 ### 测试渠道
 
 - unit_id：`unit_3921968339834413056`；类型：`u_table`；模型：`2856` / 评优看板测试渠道
-- 刷新：data_ready；task_ids：`1459208305,1459208306`；行数：100；序列：0 / 0 点
+- 刷新：unknown；task_ids：``；行数：0；序列：0 / 0 点
 - 单元筛选字段：qici（id=475707）
 
 ### 期次看板
 
 - unit_id：`unit_3822404499349848065`；类型：`u_pivot`；模型：`2421` / 评优看板
-- 刷新：data_ready；task_ids：`1459208363,1459208318`；行数：10；序列：0 / 0 点
+- 刷新：unknown；task_ids：``；行数：0；序列：0 / 0 点
 - 单元筛选字段：qici（id=364758）、employee_email_name（id=380315）
 
 ### 月度看板
 
 - unit_id：`unit_3862869318688346115`；类型：`u_pivot`；模型：`2632` / 月度评优
-- 刷新：data_ready；task_ids：`1459208383,1459208378`；行数：10；序列：0 / 0 点
+- 刷新：unknown；task_ids：``；行数：0；序列：0 / 0 点
 - 单元筛选字段：moth（id=407355）、employee_email_name（id=407356）
 
 ### 季度看板
 
 - unit_id：`unit_3865819236965679107`；类型：`u_pivot`；模型：`2643` / 季度评优
-- 刷新：data_ready；task_ids：`1459208398,1459208394`；行数：10；序列：0 / 0 点
+- 刷新：unknown；task_ids：``；行数：0；序列：0 / 0 点
 - 单元筛选字段：quarter（id=409848）、employee_email_name（id=409849）
 
 ### 年度看板
 
 - unit_id：`unit_3865826671804780546`；类型：`u_pivot`；模型：`2644` / 半年度评优
-- 刷新：data_ready；task_ids：`1459208418,1459208415`；行数：50；序列：0 / 0 点
+- 刷新：unknown；task_ids：``；行数：0；序列：0 / 0 点
 - 单元筛选字段：half_year（id=409860）、employee_email_name（id=409861）

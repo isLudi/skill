@@ -60,7 +60,7 @@ DEFAULT_TEMPLATE_INSTANCE_KEY = "dlc_presto"
 
 @dataclass(frozen=True)
 class TemplateQuery:
-    """One template-query row from the user's created-template list."""
+    """One template-query row returned by a Template Query API."""
 
     id: int
     name: str
@@ -308,6 +308,18 @@ class TemplateQueryClient:
         if not isinstance(data, dict):
             raise UsageError("Template Query template/detail returned non-dict data.")
         return data
+
+    def fetch_template_by_id(self, template_id: int) -> TemplateQuery:
+        """Load one exact template without depending on creator-list visibility."""
+
+        template = parse_template_row(self.fetch_template_detail(template_id))
+        if template.id != template_id:
+            raise UsageError(
+                f"Template Query template/detail identity mismatch: got {template.id}, expected {template_id}"
+            )
+        if not template.sql_detail.strip():
+            raise UsageError(f"Template Query template has empty SQL detail: {template.name} ({template.id})")
+        return template
 
     def fetch_created_templates(
         self,

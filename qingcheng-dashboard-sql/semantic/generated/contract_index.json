@@ -85,7 +85,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md",
-      "source_sha256": "ee5bbb901e872390f05147dec9da39f38d9aea98859793d071725acf9fb07779"
+      "source_sha256": "3250a832882a2c486fb6150e9e1b865257a6a4389dbb9f7d51f26348fdc43bb8"
     },
     {
       "id": "qingcheng:dimension:lead_id",
@@ -111,7 +111,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md",
-      "source_sha256": "ee5bbb901e872390f05147dec9da39f38d9aea98859793d071725acf9fb07779"
+      "source_sha256": "3250a832882a2c486fb6150e9e1b865257a6a4389dbb9f7d51f26348fdc43bb8"
     },
     {
       "id": "qingcheng:dimension:performance_consultant",
@@ -125,7 +125,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md",
-      "source_sha256": "ee5bbb901e872390f05147dec9da39f38d9aea98859793d071725acf9fb07779"
+      "source_sha256": "3250a832882a2c486fb6150e9e1b865257a6a4389dbb9f7d51f26348fdc43bb8"
     },
     {
       "id": "qingcheng:dimension:period_name",
@@ -236,7 +236,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md",
-      "source_sha256": "ee5bbb901e872390f05147dec9da39f38d9aea98859793d071725acf9fb07779"
+      "source_sha256": "3250a832882a2c486fb6150e9e1b865257a6a4389dbb9f7d51f26348fdc43bb8"
     },
     {
       "id": "qingcheng:dimension:user_id",
@@ -518,7 +518,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/qingcheng_conversion_metrics.md",
-      "source_sha256": "57bd941ab726228c82bf52a992c62a72b6afa2f305ebbe923ac1e593e3b4fe18",
+      "source_sha256": "fd2c5b706db7bd1f7c86874be93a1400801807bffd74810d29a5bf28bdbe56a8",
       "automatic_compile": false
     },
     {
@@ -546,7 +546,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/qingcheng_conversion_metrics.md",
-      "source_sha256": "57bd941ab726228c82bf52a992c62a72b6afa2f305ebbe923ac1e593e3b4fe18",
+      "source_sha256": "fd2c5b706db7bd1f7c86874be93a1400801807bffd74810d29a5bf28bdbe56a8",
       "automatic_compile": false
     },
     {
@@ -602,7 +602,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/qingcheng_conversion_metrics.md",
-      "source_sha256": "57bd941ab726228c82bf52a992c62a72b6afa2f305ebbe923ac1e593e3b4fe18",
+      "source_sha256": "fd2c5b706db7bd1f7c86874be93a1400801807bffd74810d29a5bf28bdbe56a8",
       "automatic_compile": false
     },
     {
@@ -717,7 +717,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/qingcheng_conversion_metrics.md",
-      "source_sha256": "57bd941ab726228c82bf52a992c62a72b6afa2f305ebbe923ac1e593e3b4fe18",
+      "source_sha256": "fd2c5b706db7bd1f7c86874be93a1400801807bffd74810d29a5bf28bdbe56a8",
       "automatic_compile": true
     },
     {

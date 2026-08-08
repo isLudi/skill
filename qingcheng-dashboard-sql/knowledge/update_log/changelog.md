@@ -761,3 +761,34 @@
   - 团队完成度【期】`2680`：SQL SHA-256 `37e0294f01e7aa40a1c93a7f2efe7b82652a430cef866ae2aab2704bfa7e7109`，Preview `1535392792`，run `163273846`。
   - 团队完成度【月】`2677`：SQL SHA-256 `f84f2244b9474679d1ee5e2701ae5a9968097b1c8a4088a6648754e5d25318fd`，Preview `1535395486`，run `163273848`。
 - 本地 Skill 同步计划 SHA-256 `a3ff0a32f9d85594cc8522373b4d9f7b397b03f0ec4c2ffce3a99110ce0676e5` 已应用；反向索引、Text2SQL catalog、唯一版本审计、青橙 integrity、351/351 语义评测及完整 Text2SQL 栈均通过。完整栈中的既有 pending manual-confirmation 与历史引用告警未新增为错误。
+
+## 2026-08-08 数据中心 stable canonical SQL 同步
+
+- 按已审阅同步计划原子更新 model_id：`2064, 2244, 2460, 2677, 2680, 2740, 2769, 3180`；每个 model_id 只保留稳定 canonical 路径。
+- 写入后已强制重建反向索引和目录，并运行唯一版本审计、域内 integrity 与完整 Text2SQL 栈验证。
+
+## 2026-08-08 青橙暑期期次运营区间校准与八模型上线
+
+- 业务确认最新运营区间：`0808期=2026-08-07~2026-08-11`（5 天）、`0815期=2026-08-12~2026-08-18`（7 天）、`0821期=2026-08-19~2026-08-23`（5 天）。
+- model `2064` 将原期次日前后各 2 天近似改为显式业务日历，并覆盖 `0710/0716/0722/0728/0803/0808/0815/0821`；其余 7 个模型同步修正 0808 结束日期并新增 0815、0821。
+- 八个生产数据集均完成 Preview、保存后 SQL Hash 回读和新抽数 `SUCCESS`：`2064=163437461`、`2244=163437463`、`2460=163437466`、`2677=163437468`、`2680=163437469`、`2740=163437471`、`2769=163437473`、`3180=163437477`。
+- 3180 任务耗时 313 秒，超过 Apply 默认 300 秒轮询窗口；原 receipt 的刷新阶段先记录超时，随后通过 operator 的 Data Center schedule read API 复核 `163437477` 已完成 `SUCCESS`，未重复保存或重复触发刷新。
+- 本地 Data Center 同步计划 SHA-256：`e4cb804b689afe13fb03e0bd1a9274f27b759911d16945079e03922865c3d3cb`；同步完成后反向索引、Text2SQL catalog、唯一版本审计、qingcheng integrity、语义评测和完整 Text2SQL 栈均通过。既有 pending manual-confirmation 与历史引用告警仍为非阻断警告。
+
+## 2026-08-08 18:49:38
+
+- 通过 `usql-web-query-operator/scripts/read_dashboard.py profile-all --write-knowledge --confirm-skill-maintenance` 扫描 `青橙项目部` 文件夹，并将原始 `profile.json` 写入本地 runtime 目录。
+- 刷新 `knowledge/dashboard_web_profiles/README.md`，当前索引 16 个看板快照。
+- 本次 profile 结果：成功 16 个，失败 0 个。
+
+## 2026-08-08 18:58:59
+
+- 通过 `usql-web-query-operator/scripts/read_dashboard.py profile-all --write-knowledge --confirm-skill-maintenance` 扫描 `青橙播报` 文件夹，并将原始 `profile.json` 写入本地 runtime 目录。
+- 刷新 `knowledge/dashboard_web_profiles/README.md`，当前索引 15 个看板快照。
+- 本次 profile 结果：成功 15 个，失败 0 个。
+
+## 2026-08-08 19:05:26
+
+- 通过 `usql-web-query-operator/scripts/read_dashboard.py profile-all --write-knowledge --confirm-skill-maintenance` 扫描 `青橙项目部` 和 `青橙播报` 文件夹，并将原始 `profile.json` 写入本地 runtime 目录。
+- 刷新 `knowledge/dashboard_web_profiles/README.md`，当前索引 31 个看板快照。
+- 本次 profile 结果：成功 31 个，失败 0 个。

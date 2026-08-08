@@ -1,81 +1,11 @@
--- ============================================================================
--- 市场顾问部——转化看板 完整取数 SQL
--- ============================================================================
--- 看板 ID   : dashboard_3767151344579387392
--- 模型名    : 转化数据_市场顾问 (model_id: 2253)
--- 生成时间  : 2026-07-22
--- 查询引擎  : Presto
--- 主表      : bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df
---
--- ============================================================================
--- 规则来源：
---   全局规则       : knowledge/00_global_rules.md
---   模板参数规则   : knowledge/sql_patterns/template_parameter_rules.md
---   渠道映射       : resources/raw_sql/market_channel_case_when_0723.sql
---   年级提取       : knowledge/pitfalls/grade_extraction_gotchas.md
---   看板聚合模式   : knowledge/dashboards/market_consultant_conversion.md
---   全局规则第9条   : 每个字段只输出一次, 看板侧复用基础字段做比率分子/分母
--- ============================================================================
---
--- 【模板参数说明】(用于平台"模板取数"时, 替换 NOW() 写法)
---   dt    : 左闭右开, dt >=  and dt < 
---   hour  : 左闭右开, hour >=  and hour < 
---   当前版本使用 NOW() 偏移以匹配现有看板延迟口径 (dt: -2h, hour: -3h)
--- ============================================================================
+-- 市场顾问渠道 CASE 0808 归档
+-- 来源：C:\Users\Ludim\Desktop\新建 文本文档.txt
+-- 来源文件 SHA-256：654eddfdf3bf0e4d334f0b1e976cb664dc9bc7ee6c0829603a4e3525bd2c6761
+-- 规则融合：以 0808 版本的原始顺序为准，结合 0805 版本逐分支审计；保留新增、删除和原有公共分支顺序，不做固定行切片。
+-- 0808 精确执行版本：175 个 WHEN 分支，118 个去重输出值；CASE 文本 SHA-256：136accb16cf81580f2a2f97198a91225c174a5ee01b27ca6b9327ceac45df7e5
+-- 适用别名：qudao / channel_map / channel_map_1；数据集定向覆盖需在各模型 SQL 中保留其已验证边界。
 
-with
--- ==========================================================================
--- 0. 业务期次日历 (lead_period 角色, 市场顾问域)
---    来源: 复用 data_center_market_2253.sql 的 biz_qici_calendar 模式
---    维护: 每期开始前补充新行, 过期行设置 enabled = 0
--- ==========================================================================
-biz_qici_calendar as (
-    select *
-    from (
-        values
-            ('market_consultant', 'lead_period', '20260716期', date '2026-07-14', date '2026-07-19', 1),
-            ('market_consultant', 'lead_period', '20260722期', date '2026-07-20', date '2026-07-25', 1),
-            ('market_consultant', 'lead_period', '20260728期', date '2026-07-26', date '2026-07-31', 1),
-            ('market_consultant', 'lead_period', '20260803期', date '2026-08-01', date '2026-08-06', 1),
-            ('market_consultant', 'lead_period', '20260808期', date '2026-08-07', date '2026-08-12', 1)
-    ) as t(business_domain, date_role, qici, period_start_date, period_end_date, enabled)
-),
-
--- ==========================================================================
--- 1. data CTE: 从全链路宽表抽取明细, 派生 period_name / channel_map / grade_1 / d_w / xiansuo
---    渠道映射: 使用 market_channel_case_when_0723.sql (175 分支, 107 输出值)
---    年级提取: 优先 rule_name, 回退到 lead_purchase_intention_level2_category_name
---    当期/非当期判定 (d_w) + 市场线索标记 (xiansuo): 沿用 2253 逻辑
--- ==========================================================================
-data as (
-    select distinct
-        -- ---- period_name: 优先期次日历, 否则按 group_period 推导 ----
-        coalesce(
-            lead_cal.qici,
-            concat(
-                cast(date_format(
-                    date_trunc('week',
-                        date_parse(replace(concat(t1.group_period_year, t1.group_period_term), '期', ''), '%Y%m%d')
-                        - interval '1' day
-                    ) + interval '4' day,
-                    '%Y%m%d'
-                ) as varchar),
-                '期'
-            )
-        ) as period_name,
-
-        -- ---- 虚拟架构维度 ----
-        t1.virtual_third_department_name  as depart_1,
-        t1.virtual_fourth_department_name as depart,
-        t1.virtual_leader_email_name      as jingli,
-        t1.virtual_direct_leader_email_name as zhuguan,
-        t1.employee_email_name,
-
-        -- ---- 规则/年级 ----
-        t1.rule_name,
-
-        -- ---- 渠道映射（0723 版本，含北京直播江苏期次无关规则）----
-        CASE 
+CASE 
             -- 【区域定向】
    when get_customer_way_name in ('平台自播') and flow_pool_name in ('赢战广东中考','高途专版图书','状元帮教辅','高途专版视频书','本地化专版图书') then '广东图书'
    when get_customer_way_name in ('平台自播') and flow_pool_name in ('途铭文化专版图书','途铭文化','博慧星辰文化图书','启迪蔚来','智慧航迹图书','高途浙江初中','高途浙江高中','高途浙江新高一') then '浙江图书'
@@ -92,17 +22,19 @@ when third_department_name in ('中价产品项目部','新媒体内容运营部
 when rule_name like '%语数英%' and third_department_name = '新媒体内容运营部' then '语数英'
  when third_department_name = '直播部' and sku_id_name like '%山东专版%' then '北京直播山东'
   when third_department_name = '直播部' and sku_id_name like '%河南专版%' then '北京直播河南'
-  when rule_name like '%北京直播江苏%' then '北京直播江苏'
+  when sku_id_name like '%江苏%' and third_department_name = '直播部'  then '北京直播江苏'
 when third_department_name like '%锋途%' and channel_name_2 = '抖音' then '锋途KOC'
 when put_plan_name like '%小红书打粉%' then 'EM-小红书合作'
 when trace_type_name like '%转介绍%' then '转介绍'
 when flow_pool_name like '%星义大大%' or flow_pool_name like '%星义物理%' then '赵星义'
-when ad_account_name in ('高途-高中-DYD搜索-QZ49','高途-高中-DYD搜索-XLHD49','高途-高中-DYD搜索-XLHD50','高途-高中-DYD搜索-QZ50') then '搜索1元'
+when ad_account_name in ('高途-高中-DYD搜索-QZ49','高途-高中-DYD搜索-XLHD49','高途-高中-DYD搜索-XLHD50','高途-高中-DYD搜索-QZ50') or ad_account_name like '%DYD1元搜索%' then '搜索1元'
 when (flow_pool_name like '%江苏预习%' or  flow_pool_name like '%江苏专版预习%') and channel_name_2 ='抖音' then '西安直播江苏-抖音'
 when flow_pool_name like '%自然流%' and rule_name like '%江苏%' and third_department_name='图书营销部' and channel_name_2 ='抖音' then '西安直播江苏-抖音'
 when (flow_pool_name like '%江苏预习%' or  flow_pool_name like '%江苏专版预习%') and channel_name_2 ='视频号' then '西安直播江苏-视频号'
+when flow_pool_name like '%退款%' and third_department_name ='图书营销部' then '西安直播-退款订单复用'
 when flow_pool_name like '%自然流%' and rule_name like '%江苏%' and third_department_name='图书营销部' and channel_name_2 ='视频号' then '西安直播江苏-视频号'
 when rule_name like '%北京图书%' and third_department_name='图书营销部' then '西安直播北京'
+when sku_id_name like '%安徽%' and third_department_name='图书营销部' then '西安直播安徽'
 when flow_pool_name like '%自然流%' and rule_name like '%北京%' and third_department_name='图书营销部' then '西安直播北京'
 when source_manager_name in ('马思雨02','袁银') and rule_name like '%集团%' then '集团私域'
 when rule_name like '%途途私域%' or (rule_name like '%私域%' and first_department_name = 'TT') or rule_name like '%私域1元%' or (third_department_name='私域招生中心' and flow_pool_name like '%APP%') then '途途私域'
@@ -110,7 +42,8 @@ when third_department_name='图书营销部' and (sku_id_name like '%孟亚飞99
 when third_department_name='图书营销部' and (sku_id_name like '%孟亚飞99%' or sku_id_name like '%亚飞%') and channel_name_2 = '抖音' then '孟亚飞-2组-抖音'
 when third_department_name = '投放部' and (ad_account_name like '%周帅%') then '信息流-周帅'
 when source_manager_name in ('韩正卿') then '抖音私信'
-when third_department_name = '私域运营部' and source_manager_name in ('陈雷19','崔慧敏01','侯佳林01','郑天琪02','杨彬屹','曹义鹏','王硕阳','于超研','岳一帆02','田起帆','王绍阳','肖佳兴','姚佳03') then '进校私域合作'
+when third_department_name = '私域运营部' and source_manager_name in ('陈雷19','崔慧敏01','侯佳林01','郑天琪02','杨彬屹','曹义鹏','王硕阳','于超研','岳一帆02','田起帆','王绍阳','肖佳兴','姚佳03','秦金萍') and (rule_name like '%koc自孵化下引%' or rule_name like '%koc下引%') then '自孵化KOC下引'
+when third_department_name = '私域运营部' and source_manager_name in ('陈雷19','崔慧敏01','侯佳林01','郑天琪02','杨彬屹','曹义鹏','王硕阳','于超研','岳一帆02','田起帆','王绍阳','肖佳兴','姚佳03','秦金萍') then '进校私域合作'
 when channel_name_1='市场私域' and (virtual_fourth_department_name in ('郑州学习顾问二部','郑州学习顾问七部','郑州训练营') or virtual_fifth_department_name in ('罗江博团队')) then '市场私域入群'
 when third_department_name = '图书营销部' and (rule_name like '%点睛卷%' or sku_id_name like '%押题卷%')  then '押题卷'
 when third_department_name = '投放部' and channel_name_2 = '小红书' and channel_name_1 <> '搜索营销' then '信息流-小红书'
@@ -120,7 +53,7 @@ when  third_department_name like '%私域%' and rule_name like '%私域%' and ru
 when  third_department_name like '%私域%' and rule_name like '%品效%'  then '市场私域品效'
 when  third_department_name like '%私域%' and rule_name like '%公域学霸%'  then '市场私域公域组'
 when third_department_name in ('线上商务部') and source_manager_name in ('孙晗01','方俊结01','刘亦鹏02','何木玲','杨梓月','张可意03','任颖迪','曹蕊07','曲默晗') and flow_pool_name like '%退款%' then 'KOC-退款订单复用'
-when third_department_name in ('直播部','新媒体内容运营部','市场一组','私域运营部') and put_plan_name like '%退%' and flow_pool_name ='电商退款用户池'  then '退款订单复用'
+when third_department_name in ('直播部','新媒体内容运营部','市场一组','私域运营部') and flow_pool_name ='电商退款用户池'  then 'IP退款订单复用'
 when third_department_name in ('直播部','新媒体内容运营部','市场一组','私域运营部') and put_plan_name like '%失败%' and flow_pool_name ='电商退款用户池'  then '赠课失败'
 when third_department_name in ('直播部','新媒体内容运营部','市场一组')  and (flow_pool_name ='初阶化学规划' or flow_pool_name like '%启迪-初阶老师%')  then '曹忆'
 when (third_department_name = '图书营销部' and sku_id_name like '%真题%') or (third_department_name='直播部' and sku_id_name like '%真题%') then '西安图书直播间-直播'
@@ -131,28 +64,29 @@ when put_plan_name like '%国培教育-0元%' or put_plan_name like '%易喆教�
 when third_department_name='KOC孵化部' and flow_pool_name like '%电商退款%' and put_plan_name like '%失败%' then '自孵化KOC-赠课失败'
 when third_department_name='KOC孵化部' and flow_pool_name like '%电商退款%' and put_plan_name like '%退%' then '自孵化KOC-退款订单复用'
 when source_manager_name = '方俊结01' and put_plan_name like '%赠课后退款%' then 'KOC-赠课后退款' 
-when third_department_name = '直播部' and (sku_id_name like '%春春%' or sku_id_name like '%瑞春%' or rule_name like '%春春%' or rule_name like '%瑞春%') then '陈瑞春'
-when third_department_name = '直播部' and (sku_id_name like '%朱博士99%' or rule_name like '%朱汉祺99%' or rule_name like '%朱博士%' or flow_pool_name like '%朱博士%' or sku_id_name like '%朱博士%') then '朱博士99'
+when third_department_name = '直播部' and (sku_id_name like '%春春%' or sku_id_name like '%瑞春%' or rule_name like '%春春%' or rule_name like '%瑞春%') and channel_name_2='百度' then '陈瑞春-百度'
+when third_department_name = '直播部' and (sku_id_name like '%春春%' or sku_id_name like '%瑞春%' or rule_name like '%春春%' or rule_name like '%瑞春%') and channel_name_2='抖音' then '陈瑞春-抖音199'
+when third_department_name = '直播部' and (sku_id_name like '%春春%' or sku_id_name like '%瑞春%' or rule_name like '%春春%' or rule_name like '%瑞春%') and channel_name_2='视频号' then '陈瑞春-视频号49'
+when third_department_name = '直播部' and (sku_id_name like '%朱博士99%' or rule_name like '%朱汉祺99%' or rule_name like '%朱博士%' or flow_pool_name like '%朱博士%' or sku_id_name like '%朱博士%') and channel_name_2 = 'B站' then '朱博士-B站'
+when third_department_name = '直播部' and (sku_id_name like '%朱博士99%' or rule_name like '%朱汉祺99%' or rule_name like '%朱博士%' or flow_pool_name like '%朱博士%' or sku_id_name like '%朱博士%') and channel_name_2 = '百度' then '朱博士-百度'
+when third_department_name = '直播部' and (sku_id_name like '%朱博士99%' or rule_name like '%朱汉祺99%' or rule_name like '%朱博士%' or flow_pool_name like '%朱博士%' or sku_id_name like '%朱博士%') and channel_name_2 = '抖音' then '朱博士-抖音199'
+when third_department_name = '直播部' and (sku_id_name like '%朱博士99%' or rule_name like '%朱汉祺99%' or rule_name like '%朱博士%' or flow_pool_name like '%朱博士%' or sku_id_name like '%朱博士%') and channel_name_2 = '视频号' then '朱博士-视频号49'
 when (third_department_name = '直播部' and (sku_id_name like '%朱博士%' or sku_id_name like '%朱汉祺%') and rule_name like '%9%' and rule_name not like '%29%' and sku_id_name not like '%急%' and sku_id_name not like '%礼盒29%') or (third_department_name = '直播部' and sku_id_name like '%朱博士9%') then '朱博士9元'
 when ad_account_name like '%春春%' and channel_name_1 = '信息流' then '信息流-陈瑞春'
 when channel_name_1 = '信息流' and channel_name_2='B站' and (page_id_name like '%0元物化%') then 'B站信息流-曹忆'
 when channel_name_1 = '信息流' and channel_name_2='B站' and (page_id_name like '%赵星义%') then 'B站信息流-赵星义'
-when third_department_name = '直播部' and channel_name_1 = '信息流' and channel_name_2 = 'B站'  then 'B站信息流-亚飞(1元)'
 when channel_name_1 = '信息流' and channel_name_2='B站' and (page_id_name like '%亚飞%' or source_put_plan_name like '%亚飞%'   or page_id_name like '%初中-0元%') then 'B站信息流-亚飞'
-when channel_name_1 = '信息流' and (page_id_name like '%亚飞%' or ad_account_name like '%亚飞%') then '信息流-亚飞'
 when (flow_pool_name like '%朱博士%' or flow_pool_name like '%双博士%' or flow_pool_name like '%教育规划%') and third_department_name <> '线上商务部' and period_name not like '%多学科拓展%' and rule_name not like '%张杰%' and sku_id_name not like '%马凯鹏IP%' and third_department_name='直播部' then '朱博士29'
 when put_plan_name like '%朱博士说教育%' and period_name not like '%多学科拓展%' and flow_pool_name not like '%高分讲堂%' and  flow_pool_name not like '%总裁%' and third_department_name='直播部' then '朱博士29'
 when (flow_pool_name like '%朱博士讲英语%' or flow_pool_name like '%朱博士英语%' or flow_pool_name like '%朱汉祺说英语%' or flow_pool_name like '%朱博士说英语%' or flow_pool_name like '%教育规划%' or flow_pool_name like '%双博士英语规划%' or flow_pool_name like '%朱博士满分英语%' or flow_pool_name like '%英语教父朱博士%' or (flow_pool_name like '%中考决胜天团%' and lead_purchase_intention_level1_category_name = '规划系统')) and third_department_name = '直播部' and period_name not like '%多学科拓展%' and sku_id_name not like '%马凯鹏IP%' and third_department_name='直播部' then '朱博士29'
 when (flow_pool_name like '%汤哥%' or flow_pool_name like '%汤老师%') and period_name not like '%多学科拓展%' and third_department_name in ('直播部','新媒体内容运营部')  then '汤老师'
-when source_manager_name = '陈晓菁04' and channel_provider_name not like '%开拓%' and put_plan_name not like '%九学%' then '商务低价'  
+when source_manager_name = '陈晓菁04' and channel_provider_name not like '%开拓%' and put_plan_name not like '%九学%' then '商务低价'        
 when (flow_pool_name like '%孟帝%' or flow_pool_name like '%孟老师%' or flow_pool_name like '%中考数学冲刺%' or flow_pool_name like '%8升9数学%' or flow_pool_name like '%孟亚飞讲数学%' or flow_pool_name like '%中考冲刺%' or flow_pool_name like '%中考满分冲刺%' or flow_pool_name like '%押题王孟亚飞%' or flow_pool_name like '%中考数学大通关%' or flow_pool_name like '%中考数学规划%' or flow_pool_name like '%亚飞数学%' or flow_pool_name like '%孟帝数学%' or flow_pool_name like '%亚飞秒解思维%' or flow_pool_name like '%亚飞解题%')  and period_name not like '%多学科拓展%' and channel_name_2 not like '%KOL%' and third_department_name='直播部' and channel_name_2 = '抖音'  then '孟亚飞-1组-抖音'
 when (flow_pool_name like '%孟帝%' or flow_pool_name like '%孟老师%' or flow_pool_name like '%中考数学冲刺%' or flow_pool_name like '%8升9数学%' or flow_pool_name like '%孟亚飞讲数学%' or flow_pool_name like '%中考冲刺%' or flow_pool_name like '%中考满分冲刺%' or flow_pool_name like '%押题王孟亚飞%' or flow_pool_name like '%中考数学大通关%' or flow_pool_name like '%中考数学规划%' or flow_pool_name like '%亚飞数学%' or flow_pool_name like '%孟帝数学%')  and period_name not like '%多学科拓展%' and channel_name_2 not like '%KOL%' and third_department_name='直播部' and channel_name_2 = '视频号'  then '孟亚飞-1组-视频号'
 when (flow_pool_name like '%孟帝%' or flow_pool_name like '%孟老师%' or flow_pool_name like '%中考数学冲刺%' or flow_pool_name like '%8升9数学%' or flow_pool_name like '%孟亚飞讲数学%' or flow_pool_name like '%中考冲刺%' or flow_pool_name like '%中考满分冲刺%' or flow_pool_name like '%押题王孟亚飞%' or flow_pool_name like '%中考数学大通关%' or flow_pool_name like '%中考数学规划%' or flow_pool_name like '%亚飞数学%' or flow_pool_name like '%孟帝数学%')  and period_name not like '%多学科拓展%' and channel_name_2 not like '%KOL%' and third_department_name='直播部' and channel_name_2 = 'B站'  then '孟亚飞-1组-B站'
 when (flow_pool_name like '%孟帝%' or flow_pool_name like '%孟老师%' or flow_pool_name like '%中考数学冲刺%' or flow_pool_name like '%8升9数学%' or flow_pool_name like '%孟亚飞讲数学%' or flow_pool_name like '%中考冲刺%' or flow_pool_name like '%中考满分冲刺%' or flow_pool_name like '%押题王孟亚飞%' or flow_pool_name like '%中考数学大通关%' or flow_pool_name like '%中考数学规划%' or flow_pool_name like '%亚飞数学%' or flow_pool_name like '%孟帝数学%')  and period_name not like '%多学科拓展%' and channel_name_2 not like '%KOL%' and third_department_name='直播部' and channel_name_2 not like '%百度%'  then '孟亚飞99-1组'
 when (flow_pool_name like '%孟帝%' or flow_pool_name like '%孟老师%' or flow_pool_name like '%中考数学冲刺%' or flow_pool_name like '%8升9数学%' or flow_pool_name like '%孟亚飞讲数学%' or flow_pool_name like '%中考冲刺%' or flow_pool_name like '%中考满分冲刺%' or flow_pool_name like '%押题王孟亚飞%' or flow_pool_name like '%中考数学大通关%' or flow_pool_name like '%中考数学规划%' or flow_pool_name like '%亚飞数学%')  and period_name not like '%多学科拓展%' and channel_name_2 not like '%KOL%' and third_department_name='直播部' and channel_name_2 = '百度'  then '孟亚飞-1组-百度'
-when (flow_pool_name like '%孟帝%' or flow_pool_name like '%孟老师%' or flow_pool_name like '%中考数学冲刺%' or flow_pool_name like '%8升9数学%' or flow_pool_name like '%孟亚飞讲数学%' or flow_pool_name like '%中考冲刺%' or flow_pool_name like '%中考满分冲刺%' or flow_pool_name like '%押题王孟亚飞%' or flow_pool_name like '%中考数学大通关%' or flow_pool_name like '%中考数学规划%' or flow_pool_name like '%亚飞数学%')  and period_name not like '%多学科拓展%' and channel_name_2 not like '%KOL%' and third_department_name='直播部'  then '孟亚飞9元'
-when put_plan_name like '%刘家晋讲图文%' or put_plan_name like '%孟帝数学%' and third_department_name='直播部' and rule_name like '%99%'  then '孟亚飞99-1组'  
-when put_plan_name like '%刘家晋讲图文%' or put_plan_name like '%孟帝数学%' and third_department_name='直播部' then '孟亚飞9元'  
+when put_plan_name like '%刘家晋讲图文%' or put_plan_name like '%孟帝数学%' and third_department_name='直播部' then '孟亚飞9元'        
 when flow_pool_name like '%汐子%' and period_name not like '%多学科拓展%' and sku_id_name  like '%亚飞%' and third_department_name='直播部' and rule_name like '%99%'  then '孟亚飞99-1组'
 when (flow_pool_name like '%曹忆%' or flow_pool_name like '%dudu%' or flow_pool_name like '%中考决胜天团%' or flow_pool_name like '%具象思维%' or flow_pool_name like '%在逃发面馒头%' or flow_pool_name like '%库洛米%' and lead_purchase_intention_level1_category_name <> '规划系统') and period_name not like '%多学科拓展%' and third_department_name in ('直播部','新媒体内容运营部') then '曹忆'
 when first_department_name ='市场部' and channel_name_1 <> '站内获客' and channel_name_2 <> 'APP' then '集团私域'
@@ -162,7 +96,7 @@ when channel_name_2 in ('APP','M站','PC') and flow_pool_name not like '%途途%
 when channel_name_2 in ('小程序') and flow_pool_name  like '%高途体验课%' then 'APP'
 when channel_provider_name like '%唐山TMK%' then '唐山TMK' 
 when source_manager_name in ('高文羽') and channel_provider_name not like '%唐山TMK%' and channel_provider_name not like '%郑州%' then '人工外呼' 
-when source_manager_name = '冯银晨' and channel_name_2 = '小红书' then '信息流-小红书'  
+when source_manager_name = '冯银晨' and channel_name_2 = '小红书' then '信息流-小红书'        
 when channel_name_1 = '信息流' and channel_name_2 = 'B站' and third_department_name not like '%投放%' and page_id_name like '%汤雪%'  then 'B站信息流-汤学健'
 when (channel_name_1 = '信息流' and channel_name_2 <> 'B站' and third_department_name NOT LIKE '%商务%' and put_plan_name not like '%初三0元%' and put_plan_name not like '%抖音私信%' and put_plan_name not like '%高中0元%' and flow_original_order_activity_price not like '%1990%') or (channel_name_2 = 'B站' and third_department_name like '%投放%') then '信息流'
 when channel_name_1 = '信息流' and channel_name_2 = 'B站' and third_department_name not like '%投放%' and (page_id_name like '%郭艺%') then 'B站信息流-郭艺'
@@ -181,6 +115,7 @@ when channel_name_1 = '信息流' and channel_name_2 = 'B站' and third_departme
 when flow_pool_name = '百度搜索引擎' or channel_name_1='搜索营销' then '信息流搜索'
 when  flow_pool_name like '%小红书班课%' then '小红书投放'
 when third_department_name = '投放部' and get_customer_way_name = '短视频信息流' and flow_original_order_activity_price like '%100%' then '信息流'
+when put_plan_name like  '%福哥私域0元%'  then 'KOC-下引'
 when flow_pool_name = '中考加油' and sku_id_name like '%孟帝%' then 'KOC-孟亚飞数学'
 when flow_pool_name = '中考加油' and sku_id_name  like '%帅师%' then 'KOC-周帅数学'
 when  source_manager_name in ('孙晗01','方俊结01','刘亦鹏02','何木玲','杨梓月','张可意03','任颖迪','曹蕊07','曲默晗') and (sku_id_name like '%孟帝%' or sku_id_name like '%dudu%' or sku_id_name like '%市场初二%' or rule_name like '%亚飞%' or sku_id_name like '%初二高阳%' or sku_id_name like '%高阳初二%' or sku_id_name like '%精品初二%' or rule_name like '%初二%' or sku_id_name like '%菁英初三%' or (virtual_second_department_name = '菁英班学部' and lead_purchase_intention_level2_category_name='初级' and lead_create_time>= '2026-04-15 00:00:00')) then 'KOC-孟亚飞数学'
@@ -225,506 +160,30 @@ when third_department_name = '直播部' and sku_id_name like '%周帅%' and cha
 when third_department_name = '直播部' and sku_id_name like '%孟亚飞%' and rule_name like '%99%' then '孟亚飞99-1组'
 when third_department_name = '直播部' and sku_id_name like '%朱汉祺%' then '朱博士99'
 when flow_pool_name like '%0转低转正%' or channel_name_2='产研测试' then '进校私域合作'
-when flow_pool_name like '%天津智慧双子%' then '创新社群'
-when third_department_name like '%城市定制%' then '点睛卷' 
+when flow_pool_name like '%天津智慧双子%'        then '创新社群'
+when third_department_name like '%城市定制%' then '点睛卷'        
 when period_name like '%多学科拓展%' and third_department_name like '%私域运营%' then '市场私域入群'
 when put_plan_name like '%赠课失败%' and third_department_name = '线上商务部' then 'KOC赠课失败'
-when flow_pool_name like '%自然流%' and source_manager_name in ('孙晗01','方俊结01','刘亦鹏02','何木玲','杨梓月','张可意03','任颖迪','曹蕊07','曲默晗') and sku_id_name like '%周帅%' then 'KOC-周帅' 
-when flow_pool_name like '%自然流%' and source_manager_name in ('孙晗01','方俊结01','刘亦鹏02','何木玲','杨梓月','张可意03','任颖迪','曹蕊07','曲默晗') and sku_id_name like '%肖晗%' then 'KOC-肖晗' 
+when flow_pool_name like '%自然流%' and source_manager_name in ('孙晗01','方俊结01','刘亦鹏02','何木玲','杨梓月','张可意03','任颖迪','曹蕊07','曲默晗') and sku_id_name like '%周帅%' then 'KOC-周帅'        
+when flow_pool_name like '%自然流%' and source_manager_name in ('孙晗01','方俊结01','刘亦鹏02','何木玲','杨梓月','张可意03','任颖迪','曹蕊07','曲默晗') and sku_id_name like '%肖晗%' then 'KOC-肖晗'        
 when flow_pool_name like '%自然流%' and source_manager_name in ('孙晗01','方俊结01','刘亦鹏02','何木玲','杨梓月','张可意03','任颖迪','曹蕊07','曲默晗') and sku_id_name like '%朱汉祺%'  and flow_original_order_activity_price like '%1100%' then 'KOC-5元朱汉祺'
-when flow_pool_name like '%自然流%' and source_manager_name in ('赵语诗','崔文轩','孙培尧') then '自孵化KOC-5元纯课'
+when flow_pool_name like '%自然流%' and source_manager_name in ('赵语诗','崔文轩','孙培尧')        then '自孵化KOC-5元纯课'
 when flow_pool_name like '%自然流%' and (sku_id_name like '%朱博士%' or sku_id_name like '%朱汉祺%') and rule_name like '%9%' and rule_name not like '%29%' and third_department_name  in ('直播部','新媒体内容运营部','市场一组') then '朱博士99'
 when flow_pool_name like '%自然流%' and sku_id_name like '%朱博士%' and third_department_name  in ('直播部','新媒体内容运营部','市场一组') then '朱博士99'
-when flow_pool_name like '%自然流%' and sku_id_name like '%亚飞%' and rule_name like '%99%' and third_department_name  in ('直播部','新媒体内容运营部','市场一组') then '孟亚飞99-1组'  
-when flow_pool_name like '%自然流%' and sku_id_name like '%亚飞%' and third_department_name  in ('直播部','新媒体内容运营部','市场一组')  then '孟亚飞9元'  
-when flow_pool_name like '%自然流%' and sku_id_name like '%曹忆%' then '曹忆'  
+when flow_pool_name like '%自然流%' and sku_id_name like '%亚飞%' and rule_name like '%99%' and third_department_name  in ('直播部','新媒体内容运营部','市场一组') then '孟亚飞99-1组'        
+when flow_pool_name like '%自然流%' and sku_id_name like '%亚飞%' and third_department_name  in ('直播部','新媒体内容运营部','市场一组')  then '孟亚飞9元'        
+when flow_pool_name like '%自然流%' and sku_id_name like '%曹忆%' then '曹忆'        
 when flow_pool_name like '%自然流%' and rule_name like '%朱博士%' and third_department_name  in ('直播部','新媒体内容运营部','市场一组') then '朱博士99'
 when flow_pool_name like '%自然流%' and source_manager_name like '%邵万昕%' and third_department_name  in ('直播部','新媒体内容运营部','市场一组') then '朱博士99'
-when flow_pool_name like '%自然流%' and rule_name like '%亚飞%' and rule_name like '%99%' then '孟亚飞99-1组'  
-when flow_pool_name like '%自然流%' and rule_name like '%亚飞%'  then '孟亚飞9元'  
+when flow_pool_name like '%自然流%' and rule_name like '%亚飞%' and rule_name like '%99%' then '孟亚飞99-1组'        
+when flow_pool_name like '%自然流%' and rule_name like '%亚飞%'  then '孟亚飞9元'        
 when flow_pool_name like '%自然流%' and rule_name like '%郭艺%'  then '郭艺'
-when flow_pool_name like '%自然流%' and rule_name like '%汤雪%'  then '汤老师'  
-when flow_pool_name like '%自然流%' and rule_name like '%曹忆%' then '曹忆'    
+when flow_pool_name like '%自然流%' and rule_name like '%汤雪%'  then '汤老师'        
+when flow_pool_name like '%自然流%' and rule_name like '%曹忆%' then '曹忆'                
 when flow_pool_name like '%途途教室%' or first_department_name like 'TUTU' then '途途APP'
 when source_manager_name in ('宋莹莹','辛世如') and channel_name_2 in ('视频号') then '信息流-虚拟号挂车'
 when rule_name like '%训练营%' and rule_name like '%市场私域%' then '市场私域入群'
 when channel_name_1= '信息流' and (put_plan_name like '%抖音私信%' or put_plan_name like '%初三0元%' or put_plan_name like '%高中0元%') then '信息流-抖音私信'
 when rule_name like '%途途私域%' or (rule_name like '%私域%' and first_department_name = 'TT') then '途途私域'
 when get_customer_way_name in ('进校直推','线下渠道商') then '河南进校'
-else '其他未知流量' end as channel_map,
-
-        -- ---- grade_1: 优先从 rule_name 提取, 否则回退到购买意向 ----
-        case
-            when t1.rule_name like '%高一%' then '高一'
-            when t1.rule_name like '%高二%' then '高二'
-            when t1.rule_name like '%高三%' then '高三'
-            when t1.rule_name like '%初二%' then '初二'
-            when t1.rule_name like '%初三%' then '初三'
-            when t1.rule_name like '%初一%' then '初一'
-            else t1.lead_purchase_intention_level2_category_name
-        end as grade_1,
-
-        -- ---- d_w (当期/非当期) ----
-        case
-            when (t1.assign_lead_count = 1 or t1.valid_lead_count = 1)
-                 and t1.third_department_name in ('直播部','新媒体内容运营部','市场一组') then '当期'
-            when (t1.assign_lead_count = 1 or t1.valid_lead_count = 1)
-                 and t1.third_department_name in ('图书营销部')
-                 and t1.rule_name like '%亚飞%' then '当期'
-            when t1.third_department_name is null
-                 and t1.valid_lead_count = 1 then '当期'
-            when t1.source_manager_name in ('韩正卿')
-                 and t1.merge_valid_lead_count = 1
-                 and t1.channel_name_1 = '市场私域' then '当期'
-            when t1.third_department_name not in ('直播部','新媒体内容运营部','市场一组')
-                 and t1.valid_lead_count = 1 then '当期'
-            else '非当期'
-        end as d_w,
-
-        -- ---- xiansuo (市场线索 0/1) ----
-        case
-            when (t1.assign_lead_count = 1 or t1.valid_lead_count = 1)
-                 and t1.third_department_name in ('直播部','新媒体内容运营部','市场一组') then 1
-            when t1.third_department_name is null
-                 and t1.valid_lead_count = 1 then 1
-            when t1.third_department_name not in ('直播部','新媒体内容运营部','市场一组')
-                 and t1.valid_lead_count = 1 then 1
-            when t1.third_department_name in ('图书营销部')
-                 and t1.rule_name like '%亚飞%'
-                 and (t1.assign_lead_count = 1 or t1.valid_lead_count = 1) then 1
-            else 0
-        end as xiansuo,
-
-        -- ---- 线索/用户标识 (用于粒度控制和去重) ----
-        t1.lead_id,
-        t1.user_id,
-
-        -- ===================================================================
-        -- 基础计量字段 (coalesce 空值→0, 金额单位: 分)
-        -- ===================================================================
-        coalesce(t1.lead_count, 0)                              as lead_count,
-        coalesce(t1.valid_lead_count, 0)                        as valid_lead_count,
-        coalesce(t1.merge_assign_lead_count, 0)                 as merge_assign_lead_count,
-        coalesce(t1.merge_valid_lead_count, 0)                  as merge_valid_lead_count,
-
-        -- 转化人头
-        coalesce(t1.conversion_lead_count, 0)                   as conversion_lead_count,
-        coalesce(t1.same_lead_period_conversion_lead_count, 0)  as same_lead_period_conversion_lead_count,
-
-        -- 科目人次
-        coalesce(t1.subject_count, 0)                           as subject_count,
-        coalesce(t1.same_lead_period_subject_count, 0)          as same_lead_period_subject_count,
-
-        -- 联报人次
-        coalesce(t1.lb_subject_count, 0)                        as lb_subject_count,
-        coalesce(t1.same_lead_period_lb_subject_count, 0)       as same_lead_period_lb_subject_count,
-
-        -- 订单
-        coalesce(t1.order_count, 0)                             as order_count,
-        coalesce(t1.same_lead_period_order_count, 0)            as same_lead_period_order_count,
-
-        -- 收款 (分)
-        coalesce(t1.income_amount, 0)                           as income_amount,
-        coalesce(t1.same_lead_period_income_amount, 0)          as same_lead_period_income_amount,
-
-        -- 退款 (分)
-        coalesce(t1.in_pay_period_refund_amount, 0)             as in_pay_period_refund_amount,
-        coalesce(t1.non_pay_period_refund_amount, 0)            as non_pay_period_refund_amount,
-        coalesce(t1.jp_cross_department_refund_amount, 0)       as jp_cross_department_refund_amount,
-
-        -- 线索期收款/退款 (分)
-        coalesce(t1.lead_period_income_amount, 0)               as lead_period_income_amount,
-        coalesce(t1.lead_period_refund_amount, 0)               as lead_period_refund_amount,
-
-        -- 当期线索退款 (分)
-        coalesce(t1.same_lead_period_refund_amount, 0)          as same_lead_period_refund_amount
-
-    from bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df t1
-
-    -- 期次日历: 按线索期角色左连接
-    left join biz_qici_calendar lead_cal
-        on lead_cal.business_domain = 'market_consultant'
-       and lead_cal.date_role = 'lead_period'
-       and cast(date_parse(
-               replace(concat(t1.group_period_year, t1.group_period_term), '期', ''),
-               '%Y%m%d'
-           ) as date)
-           between lead_cal.period_start_date and lead_cal.period_end_date
-       and lead_cal.enabled = 1
-
-    -- ===================================================================
-    -- 分区 + 部门范围限定 (全局规则 3, 5)
-    -- ===================================================================
-    where t1.dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
-      and t1.hour = format_datetime(now() - interval '3' hour, 'HH')
-      -- 截面分配部门
-      and t1.section_assign_employee_first_level_department_name = 'H业务线'
-      and t1.section_assign_employee_second_level_department_name = '市场部'
-      and t1.section_assign_employee_third_level_department_name = '市场顾问部'
-      -- 期次映射一级部门
-      and t1.period_mapping_first_level_department_name = 'H业务线'
-),
-
--- ==========================================================================
--- 2. zhuanhua CTE: 按看板维度聚合基础指标
---    粒度: period_name + channel_map + rule_name + grade_1 + depart_1 + depart
---          + jingli + zhuguan + employee_email_name
--- ==========================================================================
-zhuanhua as (
-    select
-        period_name,
-        channel_map,
-        rule_name,
-        grade_1,
-        depart_1,
-        depart,
-        jingli,
-        zhuguan,
-        employee_email_name,
-
-        -- ---- 线索量指标 ----
-        -- 退前线索: 抖音私域用 merge_assign_lead_count, 其他用 lead_count
-        sum(case when channel_map = '抖音私域'
-                 then merge_assign_lead_count
-                 else lead_count
-            end) as lead_count,
-
-        -- 退后线索: 抖音私域用 merge_valid_lead_count, 其他用 valid_lead_count
-        sum(case when channel_map = '抖音私域'
-                 then merge_valid_lead_count
-                 else valid_lead_count
-            end) as can_renew_ds_count_a,
-
-        -- 市场线索
-        sum(xiansuo) as xiansuo,
-
-        -- ---- 转化人头指标 ----
-        sum(conversion_lead_count)                              as pay_users,
-        sum(same_lead_period_conversion_lead_count)             as pay_users_on_period,
-        sum(conversion_lead_count - same_lead_period_conversion_lead_count) as pay_users_not_on_period,
-
-        -- ---- 科目人次指标 ----
-        sum(subject_count)                                      as pay_user_subs,
-        sum(same_lead_period_subject_count)                     as pay_user_subs_on_period,
-        sum(subject_count - same_lead_period_subject_count)     as pay_user_subs_not_on_period,
-
-        -- ---- 联报人次指标 ----
-        sum(lb_subject_count)                                   as pay_user_subs_joint,
-        sum(same_lead_period_lb_subject_count)                  as pay_user_subs_joint_onp,
-        sum(lb_subject_count - same_lead_period_lb_subject_count) as pay_user_subs_joint_nonp,
-
-        -- ---- 收入/退款指标 (分→元, /100) ----
-        sum(income_amount / 100)                                as trade_income,
-        sum(in_pay_period_refund_amount / 100
-            + non_pay_period_refund_amount / 100)               as trade_refund,
-        sum(income_amount / 100
-            - in_pay_period_refund_amount / 100
-            - non_pay_period_refund_amount / 100)               as trade_profit,
-
-        -- 当期收款/净营收 (分→元)
-        sum(same_lead_period_income_amount / 100)               as xb_trade_income,
-        sum(same_lead_period_income_amount / 100
-            - same_lead_period_refund_amount / 100)             as xb_trade_profit,
-
-        -- 跨期收款 (分→元)
-        sum(income_amount / 100
-            - same_lead_period_income_amount / 100)             as kk_trade_income,
-
-        -- 往期退款 (分→元)
-        sum(non_pay_period_refund_amount / 100)                 as pre_refund,
-
-        -- ---- 市场口径 GMV (按 d_w 当期/非当期拆分) ----
-        sum(case when d_w = '当期'
-                 then lead_period_income_amount / 100
-                    - lead_period_refund_amount / 100
-                 else 0
-            end) as pp_pmit,
-        sum(case when d_w = '非当期'
-                 then income_amount / 100
-                    - in_pay_period_refund_amount / 100
-                    - non_pay_period_refund_amount / 100
-                 else 0
-            end) as ww_pmit
-
-    from data
-    group by
-        period_name,
-        channel_map,
-        rule_name,
-        grade_1,
-        depart_1,
-        depart,
-        jingli,
-        zhuguan,
-        employee_email_name
-),
-
--- ==========================================================================
--- 3. 临时表: 渠道组去重
--- ==========================================================================
-channel_group_dedup as (
-    select
-        channel,
-        max(channel_group) as channel_group
-    from temp_table.dingxi01_channel_group
-    group by channel
-),
-
--- ==========================================================================
--- 4. 临时表: 成本/目标精确匹配 + 通配 (grade='0')
---    按全局规则第8条: grade='0' 为全年级通配
--- ==========================================================================
-cost_exact as (
-    select
-        qici,
-        channel,
-        grade,
-        cast(max(coalesce(cast(cost as double), 0.0)) as double) as cost,
-        cast(max(coalesce(cast(goal as double), 0.0)) as double) as goal
-    from temp_table.dingxi01_cost
-    where grade <> '0'
-    group by qici, channel, grade
-),
-cost_zero as (
-    select
-        qici,
-        channel,
-        cast(max(coalesce(cast(cost as double), 0.0)) as double) as cost,
-        cast(max(coalesce(cast(goal as double), 0.0)) as double) as goal
-    from temp_table.dingxi01_cost
-    where grade = '0'
-    group by qici, channel
-),
-
--- ==========================================================================
--- 5. 临时表: 架构映射 (jiagou_db 按 qici+department+employee 去重)
--- ==========================================================================
-jiagou_period as (
-    select
-        qici,
-        department,
-        employee_email_name,
-        xiaozu,
-        jingli
-    from (
-        select
-            nullif(trim(cast(jg.qici as varchar)), '')               as qici,
-            nullif(trim(cast(jg.department as varchar)), '')         as department,
-            nullif(trim(cast(jg.employee_email_name as varchar)), '') as employee_email_name,
-            nullif(trim(cast(jg.xiaozu as varchar)), '')             as xiaozu,
-            nullif(trim(cast(jg.jingli as varchar)), '')             as jingli,
-            row_number() over (
-                partition by
-                    nullif(trim(cast(jg.qici as varchar)), ''),
-                    nullif(trim(cast(jg.department as varchar)), ''),
-                    nullif(trim(cast(jg.employee_email_name as varchar)), '')
-                order by
-                    case when nullif(trim(cast(jg.xiaozu as varchar)), '') is not null then 0 else 1 end,
-                    nullif(trim(cast(jg.xiaozu as varchar)), ''),
-                    nullif(trim(cast(jg.jingli as varchar)), '')
-            ) as rn
-        from temp_table.dingxi01_jiagou_db jg
-    ) t
-    where rn = 1
-),
-
--- ==========================================================================
--- 6. 临时表: 专项架构在职员工 (jiagou_zx, 在职=1, 按 employee_email_name 去重)
--- ==========================================================================
-zx_active as (
-    select
-        employee_email_name,
-        xiaozu,
-        jingli,
-        department
-    from (
-        select
-            zx.*,
-            row_number() over (
-                partition by zx.employee_email_name
-                order by
-                    case
-                        when zx.department = '郑州顾问部' then 1
-                        when zx.department = '西安一部'   then 2
-                        when zx.department = '西安二部'   then 3
-                        else 9
-                    end,
-                    zx.employee_email_prefix,
-                    zx.xiaozu,
-                    zx.jingli
-            ) as rn
-        from temp_table.dingxi01_jiagou_zx zx
-        where cast(zx.zaizhi as varchar) = '1'
-          and zx.department in ('郑州顾问部', '西安一部', '西安二部')
-    ) t
-    where rn = 1
-)
-
--- ==========================================================================
--- 7. 最终输出: 每个字段输出一次, 看板侧复用基础字段做比率分子/分母
--- ==========================================================================
-select
-    -- ============================================================
-    -- 维度字段
-    -- ============================================================
-    zz.period_name,
-    zz.channel_map,
-    zz.rule_name,
-    zz.grade_1,
-    zz.depart_1,
-    zz.depart,
-    -- 架构: 优先级 jiagou_period > zx_active > 原始虚拟架构
-    coalesce(
-        jg.jingli,
-        nullif(trim(cast(zx.jingli as varchar)), ''),
-        nullif(trim(cast(zz.jingli as varchar)), ''),
-        '未知经理'
-    )                                                           as jingli,
-    coalesce(
-        jg.xiaozu,
-        nullif(trim(cast(zx.xiaozu as varchar)), ''),
-        nullif(trim(cast(zz.zhuguan as varchar)), ''),
-        '未知主管'
-    )                                                           as zhuguan,
-    zz.employee_email_name,
-    channel_grp.channel_group,
-
-    -- ============================================================
-    -- 基础聚合指标 (可直接 sum)
-    -- ============================================================
-    -- 线索
-    zz.lead_count                                               as lead_count,              -- 退前线索
-    zz.can_renew_ds_count_a                                     as can_renew_ds_count_a,    -- 退后线索
-    zz.xiansuo                                                  as xiansuo,                 -- 市场线索
-
-    -- 转化人头
-    zz.pay_users                                                as pay_users,               -- 截面转化人头
-    zz.pay_users_on_period                                      as pay_users_on_period,     -- 当期转化人头
-    zz.pay_users_not_on_period                                  as pay_users_not_on_period, -- 跨期转化人头
-
-    -- 科目人次
-    zz.pay_user_subs                                            as pay_user_subs,           -- 截面科目人次
-    zz.pay_user_subs_on_period                                  as pay_user_subs_on_period, -- 当期科目人次
-    zz.pay_user_subs_not_on_period                              as pay_user_subs_not_on_period, -- 跨期科目人次
-
-    -- 联报人次
-    zz.pay_user_subs_joint                                      as pay_user_subs_joint,     -- 截面联报人次
-    zz.pay_user_subs_joint_onp                                  as pay_user_subs_joint_onp, -- 当期联报人次
-    zz.pay_user_subs_joint_nonp                                 as pay_user_subs_joint_nonp,-- 跨期联报人次
-
-    -- 收入/退款/净营收 (已分转元)
-    zz.trade_income                                             as trade_income,            -- 截面收款
-    zz.trade_refund                                             as trade_refund,            -- 截面退款
-    zz.trade_profit                                             as trade_profit,            -- 截面净营收
-    zz.xb_trade_income                                          as xb_trade_income,         -- 当期收款
-    zz.xb_trade_profit                                          as xb_trade_profit,         -- 当期净营收
-    zz.kk_trade_income                                          as kk_trade_income,         -- 跨期收款
-    zz.pre_refund                                               as pre_refund,              -- 往期退款
-
-    -- 市场口径 GMV
-    zz.pp_pmit                                                  as pp_pmit,                 -- 当期市场GMV
-    zz.ww_pmit                                                  as ww_pmit,                 -- 非当期市场GMV
-
-    -- ============================================================
-    -- 派生字段
-    -- ============================================================
-    -- 筛选期次: 从 rule_name 拆分
-    case
-        when zz.rule_name like '2026年-%' then split_part(zz.rule_name, '-', 2)
-        else split_part(zz.rule_name, '-', 1)
-    end                                                         as sx_qi,
-
-    -- 有效线索门槛 (>=5)
-    case
-        when zz.can_renew_ds_count_a >= 5 then zz.can_renew_ds_count_a
-        else 0
-    end                                                         as s_lead,
-
-    -- 破蛋标记 (有效线索>=5 且 净营收>0)
-    case
-        when zz.can_renew_ds_count_a >= 5 and zz.trade_profit > 0 then 1
-        else 0
-    end                                                         as podan,
-
-    -- 接量人力 (前端 count(distinct)-1)
-    zz.employee_email_name                                      as name1,
-
-    -- 单例子成本/目标 (CTE 中已 cast 为 double, 数值型)
-    coalesce(ce.cost, cz.cost, 0.0)                             as cb_cb,
-    coalesce(ce.goal, cz.goal, 0.0)                             as gl_gl,
-
-    -- M成本 = 退后线索 × 单例子成本
-    zz.can_renew_ds_count_a * coalesce(ce.cost, cz.cost, 0.0)   as m_cost,
-
-    -- gmv目标 = 有效线索门槛 × 单例子目标
-    case
-        when zz.can_renew_ds_count_a >= 5 then zz.can_renew_ds_count_a
-        else 0
-    end * coalesce(ce.goal, cz.goal, 0.0)                       as gmv_target,
-
-    -- ============================================================
-    -- 架构补充 (用于多维度透视)
-    -- ============================================================
-    coalesce(
-        jg.xiaozu,
-        nullif(trim(cast(zx.xiaozu as varchar)), ''),
-        nullif(trim(cast(zz.zhuguan as varchar)), ''),
-        '未知主管'
-    )                                                           as xiaozu,
-    coalesce(
-        jg.jingli,
-        nullif(trim(cast(zx.jingli as varchar)), ''),
-        nullif(trim(cast(zz.jingli as varchar)), ''),
-        '未知经理'
-    )                                                           as jingli_1,
-
-    -- ============================================================
-    -- 比率所需的额外计算字段 (基础字段已各输出一次, 不再重复)
-    -- 看板侧直接复用上方基础字段作为比率分子/分母
-    -- 此处只补基础字段中无法直接取到的派生值
-    -- ============================================================
-
-    -- 当期退款 (= 当期收款 - 当期净营收) —— 退费率(当)分子
-    (zz.xb_trade_income - zz.xb_trade_profit)                   as refund_on_period,
-
-    -- 市场净收 (= 当期市场GMV + 非当期市场GMV) —— 市场单效分子
-    (zz.pp_pmit + zz.ww_pmit)                                   as market_net_profit
-
-from zhuanhua zz
-
--- 渠道组
-left join channel_group_dedup channel_grp
-    on channel_grp.channel = zz.channel_map
-
--- 成本/目标: 先精确匹配 grade, 再回退 grade='0' 通配
-left join cost_exact ce
-    on ce.channel = zz.channel_map
-   and ce.grade = zz.grade_1
-   and ce.qici = zz.period_name
-left join cost_zero cz
-    on cz.channel = zz.channel_map
-   and cz.qici = zz.period_name
-   and ce.channel is null
-
--- 架构映射 (期次+部门+员工)
-left join jiagou_period jg
-    on jg.qici = zz.period_name
-   and jg.department = zz.depart
-   and zz.employee_email_name = jg.employee_email_name
-
--- 专项架构 (在职员工)
-left join zx_active zx
-    on zx.employee_email_name = zz.employee_email_name
-
--- 期次过滤: 仅保留 20260424期之后
-where zz.period_name > '20260424期'
-
--- ============================================================================
--- 输出排序
--- ============================================================================
-order by
-    zz.period_name desc,
-    zz.channel_map,
-    zz.grade_1,
-    zz.depart,
-    zz.employee_email_name
+else '其他未知流量' end
