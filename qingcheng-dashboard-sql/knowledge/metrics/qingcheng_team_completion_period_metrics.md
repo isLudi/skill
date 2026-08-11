@@ -106,3 +106,9 @@
 20260803期个人基表与团队期基表的四名异常顾问金额一致；回归 query `1535375732` 返回王东亚01 `H_income_4=64,000`、`H_refund_4=6,772.61`、`H_promit_4=57,227.39`，张昊62 `15,000 / 2,210 / 12,790`，付金艳 `9,700 / 0 / 9,700`，张地43 `19,800 / 0 / 19,800`。
 
 班课开课 4 节、点睛班开课 2 节、H 一对一全额退款规则仍由 `re_ke/ord` 的 `re_lc` 驱动，`refund_4/class_refund_4` 和 `promit_4` 口径未改变；看板营收/退费/净金额仍为 `sum(income_all)`、`sum(refund_all)`、`sum(income_all)-sum(refund_all)`。候选回归 query `1535084952` 与个人五名顾问结果一致。生产 Preview `1535090729`、run `163259517` 均为 `SUCCESS`。
+
+## 13. 2026-08-09 finance 内部退款事件过滤收紧
+
+团队期版与个人版、团队月版同步收紧 `finance_refund_event_allocated` 的候选事件：只有 `trade_status like '%调出%'` 且 `trade_type like '%调课调班%'` 的负价 finance 明细才进入内部退款池；`全部退款` 视为真实客户退款，不参与内部金额抵销。service 主金额、当前行 transfer 识别、`income_all/refund_all` 和 `ord/re_ke` 退 4/点睛退 2 规则均保持不变。
+
+本地 canonical SQL 哈希为 `e68e3cfb921838132118f9be5c453543a8ef28c6731a3c7c8c269bc4cf5ea806`。团队期完整回归 query `1539844465`，结果 API 成功回读，耗时约 `104.75` 秒；本轮未执行 Data Center 远端替换或抽数。

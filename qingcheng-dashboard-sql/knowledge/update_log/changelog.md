@@ -792,3 +792,15 @@
 - 通过 `usql-web-query-operator/scripts/read_dashboard.py profile-all --write-knowledge --confirm-skill-maintenance` 扫描 `青橙项目部` 和 `青橙播报` 文件夹，并将原始 `profile.json` 写入本地 runtime 目录。
 - 刷新 `knowledge/dashboard_web_profiles/README.md`，当前索引 31 个看板快照。
 - 本次 profile 结果：成功 31 个，失败 0 个。
+
+## 2026-08-09 青橙三份完成度 SQL 收紧 finance 内部退款候选
+
+- 根据 `6552150130`、`7066831022` 退款归因排查，确认 finance 中的 `全部退款` 是真实客户退款，不应进入 `order_change` 内部 transfer pool；只有 `trade_status like '%调出%'` 且 `trade_type like '%调课调班%'` 的负价明细才是内部调课调班退款事件。
+- 同步修改 `resources/raw_sql/data_center_qingcheng_2769.sql`、`data_center_qingcheng_2680.sql`、`data_center_qingcheng_2677.sql` 的 `finance_refund_event_allocated` 过滤条件；service `income_amount/refund_amount` 主事实、`income_all/refund_all`、当前行 transfer 识别、`ord/re_ke` 4 节/2 节退款规则和 H/非 H 折算公式均未改变。
+- 当前本地 canonical SQL 哈希：`2769=17a2e00f0afaf569076f7674336f8eb07ab1ee8066fedbd29822e982fba5776c`、`2680=e68e3cfb921838132118f9be5c453543a8ef28c6731a3c7c8c269bc4cf5ea806`、`2677=6029971ea6cbd66b0c935bcfc8de6f0f5ba4de9118f11e92ce4afc0bbfe08b47`。
+- 本地实际回归：个人 `1539820614`、团队期 `1539844465`（约 104.75 秒）、团队月 `1539849576`（约 244.72 秒）均由结果 API 成功回读；月度查询低于 300 秒硬上限但需要关注生产抽数耗时。本轮只完成本地 SQL/Skill 更新，未执行 Data Center 远端替换、保存或抽数。
+
+## 2026-08-11 数据中心 stable canonical SQL 同步
+
+- 按已审阅同步计划原子更新 model_id：`3180`；每个 model_id 只保留稳定 canonical 路径。
+- 写入后已强制重建反向索引和目录，并运行唯一版本审计、域内 integrity 与完整 Text2SQL 栈验证。

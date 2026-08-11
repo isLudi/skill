@@ -172,6 +172,7 @@ end as is_internal_refund_order_change
 
 - 三份 SQL 新增 `finance_refund_event_allocated`：先将 finance 负退款明细按真实退款事件粒度聚合，不能用 `order_number + clazz_name + user_id + trade_status + trade_type + trade_time + employee_email_name + course_grade` 这类不完整投影键 `row_number()=1` 判重。
 - `order_change` 的 transfer 金额只作为该订单的内部退款池。若某 finance 退款事件金额与 transfer 池精确匹配，则该事件的内部分配金额取全额；没有精确匹配时，按各退款事件金额占订单退款事件总额的比例分配，并以 transfer 池和事件金额为上限。
+- 内部退款池的 finance 候选必须同时满足 `trade_status like '%调出%'`、`trade_type like '%调课调班%'` 和负价；`全部退款` 是真实客户退款，不能被当作内部调课退款参与 transfer pool 抵销。service 退款行的实际退款识别仍按当前 service 金额和收入/退款侧 flag 执行。
 - `t4` 将 service 当前行的 `refund_amount_yuan` 减去匹配到的 `internal_refund_amount_yuan`，所得非负余额才进入 `refund`、`refund_4`、`r_sub`；`refund_all` 仍完全汇总 service 原始退款，不被 finance 替代或放大。
 - 余额进入退款规则后，`re_ke/ord` 的班课开课 4 节、点睛班开课 2 节和 H 一对一全额退款规则不变；该分配只解决“哪一部分是内部调课退款”，不改变退 4/点睛退 2 的业务含义。
 

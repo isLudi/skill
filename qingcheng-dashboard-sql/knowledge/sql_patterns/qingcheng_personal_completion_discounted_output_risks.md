@@ -267,6 +267,18 @@ H_promit_4   = 19,800
 
 20260803 期王东亚01回归结果：`H_income_4=64,000`、`refund_all=13,505.26`；事件金额分配后 `refund=6,822.61`、`H_refund_4=6,772.61`、`H_promit_4=57,227.39`。个人、团队期、团队月定向回归分别由 query `1535361544`、`1535375732`、`1535381004` 验证，四名异常顾问的期次字段一致。
 
+### 3.6.4 2026-08-09：finance 内部退款候选必须是“调出退款 + 调课调班”
+
+继续排查 `6552150130`、`7066831022` 时确认，finance 同一订单可能同时存在 `调出退款` 和 `全部退款` 两类独立事件。若 `finance_refund_event_allocated` 只使用 `trade_status like '%退%'`，就会把真实 `全部退款` 也加入内部 transfer pool，随后从 service 退款中抵销，造成 `refund/refund_4` 少算、折算后产出偏高。
+
+当前三份 canonical SQL 已统一改为：
+
+- 内部退款事件必须满足 `f.trade_status like '%调出%'`、`f.trade_type like '%调课调班%'` 且 `f.price < 0`；
+- finance 的 `全部退款` 不参与 internal allocation，但仍由 service `refund_amount` 进入 `refund_all`，并按 `re_ke/ord` 的 4 节/2 节规则进入 `refund_4`；
+- 不改变 service 主金额、订单变更 transfer pool、收入侧 transfer 排除或 H/非 H 折算公式。
+
+团队期 query `1539844465`（约 104.75 秒）和团队月 query `1539849576`（约 244.72 秒）均成功回读结果 API，且提交 SQL hash 与本地 canonical 一致。月度查询接近但未超过 300 秒门禁，后续若上线仍需观察生产抽数耗时；本轮没有执行远端 Data Center 替换。
+
 ### 3.7 团队架构必须按期次 join，不能固定取最新期次
 
 团队完成度【月/期】和个人完成度都不能再使用：

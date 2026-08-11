@@ -4,6 +4,8 @@ runtime_parameters as (
         format_datetime(current_timestamp - interval '2' hour, 'YYYYMMdd') as app_snapshot_dt,
         format_datetime(current_timestamp - interval '2' hour, 'HH') as app_snapshot_hour,
         format_datetime(current_timestamp - interval '2' hour, 'YYYYMMddHH') as app_snapshot_key,
+        format_datetime(current_timestamp - interval '2' hour, 'YYYYMMdd') as workload_snapshot_dt,
+        format_datetime(current_timestamp - interval '2' hour, 'HH') as workload_snapshot_hour,
         format_datetime(current_timestamp - interval '1' day, 'YYYYMMdd') as employee_snapshot_dt,
         format_datetime(current_timestamp - interval '2' hour, 'YYYYMMdd') as private_snapshot_dt,
         format_datetime(current_timestamp - interval '2' hour, 'HH') as private_snapshot_hour,
@@ -11,20 +13,6 @@ runtime_parameters as (
         format_datetime(current_timestamp - interval '3' hour, 'YYYYMMdd') as finance_snapshot_dt,
         format_datetime(current_timestamp - interval '3' hour, 'HH') as finance_snapshot_hour,
         format_datetime(current_timestamp - interval '3' hour, 'YYYYMMddHH') as finance_snapshot_key
-),
-biz_qici_calendar as (
-    select *
-    from (
-        values
-            ('20260710期', date '2026-07-07', date '2026-07-13'),
-            ('20260716期', date '2026-07-14', date '2026-07-19'),
-            ('20260722期', date '2026-07-20', date '2026-07-25'),
-            ('20260728期', date '2026-07-26', date '2026-07-31'),
-            ('20260803期', date '2026-08-01', date '2026-08-06'),
-            ('20260808期', date '2026-08-07', date '2026-08-11'),
-            ('20260815期', date '2026-08-12', date '2026-08-18'),
-            ('20260821期', date '2026-08-19', date '2026-08-23')
-    ) as t(qici, period_start_date, period_end_date)
 ),
 app_partition as (
     select
@@ -36,7 +24,12 @@ app_partition as (
 employee_org_ranked as (
     select
         nullif(trim(e.email_prefix), '') as employee_email_prefix,
+        e.employee_email_name,
         nullif(trim(e.leader_employee_email_name), '') as xiaozu,
+        e.department_path,
+        e.first_level_department_name,
+        e.second_level_department_name,
+        e.third_level_department_name,
         row_number() over (
             partition by nullif(trim(e.email_prefix), '')
             order by
@@ -48,13 +41,22 @@ employee_org_ranked as (
     cross join runtime_parameters p
     where e.dt = p.employee_snapshot_dt
       and e.first_level_department_name = 'H业务线'
+      and e.second_level_department_name = '青橙项目部'
+      and e.third_level_department_name = '学习顾问部'
+      and e.department_path like '高途-H业务线-青橙项目部-学习顾问部-SEC创新部%'
       and e.is_main_job = 1
+      and e.is_on_job = 1
       and nullif(trim(e.email_prefix), '') is not null
 ),
 employee_org as (
     select
         employee_email_prefix,
-        xiaozu
+        employee_email_name,
+        xiaozu,
+        department_path,
+        first_level_department_name,
+        second_level_department_name,
+        third_level_department_name
     from employee_org_ranked
     where rn = 1
 ),
@@ -71,61 +73,6 @@ finance_partition as (
         finance_snapshot_hour as snapshot_hour,
         finance_snapshot_key as snapshot_key
     from runtime_parameters
-),
-dwd_chain_source as (
-    select
-        p.model_type,
-        cast(p.crm_leads_id as bigint) as crm_leads_id,
-        cast(p.user_id as bigint) as user_id,
-        cast(p.previous_model_id as bigint) as previous_model_id,
-        p.purchase_intention_name,
-        case
-            when p.model_type = 1 then cast(p.crm_leads_id as bigint)
-            else cast(p.previous_model_id as bigint)
-        end as chain_prelead_id
-    from data_lake_fuwu.dwd_crm_leads_rt p
-    where (
-        p.model_type = 1
-        and p.purchase_intention_name in (
-            '高中预科青橙TMK',
-            '高一青橙TMK',
-            '高二青橙TMK',
-            '高三青橙TMK',
-            '规划系统高一',
-            '规划系统高二',
-            '规划系统高三'
-        )
-    )
-    or (
-        p.model_type = 0
-        and p.previous_model_id > 0
-    )
-),
-dwd_chain_windowed as (
-    select
-        s.*,
-        max(case when s.model_type = 1 then 1 else 0 end) over (
-            partition by s.chain_prelead_id
-        ) as has_target_prelead,
-        max(case when s.model_type = 1 then s.user_id end) over (
-            partition by s.chain_prelead_id
-        ) as prelead_user_id,
-        max(case when s.model_type = 1 then s.purchase_intention_name end) over (
-            partition by s.chain_prelead_id
-        ) as prelead_purchase_intention_name
-    from dwd_chain_source s
-),
-dwd_transfer as (
-    select distinct
-        chain_prelead_id as prelead_id,
-        prelead_user_id,
-        prelead_purchase_intention_name,
-        crm_leads_id as transfer_lead_id,
-        user_id as transfer_user_id,
-        purchase_intention_name as transfer_purchase_intention_name
-    from dwd_chain_windowed
-    where model_type = 0
-      and has_target_prelead = 1
 ),
 app_prelead_source as (
     select
@@ -144,50 +91,26 @@ app_prelead_source as (
         f.section_assign_employee_first_level_department_name,
         f.section_assign_employee_second_level_department_name,
         f.valid_lead_count,
+        f.section_assign_all_call_duration,
+        f.section_assign_call_connected_count,
+        f.section_assign_call_missed_count,
         f.dt,
-        f.hour,
-        coalesce(
-            try(
-                cast(
-                    date_parse(
-                        regexp_extract(
-                            concat(
-                                coalesce(f.group_period_year, ''),
-                                coalesce(f.group_period_term, '')
-                            ),
-                            '([0-9]{8})',
-                            1
-                        ),
-                        '%Y%m%d'
-                    ) as date
-                )
-            ),
-            try(
-                cast(
-                    date_parse(
-                        concat(
-                            regexp_extract(
-                                f.group_period_name,
-                                '([0-9]{4})年-([0-9]{4})期',
-                                1
-                            ),
-                            regexp_extract(
-                                f.group_period_name,
-                                '([0-9]{4})年-([0-9]{4})期',
-                                2
-                            )
-                        ),
-                        '%Y%m%d'
-                    ) as date
-                )
-            )
-        ) as source_qici_date
+        f.hour
     from bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf f
     cross join app_partition ap
     where f.dt = ap.snapshot_dt
       and f.hour = ap.snapshot_hour
       and f.lead_model_type = 1
       and f.section_assign_employee_first_level_department_name = 'H业务线'
+      and f.lead_purchase_intention_name in (
+          '高中预科青橙TMK',
+          '高一青橙TMK',
+          '高二青橙TMK',
+          '高三青橙TMK',
+          '规划系统高一',
+          '规划系统高二',
+          '规划系统高三'
+      )
       and f.section_assign_employee_second_level_department_name in (
           '精品班学部',
           '菁英班学部',
@@ -195,6 +118,8 @@ app_prelead_source as (
           '本地化大班学部',
           '青橙项目部'
       )
+      and coalesce(try_cast(f.valid_lead_count as bigint), 0) > 0
+      and f.employee_email_name is not null
 ),
 app_prelead_base as (
     select
@@ -203,8 +128,13 @@ app_prelead_base as (
         f.employee_email_name as tmk_consultant_name,
         f.employee_email_prefix as tmk_consultant_email_prefix,
         e.xiaozu,
+        e.department_path as current_department_path,
+        e.first_level_department_name as current_first_department,
+        e.second_level_department_name as current_second_department,
+        e.third_level_department_name as current_third_department,
         try_cast(f.section_assign_time as timestamp) as tmk_assign_time,
         f.rule_name as raw_rule_name,
+        f.lead_purchase_intention_name as prelead_purchase_intention_name,
         case
             when f.rule_name like '%武汉图书%' then '武汉图书'
             when f.rule_name like '%公域%' then '公域'
@@ -217,24 +147,24 @@ app_prelead_base as (
             nullif(trim(f.stats_grade_name), ''),
             nullif(trim(f.lead_purchase_intention_level2_category_name), '')
         ) as app_lead_grade,
-        coalesce(
-            cal.qici,
-            case
-                when f.source_qici_date is not null then concat(
-                    date_format(
-                        date_trunc(
-                            'week',
-                            cast(f.source_qici_date as timestamp) - interval '1' day
-                        ) + interval '4' day,
-                        '%Y%m%d'
-                    ),
-                    '期'
-                )
-            end
-        ) as qici,
+        case
+            when try_cast(f.section_assign_time as timestamp) is not null then concat(
+                date_format(
+                    date_trunc(
+                        'week',
+                        try_cast(f.section_assign_time as timestamp) + interval '2' day
+                    ) + interval '4' day,
+                    '%Y%m%d'
+                ),
+                '期'
+            )
+        end as lead_qici,
         f.section_assign_employee_first_level_department_name as tmk_first_department,
         f.section_assign_employee_second_level_department_name as tmk_second_department,
         coalesce(try_cast(f.valid_lead_count as bigint), 0) as app_valid_lead_count,
+        coalesce(try_cast(f.section_assign_all_call_duration as bigint), 0) as source_call_duration_seconds,
+        coalesce(try_cast(f.section_assign_call_connected_count as bigint), 0) as source_call_connected_count,
+        coalesce(try_cast(f.section_assign_call_missed_count as bigint), 0) as source_call_missed_count,
         concat(f.dt, f.hour) as app_snapshot_key,
         concat(
             lpad(
@@ -267,9 +197,7 @@ app_prelead_base as (
             coalesce(f.employee_email_prefix, '~')
         ) as app_sort_key
     from app_prelead_source f
-    left join biz_qici_calendar cal
-      on f.source_qici_date between cal.period_start_date and cal.period_end_date
-    left join employee_org e
+    inner join employee_org e
       on nullif(trim(f.employee_email_prefix), '') = e.employee_email_prefix
 ),
 app_prelead as (
@@ -291,6 +219,22 @@ app_prelead as (
             '__NULL__'
         ) as xiaozu,
         nullif(
+            min_by(coalesce(current_department_path, '__NULL__'), app_sort_key),
+            '__NULL__'
+        ) as current_department_path,
+        nullif(
+            min_by(coalesce(current_first_department, '__NULL__'), app_sort_key),
+            '__NULL__'
+        ) as current_first_department,
+        nullif(
+            min_by(coalesce(current_second_department, '__NULL__'), app_sort_key),
+            '__NULL__'
+        ) as current_second_department,
+        nullif(
+            min_by(coalesce(current_third_department, '__NULL__'), app_sort_key),
+            '__NULL__'
+        ) as current_third_department,
+        nullif(
             min_by(coalesce(tmk_consultant_email_prefix, '__NULL__'), app_sort_key),
             '__NULL__'
         ) as tmk_consultant_email_prefix,
@@ -306,6 +250,10 @@ app_prelead as (
             '__NULL__'
         ) as raw_rule_name,
         nullif(
+            min_by(coalesce(prelead_purchase_intention_name, '__NULL__'), app_sort_key),
+            '__NULL__'
+        ) as prelead_purchase_intention_name,
+        nullif(
             min_by(coalesce(lead_channel, '__NULL__'), app_sort_key),
             '__NULL__'
         ) as lead_channel,
@@ -314,9 +262,9 @@ app_prelead as (
             '__NULL__'
         ) as app_lead_grade,
         nullif(
-            min_by(coalesce(qici, '__NULL__'), app_sort_key),
+            min_by(coalesce(lead_qici, '__NULL__'), app_sort_key),
             '__NULL__'
-        ) as qici,
+        ) as lead_qici,
         nullif(
             min_by(coalesce(tmk_first_department, '__NULL__'), app_sort_key),
             '__NULL__'
@@ -335,12 +283,56 @@ app_prelead as (
             )
             as bigint
         ) as app_valid_lead_count,
+        try_cast(
+            nullif(
+                min_by(
+                    coalesce(cast(source_call_duration_seconds as varchar), '__NULL__'),
+                    app_sort_key
+                ),
+                '__NULL__'
+            )
+            as bigint
+        ) as source_call_duration_seconds,
+        try_cast(
+            nullif(
+                min_by(
+                    coalesce(cast(source_call_connected_count as varchar), '__NULL__'),
+                    app_sort_key
+                ),
+                '__NULL__'
+            )
+            as bigint
+        ) as source_call_connected_count,
+        try_cast(
+            nullif(
+                min_by(
+                    coalesce(cast(source_call_missed_count as varchar), '__NULL__'),
+                    app_sort_key
+                ),
+                '__NULL__'
+            )
+            as bigint
+        ) as source_call_missed_count,
         nullif(
             min_by(coalesce(app_snapshot_key, '__NULL__'), app_sort_key),
             '__NULL__'
         ) as app_snapshot_key
     from app_prelead_base
     group by prelead_id
+),
+dwd_transfer as (
+    select distinct
+        a.prelead_id,
+        a.app_user_id as prelead_user_id,
+        a.prelead_purchase_intention_name,
+        cast(p.crm_leads_id as bigint) as transfer_lead_id,
+        cast(p.user_id as bigint) as transfer_user_id,
+        p.purchase_intention_name as transfer_purchase_intention_name
+    from app_prelead a
+    inner join data_lake_fuwu.dwd_crm_leads_rt p
+      on p.model_type = 0
+     and cast(p.previous_model_id as bigint) = a.prelead_id
+    where p.previous_model_id > 0
 ),
 private_history_base as (
     select
@@ -379,6 +371,10 @@ private_history_base as (
           '本地化大班学部',
            '青橙项目部'
        )
+      and cast(a.lead_id as bigint) in (
+          select transfer_lead_id
+          from dwd_transfer
+      )
 ),
 private_history_ordered as (
     select
@@ -461,43 +457,19 @@ private_roles as (
     from private_transfer_events_ranked
     where transfer_event_rn = 1
 ),
-transfer_enriched_channel_base as (
+prelead_channel_base as (
     select
-        t.prelead_id,
-        t.prelead_purchase_intention_name,
-        t.transfer_purchase_intention_name,
-        coalesce(
-            a.app_user_id,
-            t.prelead_user_id,
-            t.transfer_user_id,
-            p.private_user_id
-        ) as user_id,
-        t.transfer_lead_id,
-        a.qici,
-        case
-            when a.qici is not null then 'app_prelead'
-            else 'app_not_backfilled'
-        end as qici_source,
-        cast(p.first_receiver_time as date) as assign_day,
-        a.tmk_consultant_name,
-        a.xiaozu,
-        a.tmk_consultant_email_prefix,
-        a.tmk_assign_time,
-        a.tmk_first_department,
-        a.tmk_second_department,
+        a.*,
         coalesce(
             a.app_lead_grade,
             case
                 when a.raw_rule_name like '%高一%' then '高一'
                 when a.raw_rule_name like '%高二%' then '高二'
                 when a.raw_rule_name like '%高三%' then '高三'
-                when t.transfer_purchase_intention_name like '%高一%' then '高一'
-                when t.transfer_purchase_intention_name like '%高二%' then '高二'
-                when t.transfer_purchase_intention_name like '%高三%' then '高三'
-                when t.prelead_purchase_intention_name like '%高一%' then '高一'
-                when t.prelead_purchase_intention_name like '%高二%' then '高二'
-                when t.prelead_purchase_intention_name like '%高三%' then '高三'
-                when t.prelead_purchase_intention_name like '%高中预科%' then '高中预科'
+                when a.prelead_purchase_intention_name like '%高一%' then '高一'
+                when a.prelead_purchase_intention_name like '%高二%' then '高二'
+                when a.prelead_purchase_intention_name like '%高三%' then '高三'
+                when a.prelead_purchase_intention_name like '%高中预科%' then '高中预科'
             end
         ) as lead_grade,
         case
@@ -505,17 +477,12 @@ transfer_enriched_channel_base as (
             when a.raw_rule_name like '%高一%'
               or a.raw_rule_name like '%高二%'
               or a.raw_rule_name like '%高三%' then 'app_rule_name'
-            when t.transfer_purchase_intention_name like '%高一%'
-              or t.transfer_purchase_intention_name like '%高二%'
-              or t.transfer_purchase_intention_name like '%高三%' then 'transfer_intention'
-            when t.prelead_purchase_intention_name like '%高一%'
-              or t.prelead_purchase_intention_name like '%高二%'
-              or t.prelead_purchase_intention_name like '%高三%'
-              or t.prelead_purchase_intention_name like '%高中预科%' then 'prelead_intention'
+            when a.prelead_purchase_intention_name like '%高一%'
+              or a.prelead_purchase_intention_name like '%高二%'
+              or a.prelead_purchase_intention_name like '%高三%'
+              or a.prelead_purchase_intention_name like '%高中预科%' then 'prelead_intention'
             else 'grade_not_backfilled'
         end as lead_grade_source,
-        a.lead_channel,
-        a.raw_rule_name,
         case
             when a.raw_rule_name like '%武汉图书%' then '武汉图书'
             when a.raw_rule_name like '%西安图书%' then '西安图书'
@@ -528,41 +495,13 @@ transfer_enriched_channel_base as (
               or a.raw_rule_name like '%首期掉海%' then 'SEC首期掉海'
             when a.raw_rule_name like '%SEC未加好友%'
               or a.raw_rule_name like '%未加好友%'
-              or t.prelead_purchase_intention_name like '规划系统%'
+              or a.prelead_purchase_intention_name like '规划系统%'
                 then 'SEC未加好友'
-        end as channel_map_2,
-        a.app_valid_lead_count,
-        p.first_receiver_name,
-        p.first_receiver_email_prefix,
-        p.first_receiver_time,
-        p.first_receiver_department,
-        coalesce(
-            p.current_private_candidate,
-            p.first_receiver_name
-        ) as current_consultant_name,
-        case
-            when p.current_private_candidate is not null
-             and p.current_private_is_active = 1 then 'private_active_candidate'
-            when p.current_private_candidate is not null then 'private_latest_candidate'
-            when p.first_receiver_name is not null then 'first_receiver_fallback'
-            else '未回补'
-        end as current_consultant_source,
-        p.current_private_candidate,
-        p.current_private_assign_time,
-        p.current_private_is_active,
-        p.private_history_count,
-        cast(null as timestamp) as transfer_lead_create_time,
-        cast(null as varchar) as transfer_lead_period_name,
-        a.app_snapshot_key,
-        p.private_snapshot_key,
-        cast(null as varchar) as lead_snapshot_key
-    from dwd_transfer t
-    left join app_prelead a
-      on a.prelead_id = t.prelead_id
-    inner join private_roles p
-      on p.transfer_lead_id = t.transfer_lead_id
+            else '渠道未回补'
+        end as channel_map_2
+    from app_prelead a
 ),
-transfer_enriched as (
+prelead_enriched as (
     select
         b.*,
         case
@@ -599,8 +538,126 @@ transfer_enriched as (
             when b.raw_rule_name like '%抖音私信%' then '抖音私信'
             when b.raw_rule_name like '%进校9元%'
               or b.raw_rule_name like '%进校%' then '进校9元'
+            else '渠道未回补'
         end as channel_map_1
-    from transfer_enriched_channel_base b
+    from prelead_channel_base b
+),
+transfer_enriched_candidates as (
+    select
+        t.prelead_id,
+        coalesce(a.prelead_purchase_intention_name, t.prelead_purchase_intention_name)
+            as prelead_purchase_intention_name,
+        t.transfer_purchase_intention_name,
+        coalesce(
+            a.app_user_id,
+            t.prelead_user_id,
+            t.transfer_user_id,
+            p.private_user_id
+        ) as user_id,
+        t.transfer_lead_id,
+        a.lead_qici,
+        concat(
+            date_format(
+                date_trunc('week', p.first_receiver_time + interval '2' day)
+                    + interval '4' day,
+                '%Y%m%d'
+            ),
+            '期'
+        ) as transfer_qici,
+        concat(
+            date_format(
+                date_trunc('week', p.first_receiver_time + interval '2' day)
+                    + interval '4' day,
+                '%Y%m%d'
+            ),
+            '期'
+        ) as qici,
+        'transfer_time' as qici_source,
+        cast(p.first_receiver_time as date) as assign_day,
+        a.tmk_consultant_name,
+        a.xiaozu,
+        a.tmk_consultant_email_prefix,
+        a.current_department_path,
+        a.current_first_department,
+        a.current_second_department,
+        a.current_third_department,
+        a.tmk_assign_time,
+        a.tmk_first_department,
+        a.tmk_second_department,
+        a.lead_grade,
+        a.lead_grade_source,
+        a.lead_channel,
+        a.raw_rule_name,
+        a.channel_map_1,
+        a.channel_map_2,
+        a.app_valid_lead_count,
+        p.first_receiver_name,
+        p.first_receiver_email_prefix,
+        p.first_receiver_time,
+        p.first_receiver_department,
+        coalesce(p.current_private_candidate, p.first_receiver_name)
+            as current_consultant_name,
+        case
+            when p.current_private_candidate is not null
+             and p.current_private_is_active = 1 then 'private_active_candidate'
+            when p.current_private_candidate is not null then 'private_latest_candidate'
+            when p.first_receiver_name is not null then 'first_receiver_fallback'
+            else '未回补'
+        end as current_consultant_source,
+        p.current_private_candidate,
+        p.current_private_assign_time,
+        p.current_private_is_active,
+        p.private_history_count,
+        a.app_snapshot_key,
+        p.private_snapshot_key,
+        row_number() over (
+            partition by t.prelead_id
+            order by p.first_receiver_time, t.transfer_lead_id
+        ) as prelead_transfer_rn
+    from dwd_transfer t
+    inner join prelead_enriched a
+      on a.prelead_id = t.prelead_id
+    inner join private_roles p
+      on p.transfer_lead_id = t.transfer_lead_id
+),
+transfer_enriched as (
+    select *
+    from transfer_enriched_candidates
+    where prelead_transfer_rn = 1
+),
+call_detail as (
+    select distinct
+        try_cast(w.user_number as bigint) as user_number,
+        cast(w.lead_id as bigint) as lead_id,
+        w.section_assign_employee_email_prefix,
+        try_cast(w.call_duration as bigint) as call_duration,
+        w.call_status
+    from service_dw.app_h_crm_lead_employee_workload_detail_hf w
+    inner join prelead_enriched a
+      on cast(w.lead_id as bigint) = a.prelead_id
+     and try_cast(w.user_number as bigint) = a.app_user_id
+     and w.section_assign_employee_email_prefix = a.tmk_consultant_email_prefix
+    cross join runtime_parameters p
+    where w.dt = p.workload_snapshot_dt
+      and w.hour = p.workload_snapshot_hour
+),
+call_c as (
+    select
+        user_number,
+        lead_id,
+        section_assign_employee_email_prefix,
+        sum(coalesce(call_duration, 0)) as call_duration_seconds,
+        sum(case when call_status in ('1', '0') then 1 else 0 end) as total_call_count,
+        sum(case when call_status = '1' then 1 else 0 end) as connected_call_count
+    from call_detail
+    group by user_number, lead_id, section_assign_employee_email_prefix
+),
+transfer_finance_scope as (
+    select distinct
+        prelead_id,
+        transfer_lead_id,
+        user_id
+    from transfer_enriched
 ),
 finance_order_grouped as (
     select
@@ -647,6 +704,10 @@ finance_order_grouped as (
         max(coalesce(o.is_full_refund_order, 0)) as is_full_refund_order,
         concat(o.dt, o.hour) as finance_snapshot_key
     from service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf o
+    inner join transfer_finance_scope s
+      on cast(o.lead_id as bigint) = s.prelead_id
+      or cast(o.lead_id as bigint) = s.transfer_lead_id
+      or try_cast(o.original_order_user_number as bigint) = s.user_id
     cross join finance_partition fp
     where o.dt = fp.snapshot_dt
       and o.hour = fp.snapshot_hour
@@ -841,9 +902,15 @@ order_attribution as (
     select
         transfer_lead_id,
         max(qici) as qici,
+        max(lead_qici) as lead_qici,
+        max(transfer_qici) as transfer_qici,
         max(assign_day) as assign_day,
         max(tmk_consultant_name) as tmk_consultant_name,
         max(xiaozu) as xiaozu,
+        max(current_department_path) as current_department_path,
+        max(current_first_department) as current_first_department,
+        max(current_second_department) as current_second_department,
+        max(current_third_department) as current_third_department,
         max(user_id) as user_id,
         max(lead_grade) as lead_grade,
         max(lead_channel) as lead_channel,
@@ -867,13 +934,12 @@ order_attribution as (
         max(current_private_assign_time) as current_private_assign_time,
         max(current_private_is_active) as current_private_is_active,
         max(private_history_count) as private_history_count,
-        max(transfer_lead_create_time) as transfer_lead_create_time,
-        max(transfer_lead_period_name) as transfer_lead_period_name,
         max(app_snapshot_key) as app_snapshot_key,
         max(private_snapshot_key) as private_snapshot_key,
-        max(lead_snapshot_key) as lead_snapshot_key,
         count(order_number) as matched_finance_row_count,
         count(distinct order_number) as matched_order_count,
+        count(distinct case when is_deal_order = 1 then order_number end)
+            as deal_order_count,
         max(coalesce(is_deal_order, 0)) as has_deal,
         nullif(
             array_join(
@@ -948,50 +1014,180 @@ order_attribution as (
     from order_candidate_ranked
     where transfer_chain_rn = 1
     group by transfer_lead_id
+),
+lead_output as (
+    select
+        coalesce(o.transfer_qici, a.lead_qici) as qici,
+        case
+            when o.transfer_lead_id is not null then 'transfer_time'
+            else 'tmk_assign_time_fallback'
+        end as qici_basis,
+        a.lead_qici,
+        o.transfer_qici,
+        coalesce(o.assign_day, cast(a.tmk_assign_time as date)) as assign_day,
+        a.tmk_consultant_name,
+        a.xiaozu,
+        coalesce(o.user_id, a.app_user_id) as user_id,
+        o.transfer_lead_id,
+        a.lead_grade,
+        cast(1 as bigint) as v_lead,
+        cast(
+            case when o.transfer_lead_id is not null then 1 else 0 end
+            as bigint
+        ) as transfer_lead_count,
+        cast(
+            case when coalesce(o.has_deal, 0) = 1 then 1 else 0 end
+            as bigint
+        ) as deal_lead_count,
+        a.lead_channel,
+        a.channel_map_1,
+        a.channel_map_2,
+        o.first_receiver_name,
+        o.deal_grade,
+        o.deal_subject,
+        o.deal_main_teacher,
+        case
+            when coalesce(o.deal_order_count, 0) = 0 then cast(null as double)
+            else o.deal_amount_yuan
+        end as deal_amount,
+        case
+            when coalesce(o.deal_order_count, 0) = 0 then cast(null as double)
+            else o.refund_amount_yuan
+        end as refund_amount,
+        case
+            when coalesce(o.deal_order_count, 0) = 0 then cast(null as double)
+            else o.net_amount_yuan
+        end as net_amount,
+        a.prelead_id,
+        a.lead_grade_source,
+        a.prelead_purchase_intention_name,
+        o.transfer_purchase_intention_name,
+        o.first_receiver_time,
+        o.current_consultant_name,
+        o.current_consultant_source,
+        o.performance_consultant_names,
+        coalesce(o.matched_order_count, 0) as matched_order_count,
+        coalesce(o.deal_order_count, 0) as deal_order_count,
+        a.raw_rule_name,
+        a.tmk_assign_time,
+        a.tmk_first_department,
+        a.tmk_second_department,
+        o.first_receiver_department,
+        a.current_department_path,
+        a.current_first_department,
+        a.current_second_department,
+        a.current_third_department,
+        cast(
+            coalesce(
+                c.call_duration_seconds,
+                a.source_call_duration_seconds,
+                0
+            ) as double
+        ) / 60.00 as call_duration,
+        cast(
+            coalesce(
+                c.total_call_count,
+                a.source_call_connected_count + a.source_call_missed_count,
+                0
+            ) as bigint
+        ) as zong_call_ci,
+        cast(
+            coalesce(
+                c.connected_call_count,
+                a.source_call_connected_count,
+                0
+            ) as bigint
+        ) as call_status,
+        cast(
+            case
+                when coalesce(
+                    c.connected_call_count,
+                    a.source_call_connected_count,
+                    0
+                ) > 0 then 1
+                else 0
+            end as bigint
+        ) as is_connected_lead
+    from prelead_enriched a
+    left join order_attribution o
+      on o.prelead_id = a.prelead_id
+    left join call_c c
+      on c.user_number = a.app_user_id
+     and c.lead_id = a.prelead_id
+     and c.section_assign_employee_email_prefix = a.tmk_consultant_email_prefix
+    where coalesce(o.transfer_qici, a.lead_qici) >= '20260501期'
+),
+dashboard_fact as (
+    select
+        qici,
+        assign_day,
+        tmk_consultant_name,
+        xiaozu,
+        lead_grade,
+        channel_map_1,
+        channel_map_2,
+        first_receiver_name,
+        qici_basis,
+        sum(v_lead) as v_lead,
+        sum(transfer_lead_count) as transfer_lead_count,
+        sum(deal_lead_count) as deal_lead_count,
+        sum(is_connected_lead) as is_connected_lead,
+        sum(call_duration) as call_duration,
+        sum(zong_call_ci) as zong_call_ci,
+        sum(call_status) as call_status,
+        sum(deal_order_count) as deal_order_count,
+        sum(matched_order_count) as matched_order_count,
+        round(sum(coalesce(deal_amount, 0.0)), 2) as deal_amount,
+        round(sum(coalesce(refund_amount, 0.0)), 2) as refund_amount,
+        round(sum(coalesce(net_amount, 0.0)), 2) as net_amount,
+        min(first_receiver_time) as first_receiver_time_min,
+        max(first_receiver_time) as first_receiver_time_max,
+        max(current_department_path) as current_department_path,
+        max(current_first_department) as current_first_department,
+        max(current_second_department) as current_second_department,
+        max(current_third_department) as current_third_department,
+        count(*) as source_detail_row_count
+    from lead_output
+    group by
+        qici,
+        assign_day,
+        tmk_consultant_name,
+        xiaozu,
+        lead_grade,
+        channel_map_1,
+        channel_map_2,
+        first_receiver_name,
+        qici_basis
 )
 select
-    o.qici,
-    o.assign_day,
-    o.tmk_consultant_name,
-    o.xiaozu,
-    o.user_id,
-    cast(o.transfer_lead_id as varchar) as transfer_lead_id,
-    o.lead_grade,
-    cast(1 as bigint) as lead_count,
-    cast(
-        case when coalesce(o.has_deal, 0) = 1 then 1 else 0 end
-        as bigint
-    ) as deal_lead_count,
-    o.lead_channel,
-    o.channel_map_1,
-    o.channel_map_2,
-    o.first_receiver_name,
-    o.deal_grade,
-    o.deal_subject,
-    o.deal_main_teacher,
-    case
-        when coalesce(o.matched_order_count, 0) = 0 then cast(null as double)
-        else o.deal_amount_yuan
-    end as deal_amount,
-    case
-        when coalesce(o.matched_order_count, 0) = 0 then cast(null as double)
-        else o.refund_amount_yuan
-    end as refund_amount,
-    case
-        when coalesce(o.matched_order_count, 0) = 0 then cast(null as double)
-        else o.net_amount_yuan
-    end as net_amount,
-    o.prelead_id,
-    o.lead_grade_source,
-    o.prelead_purchase_intention_name,
-    o.transfer_purchase_intention_name,
-    o.current_consultant_name,
-    o.current_consultant_source,
-    o.performance_consultant_names,
-    o.matched_order_count,
-    o.raw_rule_name,
-    o.tmk_assign_time,
-    o.tmk_first_department,
-    o.tmk_second_department,
-    o.first_receiver_department
-from order_attribution o
+    qici,
+    assign_day,
+    tmk_consultant_name,
+    xiaozu,
+    lead_grade,
+    channel_map_1,
+    channel_map_2,
+    first_receiver_name,
+    transfer_lead_count as lead_count,
+    deal_lead_count,
+    deal_amount,
+    refund_amount,
+    net_amount,
+    matched_order_count,
+    v_lead,
+    transfer_lead_count,
+    is_connected_lead,
+    call_duration,
+    zong_call_ci,
+    call_status,
+    deal_order_count,
+    qici_basis,
+    first_receiver_time_min,
+    first_receiver_time_max,
+    current_department_path,
+    current_first_department,
+    current_second_department,
+    current_third_department,
+    source_detail_row_count,
+    'qici_assign_day_consultant_channel_grade_receiver' as data_grain
+from dashboard_fact

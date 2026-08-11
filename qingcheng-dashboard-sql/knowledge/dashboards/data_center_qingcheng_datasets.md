@@ -2,7 +2,7 @@
 
 ## 1. 来源与范围
 
-- 最近同步计划日期：2026-08-08
+- 最近同步计划日期：2026-08-11
 - 来源页面：https://uanalysis.baijia.com/data-center/data-set
 - 同步范围：青橙项目部目录下的全部 SQL 数据集。
 - canonical SQL 使用稳定文件名；更新时间与 SHA-256 由 `semantic/current_model_bindings.json` 记录。
@@ -15,10 +15,10 @@
 | 1 | `青橙-过程数据` | `menu_set_3733940369833271296` | `2064` | `2054` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/青橙项目部/青橙-过程数据 | [data_center_qingcheng_2064.sql](../../resources/raw_sql/data_center_qingcheng_2064.sql) | `22c3fff16a0c7114a663fa6f64320cbc774c5acc8f468cea31f269108d3f782d` | 944 |
 | 2 | `转化数据` | `menu_set_3833505841890963456` | `2460` | `2450` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/青橙项目部/转化数据 | [data_center_qingcheng_2460.sql](../../resources/raw_sql/data_center_qingcheng_2460.sql) | `a83c43588a6f7fda0696595948aa9316945fa02a462c8261d00f818c82912d3e` | 1018 |
 | 3 | `青橙到课` | `menu_set_3765823085331369984` | `2244` | `2233` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/青橙项目部/青橙到课 | [data_center_qingcheng_2244.sql](../../resources/raw_sql/data_center_qingcheng_2244.sql) | `729c84138e8628367251dbb5d7ae26025d263f9151f1024bf7eefd9724dbbcad` | 152 |
-| 4 | `团队完成度【月】` | `menu_set_3872620822275268609` | `2677` | `2667` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/青橙项目部/团队完成度【月】 | [data_center_qingcheng_2677.sql](../../resources/raw_sql/data_center_qingcheng_2677.sql) | `986ded7f4ea60ddfeffacbea5b19338ddfe61752af315eb74c44d0be019f632b` | 908 |
-| 5 | `团队完成度【期】` | `menu_set_3873036408401260544` | `2680` | `2670` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/青橙项目部/团队完成度【期】 | [data_center_qingcheng_2680.sql](../../resources/raw_sql/data_center_qingcheng_2680.sql) | `19920184fb09baf502528483910a09d45f7d6a897f1572b34ce49c33cabd4aac` | 908 |
-| 6 | `青橙个人转化` | `menu_set_3893030630962376704` | `2769` | `2759` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/青橙项目部/青橙个人转化 | [data_center_qingcheng_2769.sql](../../resources/raw_sql/data_center_qingcheng_2769.sql) | `56860176468bec4b5ed387e8edbead8ced6616f8629317fb4573248feed243ff` | 948 |
-| 7 | `TMK线索转移明细` | `menu_set_4006225706505322496` | `3180` | `3168` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/青橙项目部/TMK线索转移明细 | [data_center_qingcheng_3180.sql](../../resources/raw_sql/data_center_qingcheng_3180.sql) | `74f59f49a50504b00d3bb90993703495a58ef48e40546587db243836cdb215ce` | 997 |
+| 4 | `团队完成度【月】` | `menu_set_3872620822275268609` | `2677` | `2667` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/青橙项目部/团队完成度【月】 | [data_center_qingcheng_2677.sql](../../resources/raw_sql/data_center_qingcheng_2677.sql) | `6029971ea6cbd66b0c935bcfc8de6f0f5ba4de9118f11e92ce4afc0bbfe08b47` | 910 |
+| 5 | `团队完成度【期】` | `menu_set_3873036408401260544` | `2680` | `2670` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/青橙项目部/团队完成度【期】 | [data_center_qingcheng_2680.sql](../../resources/raw_sql/data_center_qingcheng_2680.sql) | `e68e3cfb921838132118f9be5c453543a8ef28c6731a3c7c8c269bc4cf5ea806` | 910 |
+| 6 | `青橙个人转化` | `menu_set_3893030630962376704` | `2769` | `2759` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/青橙项目部/青橙个人转化 | [data_center_qingcheng_2769.sql](../../resources/raw_sql/data_center_qingcheng_2769.sql) | `17a2e00f0afaf569076f7674336f8eb07ab1ee8066fedbd29822e982fba5776c` | 950 |
+| 7 | `TMK线索转移明细` | `menu_set_4006225706505322496` | `3180` | `3168` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/青橙项目部/TMK线索转移明细 | [data_center_qingcheng_3180.sql](../../resources/raw_sql/data_center_qingcheng_3180.sql) | `abd595194c9faf0058711b031fd631dc9a9a9866f02fea56e3b8a90fb5f6fb84` | 1193 |
 | 8 | `抖私-转化` | `menu_set_3884599059235647488` | `2740` | `2730` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/青橙项目部/抖私-转化 | [data_center_qingcheng_2740.sql](../../resources/raw_sql/data_center_qingcheng_2740.sql) | `53ebef574254de54e45225531c8544391259b0d47428ef6b2e7ca390932f0bb5` | 834 |
 
 ## 3. 维护说明

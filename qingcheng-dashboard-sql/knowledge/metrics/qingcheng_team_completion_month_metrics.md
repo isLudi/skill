@@ -106,3 +106,9 @@
 当前月度版与个人版、团队期版共用 finance 退款事件金额级分配：保留 finance 独立退款明细并按真实事件粒度聚合，利用 `order_change` transfer pool 精确或按比例分配内部退款；service 原始 `refund_all` 不变，`refund/refund_4` 使用扣除内部分配后的非负余额。班课 4 节、点睛 2 节、H 一对一及非 H 0.5 折算规则均保持不变。
 
 202608月定向回归 query `1535381004` 与团队期、个人期基表保持同一顾问期次金额；20260803期王东亚01 `H_refund_4=6,772.61`、`H_promit_4=57,227.39`，付金艳 `H_refund_4=0`、`H_promit_4=9,700`，张地43 `H_refund_4=0`、`H_promit_4=19,800`。月度生产 Preview `1535395486`、run `163273848` 均为 `SUCCESS`。
+
+## 13. 2026-08-09 finance 内部退款事件过滤收紧
+
+团队月版与个人版、团队期版同步收紧 `finance_refund_event_allocated` 的候选事件：只有 `trade_status like '%调出%'` 且 `trade_type like '%调课调班%'` 的负价 finance 明细才进入内部退款池；`全部退款` 视为真实客户退款，不参与内部金额抵销。service 主金额、当前行 transfer 识别、`income_all/refund_all` 和 `ord/re_ke` 退 4/点睛退 2 规则均保持不变。
+
+本地 canonical SQL 哈希为 `6029971ea6cbd66b0c935bcfc8de6f0f5ba4de9118f11e92ce4afc0bbfe08b47`。团队月完整回归 query `1539849576`，结果 API 成功回读，耗时约 `244.72` 秒（低于平台 300 秒硬上限）；本轮未执行 Data Center 远端替换或抽数。

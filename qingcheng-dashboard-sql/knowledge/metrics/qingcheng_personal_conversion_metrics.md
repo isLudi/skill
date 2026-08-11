@@ -171,3 +171,13 @@ ifnull(sum(${n_H_promit_4}) * 0.5 + (sum(${H_promit_4}) - sum(${Y_promit_4})), 0
 20260803期定向结果：王东亚01 `H_income_4=64,000`、`refund_all=13,505.26`、`H_refund_4=6,772.61`、`H_promit_4=57,227.39`；张昊62 `15,000 / 2,210 / 12,790`；付金艳 `9,700 / 0 / 9,700`；张地43 `19,800 / 0 / 19,800`。个人、团队期、团队月回归 query 分别为 `1535361544`、`1535375732`、`1535381004`。
 
 三份生产替换均完成保存后 SQL 哈希回读、预览和新抽数 `SUCCESS`：个人 model `2769`（Preview `1535390346`，run `163273845`），团队期 model `2680`（Preview `1535392792`，run `163273846`），团队月 model `2677`（Preview `1535395486`，run `163273848`）。
+
+## 14. 2026-08-09 finance 内部退款事件过滤收紧（同步团队期/月）
+
+对用户 `6552150130`、`7066831022` 的退款回归进一步确认：finance 表中的 `全部退款` 是客户真实退款，不应进入 `order_change` 的内部 transfer pool；只有同时满足 `trade_status like '%调出%'`、`trade_type like '%调课调班%'` 且负价的 finance 明细，才可作为内部调课调班退款事件参与金额分配。
+
+- `finance_refund_event_allocated` 已将内部事件过滤从宽泛的 `trade_status like '%退%'` 收紧为“调出退款 + 调课调班”。
+- service 的 `income_amount/refund_amount` 主事实、`income_all/refund_all`、service 当前行 transfer 识别，以及 `ord/re_ke` 的班课 4 节、点睛 2 节和 H 一对一全额退款规则均不改变。
+- 该修复只阻止真实 `全部退款` 被错误当作内部退款抵销，避免真实退款不进入 `refund/refund_4`，不会把 finance 金额直接加到 `income_all/refund_all`。
+
+当前本地三份 canonical SQL 哈希为：个人 `2769`=`17a2e00f0afaf569076f7674336f8eb07ab1ee8066fedbd29822e982fba5776c`，团队期 `2680`=`e68e3cfb921838132118f9be5c453543a8ef28c6731a3c7c8c269bc4cf5ea806`，团队月 `2677`=`6029971ea6cbd66b0c935bcfc8de6f0f5ba4de9118f11e92ce4afc0bbfe08b47`。个人回归 `1539820614`、团队期回归 `1539844465`、团队月回归 `1539849576` 均由结果 API 成功回读；本轮未执行 Data Center 远端替换或抽数。

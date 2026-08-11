@@ -367,7 +367,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/qingcheng_personal_conversion_metrics.md",
-      "source_sha256": "986af815f1084961180c3f7e2f62c55e8e7ca66f497753ea4365aa2dd45d4064",
+      "source_sha256": "90fcbbd41d304785c8a565954298fc2767420e56129902b3fe4586b51a43fc75",
       "automatic_compile": false
     },
     {
@@ -630,7 +630,7 @@
       ],
       "status": "pending_confirmation",
       "source_path": "knowledge/metrics/qingcheng_team_completion_month_metrics.md",
-      "source_sha256": "4dd55795e596f05eba44e72dc8e6b13f95aca90abb4c417b9479a11781da9b87"
+      "source_sha256": "e1221bd8bbe9962742aba838a7ac910cc5d5b282ed4c193545e5c0a10ff7b09e"
     },
     {
       "id": "qingcheng:metric:tmk_all_lead_unit_efficiency",

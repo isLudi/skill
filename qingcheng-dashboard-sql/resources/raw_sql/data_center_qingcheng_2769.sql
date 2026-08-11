@@ -452,7 +452,7 @@ and course_second_level_department_name in ('V项目部', '本地化部', '私�
     group by qici_re, order_number
 )
 
--------------------------按finance退款事件金额分配调课退款
+-------------------------按finance调出退款事件金额分配调课退款
 ,finance_refund_event_allocated as (
     select
         e2.order_number,
@@ -549,7 +549,9 @@ and course_second_level_department_name in ('V项目部', '本地化部', '私�
                       'EM业务线', 'KA业务线', 'TT业务线', '创新中心'
                   )
                   and f.course_second_level_department_name is not null
-                  and f.trade_status like '%退%'
+                  -- 只有“调出退款/调课调班”是内部转移金额；“全部退款”是客户真实退款，不能被 transfer pool 抵销。
+                  and f.trade_status like '%调出%'
+                  and f.trade_type like '%调课调班%'
                   and cast(coalesce(f.price, 0) as double) < 0
                   and exists (
                       select 1
