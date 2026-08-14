@@ -21,43 +21,44 @@ app_partition as (
         app_snapshot_key as snapshot_key
     from runtime_parameters
 ),
-employee_org_ranked as (
+jiagou_db_ranked as (
     select
-        nullif(trim(e.email_prefix), '') as employee_email_prefix,
-        e.employee_email_name,
-        nullif(trim(e.leader_employee_email_name), '') as xiaozu,
-        e.department_path,
-        e.first_level_department_name,
-        e.second_level_department_name,
-        e.third_level_department_name,
-        row_number() over (
-            partition by nullif(trim(e.email_prefix), '')
-            order by
-                e.is_on_job desc,
-                e.last_enroll_date desc nulls last,
-                e.display_number desc
-        ) as rn
-    from finance_dw.dim_finance_employee_df e
-    cross join runtime_parameters p
-    where e.dt = p.employee_snapshot_dt
-      and e.first_level_department_name = 'H业务线'
-      and e.second_level_department_name = '青橙项目部'
-      and e.third_level_department_name = '学习顾问部'
-      and e.department_path like '高途-H业务线-青橙项目部-学习顾问部-SEC创新部%'
-      and e.is_main_job = 1
-      and e.is_on_job = 1
-      and nullif(trim(e.email_prefix), '') is not null
-),
-employee_org as (
-    select
-        employee_email_prefix,
+        qici,
         employee_email_name,
+        nullif(trim(employee_email_prefix), '') as employee_email_prefix,
+        department,
+        dept_2,
         xiaozu,
-        department_path,
-        first_level_department_name,
-        second_level_department_name,
-        third_level_department_name
-    from employee_org_ranked
+        row_number() over (
+            partition by qici, employee_email_name
+            order by department, dept_2, xiaozu, employee_email_prefix
+        ) as rn
+    from (
+        select distinct
+            cast(qici as varchar) as qici,
+            employee_email_name,
+            employee_email_prefix,
+            department,
+            dept_2,
+            xiaozu
+        from temp_table.dingxi01_jiagou_db
+        where qici >= '20260501期'
+          and qici is not null
+          and employee_email_name is not null
+          and department is not null
+          and dept_2 is not null
+          and xiaozu is not null
+    ) j
+),
+jiagou_db_org as (
+    select
+        qici,
+        employee_email_name,
+        employee_email_prefix,
+        xiaozu,
+        department,
+        dept_2
+    from jiagou_db_ranked
     where rn = 1
 ),
 private_partition as (
@@ -88,6 +89,36 @@ app_prelead_source as (
         f.group_period_year,
         f.group_period_term,
         f.group_period_name,
+        case when try_cast(f.section_assign_time as timestamp) is not null then concat(
+                date_format(
+                    date_trunc(
+                        'week',
+                        try_cast(f.section_assign_time as timestamp) + interval '2' day
+                    ) + interval '4' day,
+                    '%Y%m%d'
+                ),
+                '期'
+            ) end as lead_qici,
+        case
+            when regexp_like(
+                concat(coalesce(f.group_period_year, ''), coalesce(f.group_period_term, '')),
+                '[0-9]{4}.*[0-9]{4}'
+            ) then concat(
+                regexp_extract(coalesce(f.group_period_year, ''), '([0-9]{4})', 1),
+                regexp_extract(coalesce(f.group_period_term, ''), '([0-9]{4})', 1),
+                '期'
+            )
+            when try_cast(f.section_assign_time as timestamp) is not null then concat(
+                date_format(
+                    date_trunc(
+                        'week',
+                        try_cast(f.section_assign_time as timestamp) + interval '2' day
+                    ) + interval '4' day,
+                    '%Y%m%d'
+                ),
+                '期'
+            )
+        end as architecture_qici,
         f.section_assign_employee_first_level_department_name,
         f.section_assign_employee_second_level_department_name,
         f.valid_lead_count,
@@ -126,12 +157,12 @@ app_prelead_base as (
         cast(f.lead_id as bigint) as prelead_id,
         try_cast(f.user_id as bigint) as app_user_id,
         f.employee_email_name as tmk_consultant_name,
-        f.employee_email_prefix as tmk_consultant_email_prefix,
-        e.xiaozu,
-        e.department_path as current_department_path,
-        e.first_level_department_name as current_first_department,
-        e.second_level_department_name as current_second_department,
-        e.third_level_department_name as current_third_department,
+        coalesce(j.employee_email_prefix, f.employee_email_prefix) as tmk_consultant_email_prefix,
+        j.xiaozu,
+        concat('青橙项目部-', j.department, '-', j.dept_2) as current_department_path,
+        j.department as current_first_department,
+        j.dept_2 as current_second_department,
+        cast(null as varchar) as current_third_department,
         try_cast(f.section_assign_time as timestamp) as tmk_assign_time,
         f.rule_name as raw_rule_name,
         f.lead_purchase_intention_name as prelead_purchase_intention_name,
@@ -147,18 +178,7 @@ app_prelead_base as (
             nullif(trim(f.stats_grade_name), ''),
             nullif(trim(f.lead_purchase_intention_level2_category_name), '')
         ) as app_lead_grade,
-        case
-            when try_cast(f.section_assign_time as timestamp) is not null then concat(
-                date_format(
-                    date_trunc(
-                        'week',
-                        try_cast(f.section_assign_time as timestamp) + interval '2' day
-                    ) + interval '4' day,
-                    '%Y%m%d'
-                ),
-                '期'
-            )
-        end as lead_qici,
+        f.lead_qici as lead_qici,
         f.section_assign_employee_first_level_department_name as tmk_first_department,
         f.section_assign_employee_second_level_department_name as tmk_second_department,
         coalesce(try_cast(f.valid_lead_count as bigint), 0) as app_valid_lead_count,
@@ -197,8 +217,10 @@ app_prelead_base as (
             coalesce(f.employee_email_prefix, '~')
         ) as app_sort_key
     from app_prelead_source f
-    inner join employee_org e
-      on nullif(trim(f.employee_email_prefix), '') = e.employee_email_prefix
+    inner join jiagou_db_org j
+      on f.architecture_qici = j.qici
+     and f.employee_email_name = j.employee_email_name
+     and j.dept_2 = 'SEC'
 ),
 app_prelead as (
     select

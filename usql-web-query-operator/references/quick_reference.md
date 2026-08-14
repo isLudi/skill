@@ -32,6 +32,7 @@
 | 数据中心源 SQL 同步 | `references/data_knowledge_sync.md` 和 `references/domain_adapters.md` | `sync-data-center-sql` dry-run → `--write --expected-plan-sha256 <hash>` | 稳定 model_id 路径；current-model registry、跨进程独占锁、原子回滚和全栈验证均为强制门禁 |
 | 数据中心 SQL 生产替换与刷新 | `references/data_center_replacement.md` | `plan-data-center-sql-replacement` → 审阅 Hash → `apply-data-center-sql-replacement --confirm-production-write` | Plan 远端只读；Apply 才能替换、预览、保存、立即执行并等待新记录 `SUCCESS`；与本地知识同步分权 |
 | 数据中心新建数据集并抽数 | `references/data_center_creation.md` | `plan-data-center-dataset-creation` → 审阅 Hash → `apply-data-center-dataset-creation --confirm-production-write` | 自然语言先落到明确域、文件夹、名称和具体 SQL；Plan 只读，Apply 才创建、配置同步、保存、立即执行并等待新 `SUCCESS` |
+| Tiangong2 数据开发任务盘点与代码分类 | `references/tiangong2_task_exploration.md` | `scripts\tiangong2_task.py list-projects` → `explore --project-id <id> --folder <name>` | 必须使用精确 Tiangong2 凭据区段和独立状态；递归当前代码/版本/调度/资源只写 runtime 脱敏工件，禁止运行、保存、提交、发布或知识写回 |
 | 截图内容检查 | `references/sql_query_execution.md` 和 `references/platform_profile.md` | Codex 原生多模态查看 | 只在结构化证据不足且本 skill 已捕获截图后使用 |
 
 ## 跨 skill 路由
@@ -56,3 +57,4 @@
 - 不要把 `plan-template-creation`/`plan-template-update` 或创建/更新回读当作发布授权；Apply 只创建或原地更新未发布草稿，`publish-template` 必须使用成功回执的精确 Hash 和独立 `--confirm-publish`。
 - 不要把 `sync-data-center-sql --write`、Data Center Replacement Plan 或 Creation Plan 视为远端数据集写入授权；远端替换与创建必须分别走各自独立的生产 Apply 命令。
 - 不要在未经确认的情况下，对超过 1000 行的结果走 `SQL取数` 直接下载。
+- 不要用 USQL 默认账号、Data Map 状态或通用 dotenv 读取 Tiangong2 数据开发任务；也不要为补齐探查内容点击运行/调试/保存/提交/发布。

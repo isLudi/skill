@@ -69,7 +69,7 @@
     "cross_department_comparison_requires_two_specs": true
   },
   "counts": {
-    "knowledge_files": 139,
+    "knowledge_files": 145,
     "raw_sql_files": 66,
     "by_category": {
       "dashboard_web_profiles": 38,
@@ -81,7 +81,7 @@
       "raw_sql": 66,
       "reverse_index": 4,
       "sql_patterns": 17,
-      "tables": 21,
+      "tables": 27,
       "temp_tables": 9,
       "update_log": 1
     }
@@ -108,11 +108,11 @@
       },
       {
         "source_path": "semantic/contracts/dimension_contracts.json",
-        "sha256": "13e72f7c947f40308ef180380d337d2e1cc016ee5d9047845ed0ba74dcfc793e"
+        "sha256": "c3e5e7be419ddae931671957c83d2d67af21f0ab1d8a7866d303c8b61255c1bf"
       },
       {
         "source_path": "semantic/contracts/join_contracts.json",
-        "sha256": "08782b890287827529f1d9aa9d75ebce41a607e2a766ba97ea884ee7fee6faac"
+        "sha256": "9cbed951eb9daa99e262705fbd1250c5f1de884434b773db119ad7b7e5952767"
       },
       {
         "source_path": "semantic/contracts/scope_contracts.json",
@@ -1553,11 +1553,12 @@
       {
         "id": "market_consultant:governance:01_table_index",
         "source_path": "knowledge/01_table_index.md",
-        "sha256": "e907266e3c5c5688801a294aea1bce3fb56d46adf269487a1a9b4eadb9f09687",
-        "bytes": 7802,
+        "sha256": "2e08763531c2e876de2eaacaab7adc586be5cb11ed25b691b11f598954d6bccb",
+        "bytes": 9751,
         "title": "表索引",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "da.app_dim_jp_channel_case_version_df",
           "dw.dim_cstm_active_user_c_appliction_mb_df",
           "dw.dim_employee_chain",
           "dw.dws_user_active_user_c_appliction_hf",
@@ -1565,6 +1566,11 @@
           "finance_dw.dim_finance_employee_df",
           "finance_dw.dwd_finance_order_refund_df",
           "gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf",
+          "gaotu_hl.dim_mkt_h_lead_channel_df",
+          "gaotu_hl.dim_mkt_h_period_df",
+          "gaotu_hl.dim_mkt_h_period_map_df",
+          "gaotu_hl.ods_mkt_h_channel_group_df",
+          "gaotu_hl.ods_mkt_h_channel_rule_df",
           "service_dw.app_h_crm_lead_employee_workload_detail_hf",
           "service_dw.app_h_crm_lead_task_process_info_detail_hf",
           "service_dw.app_user_attribute_label_gaia_wide_df",
@@ -1703,8 +1709,8 @@
       {
         "id": "market_consultant:joins:common_join_keys",
         "source_path": "knowledge/joins/common_join_keys.md",
-        "sha256": "ee5efb5db4071fce299c46089f839b4dea0484334f2cfd895c434405521910fa",
-        "bytes": 11204,
+        "sha256": "b21c0d8ae11c4a629ad72e0ee3c7194baa0deb7bdfce0ac5bce662ee5cbe710b",
+        "bytes": 13208,
         "title": "常用 join key",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -1714,6 +1720,10 @@
           "finance_dw.dim_finance_employee_df",
           "finance_dw.dwd_finance_order_refund_df",
           "gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf",
+          "gaotu_hl.dim_mkt_h_lead_channel_df",
+          "gaotu_hl.dim_mkt_h_period_map_df",
+          "gaotu_hl.ods_mkt_h_channel_group_df",
+          "gaotu_hl.ods_mkt_h_channel_rule_df",
           "service_dw.app_h_crm_lead_employee_workload_detail_hf",
           "service_dw.app_user_attribute_label_gaia_wide_df",
           "service_dw.dim_crm_assign_rule_lead_detail_hf",
@@ -1743,11 +1753,12 @@
       {
         "id": "market_consultant:joins:table_relationships",
         "source_path": "knowledge/joins/table_relationships.md",
-        "sha256": "cda268fee54f3fd76a588e3e80db9da51c2f4af6d1dedfe8d814415d7cbc8a2e",
-        "bytes": 31308,
+        "sha256": "20bd2e9022eeaa3c0f7d0b1b2ab98569418f9393dd731d4311abef054d36d08c",
+        "bytes": 38831,
         "title": "表关系",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "da.app_dim_jp_channel_case_version_df",
           "dw.dim_cstm_active_user_c_appliction_mb_df",
           "dw.dim_employee_chain",
           "dw.dws_user_active_user_c_appliction_hf",
@@ -1755,6 +1766,10 @@
           "finance_dw.dim_finance_employee_df",
           "finance_dw.dwd_finance_order_refund_df",
           "gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf",
+          "gaotu_hl.dim_mkt_h_lead_channel_df",
+          "gaotu_hl.dim_mkt_h_period_map_df",
+          "gaotu_hl.ods_mkt_h_channel_group_df",
+          "gaotu_hl.ods_mkt_h_channel_rule_df",
           "service_dw.app_h_crm_lead_employee_workload_detail_hf",
           "service_dw.app_h_crm_lead_task_process_info_detail_hf",
           "service_dw.app_user_attribute_label_gaia_wide_df",
@@ -3504,8 +3519,8 @@
       {
         "id": "market_consultant:reverse_index:join_risk_index",
         "source_path": "knowledge/reverse_index/join_risk_index.md",
-        "sha256": "596100a7ea773fcce379f8bfec351d3e74d66dfc9d7e52af7b30b3bc7c0b4760",
-        "bytes": 52941,
+        "sha256": "6ab24b06a6ac3f240e76b72cb09841b84be5106376679bcd5bfdb32799b947db",
+        "bytes": 58783,
         "title": "JOIN 与结果异常风险索引",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -3513,6 +3528,9 @@
           "finance_dw.app_finance_performance_extend_details_hf",
           "finance_dw.dim_finance_employee_df",
           "gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf",
+          "gaotu_hl.dim_mkt_h_lead_channel_df",
+          "gaotu_hl.dim_mkt_h_period_map_df",
+          "gaotu_hl.ods_mkt_h_channel_rule_df",
           "service_dw.app_h_crm_lead_employee_workload_detail_hf",
           "service_dw.dim_crm_assign_rule_lead_detail_hf",
           "service_dw.dim_crm_assign_rule_plan_item_info_hf",
@@ -3983,11 +4001,13 @@
       {
         "id": "market_consultant:tables:bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
         "source_path": "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
-        "sha256": "0f899aa1bb2bcb4a0968daebc47ff7e63230dba23d53c1ae3c34c269bd4a81f4",
-        "bytes": 43799,
+        "sha256": "0b92cfb7a6a5e53bdb029e7f64f44d1cc58a98cab906b2a143c3888ad75d7d15",
+        "bytes": 44659,
         "title": "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
         "table_refs": [
-          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df"
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "gaotu_hl.dim_mkt_h_period_map_df",
+          "gaotu_hl.ods_mkt_h_channel_group_df"
         ],
         "raw_sql_refs": [
           "data_center_market_2253.sql",
@@ -3997,6 +4017,22 @@
         "table_name": "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
         "aliases": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df"
+        ]
+      },
+      {
+        "id": "market_consultant:tables:da.app_dim_jp_channel_case_version_df",
+        "source_path": "knowledge/tables/da.app_dim_jp_channel_case_version_df.md",
+        "sha256": "8b991766aaa3a279e6cf0b3ac9dae9692953e605c8df6f34f2ea083a3242eac6",
+        "bytes": 2735,
+        "title": "da.app_dim_jp_channel_case_version_df",
+        "table_refs": [
+          "da.app_dim_jp_channel_case_version_df"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "table_name": "da.app_dim_jp_channel_case_version_df",
+        "aliases": [
+          "da.app_dim_jp_channel_case_version_df"
         ]
       },
       {
@@ -4117,6 +4153,94 @@
         "table_name": "gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf",
         "aliases": [
           "gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf"
+        ]
+      },
+      {
+        "id": "market_consultant:tables:gaotu_hl.dim_mkt_h_lead_channel_df",
+        "source_path": "knowledge/tables/gaotu_hl.dim_mkt_h_lead_channel_df.md",
+        "sha256": "d6d7fffeff5188114ece88c98cc7b02bca58083c531777c42e6122370379f8c4",
+        "bytes": 6600,
+        "title": "gaotu_hl.dim_mkt_h_lead_channel_df",
+        "table_refs": [
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "gaotu_hl.dim_mkt_h_lead_channel_df",
+          "gaotu_hl.dim_mkt_h_period_map_df",
+          "gaotu_hl.ods_mkt_h_channel_group_df"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "table_name": "gaotu_hl.dim_mkt_h_lead_channel_df",
+        "aliases": [
+          "gaotu_hl.dim_mkt_h_lead_channel_df"
+        ]
+      },
+      {
+        "id": "market_consultant:tables:gaotu_hl.dim_mkt_h_period_df",
+        "source_path": "knowledge/tables/gaotu_hl.dim_mkt_h_period_df.md",
+        "sha256": "dee926f8725f1ac9eeb384a8c1e949a337c726797c8f8b2ec93b6c830a790542",
+        "bytes": 3469,
+        "title": "gaotu_hl.dim_mkt_h_period_df",
+        "table_refs": [
+          "gaotu_hl.dim_mkt_h_period_df"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "table_name": "gaotu_hl.dim_mkt_h_period_df",
+        "aliases": [
+          "gaotu_hl.dim_mkt_h_period_df"
+        ]
+      },
+      {
+        "id": "market_consultant:tables:gaotu_hl.dim_mkt_h_period_map_df",
+        "source_path": "knowledge/tables/gaotu_hl.dim_mkt_h_period_map_df.md",
+        "sha256": "2690b0c1c7f79c589fae3563ba4b07c15ceba5530091b24f6c2292ea561ed5c2",
+        "bytes": 4603,
+        "title": "gaotu_hl.dim_mkt_h_period_map_df",
+        "table_refs": [
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "gaotu_hl.dim_mkt_h_period_map_df"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "table_name": "gaotu_hl.dim_mkt_h_period_map_df",
+        "aliases": [
+          "gaotu_hl.dim_mkt_h_period_map_df"
+        ]
+      },
+      {
+        "id": "market_consultant:tables:gaotu_hl.ods_mkt_h_channel_group_df",
+        "source_path": "knowledge/tables/gaotu_hl.ods_mkt_h_channel_group_df.md",
+        "sha256": "2443bee850ba3e4c663d0cc37ff3160e0a6e554510861e299912e9110cb870b2",
+        "bytes": 3284,
+        "title": "gaotu_hl.ods_mkt_h_channel_group_df",
+        "table_refs": [
+          "gaotu_hl.ods_mkt_h_channel_group_df"
+        ],
+        "raw_sql_refs": [
+          "market_channel_case_when_0808.sql"
+        ],
+        "status": "documented",
+        "table_name": "gaotu_hl.ods_mkt_h_channel_group_df",
+        "aliases": [
+          "gaotu_hl.ods_mkt_h_channel_group_df"
+        ]
+      },
+      {
+        "id": "market_consultant:tables:gaotu_hl.ods_mkt_h_channel_rule_df",
+        "source_path": "knowledge/tables/gaotu_hl.ods_mkt_h_channel_rule_df.md",
+        "sha256": "77728f85104fe934a49b7b747346ff7cd4659cfa8032c3e3ceb26644fb9efa18",
+        "bytes": 3265,
+        "title": "gaotu_hl.ods_mkt_h_channel_rule_df",
+        "table_refs": [
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "da.app_dim_jp_channel_case_version_df",
+          "gaotu_hl.ods_mkt_h_channel_rule_df"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "table_name": "gaotu_hl.ods_mkt_h_channel_rule_df",
+        "aliases": [
+          "gaotu_hl.ods_mkt_h_channel_rule_df"
         ]
       },
       {
@@ -4479,11 +4603,12 @@
       {
         "id": "market_consultant:update_log:changelog",
         "source_path": "knowledge/update_log/changelog.md",
-        "sha256": "34497709f8732cc3014f72cdd0f580c054962c1926b1d75ee18c01514caf3006",
-        "bytes": 135478,
+        "sha256": "4a99fde91c27a0c34b71ddb9f531911036656cc124c66ce78f4cc30b6fd72136",
+        "bytes": 138519,
         "title": "更新记录",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "da.app_dim_jp_channel_case_version_df",
           "dw.dim_cstm_active_user_c_appliction_mb_df",
           "dw.dim_employee_chain",
           "dw.dws_user_active_user_c_appliction_hf",
@@ -4491,6 +4616,10 @@
           "finance_dw.dim_finance_employee_df",
           "finance_dw.dwd_finance_order_refund_df",
           "gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf",
+          "gaotu_hl.dim_mkt_h_lead_channel_df",
+          "gaotu_hl.dim_mkt_h_period_map_df",
+          "gaotu_hl.ods_mkt_h_channel_group_df",
+          "gaotu_hl.ods_mkt_h_channel_rule_df",
           "service_dw.app_h_crm_lead_task_process_info_detail_hf",
           "service_dw.app_user_attribute_label_gaia_wide_df",
           "service_dw.dim_crm_assign_rule_lead_detail_hf",
@@ -4562,6 +4691,9 @@
         "knowledge/sql_patterns/dashboard_query_patterns.md",
         "knowledge/sql_patterns/outbound_call_process_export_template.md",
         "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
+        "knowledge/tables/gaotu_hl.dim_mkt_h_lead_channel_df.md",
+        "knowledge/tables/gaotu_hl.dim_mkt_h_period_map_df.md",
+        "knowledge/tables/gaotu_hl.ods_mkt_h_channel_rule_df.md",
         "knowledge/tables/service_dw.dim_crm_assign_rule_plan_item_info_hf.md",
         "knowledge/update_log/changelog.md",
         "resources/raw_sql/data_center_market_2054.sql",
@@ -4612,6 +4744,13 @@
         "resources/raw_sql/template_query_market_multi_subject_order_user.sql",
         "resources/raw_sql/template_query_market_wide.sql",
         "resources/raw_sql/template_query_market_wide_analysis.sql"
+      ],
+      "da.app_dim_jp_channel_case_version_df": [
+        "knowledge/01_table_index.md",
+        "knowledge/joins/table_relationships.md",
+        "knowledge/tables/da.app_dim_jp_channel_case_version_df.md",
+        "knowledge/tables/gaotu_hl.ods_mkt_h_channel_rule_df.md",
+        "knowledge/update_log/changelog.md"
       ],
       "dw.dim_cstm_active_user_c_appliction_mb_df": [
         "knowledge/01_table_index.md",
@@ -4803,6 +4942,45 @@
         "resources/raw_sql/h_biz_line_department_conversion.sql",
         "resources/raw_sql/outbound_call_process_dashboard.sql",
         "resources/raw_sql/template_query_market_wide.sql"
+      ],
+      "gaotu_hl.dim_mkt_h_lead_channel_df": [
+        "knowledge/01_table_index.md",
+        "knowledge/joins/common_join_keys.md",
+        "knowledge/joins/table_relationships.md",
+        "knowledge/reverse_index/join_risk_index.md",
+        "knowledge/tables/gaotu_hl.dim_mkt_h_lead_channel_df.md",
+        "knowledge/update_log/changelog.md"
+      ],
+      "gaotu_hl.dim_mkt_h_period_df": [
+        "knowledge/01_table_index.md",
+        "knowledge/tables/gaotu_hl.dim_mkt_h_period_df.md"
+      ],
+      "gaotu_hl.dim_mkt_h_period_map_df": [
+        "knowledge/01_table_index.md",
+        "knowledge/joins/common_join_keys.md",
+        "knowledge/joins/table_relationships.md",
+        "knowledge/reverse_index/join_risk_index.md",
+        "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
+        "knowledge/tables/gaotu_hl.dim_mkt_h_lead_channel_df.md",
+        "knowledge/tables/gaotu_hl.dim_mkt_h_period_map_df.md",
+        "knowledge/update_log/changelog.md"
+      ],
+      "gaotu_hl.ods_mkt_h_channel_group_df": [
+        "knowledge/01_table_index.md",
+        "knowledge/joins/common_join_keys.md",
+        "knowledge/joins/table_relationships.md",
+        "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
+        "knowledge/tables/gaotu_hl.dim_mkt_h_lead_channel_df.md",
+        "knowledge/tables/gaotu_hl.ods_mkt_h_channel_group_df.md",
+        "knowledge/update_log/changelog.md"
+      ],
+      "gaotu_hl.ods_mkt_h_channel_rule_df": [
+        "knowledge/01_table_index.md",
+        "knowledge/joins/common_join_keys.md",
+        "knowledge/joins/table_relationships.md",
+        "knowledge/reverse_index/join_risk_index.md",
+        "knowledge/tables/gaotu_hl.ods_mkt_h_channel_rule_df.md",
+        "knowledge/update_log/changelog.md"
       ],
       "service_dw.app_h_crm_lead_employee_workload_detail_hf": [
         "knowledge/01_table_index.md",
@@ -5617,6 +5795,7 @@
         "knowledge/sql_patterns/dashboard_query_patterns.md",
         "knowledge/sql_patterns/market_template_channel_case_bytecode_optimization.md",
         "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
+        "knowledge/tables/gaotu_hl.ods_mkt_h_channel_group_df.md",
         "knowledge/update_log/changelog.md"
       ],
       "market_channel_positive_subject_course_example_20260718.sql": [
@@ -5728,8 +5907,8 @@
     },
     {
       "source_path": "knowledge/01_table_index.md",
-      "sha256": "e907266e3c5c5688801a294aea1bce3fb56d46adf269487a1a9b4eadb9f09687",
-      "bytes": 7802,
+      "sha256": "2e08763531c2e876de2eaacaab7adc586be5cb11ed25b691b11f598954d6bccb",
+      "bytes": 9751,
       "category": "governance"
     },
     {
@@ -6100,14 +6279,14 @@
     },
     {
       "source_path": "knowledge/joins/common_join_keys.md",
-      "sha256": "ee5efb5db4071fce299c46089f839b4dea0484334f2cfd895c434405521910fa",
-      "bytes": 11204,
+      "sha256": "b21c0d8ae11c4a629ad72e0ee3c7194baa0deb7bdfce0ac5bce662ee5cbe710b",
+      "bytes": 13208,
       "category": "joins"
     },
     {
       "source_path": "knowledge/joins/table_relationships.md",
-      "sha256": "cda268fee54f3fd76a588e3e80db9da51c2f4af6d1dedfe8d814415d7cbc8a2e",
-      "bytes": 31308,
+      "sha256": "20bd2e9022eeaa3c0f7d0b1b2ab98569418f9393dd731d4311abef054d36d08c",
+      "bytes": 38831,
       "category": "joins"
     },
     {
@@ -6250,8 +6429,8 @@
     },
     {
       "source_path": "knowledge/reverse_index/join_risk_index.md",
-      "sha256": "596100a7ea773fcce379f8bfec351d3e74d66dfc9d7e52af7b30b3bc7c0b4760",
-      "bytes": 52941,
+      "sha256": "6ab24b06a6ac3f240e76b72cb09841b84be5106376679bcd5bfdb32799b947db",
+      "bytes": 58783,
       "category": "reverse_index"
     },
     {
@@ -6382,8 +6561,14 @@
     },
     {
       "source_path": "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
-      "sha256": "0f899aa1bb2bcb4a0968daebc47ff7e63230dba23d53c1ae3c34c269bd4a81f4",
-      "bytes": 43799,
+      "sha256": "0b92cfb7a6a5e53bdb029e7f64f44d1cc58a98cab906b2a143c3888ad75d7d15",
+      "bytes": 44659,
+      "category": "tables"
+    },
+    {
+      "source_path": "knowledge/tables/da.app_dim_jp_channel_case_version_df.md",
+      "sha256": "8b991766aaa3a279e6cf0b3ac9dae9692953e605c8df6f34f2ea083a3242eac6",
+      "bytes": 2735,
       "category": "tables"
     },
     {
@@ -6426,6 +6611,36 @@
       "source_path": "knowledge/tables/gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf.md",
       "sha256": "d70271aee3fcdb85d02d61794c7588d074b1e58d360bbb8a41ddbc93774b123b",
       "bytes": 6875,
+      "category": "tables"
+    },
+    {
+      "source_path": "knowledge/tables/gaotu_hl.dim_mkt_h_lead_channel_df.md",
+      "sha256": "d6d7fffeff5188114ece88c98cc7b02bca58083c531777c42e6122370379f8c4",
+      "bytes": 6600,
+      "category": "tables"
+    },
+    {
+      "source_path": "knowledge/tables/gaotu_hl.dim_mkt_h_period_df.md",
+      "sha256": "dee926f8725f1ac9eeb384a8c1e949a337c726797c8f8b2ec93b6c830a790542",
+      "bytes": 3469,
+      "category": "tables"
+    },
+    {
+      "source_path": "knowledge/tables/gaotu_hl.dim_mkt_h_period_map_df.md",
+      "sha256": "2690b0c1c7f79c589fae3563ba4b07c15ceba5530091b24f6c2292ea561ed5c2",
+      "bytes": 4603,
+      "category": "tables"
+    },
+    {
+      "source_path": "knowledge/tables/gaotu_hl.ods_mkt_h_channel_group_df.md",
+      "sha256": "2443bee850ba3e4c663d0cc37ff3160e0a6e554510861e299912e9110cb870b2",
+      "bytes": 3284,
+      "category": "tables"
+    },
+    {
+      "source_path": "knowledge/tables/gaotu_hl.ods_mkt_h_channel_rule_df.md",
+      "sha256": "77728f85104fe934a49b7b747346ff7cd4659cfa8032c3e3ceb26644fb9efa18",
+      "bytes": 3265,
       "category": "tables"
     },
     {
@@ -6550,8 +6765,8 @@
     },
     {
       "source_path": "knowledge/update_log/changelog.md",
-      "sha256": "34497709f8732cc3014f72cdd0f580c054962c1926b1d75ee18c01514caf3006",
-      "bytes": 135478,
+      "sha256": "4a99fde91c27a0c34b71ddb9f531911036656cc124c66ce78f4cc30b6fd72136",
+      "bytes": 138519,
       "category": "update_log"
     },
     {

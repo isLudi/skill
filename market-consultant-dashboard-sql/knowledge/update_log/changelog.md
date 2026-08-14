@@ -1065,3 +1065,34 @@
 - 通过 `usql-web-query-operator/scripts/read_dashboard.py profile-all --write-knowledge --confirm-skill-maintenance` 扫描 `市场顾问数据` 文件夹，并将原始 `profile.json` 写入本地 runtime 目录。
 - 刷新 `knowledge/dashboard_web_profiles/README.md`，当前索引 15 个看板快照。
 - 本次 profile 结果：成功 15 个，失败 0 个。
+
+## 2026-08-13 数据地图字段补充
+
+- 使用数据地图 `tableV2/searchTableList`、`normalColumns`、`partitionColumns` 和 `getDdl` 接口刷新物理表字段信息。
+- 覆盖 `knowledge/tables` 中 3 张物理表文档；追加 42 个数据地图字段，回填类型 0 处、字段说明 0 处。
+- 复扫结果为字段缺口 0、类型占位 0、说明占位 0。
+- 未覆盖 `temp_table.*` 临时表文档；临时表字段仍以本地 Excel、SQL 使用场景和人工维护规则为准。
+
+## 2026-08-13 市场顾问两张获批表 Join、唯一性与 1:N 探查
+
+- 为 `gaotu_hl.ods_mkt_h_channel_group_df` 补齐 Data Map 字段文档，并记录其 `dt`、`department_name='all'`、`channel` 约束。
+- 确认 `gaotu_hl.dim_mkt_h_period_map_df` 与 `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df` 的 Join key 为 `concat(group_period_year, group_period_term) + period_mapping_second_level_department_name` 对 `source_period_name + department`；禁止使用 verbose 的 `group_period_name` 或不稳定的 `period_name`。
+- `dt='20260812'` 期次映射联合键 845/845 唯一；市场顾问部宽表 `dt='20260813', hour='11'` 1,587,881 行 Join 后行数不变，市场部子集 210,630 行、29 个键全部命中。
+- 确认渠道组安全 Join path 为“0808 CASE 派生 `channel_map` → `ods.channel`”，不得把渠道组表直接 Join 到宽表 `channel_name_1/2/3`。渠道组快照 143/143 唯一；五段式完整 175 分支 bounded 探针 50,000 个物理字段组合中命中 49,765 行，渠道组侧最大匹配数为 1。
+- 完整 CASE 单体探针 Query `1545581106` 触发平台编译器限制，未作为业务结论；拆分探针 Query `1545605539` 成功。同步更新表文档、表索引、Join 关系、常用 Join key 和宽表注意事项。
+
+## 2026-08-13 市销线索渠道维表替换可行性门禁
+
+- 权限开通后确认 `gaotu_hl.dim_mkt_h_lead_channel_df` 最新分区为 `20260812`；该分区 3,305,571 行且 `lead_id` 3,305,571 个、空值 0，单分区按 `lead_id` Join 不会由维表侧放大。
+- 对 `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df` 的 `20260813/hour=13` 市场顾问范围做覆盖探针：1,497,182 个去重线索仅命中 364,326 个，覆盖率 24.3341%。
+- `20260815期` 未命中 265 个线索，并实际承载 251 个线索量、227 个有效线索量；替换会改变业务指标，未通过上线前守恒门禁。
+- 两条 Data Center 专属退款复用规则在最新快照中均无精确命中样本，无法证明维表已吸收；超长共享 CASE 的值级探针也未产出成功结果。
+- 因覆盖、指标守恒和专属规则等价均未全部通过，未生成生产替换计划，未执行任何 Data Center Apply/刷新或模板 Apply/Publish。更新线索渠道维表文档、表索引、Join key 和 Join 风险结论，明确禁止当前批量替换。
+
+## 2026-08-13 非 lead_id 渠道 Join 可行性探查
+
+- 验证 `gaotu_hl.dim_mkt_h_lead_channel_df` 的来源期、统计期、部门、归一年级组合不能函数决定 `channel_map`：最细组合仍有 760/1,136 个多渠道键，单键最多 43 个渠道，97.7151% 的维表记录位于歧义键。
+- 用宽表最接近字段回连时，仅 233/1,587,930 行落入唯一渠道键；直接连接原始维表理论会放大到 1,844,968,031 行。规则名、流量池和 15 字段签名也未形成可全量迁移的稳定映射。
+- 数据地图新增确认 `gaotu_hl.ods_mkt_h_channel_rule_df` 与 `da.app_dim_jp_channel_case_version_df` 字段；两表均保存整段 `channel_case_when` 文本，不是逐规则明细。进一步关键词搜索未发现 H 业务线关系化规则条件表。
+- `gaotu_hl.ods_mkt_h_channel_rule_df` 的 Presto 数据探针仍被查询权限门禁阻断；仅记录 Data Map 字段/DDL，不虚构分区、唯一性或覆盖结论。
+- 当前没有可安全上线的非 `lead_id` Join。上游需直接产出 `channel_map`，或提供双方共享的稳定 `rule_code` 和版本化关系规则表后，才能重新进入全量等价与生产改造门禁。

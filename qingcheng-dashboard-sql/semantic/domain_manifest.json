@@ -121,7 +121,7 @@
   },
   "current_model_registry": {
     "source_path": "semantic/current_model_bindings.json",
-    "source_sha256": "389b7b56f5aa14e561b14002ab17751f4072200cd02ea19cca9467b7063ce1ba",
+    "source_sha256": "2806f33fe71dbb27cfcb5c9af64c984ddba3f8b451586f545d536e264762ec72",
     "policy": "one_current_model_per_id_and_semantic_slot",
     "canonical_filename_policy": "data_center_qingcheng_<model_id>.sql",
     "model_count": 8,
@@ -2990,16 +2990,16 @@
       {
         "id": "qingcheng:raw_sql:data_center_qingcheng_3180",
         "source_path": "resources/raw_sql/data_center_qingcheng_3180.sql",
-        "sha256": "abd595194c9faf0058711b031fd631dc9a9a9866f02fea56e3b8a90fb5f6fb84",
-        "bytes": 45155,
+        "sha256": "6f280155d5029885cf920921af408f8b393aae0ca649278cd7cf3eb1500aec4d",
+        "bytes": 45728,
         "title": "data_center_qingcheng_3180",
         "table_refs": [
           "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf",
           "data_lake_fuwu.dwd_crm_leads_rt",
-          "finance_dw.dim_finance_employee_df",
           "service_dw.app_h_crm_lead_employee_workload_detail_hf",
           "service_dw.dwd_crm_assign_private_detail_hf",
-          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf"
+          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
+          "temp_table.dingxi01_jiagou_db"
         ],
         "raw_sql_refs": [],
         "status": "documented",
@@ -4531,8 +4531,7 @@
         "knowledge/tables/finance_dw.dim_finance_employee_df.md",
         "knowledge/tables/gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf.md",
         "knowledge/tables/service_dw.dim_crm_assign_rule_plan_item_info_hf.md",
-        "knowledge/update_log/changelog.md",
-        "resources/raw_sql/data_center_qingcheng_3180.sql"
+        "knowledge/update_log/changelog.md"
       ],
       "finance_dw.dim_finance_order_change_df": [
         "knowledge/01_table_index.md",
@@ -4775,6 +4774,7 @@
         "resources/raw_sql/data_center_qingcheng_2244.sql",
         "resources/raw_sql/data_center_qingcheng_2460.sql",
         "resources/raw_sql/data_center_qingcheng_2740.sql",
+        "resources/raw_sql/data_center_qingcheng_3180.sql",
         "resources/raw_sql/qingcheng_daoke_raw_20260522.sql",
         "resources/raw_sql/qingcheng_process_data_raw_20260522.sql",
         "resources/raw_sql/qingcheng_refund_rate_analysis_20260710_20260728.sql",
@@ -6268,8 +6268,8 @@
     },
     {
       "source_path": "resources/raw_sql/data_center_qingcheng_3180.sql",
-      "sha256": "abd595194c9faf0058711b031fd631dc9a9a9866f02fea56e3b8a90fb5f6fb84",
-      "bytes": 45155,
+      "sha256": "6f280155d5029885cf920921af408f8b393aae0ca649278cd7cf3eb1500aec4d",
+      "bytes": 45728,
       "category": "raw_sql"
     },
     {

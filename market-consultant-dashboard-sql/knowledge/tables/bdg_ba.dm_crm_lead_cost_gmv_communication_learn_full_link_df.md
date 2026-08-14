@@ -392,6 +392,8 @@ Presto
 - `user_id`：用户关联
 - `employee_email_prefix`：员工邮箱前缀关联
 - `employee_email_name`：员工姓名关联
+- `concat(group_period_year, group_period_term) + period_mapping_second_level_department_name`：与 `gaotu_hl.dim_mkt_h_period_map_df` 的期次映射关联键；必须先把宽表两个期次字段拼成紧凑系统期名，并同时带部门。
+- 派生 `channel_map + department_name`：与 `gaotu_hl.ods_mkt_h_channel_group_df` 的渠道组关联键；`channel_map` 必须先由 0808 渠道 CASE 派生，不能直接用 `channel_name_1/2/3`。
 
 ## 10. 常用 SQL 片段
 
@@ -430,6 +432,8 @@ limit 20;
 - 所属项目：大数据-数据分析；owner：崔帅杰。
 - 字段类型和业务口径仍需结合线上 SQL 执行结果或业务文档复核。
 - 大宽表查询禁止 `select *`，应只选择需要字段。
+- 2026-08-13 验证：在 `dt='20260813', hour='11'`、`H业务线/市场部/市场顾问部` 范围内，期次映射按上述联合键 Join 后宽表行数不变；市场部 210,630 行全部命中。
+- 渠道组关联必须先限定 `ods_mkt_h_channel_group_df.dt` 和 `department_name='all'`，再按 `channel` 预聚合/校验唯一性；原始渠道树字段与渠道组表不是稳定直接 Join 键。
 
 ### 历史备注
 

@@ -57,4 +57,11 @@
 | `profile-folder` | Profile selected dashboards under a folder. | `remote_read_only` | `explicit_command` | [platform_profile.md](platform_profile.md) |
 | `profile-all` | Scan configured folders into runtime; Skill knowledge writes require two explicit maintenance flags. | `local_write_explicit` | `explicit_flags` | [platform_profile.md](platform_profile.md) |
 
+## `scripts/tiangong2_task.py`
+
+| 命令 | CLI 作用 | 影响类型 | 授权门禁 | 详细说明 |
+|---|---|---|---|---|
+| `list-projects` | Verify the scoped Tiangong2 identity and list accessible projects read-only. | `remote_read_only` | `explicit_command` | [tiangong2_task_exploration.md](tiangong2_task_exploration.md) |
+| `explore` | Recursively snapshot exact data-development folders without running or changing tasks. | `remote_read_only` | `explicit_command` | [tiangong2_task_exploration.md](tiangong2_task_exploration.md) |
+
 QueryPlan、Trace、ResultArtifact、Profile、Plan 或 Receipt 均不扩展注册表中的授权边界。任何文档示例也不能替代当前 CLI 参数校验、Hash、确认和 capability registry。

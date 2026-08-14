@@ -21,12 +21,14 @@ if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
 
 from read_dashboard.cli import build_parser as build_dashboard_parser  # noqa: E402
+from tiangong2_task.cli import build_parser as build_tiangong2_task_parser  # noqa: E402
 from usql_web_query.cli import build_parser as build_usql_parser  # noqa: E402
 
 
 PARSER_BUILDERS = {
     "usql_web_query.py": build_usql_parser,
     "read_dashboard.py": build_dashboard_parser,
+    "tiangong2_task.py": build_tiangong2_task_parser,
 }
 
 

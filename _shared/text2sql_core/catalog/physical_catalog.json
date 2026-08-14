@@ -504,7 +504,7 @@
         {
           "domain": "market_consultant",
           "source_path": "market-consultant-dashboard-sql/knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
-          "sha256": "0f899aa1bb2bcb4a0968daebc47ff7e63230dba23d53c1ae3c34c269bd4a81f4"
+          "sha256": "0b92cfb7a6a5e53bdb029e7f64f44d1cc58a98cab906b2a143c3888ad75d7d15"
         },
         {
           "domain": "qingcheng",
@@ -5928,6 +5928,144 @@
           ]
         }
       ],
+      "business_semantics_excluded": true
+    },
+    {
+      "id": "physical:da.app_dim_jp_channel_case_version_df",
+      "name": "da.app_dim_jp_channel_case_version_df",
+      "domains": [
+        "market_consultant"
+      ],
+      "source_docs": [
+        {
+          "domain": "market_consultant",
+          "source_path": "market-consultant-dashboard-sql/knowledge/tables/da.app_dim_jp_channel_case_version_df.md",
+          "sha256": "8b991766aaa3a279e6cf0b3ac9dae9692953e605c8df6f34f2ea083a3242eac6"
+        }
+      ],
+      "columns": [
+        {
+          "name": "channel_case_when",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/da.app_dim_jp_channel_case_version_df.md"
+            }
+          ]
+        },
+        {
+          "name": "dt",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/da.app_dim_jp_channel_case_version_df.md"
+            }
+          ]
+        },
+        {
+          "name": "period_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/da.app_dim_jp_channel_case_version_df.md"
+            }
+          ]
+        },
+        {
+          "name": "remark",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/da.app_dim_jp_channel_case_version_df.md"
+            }
+          ]
+        },
+        {
+          "name": "rule_version",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/da.app_dim_jp_channel_case_version_df.md"
+            }
+          ]
+        },
+        {
+          "name": "seq_no",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/da.app_dim_jp_channel_case_version_df.md"
+            }
+          ]
+        },
+        {
+          "name": "source_file",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/da.app_dim_jp_channel_case_version_df.md"
+            }
+          ]
+        },
+        {
+          "name": "status",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/da.app_dim_jp_channel_case_version_df.md"
+            }
+          ]
+        },
+        {
+          "name": "submitted_by",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/da.app_dim_jp_channel_case_version_df.md"
+            }
+          ]
+        }
+      ],
+      "partition_candidates": [
+        "dt"
+      ],
+      "conflicts": [],
       "business_semantics_excluded": true
     },
     {
@@ -13194,6 +13332,800 @@
       "partition_candidates": [
         "dt",
         "hour"
+      ],
+      "conflicts": [],
+      "business_semantics_excluded": true
+    },
+    {
+      "id": "physical:gaotu_hl.dim_mkt_h_lead_channel_df",
+      "name": "gaotu_hl.dim_mkt_h_lead_channel_df",
+      "domains": [
+        "market_consultant"
+      ],
+      "source_docs": [
+        {
+          "domain": "market_consultant",
+          "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_lead_channel_df.md",
+          "sha256": "d6d7fffeff5188114ece88c98cc7b02bca58083c531777c42e6122370379f8c4"
+        }
+      ],
+      "columns": [
+        {
+          "name": "cb_of_lead",
+          "types": [
+            "double"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "double",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_lead_channel_df.md"
+            }
+          ]
+        },
+        {
+          "name": "channel_group",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_lead_channel_df.md"
+            }
+          ]
+        },
+        {
+          "name": "channel_map",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_lead_channel_df.md"
+            }
+          ]
+        },
+        {
+          "name": "cost_lead_basis",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_lead_channel_df.md"
+            }
+          ]
+        },
+        {
+          "name": "department",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_lead_channel_df.md"
+            }
+          ]
+        },
+        {
+          "name": "dt",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_lead_channel_df.md"
+            }
+          ]
+        },
+        {
+          "name": "has_cost_config",
+          "types": [
+            "int"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "int",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_lead_channel_df.md"
+            }
+          ]
+        },
+        {
+          "name": "has_rule_config",
+          "types": [
+            "int"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "int",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_lead_channel_df.md"
+            }
+          ]
+        },
+        {
+          "name": "invest_cost",
+          "types": [
+            "double"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "double",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_lead_channel_df.md"
+            }
+          ]
+        },
+        {
+          "name": "lead_cost",
+          "types": [
+            "double"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "double",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_lead_channel_df.md"
+            }
+          ]
+        },
+        {
+          "name": "lead_count",
+          "types": [
+            "int"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "int",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_lead_channel_df.md"
+            }
+          ]
+        },
+        {
+          "name": "lead_id",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_lead_channel_df.md"
+            }
+          ]
+        },
+        {
+          "name": "source_period_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_lead_channel_df.md"
+            }
+          ]
+        },
+        {
+          "name": "stat_grade",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_lead_channel_df.md"
+            }
+          ]
+        },
+        {
+          "name": "stat_period_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_lead_channel_df.md"
+            }
+          ]
+        },
+        {
+          "name": "valid_lead_count",
+          "types": [
+            "int"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "int",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_lead_channel_df.md"
+            }
+          ]
+        }
+      ],
+      "partition_candidates": [
+        "dt"
+      ],
+      "conflicts": [],
+      "business_semantics_excluded": true
+    },
+    {
+      "id": "physical:gaotu_hl.dim_mkt_h_period_df",
+      "name": "gaotu_hl.dim_mkt_h_period_df",
+      "domains": [
+        "market_consultant"
+      ],
+      "source_docs": [
+        {
+          "domain": "market_consultant",
+          "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_period_df.md",
+          "sha256": "dee926f8725f1ac9eeb384a8c1e949a337c726797c8f8b2ec93b6c830a790542"
+        }
+      ],
+      "columns": [
+        {
+          "name": "begin_dow",
+          "types": [
+            "int"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "int",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_period_df.md"
+            }
+          ]
+        },
+        {
+          "name": "department",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_period_df.md"
+            }
+          ]
+        },
+        {
+          "name": "dt",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_period_df.md"
+            }
+          ]
+        },
+        {
+          "name": "end_dow",
+          "types": [
+            "int"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "int",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_period_df.md"
+            }
+          ]
+        },
+        {
+          "name": "gap_days_from_prev",
+          "types": [
+            "int"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "int",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_period_df.md"
+            }
+          ]
+        },
+        {
+          "name": "is_cnt_mismatch",
+          "types": [
+            "int"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "int",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_period_df.md"
+            }
+          ]
+        },
+        {
+          "name": "is_special_period",
+          "types": [
+            "int"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "int",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_period_df.md"
+            }
+          ]
+        },
+        {
+          "name": "mkt_cb_week",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_period_df.md"
+            }
+          ]
+        },
+        {
+          "name": "month",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_period_df.md"
+            }
+          ]
+        },
+        {
+          "name": "next_period_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_period_df.md"
+            }
+          ]
+        },
+        {
+          "name": "period_begin_day",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_period_df.md"
+            }
+          ]
+        },
+        {
+          "name": "period_cnt_month",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_period_df.md"
+            }
+          ]
+        },
+        {
+          "name": "period_cnt_month_calc",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_period_df.md"
+            }
+          ]
+        },
+        {
+          "name": "period_end_day",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_period_df.md"
+            }
+          ]
+        },
+        {
+          "name": "period_seq_in_month",
+          "types": [
+            "int"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "int",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_period_df.md"
+            }
+          ]
+        },
+        {
+          "name": "period_span_days",
+          "types": [
+            "int"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "int",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_period_df.md"
+            }
+          ]
+        },
+        {
+          "name": "prev_period_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_period_df.md"
+            }
+          ]
+        },
+        {
+          "name": "stat_period_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_period_df.md"
+            }
+          ]
+        }
+      ],
+      "partition_candidates": [
+        "dt"
+      ],
+      "conflicts": [],
+      "business_semantics_excluded": true
+    },
+    {
+      "id": "physical:gaotu_hl.dim_mkt_h_period_map_df",
+      "name": "gaotu_hl.dim_mkt_h_period_map_df",
+      "domains": [
+        "market_consultant"
+      ],
+      "source_docs": [
+        {
+          "domain": "market_consultant",
+          "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_period_map_df.md",
+          "sha256": "2690b0c1c7f79c589fae3563ba4b07c15ceba5530091b24f6c2292ea561ed5c2"
+        }
+      ],
+      "columns": [
+        {
+          "name": "department",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_period_map_df.md"
+            }
+          ]
+        },
+        {
+          "name": "dt",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_period_map_df.md"
+            }
+          ]
+        },
+        {
+          "name": "is_folded",
+          "types": [
+            "int"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "int",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_period_map_df.md"
+            }
+          ]
+        },
+        {
+          "name": "overlap_days",
+          "types": [
+            "int"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "int",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_period_map_df.md"
+            }
+          ]
+        },
+        {
+          "name": "period_begin_day",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_period_map_df.md"
+            }
+          ]
+        },
+        {
+          "name": "period_end_day",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_period_map_df.md"
+            }
+          ]
+        },
+        {
+          "name": "source_period_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_period_map_df.md"
+            }
+          ]
+        },
+        {
+          "name": "stat_period_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_period_map_df.md"
+            }
+          ]
+        },
+        {
+          "name": "tail_begin_day",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_period_map_df.md"
+            }
+          ]
+        },
+        {
+          "name": "win_begin_day",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_period_map_df.md"
+            }
+          ]
+        },
+        {
+          "name": "win_end_day",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.dim_mkt_h_period_map_df.md"
+            }
+          ]
+        }
+      ],
+      "partition_candidates": [
+        "dt"
+      ],
+      "conflicts": [],
+      "business_semantics_excluded": true
+    },
+    {
+      "id": "physical:gaotu_hl.ods_mkt_h_channel_group_df",
+      "name": "gaotu_hl.ods_mkt_h_channel_group_df",
+      "domains": [
+        "market_consultant"
+      ],
+      "source_docs": [
+        {
+          "domain": "market_consultant",
+          "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.ods_mkt_h_channel_group_df.md",
+          "sha256": "2443bee850ba3e4c663d0cc37ff3160e0a6e554510861e299912e9110cb870b2"
+        }
+      ],
+      "columns": [
+        {
+          "name": "channel",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.ods_mkt_h_channel_group_df.md"
+            }
+          ]
+        },
+        {
+          "name": "channel_group",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.ods_mkt_h_channel_group_df.md"
+            }
+          ]
+        },
+        {
+          "name": "department_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.ods_mkt_h_channel_group_df.md"
+            }
+          ]
+        },
+        {
+          "name": "dt",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.ods_mkt_h_channel_group_df.md"
+            }
+          ]
+        }
+      ],
+      "partition_candidates": [
+        "dt"
+      ],
+      "conflicts": [],
+      "business_semantics_excluded": true
+    },
+    {
+      "id": "physical:gaotu_hl.ods_mkt_h_channel_rule_df",
+      "name": "gaotu_hl.ods_mkt_h_channel_rule_df",
+      "domains": [
+        "market_consultant"
+      ],
+      "source_docs": [
+        {
+          "domain": "market_consultant",
+          "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.ods_mkt_h_channel_rule_df.md",
+          "sha256": "77728f85104fe934a49b7b747346ff7cd4659cfa8032c3e3ceb26644fb9efa18"
+        }
+      ],
+      "columns": [
+        {
+          "name": "channel_case_when",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.ods_mkt_h_channel_rule_df.md"
+            }
+          ]
+        },
+        {
+          "name": "department_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.ods_mkt_h_channel_rule_df.md"
+            }
+          ]
+        },
+        {
+          "name": "dt",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.ods_mkt_h_channel_rule_df.md"
+            }
+          ]
+        },
+        {
+          "name": "period_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.ods_mkt_h_channel_rule_df.md"
+            }
+          ]
+        }
+      ],
+      "partition_candidates": [
+        "dt"
       ],
       "conflicts": [],
       "business_semantics_excluded": true

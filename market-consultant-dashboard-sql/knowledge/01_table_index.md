@@ -1,10 +1,10 @@
 # 表索引
 
-> 物理表字段由 `usql-web-query-operator sync-datamap-fields` 从天工数据地图同步，临时表继续由本 Skill 的 SQL/表格证据维护。库名前缀或业务口径待确认时，生成生产 SQL 前必须人工确认。所有表在 Web 查询环境（Playwright）中均可正常使用。
+> 物理表字段由 `usql-web-query-operator sync-datamap-fields` 从天工数据地图同步，临时表继续由本 Skill 的 SQL/表格证据维护。库名前缀或业务口径待确认时，生成生产 SQL 前必须人工确认。除状态栏明确标注权限待开通的表外，其余表已在 Web 查询环境（Playwright）中使用。
 
 | 完整表名 | 中文名 | 数据粒度 | 分区字段 | 小时表 | 库名前缀状态 | 字段校验状态 |
 |---|---|---|---|---|---|---|
-| bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df | 线索成本转化沟通行课全链路数据 | 线索-渠道-转化全链路明细，小时快照粒度待确认。 | dt, hour | 是 | 已确认 | 字段目录已补全；已记录流量画像 `city_channel` 省市维度和市场渠道用户画像分析三分桶、整体画像及多维退费率数据集，口径需人工校验 |
+| bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df | 线索成本转化沟通行课全链路数据 | 线索-渠道-转化全链路明细，小时快照粒度待确认。 | dt, hour | 是 | 已确认 | 字段目录已补全；已确认可用期次联合键和渠道组逻辑关联，仍需按具体数据集校验历史覆盖 |
 | dw.dim_employee_chain | 员工信息表 | 员工-部门路径-任职时间段粒度，字段来自 Word 文档 | dt | 否 | 已确认 | 已根据 `E:\2000_work\GAOTU\员工信息表.docx` 补全 33 个非分区字段，主键唯一性待确认 |
 | dw.dim_cstm_active_user_c_appliction_mb_df | c端用户全量表应用粒度 | 用户-应用粒度，待确认 | dt | 否 | 已确认 | 字段目录已补全，口径需人工校验 |
 | dw.dws_user_active_user_c_appliction_hf | c端用户活跃表应用粒度_当日小时全量 | 用户-应用-小时粒度，待确认 | dt, hour | 是 | 已确认 | 字段目录已补全，口径需人工校验 |
@@ -12,6 +12,12 @@
 | finance_dw.dwd_finance_order_refund_df | 订单退款明细表 | 待确认；当前 2353 退费原因分析按订单关联该表 | dt | 否 | 已确认 | 已结合数据地图和当前 `resources/raw_sql/data_center_market_2353.sql` 补充字段；主键仍待确认 |
 | finance_dw.dim_finance_employee_df | 员工维表 | 员工-日级快照粒度，字段来自 Word 文档 | dt | 否 | 已确认 | 已根据 `E:\2000_work\GAOTU\员工维表.docx` 补全 42 个非分区字段 |
 | gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf | 顾问首call数据分析表 | 用户-顾问账号-首call任务-小时快照粒度，字段来自 Word 文档 | dt, hour | 是 | 已确认 | 已根据 `E:\2000_work\GAOTU\顾问首call数据分析表.docx` 补全 19 个非分区字段；2026-05-22 起作为 `is_f_call` 首 call 任务强制来源 |
+| da.app_dim_jp_channel_case_version_df | 精品班飞书渠道映射版本表 | 日全量规则版本快照；单分区唯一键待验证 | dt | 否 | 已确认 | 数据地图已登记 8 个非分区字段和 1 个分区字段；仅保存完整 CASE 文本和版本元数据，不能直接 Join 产出 `channel_map` |
+| gaotu_hl.dim_mkt_h_lead_channel_df | 市销线索渠道映射表 | 单日快照内 `lead_id` 唯一；跨分区重复 | dt | 否 | 已确认 | 已登记 15 个非分区字段和 1 个分区字段；按单分区 `lead_id` Join 不放大，但市场顾问宽表全量覆盖仅 24.3341%，当前禁止直接替换渠道 CASE |
+| gaotu_hl.dim_mkt_h_period_map_df | H业务线标准期名映射表 | 系统期名到标准期名映射快照粒度；`department + source_period_name` 唯一性已验证 | dt | 否 | 已确认 | 已从天工数据地图登记 10 个非分区字段和 1 个分区字段；与全链路宽表的期次 Join 已验证无 1:N 放大 |
+| gaotu_hl.dim_mkt_h_period_df | H业务线标准期次映射表 | 标准期次日历快照粒度，联合键和唯一性待验证 | dt | 否 | 已确认 | 已从天工数据地图登记 17 个非分区字段和 1 个分区字段；Join 基数待权限审批后验证 |
+| gaotu_hl.ods_mkt_h_channel_group_df | H业务线渠道分类表 | 渠道-渠道大类-适用学部映射粒度；当前快照 `department_name + channel` 唯一性已验证 | dt | 否 | 已确认 | 已从天工数据地图登记 3 个非分区字段和 1 个分区字段；与宽表需先关联派生 `channel_map`，bounded CASE 探针已验证渠道组侧最大匹配行数为 1 |
+| gaotu_hl.ods_mkt_h_channel_rule_df | H业务线渠道映射原文表 | 学部-期次-完整 CASE 文本快照；单分区唯一性待验证 | dt | 否 | 已确认 | 数据地图已登记 3 个非分区字段和 1 个分区字段；当前 SQL 查询权限未开通，仅保存规则文本，不能直接 Join 产出 `channel_map` |
 | service_dw.app_h_crm_lead_employee_workload_detail_hf | 高中顾问工作量看板 | 顾问-小时粒度，待确认 | dt, hour | 是 | 已确认 | 字段目录已补全，口径需人工校验 |
 | service_dw.app_h_crm_lead_task_process_info_detail_hf | 高中线索服务跟进明细 | 线索-任务-小时粒度，待确认 | dt, hour | 是 | 已确认 | 字段目录已补全，口径需人工校验；禁止再用 `call_answer_lead_count` 作为首 call 任务指标来源 |
 | service_dw.app_user_attribute_label_gaia_wide_df | 盖亚系统用户标签数据宽表 | 用户-标签粒度，待确认 | dt | 否 | 已确认 | 字段目录已补全，口径需人工校验 |

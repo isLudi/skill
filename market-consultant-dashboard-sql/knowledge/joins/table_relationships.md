@@ -237,3 +237,47 @@
 - 科目产品：按 `subject` CASE 标准化科目，并按 `course_second_level_department_name` 映射 `course_name`；当前 2349 使用 `analysis_type` 区分 `subject`、`product`、`grade` 三类图表。
 - 退费原因：`finance_dw.dwd_finance_order_refund_df` 通过 `order_number` 关联财务业绩明细，限定 `dt = now() - 24 hour` 与 `refund_type = '1'` 后输出 `refund_reason`。
 - 状态：2349、2890、2353 分别是退款金额结构、多科退费、退费原因的唯一当前入口；退款原因表唯一性和 `refund_type = '1'` 含义仍需人工确认。
+
+## H业务线期次映射与市场顾问全链路宽表（2026-08-13）
+
+- 主表：`bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df`
+- 可关联表：`gaotu_hl.dim_mkt_h_period_map_df`
+- 确认 Join key：`concat(group_period_year, group_period_term) = source_period_name` 且 `period_mapping_second_level_department_name = department`。
+- 不可使用的候选键：宽表 `group_period_name` 是 verbose 期次描述，直接关联探针 425 个宽表键命中 0 个；宽表 `period_name` 在同一紧凑系统期+部门内可能有多个值，也不能作为稳定键。
+- 维表唯一性：`dt='20260812'` 下 `(department, source_period_name)` 为 845/845 唯一；`source_period_name` 单字段存在跨部门重复，最多 6 个部门，必须带 `department`。
+- 1:N 验证：宽表 `dt='20260813', hour='11'`、`H业务线/市场部/市场顾问部` 范围共 1,587,881 行，按上述联合键 `left join` 后仍为 1,587,881 行；其中 `period_mapping_second_level_department_name='市场部'` 的 210,630 行、29 个键全部命中。
+- 生产防放大策略：先限定期次映射 `dt`，校验并收敛到 `(department, source_period_name)` 一行，再回连宽表；若同一键出现多个 `stat_period_name`，应阻断并人工确认，不得静默任选。
+- 状态：当前市场部快照的 Join 关系、唯一性、覆盖和 1:N 风险已确认；更早历史期次仍受映射表分区保留期影响，复用时须复查未命中量。
+- 证据 Query ID：`1545552186`、`1545561455`、`1545568337`、`1545590228`、`1545588820`。
+
+## H业务线渠道组与市场顾问全链路宽表（2026-08-13）
+
+- 主表：`bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df`
+- 可关联表：`gaotu_hl.ods_mkt_h_channel_group_df`
+- 确认 Join path：先用 `resources/raw_sql/market_channel_case_when_0808.sql` 从宽表原始字段派生逻辑字段 `channel_map`，再以 `channel_map = ods.channel` 关联，并限定 `ods.dt` 和 `ods.department_name='all'`。
+- 不可直接关联：宽表没有物理 `channel_map` 字段；`channel_name_1/2/3` 与渠道组表 `channel` 不是同一稳定键，最新抽样的直接重合分别为 2/9、7/39、0/1。
+- 维表唯一性：`dt='20260812'`、`department_name='all'` 下 143 行、143 个非空 `channel`，`channel` 一行一类；应保留按 `channel` 预聚合作为防御性措施。
+- bounded CASE 覆盖：保持 0808 全部 175 条分支顺序的五段式探针，在宽表 50,000 个物理字段去重组合中，59 个派生渠道值有 56 个命中，49,765 行命中，渠道组侧最大匹配行数为 1。该结果验证 Join 方向和基数，不替代生产数据集完整范围的全量覆盖审计。
+- 平台限制：175 条 CASE 单体展开曾触发 `PRESTO_EXECUTE_DQL_ERROR(code=3021): Compiler failed`，Query ID `1545581106`；之后的五段式拆分探针 Query ID `1545605539` 成功，前者不构成业务数据结论。
+- 状态：渠道组表与宽表的安全 Join path 和当前快照 1:N 风险已确认；生产 SQL 不得把 `ods` 直接接到任一原始渠道树字段，也不得跳过 `channel_map` 派生层。
+
+## 市销线索渠道维表与市场顾问全链路宽表（2026-08-13）
+
+- 主表：`bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df`；候选维表：`gaotu_hl.dim_mkt_h_lead_channel_df`。
+- 候选 Join key：两表 `lead_id`。维表必须先限定单个 `dt`；`dt='20260812'` 为 3,305,571 行、3,305,571 个非空去重 `lead_id`，因此维表侧不会造成 1:N 放大。宽表同一线索可多行，整体关系不是一对一。
+- 新鲜度：2026-08-13 16:00 探查时维表最新分区为 `20260812`，宽表已到 `20260813/hour=13`，存在 D-1 覆盖延迟。
+- 全量覆盖：市场顾问宽表 1,497,182 个去重线索中只命中 364,326 个，覆盖率 24.3341%；1,132,856 个线索未命中。匹配行中另有 16,392 行系统期不一致、184,220 行部门不一致，不能只凭 `lead_id` 唯一性宣称业务语义等价。
+- 当期指标影响：`20260815期` 5,030 个去重线索中有 265 个未命中；未命中部分包含 `lead_count=251`、`valid_lead_count=227`，直接替换会改变看板分子、分母和渠道分布，不满足上线前守恒门禁。
+- 专属规则：22 个 Data Center 模型保留的 `20260728期`、`20260803期` 两条退款订单复用前置规则，本轮最新宽表快照精确条件均为 0 条；当前证据不能证明维表已吸收这些模型专属语义。
+- 结论：该 Join 通过唯一性和防放大检查，但未通过全量覆盖、当期指标守恒和专属规则等价检查。不得用 `inner join`、不得仅 `coalesce(dim.channel_map, old_case)` 后宣称已替换、不得批量改造 Data Center 或模板；必须先由上游补齐历史与当日线索，并在每个消费者上完成新旧渠道和值级指标全量对照。
+- 证据 Query ID：`1545770550`、`1545772344`、`1545778770`、`1545781728`、`1545783720`、`1545794539`、`1545799826`。超长 CASE 值级对照 Query `1545790362` 与分段 Query `1545792391` 均未产出可用业务结果，不得将失败探针当作等价证据。
+
+### 不使用 lead_id 的渠道 Join 探查
+
+- 维度函数依赖不成立：`source_period_name + department` 单键最多 49 个渠道；增加 `stat_grade` 或 `stat_period_name` 后仍有 760/1,136 个多渠道键，单键最多 43 个渠道，97.7151% 的维表记录落在歧义键上。
+- 字段语义校准仅把 `lead_id` 用作诊断基准：387,434 个已命中宽表行中，维表 `source_period_name` 与 `concat(group_period_year, group_period_term)` 一致 371,042 行；`department` 与 `section_assign_employee_second_level_department_name` 一致 386,220 行；`stat_grade` 与 `lead_purchase_intention_level2_category_name` 一致 352,326 行。这些是字段对应证据，不授权生产按 `lead_id` 依赖学习规则。
+- 用上述最佳对应字段做无 `lead_id` 回连，1,587,930 行中只有 233 行可由唯一键安全决定渠道，365,715 行命中多渠道键；按去重渠道直接 Join 仍会输出 4,122,615 行，按原始维表行直接 Join 理论输出 1,844,968,031 行。
+- 规则字段诊断：`rule_name` 单字段有 195 个多渠道键；加来源期、部门、`flow_pool_name` 后仍有 125 个多渠道键。15 个原始归因字段签名在已命中样本中只剩 4 个冲突键，但该映射必须先靠 `lead_id` 生成，回连全宽表仅覆盖 394,836 行，并只对原未命中部分新增 `lead_count=454`、`valid_lead_count=409`，不具备全量替换价值。
+- 数据地图发现 `gaotu_hl.ods_mkt_h_channel_rule_df` 和 `da.app_dim_jp_channel_case_version_df`，二者均只保存整段 `channel_case_when` 文本；未发现 H 业务线逐规则条件明细表。`da.app_crm_lead_channel_map_di` 虽有 `channel_map/rule_version/rule_seq_no`，仍是 `lead_id` 结果表，宽表没有共享规则版本键。
+- 当前唯一可行的目标架构是：上游事实表直接输出 `channel_map`，或新增带稳定 `rule_code`、版本、适用部门/期次、优先级和关系化条件的配置产物，并让宽表携带同一 `rule_code`。在此前，不得用 `min/max/arbitrary(channel_map)` 消歧，也不得把超长 CASE 批量替换为现有表 Join。
+- 证据 Query ID：`1545827397`、`1545833782`、`1545836172`、`1545839822`、`1545843263`。`gaotu_hl.ods_mkt_h_channel_rule_df` 数据探针被查询权限门禁阻断，只有 Data Map 字段/DDL证据。
