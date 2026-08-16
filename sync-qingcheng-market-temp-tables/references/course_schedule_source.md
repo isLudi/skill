@@ -12,7 +12,7 @@
 - 本地累计表：`E:\1900_work\GAOTU\19003_青橙项目部看板维护表格\qing_daoke.xlsx`
 - 平台临时表：`temp_table.dingxi01_qing_daoke`
 
-账号密码只从 `QINGCHENG_DOCS_ENV_FILE` 或 Registry 登记的本地环境文件读取。不得在日志、计划、回复、测试夹具或 Git 文件中记录凭据值。下载使用临时浏览器上下文，不复用或持久化浏览器登录状态。
+账号密码只从 `QINGCHENG_DOCS_ENV_FILE` 或 Registry 登记的本地环境文件读取，并且必须限定在 `USQL Web Query (Playwright) credentials` 这一精确配置段。环境文件可能同时包含 Tiangong2 等其他登录配置；不得使用未限定配置段的“最后一个同名键”，也不得在日志、计划、回复、测试夹具或 Git 文件中记录凭据值。下载使用临时浏览器上下文，不复用或持久化浏览器登录状态。
 
 ## 群消息文案识别
 

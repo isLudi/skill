@@ -55,7 +55,7 @@ description: 受治理地预检、修订、合并并上传青橙项目部与市�
 - 市场累计源中的人工历史修订不得被整表覆盖。市场带班架构、到课课次和 `plan_id` 使用来源切片哈希，只允许新增或已审查的变更期次进入候选。
 - 市场评优表只允许执行已登记的确定性修订：精确去重、邮箱前缀小写、证据可解析的年级填补、`x_qi_count` 重排。无法唯一解释时阻断。
 - 市场到课表的空 `channel` 只能从同粒度现有目标记录唯一回填；缺失或多解时阻断。
-- 青橙行课链接源需额外遵循 [course_schedule_source.md](references/course_schedule_source.md)。
+- 青橙行课链接源需额外遵循 [course_schedule_source.md](references/course_schedule_source.md)；其环境文件必须由 Registry 的 `source_env_section` 精确选取 `USQL Web Query (Playwright) credentials` 段，禁止同名键按文件末尾覆盖。
 
 ## 命令入口
 
@@ -98,7 +98,7 @@ D:\anaconda3\python.exe C:\Users\Ludim\.codex\skills\sync-qingcheng-market-temp-
 
 配置、群隔离、命令语法、审批和安全停启见 [event_service.md](references/event_service.md)。服务必须同时覆盖注册表中的两个精确群，但每条消息只能路由到其所在群的文件族；任务状态和审批也按群隔离。
 
-每次升级 `lark-cli` 后，必须完整执行 `event_service.md` 中的“lark-cli 常态升级与生产重启（固定八步）”。Windows 生产解析路径必须指向 npm 包内的原生 `bin\lark-cli.exe`；解析为 `.cmd` / `.bat`、缺少多行及 `< > | &` 元字符 dry-run、或未在登记群验证“帮助/状态”真实回复，均阻断生产恢复。版本号一致不能替代这些门禁。
+每次升级 `lark-cli` 后，必须完整执行 `event_service.md` 中的“lark-cli 常态升级与生产重启（固定八步）”。Windows 生产解析路径必须指向 npm 包内的原生 `bin\lark-cli.exe`；解析为 `.cmd` / `.bat`、检测到本地/全局原生包版本漂移、缺少多行及 `< > | &` 元字符 dry-run、或未在登记群验证“帮助/状态”真实回复，均阻断生产恢复。版本号一致不能替代这些门禁。
 
 维护或验证服务时使用：
 

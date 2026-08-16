@@ -214,6 +214,7 @@ def load_registry(path: Path) -> dict[str, Any]:
                 "source_url_patterns",
                 "source_expected_title_pattern",
                 "source_env_file",
+                "source_env_section",
                 "source_filename",
             )
             missing = [key for key in required if not family.get(key)]
@@ -569,13 +570,43 @@ def _native_lark_cli_for_windows_launcher(launcher: Path) -> Path | None:
     return candidate.resolve() if candidate.is_file() else None
 
 
+def _native_lark_cli_package_version(native: Path) -> str | None:
+    package_json = native.parent.parent / "package.json"
+    try:
+        payload = json.loads(package_json.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    version = payload.get("version")
+    return str(version).strip() if version else None
+
+
 def resolve_lark_cli() -> str:
     if os.name == "nt":
         launchers = _windows_lark_cli_launchers()
+        native_candidates: list[tuple[Path, str | None]] = []
         for launcher in launchers:
             native = _native_lark_cli_for_windows_launcher(launcher)
             if native is not None:
-                return str(native)
+                native_candidates.append(
+                    (native, _native_lark_cli_package_version(native))
+                )
+        versioned_candidates = [
+            (native, version)
+            for native, version in native_candidates
+            if version
+        ]
+        versions = {version for _, version in versioned_candidates}
+        if len(versions) > 1:
+            details = ", ".join(
+                f"{native}={version}"
+                for native, version in versioned_candidates
+            )
+            raise WorkflowError(
+                "lark-cli package version drift detected; refusing to choose "
+                f"among native installations: {details}"
+            )
+        if native_candidates:
+            return str(native_candidates[0][0])
         if launchers:
             raise WorkflowError(
                 "lark-cli was found, but no package-native lark-cli.exe is "
@@ -1058,6 +1089,7 @@ def download_message(
             url=str(message["source_url"]),
             output_path=output_path,
             env_file=env_file,
+            credential_section=str(family.get("source_env_section") or "") or None,
             url_patterns=list(family["source_url_patterns"]),
             expected_title_pattern=str(family["source_expected_title_pattern"]),
             browser_channel=str(family.get("source_browser_channel") or "msedge"),

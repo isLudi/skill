@@ -489,6 +489,15 @@ class MergeWorkflowTests(unittest.TestCase):
             },
             {"qingcheng": 6, "market_consultant": 6},
         )
+        course_family = next(
+            family
+            for family in registry["families"]
+            if family["id"] == "course_schedule"
+        )
+        self.assertEqual(
+            course_family["source_env_section"],
+            "USQL Web Query (Playwright) credentials",
+        )
         for family in registry["families"]:
             quality = family["source_quality"]
             self.assertGreater(quality["max_age_hours"], 0)
@@ -661,6 +670,42 @@ class MergeWorkflowTests(unittest.TestCase):
                 with self.assertRaisesRegex(
                     WorkflowError,
                     "no package-native lark-cli.exe",
+                ):
+                    resolve_lark_cli()
+
+    @unittest.skipUnless(os.name == "nt", "Windows lark-cli resolver")
+    def test_lark_cli_resolver_rejects_native_package_version_drift(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            launchers = []
+            for label, version in (("old", "1.0.84"), ("new", "1.0.87")):
+                launcher = root / label / "lark-cli.cmd"
+                native = (
+                    root
+                    / label
+                    / "node_modules"
+                    / "@larksuite"
+                    / "cli"
+                    / "bin"
+                    / "lark-cli.exe"
+                )
+                launcher.parent.mkdir(parents=True)
+                launcher.write_text("@echo off\r\n", encoding="utf-8")
+                native.parent.mkdir(parents=True)
+                native.write_bytes(b"native")
+                (native.parent.parent / "package.json").write_text(
+                    json.dumps({"version": version}),
+                    encoding="utf-8",
+                )
+                launchers.append(launcher)
+
+            with mock.patch(
+                "governed_temp_table_sync._windows_lark_cli_launchers",
+                return_value=launchers,
+            ):
+                with self.assertRaisesRegex(
+                    WorkflowError,
+                    "package version drift",
                 ):
                     resolve_lark_cli()
 

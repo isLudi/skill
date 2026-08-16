@@ -4022,8 +4022,8 @@
       {
         "id": "market_consultant:tables:da.app_dim_jp_channel_case_version_df",
         "source_path": "knowledge/tables/da.app_dim_jp_channel_case_version_df.md",
-        "sha256": "8b991766aaa3a279e6cf0b3ac9dae9692953e605c8df6f34f2ea083a3242eac6",
-        "bytes": 2735,
+        "sha256": "1caf9afb6ccb4a7acba7110202e52b97e14a4542ff8c13fe75f2fdfd31e3d748",
+        "bytes": 2734,
         "title": "da.app_dim_jp_channel_case_version_df",
         "table_refs": [
           "da.app_dim_jp_channel_case_version_df"
@@ -4228,8 +4228,8 @@
       {
         "id": "market_consultant:tables:gaotu_hl.ods_mkt_h_channel_rule_df",
         "source_path": "knowledge/tables/gaotu_hl.ods_mkt_h_channel_rule_df.md",
-        "sha256": "77728f85104fe934a49b7b747346ff7cd4659cfa8032c3e3ceb26644fb9efa18",
-        "bytes": 3265,
+        "sha256": "ce8db9c27248d09057d30ba4eb9a934353b50f298aa59f643c35088e13fe41b3",
+        "bytes": 3264,
         "title": "gaotu_hl.ods_mkt_h_channel_rule_df",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -6567,8 +6567,8 @@
     },
     {
       "source_path": "knowledge/tables/da.app_dim_jp_channel_case_version_df.md",
-      "sha256": "8b991766aaa3a279e6cf0b3ac9dae9692953e605c8df6f34f2ea083a3242eac6",
-      "bytes": 2735,
+      "sha256": "1caf9afb6ccb4a7acba7110202e52b97e14a4542ff8c13fe75f2fdfd31e3d748",
+      "bytes": 2734,
       "category": "tables"
     },
     {
@@ -6639,8 +6639,8 @@
     },
     {
       "source_path": "knowledge/tables/gaotu_hl.ods_mkt_h_channel_rule_df.md",
-      "sha256": "77728f85104fe934a49b7b747346ff7cd4659cfa8032c3e3ceb26644fb9efa18",
-      "bytes": 3265,
+      "sha256": "ce8db9c27248d09057d30ba4eb9a934353b50f298aa59f643c35088e13fe41b3",
+      "bytes": 3264,
       "category": "tables"
     },
     {

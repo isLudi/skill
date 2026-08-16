@@ -341,6 +341,7 @@
       "source_filename": "青橙行课--开课时间(1-6节课).xlsx",
       "source_env_file_env": "QINGCHENG_DOCS_ENV_FILE",
       "source_env_file": "E:\\1900_work\\GAOTU\\19002_市场顾问部看板维护表格\\usql_api.env",
+      "source_env_section": "USQL Web Query (Playwright) credentials",
       "source_browser_channel": "msedge",
       "source_download_timeout_seconds": 120,
       "source_sheet": "$active",

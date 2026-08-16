@@ -23,11 +23,23 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
-def load_env_file(path: Path) -> dict[str, str]:
+def load_env_file(path: Path, *, section: str | None = None) -> dict[str, str]:
     if not path.is_file():
         raise DocsSheetDownloadError("Configured credential environment file does not exist.")
     values: dict[str, str] = {}
+    target_section = section.strip().casefold() if section and section.strip() else None
+    section_found = False
+    active = target_section is None
     for line in path.read_text(encoding="utf-8-sig").splitlines():
+        stripped = line.strip()
+        if stripped.startswith("#"):
+            if target_section is not None:
+                heading = stripped.lstrip("#").strip().casefold()
+                active = heading == target_section
+                section_found = section_found or active
+            continue
+        if not active:
+            continue
         match = re.match(
             r"^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$",
             line,
@@ -37,7 +49,17 @@ def load_env_file(path: Path) -> dict[str, str]:
         value = match.group(2).strip()
         if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
             value = value[1:-1]
-        values[match.group(1)] = value
+        key = match.group(1)
+        if key in values:
+            scope = f" section {section!r}" if target_section else ""
+            raise DocsSheetDownloadError(
+                f"Credential environment file contains duplicate key {key!r}{scope}."
+            )
+        values[key] = value
+    if target_section is not None and not section_found:
+        raise DocsSheetDownloadError(
+            f"Credential environment file does not contain section {section!r}."
+        )
     return values
 
 
@@ -75,6 +97,7 @@ def download_docs_sheet(
     url: str,
     output_path: Path,
     env_file: Path,
+    credential_section: str | None = None,
     url_patterns: list[str],
     expected_title_pattern: str,
     browser_channel: str = "msedge",
@@ -87,7 +110,7 @@ def download_docs_sheet(
     if output_path.exists():
         raise DocsSheetDownloadError("Refusing to overwrite an existing downloaded workbook.")
 
-    values = load_env_file(env_file)
+    values = load_env_file(env_file, section=credential_section)
     username = values.get("BAIJIA_USERNAME", "")
     password = values.get("BAIJIA_PASSWORD", "")
     if not username or not password:
@@ -154,6 +177,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--url", required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--env-file", type=Path, required=True)
+    parser.add_argument("--credential-section")
     parser.add_argument("--url-pattern", action="append", required=True)
     parser.add_argument("--expected-title-pattern", required=True)
     parser.add_argument("--browser-channel", default="msedge")
@@ -169,6 +193,7 @@ def main(argv: list[str] | None = None) -> int:
             url=args.url,
             output_path=args.output.resolve(),
             env_file=args.env_file.resolve(),
+            credential_section=args.credential_section,
             url_patterns=args.url_pattern,
             expected_title_pattern=args.expected_title_pattern,
             browser_channel=args.browser_channel,

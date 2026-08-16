@@ -6,8 +6,9 @@
 
 ## 1. 顶层规则（必须遵守）
 
-- `--json` 必须是 JSON 对象。
-- 顶层统一使用：`type` + `name` + 类型特有字段。
+- 单个字段定义始终是 JSON 对象，每个字段对象统一使用：`type` + `name` + 类型特有字段。
+- `+field-create --json` 接受一个字段对象或非空字段对象数组。
+- `+field-update --json` 只接受一个字段对象。
 - 所有字段类型都支持可选 `description`；支持纯文本，也支持 Markdown 链接。
 - 字段默认值使用 `default_value`，直接传对应 CellValue；支持范围只有 `text`、`number`、静态 `select`、`datetime`、`user`。清空默认值传 `null`；省略表示创建时不设置、更新时不修改。
 - 不要使用旧结构：`field_name`、`property`、`ui_type`、数字枚举 `type`。
@@ -263,7 +264,7 @@
 {
   "type": "datetime",
   "name": "截止时间",
-  "default_value": "2026-03-24 10:00:00"
+  "default_value": "2026-03-24 10:00"
 }
 ```
 
@@ -271,7 +272,7 @@
 
 默认值 / 约束：
 - `style.format` 默认 `yyyy/MM/dd` 可用格式：`yyyy/MM/dd`、`yyyy/MM/dd HH:mm`、`yyyy/MM/dd HH:mm Z`、`yyyy-MM-dd`、`yyyy-MM-dd HH:mm`、`yyyy-MM-dd HH:mm Z`、`MM-dd`、`MM/dd/yyyy`、`dd/MM/yyyy`
-- `style.format` 只控制前端显示格式；当前可配置格式最多显示到分钟，底层时间值仍可保留秒级精度。
+- `style.format` 只控制 Base 前端展示，不影响 CLI 读取的 CellValue；前端当前最多配置到分钟级展示，底层时间值以毫秒级精度存储。
 
 常用写法：
 

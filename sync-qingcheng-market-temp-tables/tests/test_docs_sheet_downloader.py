@@ -33,6 +33,35 @@ class DocsSheetDownloaderTests(unittest.TestCase):
         self.assertEqual(values["BAIJIA_USERNAME"], "user@example.com")
         self.assertEqual(values["BAIJIA_PASSWORD"], "secret")
 
+    def test_env_file_selects_registered_section_and_rejects_unscoped_duplicates(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "credentials.env"
+            path.write_text(
+                "# USQL Web Query (Playwright) credentials\n"
+                "BAIJIA_USERNAME='usql_user'\n"
+                "BAIJIA_PASSWORD='usql_password'\n\n"
+                "# tiangong2 Web Query (Playwright) credentials\n"
+                "BAIJIA_USERNAME='tiangong_user'\n"
+                "BAIJIA_PASSWORD='tiangong_password'\n",
+                encoding="utf-8",
+            )
+
+            scoped = load_env_file(
+                path,
+                section="USQL Web Query (Playwright) credentials",
+            )
+
+            with self.assertRaisesRegex(DocsSheetDownloadError, "duplicate key"):
+                load_env_file(path)
+
+        self.assertEqual(
+            scoped,
+            {
+                "BAIJIA_USERNAME": "usql_user",
+                "BAIJIA_PASSWORD": "usql_password",
+            },
+        )
+
     def test_source_url_is_restricted_to_registered_https_docs_sheet(self) -> None:
         patterns = [r"^https://docs\.baijia\.com/sheet/[A-Za-z0-9]+(?:\?[^\s]*)?$"]
 

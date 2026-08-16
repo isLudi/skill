@@ -178,6 +178,12 @@ runtime 中保存：
 
 因此，版本一致只证明包版本没有漂移，不能证明生产回复链路安全。Windows 上必须直接执行 npm 包内的 `node_modules\@larksuite\cli\bin\lark-cli.exe`；`.cmd` / `.bat` 解析结果属于阻断项。回复 dry-run 必须同时覆盖换行和 shell 元字符，不能只测普通三行文本。
 
+### 2026-08-16：1.0.87 升级加固
+
+- 本地 `.codex` 与全局 npm 包必须同时为 `1.0.87`，并核对两份原生 `lark-cli.exe` 的版本与 SHA-256。
+- Windows 解析器发现多个原生包且 `package.json` 版本不一致时必须直接阻断，禁止按当前目录或 PATH 顺序静默选择旧包。
+- 生产恢复前必须看到解析路径为包内原生 `lark-cli.exe`、`event_ready=true`、单一消费者；版本漂移、批处理 shim 或回复回归失败均保持停止。
+
 ### 1. 冻结生产并记录基线
 
 - 读取管理器状态和 SQLite 账本；存在 `queued`、`planning`、`applying_local` 或 `uploading` 任务时，等待安全结束并人工核验，不得直接升级。
