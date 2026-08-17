@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Thin wrapper for read-only Tiangong2 data-development task exploration."""
+"""Thin wrapper for governed Tiangong2 task exploration, logs, and publication."""
 
 from __future__ import annotations
 

@@ -63,5 +63,8 @@
 |---|---|---|---|---|
 | `list-projects` | Verify the scoped Tiangong2 identity and list accessible projects read-only. | `remote_read_only` | `explicit_command` | [tiangong2_task_exploration.md](tiangong2_task_exploration.md) |
 | `explore` | Recursively snapshot exact data-development folders without running or changing tasks. | `remote_read_only` | `explicit_command` | [tiangong2_task_exploration.md](tiangong2_task_exploration.md) |
+| `fetch-execution-log` | Read one exact owned Tiangong2 execution and all stage logs into redacted runtime artifacts. | `remote_read_only` | `explicit_command` | [tiangong2_task_operations.md](tiangong2_task_operations.md) |
+| `plan-task-publish` | Build a read-only, identity-scoped, hash-bound plan for publishing one saved task. | `remote_read_only` | `explicit_command` | [tiangong2_task_operations.md](tiangong2_task_operations.md) |
+| `publish-task` | Publish one exact reviewed Tiangong2 task plan; never saves, edits, submits, or executes code. | `publish` | `exact_plan_hash_and_confirmation` | [tiangong2_task_operations.md](tiangong2_task_operations.md) |
 
 QueryPlan、Trace、ResultArtifact、Profile、Plan 或 Receipt 均不扩展注册表中的授权边界。任何文档示例也不能替代当前 CLI 参数校验、Hash、确认和 capability registry。

@@ -1,6 +1,6 @@
 ---
 name: usql-web-query-operator
-description: 通过 Playwright 执行受治理的 USQL 网页查询、小结果下载、模板 SQL 读取、永久参数化模板创建/原地更新/发布/回读与大结果临时模板下载、手工临时表上传、数据地图及 Data Center 本地知识同步、显式生产数据集替换/创建、BI 看板只读画像/受控变更，以及 Tiangong2 数据开发任务只读探查。使用本 Skill 运行或下载公司 SQL、读取或经 Hash 审阅后创建/更新模板、检查或上传已登记临时表、扫描/画像 Taitan 看板、执行经 Hash 审阅的 Data Center/看板 Plan，或用隔离账号盘点 Tiangong2 代码；不要用它生成业务 SQL、推断指标口径、跨域写知识或调用未经验证的写接口。
+description: 通过 Playwright 执行受治理的 USQL 网页查询、小结果下载、模板 SQL 读取、永久参数化模板创建/原地更新/发布/回读与大结果临时模板下载、手工临时表上传、数据地图及 Data Center 本地知识同步、显式生产数据集替换/创建、BI 看板只读画像/受控变更，以及 Tiangong2 数据开发任务只读探查、执行日志调取和经 Hash 审阅的自有任务发布。使用本 Skill 运行或下载公司 SQL、读取或经 Hash 审阅后创建/更新模板、检查或上传已登记临时表、扫描/画像 Taitan 看板、执行经 Hash 审阅的 Data Center/看板 Plan，或用隔离账号盘点 Tiangong2 代码、读取日志和发布已保存版本；不要用它生成业务 SQL、推断指标口径、跨域写知识或调用未经验证的写接口。
 ---
 
 # USQL Web Query Operator
@@ -33,6 +33,7 @@ description: 通过 Playwright 执行受治理的 USQL 网页查询、小结果�
 | P4A/P4B 写能力和沙箱取证 | [dashboard_write_capabilities.md](references/dashboard_write_capabilities.md) | `scripts/read_dashboard.py` |
 | P4C 从零构建看板 | [dashboard_build_workflow.md](references/dashboard_build_workflow.md) | `scripts/read_dashboard.py` |
 | Tiangong2 数据开发项目/文件夹/任务/代码/版本/调度只读探查 | [tiangong2_task_exploration.md](references/tiangong2_task_exploration.md) | `scripts/tiangong2_task.py` |
+| Tiangong2 自有任务执行日志调取、只读发布 Plan、显式发布与回读 | [tiangong2_task_operations.md](references/tiangong2_task_operations.md) | `scripts/tiangong2_task.py` |
 | 所有命令的快速索引 | [command_reference.md](references/command_reference.md) | 三个入口的 `--help` |
 
 只有修改命令、排查 selector 漂移或文档不足时，才读取对应 `scripts/**/commands/*.py` 和邻近 helper。
@@ -42,7 +43,8 @@ description: 通过 Playwright 执行受治理的 USQL 网页查询、小结果�
 - 密码、Cookie、Token、登录态、截图、SQL 结果和下载文件不得进入 Skill 目录。
 - 登录态固定保存在 `C:\Users\Ludim\.codex\runtime\usql-web-query-operator\state.json`；通用 Playwright 不得读取、替换或管理它。
 - Tiangong2 任务入口只读取 `usql_api.env` 的 `# tiangong2 Web Query (Playwright) credentials` 精确区段，并使用独立 `runtime\usql-web-query-operator\tiangong2-task\state.json`；不得复用 USQL/Data Map 状态或普通 dotenv 的首个同名账号。
-- Tiangong2 客户端只有读取接口白名单；`explore` 递归读取当前代码、版本、调度、资源和项目质量清单，源码在 runtime 落盘前脱敏。任何 save/new/update/delete/run/submit/publish 等接口必须在网络调用前阻断，探查结果不得自动写入业务知识库。
+- Tiangong2 探查客户端仍只有读取接口白名单；`explore` 递归读取当前代码、版本、调度、资源和项目质量清单，源码在 runtime 落盘前脱敏。探查路径上的 save/new/update/delete/run/submit/publish 等接口必须在网络调用前阻断，探查结果不得自动写入业务知识库。
+- Tiangong2 运维日志使用独立的 Nezha 精确读取白名单，必须绑定当前账号拥有的精确项目/一级目录/menu/task/exec/stage；完整日志脱敏后只进入专用 runtime。发布使用另一个单用途写客户端，只能消费 ready 的 `plan-task-publish` 精确 Hash 和 `--confirm-publish`，发布前重查身份/作用域/源码/版本漂移，单次调用 `dataDevelop/publishTask` 后回读版本和源码 Hash；它不保存、编辑、提交、运行、重跑或修改调度，也不能跨目录或操作他人任务。
 - QueryPlan 约束 `run` 以及 `run-with-fallback` 的每个独立 attempt：必须为受支持域、`status=executable`、`unresolved_slots=[]` 且 SQL SHA-256 完全一致。
 - `run` 在浏览器启动前强制执行只读 SQL Policy；DDL/DML、命令语句、多语句、解析失败和未解析模板参数不得通过 audit 模式绕过。
 - `run` 提交前必须稳定回读精确 SQL Hash 和引擎标签；一次运行只触发一次提交，平台受理后绑定一个新 Query ID，不得因页面响应慢而自动重复点击。
@@ -99,9 +101,9 @@ D:\anaconda3\python.exe -m pytest tests -q
 D:\anaconda3\python.exe C:\Users\Ludim\.codex\skills\.system\skill-creator\scripts\quick_validate.py C:\Users\Ludim\.codex\skills\usql-web-query-operator
 ```
 
-修改 Tiangong2 入口时还要运行 `D:\anaconda3\python.exe -m pytest tests\test_tiangong2_*.py -q`，并确认专用状态/工件路径、精确凭据区段、读取接口白名单和脱敏测试全部通过。
+修改 Tiangong2 入口时还要运行 `D:\anaconda3\python.exe -m pytest tests -q -k tiangong2`，并确认专用状态/工件路径、精确凭据区段、读取接口白名单、日志 JSON/form 传输、脱敏、跨负责人拒绝、发布计划 Hash/确认/漂移/单次写入/回读测试全部通过。
 
-修改 CLI 命令或能力边界时，先更新 `references/command_capabilities.json`，再运行 `scripts/build_command_reference.py`；`--check` 必须确认注册表、两个 parser 和生成的 `references/command_reference.md` 完全一致。
+修改 CLI 命令或能力边界时，先更新 `references/command_capabilities.json`，再运行 `scripts/build_command_reference.py`；`--check` 必须确认注册表、三个 parser 和生成的 `references/command_reference.md` 完全一致。
 
 若改动领域注册、知识同步、QueryPlan、看板工件或 Data Center 流程，还必须运行两个领域 Skill 的完整性检查和仓库 `../scripts/validate_text2sql_stack.py`。
 

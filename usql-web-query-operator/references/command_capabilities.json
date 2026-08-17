@@ -59,7 +59,10 @@
       "entrypoint": "tiangong2_task.py",
       "commands": [
         {"name": "list-projects", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "tiangong2_task_exploration.md"},
-        {"name": "explore", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "tiangong2_task_exploration.md"}
+        {"name": "explore", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "tiangong2_task_exploration.md"},
+        {"name": "fetch-execution-log", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "tiangong2_task_operations.md"},
+        {"name": "plan-task-publish", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "tiangong2_task_operations.md"},
+        {"name": "publish-task", "effect": "publish", "authorization": "exact_plan_hash_and_confirmation", "reference": "tiangong2_task_operations.md"}
       ]
     }
   ]
