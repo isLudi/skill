@@ -44,14 +44,27 @@ def _error_result(
         "all_candidates": all_candidates or [],
     }
 
+
+def _strip_sql_string_literals(text: str) -> str:
+    """Remove SQL single-quoted literal bodies before keyword detection.
+
+    Query editors and expanded log panels can expose the submitted SQL as
+    visible ``pre``/``code`` text. Business values such as ``'赠课失败'`` or
+    ``'failed campaign'`` are data, not platform failures. Keep quote
+    boundaries while handling doubled SQL quotes so genuine diagnostics such
+    as ``Cannot cast 'x'`` still match on text outside the literal.
+    """
+    return re.sub(r"'(?:''|[^'])*'", "''", text)
+
 def _looks_like_error_text(text: str | None) -> bool:
     if not text:
         return False
+    searchable = _strip_sql_string_literals(text)
     return bool(re.search(
         r"error|exception|fail(?:ed)?|失败|错误|异常|权限|denied|cannot|can't|line \d+|"
         r"mismatched input|does not exist|not found|unknown|invalid|syntax|"
-        r"column .* cannot|table .* not|ȱ��|Ȩ��|û��",
-        text,
+        r"column .* cannot|table .* not",
+        searchable,
         flags=re.I,
     ))
 

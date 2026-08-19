@@ -14,8 +14,12 @@ sys.path.insert(0, str(SCRIPTS_DIR))
 from _shared.config import TIANGONG2_TASK_RUNTIME_DIR  # noqa: E402
 from _shared.errors import UsageError  # noqa: E402
 from tiangong2_task.operations import (  # noqa: E402
+    _diagnose_logs,
     Tiangong2OperationsReadOnlyClient,
+    execution_status_label,
     fetch_execution_log_bundle,
+    list_execution_history_bundle,
+    write_execution_history_bundle,
     write_execution_log_bundle,
 )
 from tiangong2_task.scope import ScopedTask  # noqa: E402
@@ -141,6 +145,18 @@ def make_task() -> ScopedTask:
 
 
 class Tiangong2OperationsClientTests(unittest.TestCase):
+    def test_success_log_ignores_benign_slf4j_binding_warning(self) -> None:
+        diagnostic = _diagnose_logs(
+            [
+                'SLF4J: Failed to load class "org.slf4j.impl.StaticLoggerBinder".\n'
+                "SUCCESS: 多维表格已清空并写入新数据\n"
+                "exit_code:  0\n"
+            ]
+        )
+        self.assertEqual(diagnostic["classification"], "execution_success")
+        self.assertEqual(diagnostic["root_cause_candidates"], [])
+        self.assertEqual(execution_status_label({"status": 6, "statusDesc": ""}), "success")
+
     def test_exact_read_chain_and_stage_log_pagination(self) -> None:
         request = FakeRequest()
         client = Tiangong2OperationsReadOnlyClient(request, api_base="https://example/nezha")
@@ -158,6 +174,20 @@ class Tiangong2OperationsClientTests(unittest.TestCase):
         client = Tiangong2OperationsReadOnlyClient(request)
         with self.assertRaisesRegex(UsageError, "Blocked non-allowlisted"):
             client._post_json_body("task/execute", {"taskId": 65369})
+        self.assertEqual(request.calls, [])
+
+    def test_recent_execution_history_is_scoped_and_does_not_fetch_logs(self) -> None:
+        request = FakeRequest()
+        client = Tiangong2OperationsReadOnlyClient(request, api_base="https://example/nezha")
+        bundle = list_execution_history_bundle(client, task=make_task(), limit=20)
+        self.assertEqual([row["id"] for row in bundle["executions"]], [164912112])
+        self.assertFalse(any(call[1].endswith("getStageLog") for call in request.calls))
+
+    def test_execution_history_rejects_out_of_range_limit_before_history_reads(self) -> None:
+        request = FakeRequest()
+        client = Tiangong2OperationsReadOnlyClient(request, api_base="https://example/nezha")
+        with self.assertRaisesRegex(UsageError, "between 1 and 100"):
+            list_execution_history_bundle(client, task=make_task(), limit=0)
         self.assertEqual(request.calls, [])
 
 
@@ -184,6 +214,36 @@ class Tiangong2ExecutionArtifactTests(unittest.TestCase):
             self.assertEqual(payload["diagnostic"]["classification"], "spark_broadcast_exchange_fatal")
             self.assertFalse(payload["diagnostic"]["deeper_nested_cause_exposed"])
             self.assertTrue((run_dir / "manifest.json").is_file())
+
+    def test_execution_history_artifact_is_runtime_only_and_redacted(self) -> None:
+        TIANGONG2_TASK_RUNTIME_DIR.mkdir(parents=True, exist_ok=True)
+        bundle = {
+            "task_schedule": {"taskId": 65369, "taskName": "market_conversion_2_lark"},
+            "period_page": {"pageTotal": 1},
+            "periods": [{"taskId": 65369, "periodTime": "2026-08-16 14:36:00"}],
+            "executions": [
+                {
+                    "id": 164912112,
+                    "taskId": 65369,
+                    "taskName": "market_conversion_2_lark",
+                    "statusDesc": "failed",
+                    "token": "history-secret",
+                }
+            ],
+        }
+        with tempfile.TemporaryDirectory(dir=TIANGONG2_TASK_RUNTIME_DIR) as tmp:
+            run_dir = write_execution_history_bundle(
+                task=make_task(),
+                identity={"id": 1, "name": "lvshuai01", "displayName": "吕帅"},
+                limit=20,
+                bundle=bundle,
+                used_endpoints={"POST nezha/task/listTaskExecutionPeriods"},
+                artifact_root=Path(tmp),
+            )
+            payload = json.loads((run_dir / "history.json").read_text(encoding="utf-8"))
+            self.assertNotIn("history-secret", json.dumps(payload, ensure_ascii=False))
+            self.assertEqual(payload["executions"][0]["token"], "<redacted>")
+            self.assertEqual(payload["remote_mutations"], 0)
 
 
 if __name__ == "__main__":

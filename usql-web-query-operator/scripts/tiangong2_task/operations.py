@@ -237,25 +237,118 @@ def fetch_execution_log_bundle(
     }
 
 
+def list_execution_history_bundle(
+    client: Tiangong2OperationsReadOnlyClient,
+    *,
+    task: ScopedTask,
+    limit: int = 20,
+) -> dict[str, Any]:
+    """List the latest exact execution attempts for an already-scoped owned task."""
+
+    if task.nezha_task_id <= 0:
+        raise UsageError(f"Task menu {task.menu_id} has no Nezha operations id")
+    if limit < 1 or limit > 100:
+        raise UsageError("Tiangong2 execution-history limit must be between 1 and 100")
+    schedule = client.get_task_and_schedule(task.nezha_task_id)
+    if int(schedule.get("taskId") or 0) != task.nezha_task_id:
+        raise UsageError("Nezha task identity mismatch while reading execution history")
+    if str(schedule.get("taskName") or "") != task.task_name:
+        raise UsageError("Nezha task name mismatch while reading execution history")
+
+    period_rows, page_query = client.list_execution_periods_page(
+        task.nezha_task_id,
+        page_no=1,
+        page_size=100,
+    )
+    bound_periods: list[dict[str, Any]] = []
+    for row in period_rows:
+        if int(row.get("taskId") or 0) != task.nezha_task_id:
+            raise UsageError("Execution-history period escaped the scoped Nezha task")
+        row_task_name = str(row.get("taskName") or "")
+        if row_task_name and row_task_name != task.task_name:
+            raise UsageError("Execution-history period task name mismatch")
+        period_time = str(row.get("periodTime") or "")
+        if not period_time:
+            raise UsageError("Execution-history period is missing periodTime")
+        bound_periods.append(dict(row))
+
+    bound_periods.sort(
+        key=lambda row: (
+            str(row.get("periodTime") or ""),
+            int(row.get("taskExecutionId") or row.get("id") or 0),
+        ),
+        reverse=True,
+    )
+    executions_by_id: dict[int, dict[str, Any]] = {}
+    queried_periods: list[dict[str, Any]] = []
+    seen_period_times: set[str] = set()
+    for period in bound_periods:
+        period_time = str(period["periodTime"])
+        if period_time in seen_period_times:
+            continue
+        seen_period_times.add(period_time)
+        queried_periods.append(period)
+        for row in client.list_task_executions(task.nezha_task_id, period_time):
+            execution_id = int(row.get("id") or 0)
+            if execution_id <= 0:
+                raise UsageError("Execution-history row is missing a positive execution id")
+            if int(row.get("taskId") or 0) != task.nezha_task_id:
+                raise UsageError("Execution-history row escaped the scoped Nezha task")
+            if str(row.get("taskName") or "") != task.task_name:
+                raise UsageError("Execution-history row task name mismatch")
+            normalized = dict(row)
+            normalized.setdefault("periodTime", period_time)
+            executions_by_id[execution_id] = normalized
+        if len(executions_by_id) >= limit:
+            break
+
+    executions = sorted(
+        executions_by_id.values(),
+        key=lambda row: (
+            str(
+                row.get("startTime")
+                or row.get("beginTime")
+                or row.get("periodTime")
+                or ""
+            ),
+            int(row.get("id") or 0),
+        ),
+        reverse=True,
+    )[:limit]
+    return {
+        "task_schedule": schedule,
+        "period_page": page_query,
+        "periods": queried_periods,
+        "executions": executions,
+    }
+
+
 def _diagnose_logs(logs: list[str]) -> dict[str, Any]:
     lines = [line for log in logs for line in log.splitlines()]
     pattern = re.compile(
         r"(?i)(执行sql失败|caused by|exception|fatal|failed|error|outofmemory|timeout|broadcast|退出脚本)"
     )
+    benign_patterns = (
+        re.compile(r'^SLF4J: Failed to load class "org\.slf4j\.impl\.StaticLoggerBinder"\.$'),
+    )
     candidates: list[str] = []
     for line in lines:
         stripped = line.strip()
-        if stripped and pattern.search(stripped) and stripped not in candidates:
+        benign = any(item.search(stripped) for item in benign_patterns)
+        if stripped and pattern.search(stripped) and not benign and stripped not in candidates:
             candidates.append(stripped)
         if len(candidates) >= 40:
             break
     joined = "\n".join(lines)
+    success_signature = bool(re.search(r"(?m)^exit_code:\s+0\s*$", joined))
     if "SparkFatalException" in joined and "BroadcastExchangeExec" in joined:
         classification = "spark_broadcast_exchange_fatal"
     elif "SparkFatalException" in joined:
         classification = "spark_fatal_exception"
     elif candidates:
         classification = "execution_error_detected"
+    elif success_signature:
+        classification = "execution_success"
     else:
         classification = "no_registered_error_signature"
     deeper = [
@@ -274,6 +367,22 @@ def _diagnose_logs(logs: list[str]) -> dict[str, Any]:
             else None
         ),
     }
+
+
+def execution_status_label(row: dict[str, Any]) -> str:
+    description = str(row.get("statusDesc") or "").strip()
+    if description:
+        return description
+    return {
+        0: "waiting",
+        1: "waiting",
+        2: "dispatched",
+        3: "running",
+        4: "success",
+        5: "failed",
+        6: "success",
+        7: "stage执行失败",
+    }.get(int(row.get("status") or 0), str(row.get("status") or "unknown"))
 
 
 def _slug(value: str) -> str:
@@ -365,6 +474,67 @@ def write_execution_log_bundle(
         "remote_mutations": 0,
         "execution_id": execution_id,
         "artifact_files": files,
+    }
+    (run_dir / "manifest.json").write_text(
+        json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+    return run_dir
+
+
+def write_execution_history_bundle(
+    *,
+    task: ScopedTask,
+    identity: dict[str, Any],
+    limit: int,
+    bundle: dict[str, Any],
+    used_endpoints: set[str],
+    artifact_root: Path,
+) -> Path:
+    """Write a redacted, runtime-only execution-history artifact."""
+
+    validate_artifact_root(artifact_root)
+    ensure_runtime([artifact_root])
+    run_dir = safe_artifact_dir(artifact_root)
+    safe_bundle, structure_findings = redact_structure(bundle)
+    payload = {
+        "schema_version": "tiangong2-execution-history-v1",
+        "read_only": True,
+        "remote_mutations": 0,
+        "identity": {key: identity.get(key) for key in ("id", "name", "displayName")},
+        "scope": {
+            "project_id": task.project_id,
+            "folder": task.folder_name,
+            "menu_id": task.menu_id,
+            "task_id": task.task_id,
+            "nezha_task_id": task.nezha_task_id,
+            "task_name": task.task_name,
+            "path": list(task.path),
+        },
+        "limit": limit,
+        **safe_bundle,
+        "structure_redactions": structure_findings,
+        "used_endpoints": sorted(used_endpoints),
+    }
+    history_path = run_dir / "history.json"
+    history_path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+    manifest = {
+        "schema_version": "tiangong2-execution-history-manifest-v1",
+        "read_only": True,
+        "remote_mutations": 0,
+        "execution_count": len(payload["executions"]),
+        "artifact_files": [
+            {
+                "path": history_path.name,
+                "bytes": history_path.stat().st_size,
+                "sha256": _sha256_bytes(history_path.read_bytes()),
+            }
+        ],
     }
     (run_dir / "manifest.json").write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
