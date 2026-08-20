@@ -6,7 +6,7 @@
   "additionalProperties": false,
   "required": ["schema_version", "entrypoints"],
   "properties": {
-    "schema_version": {"const": "1.8.0"},
+    "schema_version": {"const": "1.9.0"},
     "entrypoints": {
       "type": "array",
       "minItems": 1,
@@ -51,6 +51,7 @@
                   "type": "object",
                   "additionalProperties": false,
                   "properties": {
+                    "default_engine": {"type": "string", "minLength": 1},
                     "engine_choices": {
                       "type": "array",
                       "minItems": 1,

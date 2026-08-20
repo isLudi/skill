@@ -129,6 +129,7 @@ class QueryExecutionStateTests(unittest.TestCase):
         self.assertIn("expected=", str(raised.exception))
 
     def test_engine_labels_and_backend_values_are_normalized(self) -> None:
+        self.assertEqual(normalize_query_engine(None), "presto-lakehouse")
         self.assertEqual(normalize_query_engine("Presto_lakehouse"), "presto-lakehouse")
         self.assertTrue(engine_label_matches("presto", "Presto"))
         self.assertFalse(engine_label_matches("presto", "Presto_lakehouse"))

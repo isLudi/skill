@@ -46,13 +46,13 @@ QueryPlan 必须满足 `schema_version=2.0.0`、受支持业务域、`status=exe
 
 每次 `run` 都会在浏览器启动前生成 SQL Policy Report，并在运行结束后生成 QueryTrace 与 ResultArtifact；默认落在本次 runtime artifact 目录。完整字段与隐私边界见 [text2sql_runtime_artifacts.md](text2sql_runtime_artifacts.md)。
 
-默认引擎为 `presto`。当前显式支持：
+默认引擎为 `presto-lakehouse`，与 SQL 取数页面当前默认的 `Presto_lakehouse` 一致。当前显式支持：
 
 - `--engine presto` → `Presto`
 - `--engine presto-lakehouse` → `Presto_lakehouse`
 - `--engine doris-presto` → `Doris-Presto / doris内测加速版`
 
-普通 `run` 只执行一个引擎 attempt，默认不回退。用户已确认 `Presto` 与 `Presto_lakehouse` 使用等价目录；该确认记录在 [query_engine_fallbacks.json](query_engine_fallbacks.json)。`Doris-Presto` 仍必须显式指定或由领域 override 注册，不能从名字推断目录、权限或数据新鲜度等价。
+普通 `run` 只执行一个 `Presto_lakehouse` attempt，默认不回退；显式 `--engine presto` 或 `--engine doris-presto` 会覆盖该默认值。用户已确认 `Presto` 与 `Presto_lakehouse` 使用等价目录；该确认记录在 [query_engine_fallbacks.json](query_engine_fallbacks.json)。`Doris-Presto` 仍必须显式指定或由领域 override 注册，不能从名字推断目录、权限或数据新鲜度等价。
 
 提交使用确定性状态门禁，而不是模拟人工输入：
 
@@ -85,16 +85,16 @@ API 未给出总行数的空页只有在同一 Query ID 的日志或历史行确
 ```powershell
 D:\anaconda3\python.exe scripts\usql_web_query.py run-with-fallback `
   --sql-file C:\path\to\query.sql `
-  --engine presto `
+  --engine presto-lakehouse `
   --no-download
 ```
 
-不传 `--fallback-engine` 时，注册表把 `presto-lakehouse` 解析为 `presto` 的默认等价目录备用。显式 Doris 示例：
+不传 `--fallback-engine` 时，注册表把 `presto` 解析为默认 `presto-lakehouse` 的等价目录备用；若显式把 primary 设为 `presto`，则注册备用仍为 `presto-lakehouse`。显式 Doris 示例：
 
 ```powershell
 D:\anaconda3\python.exe scripts\usql_web_query.py run-with-fallback `
   --sql-file C:\path\to\query.sql `
-  --engine presto `
+  --engine presto-lakehouse `
   --fallback-engine doris-presto `
   --no-download
 ```

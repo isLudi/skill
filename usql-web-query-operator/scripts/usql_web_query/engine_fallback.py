@@ -62,6 +62,13 @@ def load_engine_fallback_registry(
             "Query engine fallback registry supported engines differ from the CLI: "
             f"registry={sorted(supported)}, cli={sorted(QUERY_ENGINE_CHOICES)}"
         )
+    registered_default = normalize_query_engine(str(registry["default_primary"]))
+    runtime_default = normalize_query_engine(None)
+    if registered_default != runtime_default:
+        raise UsageError(
+            "Query engine fallback registry default differs from the CLI: "
+            f"registry={registered_default}, cli={runtime_default}"
+        )
     groups: dict[str, str] = {}
     seen_group_ids: set[str] = set()
     for group in registry["equivalence_groups"]:
@@ -75,6 +82,15 @@ def load_engine_fallback_registry(
             groups[str(engine)] = group_id
 
     explicit_only = set(registry["explicit_only_engines"])
+    if registered_default in explicit_only:
+        raise UsageError(
+            f"Default query engine cannot be explicit-only: {registered_default}"
+        )
+    if registered_default not in registry["default_fallback_by_primary"]:
+        raise UsageError(
+            "Default query engine has no registered fallback: "
+            f"{registered_default}"
+        )
     for primary, fallback in registry["default_fallback_by_primary"].items():
         if primary == fallback:
             raise UsageError(f"Default fallback engine duplicates primary engine: {primary}")

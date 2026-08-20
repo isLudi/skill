@@ -61,6 +61,15 @@ def _option_choices(parser: argparse.ArgumentParser, command: str, option: str) 
     return [str(item) for item in action.choices]
 
 
+def _option_default(parser: argparse.ArgumentParser, command: str, option: str) -> Any:
+    command_parser = _subparser(parser, command)
+    action = next(
+        (item for item in command_parser._actions if option in item.option_strings),
+        None,
+    )
+    return None if action is None else action.default
+
+
 def load_registry() -> dict[str, Any]:
     registry = json.loads(REGISTRY_PATH.read_text(encoding="utf-8"))
     schema = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
@@ -109,6 +118,26 @@ def validate_registry(registry: dict[str, Any]) -> dict[str, dict[str, str]]:
                     raise ValueError(
                         f"Command engine choices drift for {entrypoint} {item['name']}: "
                         f"registry={registered_engine_choices}, parser={parser_engine_choices}"
+                    )
+            registered_engine_default = (item.get("parameters") or {}).get("default_engine")
+            if registered_engine_default is not None:
+                if (
+                    registered_engine_choices is None
+                    or registered_engine_default not in registered_engine_choices
+                ):
+                    raise ValueError(
+                        f"Command default engine is not registered as a choice for "
+                        f"{entrypoint} {item['name']}: {registered_engine_default}"
+                    )
+                parser_engine_default = _option_default(
+                    PARSER_BUILDERS[entrypoint](),
+                    item["name"],
+                    "--engine",
+                )
+                if registered_engine_default != parser_engine_default:
+                    raise ValueError(
+                        f"Command default engine drift for {entrypoint} {item['name']}: "
+                        f"registry={registered_engine_default}, parser={parser_engine_default}"
                     )
             registered_fallback_choices = (item.get("parameters") or {}).get("fallback_engine_choices")
             if registered_fallback_choices is not None:

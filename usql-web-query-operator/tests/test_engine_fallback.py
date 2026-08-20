@@ -152,7 +152,7 @@ def _args(root: Path, **overrides):
     values = {
         "sql_file": sql_path,
         "query_plan": None,
-        "engine": "presto",
+        "engine": "presto-lakehouse",
         "fallback_engine": None,
         "empty_result_policy": "stop",
         "group_artifact": None,
@@ -164,14 +164,37 @@ def _args(root: Path, **overrides):
 
 
 class EngineFallbackTests(unittest.TestCase):
-    def test_registry_confirms_default_equivalent_lakehouse(self) -> None:
+    def test_registry_confirms_lakehouse_default_and_reciprocal_presto_backup(self) -> None:
         registry, registry_sha256 = load_engine_fallback_registry()
+        self.assertEqual(registry["default_primary"], "presto-lakehouse")
+        self.assertEqual(registry["default_fallback_by_primary"]["presto-lakehouse"], "presto")
         self.assertEqual(registry["default_fallback_by_primary"]["presto"], "presto-lakehouse")
         self.assertEqual(len(registry_sha256), 64)
-        resolution = resolve_fallback_engine("presto", requested_fallback=None, domain=None)
-        self.assertEqual(resolution.fallback_engine, "presto-lakehouse")
+        resolution = resolve_fallback_engine(
+            "presto-lakehouse",
+            requested_fallback=None,
+            domain=None,
+        )
+        self.assertEqual(resolution.fallback_engine, "presto")
         self.assertEqual(resolution.resolution_source, "default_equivalent")
         self.assertEqual(resolution.equivalence_group, "presto_equivalent_directory")
+        reverse = resolve_fallback_engine("presto", requested_fallback=None, domain=None)
+        self.assertEqual(reverse.fallback_engine, "presto-lakehouse")
+
+    def test_registry_rejects_default_engine_drift(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            registry, _ = load_engine_fallback_registry()
+            registry["default_primary"] = "presto"
+            registry_path = Path(temp_dir) / "query_engine_fallbacks.json"
+            registry_path.write_text(
+                json.dumps(registry, ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(UsageError, "default differs from the CLI"):
+                load_engine_fallback_registry(
+                    registry_path,
+                    REGISTRY_SCHEMA_PATH,
+                )
 
     def test_doris_requires_explicit_or_domain_resolution(self) -> None:
         resolution = resolve_fallback_engine(
@@ -210,6 +233,8 @@ class EngineFallbackTests(unittest.TestCase):
         ordinary = parser.parse_args(["run", "--sql-file", "query.sql"])
         explicit = parser.parse_args(["run-with-fallback", "--sql-file", "query.sql"])
         self.assertFalse(hasattr(ordinary, "fallback_engine"))
+        self.assertEqual(ordinary.engine, "presto-lakehouse")
+        self.assertEqual(explicit.engine, "presto-lakehouse")
         self.assertIsNone(explicit.fallback_engine)
         self.assertEqual(explicit.empty_result_policy, "stop")
 
@@ -317,8 +342,8 @@ class EngineFallbackTests(unittest.TestCase):
     def test_unresolved_runs_one_default_fallback_and_adopts_success(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
-            primary = _outcome(root, attempt_no=1, engine="presto", status="Success", ok=False, result_state="result_unresolved")
-            fallback = _outcome(root, attempt_no=2, engine="presto-lakehouse", status="Success", ok=True, result_state="success_with_rows")
+            primary = _outcome(root, attempt_no=1, engine="presto-lakehouse", status="Success", ok=False, result_state="result_unresolved")
+            fallback = _outcome(root, attempt_no=2, engine="presto", status="Success", ok=True, result_state="success_with_rows")
             with patch(
                 "usql_web_query.commands.run_with_fallback.execute_run",
                 side_effect=[primary, fallback],
@@ -327,8 +352,8 @@ class EngineFallbackTests(unittest.TestCase):
                     exit_code = cmd_run_with_fallback(_args(root))
             self.assertEqual(exit_code, 0)
             self.assertEqual(execute.call_count, 2)
-            self.assertEqual(execute.call_args_list[0].args[0].engine, "presto")
-            self.assertEqual(execute.call_args_list[1].args[0].engine, "presto-lakehouse")
+            self.assertEqual(execute.call_args_list[0].args[0].engine, "presto-lakehouse")
+            self.assertEqual(execute.call_args_list[1].args[0].engine, "presto")
             group_path = next((root / "runtime" / "fallback-groups").rglob("query_execution_group.json"))
             group = json.loads(group_path.read_text(encoding="utf-8"))
             self.assertEqual(group["final"]["status"], "fallback_success")
@@ -337,7 +362,7 @@ class EngineFallbackTests(unittest.TestCase):
     def test_verified_empty_stops_without_crosscheck(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
-            primary = _outcome(root, attempt_no=1, engine="presto", status="Success", ok=True, result_state="success_empty_verified")
+            primary = _outcome(root, attempt_no=1, engine="presto-lakehouse", status="Success", ok=True, result_state="success_empty_verified")
             with patch(
                 "usql_web_query.commands.run_with_fallback.execute_run",
                 return_value=primary,
@@ -353,7 +378,7 @@ class EngineFallbackTests(unittest.TestCase):
             primary = _outcome(
                 root,
                 attempt_no=1,
-                engine="presto",
+                engine="presto-lakehouse",
                 status="Failed",
                 ok=False,
                 result_state=None,
@@ -362,7 +387,7 @@ class EngineFallbackTests(unittest.TestCase):
             fallback = _outcome(
                 root,
                 attempt_no=2,
-                engine="presto-lakehouse",
+                engine="presto",
                 status="Success",
                 ok=True,
                 result_state="success_with_rows",
@@ -383,8 +408,8 @@ class EngineFallbackTests(unittest.TestCase):
     def test_crosscheck_only_never_adopts_alternate_rows_or_downloads(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
-            primary = _outcome(root, attempt_no=1, engine="presto", status="Success", ok=True, result_state="success_empty_verified")
-            fallback = _outcome(root, attempt_no=2, engine="presto-lakehouse", status="Success", ok=True, result_state="success_with_rows")
+            primary = _outcome(root, attempt_no=1, engine="presto-lakehouse", status="Success", ok=True, result_state="success_empty_verified")
+            fallback = _outcome(root, attempt_no=2, engine="presto", status="Success", ok=True, result_state="success_with_rows")
             with patch(
                 "usql_web_query.commands.run_with_fallback.execute_run",
                 side_effect=[primary, fallback],
@@ -407,8 +432,8 @@ class EngineFallbackTests(unittest.TestCase):
     def test_crosscheck_only_two_verified_empty_results_selects_primary(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
-            primary = _outcome(root, attempt_no=1, engine="presto", status="Success", ok=True, result_state="success_empty_verified")
-            fallback = _outcome(root, attempt_no=2, engine="presto-lakehouse", status="Success", ok=True, result_state="success_empty_verified")
+            primary = _outcome(root, attempt_no=1, engine="presto-lakehouse", status="Success", ok=True, result_state="success_empty_verified")
+            fallback = _outcome(root, attempt_no=2, engine="presto", status="Success", ok=True, result_state="success_empty_verified")
             with patch(
                 "usql_web_query.commands.run_with_fallback.execute_run",
                 side_effect=[primary, fallback],
@@ -429,11 +454,11 @@ class EngineFallbackTests(unittest.TestCase):
     def test_failed_fallback_never_starts_a_third_attempt(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
-            primary = _outcome(root, attempt_no=1, engine="presto", status="Success", ok=False, result_state="result_unresolved")
+            primary = _outcome(root, attempt_no=1, engine="presto-lakehouse", status="Success", ok=False, result_state="result_unresolved")
             fallback = _outcome(
                 root,
                 attempt_no=2,
-                engine="presto-lakehouse",
+                engine="presto",
                 status="Failed",
                 ok=False,
                 result_state=None,
@@ -458,7 +483,7 @@ class EngineFallbackTests(unittest.TestCase):
             primary = _outcome(
                 root,
                 attempt_no=1,
-                engine="presto",
+                engine="presto-lakehouse",
                 status="Failed",
                 ok=False,
                 result_state=None,

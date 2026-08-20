@@ -21,6 +21,14 @@ class CommandReferenceTests(unittest.TestCase):
             {"usql_web_query.py", "read_dashboard.py", "tiangong2_task.py"},
         )
         self.assertIn("run", help_index["usql_web_query.py"])
+        run_entry = next(
+            item
+            for entry in registry["entrypoints"]
+            if entry["entrypoint"] == "usql_web_query.py"
+            for item in entry["commands"]
+            if item["name"] == "run"
+        )
+        self.assertEqual(run_entry["parameters"]["default_engine"], "presto-lakehouse")
         self.assertIn("capture-dashboard-build-evidence", help_index["read_dashboard.py"])
         self.assertIn("verify-sandbox-dashboard-build", help_index["read_dashboard.py"])
         self.assertIn("explore", help_index["tiangong2_task.py"])

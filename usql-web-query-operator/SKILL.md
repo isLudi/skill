@@ -79,7 +79,7 @@ description: 通过 Playwright 执行受治理的 USQL 网页查询、小结果�
 
 注册表只保存路由和平台范围，不保存业务指标或 SQL 语义。新增领域必须先有独立业务 Skill、稳定 `domain_id`、领域测试和经审阅的知识写回范围。
 
-查询引擎回退只由 `references/query_engine_fallbacks.json` 决定。当前用户已确认 `presto` 与 `presto-lakehouse` 使用等价目录，因此后者是前者的默认一次性备用；`doris-presto` 只能由 `--fallback-engine doris-presto` 显式选择，或经审阅写入领域 override。注册表解析不扩大 SQL、下载或生产写权限。
+SQL 取数接口默认使用 `presto-lakehouse`，并由 `references/query_engine_fallbacks.json` 与 CLI 一致性校验共同约束。当前用户已确认 `presto` 与 `presto-lakehouse` 使用等价目录：显式 `run-with-fallback` 时，默认 primary `presto-lakehouse` 的一次性备用为 `presto`；显式选择 `presto` 时仍可反向使用 `presto-lakehouse`。`doris-presto` 只能由 `--engine`/`--fallback-engine` 显式选择，或经审阅写入领域 override。注册表解析不扩大 SQL、下载或生产写权限；普通 `run` 始终只有一次 attempt。
 
 ## 标准协作顺序
 

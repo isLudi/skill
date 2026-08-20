@@ -66,7 +66,15 @@ def _add_query_run_arguments(
     command.add_argument("--password", default=os.environ.get("BAIJIA_PASSWORD"))
     command.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL, help="Installed browser channel, e.g. msedge or chrome.")
     command.add_argument("--executable-path", default=None, help="Explicit browser executable path; overrides --browser-channel.")
-    command.add_argument("--engine", choices=list(QUERY_ENGINE_CHOICES), default=DEFAULT_QUERY_ENGINE, help="Primary query engine to select and verify. Default: presto.")
+    command.add_argument(
+        "--engine",
+        choices=list(QUERY_ENGINE_CHOICES),
+        default=DEFAULT_QUERY_ENGINE,
+        help=(
+            "Primary query engine to select and verify. "
+            f"Default: {DEFAULT_QUERY_ENGINE}."
+        ),
+    )
     command.add_argument("--timeout-ms", type=int, default=10 * 60 * 1000)
     command.add_argument("--engine-ready-timeout-ms", type=int, default=10_000, help="Maximum deterministic wait for a stable selected-engine label.")
     command.add_argument("--editor-ready-timeout-ms", type=int, default=10_000, help="Maximum deterministic wait for exact stable editor SQL readback.")
@@ -118,7 +126,10 @@ def build_parser() -> argparse.ArgumentParser:
         "--fallback-engine",
         choices=list(QUERY_ENGINE_CHOICES),
         default=None,
-        help="Explicit fallback engine. Default registry mapping: presto -> presto-lakehouse.",
+        help=(
+            "Explicit fallback engine. When omitted, resolve the registered equivalent "
+            "for the selected primary engine."
+        ),
     )
     run_with_fallback.add_argument(
         "--empty-result-policy",
