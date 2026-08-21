@@ -22,7 +22,7 @@ from .redaction import redact_structure
 from .scope import ScopedTask
 
 
-PLAN_SCHEMA_VERSION = "tiangong2-task-publish-plan-v1"
+PLAN_SCHEMA_VERSION = "tiangong2-task-publish-plan-v2"
 RECEIPT_SCHEMA_VERSION = "tiangong2-task-publish-receipt-v1"
 PLAN_OPERATION = "publish_saved_tiangong2_task"
 PUBLISH_ENDPOINT = "dataDevelop/publishTask"
@@ -99,6 +99,13 @@ def _latest_published(versions: list[dict[str, Any]]) -> dict[str, Any] | None:
     )[0]
 
 
+def _unpublished_versions(versions: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return sorted(
+        [item for item in versions if str(item.get("status") or "") == "未发布"],
+        key=lambda item: int(item.get("id") or 0),
+    )
+
+
 def _version_code_comparison_sha256(
     client: Tiangong2ReadOnlyClient,
     *,
@@ -109,10 +116,10 @@ def _version_code_comparison_sha256(
         return None
     version_id = int(version.get("id") or 0)
     if version_id <= 0:
-        raise UsageError("Published Tiangong2 version is missing its id")
+        raise UsageError("Tiangong2 version is missing its id")
     code = client.get_version_code(version_id).get("code")
     if not isinstance(code, str):
-        raise UsageError(f"Published Tiangong2 version {version_id} has no code readback")
+        raise UsageError(f"Tiangong2 version {version_id} has no code readback")
     return _comparison_sha256(source_kind, code)
 
 
@@ -132,6 +139,22 @@ def read_publish_state(client: Tiangong2ReadOnlyClient, task: ScopedTask) -> dic
         version=latest,
     )
     current_compare_hash = _comparison_sha256(source_kind, current_source)
+    unpublished_sources = [
+        {
+            "version_id": int(version.get("id") or 0),
+            "source_comparison_sha256": _version_code_comparison_sha256(
+                client,
+                source_kind=source_kind,
+                version=version,
+            ),
+        }
+        for version in _unpublished_versions(versions)
+    ]
+    matching_unpublished_version_ids = [
+        int(item["version_id"])
+        for item in unpublished_sources
+        if item["source_comparison_sha256"] == current_compare_hash
+    ]
     return {
         "source_kind": source_kind,
         "current_source_sha256": text_sha256(current_source),
@@ -143,6 +166,8 @@ def read_publish_state(client: Tiangong2ReadOnlyClient, task: ScopedTask) -> dic
         "latest_published_version_id": int(latest.get("id") or 0) if latest else None,
         "latest_published_source_comparison_sha256": latest_hash,
         "source_matches_latest_published": bool(latest_hash and latest_hash == current_compare_hash),
+        "unpublished_version_sources": unpublished_sources,
+        "matching_unpublished_version_ids": matching_unpublished_version_ids,
     }
 
 
@@ -154,13 +179,23 @@ def build_publish_plan(
 ) -> dict[str, Any]:
     state = read_publish_state(client, task)
     already_published = state["source_matches_latest_published"]
+    matching_unpublished = state["matching_unpublished_version_ids"]
+    if already_published:
+        status = "blocked_already_published"
+    elif not matching_unpublished:
+        status = "blocked_no_submitted_version"
+    elif len(matching_unpublished) > 1:
+        status = "blocked_ambiguous_submitted_versions"
+    else:
+        status = "ready"
+    target_version_id = matching_unpublished[0] if len(matching_unpublished) == 1 else None
     safe_project, _ = redact_structure(task.project)
     safe_metadata, _ = redact_structure(task.metadata)
     payload = {
         "schema_version": PLAN_SCHEMA_VERSION,
         "operation": PLAN_OPERATION,
         "created_at": datetime.now(timezone.utc).isoformat(),
-        "status": "blocked_already_published" if already_published else "ready",
+        "status": status,
         "read_only_plan": True,
         "remote_mutations": 0,
         "identity": {key: identity.get(key) for key in ("id", "name", "displayName")},
@@ -176,6 +211,12 @@ def build_publish_plan(
             "owner_name": task.owner_name,
         },
         "task_metadata": safe_metadata,
+        "publish_target": {
+            "version_id": target_version_id,
+            "source_comparison_sha256": (
+                state["current_source_comparison_sha256"] if target_version_id else None
+            ),
+        },
         "baseline": state,
         "policy": {
             "exact_scoped_identity_required": True,
@@ -185,8 +226,10 @@ def build_publish_plan(
             "task_metadata_hash_must_not_drift": True,
             "version_state_hash_must_not_drift": True,
             "identical_to_latest_published_is_blocked": True,
+            "one_matching_unpublished_version_required": True,
+            "target_unpublished_version_is_hash_bound": True,
             "publish_requires_exact_plan_sha256": True,
-            "publish_requires_explicit_confirmation": True,
+            "publish_requires_phase_confirmation_or_active_maintenance_session": True,
             "publish_request_is_single_attempt": True,
             "publish_requires_version_and_source_readback": True,
             "task_execution_is_not_authorized": True,
@@ -206,6 +249,31 @@ def validate_publish_plan(plan: dict[str, Any]) -> None:
     scope = plan.get("scope") or {}
     if any(not scope.get(key) for key in ("project_id", "folder", "menu_id", "task_id", "task_name", "owner_name")):
         raise UsageError("Tiangong2 publish plan has an incomplete task scope")
+    if plan.get("status") not in {
+        "ready",
+        "blocked_already_published",
+        "blocked_no_submitted_version",
+        "blocked_ambiguous_submitted_versions",
+    }:
+        raise UsageError("Tiangong2 publish plan has an unsupported status")
+    target = plan.get("publish_target")
+    if not isinstance(target, dict):
+        raise UsageError("Tiangong2 publish plan requires a publish target")
+    if plan.get("status") == "ready":
+        target_id = int(target.get("version_id") or 0)
+        matching_ids = [
+            int(item)
+            for item in (plan.get("baseline") or {}).get(
+                "matching_unpublished_version_ids",
+                [],
+            )
+        ]
+        if target_id <= 0 or matching_ids != [target_id]:
+            raise UsageError("Tiangong2 ready publish plan requires one exact unpublished version")
+        if target.get("source_comparison_sha256") != (plan.get("baseline") or {}).get(
+            "current_source_comparison_sha256"
+        ):
+            raise UsageError("Tiangong2 publish target source hash does not match current source")
 
 
 def load_publish_plan(path: Path) -> dict[str, Any]:
@@ -344,6 +412,9 @@ def validate_pre_publish_drift(
             raise UsageError(f"Tiangong2 publish precondition drifted after planning: {field}")
     if current.get("source_matches_latest_published"):
         raise UsageError("Tiangong2 current source is already the latest published version")
+    target_id = int(plan["publish_target"]["version_id"])
+    if current.get("matching_unpublished_version_ids") != [target_id]:
+        raise UsageError("Tiangong2 publish target version is no longer the unique matching draft")
     return current
 
 
@@ -356,11 +427,13 @@ def verify_publish_readback(
     delay_seconds: float = 1.0,
 ) -> dict[str, Any]:
     baseline = plan["baseline"]
+    target_version_id = int(plan["publish_target"]["version_id"])
     for attempt in range(1, attempts + 1):
         current = read_publish_state(client, task)
         if (
             current["version_state_sha256"] != baseline["version_state_sha256"]
             and current["source_matches_latest_published"]
+            and current["latest_published_version_id"] == target_version_id
             and current["latest_published_source_comparison_sha256"]
             == baseline["current_source_comparison_sha256"]
         ):

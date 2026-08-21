@@ -70,6 +70,15 @@ def _option_default(parser: argparse.ArgumentParser, command: str, option: str) 
     return None if action is None else action.default
 
 
+def _option_required(parser: argparse.ArgumentParser, command: str, option: str) -> bool:
+    command_parser = _subparser(parser, command)
+    action = next(
+        (item for item in command_parser._actions if option in item.option_strings),
+        None,
+    )
+    return bool(action is not None and action.required)
+
+
 def load_registry() -> dict[str, Any]:
     registry = json.loads(REGISTRY_PATH.read_text(encoding="utf-8"))
     schema = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
@@ -162,6 +171,21 @@ def validate_registry(registry: dict[str, Any]) -> dict[str, dict[str, str]]:
                     raise ValueError(
                         f"Command empty-result policy choices drift for {entrypoint} {item['name']}: "
                         f"registry={registered_empty_choices}, parser={parser_empty_choices}"
+                    )
+            sql_review_required = (item.get("parameters") or {}).get(
+                "sql_quality_review_required"
+            )
+            if sql_review_required is not None:
+                parser_requires_review = _option_required(
+                    PARSER_BUILDERS[entrypoint](),
+                    item["name"],
+                    "--sql-review-file",
+                )
+                if sql_review_required != parser_requires_review:
+                    raise ValueError(
+                        f"Command SQL quality-review requirement drift for {entrypoint} "
+                        f"{item['name']}: registry={sql_review_required}, "
+                        f"parser={parser_requires_review}"
                     )
         help_index[entrypoint] = parser_help
     return help_index

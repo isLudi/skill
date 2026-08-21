@@ -152,8 +152,17 @@ class Tiangong2TaskExplorer:
         warnings: list[str] = []
 
         try:
-            schedule = self._safe_structure(self.client.get_schedule(task_id))
-            schedule_status = "configured" if schedule else "unconfigured"
+            raw_schedule = self.client.get_schedule(task_id)
+            schedule = self._safe_structure(raw_schedule)
+            observed_schedule_task_id = int(raw_schedule.get("taskId") or 0)
+            schedule_status = (
+                "configured" if observed_schedule_task_id == task_id else "unconfigured"
+            )
+            if schedule_status == "unconfigured":
+                warnings.append(
+                    "schedule_unconfigured: "
+                    f"expected_task_id={task_id}, observed_task_id={observed_schedule_task_id or None}"
+                )
         except UsageError as exc:
             schedule = None
             schedule_status = "unavailable"

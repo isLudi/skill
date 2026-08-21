@@ -6,7 +6,7 @@
   "additionalProperties": false,
   "required": ["schema_version", "entrypoints"],
   "properties": {
-    "schema_version": {"const": "1.9.0"},
+    "schema_version": {"const": "1.11.0"},
     "entrypoints": {
       "type": "array",
       "minItems": 1,
@@ -42,6 +42,7 @@
                     "explicit_command",
                     "explicit_flags",
                     "exact_plan_hash_and_confirmation",
+                    "maintenance_session_or_exact_phase_confirmation",
                     "separate_publish_confirmation",
                     "sandbox_confirmation"
                   ]
@@ -69,7 +70,8 @@
                       "minItems": 1,
                       "items": {"type": "string", "minLength": 1},
                       "uniqueItems": true
-                    }
+                    },
+                    "sql_quality_review_required": {"type": "boolean"}
                   }
                 }
               }

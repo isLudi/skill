@@ -53,8 +53,11 @@ def make_task() -> ScopedTask:
 class FakeTaskClient:
     def __init__(self):
         self.current_source = 'print("new")\n'
-        self.versions = [{"id": 1, "ver": "V1", "status": "已发布", "publishTime": "2026-08-15"}]
-        self.version_codes = {1: 'print("old")\n'}
+        self.versions = [
+            {"id": 1, "ver": "V1", "status": "已发布", "publishTime": "2026-08-15"},
+            {"id": 2, "ver": "-", "status": "未发布", "publishTime": "2026-08-16"},
+        ]
+        self.version_codes = {1: 'print("old")\n', 2: self.current_source}
 
     def get_task_content(self, *, menu_id, task_id, task_type):
         return TASK_CONTENT_SPECS[task_type], {"python": self.current_source}
@@ -97,6 +100,7 @@ class Tiangong2PublishPlanTests(unittest.TestCase):
             identity={"id": 1, "name": "lvshuai01", "displayName": "吕帅"},
         )
         self.assertEqual(plan["status"], "ready")
+        self.assertEqual(plan["publish_target"]["version_id"], 2)
         validate_publish_plan(plan)
         tampered = copy.deepcopy(plan)
         tampered["scope"]["menu_id"] = 999

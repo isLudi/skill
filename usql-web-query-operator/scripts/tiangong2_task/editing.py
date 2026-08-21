@@ -18,11 +18,12 @@ from _shared.errors import UsageError
 
 from .client import Tiangong2ReadOnlyClient
 from .publishing import finalize_hash, sha256_json, text_sha256
+from .query_quality import build_sql_quality_gate
 from .redaction import redact_structure
 from .scope import ScopedTask
 
 
-PLAN_SCHEMA_VERSION = "tiangong2-task-query-update-plan-v1"
+PLAN_SCHEMA_VERSION = "tiangong2-task-query-update-plan-v2"
 RECEIPT_SCHEMA_VERSION = "tiangong2-task-query-update-receipt-v1"
 PLAN_OPERATION = "replace_owned_python_task_query_sql"
 SAVE_ENDPOINT = "dataDevelop/savePython"
@@ -156,6 +157,7 @@ def build_query_update_plan(
     task: ScopedTask,
     identity: dict[str, Any],
     replacement_sql_file: Path,
+    sql_review_file: Path,
 ) -> dict[str, Any]:
     source, resource_id = _read_python_state(client, task)
     replacement_sql = _replacement_sql(replacement_sql_file)
@@ -163,11 +165,22 @@ def build_query_update_plan(
     current_query_sha256 = text_sha256(regions.query_text.strip("\r\n"))
     replacement_sql_sha256 = text_sha256(replacement_sql)
     identical = current_query_sha256 == replacement_sql_sha256
+    quality_gate = build_sql_quality_gate(
+        current_sql=regions.query_text.strip("\r\n"),
+        replacement_sql=replacement_sql,
+        review_file=sql_review_file,
+    )
+    if identical:
+        status = "blocked_identical_query"
+    elif quality_gate["status"] != "passed":
+        status = "blocked_sql_quality"
+    else:
+        status = "ready"
     payload = {
         "schema_version": PLAN_SCHEMA_VERSION,
         "operation": PLAN_OPERATION,
         "created_at": datetime.now(timezone.utc).isoformat(),
-        "status": "blocked_identical_query" if identical else "ready",
+        "status": status,
         "read_only_plan": True,
         "remote_mutations": 0,
         "identity": {key: identity.get(key) for key in ("id", "name", "displayName")},
@@ -186,6 +199,10 @@ def build_query_update_plan(
             "sql_sha256": replacement_sql_sha256,
             "sql_bytes": len(replacement_sql.encode("utf-8")),
         },
+        "sql_quality_gate": {
+            **quality_gate,
+            "gate_sha256": sha256_json(quality_gate),
+        },
         "baseline": {
             "current_source_sha256": text_sha256(source),
             "current_query_sha256": current_query_sha256,
@@ -203,8 +220,13 @@ def build_query_update_plan(
             "existing_resource_binding_semantics_must_not_change": True,
             "null_resource_is_transported_as_integer_zero": True,
             "source_and_metadata_drift_blocked": True,
+            "accuracy_review_is_required_and_sql_hash_bound": True,
+            "ordered_output_contract_is_required": True,
+            "python_placeholder_contract_must_remain_identical": True,
+            "static_sql_minimality_gate_is_required": True,
+            "repeated_processing_requires_explicit_accuracy_justification": True,
             "save_requires_exact_plan_sha256": True,
-            "save_requires_explicit_confirmation": True,
+            "save_requires_phase_confirmation_or_active_maintenance_session": True,
             "save_request_is_single_attempt": True,
             "save_requires_full_source_and_default_block_readback": True,
             "publish_is_not_authorized": True,
@@ -229,6 +251,13 @@ def validate_query_update_plan(plan: dict[str, Any]) -> None:
     replacement = plan.get("replacement") or {}
     if not replacement.get("sql_file") or not replacement.get("sql_sha256"):
         raise UsageError("Tiangong2 query-update plan has an incomplete replacement binding")
+    quality_gate = plan.get("sql_quality_gate") or {}
+    supplied_gate_sha256 = str(quality_gate.get("gate_sha256") or "")
+    if not supplied_gate_sha256:
+        raise UsageError("Tiangong2 query-update plan has no SQL quality-gate binding")
+    gate_without_hash = {key: value for key, value in quality_gate.items() if key != "gate_sha256"}
+    if sha256_json(gate_without_hash) != supplied_gate_sha256:
+        raise UsageError("Tiangong2 query-update SQL quality-gate SHA-256 validation failed")
 
 
 def load_query_update_plan(path: Path) -> dict[str, Any]:
@@ -351,6 +380,16 @@ def prepare_query_update(
     replacement_sql = _replacement_sql(replacement_path)
     if text_sha256(replacement_sql) != plan["replacement"]["sql_sha256"]:
         raise UsageError("Tiangong2 replacement SQL hash drifted after planning")
+    planned_quality_gate = plan["sql_quality_gate"]
+    observed_quality_gate = build_sql_quality_gate(
+        current_sql=regions.query_text.strip("\r\n"),
+        replacement_sql=replacement_sql,
+        review_file=Path(str(planned_quality_gate["review_file"])),
+    )
+    if sha256_json(observed_quality_gate) != planned_quality_gate["gate_sha256"]:
+        raise UsageError("Tiangong2 SQL quality review or static analysis drifted after planning")
+    if observed_quality_gate["status"] != "passed":
+        raise UsageError("Tiangong2 SQL quality gate is no longer passed")
     projected, projected_regions = project_query_update(source, replacement_sql)
     if text_sha256(projected) != baseline["projected_source_sha256"]:
         raise UsageError("Tiangong2 projected source hash drifted after planning")

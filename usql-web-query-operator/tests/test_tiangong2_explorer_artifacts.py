@@ -111,6 +111,22 @@ class Tiangong2ExplorerTests(unittest.TestCase):
                 include_version_code=False,
             )
 
+    def test_nonempty_schedule_without_bound_task_id_is_unconfigured(self) -> None:
+        self.client.get_schedule = lambda task_id: {
+            "taskId": None,
+            "scheduleType": 0,
+            "executorGroup": "new_bigdata",
+        }
+        snapshot = Tiangong2TaskExplorer(self.client).explore(
+            identity={"id": 1, "name": "reader", "displayName": "Reader"},
+            login_performed=False,
+            project_id=308,
+            folder_names=["关赛楠"],
+            include_version_code=False,
+        )
+        self.assertEqual(snapshot.tasks[0].schedule_status, "unconfigured")
+        self.assertIn("schedule_unconfigured", snapshot.tasks[0].warnings[0])
+
     def test_kyuubi_version_ui_wrapper_is_ignored_for_comparison(self) -> None:
         current = "insert overwrite table db.t\nselect 1"
         version = "sql:insert overwrite table db.t\nselect 1\n SQL参数:参数名:${dt}\n 运行参数:"

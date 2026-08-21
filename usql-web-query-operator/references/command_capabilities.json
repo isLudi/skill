@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.9.0",
+  "schema_version": "1.11.0",
   "entrypoints": [
     {
       "entrypoint": "usql_web_query.py",
@@ -62,14 +62,18 @@
         {"name": "explore", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "tiangong2_task_exploration.md"},
         {"name": "list-execution-history", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "tiangong2_task_operations.md"},
         {"name": "fetch-execution-log", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "tiangong2_task_operations.md"},
-        {"name": "plan-task-query-update", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "tiangong2_task_operations.md"},
-        {"name": "apply-task-query-update", "effect": "remote_write_explicit", "authorization": "exact_plan_hash_and_confirmation", "reference": "tiangong2_task_operations.md"},
+        {"name": "plan-task-maintenance-session", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "tiangong2_task_operations.md"},
+        {"name": "authorize-task-maintenance-session", "effect": "local_write_explicit", "authorization": "exact_plan_hash_and_confirmation", "reference": "tiangong2_task_operations.md"},
+        {"name": "plan-task-python-patch", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "tiangong2_task_operations.md"},
+        {"name": "apply-task-python-patch", "effect": "remote_write_explicit", "authorization": "maintenance_session_or_exact_phase_confirmation", "reference": "tiangong2_task_operations.md"},
+        {"name": "plan-task-query-update", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "tiangong2_task_operations.md", "parameters": {"sql_quality_review_required": true}},
+        {"name": "apply-task-query-update", "effect": "remote_write_explicit", "authorization": "maintenance_session_or_exact_phase_confirmation", "reference": "tiangong2_task_operations.md"},
         {"name": "plan-task-submit", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "tiangong2_task_operations.md"},
-        {"name": "submit-task", "effect": "remote_write_explicit", "authorization": "exact_plan_hash_and_confirmation", "reference": "tiangong2_task_operations.md"},
+        {"name": "submit-task", "effect": "remote_write_explicit", "authorization": "maintenance_session_or_exact_phase_confirmation", "reference": "tiangong2_task_operations.md"},
         {"name": "plan-task-publish", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "tiangong2_task_operations.md"},
-        {"name": "publish-task", "effect": "publish", "authorization": "exact_plan_hash_and_confirmation", "reference": "tiangong2_task_operations.md"},
+        {"name": "publish-task", "effect": "publish", "authorization": "maintenance_session_or_exact_phase_confirmation", "reference": "tiangong2_task_operations.md"},
         {"name": "plan-task-execution", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "tiangong2_task_operations.md"},
-        {"name": "execute-task-once", "effect": "remote_write_explicit", "authorization": "exact_plan_hash_and_confirmation", "reference": "tiangong2_task_operations.md"}
+        {"name": "execute-task-once", "effect": "remote_write_explicit", "authorization": "maintenance_session_or_exact_phase_confirmation", "reference": "tiangong2_task_operations.md"}
       ]
     }
   ]

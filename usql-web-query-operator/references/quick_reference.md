@@ -33,6 +33,8 @@
 | 数据中心 SQL 生产替换与刷新 | `references/data_center_replacement.md` | `plan-data-center-sql-replacement` → 审阅 Hash → `apply-data-center-sql-replacement --confirm-production-write` | Plan 远端只读；Apply 才能替换、预览、保存、立即执行并等待新记录 `SUCCESS`；与本地知识同步分权 |
 | 数据中心新建数据集并抽数 | `references/data_center_creation.md` | `plan-data-center-dataset-creation` → 审阅 Hash → `apply-data-center-dataset-creation --confirm-production-write` | 自然语言先落到明确域、文件夹、名称和具体 SQL；Plan 只读，Apply 才创建、配置同步、保存、立即执行并等待新 `SUCCESS` |
 | Tiangong2 数据开发任务盘点与代码分类 | `references/tiangong2_task_exploration.md` | `scripts\tiangong2_task.py list-projects` → `explore --project-id <id> --folder <name>` | 必须使用精确 Tiangong2 凭据区段和独立状态；递归当前代码/版本/调度/资源只写 runtime 脱敏工件，禁止运行、保存、提交、发布或知识写回 |
+| Tiangong2 自有任务 query_sql 受控更新 | `references/tiangong2_task_operations.md` | 业务 Skill 固定语义 → `code-simplifier`/等价审阅 → `plan-task-query-update --sql-review-file ...` → P 级阶段确认或 M 级会话 Apply | 审阅 JSON 与 SQL Hash 绑定；准确性、顺序列契约和占位符先决，AST 强制拦截物理星号与重复处理反模式；静态通过不等于运行时性能通过 |
+| Tiangong2 自有任务一次维护授权与非 SQL 修复 | `references/tiangong2_task_operations.md` | `plan-task-maintenance-session` → 一次确认激活 → `plan/apply-task-python-patch` → 独立提交/发布/调试执行 Plan | M 级绑定精确任务、默认块、资源、有效期和执行预算；补丁无密钥且不能改 query_sql/默认块；会话替代重复询问，不替代 Hash、漂移、单次写入和回读 |
 | 截图内容检查 | `references/sql_query_execution.md` 和 `references/platform_profile.md` | Codex 原生多模态查看 | 只在结构化证据不足且本 skill 已捕获截图后使用 |
 
 ## 跨 skill 路由

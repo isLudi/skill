@@ -101,7 +101,7 @@ def build_execution_plan(
             "current_source_must_match_latest_published": True,
             "source_metadata_version_and_history_drift_blocked": True,
             "execute_requires_exact_plan_sha256": True,
-            "execute_requires_explicit_confirmation": True,
+            "execute_requires_phase_confirmation_or_active_maintenance_session": True,
             "execute_request_is_single_attempt": True,
             "trigger_successor_is_forced_false": True,
             "params_and_disabled_stages_are_forced_empty": True,

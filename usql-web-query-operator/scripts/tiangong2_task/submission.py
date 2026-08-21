@@ -22,7 +22,7 @@ from .redaction import redact_structure
 from .scope import ScopedTask
 
 
-PLAN_SCHEMA_VERSION = "tiangong2-task-submit-plan-v1"
+PLAN_SCHEMA_VERSION = "tiangong2-task-submit-plan-v2"
 RECEIPT_SCHEMA_VERSION = "tiangong2-task-submit-receipt-v1"
 PLAN_OPERATION = "submit_saved_owned_tiangong2_task"
 SUBMIT_ENDPOINT = "dataDevelop/taskConfirm"
@@ -55,6 +55,29 @@ def _safe_scope(task: ScopedTask) -> dict[str, Any]:
     }
 
 
+def read_schedule_precondition(
+    reader: Tiangong2ReadOnlyClient,
+    task: ScopedTask,
+) -> dict[str, Any]:
+    schedule = reader.get_schedule(task.task_id)
+    safe_schedule, _ = redact_structure(schedule)
+    observed_task_id = int(schedule.get("taskId") or 0)
+    schedule_state_sha256 = text_sha256(
+        json.dumps(
+            safe_schedule,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+    )
+    return {
+        "configured": observed_task_id == task.task_id,
+        "expected_task_id": task.task_id,
+        "observed_task_id": observed_task_id or None,
+        "schedule_state_sha256": schedule_state_sha256,
+    }
+
+
 def _refresh_task(reader: Tiangong2ReadOnlyClient, task: ScopedTask) -> ScopedTask:
     return replace(task, metadata=reader.get_task(task.menu_id))
 
@@ -68,14 +91,24 @@ def build_submit_plan(
 ) -> dict[str, Any]:
     note = validate_submit_note(note)
     state = read_publish_state(reader, task)
+    schedule_precondition = read_schedule_precondition(reader, task)
     already_published = state["source_matches_latest_published"]
+    already_submitted = bool(state["matching_unpublished_version_ids"])
+    if already_published:
+        status = "blocked_already_published"
+    elif already_submitted:
+        status = "blocked_already_submitted"
+    elif not schedule_precondition["configured"]:
+        status = "blocked_unconfigured_schedule"
+    else:
+        status = "ready"
     safe_project, _ = redact_structure(task.project)
     safe_metadata, _ = redact_structure(task.metadata)
     payload = {
         "schema_version": PLAN_SCHEMA_VERSION,
         "operation": PLAN_OPERATION,
         "created_at": datetime.now(timezone.utc).isoformat(),
-        "status": "blocked_already_published" if already_published else "ready",
+        "status": status,
         "read_only_plan": True,
         "remote_mutations": 0,
         "identity": {key: identity.get(key) for key in ("id", "name", "displayName")},
@@ -86,6 +119,7 @@ def build_submit_plan(
             "note": note,
             "note_sha256": text_sha256(note),
         },
+        "schedule_precondition": schedule_precondition,
         "baseline": state,
         "policy": {
             "exact_scoped_identity_required": True,
@@ -93,9 +127,12 @@ def build_submit_plan(
             "saved_source_hash_must_not_drift": True,
             "task_metadata_hash_must_not_drift": True,
             "version_state_hash_must_not_drift": True,
+            "configured_schedule_required": True,
+            "schedule_state_hash_must_not_drift": True,
             "identical_to_latest_published_is_blocked": True,
+            "identical_unpublished_version_is_blocked": True,
             "submit_requires_exact_plan_sha256": True,
-            "submit_requires_explicit_confirmation": True,
+            "submit_requires_phase_confirmation_or_active_maintenance_session": True,
             "submit_request_is_single_attempt": True,
             "submit_note_is_hash_bound": True,
             "save_publish_execute_and_configuration_changes_not_authorized": True,
@@ -123,6 +160,29 @@ def validate_submit_plan(plan: dict[str, Any]) -> None:
     )
     if any(not scope.get(key) for key in required_scope):
         raise UsageError("Tiangong2 submit plan has an incomplete task scope")
+    if plan.get("status") not in {
+        "ready",
+        "blocked_already_published",
+        "blocked_already_submitted",
+        "blocked_unconfigured_schedule",
+    }:
+        raise UsageError("Tiangong2 submit plan has an unsupported status")
+    schedule = plan.get("schedule_precondition")
+    if not isinstance(schedule, dict):
+        raise UsageError("Tiangong2 submit plan requires a schedule precondition")
+    if int(schedule.get("expected_task_id") or 0) != int(scope["task_id"]):
+        raise UsageError("Tiangong2 submit schedule precondition has the wrong task id")
+    schedule_hash = str(schedule.get("schedule_state_sha256") or "")
+    if len(schedule_hash) != 64 or any(char not in "0123456789abcdef" for char in schedule_hash):
+        raise UsageError("Tiangong2 submit schedule precondition has an invalid SHA-256")
+    if plan.get("status") == "ready" and schedule.get("configured") is not True:
+        raise UsageError("Tiangong2 ready submit plan requires a configured schedule")
+    if plan.get("status") == "blocked_unconfigured_schedule" and schedule.get("configured") is not False:
+        raise UsageError("Tiangong2 blocked submit plan has an inconsistent schedule state")
+    if plan.get("status") == "blocked_already_submitted" and not (
+        plan.get("baseline") or {}
+    ).get("matching_unpublished_version_ids"):
+        raise UsageError("Tiangong2 already-submitted plan has no matching unpublished version")
     submission = plan.get("submission") or {}
     note = validate_submit_note(str(submission.get("note") or ""))
     if submission.get("note_sha256") != text_sha256(note):
@@ -227,6 +287,7 @@ def validate_pre_submit_drift(
     plan: dict[str, Any],
 ) -> dict[str, Any]:
     current = read_publish_state(reader, _refresh_task(reader, task))
+    current_schedule = read_schedule_precondition(reader, task)
     baseline = plan["baseline"]
     for field in (
         "current_source_sha256",
@@ -237,8 +298,14 @@ def validate_pre_submit_drift(
     ):
         if current.get(field) != baseline.get(field):
             raise UsageError(f"Tiangong2 submit precondition drifted after planning: {field}")
+    planned_schedule = plan["schedule_precondition"]
+    if not current_schedule["configured"]:
+        raise UsageError("Tiangong2 submit precondition drifted: schedule is not configured")
+    if current_schedule["schedule_state_sha256"] != planned_schedule["schedule_state_sha256"]:
+        raise UsageError("Tiangong2 submit precondition drifted after planning: schedule_state_sha256")
     if current.get("source_matches_latest_published"):
         raise UsageError("Tiangong2 current source is already the latest published version")
+    current["schedule_precondition"] = current_schedule
     return current
 
 
