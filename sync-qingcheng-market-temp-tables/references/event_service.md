@@ -184,6 +184,12 @@ runtime 中保存：
 - Windows 解析器发现多个原生包且 `package.json` 版本不一致时必须直接阻断，禁止按当前目录或 PATH 顺序静默选择旧包。
 - 生产恢复前必须看到解析路径为包内原生 `lark-cli.exe`、`event_ready=true`、单一消费者；版本漂移、批处理 shim 或回复回归失败均保持停止。
 
+### 2026-08-20：1.0.88 升级记录
+
+- 全局包先升级到 `1.0.88` 后，本地 `.codex` 仍为 `1.0.87` 时，解析器正确阻断并保持生产停止；不得在版本漂移状态下试启动实时服务。
+- 对齐本地/全局 `package.json`、锁文件、原生 `lark-cli.exe` 版本与 SHA-256 后，`update --check --json` 必须返回 `already_up_to_date` 且 `skills_status.in_sync=true`。
+- 本次 `1.0.88` 通过 63 项 Skill 单测、Windows 多行/元字符回复 dry-run、`im +messages-mget` dry-run、事件消费 dry-run，以及独立 shadow `event_ready=true` 回归；shadow 停止后才恢复生产。
+
 ### 1. 冻结生产并记录基线
 
 - 读取管理器状态和 SQLite 账本；存在 `queued`、`planning`、`applying_local` 或 `uploading` 任务时，等待安全结束并人工核验，不得直接升级。
