@@ -1,0 +1,4 @@
+interface:
+  display_name: "Lark Meeting"
+  short_description: "飞书视频会议统一入口：查询会议记录与会议产物（纪要/逐字稿/妙记）、查询进行中的会议与实时内容、发送会中消息/表情、管理妙记，以及让应用机器人参与会议。预约会议、忙闲和会议室管理走 lark-calendar。"
+  default_prompt: "Use lark-meeting for tasks that match its documented Feishu/Lark scope and workflows."
