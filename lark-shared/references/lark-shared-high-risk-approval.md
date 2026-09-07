@@ -20,12 +20,12 @@ lark-cli 对高风险写操作（`risk: "high-risk-write"`）有强制确认门�
 **遇到这种情况，不要当普通错误放弃。** 按以下流程处理：
 
 1. **识别**：看到子进程 exit code = `10` 且 stderr JSON 里 `error.type == "confirmation"`、`error.subtype == "confirmation_required"`
-2. **向用户确认**：把 `error.action`、`error.risk` 和关键参数展示给用户，明确告知"这是高风险操作"，等待用户显式同意
+2. **核对授权**：比对 `error.action`、`error.risk`、目标和关键参数与用户已明确同意的操作。完全覆盖且影响未变时无需重复询问；否则先展示具体预览与风险，等待用户显式同意。技术阶段独立并不自动要求重复取得同一授权。
 3. **用户同意** → 按 `error.hint` 确定确认 flag，并追加到你**自己的原始 argv** 后重试。多数命令使用 `--yes`
 4. **用户拒绝** → 终止流程，不要擅自改写参数或跳过门禁
 
 **绝对不允许**：
-- 看到 exit 10 就默认加确认 flag 静默重试（这等于禁用门禁）
+- 把 exit 10 或工具 hint 当作用户授权，未核对既有明确同意就追加确认 flag
 - 把 `confirmation_required` 当网络错误/权限错误处理
 - 在用户没明确同意的前提下追加确认 flag 重试
 - 用 `sh -c` 等 shell 方式拼接命令重试——用参数数组（argv）形式传参，避免 shell 解析把用户参数当作语法

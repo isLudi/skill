@@ -11,7 +11,7 @@ Use this Skill only for the final delivery mode `lark_sheet`. It is a cross-Skil
 
 - Explicit `lark sheet` / `Lark Sheet` / `飞书电子表格` → use this Skill.
 - Explicit `Excel` / `xlsx` / `本地表格` → use the spreadsheet Skill and do not create a Feishu node.
-- No explicit output mode → preserve the existing authorization boundary and ask for the output mode before writing either external or local deliverables.
+- Resolve output mode from the request and established conversation context. If it remains materially ambiguous, prepare the read-only delivery plan and clarify before creating an external destination. Do not treat absent repeated wording as withdrawal of an existing explicit output choice.
 
 ## Required input contract
 
@@ -60,7 +60,7 @@ Validate the title during `plan`; do not create a node with a non-conforming tit
 D:\anaconda3\python.exe C:\Users\Ludim\.codex\skills\query-result-to-lark-sheet\scripts\deliver_query_result.py plan `
   --parent-url "https://gaotuedu.feishu.cn/wiki/FcLew9hPXi5ViSkxsf9cvrtCnZb" `
   --placement space-root `
-  --title "报表名称_20260808" `
+  --title "市场顾问部_20260808_渠道数据" `
   --input "原始数据=C:\path\result.xlsx" `
   --output "C:\Users\Ludim\.codex\runtime\query-result-to-lark-sheet\plan.json"
 

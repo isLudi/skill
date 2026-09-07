@@ -17,8 +17,8 @@ description: >-
 ### Professional Font
 - Use a consistent, professional font (e.g., Arial, Times New Roman) for all deliverables unless otherwise instructed by the user
 
-### Zero Formula Errors
-- Every Excel model MUST be delivered with ZERO formula errors (#REF!, #DIV/0!, #VALUE!, #N/A, #NAME?)
+### Formula verification scope
+- New models and requested full-model repairs must have no formula errors. For an existing workbook, verify changed formulas and their affected dependencies; fix errors caused by the change. Report unrelated pre-existing errors without silently expanding the task.
 
 ### Preserve Existing Templates (when updating templates)
 - Study and EXACTLY match existing format, style, and conventions when modifying files
@@ -104,7 +104,7 @@ df.to_excel('output.xlsx', index=False)
 
 ## CRITICAL: Use Formulas, Not Hardcoded Values
 
-**Always use Excel formulas instead of calculating values in Python and hardcoding them.** This ensures the spreadsheet remains dynamic and updateable.
+**Use formulas for derived values in dynamic workbook deliverables.** Static exports, CSV/TSV, analysis intermediates and registered upload files follow their output contracts; Python calculations are appropriate there. Preserve existing formulas unless the user requests conversion to values.
 
 ### ❌ WRONG - Hardcoding Calculated Values
 ```python
@@ -133,13 +133,13 @@ sheet['C5'] = '=(C4-C2)/C2'
 sheet['D20'] = '=AVERAGE(D2:D19)'
 ```
 
-This applies to ALL calculations - totals, percentages, ratios, differences, etc. The spreadsheet should be able to recalculate when source data changes.
+For dynamic workbooks this covers totals, percentages, ratios and differences so changes to source cells recalculate. These examples do not prohibit static exports or local analytical checks.
 
 ## Common Workflow
 1. **Choose tool**: pandas for data, openpyxl for formulas/formatting
 2. **Create/Load**: Create new workbook or load existing file
 3. **Modify**: Add/edit data, formulas, and formatting
-4. **Apply styling (MANDATORY for new files)**: Use `auto_style_sheet()` or individual functions from `scripts/style_apply.py`
+4. **Style new workbook deliverables**: Use `auto_style_sheet()` or individual functions from `scripts/style_apply.py`; static CSV/TSV exports do not have workbook styles
 5. **Save**: Write to file
 6. **Recalculate formulas (MANDATORY IF USING FORMULAS)**: Use the scripts/recalc.py script
    ```bash
@@ -149,10 +149,10 @@ This applies to ALL calculations - totals, percentages, ratios, differences, etc
    # Linux/macOS
    python3 scripts/recalc.py output.xlsx
    ```
-6. **Verify and fix any errors**: 
+7. **Verify the affected formula/dependency scope**:
    - The script returns JSON with error details
    - If `status` is `errors_found`, check `error_summary` for specific error types and locations
-   - Fix the identified errors and recalculate again
+   - Fix errors caused by this change and recalculate affected work; report unrelated existing errors
    - Common errors to fix:
      - `#REF!`: Invalid cell references
      - `#DIV/0!`: Division by zero
@@ -367,9 +367,9 @@ Windows diagnostics:
 - If Excel COM starts but cannot open the workbook, inspect workbook structure, overlapping filters, file locks, and file corruption before treating it as a missing dependency.
 - Do not apply a worksheet-level `auto_filter` to the same range already owned by an Excel Table; the table already provides filtering and overlapping filters can make Excel reject the file.
 
-## Formula Verification Checklist
+## Formula Verification Guidance
 
-Quick checks to ensure formulas work correctly:
+Use the checks relevant to changed formulas and their dependencies; a successful check need not be repeated without a new change or unresolved concern. Full workbook scans from recalc are diagnostics, not authorization to repair unrelated cells.
 
 ### Essential Verification
 - [ ] **Test 2-3 sample references**: Verify they pull correct values before building full model

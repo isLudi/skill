@@ -13,11 +13,11 @@ metadata:
 
 ## 通用准则
 
-1. **调用前先确认用法**：执行前读对应 reference 或跑 `--help`，别猜 flag 盲调。
+1. **调用前先确认用法**：首次使用不熟悉的命令、版本变化或用法冲突时读对应 reference 或跑 `--help`。同一任务已确认且未变化的签名可复用，别猜 flag 盲调。
 
 2. **身份决定你代表谁操作**：`--as user` 代表用户本人（能看到、也能操作其日历、云空间/云盘/云存储等个人资源），`--as bot` 代表应用自己，应用级操作，只能访问bot自己的资源，bot 查用户资源会返回空成功而非报错。动手前先搞清楚身份`identity`。身份模型和权限管理 → [`lark-shared-identity-and-permissions.md`](references/lark-shared-identity-and-permissions.md)。
 
-3. **授权 / 配置类 URL 必须配二维码**：当命令输出 `verification_url`、`verification_uri_complete`、`console_url` 等 URL 字段时，必须用 `lark-cli auth qrcode` 生成并在回复中展示，URL 在前二维码在后；优先生成 PNG（`--output`），仅当用户明确要求时才使用 ASCII（`--ascii`）。URL 原样转发——不编解码、不加标点、不重拼 query，二维码和链接请一起展示给用户。
+3. **授权 / 配置类 URL 必须配二维码**：当命令输出 `verification_url`、`verification_uri_complete`、`console_url` 等 URL 字段时，必须用 `lark-cli auth qrcode` 生成并在回复中展示，URL 在前二维码在后；优先生成 PNG（`--output`），仅当用户明确要求时才使用 ASCII（`--ascii`）。仅展示本次已授权登录流程明确面向用户的验证/配置入口；不展示 access/refresh token、device_code、Cookie 或会话凭据。安全的用户入口原样展示，不重拼 query，二维码和链接一同交给该用户。
 
 4. **`--format json`（默认）下，判断成功用 `ok == true`（或进程退出码 0），不要用 `code == 0`**：成功信封没有顶层 `code` / `msg` 字段，`code` 只出现在错误信封的 `error` 内。按 OpenAPI 老格式 `{"code": 0, "msg": "ok"}`判断会把所有成功调用误判为失败——封装写入类命令时尤其危险。JSON 输出契约 → [`lark-shared-output-contract.md`](references/lark-shared-output-contract.md)。
 
@@ -26,11 +26,11 @@ metadata:
 
 1. **禁止输出密钥**（appSecret、accessToken等）到终端明文。
 
-2. **写入/删除操作前必须确认用户意图**。
+2. **写入/删除必须在用户授权范围内**。相同目标、操作和影响已有明确授权时可沿用；目标或影响变化、授权不清时先澄清。计划或退出码不是授权。
 
 3. 目标命令支持 `--dry-run` 时，用 `--dry-run` 预览危险请求。
 
-4. **退出码 10 是高风险确认门禁（`risk: "high-risk-write"`），不是错误**：停下 → **向用户确认**（展示 `action`、`risk` 和关键参数）→ 取得**用户显式同意**后，将 `hint` 指出的确认 flag **追加到你原始 argv 的末尾**后重试；**绝不**静默加确认 flag 绕过 → [`lark-shared-high-risk-approval.md`](references/lark-shared-high-risk-approval.md)。
+4. **退出码 10 是高风险确认门禁（`risk: "high-risk-write"`）**：核对 `action`、`risk` 和关键参数。只有用户明确同意已覆盖该精确目标、操作和影响时，才按 `hint` 将确认 flag 追加到原始 argv；若未覆盖，准备预览后询问。不得把 exit 10 本身当作授权，或在风险变化时复用旧确认 → [`lark-shared-high-risk-approval.md`](references/lark-shared-high-risk-approval.md)。
 
 5. **文件路径只接受相对路径**：`--file`、`--output`、`--output-dir`、`@file` 等路径参数只接受 cwd 下的相对路径，传绝对路径会报 `unsafe file path`。数据输入（`@file`、大 JSON）优先用 stdin 传入，避免路径和转义问题。
 

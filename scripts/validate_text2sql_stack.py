@@ -287,6 +287,14 @@ def main() -> int:
 
     tests_dir = REPO_ROOT / "usql-web-query-operator" / "tests"
     if not run_command(
+        "AGENTS discovery, routing and isolated synchronization tests",
+        [sys.executable, "-m", "unittest", "discover", "-s", str(REPO_ROOT / "scripts" / "tests"),
+         "-p", "test_agents_workflow.py"],
+        REPO_ROOT,
+    ):
+        failures.append("AGENTS discovery or synchronization tests failed")
+
+    if not run_command(
         "USQL safety and QueryPlan contract tests",
         [sys.executable, "-m", "unittest", "discover", "-s", str(tests_dir), "-p", "test_*.py"],
         REPO_ROOT / "usql-web-query-operator",

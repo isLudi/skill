@@ -3,11 +3,25 @@ param(
     [ValidateSet("Export", "Import", "Check")]
     [string]$Mode = "Export",
     [switch]$ConfirmImport,
+    [switch]$Commit,
     [switch]$NoCommit,
     [switch]$Push
 )
 
 $ErrorActionPreference = "Stop"
+
+if ($Commit -and $NoCommit) {
+    throw "-Commit cannot be combined with -NoCommit."
+}
+if ($Mode -eq "Check" -and ($Commit -or $Push -or $ConfirmImport)) {
+    throw "Check mode is read-only; -Commit, -Push and -ConfirmImport are not valid."
+}
+if ($ConfirmImport -and $Mode -ne "Import") {
+    throw "-ConfirmImport is valid only with Import mode."
+}
+if ($Push -and -not $Commit) {
+    throw "-Push requires explicit -Commit authorization."
+}
 
 $repoRoot = (Resolve-Path -LiteralPath $PSScriptRoot).Path
 $codexRoot = Split-Path -Parent $repoRoot
@@ -21,7 +35,14 @@ function Get-FileSha256([string]$Path) {
     if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
         return $null
     }
-    return (Get-FileHash -Algorithm SHA256 -LiteralPath $Path).Hash
+    $stream = [System.IO.File]::OpenRead($Path)
+    $hasher = [System.Security.Cryptography.SHA256]::Create()
+    try {
+        return [System.BitConverter]::ToString($hasher.ComputeHash($stream)).Replace("-", "")
+    } finally {
+        $hasher.Dispose()
+        $stream.Dispose()
+    }
 }
 
 function Invoke-LayoutCheck {
@@ -38,15 +59,8 @@ function Invoke-LayoutCheck {
 }
 
 if ($Mode -eq "Check") {
-    if ($Push) {
-        throw "-Push is not valid with read-only Check mode."
-    }
     Invoke-LayoutCheck
     exit 0
-}
-
-if ($Push -and $NoCommit) {
-    throw "-Push cannot be combined with -NoCommit. Request the commit and push boundary explicitly."
 }
 
 if ($Mode -eq "Import" -and -not $ConfirmImport) {
@@ -73,7 +87,7 @@ if ((Get-FileSha256 $source) -ne (Get-FileSha256 $destination)) {
 Write-Host "Synced ($Mode): $source -> $destination"
 Invoke-LayoutCheck
 
-if (-not $NoCommit) {
+if ($Commit) {
     git -C $repoRoot add -- $trackedPath
     if ($LASTEXITCODE -ne 0) {
         throw "Unable to stage $trackedPath."

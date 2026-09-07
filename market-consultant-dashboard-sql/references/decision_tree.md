@@ -71,9 +71,9 @@
 2. 是否能从 QueryPlan/DatasetSpec 和市场顾问 confirmed contracts 构建 `DashboardDesignSpec`？
    - 否：保留 unresolved/ambiguous，不生成可 Apply 计划。
 3. 运行 `design-dashboard -> plan-dashboard-change`；component、layout、formula、filter 均可生成 diff，dry-run 不调用写接口。
-4. ChangePlan 是否只包含 stable-ID `update_filter_dynamic_default`，且 `relation_id + filter_id + field_id` 完整？
-   - 是：用户显式授权后可交 `apply-dashboard-change` 写 draft。
-   - 否：标记 `blocked_unsupported`；任一 blocked operation 使整次 Apply 零写入。
+4. 逐项查询 operator 的 [dashboard_write_capabilities.json](../../usql-web-query-operator/references/dashboard_write_capabilities.json)：操作是否 `maturity=verified`、`write_policy=allowlisted`，且稳定身份、单槽位限制与依赖满足该 adapter 的当前约束？
+   - 是：精确 Plan / Hash 和该阶段用户授权均满足后，交 `apply-dashboard-change` 写 draft。
+   - 否：标记 `blocked_unsupported`；任一 blocked operation 使整次 Apply 零写入。不要用本地复制的操作枚举替代当前 registry。
 5. Apply 后重新 profile 并生成 `DashboardApplyReceipt`。发布必须另用 `publish-dashboard-change --confirm-publish`，校验成功 receipt 和最新草稿 profile hash。
 6. 组件/字段/公式反查按 `live profile -> contract_index -> market_consultant contract -> source_path/raw SQL`；unknown、ambiguous 或青橙依赖不得静默补齐。
 

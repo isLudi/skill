@@ -108,7 +108,7 @@
       },
       {
         "source_path": "semantic/contracts/dimension_contracts.json",
-        "sha256": "6baa2ca3f5ed75bbfb55da2ce5e7cb358d8d3be84fc97aa50d60fbf7c880ac48"
+        "sha256": "578c5d5488b9e7b3677bd9c68ed8c6dc9f88d8cb5e0efca4b312a00c8ecb6b57"
       },
       {
         "source_path": "semantic/contracts/join_contracts.json",
@@ -3697,8 +3697,8 @@
       {
         "id": "market_consultant:sql_patterns:channel_mapping_case_when",
         "source_path": "knowledge/sql_patterns/channel_mapping_case_when.md",
-        "sha256": "847a0ff97ac74fdeac16e3759c85efe6e4da632a9af7262f0919e32cce15b050",
-        "bytes": 20748,
+        "sha256": "9c859da38fa66fd0c2d4aa8a6e786067818eca4f561437137a478844a5715e22",
+        "bytes": 21082,
         "title": "渠道 CASE 映射口径",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -6453,8 +6453,8 @@
     },
     {
       "source_path": "knowledge/sql_patterns/channel_mapping_case_when.md",
-      "sha256": "847a0ff97ac74fdeac16e3759c85efe6e4da632a9af7262f0919e32cce15b050",
-      "bytes": 20748,
+      "sha256": "9c859da38fa66fd0c2d4aa8a6e786067818eca4f561437137a478844a5715e22",
+      "bytes": 21082,
       "category": "sql_patterns"
     },
     {

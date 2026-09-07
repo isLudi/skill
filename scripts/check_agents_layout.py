@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -23,94 +24,85 @@ RUNTIME_AGENTS = CODEX_ROOT / "WORKSPACE_AGENTS.md"
 CONFIG_FILE = CODEX_ROOT / "config.toml"
 EXPECTED_FALLBACKS = [RUNTIME_AGENTS.name]
 DEFAULT_PROJECT_DOC_MAX_BYTES = 32 * 1024
-REQUIRED_CPLUS_CAPABILITIES = {
-    "utf8_transport": (
-        "## Global UTF-8 Policy",
-        "PYTHONIOENCODING",
-        "ensure_ascii=True",
-        "PowerShell must not carry or generate non-ASCII file payloads",
-    ),
-    "authorization_boundaries": (
-        "## Authorization and Safety",
-        "draft Apply",
-        "production Apply",
-        "Publish",
-        "does not grant the next permission",
-    ),
-    "single_source_layout": (
-        "## Instruction Layout and Git Versioning",
-        "WORKSPACE_AGENTS.md",
-        "sync_agents.ps1 -Mode Export -NoCommit",
-        "32768",
-    ),
-    "skill_routing": (
-        "## Skill Auto-Orchestration",
-        "market-consultant-dashboard-sql",
-        "qingcheng-dashboard-sql",
-        "usql-web-query-operator",
-        "lark-shared",
-        "lark-openapi-explorer",
-    ),
-    "domain_resolution": (
-        "## Text2SQL Domain Resolution",
-        "domain: unresolved",
-        "automatic_compile=true",
-        "two independent QuerySpecs",
-    ),
-    "sql_workflows": (
-        "### A. Data Query and Fetch",
-        "### B. Query and Excel Report",
-        "### C. SQL Fix and Re-run",
-        "### D. SQL Generation Only",
-    ),
-    "dashboard_workflows": (
-        "### E2. Edit-page Metric and Formula Profiling",
-        "### E3. Legacy Public-filter Inspection",
-        "### E4. Governed Existing-dashboard Change",
-        "### E5. Governed From-zero Dashboard Build",
-    ),
-    "support_workflows": (
-        "### F. Spreadsheet-only Work",
-        "### G. Query and Analyze Results",
-        "### H. Document and Image Reading",
-        "### I. SQL/BI Debug Screenshot",
-        "### J. USQL Selector Drift",
-        "### K. Stored Template SQL Fetch",
-        "### M. Feishu Setup and Domain Handoff",
-    ),
-    "large_result_workflow": (
-        "### L. Large-result Template Download",
-        "limit <= 1000",
-        "offline -> delete",
-    ),
-    "data_center_workflows": (
-        "### N. Data Center SQL Replacement and Refresh",
-        "### O. Data Center Dataset Creation and First Extraction",
-        "--confirm-production-write",
-        "executeOnce",
-    ),
-    "knowledge_governance": (
-        "data_center_market_<model_id>.sql",
-        "data_center_qingcheng_<model_id>.sql",
-        "semantic/current_model_bindings.json",
-        "sync-datamap-fields",
-        "validate_text2sql_stack.py",
-    ),
-    "dashboard_governance": (
-        "Existing-dashboard Governance (P3/P4A/P4B)",
-        "From-zero Dashboard Governance (P4C)",
-        "creation_saga_no_auto_delete",
-        "thirteen creation categories",
-        "publish_requested_unverified",
-    ),
-    "tool_and_secret_boundaries": (
-        "Generic Playwright must not execute",
-        "Spreadsheet calculations must use spreadsheet formulas",
-        "runtime\\usql-web-query-operator\\state.json",
-        "BAIJIA_USERNAME",
-        "BAIJIA_PASSWORD",
-    ),
+# Stable workflow IDs and actual references, not English prose or category counts.
+# This validates discovery and routing structure, not the semantics of authorization.
+OPERATOR = "usql-web-query-operator/references/"
+WORKFLOW_REFERENCES = {
+    "A": (OPERATOR + "sql_query_execution.md",),
+    "B": ("query-result-to-lark-sheet/SKILL.md",),
+    "C": (OPERATOR + "sql_query_execution.md",),
+    "D": (OPERATOR + "query_plan_contract.md",),
+    "E": (OPERATOR + "platform_profile.md",),
+    "E2": (OPERATOR + "platform_profile.md",),
+    "E3": (OPERATOR + "dashboard_change_workflow.md",),
+    "E4": (OPERATOR + "dashboard_change_workflow.md",),
+    "E5": (OPERATOR + "dashboard_build_workflow.md",),
+    "F": ("xlsx/SKILL.md",),
+    "G": ("query-result-to-lark-sheet/SKILL.md",),
+    "H": ("pdf/SKILL.md", "docx/SKILL.md", "pptx/SKILL.md"),
+    "I": (OPERATOR + "platform_profile.md",),
+    "J": ("playwright/SKILL.md",),
+    "K": (OPERATOR + "template_query.md",),
+    "L": (OPERATOR + "template_query.md",),
+    "M": ("lark-shared/SKILL.md",),
+    "N": (OPERATOR + "data_center_replacement.md",),
+    "O": (OPERATOR + "data_center_creation.md",),
+    "P": ("sync-qingcheng-market-temp-tables/SKILL.md",),
+    "Q": (OPERATOR + "template_query.md",),
+    "R": (OPERATOR + "tiangong2_task_exploration.md",),
+    "S": (OPERATOR + "tiangong2_task_operations.md",
+          OPERATOR + "tiangong2_python_task_diagnostics_acceptance.md"),
 }
+REQUIRED_REFERENCES = {
+    "market-consultant-dashboard-sql/SKILL.md",
+    "qingcheng-dashboard-sql/SKILL.md",
+    "usql-web-query-operator/SKILL.md",
+    OPERATOR + "domain_adapters.json",
+    OPERATOR + "dashboard_write_capabilities.json",
+    "sync-qingcheng-market-temp-tables/references/workflow_registry.json",
+    "references/maintenance-verification.md",
+    "sync_agents.ps1",
+}
+LINK_PATTERN = re.compile(r"\[[^\]\n]+\]\(([^)\n]+)\)")
+WORKFLOW_PATTERN = re.compile(r"^\|\s*([A-Z][0-9]*)\s*\|(.+)$", re.MULTILINE)
+
+
+def local_links(text: str) -> set[str]:
+    return {
+        target.split("#", 1)[0]
+        for target in LINK_PATTERN.findall(text)
+        if not target.startswith(("#", "https://", "http://"))
+    }
+
+
+def validate_routes(text: str, failures: list[str]) -> None:
+    links = local_links(text)
+    for target in sorted(links):
+        path = (REPO_ROOT / target).resolve()
+        if not path.is_relative_to(REPO_ROOT.resolve()):
+            failures.append(f"instruction reference escapes repository: {target}")
+        elif not path.is_file():
+            failures.append(f"missing instruction reference: {target}")
+    for target in sorted(REQUIRED_REFERENCES - links):
+        failures.append(f"missing required routing reference: {target}")
+
+    rows: dict[str, str] = {}
+    for workflow_id, row in WORKFLOW_PATTERN.findall(text):
+        if workflow_id in rows:
+            failures.append(f"duplicate workflow ID: {workflow_id}")
+        rows[workflow_id] = row
+    for workflow_id, targets in WORKFLOW_REFERENCES.items():
+        if workflow_id not in rows:
+            failures.append(f"missing workflow ID: {workflow_id}")
+            continue
+        row_links = local_links(rows[workflow_id])
+        for target in targets:
+            if target not in row_links:
+                failures.append(f"workflow {workflow_id} must link to {target}")
+    for workflow_id in sorted(rows.keys() - WORKFLOW_REFERENCES.keys()):
+        failures.append(f"unregistered workflow ID: {workflow_id}")
+
+
 MOJIBAKE_MARKERS = (
     "\ufffd",
     "\u951f\u65a4\u62f7",
@@ -214,7 +206,7 @@ def main() -> int:
         max_bytes = DEFAULT_PROJECT_DOC_MAX_BYTES
     elif max_bytes > DEFAULT_PROJECT_DOC_MAX_BYTES:
         failures.append(
-            "project_doc_max_bytes must not exceed the C+ hard limit: "
+            "project_doc_max_bytes must not exceed the instruction-size hard limit: "
             f"{max_bytes} > {DEFAULT_PROJECT_DOC_MAX_BYTES}"
         )
 
@@ -249,14 +241,7 @@ def main() -> int:
         failures.append("runtime mirror differs from the Git-versioned canonical AGENTS.md")
 
     canonical_text = canonical_bytes.decode("utf-8", errors="replace")
-    for capability, required_fragments in REQUIRED_CPLUS_CAPABILITIES.items():
-        missing_fragments = [
-            fragment for fragment in required_fragments if fragment not in canonical_text
-        ]
-        if missing_fragments:
-            failures.append(
-                f"C+ capability {capability!r} is incomplete; missing {missing_fragments!r}"
-            )
+    validate_routes(canonical_text, failures)
 
     discovery_cases = {
         CODEX_ROOT: (CODEX_ROOT, [RUNTIME_AGENTS.resolve()]),
@@ -283,7 +268,7 @@ def main() -> int:
     print(f"runtime_sha256={sha256(runtime_bytes)}")
     print(f"canonical_bytes={len(canonical_bytes)}")
     print(f"project_doc_max_bytes={max_bytes}")
-    print(f"cplus_capability_groups={len(REQUIRED_CPLUS_CAPABILITIES)}")
+    print(f"workflow_routes={len(WORKFLOW_REFERENCES)}")
     for cwd, sources in actual_sources.items():
         print(f"cwd={cwd}; sources={','.join(str(path) for path in sources)}")
     return 0

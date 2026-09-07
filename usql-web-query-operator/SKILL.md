@@ -1,6 +1,6 @@
 ---
 name: usql-web-query-operator
-description: 通过 Playwright 执行受治理的 USQL 网页查询、小结果下载、模板 SQL 读取、永久参数化模板创建/原地更新/发布/回读与大结果临时模板下载、手工临时表上传、数据地图及 Data Center 本地知识同步、显式生产数据集替换/创建、BI 看板只读画像/受控变更，以及 Tiangong2 数据开发任务只读探查、执行日志调取、Python 任务 query_sql 限定更新、非敏感源码精确补丁、一次维护会话、自有任务提交、发布和受控调试执行。使用本 Skill 运行或下载公司 SQL、读取或经 Hash 审阅后创建/更新模板、检查或上传已登记临时表、扫描/画像 Taitan 看板、执行经 Hash 审阅的 Data Center/看板 Plan，或用隔离账号盘点 Tiangong2 代码、读取日志并执行受治理的保存/提交/发布/调试运行；不要用它生成业务 SQL、推断指标口径、跨域写知识、完整替换含密钥源码或调用未经验证的写接口。
+description: Execute governed USQL, templates, Data Center and BI operations, and inspect or maintain an owned Tiangong2 task. Use for these platforms; business SQL and metric semantics come from the resolved domain Skill.
 ---
 
 # USQL Web Query Operator
@@ -97,17 +97,8 @@ SQL 执行失败必须把结构化错误交回原领域 Skill 修复，不能通
 
 ## 维护与验证
 
-修改 operator 时至少运行：
+按 [仓库维护验证](../references/maintenance-verification.md) 选择与改动相关的检查。文档修改校验引用和 Skill frontmatter；代码修改运行受影响测试。Tiangong2 修改先覆盖对应身份、隔离、Hash、漂移、预算、单次调用与回读行为；全量测试已覆盖这些用例时不再单跑子集。
 
-```powershell
-D:\anaconda3\python.exe -m pytest tests -q
-D:\anaconda3\python.exe C:\Users\Ludim\.codex\skills\.system\skill-creator\scripts\quick_validate.py C:\Users\Ludim\.codex\skills\usql-web-query-operator
-```
+修改 CLI 或能力声明时，更新 `references/command_capabilities.json` 并运行 `scripts/build_command_reference.py` / `--check`。领域注册、知识同步、QueryPlan、看板或 Data Center 流程变化运行仓库完整 stack；它已经包含 operator 测试和两领域完整性检查，不叠加重复命令。
 
-修改 Tiangong2 入口时还要运行 `D:\anaconda3\python.exe -m pytest tests -q -k tiangong2`，并确认专用状态/工件路径、精确凭据区段、读取接口白名单、日志 JSON/form 传输、脱敏、跨负责人拒绝、完整源码替换命令不存在、非敏感精确补丁不能触碰 query_sql/默认块/凭据、维护会话精确作用域/到期/执行预算、query_sql 唯一替换与默认块不变、SQL 质量审阅/AST 门禁/审阅漂移、保存/提交/发布/执行计划 Hash/授权/漂移/单次写入/回读测试全部通过。
-
-修改 CLI 命令或能力边界时，先更新 `references/command_capabilities.json`，再运行 `scripts/build_command_reference.py`；`--check` 必须确认注册表、三个 parser 和生成的 `references/command_reference.md` 完全一致。
-
-若改动领域注册、知识同步、QueryPlan、看板工件或 Data Center 流程，还必须运行两个领域 Skill 的完整性检查和仓库 `../scripts/validate_text2sql_stack.py`。
-
-命令参数始终以当前 `--help` 为准；reference 不得扩大 CLI、Hash、确认或 capability registry 的权限。
+命令用法不明确、CLI 版本变化或已有参考与错误冲突时读取当前 `--help`；同一任务已确认且未变化的签名可复用。reference 不得扩大 CLI、Hash、授权或 capability registry 的权限。
