@@ -50,7 +50,7 @@ Presto
 
 ## 9. 常用 join key
 
-- 与全链路宽表的逻辑关联键：`derived_channel_map = channel`，其中 `derived_channel_map` 必须先由市场顾问 0808 渠道 CASE 从宽表原始渠道字段派生。
+- 与全链路宽表的逻辑关联键：`derived_channel_map = channel`，其中 `derived_channel_map` 必须先由市场顾问 0904 渠道 CASE 从宽表原始渠道字段派生。
 - 不得直接用宽表 `channel_name_1`、`channel_name_2`、`channel_name_3` 代替 `derived_channel_map`。
 
 ## 10. 常用 SQL 片段
@@ -72,7 +72,7 @@ left join channel_group cg
 ## 11. 注意事项
 
 - 字段、类型和分区信息来源于天工数据地图；渠道组唯一性来自已执行的 SQL 探针。
-- `channel_map` 不是全链路宽表的物理字段，而是由 `resources/raw_sql/market_channel_case_when_0808.sql` 派生的逻辑字段。
+- `channel_map` 不是全链路宽表的物理字段，而是由 `resources/raw_sql/market_channel_case_when_0904.sql` 派生的逻辑字段。
 - 该表必须先按 `dt` 和 `department_name='all'` 限定，并按 `channel` 预聚合/去重后再关联，避免配置表异常重复时放大宽表。
 - 完整 0808 CASE 的单体展开曾触发平台 `Compiler failed`；随后用保持 175 条分支顺序的五段式 CASE 完成 bounded 验证：50,000 个宽表物理字段去重组合中，59 个派生渠道值有 56 个命中渠道组表，49,765 个组合行命中，渠道组侧最大匹配行数为 1。该结果是覆盖探针，不替代生产 SQL 的完整分支语义校验。
 - 覆盖探针 Query ID：`1545605539`；单体 CASE 编译失败 Query ID：`1545581106`。后者是平台编译器错误，不是业务数据结论。

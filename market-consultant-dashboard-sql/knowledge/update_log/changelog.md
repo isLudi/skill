@@ -1096,3 +1096,52 @@
 - 数据地图新增确认 `gaotu_hl.ods_mkt_h_channel_rule_df` 与 `da.app_dim_jp_channel_case_version_df` 字段；两表均保存整段 `channel_case_when` 文本，不是逐规则明细。进一步关键词搜索未发现 H 业务线关系化规则条件表。
 - `gaotu_hl.ods_mkt_h_channel_rule_df` 的 Presto 数据探针仍被查询权限门禁阻断；仅记录 Data Map 字段/DDL，不虚构分区、唯一性或覆盖结论。
 - 当前没有可安全上线的非 `lead_id` Join。上游需直接产出 `channel_map`，或提供双方共享的稳定 `rule_code` 和版本化关系规则表后，才能重新进入全量等价与生产改造门禁。
+
+## 2026-09-06 数据中心 stable canonical SQL 同步
+
+- 按已审阅同步计划原子更新 model_id：`2054, 2132, 2253, 2293, 2310, 2344, 2345, 2461, 2533, 2623, 2683, 2688, 2751, 2774, 2809, 2812, 2836, 2842, 2883, 2885, 2886, 2890, 3039`；每个 model_id 只保留稳定 canonical 路径。
+- 写入后已强制重建反向索引和目录，并运行唯一版本审计、域内 integrity 与完整 Text2SQL 栈验证。
+
+## 2026-09-06 模板取数 stable canonical SQL 同步（模板 7689）
+
+- 线上 `published` 模板 `业财用户出单明细`（id `7689`）回读 SQL SHA-256 为 `0c675a3a3636aefea157856a071873b128454883313db764915e46c2e96e5c8a`，只保留稳定入口 `resources/raw_sql/template_query_market_finance_order_detail.sql`。
+- 本次清理日期后缀历史副本 0 个；历史 SQL 文本不进入知识库，也不作为路由入口。
+- 保存后已重建反向索引、共享 catalog、唯一版本审计、域内 integrity 和完整 Text2SQL 栈。
+
+## 2026-09-06 模板取数 stable canonical SQL 同步（模板 7808）
+
+- 线上 `published` 模板 `市场运营专用_多维全链路分析`（id `7808`）回读 SQL SHA-256 为 `0630782e751a18bbe8728e19deec53cd935d5b50cd70ae4b4673b1004f5f9546`，只保留稳定入口 `resources/raw_sql/template_query_market_wide_analysis.sql`。
+- 本次清理日期后缀历史副本 0 个；历史 SQL 文本不进入知识库，也不作为路由入口。
+- 保存后已重建反向索引、共享 catalog、唯一版本审计、域内 integrity 和完整 Text2SQL 栈。
+
+## 2026-09-06 模板取数 stable canonical SQL 同步（模板 8735）
+
+- 线上 `published` 模板 `馒头_订单明细_支付时间`（id `8735`）回读 SQL SHA-256 为 `2129a0192897d6f72cdd20236b5fb19e49dd540b25053660a3d280e4b6cb9849`，只保留稳定入口 `resources/raw_sql/template_query_market_mantou_order_detail_pay_time.sql`。
+- 本次清理日期后缀历史副本 0 个；历史 SQL 文本不进入知识库，也不作为路由入口。
+- 保存后已重建反向索引、共享 catalog、唯一版本审计、域内 integrity 和完整 Text2SQL 栈。
+
+## 2026-09-06 模板取数 stable canonical SQL 同步（模板 8882）
+
+- 线上 `published` 模板 `AI分析市场顾问部多科用户成单数据`（id `8882`）回读 SQL SHA-256 为 `342b3621923098fdbf543478272be431388618df3dff3f11217eba1e63e21a6d`，只保留稳定入口 `resources/raw_sql/template_query_market_multi_subject_order_user.sql`。
+- 本次清理日期后缀历史副本 0 个；历史 SQL 文本不进入知识库，也不作为路由入口。
+- 保存后已重建反向索引、共享 catalog、唯一版本审计、域内 integrity 和完整 Text2SQL 栈。
+
+## 2026-09-06 模板取数 stable canonical SQL 同步（模板 8948）
+
+- 线上 `published` 模板 `馒头_订单明细_流水时间`（id `8948`）回读 SQL SHA-256 为 `1c68c5845d32354c278efaf9c377feb86dfa77300f6f59a9e0afa5c264c933a0`，只保留稳定入口 `resources/raw_sql/template_query_market_mantou_order_detail_trade_time.sql`。
+- 本次清理日期后缀历史副本 0 个；历史 SQL 文本不进入知识库，也不作为路由入口。
+- 保存后已重建反向索引、共享 catalog、唯一版本审计、域内 integrity 和完整 Text2SQL 栈。
+
+## 2026-09-06 模板取数 stable canonical SQL 同步（模板 9002）
+
+- 线上 `published` 模板 `AI分析市场顾问部_宽表`（id `9002`）回读 SQL SHA-256 为 `a600d63ea627446b85aa3387ec6bc3214599d381971cc300223edfa4c42ee23b`，只保留稳定入口 `resources/raw_sql/template_query_market_wide.sql`。
+- 本次清理日期后缀历史副本 0 个；历史 SQL 文本不进入知识库，也不作为路由入口。
+- 保存后已重建反向索引、共享 catalog、唯一版本审计、域内 integrity 和完整 Text2SQL 栈。
+
+## 2026-09-06 市场顾问 0904 渠道归因全量更新
+
+- 从飞书多维表格 `市场顾问部0904最新`（记录 `recvshnqnG0Jl2`）读取最新规则；与 0808 逐分支审计为新增 12、删除或替换 4、公共 171 且公共规则发生顺序调整。当前共享 CASE 为 183 个 `WHEN`、127 个去重渠道值，唯一最新入口为 `resources/raw_sql/market_channel_case_when_0904.sql`，文件 SHA-256 `8df7e7b422c52ca3a9987588c8804f2c330ec3dc2a0b2f9989c98501d3f942a7`。
+- 23 个渠道消费者 Data Center 数据集 `2054, 2132, 2253, 2293, 2310, 2344, 2345, 2461, 2533, 2623, 2683, 2688, 2751, 2774, 2809, 2812, 2836, 2842, 2883, 2885, 2886, 2890, 3039` 均完成预览、完整 SQL 保存与回读，并取得新的 `SUCCESS`。重新配置的 `2812/2886/2890` 最新运行分别为 `169247943/169247946/169247954`。
+- 六个永久模板保持原 ID 原位更新和独立发布，既有申请关系与权限主体不变；发布后真实查询全部成功：`7689->397410/0行/28秒`、`7808->397411/351行/60秒`、`8735->397412/20行/95秒`、`8882->397413/79行/21秒`、`8948->397414/264行/63秒`、`9002->397415/270行/131秒`。
+- 超长模板完整保留 183 条 first-match 规则，按 `37/37/37/36/36` 连续分组，通过 `UNION ALL + min_by(rule_group)` 降低 Presto 字节码/stage 与 504 风险；`AI分析市场顾问部_宽表` 保留 28 字段紧凑别名、无碰撞键和原 fallback，没有进行不完整片段替换。
+- 23 份 Data Center canonical SQL 与 6 份模板 stable canonical SQL 已经由 operator 的 Hash-bound dry-run/write 流程同步到本 Skill；随后重建反向索引和共享 catalog，并执行市场域 integrity、完整 Text2SQL 栈、UTF-8 与 Git 检查。

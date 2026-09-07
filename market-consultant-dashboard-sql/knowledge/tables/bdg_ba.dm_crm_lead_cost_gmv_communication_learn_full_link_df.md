@@ -393,7 +393,7 @@ Presto
 - `employee_email_prefix`：员工邮箱前缀关联
 - `employee_email_name`：员工姓名关联
 - `concat(group_period_year, group_period_term) + period_mapping_second_level_department_name`：与 `gaotu_hl.dim_mkt_h_period_map_df` 的期次映射关联键；必须先把宽表两个期次字段拼成紧凑系统期名，并同时带部门。
-- 派生 `channel_map + department_name`：与 `gaotu_hl.ods_mkt_h_channel_group_df` 的渠道组关联键；`channel_map` 必须先由 0808 渠道 CASE 派生，不能直接用 `channel_name_1/2/3`。
+- 派生 `channel_map + department_name`：与 `gaotu_hl.ods_mkt_h_channel_group_df` 的渠道组关联键；`channel_map` 必须先由 0904 渠道 CASE 派生，不能直接用 `channel_name_1/2/3`。
 
 ## 10. 常用 SQL 片段
 
@@ -500,5 +500,5 @@ limit 20;
 已知风险：
 
 - Web 查询环境正常可用。
-- 渠道归因使用最新 `../sql_patterns/channel_mapping_case_when.md`，完整片段为 `../../resources/raw_sql/market_channel_case_when_0808.sql`。
+- 渠道归因使用最新 `../sql_patterns/channel_mapping_case_when.md`，完整片段为 `../../resources/raw_sql/market_channel_case_when_0904.sql`。
 - 成本和到课 join 断裂先读 `../pitfalls/common_join_failures.md`。

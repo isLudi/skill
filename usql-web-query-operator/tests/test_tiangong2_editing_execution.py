@@ -43,6 +43,7 @@ from tiangong2_task.maintenance import (  # noqa: E402
     project_python_patch,
     validate_maintenance_session_activation,
     verify_python_patch_readback,
+    _validate_scope,
 )
 from tiangong2_task.publishing import finalize_hash, text_sha256  # noqa: E402
 from tiangong2_task.query_quality import SQL_REVIEW_SCHEMA_VERSION  # noqa: E402
@@ -355,6 +356,21 @@ class Tiangong2CapabilityBoundaryTests(unittest.TestCase):
 
 
 class Tiangong2MaintenanceSessionTests(unittest.TestCase):
+    def test_unpublished_task_scope_allows_zero_nezha_id(self) -> None:
+        scope = {
+            "project_id": 308,
+            "folder": "吕帅",
+            "menu_id": 102754,
+            "task_id": 47252,
+            "nezha_task_id": 0,
+            "task_name": "market2lark",
+            "owner_name": "lvshuai01",
+        }
+        _validate_scope(scope)
+        invalid = dict(scope, nezha_task_id=-1)
+        with self.assertRaisesRegex(UsageError, "invalid nezha task id"):
+            _validate_scope(invalid)
+
     @staticmethod
     def write_patch(path: Path, *, old: str, new: str) -> Path:
         path.write_text(

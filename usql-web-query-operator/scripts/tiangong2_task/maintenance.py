@@ -71,8 +71,12 @@ def _validate_scope(scope: dict[str, Any]) -> None:
         "task_name",
         "owner_name",
     )
-    if any(scope.get(key) in (None, "", 0) for key in required):
+    non_nezha_required = tuple(key for key in required if key != "nezha_task_id")
+    if any(scope.get(key) in (None, "", 0) for key in non_nezha_required):
         raise UsageError("Tiangong2 maintenance scope is incomplete")
+    nezha_task_id = scope.get("nezha_task_id")
+    if not isinstance(nezha_task_id, int) or isinstance(nezha_task_id, bool) or nezha_task_id < 0:
+        raise UsageError("Tiangong2 maintenance scope has an invalid nezha task id")
 
 
 def _parse_iso_datetime(value: str, label: str) -> datetime:
