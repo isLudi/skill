@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import sys
+from copy import deepcopy
 import tempfile
 import unittest
 from pathlib import Path
@@ -180,6 +181,51 @@ def fixture_result_rows():
 
 
 class GroupPushTests(unittest.TestCase):
+    def test_image_row_filter_requires_both_counts_to_be_explicit_zero(self):
+        values = [(0, 0), ("0", "0.00"), (0, 1), (1, 0), (None, 0), (0, ""), ("-", 0)]
+        rows = [{"record_id": str(i), "退前线索": before, "退后线索": after, "总通时": 100}
+                for i, (before, after) in enumerate(values)]
+        original = deepcopy(rows)
+        self.assertEqual([r["record_id"] for r in gp.visible_image_rows(rows)], ["2", "3", "4", "5", "6"])
+        self.assertEqual(rows, original)
+
+    def test_both_images_hide_zero_lead_people_but_keep_original_totals(self):
+        for renderer, fixtures, total_builder in (
+            (gp.render_process_image, fixture_rows, "make_total_row"),
+            (gp.render_result_image, fixture_result_rows, "make_result_total_row"),
+        ):
+            rows = fixtures()
+            rows[1]["fields"].update({"顾问": "HIDDEN_PERSON", "经理": "HIDDEN_PERSON", "主管": "HIDDEN_SUPERVISOR",
+                                       "退前线索": 0, "退后线索": "0", "总通时": 777, "净收款": 400})
+            original = deepcopy(rows)
+            with self.subTest(renderer=renderer.__name__), tempfile.TemporaryDirectory() as directory:
+                with patch.object(gp, total_builder, wraps=getattr(gp, total_builder)) as totals, patch.object(gp, "_center_text", wraps=gp._center_text) as labels:
+                    path = renderer(rows, Path(directory) / "preview.png")
+                totals.assert_called_once_with(rows, "20260815期")
+                displayed = [call.args[2] for call in labels.call_args_list]
+                self.assertNotIn("HIDDEN_PERSON", displayed)
+                self.assertNotIn("HIDDEN_SUPERVISOR", displayed)
+                self.assertIn("2728" if renderer == gp.render_process_image else "10000", displayed)
+                from PIL import Image
+                with Image.open(path) as image:
+                    self.assertEqual(image.height, 92 + 64 + 70)
+            self.assertEqual(rows, original)
+
+    def test_all_hidden_rows_render_total_only_and_honor_supplied_total(self):
+        row = {"fields": {"期次": "20260911期", "顾问": "HIDDEN_PERSON", "经理": "HIDDEN_PERSON",
+                          "主管": "HIDDEN_PERSON", "退前线索": 0, "退后线索": 0, "总通时": 200}}
+        total = {"fields": {"期次": "总计", "退前线索": 0, "退后线索": 0, "总通时": 987, "净收款": 987}}
+        for renderer in (gp.render_process_image, gp.render_result_image):
+            with self.subTest(renderer=renderer.__name__), tempfile.TemporaryDirectory() as directory:
+                with patch.object(gp, "_center_text", wraps=gp._center_text) as labels:
+                    path = renderer([row], Path(directory) / "preview.png", total=total)
+                displayed = [call.args[2] for call in labels.call_args_list]
+                self.assertNotIn("HIDDEN_PERSON", displayed)
+                self.assertIn("987", displayed)
+                from PIL import Image
+                with Image.open(path) as image:
+                    self.assertEqual(image.height, 92 + 70)
+
     def test_process_whitelist_excludes_outcomes(self):
         self.assertTrue(gp.PROCESS_FIELDS)
         self.assertFalse(any(term in field for field in gp.PROCESS_FIELDS for term in gp.OUTCOME_TERMS))
@@ -205,7 +251,7 @@ class GroupPushTests(unittest.TestCase):
             from PIL import Image
 
             with Image.open(image_path) as image:
-                self.assertEqual(image.width, sum(gp.RESULT_IMAGE_WIDTHS.values()))
+                self.assertEqual(image.width, sum(gp.RESULT_IMAGE_WIDTHS[source] for source, _label, _kind in gp.RESULT_IMAGE_COLUMNS))
                 self.assertEqual(image.height, 92 + 64 * 2 + 70)
                 self.assertEqual(image.getpixel((10, 10)), (32, 59, 114))
 
@@ -368,7 +414,8 @@ class GroupPushTests(unittest.TestCase):
         self.assertIn("## 结果数据标题", markdown)
         self.assertIn("![IP结果数据表](result_preview)", markdown)
         self.assertIn('<at user_id="ou_result">吴志强03</at>', markdown)
-        self.assertIn("结果图片来自 IP播报_主管 / 结果数据", markdown)
+        self.assertIn("数据来源：safe", markdown)
+        self.assertNotIn("结果图片来自 IP播报_主管", markdown)
 
     def test_idempotency_changes_when_text_config_changes(self):
         coords = {"base_token": "base", "table_id": "tbl", "view_id": "vew"}

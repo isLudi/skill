@@ -1,0 +1,10 @@
+{
+  "source_mode": "lead-detail",
+  "source_url": "https://gaotuedu.feishu.cn/wiki/MrPNwuFvPiiDX0k4jTXcLU8anse?table=tblqvlnqNslL1nWA&view=veweZNrbGI",
+  "raw_table_id": "tbljWRvaqKTdrCx4",
+  "raw_table_name": "市场顾问原始数据",
+  "reminder_rule": "channel_bottom_quartile",
+  "reminder_population": "raw_leads",
+  "mention_target": "none",
+  "report_type": "both"
+}

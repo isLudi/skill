@@ -4,13 +4,13 @@ description: |
   【妙搭看板 + 数据分发专项】两件事的完整 SOP：
   A. 做飞书妙搭（Miaoda）数据看板：飞书 Base 取数 → 本地聚合 data.json → git 推送妙搭仓库 → release 发布 → Windows 每日定时刷新。
   B. 数据分发：把 Excel 按列切割（如按顾问/部门）→ 飞书私聊逐个发给对应的人。
-  C. 本地群推送：飞书 Base 视图 → 过程字段白名单 → 仿表格图片/文字数据 → 精确 @ → 指定群发送。
+  C. 本地群推送：全渠道 Base 线索明细 → 选择渠道/期次 → 过程和结果图片/文字 → 渠道后25%顾问名单（不@）→ 指定群发送。
 
   以下场景必须加载此 skill：
   1. "做一个妙搭看板""把看板发布到妙搭""看板每日自动更新""接手/交接妙搭看板"
   2. "把表按 xx 切开发给对应的人""切割 Excel 私聊发送""分发表格""按人拆分下发"
   关键词：妙搭 / miaoda / 看板 / dashboard / data.json / release / 切割 / 拆分 / 分发 / 私聊发送 / 群推送 / 多维表格推送
-  普通妙搭应用创建、云端开发、数据库、成员或运行时权限等不属于本 SOP 的请求仍走 lark-apps；本 skill 聚焦静态数据看板刷新和 Excel 分发。
+  普通妙搭应用创建、云端开发、数据库、成员或运行时权限等不属于本 SOP 的请求仍走 lark-apps；本 skill 聚焦静态数据看板刷新、Excel 分发和 Base 群推送。
 
   前置：lark-cli 已登录 user 身份；发布妙搭需 apps 域授权，私聊发送需 im:message.send_as_user。
   在本地 Codex 中优先使用本地 lark-base / lark-apps / lark-contact / lark-im / lark-shared Skill；deps/ 仅是随包快照，命令事实以本地权威 Skill 和 lark-cli --help 为准。
@@ -20,8 +20,8 @@ metadata:
 
 # 妙搭看板搭建 + 数据分发（lark-miaoda-dashboard）
 
-三部分：A. 从零做/接手一个妙搭看板；B. 把 Excel 切割后飞书私聊分发；C. 本地执行 Base 过程数据群推送。
-模板：`templates/export_base.py`（Base 分页导出）、`templates/refresh.py`（每日刷新流水线）、`scripts/excel_split_send.py`（切割分发）、`scripts/group_push.py`（Base 视图→群消息）。全部用占位符/环境变量，不写死 app_id、Base token 或业务文件路径。
+三部分：A. 从零做/接手一个妙搭看板；B. 把 Excel 切割后飞书私聊分发；C. 本地执行 Base 按渠道过程/结果数据群推送。
+模板：`templates/export_base.py`（Base 分页导出）、`templates/refresh.py`（每日刷新流水线）、`scripts/excel_split_send.py`（切割分发）、`scripts/group_push.py`（Base→群消息）。用户确认的推送源保存在 `config/push_source.json`；Base token 在运行时解析，不在配置、消息或日志中保存凭证。
 
 ## 本地 Codex 适配
 
@@ -119,72 +119,85 @@ $PY='D:\anaconda3\python.exe'
 
 ---
 
-## C. 多维表格过程数据群推送（本地脚本）
+## C. 多维表格按渠道群推送（本地脚本）
 
-`scripts/group_push.py` 用官方 CLI 编排本地推送：`base +record-list` 读取过程视图和同表「结果数据」视图，读取独立的「推送文字」配置视图，`contact +search-user` 对提醒姓名做唯一精确解析，Pillow 生成过程/结果两张仿参考图的宽表 PNG，最后由 `im +messages-send` 发送 Markdown post。它不依赖妙搭额度，也不需要本地服务常驻；可以手动运行，也可以由 Windows 计划任务按周期启动。
+`scripts/group_push.py` 编排官方 CLI 取数、图片上传和群消息发送，`scripts/lead_report.py` 负责纯本地汇总。当前推送统一只列姓名，不查询通讯录、不生成任何 @。无需妙搭额度或常驻服务；只有执行期间需要电脑开机、联网及有效的 CLI 登录。
 
-提醒计算放在独立的「IP播报_提醒计算」表：它只维护顾问/主管/渠道维度，使用公式读取「IP原始数据」的 lead_id、5min 标记、退后线索和净收款，并用 Lookup 对照「IP播报_主管」的主管汇总值。「IP原始数据」不新增任何提醒公式或计算列，适配天宫 2 全量覆盖原始表的写入方式；原始表重写后，独立表会重新计算。现有维度行新增顾问时，需要补充一行“顾问|主管|渠道”维度记录，不能把原始明细复制进提醒计算表。
+### C.1 默认数据源和计算口径
 
-群消息由「推送文字」表的 `推送标题`、`推送期次`、`推送说明`、`提醒` 组成：过程数据段附过程图片；结果数据段附 `IP播报_主管 / 结果数据` 汇总图片，并列出单效偏低的顾问姓名用于提醒。结果图仿附件的宽表版式，包含 `经理、主管、退前/退后线索、各过程率、单效(当期)、人均报科、人头转化、订单转化、净收款、退费率、单效`。提醒姓名来自 `计算_提醒顾问`，发送前必须唯一解析为飞书 open_id。
+用户已确认后续使用 [全渠道播报_推送配置](https://gaotuedu.feishu.cn/wiki/MrPNwuFvPiiDX0k4jTXcLU8anse?table=tblqvlnqNslL1nWA&view=veweZNrbGI)。源配置保存在 `config/push_source.json`，默认 `source_mode=lead-detail`。该链接指向**配置表**，同一 Base 的 `市场顾问原始数据`（`tbljWRvaqKTdrCx4`）才是线索来源。
 
-图片版式固定为：深蓝表头、白色表格、`线索留存率` 条件色、`首call/5min/双沟` 数据条、底部深蓝总计行。文字消息同步保留部门/渠道、过程指标和汇总；过程白名单不包含收款、成交、退费、单效等结果字段。参考图中的 `6h/12h/24h` 列只有在当前视图实际提供字段值时才显示，避免发出空指标列。
+- 配置表：仅请求 `配置名称`、`渠道`、`推送类型`、`推送标题`、`推送期次`、`推送说明`、`接收群` 7 个字段，通过固定视图 `veweZNrbGI` 按本次渠道、类型选取唯一记录。该视图必须保留并覆盖有效配置；不能用筛选隐藏正式任务的配置。未配置的新渠道可使用本地默认文案，不自动建配置记录。
+- 线索表：按**精确渠道 + 期次**筛选，图片粒度是 `期次 × 渠道 × 经理 × 主管`。必须显式选择 `--channel`，不会默认把所有渠道发出；`--channel 全部渠道` 才读取全部渠道，并在图片中增加渠道列。
+- 各率和总计：先累加原始分子/分母再相除，不平均汇总行的百分比。`总通时=总通时秒/60`，`单效=净收款/退后线索`，`单效(当期)=当期净收款/退后线索`，`人均报科=报科数/成交人头`，`订单转化=报科数/退后线索`，`退费率=退费/收款`，沿用已核验的原始指标口径。负单效和超过 100% 的退费率不截断显示。
+- 提醒：用户最新确认采用**同一期次、所属渠道后25%**，不再比较主管或渠道均值。本地按 `渠道 × 主管 × 顾问账号` 汇总，并校验姓名唯一性；维度键为 `渠道|主管|顾问`。过程按 `5min标记之和/退后线索之和` 从低到高排名；结果按 `净收款之和/退后线索之和` 从低到高排名。只纳入退后线索大于 0 的顾问维度，名额为 `ROUNDUP(有效顾问数×25%,0)`，同分按维度键升序固定取足名额，选中姓名再去重。计算不提前四舍五入。选择全部渠道时，各渠道独立排名和取名额。
+- 全员同分（包括单效全部为 0）时，仍按维度键取后25%名额，这是已确认的规则；不能自动改成“不提醒”或扩成“并列全部提醒”。群消息说明不展示提醒规则，过程提醒写作“本次5min率较低顾问：……”，结果提醒写作“本次单效较低顾问：……”。最新要求统一只展示顾问名称，不 @ 顾问、主管或其他人员，也不附加“请主管关注”名单；后台排名和名额不变。
+- 提醒的有效顾问范围以**原始线索全量**为准（`reminder_population=raw_leads`），不依赖提醒辅助表及其工作流；原始线索新顾问自动纳入本地排名。远端 `计算_提醒顾问`/`提醒` 不是读取依赖；缺少这两列时，不产生虚假的辅助名单缺失告警。内部同名字段只是本地计算结果，不需要在 Base 重建。
+- 图片、汇总文字和提醒均由同一批线索生成。原始表不增加公式、关联或计算列，适配天宫 2 全量覆盖写入。动态 `推送期次` 公式仅依赖原始表的 `期次`，必须保留。
 
-### C.1 先预览，不发送
+精简 Base 时不能只检查本地读表：当前天宫写入还依赖原始表全部 45 个接收字段，以及经理表 `tblvBLOSRUggxsBF`、主管表 `tblQp7kAaLd6rkIh` 的 `汇总键`、`顾问账号`、`渠道` 3 个文本字段和全渠道键记录；删除会使上游失败。两张表的旧指标/图片视图不是本地推送来源。原始表视图 `vewO4yxS3O` 也因上游源链接固定引用而保留。完整依赖与定时任务运维见 [config/SCHEDULED_PUSH.md](config/SCHEDULED_PUSH.md)。
 
-PowerShell 先准备 UTF-8 和环境变量。`SOURCE_URL` 可以直接放原始 Base/Wiki URL；脚本会调用 `base +url-resolve` 取坐标。也可以直接提供 `BASE_TOKEN`、`TABLE_ID`、`VIEW_ID`。
+数据完整性门禁：完整分页到 `has_more=false`，使用真实 `next_offset`，校验分页行数、记录 ID、`rev` 和 `query_context`；校验 `期次+lead_id` 唯一、必要字段及数值有效、数据分区一致。分页遇到版本变化、多期不明确、重复线索、混合分区、缺字段或全零占位数据立即停止。此门禁不替代上游“全量写入完成”信号；实际推送应安排在天宫写入完成之后。
+
+每个选中类型固定五部分：**推送标题 → 图片 → 推送期次 → 推送说明（含汇总数据）→ 提醒**。说明使用实际 `分区日期/分区小时`，不再沿用模板中静态的“2小时前”。图片保留参考样式：深蓝表头和总计、线索留存条件色及数据条。过程图不含结果指标；结果图包含单效、人均报科、人头/订单转化、净收款和退费率。源表没有的 `6h/12h/24h` 列不显示。
+
+过程图和结果图均隐藏 `退前线索=0 且 退后线索=0` 的人员明细行，即使该行还有通话或其他指标；只要其中一列不为 0，就保留。空值或缺失值不能当作 0。此过滤仅影响图片展示，不删除原始记录，不改变全范围总计、文字汇总和提醒名单；如果全部人员行被隐藏，只显示表头和总计。预览输出显示隐藏行数。
+
+### C.2 先预览，不发送
+
+先按 `lark-base` 的当前指引核验读取权限，涉及发送时再使用 `lark-im`。当前不启用 @，无需 `lark-contact` 或提醒人员入群核验。PowerShell 示例：
 
 ```powershell
 Set-Location 'C:\Users\Ludim\.codex\skills\lark-miaoda-dashboard'
 $env:PYTHONIOENCODING='utf-8'
 $env:PYTHONUTF8='1'
+[Console]::InputEncoding=[System.Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding=[System.Text.UTF8Encoding]::new($false)
+$OutputEncoding=[Console]::OutputEncoding
 $PY='D:\anaconda3\python.exe'
-$env:SOURCE_URL='<Base或Wiki URL>'
-$env:TEXT_SOURCE_URL='<推送文字表的 Base/Wiki URL>'
-$env:CHAT_ID='<oc_xxx>'
-$env:CHAT_NAME='<指定群的精确名称>'
 
-& $PY '.\scripts\group_push.py' preview --cli-dry-run
+# 只读查看已配置的渠道和期次
+& $PY '.\scripts\group_push.py' list-channels
+
+# 生成两张图片及文字预览；此处不查询通讯录、不发送
+& $PY '.\scripts\group_push.py' preview --channel 'KOC-周帅数学' --report-type both --no-mentions
+
+# 只推过程数据时，连原始收款/退费等结果字段也不读取
+& $PY '.\scripts\group_push.py' preview --channel 'KOC-周帅数学' --report-type process --period '20260911期' --no-mentions
 ```
 
-预览会读取过程视图、同表「结果数据」视图和文字配置视图，生成本地 `runtime/ip-broadcast-push/IP过程数据_<期次>.png` 与 `IP结果数据_<期次>.png`，打印消息 Markdown 和幂等键，并用 `im +messages-send --dry-run` 校验请求形状；不会上传图片，也不会发送群消息。结果视图默认使用 `--result-view-id 结果数据`，也可以传稳定的结果视图 ID。多期视图必须加 `--period 20260821期`。不需要 @ 时使用 `--no-mentions`；需要 @ 时默认只按「提醒」中的顾问姓名精确查通讯录，重名、查无此人或权限不足都不会猜测。
+`--report-type` 可选 `process`、`result`、`both`（默认两类）。未指定 `--period` 时采用所选配置的期次；配置不明确且源表有多个期次时必须指定。预览文件写入当前工作目录下 `runtime/channel-broadcast-push/preview-<唯一标识>/`，过程/结果 PNG 文件名包含期次和渠道，避免多次预览互相覆盖。可用 `--state-dir` 改路径；显式图片路径已存在时不覆盖。`--no-image` 只生成文字和汇总。NDJSON 明细只存临时目录，读取完即清理，不持久保存原始线索。
 
-原始表每次被天宫 2 全量覆盖前后，可先运行维度同步预览；它只检查独立提醒计算表是否缺少新顾问维度，不会改动或删除「IP原始数据」：
+默认新源**不继承**旧 `SOURCE_URL`、`BASE_TOKEN`、`TABLE_ID`、`VIEW_ID` 环境变量，避免悄悄退回旧表。覆盖数据源必须显式传 `--source-url` / 坐标参数以及匹配的 `--raw-table-id`。旧汇总视图只通过 `--source-mode summary-view` 兼容，且需显式提供旧源 URL 和文字源 URL；新流程不要调用 `sync-helper`，也不再读取旧 IP 汇总/提醒表。
+
+### C.3 显式确认后发送
+
+先确认本次渠道、期次、类型、目标群、发送身份、两张图片和顾问提醒名单。配置中只有一个共同接收群时可读取该群，否则用 `--chat-id` 明确；参数与配置群冲突时停止。精简配置表没有“启用/发送触发”，不通过 Base 工作流触发本地任务；手动发送的授权来自本次确认和 `--confirm-send`。
 
 ```powershell
-& $PY '.\scripts\group_push.py' sync-helper `
-  --source-url $env:SOURCE_URL `
-  --helper-table-id '<IP播报_提醒计算表 ID>' `
-  --helper-raw-table-id '<IP原始数据表 ID>'
+# 只校验请求形状，不上传、不发送；仅列顾问姓名
+& $PY '.\scripts\group_push.py' preview --channel 'KOC-周帅数学' --report-type both `
+  --chat-id '<oc_xxx>' --chat-name '<群精确名称>' --no-mentions --cli-dry-run
+
+# 仅在用户确认同一目标与内容后执行
+& $PY '.\scripts\group_push.py' send --channel 'KOC-周帅数学' --report-type both `
+  --period '<已确认期次>' --chat-id '<oc_xxx>' --chat-name '<群精确名称>' `
+  --as user --no-mentions --confirm-send
 ```
 
-预览确认缺失维度无误后，才加 `--confirm-helper-sync` 执行追加；该命令只调用 `base +record-batch-create`，不更新、不删除已有维度或原始数据。当前提醒计算表的公式和查找引用列保持在独立表中，原始表覆盖不会清除它们。
+`config/push_source.json` 的 `mention_target=none` 统一启用 `--no-mentions`，新明细模式和旧汇总视图均只列顾问姓名。它优先于遗留的 `--mention-target consultant/supervisor`、`--mention-map`、`--strict-mentions` 和提醒人员群资格参数：不读取映射文件、不解析账号、不核验提醒人员入群，也不因此阻止推送。目标群和发送机器人本身的资格、消息权限及数据质量检查仍保留。顾问和主管的旧 @ 能力仅作兼容保留，未经用户重新明确要求，不调整该策略恢复 @。
 
-### C.2 显式确认后发送
+图片上传需相应发送身份的资源权限。成功的完成边界是**消息返回实际 `message_id`**，不是本地图片生成、dry-run 或仅上传成功。此后立即分别删除本次过程/结果 PNG，释放磁盘空间；上传后消息失败、未返回 ID、预览和 dry-run 都保留 PNG 供检查。删除失败单独告警，删除状态写入台账。不要为了清理图片递归删除整个状态目录。
 
-确认预览中的期次、行数、群名称、图片和 @ 结果后，才执行：
+幂等台账默认 `runtime/channel-broadcast-push/send_ledger.jsonl`；键绑定来源、渠道、期次、类型、分区、群、发送身份、图片开关、指标、文案和提醒模式。相同内容已有成功回执时跳过重复发送。实际外发后的验收还应使用 `lark-im` 独立读取消息，确认目标群、两张图片、文字及不含任何 @；本地测试回执不算真实送达。
 
-```powershell
-& $PY '.\scripts\group_push.py' send --confirm-send --strict-mentions
-```
+### C.4 定时执行和验证
 
-真实发送还要求当前 `CHAT_ID` 与群名称已核验、发送身份（`SEND_AS=user` 或 `SEND_AS=bot`）权限可用，并且会把实际返回的 `message_id` 写入 `runtime/ip-broadcast-push/send_ledger.jsonl`。相同内容的幂等键在台账中已标记为 sent 时会跳过，避免重复播报。带图片时，上传步骤还需要该发送身份具备 `im:resource`；没有这个权限时脚本会在图片上传前后明确阻断，不能把文字接口成功误判为图片消息已送达。只有真实发送返回 `message_id` 后，脚本才会立即分别删除过程 PNG 和结果 PNG；如果上传成功但最终消息发送失败，会保留两张 PNG 便于重试。两张 PNG 的删除状态会同时写入输出和发送台账。预览、`--dry-run` 和本地图片生成不会删除图片，以便检查效果。
+已获授权的本机方案使用 `scripts/scheduled_push.py` 和 Windows 任务 `Codex-Lark-Market-KOC-GroupPush`，每天仅 09:20、13:20、17:20、21:20 向 `【自营koc】&【高阳团队】` 分别发送周帅、孟亚飞两渠道的过程和结果，身份为机器人“管家”。时点前 5 分钟隐藏启动准备，未就绪每 2 分钟重查至 :50，不发送旧数据或补历史轮次；执行版本绑定、上游完整日志、Base 行数/版本、文件锁、SQLite 回执和独立读回均不可省略。实际到达包含接口耗时，运行时电脑需开机联网且 Windows 用户已登录。
 
-如果通讯录不能按姓名唯一解析，可以先准备本地映射（只保存必要的 open_id，不要把 token 或 access token 写入文件）：
+时点、首轮时间、渠道及目标身份以 `config/scheduled_push.json` 为运行依据，管理和故障处理见 [config/SCHEDULED_PUSH.md](config/SCHEDULED_PUSH.md)。本地维护或回归测试不授权额外群消息、重注册任务、重启服务、修改天宫或清空发送回执。
 
-```json
-{
-  "主管姓名": "ou_xxx",
-  "顾问姓名": "ou_yyy"
-}
-```
-
-然后传 `--mention-map .\mention-map.json`。脚本会在群消息中生成 `<at user_id="ou_xxx">姓名</at>`；没有唯一映射时，`--strict-mentions` 会在发送前阻断。
-
-### C.3 定时执行边界
-
-Windows 计划任务只应调用 `D:\anaconda3\python.exe` 和该脚本，环境变量通过任务的启动器或受控配置注入。建议定时任务默认执行 `preview --cli-dry-run`，由人工确认后再执行一次 `send --confirm-send`；若确需无人值守，必须提前固定 `CHAT_ID`、`SEND_AS`、`PERIOD`、字段白名单和幂等台账路径，并单独验证 bot 已在群内且拥有发送/图片资源权限。
-
-离线测试：
+修改后运行受影响的离线测试，并用新源真实读取做本地预览和数值核对。测试消息接口必须 mock；不能把回归测试发到业务群：
 
 ```powershell
 & $PY '-m' 'unittest' 'discover' '-s' '.\tests' '-v'

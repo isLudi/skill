@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Push process-data snapshots from a Feishu Base view to a group.
+"""Push channel-scoped process/result snapshots from Feishu Base to a group.
 
 This is intentionally a local, CLI-orchestrated workflow.  It keeps the
 boundaries between the official skills visible in the code:
 
-* ``base +record-list`` reads one named view with a minimum projection;
+* ``base +record-list`` reads the config view and a filtered lead snapshot;
 * ``contact +search-user`` resolves exact names before an @ mention;
-* the independent ``推送文字`` table supplies title/period/explanation/reminders;
-* ``IP播报_主管 / 结果数据`` supplies a second, already-aggregated result image;
-  no result calculation is written back to ``IP原始数据``;
+* ``全渠道播报_推送配置`` supplies channel/type/title/period/explanation/chat;
+* both images and channel-bottom-quartile reminders are calculated locally from the
+  same period's lead counters; no calculations are written to the raw table;
 * ``im images create`` uploads the generated process/result images only for a real send;
 * ``im +messages-send`` sends one Markdown post with a stable idempotency key.
 * after a verified real delivery, the generated local PNG is removed; a failed
@@ -18,8 +18,8 @@ boundaries between the official skills visible in the code:
 The default operation is ``preview``.  ``send`` requires
 ``--confirm-send`` and records the returned message_id in an append-only local
 ledger.  The process image keeps its explicit process-only whitelist.  The
-result image is a separate, explicitly selected view and may contain outcome
-metrics such as single effect and net receipts.
+result image may contain outcome metrics such as single effect and net receipts.
+``summary-view`` is an explicit compatibility mode for the old IP views.
 """
 
 from __future__ import annotations
@@ -40,6 +40,7 @@ from urllib.parse import parse_qs, urlparse
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPT_DIR))
 from lark_runtime import run_lark  # noqa: E402
+import lead_report  # noqa: E402
 
 
 try:
@@ -190,6 +191,7 @@ RESULT_BAR_FIELDS: dict[str, str] = {
 }
 
 RESULT_IMAGE_WIDTHS: dict[str, int] = {
+    "渠道": 400,
     "期次": 140,
     "经理": 180,
     "主管": 180,
@@ -259,6 +261,8 @@ BAR_FIELDS = {
 }
 
 IMAGE_WIDTHS = {
+    "渠道": 400,
+    "经理": 175,
     "期次": 155,
     "顾问": 175,
     "主管": 155,
@@ -280,6 +284,7 @@ IMAGE_WIDTHS = {
 }
 
 OUTCOME_TERMS = ("收款", "成交", "退费", "单效", "订单", "支付", "营收", "收入", "GMV")
+IMAGE_ROW_FILTER = "hide_both_lead_counts_zero"
 
 
 def _json_payload(text: str) -> Any:
@@ -523,17 +528,22 @@ def _fetch_view_records(
     fields: Sequence[str],
     *,
     temp_prefix: str,
+    filter_json: Mapping[str, Any] | None = None,
+    audit: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
     """Read a complete selected view with a minimum field projection."""
 
     records: list[dict[str, Any]] = []
     offset = 0
     page_no = 0
+    first_rev = None
+    first_context = None
+    seen_record_ids: set[str] = set()
     with tempfile.TemporaryDirectory(prefix=temp_prefix) as temp_dir:
         page_dir = Path(temp_dir)
         while True:
             page_no += 1
-            page_file = page_dir / "page.ndjson"
+            page_file = page_dir / ("page-%d.ndjson" % page_no)
             command: list[str] = [
                 "base",
                 "+record-list",
@@ -548,13 +558,17 @@ def _fetch_view_records(
                 "--format",
                 "ndjson",
                 "--output",
-                "./page.ndjson",
+                "./%s" % page_file.name,
                 "--overwrite",
                 "--as",
                 args.base_as,
             ]
             if coords.get("view_id"):
                 command[6:6] = ["--view-id", coords["view_id"]]
+            if filter_json is not None:
+                filter_path = page_dir / "filter.json"
+                filter_path.write_text(json.dumps(filter_json, ensure_ascii=True), encoding="utf-8")
+                command.extend(("--filter-json", "@./filter.json"))
             for field in fields:
                 command.extend(("--field-id", field))
             manifest = _unwrap(_json_payload(run_lark(command, cwd=str(page_dir), timeout=args.timeout)))
@@ -565,16 +579,38 @@ def _fetch_view_records(
                 for line in page_file.read_text(encoding="utf-8").splitlines()
                 if line.strip()
             ]
-            records.extend(row for row in page_rows if isinstance(row, dict))
-            count = int(manifest.get("records_count", len(page_rows)) or 0) if isinstance(manifest, Mapping) else len(page_rows)
-            has_more = bool(manifest.get("has_more")) if isinstance(manifest, Mapping) else False
+            if not isinstance(manifest, Mapping) or not isinstance(manifest.get("has_more"), bool):
+                raise RuntimeError("读取清单缺少 has_more，无法确认查询完整性")
+            count = manifest.get("records_count")
+            if count != len(page_rows):
+                raise RuntimeError("读取清单与实际行数不一致")
+            rev, query_context = manifest.get("rev"), manifest.get("query_context")
+            if page_no == 1:
+                first_rev, first_context = rev, query_context
+            elif rev != first_rev or query_context != first_context:
+                raise RuntimeError("分页期间数据版本或查询范围改变，请重新读取")
+            for row in page_rows:
+                record_id = row.get("record_id") if isinstance(row, dict) else None
+                if not record_id or record_id in seen_record_ids:
+                    raise RuntimeError("分页记录 ID 缺失或重复，无法确认完整性")
+                seen_record_ids.add(record_id)
+            records.extend(page_rows)
+            has_more = manifest["has_more"]
             if not has_more:
                 break
             if count <= 0:
                 raise RuntimeError("record-list 返回 has_more=true 但本页没有记录，停止避免死循环")
-            offset += count
+            if first_rev is None:
+                raise RuntimeError("分页清单缺少 rev，无法确认同一数据快照")
+            next_offset = manifest.get("next_offset")
+            if not isinstance(next_offset, int) or next_offset <= offset:
+                raise RuntimeError("分页清单没有有效 next_offset")
+            offset = next_offset
             if page_no >= args.max_pages:
                 raise RuntimeError("record-list 超过 --max-pages=%d，未完成分页" % args.max_pages)
+    if audit is not None:
+        audit.update({"records_count": len(records), "pages": page_no, "rev": first_rev,
+                      "has_more": False, "table_id": coords["table_id"], "view_id": coords.get("view_id", "")})
     return records
 
 
@@ -633,7 +669,7 @@ def reminder_names(row: Mapping[str, Any]) -> list[str]:
     result: list[str] = []
     for item in re.split(r"[、,，;；\n]+", calculated):
         name = item.strip()
-        if name and name not in result:
+        if name and name not in {"无", "暂无", "-"} and name not in result:
             result.append(name)
     return result
 
@@ -777,6 +813,24 @@ def _mention(name: str, resolved: Mapping[str, str]) -> str:
     if not open_id:
         return html.escape(name)
     return '<at user_id="%s">%s</at>' % (html.escape(open_id, quote=True), html.escape(name))
+
+
+def mention_nonmembers(chat_id: str, resolved: Mapping[str, str], identity: str, timeout: int) -> list[str]:
+    """Verify exact account IDs against a complete, untruncated member list."""
+    if not chat_id:
+        raise ValueError("核验 @ 人员群成员资格需要明确接收群")
+    data = _unwrap(_json_payload(run_lark([
+        "im", "+chat-members-list", "--chat-id", chat_id, "--member-types", "user",
+        "--member-id-type", "open_id", "--page-all", "--page-limit", "10",
+        "--as", identity, "--format", "json",
+    ], timeout=timeout)))
+    if data.get("has_more") is not False or data.get("truncations"):
+        raise ValueError("群成员列表不完整，不能确认 @ 人员资格")
+    users = data.get("users", [])
+    ids = {item.get("member_id") for item in users}
+    if not all(ids) or len(ids) != len(users) or len(ids) != int(data["user_total"]):
+        raise ValueError("群成员列表数量或账号校验失败")
+    return sorted(name for name, open_id in resolved.items() if open_id not in ids)
 
 
 def _display(row: Mapping[str, Any], field: str, kind: str | None = None) -> str:
@@ -1000,7 +1054,20 @@ def _result_bar_fraction(source: str, value: Any, rows: Sequence[Mapping[str, An
     return _rate(value)
 
 
-def render_result_image(rows: Sequence[Mapping[str, Any]], output_path: Path) -> Path:
+def visible_image_rows(rows: Sequence[Mapping[str, Any]]) -> list[Mapping[str, Any]]:
+    """Hide only explicitly zero/zero lead rows, without altering source data."""
+
+    return [row for row in rows if not (
+        _number(_raw_field(row, "退前线索")) == 0
+        and _number(_raw_field(row, "退后线索")) == 0
+    )]
+
+
+def render_result_image(
+    rows: Sequence[Mapping[str, Any]], output_path: Path, *,
+    columns: Sequence[tuple[str, str, str]] | None = None,
+    total: Mapping[str, Any] | None = None,
+) -> Path:
     """Render the result-data reference layout as a second wide PNG."""
 
     try:
@@ -1009,9 +1076,12 @@ def render_result_image(rows: Sequence[Mapping[str, Any]], output_path: Path) ->
         raise RuntimeError("生成图片需要 Pillow；请在当前 D:\\anaconda3 环境安装 Pillow") from exc
     if not rows:
         raise SystemExit("结果数据视图没有可生成图片的记录")
+    # Preserve the complete-scope total before applying the display-only filter.
+    total = total if total is not None else make_result_total_row(rows, _string(_raw_field(rows[0], "期次")))
+    rows = visible_image_rows(rows)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    columns = RESULT_IMAGE_COLUMNS
+    columns = tuple(columns) if columns is not None else RESULT_IMAGE_COLUMNS
     widths = [RESULT_IMAGE_WIDTHS[source] for source, _label, _kind in columns]
     header_height, row_height, total_height = 92, 64, 70
     width = sum(widths)
@@ -1051,7 +1121,6 @@ def render_result_image(rows: Sequence[Mapping[str, Any]], output_path: Path) ->
             _center_text(draw, (left + 2, top + 1, right - 2, bottom - 1), text, body_font, "#111827")
             draw.rectangle((left, top, right, bottom), outline=grid, width=1)
 
-    total = make_result_total_row(rows, _string(_raw_field(rows[0], "期次")))
     total_top = header_height + row_height * len(rows)
     draw.rectangle((0, total_top, width, height), fill=navy)
     for (source, _label, kind), left, right in zip(columns, x_positions, x_positions[1:]):
@@ -1099,6 +1168,9 @@ def _find_font(size: int, bold: bool = False):
 def _center_text(draw: Any, box: tuple[int, int, int, int], text: str, font: Any, fill: str) -> None:
     left, top, right, bottom = box
     bbox = draw.multiline_textbbox((0, 0), text, font=font, spacing=2, align="center")
+    while bbox[2] - bbox[0] > right - left - 4 and hasattr(font, "font_variant") and font.size > 12:
+        font = font.font_variant(size=font.size - 1)
+        bbox = draw.multiline_textbbox((0, 0), text, font=font, spacing=2, align="center")
     width = bbox[2] - bbox[0]
     height = bbox[3] - bbox[1]
     x = left + max(0, (right - left - width) // 2) - bbox[0]
@@ -1121,7 +1193,11 @@ def _retention_color(value: Any) -> str:
     return "#fb626b"
 
 
-def render_process_image(rows: Sequence[Mapping[str, Any]], output_path: Path) -> Path:
+def render_process_image(
+    rows: Sequence[Mapping[str, Any]], output_path: Path, *,
+    columns: Sequence[tuple[str, str, str]] | None = None,
+    total: Mapping[str, Any] | None = None,
+) -> Path:
     """Render the requested navy-header, conditional-color table image."""
 
     try:
@@ -1129,11 +1205,16 @@ def render_process_image(rows: Sequence[Mapping[str, Any]], output_path: Path) -
     except ImportError as exc:
         raise RuntimeError("生成图片需要 Pillow；请在当前 D:\\anaconda3 环境安装 Pillow") from exc
 
+    if not rows:
+        raise SystemExit("过程数据视图没有可生成图片的记录")
+    total = total if total is not None else make_total_row(rows, _string(_raw_field(rows[0], "期次")))
+    rows = visible_image_rows(rows)
+
     output_path.parent.mkdir(parents=True, exist_ok=True)
     # These widths deliberately follow the supplied reference image's wide,
     # dense table layout rather than producing a narrow chart card.  Optional
     # 6h/12h/24h columns disappear when the source view does not contain them.
-    columns = available_image_columns(rows)
+    columns = tuple(columns) if columns is not None else available_image_columns(rows)
     widths = [IMAGE_WIDTHS[source] for source, _label, _kind in columns]
     header_height, row_height, total_height = 92, 64, 70
     width = sum(widths)
@@ -1175,7 +1256,6 @@ def render_process_image(rows: Sequence[Mapping[str, Any]], output_path: Path) -
             _center_text(draw, (left + 2, top + 1, right - 2, bottom - 1), text, body_font, "#111827")
             draw.rectangle((left, top, right, bottom), outline=grid, width=1)
 
-    total = make_total_row(rows, _string(_raw_field(rows[0], "期次")))
     total_top = header_height + row_height * len(rows)
     draw.rectangle((0, total_top, width, height), fill=navy)
     for (source, _label, kind), left, right in zip(columns, x_positions, x_positions[1:]):
@@ -1197,11 +1277,18 @@ def _render_configured_reminder(row: Mapping[str, Any], resolved: Mapping[str, s
     reminder = _string(_raw_field(row, "提醒"))
     if not reminder:
         return "无"
-    rendered = html.escape(reminder)
-    for name in sorted(reminder_names(row), key=len, reverse=True):
-        escaped_name = html.escape(name)
-        rendered = rendered.replace(escaped_name, _mention(name, resolved))
-    return rendered
+    if _raw_field(row, "_mention_target") == "none":
+        return html.escape(reminder)
+    if _raw_field(row, "_mention_target") == "supervisor":
+        supervisors = _raw_field(row, "_reminder_supervisors") or []
+        suffix = "\n  请主管关注：" + "、".join(_mention(name, resolved) for name in supervisors) if supervisors else ""
+        return html.escape(reminder) + suffix
+    names = sorted(reminder_names(row), key=len, reverse=True)
+    if not names:
+        return html.escape(reminder)
+    pattern = re.compile("(" + "|".join(re.escape(name) for name in names) + ")")
+    return "".join(_mention(part, resolved) if part in names else html.escape(part)
+                   for part in pattern.split(reminder))
 
 
 def _build_configured_markdown(
@@ -1222,6 +1309,8 @@ def _build_configured_markdown(
         title = _string(_raw_field(row, "推送标题")) or ("IP%s" % section)
         configured_period = _string(_raw_field(row, "推送期次")) or period
         explanation = _string(_raw_field(row, "推送说明"))
+        if lines:
+            lines.append("")
         lines.extend(["## %s" % html.escape(title)])
         if section == "过程数据" and image_ref:
             lines.extend(["", "![IP过程数据表](%s)" % image_ref])
@@ -1235,7 +1324,6 @@ def _build_configured_markdown(
         [
             "",
             "> 数据来源：%s" % html.escape(source_label),
-            "> 结果图片来自 IP播报_主管 / 结果数据；提醒中的姓名仍按推送文字表计算并 @ 到人。",
         ]
     )
     return "\n".join(lines)
@@ -1342,6 +1430,7 @@ def idempotency_key(
     text_sections: Mapping[str, Mapping[str, Any]] | None = None,
     result_coords: Mapping[str, str] | None = None,
     result_rows: Sequence[Mapping[str, Any]] | None = None,
+    delivery: Mapping[str, Any] | None = None,
 ) -> str:
     stable_rows = []
     for row in rows:
@@ -1384,6 +1473,8 @@ def idempotency_key(
             }
             for row in result_rows
         ]
+    if delivery is not None:
+        canonical_payload["delivery"] = delivery
     canonical = json.dumps(
         canonical_payload,
         ensure_ascii=False,
@@ -1622,15 +1713,37 @@ def sync_helper_dimension(args: argparse.Namespace) -> int:
 
 
 def _state_dir(args: argparse.Namespace) -> Path:
-    value = args.state_dir or os.environ.get("PUSH_STATE_DIR", "runtime/ip-broadcast-push")
+    value = args.state_dir or os.environ.get("PUSH_STATE_DIR", "runtime/channel-broadcast-push")
     return Path(value).expanduser().resolve()
 
 
+def push_defaults() -> dict[str, Any]:
+    path = SCRIPT_DIR.parent / "config" / "push_source.json"
+    defaults = json.loads(path.read_text(encoding="utf-8"))
+    if defaults.get("reminder_rule") != "channel_bottom_quartile":
+        raise ValueError("推送提醒规则必须为 channel_bottom_quartile（所属渠道后25%）")
+    if defaults.get("reminder_population") != "raw_leads":
+        raise ValueError("推送提醒范围必须使用原始线索全量顾问，不依赖辅助表覆盖范围")
+    if defaults.get("mention_target", "none") not in {"none", "consultant", "supervisor"}:
+        raise ValueError("mention_target 必须为 none、consultant 或 supervisor")
+    return defaults
+
+
+def effective_mention_target(args: argparse.Namespace) -> str:
+    # Explicit no-mentions and the names-only profile override stale flags.
+    return "none" if args.no_mentions else getattr(args, "mention_target", "none")
+
+
 def add_common_arguments(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("--base-token", default=os.environ.get("BASE_TOKEN", ""), help="Base token；也可用 BASE_TOKEN")
-    parser.add_argument("--table-id", default=os.environ.get("TABLE_ID", ""), help="表 ID/名称；也可用 TABLE_ID")
-    parser.add_argument("--view-id", default=os.environ.get("VIEW_ID", ""), help="视图 ID/名称；也可用 VIEW_ID")
-    parser.add_argument("--source-url", default=os.environ.get("SOURCE_URL", ""), help="可选：由 base +url-resolve 解析 Base URL")
+    defaults = push_defaults()
+    parser.add_argument("--source-mode", choices=("lead-detail", "summary-view"), default=defaults["source_mode"], help="默认：新 Base 的线索明细；summary-view 为旧汇总视图兼容模式")
+    parser.add_argument("--base-token", default="", help="可选：显式覆盖 Base 坐标，不继承旧 BASE_TOKEN")
+    parser.add_argument("--table-id", default="", help="可选：推送配置表 ID/名称")
+    parser.add_argument("--view-id", default="", help="可选：推送配置视图 ID/名称")
+    parser.add_argument("--source-url", default=defaults["source_url"], help="默认使用 config/push_source.json 中的新推送配置 URL")
+    parser.add_argument("--raw-table-id", default=defaults["raw_table_id"], help="同一 Base 中的线索明细表 ID/名称")
+    parser.add_argument("--channel", default="", help="精确渠道名称；仅显式填写“全部渠道”时合并读取所有渠道")
+    parser.add_argument("--report-type", choices=tuple(lead_report.SECTIONS), default=defaults["report_type"], help="process 仅过程、result 仅结果、both 两类（默认）")
     parser.add_argument("--text-table-id", default=os.environ.get("TEXT_TABLE_ID", ""), help="推送文字表 ID/名称")
     parser.add_argument("--text-view-id", default=os.environ.get("TEXT_VIEW_ID", ""), help="推送文字视图 ID/名称")
     parser.add_argument("--text-source-url", default=os.environ.get("TEXT_SOURCE_URL", ""), help="可选：由 Base/Wiki URL 解析推送文字表")
@@ -1645,7 +1758,11 @@ def add_common_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--as", dest="identity", choices=("user", "bot"), default=os.environ.get("SEND_AS", "user"), help="发送身份")
     parser.add_argument("--period", default=os.environ.get("PERIOD", ""), help="精确期次；多期视图时必填")
     parser.add_argument("--mention-map", default=os.environ.get("MENTION_MAP", ""), help="可选 JSON：{姓名: ou_xxx}")
-    parser.add_argument("--no-mentions", action="store_true", help="不解析/不生成 @")
+    parser.add_argument("--mention-target", choices=("none", "consultant", "supervisor"), default=defaults.get("mention_target", "none"),
+                        help="当前配置统一为 none：只列顾问姓名；consultant/supervisor 为需另行启用的旧@模式")
+    parser.add_argument("--require-mention-membership", action="store_true", help="必须完整回读目标群并核验所有@账号已在群内")
+    parser.add_argument("--no-mentions", action="store_true", default=defaults.get("mention_target", "none") == "none",
+                        help="不解析/不生成@，不加载姓名映射或核验提醒人员群资格；当前配置默认启用")
     parser.add_argument("--strict-mentions", action="store_true", help="预览时也要求所有姓名都能精确解析")
     parser.add_argument("--allow-unresolved-mentions", action="store_true", help="发送时允许无法精确解析的姓名以纯文本发送")
     parser.add_argument("--no-image", dest="with_image", action="store_false", help="不生成汇总表图片")
@@ -1662,7 +1779,187 @@ def add_common_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--max-pages", type=int, default=100)
 
 
+def _read_channel_configs(args: argparse.Namespace) -> tuple[dict[str, str], list[dict[str, Any]]]:
+    coords = resolve_coordinates(args)
+    records = _fetch_view_records(coords, args, lead_report.CONFIG_FIELDS, temp_prefix=".channel-config-")
+    return coords, records
+
+
+def list_channels(args: argparse.Namespace) -> int:
+    _coords, records = _read_channel_configs(args)
+    channels: dict[str, dict[str, Any]] = {}
+    for row in records:
+        channel = lead_report.text(lead_report.value(row, "渠道"))
+        item = channels.setdefault(channel, {"channel": channel, "periods": set(), "sections": set(), "configured_group_count": 0})
+        item["periods"].add(lead_report.text(lead_report.value(row, "推送期次")))
+        item["sections"].add(lead_report.text(lead_report.value(row, "推送类型")))
+        item["configured_group_count"] = max(item["configured_group_count"], len(lead_report.value(row, "接收群") or []))
+    for channel in sorted(channels):
+        item = channels[channel]
+        item["periods"] = sorted(item["periods"])
+        item["sections"] = sorted(item["sections"])
+        print(json.dumps(item, ensure_ascii=False))
+    print("以上是配置表中的渠道；新增渠道也可用 --channel 精确选择。此命令不发送消息。")
+    return 0
+
+
+def prepare_lead_report(args: argparse.Namespace) -> dict[str, Any]:
+    channel = args.channel.strip()
+    if not channel:
+        raise SystemExit("请用 --channel 选择精确渠道（list-channels 可查看配置）；全部推送必须显式选择“全部渠道”")
+    coords, config_records = _read_channel_configs(args)
+    configs = lead_report.select_configs(config_records, channel, args.report_type, args.period)
+    requested = lead_report.requested_period(configs, args.period)
+    raw_coords = {"base_token": coords["base_token"], "table_id": args.raw_table_id, "view_id": ""}
+    schema = _unwrap(_json_payload(run_lark([
+        "base", "+field-list", "--base-token", coords["base_token"], "--table-id", args.raw_table_id,
+        "--format", "json", "--as", args.base_as,
+    ], timeout=args.timeout)))
+    field_names = {_string(item.get("field_name") or item.get("name")) for item in _iter_dicts(schema)}
+    fields, counters = lead_report.projection(field_names, args.report_type)
+    conditions = []
+    if channel != "全部渠道":
+        conditions.append(["渠道", "==", channel])
+    if requested:
+        conditions.append(["期次", "==", requested])
+    # Explicit filters replace view filters: query the raw table without a
+    # view, and bind both channel and period here instead of trusting a view.
+    raw_audit: dict[str, Any] = {}
+    records = _fetch_view_records(
+        raw_coords, args, fields, temp_prefix=".channel-leads-",
+        filter_json={"logic": "and", "conditions": conditions} if conditions else None, audit=raw_audit,
+    )
+    scoped, period, snapshot = lead_report.validate_scope(records, channel, requested)
+    if len(scoped) != len(records):
+        raise ValueError("原始表返回了筛选范围以外的记录，停止推送")
+    report = lead_report.build_report(scoped, counters, period)
+    text_sections = lead_report.text_sections(configs, report, period, channel, snapshot)
+    config_reminder_check = {}
+    for section, configured in configs.items():
+        # Remote reminder columns are optional legacy diagnostics, never a
+        # runtime dependency. The lean Base retains only seven config fields.
+        has_cached_reminder = any(k in configured.get("fields", configured) for k in ("计算_提醒顾问", "提醒"))
+        if has_cached_reminder and configured.get("record_id") and _string(_raw_field(configured, "推送期次")) == period:
+            cached_names = set(reminder_names(configured))
+            fresh_names = set(reminder_names(text_sections[section]))
+            config_reminder_check[section] = {
+                "matches": cached_names == fresh_names, "config_name_count": len(cached_names),
+                "raw_name_count": len(fresh_names), "only_config_count": len(cached_names - fresh_names),
+                "only_raw_count": len(fresh_names - cached_names),
+            }
+    mention_target = effective_mention_target(args)
+    mentions_disabled = mention_target == "none"
+    if mention_target == "supervisor":
+        for section, row in text_sections.items():
+            row["fields"].update({"_mention_target": "supervisor",
+                                  "_reminder_supervisors": report["reminder_supervisors"][section]})
+        configured_names = sorted({name for section in text_sections for name in report["reminder_supervisors"][section]})
+        if any(not name for name in configured_names):
+            raise ValueError("提醒顾问缺少对应主管，不能可靠生成主管提醒")
+    else:
+        configured_names = sorted({name for row in text_sections.values() for name in reminder_names(row)})
+        if mentions_disabled:
+            for row in text_sections.values():
+                row["fields"]["_mention_target"] = "none"
+    mention_info = resolve_mentions(
+        [], mention_map={} if mentions_disabled else _load_mention_map(args.mention_map or None), no_lookup=False,
+        disable_mentions=mentions_disabled, extra_names=configured_names, timeout=args.timeout,
+    )
+    if args.strict_mentions and (mention_info["unresolved"] or mention_info["ambiguous"]):
+        raise SystemExit("存在未能唯一解析的 @ 姓名，请提供 --mention-map 消歧")
+    chat_id = lead_report.configured_chat(configs, args.chat_id.strip())
+    if args.chat_name:
+        if not chat_id:
+            raise SystemExit("校验群名称前需要接收群配置或 --chat-id")
+        verify_chat(chat_id, args.chat_name, args.identity, args.timeout)
+    if getattr(args, "require_mention_membership", False) and not mentions_disabled:
+        mention_info["nonmembers"] = mention_nonmembers(chat_id, mention_info["resolved"], args.identity, args.timeout)
+        if args.strict_mentions and mention_info["nonmembers"]:
+            raise SystemExit("以下 @ 人员未在目标群内：" + "、".join(mention_info["nonmembers"]))
+
+    def project_rows(allowed: Sequence[str], sort_field: str, rate: bool = False) -> list[dict[str, Any]]:
+        selected = [{"record_id": "", "fields": {k: v for k, v in row["fields"].items() if k in allowed}}
+                    for row in report["rows"]]
+        def sort_key(row: Mapping[str, Any]) -> tuple[Any, ...]:
+            raw = _raw_field(row, sort_field)
+            number = _rate(raw) if rate else _number(raw)
+            return (number is None, -number if number is not None else 0,
+                    _string(_raw_field(row, "渠道")), _string(_raw_field(row, "主管")))
+        return sorted(selected, key=sort_key)
+
+    rows = project_rows(PROCESS_FIELDS, "5min", True) if args.report_type != "result" else []
+    result_rows = project_rows(RESULT_FIELDS, "单效") if args.report_type != "process" else []
+    image_columns = available_image_columns(rows) if rows else ()
+    result_columns = RESULT_IMAGE_COLUMNS if result_rows else ()
+    if channel == "全部渠道":
+        if rows:
+            image_columns = (image_columns[0], ("渠道", "渠道", "text"), *image_columns[1:])
+        if result_rows:
+            result_columns = (result_columns[0], ("渠道", "渠道", "text"), *result_columns[1:])
+    total_fields = {**report["totals"], "期次": "总计"}
+    process_total = {"fields": {k: v for k, v in total_fields.items() if k in PROCESS_FIELDS}}
+    result_total = {"fields": {k: v for k, v in total_fields.items() if k in RESULT_FIELDS}}
+    image_path = result_image_path = None
+    if args.with_image:
+        state_dir = _state_dir(args)
+        state_dir.mkdir(parents=True, exist_ok=True)
+        run_dir = Path(tempfile.mkdtemp(prefix="preview-", dir=state_dir))
+        suffix = "%s_%s" % (_safe_period(period), re.sub(r'[<>:"/\\|?*\x00-\x1f]', "_", channel))
+        if rows:
+            image_path = Path(args.output_image).expanduser().resolve() if args.output_image else run_dir / ("过程数据_%s.png" % suffix)
+        if result_rows:
+            result_image_path = Path(args.output_result_image).expanduser().resolve() if args.output_result_image else run_dir / ("结果数据_%s.png" % suffix)
+        if image_path and image_path == result_image_path:
+            raise ValueError("过程图片与结果图片不能使用同一个输出路径")
+        for path in (image_path, result_image_path):
+            if path and path.exists():
+                raise ValueError("图片路径已存在，请选择新路径，避免覆盖已有预览")
+        if image_path:
+            render_process_image(rows, image_path, columns=image_columns, total=process_total)
+        if result_image_path:
+            render_result_image(result_rows, result_image_path, columns=result_columns, total=result_total)
+    markdown = build_markdown(
+        rows, period=period, source_label="市场顾问原始数据 / 按期次、渠道汇总 / lark-cli",
+        mention_info=mention_info, image_ref="img_process_preview" if image_path else None,
+        text_sections=text_sections, result_image_ref="img_result_preview" if result_image_path else None,
+    ).replace("![IP过程数据表]", "![过程数据表]").replace("![IP结果数据表]", "![结果数据表]")
+    key = idempotency_key(
+        coords, chat_id, period, rows, text_coords=coords, text_sections=text_sections,
+        result_coords=raw_coords, result_rows=result_rows,
+        delivery={"source_mode": "lead-detail", "channel": channel, "snapshot": snapshot,
+                  "mention_target": mention_target,
+                  "report_type": args.report_type, "identity": args.identity, "markdown": markdown,
+                  "reminder_rule": "channel_bottom_quartile",
+                  "image_row_filter": IMAGE_ROW_FILTER if args.with_image else None,
+                  "totals": {k: v for k, v in report["totals"].items() if k in set(PROCESS_FIELDS + RESULT_FIELDS)}},
+    )
+    return {
+        "coords": coords, "source_mode": "lead-detail", "channel": channel, "report_type": args.report_type,
+        "raw_table_id": args.raw_table_id, "raw_count": len(scoped), "raw_read_audit": raw_audit,
+        "snapshot": snapshot, "reminder_rule": "同一期次、所属渠道后25%",
+        "mention_target": mention_target, "reminder_supervisors": report["reminder_supervisors"],
+        "reminder_quotas": report["reminder_quotas"],
+        "config_reminder_check": config_reminder_check,
+        "totals": report["totals"], "consultant_count": report["consultant_count"],
+        "rows": rows, "result_rows": result_rows, "period": period, "text_sections": text_sections,
+        "mention_info": mention_info, "chat_id": chat_id, "chat_name": args.chat_name, "identity": args.identity,
+        "image_path": image_path, "result_image_path": result_image_path, "image_columns": image_columns,
+        "result_image_columns": result_columns, "markdown": markdown, "idempotency_key": key,
+        "ledger": Path(args.ledger).expanduser().resolve() if args.ledger else _state_dir(args) / "send_ledger.jsonl",
+    }
+
+
 def prepare(args: argparse.Namespace) -> dict[str, Any]:
+    if args.source_mode == "lead-detail":
+        return prepare_lead_report(args)
+    if effective_mention_target(args) != "none" and (
+        effective_mention_target(args) != "consultant" or getattr(args, "require_mention_membership", False)
+    ):
+        raise ValueError("主管提醒及群成员核验仅支持新线索明细模式")
+    return prepare_summary_view(args)
+
+
+def prepare_summary_view(args: argparse.Namespace) -> dict[str, Any]:
     coords = resolve_coordinates(args)
     records = fetch_records(coords, args)
     period = select_period(records, args.period or None)
@@ -1679,6 +1976,11 @@ def prepare(args: argparse.Namespace) -> dict[str, Any]:
     text_coords = resolve_text_coordinates(args, coords)
     text_records = fetch_text_records(text_coords, args)
     text_sections = select_text_config(text_records, period)
+    mention_target = effective_mention_target(args)
+    mentions_disabled = mention_target == "none"
+    if mentions_disabled:
+        for row in text_sections.values():
+            row["fields"]["_mention_target"] = "none"
     configured_reminder_names: list[str] = []
     for section in TEXT_SECTION_ORDER:
         row = text_sections.get(section)
@@ -1689,9 +1991,9 @@ def prepare(args: argparse.Namespace) -> dict[str, Any]:
                 configured_reminder_names.append(name)
     mention_info = resolve_mentions(
         [],
-        mention_map=_load_mention_map(args.mention_map or None),
+        mention_map={} if mentions_disabled else _load_mention_map(args.mention_map or None),
         no_lookup=False,
-        disable_mentions=args.no_mentions,
+        disable_mentions=mentions_disabled,
         extra_names=configured_reminder_names,
         timeout=args.timeout,
     )
@@ -1743,11 +2045,14 @@ def prepare(args: argparse.Namespace) -> dict[str, Any]:
         text_sections=text_sections,
         result_coords=result_coords,
         result_rows=result_rows,
+        delivery={"image_row_filter": IMAGE_ROW_FILTER if args.with_image else None,
+                  "mention_target": mention_target, "markdown": markdown},
     )
     ledger = Path(args.ledger).expanduser().resolve() if args.ledger else _state_dir(args) / "send_ledger.jsonl"
     return {
         "coords": coords,
         "records": records,
+        "mention_target": mention_target,
         "rows": rows,
         "result_coords": result_coords,
         "result_records": result_records,
@@ -1778,6 +2083,10 @@ def print_preview(context: Mapping[str, Any]) -> None:
         "period": context["period"],
         "row_count": len(context["rows"]),
         "result_row_count": len(context["result_rows"]),
+        "image_row_count": len(visible_image_rows(context["rows"])),
+        "result_image_row_count": len(visible_image_rows(context["result_rows"])),
+        "image_hidden_zero_lead_rows": len(context["rows"]) - len(visible_image_rows(context["rows"])),
+        "result_image_hidden_zero_lead_rows": len(context["result_rows"]) - len(visible_image_rows(context["result_rows"])),
         "text_section_count": len(context["text_sections"]),
         "text_sections": {
             section: {
@@ -1799,12 +2108,18 @@ def print_preview(context: Mapping[str, Any]) -> None:
         "mention_resolved": sorted(mention_info["resolved"]),
         "mention_unresolved": mention_info["unresolved"],
         "mention_ambiguous": mention_info["ambiguous"],
-        "excluded_outcome_fields": list(OUTCOME_TERMS),
-        "result_section_policy": "结果图片读取 IP播报_主管 / 结果数据；不改写 IP原始数据",
+        "mention_nonmembers": mention_info.get("nonmembers", []),
+        "process_excluded_outcome_fields": list(OUTCOME_TERMS),
+        "result_section_policy": "结果图片从同一批线索聚合，不改写原始表" if context.get("source_mode") == "lead-detail" else "结果图片读取独立结果视图；不改写原始表",
     }
+    for field in ("source_mode", "channel", "report_type", "raw_table_id", "raw_count", "raw_read_audit", "snapshot", "reminder_rule", "reminder_quotas", "config_reminder_check", "consultant_count", "totals", "mention_target", "reminder_supervisors"):
+        if field in context:
+            summary[field] = context[field]
     print(json.dumps(summary, ensure_ascii=False, indent=2))
     if mention_info.get("lookup_error"):
         print("[warning] 通讯录解析未完成：%s" % mention_info["lookup_error"])
+    if any(not item["matches"] for item in context.get("config_reminder_check", {}).values()):
+        print("[warning] 配置表的提醒名单与原始线索计算不同；当前预览使用原始线索全量后25%，请核对辅助表覆盖范围/刷新状态。")
     print("\n----- 群消息 Markdown 预览 -----\n")
     print(context["markdown"])
 
@@ -1821,17 +2136,20 @@ def _image_slots(context: Mapping[str, Any]) -> tuple[tuple[str, Path | None, tu
         (
             "result",
             context.get("result_image_path"),
-            ("img_result_preview", "img_result"),
+            ("img_result_preview",),
         ),
     )
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="飞书多维表格过程数据群推送：默认预览，真实发送需显式确认")
+    parser = argparse.ArgumentParser(description="飞书多维表格按渠道推送过程/结果数据：默认预览，真实发送需显式确认")
     subparsers = parser.add_subparsers(dest="command", required=True)
     preview_parser = subparsers.add_parser("preview", help="读取视图并生成本地图片/Markdown预览，不发送")
     add_common_arguments(preview_parser)
     preview_parser.add_argument("--cli-dry-run", action="store_true", help="额外调用 im +messages-send --dry-run 校验请求形状")
+
+    channels_parser = subparsers.add_parser("list-channels", help="只读列出新配置表的渠道、期次与推送类型")
+    add_common_arguments(channels_parser)
 
     send_parser = subparsers.add_parser("send", help="发送群消息；必须 --confirm-send，或使用 --dry-run")
     add_common_arguments(send_parser)
@@ -1854,7 +2172,11 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     args = parser.parse_args(argv)
     if args.command == "sync-helper":
+        if args.source_mode != "summary-view":
+            raise SystemExit("新线索模式在本地计算渠道提醒，无需同步提醒表；旧辅助表操作必须显式选择 --source-mode summary-view")
         return sync_helper_dimension(args)
+    if args.command == "list-channels":
+        return list_channels(args)
     if args.command == "send" and not args.confirm_send and not args.dry_run:
         raise SystemExit("send 默认不执行外发；请先用 preview，确认后再传 --confirm-send，或传 --dry-run")
     context = prepare(args)
@@ -1873,6 +2195,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         raise SystemExit("存在未唯一解析的 @ 姓名；为避免误 @，请补充 --mention-map/权限，或显式 --allow-unresolved-mentions")
     if not context["chat_id"]:
         raise SystemExit("真实发送需要 --chat-id 或 CHAT_ID")
+    if context["mention_info"].get("nonmembers"):
+        raise SystemExit("存在尚未入群的 @ 人员，停止发送")
 
     if args.dry_run:
         send_markdown(context["chat_id"], context["markdown"], context["idempotency_key"], context["identity"], dry_run=True, timeout=args.timeout)
@@ -1918,7 +2242,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             image_key = upload_image(path, context["identity"], args.timeout)
             image_keys[slot] = image_key
             for ref in refs:
-                markdown = markdown.replace(ref, image_key)
+                markdown = markdown.replace("](%s)" % ref, "](%s)" % image_key)
         response = send_markdown(context["chat_id"], markdown, context["idempotency_key"], context["identity"], dry_run=False, timeout=args.timeout)
         message_id = _message_id(response)
         if not message_id:

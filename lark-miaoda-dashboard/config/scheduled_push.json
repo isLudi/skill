@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "enabled": true,
+  "first_send_at": "2026-09-07T21:20:00+08:00",
+  "timezone": "Asia/Shanghai",
+  "hours": [9, 13, 17, 21],
+  "prepare_minute": 15,
+  "send_minute": 20,
+  "deadline_minute": 50,
+  "retry_minutes": 2,
+  "channels": ["KOC-周帅数学", "KOC-孟亚飞数学"],
+  "chat_id": "oc_b9dc09ba622ca00059bbc472922a803d",
+  "chat_name": "【自营koc】&【高阳团队】",
+  "bot_name": "管家",
+  "bot_open_id": "ou_f3907e865135732c15a1dfce27828411",
+  "base_as": "user",
+  "state_dir": "C:/Users/Ludim/.codex/runtime/channel-broadcast-push/scheduled",
+  "upstream": {
+    "project_id": 308,
+    "folder": "吕帅",
+    "menu_id": 102754,
+    "task_name": "market2lark",
+    "task_id": 47252,
+    "nezha_task_id": 66504,
+    "schedule_id": 53831,
+    "exec_file_id": 814514,
+    "owner": "lvshuai01"
+  }
+}
