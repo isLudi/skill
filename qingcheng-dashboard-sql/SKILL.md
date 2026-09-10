@@ -18,6 +18,7 @@ description: Resolve 青橙项目部 metrics and contracts; generate, review or 
 | 看板设计、diff、dry-run、字段反查 | [看板设计工作流](knowledge/sql_patterns/dashboard_design_change_workflow.md)；实际能力以 operator registry 为准 |
 | 知识入库、contract、schema / canonical SQL / Web profile 同步 | [知识维护](references/knowledge_maintenance.md)；需明确维护授权 |
 | 执行、权限或平台错误 | 交给 operator 的对应操作 reference；失败回到原 QuerySpec，不切换领域 |
+| 将已确认的数据按渠道推送到群、图片/文案、@提醒与本地调度 | 交给 [data-push](../data-push/SKILL.md) 的 `qingcheng` 渠道适配器；未配置时先登记，不套用市场顾问部期次或指标 |
 
 ## 必要边界
 

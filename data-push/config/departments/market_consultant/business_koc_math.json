@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "domain": "market_consultant",
+  "channel_id": "business_koc_math",
+  "channel": "KOC-周帅数学",
+  "channels": [
+    "KOC-周帅数学",
+    "KOC-孟亚飞数学"
+  ],
+  "adapter": "market-grade-manager-v1",
+  "source": {
+    "source_mode": "lead-detail",
+    "source_url": "https://gaotuedu.feishu.cn/wiki/MrPNwuFvPiiDX0k4jTXcLU8anse?table=tblqvlnqNslL1nWA&view=veweZNrbGI",
+    "raw_source_url": "https://gaotuedu.feishu.cn/wiki/MrPNwuFvPiiDX0k4jTXcLU8anse?table=tbljWRvaqKTdrCx4&view=vewO4yxS3O",
+    "raw_table_id": "tbljWRvaqKTdrCx4",
+    "raw_table_name": "市场顾问原始数据",
+    "report_profile": "grade-compact",
+    "reminder_rule": "grade_manager_minimum_all_ties",
+    "reminder_population": "raw_leads",
+    "mention_target": "manager",
+    "report_type": "auto"
+  },
+  "sender": {
+    "identity": "bot",
+    "name": "管家",
+    "open_id": "ou_f3907e865135732c15a1dfce27828411"
+  },
+  "targets": [
+    {
+      "id": "gaoyang",
+      "chat_id": "oc_978fde959e5aad96ec1aa03fe4c20b22",
+      "display_name": "【商务KOC】&【高阳团队】",
+      "enabled": true
+    }
+  ],
+  "report": {
+    "period_rule": "natural_week_friday",
+    "process_weekdays": [0, 1, 2, 3, 4, 5, 6],
+    "result_weekdays": [4, 5, 6],
+    "excluded_grades": ["初二"],
+    "minimum_post_leads": 10
+  },
+  "schedule": {
+    "enabled": true,
+    "first_send_at": "2026-09-10T21:20:00+08:00",
+    "timezone": "Asia/Shanghai",
+    "hours": [9, 13, 17, 21],
+    "prepare_minute": 15,
+    "send_minute": 20,
+    "deadline_minute": 50,
+    "retry_minutes": 2
+  },
+  "base_identity": "user",
+  "state_dir": "C:/Users/Ludim/.codex/runtime/channel-broadcast-push/business-koc-math",
+  "upstream": {
+    "project_id": 308,
+    "folder": "吕帅",
+    "menu_id": 102754,
+    "task_name": "market2lark",
+    "task_id": 47252,
+    "nezha_task_id": 66504,
+    "schedule_id": 53831,
+    "exec_file_id": 816853,
+    "verified_version_id": 205254,
+    "verified_source_sha256": "7fbf76134c9eb18079f511703ecf1ed69afc20a4ce976d172e9f308564046e10",
+    "log_protocol": "two_period_audit_v1",
+    "owner": "lvshuai01"
+  }
+}

@@ -44,6 +44,7 @@ Select the smallest sufficient Skill set. Read the selected `SKILL.md` completel
 | Registered workbooks from 青橙数据对接 / 市场顾问部临时表上传 | [sync-qingcheng-market-temp-tables](sync-qingcheng-market-temp-tables/SKILL.md); this owns source identity, transformations and upload routing |
 | Local `.xlsx`, `.xlsm`, `.csv`, `.tsv` input/output | [xlsx](xlsx/SKILL.md); preserve registered upload-file contracts |
 | Explicit query-result delivery as 飞书电子表格 / `lark_sheet` | [query-result-to-lark-sheet](query-result-to-lark-sheet/SKILL.md), then its Lark Skills |
+| 按部门/渠道推送图片和文字到群、渠道脚本、多群投递、本地播报调度、Excel按人分发、妙搭静态看板刷新 | [data-push](data-push/SKILL.md); resolve business semantics with the matching department Skill, then use its channel adapter; do not enable paused schedules during maintenance |
 | Feishu setup, login, identity, scopes or permission repair | [lark-shared](lark-shared/SKILL.md), then the relevant domain Skill |
 | Feishu docs/wiki, Drive, Sheets, Base, Miaoda apps, chat | [lark-doc](lark-doc/SKILL.md) / [lark-wiki](lark-wiki/SKILL.md), [lark-drive](lark-drive/SKILL.md), [lark-sheets](lark-sheets/SKILL.md), [lark-base](lark-base/SKILL.md), [lark-apps](lark-apps/SKILL.md), [lark-im](lark-im/SKILL.md) |
 | Feishu Markdown, events, contacts, reusable wrappers, uncovered native APIs | [lark-markdown](lark-markdown/SKILL.md), [lark-event](lark-event/SKILL.md), [lark-contact](lark-contact/SKILL.md), [lark-skill-maker](lark-skill-maker/SKILL.md), [lark-openapi-explorer](lark-openapi-explorer/SKILL.md) |

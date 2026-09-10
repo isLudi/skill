@@ -1,7 +1,0 @@
-interface:
-  display_name: "妙搭看板与飞书分发"
-  short_description: "Build Miaoda dashboards and split/send Excel via Feishu."
-  default_prompt: "Use $lark-miaoda-dashboard to build or refresh a Miaoda dashboard or split and distribute an Excel workbook through Feishu."
-
-policy:
-  allow_implicit_invocation: true

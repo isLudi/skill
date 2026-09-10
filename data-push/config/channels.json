@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "domains": {
+    "market_consultant": {
+      "semantic_skill": "market-consultant-dashboard-sql"
+    },
+    "qingcheng": {
+      "semantic_skill": "qingcheng-dashboard-sql"
+    }
+  },
+  "channels": {
+    "market_consultant/self_incubated_koc_5": "departments/market_consultant/self_incubated_koc_5.json",
+    "market_consultant/business_koc_math": "departments/market_consultant/business_koc_math.json"
+  }
+}

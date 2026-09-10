@@ -1,0 +1,7 @@
+interface:
+  display_name: "数据推送与分发"
+  short_description: "按部门和渠道配置图片、文字与负责人提醒，支持多群投递、Excel分发和妙搭刷新"
+  default_prompt: "Use $data-push to configure or extend a department-scoped channel, preview its reports, and verify independent group delivery; send or resume schedules only with explicit approval."
+
+policy:
+  allow_implicit_invocation: true
