@@ -24,6 +24,16 @@
     "nezha_task_id": 66504,
     "schedule_id": 53831,
     "exec_file_id": 814514,
+    "approved_release_binding": {
+      "version_id": 205008,
+      "source_sha256": "e1d7726ee8ce9ba89f7350906552fe4f5826d664505c3b1d62148d7f2faf5cab",
+      "source_comparison_sha256": "5942d0f3de6655516316eebc872b241fa550b5ff8d54bd36489526b53377fd58",
+      "previous_exec_file_id": 814514,
+      "publication_verified_at": "2026-09-08T10:32:27.695475+08:00",
+      "not_before": "2026-09-08T13:00:00+08:00",
+      "expires_at": "2026-09-09T00:00:00+08:00",
+      "success_template": "SUCCESS: 全部渠道{period} lead_id原始数据已安全写入飞书多维表格"
+    },
     "owner": "lvshuai01"
   }
 }

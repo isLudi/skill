@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 import ast
+import io
 import json
 import re
+import textwrap
+import tokenize
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -354,6 +357,118 @@ def validate_live_maintenance_session_source(
     return observed
 
 
+def _is_reference_only_deletion(old: str, new: str) -> bool:
+    """Allow names, never values/bindings, in a complete function/call deletion."""
+    if new:
+        return False
+    snippet = textwrap.dedent(old)
+    try:
+        tree = ast.parse(snippet)
+        tokens = list(tokenize.generate_tokens(io.StringIO(snippet).readline))
+    except (SyntaxError, tokenize.TokenError, IndentationError):
+        return False
+    if len(tree.body) != 1:
+        return False
+    root = tree.body[0]
+    if not (isinstance(root, ast.FunctionDef)
+            or isinstance(root, ast.Expr) and isinstance(root.value, ast.Call)):
+        return False
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef) and (
+            node.decorator_list or node.returns or node.args.defaults
+            or any(value is not None for value in node.args.kw_defaults)
+        ):
+            return False
+        if isinstance(node, ast.arg) and node.annotation is not None:
+            return False
+        if isinstance(node, ast.Dict) and any(
+            not isinstance(key, ast.Constant) or not isinstance(key.value, str) for key in node.keys
+        ):
+            return False
+        for field, value in ast.iter_fields(node):
+            strings = [value] if isinstance(value, str) else (
+                [item for item in value if isinstance(item, str)] if isinstance(value, list) else []
+            )
+            if not any(SECRET_KEY.search(item) for item in strings):
+                continue
+            is_reference = isinstance(node, ast.Name) and field == "id" and isinstance(node.ctx, ast.Load)
+            is_parameter = isinstance(node, ast.arg) and field == "arg"
+            if not (is_reference or is_parameter):
+                return False
+    # Comments and string spelling are not parameter references, even if the AST
+    # drops comments or decodes a string escape sequence.
+    return all(not SECRET_KEY.search(item.string) or item.type == tokenize.NAME for item in tokens)
+
+
+def _validate_patch_text(old: str, new: str, index: int) -> bool:
+    named = bool(SECRET_KEY.search(old) or SECRET_KEY.search(new))
+    if named and not _is_reference_only_deletion(old, new):
+        raise UsageError(f"Tiangong2 Python patch replacement {index} touches a secret-named region")
+    if redact_text(old).findings or redact_text(new).findings:
+        raise UsageError(f"Tiangong2 Python patch replacement {index} contains suspected secret material")
+    return named
+
+
+def _validate_deletion_context(source: str, start: int, old: str, index: int) -> None:
+    """Prove that a permitted fragment is a whole AST node, not text in a value."""
+    lines = source.splitlines(keepends=True)
+    offsets = [0]
+    for line in lines:
+        offsets.append(offsets[-1] + len(line))
+
+    def position(line: int, column: int) -> int:
+        # AST columns count UTF-8 bytes; str and exact-patch offsets count characters.
+        return offsets[line - 1] + len(lines[line - 1].encode("utf-8")[:column].decode("utf-8"))
+
+    expected_start = start + len(old) - len(old.lstrip())
+    expected_end = start + len(old.rstrip())
+    for node in ast.walk(ast.parse(source)):
+        if not (isinstance(node, ast.FunctionDef)
+                or isinstance(node, ast.Expr) and isinstance(node.value, ast.Call)):
+            continue
+        if (position(node.lineno, node.col_offset) == expected_start
+                and position(node.end_lineno, node.end_col_offset) == expected_end):
+            return
+    raise UsageError(f"Tiangong2 Python patch replacement {index} must delete one whole reference-only AST node")
+
+
+def _has_sensitive_target(target: ast.AST) -> bool:
+    for item in ast.walk(target):
+        if isinstance(item, ast.Name):
+            value = item.id
+        elif isinstance(item, ast.Attribute):
+            value = item.attr
+        elif isinstance(item, ast.Constant) and isinstance(item.value, str):
+            value = item.value
+        else:
+            continue
+        if SECRET_KEY.search(value):
+            return True
+    return False
+
+
+def _protected_secret_regions(source: str) -> list[str]:
+    """Protect credential bindings/values even against a value-only replacement."""
+    regions = []
+    for node in ast.walk(ast.parse(source)):
+        if isinstance(node, ast.Assign):
+            targets = node.targets
+        elif isinstance(node, (ast.AnnAssign, ast.AugAssign, ast.NamedExpr)):
+            targets = [node.target]
+        else:
+            targets = []
+        sensitive_target = any(_has_sensitive_target(target) for target in targets)
+        sensitive_dict = isinstance(node, ast.Dict) and any(
+            isinstance(key, ast.Constant) and isinstance(key.value, str) and SECRET_KEY.search(key.value)
+            for key in node.keys
+        )
+        sensitive_keyword = isinstance(node, ast.keyword) and node.arg and SECRET_KEY.search(node.arg)
+        if sensitive_target or sensitive_dict or sensitive_keyword:
+            regions.append(node)
+    regions.sort(key=lambda node: (node.lineno, node.col_offset))
+    return [ast.get_source_segment(source, node) for node in regions]
+
+
 def _load_patch_file(path: Path) -> tuple[dict[str, Any], str]:
     try:
         raw = path.read_text(encoding="utf-8")
@@ -378,10 +493,7 @@ def _load_patch_file(path: Path) -> tuple[dict[str, Any], str]:
         if max(len(old), len(new)) > MAX_PATCH_SNIPPET_CHARS:
             raise UsageError(f"Tiangong2 Python patch replacement {index} is too large")
         total_chars += len(old) + len(new)
-        if SECRET_KEY.search(old) or SECRET_KEY.search(new):
-            raise UsageError(f"Tiangong2 Python patch replacement {index} touches a secret-named region")
-        if redact_text(old).findings or redact_text(new).findings:
-            raise UsageError(f"Tiangong2 Python patch replacement {index} contains suspected secret material")
+        _validate_patch_text(old, new, index)
     if total_chars > MAX_PATCH_TOTAL_CHARS:
         raise UsageError("Tiangong2 Python patch total size exceeds the safety limit")
     return payload, text_sha256(raw)
@@ -403,6 +515,8 @@ def project_python_patch(source: str, patch: dict[str, Any]) -> tuple[str, list[
             raise UsageError(
                 f"Tiangong2 Python patch replacement {index} expected one match but found {count}"
             )
+        if _validate_patch_text(old, new, index):
+            _validate_deletion_context(projected, projected.index(old), old, index)
         projected = projected.replace(old, new, 1)
         summary.append(
             {
@@ -423,6 +537,8 @@ def project_python_patch(source: str, patch: dict[str, Any]) -> tuple[str, list[
         ast.parse(projected)
     except SyntaxError as exc:
         raise UsageError(f"Tiangong2 projected Python source is not syntax-valid: line {exc.lineno}") from exc
+    if _protected_secret_regions(source) != _protected_secret_regions(projected):
+        raise UsageError("Tiangong2 Python patch cannot change credential bindings or values")
     return projected, summary
 
 
@@ -463,6 +579,8 @@ def build_python_patch_plan(
         "policy": {
             "exact_replacements_only": True,
             "patch_text_must_be_non_secret": True,
+            "secret_named_deletions_require_whole_reference_only_ast_node": True,
+            "credential_bindings_and_values_unchanged": True,
             "query_sql_unchanged": True,
             "company_default_block_unchanged": True,
             "resource_binding_unchanged": True,

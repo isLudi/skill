@@ -32,7 +32,7 @@
       ],
       "status": "pending_confirmation",
       "source_path": "knowledge/sql_patterns/channel_mapping_case_when.md",
-      "source_sha256": "9c859da38fa66fd0c2d4aa8a6e786067818eca4f561437137a478844a5715e22",
+      "source_sha256": "8295eb5f90209965615ee3c5ee0a3d3cca6b4551774fd208002ed2fdceb9c5d4",
       "description": "由市场顾问最新渠道 CASE 派生的展示渠道。",
       "field": "channel_map",
       "table": "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",

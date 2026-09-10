@@ -111,6 +111,7 @@
 | [knowledge/sql_patterns/aggregation_patterns.md](../sql_patterns/aggregation_patterns.md) | 条件聚合 | 如果 `is_valid_lead` 取值未确认，必须标记待人工确认。 |
 | [knowledge/sql_patterns/channel_mapping_case_when.md](../sql_patterns/channel_mapping_case_when.md) | 0808 → 0904 融合审计 | - 0904 相比 0808：183 个唯一分支对 175 个唯一分支，新增 12 个、删除或被替换 4 个、公共 171 个；公共规则发生顺序调整，因此以 0904 全序 first-match 为准。 |
 | [knowledge/sql_patterns/channel_mapping_case_when.md](../sql_patterns/channel_mapping_case_when.md) | 0808 → 0904 融合审计 | - 6 个永久模板均保持原模板 ID 原位更新并发布，发布后真实查询 `397410..397415` 全部 `SUCCESS`；既有申请与权限关系不变。 |
+| [knowledge/sql_patterns/channel_mapping_case_when.md](../sql_patterns/channel_mapping_case_when.md) | 2026-09-10 first-match 异常与防回归约束 | - 20260911 验收：修复前同一时点对照 Query `1583081838` 识别出 137 条会从“河南进校/集团私域”回归“进校私域合作”；上线后的最终数量以各生产模型实际刷新分区为准，不把旧截面 137 硬编码为恒定业务量。 |
 | [knowledge/sql_patterns/channel_mapping_case_when.md](../sql_patterns/channel_mapping_case_when.md) | 0805 → 0808 历史融合审计 | - 0808 相比 0805：新增 15 个分支、删除 10 个既有分支；160 个公共分支相对顺序不变，同条件输出变化为 0，没有重复条件键。 |
 | [knowledge/sql_patterns/channel_mapping_case_when.md](../sql_patterns/channel_mapping_case_when.md) | 5.1 超长 CASE 顺序风险 | 典型风险： |
 | [knowledge/sql_patterns/channel_mapping_case_when.md](../sql_patterns/channel_mapping_case_when.md) | 5.1 超长 CASE 顺序风险 | 3. 用 `case ... end as current_case_result` 模拟现有 CASE 的实际输出；如果目标记录落到别的渠道，优先调整 CASE 顺序，而不是新增重复分支。 |

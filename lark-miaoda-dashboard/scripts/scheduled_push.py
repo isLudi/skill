@@ -21,6 +21,7 @@ import time
 from datetime import datetime, timedelta, timezone
 
 import group_push as gp
+import release_binding as rb
 
 TZ = timezone(timedelta(hours=8))
 SKILLS = Path(__file__).resolve().parents[2]
@@ -76,7 +77,7 @@ def require_send_window(slot):
         raise ValueError("message outlet is outside the authorized :20-:50 window")
 
 
-def operator(command, cfg, *extra):
+def operator_reply(command, cfg, *extra):
     u = cfg["upstream"]
     argv = [sys.executable, str(OPERATOR), command, "--project-id", str(u["project_id"]),
             "--folder", u["folder"], "--menu-id", str(u["menu_id"]), "--task-name", u["task_name"], *extra]
@@ -87,8 +88,15 @@ def operator(command, cfg, *extra):
         # Operator artifacts contain redacted diagnostics; do not leak raw CLI errors.
         raise RuntimeError("upstream read-only operator failed: %s exit=%s" % (command, result.returncode))
     reply = json.loads(result.stdout)
-    if not reply.get("ok") or not reply.get("read_only") or reply.get("remote_mutations") != 0:
+    if not reply.get("read_only") or reply.get("remote_mutations") != 0:
         raise RuntimeError("invalid read-only operator receipt")
+    return reply
+
+
+def operator(command, cfg, *extra):
+    reply = operator_reply(command, cfg, *extra)
+    if not reply.get("ok"):
+        raise RuntimeError("upstream read-only operator did not succeed")
     return Path(reply["artifact_dir"])
 
 
@@ -156,6 +164,9 @@ def parse_complete_log(doc, directory, cfg, slot, execution):
         raise ValueError("upstream counts disagree")
     if "目标多维表格校验通过：table_id=" + gp.push_defaults()["raw_table_id"] not in log:
         raise ValueError("upstream Base destination changed")
+    policy = rb.active_policy(cfg, slot)
+    if policy:
+        rb.verify_raw_only_log(log, policy, period)
     return {"execution_id": execution["id"], "period": period, "dt": dt, "hour": int(hour),
             "total": int(total), "channel_counts": channels, "log_sha256": stage["log_sha256"],
             "artifact_dir": str(directory), "end_time": execution["endTime"]}
@@ -163,9 +174,46 @@ def parse_complete_log(doc, directory, cfg, slot, execution):
 
 def upstream_ready(cfg, slot):
     directory = operator("list-execution-history", cfg, "--limit", "12")
-    execution = validate_history(read_json(directory / "history.json"), cfg, slot)
+    history = read_json(directory / "history.json")
+    policy = rb.active_policy(cfg, slot)
+    if policy and policy["previous_exec_file_id"] != cfg["upstream"]["exec_file_id"]:
+        raise ValueError("approved release does not match previous file pin")
+    file_id = rb.bound_file_id(cfg, policy) if policy else None
+    needs_binding = bool(policy and file_id is None)
+    if needs_binding:
+        if now() >= datetime.fromisoformat(policy["expires_at"]):
+            raise ValueError("one-time approved release binding window expired")
+        stamp = slot.strftime("%Y-%m-%d %H:%M:%S")
+        candidates = [row for row in history["executions"] if row.get("periodTime") == stamp and row.get("planRunTime") == stamp]
+        if len(candidates) != 1:
+            raise ValueError("approved release execution missing or ambiguous")
+        file_id = json.loads(candidates[0]["runConfig"]).get("execFileId")
+        if type(file_id) is not int or file_id <= 0:
+            raise ValueError("approved release execution has no valid file ID")
+    effective = cfg
+    if file_id is not None:
+        effective = {**cfg, "upstream": {**cfg["upstream"], "exec_file_id": file_id}}
+    execution = validate_history(history, effective, slot)
     directory = operator("fetch-execution-log", cfg, "--exec-id", str(execution["id"]))
-    return parse_complete_log(read_json(directory / "execution.json"), directory, cfg, slot, execution)
+    evidence = parse_complete_log(read_json(directory / "execution.json"), directory, effective, slot, execution)
+    if needs_binding:
+        reply = operator_reply("plan-task-publish", cfg)
+        if reply.get("status") != "blocked_already_published":
+            raise ValueError("approved release publication is not stable")
+        path = Path(reply["plan_file"]).resolve()
+        root = SKILLS.parent / "runtime/usql-web-query-operator/tiangong2-task"
+        if not path.is_relative_to(root.resolve()):
+            raise ValueError("publication evidence path escaped Tiangong runtime")
+        plan = read_json(path)
+        if reply.get("plan_sha256") != plan.get("plan_sha256"):
+            raise ValueError("publication evidence receipt mismatch")
+        rb.validate_publication(plan, cfg, policy, execution, now())
+        rb.persist_binding(cfg, policy, file_id, execution, plan, now())
+        emit("approved_release_file_bound", version_id=policy["version_id"], exec_file_id=file_id, execution_id=execution["id"])
+    if policy:
+        evidence["approved_version_id"] = policy["version_id"]
+        evidence["exec_file_id"] = file_id
+    return evidence
 
 
 def verify_bot(cfg):

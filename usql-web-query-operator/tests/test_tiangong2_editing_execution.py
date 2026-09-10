@@ -506,6 +506,93 @@ class Tiangong2MaintenanceSessionTests(unittest.TestCase):
             )
 
 
+class Tiangong2ReferenceDeletionTests(unittest.TestCase):
+    def plan(self, old: str, *, new: str = "", source: str | None = None) -> tuple[dict, str]:
+        reader = FakeReader(source if source is not None else SOURCE + "\n" + old + "\nprint('end')\n")
+        with tempfile.TemporaryDirectory() as directory:
+            path = Tiangong2MaintenanceSessionTests.write_patch(Path(directory) / "patch.json", old=old, new=new)
+            plan = build_python_patch_plan(reader, task=make_task(), identity={"name": "lvshuai01"}, patch_file=path)
+            projected, _ = prepare_python_patch(reader, task=make_task(), plan=plan)
+            return plan, projected
+
+    def test_delete_function_with_reference_parameters_preserves_actual_secret(self) -> None:
+        old = "def sync_summary(session, tenant_access_token, app_token):\n    return fetch(session, tenant_access_token, app_token)\n"
+        plan, projected = self.plan(old)
+        self.assertEqual(plan["status"], "ready")
+        self.assertNotIn("sync_summary", projected)
+        self.assertIn("app_secret = 'company-secret-value'", projected)
+        self.assertNotIn("company-secret-value", str(plan))
+
+    def test_delete_nested_call_with_unicode_prefix(self) -> None:
+        old = "    sync_summary(session, tenant_access_token, app_token)\n"
+        source = SOURCE + "\ndef main():\n    print('中文')\n" + old + "    return True\n"
+        _, projected = self.plan(old, source=source)
+        self.assertNotIn("sync_summary", projected)
+        self.assertIn("print('中文')", projected)
+
+    def test_utf8_ast_column_is_not_character_offset(self) -> None:
+        old = "sync_summary(token)"
+        source = SOURCE + '\nprint("中文"); ' + old + '\n'
+        _, projected = self.plan(old, source=source)
+        self.assertIn('print("中文"); ', projected)
+
+    def test_credential_values_bindings_and_other_roles_still_rejected(self) -> None:
+        cases = [
+            "app_secret = 'x'", "app_secret = existing", "obj.token = value",
+            "settings['token'] = value", "send(token=value)", "send(obj.token)",
+            "send({'token': 'x'})", "send('token')", "# token\nsend(value)",
+            "def remove(token='x'):\n    return token\n",
+            "def remove(token: str):\n    return token\n",
+            "@decorator\ndef remove(token):\n    return token\n",
+            "def get_token():\n    return value\n",
+            "def remove(token):\n    token = value\n    return token\n",
+            "def remove(value):\n    global token\n    return value\n",
+            "def remove(token):\n    return {'to' + 'ken': 'x'}\n",
+            "def remove(token):\n    return {'\\x74oken': 'x'}\n",
+            "send(token)\nsend(other)", "    token,\n",
+        ]
+        for old in cases:
+            with self.subTest(old=old):
+                with self.assertRaises(UsageError):
+                    self.plan(old)
+
+    def test_reference_additions_or_edits_are_not_an_exception(self) -> None:
+        for new in ["send_elsewhere(token)", " ", "# removed"]:
+            with self.subTest(new=new):
+                with self.assertRaisesRegex(UsageError, "secret-named"):
+                    self.plan("send(token)", new=new)
+
+    def test_reference_text_inside_string_is_not_a_deletable_ast_node(self) -> None:
+        for prefix in ["label", "app_secret"]:
+            with self.subTest(prefix=prefix):
+                source = SOURCE + '\n' + prefix + ' = "send(token)"\n'
+                with self.assertRaisesRegex(UsageError, "whole reference-only AST node"):
+                    self.plan("send(token)", source=source)
+
+    def test_partial_nested_call_and_function_header_rejected(self) -> None:
+        cases = [("send(token)", "return send(token)"),
+                 ("send(token)", "other(send(token))"),
+                 ("def remove(token):\n    print('a')\n", "def remove(token):\n    print('a')\n    print('b')\n")]
+        for old, body in cases:
+            with self.subTest(old=old):
+                source = SOURCE + "\n" + ("def wrapper():\n    " + body if body.startswith("return") else body) + "\n"
+                with self.assertRaisesRegex(UsageError, "whole reference-only AST node"):
+                    self.plan(old, source=source)
+
+    def test_value_only_patch_cannot_modify_credentials_outside_default_block(self) -> None:
+        cases = ["app_secret = 'old-value'", "settings['token'] = 'old-value'",
+                 "settings = {'token': 'old-value'}", "send(token='old-value')"]
+        for body in cases:
+            with self.subTest(body=body):
+                with self.assertRaisesRegex(UsageError, "credential bindings or values"):
+                    self.plan("old-value", new="new-value", source=SOURCE + "\n" + body + "\n")
+
+    def test_secret_default_block_still_byte_protected(self) -> None:
+        source = SOURCE.replace("# === end 默认参数，不需要修改 ===", "send(token)\n# === end 默认参数，不需要修改 ===")
+        with self.assertRaisesRegex(UsageError, "company default-parameter block"):
+            self.plan("send(token)\n", source=source)
+
+
 class Tiangong2ExecuteOnceTests(unittest.TestCase):
     @staticmethod
     def make_plan() -> dict:
