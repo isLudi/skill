@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "domain": "market_consultant",
-  "channel_id": "supervisor_self_incubated_koc_5_grade_9",
-  "channel": "KOC-孟亚飞数学",
-  "channels": ["KOC-孟亚飞数学", "自孵化KOC-5元纯课"],
+  "channel_id": "supervisor_yafei_grade_9",
+  "channel": "B站信息流-亚飞",
+  "channels": ["B站信息流-亚飞"],
   "adapter": "market-grade-manager-v1",
   "source": {
     "source_mode": "lead-detail",
@@ -15,8 +15,7 @@
       "field": "渠道",
       "case_sensitive": true,
       "values": {
-        "KOC-孟亚飞数学": "KOC-孟亚飞数学",
-        "自孵化KOC-5元纯课": "自孵化KOC-5元纯课"
+        "B站信息流-亚飞": "B站信息流-亚飞"
       }
     },
     "report_profile": "supervisor-detail",
@@ -32,9 +31,9 @@
   },
   "targets": [
     {
-      "id": "koc_middle_grade_9",
-      "chat_id": "oc_601bde838d4fbda7ac09840a58228f9c",
-      "display_name": "💗0911期【KOC初中】沟通群",
+      "id": "yafei_grade_9",
+      "chat_id": "oc_3c652da1589558f0b0585d2bdb2f8cb9",
+      "display_name": "💪【亚飞IP- B站&直播】初三",
       "enabled": true
     }
   ],
@@ -51,16 +50,16 @@
     "first_send_at": "2026-09-11T21:20:00+08:00",
     "timezone": "Asia/Shanghai",
     "hours": [13, 17, 21],
-    "windows_task_name": "Codex-Lark-Supervisor-KOC-Grade9-Push",
-    "stagger_order": 5,
-    "prepare_minute": 24,
-    "send_minute": 24,
+    "windows_task_name": "Codex-Lark-Supervisor-Yafei-Grade9-Push",
+    "stagger_order": 6,
+    "prepare_minute": 25,
+    "send_minute": 25,
     "deadline_minute": 50,
     "retry_minutes": 2
   },
   "base_identity": "user",
   "verification_identity": "user",
-  "state_dir": "C:/Users/Ludim/.codex/runtime/channel-broadcast-push/supervisor-self-incubated-koc-5-grade-9",
+  "state_dir": "C:/Users/Ludim/.codex/runtime/channel-broadcast-push/supervisor-yafei-grade-9",
   "upstream": {
     "project_id": 308,
     "folder": "吕帅",

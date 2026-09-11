@@ -6,6 +6,7 @@ from ...core import catalog
 from .channels import (
     business_koc_math, self_incubated_koc_5, supervisor_koc_douyin_sync,
     supervisor_private_app_sync, supervisor_self_incubated_koc_5_grade_9,
+    supervisor_yafei_grade_9,
 )
 
 POLICIES = {
@@ -14,6 +15,7 @@ POLICIES = {
     "supervisor_koc_douyin_sync": supervisor_koc_douyin_sync,
     "supervisor_private_app_sync": supervisor_private_app_sync,
     "supervisor_self_incubated_koc_5_grade_9": supervisor_self_incubated_koc_5_grade_9,
+    "supervisor_yafei_grade_9": supervisor_yafei_grade_9,
 }
 
 
@@ -55,7 +57,7 @@ def validate_definition(definition):
     for target in definition["targets"]:
         if definition["channel_id"] in {
                 "business_koc_math", "supervisor_koc_douyin_sync", "supervisor_private_app_sync",
-                "supervisor_self_incubated_koc_5_grade_9"
+                "supervisor_self_incubated_koc_5_grade_9", "supervisor_yafei_grade_9"
         } and target["chat_id"] != policy.CHAT_ID:
             raise ValueError("Configured target differs from the reviewed channel policy")
         policy.enforce_group_scope(target["chat_id"], channels[0], definition["source"]["report_profile"])

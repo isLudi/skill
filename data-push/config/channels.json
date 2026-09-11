@@ -13,6 +13,7 @@
     "market_consultant/business_koc_math": "departments/market_consultant/business_koc_math.json",
     "market_consultant/supervisor_koc_douyin_sync": "departments/market_consultant/supervisor_koc_douyin_sync.json",
     "market_consultant/supervisor_private_app_sync": "departments/market_consultant/supervisor_private_app_sync.json",
-    "market_consultant/supervisor_self_incubated_koc_5_grade_9": "departments/market_consultant/supervisor_self_incubated_koc_5_grade_9.json"
+    "market_consultant/supervisor_self_incubated_koc_5_grade_9": "departments/market_consultant/supervisor_self_incubated_koc_5_grade_9.json",
+    "market_consultant/supervisor_yafei_grade_9": "departments/market_consultant/supervisor_yafei_grade_9.json"
   }
 }

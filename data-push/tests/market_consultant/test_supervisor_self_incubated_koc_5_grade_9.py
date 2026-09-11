@@ -15,7 +15,7 @@ class SupervisorSelfIncubatedKocGrade9Tests(unittest.TestCase):
         self.target = catalog.select_targets(self.definition)[0]
 
     def test_registered_scope_target_profile_and_schedule(self):
-        self.assertEqual(tuple(self.definition["channels"]), ("自孵化KOC-5元纯课",))
+        self.assertEqual(tuple(self.definition["channels"]), ("KOC-孟亚飞数学", "自孵化KOC-5元纯课"))
         self.assertEqual(tuple(self.definition["report"]["included_grades"]), ("初三",))
         self.assertEqual(tuple(self.definition["channels"]), policy.CHANNELS)
         self.assertEqual(tuple(self.definition["report"]["included_grades"]), policy.INCLUDED_GRADES)
@@ -23,19 +23,21 @@ class SupervisorSelfIncubatedKocGrade9Tests(unittest.TestCase):
         self.assertEqual(self.definition["source"]["report_profile"], "supervisor-detail")
         self.assertIs(self.definition["source"]["channel_match"]["case_sensitive"], True)
         self.assertEqual(self.definition["source"]["channel_match"]["values"],
-                         {"自孵化KOC-5元纯课": "自孵化KOC-5元纯课"})
+                         {"KOC-孟亚飞数学": "KOC-孟亚飞数学",
+                          "自孵化KOC-5元纯课": "自孵化KOC-5元纯课"})
         self.assertEqual(self.definition["schedule"]["windows_task_name"], "Codex-Lark-Supervisor-KOC-Grade9-Push")
         self.assertEqual(self.definition["schedule"]["stagger_order"], 5)
         self.assertEqual(self.definition["schedule"]["prepare_minute"], 24)
 
     def test_report_arguments_keep_supervisor_contract(self):
-        args = adapter.report_arguments(self.definition, self.target, report_type="both")
-        self.assertEqual(args.channel, "自孵化KOC-5元纯课")
-        self.assertEqual(args.chat_id, policy.CHAT_ID)
-        self.assertEqual(args.report_profile, "supervisor-detail")
-        self.assertEqual(args.mention_target, "supervisor")
-        self.assertEqual(args.identity, "bot")
-        self.assertEqual(args.verification_identity, "user")
+        for channel in policy.CHANNELS:
+            args = adapter.report_arguments(self.definition, self.target, channel=channel, report_type="both")
+            self.assertEqual(args.channel, channel)
+            self.assertEqual(args.chat_id, policy.CHAT_ID)
+            self.assertEqual(args.report_profile, "supervisor-detail")
+            self.assertEqual(args.mention_target, "supervisor")
+            self.assertEqual(args.identity, "bot")
+            self.assertEqual(args.verification_identity, "user")
 
     def test_target_channel_and_grade_drift_are_blocked(self):
         for mutate in (
