@@ -60,7 +60,7 @@ class ScheduledGradeTests(unittest.TestCase):
         monday = sp.report_args(self.cfg, bp.CHANNEL, self.slot + timedelta(days=4))
         self.assertEqual((thursday.period, thursday.report_type, thursday.mention_target), ("20260911期", "process", "manager"))
         self.assertFalse(thursday.no_mentions)
-        self.assertEqual((friday.period, friday.report_type), ("20260911期", "both"))
+        self.assertEqual((friday.period, friday.report_type), ("20260911期", "result"))
         self.assertEqual((monday.period, monday.report_type), ("20260918期", "process"))
 
     def test_two_period_evidence_does_not_choose_maximum_period(self):
@@ -144,6 +144,22 @@ class ScheduledGradeTests(unittest.TestCase):
                 self.assertEqual(clean.call_count, 1)
             db.close()
 
+    def test_empty_supervisor_channel_skips_upload_send_and_ledger(self):
+        context = {**self.context(), "channel": "抖音私信", "skip_delivery": True,
+                   "skip_reason": "no_supervisor_rows_meet_minimum_post_leads",
+                   "markdown": "", "image_path": None, "result_image_path": None}
+        with tempfile.TemporaryDirectory() as folder:
+            db = sp.connect_ledger(Path(folder))
+            with patch.object(sp, "assert_current_revision") as revision, \
+                 patch.object(sp.gp, "upload_image") as upload, \
+                 patch.object(sp.gp, "send_markdown") as send:
+                self.assertTrue(sp.deliver(context, self.cfg, self.slot, db, self.evidence()))
+                self.assertEqual(db.execute("SELECT COUNT(*) FROM deliveries").fetchone()[0], 0)
+                revision.assert_not_called()
+                upload.assert_not_called()
+                send.assert_not_called()
+            db.close()
+
     def test_exact_manager_mentions_are_verified_on_readback(self):
         context = self.context()
         message = {"message_id": "om_mock", "chat_id": bp.CHAT_ID, "sender": {"id": self.cfg["bot_open_id"], "name": "管家"},
@@ -153,6 +169,38 @@ class ScheduledGradeTests(unittest.TestCase):
         for text in ('20260911期 img_p', '20260911期 img_p <at user_id="all"></at>', '20260911期 img_p <at user_id="ou_other"></at>'):
             with patch.object(sp.gp, "run_lark", return_value=json.dumps({"ok": True, "data": {"messages": [{**message, "content": text}]}})), self.assertRaises(ValueError):
                 sp.receipt_readback("om_mock", self.cfg, context, {"process": "img_p"})
+
+    def test_supervisor_detail_mentions_are_verified_on_readback(self):
+        context = {**self.context(), "report_profile": "supervisor-detail"}
+        message = {"message_id": "om_mock", "chat_id": bp.CHAT_ID,
+                   "sender": {"id": self.cfg["bot_open_id"], "name": "管家"},
+                   "content": '20260911期 img_p <at user_id="ou_manager">负责人A</at>',
+                   "mentions": [{"id": "ou_manager", "name": "负责人A"}]}
+        with patch.object(sp.gp, "run_lark", return_value=json.dumps(
+                {"ok": True, "data": {"messages": [message]}})):
+            result = sp.receipt_readback("om_mock", self.cfg, context, {"process": "img_p"})
+        self.assertTrue(result["verified"])
+        self.assertEqual(result["mention_ids"], ["ou_manager"])
+
+    def test_readback_only_reverification_updates_existing_receipt_without_sending(self):
+        context = {**self.context(), "report_profile": "supervisor-detail"}
+        with tempfile.TemporaryDirectory() as folder:
+            db = sp.connect_ledger(Path(folder))
+            db.execute("INSERT INTO deliveries VALUES (?,?,?,?,?,?)",
+                       ("key", self.slot.isoformat(), bp.CHANNEL, "sent_unverified", "om_mock",
+                        json.dumps({"image_keys": {"process": "img_p"},
+                                    "readback_error_type": "ValueError"})))
+            db.commit()
+            with patch.object(sp, "receipt_readback", return_value={"verified": True}) as readback, \
+                 patch.object(sp.gp, "upload_image") as upload, patch.object(sp.gp, "send_markdown") as send:
+                result = sp.reverify_unverified_delivery(db, "key", self.cfg, context)
+            self.assertEqual(result["status"], "sent_verified")
+            self.assertEqual(db.execute("SELECT status FROM deliveries WHERE key='key'").fetchone()[0],
+                             "sent_verified")
+            readback.assert_called_once()
+            upload.assert_not_called()
+            send.assert_not_called()
+            db.close()
 
     def test_default_preview_uses_only_read_calls_and_current_period(self):
         parser = argparse.ArgumentParser()

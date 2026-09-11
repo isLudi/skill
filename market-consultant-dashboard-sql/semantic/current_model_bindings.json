@@ -11,10 +11,10 @@
       "model_id": "2054",
       "ordinal": 1,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/(内部渠道)外呼过程数据",
-      "source_observed_on": "2026-09-10",
-      "sql_bytes": 72970,
-      "sql_lines": 833,
-      "sql_sha256": "ec6e90bd61006a7a3faf668d2da049aa0650ee5fba7f071ab16616ece230a9c5",
+      "source_observed_on": "2026-09-11",
+      "sql_bytes": 73655,
+      "sql_lines": 841,
+      "sql_sha256": "8dc877655394f6a010e411d300b487961718193286bf4b54356ed22a0e16b80c",
       "subject_id": "2044"
     },
     {
@@ -26,10 +26,10 @@
       "model_id": "2132",
       "ordinal": 2,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/(内部)到课衰减情况",
-      "source_observed_on": "2026-09-10",
-      "sql_bytes": 58873,
+      "source_observed_on": "2026-09-11",
+      "sql_bytes": 59200,
       "sql_lines": 505,
-      "sql_sha256": "3b9ec09df0bc16ea9554919476962359a27d19094f10eedd3410654b58f68c3e",
+      "sql_sha256": "63cf535ad08c2b288b64febc4ac80f53af37a09c54b82133698af7cc4f74e5cb",
       "subject_id": "2121"
     },
     {
@@ -41,10 +41,10 @@
       "model_id": "2253",
       "ordinal": 3,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/转化数据_市场顾问",
-      "source_observed_on": "2026-09-10",
-      "sql_bytes": 57527,
-      "sql_lines": 524,
-      "sql_sha256": "856c0793f44a65ca0fedbbe87b1487cf478c6a97bcd60616f45c8304c86cb39d",
+      "source_observed_on": "2026-09-11",
+      "sql_bytes": 57765,
+      "sql_lines": 525,
+      "sql_sha256": "ae879f4e0e29ebccdb5c271ac752a1ff14d87e1ffb9e1afd3d202336afd34808",
       "subject_id": "2242"
     },
     {
@@ -56,10 +56,10 @@
       "model_id": "2293",
       "ordinal": 4,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/运营侧个人数据",
-      "source_observed_on": "2026-09-10",
-      "sql_bytes": 87591,
+      "source_observed_on": "2026-09-11",
+      "sql_bytes": 87889,
       "sql_lines": 1306,
-      "sql_sha256": "30f84579df2d6d442475c917182b04dd0bbb3f600745c5526edd1dbdbc29785d",
+      "sql_sha256": "2a5071a3214848695de469e088da681b6637c93ac4dbac737b230a07ad8d4698",
       "subject_id": "2282"
     },
     {

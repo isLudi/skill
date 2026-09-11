@@ -92,6 +92,7 @@ def run(definition, target, request_id, *, preflight=False):
             items = [{"channel": context["channel"], "key": channel_request_key(cfg, request_id, context["channel"]),
                       "period": context["period"], "report_type": context["report_type"],
                       "raw_count": context["raw_count"], "snapshot": context["snapshot"],
+                      "delivery_status": "skipped_no_eligible_rows" if context.get("skip_delivery") else "ready",
                       "mentions": sorted(context["mention_info"]["resolved"]),
                       "preview": adapter.write_preview(context)} for context in contexts]
             summary = {"request_id": request_id, "chat_id": cfg["chat_id"],
@@ -99,7 +100,8 @@ def run(definition, target, request_id, *, preflight=False):
             output = state / "immediate" / request_id / ("preflight.json" if preflight else "send-summary.json")
             if preflight:
                 for context, item in zip(contexts, items):
-                    schedule.gp.send_markdown(cfg["chat_id"], context["markdown"], item["key"], "bot", dry_run=True, timeout=60)
+                    if not context.get("skip_delivery"):
+                        schedule.gp.send_markdown(cfg["chat_id"], context["markdown"], item["key"], "bot", dry_run=True, timeout=60)
                 summary["status"] = "immediate_preflight_passed_no_send"
                 output.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
                 schedule.emit(summary["status"], **{k: v for k, v in summary.items() if k != "status"})
@@ -114,6 +116,10 @@ def run(definition, target, request_id, *, preflight=False):
 
             results = []
             for context, item in zip(contexts, items):
+                if context.get("skip_delivery"):
+                    item.update(status="skipped_no_eligible_rows", message_id="", receipt={})
+                    results.append(True)
+                    continue
                 prior = db.execute("SELECT status,message_id FROM deliveries WHERE key=?", (item["key"],)).fetchone()
                 if prior:
                     schedule.emit("immediate_duplicate_suppressed", channel=context["channel"],
@@ -126,7 +132,8 @@ def run(definition, target, request_id, *, preflight=False):
                 item.update(status=row[0] if row else "not_sent", message_id=row[1] if row else "",
                             receipt=json.loads(row[2]) if row else {})
                 results.append(ok)
-            summary["status"] = "sent_verified" if all(results) else "partial_or_failed"
+            summary["status"] = ("completed_with_skips" if all(results) and any(c.get("skip_delivery") for c in contexts)
+                                 else "sent_verified" if all(results) else "partial_or_failed")
             output.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
             schedule.emit("immediate_finished", status=summary["status"], channels=len(items), artifact=str(output))
             return 0 if all(results) else 1

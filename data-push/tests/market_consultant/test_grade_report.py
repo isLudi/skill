@@ -44,7 +44,7 @@ class GradeReportTests(unittest.TestCase):
 
     def test_result_only_friday_to_sunday(self):
         for day in range(7, 14):
-            self.assertEqual(bp.scheduled_report_type(date(2026, 9, day)), "both" if day >= 11 else "process")
+            self.assertEqual(bp.scheduled_report_type(date(2026, 9, day)), "result" if day >= 11 else "process")
         with self.assertRaises(ValueError):
             bp.enforce_live_calendar("20260918期", "process", date(2026, 9, 10))
         with self.assertRaises(ValueError):
@@ -58,7 +58,10 @@ class GradeReportTests(unittest.TestCase):
 
     def test_exact_compact_columns(self):
         self.assertEqual([c[1] for c in gr.COLUMNS["process"]], ["期次", "负责人", "退后线索", "首call", "48h外呼", "5min", "好友率", "深沟率", "双沟率"])
-        self.assertEqual([c[1] for c in gr.COLUMNS["result"]], ["期次", "负责人", "退后线索", "首节到课率", "单效（当期）", "单效"])
+        self.assertEqual(
+            [c[1] for c in gr.COLUMNS["result"]],
+            ["期次", "负责人", "退后线索", "5min", "双沟率", "首节到课率", "当期单效", "截面单效"],
+        )
 
     def test_process_does_not_read_conversion_fields(self):
         fields, _ = gr.projection(set(leads()[0]), "process")

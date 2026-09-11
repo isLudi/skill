@@ -7,9 +7,12 @@ Windows Task Scheduler owns wakeup; SQLite owns durable per-slot delivery claims
 from __future__ import annotations
 
 import argparse
+from contextlib import contextmanager
+from contextvars import ContextVar
 import hashlib
 import json
 import math
+import os
 from pathlib import Path
 import re
 import sqlite3
@@ -33,6 +36,7 @@ TZ = timezone(timedelta(hours=8))
 SKILLS = SKILLS_ROOT
 OPERATOR = SKILLS / "usql-web-query-operator/scripts/tiangong2_task.py"
 DEFAULT_CONFIG = SKILL_ROOT / "config/scheduled_push.json"
+_LIVE_STATUS_PATH = ContextVar("data_push_live_status_path", default=None)
 
 
 def now():
@@ -40,7 +44,34 @@ def now():
 
 
 def emit(event, **fields):
-    print(json.dumps({"at": now().isoformat(), "event": event, **fields}, ensure_ascii=False), flush=True)
+    payload = {"at": now().isoformat(), "event": event, **fields}
+    path = _LIVE_STATUS_PATH.get()
+    if path is not None:
+        temporary = path.with_name(f".{path.name}.{os.getpid()}.tmp")
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            temporary.write_text(json.dumps(payload, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
+            temporary.replace(path)
+        finally:
+            temporary.unlink(missing_ok=True)
+    print(json.dumps(payload, ensure_ascii=False, default=str), flush=True)
+
+
+@contextmanager
+def live_status(state, cfg, slot):
+    """Expose only the current run state; never retain a historical status log."""
+    path = Path(state) / "live-status.json"
+    path.unlink(missing_ok=True)
+    token = _LIVE_STATUS_PATH.set(path)
+    try:
+        emit("started", slot=slot.isoformat(), channel_key=cfg["channel_key"],
+             task_name=cfg["windows_task_name"], deadline=(slot + timedelta(minutes=cfg["deadline_minute"])).isoformat())
+        yield path
+    finally:
+        path.unlink(missing_ok=True)
+        for temporary in path.parent.glob(f".{path.name}.*.tmp"):
+            temporary.unlink(missing_ok=True)
+        _LIVE_STATUS_PATH.reset(token)
 
 
 def read_json(path):
@@ -55,11 +86,16 @@ def load_config(path):
 
 def validate_config(cfg):
     catalog.require_registered_schedule(cfg)
-    if cfg.get("hours") != [9, 13, 17, 21] or cfg.get("timezone") != "Asia/Shanghai":
-        raise ValueError("Unreviewed schedule; expected four China-time slots")
-    if (cfg.get("prepare_minute"), cfg.get("send_minute"), cfg.get("deadline_minute"), cfg.get("retry_minutes")) != (15, 20, 50, 2):
+    if cfg.get("hours") != [13, 17, 21] or cfg.get("timezone") != "Asia/Shanghai":
+        raise ValueError("Unreviewed schedule; expected afternoon China-time slots")
+    order = cfg.get("stagger_order")
+    start_minute = cfg.get("prepare_minute")
+    if (not isinstance(order, int) or order < 1 or start_minute != 19 + order
+            or cfg.get("send_minute") != start_minute
+            or cfg.get("deadline_minute") != 50 or cfg.get("retry_minutes") != 2
+            or not re.fullmatch(r"Codex-Lark-[A-Za-z0-9-]+Push", cfg.get("windows_task_name", ""))):
         raise ValueError("Unreviewed retry window")
-    if cfg.get("report_profile") != bp.PROFILE:
+    if cfg.get("report_profile") not in {bp.PROFILE, "supervisor-detail"}:
         raise ValueError("Unreviewed delivery profile")
     if not cfg.get("channel_key") and (cfg.get("channels") != [bp.CHANNEL] or cfg.get("chat_id") != bp.CHAT_ID):
         raise ValueError("Unreviewed delivery scope")
@@ -74,24 +110,27 @@ def active_slot(at, cfg, preflight=False):
     if at.hour not in cfg["hours"]:
         return None
     slot = at.replace(minute=0, second=0, microsecond=0)
-    if not preflight and not (slot + timedelta(minutes=15) <= at < slot + timedelta(minutes=51)):
+    if not preflight and not (slot + timedelta(minutes=cfg["prepare_minute"]) <= at < slot + timedelta(minutes=cfg["deadline_minute"] + 1)):
         return None
-    if slot + timedelta(minutes=20) < datetime.fromisoformat(cfg["first_send_at"]):
+    if slot + timedelta(minutes=cfg["send_minute"]) < datetime.fromisoformat(cfg["first_send_at"]):
         return None
     return slot
 
 
-def next_check(at, slot):
-    start = slot + timedelta(minutes=20)
+def next_check(at, slot, cfg):
+    start = slot + timedelta(minutes=cfg["send_minute"])
     if at < start:
         return start
-    n = math.floor((at - start).total_seconds() / 120) + 1
-    return start + timedelta(minutes=2 * n)
+    interval = cfg["retry_minutes"] * 60
+    n = math.floor((at - start).total_seconds() / interval) + 1
+    return start + timedelta(seconds=interval * n)
 
 
-def require_send_window(slot):
-    if not slot + timedelta(minutes=20) <= now() < slot + timedelta(minutes=51):
-        raise ValueError("message outlet is outside the authorized :20-:50 window")
+def require_send_window(slot, cfg=None):
+    start = 20 if cfg is None else cfg["send_minute"]
+    deadline = 50 if cfg is None else cfg["deadline_minute"]
+    if not slot + timedelta(minutes=start) <= now() < slot + timedelta(minutes=deadline + 1):
+        raise ValueError(f"message outlet is outside the authorized :{start:02d}-:{deadline:02d} window")
 
 
 def operator_reply(command, cfg, *extra):
@@ -292,7 +331,7 @@ def validate_context(context, evidence, cfg=None, slot=None):
         raise ValueError("Base channel/period/partition/count disagrees with complete upstream write")
     if context["raw_read_audit"].get("has_more") is not False or context["raw_read_audit"].get("rev") is None:
         raise ValueError("incomplete Base snapshot")
-    if context.get("report_profile") == bp.PROFILE:
+    if context.get("report_profile") in {bp.PROFILE, "supervisor-detail"}:
         policy.enforce_group_scope(context["chat_id"], context["channel"], context["report_profile"])
         if cfg is not None:
             if context["chat_id"] != cfg["chat_id"] or context["identity"] != "bot":
@@ -300,14 +339,28 @@ def validate_context(context, evidence, cfg=None, slot=None):
             policy.enforce_live_calendar(context["period"], context["report_type"], slot or now())
             if context["report_type"] != policy.scheduled_report_type(slot or now()):
                 raise ValueError("scheduled report type does not match the weekday policy")
+        if context.get("skip_delivery"):
+            report = context.get("supervisor_report")
+            if (context.get("report_profile") != "supervisor-detail"
+                    or context.get("skip_reason") != "no_supervisor_rows_meet_minimum_post_leads"
+                    or not report or report["blocks"] or context.get("markdown")
+                    or context.get("image_path") or context.get("result_image_path")
+                    or report["reminder_names"]):
+                raise ValueError("invalid no-data skip context")
+            return
         info = context["mention_info"]
-        if context["mention_target"] != "manager" or any(info.get(k) for k in ("unresolved", "ambiguous", "lookup_error", "nonmembers")):
-            raise ValueError("all lowest-manager accounts must be resolved and in the group")
+        expected_target = "supervisor" if context["report_profile"] == "supervisor-detail" else "manager"
+        if context["mention_target"] != expected_target or any(info.get(k) for k in ("unresolved", "ambiguous", "lookup_error", "nonmembers")):
+            raise ValueError("all lowest reminder accounts must be resolved and in the group")
         if set(info["resolved"]) != set(context["grade_report"]["reminder_names"]):
-            raise ValueError("manager reminder set mismatch")
+            raise ValueError("reminder account set mismatch")
         if gr.mention_ids(context["markdown"]) != set(info["resolved"].values()):
             raise ValueError("unexpected or missing manager mentions")
-        for section in gr.sections(context["report_type"]):
+        report_sections = gr.sections(context["report_type"])
+        if context["report_profile"] == "supervisor-detail":
+            from . import supervisor_report
+            report_sections = supervisor_report.sections(context["report_type"])
+        for section in report_sections:
             if not context.get("image_path" if section == "process" else "result_image_path"):
                 raise ValueError("selected report image missing")
     else:
@@ -365,7 +418,8 @@ def receipt_readback(message_id, cfg, context, image_keys):
     text = content if isinstance(content, str) else json.dumps(content, ensure_ascii=False)
     if any(key not in text for key in image_keys.values()) or context["period"] not in text:
         raise ValueError("message readback images or period mismatch")
-    expected_mentions = set(context.get("mention_info", {}).get("resolved", {}).values()) if context.get("report_profile") == bp.PROFILE else set()
+    expected_mentions = (set(context.get("mention_info", {}).get("resolved", {}).values())
+                         if context.get("report_profile") in {bp.PROFILE, "supervisor-detail"} else set())
     actual_mentions = gr.mention_ids(content) | gr.mention_ids({"mentions": msg.get("mentions", [])})
     if actual_mentions != expected_mentions:
         raise ValueError("delivered mention accounts differ from the verified reminder set")
@@ -381,14 +435,41 @@ def receipt_readback(message_id, cfg, context, image_keys):
             "image_count": len(image_keys), "contains_mentions": bool(actual_mentions), "mention_ids": sorted(actual_mentions)}
 
 
+def reverify_unverified_delivery(db, key, cfg, context):
+    """Read back one already-sent message; this function has no send capability."""
+    row = db.execute("SELECT status,message_id,detail FROM deliveries WHERE key=?", (key,)).fetchone()
+    if not row or row[0] != "sent_unverified" or not row[1]:
+        raise ValueError("delivery is not eligible for readback-only reverification")
+    detail = json.loads(row[2])
+    detail["readback"] = receipt_readback(row[1], cfg, context, detail["image_keys"])
+    detail.pop("readback_error_type", None)
+    updated = db.execute(
+        "UPDATE deliveries SET status='sent_verified',detail=? WHERE key=? AND status='sent_unverified' AND message_id=?",
+        (json.dumps(detail, ensure_ascii=False), key, row[1]))
+    if updated.rowcount != 1:
+        db.rollback()
+        raise ValueError("delivery status changed during reverification")
+    db.commit()
+    return {"key": key, "message_id": row[1], "status": "sent_verified",
+            "readback": detail["readback"]}
+
+
 def deliver(context, cfg, slot, db, evidence):
+    if context.get("skip_delivery"):
+        emit("channel_skipped_no_eligible_rows", channel=context["channel"], period=context["period"],
+             reason=context["skip_reason"])
+        return True
     key = delivery_key(cfg, slot, context["channel"])
     return _deliver_verified(context, cfg, slot, db, evidence, key=key,
-                             time_guard=lambda: require_send_window(slot))
+                             time_guard=lambda: require_send_window(slot, cfg))
 
 
 def _deliver_verified(context, cfg, slot, db, evidence, *, key, time_guard):
     """Shared outlet; each authorized caller must supply its own real-time guard."""
+    if context.get("skip_delivery"):
+        emit("channel_skipped_no_eligible_rows", channel=context["channel"], period=context["period"],
+             reason=context["skip_reason"])
+        return True
     prior = db.execute("SELECT status,message_id FROM deliveries WHERE key=?", (key,)).fetchone()
     if prior:
         emit("duplicate_suppressed", channel=context["channel"], status=prior[0], message_id=prior[1])
@@ -451,27 +532,35 @@ def run(cfg, preflight=False):
         emit("outside_authorized_window")
         return 0
     state = Path(cfg["state_dir"])
-    db = connect_ledger(state)
-    try:
-        return run_slot(cfg, preflight, slot, state, db)
-    finally:
-        db.close()
+    with live_status(state, cfg, slot):
+        db = connect_ledger(state)
+        try:
+            return run_slot(cfg, preflight, slot, state, db)
+        finally:
+            db.close()
 
 
 def run_slot(cfg, preflight, slot, state, db):
     cached = None
     wake = now()
-    while now() < slot + timedelta(minutes=51):
+    attempt = 0
+    deadline = slot + timedelta(minutes=cfg["deadline_minute"])
+    while now() < deadline + timedelta(minutes=1):
         while now() < wake:
             time.sleep(min(20, max(0.01, (wake - now()).total_seconds())))
         try:
+            attempt += 1
+            emit("checking_bot_identity", attempt=attempt, slot=slot.isoformat())
             verify_bot(cfg)
+            emit("checking_upstream", attempt=attempt, slot=slot.isoformat())
             evidence = upstream_ready(cfg, slot)
             if cached is None:
                 contexts = []
                 for channel in cfg["channels"]:
+                    emit("preparing_channel_report", attempt=attempt, channel=channel, slot=slot.isoformat())
                     definition = catalog.load_channel(cfg.get("channel_key", catalog.DEFAULT_CHANNEL))
                     context = prepare_report(report_args(cfg, channel, slot), definition)
+                    emit("validating_channel_snapshot", attempt=attempt, channel=channel, slot=slot.isoformat())
                     validate_context(context, evidence, cfg, slot)
                     contexts.append(context)
                 if len({c["raw_read_audit"]["rev"] for c in contexts}) != 1:
@@ -482,20 +571,23 @@ def run_slot(cfg, preflight, slot, state, db):
                 assert_current_revision(context, cfg)
             if preflight:
                 for context in cached:
-                    gp.send_markdown(cfg["chat_id"], context["markdown"], context["idempotency_key"], "bot", dry_run=True, timeout=60)
+                    if not context.get("skip_delivery"):
+                        gp.send_markdown(cfg["chat_id"], context["markdown"], context["idempotency_key"], "bot", dry_run=True, timeout=60)
                 summary = {"status": "preflight_passed_no_send", "slot": slot.isoformat(), "upstream": evidence,
-                           "channels": [{"channel": c["channel"], "period": c["period"], "rows": c["raw_count"],
-                                         "rev": c["raw_read_audit"]["rev"], "process_image": str(c["image_path"]),
+                            "channels": [{"channel": c["channel"], "period": c["period"], "rows": c["raw_count"],
+                                          "delivery_status": "skipped_no_eligible_rows" if c.get("skip_delivery") else "ready",
+                                          "rev": c["raw_read_audit"]["rev"], "process_image": str(c["image_path"]),
                                          "result_image": str(c["result_image_path"])} for c in cached]}
                 (state / "preflight.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
                 emit("preflight_passed_no_send", **{k: v for k, v in summary.items() if k != "status"})
                 return 0
-            if now() < slot + timedelta(minutes=20):
+            if now() < slot + timedelta(minutes=cfg["send_minute"]):
                 emit("prepared_waiting_for_send_time", slot=slot.isoformat())
-                wake = slot + timedelta(minutes=20)
+                wake = slot + timedelta(minutes=cfg["send_minute"])
                 continue
-            if now() >= slot + timedelta(minutes=51):
+            if now() >= deadline + timedelta(minutes=1):
                 break
+            emit("delivering_channels", attempt=attempt, channels=cfg["channels"], slot=slot.isoformat())
             results = [deliver(context, cfg, slot, db, evidence) for context in cached]
             success = all(results)
             emit("round_finished" if success else "round_needs_attention", slot=slot.isoformat())
@@ -505,9 +597,11 @@ def run_slot(cfg, preflight, slot, state, db):
             cached = None
             if preflight:
                 return 1
-            wake = next_check(now(), slot)
-            if wake > slot + timedelta(minutes=50):
+            wake = next_check(now(), slot, cfg)
+            if wake > deadline:
                 break
+            emit("waiting_to_retry", attempt=attempt, reason=str(exc)[:220],
+                 next_retry_at=wake.isoformat(), deadline=deadline.isoformat(), slot=slot.isoformat())
     emit("deadline_skipped", slot=slot.isoformat())
     return 1
 

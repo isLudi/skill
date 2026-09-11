@@ -27,7 +27,8 @@ def business_period(at=None):
 
 
 def scheduled_report_type(at=None):
-    return "both" if business_date(at).weekday() >= 4 else "process"
+    # 周五至周日只播报结果；周一至周四只播报过程。
+    return "result" if business_date(at).weekday() >= 4 else "process"
 
 
 def grade_sort_key(grade):
@@ -37,5 +38,6 @@ def grade_sort_key(grade):
 def enforce_live_calendar(period, report_type, at=None):
     if period != business_period(at):
         raise ValueError("正式群播报只能使用当前自然周的周五期次，不得用Base最大期次替代")
-    if scheduled_report_type(at) == "process" and report_type != "process":
-        raise ValueError("周一至周四仅推送当期过程数据；转化数据仅周五至周日推送")
+    expected = scheduled_report_type(at)
+    if report_type != expected:
+        raise ValueError("当前日历只允许推送" + ("结果数据" if expected == "result" else "过程数据"))

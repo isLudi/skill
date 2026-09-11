@@ -10,6 +10,7 @@
     "raw_source_url": "https://gaotuedu.feishu.cn/wiki/MrPNwuFvPiiDX0k4jTXcLU8anse?table=tbljWRvaqKTdrCx4&view=vewO4yxS3O",
     "raw_table_id": "tbljWRvaqKTdrCx4",
     "raw_table_name": "市场顾问原始数据",
+    "channel_match": {"field": "渠道", "case_sensitive": true, "values": {"自孵化KOC-5元纯课": "自孵化KOC-5元纯课"}},
     "report_profile": "grade-compact",
     "reminder_rule": "grade_manager_minimum_all_ties",
     "reminder_population": "raw_leads",
@@ -54,13 +55,10 @@
     "enabled": true,
     "first_send_at": "2026-09-07T21:20:00+08:00",
     "timezone": "Asia/Shanghai",
-    "hours": [
-      9,
-      13,
-      17,
-      21
-    ],
-    "prepare_minute": 15,
+    "hours": [13, 17, 21],
+    "windows_task_name": "Codex-Lark-Market-KOC-GroupPush",
+    "stagger_order": 1,
+    "prepare_minute": 20,
     "send_minute": 20,
     "deadline_minute": 50,
     "retry_minutes": 2
@@ -75,9 +73,9 @@
     "task_id": 47252,
     "nezha_task_id": 66504,
     "schedule_id": 53831,
-    "exec_file_id": 816853,
-    "verified_version_id": 205254,
-    "verified_source_sha256": "7fbf76134c9eb18079f511703ecf1ed69afc20a4ce976d172e9f308564046e10",
+    "exec_file_id": 817886,
+    "verified_version_id": 205398,
+    "verified_source_sha256": "ae78c13a392253528ea073f332019b270f8d9a38b8f84d183833ffddbd039d4d",
     "log_protocol": "two_period_audit_v1",
     "owner": "lvshuai01"
   }

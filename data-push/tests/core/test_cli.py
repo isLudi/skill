@@ -1,6 +1,7 @@
 from contextlib import redirect_stdout
 from copy import deepcopy
 import io
+import json
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 import unittest
@@ -58,3 +59,17 @@ class ChannelCliTests(unittest.TestCase):
         with patch.object(cli, "adapter_for", return_value=adapter), patch.object(cli.feishu, "send_markdown") as send:
             self.assertEqual(self.invoke("dry-run"), 0)
         self.assertIs(send.call_args.kwargs["dry_run"], True)
+
+    def test_empty_channel_preview_is_reported_and_dry_run_does_not_open_outlet(self):
+        context = {"period": "20260911期", "markdown": "", "idempotency_key": "fixture",
+                   "skip_delivery": True,
+                   "skip_reason": "no_supervisor_rows_meet_minimum_post_leads"}
+        artifacts = {"status": "skipped_no_eligible_rows", "image_files": [], "message_sent": False}
+        adapter = SimpleNamespace(prepare=Mock(return_value=context), write_preview=Mock(return_value=artifacts))
+        output = io.StringIO()
+        with patch.object(cli, "adapter_for", return_value=adapter), \
+             patch.object(cli.feishu, "send_markdown") as send, redirect_stdout(output):
+            self.assertEqual(cli.main(["dry-run"], bound_channel=catalog.DEFAULT_CHANNEL), 0)
+        self.assertIn("skipped_no_eligible_rows", output.getvalue())
+        adapter.write_preview.assert_called_once_with(context)
+        send.assert_not_called()

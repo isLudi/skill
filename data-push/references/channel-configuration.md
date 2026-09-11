@@ -16,16 +16,16 @@
 |---|---|
 | schema_version | 当前为1；不默默接受未知版本 |
 | domain, channel_id, channel, adapter | 精确身份与已实现的adapter；domain不能互相补齐 |
-| source | 原始链接/表ID/报告profile等；当前市场配置的source_url只为旧格式兼容，raw_source_url用于当前模式 |
+| source | 原始链接/表ID/报告profile等；当前市场配置的source_url只为旧格式兼容，raw_source_url用于当前模式；`channel_match` 必须声明 `field=渠道`、`case_sensitive=true` 和与 `channels` 同序的规范值映射 |
 | sender | identity、name、open_id；机器人/用户不可在失败时自动切换 |
 | targets | 目标列表：id、chat_id、display_name、enabled；ID唯一、群ID不重复，display_name可变 |
 | report | 部门adapter支持的策略参数；当前市场使用period_rule、星期数组、excluded_grades、minimum_post_leads |
-| schedule | enabled、first_send_at、timezone、hours、prepare/send/deadline分钟和retry_minutes |
+| schedule | enabled、first_send_at、timezone、hours、windows_task_name、stagger_order、prepare/send/deadline分钟和retry_minutes |
 | upstream | 该渠道自己的证据绑定；当前市场为精确Tiangong任务/版本/执行文件/源码Hash，不用于青橙猜测 |
 | base_identity | Base只读身份，与sender分开 |
 | state_dir | 渠道独占目录，不同渠道不能相同或父子交叠；原主群历史路径保留 |
 
-目前市场adapter只支持已审阅的自然周周五期次、每日过程/周五至日转化、四时点与重试窗口。单纯改JSON为未实现规则会被校验阻断；不同规则必须扩展相应adapter并补测试。
+目前市场adapter只支持已审阅的自然周周五期次、周一至周四过程、周五至周日仅结果、每日13/17/21三时点与共享重试窗口。已启用本地任务按 `stagger_order=1..N` 连续编号，对应 `prepare_minute=send_minute=19+stagger_order`，即从 `:20` 起每任务错开1分钟；`retry_minutes=2`、`deadline_minute=50` 固定。`windows_task_name` 必须与真实任务唯一对应。单纯改JSON为未实现规则会被调度器及 `validate_layout.py` 阻断；不同规则必须扩展相应adapter并补测试。
 
 ## 一渠道多群
 
@@ -42,6 +42,7 @@
 - 群改名只更新display_name；不能更改chat_id来“修复”名字。
 - 首个目标ID、排序和state_dir与历史状态有关，不可随手重排或复用。迁移状态路径须另行计划与验证，不清空台账。
 - `schedule.enabled=false` 只关闭定时发送，不妨碍本地预览；`run --confirm-send` 不会把它改为true。
+- 渠道读取先使用服务端过滤，再按 `source.channel_match` 在本地进行大小写敏感的精确过滤；服务端过滤可能不区分大小写，`raw_read_audit` 必须记录服务端返回数与本地排除数。
 - 添加第二个群不会创建第二个Windows任务；渠道入口负责展开目标，各目标在同一轮内独立等待和发送。
 
 ## 兼容配置

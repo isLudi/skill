@@ -20,17 +20,19 @@ DIMENSIONS = ("lead_id", "期次", "渠道", "经理", "年级", "分区日期",
 COMMON = ("退前线索", "退后线索")
 PROCESS = ("首call完成标记", "48h外呼标记", "5min标记", "好友标记", "深沟标记", "双沟标记")
 RESULT = ("首节到课标记", "当期净收款", "净收款")
+RESULT_REPORT = ("5min标记", "双沟标记", "首节到课标记", "当期净收款", "净收款")
 COLUMNS = {
     "process": (("期次", "期次", "text"), ("负责人", "负责人", "text"),
                 ("退后线索", "退后线索", "count"), ("首call", "首call", "rate"),
                 ("48h外呼", "48h外呼", "rate"), ("5min", "5min", "rate"),
                 ("好友率", "好友率", "rate"), ("深沟率", "深沟率", "rate"), ("双沟率", "双沟率", "rate")),
     "result": (("期次", "期次", "text"), ("负责人", "负责人", "text"),
-               ("退后线索", "退后线索", "count"), ("首节到课率", "首节到课率", "rate"),
-               ("单效（当期）", "单效（当期）", "amount"), ("单效", "单效", "amount")),
+               ("退后线索", "退后线索", "count"), ("5min", "5min", "rate"),
+               ("双沟率", "双沟率", "rate"), ("首节到课率", "首节到课率", "rate"),
+               ("当期单效", "当期单效", "amount"), ("截面单效", "截面单效", "amount")),
 }
 WIDTHS = {"process": (240, 280, 200, 200, 200, 200, 200, 200, 200),
-          "result": (280, 320, 260, 340, 360, 360)}
+          "result": (220, 280, 200, 220, 220, 260, 280, 280)}
 RATE_FIELDS = {"首call": "首call完成标记", "48h外呼": "48h外呼标记", "5min": "5min标记",
                "好友率": "好友标记", "深沟率": "深沟标记", "双沟率": "双沟标记", "首节到课率": "首节到课标记"}
 
@@ -44,7 +46,7 @@ def sections(report_type):
 def projection(field_names, report_type):
     counters = list(COMMON)
     for section in sections(report_type):
-        counters.extend(PROCESS if section == "process" else RESULT)
+        counters.extend(PROCESS if section == "process" else RESULT_REPORT)
     required = list(DIMENSIONS) + counters
     missing = sorted(set(required) - set(field_names))
     if missing:
@@ -52,7 +54,8 @@ def projection(field_names, report_type):
     return required, tuple(counters)
 
 
-def validate_scope(records, channel, period):
+def validate_scope(records, channel, period, *, source_channel=None):
+    source_channel = source_channel or channel
     if not period:
         raise ValueError("分年级播报必须先确定本周业务期次")
     if not records:
@@ -63,7 +66,7 @@ def validate_scope(records, channel, period):
         for field in DIMENSIONS:
             if not text(value(row, field)):
                 raise ValueError("线索缺少必要字段：" + field)
-        if text(value(row, "渠道")) != channel or text(value(row, "期次")) != period:
+        if text(value(row, "渠道")) != source_channel or text(value(row, "期次")) != period:
             raise ValueError("返回记录超出本次渠道或期次")
         key = (period, text(value(row, "lead_id")))
         if key in seen:
@@ -93,6 +96,10 @@ def _metrics(sums):
     for display, numerator in (("单效（当期）", "当期净收款"), ("单效", "净收款")):
         if numerator in sums:
             result[display] = float(sums[numerator] / den) if den else "-"
+    result["5min"] = result.get("5min", "-")
+    result["双沟率"] = result.get("双沟率", "-")
+    result["当期单效"] = result.get("单效（当期）", "-")
+    result["截面单效"] = result.get("单效", "-")
     return result
 
 
@@ -291,6 +298,13 @@ def render_image(report, section, output_path, *, font_loader, center_text, form
             for (_source, label, _kind), left, right in zip(columns, xs, xs[1:]):
                 center_text(draw, (left + 4, header, right - 4, header + header_h), label, font_loader(25, True), "#ffffff")
             ordered = sorted_rows(block, section)
+            effect_rows = ordered if section == "result" else []
+            effect_values = sorted({float(item["fields"]["截面单效"]) for item in effect_rows
+                                    if isinstance(item["fields"].get("截面单效"), (int, float, Decimal))},
+                                   reverse=True)
+            effect_rank = {id(item): effect_values.index(float(item["fields"]["截面单效"]))
+                           for item in effect_rows
+                           if isinstance(item["fields"].get("截面单效"), (int, float, Decimal))}
             for index, row in enumerate([*ordered, block["total"]]):
                 y = header + header_h + index * row_h
                 total = index == len(ordered)
@@ -299,7 +313,8 @@ def render_image(report, section, output_path, *, font_loader, center_text, form
                 for (source, _label, kind), left, right in zip(columns, xs, xs[1:]):
                     cell = row["fields"].get(source, "")
                     if not total and section == "result" and cell_fill is not None:
-                        draw.rectangle((left, y, right, bottom), fill=cell_fill(source, cell))
+                        draw.rectangle((left, y, right, bottom),
+                                       fill=cell_fill(source, cell, effect_rank.get(id(row)), len(effect_values)))
                     if not total and source in {"首call", "5min", "双沟率"} and isinstance(cell, str) and cell.endswith("%"):
                         ratio = max(0, min(1, float(cell[:-1]) / 100))
                         color = bar_colors[source]

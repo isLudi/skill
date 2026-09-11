@@ -91,7 +91,11 @@ data as (
         f.group_period_term,
         f.group_period_year,
         f.hour,
-        f.lead_count,
+        case
+            when f.source_manager_name = '韩正卿'
+            then coalesce(f.merge_assign_lead_count, 0)
+            else coalesce(f.lead_count, 0)
+        end as lead_count,
         f.lead_create_time,
         f.lead_id,
         f.lead_purchase_intention_level1_category_name,
@@ -113,7 +117,11 @@ data as (
         f.third_department_name,
         f.trace_type_name,
         f.user_id,
-        f.valid_lead_count,
+        case
+            when f.source_manager_name = '韩正卿'
+            then coalesce(f.merge_valid_lead_count, 0)
+            else coalesce(f.valid_lead_count, 0)
+        end as valid_lead_count,
         f.virtual_fifth_department_name,
         f.virtual_fourth_department_name,
         f.virtual_second_department_name,
@@ -387,7 +395,7 @@ else '其他未知流量' end as channel_map_1,
         date_diff('hour', cast(f.section_assign_time as timestamp), cast(f.first_call_time as timestamp)) as first_call_time_diff_hour,
         date_diff('minute', cast(f.section_assign_time as timestamp), cast(f.first_call_time as timestamp)) as first_call_time_diff_minute,
         jt.first_call_connected_time_diff_hour as first_call_connected_time_diff_hour_1,
-        case when f.valid_lead_count = 1 then f.friend_lead_count else 0 end as is_friend_lead,
+        case when (case when f.source_manager_name = '韩正卿' then coalesce(f.merge_valid_lead_count, 0) else coalesce(f.valid_lead_count, 0) end) = 1 then f.friend_lead_count else 0 end as is_friend_lead,
         case when t.jieduan in ('深沟', '已双沟') then 1 else 0 end as is_shengou,
         case
             when cast(t.sale_flow_stage_sequence as varchar) in ('470', '700', '850', '950', '955', '1050')
@@ -396,7 +404,7 @@ else '其他未知流量' end as channel_map_1,
         case
             when f.deep_communicate_method is not null
              and f.deep_communicate_method != ''
-             and f.valid_lead_count = 1
+             and (case when f.source_manager_name = '韩正卿' then coalesce(f.merge_valid_lead_count, 0) else coalesce(f.valid_lead_count, 0) end) = 1
             then 1 else 0
         end as yi_shuanggou,
         case
@@ -407,7 +415,7 @@ else '其他未知流量' end as channel_map_1,
         end as is_yichang,
         case
             when sbb.send_double_table = '是'
-             and f.valid_lead_count = 1
+             and (case when f.source_manager_name = '韩正卿' then coalesce(f.merge_valid_lead_count, 0) else coalesce(f.valid_lead_count, 0) end) = 1
             then 1 else 0
         end as yi_huishou
     from bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df f

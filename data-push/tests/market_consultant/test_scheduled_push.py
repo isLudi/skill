@@ -48,21 +48,38 @@ class ScheduledPushTests(unittest.TestCase):
     def test_four_slots_only(self):
         for hour in range(24):
             at = datetime(2026, 9, 8, hour, 20, tzinfo=sp.TZ)
-            self.assertEqual(sp.active_slot(at, self.cfg) is not None, hour in [9, 13, 17, 21])
+            self.assertEqual(sp.active_slot(at, self.cfg) is not None, hour in [13, 17, 21])
 
     def test_first_round_boundary(self):
         self.assertIsNone(sp.active_slot(datetime(2026, 9, 7, 17, 20, tzinfo=sp.TZ), self.cfg))
-        self.assertIsNotNone(sp.active_slot(self.slot + timedelta(minutes=15), self.cfg))
+        self.assertIsNotNone(sp.active_slot(self.slot + timedelta(minutes=20), self.cfg))
 
     def test_no_late_catchup(self):
         self.assertIsNone(sp.active_slot(self.slot + timedelta(minutes=51), self.cfg))
-        self.assertIsNone(sp.active_slot(self.slot + timedelta(minutes=14), self.cfg))
+        self.assertIsNone(sp.active_slot(self.slot + timedelta(minutes=19), self.cfg))
 
     def test_retry_grid_and_deadline(self):
-        self.assertEqual(sp.next_check(self.slot + timedelta(minutes=15), self.slot).minute, 20)
-        self.assertEqual(sp.next_check(self.slot + timedelta(minutes=20, seconds=43), self.slot).minute, 22)
-        self.assertEqual(sp.next_check(self.slot + timedelta(minutes=49), self.slot).minute, 50)
-        self.assertEqual(sp.next_check(self.slot + timedelta(minutes=50), self.slot).minute, 52)
+        self.assertEqual(sp.next_check(self.slot + timedelta(minutes=15), self.slot, self.cfg).minute, 20)
+        self.assertEqual(sp.next_check(self.slot + timedelta(minutes=20, seconds=43), self.slot, self.cfg).minute, 22)
+        self.assertEqual(sp.next_check(self.slot + timedelta(minutes=49), self.slot, self.cfg).minute, 50)
+        self.assertEqual(sp.next_check(self.slot + timedelta(minutes=50), self.slot, self.cfg).minute, 52)
+
+    def test_staggered_retry_grid_starts_from_each_task_minute(self):
+        cfg = sp.load_config(sp.DEFAULT_CONFIG)
+        cfg.update({"stagger_order": 4, "prepare_minute": 23, "send_minute": 23})
+        sp.validate_config(cfg)
+        self.assertEqual(sp.next_check(self.slot + timedelta(minutes=23, seconds=1), self.slot, cfg).minute, 25)
+        self.assertEqual(sp.next_check(self.slot + timedelta(minutes=47), self.slot, cfg).minute, 49)
+        self.assertEqual(sp.next_check(self.slot + timedelta(minutes=49), self.slot, cfg).minute, 51)
+
+    def test_live_status_is_removed_when_run_scope_ends(self):
+        with tempfile.TemporaryDirectory() as folder:
+            state = Path(folder)
+            with sp.live_status(state, self.cfg, self.slot) as status_path:
+                sp.emit("checking_upstream", attempt=1)
+                payload = json.loads(status_path.read_text(encoding="utf-8"))
+                self.assertEqual(payload["event"], "checking_upstream")
+            self.assertFalse((state / "live-status.json").exists())
 
     def test_actual_message_window(self):
         for minute in [15, 19, 51, 59]:

@@ -1,0 +1,5 @@
+{
+  "schema_version": 1,
+  "channel_ref": "market_consultant/supervisor_private_app_sync",
+  "target_id": "private_app_sync"
+}

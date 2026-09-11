@@ -116,6 +116,8 @@
 | [knowledge/sql_patterns/channel_mapping_case_when.md](../sql_patterns/channel_mapping_case_when.md) | 5.1 超长 CASE 顺序风险 | 典型风险： |
 | [knowledge/sql_patterns/channel_mapping_case_when.md](../sql_patterns/channel_mapping_case_when.md) | 5.1 超长 CASE 顺序风险 | 3. 用 `case ... end as current_case_result` 模拟现有 CASE 的实际输出；如果目标记录落到别的渠道，优先调整 CASE 顺序，而不是新增重复分支。 |
 | [knowledge/sql_patterns/channel_mapping_case_when.md](../sql_patterns/channel_mapping_case_when.md) | 5.1 超长 CASE 顺序风险 | 4. 新增或调整规则时，优先使用大小写兼容写法，例如 `lower(rule_name) like '%孟亚飞ip99%'`；不要同时保留后置重复分支，避免读者误以为后置分支可命中。 |
+| [knowledge/sql_patterns/channel_mapping_case_when.md](../sql_patterns/channel_mapping_case_when.md) | 2026-09-11 抖音私信渠道与有效指标集合不一致 | - 检查源行数、去重 lead 数和连接基数；不能用聚合后的结果掩盖 1:N join 放大。 |
+| [knowledge/sql_patterns/channel_mapping_case_when.md](../sql_patterns/channel_mapping_case_when.md) | 2026-09-11 抖音私信渠道与有效指标集合不一致 | - Data Center 抽取或天宫2执行 `SUCCESS` 不是业务验收。必须带明确的期次与渠道过滤，回读看板组件；涉及写入 Base 时，还要绑定同一次执行完成全量分页回读和唯一键检查。 |
 | [knowledge/sql_patterns/channel_mapping_case_when.md](../sql_patterns/channel_mapping_case_when.md) | 7. 定期更新流程 | 4. 更新本文件的原始文件、Skill 归档、来源文件最后修改时间、代码规模、关键渠道规则和待确认事项。 |
 | [knowledge/sql_patterns/cte_patterns.md](../sql_patterns/cte_patterns.md) | 规则 | - 复杂看板 SQL 应将基础过滤、join、指标聚合拆开。 |
 | [knowledge/sql_patterns/dashboard_design_change_workflow.md](../sql_patterns/dashboard_design_change_workflow.md) | 1. 域与证据门禁 | - 任一 contract 为 `pending_confirmation`、别名歧义、来源哈希漂移、字段无法反查或 profile 域不明时，只允许画像和 diff，禁止形成可 apply 的变更计划。 |

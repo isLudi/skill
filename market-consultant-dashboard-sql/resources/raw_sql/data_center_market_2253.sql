@@ -28,10 +28,11 @@ case
 when (assign_lead_count = 1 or valid_lead_count = 1) and third_department_name  in ('直播部','新媒体内容运营部','市场一组') THEN '当期'
 when (assign_lead_count = 1 or valid_lead_count = 1) and third_department_name  in ('图书营销部') and rule_name like '%亚飞%' THEN '当期'
 when third_department_name is null and valid_lead_count = 1 then '当期'
-when source_manager_name in ('韩正卿') and merge_valid_lead_count = 1 and channel_name_1='市场私域' then '当期'
+when source_manager_name = '韩正卿' and merge_valid_lead_count = 1 then '当期'
 when third_department_name  not in ('直播部','新媒体内容运营部','市场一组') and valid_lead_count = 1 then '当期'
  else '非当期' end as d_w,
-case when (assign_lead_count = 1 or valid_lead_count = 1) and third_department_name  in ('直播部','新媒体内容运营部','市场一组') THEN 1
+case when source_manager_name = '韩正卿' and merge_valid_lead_count = 1 then 1
+when (assign_lead_count = 1 or valid_lead_count = 1) and third_department_name  in ('直播部','新媒体内容运营部','市场一组') THEN 1
 when third_department_name is null and valid_lead_count = 1 then 1
 when third_department_name  not in ('直播部','新媒体内容运营部','市场一组') and valid_lead_count = 1 then 1
 when third_department_name  in ('图书营销部') and rule_name like '%亚飞%' and (assign_lead_count = 1 or valid_lead_count = 1)  then 1
@@ -284,8 +285,8 @@ case
     when rule_name like '%初一%' then '初一'
     else lead_purchase_intention_level2_category_name
 end as grade_1,
-    coalesce(lead_count,0) lead_count,
-    coalesce(valid_lead_count,0) valid_lead_count,
+    case when source_manager_name = '韩正卿' then coalesce(merge_assign_lead_count, 0) else coalesce(lead_count, 0) end as lead_count,
+    case when source_manager_name = '韩正卿' then coalesce(merge_valid_lead_count, 0) else coalesce(valid_lead_count, 0) end as valid_lead_count,
     coalesce(merge_assign_lead_count,0) merge_assign_lead_count,
     coalesce(merge_valid_lead_count,0) merge_valid_lead_count,
     coalesce(conversion_lead_count,0) conversion_lead_count,

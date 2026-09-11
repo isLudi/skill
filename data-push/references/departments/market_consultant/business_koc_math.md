@@ -15,4 +15,4 @@
 & 'D:\anaconda3\python.exe' 'C:\Users\Ludim\.codex\skills\data-push\scripts\channels\market_consultant\business_koc_math.py' preview --report-type both
 ```
 
-预览只读 Base、核验群和账号、写本地 HTML/Markdown/PNG，不上传图片、不发消息。长期运行由 Windows 任务 `Codex-Lark-Business-KOC-Math-Push` 调用 `scripts/run_business_koc_math_scheduled_push.ps1`，每天 09:15、13:15、17:15、21:15 隐藏启动，并在 :20 后通过共享调度器发送。渠道配置与 Windows 任务必须同时启用；仍须遵守上游证据、时点、逐渠道回执和图片清理门禁。
+预览只读 Base、核验群和账号、写本地 HTML/Markdown/PNG，不上传图片、不发消息。长期运行由 Windows 任务 `Codex-Lark-Business-KOC-Math-Push` 调用 `scripts/run_business_koc_math_scheduled_push.ps1`，每天 09:21、13:21、17:21、21:21 错峰启动并立即检查；失败后按 `:21/:23/.../:49` 重试。渠道配置与 Windows 任务必须同时启用；仍须遵守上游证据、时点、逐渠道回执和图片清理门禁。

@@ -1,0 +1,5 @@
+{
+  "schema_version": 1,
+  "channel_ref": "market_consultant/supervisor_koc_douyin_sync",
+  "target_id": "koc_douyin_sync"
+}

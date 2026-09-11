@@ -199,6 +199,31 @@ then '信息流-抖音私信'
 - `put_plan_name like '%初三0元%'`
 - `put_plan_name like '%高中0元%'`
 
+### 2026-09-11 抖音私信渠道与有效指标集合不一致
+
+20260911 期排查确认：0904 渠道 CASE 已通过 `source_manager_name = '韩正卿'` 把 149 条源记录归为“抖音私信”，但外呼、转化、到课及运营侧个人数据集的有效指标 CASE 仍附加 `channel_name_1 = '市场私域'`。这些记录实际是 `channel_name_1 = '信息流'`、`flow_pool_name = '今日头条'`，因此特殊合并口径没有命中，错误回退到普通 `lead_count` / `valid_lead_count`，看板显示退前和退后均为 0。
+
+正确口径必须共享同一个源谓词：
+
+```sql
+sum(case
+    when source_manager_name = '韩正卿' then coalesce(merge_assign_lead_count, 0)
+    else coalesce(lead_count, 0)
+end) as lead_count,
+sum(case
+    when source_manager_name = '韩正卿' then coalesce(merge_valid_lead_count, 0)
+    else coalesce(valid_lead_count, 0)
+end) as valid_lead_count
+```
+
+验收门禁：
+
+- 渠道 CASE、退前 CASE、退后 CASE 使用完全相同的目标集合，不能在指标层追加渠道一级、流量池等收窄条件。
+- 同步回归依赖有效线索的加微、外呼、到课指标；验证目标集合和非目标渠道的增量，避免静默扩大影响。
+- 检查源行数、去重 lead 数和连接基数；不能用聚合后的结果掩盖 1:N join 放大。
+- Data Center 抽取或天宫2执行 `SUCCESS` 不是业务验收。必须带明确的期次与渠道过滤，回读看板组件；涉及写入 Base 时，还要绑定同一次执行完成全量分页回读和唯一键检查。
+- 本次门禁结果：149 条目标源行，退前/退后有效值均为 142；7 条 merge 双零记录保持无效，非目标渠道退前/退后差异均为 0，订单 48、收入 14146990 保持不变。
+
 ## 6. 复用模板
 
 建议在主数据 CTE 中直接派生渠道字段：

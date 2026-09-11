@@ -70,8 +70,8 @@ case
         nullif(trim(cast(t1.stats_grade_name as varchar)), '')
     )
 end as grade_1,
-        coalesce(t1.lead_count, 0) as lead_count,
-        coalesce(t1.valid_lead_count, 0) as valid_lead_count,
+        case when t1.source_manager_name = '韩正卿' then coalesce(t1.merge_assign_lead_count, 0) else coalesce(t1.lead_count, 0) end as lead_count,
+        case when t1.source_manager_name = '韩正卿' then coalesce(t1.merge_valid_lead_count, 0) else coalesce(t1.valid_lead_count, 0) end as valid_lead_count,
         coalesce(t1.conversion_lead_count, 0) as conversion_lead_count,
         coalesce(t1.subject_count, 0) as subject_count,
         coalesce(t1.same_lead_period_subject_count, 0) as same_lead_period_subject_count,
@@ -88,7 +88,7 @@ end as grade_1,
         coalesce(t1.same_lead_period_refund_amount, 0) as same_lead_period_refund_amount,
 
         date_diff('hour', cast(t1.section_assign_time as timestamp), cast(t1.first_call_time as timestamp)) as first_call_time_diff_hour,
-        coalesce(case when cast(t1.valid_lead_count as varchar) = '1' then t1.friend_lead_count else 0 end, 0) as is_friend_lead,
+        coalesce(case when (case when t1.source_manager_name = '韩正卿' then coalesce(t1.merge_valid_lead_count, 0) else coalesce(t1.valid_lead_count, 0) end) = 1 then t1.friend_lead_count else 0 end, 0) as is_friend_lead,
         coalesce(case when t.jieduan in ('深沟','已双沟') then 1 else 0 end, 0) as is_shengou,
         coalesce(case
             when cast(t.sale_flow_stage_sequence as varchar) in ('470', '700', '850', '950', '955', '1050')

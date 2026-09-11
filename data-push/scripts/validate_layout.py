@@ -52,6 +52,7 @@ def validate(root=SKILL_ROOT):
                 continue
             if not (path.parent / target).resolve().exists():
                 errors.append(f"{path.relative_to(root)}: missing link {target}")
+    enabled_schedules = []
     for key in catalog.registry(root / "config")["channels"]:
         try:
             definition = catalog.load_channel(key, root / "config")
@@ -59,8 +60,24 @@ def validate(root=SKILL_ROOT):
             entry = root / "scripts/channels" / (key + ".py")
             if not entry.exists() or f'bound_channel="{key}"' not in entry.read_text(encoding="utf-8"):
                 errors.append(f"Missing/mismatched channel entrypoint: {key}")
+            schedule = definition.get("schedule", {})
+            if schedule.get("enabled"):
+                enabled_schedules.append((key, schedule))
         except (ValueError, KeyError) as exc:
             errors.append(f"{key}: {exc}")
+    orders = sorted(schedule.get("stagger_order") for _, schedule in enabled_schedules)
+    minutes = sorted(schedule.get("prepare_minute") for _, schedule in enabled_schedules)
+    task_names = [schedule.get("windows_task_name") for _, schedule in enabled_schedules]
+    if orders != list(range(1, len(enabled_schedules) + 1)):
+        errors.append("Enabled local broadcasts must have contiguous stagger_order values starting at 1")
+    if minutes != list(range(20, 20 + len(enabled_schedules))):
+        errors.append("Enabled local broadcasts must start one minute apart beginning at :20")
+    if len(set(task_names)) != len(task_names):
+        errors.append("Enabled local broadcasts must use unique Windows task names")
+    for key, schedule in enabled_schedules:
+        if (schedule.get("send_minute") != schedule.get("prepare_minute")
+                or schedule.get("retry_minutes") != 2 or schedule.get("deadline_minute") != 50):
+            errors.append(f"{key}: local schedule must retry every 2 minutes from its staggered start through :50")
     return {"ok": not errors, "python_files": count, "errors": errors, "remote_mutations": 0}
 
 

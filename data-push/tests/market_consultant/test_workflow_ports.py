@@ -7,7 +7,7 @@ import unittest
 from lark_delivery.core import catalog
 from lark_delivery.core.contracts import ReportPorts
 from lark_delivery.domains.market_consultant.adapter import report_arguments
-from lark_delivery.domains.market_consultant.workflow import prepare_report
+from lark_delivery.domains.market_consultant.workflow import prepare_report, _channel_scope
 from lark_delivery.domains.market_consultant.channels import self_incubated_koc_5 as policy
 from .test_grade_report import leads
 
@@ -58,3 +58,9 @@ class WorkflowPortTests(unittest.TestCase):
         self.ports.missing_members.return_value = ["负责人A"]
         with self.assertRaisesRegex(ValueError, "负责人账号或群成员"):
             prepare_report(args, self.definition, ports=self.ports)
+
+    def test_channel_match_contract_excludes_case_variant_before_scope_validation(self):
+        definition = catalog.load_channel("market_consultant/supervisor_private_app_sync")
+        self.assertEqual(_channel_scope(definition, "app"), "app")
+        self.assertEqual(_channel_scope(definition, "集团私域"), "集团私域")
+        self.assertNotEqual(_channel_scope(definition, "app"), "APP")

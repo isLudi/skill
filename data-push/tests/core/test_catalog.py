@@ -20,7 +20,7 @@ class CatalogTests(unittest.TestCase):
         cfg = catalog.schedule_config(self.definition, target)
         self.assertIs(type(cfg["enabled"]), bool)
         self.assertEqual(cfg["enabled"], self.definition["schedule"]["enabled"])
-        self.assertEqual(cfg["hours"], [9, 13, 17, 21])
+        self.assertEqual(cfg["hours"], [13, 17, 21])
         self.assertEqual(catalog.resolve_compat_config(SKILL_ROOT / "config/scheduled_push.json", "schedule"), cfg)
         self.assertEqual(catalog.resolve_compat_config(SKILL_ROOT / "config/push_source.json", "source"),
                          catalog.source_defaults(self.definition, target))

@@ -5,7 +5,7 @@
 ## 新增同部门、同口径渠道
 
 1. 读取所属部门Skill和现有渠道规范，确认字段、期次、范围、指标及提醒对象兼容。
-2. 新建 `config/departments/<domain>/<channel_id>.json`：精确渠道、源、目标ID、身份、独占状态目录；schedule.enabled初始false。
+2. 新建 `config/departments/<domain>/<channel_id>.json`：精确渠道、源、目标ID、身份、独占状态目录；schedule.enabled初始false。若后续获准启用本地调度，先读取所有已启用渠道，为新任务分配下一个连续 `stagger_order` 和唯一 `windows_task_name`；启动分钟必须是 `19+stagger_order`，从 `:20` 起逐任务错开1分钟，`prepare_minute` 与 `send_minute` 相同，重试固定每2分钟、截止 `:50`。不得手工挑一个已占用分钟。
 3. 加入 `config/channels.json`；复用适配器仅限它明确支持的规则。
 4. 新建独立脚本，内容保持薄入口：
 
@@ -21,7 +21,7 @@ if __name__ == "__main__":
 
 示例new_channel不是已经注册的渠道。实际提交时用已确认的ID。
 5. 新增本部门测试：源过滤、当期缺失、最小量、排序、提醒精确账号和跨群隔离；运行离线测试。
-6. 生成本地预览并核对，另行取得明确发送/启用授权。不要批量复制旧2400行脚本。
+6. 生成本地预览并核对，另行取得明确发送/启用授权。注册或更新任务后读回全部触发器，确认所有时段均保持全局错峰。任务启动器不得创建持久化 `run-*.log`；共享调度层只在运行时原子更新 `state_dir/live-status.json`，结束（成功、失败或异常）即删除。使用 `scripts/view_live_push_status.ps1` 联合查看任务状态与当前步骤。不要批量复制旧2400行脚本。
 
 ## 新增青橙或不同口径渠道
 
@@ -51,7 +51,7 @@ if __name__ == "__main__":
 | 聚合/提醒 | 加权率、0分母、并列最低、小年级过滤、跨期和跨部门隔离 |
 | renderer/message | 同一输入输出回归、PNG能打开、字体/列/排序/@集合 |
 | targets/fanout | 一个/多个群、改名、重复目标、部分失败、独立状态和去重 |
-| scheduler/outlet | 暂停、时点、旧数据/上游失败、不确定响应、回执先落盘再清理 |
+| scheduler/outlet | 暂停、全局错峰分钟、按各自启动分钟每2分钟重试、`:50`截止、分区未更新/上游失败、不确定响应、临时状态必清理、回执先落盘再清理 |
 | 路由/重命名 | Skill/AGENTS链接、入口help、配置读回、任务动作路径与暂停状态 |
 
 推荐运行 `D:\anaconda3\python.exe -m pytest tests -q`，测试框架拦截未mock的外部进程。`scripts/validate_layout.py` 检查目录、导入方向、文档链接和渠道入口。两者均不启动生产任务。

@@ -29,7 +29,7 @@ $pushTriggers = foreach ($pushHour in $pushConfig.hours) {
 }
 $pushPrincipal = New-ScheduledTaskPrincipal -UserId ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name) -LogonType Interactive -RunLevel Limited
 $pushSettings = New-ScheduledTaskSettingsSet -Hidden -MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Minutes 40) -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
-$pushDescription = 'data-push business KOC math reports. Prepare 09:15/13:15/17:15/21:15; send :20-:50. Channels: KOC-Zhoushuai math, then KOC-Mengyafei math. Requires Windows login and network.'
+$pushDescription = 'data-push staggered local broadcast; starts :21, retries every 2 minutes through :50. Live detail exists only while running; use view_live_push_status.ps1. Channels: KOC-Zhoushuai math, then KOC-Mengyafei math.'
 Register-ScheduledTask -TaskName $pushTaskName -Action $pushAction -Trigger $pushTriggers -Principal $pushPrincipal -Settings $pushSettings -Description $pushDescription | Out-Null
 $pushReadback = Get-ScheduledTask -TaskName $pushTaskName
 $pushInfo = Get-ScheduledTaskInfo -TaskName $pushTaskName

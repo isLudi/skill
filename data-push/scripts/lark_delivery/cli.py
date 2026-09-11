@@ -55,8 +55,10 @@ def main(argv=None, *, bound_channel=None):
             channel_state = state if len(channels) == 1 else state / f"channel-{index}"
             context = adapter.prepare(definition, target, channel=channel, report_type=args.report_type, state_dir=channel_state)
             artifacts = adapter.write_preview(context)
-            previews.append({"channel": channel, "files": artifacts})
-            if args.command == "dry-run":
+            previews.append({"channel": channel,
+                             "status": "skipped_no_eligible_rows" if context.get("skip_delivery") else "preview_generated",
+                             "files": artifacts})
+            if args.command == "dry-run" and not context.get("skip_delivery"):
                 feishu.send_markdown(target["chat_id"], context["markdown"], context["idempotency_key"],
                                      definition["sender"]["identity"], dry_run=True, timeout=60)
         print(json.dumps({"target_id": target["id"], "chat_id": target["chat_id"],

@@ -259,7 +259,7 @@ else '其他未知流量' end as channel_map_1,
             when f.rule_name like '%初三%' then '初三'
             else f.lead_purchase_intention_level2_category_name
         end as grade_1,
-        case when f.valid_lead_count = '1' then f.friend_lead_count else 0 end as is_friend_lead,
+        case when (case when f.source_manager_name = '韩正卿' then coalesce(f.merge_valid_lead_count, 0) else coalesce(f.valid_lead_count, 0) end) = 1 then f.friend_lead_count else 0 end as is_friend_lead,
         case when t.jieduan in ('深沟','已双沟') then 1 else 0 end as is_shengou,
         case when t.jieduan in ('已双沟') then 1 else 0 end as is_shuanggou
     from bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df f
@@ -347,7 +347,7 @@ else '其他未知流量' end as channel_map_1,
         and f.section_assign_employee_second_level_department_name = '市场部'
         and f.section_assign_employee_third_level_department_name = '市场顾问部'
         and f.period_mapping_first_level_department_name ='H业务线'
-        and f.valid_lead_count = '1'
+        and (case when f.source_manager_name = '韩正卿' then coalesce(f.merge_valid_lead_count, 0) else coalesce(f.valid_lead_count, 0) end) = 1
 ),
 ke_manual as (
     select
@@ -447,7 +447,7 @@ prc as (
         jg.xiaozu,
         jg.department,
         jg.jingli,
-        coalesce(data.valid_lead_count, 0) as lead,
+        case when data.source_manager_name = '韩正卿' then coalesce(data.merge_valid_lead_count, 0) else coalesce(data.valid_lead_count, 0) end as lead,
         data.employee_email_prefix,
         data.employee_email_name,
         data.user_id,

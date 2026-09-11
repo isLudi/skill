@@ -1,5 +1,7 @@
 -- 2026-09-10 first-match异常修复：0904新增的5条宽规则曾提前截获属于“进校私域合作”的记录，导致其误归河南进校/集团私域。
 -- 防回归约束：这5条宽规则必须显式排除后续8条“进校私域合作”细分候选；更新映射时须做分支顺序/重叠审计与代表性lead逐条回归，不能仅比较WHEN数量。
+-- 2026-09-11 有效口径异常修复：渠道 CASE 已把 source_manager_name='韩正卿' 映射为“抖音私信”，但指标层额外要求 channel_name_1='市场私域'，实际记录为“信息流/今日头条”，导致看板退前、退后均为0。
+-- 防回归约束：渠道 CASE 的目标集合必须与有效指标 CASE 完全一致；退前取 merge_assign_lead_count，退后取 merge_valid_lead_count，并同步检查基于有效线索派生的加微、外呼、到课指标。Data Center 或任务 SUCCESS 只证明执行成功，必须再以指定期次+渠道回读看板和承接 Base。
 case
 when (get_customer_way_name in ('进校直推','线下渠道商'))
  and not coalesce((

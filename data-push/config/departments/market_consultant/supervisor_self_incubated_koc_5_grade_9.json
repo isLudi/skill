@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "domain": "market_consultant",
+  "channel_id": "supervisor_self_incubated_koc_5_grade_9",
+  "channel": "自孵化KOC-5元纯课",
+  "channels": ["自孵化KOC-5元纯课"],
+  "adapter": "market-grade-manager-v1",
+  "source": {
+    "source_mode": "lead-detail",
+    "source_url": "https://gaotuedu.feishu.cn/wiki/MrPNwuFvPiiDX0k4jTXcLU8anse?table=tblqvlnqNslL1nWA&view=veweZNrbGI",
+    "raw_source_url": "https://gaotuedu.feishu.cn/wiki/MrPNwuFvPiiDX0k4jTXcLU8anse?table=tbljWRvaqKTdrCx4&view=vewO4yxS3O",
+    "raw_table_id": "tbljWRvaqKTdrCx4",
+    "raw_table_name": "市场顾问原始数据",
+    "channel_match": {
+      "field": "渠道",
+      "case_sensitive": true,
+      "values": {
+        "自孵化KOC-5元纯课": "自孵化KOC-5元纯课"
+      }
+    },
+    "report_profile": "supervisor-detail",
+    "reminder_rule": "channel_grade_source_supervisor_minimum_all_ties",
+    "reminder_population": "raw_leads",
+    "mention_target": "supervisor",
+    "report_type": "auto"
+  },
+  "sender": {
+    "identity": "bot",
+    "name": "管家",
+    "open_id": "ou_f3907e865135732c15a1dfce27828411"
+  },
+  "targets": [
+    {
+      "id": "koc_middle_grade_9",
+      "chat_id": "oc_601bde838d4fbda7ac09840a58228f9c",
+      "display_name": "💗0911期【KOC初中】沟通群",
+      "enabled": true
+    }
+  ],
+  "report": {
+    "period_rule": "natural_week_friday",
+    "process_weekdays": [0, 1, 2, 3, 4, 5, 6],
+    "result_weekdays": [4, 5, 6],
+    "included_grades": ["初三"],
+    "excluded_grades": [],
+    "minimum_post_leads": 10
+  },
+  "schedule": {
+    "enabled": true,
+    "first_send_at": "2026-09-11T21:20:00+08:00",
+    "timezone": "Asia/Shanghai",
+    "hours": [13, 17, 21],
+    "windows_task_name": "Codex-Lark-Supervisor-KOC-Grade9-Push",
+    "stagger_order": 5,
+    "prepare_minute": 24,
+    "send_minute": 24,
+    "deadline_minute": 50,
+    "retry_minutes": 2
+  },
+  "base_identity": "user",
+  "verification_identity": "user",
+  "state_dir": "C:/Users/Ludim/.codex/runtime/channel-broadcast-push/supervisor-self-incubated-koc-5-grade-9",
+  "upstream": {
+    "project_id": 308,
+    "folder": "吕帅",
+    "menu_id": 102754,
+    "task_name": "market2lark",
+    "task_id": 47252,
+    "nezha_task_id": 66504,
+    "schedule_id": 53831,
+    "exec_file_id": 817886,
+    "verified_version_id": 205398,
+    "verified_source_sha256": "ae78c13a392253528ea073f332019b270f8d9a38b8f84d183833ffddbd039d4d",
+    "log_protocol": "two_period_audit_v1",
+    "owner": "lvshuai01"
+  }
+}
