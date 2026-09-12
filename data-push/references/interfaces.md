@@ -1,6 +1,6 @@
 # 接口契约：给后续维护与扩展的AI
 
-先读 [架构](architecture.md)。可执行类型定义在 [core/contracts.py](../scripts/lark_delivery/core/contracts.py)，真实调用样例在 [市场adapter](../scripts/lark_delivery/domains/market_consultant/adapter.py)。本文件描述已有能力，不意味着可以省略授权、数据验收或适配器登记。
+本文件只描述当前本地 Python 执行面。先读 [架构](architecture.md)。可执行类型定义在 [core/contracts.py](../scripts/lark_delivery/core/contracts.py)，真实调用样例在 [市场adapter](../scripts/lark_delivery/domains/market_consultant/adapter.py)。妙搭部署使用 [deployment-configuration.md](deployment-configuration.md) 与自己的 TypeScript domain module；不要把 Python adapter 或本地运行配置原样搬进云端。本文件描述已有能力，不意味着可以省略授权、数据验收或适配器登记。
 
 ## 1. 注册与配置接口
 

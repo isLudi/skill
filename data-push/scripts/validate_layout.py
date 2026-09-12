@@ -6,7 +6,7 @@ from pathlib import Path
 import re
 import sys
 
-from lark_delivery.paths import SKILL_ROOT
+from lark_delivery.paths import SKILL_ROOT, WORKSPACE_ROOT
 from lark_delivery.core import catalog
 from lark_delivery.core.registry import adapter_for
 
@@ -78,7 +78,18 @@ def validate(root=SKILL_ROOT):
         if (schedule.get("send_minute") != schedule.get("prepare_minute")
                 or schedule.get("retry_minutes") != 2 or schedule.get("deadline_minute") != 50):
             errors.append(f"{key}: local schedule must retry every 2 minutes from its staggered start through :50")
-    return {"ok": not errors, "python_files": count, "errors": errors, "remote_mutations": 0}
+    deployment_count = 0
+    workflow_count = 0
+    try:
+        deployments = catalog.deployment_registry(root / "config")
+        for key in deployments["deployments"]:
+            deployment = catalog.load_deployment(key, root / "config", WORKSPACE_ROOT)
+            deployment_count += 1
+            workflow_count += len(deployment["workflows"])
+    except (OSError, ValueError, KeyError, json.JSONDecodeError) as exc:
+        errors.append(f"Miaoda deployment registry: {exc}")
+    return {"ok": not errors, "python_files": count, "miaoda_deployments": deployment_count,
+            "miaoda_workflows": workflow_count, "errors": errors, "remote_mutations": 0}
 
 
 if __name__ == "__main__":

@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "deployments": {
+    "market_consultant/miaoda/cloud_data_push": {
+      "schema_version": 1,
+      "domain": "market_consultant",
+      "execution_surface": "miaoda",
+      "deployment_id": "cloud_data_push",
+      "runtime_base": "codex_home",
+      "runtime_root": "runtime/cloud-data-push-miaoda",
+      "identity_file": ".spark/meta.json",
+      "expected_app_id": "app_17cmm5tn1gs",
+      "lifecycle": "prototype",
+      "local_schedule_relation": "independent",
+      "workflows": {
+        "supervisor_koc_douyin_sync": {
+          "contract_ref": "departments/market_consultant/supervisor_koc_douyin_sync.md",
+          "source_channel_ref": "market_consultant/supervisor_koc_douyin_sync",
+          "module_root": "server/modules/cloud-push-demo",
+          "automation_namespace": "supervisor-koc-douyin",
+          "ledger_namespace": "cloud_push_demo",
+          "style_owner": "market_consultant"
+        }
+      }
+    }
+  }
+}

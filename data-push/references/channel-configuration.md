@@ -1,6 +1,6 @@
-# 部门与渠道配置
+# 本地部门与渠道配置
 
-当前配置样本：[自孵化KOC-5元纯课](../config/departments/market_consultant/self_incubated_koc_5.json)。这是唯一事实来源，不在Skill正文、入口脚本或旧兼容JSON再保存第二份同值配置。
+本文件只描述 `execution_surface=local` 的 Python/Windows 配置。当前配置样本：[自孵化KOC-5元纯课](../config/departments/market_consultant/self_incubated_koc_5.json)。这是本地执行面的唯一事实来源，不在 Skill 正文、入口脚本或旧兼容 JSON 再保存第二份同值配置。妙搭部署身份与 runtime 绑定读 [妙搭部署配置](deployment-configuration.md)；不能把本地 JSON 整体复制成云端环境变量。
 
 ## 注册和命名
 
@@ -9,6 +9,7 @@
 - `config/channels.json` 的key是 `domain/channel_id`；值为config目录内的相对路径。
 - `scripts/channels/<domain>/<channel_id>.py` 只调用 `cli.main(bound_channel="domain/channel_id")`，不接受跳转到其他部门/渠道的参数。
 - 部门业务Skill登记用于语义路由；登记部门不代表已有可执行渠道。
+- 这些 key 不包含执行面，是因为 `channels.json` 当前只登记本地渠道；妙搭使用 `domain/miaoda/deployment_id` 的独立 key。
 
 ## 配置字段
 
@@ -44,6 +45,10 @@
 - `schedule.enabled=false` 只关闭定时发送，不妨碍本地预览；`run --confirm-send` 不会把它改为true。
 - 渠道读取先使用服务端过滤，再按 `source.channel_match` 在本地进行大小写敏感的精确过滤；服务端过滤可能不区分大小写，`raw_read_audit` 必须记录服务端返回数与本地排除数。
 - 添加第二个群不会创建第二个Windows任务；渠道入口负责展开目标，各目标在同一轮内独立等待和发送。
+
+## 与妙搭部署的关系
+
+妙搭记录可用 `source_channel_ref` 引用一个同部门本地渠道，供业务等价对照。该引用不授予发送或切换权限，也不继承本地群、机器人、Windows 任务、状态目录和启停；云端必须从自身部署和服务器固定配置独立核验这些资源。
 
 ## 兼容配置
 
