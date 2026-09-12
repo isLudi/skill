@@ -26,7 +26,7 @@ $pushTriggers = foreach ($pushHour in $pushConfig.hours) {
 }
 $pushPrincipal = New-ScheduledTaskPrincipal -UserId ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name) -LogonType Interactive -RunLevel Limited
 $pushSettings = New-ScheduledTaskSettingsSet -Hidden -MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Minutes 40) -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
-$pushDescription = 'data-push staggered local broadcast; starts :20, retries every 2 minutes through :50. Live detail exists only while running; use view_live_push_status.ps1. Current-week process daily; conversion Fri-Sun.'
+$pushDescription = 'data-push KOC group broadcast at 13:20 and 17:20; retries every 2 minutes through :50. 13:20 sends process Mon-Thu or conversion Fri-Sun; 17:20 sends volume daily. Live detail exists only while running; use view_live_push_status.ps1.'
 Register-ScheduledTask -TaskName $pushTaskName -Action $pushAction -Trigger $pushTriggers -Principal $pushPrincipal -Settings $pushSettings -Description $pushDescription | Out-Null
 $pushReadback = Get-ScheduledTask -TaskName $pushTaskName
 $pushInfo = Get-ScheduledTaskInfo -TaskName $pushTaskName

@@ -246,7 +246,8 @@ def schedule_config(config, target):
     # Preserve the deployed primary ledger; extra groups get independent state.
     if target["id"] != config["targets"][0]["id"]:
         state = state / "targets" / target["id"]
-    return {**deepcopy(config["schedule"]), "schema_version": 2,
+    volume_report = {"volume_report": deepcopy(config["volume_report"])} if "volume_report" in config else {}
+    return {**deepcopy(config["schedule"]), **volume_report, "schema_version": 2,
             "domain": config["domain"], "channel_id": config["channel_id"], "target_id": target["id"],
             "channel_key": f"{config['domain']}/{config['channel_id']}",
             "report_profile": config["source"]["report_profile"], **deepcopy(config["report"]),

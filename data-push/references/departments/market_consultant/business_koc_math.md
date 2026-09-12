@@ -15,4 +15,6 @@
 & 'D:\anaconda3\python.exe' 'C:\Users\Ludim\.codex\skills\data-push\scripts\channels\market_consultant\business_koc_math.py' preview --report-type both
 ```
 
-预览只读 Base、核验群和账号、写本地 HTML/Markdown/PNG，不上传图片、不发消息。长期运行由 Windows 任务 `Codex-Lark-Business-KOC-Math-Push` 调用 `scripts/run_business_koc_math_scheduled_push.ps1`，每天 09:21、13:21、17:21、21:21 错峰启动并立即检查；失败后按 `:21/:23/.../:49` 重试。渠道配置与 Windows 任务必须同时启用；仍须遵守上游证据、时点、逐渠道回执和图片清理门禁。
+常规过程/转化报告仍按顺序分别生成并推送 `KOC-周帅数学`、`KOC-孟亚飞数学`，不得合并。新增进量报告是独立范围：动态纳入渠道名包含 KOC（Unicode NFKC 归一化后不区分大小写）且不包含 `自孵化` 的全部渠道，不设精确渠道名白名单；进量与异常流量占比必须使用同一批渠道，并按期次、渠道、年级精确匹配线索明细。各派生指标先按年级汇总原始分子、分母再计算，图片和文字格式复用市场 KOC 进量报告。
+
+进量能力已在预览和一次群内测试验收后进入 `scheduled`。Windows 任务 `Codex-Lark-Business-KOC-Math-Push` 仅保留 `13:21`、`17:21` 两个触发器，并显式配置 13 点常规报告、17 点进量报告：13 点周一至周四分别推两条过程报告，周五至周日分别推两条转化报告；17 点每天推一条合并进量报告，不再运行 21 点播报。失败仍按 `:21/:23/.../:49` 重试。预览、测试发送和调度上线仍是三个独立门槛；渠道配置与 Windows 任务必须同时启用，并遵守上游证据、时点、逐渠道回执和图片清理门禁。

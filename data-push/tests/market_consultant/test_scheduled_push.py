@@ -20,16 +20,17 @@ class ScheduledPushTests(unittest.TestCase):
         # helper fixture. Current-profile outlet tests live in test_scheduled_grade.
         self.cfg.pop("report_profile")
         self.cfg["upstream"].pop("log_protocol", None)
-        self.slot = datetime(2026, 9, 7, 21, tzinfo=sp.TZ)
+        self.slot = datetime(2026, 9, 8, 13, tzinfo=sp.TZ)
         self.clock = patch.object(sp, "now", return_value=self.slot + timedelta(minutes=20))
         self.clock.start()
         self.addCleanup(self.clock.stop)
 
     def history(self):
         u = self.cfg["upstream"]
+        stamp = self.slot.strftime("%Y-%m-%d %H:%M:%S")
         row = {"id": 123, "taskId": u["nezha_task_id"], "status": 6,
-               "periodTime": "2026-09-07 21:00:00", "planRunTime": "2026-09-07 21:00:00",
-               "startTime": "2026-09-07 21:00:04", "endTime": "2026-09-07 21:07:35",
+               "periodTime": stamp, "planRunTime": stamp,
+               "startTime": "2026-09-08 13:00:04", "endTime": "2026-09-08 13:07:35",
                "runConfig": json.dumps({"execFileId": u["exec_file_id"], "triggerSourceEnum": "SCHEDULE"})}
         return {"scope": u.copy(), "identity": {"name": u["owner"]},
                 "task_schedule": {"supervisor": u["owner"], "scheduleId": u["schedule_id"], "scheduleFrequency": "4h"},
@@ -37,22 +38,70 @@ class ScheduledPushTests(unittest.TestCase):
 
     def context(self):
         return {"period": "20260911期", "raw_count": 2, "channel": self.cfg["channels"][0],
-                "snapshot": ["20260907", "19"], "raw_read_audit": {"has_more": False, "rev": 17},
+                "snapshot": ["20260908", "11"], "raw_read_audit": {"has_more": False, "rev": 17},
                 "mention_target": "none", "markdown": "本次5min率较低顾问：A\n![p](img_process_preview)\n![r](img_result_preview)",
                 "image_path": Path("p.png"), "result_image_path": Path("r.png")}
 
     def evidence(self):
-        return {"period": "20260911期", "dt": "20260907", "hour": 19,
+        return {"period": "20260911期", "dt": "20260908", "hour": 11,
                 "channel_counts": {self.cfg["channels"][0]: 2}}
 
-    def test_four_slots_only(self):
+    def test_two_slots_only(self):
         for hour in range(24):
             at = datetime(2026, 9, 8, hour, 20, tzinfo=sp.TZ)
-            self.assertEqual(sp.active_slot(at, self.cfg) is not None, hour in [13, 17, 21])
+            self.assertEqual(sp.active_slot(at, self.cfg) is not None, hour in [13, 17])
 
     def test_first_round_boundary(self):
-        self.assertIsNone(sp.active_slot(datetime(2026, 9, 7, 17, 20, tzinfo=sp.TZ), self.cfg))
+        self.assertIsNone(sp.active_slot(datetime(2026, 9, 8, 12, 20, tzinfo=sp.TZ), self.cfg))
         self.assertIsNotNone(sp.active_slot(self.slot + timedelta(minutes=20), self.cfg))
+
+    def test_report_kind_is_part_of_delivery_key(self):
+        regular = sp.delivery_key(self.cfg, self.slot, "KOC渠道进量", "regular")
+        volume = sp.delivery_key(self.cfg, self.slot, "KOC渠道进量", "volume")
+        self.assertNotEqual(regular, volume)
+
+    def test_17_slot_routes_only_to_volume_report(self):
+        slot = self.slot.replace(hour=17)
+        context = {
+            "report_kind": "volume", "report_profile": "volume", "channel": "KOC渠道进量",
+            "channels": ["KOC-A"], "period": "20260911期", "raw_count": 2,
+            "raw_read_audit": {"has_more": False, "rev": 17}, "lead_read_audit": {"rev": 18},
+            "markdown": "【KOC渠道】\n![图](img_volume_preview)", "image_path": None,
+            "result_image_path": None, "volume_image_path": Path("volume.png"),
+        }
+        with tempfile.TemporaryDirectory() as folder, patch.object(sp, "now", return_value=slot + timedelta(minutes=20)), \
+             patch.object(sp, "verify_bot"), patch.object(sp, "upstream_ready", return_value={"ok": True}), \
+             patch.object(sp.vr, "prepare_context", return_value=context) as prepare_volume, \
+             patch.object(sp, "prepare_report") as prepare_regular, patch.object(sp, "assert_current_revision"), \
+             patch.object(sp.gp, "send_markdown") as dry_send:
+            db = sp.connect_ledger(Path(folder))
+            self.assertEqual(sp.run_slot(self.cfg, True, slot, Path(folder), db), 0)
+            db.close()
+        prepare_volume.assert_called_once()
+        prepare_regular.assert_not_called()
+        self.assertTrue(dry_send.call_args.kwargs["dry_run"])
+
+    def test_business_config_routes_regular_and_volume_after_approval(self):
+        definition = sp.catalog.load_channel("market_consultant/business_koc_math")
+        target = sp.catalog.select_targets(definition)[0]
+        cfg = sp.catalog.schedule_config(definition, target)
+        sp.validate_config(cfg)
+        self.assertEqual(cfg["slot_reports"], {"13": "regular", "17": "volume"})
+        self.assertEqual(cfg["hours"], [13, 17])
+        self.assertEqual(cfg["volume_report"]["stage"], "scheduled")
+        self.assertEqual(sp.report_for_slot(cfg, 13), "regular")
+        self.assertEqual(sp.report_for_slot(cfg, 17), "volume")
+
+    def test_volume_revision_guard_checks_both_tables(self):
+        context = {"report_kind": "volume", "base_token": "base", "revision_sources": (
+            {"table_id": "volume", "field": "期次", "rev": 11},
+            {"table_id": "lead", "field": "期次", "rev": 12},
+        )}
+        replies = [json.dumps({"rev": 11}), json.dumps({"rev": 12})]
+        with patch.object(sp.vr.gp, "run_lark", side_effect=replies) as run_lark:
+            sp.assert_current_revision(context, self.cfg)
+        self.assertEqual(run_lark.call_count, 2)
+        self.assertEqual([call.args[0][5] for call in run_lark.call_args_list], ["volume", "lead"])
 
     def test_no_late_catchup(self):
         self.assertIsNone(sp.active_slot(self.slot + timedelta(minutes=51), self.cfg))
@@ -124,7 +173,7 @@ class ScheduledPushTests(unittest.TestCase):
 
     def test_newer_execution_blocks(self):
         h = self.history()
-        h["executions"].append({"id": 124, "startTime": "2026-09-07 21:10:00"})
+        h["executions"].append({"id": 124, "startTime": "2026-09-08 13:10:00"})
         with self.assertRaises(ValueError):
             sp.validate_history(h, self.cfg, self.slot)
 
@@ -146,7 +195,7 @@ class ScheduledPushTests(unittest.TestCase):
     def test_complete_log_protocol_and_hash(self):
         h = self.history()
         row = h["executions"][0]
-        valid = ('采用dt=20260907, hour=19，延迟2小时\n'
+        valid = ('采用dt=20260908, hour=11，延迟2小时\n'
                  '目标多维表格校验通过：table_id=tbljWRvaqKTdrCx4\n'
                  '渠道分布：{"KOC-周帅数学":2}\n'
                  '数据校验通过：2行，期次20260911期，1个渠道\n'
@@ -154,7 +203,7 @@ class ScheduledPushTests(unittest.TestCase):
                  '最终回读校验通过：2条\nSUCCESS: done\nexit_code:  0\n')
         bad_logs = [valid.replace('最终回读校验通过：2条', '最终回读校验通过：3条'),
                     valid.replace('新记录回读校验通过', '新记录回读失败'),
-                    valid.replace('hour=19', 'hour=15'), valid.replace('exit_code:  0', 'exit_code:  1'),
+                    valid.replace('hour=11', 'hour=15'), valid.replace('exit_code:  0', 'exit_code:  1'),
                     valid.replace('tbljWRvaqKTdrCx4', 'another_table')]
         with tempfile.TemporaryDirectory() as folder:
             directory = Path(folder)

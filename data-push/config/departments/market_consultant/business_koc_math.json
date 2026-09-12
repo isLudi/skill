@@ -41,11 +41,30 @@
     "excluded_grades": ["初二"],
     "minimum_post_leads": 10
   },
+  "volume_report": {
+    "stage": "scheduled",
+    "base_token": "PmpybDuXGaudYost6I3cTwChn3d",
+    "volume_table_id": "tblGUCxgUTZPjv3c",
+    "volume_table_name": "市场顾问进量原始数据",
+    "lead_table_id": "tbljWRvaqKTdrCx4",
+    "lead_table_name": "市场顾问线索原始数据",
+    "period_rule": "latest_available",
+    "channel_rule": "contains_koc_case_insensitive_and_not_contains_自孵化",
+    "grain": "年级",
+    "slow_grade_count": 1,
+    "metric_formulas": {
+      "线索留存率": "sum(退后线索)/sum(退前线索)",
+      "人均带班": "sum(实际进量)/sum(接量顾问数)",
+      "量级完成度": "sum(实际进量)/sum(预估量级)",
+      "异常流量占比": "sum(异常流量标记)/matched_lead_rows"
+    }
+  },
   "schedule": {
     "enabled": true,
     "first_send_at": "2026-09-10T21:20:00+08:00",
     "timezone": "Asia/Shanghai",
-    "hours": [13, 17, 21],
+    "hours": [13, 17],
+    "slot_reports": {"13": "regular", "17": "volume"},
     "windows_task_name": "Codex-Lark-Business-KOC-Math-Push",
     "stagger_order": 2,
     "prepare_minute": 21,

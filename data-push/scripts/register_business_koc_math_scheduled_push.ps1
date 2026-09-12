@@ -20,7 +20,6 @@ $pushAction = New-ScheduledTaskAction -Execute "$env:WINDIR\System32\WindowsPowe
 $pushExisting = Get-ScheduledTask -TaskName $pushTaskName -ErrorAction SilentlyContinue
 if ($pushExisting) {
     if ($pushExisting.Actions.Arguments -ne $pushArguments) { throw 'Existing task has another action; refusing overwrite.' }
-    throw 'Task already exists; inspect before explicitly updating it.'
 }
 $pushTriggers = foreach ($pushHour in $pushConfig.hours) {
     $pushAt = $pushFirst.Date.AddHours($pushHour).AddMinutes($pushConfig.prepare_minute)
@@ -29,8 +28,10 @@ $pushTriggers = foreach ($pushHour in $pushConfig.hours) {
 }
 $pushPrincipal = New-ScheduledTaskPrincipal -UserId ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name) -LogonType Interactive -RunLevel Limited
 $pushSettings = New-ScheduledTaskSettingsSet -Hidden -MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Minutes 40) -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
-$pushDescription = 'data-push staggered local broadcast; starts :21, retries every 2 minutes through :50. Live detail exists only while running; use view_live_push_status.ps1. Channels: KOC-Zhoushuai math, then KOC-Mengyafei math.'
-Register-ScheduledTask -TaskName $pushTaskName -Action $pushAction -Trigger $pushTriggers -Principal $pushPrincipal -Settings $pushSettings -Description $pushDescription | Out-Null
+$pushDescription = 'data-push business KOC broadcast at 13:21 and 17:21; retries every 2 minutes through :50. 13:21 sends separate KOC-Zhoushuai and KOC-Mengyafei process reports Mon-Thu or conversion reports Fri-Sun; 17:21 sends one combined KOC excluding self-incubated volume report daily.'
+$pushRegister = @{TaskName=$pushTaskName;Action=$pushAction;Trigger=$pushTriggers;Principal=$pushPrincipal;Settings=$pushSettings;Description=$pushDescription}
+if ($pushExisting) { $pushRegister.Force = $true }
+Register-ScheduledTask @pushRegister | Out-Null
 $pushReadback = Get-ScheduledTask -TaskName $pushTaskName
 $pushInfo = Get-ScheduledTaskInfo -TaskName $pushTaskName
 [pscustomobject]@{TaskName=$pushTaskName;State=$pushReadback.State.ToString();NextRunTime=$pushInfo.NextRunTime;Triggers=@($pushReadback.Triggers | Select-Object StartBoundary,DaysInterval);Action=$pushReadback.Actions.Arguments;LogonType=$pushReadback.Principal.LogonType;MultipleInstances=$pushReadback.Settings.MultipleInstances;Enabled=$pushReadback.Settings.Enabled} | ConvertTo-Json -Depth 6

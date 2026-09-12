@@ -20,6 +20,11 @@ class BusinessKocMathTests(unittest.TestCase):
         self.assertTrue(self.definition["schedule"]["enabled"])
         self.assertEqual(self.definition["schedule"]["first_send_at"], "2026-09-10T21:20:00+08:00")
         self.assertEqual(catalog.schedule_config(self.definition, self.target)["channels"], list(policy.CHANNELS))
+        self.assertEqual(self.definition["volume_report"]["stage"], "scheduled")
+        self.assertEqual(self.definition["volume_report"]["channel_rule"],
+                         "contains_koc_case_insensitive_and_not_contains_自孵化")
+        self.assertEqual(self.definition["schedule"]["hours"], [13, 17])
+        self.assertEqual(self.definition["schedule"]["slot_reports"], {"13": "regular", "17": "volume"})
 
     def test_each_channel_gets_its_own_report_arguments(self):
         args = [adapter.report_arguments(self.definition, self.target, channel=channel, report_type="both")

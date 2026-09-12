@@ -1,9 +1,6 @@
 #!/usr/bin/env python
-"""Fail-closed, four-slot local broadcaster. No upstream or Base mutations.
-
-Only --watch --confirm-send opens the message outlet. Preflight is read-only.
-Windows Task Scheduler owns wakeup; SQLite owns durable per-slot delivery claims.
-"""
+"""Fail-closed local broadcaster; only --watch --confirm-send opens the outlet.
+Windows Task Scheduler owns wakeup; SQLite owns durable delivery claims."""
 from __future__ import annotations
 
 import argparse
@@ -15,7 +12,6 @@ import math
 import os
 from pathlib import Path
 import re
-import sqlite3
 import subprocess
 import sys
 import tempfile
@@ -30,6 +26,8 @@ from .adapter import report_arguments
 from ...integrations import tiangong_release as rb
 from .channels import self_incubated_koc_5 as bp
 from . import grade_report as gr
+from . import volume_report as vr
+from .delivery_ledger import claim, connect_ledger, delivery_key
 from ...paths import SKILL_ROOT, SKILLS_ROOT
 
 TZ = timezone(timedelta(hours=8))
@@ -86,8 +84,15 @@ def load_config(path):
 
 def validate_config(cfg):
     catalog.require_registered_schedule(cfg)
-    if cfg.get("hours") != [13, 17, 21] or cfg.get("timezone") != "Asia/Shanghai":
-        raise ValueError("Unreviewed schedule; expected afternoon China-time slots")
+    slot_reports = cfg.get("slot_reports")
+    routed = slot_reports is not None
+    if cfg.get("timezone") != "Asia/Shanghai":
+        raise ValueError("Unreviewed schedule timezone")
+    if routed:
+        if cfg.get("hours") != [13, 17] or slot_reports != {"13": "regular", "17": "volume"}:
+            raise ValueError("Unreviewed two-slot report routing")
+    elif cfg.get("hours") not in ([13, 17], [13, 17, 21]):
+        raise ValueError("Unreviewed legacy schedule")
     order = cfg.get("stagger_order")
     start_minute = cfg.get("prepare_minute")
     if (not isinstance(order, int) or order < 1 or start_minute != 19 + order
@@ -102,7 +107,19 @@ def validate_config(cfg):
     if (cfg.get("period_rule") != "natural_week_friday" or cfg.get("process_weekdays") != list(range(7))
             or cfg.get("result_weekdays") != [4, 5, 6]):
         raise ValueError("Unreviewed business-week period or weekday policy")
+    volume = cfg.get("volume_report", {})
+    if volume:
+        if (volume.get("stage") not in {"preview_only", "scheduled"}
+                or volume.get("period_rule") != "latest_available" or volume.get("grain") != "年级"
+                or volume.get("channel_rule") not in vr.CHANNEL_RULE_DESCRIPTIONS):
+            raise ValueError("Unreviewed volume-report policy")
+    if routed and volume.get("stage") != "scheduled":
+        raise ValueError("Routed volume report must be scheduled")
     return cfg
+
+
+def report_for_slot(cfg, hour):
+    return cfg.get("slot_reports", {}).get(str(hour), "regular")
 
 
 def active_slot(at, cfg, preflight=False):
@@ -374,6 +391,9 @@ def validate_context(context, evidence, cfg=None, slot=None):
 
 def assert_current_revision(context, cfg):
     # The one-row read is only a revision guard, never the source for aggregation.
+    if context.get("report_kind") == "volume":
+        vr.assert_current_revisions(context, cfg)
+        return
     with tempfile.TemporaryDirectory(prefix=".broadcast-rev-") as folder:
         data = gp._unwrap(json.loads(gp.run_lark([
             "base", "+record-list", "--base-token", context["coords"]["base_token"],
@@ -381,30 +401,6 @@ def assert_current_revision(context, cfg):
             "--output", "./revision.ndjson", "--format", "ndjson", "--as", cfg["base_as"]], cwd=folder, timeout=60)))
     if data.get("rev") != context["raw_read_audit"]["rev"]:
         raise ValueError("Base changed after snapshot; rebuild before sending")
-
-
-def connect_ledger(state_dir):
-    state_dir.mkdir(parents=True, exist_ok=True)
-    db = sqlite3.connect(state_dir / "deliveries.sqlite3", timeout=10)
-    db.execute("PRAGMA journal_mode=WAL")
-    db.execute("PRAGMA synchronous=FULL")
-    db.execute("CREATE TABLE IF NOT EXISTS deliveries (key TEXT PRIMARY KEY, slot TEXT, channel TEXT, status TEXT, message_id TEXT, detail TEXT)")
-    db.commit()
-    return db
-
-
-def delivery_key(cfg, slot, channel):
-    scope = cfg["chat_id"] + "|" + slot.isoformat() + "|" + channel + "|both|bot"
-    if cfg.get("channel_key") and (cfg["channel_key"] != catalog.DEFAULT_CHANNEL or cfg.get("target_id") != "gaoyang"):
-        scope = cfg["channel_key"] + "|" + cfg["target_id"] + "|" + scope
-    return hashlib.sha256(scope.encode()).hexdigest()[:40]
-
-
-def claim(db, key, slot, channel):
-    cur = db.execute("INSERT OR IGNORE INTO deliveries VALUES (?,?,?,?,?,?)",
-                     (key, slot.isoformat(), channel, "sending", "", "{}"))
-    db.commit()
-    return cur.rowcount == 1
 
 
 def receipt_readback(message_id, cfg, context, image_keys):
@@ -459,7 +455,7 @@ def deliver(context, cfg, slot, db, evidence):
         emit("channel_skipped_no_eligible_rows", channel=context["channel"], period=context["period"],
              reason=context["skip_reason"])
         return True
-    key = delivery_key(cfg, slot, context["channel"])
+    key = delivery_key(cfg, slot, context["channel"], context.get("report_kind", "regular"))
     return _deliver_verified(context, cfg, slot, db, evidence, key=key,
                              time_guard=lambda: require_send_window(slot, cfg))
 
@@ -475,7 +471,9 @@ def _deliver_verified(context, cfg, slot, db, evidence, *, key, time_guard):
         emit("duplicate_suppressed", channel=context["channel"], status=prior[0], message_id=prior[1])
         return prior[0] == "sent_verified"
     time_guard()
-    if cfg.get("report_profile") == bp.PROFILE or context.get("report_profile") == bp.PROFILE:
+    if context.get("report_kind") == "volume":
+        vr.validate_scheduled_context(context, cfg)
+    elif cfg.get("report_profile") == bp.PROFILE or context.get("report_profile") == bp.PROFILE:
         validate_context(context, evidence, cfg, slot)
         if gp.mention_nonmembers(cfg["chat_id"], context["mention_info"]["resolved"], "bot", 60):
             raise ValueError("reminded manager left the group before sending")
@@ -492,12 +490,14 @@ def _deliver_verified(context, cfg, slot, db, evidence, *, key, time_guard):
             markdown = markdown.replace("](%s)" % ref, "](%s)" % image_key)
     # A slow upload or the preceding channel must not carry this send past cutoff.
     time_guard()
-    if context.get("report_profile") == bp.PROFILE:
+    if context.get("report_profile") in {bp.PROFILE, "volume"}:
         assert_current_revision(context, cfg)
     if not claim(db, key, slot, context["channel"]):
         return False
-    detail = {"upstream": evidence, "period": context["period"], "raw_count": context["raw_count"],
-              "rev": context["raw_read_audit"]["rev"], "image_keys": keys}
+    detail = {"upstream": evidence, "period": context["period"], "report_kind": context.get("report_kind", "regular"),
+              "raw_count": context["raw_count"], "rev": context["raw_read_audit"]["rev"], "image_keys": keys}
+    if context.get("report_kind") == "volume":
+        detail.update(vr.delivery_detail(context))
     try:
         response = gp.send_markdown(cfg["chat_id"], markdown, key, "bot", dry_run=False, timeout=60)
         message_id = gp._message_id(response)
@@ -555,29 +555,38 @@ def run_slot(cfg, preflight, slot, state, db):
             emit("checking_upstream", attempt=attempt, slot=slot.isoformat())
             evidence = upstream_ready(cfg, slot)
             if cached is None:
-                contexts = []
-                for channel in cfg["channels"]:
-                    emit("preparing_channel_report", attempt=attempt, channel=channel, slot=slot.isoformat())
-                    definition = catalog.load_channel(cfg.get("channel_key", catalog.DEFAULT_CHANNEL))
-                    context = prepare_report(report_args(cfg, channel, slot), definition)
-                    emit("validating_channel_snapshot", attempt=attempt, channel=channel, slot=slot.isoformat())
-                    validate_context(context, evidence, cfg, slot)
-                    contexts.append(context)
-                if len({c["raw_read_audit"]["rev"] for c in contexts}) != 1:
-                    raise ValueError("channels are not from the same Base revision")
+                if report_for_slot(cfg, slot.hour) == "volume":
+                    emit("preparing_volume_report", attempt=attempt, slot=slot.isoformat())
+                    contexts = [vr.prepare_context(cfg, state / "prepared-volume")]
+                else:
+                    contexts = []
+                    for channel in cfg["channels"]:
+                        emit("preparing_channel_report", attempt=attempt, channel=channel, slot=slot.isoformat())
+                        definition = catalog.load_channel(cfg.get("channel_key", catalog.DEFAULT_CHANNEL))
+                        context = prepare_report(report_args(cfg, channel, slot), definition)
+                        emit("validating_channel_snapshot", attempt=attempt, channel=channel, slot=slot.isoformat())
+                        validate_context(context, evidence, cfg, slot)
+                        contexts.append(context)
+                    if len({c["raw_read_audit"]["rev"] for c in contexts}) != 1:
+                        raise ValueError("channels are not from the same Base revision")
                 cached = contexts
             for context in cached:
-                validate_context(context, evidence, cfg, slot)
+                if context.get("report_kind") != "volume":
+                    validate_context(context, evidence, cfg, slot)
                 assert_current_revision(context, cfg)
             if preflight:
                 for context in cached:
                     if not context.get("skip_delivery"):
-                        gp.send_markdown(cfg["chat_id"], context["markdown"], context["idempotency_key"], "bot", dry_run=True, timeout=60)
+                        dry_key = context.get("idempotency_key") or delivery_key(
+                            cfg, slot, context["channel"], context.get("report_kind", "regular"))
+                        gp.send_markdown(cfg["chat_id"], context["markdown"], dry_key, "bot", dry_run=True, timeout=60)
                 summary = {"status": "preflight_passed_no_send", "slot": slot.isoformat(), "upstream": evidence,
-                            "channels": [{"channel": c["channel"], "period": c["period"], "rows": c["raw_count"],
+                            "channels": [{"channel": c["channel"], "report_kind": c.get("report_kind", "regular"),
+                                          "source_channels": c.get("channels", [c["channel"]]), "period": c["period"], "rows": c["raw_count"],
                                           "delivery_status": "skipped_no_eligible_rows" if c.get("skip_delivery") else "ready",
                                           "rev": c["raw_read_audit"]["rev"], "process_image": str(c["image_path"]),
-                                         "result_image": str(c["result_image_path"])} for c in cached]}
+                                         "result_image": str(c["result_image_path"]),
+                                         "volume_image": str(c.get("volume_image_path"))} for c in cached]}
                 (state / "preflight.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
                 emit("preflight_passed_no_send", **{k: v for k, v in summary.items() if k != "status"})
                 return 0

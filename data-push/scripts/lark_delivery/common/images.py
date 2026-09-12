@@ -73,4 +73,9 @@ def _image_slots(context: Mapping[str, Any]) -> tuple[tuple[str, Path | None, tu
             context.get("result_image_path"),
             ("img_result_preview",),
         ),
+        (
+            "volume",
+            context.get("volume_image_path"),
+            ("img_volume_preview",),
+        ),
     )
