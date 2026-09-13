@@ -1,6 +1,6 @@
 # Codex Workspace and Skills Repository Instructions
 
-This file is the Git-versioned instruction source for `C:\Users\Ludim\.codex`. Maintain `skills\AGENTS.md`; `WORKSPACE_AGENTS.md` is its generated runtime mirror. Relative links below resolve from the `skills` repository, including when this text is loaded through the mirror.
+This file is the Git-versioned instruction source for the parent Codex home. Maintain `skills\AGENTS.md`; `WORKSPACE_AGENTS.md` is its generated runtime mirror. Relative links below resolve from the `skills` repository, including when this text is loaded through the mirror.
 
 ## Scope and authorization
 
@@ -13,7 +13,7 @@ This file is the Git-versioned instruction source for `C:\Users\Ludim\.codex`. M
 
 ## Runtime and text transport
 
-Use `D:\anaconda3\python.exe` and its `-m pip` for Python; do not substitute bare Python or Python 3.14 unless requested. Text is UTF-8, preferably without BOM. Initialize each new PowerShell process before non-ASCII input/output:
+Resolve Python from `executables.python` in the machine-local `<codex-home>\machine.local.json`, and use that executable and its `-m pip`; do not substitute bare Python unless requested. The tracked template and validation contract live under [codex-config](codex-config/README.md). Text is UTF-8, preferably without BOM. Initialize each new PowerShell process before non-ASCII input/output:
 
 ```powershell
 $env:PYTHONIOENCODING = 'utf-8'
@@ -28,7 +28,7 @@ Create non-ASCII payloads with `apply_patch` or Python using explicit UTF-8, not
 ## Instruction layout
 
 - `skills\AGENTS.md` is the only editable AGENTS source. Keep `.codex\AGENTS.md`, `.codex\AGENTS.override.md`, `.codex\.git` and `skills\AGENTS.global.md` absent.
-- `config.toml` uses `project_doc_fallback_filenames = ["WORKSPACE_AGENTS.md"]` and a size limit sufficient for this file but no greater than `32768` bytes.
+- `codex-config/config.shared.toml` is the Git-versioned portable contract. Machine-local `config.toml` uses `project_doc_fallback_filenames = ["WORKSPACE_AGENTS.md"]` and a size limit sufficient for this file but no greater than `32768` bytes; validate the active value against the tracked contract.
 - After editing the source, run [sync_agents.ps1](sync_agents.ps1) with `-Mode Export -NoCommit`. Export verifies the mirror and layout. Use `-Mode Check` for a separate read-only check when needed; an unchanged successful Export needs no second check. Import additionally requires `-ConfirmImport` and a reviewed mirror. Git commit/push are opt-in (`-Commit`, then optional `-Push`), never part of ordinary synchronization.
 - Keep the canonical Lark Skills and their `agents/openai.yaml` under this repository. Use per-path Codex discovery settings to disable duplicate installations without deleting other tools' copies. Preserve registration metadata during upstream sync; restart Codex after discovery changes. Review local instruction adaptations when updating upstream files.
 

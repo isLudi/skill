@@ -1,5 +1,9 @@
 # Keep the canonical instructions deterministic across Windows checkouts.
+.gitattributes text eol=lf
 AGENTS.md text eol=lf
+sync_agents.ps1 text eol=lf
+scripts/tests/test_agents_workflow.py text eol=lf
+codex-config/** text eol=lf
 
 # Market canonical SQL is an exact production-source snapshot; preserve its remote hash.
 market-consultant-dashboard-sql/resources/raw_sql/*.sql whitespace=-blank-at-eol,-space-before-tab

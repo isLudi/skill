@@ -5,10 +5,12 @@ from __future__ import annotations
 import contextlib
 import importlib.util
 import io
+import json
 import os
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -36,6 +38,21 @@ class WorkspaceFixture(unittest.TestCase):
         self.canonical.write_text(CANONICAL_TEXT, encoding="utf-8")
         self.mirror.write_bytes(self.canonical.read_bytes())
         self.config.write_text('project_doc_fallback_filenames = ["WORKSPACE_AGENTS.md"]\nproject_doc_max_bytes = 32768\n', encoding="utf-8")
+        self.machine_config = self.workspace / "machine.local.json"
+        self.machine_config.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "machine_id": "Fixture",
+                    "codex_home": str(self.workspace),
+                    "skills_repo": str(self.repo),
+                    "executables": {"python": sys.executable},
+                    "paths": {},
+                    "credential_file_paths": {},
+                }
+            ),
+            encoding="utf-8",
+        )
         for reference in layout.local_links(CANONICAL_TEXT):
             target = self.repo / reference
             target.parent.mkdir(parents=True, exist_ok=True)

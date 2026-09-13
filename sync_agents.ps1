@@ -28,8 +28,23 @@ $codexRoot = Split-Path -Parent $repoRoot
 $canonicalAgents = Join-Path $repoRoot "AGENTS.md"
 $runtimeAgents = Join-Path $codexRoot "WORKSPACE_AGENTS.md"
 $layoutChecker = Join-Path $repoRoot "scripts\check_agents_layout.py"
-$pythonExe = "D:\anaconda3\python.exe"
+$machineConfig = Join-Path $codexRoot "machine.local.json"
 $trackedPath = "AGENTS.md"
+
+if (-not (Test-Path -LiteralPath $machineConfig -PathType Leaf)) {
+    throw "Machine-local configuration not found: $machineConfig. Start from codex-config\machine.local.example.json."
+}
+
+try {
+    $machineSettings = Get-Content -LiteralPath $machineConfig -Raw -Encoding UTF8 | ConvertFrom-Json
+} catch {
+    throw "Unable to parse machine-local configuration ${machineConfig}: $($_.Exception.Message)"
+}
+
+$pythonExe = [string]$machineSettings.executables.python
+if ([string]::IsNullOrWhiteSpace($pythonExe) -or -not [System.IO.Path]::IsPathRooted($pythonExe)) {
+    throw "machine.local.json must define executables.python as an absolute path."
+}
 
 function Get-FileSha256([string]$Path) {
     if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
