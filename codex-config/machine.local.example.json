@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "machine_id": "Machine-X",
+  "codex_home": "<ABSOLUTE_PATH_TO_CODEX_HOME>",
+  "skills_repo": "<ABSOLUTE_PATH_TO_SKILLS_REPOSITORY>",
+  "executables": {
+    "python": "<ABSOLUTE_PATH_TO_PYTHON_EXECUTABLE>"
+  },
+  "paths": {
+    "business_data_root": "<OPTIONAL_ABSOLUTE_PATH>"
+  },
+  "credential_file_paths": {
+    "usql_env": "<OPTIONAL_ABSOLUTE_ENV_FILE_PATH>",
+    "feishu_env": "<OPTIONAL_ABSOLUTE_ENV_FILE_PATH>"
+  }
+}

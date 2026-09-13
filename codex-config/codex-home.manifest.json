@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "architecture": "shared-repository-with-machine-local-overlay",
+  "repository_policy": {
+    "codex_home_is_git_root": false,
+    "versioned_repository": "skills",
+    "runtime_agent_mirror": "WORKSPACE_AGENTS.md",
+    "machine_local_manifest": "machine.local.json"
+  },
+  "required_shared_config": {
+    "project_doc_fallback_filenames": [
+      "WORKSPACE_AGENTS.md"
+    ],
+    "project_doc_max_bytes": 32768
+  },
+  "versioned_sources": [
+    {
+      "path": "../.gitattributes",
+      "classification": "C1",
+      "role": "portable-line-ending-policy"
+    },
+    {
+      "path": "../AGENTS.md",
+      "classification": "C1",
+      "role": "canonical-agent-policy"
+    },
+    {
+      "path": "../sync_agents.ps1",
+      "classification": "C1",
+      "role": "runtime-mirror-exporter"
+    },
+    {
+      "path": "../scripts/tests/test_agents_workflow.py",
+      "classification": "C1",
+      "role": "runtime-mirror-tests"
+    },
+    {
+      "path": "README.md",
+      "classification": "C1",
+      "role": "versioning-contract"
+    },
+    {
+      "path": "config.shared.toml",
+      "classification": "C1",
+      "role": "portable-codex-config"
+    },
+    {
+      "path": "machine.local.example.json",
+      "classification": "C1",
+      "role": "machine-local-template"
+    },
+    {
+      "path": "codex-home.manifest.json",
+      "classification": "C1",
+      "role": "versioning-manifest"
+    },
+    {
+      "path": "scripts/validate_codex_home_versioning.py",
+      "classification": "C1",
+      "role": "boundary-validator"
+    },
+    {
+      "path": "tests/test_validate_codex_home_versioning.py",
+      "classification": "C1",
+      "role": "validator-tests"
+    }
+  ],
+  "local_state": [
+    {
+      "path": "config.toml",
+      "classification": "C2"
+    },
+    {
+      "path": "machine.local.json",
+      "classification": "C2"
+    },
+    {
+      "path": "auth.json",
+      "classification": "C6"
+    },
+    {
+      "path": ".sandbox-secrets/**",
+      "classification": "C6"
+    },
+    {
+      "path": "runtime/**",
+      "classification": "C5"
+    },
+    {
+      "path": "sessions/**",
+      "classification": "C5"
+    },
+    {
+      "path": "cache/**",
+      "classification": "C5"
+    },
+    {
+      "path": "plugins/cache/**",
+      "classification": "C5"
+    },
+    {
+      "path": ".tmp/**",
+      "classification": "C5"
+    },
+    {
+      "path": "attachments/**",
+      "classification": "C5"
+    },
+    {
+      "path": "*.sqlite*",
+      "classification": "C5"
+    }
+  ]
+}

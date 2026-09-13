@@ -1,0 +1,4 @@
+# Portable settings contract. The validator compares these values with the
+# machine-local <codex-home>/config.toml; Codex does not load this file directly.
+project_doc_fallback_filenames = ["WORKSPACE_AGENTS.md"]
+project_doc_max_bytes = 32768
