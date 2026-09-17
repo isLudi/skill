@@ -14,6 +14,7 @@ qingcheng-dashboard-sql/resources/raw_sql/** text eol=lf
 qingcheng-dashboard-sql/semantic/** text eol=lf
 _shared/text2sql_core/catalog/*.json text eol=lf
 _shared/text2sql_core/config/*.json text eol=lf
+usql-web-query-operator/references/*.json text eol=lf
 
 # Market canonical SQL is an exact production-source snapshot; preserve its remote hash.
 market-consultant-dashboard-sql/resources/raw_sql/*.sql whitespace=-blank-at-eol,-space-before-tab
