@@ -124,7 +124,8 @@ class TemplateSqlKnowledgeTests(unittest.TestCase):
         )
         self.assertEqual("ready", plan.status)
         self.assertEqual(hashlib.sha256(b"select 1\n").hexdigest(), plan.remote_sql_sha256)
-        self.assertEqual([legacy], [item.path for item in plan.legacy_files])
+        self.assertEqual(1, len(plan.legacy_files))
+        self.assertTrue(legacy.samefile(plan.legacy_files[0].path))
         self.assertEqual("resources/raw_sql/template_query_market_wide.sql", plan.to_json()["canonical_sql_file"])
         self.assertNotIn("select 0", plan.to_json().__repr__())
 

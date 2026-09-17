@@ -5,5 +5,15 @@ sync_agents.ps1 text eol=lf
 scripts/tests/test_agents_workflow.py text eol=lf
 codex-config/** text eol=lf
 
+# Source-Hash-bound business knowledge and canonical SQL must survive Windows checkout unchanged.
+market-consultant-dashboard-sql/knowledge/** text eol=lf
+market-consultant-dashboard-sql/resources/raw_sql/** text eol=lf
+market-consultant-dashboard-sql/semantic/** text eol=lf
+qingcheng-dashboard-sql/knowledge/** text eol=lf
+qingcheng-dashboard-sql/resources/raw_sql/** text eol=lf
+qingcheng-dashboard-sql/semantic/** text eol=lf
+_shared/text2sql_core/catalog/*.json text eol=lf
+_shared/text2sql_core/config/*.json text eol=lf
+
 # Market canonical SQL is an exact production-source snapshot; preserve its remote hash.
 market-consultant-dashboard-sql/resources/raw_sql/*.sql whitespace=-blank-at-eol,-space-before-tab

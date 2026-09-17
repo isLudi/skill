@@ -3,8 +3,8 @@
   "exceptions": [
     {
       "source_path": "market-consultant-dashboard-sql/resources/raw_sql/consultant_sales_ranking_evaluation.sql",
-      "sha256": "c5c4026e774d06244f97df286b9614d8d15827418df7b0d8e55249cac1effb5f",
-      "reason": "Retained historical evidence contains two top-level queries without a semicolon delimiter; do not use as executable SQL without selecting one query."
+      "sha256": "ff437a323a0891bb9b8f5fd2a933df806419e4115709a7dade32de678d15ab35",
+      "reason": "Retained historical evidence contains four top-level queries separated by comment markers without semicolon delimiters; use the per-period clean SQL files for executable queries."
     }
   ]
 }

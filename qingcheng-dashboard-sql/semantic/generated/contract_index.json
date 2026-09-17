@@ -18,7 +18,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/sql_patterns/qingcheng_period_channel_process_export_template.md",
-      "source_sha256": "6e1c189f74bc804ebfdfe01747533188350261d16f17b7cda6ee12ade175f3cb",
+      "source_sha256": "7859e7c5409ae7de48732d752ff75c6342a774e6c64766cc7d9692a0a85a4c9b",
       "automatic_compile": false
     },
     {
@@ -44,7 +44,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/sql_patterns/qingcheng_period_channel_process_export_template.md",
-      "source_sha256": "6e1c189f74bc804ebfdfe01747533188350261d16f17b7cda6ee12ade175f3cb",
+      "source_sha256": "7859e7c5409ae7de48732d752ff75c6342a774e6c64766cc7d9692a0a85a4c9b",
       "automatic_compile": false
     },
     {
@@ -57,7 +57,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/sql_patterns/qingcheng_period_channel_process_export_template.md",
-      "source_sha256": "6e1c189f74bc804ebfdfe01747533188350261d16f17b7cda6ee12ade175f3cb",
+      "source_sha256": "7859e7c5409ae7de48732d752ff75c6342a774e6c64766cc7d9692a0a85a4c9b",
       "automatic_compile": false
     },
     {
@@ -71,7 +71,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/sql_patterns/qingcheng_period_channel_process_export_template.md",
-      "source_sha256": "6e1c189f74bc804ebfdfe01747533188350261d16f17b7cda6ee12ade175f3cb",
+      "source_sha256": "7859e7c5409ae7de48732d752ff75c6342a774e6c64766cc7d9692a0a85a4c9b",
       "automatic_compile": false
     },
     {
@@ -194,7 +194,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/qingcheng_refund_reason_metrics.md",
-      "source_sha256": "94e29ddc33d5ca7aa804acd4390859ddb51331c633243de05eb5f5b3bfaf5b38",
+      "source_sha256": "36277ede7ba5b5e044388e218b5f7363bc3f61efb7f717787c255d7c40caa85d",
       "automatic_compile": false
     },
     {
@@ -208,7 +208,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/sql_patterns/qingcheng_period_channel_process_export_template.md",
-      "source_sha256": "6e1c189f74bc804ebfdfe01747533188350261d16f17b7cda6ee12ade175f3cb",
+      "source_sha256": "7859e7c5409ae7de48732d752ff75c6342a774e6c64766cc7d9692a0a85a4c9b",
       "automatic_compile": false
     },
     {
@@ -260,7 +260,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/sql_patterns/qingcheng_period_channel_process_export_template.md",
-      "source_sha256": "6e1c189f74bc804ebfdfe01747533188350261d16f17b7cda6ee12ade175f3cb",
+      "source_sha256": "7859e7c5409ae7de48732d752ff75c6342a774e6c64766cc7d9692a0a85a4c9b",
       "automatic_compile": false
     },
     {
@@ -616,7 +616,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/qingcheng_refund_reason_metrics.md",
-      "source_sha256": "94e29ddc33d5ca7aa804acd4390859ddb51331c633243de05eb5f5b3bfaf5b38",
+      "source_sha256": "36277ede7ba5b5e044388e218b5f7363bc3f61efb7f717787c255d7c40caa85d",
       "automatic_compile": false
     },
     {
@@ -644,7 +644,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/qingcheng_tmk_transfer_order_trace_metrics.md",
-      "source_sha256": "9e408683b0a4e887a2085c486d9f80b57a62dc4ec1bf681a14e3662af79aad3a",
+      "source_sha256": "c92803a43a8fb0eaa70a22a84a1fef3f948835227c04a7c381d796e26513a8f1",
       "automatic_compile": false
     },
     {
@@ -659,7 +659,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/qingcheng_tmk_transfer_order_trace_metrics.md",
-      "source_sha256": "9e408683b0a4e887a2085c486d9f80b57a62dc4ec1bf681a14e3662af79aad3a",
+      "source_sha256": "c92803a43a8fb0eaa70a22a84a1fef3f948835227c04a7c381d796e26513a8f1",
       "automatic_compile": false
     },
     {
@@ -674,7 +674,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/qingcheng_tmk_transfer_order_trace_metrics.md",
-      "source_sha256": "9e408683b0a4e887a2085c486d9f80b57a62dc4ec1bf681a14e3662af79aad3a",
+      "source_sha256": "c92803a43a8fb0eaa70a22a84a1fef3f948835227c04a7c381d796e26513a8f1",
       "automatic_compile": false
     },
     {
@@ -689,7 +689,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/qingcheng_tmk_transfer_order_trace_metrics.md",
-      "source_sha256": "9e408683b0a4e887a2085c486d9f80b57a62dc4ec1bf681a14e3662af79aad3a",
+      "source_sha256": "c92803a43a8fb0eaa70a22a84a1fef3f948835227c04a7c381d796e26513a8f1",
       "automatic_compile": false
     },
     {
@@ -703,7 +703,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/qingcheng_tmk_transfer_order_trace_metrics.md",
-      "source_sha256": "9e408683b0a4e887a2085c486d9f80b57a62dc4ec1bf681a14e3662af79aad3a",
+      "source_sha256": "c92803a43a8fb0eaa70a22a84a1fef3f948835227c04a7c381d796e26513a8f1",
       "automatic_compile": false
     },
     {

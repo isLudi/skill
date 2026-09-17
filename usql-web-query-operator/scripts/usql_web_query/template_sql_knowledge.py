@@ -451,6 +451,6 @@ def _rel_to_root(path: Path | None, root: Path) -> str:
     if path is None:
         return ""
     try:
-        return path.relative_to(root).as_posix()
+        return path.resolve().relative_to(root.resolve()).as_posix()
     except ValueError:
         return str(path)
