@@ -18,6 +18,7 @@
 | gaotu_hl.dim_mkt_h_period_df | H业务线标准期次映射表 | 标准期次日历快照粒度，联合键和唯一性待验证 | dt | 否 | 已确认 | 已从天工数据地图登记 17 个非分区字段和 1 个分区字段；Join 基数待权限审批后验证 |
 | gaotu_hl.ods_mkt_h_channel_group_df | H业务线渠道分类表 | 渠道-渠道大类-适用学部映射粒度；当前快照 `department_name + channel` 唯一性已验证 | dt | 否 | 已确认 | 已从天工数据地图登记 3 个非分区字段和 1 个分区字段；与宽表需先关联派生 `channel_map`，bounded CASE 探针已验证渠道组侧最大匹配行数为 1 |
 | gaotu_hl.ods_mkt_h_channel_rule_df | H业务线渠道映射原文表 | 学部-期次-完整 CASE 文本快照；单分区唯一性待验证 | dt | 否 | 已确认 | 数据地图已登记 3 个非分区字段和 1 个分区字段；当前 SQL 查询权限未开通，仅保存规则文本，不能直接 Join 产出 `channel_map` |
+| one_dw.dwd_mkt_ai_assistant_asr_record_df | 语音通话 ASR 记录 | 解析任务粒度待确认；同录音 URL 可多条 | dt | 否 | 已确认 | 数据地图登记 11 个字段；20260915 分区探针证实 URL 关联存在 1:N 风险 |
 | service_dw.app_h_crm_lead_employee_workload_detail_hf | 高中顾问工作量看板 | 顾问-小时粒度，待确认 | dt, hour | 是 | 已确认 | 字段目录已补全，口径需人工校验 |
 | service_dw.app_h_crm_lead_task_process_info_detail_hf | 高中线索服务跟进明细 | 线索-任务-小时粒度，待确认 | dt, hour | 是 | 已确认 | 字段目录已补全，口径需人工校验；禁止再用 `call_answer_lead_count` 作为首 call 任务指标来源 |
 | service_dw.app_user_attribute_label_gaia_wide_df | 盖亚系统用户标签数据宽表 | 用户-标签粒度，待确认 | dt | 否 | 已确认 | 字段目录已补全，口径需人工校验 |
@@ -28,6 +29,8 @@
 | service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf | 归因流水粒度统计明细表 | 订单-流水-业绩归属-小时快照粒度，字段来自 Word 文档 | dt, hour | 是 | 已确认 | 已根据 `E:\2000_work\GAOTU\归因流水粒度统计明细表.docx` 补全 184 个非分区字段 |
 | service_dw.dws_service_user_learn_detail_hf | 小时级行课数据全量 | 用户-课程-小时粒度，待确认 | dt, hour | 是 | 已确认 | 字段目录已补全，口径需人工校验 |
 | service_dw.dws_service_wechat_call_detail_df | 沟通电话微信明细表 | 待确认；字段目录未提供数据粒度 | dt | 否 | 已确认 | 字段目录已补全，口径需人工校验 |
+| service_dw.ods_service_ai_ones_business_copilot__call_record_df | AI 途途通话记录表 | 通话事件粒度待确认；`unique_key` 与 `call_id` 唯一性待核 | dt | 否 | 已确认 | 数据地图登记 21 个字段；业务范围需通过线索人群限定，ASR 直连有放大风险 |
+| service_dw.ods_service_ai_ones_business_copilot__ai_call_analysis_result_df | 语音分析结果表 | 分析记录粒度待确认；有效 `call_id` 唯一性仅受限样本验证 | dt | 否 | 已确认 | 数据地图登记 16 个字段；`is_del` 是 bigint，候选关联为同分区 `call_id` |
 | service_dw.dim_crm_assign_rule_plan_item_info_hf | 分配规则计划 item 信息表 | 待确认；根据 SQL 推断为 rule_id + plan_id + employee_email_name 或计划 item 小时快照粒度 | dt, hour | 是 | 已确认 | 根据 `resources/raw_sql/lead_assign_plan_actual_valid_count.sql` 补充最小字段，真实 DDL 待确认 |
 | temp_table.dingxi01_channel_group | 渠道分组映射表 | 渠道映射粒度，待确认。理论上一行对应一个 `channel`。 | 无 | 否 | 已确认 | 保留原整理 |
 | temp_table.shenbaoxin_channel_group | 渠道分组映射表（申保鑫） | 渠道映射粒度，字段来自 SQL 使用字段推断，待确认 | 无 | 否 | 已确认 | 根据 `resources/raw_sql/h_biz_line_department_conversion.sql` 补充使用字段；2026-06-05 后不再用于到课 raw SQL，真实字段类型和维护来源待确认 |

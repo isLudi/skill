@@ -12724,7 +12724,7 @@
         {
           "domain": "qingcheng",
           "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.dwd_finance_order_refund_df.md",
-          "sha256": "44541220b5b9170d1e6f1c921f9626ae26260bead102b11081b64a30dcd8465b"
+          "sha256": "4f0f3c7fd3d6cf6635943a52869c93a17445e3746830f4d98cea701e15be557c"
         }
       ],
       "columns": [
@@ -14120,6 +14120,170 @@
               "domain": "market_consultant",
               "type": "string",
               "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.ods_mkt_h_channel_rule_df.md"
+            }
+          ]
+        }
+      ],
+      "partition_candidates": [
+        "dt"
+      ],
+      "conflicts": [],
+      "business_semantics_excluded": true
+    },
+    {
+      "id": "physical:one_dw.dwd_mkt_ai_assistant_asr_record_df",
+      "name": "one_dw.dwd_mkt_ai_assistant_asr_record_df",
+      "domains": [
+        "market_consultant"
+      ],
+      "source_docs": [
+        {
+          "domain": "market_consultant",
+          "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_ai_assistant_asr_record_df.md",
+          "sha256": "d5855fbcaed4fae9090817a68a069f5912531abe9bc699af614bf3ba889ec463"
+        }
+      ],
+      "columns": [
+        {
+          "name": "asr_content_id",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_ai_assistant_asr_record_df.md"
+            }
+          ]
+        },
+        {
+          "name": "biz_id",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_ai_assistant_asr_record_df.md"
+            }
+          ]
+        },
+        {
+          "name": "create_time",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_ai_assistant_asr_record_df.md"
+            }
+          ]
+        },
+        {
+          "name": "dt",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_ai_assistant_asr_record_df.md"
+            }
+          ]
+        },
+        {
+          "name": "id",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_ai_assistant_asr_record_df.md"
+            }
+          ]
+        },
+        {
+          "name": "origin_file_url",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_ai_assistant_asr_record_df.md"
+            }
+          ]
+        },
+        {
+          "name": "parsed_content",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_ai_assistant_asr_record_df.md"
+            }
+          ]
+        },
+        {
+          "name": "state",
+          "types": [
+            "int"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "int",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_ai_assistant_asr_record_df.md"
+            }
+          ]
+        },
+        {
+          "name": "submit_count",
+          "types": [
+            "int"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "int",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_ai_assistant_asr_record_df.md"
+            }
+          ]
+        },
+        {
+          "name": "type",
+          "types": [
+            "int"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "int",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_ai_assistant_asr_record_df.md"
+            }
+          ]
+        },
+        {
+          "name": "update_time",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_ai_assistant_asr_record_df.md"
             }
           ]
         }
@@ -33019,6 +33183,529 @@
               "domain": "market_consultant",
               "type": "string",
               "source_path": "market-consultant-dashboard-sql/knowledge/tables/service_dw.dws_service_wechat_call_detail_df.md"
+            }
+          ]
+        }
+      ],
+      "partition_candidates": [
+        "dt"
+      ],
+      "conflicts": [],
+      "business_semantics_excluded": true
+    },
+    {
+      "id": "physical:service_dw.ods_service_ai_ones_business_copilot__ai_call_analysis_result_df",
+      "name": "service_dw.ods_service_ai_ones_business_copilot__ai_call_analysis_result_df",
+      "domains": [
+        "market_consultant"
+      ],
+      "source_docs": [
+        {
+          "domain": "market_consultant",
+          "source_path": "market-consultant-dashboard-sql/knowledge/tables/service_dw.ods_service_ai_ones_business_copilot__ai_call_analysis_result_df.md",
+          "sha256": "57932ef5159fc68db5f4a69d6ce92147a5ef00d6ca15a62d4cccc1ca5b7c7926"
+        }
+      ],
+      "columns": [
+        {
+          "name": "analysis_status",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/service_dw.ods_service_ai_ones_business_copilot__ai_call_analysis_result_df.md"
+            }
+          ]
+        },
+        {
+          "name": "asr_text",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/service_dw.ods_service_ai_ones_business_copilot__ai_call_analysis_result_df.md"
+            }
+          ]
+        },
+        {
+          "name": "call_id",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/service_dw.ods_service_ai_ones_business_copilot__ai_call_analysis_result_df.md"
+            }
+          ]
+        },
+        {
+          "name": "call_summary",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/service_dw.ods_service_ai_ones_business_copilot__ai_call_analysis_result_df.md"
+            }
+          ]
+        },
+        {
+          "name": "call_target",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/service_dw.ods_service_ai_ones_business_copilot__ai_call_analysis_result_df.md"
+            }
+          ]
+        },
+        {
+          "name": "call_topic",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/service_dw.ods_service_ai_ones_business_copilot__ai_call_analysis_result_df.md"
+            }
+          ]
+        },
+        {
+          "name": "callback_time_consumption",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/service_dw.ods_service_ai_ones_business_copilot__ai_call_analysis_result_df.md"
+            }
+          ]
+        },
+        {
+          "name": "create_time",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/service_dw.ods_service_ai_ones_business_copilot__ai_call_analysis_result_df.md"
+            }
+          ]
+        },
+        {
+          "name": "dialogue_text",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/service_dw.ods_service_ai_ones_business_copilot__ai_call_analysis_result_df.md"
+            }
+          ]
+        },
+        {
+          "name": "dt",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/service_dw.ods_service_ai_ones_business_copilot__ai_call_analysis_result_df.md"
+            }
+          ]
+        },
+        {
+          "name": "follow_up_item",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/service_dw.ods_service_ai_ones_business_copilot__ai_call_analysis_result_df.md"
+            }
+          ]
+        },
+        {
+          "name": "id",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/service_dw.ods_service_ai_ones_business_copilot__ai_call_analysis_result_df.md"
+            }
+          ]
+        },
+        {
+          "name": "is_del",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/service_dw.ods_service_ai_ones_business_copilot__ai_call_analysis_result_df.md"
+            }
+          ]
+        },
+        {
+          "name": "single_select",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/service_dw.ods_service_ai_ones_business_copilot__ai_call_analysis_result_df.md"
+            }
+          ]
+        },
+        {
+          "name": "update_time",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/service_dw.ods_service_ai_ones_business_copilot__ai_call_analysis_result_df.md"
+            }
+          ]
+        },
+        {
+          "name": "user_resistance_points",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/service_dw.ods_service_ai_ones_business_copilot__ai_call_analysis_result_df.md"
+            }
+          ]
+        }
+      ],
+      "partition_candidates": [
+        "dt"
+      ],
+      "conflicts": [],
+      "business_semantics_excluded": true
+    },
+    {
+      "id": "physical:service_dw.ods_service_ai_ones_business_copilot__call_record_df",
+      "name": "service_dw.ods_service_ai_ones_business_copilot__call_record_df",
+      "domains": [
+        "market_consultant"
+      ],
+      "source_docs": [
+        {
+          "domain": "market_consultant",
+          "source_path": "market-consultant-dashboard-sql/knowledge/tables/service_dw.ods_service_ai_ones_business_copilot__call_record_df.md",
+          "sha256": "94a777e4c790e2c939c196d7df7554be38704dde2b369f7e2746f1f4a701ee51"
+        }
+      ],
+      "columns": [
+        {
+          "name": "account_id",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/service_dw.ods_service_ai_ones_business_copilot__call_record_df.md"
+            }
+          ]
+        },
+        {
+          "name": "call_duration",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/service_dw.ods_service_ai_ones_business_copilot__call_record_df.md"
+            }
+          ]
+        },
+        {
+          "name": "call_id",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/service_dw.ods_service_ai_ones_business_copilot__call_record_df.md"
+            }
+          ]
+        },
+        {
+          "name": "call_phone_number",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/service_dw.ods_service_ai_ones_business_copilot__call_record_df.md"
+            }
+          ]
+        },
+        {
+          "name": "call_status",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/service_dw.ods_service_ai_ones_business_copilot__call_record_df.md"
+            }
+          ]
+        },
+        {
+          "name": "call_time",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/service_dw.ods_service_ai_ones_business_copilot__call_record_df.md"
+            }
+          ]
+        },
+        {
+          "name": "call_type",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/service_dw.ods_service_ai_ones_business_copilot__call_record_df.md"
+            }
+          ]
+        },
+        {
+          "name": "call_url",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/service_dw.ods_service_ai_ones_business_copilot__call_record_df.md"
+            }
+          ]
+        },
+        {
+          "name": "create_time",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/service_dw.ods_service_ai_ones_business_copilot__call_record_df.md"
+            }
+          ]
+        },
+        {
+          "name": "data_source_type",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/service_dw.ods_service_ai_ones_business_copilot__call_record_df.md"
+            }
+          ]
+        },
+        {
+          "name": "data_source_type_merged",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/service_dw.ods_service_ai_ones_business_copilot__call_record_df.md"
+            }
+          ]
+        },
+        {
+          "name": "dt",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/service_dw.ods_service_ai_ones_business_copilot__call_record_df.md"
+            }
+          ]
+        },
+        {
+          "name": "email_prefix",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/service_dw.ods_service_ai_ones_business_copilot__call_record_df.md"
+            }
+          ]
+        },
+        {
+          "name": "from_username",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/service_dw.ods_service_ai_ones_business_copilot__call_record_df.md"
+            }
+          ]
+        },
+        {
+          "name": "id",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/service_dw.ods_service_ai_ones_business_copilot__call_record_df.md"
+            }
+          ]
+        },
+        {
+          "name": "is_del",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/service_dw.ods_service_ai_ones_business_copilot__call_record_df.md"
+            }
+          ]
+        },
+        {
+          "name": "msg_type",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/service_dw.ods_service_ai_ones_business_copilot__call_record_df.md"
+            }
+          ]
+        },
+        {
+          "name": "to_username",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/service_dw.ods_service_ai_ones_business_copilot__call_record_df.md"
+            }
+          ]
+        },
+        {
+          "name": "unique_key",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/service_dw.ods_service_ai_ones_business_copilot__call_record_df.md"
+            }
+          ]
+        },
+        {
+          "name": "update_time",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/service_dw.ods_service_ai_ones_business_copilot__call_record_df.md"
+            }
+          ]
+        },
+        {
+          "name": "user_number",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/service_dw.ods_service_ai_ones_business_copilot__call_record_df.md"
             }
           ]
         }

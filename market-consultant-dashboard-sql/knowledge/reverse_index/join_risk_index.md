@@ -4,6 +4,15 @@
 
 | 来源 | 上下文 | 风险线索 |
 |---|---|---|
+| [knowledge/joins/ai_call_asr_relationship.md](../joins/ai_call_asr_relationship.md) | 关联路径 | - 候选 ASR：`call_url = origin_file_url` 接 `one_dw.dwd_mkt_ai_assistant_asr_record_df`，ASR 取 `state=2 AND parsed_content IS NOT NULL`。 |
+| [knowledge/joins/ai_call_asr_relationship.md](../joins/ai_call_asr_relationship.md) | 已验证的分区物理事实 | - ASR `state=2` 有 157,748,922 行，其中 `parsed_content` 非空且非空串 157,174,987 行、`origin_file_url` 空值或空串 8,507 行。附件条件只排除原文 NULL，没有排除空串或空 URL。状态 Query：`1591084542`。 |
+| [knowledge/joins/ai_call_asr_relationship.md](../joins/ai_call_asr_relationship.md) | 已验证的分区物理事实 | - 定向基数探针（Query `1591086950`）只取 `dt='20260915'`、`call_time` 日期 `2026-09-15`、`user_number IS NOT NULL` 且 `mod(user_number,1000)=0` 的 88 条通话；这是非市场专属的诊断子集。样本有 88 个不同 `call_id`，没有空 `call_id` 或空 `call_url`。 |
+| [knowledge/joins/ai_call_asr_relationship.md](../joins/ai_call_asr_relationship.md) | 已验证的分区物理事实 | - 在该样本上，按 `a.dt=r.dt AND a.call_id=r.call_id AND a.is_del=0`，88 条均匹配且没有多匹配；按 ASR URL 关联，88 条均匹配，但 3 条通话多匹配，最多 3 条 ASR/通话。样本命中率和 AI 唯一性不能外推至全分区。 |
+| [knowledge/joins/ai_call_asr_relationship.md](../joins/ai_call_asr_relationship.md) | 已验证的分区物理事实 | - 对此样本，直接双 `LEFT JOIN` 后的通话时长相当于 9,484 秒，原事实表为 7,887 秒，放大 1,597 秒（约 20.25%）。附件 `call_agg` 的 `COUNT(*)`、`SUM(call_duration)`、`COUNT(a.call_id)`、`COUNT(s.parsed_content)` 和 `ARRAY_AGG` 均面临行放大风险。 |
+| [knowledge/joins/ai_call_asr_relationship.md](../joins/ai_call_asr_relationship.md) | 使用约束与未决项 | - 原 SQL 不应直接把未去重 ASR 左连接到通话事实后统计电话数和总时长。先确定每个 `origin_file_url` 的业务取舍规则，再以匹配后唯一键和聚合守恒验证；不能仅凭 `ROW_NUMBER()` 任意取一条。 |
+| [knowledge/joins/ai_call_asr_relationship.md](../joins/ai_call_asr_relationship.md) | 使用约束与未决项 | - 关联 ASR 时应排除空 `origin_file_url`，且空 `call_url` 不应参与等值关联。`parsed_content=''` 是否视为有效原文待业务确认。 |
+| [knowledge/joins/ai_call_asr_relationship.md](../joins/ai_call_asr_relationship.md) | 使用约束与未决项 | - AI 结果 `is_del` 为 `bigint`，应使用 `is_del=0`。是否还需限制 `analysis_status`、通话记录 `is_del`，以及 ASR 增量分区对全量通话快照的覆盖窗口，仍待确认。 |
+| [knowledge/joins/ai_call_asr_relationship.md](../joins/ai_call_asr_relationship.md) | 使用约束与未决项 | - 当前仅验证物理诊断子集的 Join 风险，未把任一候选关联升级为全量 `confirmed` contract。 |
 | [knowledge/joins/common_join_keys.md](../joins/common_join_keys.md) | 常用 join key | lead_id（单分区） / bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df, gaotu_hl.dim_mkt_h_lead_channel_df / 从市销线索渠道快照补充 `channel_map/channel_group` / 渠道维表必须限定一个 `dt`；`20260812` 分区内 `lead_id` 唯一，不会由维表侧放大，但对 `2026... |
 | [knowledge/joins/common_join_keys.md](../joins/common_join_keys.md) | 常用 join key | source_period_name + department + stat_grade（禁止） / bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df, gaotu_hl.dim_mkt_h_lead_channel_df / 尝试不使用 `lead_id` 获取 `channel_map` / 维表 1,136 个键中 760 个多渠道，单键最多 43 个渠... |
 | [knowledge/joins/common_join_keys.md](../joins/common_join_keys.md) | 常用 join key | department_name + period_name（规则文本选择） / gaotu_hl.ods_mkt_h_channel_rule_df / 选择适用的完整渠道 CASE 文本 / 结果是 `channel_case_when` 字符串，不是逐规则 `channel_map`；不能与事实表等值 Join 后动态执行，且当前 SQL 查询权限未开通 |
@@ -116,8 +125,8 @@
 | [knowledge/sql_patterns/channel_mapping_case_when.md](../sql_patterns/channel_mapping_case_when.md) | 5.1 超长 CASE 顺序风险 | 典型风险： |
 | [knowledge/sql_patterns/channel_mapping_case_when.md](../sql_patterns/channel_mapping_case_when.md) | 5.1 超长 CASE 顺序风险 | 3. 用 `case ... end as current_case_result` 模拟现有 CASE 的实际输出；如果目标记录落到别的渠道，优先调整 CASE 顺序，而不是新增重复分支。 |
 | [knowledge/sql_patterns/channel_mapping_case_when.md](../sql_patterns/channel_mapping_case_when.md) | 5.1 超长 CASE 顺序风险 | 4. 新增或调整规则时，优先使用大小写兼容写法，例如 `lower(rule_name) like '%孟亚飞ip99%'`；不要同时保留后置重复分支，避免读者误以为后置分支可命中。 |
-| [knowledge/sql_patterns/channel_mapping_case_when.md](../sql_patterns/channel_mapping_case_when.md) | 2026-09-11 抖音私信渠道与有效指标集合不一致 | - 检查源行数、去重 lead 数和连接基数；不能用聚合后的结果掩盖 1:N join 放大。 |
-| [knowledge/sql_patterns/channel_mapping_case_when.md](../sql_patterns/channel_mapping_case_when.md) | 2026-09-11 抖音私信渠道与有效指标集合不一致 | - Data Center 抽取或天宫2执行 `SUCCESS` 不是业务验收。必须带明确的期次与渠道过滤，回读看板组件；涉及写入 Base 时，还要绑定同一次执行完成全量分页回读和唯一键检查。 |
+| [knowledge/sql_patterns/channel_mapping_case_when.md](../sql_patterns/channel_mapping_case_when.md) | 2026-09-11 抖音私信历史修复与 2026-09-16 口径恢复 | - 检查源行数、去重 lead 数和连接基数；不能用聚合后的结果掩盖 1:N join 放大。 |
+| [knowledge/sql_patterns/channel_mapping_case_when.md](../sql_patterns/channel_mapping_case_when.md) | 2026-09-11 抖音私信历史修复与 2026-09-16 口径恢复 | - Data Center 抽取或天宫2执行 `SUCCESS` 不是业务验收。必须带明确的期次与渠道过滤，回读看板组件；涉及写入 Base 时，还要绑定同一次执行完成全量分页回读和唯一键检查。 |
 | [knowledge/sql_patterns/channel_mapping_case_when.md](../sql_patterns/channel_mapping_case_when.md) | 7. 定期更新流程 | 4. 更新本文件的原始文件、Skill 归档、来源文件最后修改时间、代码规模、关键渠道规则和待确认事项。 |
 | [knowledge/sql_patterns/cte_patterns.md](../sql_patterns/cte_patterns.md) | 规则 | - 复杂看板 SQL 应将基础过滤、join、指标聚合拆开。 |
 | [knowledge/sql_patterns/dashboard_design_change_workflow.md](../sql_patterns/dashboard_design_change_workflow.md) | 1. 域与证据门禁 | - 任一 contract 为 `pending_confirmation`、别名歧义、来源哈希漂移、字段无法反查或 profile 域不明时，只允许画像和 diff，禁止形成可 apply 的变更计划。 |

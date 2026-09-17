@@ -14,7 +14,7 @@
       "status": "confirmed",
       "automatic_compile": true,
       "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
-      "source_sha256": "10ae5f37f563a6bf0f0f9c86ee76ebd76b0b92c0011e3730d7ac4b4f9bf2c687",
+      "source_sha256": "944f69bd135cea244f742d687fff5ab87fcaf76c8cd758014abf3aff647be22b",
       "description": "历史市场顾问转化看板明确输出的截面转化线索人数。",
       "sql_expression": "sum({base}.conversion_lead_count)",
       "output_alias": "pay_users",
@@ -58,7 +58,7 @@
       "status": "confirmed",
       "automatic_compile": true,
       "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
-      "source_sha256": "10ae5f37f563a6bf0f0f9c86ee76ebd76b0b92c0011e3730d7ac4b4f9bf2c687",
+      "source_sha256": "944f69bd135cea244f742d687fff5ab87fcaf76c8cd758014abf3aff647be22b",
       "description": "同一线索期内完成转化的线索人数。",
       "sql_expression": "sum({base}.same_lead_period_conversion_lead_count)",
       "output_alias": "pay_users_on_period",
@@ -99,7 +99,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
-      "source_sha256": "10ae5f37f563a6bf0f0f9c86ee76ebd76b0b92c0011e3730d7ac4b4f9bf2c687",
+      "source_sha256": "944f69bd135cea244f742d687fff5ab87fcaf76c8cd758014abf3aff647be22b",
       "description": "截面转化人数扣除同线索期转化人数。",
       "sql_expression": "sum({base}.conversion_lead_count - {base}.same_lead_period_conversion_lead_count)",
       "output_alias": "pay_users_not_on_period",
@@ -141,7 +141,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
-      "source_sha256": "10ae5f37f563a6bf0f0f9c86ee76ebd76b0b92c0011e3730d7ac4b4f9bf2c687",
+      "source_sha256": "944f69bd135cea244f742d687fff5ab87fcaf76c8cd758014abf3aff647be22b",
       "description": "截面转化科目人次，不等同于去重用户数。",
       "sql_expression": "sum({base}.subject_count)",
       "output_alias": "pay_user_subs",
@@ -184,7 +184,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
-      "source_sha256": "10ae5f37f563a6bf0f0f9c86ee76ebd76b0b92c0011e3730d7ac4b4f9bf2c687",
+      "source_sha256": "944f69bd135cea244f742d687fff5ab87fcaf76c8cd758014abf3aff647be22b",
       "description": "同一线索期内完成转化的科目人次。",
       "sql_expression": "sum({base}.same_lead_period_subject_count)",
       "output_alias": "pay_user_subs_on_period",
@@ -226,7 +226,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
-      "source_sha256": "10ae5f37f563a6bf0f0f9c86ee76ebd76b0b92c0011e3730d7ac4b4f9bf2c687",
+      "source_sha256": "944f69bd135cea244f742d687fff5ab87fcaf76c8cd758014abf3aff647be22b",
       "description": "截面转化科目人次扣除同线索期转化科目人次。",
       "sql_expression": "sum({base}.subject_count - {base}.same_lead_period_subject_count)",
       "output_alias": "pay_user_subs_not_on_period",
@@ -357,9 +357,9 @@
       ],
       "status": "pending_confirmation",
       "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
-      "source_sha256": "10ae5f37f563a6bf0f0f9c86ee76ebd76b0b92c0011e3730d7ac4b4f9bf2c687",
-      "description": "20260911 生产验收确认：source_manager_name 为韩正卿的目标集合使用 merge_assign_lead_count 计算退前线索，其他记录使用 lead_count；该目标集合必须与渠道 CASE 的抖音私信集合一致。",
-      "sql_expression": "sum(case when {base}.source_manager_name = '韩正卿' then coalesce({base}.merge_assign_lead_count, 0) else coalesce({base}.lead_count, 0) end)",
+      "source_sha256": "944f69bd135cea244f742d687fff5ab87fcaf76c8cd758014abf3aff647be22b",
+      "description": "20260916 生产恢复：抖音私信与其他渠道统一使用普通 lead_count 计算退前线索；上游普通与 merge 字段按批次切换的原因仍待确认。",
+      "sql_expression": "sum(coalesce({base}.lead_count, 0))",
       "output_alias": "lead_count",
       "aggregation": "sum",
       "candidate_tables": [
@@ -384,7 +384,7 @@
         "section_assign_employee_third_level_department_name",
         "period_mapping_first_level_department_name"
       ],
-      "notes": "保持 pending_confirmation：特殊口径已有本次生产验收证据，但尚未形成独立业务指标文档。禁止附加 channel_name_1 = '市场私域'；该条件会漏掉实际 channel_name_1 = '信息流'、flow_pool_name = '今日头条' 的抖音私信记录。",
+      "notes": "保持 pending_confirmation：20260917 原始期次普通字段承载了目标批次的有效标记；20260911 期曾由 merge 字段承载，普通口径对该历史批次可能低估。渠道映射仍按 source_manager_name 归类，指标不叠加 channel_name_1 条件。",
       "automatic_compile": false
     },
     {
@@ -398,9 +398,9 @@
       ],
       "status": "pending_confirmation",
       "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
-      "source_sha256": "10ae5f37f563a6bf0f0f9c86ee76ebd76b0b92c0011e3730d7ac4b4f9bf2c687",
-      "description": "20260911 生产验收确认：source_manager_name 为韩正卿的目标集合使用 merge_valid_lead_count 计算退后线索，其他记录使用 valid_lead_count；该目标集合必须与退前及渠道 CASE 的抖音私信集合一致。",
-      "sql_expression": "sum(case when {base}.source_manager_name = '韩正卿' then coalesce({base}.merge_valid_lead_count, 0) else coalesce({base}.valid_lead_count, 0) end)",
+      "source_sha256": "944f69bd135cea244f742d687fff5ab87fcaf76c8cd758014abf3aff647be22b",
+      "description": "20260916 生产恢复：抖音私信与其他渠道统一使用普通 valid_lead_count 计算退后线索；上游普通与 merge 字段按批次切换的原因仍待确认。",
+      "sql_expression": "sum(coalesce({base}.valid_lead_count, 0))",
       "output_alias": "can_renew_ds_count_a",
       "aggregation": "sum",
       "candidate_tables": [
@@ -425,7 +425,7 @@
         "section_assign_employee_third_level_department_name",
         "period_mapping_first_level_department_name"
       ],
-      "notes": "保持 pending_confirmation：特殊口径已有本次生产验收证据，但尚未形成独立业务指标文档。禁止附加 channel_name_1 = '市场私域'；有效线索派生的加微、外呼、到课指标也必须使用相同目标集合做回归。",
+      "notes": "保持 pending_confirmation：20260917 原始期次普通字段承载了目标批次的有效标记；20260911 期曾由 merge 字段承载，普通口径对该历史批次可能低估。有效线索派生的加微、外呼、到课指标按普通标记回归。",
       "automatic_compile": false
     },
     {
@@ -439,7 +439,7 @@
       "status": "pending_confirmation",
       "automatic_compile": false,
       "source_path": "knowledge/metrics/market_positive_order_detail_finance_metrics.md",
-      "source_sha256": "9f074b1eab528af166494b42b97731973805b06b3b772ba9dbd5b901e6497e45",
+      "source_sha256": "a88649dad71ca5a116b4a80237e866f1423b04244ea78500e2f5a2b6f9ae3c80",
       "description": "M2 在订单—班级明细上用 order_row_number=1 形成财务正价课订单数；与运营口径订单数不同。",
       "candidate_tables": [
         "finance_dw.app_finance_performance_extend_details_hf",
@@ -460,7 +460,7 @@
       "status": "pending_confirmation",
       "automatic_compile": false,
       "source_path": "knowledge/metrics/market_jingpin_chusan_subject_share_metrics.md",
-      "source_sha256": "1d5775088a8407df2e62e13ae31037e08f3dfd6e8701a282d1ce5a9fd7d601fc",
+      "source_sha256": "14e3a86fb09b75a545009f631fc9682b0959b142981fca419b7728d800d357a7",
       "description": "M3 按渠道组+父订单+科目汇总净售卖金额，净额大于 0 时整数计 1；默认整周期输出。",
       "candidate_tables": [
         "finance_dw.app_finance_performance_extend_details_hf",
@@ -480,7 +480,7 @@
       "status": "pending_confirmation",
       "automatic_compile": false,
       "source_path": "knowledge/dashboards/market_period_grade_conversion_overview_template.md",
-      "source_sha256": "3db750866d2be74164e894bb8f50ae6fde62c6919a3acebfa9083ab273e5f78b",
+      "source_sha256": "e145c8cbb243e266d0e6b9bdca442f60180c00f9b3e2bbd4b9b4c5db1c2398fb",
       "description": "M5 按期次和初中年级输出线索、人头/订单转化分子分母、净收款和单效分子分母。",
       "candidate_tables": [
         "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df"
@@ -500,7 +500,7 @@
       "status": "pending_confirmation",
       "automatic_compile": false,
       "source_path": "knowledge/metrics/market_finance_positive_subject_structure_metrics.md",
-      "source_sha256": "f652d7a946c10a46bc33f8df89823b47f6bbaaaff62377072a52e7888ed592b6",
+      "source_sha256": "5713db713f699643361ba43d46ac6caf26314d4a73db5ea39336aee2d7a05751",
       "description": "M6/M8 以财务正价课订单识别用户，输出科目用户、人次、金额、订单的可加总分子分母，并可继续拆课程/班课。",
       "candidate_tables": [
         "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -520,7 +520,7 @@
       "status": "pending_confirmation",
       "automatic_compile": false,
       "source_path": "knowledge/metrics/market_channel_top10_consultant_conversion_metrics.md",
-      "source_sha256": "ded5f67a0829f87741bf6144154a37aafc66d0c7c2fafde3dd0dffa6a4d8bb5e",
+      "source_sha256": "be9b19da4fec2660202296c7f1eb041722b3f60dea0b01eb8588e281c4000016",
       "description": "M7 在顾问学部+渠道内按当期净GMV、承接线索和顾问名确定性排序，输出 TOP N 顾问转化指标。",
       "candidate_tables": [
         "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df"

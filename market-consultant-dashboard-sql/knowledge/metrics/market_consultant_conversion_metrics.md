@@ -12,8 +12,8 @@
 
 | 指标名 | SQL 表达式 | 说明 |
 |---|---|---|
-| lead_count | `sum(case when source_manager_name = '韩正卿' then coalesce(merge_assign_lead_count, 0) else coalesce(lead_count, 0) end)` | 退前线索；0904 渠道 CASE 以同一源谓词将该集合归为“抖音私信”，目标集合使用合并分配口径 |
-| can_renew_ds_count_a | `sum(case when source_manager_name = '韩正卿' then coalesce(merge_valid_lead_count, 0) else coalesce(valid_lead_count, 0) end)` | 退后线索；必须与退前及渠道 CASE 使用完全相同的目标集合，不能再叠加 `channel_name_1 = '市场私域'` |
+| lead_count | `sum(coalesce(lead_count, 0))` | 退前线索；抖音私信与其他渠道均取普通宽表字段，不按源投放经理切换到 merge 字段 |
+| can_renew_ds_count_a | `sum(coalesce(valid_lead_count, 0))` | 退后线索；抖音私信与其他渠道均取普通宽表字段，依赖有效线索的派生指标也应采用同一标记 |
 | xiansuo | `sum(xiansuo)` | `D:\Feishu\0522.txt` 的 `xiansuo` 0/1 规则聚合值 |
 | pay_users | `sum(conversion_lead_count)` | 转化人数 |
 | pay_users_on_period | `sum(same_lead_period_conversion_lead_count)` | 当期转化人数 |
@@ -101,4 +101,4 @@ and period_mapping_first_level_department_name = 'H业务线'
 
 ## 8. 待人工确认
 
-是。仍需确认金额单位、`>= 5` 阈值、成本表维护口径、时间偏移口径、`xiansuo` 是否只作为聚合指标输出，以及渠道映射 CASE 是否仍为最新规则。抖音私信的当前生产特殊口径已在 20260911 验收：`source_manager_name = '韩正卿'` 的同一集合退前取 `merge_assign_lead_count`、退后取 `merge_valid_lead_count`；149 条归因行中两项均合计 142，7 条 merge 双零记录保持无效，非目标渠道差异为 0。最新渠道 CASE 维护入口见 `knowledge/sql_patterns/channel_mapping_case_when.md`，归档片段为 `resources/raw_sql/market_channel_case_when_0904.sql`。
+是。仍需确认金额单位、`>= 5` 阈值、成本表维护口径、时间偏移口径、`xiansuo` 是否只作为聚合指标输出，以及渠道映射 CASE 是否仍为最新规则。20260911 期的目标记录有效标记主要落在 merge 字段，20260917 原始期次的目标记录又主要落在普通字段；上游为何按批次切换尚未确认。按 2026-09-16 的生产恢复要求，抖音私信退前、退后均使用普通字段；这会使仅在 merge 字段有效的历史批次显示较低。最新渠道 CASE 维护入口见 `knowledge/sql_patterns/channel_mapping_case_when.md`，归档片段为 `resources/raw_sql/market_channel_case_when_0904.sql`。

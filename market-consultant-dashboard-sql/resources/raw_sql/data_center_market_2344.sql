@@ -884,7 +884,6 @@ case
 when (assign_lead_count = 1 or valid_lead_count = 1) and third_department_name  in ('直播部','新媒体内容运营部','市场一组') THEN '当期'
 when (assign_lead_count = 1 or valid_lead_count = 1) and third_department_name  in ('图书营销部') and rule_name like '%亚飞%' THEN '当期'
 when third_department_name is null and valid_lead_count = 1 then '当期'
-when source_manager_name in ('韩正卿') and merge_valid_lead_count = 1 and channel_name_1='市场私域' then '当期'
 when third_department_name  not in ('直播部','新媒体内容运营部','市场一组') and valid_lead_count = 1 then '当期'
  else '非当期' end as d_w,
 case when (assign_lead_count = 1 or valid_lead_count = 1) and third_department_name  in ('直播部','新媒体内容运营部','市场一组') THEN 1

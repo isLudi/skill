@@ -349,8 +349,8 @@ city_agg as (
         channel_map,
         grade_name,
         city_level_name,
-        sum(case when channel_map in ('抖音私域', '抖音私信') then merge_assign_lead_count else lead_count end) as lead_count,
-        sum(case when channel_map in ('抖音私域', '抖音私信') then merge_valid_lead_count else valid_lead_count end) as valid_lead_count,
+        sum(case when channel_map = '抖音私域' then merge_assign_lead_count else lead_count end) as lead_count,
+        sum(case when channel_map = '抖音私域' then merge_valid_lead_count else valid_lead_count end) as valid_lead_count,
         sum(conversion_lead_count) as pay_user_head_count,
         sum(subject_count) as pay_subject_person_count,
         sum((income_amount - in_pay_period_refund_amount - non_pay_period_refund_amount) / 100.0) as net_income_section

@@ -2,23 +2,24 @@
 
 ## 1. 来源与范围
 
-- 最近同步计划日期：2026-09-10
+- 最近同步计划日期：2026-09-17
 - 来源页面：https://uanalysis.baijia.com/data-center/data-set
 - 同步范围：市场顾问部目录下从 `(内部渠道)外呼过程数据` 开始到末尾的 SQL 数据集。
 - canonical SQL 使用稳定文件名；更新时间与 SHA-256 由 `semantic/current_model_bindings.json` 记录。
+- 2026-09-17 的增量回读只覆盖 model `2054/2132/2253/2293/2344/2812`；其余模型沿用各自最近一次登记。
 - 更新必须执行 `dry-run -> expected plan hash -> atomic apply -> full validation`，旧日期文件不得进入活跃知识库。
 
 ## 2. 当前数据集清单
 
 | 序号 | 数据集名称 | 数据集 ID | model_id | subjectId | 数据源 ID | 所属路径 | canonical SQL | SQL SHA-256 | 行数 |
 |---:|---|---|---|---|---|---|---|---|---:|
-| 1 | `(内部渠道)外呼过程数据` | `menu_set_3730730014856388608` | `2054` | `2044` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/(内部渠道)外呼过程数据 | [data_center_market_2054.sql](../../resources/raw_sql/data_center_market_2054.sql) | `ec6e90bd61006a7a3faf668d2da049aa0650ee5fba7f071ab16616ece230a9c5` | 833 |
-| 2 | `(内部)到课衰减情况` | `menu_set_3748378950886789121` | `2132` | `2121` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/(内部)到课衰减情况 | [data_center_market_2132.sql](../../resources/raw_sql/data_center_market_2132.sql) | `3b9ec09df0bc16ea9554919476962359a27d19094f10eedd3410654b58f68c3e` | 505 |
-| 3 | `转化数据_市场顾问` | `menu_set_3767103007846227968` | `2253` | `2242` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/转化数据_市场顾问 | [data_center_market_2253.sql](../../resources/raw_sql/data_center_market_2253.sql) | `856c0793f44a65ca0fedbbe87b1487cf478c6a97bcd60616f45c8304c86cb39d` | 524 |
-| 4 | `运营侧个人数据` | `menu_set_3790459879440003073` | `2293` | `2282` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/运营侧个人数据 | [data_center_market_2293.sql](../../resources/raw_sql/data_center_market_2293.sql) | `30f84579df2d6d442475c917182b04dd0bbb3f600745c5526edd1dbdbc29785d` | 1306 |
+| 1 | `(内部渠道)外呼过程数据` | `menu_set_3730730014856388608` | `2054` | `2044` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/(内部渠道)外呼过程数据 | [data_center_market_2054.sql](../../resources/raw_sql/data_center_market_2054.sql) | `12e88974e6aef6f0bbfe5622ccf24e4578a97f1453e56c0ca7365d39318d1706` | 833 |
+| 2 | `(内部)到课衰减情况` | `menu_set_3748378950886789121` | `2132` | `2121` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/(内部)到课衰减情况 | [data_center_market_2132.sql](../../resources/raw_sql/data_center_market_2132.sql) | `dbb672b840b204a2efc1d1d55a3ad10b91261990e12cee9f5541ab0b64e81c67` | 505 |
+| 3 | `转化数据_市场顾问` | `menu_set_3767103007846227968` | `2253` | `2242` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/转化数据_市场顾问 | [data_center_market_2253.sql](../../resources/raw_sql/data_center_market_2253.sql) | `fb78783661eab9c98ca36b710585a2f18823a68744a1ba7c04f6048725bb8fd1` | 523 |
+| 4 | `运营侧个人数据` | `menu_set_3790459879440003073` | `2293` | `2282` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/运营侧个人数据 | [data_center_market_2293.sql](../../resources/raw_sql/data_center_market_2293.sql) | `3ae877668d54f6f6ce60342f685bef6cd1310da49d4289607d984ef097089254` | 1306 |
 | 5 | `进量节奏` | `menu_set_3791960320014991360` | `2307` | `2296` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/进量节奏 | [data_center_market_2307.sql](../../resources/raw_sql/data_center_market_2307.sql) | `eba6a6cacfbe92bd33eda80fb40773bda281e10db1a510bd44229bd8f75d5c7d` | 125 |
 | 6 | `分二级部门转化` | `menu_set_3793241904433971200` | `2310` | `2299` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/分二级部门转化 | [data_center_market_2310.sql](../../resources/raw_sql/data_center_market_2310.sql) | `e5aaf927e7cbd48c2c5d187843145bdaa0db1d1fed699ba22623044231a1ed47` | 458 |
-| 7 | `分析--分周期转化` | `menu_set_3803169871873413121` | `2344` | `2334` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/分析--分周期转化 | [data_center_market_2344.sql](../../resources/raw_sql/data_center_market_2344.sql) | `5716dda0daf9cbdfb4c5a95ab06835f3d28ef14688c73312dd3ba6df2c395e8c` | 1506 |
+| 7 | `分析--分周期转化` | `menu_set_3803169871873413121` | `2344` | `2334` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/分析--分周期转化 | [data_center_market_2344.sql](../../resources/raw_sql/data_center_market_2344.sql) | `1003adcf2bcae625ff68c551fac5aedb97d28831c22c348c38ff3f1241879967` | 1505 |
 | 8 | `进量测试(市场渠道)` | `menu_set_3803433852106686465` | `2345` | `2335` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/进量测试(市场渠道) | [data_center_market_2345.sql](../../resources/raw_sql/data_center_market_2345.sql) | `b00f0651a03bbfee37608bc0310bc1e95e42e3db453ca1593066f20e9da4c79c` | 635 |
 | 9 | `退费_科目_产品` | `menu_set_3804597496486080513` | `2349` | `2339` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/退费_科目_产品 | [data_center_market_2349.sql](../../resources/raw_sql/data_center_market_2349.sql) | `a7c64c46a7952c956cdbb2e03dde4d9c03b7ff1038bcca7e6c66acbb55d41a02` | 361 |
 | 10 | `多科用户退费占比` | `menu_set_3804644399882543105` | `2350` | `2340` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/多科用户退费占比 | [data_center_market_2350.sql](../../resources/raw_sql/data_center_market_2350.sql) | `ed6bd651bb2ac131a06790a0a285cac45b1d633fb36f9d0ee4ccbda978908c59` | 178 |
@@ -40,7 +41,7 @@
 | 26 | `暑期激励v2` | `menu_set_3890437045159682049` | `2751` | `2741` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/暑期激励v2 | [data_center_market_2751.sql](../../resources/raw_sql/data_center_market_2751.sql) | `7987cd7dc41d5921bfc7de0a0d717326574de3db44d7e36ddf1816a7adad743e` | 1013 |
 | 27 | `用户成单画像` | `menu_set_3893424081230045185` | `2774` | `2764` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/用户成单画像 | [data_center_market_2774.sql](../../resources/raw_sql/data_center_market_2774.sql) | `f29805b963af6dbf34eb18c23283af89a70d2d70cf4c43aab738bc9239040936` | 726 |
 | 28 | `成单用户画像整体数据` | `menu_set_3901633051635220480` | `2809` | `2799` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/成单用户画像整体数据 | [data_center_market_2809.sql](../../resources/raw_sql/data_center_market_2809.sql) | `50af7c229dd618321c4373ad3f6ccaaa714ffe83bad21aaac4c594359b345d53` | 446 |
-| 29 | `用户画像成单用户城市标签` | `menu_set_3901731394904186880` | `2812` | `2802` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/用户画像成单用户城市标签 | [data_center_market_2812.sql](../../resources/raw_sql/data_center_market_2812.sql) | `657a13332611b02e90982c982106858522d601f990a3b73b3e3d9d3bfe01f58c` | 414 |
+| 29 | `用户画像成单用户城市标签` | `menu_set_3901731394904186880` | `2812` | `2802` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/用户画像成单用户城市标签 | [data_center_market_2812.sql](../../resources/raw_sql/data_center_market_2812.sql) | `69d23d064b582d3a7cd4a2ec610b13ef7d259be7469995166281196eafe643fd` | 414 |
 | 30 | `市场渠道用户成单分析` | `menu_set_3911759458547912705` | `2836` | `2824` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/市场渠道用户成单分析 | [data_center_market_2836.sql](../../resources/raw_sql/data_center_market_2836.sql) | `147f806b4f95c87b0b89dda0615f43463506b2362de354caf8cf7e9ec9ec23e7` | 537 |
 | 31 | `暑期激励v3-月份` | `menu_set_3913265094620393472` | `2842` | `2830` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/暑期激励v3-月份 | [data_center_market_2842.sql](../../resources/raw_sql/data_center_market_2842.sql) | `004709713beac5cd03fbfc2dfcbfd4571987405c36160db2bcc8c4f1bd466b28` | 1002 |
 | 32 | `评优看板测试渠道` | `menu_set_3921966160156524545` | `2856` | `2844` | `menu_source_817034371567951872` | 通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/评优看板测试渠道 | [data_center_market_2856.sql](../../resources/raw_sql/data_center_market_2856.sql) | `957794a35477d58016dffee4c594cce79bf8eaa4f41584ad186b8fea478c7521` | 1 |

@@ -22,7 +22,7 @@
       ],
       "status": "pending_confirmation",
       "source_path": "knowledge/sql_patterns/channel_mapping_case_when.md",
-      "source_sha256": "f412061e22258912a0b13a1c0a18f214af12b833bf3b93685559d452471d4c4c"
+      "source_sha256": "f095eab100988568ee3efff5796fc92f30f89151d7989c2a314284f1bb6a87ac"
     },
     {
       "id": "market_consultant:dimension:city_name",
@@ -93,7 +93,7 @@
       ],
       "status": "pending_confirmation",
       "source_path": "knowledge/metrics/market_class_order_registration_fields.md",
-      "source_sha256": "6911d43dbd500bc0e2494c01a8a1471a40bdbfe59c5d33d247ce108d81dd27c6",
+      "source_sha256": "0ec39ce99c7eecab865ab026a8fb2f5de3a547cdbee4de9af711d9e51c5d1cc8",
       "automatic_compile": false
     },
     {
@@ -201,7 +201,7 @@
       ],
       "status": "pending_confirmation",
       "source_path": "knowledge/metrics/market_channel_top10_consultant_conversion_metrics.md",
-      "source_sha256": "ded5f67a0829f87741bf6144154a37aafc66d0c7c2fafde3dd0dffa6a4d8bb5e",
+      "source_sha256": "be9b19da4fec2660202296c7f1eb041722b3f60dea0b01eb8588e281c4000016",
       "automatic_compile": false
     },
     {
@@ -216,7 +216,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
-      "source_sha256": "10ae5f37f563a6bf0f0f9c86ee76ebd76b0b92c0011e3730d7ac4b4f9bf2c687",
+      "source_sha256": "944f69bd135cea244f742d687fff5ab87fcaf76c8cd758014abf3aff647be22b",
       "automatic_compile": true
     },
     {
@@ -231,7 +231,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
-      "source_sha256": "10ae5f37f563a6bf0f0f9c86ee76ebd76b0b92c0011e3730d7ac4b4f9bf2c687",
+      "source_sha256": "944f69bd135cea244f742d687fff5ab87fcaf76c8cd758014abf3aff647be22b",
       "automatic_compile": true
     },
     {
@@ -246,7 +246,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
-      "source_sha256": "10ae5f37f563a6bf0f0f9c86ee76ebd76b0b92c0011e3730d7ac4b4f9bf2c687",
+      "source_sha256": "944f69bd135cea244f742d687fff5ab87fcaf76c8cd758014abf3aff647be22b",
       "automatic_compile": true
     },
     {
@@ -261,7 +261,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
-      "source_sha256": "10ae5f37f563a6bf0f0f9c86ee76ebd76b0b92c0011e3730d7ac4b4f9bf2c687",
+      "source_sha256": "944f69bd135cea244f742d687fff5ab87fcaf76c8cd758014abf3aff647be22b",
       "automatic_compile": true
     },
     {
@@ -275,7 +275,7 @@
       ],
       "status": "pending_confirmation",
       "source_path": "knowledge/metrics/market_positive_order_detail_finance_metrics.md",
-      "source_sha256": "9f074b1eab528af166494b42b97731973805b06b3b772ba9dbd5b901e6497e45",
+      "source_sha256": "a88649dad71ca5a116b4a80237e866f1423b04244ea78500e2f5a2b6f9ae3c80",
       "automatic_compile": false
     },
     {
@@ -290,7 +290,7 @@
       ],
       "status": "pending_confirmation",
       "source_path": "knowledge/metrics/market_finance_positive_subject_structure_metrics.md",
-      "source_sha256": "f652d7a946c10a46bc33f8df89823b47f6bbaaaff62377072a52e7888ed592b6",
+      "source_sha256": "5713db713f699643361ba43d46ac6caf26314d4a73db5ea39336aee2d7a05751",
       "automatic_compile": false
     },
     {
@@ -334,7 +334,7 @@
       ],
       "status": "pending_confirmation",
       "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
-      "source_sha256": "10ae5f37f563a6bf0f0f9c86ee76ebd76b0b92c0011e3730d7ac4b4f9bf2c687",
+      "source_sha256": "944f69bd135cea244f742d687fff5ab87fcaf76c8cd758014abf3aff647be22b",
       "automatic_compile": false
     },
     {
@@ -348,7 +348,7 @@
       ],
       "status": "pending_confirmation",
       "source_path": "knowledge/dashboards/market_period_grade_conversion_overview_template.md",
-      "source_sha256": "3db750866d2be74164e894bb8f50ae6fde62c6919a3acebfa9083ab273e5f78b",
+      "source_sha256": "e145c8cbb243e266d0e6b9bdca442f60180c00f9b3e2bbd4b9b4c5db1c2398fb",
       "automatic_compile": false
     },
     {
@@ -362,7 +362,7 @@
       ],
       "status": "pending_confirmation",
       "source_path": "knowledge/metrics/market_jingpin_chusan_subject_share_metrics.md",
-      "source_sha256": "1d5775088a8407df2e62e13ae31037e08f3dfd6e8701a282d1ce5a9fd7d601fc",
+      "source_sha256": "14e3a86fb09b75a545009f631fc9682b0959b142981fca419b7728d800d357a7",
       "automatic_compile": false
     },
     {
@@ -378,7 +378,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
-      "source_sha256": "10ae5f37f563a6bf0f0f9c86ee76ebd76b0b92c0011e3730d7ac4b4f9bf2c687",
+      "source_sha256": "944f69bd135cea244f742d687fff5ab87fcaf76c8cd758014abf3aff647be22b",
       "automatic_compile": true
     },
     {
@@ -394,7 +394,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
-      "source_sha256": "10ae5f37f563a6bf0f0f9c86ee76ebd76b0b92c0011e3730d7ac4b4f9bf2c687",
+      "source_sha256": "944f69bd135cea244f742d687fff5ab87fcaf76c8cd758014abf3aff647be22b",
       "automatic_compile": true
     },
     {
@@ -409,7 +409,7 @@
       ],
       "status": "pending_confirmation",
       "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
-      "source_sha256": "10ae5f37f563a6bf0f0f9c86ee76ebd76b0b92c0011e3730d7ac4b4f9bf2c687",
+      "source_sha256": "944f69bd135cea244f742d687fff5ab87fcaf76c8cd758014abf3aff647be22b",
       "automatic_compile": false
     },
     {
@@ -423,7 +423,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
-      "source_sha256": "10ae5f37f563a6bf0f0f9c86ee76ebd76b0b92c0011e3730d7ac4b4f9bf2c687"
+      "source_sha256": "944f69bd135cea244f742d687fff5ab87fcaf76c8cd758014abf3aff647be22b"
     },
     {
       "id": "market_consultant:scope:finance_performance",
