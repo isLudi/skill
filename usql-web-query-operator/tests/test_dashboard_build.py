@@ -16,6 +16,9 @@ sys.path.insert(0, str(SKILL_ROOT / "scripts"))
 from _shared.errors import UsageError  # noqa: E402
 from read_dashboard.cli import build_parser  # noqa: E402
 from read_dashboard.commands.apply_dashboard_build import cmd_apply_dashboard_build  # noqa: E402
+from read_dashboard.commands.capture_dashboard_build_evidence import (  # noqa: E402
+    _load_sandbox_action_manifest,
+)
 from read_dashboard.dashboard_build import (  # noqa: E402
     bind_build_upstream_artifacts,
     execute_dashboard_build_saga,
@@ -459,6 +462,67 @@ class OrderingBuildAdapter(FakeBuildAdapter):
 
 
 class DashboardBuildOperatorTests(unittest.TestCase):
+    def test_component_manifest_allows_explicit_existing_dataset_in_sandbox(self) -> None:
+        manifest = {
+            "artifact_type": "DashboardBuildSandboxAction",
+            "schema_version": "1.0.0",
+            "operation": "create_pivot_component",
+            "dashboard_id": "dashboard_1",
+            "dashboard_name": "P4C Test Dashboard",
+            "dataset": {
+                "dataset_name": "Production Dataset",
+                "dataset_mode": "existing",
+                "reuse_existing_dataset_for_sandbox": True,
+                "application_model_id": "model_1",
+                "subject_id": "subject_1",
+                "model_type": 2,
+                "dataset_schema_sha256": "1" * 64,
+                "field_binding_sha256": "2" * 64,
+            },
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "manifest.json"
+            path.write_text(json.dumps(manifest), encoding="utf-8")
+            args = SimpleNamespace(
+                sandbox_action_manifest=path,
+                operation="create_pivot_component",
+                scope="dashboard",
+                sandbox_dashboard_id="dashboard_1",
+                expected_dashboard_name="P4C Test Dashboard",
+            )
+            self.assertEqual(manifest, _load_sandbox_action_manifest(args))
+
+    def test_component_manifest_blocks_unmarked_existing_dataset(self) -> None:
+        manifest = {
+            "artifact_type": "DashboardBuildSandboxAction",
+            "schema_version": "1.0.0",
+            "operation": "create_pivot_component",
+            "dashboard_id": "dashboard_1",
+            "dashboard_name": "P4C Test Dashboard",
+            "dataset": {
+                "dataset_name": "Production Dataset",
+                "dataset_mode": "existing",
+                "reuse_existing_dataset_for_sandbox": False,
+                "application_model_id": "model_1",
+                "subject_id": "subject_1",
+                "model_type": 2,
+                "dataset_schema_sha256": "1" * 64,
+                "field_binding_sha256": "2" * 64,
+            },
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "manifest.json"
+            path.write_text(json.dumps(manifest), encoding="utf-8")
+            args = SimpleNamespace(
+                sandbox_action_manifest=path,
+                operation="create_pivot_component",
+                scope="dashboard",
+                sandbox_dashboard_id="dashboard_1",
+                expected_dashboard_name="P4C Test Dashboard",
+            )
+            with self.assertRaisesRegex(UsageError, "read-only existing-dataset"):
+                _load_sandbox_action_manifest(args)
+
     def test_production_adapter_is_registered_only_under_planned_id(self) -> None:
         self.assertEqual(
             ["taitan_dashboard_build_v1"],

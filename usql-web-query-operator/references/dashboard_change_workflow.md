@@ -186,6 +186,7 @@ P3B 不再使用“第一个/第二个筛选器”定位。每个可写 operatio
 | `update_public_filter_title` | 支持 | 支持，仅稳定三元组对应的一个非空叶子标题 |
 | `update_existing_component` | 支持 | `blocked_unsupported` |
 | `update_component_fields` | 支持 | 支持，仅既有稳定 field ID 的单个显示名修改 |
+| `replace_pivot_measure_fields` | 支持识别并保留前后有序 ID | 阻断；本地适配器未进入生产白名单，等待真实沙箱写入/回读/恢复证据 |
 | `update_component_filter_label` | 支持 | 支持，仅稳定 unit/field 的局部筛选器显示标签 |
 | `update_component_title` | 支持 | 支持，仅一个稳定既有组件的非空标题 |
 | `update_tab_label` | 支持 | 支持，仅稳定 component/slot key/slot ID 的一个标签 |

@@ -329,6 +329,89 @@ def project_unit_field_state(detail: Mapping[str, Any]) -> dict[str, Any]:
     return projection
 
 
+def replace_pivot_measure_fields(
+    *,
+    target_detail: Mapping[str, Any],
+    expected_model_id: str,
+    expected_before_field_ids: Iterable[str],
+    after_field_ids: Iterable[str],
+    field_catalog: Mapping[str, Mapping[str, Any]],
+) -> dict[str, Any]:
+    """Add/reorder pivot measures while preserving every existing payload.
+
+    This is intentionally a pure, narrow primitive.  The caller must bind it
+    to a full unit read, perform an immediate pre-write drift check, write the
+    complete returned unit, and restore the complete original unit on any
+    ambiguous failure. Each field_catalog entry separates a same-model proof
+    (model_id) from a complete known-good unit-field payload. The function
+    never guesses platform format/render/default keys.
+    """
+
+    model_id = str(target_detail.get("modelId") or "").strip()
+    expected_model = str(expected_model_id or "").strip()
+    if not expected_model or model_id != expected_model:
+        raise UsageError(
+            f"Pivot model mismatch: expected {expected_model or '<missing>'}, got {model_id or '<missing>'}"
+        )
+
+    before_ids = _ordered_unique(expected_before_field_ids, "expected_before_field_ids")
+    after_ids = _ordered_unique(after_field_ids, "after_field_ids")
+    current_fields = _fields(target_detail, "unitMeasureList")
+    current_ids = [_field_id(field) for field in current_fields]
+    if any(not field_id for field_id in current_ids):
+        raise UsageError("unitMeasureList contains a measure without a stable field id.")
+    if current_ids != before_ids:
+        raise UsageError(
+            "Pivot measure order drifted; exact expected_before_field_ids no longer match the unit."
+        )
+    if set(before_ids) - set(after_ids):
+        raise UsageError("Pivot measure replacement cannot remove existing measures.")
+    if before_ids == after_ids:
+        raise UsageError("Pivot measure replacement must add or reorder at least one measure.")
+
+    existing = dict(zip(current_ids, current_fields, strict=True))
+    additions = set(after_ids) - set(before_ids)
+    for field_id in additions:
+        candidate = field_catalog.get(field_id)
+        if not isinstance(candidate, Mapping):
+            raise UsageError(f"Added measure is absent from the model field catalog: {field_id}")
+        candidate_model = str(candidate.get("model_id") or "").strip()
+        payload = candidate.get("payload")
+        if not isinstance(payload, Mapping):
+            raise UsageError(f"Added measure lacks a complete field payload: {field_id}")
+        if _field_id(payload) != field_id:
+            raise UsageError(f"Field catalog identity mismatch for added measure: {field_id}")
+        if candidate_model != expected_model:
+            raise UsageError(
+                f"Added measure {field_id} belongs to model {candidate_model or '<missing>'}, "
+                f"not {expected_model}."
+            )
+        required_payload_keys = {
+            "fieldId", "fieldType", "format", "frontRender", "showName", "uniqueKeyWithTimeStamp"
+        }
+        missing_keys = sorted(required_payload_keys - set(payload))
+        if missing_keys or not isinstance(payload.get("format"), Mapping):
+            raise UsageError(
+                f"Added measure {field_id} has an incomplete unit-field payload: {missing_keys}"
+            )
+        payload_format = payload["format"]
+        if (
+            not field_id.isdigit()
+            or str(payload_format.get("orgParamType") or "") != "1"
+            or str(payload_format.get("changeParamType") or "") != "1"
+        ):
+            raise UsageError(f"Added measure {field_id} is not a verified atomic metric payload.")
+
+    rebuilt = copy.deepcopy(dict(target_detail))
+    rebuilt["unitMeasureList"] = [
+        copy.deepcopy(existing[field_id])
+        if field_id in existing
+        else copy.deepcopy(dict(field_catalog[field_id]["payload"]))
+        for field_id in after_ids
+    ]
+    return rebuilt
+
+
 def rebuild_pivot_unit_fields(
     *,
     target_detail: Mapping[str, Any],

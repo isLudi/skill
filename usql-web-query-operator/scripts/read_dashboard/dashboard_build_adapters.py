@@ -793,6 +793,10 @@ class TaitanDashboardBuildV1Adapter:
         manifest = {
             "dataset": {
                 "dataset_name": dataset_name,
+                "dataset_mode": str(dataset.get("mode") or ""),
+                "reuse_existing_dataset_for_sandbox": bool(
+                    dataset_config.get("reuse_existing_dataset_for_sandbox")
+                ),
                 "application_model_id": dataset["application_model_id"],
                 "subject_id": dataset["subject_id"],
                 "model_type": dataset["model_type"],

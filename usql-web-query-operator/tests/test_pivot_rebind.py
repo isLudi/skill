@@ -14,6 +14,7 @@ from read_dashboard.pivot_rebind import (  # noqa: E402
     assert_filtered_value_response,
     normalize_filtered_value_checks,
     project_unit_field_state,
+    replace_pivot_measure_fields,
     rebuild_pivot_unit_fields,
 )
 from read_dashboard.cli import build_parser  # noqa: E402
@@ -31,11 +32,96 @@ def field(field_id: str, name: str, show_name: str | None = None) -> dict[str, o
         "showName": show_name or name,
         "fieldType": 1,
         "orgParamType": 1,
-        "format": {"sortValue": "NONE"},
+        "format": {"sortValue": "NONE", "orgParamType": 1, "changeParamType": 1},
+        "frontRender": False,
+        "uniqueKeyWithTimeStamp": f"{field_id}_stable",
     }
 
 
 class PivotRebindTests(unittest.TestCase):
+    def test_replace_measures_adds_and_reorders_without_mutating_existing_payloads(self) -> None:
+        existing_8min = field("8190136223229952", "is_long_call", "8min人数")
+        existing_8min["format"] = {"sortValue": "DESC", "condition": {"precision": 0}}
+        first_lesson = field("first_lesson_valid", "first_lesson_valid", "首节有效")
+        target = {
+            "unitId": "unit_3993036395152396288",
+            "unitName": "渠道-整体",
+            "modelId": "2064",
+            "unitDimensionList": [field("channel_map_1", "channel_map_1")],
+            "unitColumnDimensionList": [],
+            "unitMeasureList": [existing_8min, first_lesson],
+            "unitAideMeasureList": [],
+            "unitFilterList": [field("qici", "qici")],
+            "unrelatedConfig": {"pageSize": 100},
+        }
+        additions = {
+            "8183691126073344": {
+                "model_id": "2064",
+                "payload": field("8183691126073344", "is_friend_lead", "新增好友数"),
+            },
+            "8149654467340288": {
+                "model_id": "2064",
+                "payload": field("8149654467340288", "is_app_denglu", "APP数"),
+            },
+        }
+        after_ids = [
+            "first_lesson_valid",
+            "8183691126073344",
+            "8149654467340288",
+            "8190136223229952",
+        ]
+
+        rebuilt = replace_pivot_measure_fields(
+            target_detail=target,
+            expected_model_id="2064",
+            expected_before_field_ids=["8190136223229952", "first_lesson_valid"],
+            after_field_ids=after_ids,
+            field_catalog=additions,
+        )
+
+        self.assertEqual(after_ids, [item["fieldId"] for item in rebuilt["unitMeasureList"]])
+        self.assertEqual(first_lesson, rebuilt["unitMeasureList"][0])
+        self.assertEqual(existing_8min, rebuilt["unitMeasureList"][3])
+        self.assertEqual(target["unitDimensionList"], rebuilt["unitDimensionList"])
+        self.assertEqual({"pageSize": 100}, rebuilt["unrelatedConfig"])
+        self.assertEqual(
+            ["8190136223229952", "first_lesson_valid"],
+            [item["fieldId"] for item in target["unitMeasureList"]],
+        )
+
+    def test_replace_measures_rejects_drift_duplicates_removal_and_cross_model_addition(self) -> None:
+        target = {
+            "unitId": "unit_1",
+            "modelId": "2064",
+            "unitMeasureList": [field("a", "a"), field("b", "b")],
+        }
+        catalog = {"c": {"model_id": "9999", "payload": field("c", "c")}}
+        common = {"target_detail": target, "expected_model_id": "2064", "field_catalog": catalog}
+        with self.assertRaisesRegex(UsageError, "order drifted"):
+            replace_pivot_measure_fields(
+                **common, expected_before_field_ids=["b", "a"], after_field_ids=["a", "b", "c"]
+            )
+        with self.assertRaisesRegex(UsageError, "duplicate"):
+            replace_pivot_measure_fields(
+                **common, expected_before_field_ids=["a", "b"], after_field_ids=["a", "b", "b"]
+            )
+        with self.assertRaisesRegex(UsageError, "cannot remove"):
+            replace_pivot_measure_fields(
+                **common, expected_before_field_ids=["a", "b"], after_field_ids=["a"]
+            )
+        with self.assertRaisesRegex(UsageError, "belongs to model 9999"):
+            replace_pivot_measure_fields(
+                **common, expected_before_field_ids=["a", "b"], after_field_ids=["a", "b", "c"]
+            )
+        non_atomic = {"123": {"model_id": "2064", "payload": field("123", "formula")}}
+        non_atomic["123"]["payload"]["format"]["orgParamType"] = 4
+        with self.assertRaisesRegex(UsageError, "not a verified atomic metric"):
+            replace_pivot_measure_fields(
+                target_detail=target, expected_model_id="2064",
+                expected_before_field_ids=["a", "b"], after_field_ids=["a", "b", "123"],
+                field_catalog=non_atomic,
+            )
+
     def test_production_rebind_has_no_cli_entrypoint(self) -> None:
         parser = build_parser()
         subparsers = next(

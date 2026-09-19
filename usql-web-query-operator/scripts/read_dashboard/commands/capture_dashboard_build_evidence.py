@@ -118,11 +118,19 @@ def _load_sandbox_action_manifest(args) -> dict[str, Any] | None:
                 raise UsageError(
                     "Component sandbox action dataset is missing: " + ", ".join(missing)
                 )
-            if not any(
+            dedicated_sandbox_dataset = any(
                 marker in str(dataset["dataset_name"]).casefold()
                 for marker in ("sandbox", "test", "p4c", "沙箱", "测试")
-            ):
-                raise UsageError("Component evidence requires a dedicated sandbox dataset name.")
+            )
+            reuse_existing_dataset = (
+                dataset.get("dataset_mode") == "existing"
+                and dataset.get("reuse_existing_dataset_for_sandbox") is True
+            )
+            if not (dedicated_sandbox_dataset or reuse_existing_dataset):
+                raise UsageError(
+                    "Component evidence requires either a dedicated sandbox dataset name "
+                    "or an explicit read-only existing-dataset sandbox binding."
+                )
             for hash_key in ("dataset_schema_sha256", "field_binding_sha256"):
                 value = str(dataset.get(hash_key) or "")
                 if len(value) != 64 or any(char not in "0123456789abcdef" for char in value):

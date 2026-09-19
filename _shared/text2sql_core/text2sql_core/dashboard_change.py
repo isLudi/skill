@@ -42,6 +42,7 @@ RECOGNIZED_DESIGN_OPERATION_TYPES = {
     "move_component_container",
     "update_existing_component",
     "update_component_fields",
+    "replace_pivot_measure_fields",
     "update_component_filter_label",
     "update_component_title",
     "update_layout",
@@ -1100,6 +1101,62 @@ def _operation(
     }
     body["operation_id"] = f"op_{canonical_sha256(body)[:16]}"
     return body
+
+
+def build_blocked_pivot_measure_operation(
+    *,
+    component_id: str,
+    unit_id: str,
+    model_id: str,
+    before_measure_field_ids: Sequence[str],
+    after_measure_field_ids: Sequence[str],
+) -> dict[str, Any]:
+    """Build an order-preserving, deliberately blocked pivot-edit contract."""
+
+    identities = {
+        "component_id": str(component_id or "").strip(),
+        "unit_id": str(unit_id or "").strip(),
+        "model_id": str(model_id or "").strip(),
+    }
+    missing = sorted(key for key, value in identities.items() if not value)
+    if missing:
+        raise ValueError(f"pivot measure operation requires stable identities: {missing}")
+
+    def ordered_ids(values: Sequence[str], label: str) -> list[str]:
+        result = [str(value or "").strip() for value in values]
+        if not result or any(not value for value in result):
+            raise ValueError(f"{label} must be a non-empty list of stable field IDs")
+        if len(result) != len(set(result)):
+            raise ValueError(f"{label} contains duplicate field IDs")
+        return result
+
+    before_ids = ordered_ids(before_measure_field_ids, "before_measure_field_ids")
+    after_ids = ordered_ids(after_measure_field_ids, "after_measure_field_ids")
+    before_set = set(before_ids)
+    removed = [field_id for field_id in before_ids if field_id not in set(after_ids)]
+    if removed:
+        raise ValueError(f"pivot measure replacement cannot remove fields: {removed}")
+    if before_ids == after_ids:
+        raise ValueError("pivot measure replacement must add or reorder fields")
+    added = [field_id for field_id in after_ids if field_id not in before_set]
+    return _operation(
+        "replace_pivot_measure_fields",
+        "components",
+        {"measure_field_ids": before_ids},
+        {"measure_field_ids": after_ids},
+        risk="high",
+        allowed=False,
+        blocked_reasons=(
+            "pivot measure add/reorder lacks immutable sandbox write/readback/restore evidence",
+        ),
+        target_override={
+            **identities,
+            "field_group": "unitMeasureList",
+            "before_measure_field_ids": before_ids,
+            "after_measure_field_ids": after_ids,
+            "added_measure_field_ids": added,
+        },
+    )
 
 
 def _component_field_entries(component: Mapping[str, Any]) -> list[dict[str, Any]]:
@@ -2529,6 +2586,7 @@ __all__ = [
     "SCHEMA_VERSION",
     "artifact_sha256",
     "build_apply_receipt",
+    "build_blocked_pivot_measure_operation",
     "build_dashboard_change_plan",
     "build_dashboard_design_spec",
     "build_publish_receipt",

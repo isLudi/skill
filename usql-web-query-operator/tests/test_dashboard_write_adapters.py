@@ -13,16 +13,282 @@ sys.path.insert(0, str(SKILL_ROOT / "scripts"))
 from _shared.errors import UsageError  # noqa: E402
 from read_dashboard.dashboard_write_adapters import (  # noqa: E402
     ADAPTERS,
+    UNVERIFIED_LOCAL_ADAPTERS,
     ReversibleAdapter,
     apply_adapter_target,
     assert_expected_state,
     canonical_sha256,
     find_filter_formats,
     planned_operation_target,
+    restore_planned_operation,
+    verify_reversible_adapter,
 )
 
 
 class DashboardWriteAdapterTests(unittest.TestCase):
+    def test_unverified_pivot_adapter_is_not_production_registered(self) -> None:
+        self.assertIn("replace_pivot_measure_fields", UNVERIFIED_LOCAL_ADAPTERS)
+        self.assertNotIn("replace_pivot_measure_fields", ADAPTERS)
+
+    def test_unverified_pivot_adapter_requires_explicit_registry(self) -> None:
+        operation = "replace_pivot_measure_fields"
+        with self.assertRaisesRegex(UsageError, "No verified adapter"):
+            apply_adapter_target(
+                page=None, dashboard_id="dashboard_1", dashboard_name="sandbox",
+                operation_id="op_1", operation_type=operation, target={},
+            )
+        with self.assertRaisesRegex(UsageError, "No reversible adapter"):
+            verify_reversible_adapter(
+                page=None, dashboard_id="dashboard_1", dashboard_name="sandbox",
+                operation=operation, target={},
+            )
+
+    def test_explicit_registry_is_used_for_apply_verify_and_restore(self) -> None:
+        operation = "sandbox_test_adapter"
+        state = {"value": "before"}
+        writes = 0
+
+        def read(_page, _dashboard_id, _target):
+            return copy.deepcopy(state)
+
+        def project(raw, _target):
+            return copy.deepcopy(raw)
+
+        def mutate(raw, target):
+            raw["value"] = target["probe_value"]
+            return raw
+
+        def restore(_current, before, _target):
+            return copy.deepcopy(before)
+
+        def write(_page, _dashboard_id, _dashboard_name, raw, _observations):
+            nonlocal writes
+            writes += 1
+            state.clear()
+            state.update(copy.deepcopy(raw))
+
+        registry = {
+            operation: ReversibleAdapter(
+                operation, read, project, mutate, restore, write,
+                lambda expected, actual, _target: expected == actual,
+            )
+        }
+        target = {"probe_value": "after"}
+        result = verify_reversible_adapter(
+            page=None, dashboard_id="dashboard_1", dashboard_name="sandbox",
+            operation=operation, target=target, adapter_registry=registry,
+        )
+        self.assertEqual("verified_and_restored", result["status"])
+        self.assertEqual({"value": "before"}, state)
+
+        mutation = apply_adapter_target(
+            page=None, dashboard_id="dashboard_1", dashboard_name="sandbox",
+            operation_id="op_1", operation_type=operation, target=target,
+            adapter_registry=registry,
+        )
+        self.assertEqual({"value": "after"}, state)
+        restored = restore_planned_operation(
+            page=None, dashboard_id="dashboard_1", dashboard_name="sandbox",
+            mutation=mutation, adapter_registry=registry,
+        )
+        self.assertEqual("restored", restored["status"])
+        self.assertEqual({"value": "before"}, state)
+        self.assertEqual(4, writes)
+
+    def test_explicit_registry_does_not_admit_unknown_operation(self) -> None:
+        with self.assertRaisesRegex(UsageError, "No verified adapter"):
+            apply_adapter_target(
+                page=None, dashboard_id="dashboard_1", dashboard_name="sandbox",
+                operation_id="op_1", operation_type="unknown_unverified", target={},
+                adapter_registry=UNVERIFIED_LOCAL_ADAPTERS,
+            )
+
+    def test_unverified_pivot_adapter_requires_identities_and_restores_full_unit(self) -> None:
+        adapter = UNVERIFIED_LOCAL_ADAPTERS["replace_pivot_measure_fields"]
+        before = {
+            "unitId": "unit_1", "unitName": "渠道-整体", "modelId": "2064",
+            "unitMeasureList": [{"fieldId": "a", "showName": "A"}],
+            "unitDimensionList": [], "unitColumnDimensionList": [],
+            "unitAideMeasureList": [], "unitFilterList": [],
+            "format": {"frozen": True},
+        }
+        target = {
+            "component_id": "node_1", "unit_id": "unit_1", "model_id": "2064",
+            "before_measure_field_ids": ["a"], "after_measure_field_ids": ["a", "123"],
+            "field_catalog": {
+                "123": {
+                    "model_id": "2064",
+                    "payload": {
+                        "fieldId": "123", "fieldType": 1,
+                        "format": {"orgParamType": 1, "changeParamType": 1}, "frontRender": False,
+                        "showName": "B", "uniqueKeyWithTimeStamp": "b_stable",
+                    },
+                }
+            },
+        }
+        changed = adapter.mutate(copy.deepcopy(before), target)
+        self.assertEqual(
+            ["a", "123"],
+            [item["field_id"] for item in adapter.project(changed, target)["groups"]["unitMeasureList"]],
+        )
+        changed["format"] = {"frozen": False}
+        self.assertEqual(before, adapter.restore(changed, before, target))
+        with self.assertRaisesRegex(UsageError, "stable identities"):
+            adapter.mutate(copy.deepcopy(before), {**target, "component_id": ""})
+
+    def test_unverified_pivot_adapter_ambiguous_write_restores_complete_unit(self) -> None:
+        operation = "replace_pivot_measure_fields"
+        adapter = UNVERIFIED_LOCAL_ADAPTERS[operation]
+        state = {
+            "unitId": "unit_1", "unitName": "pivot", "modelId": "2064",
+            "unitDimensionList": [], "unitColumnDimensionList": [],
+            "unitMeasureList": [{"fieldId": "a", "showName": "A"}],
+            "unitAideMeasureList": [], "unitFilterList": [], "format": {"precision": 2},
+        }
+        original = copy.deepcopy(state)
+        write_count = 0
+
+        def read(_page, _dashboard_id, _target):
+            return copy.deepcopy(state)
+
+        def write(_page, _dashboard_id, _dashboard_name, raw, _observations):
+            nonlocal write_count
+            write_count += 1
+            state.clear()
+            state.update(copy.deepcopy(raw))
+            if write_count == 1:
+                state["format"] = {"precision": 9}
+                raise UsageError("ambiguous transport failure")
+            return {"status": "success"}
+
+        local_adapter = ReversibleAdapter(
+            operation, read, adapter.project, adapter.mutate, adapter.restore, write, adapter.after_matches
+        )
+        ADAPTERS[operation] = local_adapter
+        target = {
+            "component_id": "node_1", "unit_id": "unit_1", "model_id": "2064",
+            "before_measure_field_ids": ["a"], "after_measure_field_ids": ["a", "123"],
+            "field_catalog": {
+                "123": {
+                    "model_id": "2064",
+                    "payload": {
+                        "fieldId": "123", "fieldType": 1,
+                        "format": {"orgParamType": 1, "changeParamType": 1}, "frontRender": False,
+                        "showName": "B", "uniqueKeyWithTimeStamp": "b_stable",
+                    },
+                }
+            },
+        }
+        try:
+            with self.assertRaisesRegex(UsageError, "any observed write was restored"):
+                apply_adapter_target(
+                    page=None, dashboard_id="dashboard_1", dashboard_name="local-test",
+                    operation_id="op_1", operation_type=operation, target=target,
+                )
+        finally:
+            ADAPTERS.pop(operation, None)
+        self.assertEqual(original, state)
+        self.assertEqual(2, write_count)
+
+    def test_unverified_pivot_adapter_exact_readback_succeeds(self) -> None:
+        operation = "replace_pivot_measure_fields"
+        adapter = UNVERIFIED_LOCAL_ADAPTERS[operation]
+        state = {
+            "unitId": "unit_1", "unitName": "pivot", "modelId": "2064",
+            "unitDimensionList": [], "unitColumnDimensionList": [],
+            "unitMeasureList": [{"fieldId": "a", "showName": "A"}],
+            "unitAideMeasureList": [], "unitFilterList": [],
+        }
+        target = {
+            "component_id": "node_1", "unit_id": "unit_1", "model_id": "2064",
+            "before_measure_field_ids": ["a"], "after_measure_field_ids": ["a", "123"],
+            "field_catalog": {
+                "123": {
+                    "model_id": "2064",
+                    "payload": {
+                        "fieldId": "123", "fieldType": 1,
+                        "format": {"orgParamType": 1, "changeParamType": 1}, "frontRender": False,
+                        "showName": "B", "uniqueKeyWithTimeStamp": "b_stable",
+                    },
+                }
+            },
+        }
+        writes = 0
+
+        def read(_page, _dashboard_id, _target):
+            return copy.deepcopy(state)
+
+        def write(_page, _dashboard_id, _dashboard_name, raw, _observations):
+            nonlocal writes
+            writes += 1
+            state.clear()
+            state.update(copy.deepcopy(raw))
+            return {"status": "success"}
+
+        ADAPTERS[operation] = ReversibleAdapter(
+            operation, read, adapter.project, adapter.mutate, adapter.restore, write, adapter.after_matches
+        )
+        try:
+            mutation = apply_adapter_target(
+                page=None, dashboard_id="dashboard_1", dashboard_name="local-test",
+                operation_id="op_1", operation_type=operation, target=target,
+            )
+        finally:
+            ADAPTERS.pop(operation, None)
+        self.assertEqual(["a", "123"], [item["field_id"] for item in mutation.after_state["groups"]["unitMeasureList"]])
+        self.assertEqual(1, writes)
+
+    def test_unverified_pivot_adapter_immediate_drift_blocks_without_write(self) -> None:
+        operation = "replace_pivot_measure_fields"
+        adapter = UNVERIFIED_LOCAL_ADAPTERS[operation]
+        baseline = {
+            "unitId": "unit_1", "unitName": "pivot", "modelId": "2064",
+            "unitDimensionList": [], "unitColumnDimensionList": [],
+            "unitMeasureList": [{"fieldId": "a", "showName": "A"}],
+            "unitAideMeasureList": [], "unitFilterList": [],
+        }
+        reads = 0
+        writes = 0
+
+        def read(_page, _dashboard_id, _target):
+            nonlocal reads
+            reads += 1
+            value = copy.deepcopy(baseline)
+            if reads == 2:
+                value["unitMeasureList"][0]["showName"] = "drifted"
+            return value
+
+        def write(*_args):
+            nonlocal writes
+            writes += 1
+
+        ADAPTERS[operation] = ReversibleAdapter(
+            operation, read, adapter.project, adapter.mutate, adapter.restore, write, adapter.after_matches
+        )
+        target = {
+            "component_id": "node_1", "unit_id": "unit_1", "model_id": "2064",
+            "before_measure_field_ids": ["a"], "after_measure_field_ids": ["a", "123"],
+            "field_catalog": {
+                "123": {
+                    "model_id": "2064",
+                    "payload": {
+                        "fieldId": "123", "fieldType": 1,
+                        "format": {"orgParamType": 1, "changeParamType": 1}, "frontRender": False,
+                        "showName": "B", "uniqueKeyWithTimeStamp": "b_stable",
+                    },
+                }
+            },
+        }
+        try:
+            with self.assertRaisesRegex(UsageError, "no write was attempted"):
+                apply_adapter_target(
+                    page=None, dashboard_id="dashboard_1", dashboard_name="local-test",
+                    operation_id="op_1", operation_type=operation, target=target,
+                )
+        finally:
+            ADAPTERS.pop(operation, None)
+        self.assertEqual(0, writes)
+
     def test_redacted_live_evidence_covers_all_reversible_adapters(self) -> None:
         evidence_path = SKILL_ROOT / "tests" / "fixtures" / "p4a_sandbox_adapter_evidence.json"
         evidence = json.loads(evidence_path.read_text(encoding="utf-8"))

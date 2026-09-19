@@ -14,6 +14,7 @@ from ..common import write_json
 from ..dashboard_change import require_complete_profile
 from ..dashboard_write_adapters import (
     ADAPTERS,
+    UNVERIFIED_LOCAL_ADAPTERS,
     apply_adapter_target,
     canonical_sha256,
     restore_planned_operation,
@@ -23,6 +24,7 @@ from ..edit_profile import build_edit_url, fetch_edit_dashboard_config, open_edi
 
 
 OPERATION_ORDER = (
+    "replace_pivot_measure_fields",
     "update_component_fields",
     "update_component_filter_label",
     "update_component_title",
@@ -33,6 +35,13 @@ OPERATION_ORDER = (
     "update_layout",
     "update_theme",
 )
+
+SANDBOX_ADAPTERS = {
+    **ADAPTERS,
+    "replace_pivot_measure_fields": UNVERIFIED_LOCAL_ADAPTERS[
+        "replace_pivot_measure_fields"
+    ],
+}
 
 
 def _load_manifest(path: Path) -> dict:
@@ -68,7 +77,7 @@ def _preflight(args, manifest: dict) -> list[str]:
     if not isinstance(raw_operations, dict) or not raw_operations:
         raise UsageError("Sandbox adapter manifest requires an operations object.")
     operations = [operation for operation in OPERATION_ORDER if operation in raw_operations]
-    unknown = set(raw_operations) - set(ADAPTERS)
+    unknown = set(raw_operations) - set(SANDBOX_ADAPTERS)
     if unknown:
         raise UsageError(f"Sandbox adapter manifest contains unknown operations: {sorted(unknown)}")
     if set(operations) != set(raw_operations):
@@ -115,6 +124,7 @@ def cmd_verify_sandbox_write_adapters(args) -> int:
                         dashboard_name=args.expected_dashboard_name,
                         operation=operation,
                         target=manifest["operations"][operation],
+                        adapter_registry=SANDBOX_ADAPTERS,
                     )
                 )
                 if results[-1]["status"] != "verified_and_restored":
@@ -139,6 +149,7 @@ def cmd_verify_sandbox_write_adapters(args) -> int:
                             operation_id=f"sandbox_tx_{operation}",
                             operation_type=operation,
                             target=manifest["operations"][operation],
+                            adapter_registry=SANDBOX_ADAPTERS,
                         )
                         mutations.append(mutation)
                         transaction["applied"].append(
@@ -159,8 +170,9 @@ def cmd_verify_sandbox_write_adapters(args) -> int:
                                 restore_planned_operation(
                                     page=page,
                                     dashboard_id=args.sandbox_dashboard_id,
-                                    dashboard_name=args.expected_dashboard_name,
-                                    mutation=mutation,
+                                dashboard_name=args.expected_dashboard_name,
+                                mutation=mutation,
+                                adapter_registry=SANDBOX_ADAPTERS,
                                 )
                             )
                         except Exception as exc:  # noqa: BLE001

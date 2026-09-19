@@ -16,7 +16,9 @@ P4A 只建立写能力证据和白名单，不把自然语言请求直接变成�
 
 P4B 当前生产 `allowlisted` 操作为 `update_component_fields`、`update_component_filter_label`、`update_component_title`、`update_public_filter_title`、`update_tab_label`、`update_layout`、`update_formula`、`update_filter_dynamic_default`、`update_theme`。透视表 `rebuild_pivot_unit_by_copy` 仅为 `sandbox_verified/sandbox_only`，不能进入生产 Apply。这不是开放式写权限：每类生产操作都受共享 Diff 的窄约束，必须绑定完整 Profile、精确 Hash、目标双读、写后回读、最终全量画像和恢复策略。
 
-Registry 1.1.0 共 29 项：22 项 `verified/allowlisted`、1 项 `sandbox_verified/sandbox_only`、5 项 `blocked`、1 项 `separate_confirmation`。P4C 的 `create_dashboard`、`create_formula`、四类组件创建、`create_public_filter`、`assemble_new_dashboard`、`rename_new_component_metrics`、`style_new_components`、`create_tab_container`、`assemble_tab_slots` 和 `create_text_component` 共十三项 operation，均为 `transaction_class=creation_saga`、`recovery_policy=creation_saga_no_auto_delete`，生产 adapter 为 `taitan_dashboard_build_v1`。既有局部筛选器只开放单个 `showName` 标签修改，泛化 `update_component_filter` 仍 blocked；其余 blocked 项是既有组件 `bind_dataset`、模板克隆、移动文件夹和权限修改。详见 `references/dashboard_build_workflow.md`。
+Registry 1.1.0 共 30 项：22 项 `verified/allowlisted`、1 项 `sandbox_verified/sandbox_only`、6 项 `blocked`、1 项 `separate_confirmation`。新增的 `replace_pivot_measure_fields` 为 `unverified/blocked`：已有纯本地有序契约与可补偿测试适配器，但没有真实沙箱证据，且未进入生产 `ADAPTERS`/`SUPPORTED_APPLY_OPERATIONS`。P4C 的 `create_dashboard`、`create_formula`、四类组件创建、`create_public_filter`、`assemble_new_dashboard`、`rename_new_component_metrics`、`style_new_components`、`create_tab_container`、`assemble_tab_slots` 和 `create_text_component` 共十三项 operation，均为 `transaction_class=creation_saga`、`recovery_policy=creation_saga_no_auto_delete`，生产 adapter 为 `taitan_dashboard_build_v1`。既有局部筛选器只开放单个 `showName` 标签修改，泛化 `update_component_filter` 仍 blocked；其余 blocked 项是既有组件 `bind_dataset`、模板克隆、移动文件夹和权限修改。详见 `references/dashboard_build_workflow.md`。
+
+`replace_pivot_measure_fields` 只接受稳定 component/unit/model 身份、完整且精确的前后有序指标 ID 列表，以及同模型既有正确单元中的完整字段模板。它仅允许新增与重排，不允许删除、重复、跨模型字段、公式/筛选/维度/格式联动；既有字段 payload 原样保留，异常时恢复完整原始 unit。上述行为当前仅由本地测试证明，不能用于正式看板或作为平台写入成功证据。
 
 ## 离线检查
 

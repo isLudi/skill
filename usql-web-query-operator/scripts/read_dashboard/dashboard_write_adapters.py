@@ -15,6 +15,7 @@ from _shared.errors import UsageError
 from .edit_profile import fetch_edit_dashboard_config, fetch_edit_unit_detail
 from .filter_edit import fetch_public_filter_detail, find_public_filter_unit
 from .profile import post_json
+from .pivot_rebind import project_unit_field_state, replace_pivot_measure_fields
 from .write_capabilities import request_key_paths
 
 
@@ -393,6 +394,38 @@ def _component_restore(current: dict[str, Any], before: dict[str, Any], target: 
     return current
 
 
+def _pivot_measure_project(raw: dict[str, Any], target: Mapping[str, Any]) -> dict[str, Any]:
+    """Order-preserving projection for the unverified local adapter."""
+
+    return project_unit_field_state(raw)
+
+
+def _pivot_measure_mutate(raw: dict[str, Any], target: Mapping[str, Any]) -> dict[str, Any]:
+    missing = [
+        key for key in ("component_id", "unit_id", "model_id")
+        if not str(target.get(key) or "").strip()
+    ]
+    if missing:
+        raise UsageError(f"Pivot measure replacement requires stable identities: {missing}")
+    if str(raw.get("unitId") or "") != str(target["unit_id"]):
+        raise UsageError("Pivot measure replacement unit identity mismatch.")
+    return replace_pivot_measure_fields(
+        target_detail=raw,
+        expected_model_id=str(target.get("model_id") or ""),
+        expected_before_field_ids=target.get("before_measure_field_ids") or [],
+        after_field_ids=target.get("after_measure_field_ids") or [],
+        field_catalog=target.get("field_catalog") or {},
+    )
+
+
+def _pivot_measure_restore(
+    current: dict[str, Any], before: dict[str, Any], target: Mapping[str, Any]
+) -> dict[str, Any]:
+    # Restore the full pre-write unit, not only the measure list. This avoids
+    # retaining collateral mutations after an ambiguous API outcome.
+    return copy.deepcopy(before)
+
+
 def _component_title_value(schema: dict[str, Any], component_id: str) -> str:
     node = find_component_node(schema, component_id)
     props = node.get("props") if isinstance(node.get("props"), dict) else {}
@@ -729,6 +762,21 @@ ADAPTERS: dict[str, ReversibleAdapter] = {
     ),
 }
 
+# This adapter is intentionally excluded from ADAPTERS and therefore cannot be
+# reached by production Apply.  It exists for deterministic local tests until
+# immutable sandbox write/readback/restore evidence supports promotion.
+UNVERIFIED_LOCAL_ADAPTERS: dict[str, ReversibleAdapter] = {
+    "replace_pivot_measure_fields": ReversibleAdapter(
+        "replace_pivot_measure_fields",
+        _read_unit,
+        _pivot_measure_project,
+        _pivot_measure_mutate,
+        _pivot_measure_restore,
+        _write_unit_adapter,
+        _exact_after,
+    )
+}
+
 
 def _planned_component_show_name(operation: Mapping[str, Any]) -> str:
     target = operation.get("target") if isinstance(operation.get("target"), Mapping) else {}
@@ -803,10 +851,11 @@ def apply_adapter_target(
     operation_id: str,
     operation_type: str,
     target: Mapping[str, Any],
+    adapter_registry: Mapping[str, ReversibleAdapter] = ADAPTERS,
 ) -> AppliedDashboardMutation:
-    if operation_type not in ADAPTERS:
+    if operation_type not in adapter_registry:
         raise UsageError(f"No verified adapter is registered for {operation_type or '<missing>'}.")
-    adapter = ADAPTERS[operation_type]
+    adapter = adapter_registry[operation_type]
     target = copy.deepcopy(dict(target))
     observations: list[dict[str, Any]] = []
     before_raw = adapter.read(page, dashboard_id, target)
@@ -882,8 +931,13 @@ def restore_planned_operation(
     dashboard_id: str,
     dashboard_name: str,
     mutation: AppliedDashboardMutation,
+    adapter_registry: Mapping[str, ReversibleAdapter] = ADAPTERS,
 ) -> dict[str, Any]:
-    adapter = ADAPTERS[mutation.operation]
+    if mutation.operation not in adapter_registry:
+        raise UsageError(
+            f"No verified adapter is registered for {mutation.operation or '<missing>'}."
+        )
+    adapter = adapter_registry[mutation.operation]
     observations: list[dict[str, Any]] = []
     current_raw = adapter.read(page, dashboard_id, mutation.target)
     current_state = adapter.project(current_raw, mutation.target)
@@ -916,10 +970,11 @@ def verify_reversible_adapter(
     dashboard_name: str,
     operation: str,
     target: Mapping[str, Any],
+    adapter_registry: Mapping[str, ReversibleAdapter] = ADAPTERS,
 ) -> dict[str, Any]:
-    if operation not in ADAPTERS:
+    if operation not in adapter_registry:
         raise UsageError(f"No reversible adapter is registered for {operation}.")
-    adapter = ADAPTERS[operation]
+    adapter = adapter_registry[operation]
     observations: list[dict[str, Any]] = []
     before_raw = adapter.read(page, dashboard_id, target)
     before_state = adapter.project(before_raw, target)

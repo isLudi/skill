@@ -19,6 +19,7 @@ from text2sql_core.dashboard_change import (  # noqa: E402
     SAFE_OPERATION_TYPES,
     artifact_sha256,
     build_apply_receipt,
+    build_blocked_pivot_measure_operation,
     build_dashboard_design_spec,
     build_publish_receipt,
     canonical_sha256,
@@ -191,6 +192,41 @@ def isolated_contract_root(root: Path, domain: str = "qingcheng") -> tuple[Path,
 
 
 class P3DashboardChangeTest(unittest.TestCase):
+    def test_blocked_pivot_measure_contract_preserves_order_and_never_becomes_safe(self) -> None:
+        operation = build_blocked_pivot_measure_operation(
+            component_id="node_ocml28zcv2c",
+            unit_id="unit_3993036395152396288",
+            model_id="2064",
+            before_measure_field_ids=["8190136223229952", "first_lesson_valid"],
+            after_measure_field_ids=[
+                "first_lesson_valid",
+                "8183691126073344",
+                "8149654467340288",
+                "8190136223229952",
+            ],
+        )
+        self.assertEqual("replace_pivot_measure_fields", operation["type"])
+        self.assertEqual("blocked_unsupported", operation["write_status"])
+        self.assertNotIn(operation["type"], SAFE_OPERATION_TYPES)
+        self.assertEqual(
+            ["first_lesson_valid", "8183691126073344", "8149654467340288", "8190136223229952"],
+            operation["target"]["after_measure_field_ids"],
+        )
+        self.assertEqual(
+            ["8183691126073344", "8149654467340288"],
+            operation["target"]["added_measure_field_ids"],
+        )
+        with self.assertRaisesRegex(ValueError, "cannot remove"):
+            build_blocked_pivot_measure_operation(
+                component_id="node_1", unit_id="unit_1", model_id="2064",
+                before_measure_field_ids=["a", "b"], after_measure_field_ids=["a"],
+            )
+        with self.assertRaisesRegex(ValueError, "duplicate"):
+            build_blocked_pivot_measure_operation(
+                component_id="node_1", unit_id="unit_1", model_id="2064",
+                before_measure_field_ids=["a"], after_measure_field_ids=["a", "a"],
+            )
+
     @classmethod
     def setUpClass(cls) -> None:
         cls.schemas = {

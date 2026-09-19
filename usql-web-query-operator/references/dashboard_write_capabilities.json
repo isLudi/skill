@@ -29,12 +29,12 @@
         },
         {
           "source_path": "scripts/read_dashboard/dashboard_build_adapters.py",
-          "source_sha256": "f9a99d08d8ce9325e70fa1534b2eda50bc33a333a0604d9bc391ff34fbf71723",
+          "source_sha256": "99e853d21c61871e804fea761bd20eb24ed191b644d2dc2cad6ccd3a172c1e01",
           "note": "Production creation-saga adapter with drift, idempotency, complete-profile, draft-value, and no-auto-delete gates."
         },
         {
           "source_path": "tests/test_dashboard_build.py",
-          "source_sha256": "c308abd9a8bb56312b0d2d6487a2086ba417f3684728dca8eedba2250471ad45",
+          "source_sha256": "45ca84aab13fbaeb7260ddb11e5e4ff03cc8ddd9649da6007dec3d68432bc6b4",
           "note": "Artifact, preflight, failure-injection, resume, adapter, type-aware value, filter-target, and formula-conflict tests."
         }
       ],
@@ -128,12 +128,12 @@
         },
         {
           "source_path": "scripts/read_dashboard/dashboard_build_adapters.py",
-          "source_sha256": "f9a99d08d8ce9325e70fa1534b2eda50bc33a333a0604d9bc391ff34fbf71723",
+          "source_sha256": "99e853d21c61871e804fea761bd20eb24ed191b644d2dc2cad6ccd3a172c1e01",
           "note": "Production creation-saga adapter with drift, idempotency, complete-profile, draft-value, and no-auto-delete gates."
         },
         {
           "source_path": "tests/test_dashboard_build.py",
-          "source_sha256": "c308abd9a8bb56312b0d2d6487a2086ba417f3684728dca8eedba2250471ad45",
+          "source_sha256": "45ca84aab13fbaeb7260ddb11e5e4ff03cc8ddd9649da6007dec3d68432bc6b4",
           "note": "Artifact, preflight, failure-injection, resume, adapter, type-aware value, filter-target, and formula-conflict tests."
         }
       ],
@@ -171,12 +171,12 @@
         },
         {
           "source_path": "scripts/read_dashboard/dashboard_build_adapters.py",
-          "source_sha256": "f9a99d08d8ce9325e70fa1534b2eda50bc33a333a0604d9bc391ff34fbf71723",
+          "source_sha256": "99e853d21c61871e804fea761bd20eb24ed191b644d2dc2cad6ccd3a172c1e01",
           "note": "Production creation-saga adapter with drift, idempotency, complete-profile, draft-value, and no-auto-delete gates."
         },
         {
           "source_path": "tests/test_dashboard_build.py",
-          "source_sha256": "c308abd9a8bb56312b0d2d6487a2086ba417f3684728dca8eedba2250471ad45",
+          "source_sha256": "45ca84aab13fbaeb7260ddb11e5e4ff03cc8ddd9649da6007dec3d68432bc6b4",
           "note": "Artifact, preflight, failure-injection, resume, adapter, type-aware value, filter-target, and formula-conflict tests."
         }
       ],
@@ -214,12 +214,12 @@
         },
         {
           "source_path": "scripts/read_dashboard/dashboard_build_adapters.py",
-          "source_sha256": "f9a99d08d8ce9325e70fa1534b2eda50bc33a333a0604d9bc391ff34fbf71723",
+          "source_sha256": "99e853d21c61871e804fea761bd20eb24ed191b644d2dc2cad6ccd3a172c1e01",
           "note": "Production creation-saga adapter with drift, idempotency, complete-profile, draft-value, and no-auto-delete gates."
         },
         {
           "source_path": "tests/test_dashboard_build.py",
-          "source_sha256": "c308abd9a8bb56312b0d2d6487a2086ba417f3684728dca8eedba2250471ad45",
+          "source_sha256": "45ca84aab13fbaeb7260ddb11e5e4ff03cc8ddd9649da6007dec3d68432bc6b4",
           "note": "Artifact, preflight, failure-injection, resume, adapter, type-aware value, filter-target, and formula-conflict tests."
         }
       ],
@@ -257,12 +257,12 @@
         },
         {
           "source_path": "scripts/read_dashboard/dashboard_build_adapters.py",
-          "source_sha256": "f9a99d08d8ce9325e70fa1534b2eda50bc33a333a0604d9bc391ff34fbf71723",
+          "source_sha256": "99e853d21c61871e804fea761bd20eb24ed191b644d2dc2cad6ccd3a172c1e01",
           "note": "Production creation-saga adapter with drift, idempotency, complete-profile, draft-value, and no-auto-delete gates."
         },
         {
           "source_path": "tests/test_dashboard_build.py",
-          "source_sha256": "c308abd9a8bb56312b0d2d6487a2086ba417f3684728dca8eedba2250471ad45",
+          "source_sha256": "45ca84aab13fbaeb7260ddb11e5e4ff03cc8ddd9649da6007dec3d68432bc6b4",
           "note": "Artifact, preflight, failure-injection, resume, adapter, type-aware value, filter-target, and formula-conflict tests."
         }
       ],
@@ -298,12 +298,12 @@
         },
         {
           "source_path": "scripts/read_dashboard/dashboard_build_adapters.py",
-          "source_sha256": "f9a99d08d8ce9325e70fa1534b2eda50bc33a333a0604d9bc391ff34fbf71723",
+          "source_sha256": "99e853d21c61871e804fea761bd20eb24ed191b644d2dc2cad6ccd3a172c1e01",
           "note": "Production creation-saga adapter with drift, idempotency, complete-profile, draft-value, and no-auto-delete gates."
         },
         {
           "source_path": "tests/test_dashboard_build.py",
-          "source_sha256": "c308abd9a8bb56312b0d2d6487a2086ba417f3684728dca8eedba2250471ad45",
+          "source_sha256": "45ca84aab13fbaeb7260ddb11e5e4ff03cc8ddd9649da6007dec3d68432bc6b4",
           "note": "Artifact, preflight, failure-injection, resume, adapter, type-aware value, filter-target, and formula-conflict tests."
         }
       ],
@@ -342,12 +342,12 @@
         },
         {
           "source_path": "scripts/read_dashboard/pivot_rebind.py",
-          "source_sha256": "f596aaf9e18c071da4852d386c1b5d3396d869e9acbf677974c7638fa8524c85",
+          "source_sha256": "f18540ab59b831357fc6d1a2ed053715589b9baf97976c34a57c9bec428aa4d1",
           "note": "Field-list rebuild helper plus optional public-filter-scoped value assertions for sandbox verification."
         },
         {
           "source_path": "tests/test_pivot_rebind.py",
-          "source_sha256": "b83e6b79bab4877f677f3c27b506a4dd413e6983fccf99d931c3d8407f6d52d4",
+          "source_sha256": "a1b09f35ea72cf7a1d439e3f1fe06199ccaa59a24ce70fbedcd61bccf1f2d015",
           "note": "Unit field rebuild, production-mode rejection, required-measure guards, component reference replacement, and filtered value tests."
         },
         {
@@ -383,12 +383,12 @@
       "evidence": [
         {
           "source_path": "scripts/read_dashboard/dashboard_write_adapters.py",
-          "source_sha256": "323364ef3a359f459d2a24b8d4e3f3c2b398a1bed05e97c874ea31cc94ae314c",
+          "source_sha256": "04e3cef613c5fd5e067d07609c954c432405de8eebbb515ac5f394961b1e30fd",
           "note": "Stable unit/group/field adapter with target-state readback and reversible recovery."
         },
         {
           "source_path": "tests/test_dashboard_write_adapters.py",
-          "source_sha256": "49970ff849a9ef720cc8deb85d25bdfba798b672801a794c38afeb942e77c620",
+          "source_sha256": "38e45888beeab2bc266e725113359ab30220a6c78762c4362049d68f97b9efc8",
           "note": "Drift, stable identity, unrelated-state preservation, and recovery tests."
         },
         {
@@ -399,6 +399,25 @@
       ],
       "limitations": [
         "Allowlisted only for one existing stable field display-name change; add/remove/reorder, formula/filter binding changes, and dataset rebinding remain blocked."
+      ]
+    },
+    {
+      "operation": "replace_pivot_measure_fields",
+      "phase": "draft",
+      "maturity": "unverified",
+      "write_policy": "blocked",
+      "transaction_class": "none",
+      "recovery_policy": "blocked_no_adapter",
+      "readback_coverage": "none",
+      "risk": "critical",
+      "adapter": null,
+      "write_endpoints": [],
+      "readback_endpoints": [],
+      "evidence": [],
+      "limitations": [
+        "A pure-local operation contract and reversible test adapter validate exact ordered before/after measure IDs, add/reorder-only semantics, same-model complete field templates, immediate drift rejection, exact readback, and full-unit compensation.",
+        "The local adapter is intentionally excluded from production ADAPTERS and SUPPORTED_APPLY_OPERATIONS.",
+        "No immutable sandbox write/readback/restore evidence exists, so production and sandbox writes remain blocked."
       ]
     },
     {
@@ -420,12 +439,12 @@
       "evidence": [
         {
           "source_path": "scripts/read_dashboard/dashboard_write_adapters.py",
-          "source_sha256": "323364ef3a359f459d2a24b8d4e3f3c2b398a1bed05e97c874ea31cc94ae314c",
+          "source_sha256": "04e3cef613c5fd5e067d07609c954c432405de8eebbb515ac5f394961b1e30fd",
           "note": "Stable unitFilterList field adapter changes only showName and restores the exact original label."
         },
         {
           "source_path": "tests/test_dashboard_write_adapters.py",
-          "source_sha256": "49970ff849a9ef720cc8deb85d25bdfba798b672801a794c38afeb942e77c620",
+          "source_sha256": "38e45888beeab2bc266e725113359ab30220a6c78762c4362049d68f97b9efc8",
           "note": "Stable identity, target-only mutation, readback, and recovery tests."
         },
         {
@@ -459,12 +478,12 @@
       "evidence": [
         {
           "source_path": "scripts/read_dashboard/dashboard_write_adapters.py",
-          "source_sha256": "323364ef3a359f459d2a24b8d4e3f3c2b398a1bed05e97c874ea31cc94ae314c",
+          "source_sha256": "04e3cef613c5fd5e067d07609c954c432405de8eebbb515ac5f394961b1e30fd",
           "note": "Stable component adapter keeps schema componentName and data-unit unitName consistent with compensating recovery."
         },
         {
           "source_path": "tests/test_dashboard_write_adapters.py",
-          "source_sha256": "49970ff849a9ef720cc8deb85d25bdfba798b672801a794c38afeb942e77c620",
+          "source_sha256": "38e45888beeab2bc266e725113359ab30220a6c78762c4362049d68f97b9efc8",
           "note": "Schema plus unit-name projection, partial-write compensation, and exact recovery tests."
         },
         {
@@ -502,12 +521,12 @@
         },
         {
           "source_path": "scripts/read_dashboard/dashboard_build_adapters.py",
-          "source_sha256": "f9a99d08d8ce9325e70fa1534b2eda50bc33a333a0604d9bc391ff34fbf71723",
+          "source_sha256": "99e853d21c61871e804fea761bd20eb24ed191b644d2dc2cad6ccd3a172c1e01",
           "note": "Production creation-saga adapter with drift, idempotency, complete-profile, draft-value, and no-auto-delete gates."
         },
         {
           "source_path": "tests/test_dashboard_build.py",
-          "source_sha256": "c308abd9a8bb56312b0d2d6487a2086ba417f3684728dca8eedba2250471ad45",
+          "source_sha256": "45ca84aab13fbaeb7260ddb11e5e4ff03cc8ddd9649da6007dec3d68432bc6b4",
           "note": "Artifact, preflight, failure-injection, resume, adapter, type-aware value, filter-target, and formula-conflict tests."
         }
       ],
@@ -538,12 +557,12 @@
       "evidence": [
         {
           "source_path": "scripts/read_dashboard/dashboard_write_adapters.py",
-          "source_sha256": "323364ef3a359f459d2a24b8d4e3f3c2b398a1bed05e97c874ea31cc94ae314c",
+          "source_sha256": "04e3cef613c5fd5e067d07609c954c432405de8eebbb515ac5f394961b1e30fd",
           "note": "Existing-formula adapter excludes volatile server metadata and restores exact expression."
         },
         {
           "source_path": "tests/test_dashboard_write_adapters.py",
-          "source_sha256": "49970ff849a9ef720cc8deb85d25bdfba798b672801a794c38afeb942e77c620",
+          "source_sha256": "38e45888beeab2bc266e725113359ab30220a6c78762c4362049d68f97b9efc8",
           "note": "Formula metadata normalization, drift, and recovery tests."
         },
         {
@@ -583,12 +602,12 @@
         },
         {
           "source_path": "scripts/read_dashboard/dashboard_build_adapters.py",
-          "source_sha256": "f9a99d08d8ce9325e70fa1534b2eda50bc33a333a0604d9bc391ff34fbf71723",
+          "source_sha256": "99e853d21c61871e804fea761bd20eb24ed191b644d2dc2cad6ccd3a172c1e01",
           "note": "Production creation-saga adapter with drift, idempotency, complete-profile, draft-value, and no-auto-delete gates."
         },
         {
           "source_path": "tests/test_dashboard_build.py",
-          "source_sha256": "c308abd9a8bb56312b0d2d6487a2086ba417f3684728dca8eedba2250471ad45",
+          "source_sha256": "45ca84aab13fbaeb7260ddb11e5e4ff03cc8ddd9649da6007dec3d68432bc6b4",
           "note": "Artifact, preflight, failure-injection, resume, adapter, type-aware value, filter-target, and formula-conflict tests."
         }
       ],
@@ -657,12 +676,12 @@
       "evidence": [
         {
           "source_path": "scripts/read_dashboard/dashboard_write_adapters.py",
-          "source_sha256": "323364ef3a359f459d2a24b8d4e3f3c2b398a1bed05e97c874ea31cc94ae314c",
+          "source_sha256": "04e3cef613c5fd5e067d07609c954c432405de8eebbb515ac5f394961b1e30fd",
           "note": "Stable relation_id + filter_id + field_id adapter changes only unitName and restores the original title."
         },
         {
           "source_path": "tests/test_dashboard_write_adapters.py",
-          "source_sha256": "49970ff849a9ef720cc8deb85d25bdfba798b672801a794c38afeb942e77c620",
+          "source_sha256": "38e45888beeab2bc266e725113359ab30220a6c78762c4362049d68f97b9efc8",
           "note": "Stable triple, target-only title mutation, readback, and recovery tests."
         },
         {
@@ -713,12 +732,12 @@
       "evidence": [
         {
           "source_path": "scripts/read_dashboard/dashboard_write_adapters.py",
-          "source_sha256": "323364ef3a359f459d2a24b8d4e3f3c2b398a1bed05e97c874ea31cc94ae314c",
+          "source_sha256": "04e3cef613c5fd5e067d07609c954c432405de8eebbb515ac5f394961b1e30fd",
           "note": "Stable component_id + slot_key + slot_id adapter changes only one existing tab label."
         },
         {
           "source_path": "tests/test_dashboard_write_adapters.py",
-          "source_sha256": "49970ff849a9ef720cc8deb85d25bdfba798b672801a794c38afeb942e77c620",
+          "source_sha256": "38e45888beeab2bc266e725113359ab30220a6c78762c4362049d68f97b9efc8",
           "note": "Stable slot identity, membership preservation, target-only mutation, and recovery tests."
         },
         {
@@ -750,12 +769,12 @@
       "evidence": [
         {
           "source_path": "scripts/read_dashboard/dashboard_write_adapters.py",
-          "source_sha256": "323364ef3a359f459d2a24b8d4e3f3c2b398a1bed05e97c874ea31cc94ae314c",
+          "source_sha256": "04e3cef613c5fd5e067d07609c954c432405de8eebbb515ac5f394961b1e30fd",
           "note": "Stable node layout patch with full schema readback and target-only recovery."
         },
         {
           "source_path": "tests/test_dashboard_write_adapters.py",
-          "source_sha256": "49970ff849a9ef720cc8deb85d25bdfba798b672801a794c38afeb942e77c620",
+          "source_sha256": "38e45888beeab2bc266e725113359ab30220a6c78762c4362049d68f97b9efc8",
           "note": "Layout key allowlist, drift, unrelated-state preservation, and recovery tests."
         },
         {
@@ -787,12 +806,12 @@
       "evidence": [
         {
           "source_path": "scripts/read_dashboard/dashboard_write_adapters.py",
-          "source_sha256": "323364ef3a359f459d2a24b8d4e3f3c2b398a1bed05e97c874ea31cc94ae314c",
+          "source_sha256": "04e3cef613c5fd5e067d07609c954c432405de8eebbb515ac5f394961b1e30fd",
           "note": "Root background-color adapter with theme identity readback and target-only recovery."
         },
         {
           "source_path": "tests/test_dashboard_write_adapters.py",
-          "source_sha256": "49970ff849a9ef720cc8deb85d25bdfba798b672801a794c38afeb942e77c620",
+          "source_sha256": "38e45888beeab2bc266e725113359ab30220a6c78762c4362049d68f97b9efc8",
           "note": "Theme identity, unrelated-state preservation, drift, and recovery tests."
         },
         {
@@ -830,12 +849,12 @@
         },
         {
           "source_path": "scripts/read_dashboard/dashboard_build_adapters.py",
-          "source_sha256": "f9a99d08d8ce9325e70fa1534b2eda50bc33a333a0604d9bc391ff34fbf71723",
+          "source_sha256": "99e853d21c61871e804fea761bd20eb24ed191b644d2dc2cad6ccd3a172c1e01",
           "note": "All-or-none metric-instance adapter with exact field coverage, readback, resume drift gate, and compensation."
         },
         {
           "source_path": "tests/test_dashboard_build.py",
-          "source_sha256": "c308abd9a8bb56312b0d2d6487a2086ba417f3684728dca8eedba2250471ad45",
+          "source_sha256": "45ca84aab13fbaeb7260ddb11e5e4ff03cc8ddd9649da6007dec3d68432bc6b4",
           "note": "Advanced Saga ordering, fault, orphan, and full metric-name coverage tests."
         }
       ],
@@ -869,12 +888,12 @@
         },
         {
           "source_path": "scripts/read_dashboard/dashboard_build_adapters.py",
-          "source_sha256": "f9a99d08d8ce9325e70fa1534b2eda50bc33a333a0604d9bc391ff34fbf71723",
+          "source_sha256": "99e853d21c61871e804fea761bd20eb24ed191b644d2dc2cad6ccd3a172c1e01",
           "note": "Component-type property allowlists, restricted rich text, exact before/after hashes, full schema compensation, and Profile readback."
         },
         {
           "source_path": "tests/test_dashboard_build.py",
-          "source_sha256": "c308abd9a8bb56312b0d2d6487a2086ba417f3684728dca8eedba2250471ad45",
+          "source_sha256": "45ca84aab13fbaeb7260ddb11e5e4ff03cc8ddd9649da6007dec3d68432bc6b4",
           "note": "Advanced style Plan/Saga, zero-write preflight, failure, and orphan tests."
         }
       ],
@@ -911,12 +930,12 @@
         },
         {
           "source_path": "scripts/read_dashboard/dashboard_build_adapters.py",
-          "source_sha256": "f9a99d08d8ce9325e70fa1534b2eda50bc33a333a0604d9bc391ff34fbf71723",
+          "source_sha256": "99e853d21c61871e804fea761bd20eb24ed191b644d2dc2cad6ccd3a172c1e01",
           "note": "Composite tab Saga adapter with slot-label, child identity, Counter-based binding, Profile, value, and resume readback."
         },
         {
           "source_path": "tests/test_dashboard_build.py",
-          "source_sha256": "c308abd9a8bb56312b0d2d6487a2086ba417f3684728dca8eedba2250471ad45",
+          "source_sha256": "45ca84aab13fbaeb7260ddb11e5e4ff03cc8ddd9649da6007dec3d68432bc6b4",
           "note": "Tab child-resource, failure, resume, orphan, and target verification tests."
         }
       ],
@@ -951,12 +970,12 @@
         },
         {
           "source_path": "scripts/read_dashboard/dashboard_build_adapters.py",
-          "source_sha256": "f9a99d08d8ce9325e70fa1534b2eda50bc33a333a0604d9bc391ff34fbf71723",
+          "source_sha256": "99e853d21c61871e804fea761bd20eb24ed191b644d2dc2cad6ccd3a172c1e01",
           "note": "Exact logical slot-to-platform component mapping and complete target Profile verification."
         },
         {
           "source_path": "tests/test_dashboard_build.py",
-          "source_sha256": "c308abd9a8bb56312b0d2d6487a2086ba417f3684728dca8eedba2250471ad45",
+          "source_sha256": "45ca84aab13fbaeb7260ddb11e5e4ff03cc8ddd9649da6007dec3d68432bc6b4",
           "note": "Slot child-resource and target-state tests."
         }
       ],
@@ -989,12 +1008,12 @@
         },
         {
           "source_path": "scripts/read_dashboard/dashboard_build_adapters.py",
-          "source_sha256": "f9a99d08d8ce9325e70fa1534b2eda50bc33a333a0604d9bc391ff34fbf71723",
+          "source_sha256": "99e853d21c61871e804fea761bd20eb24ed191b644d2dc2cad6ccd3a172c1e01",
           "note": "Text identity, layout, restricted content/style, resume, and Profile target adapter."
         },
         {
           "source_path": "tests/test_dashboard_build.py",
-          "source_sha256": "c308abd9a8bb56312b0d2d6487a2086ba417f3684728dca8eedba2250471ad45",
+          "source_sha256": "45ca84aab13fbaeb7260ddb11e5e4ff03cc8ddd9649da6007dec3d68432bc6b4",
           "note": "Text creation, style, failure, and orphan tests."
         }
       ],
@@ -1054,5 +1073,5 @@
       ]
     }
   ],
-  "registry_sha256": "6cff3d9b90ec30502cbca1e5479c30013b42c30eaa21aa62e91ea6d1c0036e78"
+  "registry_sha256": "0b0b024c21f8754d8a6ac4fa47c74651bbb9edecddcd95e6e4f1a414ac0e6511"
 }
