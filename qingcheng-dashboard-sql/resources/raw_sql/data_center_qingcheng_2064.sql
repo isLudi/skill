@@ -673,44 +673,28 @@ daoke_flags as (
     group by qici, employee_email_prefix, lead_id
 ),
 
-jg_base as (
-    select
-        qici,
-        employee_email_name,
-        employee_email_prefix,
-        department,
-        dept_2,
-        xiaozu
+jg_source as (
+    select qici, employee_email_name, employee_email_prefix, department, dept_2, xiaozu
+    from temp_table.dingxi01_jiagou_db
+    where qici >= '20260605期'
+      and dept_1 = '青橙项目部'
+      and qici is not null and employee_email_name is not null
+      and department is not null and dept_2 is not null and xiaozu is not null
+),
+jg_quality as (
+    select cast(case when count(*) = 0 then '1' else 'DUPLICATE_QING_JIAGOU_KEY' end as integer) as valid_key
     from (
-        select
-            qici,
-            employee_email_name,
-            employee_email_prefix,
-            department,
-            dept_2,
-            xiaozu,
-            row_number() over (
-                partition by qici, employee_email_name
-                order by department, dept_2, xiaozu, employee_email_prefix
-            ) as jg_rn
-        from (
-            select distinct
-                qici,
-                employee_email_name,
-                employee_email_prefix,
-                department,
-                dept_2,
-                xiaozu
-            from temp_table.dingxi01_jiagou_db
-            where qici >= '20260427期'
-              and qici is not null
-              and employee_email_name is not null
-              and department is not null
-              and dept_2 is not null
-              and xiaozu is not null
-        ) jg_distinct
-    ) jg_ranked
-    where jg_rn = 1
+        select qici, employee_email_name
+        from jg_source
+        group by qici, employee_email_name having count(*) > 1
+    ) duplicates
+),
+jg_base as (
+    select jg.qici, jg.employee_email_name, jg.employee_email_prefix,
+           jg.department, jg.dept_2, jg.xiaozu
+    from jg_source jg
+    cross join jg_quality quality
+    where quality.valid_key = 1
 ),
 
 prc as (
@@ -814,7 +798,7 @@ prc as (
      and call_14d.employee_email_prefix = data.employee_email_prefix
     left join denglu_app
       on denglu_app.user_number = data.user_id
-    where data.qici >= '20260427期'
+    where data.qici >= '20260605期'
       and jg.department is not null
       and jg.dept_2 is not null
       and jg.xiaozu is not null

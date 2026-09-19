@@ -67,7 +67,7 @@ left join biz_qici_calendar lead_cal
       ) as date
   ) between lead_cal.period_start_date and lead_cal.period_end_date
 where f.dt = format_datetime(NOW() - interval '2' hour, 'YYYYMMdd')
-  and f.hour = format_datetime(NOW() - interval '2' hour, 'HH')
+  and f.hour = format_datetime(NOW() - interval '3' hour, 'HH')
   and f.lead_model_type = 1
   and f.section_assign_employee_first_level_department_name = 'H业务线'
   and f.virtual_third_department_name = '学习顾问部'
@@ -207,7 +207,7 @@ from (
     from bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df f
     left join douyin_refund_transfer t
       on cast(f.lead_id as bigint) = t.transfer_lead_id
-    where f.dt=format_datetime(NOW()-interval '2' hour,'YYYYMMdd') and f.hour=format_datetime(NOW()-interval '2' hour,'HH')
+    where f.dt=format_datetime(NOW()-interval '2' hour,'YYYYMMdd') and f.hour=format_datetime(NOW()-interval '3' hour,'HH')
       and f.section_assign_employee_first_level_department_name = 'H业务线'
       and f.section_assign_employee_second_level_department_name = '青橙项目部'
       and f.period_mapping_first_level_department_name = 'H业务线'
@@ -304,7 +304,7 @@ left join lead_map ld
   on gmv.lead_id = ld.lead_id
  and ld.employee_email_name = gmv.performance_employee_email_name
 where gmv.dt=format_datetime(NOW()-interval '2' hour,'YYYYMMdd')
-  and gmv.hour=format_datetime(NOW()-interval '2' hour,'HH')
+  and gmv.hour=format_datetime(NOW()-interval '3' hour,'HH')
   and gmv.performance_second_level_department_name='青橙项目部'
   and gmv.course_first_level_department_name in ('H业务线','LL业务线','TUTU','TT','A业务线','EM业务线','KA业务线','TT业务线','创新中心')
   and gmv.course_second_level_department_name in ('V项目部','本地化部','私域营销组','青少成长学部','创新技术组','成长中心供应链组','APP运营组','英语产品部','职场服务部','用户平台部','微师产品部','上海中心综合部','CAL技术组','财务核算部','财经项目部','人才发展部','财务信息化部','图书项目部（关闭）','运营部','基础架构组','数学产品部','营销产品部','雅思学部','商品部','磨课组','升学规划部','升学规划中心','郑州中心','组织部','留学申请学部','质检部','架构平台部','师训组','投放商务组','系统班部','编程素养学部','市场运营组','项目运营组','KM技术组','二讲老师部','成都中心综合部','业务设计部','专题课部','微师职教产品部','高校学部','教学服务部','平台产品部','数字化学部','品牌运营组','校长办公室','运营中心财务','视效部','数据与商业分析中心','X项目','教学产品部','XA学部','语言学部','图书产品部','主播部','业务支持部','HL技术组','武汉中心综合部','成人供应链组','途途课堂','信息平台部','HL经营分析组','大数据部','直播运营组','市场部','金刚产品部','教学产品运营中心','平台电商组','企业效能部','品牌与内容部','产品研发部','小学部','技术质量部','财务报告部','税务部','用户产品部','直播二部','招聘部','HR共享中心','清北','增长策略部','督察部','商品运营部','资金管理部','美好家庭学部','设计支持中心','初中部','AIGC创新部','财务部','人力资源部','人才保障部一部','CAL经营分析组','基础技术部','综合素养学部','热线呼入部','品牌部','语文产品部','供应链部','题库','GZ学部','政府关系部','HRBP部','招生运营部','督检组','耀师项目部','产品运营部','营运部','多媒体技术部','跟谁学郑州中心(失效）','人工智能部','体验设计部','狮王项目部','资产服务部','专升本项目部','基础技术部(失效)','郑州中心综合部','考研学部','线上考研学部','内容营销组','公关部','公职学部','客服部','运营平台部','CS学部','财务FP&A部','商学院学部','行政部','直播三部','营销技术部','私域运营组','飞花产品部','星火产品部','客户端技术部','薪酬绩效部','图书项目部','NJ学部','直播一部','法务部','在线服务部','履约部','KML经营分析组','社会保障部','精品班部','教学教研部','医疗项目部','菁英班部','菁英班学部','精品班学部','一对一学部','北京学部','图书学部','河南学部','清北班学部','湖广学部','山西学部','K学部','M学部','大学生学习学部','合肥学校','太原学校','苏州学校','郑州学校','北京学校','上海学校','运营中心','广州学校','市场中心','南京学校','深圳学校','成都学校','财务中心','武汉学校','济南学校','天津学校','学校办公室','重庆学校','西安学校','长沙学校','市场二部','留学学部','国际考试学部','出国语培线下项目','广州学校（IE）','国际竞赛项目','剑桥英语项目','上海学校（IE）','心理学部','创新项目部','创新学部','素质成长学部','国际考试在线学部','毛豆学部','青少学部','市场三部','市场四部','青橙项目部','文旅学部','本地化大班学部','市场营销部','直播市场部','创新增长部','学习规划中心','素养初中学部','素养青藤学部','素养小学学部','用户运营部','经营策略部','校园招聘','直播创新部','战略创新部','产研部','业务研发部','教学质量部','Theta项目部','AI素养学部','文旅项目','Theta智学项目部','Theta产研部','V学部','TT初中学部','TT小学学部','产研部','T学部','专题课部（失效）','初中组','文旅项目（失效）')
@@ -313,7 +313,7 @@ where gmv.dt=format_datetime(NOW()-interval '2' hour,'YYYYMMdd')
 left join biz_qici_calendar period_cal
   on base.qici = period_cal.qici
  and regexp_extract(base.rule_name, '(\d{4}期)', 1) = period_cal.legacy_short_qici
-where base.qici >= '20260424期'
+where base.qici >= '20260605期'
 )
 ,course_transfer_order_rows as (
 select
@@ -369,7 +369,7 @@ from finance_dw.app_finance_performance_extend_details_hf f
 inner join course_transfer_order o
   on f.order_number = o.order_number
 where f.dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
-  and f.hour = format_datetime(now() - interval '2' hour, 'HH')
+  and f.hour = format_datetime(now() - interval '3' hour, 'HH')
   and f.employee_first_level_department_name = 'H业务线'
   and f.employee_second_level_department_name = '青橙项目部'
   and f.course_first_level_department_name in (
@@ -422,7 +422,7 @@ inner join service_dw.dwd_crm_assign_private_detail_hf p
   on cast(p.user_number as varchar) = cast(f.target_user_number as varchar)
  and p.employee_email_name = f.employee_email_name
 where p.dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
-  and p.hour = format_datetime(now() - interval '2' hour, 'HH')
+  and p.hour = format_datetime(now() - interval '3' hour, 'HH')
   and p.model_type = 0
   and p.is_del = 0
   and p.assign_employee_first_level_department_name = 'H业务线'
@@ -529,7 +529,7 @@ from course_transfer_base base
 left join biz_qici_calendar period_cal
   on base.qici = period_cal.qici
  and regexp_extract(base.rule_name, '(\d{4}期)', 1) = period_cal.legacy_short_qici
-where base.qici >= '20260424期'
+where base.qici >= '20260605期'
 )
 -- lead期次+分配时间
 ,prc as (
@@ -717,7 +717,6 @@ select * from service_gmv
 union all
 select * from course_transfer_gmv
 )
-
 -- 先汇总 uid 订单，并按完成度折算逻辑计算用户级破蛋口径
 ,udd as (
 select
@@ -854,14 +853,14 @@ from (
          between lead_cal.period_start_date and lead_cal.period_end_date
     left join douyin_refund_transfer t
       on cast(f.lead_id as bigint) = t.transfer_lead_id
-    where f.dt=format_datetime(NOW()-interval '2' hour,'YYYYMMdd') and f.hour=format_datetime(NOW()-interval '2' hour,'HH')
+    where f.dt=format_datetime(NOW()-interval '2' hour,'YYYYMMdd') and f.hour=format_datetime(NOW()-interval '3' hour,'HH')
     and f.section_assign_employee_first_level_department_name = 'H业务线'
     and f.section_assign_employee_second_level_department_name = '青橙项目部'
     and f.period_mapping_first_level_department_name = 'H业务线'
     and coalesce(try_cast(f.valid_lead_count as bigint), 0) = 1
     and t.transfer_lead_id is null
 ) f )
-where qici >= '20260424期'
+where qici >= '20260605期'
 group by qici,channel_map_1,channel_map_2,grade_1,virtual_direct_leader_email_name,employee_email_name)
 ,prelead_bb as (
 select
@@ -879,7 +878,7 @@ select
     p.employee_email_name,
     count(*) as v_lead
 from douyin_refund_prelead p
-where p.qici >= '20260424期'
+where p.qici >= '20260605期'
 group by
     p.qici,
     case
@@ -1007,12 +1006,20 @@ jg.leader_employee_email_name as xiaozu,
 jg.dazu,jg.jingli
 from mm
 left join (
-select
-    qici,
-    employee_email_name,
-    xuebu,
-    leader_employee_email_name,
-    dazu,
-    jingli
-from temp_table.dingxi01_qing_team_jg
-) jg on mm.employee_email_name = jg.employee_email_name and mm.qici = jg.qici)
+    select qici, employee_email_name, xuebu, leader_employee_email_name, dazu, jingli
+    from (
+        select qici, employee_email_name, xuebu, leader_employee_email_name, dazu, jingli,
+               count(*) over (partition by qici, employee_email_name) as key_rows
+        from temp_table.dingxi01_qing_team_jg
+    ) jg_scoped
+    where key_rows = 1
+) jg on mm.employee_email_name = jg.employee_email_name and mm.qici = jg.qici
+cross join (
+    select cast(case when count(*) = 0 then '1' else 'DUPLICATE_QING_TEAM_JG_KEY' end as integer) as valid_key
+    from (
+        select qici, employee_email_name
+        from temp_table.dingxi01_qing_team_jg
+        group by qici, employee_email_name having count(*) > 1
+    ) duplicates
+) jg_quality
+where jg_quality.valid_key = 1)

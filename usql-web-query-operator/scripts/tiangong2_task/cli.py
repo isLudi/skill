@@ -637,6 +637,7 @@ def cmd_list_execution_history(args: argparse.Namespace) -> int:
                 operations_client,
                 task=task,
                 limit=args.limit,
+                allow_historical_task_names=True,
             )
             run_dir = write_execution_history_bundle(
                 task=task,
@@ -692,7 +693,12 @@ def cmd_plan_task_maintenance_session(args: argparse.Namespace) -> int:
                 task_name=args.task_name,
             )
             operations = Tiangong2OperationsReadOnlyClient(session.context.request)
-            history = list_execution_history_bundle(operations, task=task, limit=100)
+            history = list_execution_history_bundle(
+                operations,
+                task=task,
+                limit=100,
+                allow_historical_task_names=True,
+            )
             execution_ids = [
                 int(row.get("id") or 0)
                 for row in history.get("executions") or []
@@ -774,7 +780,12 @@ def cmd_authorize_task_maintenance_session(args: argparse.Namespace) -> int:
                 task_name=str(scope["task_name"]),
             )
             operations = Tiangong2OperationsReadOnlyClient(browser_session.context.request)
-            history = list_execution_history_bundle(operations, task=task, limit=100)
+            history = list_execution_history_bundle(
+                operations,
+                task=task,
+                limit=100,
+                allow_historical_task_names=True,
+            )
             execution_ids = [
                 int(row.get("id") or 0)
                 for row in history.get("executions") or []

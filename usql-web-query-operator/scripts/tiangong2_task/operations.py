@@ -242,6 +242,7 @@ def list_execution_history_bundle(
     *,
     task: ScopedTask,
     limit: int = 20,
+    allow_historical_task_names: bool = False,
 ) -> dict[str, Any]:
     """List the latest exact execution attempts for an already-scoped owned task."""
 
@@ -294,7 +295,10 @@ def list_execution_history_bundle(
                 raise UsageError("Execution-history row is missing a positive execution id")
             if int(row.get("taskId") or 0) != task.nezha_task_id:
                 raise UsageError("Execution-history row escaped the scoped Nezha task")
-            if str(row.get("taskName") or "") != task.task_name:
+            if (
+                str(row.get("taskName") or "") != task.task_name
+                and not allow_historical_task_names
+            ):
                 raise UsageError("Execution-history row task name mismatch")
             normalized = dict(row)
             normalized.setdefault("periodTime", period_time)

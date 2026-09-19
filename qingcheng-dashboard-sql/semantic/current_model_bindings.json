@@ -11,10 +11,10 @@
       "model_id": "2064",
       "ordinal": 1,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/青橙项目部/青橙-过程数据",
-      "source_observed_on": "2026-08-08",
-      "sql_bytes": 36847,
-      "sql_lines": 944,
-      "sql_sha256": "22c3fff16a0c7114a663fa6f64320cbc774c5acc8f468cea31f269108d3f782d",
+      "source_observed_on": "2026-09-17",
+      "sql_bytes": 36634,
+      "sql_lines": 928,
+      "sql_sha256": "24dcdafbe46d2e0c51c0024c9d83e533cbdb79eadadc256aa86d912c20aa882c",
       "subject_id": "2054"
     },
     {
@@ -26,10 +26,10 @@
       "model_id": "2460",
       "ordinal": 2,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/青橙项目部/转化数据",
-      "source_observed_on": "2026-08-08",
-      "sql_bytes": 48389,
-      "sql_lines": 1018,
-      "sql_sha256": "a83c43588a6f7fda0696595948aa9316945fa02a462c8261d00f818c82912d3e",
+      "source_observed_on": "2026-09-17",
+      "sql_bytes": 48945,
+      "sql_lines": 1025,
+      "sql_sha256": "2a562ce7af7e54a1035d0a7de5f3af1a1008cd10cf6ad72fa13279a75bcdc54b",
       "subject_id": "2450"
     },
     {
@@ -56,10 +56,10 @@
       "model_id": "2677",
       "ordinal": 100001,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/青橙项目部/团队完成度【月】",
-      "source_observed_on": "2026-08-08",
-      "sql_bytes": 51605,
-      "sql_lines": 910,
-      "sql_sha256": "6029971ea6cbd66b0c935bcfc8de6f0f5ba4de9118f11e92ce4afc0bbfe08b47",
+      "source_observed_on": "2026-09-17",
+      "sql_bytes": 52478,
+      "sql_lines": 932,
+      "sql_sha256": "e686520210c9b6eb7f1db5aed080a24b38fc27208252b78d9e73bb948944568c",
       "subject_id": "2667"
     },
     {
@@ -71,10 +71,10 @@
       "model_id": "2680",
       "ordinal": 100002,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/青橙项目部/团队完成度【期】",
-      "source_observed_on": "2026-08-08",
-      "sql_bytes": 51599,
-      "sql_lines": 910,
-      "sql_sha256": "e68e3cfb921838132118f9be5c453543a8ef28c6731a3c7c8c269bc4cf5ea806",
+      "source_observed_on": "2026-09-17",
+      "sql_bytes": 52473,
+      "sql_lines": 932,
+      "sql_sha256": "a86e6542f8257ac765ac3946e187ba90800a2922a4fcc0c5e3da86e483473427",
       "subject_id": "2670"
     },
     {
@@ -86,10 +86,10 @@
       "model_id": "2769",
       "ordinal": 100003,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/青橙项目部/青橙个人转化",
-      "source_observed_on": "2026-08-08",
-      "sql_bytes": 51822,
-      "sql_lines": 950,
-      "sql_sha256": "17a2e00f0afaf569076f7674336f8eb07ab1ee8066fedbd29822e982fba5776c",
+      "source_observed_on": "2026-09-17",
+      "sql_bytes": 52305,
+      "sql_lines": 967,
+      "sql_sha256": "ff1188881e26f2d35c2abc58d92fd81c3dcaefb2009fbf42588d29944d4c43e7",
       "subject_id": "2759"
     },
     {

@@ -60,7 +60,12 @@ def build_execution_plan(
     publish_state = read_publish_state(reader, task)
     if not publish_state["source_matches_latest_published"]:
         raise UsageError("Tiangong2 task execution requires current source to match latest published source")
-    history = list_execution_history_bundle(operations, task=task, limit=100)
+    history = list_execution_history_bundle(
+        operations,
+        task=task,
+        limit=100,
+        allow_historical_task_names=True,
+    )
     payload = {
         "schema_version": PLAN_SCHEMA_VERSION,
         "operation": PLAN_OPERATION,
@@ -256,7 +261,12 @@ def validate_pre_execution_drift(
     ):
         if current.get(field) != baseline.get(field):
             raise UsageError(f"Tiangong2 execution precondition drifted after planning: {field}")
-    history = list_execution_history_bundle(operations, task=task, limit=100)
+    history = list_execution_history_bundle(
+        operations,
+        task=task,
+        limit=100,
+        allow_historical_task_names=True,
+    )
     current_ids = _execution_ids(history)
     if current_ids != list(baseline["baseline_execution_ids"]):
         raise UsageError("Tiangong2 execution history drifted after planning")
@@ -274,12 +284,18 @@ def wait_for_new_execution(
     baseline_ids = set(int(value) for value in plan["baseline"]["baseline_execution_ids"])
     period_time = str(plan["execution"]["period_time"])
     for attempt in range(1, attempts + 1):
-        history = list_execution_history_bundle(operations, task=task, limit=100)
+        history = list_execution_history_bundle(
+            operations,
+            task=task,
+            limit=100,
+            allow_historical_task_names=True,
+        )
         matches = [
             dict(row)
             for row in history.get("executions") or []
             if int(row.get("id") or 0) not in baseline_ids
             and str(row.get("periodTime") or "") == period_time
+            and str(row.get("taskName") or "") == task.task_name
         ]
         if len(matches) == 1:
             safe, _ = redact_structure(matches[0])

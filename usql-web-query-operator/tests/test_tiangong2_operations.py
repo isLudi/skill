@@ -4,6 +4,7 @@ import json
 import sys
 import tempfile
 import unittest
+from dataclasses import replace
 from pathlib import Path
 
 
@@ -22,6 +23,7 @@ from tiangong2_task.operations import (  # noqa: E402
     write_execution_history_bundle,
     write_execution_log_bundle,
 )
+from tiangong2_task.execution import wait_for_new_execution  # noqa: E402
 from tiangong2_task.scope import ScopedTask  # noqa: E402
 
 
@@ -46,16 +48,18 @@ class FakeResponse:
 class FakeRequest:
     def __init__(self):
         self.calls = []
+        self.current_task_name = "market_conversion_2_lark"
+        self.execution_task_name = "market_conversion_2_lark"
 
     def get(self, url, **kwargs):
         self.calls.append(("GET", url, kwargs))
         if url.endswith("getTaskAndSchedule"):
-            return FakeResponse({"taskId": 65369, "taskName": "market_conversion_2_lark"})
+            return FakeResponse({"taskId": 65369, "taskName": self.current_task_name})
         if url.endswith("getTaskExecutionDetail"):
             return FakeResponse(
                 {
                     "taskExecutionId": 164912112,
-                    "taskName": "market_conversion_2_lark",
+                    "taskName": self.execution_task_name,
                     "status": 7,
                     "statusDesc": "failed",
                     "stageExecutions": [
@@ -79,7 +83,7 @@ class FakeRequest:
                     {
                         "id": 160175153,
                         "taskId": 65369,
-                        "taskName": "market_conversion_2_lark",
+                        "taskName": self.current_task_name,
                         "taskExecutionId": 164912112,
                         "periodTime": "2026-08-16 14:36:00",
                         "statusDesc": "stage执行失败",
@@ -93,7 +97,7 @@ class FakeRequest:
                     {
                         "id": 164912112,
                         "taskId": 65369,
-                        "taskName": "market_conversion_2_lark",
+                        "taskName": self.execution_task_name,
                         "statusDesc": "stage执行失败",
                         "periodTime": payload["periodTime"],
                     }
@@ -182,6 +186,61 @@ class Tiangong2OperationsClientTests(unittest.TestCase):
         bundle = list_execution_history_bundle(client, task=make_task(), limit=20)
         self.assertEqual([row["id"] for row in bundle["executions"]], [164912112])
         self.assertFalse(any(call[1].endswith("getStageLog") for call in request.calls))
+
+    def test_execution_baseline_can_preserve_legacy_execution_row_name(self) -> None:
+        request = FakeRequest()
+        request.current_task_name = "market2lark_jinliang"
+        request.execution_task_name = "legacy_task_name"
+        client = Tiangong2OperationsReadOnlyClient(request, api_base="https://example/nezha")
+        task = replace(make_task(), task_name="market2lark_jinliang")
+        with self.assertRaisesRegex(UsageError, "task name mismatch"):
+            list_execution_history_bundle(client, task=task, limit=20)
+        bundle = list_execution_history_bundle(
+            client,
+            task=task,
+            limit=20,
+            allow_historical_task_names=True,
+        )
+        self.assertEqual(bundle["executions"][0]["taskName"], "legacy_task_name")
+
+    def test_new_execution_must_use_current_task_name_after_rename(self) -> None:
+        task = replace(make_task(), task_name="market2lark_jinliang")
+        plan = {
+            "baseline": {"baseline_execution_ids": []},
+            "execution": {"period_time": "2026-08-16 14:36:00"},
+        }
+        legacy_request = FakeRequest()
+        legacy_request.current_task_name = task.task_name
+        legacy_request.execution_task_name = "legacy_task_name"
+        legacy_client = Tiangong2OperationsReadOnlyClient(
+            legacy_request,
+            api_base="https://example/nezha",
+        )
+        with self.assertRaisesRegex(UsageError, "no exact new execution"):
+            wait_for_new_execution(
+                legacy_client,
+                task=task,
+                plan=plan,
+                attempts=1,
+                delay_seconds=0,
+            )
+
+        current_request = FakeRequest()
+        current_request.current_task_name = task.task_name
+        current_request.execution_task_name = task.task_name
+        current_client = Tiangong2OperationsReadOnlyClient(
+            current_request,
+            api_base="https://example/nezha",
+        )
+        readback = wait_for_new_execution(
+            current_client,
+            task=task,
+            plan=plan,
+            attempts=1,
+            delay_seconds=0,
+        )
+        self.assertEqual(readback["execution_id"], 164912112)
+        self.assertEqual(readback["execution"]["taskName"], task.task_name)
 
     def test_execution_history_rejects_out_of_range_limit_before_history_reads(self) -> None:
         request = FakeRequest()

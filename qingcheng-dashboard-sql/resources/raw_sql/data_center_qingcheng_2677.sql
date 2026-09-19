@@ -452,7 +452,7 @@ and course_second_level_department_name in ('V项目部', '本地化部', '私�
     group by qici_re, order_number
 )
 
--------------------------按finance调出退款事件金额分配调课退款
+-------------------------按finance退款事件金额分配调课退款
 ,finance_refund_event_allocated as (
     select
         e2.order_number,
@@ -549,9 +549,7 @@ and course_second_level_department_name in ('V项目部', '本地化部', '私�
                       'EM业务线', 'KA业务线', 'TT业务线', '创新中心'
                   )
                   and f.course_second_level_department_name is not null
-                  -- 只有“调出退款/调课调班”是内部转移金额；“全部退款”是客户真实退款，不能被 transfer pool 抵销。
-                  and f.trade_status like '%调出%'
-                  and f.trade_type like '%调课调班%'
+                  and f.trade_status like '%退%'
                   and cast(coalesce(f.price, 0) as double) < 0
                   and exists (
                       select 1
@@ -875,13 +873,29 @@ and course_second_level_department_name in ('V项目部', '本地化部', '私�
         r.jingli,
         r.xuebu
 )
+,team_key_quality as (
+    select cast(
+        case when
+            (select count(*) from (
+                select qici, employee_email_name
+                from temp_table.dingxi01_qing_team_jg
+                group by qici, employee_email_name having count(*) > 1
+            ) duplicate_arch) = 0
+            and (select count(*) from (
+                select month, xuebu, xiaozu
+                from temp_table.dingxi01_qing_team_goal
+                group by month, xuebu, xiaozu having count(*) > 1
+            ) duplicate_goal) = 0
+        then '1' else 'DUPLICATE_TEAM_KEY' end as integer
+    ) as valid_key
+)
 -- 团队月度粒度输出。
 -- 收入/退款新增 income_all/refund_all，但折算仍使用原退4/点睛2字段。
 select
-    qg.month,
-    qg.xuebu,
-    qg.xiaozu as xiaozu1,
-    qg.dazu,
+    coalesce(qg.month, r.moth) as month,
+    coalesce(qg.xuebu, r.xuebu) as xuebu,
+    coalesce(qg.xiaozu, r.leader_employee_email_name) as xiaozu1,
+    coalesce(qg.dazu, r.dazu) as dazu,
     cast(qg.emye_c as decimal) as emye_c,
     cast(qg.goal as decimal) as goal,
     coalesce(sum(r.H_promit), 0) as H_promit,
@@ -902,9 +916,17 @@ select
     coalesce(sum(r.H_promit_4), 0) + coalesce(sum(r.n_H_promit_4), 0) as promit_4,
     coalesce(sum(r.re_payer_4), 0) as re_payer_4,
     count(distinct case when coalesce(r.H_promit_4, 0) + coalesce(r.n_H_promit_4, 0) > 0 then r.name end) as podan_4,
-    case when qg.xiaozu != '-' then qg.xiaozu else '-' end as xiaozu
+    case when coalesce(qg.xiaozu, r.leader_employee_email_name) != '-'
+         then coalesce(qg.xiaozu, r.leader_employee_email_name) else '-' end as xiaozu
 from temp_table.dingxi01_qing_team_goal qg
-left join final_base r
+full outer join final_base r
   on r.moth = qg.month
+ and r.xuebu = qg.xuebu
  and r.leader_employee_email_name = qg.xiaozu
-group by qg.month, qg.xuebu, qg.xiaozu, qg.dazu, qg.emye_c, qg.goal
+cross join team_key_quality quality
+where quality.valid_key = 1
+  and (qg.month is not null or r.moth >= '202609')
+group by coalesce(qg.month, r.moth),
+         coalesce(qg.xuebu, r.xuebu),
+         coalesce(qg.xiaozu, r.leader_employee_email_name),
+         coalesce(qg.dazu, r.dazu), qg.emye_c, qg.goal

@@ -308,7 +308,7 @@ and course_second_level_department_name in ('V项目部', '本地化部', '私�
               ),
               '期'
           )
-      ) > '20260424期'
+      ) > '20260605期'
       and not exists (
           select 1
           from service_order_employee s
@@ -339,7 +339,7 @@ and course_second_level_department_name in ('V项目部', '本地化部', '私�
         service_transfer_out_amount_yuan,
         'service' as source_type
     from service_scope
-    where qici > '20260424期'
+    where qici > '20260605期'
 
     union all
 
@@ -365,7 +365,7 @@ and course_second_level_department_name in ('V项目部', '本地化部', '私�
         service_transfer_out_amount_yuan,
         'course_transfer_supplement' as source_type
     from course_transfer_scope
-    where qici > '20260424期'
+    where qici > '20260605期'
 )
 -----------------退费行课节数
 ,ord as (
@@ -452,7 +452,7 @@ and course_second_level_department_name in ('V项目部', '本地化部', '私�
     group by qici_re, order_number
 )
 
--------------------------按finance调出退款事件金额分配调课退款
+-------------------------按finance退款事件金额分配调课退款
 ,finance_refund_event_allocated as (
     select
         e2.order_number,
@@ -549,9 +549,7 @@ and course_second_level_department_name in ('V项目部', '本地化部', '私�
                       'EM业务线', 'KA业务线', 'TT业务线', '创新中心'
                   )
                   and f.course_second_level_department_name is not null
-                  -- 只有“调出退款/调课调班”是内部转移金额；“全部退款”是客户真实退款，不能被 transfer pool 抵销。
-                  and f.trade_status like '%调出%'
-                  and f.trade_type like '%调课调班%'
+                  and f.trade_status like '%退%'
                   and cast(coalesce(f.price, 0) as double) < 0
                   and exists (
                       select 1
@@ -816,17 +814,32 @@ and course_second_level_department_name in ('V项目部', '本地化部', '私�
     select
         name as employee_email_name,
         qici,
-        max(cast(goal as decimal(18, 2))) as qici_goal
+        xuebu,
+        cast(goal as decimal(18, 2)) as qici_goal
     from temp_table.dingxi01_qing_goal
-    group by name, qici
 )
 ,goal_moth as (
     select
         month as moth,
         name as employee_email_name,
+        xuebu,
         sum(cast(goal as decimal(18, 2))) as moth_goal
     from temp_table.dingxi01_qing_goal
-    group by month, name
+    group by month, name, xuebu
+)
+,goal_qici_quality as (
+    select cast(case when
+        (select count(*) from (
+            select qici, xuebu, name
+            from temp_table.dingxi01_qing_goal
+            group by qici, xuebu, name having count(*) > 1
+        ) duplicate_goal) = 0
+        and (select count(*) from (
+            select qici, employee_email_name
+            from temp_table.dingxi01_qing_team_jg
+            group by qici, employee_email_name having count(*) > 1
+        ) duplicate_arch) = 0
+        then '1' else 'DUPLICATE_PERSON_OR_ARCH_KEY' end as integer) as valid_key
 )
 ,final_base as (
     select
@@ -862,9 +875,13 @@ and course_second_level_department_name in ('V项目部', '本地化部', '私�
     left join goal_qici gq
         on gq.qici = r.qici
        and gq.employee_email_name = r.employee_email_name
+       and gq.xuebu = r.xuebu
     left join goal_moth gm
         on gm.moth = r.moth
        and gm.employee_email_name = r.employee_email_name
+       and gm.xuebu = r.xuebu
+    cross join goal_qici_quality quality
+    where quality.valid_key = 1
     group by
         r.qici,
         r.moth,
@@ -890,7 +907,7 @@ select
     xuebu,
     qici_goal,
     case
-        when row_number() over (partition by name, moth order by qici) = 1 then moth_goal
+        when row_number() over (partition by name, moth, xuebu order by qici) = 1 then moth_goal
         else cast(0 as decimal(18, 2))
     end as moth_goal,
     H_promit,
@@ -924,7 +941,7 @@ select
     leader_employee_email_name,
     max(dazu) as dazu,
     max(jingli) as jingli,
-    max(xuebu) as xuebu,
+    xuebu,
     cast(null as decimal(18, 2)) as qici_goal,
     max(moth_goal) as moth_goal,
     sum(H_promit) as H_promit,
@@ -947,4 +964,4 @@ select
     sum(n_H_promit_4) as n_H_promit_4,
     sum(class_refund_4) as class_refund_4
 from final_base
-group by moth, name, leader_employee_email_name
+group by moth, name, leader_employee_email_name, xuebu

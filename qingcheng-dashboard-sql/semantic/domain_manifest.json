@@ -121,7 +121,7 @@
   },
   "current_model_registry": {
     "source_path": "semantic/current_model_bindings.json",
-    "source_sha256": "2806f33fe71dbb27cfcb5c9af64c984ddba3f8b451586f545d536e264762ec72",
+    "source_sha256": "85cfabd5a2f785ff21f96d6b878b61aae2df5248426a37f2c8cc9bb5733fa5af",
     "policy": "one_current_model_per_id_and_semantic_slot",
     "canonical_filename_policy": "data_center_qingcheng_<model_id>.sql",
     "model_count": 8,
@@ -1676,7 +1676,7 @@
       {
         "id": "qingcheng:dashboards:data_center_qingcheng_datasets",
         "source_path": "knowledge/dashboards/data_center_qingcheng_datasets.md",
-        "sha256": "a21b0269b776aada4586514c577e109b84a72397843780fae87a1a975bc83a40",
+        "sha256": "ff5973cc486775249b3b5a34b5652e4ba7b6215e2dffa8c285bee4846fdd3a04",
         "bytes": 4129,
         "title": "数据中心数据集源 SQL（青橙项目部）",
         "table_refs": [],
@@ -2829,8 +2829,8 @@
       {
         "id": "qingcheng:raw_sql:data_center_qingcheng_2064",
         "source_path": "resources/raw_sql/data_center_qingcheng_2064.sql",
-        "sha256": "22c3fff16a0c7114a663fa6f64320cbc774c5acc8f468cea31f269108d3f782d",
-        "bytes": 36848,
+        "sha256": "24dcdafbe46d2e0c51c0024c9d83e533cbdb79eadadc256aa86d912c20aa882c",
+        "bytes": 36635,
         "title": "data_center_qingcheng_2064",
         "table_refs": [
           "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf",
@@ -2871,8 +2871,8 @@
       {
         "id": "qingcheng:raw_sql:data_center_qingcheng_2460",
         "source_path": "resources/raw_sql/data_center_qingcheng_2460.sql",
-        "sha256": "a83c43588a6f7fda0696595948aa9316945fa02a462c8261d00f818c82912d3e",
-        "bytes": 48390,
+        "sha256": "2a562ce7af7e54a1035d0a7de5f3af1a1008cd10cf6ad72fa13279a75bcdc54b",
+        "bytes": 48946,
         "title": "data_center_qingcheng_2460",
         "table_refs": [
           "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf",
@@ -2895,8 +2895,8 @@
       {
         "id": "qingcheng:raw_sql:data_center_qingcheng_2677",
         "source_path": "resources/raw_sql/data_center_qingcheng_2677.sql",
-        "sha256": "6029971ea6cbd66b0c935bcfc8de6f0f5ba4de9118f11e92ce4afc0bbfe08b47",
-        "bytes": 51605,
+        "sha256": "e686520210c9b6eb7f1db5aed080a24b38fc27208252b78d9e73bb948944568c",
+        "bytes": 52479,
         "title": "data_center_qingcheng_2677",
         "table_refs": [
           "dw.dim_employee_chain",
@@ -2919,8 +2919,8 @@
       {
         "id": "qingcheng:raw_sql:data_center_qingcheng_2680",
         "source_path": "resources/raw_sql/data_center_qingcheng_2680.sql",
-        "sha256": "e68e3cfb921838132118f9be5c453543a8ef28c6731a3c7c8c269bc4cf5ea806",
-        "bytes": 51599,
+        "sha256": "a86e6542f8257ac765ac3946e187ba90800a2922a4fcc0c5e3da86e483473427",
+        "bytes": 52474,
         "title": "data_center_qingcheng_2680",
         "table_refs": [
           "dw.dim_employee_chain",
@@ -2967,8 +2967,8 @@
       {
         "id": "qingcheng:raw_sql:data_center_qingcheng_2769",
         "source_path": "resources/raw_sql/data_center_qingcheng_2769.sql",
-        "sha256": "17a2e00f0afaf569076f7674336f8eb07ab1ee8066fedbd29822e982fba5776c",
-        "bytes": 51822,
+        "sha256": "ff1188881e26f2d35c2abc58d92fd81c3dcaefb2009fbf42588d29944d4c43e7",
+        "bytes": 52306,
         "title": "data_center_qingcheng_2769",
         "table_refs": [
           "dw.dim_employee_chain",
@@ -4324,8 +4324,8 @@
       {
         "id": "qingcheng:update_log:changelog",
         "source_path": "knowledge/update_log/changelog.md",
-        "sha256": "52ef5b8c1a8509a7ee4c1a1292ac122fd56127b7ee6e631f5db6cde2d80bdedc",
-        "bytes": 97855,
+        "sha256": "1214a5a666d81ada83cedf7b86f37d74c1fce0a63759f2afb91ffe8203f67d1a",
+        "bytes": 98176,
         "title": "更新日志",
         "table_refs": [
           "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf",
@@ -5560,7 +5560,7 @@
     },
     {
       "source_path": "knowledge/dashboards/data_center_qingcheng_datasets.md",
-      "sha256": "a21b0269b776aada4586514c577e109b84a72397843780fae87a1a975bc83a40",
+      "sha256": "ff5973cc486775249b3b5a34b5652e4ba7b6215e2dffa8c285bee4846fdd3a04",
       "bytes": 4129,
       "category": "dashboards"
     },
@@ -6220,14 +6220,14 @@
     },
     {
       "source_path": "knowledge/update_log/changelog.md",
-      "sha256": "52ef5b8c1a8509a7ee4c1a1292ac122fd56127b7ee6e631f5db6cde2d80bdedc",
-      "bytes": 97855,
+      "sha256": "1214a5a666d81ada83cedf7b86f37d74c1fce0a63759f2afb91ffe8203f67d1a",
+      "bytes": 98176,
       "category": "update_log"
     },
     {
       "source_path": "resources/raw_sql/data_center_qingcheng_2064.sql",
-      "sha256": "22c3fff16a0c7114a663fa6f64320cbc774c5acc8f468cea31f269108d3f782d",
-      "bytes": 36848,
+      "sha256": "24dcdafbe46d2e0c51c0024c9d83e533cbdb79eadadc256aa86d912c20aa882c",
+      "bytes": 36635,
       "category": "raw_sql"
     },
     {
@@ -6238,20 +6238,20 @@
     },
     {
       "source_path": "resources/raw_sql/data_center_qingcheng_2460.sql",
-      "sha256": "a83c43588a6f7fda0696595948aa9316945fa02a462c8261d00f818c82912d3e",
-      "bytes": 48390,
+      "sha256": "2a562ce7af7e54a1035d0a7de5f3af1a1008cd10cf6ad72fa13279a75bcdc54b",
+      "bytes": 48946,
       "category": "raw_sql"
     },
     {
       "source_path": "resources/raw_sql/data_center_qingcheng_2677.sql",
-      "sha256": "6029971ea6cbd66b0c935bcfc8de6f0f5ba4de9118f11e92ce4afc0bbfe08b47",
-      "bytes": 51605,
+      "sha256": "e686520210c9b6eb7f1db5aed080a24b38fc27208252b78d9e73bb948944568c",
+      "bytes": 52479,
       "category": "raw_sql"
     },
     {
       "source_path": "resources/raw_sql/data_center_qingcheng_2680.sql",
-      "sha256": "e68e3cfb921838132118f9be5c453543a8ef28c6731a3c7c8c269bc4cf5ea806",
-      "bytes": 51599,
+      "sha256": "a86e6542f8257ac765ac3946e187ba90800a2922a4fcc0c5e3da86e483473427",
+      "bytes": 52474,
       "category": "raw_sql"
     },
     {
@@ -6262,8 +6262,8 @@
     },
     {
       "source_path": "resources/raw_sql/data_center_qingcheng_2769.sql",
-      "sha256": "17a2e00f0afaf569076f7674336f8eb07ab1ee8066fedbd29822e982fba5776c",
-      "bytes": 51822,
+      "sha256": "ff1188881e26f2d35c2abc58d92fd81c3dcaefb2009fbf42588d29944d4c43e7",
+      "bytes": 52306,
       "category": "raw_sql"
     },
     {
