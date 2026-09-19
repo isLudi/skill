@@ -1,39 +1,15 @@
 with runtime_clock as ( select format_datetime(now() - interval '24' hour, 'YYYYMMdd') as dt_24h, format_datetime(now() - interval '2' hour, 'YYYYMMdd') as dt_2h, format_datetime(now() - interval '24' hour, 'HH') as hour_24h, format_datetime(now() - interval '3' hour, 'HH') as hour_3h, format_datetime(now() - interval '2' hour, 'HH') as hour_2h ) , biz_qici_calendar as ( select * from ( values ('20260716期', date '2026-07-14', date '2026-07-19'), ('20260722期', date '2026-07-20', date '2026-07-25'), ('20260728期', date '2026-07-26', date '2026-07-31'), ('20260803期', date '2026-08-01', date '2026-08-06'), ('20260808期', date '2026-08-07', date '2026-08-12'),
 ('20260815期', date '2026-08-13', date '2026-08-18') ) as t(qici, start_date, end_date) ), market_employee_dim as ( select account_id, employee_email_name, email_prefix, employee_name, is_on_job, job_status, last_resign_date from finance_dw.dim_finance_employee_df t cross join runtime_clock r where t.dt = r.dt_24h and t.first_level_department_name = 'H业务线' and t.second_level_department_name = '市场部' and t.third_level_department_name = '市场顾问部' ), private_stage_latest as ( select user_number, sale_flow_stage_sequence, is_abnormal_stage, case when sale_flow_stage_sequence = '450' then '深沟' when sale_flow_stage_sequence = '470' then '已双沟' else '其他' end as jieduan from ( select p.user_number, p.sale_flow_stage_sequence, case when p.sale_flow_stage_sequence in ('50', '150', '1000') then 1 else 0 end as is_abnormal_stage, row_number() over ( partition by p.user_number order by p.private_sea_update_time desc ) as rn from service_dw.dwd_crm_assign_private_detail_hf p cross join runtime_clock r where p.dt = r.dt_2h and p.hour = r.hour_3h and p.assign_employee_first_level_department_name = 'H业务线' and p.assign_employee_second_level_department_name = '市场部' and p.assign_employee_third_level_department_name = '市场顾问部' ) t where rn = 1 ), lead_stats as ( select lead_id, date_diff( 'hour', cast(section_assign_time as timestamp), cast(section_assign_first_call_connected_time as timestamp) ) as first_call_connected_time_diff_hour from service_dw.dm_crm_lead_stats_detail_hf t cross join runtime_clock r where t.dt = r.dt_2h and t.hour = r.hour_3h and t.mapping_first_level_department_name = 'H业务线' and t.mapping_second_level_department_name in ('精品班学部', '菁英班学部', '市场部', '本地化大班学部') ), abnormal_label as ( select user_number, abnormal_traffic from service_dw.app_user_attribute_label_gaia_wide_df t cross join runtime_clock r where t.dt = r.dt_24h and t.type = 'key' ), double_table as ( select assign_employee_email_name, user_id, send_double_table from ( select t.assign_employee_email_name, t.user_id, t.send_double_table, row_number() over ( partition by t.user_id, t.assign_employee_email_name order by t.trace_update_time desc ) as rn from service_dw.app_h_crm_lead_task_process_info_detail_hf t cross join runtime_clock r where t.dt = r.dt_2h and t.hour = r.hour_3h and t.virtual_department_name_2 = 'H业务线' and t.virtual_department_name_3 = '市场部' ) x where rn = 1 ), call_c as ( select sub.user_number, sub.lead_id, sub.section_assign_employee_email_prefix, max(case when sub.call_duration > 300 then 1 else 0 end) as is_long_call, sum(sub.call_duration) as call_duration_1, sum(case when sub.call_status in ('1', '0') then 1 else 0 end) as zong_call_ci_1, sum(case when sub.call_status = '1' then 1 else 0 end) as call_status_1 from ( select distinct wf.user_number, wf.lead_id, wf.section_assign_employee_email_prefix, wf.call_duration, wf.call_status, wf.call_time, wf.call_type_name, wf.data_source, wf.msg_type_name from service_dw.app_h_crm_lead_employee_workload_detail_hf wf cross join runtime_clock r where wf.dt = r.dt_2h and wf.hour = r.hour_3h ) sub group by sub.user_number, sub.lead_id, sub.section_assign_employee_email_prefix ), f_call0 as ( select a.user_id, b.employee_email_name as assign_employee_email_name, case when sum(if(a.first_call_status = 3, 1, 0)) > 0 then 1 else 0 end as call_answer_lead_count from ( select user_id, first_call_status, account_id from gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf t cross join runtime_clock r where t.dt = r.dt_2h and t.hour = r.hour_3h and t.start_time > '2026-01-01' and t.is_del = 0 ) a inner join ( select account_id, employee_email_name from market_employee_dim ) b on a.account_id = b.account_id group by a.user_id, b.employee_email_name ), d_ap as ( select user_latest.user_number, case when user_latest.event_timestamp >= now() - interval '7' day and user_latest.appliction_name in ('PC客户端', 'APP', 'PC') then 1 else 0 end as is_app_denglu_d from ( select ul.user_number, ul.appliction_name, try(date_parse(ul.last_event_time, '%Y-%m-%d %H:%i:%s:%f')) as event_timestamp from ( select t.*, row_number() over ( partition by t.user_number order by try(date_parse(t.last_event_time, '%Y-%m-%d %H:%i:%s:%f')) desc ) as rn from dw.dim_cstm_active_user_c_appliction_mb_df t cross join runtime_clock r where t.dt = r.dt_24h and t.product_name in ('高途', '规划精品') ) ul where rn = 1 ) user_latest ), h_ap as ( select t.user_number, max(case when t.application_name in ('PC客户端', 'APP', 'PC') then 1 else 0 end) as is_app_denglu_h from dw.dws_user_active_user_c_appliction_hf t cross join runtime_clock r where t.dt = r.dt_2h and t.hour = r.hour_3h and t.product_name in ('高途', '规划精品') group by t.user_number ), denglu_app as ( select d_ap.user_number, case when coalesce(h_ap.is_app_denglu_h, 0) = 1 or coalesce(d_ap.is_app_denglu_d, 0) = 1 then 1 else 0 end as is_app_denglu from d_ap left join h_ap on d_ap.user_number = h_ap.user_number ), lead_raw0 as ( select coalesce(lead_cal.qici, concat( date_format( date_trunc( 'week', date_parse(replace(concat(f.group_period_year, f.group_period_term), '期', ''), '%Y%m%d') - interval '1' day ) + interval '4' day, '%Y%m%d' ), '期' )) as pn, f.lead_id as lid, f.user_id as uid, f.employee_email_name as een, f.employee_email_prefix as eep, f.rule_name as rn, f.virtual_third_department_name as d1, f.virtual_fourth_department_name as rd, f.virtual_leader_email_name as rj, f.virtual_direct_leader_email_name as rx, f.flow_pool_name as fp, f.sku_id_name as sku, f.ad_account_name as aa, f.source_manager_name as sm, f.channel_name_1 as c1, f.channel_name_2 as c2, f.channel_name_3 as c3, f.put_plan_name as pp, cast(f.flow_original_order_activity_price as varchar) as foap, cast(f.flow_orders_income_amount as varchar) as foia, cast(f.flow_order_price as varchar) as fop, f.channel_provider_name as cpn, f.channel_second_provider_name as cspn, f.page_id_name as pid, f.source_put_plan_name as spp, f.get_customer_way_name as gcw, f.first_department_name as fd, f.second_department_name as sd, f.third_department_name as td, f.virtual_second_department_name as v2, f.virtual_fourth_department_name as v4, f.virtual_fifth_department_name as v5, f.lead_purchase_intention_name as lpi, f.trace_type_name as tt, f.lead_purchase_intention_level1_category_name as lp1, f.lead_purchase_intention_level2_category_name as lp2, f.lead_create_time as lct, f.section_assign_time as sat, f.first_call_time as fct, f.deep_communicate_method as dcm, f.intention_level as itl, coalesce(f.lead_count, 0) as lead_count, coalesce(f.valid_lead_count, 0) as valid_lead_count, coalesce(f.conversion_lead_count, 0) as conversion_lead_count, coalesce(f.subject_count, 0) as subject_count, coalesce(f.same_lead_period_subject_count, 0) as slps_count, coalesce(f.lb_subject_count, 0) as lb_subject_count, coalesce(f.same_lead_period_lb_subject_count, 0) as slplb_count, coalesce(f.order_count, 0) as order_count, coalesce(f.income_amount, 0) as income_amount, coalesce(f.in_pay_period_refund_amount, 0) as in_pay_period_refund_amount, coalesce(f.non_pay_period_refund_amount, 0) as non_pay_period_refund_amount, coalesce(f.same_lead_period_conversion_lead_count, 0) as slpc_count, coalesce(f.same_lead_period_income_amount, 0) as slpi_amount, coalesce(f.same_lead_period_refund_amount, 0) as slpr_amount, coalesce(f.friend_lead_count, 0) as friend_lead_count, coalesce(f.lead_cost, 0) as lead_cost, coalesce(f.target_lead_cost_per_lead, 0) as target_lead_cost_per_lead, coalesce(f.target_same_department_net_conversion_per_lead, 0) as target_same_department_net_conversion_per_lead from bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df f cross join runtime_clock r left join biz_qici_calendar lead_cal on cast(date_parse(replace(concat(f.group_period_year, f.group_period_term), '期', ''), '%Y%m%d') as date) between lead_cal.start_date and lead_cal.end_date where f.dt = r.dt_2h and f.hour = r.hour_3h and f.section_assign_employee_first_level_department_name = 'H业务线' and f.section_assign_employee_second_level_department_name = '市场部' and f.section_assign_employee_third_level_department_name = '市场顾问部' and (f.period_mapping_first_level_department_name = 'H业务线' or f.period_mapping_first_level_department_name is null) and ( f.period_mapping_second_level_department_name in ('精品班学部', '菁英班学部', '市场部', '本地化大班学部') or f.period_mapping_second_level_department_name is null ) ), lead_raw as ( select a.*, a.pn not like '%多学科拓展%' as nm, a.td = '直播部' as ld, a.td in ('直播部', '新媒体内容运营部', '市场一组', '私域运营部') as l4, a.td in ('直播部', '新媒体内容运营部', '市场一组') as l3, a.fp like '%自然流%' as nf, a.sm in ('孙晗01','方俊结01','刘亦鹏02','何木玲','杨梓月','张可意03','任颖迪','曹蕊07','曲默晗') as km, a.sm in ('包青青','蔡瑞涵','李文迁','李佳馨44','孙昊17','王洁雅01','王硕北','朱文','贾铭锐','李壮壮04','陈晓菁04','赵艺雅') as smg, a.sm in ('耿文超','晋翠翠','赵语诗','王慧敏13','于新茹','梁超01','刘晓20','王玉120','吕佳乐01') as cmg, a.c1 = '信息流' as ifl, a.c1 = '信息流' and a.c2 = 'B站' as ib, a.c1 = '信息流' and a.c2 = 'B站' and a.td not like '%投放%' as ibn, a.td in ('品牌效能部', 'KOC孵化部') and a.c2 in ('抖音', '视频号', '快手', 'KOL') as ik, regexp_like(a.fp, '孟帝|孟老师|中考数学冲刺|8升9数学|孟亚飞讲数学|中考冲刺|中考满分冲刺|押题王孟亚飞|中考数学大通关|中考数学规划|亚飞数学|孟帝数学|亚飞秒解思维') as yp from lead_raw0 a where a.pn >= ${qici:1} and a.pn < ${qici:2} ), lead_raw_keyed as ( select r.*, concat(case when r.pn is null then 'N' else concat('V', cast(length(cast(r.pn as varchar)) as varchar), ':', cast(r.pn as varchar)) end, '|', case when r.rn is null then 'N' else concat('V', cast(length(cast(r.rn as varchar)) as varchar), ':', cast(r.rn as varchar)) end, '|', case when r.fp is null then 'N' else concat('V', cast(length(cast(r.fp as varchar)) as varchar), ':', cast(r.fp as varchar)) end, '|', case when r.sku is null then 'N' else concat('V', cast(length(cast(r.sku as varchar)) as varchar), ':', cast(r.sku as varchar)) end, '|', case when r.aa is null then 'N' else concat('V', cast(length(cast(r.aa as varchar)) as varchar), ':', cast(r.aa as varchar)) end, '|', case when r.sm is null then 'N' else concat('V', cast(length(cast(r.sm as varchar)) as varchar), ':', cast(r.sm as varchar)) end, '|', case when r.c1 is null then 'N' else concat('V', cast(length(cast(r.c1 as varchar)) as varchar), ':', cast(r.c1 as varchar)) end, '|', case when r.c2 is null then 'N' else concat('V', cast(length(cast(r.c2 as varchar)) as varchar), ':', cast(r.c2 as varchar)) end, '|', case when r.c3 is null then 'N' else concat('V', cast(length(cast(r.c3 as varchar)) as varchar), ':', cast(r.c3 as varchar)) end, '|', case when r.pp is null then 'N' else concat('V', cast(length(cast(r.pp as varchar)) as varchar), ':', cast(r.pp as varchar)) end, '|', case when r.foap is null then 'N' else concat('V', cast(length(cast(r.foap as varchar)) as varchar), ':', cast(r.foap as varchar)) end, '|', case when r.foia is null then 'N' else concat('V', cast(length(cast(r.foia as varchar)) as varchar), ':', cast(r.foia as varchar)) end, '|', case when r.fop is null then 'N' else concat('V', cast(length(cast(r.fop as varchar)) as varchar), ':', cast(r.fop as varchar)) end, '|', case when r.cpn is null then 'N' else concat('V', cast(length(cast(r.cpn as varchar)) as varchar), ':', cast(r.cpn as varchar)) end, '|', case when r.cspn is null then 'N' else concat('V', cast(length(cast(r.cspn as varchar)) as varchar), ':', cast(r.cspn as varchar)) end, '|', case when r.pid is null then 'N' else concat('V', cast(length(cast(r.pid as varchar)) as varchar), ':', cast(r.pid as varchar)) end, '|', case when r.spp is null then 'N' else concat('V', cast(length(cast(r.spp as varchar)) as varchar), ':', cast(r.spp as varchar)) end, '|', case when r.gcw is null then 'N' else concat('V', cast(length(cast(r.gcw as varchar)) as varchar), ':', cast(r.gcw as varchar)) end, '|', case when r.fd is null then 'N' else concat('V', cast(length(cast(r.fd as varchar)) as varchar), ':', cast(r.fd as varchar)) end, '|', case when r.sd is null then 'N' else concat('V', cast(length(cast(r.sd as varchar)) as varchar), ':', cast(r.sd as varchar)) end, '|', case when r.td is null then 'N' else concat('V', cast(length(cast(r.td as varchar)) as varchar), ':', cast(r.td as varchar)) end, '|', case when r.v2 is null then 'N' else concat('V', cast(length(cast(r.v2 as varchar)) as varchar), ':', cast(r.v2 as varchar)) end, '|', case when r.v4 is null then 'N' else concat('V', cast(length(cast(r.v4 as varchar)) as varchar), ':', cast(r.v4 as varchar)) end, '|', case when r.v5 is null then 'N' else concat('V', cast(length(cast(r.v5 as varchar)) as varchar), ':', cast(r.v5 as varchar)) end, '|', case when r.tt is null then 'N' else concat('V', cast(length(cast(r.tt as varchar)) as varchar), ':', cast(r.tt as varchar)) end, '|', case when r.lp1 is null then 'N' else concat('V', cast(length(cast(r.lp1 as varchar)) as varchar), ':', cast(r.lp1 as varchar)) end, '|', case when r.lp2 is null then 'N' else concat('V', cast(length(cast(r.lp2 as varchar)) as varchar), ':', cast(r.lp2 as varchar)) end, '|', case when r.lct is null then 'N' else concat('V', cast(length(cast(r.lct as varchar)) as varchar), ':', cast(r.lct as varchar)) end) as channel_key from lead_raw r ), channel_candidates as ( select r.channel_key, case
-when (gcw in ('进校直推','线下渠道商'))
- and not coalesce((
-        (td = '私域运营部' and sm in ('陈雷19','崔慧敏01','侯佳林01','郑天琪02','杨彬屹','曹义鹏','王硕阳','于超研','岳一帆02','田起帆','王绍阳','肖佳兴','姚佳03','秦金萍','李冞萤'))
-        or (fp like '%南通欣创%' or  fp like '%人人通科技%' or fp like '%易而购%' or fp like '%济南梦航%' or fp like '%晨硕智学%' or fp like '%兴尧文化%' or fp like '%济南映像%' or fp like '%山东简单%' or fp like '%争鸣科技%')
-        or ((fp like '%家校共育%' or fp like '%保持热爱%' or fp like '%青松%' or fp like '%悟之道%') and pp not like '%0元%')
-        or (sm = '李宁24' and pp like '%0转低%')
-        or (td = '私域运营部' and  foap in ('100.0','900.0','300.0'))
-        or (td = '私域运营部' and  foap in ('0.0') and sm in ('陈雷19','崔慧敏01','侯佳林01','郑天琪02','杨彬屹','曹义鹏','王硕阳','于超研'))
-        or (fp like '公导私')
-        or (fp like '%0转低转正%' or c2='产研测试')
-    ), false) then '河南进校'
-when gcw in ('app','M站') then 'app'
-when (gcw in ('微信私域'))
- and not coalesce((
-        (td = '私域运营部' and sm in ('陈雷19','崔慧敏01','侯佳林01','郑天琪02','杨彬屹','曹义鹏','王硕阳','于超研','岳一帆02','田起帆','王绍阳','肖佳兴','姚佳03','秦金萍','李冞萤'))
-        or (fp like '%南通欣创%' or  fp like '%人人通科技%' or fp like '%易而购%' or fp like '%济南梦航%' or fp like '%晨硕智学%' or fp like '%兴尧文化%' or fp like '%济南映像%' or fp like '%山东简单%' or fp like '%争鸣科技%')
-        or ((fp like '%家校共育%' or fp like '%保持热爱%' or fp like '%青松%' or fp like '%悟之道%') and pp not like '%0元%')
-        or (sm = '李宁24' and pp like '%0转低%')
-        or (td = '私域运营部' and  foap in ('100.0','900.0','300.0'))
-        or (td = '私域运营部' and  foap in ('0.0') and sm in ('陈雷19','崔慧敏01','侯佳林01','郑天琪02','杨彬屹','曹义鹏','王硕阳','于超研'))
-        or (fp like '公导私')
-        or (fp like '%0转低转正%' or c2='产研测试')
-    ), false) then '集团私域'
 when gcw in ('平台自播') and fp in ('赢战广东中考','高途专版图书','状元帮教辅','高途专版视频书','本地化专版图书') then '广东图书'
 when gcw in ('平台自播') and fp in ('途铭文化专版图书','途铭文化','博慧星辰文化图书','启迪蔚来','智慧航迹图书','高途浙江初中','高途浙江高中','高途浙江新高一','浙江专版图书教辅') then '浙江图书'
 when gcw in ('平台自播') and fp in ('沪上名校','沪上领航社','简学文化','魔都校友助学馆','沪上领航高中','沪上领航初中') then '上海图书'
 when gcw in ('平台自播') and fp in ('高途江苏中考','高途赢战中考') then '江苏图书'
-when gcw in ('平台自播') and fp in ('京赋-浙江科学曹忆规划','为真-浙江科学曹忆老师','为真-浙江大科学曹忆老师','京赋-江苏曹忆老师规划','博学星辰初阶规划峥峥','博学星辰-曹忆老师浙江规划','京赋-浙江曹忆老师规划') then '曹忆'
 when fp='电商退款用户池' and rn like '%赠失%' and rn like '%朱博士%' then '赠课失败-朱汉祺'
 when fp='电商退款用户池' and rn like '%赠失%' and rn like '%春春%' then '赠课失败-陈瑞春'
 when fp='电商退款用户池' and rn like '%赠失%' and rn like '%亚飞%' then '赠课失败-孟亚飞'
 when fp='电商退款用户池' and rn like '%赠失%' and rn like '%星义%' then '赠课失败-赵星义'
 when fp='电商退款用户池' and rn like '%赠失%' and rn like '%郭艺%' then '赠课失败-郭艺'
-when sd='本地化大班学部' or sm in ('鲍大海','杨文卓') then '本地化市场流量'
+when sd='本地化大班学部' or sm in ('鲍大海','杨文卓','喻新娇') then '本地化市场流量'
 when td in ('中价产品项目部','新媒体内容运营部') and rn like '%曹忆%' then '曹忆'
 when rn like '%语数英%' and td = '新媒体内容运营部' then '语数英'
 when td = '直播部' and sku like '%山东专版%' then '北京直播山东'
@@ -66,12 +42,13 @@ when (sm in ('马思雨02','袁银') and rn like '%集团%')
         or (td = '私域运营部' and  foap in ('0.0') and sm in ('陈雷19','崔慧敏01','侯佳林01','郑天琪02','杨彬屹','曹义鹏','王硕阳','于超研'))
         or (fp like '公导私')
         or (fp like '%0转低转正%' or c2='产研测试')
-    ), false) then '集团私域'
-else cast(null as varchar)
-end as channel, 1 as rule_group from lead_raw_keyed r union all select r.channel_key, case
+    ), false)
+then '集团私域'
 when rn like '%途途私域%' or (rn like '%私域%' and fd = 'TT') or rn like '%私域1元%' or (td='私域招生中心' and fp like '%APP%') then '途途私域'
 when td='图书营销部' and (sku like '%孟亚飞99%' or sku like '%亚飞%') and c2 = '百度' then '孟亚飞-2组-百度'
 when td='图书营销部' and (sku like '%孟亚飞99%' or sku like '%亚飞%') and c2 = '抖音' then '孟亚飞-2组-抖音'
+else cast(null as varchar)
+end as channel, 1 as rule_group from lead_raw_keyed r union all select r.channel_key, case
 when td = '投放部' and (aa like '%周帅%') then '信息流-周帅'
 when sm in ('韩正卿') then '抖音私信'
 when td = '私域运营部' and sm in ('陈雷19','崔慧敏01','侯佳林01','郑天琪02','杨彬屹','曹义鹏','王硕阳','于超研','岳一帆02','田起帆','王绍阳','肖佳兴','姚佳03','秦金萍','李冞萤') and (rn like '%koc自孵化下引%' or rn like '%koc下引%' or pid like '%自营%') then '自孵化KOC下引'
@@ -106,10 +83,10 @@ when td = '直播部' and (sku like '%朱博士99%' or rn like '%朱汉祺99%' o
 when td = '直播部' and (sku like '%朱博士99%' or rn like '%朱汉祺99%' or rn like '%朱博士%' or fp like '%朱博士%' or sku like '%朱博士%') and c2 = '视频号' then '朱博士-视频号49'
 when (td = '直播部' and (sku like '%朱博士%' or sku like '%朱汉祺%') and rn like '%9%' and rn not like '%29%' and sku not like '%急%' and sku not like '%礼盒29%') or (td = '直播部' and sku like '%朱博士9%') then '朱博士9元'
 when aa like '%春春%' and c1 = '信息流' then '信息流-陈瑞春'
-else cast(null as varchar)
-end as channel, 2 as rule_group from lead_raw_keyed r union all select r.channel_key, case
 when c1 = '信息流' and c2='B站' and (pid like '%0元物化%') then 'B站信息流-曹忆'
 when c1 = '信息流' and c2='B站' and (pid like '%赵星义%') then 'B站信息流-赵星义'
+else cast(null as varchar)
+end as channel, 2 as rule_group from lead_raw_keyed r union all select r.channel_key, case
 when c1 = '信息流' and c2='B站' and (pid like '%亚飞%' or spp like '%亚飞%'   or pid like '%初中-0元%') then 'B站信息流-亚飞'
 when (fp like '%朱博士%' or fp like '%双博士%' or fp like '%教育规划%') and td <> '线上商务部' and pn not like '%多学科拓展%' and rn not like '%张杰%' and sku not like '%马凯鹏IP%' and td='直播部' then '朱博士29'
 when pp like '%朱博士说教育%' and pn not like '%多学科拓展%' and fp not like '%高分讲堂%' and  fp not like '%总裁%' and td='直播部' then '朱博士29'
@@ -134,7 +111,8 @@ when (fd ='市场部' and c1 <> '站内获客' and c2 <> 'APP')
         or (td = '私域运营部' and  foap in ('0.0') and sm in ('陈雷19','崔慧敏01','侯佳林01','郑天琪02','杨彬屹','曹义鹏','王硕阳','于超研'))
         or (fp like '公导私')
         or (fp like '%0转低转正%' or c2='产研测试')
-    ), false) then '集团私域'
+    ), false)
+then '集团私域'
 when fp like '%未加好友%' then '市场私域未加好友'
 when td = '私域运营部' and rn not like '%训练营%' and v5 not in ('罗江博团队') and rn not like '%复用%' and rn not like '%未加好友%' and c2 <> '内部换量' then '市场私域低价单'
 when td = '私域运营部' and rn not like '%训练营%'  and rn not like '%复用%' and rn not like '%未加好友%' and c2 <> '内部换量' and foap = '0.0' then '市场私域低价单'
@@ -155,9 +133,11 @@ when c1 = '信息流' and c2 = 'B站' and td not like '%投放%' and (foap like 
 when c1 = '信息流' and c2 = 'B站' and td not like '%投放%' and (foap like '%2990%' or sku like '%帅师%' or sku like '%周帅%') and aa not like '%语文%' then 'B站信息流-周帅'
 when c1 = '信息流' and c2 = 'B站' and td not like '%投放%' and fop like '%1980%' and aa like '%数学%' then 'B站信息流-周帅'
 when c1 = '短直电商' and c2 = 'B站' and td  like '%商务%' and   (fp like '%春春%' or sku like '%陈瑞春%')  then 'B站信息流-陈瑞春'
+when c1 = '短直电商' and c2 = 'B站' and td  like '%商务%' and  (fp like '%朱博士%')  then 'B站信息流-朱汉祺'
+--when td = '线上商务部' and c2 = 'B站' and pp like '%春春%' then 'B站信息流-陈瑞春'
+--when td = '线上商务部' and c2 = 'B站' and pp like '%朱博士%' then 'B站信息流-朱汉祺'
 else cast(null as varchar)
 end as channel, 3 as rule_group from lead_raw_keyed r union all select r.channel_key, case
-when c1 = '短直电商' and c2 = 'B站' and td  like '%商务%' and  (fp like '%朱博士%')  then 'B站信息流-朱汉祺'
 when c1 = '信息流' and c2 = 'B站' and td not like '%投放%' and foap not like '%2980%' and foap not like '%2990%' and foap not like '%1980%' then 'B站信息流'
 when fp = '百度搜索引擎' or c1='搜索营销' then '信息流搜索'
 when  fp like '%小红书班课%' then '小红书投放'
@@ -170,6 +150,7 @@ when  sm in ('孙晗01','方俊结01','刘亦鹏02','何木玲','杨梓月','张
 when  sm in ('孙晗01','方俊结01','刘亦鹏02','何木玲','杨梓月','张可意03','任颖迪','曹蕊07','曲默晗') and (sku like '%肖晗%' or rn like '%肖晗%') then 'KOC-肖晗'
 when  sm in ('孙晗01','方俊结01','刘亦鹏02','何木玲','杨梓月','张可意03','任颖迪','曹蕊07','曲默晗') and pn not like '%多学科拓展%' and sku not like '%朱汉祺%' and sku not like '%朱博士%' and sku not like '%周帅%' and sku not like '%29元%' then 'KOC-5元纯课'
 when  sm in ('孙晗01','方俊结01','刘亦鹏02','何木玲','杨梓月','张可意03','任颖迪','曹蕊07','曲默晗') and sku like '%周帅%' then 'KOC-周帅'
+--when (c2 like '%KOL%' and sm in ('崔文轩','孙培尧')) or (c2 like '%抖音%' and sm in ('徐绮鹤')) and pn not like '%多学科拓展%' then '自孵化KOC'
 when td in ('品牌效能部','KOC孵化部') and c2 in ('抖音','视频号','快手','KOL')  then '自孵化KOC-5元纯课'
 when td in ('品牌效能部','KOC孵化部') and c2 in ('抖音','视频号','快手','KOL') and (sku like '%5元%'or sku like '%11元%' or foap like '%1100%' or foap like '%500%' or foia  like '%1100%' or foia  like '%500%' ) then '自孵化KOC-5元纯课'
 when sm in ('包青青','蔡瑞涵','李文迁','李佳馨44','孙昊17','王洁雅01','王硕北','朱文','贾铭锐','李壮壮04','陈晓菁04','赵艺雅') and c2 like '%社群%' then '进校社群'
@@ -193,10 +174,11 @@ when sm in ('耿文超','晋翠翠','赵语诗','王慧敏13','于新茹','梁�
 when sm in ('耿文超','晋翠翠','赵语诗','王慧敏13','于新茹','梁超01','刘晓20','王玉120','吕佳乐01') and c2 like '%TMK%' and pid like '%1元%' then '创新TMK1元'
 when sm in ('耿文超','晋翠翠','赵语诗','王慧敏13','于新茹','梁超01','刘晓20','王玉120','吕佳乐01') and c2 like '%TMK%' and pid like '%9元%' then '创新TMK9元'
 when sm in ('耿文超','晋翠翠','赵语诗','王慧敏13','于新茹','梁超01','刘晓20','王玉120','吕佳乐01') and (c2 like '%直播%' or pid like '%进校%') then '创新直播'
+when sm in ('耿文超','晋翠翠','赵语诗','王慧敏13','于新茹','梁超01','刘晓20','王玉120','吕佳乐01') and c2<>'公众号' and c1 = '商务' and fp <> '高途云集图书专营店-自然流' and fp <> '高途旗舰店—线索—yuxinru' and pp not like '%社群%' and pp not like '%小红书班课%' and pp not like '%外部图书供量%' and cspn not like '%沃德丰店铺线索赠课%' and cspn not like '%智慧城-图书%' and pp not like '%育甲%' and fp not like '%周长磊%'  then '创新商务'
 else cast(null as varchar)
 end as channel, 4 as rule_group from lead_raw_keyed r union all select r.channel_key, case
-when sm in ('耿文超','晋翠翠','赵语诗','王慧敏13','于新茹','梁超01','刘晓20','王玉120','吕佳乐01') and c2<>'公众号' and c1 = '商务' and fp <> '高途云集图书专营店-自然流' and fp <> '高途旗舰店—线索—yuxinru' and pp not like '%社群%' and pp not like '%小红书班课%' and pp not like '%外部图书供量%' and cspn not like '%沃德丰店铺线索赠课%' and cspn not like '%智慧城-图书%' and pp not like '%育甲%' and fp not like '%周长磊%'  then '创新商务'
 when sm in ('高曼曼01','杨思怡','宋向函') then '图书KOC达人'
+--when fp like '%市场部-原子合作%' then '原子'
 when fp like '%市场部-微信私域%' or fp like '%市场部-规划报告%' or fp like '%规划报告%' or fp like '%市场部-小红书%' or fp like '%孟浩宇%' then '市场私域低价单'
 when fp like '公导私' then '进校私域合作'
 when ((fp like '%增长组%' or c3 = '公众号' or sd = '微信生态部') and c2 <> 'APP')
@@ -209,7 +191,8 @@ when ((fp like '%增长组%' or c3 = '公众号' or sd = '微信生态部') and 
         or (td = '私域运营部' and  foap in ('0.0') and sm in ('陈雷19','崔慧敏01','侯佳林01','郑天琪02','杨彬屹','曹义鹏','王硕阳','于超研'))
         or (fp like '公导私')
         or (fp like '%0转低转正%' or c2='产研测试')
-    ), false) then '集团私域'
+    ), false)
+then '集团私域'
 when pp like '%星耀%' or pp like '%物理展博%' or  pp like '%物理谢丽荣%' or pp like '%牟恩伯%' or  pp like '%王赞%' or pp like '%张磊老师高中数学%' or pp like '%雯姐高中物理大讲堂%' then '百度星耀'
 when sm = '刘福云' and (sku like '%瑞春%' or sku like '%春春%') then '陈瑞春'
 when td = '直播部' and sku like '%周帅%' and c2 in ('百度','B站')  then '周帅'

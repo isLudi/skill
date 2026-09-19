@@ -101,4 +101,4 @@ and period_mapping_first_level_department_name = 'H业务线'
 
 ## 8. 待人工确认
 
-是。仍需确认金额单位、`>= 5` 阈值、成本表维护口径、时间偏移口径、`xiansuo` 是否只作为聚合指标输出，以及渠道映射 CASE 是否仍为最新规则。20260911 期的目标记录有效标记主要落在 merge 字段，20260917 原始期次的目标记录又主要落在普通字段；上游为何按批次切换尚未确认。按 2026-09-16 的生产恢复要求，抖音私信退前、退后均使用普通字段；这会使仅在 merge 字段有效的历史批次显示较低。最新渠道 CASE 维护入口见 `knowledge/sql_patterns/channel_mapping_case_when.md`，归档片段为 `resources/raw_sql/market_channel_case_when_0904.sql`。
+是。仍需确认金额单位、`>= 5` 阈值、成本表维护口径、时间偏移口径、`xiansuo` 是否只作为聚合指标输出，以及渠道映射 CASE 是否仍为最新规则。20260911 期的目标记录有效标记主要落在 merge 字段，20260917 原始期次的目标记录又主要落在普通字段；上游为何按批次切换尚未确认。按 2026-09-16 的生产恢复要求，抖音私信退前、退后均使用普通字段；这会使仅在 merge 字段有效的历史批次显示较低。最新渠道 CASE 维护入口见 `knowledge/sql_patterns/channel_mapping_case_when.md`，归档片段为 `resources/raw_sql/market_channel_case_when_0918.sql`。
