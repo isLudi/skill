@@ -149,7 +149,7 @@
   },
   "current_model_registry": {
     "source_path": "semantic/current_model_bindings.json",
-    "source_sha256": "5a62e1b61d6d91778580243b0863af50851c45b761b4536a06cbaaed8e837bb2",
+    "source_sha256": "fa95914aeb6db89cb7f56c7c71f7fa4c4da744a7aea9e3685aa6ed368e56b2dd",
     "policy": "one_current_model_per_id_and_semantic_slot",
     "canonical_filename_policy": "No current dashboard or Data Center model is registered for 精品班学部.",
     "model_count": 0,
