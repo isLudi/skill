@@ -1,0 +1,61 @@
+{
+  "schema_version": "2.0.0",
+  "domain": "jingpin_department",
+  "contracts": [
+    {
+      "id": "jingpin_department:join:finance_to_lead_channel",
+      "name": "精品班财务集合关联线索渠道",
+      "aliases": ["lead_id关联全链路", "渠道归因Join"],
+      "status": "pending_confirmation",
+      "automatic_compile": false,
+      "source_path": "knowledge/channel_touch_reason.md",
+      "source_sha256": "fce045291d96f6af6ee10f8ab89f00bf97def082736c86a1323e060c8325c02d",
+      "description": "仅从已限定精品班课程范围的财务集合，以lead_id或lead_id加业绩顾问受限关联全链路线索，关联前后验证覆盖、重复及金额膨胀。",
+      "left_table": "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
+      "right_table": "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+      "cardinality": "unconfirmed; must be reduced before metric aggregation",
+      "risks": ["全链路表要求业务范围限制。", "单lead_id可能存在多顾问或多版本。", "直接明细Join会放大GMV和退款。"]
+    },
+    {
+      "id": "jingpin_department:join:finance_to_h_lead_channel",
+      "name": "精品班业财订单关联H线索渠道",
+      "aliases": ["H线索表lead_id回挂", "dwd_mkt_h_lead_detail_df渠道归因"],
+      "status": "confirmed",
+      "automatic_compile": false,
+      "source_path": "knowledge/channel_touch_reason.md",
+      "source_sha256": "fce045291d96f6af6ee10f8ab89f00bf97def082736c86a1323e060c8325c02d",
+      "description": "历史CASE与rule_name仍未归类时，从已限定精品班课程范围的业财集合，以lead_id受限关联H线索表；H表先按lead_id去重，有效channel_map优先，并保留一级与明细渠道两层。",
+      "left_table": "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
+      "right_table": "gaotu_hl.dwd_mkt_h_lead_detail_df",
+      "key_pairs": [{"left_field": "lead_id", "right_field": "lead_id"}],
+      "cardinality": "many finance events to one deduplicated H-lead row",
+      "risks": ["H表同一lead_id存在多版本，必须先去重。", "channel_map=其他未知流量不视为有效映射。", "user_id历史线索只作为订单lead_id缺失后的兜底。", "关联后必须对账金额和人数，未知不得强制归类。"]
+    },
+    {
+      "id": "jingpin_department:join:finance_to_contact_learning_reason",
+      "name": "精品班财务集合关联触达学习与原因",
+      "aliases": ["通话关联", "学习关联", "ASR关联", "AI分析关联"],
+      "status": "pending_confirmation",
+      "automatic_compile": false,
+      "source_path": "knowledge/channel_touch_reason.md",
+      "source_sha256": "fce045291d96f6af6ee10f8ab89f00bf97def082736c86a1323e060c8325c02d",
+      "description": "触达、学习、系统退款原因、ASR与AI记录分别在自身事件或call粒度去重后，再关联到精品班学员及支付退款锚点。",
+      "cardinality": "one learner to many events before event-level reduction",
+      "risks": ["学习表学员键为user_number。", "ASR以origin_file_url连接录音URL。", "系统退款原因和AI结果存在版本重复。", "原始ASR和PII不得进入飞书。"]
+    },
+    {
+      "id": "jingpin_department:join:payment_advisor_to_employee_day",
+      "name": "支付时顾问关联历史员工日快照",
+      "aliases": ["顾问司龄Join", "支付日员工快照"],
+      "status": "pending_confirmation",
+      "automatic_compile": false,
+      "source_path": "knowledge/channel_touch_reason.md",
+      "source_sha256": "fce045291d96f6af6ee10f8ab89f00bf97def082736c86a1323e060c8325c02d",
+      "description": "以支付时业绩顾问email_prefix及支付日连接历史员工日快照，并从完整精品班财务集合枚举顾问组织范围。",
+      "left_table": "finance_dw.app_finance_performance_extend_details_hf",
+      "right_table": "finance_dw.dim_finance_employee_df",
+      "cardinality": "many payments to one employee-day row if snapshot is unique",
+      "risks": ["财务业绩表要求员工二级部门范围。", "员工表要求组织范围。", "不能只筛当前在职人员。"]
+    }
+  ]
+}

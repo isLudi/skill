@@ -1,0 +1,56 @@
+{
+  "schema_version": "2.0.0",
+  "domain": "jingpin_department",
+  "contracts": [
+    {
+      "id": "jingpin_department:scope:course_department",
+      "name": "精品班课程部门范围",
+      "aliases": ["精品班学部", "H业务线精品班"],
+      "status": "confirmed",
+      "automatic_compile": false,
+      "source_path": "knowledge/metrics/scope_metrics.md",
+      "source_sha256": "6f1074555dcc22c1e6a6dcdd90a04d48517c6b356e0850d071fc2c134960c3c0",
+      "filters": [
+        {"field": "course_first_level_department_name", "operator": "=", "value": "H业务线"},
+        {"field": "course_second_level_department_name", "operator": "=", "value": "精品班学部"}
+      ],
+      "applies_to_tables": ["service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf"],
+      "description": "课程一级部门为H业务线且课程二级部门为精品班学部；不得附加市场顾问部、青橙项目部或单一业绩部门过滤。",
+      "candidate_tables": ["service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf"],
+      "notes": "Query 1594465903证明课程范围跨多个业绩部门；产品分类审计 Query 1594501722 已确认独立暑秋正价范围。"
+    },
+    {
+      "id": "jingpin_department:scope:learner_refund_threshold",
+      "name": "学员窗口累计退款500元门槛",
+      "aliases": ["小额退费不计算", "累计退款大于等于500元", "D30门槛"],
+      "status": "confirmed",
+      "automatic_compile": false,
+      "source_path": "knowledge/metrics/scope_metrics.md",
+      "source_sha256": "6f1074555dcc22c1e6a6dcdd90a04d48517c6b356e0850d071fc2c134960c3c0",
+      "filters": [
+        {"field": "learner_window_refund_yuan", "operator": ">=", "value": 500}
+      ],
+      "description": "退款事件回挂支付订单后，在学员和统计窗口内累计退款，累计金额不低于500元才进入退款金额和退费人数分子。",
+      "notes": "标准窗和D30各自在学员窗口累计后应用门槛；购买人数与实收GMV分母保留小额退款学员。"
+    },
+    {
+      "id": "jingpin_department:scope:summer_autumn_products",
+      "name": "精品班暑秋正价产品范围",
+      "aliases": ["暑秋产品", "暑期和秋季正价课"],
+      "status": "confirmed",
+      "automatic_compile": false,
+      "source_path": "knowledge/metrics/scope_metrics.md",
+      "source_sha256": "6f1074555dcc22c1e6a6dcdd90a04d48517c6b356e0850d071fc2c134960c3c0",
+      "filters": [
+        {"field": "first_pay_time", "operator": ">=", "value": "2026-05-01 00:00:00"},
+        {"field": "school_year", "operator": "=", "value": 2026},
+        {"field": "school_term_code", "operator": "in", "value": ["X", "Q"]},
+        {"field": "bind_type", "operator": "=", "value": 2}
+      ],
+      "applies_to_tables": ["service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf"],
+      "description": "订单首笔支付时间不早于2026-05-01，school_year=2026，school_term_code为X或Q，bind_type=2；课程范围另由精品班课程部门合同约束。",
+      "candidate_tables": ["service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf"],
+      "notes": "Query 1594501722完整返回40个分类组合；X/Q且bind_type=2的班级名分别稳定含暑/秋。bind_type=0、C/D及其他学年只进入排除审计。"
+    }
+  ]
+}

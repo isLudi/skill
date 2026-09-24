@@ -40,6 +40,7 @@ Select the smallest sufficient Skill set. Read the selected `SKILL.md` completel
 |---|---|
 | 市场顾问部 semantics, SQL, contracts, dashboard design; registered 馒头_订单明细_支付时间 / 馒头_订单明细_流水时间 | [market-consultant-dashboard-sql](market-consultant-dashboard-sql/SKILL.md) |
 | 青橙项目部 semantics, SQL, contracts and dashboard design | [qingcheng-dashboard-sql](qingcheng-dashboard-sql/SKILL.md) |
+| 精品班学部 semantics, SQL, contracts and read-only analysis; no Dashboard/Data Center write adapter | [jingpin-dashboard-sql](jingpin-dashboard-sql/SKILL.md) |
 | USQL execution/download/templates, Data Center, BI profiles/changes, Tiangong2 tasks/logs | [usql-web-query-operator](usql-web-query-operator/SKILL.md) |
 | Registered workbooks from 青橙数据对接 / 市场顾问部临时表上传 | [sync-qingcheng-market-temp-tables](sync-qingcheng-market-temp-tables/SKILL.md); this owns source identity, transformations and upload routing |
 | Local `.xlsx`, `.xlsm`, `.csv`, `.tsv` input/output | [xlsx](xlsx/SKILL.md); preserve registered upload-file contracts |
@@ -99,7 +100,7 @@ Keep market and Qingcheng semantics, raw SQL, profiles and indexes in their resp
 - Existing-dashboard recovery must use verified restoration and prove the baseline; failed recovery blocks publication. New-resource Sagas do not auto-delete; failures identify created/orphaned resources and manual cleanup. Data Center save without successful readback/refresh is incomplete and must not silently roll back or delete.
 - Tiangong2 binds exact task, owner, folder, execution and stage using isolated credentials/state. P authorizes one reviewed phase; M authorizes one task for a fixed time/budget and suppresses repeated questions only. Each phase still needs a fresh Plan Hash, drift check, one write and readback. Expired/exhausted sessions and uncertain writes stop. Cross-owner work, credential/default/resource/schedule changes, downstream triggers, exec reruns and arbitrary full-source replacement remain forbidden.
 - Temp-table source identity, freshness, row-count/change/null/duplicate/schema checks and per-domain shared-workbook slices remain mandatory under [workflow_registry.json](sync-qingcheng-market-temp-tables/references/workflow_registry.json). An old Plan cannot bypass source expiry. Candidate/local success is not platform delivery.
-- SQL-to-Feishu delivery defaults to one new root-level Sheet in approved `openclaw`, with `市场顾问部_` or `青橙项目部_` title prefixes and underscore-separated segments. Preserve native pivots when requested and verify complete written ranges. Other targets need the requested scope.
+- SQL-to-Feishu delivery defaults to one new root-level Sheet in approved `openclaw`, with `市场顾问部_`, `青橙项目部_` or `精品班学部_` title prefixes and underscore-separated segments. Preserve native pivots when requested and verify complete written ranges. Other targets need the requested scope.
 - Dynamic spreadsheet deliverables use formulas for derived values, platform recalculation and error verification over the affected dependency scope. Static exports, CSV, analysis intermediates and registered upload files follow their output contracts; do not force formulas into them. Preserve unrelated cells and report pre-existing errors rather than silently expanding the task.
 
 ## Maintenance and verification

@@ -23,7 +23,7 @@
     "group_id": {"type": "string", "pattern": "^query_group_[0-9a-f]{32}$"},
     "artifact_sha256": {"$ref": "#/$defs/sha256"},
     "created_at": {"type": "string", "format": "date-time"},
-    "domain": {"enum": ["market_consultant", "qingcheng", "unresolved"]},
+    "domain": {"enum": ["market_consultant", "qingcheng", "jingpin_department", "unresolved"]},
     "plan_id": {"type": ["string", "null"]},
     "sql_sha256": {"$ref": "#/$defs/sha256"},
     "fallback_policy": {

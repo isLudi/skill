@@ -13,7 +13,9 @@ from _shared.errors import UsageError
 
 
 QUERY_PLAN_SCHEMA_VERSION = "2.0.0"
-ALLOWED_QUERY_PLAN_DOMAINS = frozenset({"market_consultant", "qingcheng"})
+ALLOWED_QUERY_PLAN_DOMAINS = frozenset(
+    {"market_consultant", "qingcheng", "jingpin_department"}
+)
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 
 

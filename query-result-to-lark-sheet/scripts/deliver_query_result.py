@@ -37,6 +37,7 @@ A1_RANGE_RE = re.compile(r"^([A-Z]+)([1-9][0-9]*):([A-Z]+)([1-9][0-9]*)$")
 DOMAIN_TITLE_PREFIX = {
     "market_consultant": "市场顾问部_",
     "qingcheng": "青橙项目部_",
+    "jingpin_department": "精品班学部_",
 }
 
 

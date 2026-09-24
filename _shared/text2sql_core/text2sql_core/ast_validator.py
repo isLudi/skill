@@ -24,10 +24,12 @@ def _exclusive_table_owners(bundle: CatalogBundle) -> dict[str, str]:
     owners: dict[str, str] = {}
     for entry in bundle.domain_manifest.get("boundary", {}).get("exclusive_temp_tables", []):
         owners[str(entry).lower()] = bundle.domain
-    other = bundle.domain_manifest.get("boundary", {}).get("forbidden_temp_tables", [])
-    other_domain = "qingcheng" if bundle.domain == "market_consultant" else "market_consultant"
+    boundary = bundle.domain_manifest.get("boundary", {})
+    other = boundary.get("forbidden_temp_tables", [])
+    owner_map = boundary.get("forbidden_temp_table_owners", {})
     for entry in other:
-        owners[str(entry).lower()] = other_domain
+        other_domains = owner_map.get(str(entry), [])
+        owners[str(entry).lower()] = ",".join(other_domains) or "other_domain"
     return owners
 
 

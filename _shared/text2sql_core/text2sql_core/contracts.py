@@ -294,10 +294,11 @@ class ContractRegistry:
                 if not isinstance(tables, list) or not tables or not all(TABLE_RE.fullmatch(str(table)) for table in tables):
                     diagnostics.append(Diagnostic("METRIC_TABLES_INVALID", "error", f"{label} candidate_tables invalid"))
             elif kind == "dimension":
-                if not IDENTIFIER_RE.fullmatch(str(item.get("field", ""))):
-                    diagnostics.append(Diagnostic("DIMENSION_FIELD_INVALID", "error", f"{label} field is invalid"))
-                if not TABLE_RE.fullmatch(str(item.get("table", ""))):
-                    diagnostics.append(Diagnostic("DIMENSION_TABLE_INVALID", "error", f"{label} table is invalid"))
+                if item.get("automatic_compile") is not False:
+                    if not IDENTIFIER_RE.fullmatch(str(item.get("field", ""))):
+                        diagnostics.append(Diagnostic("DIMENSION_FIELD_INVALID", "error", f"{label} field is invalid"))
+                    if not TABLE_RE.fullmatch(str(item.get("table", ""))):
+                        diagnostics.append(Diagnostic("DIMENSION_TABLE_INVALID", "error", f"{label} table is invalid"))
                 if "automatic_compile" in item and not isinstance(item.get("automatic_compile"), bool):
                     diagnostics.append(
                         Diagnostic("DIMENSION_COMPILE_FLAG_INVALID", "error", f"{label} automatic_compile must be boolean")

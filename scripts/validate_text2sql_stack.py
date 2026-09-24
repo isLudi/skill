@@ -22,9 +22,15 @@ EXPECTED_SQLGLOT_VERSION = "30.12.0"
 SKILL_NAMES = (
     "qingcheng-dashboard-sql",
     "market-consultant-dashboard-sql",
+    "jingpin-dashboard-sql",
     "usql-web-query-operator",
 )
 BUSINESS_SKILLS = (
+    "qingcheng-dashboard-sql",
+    "market-consultant-dashboard-sql",
+    "jingpin-dashboard-sql",
+)
+SCRIPTED_BUSINESS_SKILLS = (
     "qingcheng-dashboard-sql",
     "market-consultant-dashboard-sql",
 )
@@ -229,7 +235,7 @@ def main() -> int:
         ):
             failures.append(f"quick_validate failed for {skill_name}")
 
-    for skill_name in BUSINESS_SKILLS:
+    for skill_name in SCRIPTED_BUSINESS_SKILLS:
         skill_root = REPO_ROOT / skill_name
         if not run_command(
             f"reverse index reproducibility {skill_name}",
@@ -245,7 +251,7 @@ def main() -> int:
     ):
         failures.append("P1-P3 generated manifests, contract indexes, or physical catalog are stale")
 
-    for skill_name in BUSINESS_SKILLS:
+    for skill_name in SCRIPTED_BUSINESS_SKILLS:
         skill_root = REPO_ROOT / skill_name
         if not run_command(
             f"integrity {skill_name}",
@@ -323,7 +329,7 @@ def main() -> int:
     ):
         failures.append("retained SQL corpus audit failed")
 
-    for skill_name in BUSINESS_SKILLS:
+    for skill_name in SCRIPTED_BUSINESS_SKILLS:
         skill_root = REPO_ROOT / skill_name
         if not run_command(
             f"Text2SQL domain wrapper smoke {skill_name}",

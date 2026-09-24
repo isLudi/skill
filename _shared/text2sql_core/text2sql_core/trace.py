@@ -14,7 +14,9 @@ from jsonschema import Draft202012Validator
 
 
 TRACE_SCHEMA_VERSION = "1.0.0"
-TRACE_DOMAINS = frozenset({"market_consultant", "qingcheng", "unresolved"})
+TRACE_DOMAINS = frozenset(
+    {"market_consultant", "qingcheng", "jingpin_department", "unresolved"}
+)
 TRACE_STAGE_STATUSES = frozenset({"started", "success", "warning", "blocked", "error", "skipped"})
 _SHA256_LENGTH = 64
 

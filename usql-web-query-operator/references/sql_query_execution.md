@@ -8,6 +8,7 @@
 
 - `market_consultant` → `market-consultant-dashboard-sql`
 - `qingcheng` → `qingcheng-dashboard-sql`
+- `jingpin_department` → `jingpin-dashboard-sql`
 
 域未解析、QueryPlan 不可执行、SQL Hash 不一致或 SQL Policy 不通过时，在浏览器启动前停止。
 

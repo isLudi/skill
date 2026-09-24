@@ -25,6 +25,7 @@ The title is validated during the read-only plan stage and is copied into the re
 | --- | --- | --- |
 | `market_consultant` | `市场顾问部_` | `市场顾问部_20260808_渠道数据` |
 | `qingcheng` | `青橙项目部_` | `青橙项目部_20260626期_抖音正价复用_过程数据` |
+| `jingpin_department` | `精品班学部_` | `精品班学部_20260501起_暑秋退费专题` |
 
 Use single underscores between period/date/data-description segments. Reject spaces, hyphens, slashes, empty segments, unknown domains, and mismatched department prefixes before any remote node creation.
 

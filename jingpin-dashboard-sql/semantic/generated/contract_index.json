@@ -1,0 +1,245 @@
+{
+  "schema_version": "2.0.0",
+  "domain": "jingpin_department",
+  "counts": {
+    "dimension": 5,
+    "join": 4,
+    "metric": 4,
+    "scope": 3
+  },
+  "entries": [
+    {
+      "id": "jingpin_department:dimension:business_period",
+      "kind": "dimension",
+      "name": "精品班标准期",
+      "aliases": [
+        "20260501期起点",
+        "支付期次",
+        "交易期次",
+        "标准期"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/period_mapping.md",
+      "source_sha256": "a4fcbe295a4330b77314aac8b1208561cd1f4680587fd57d0c19eef55e5beac1",
+      "automatic_compile": false
+    },
+    {
+      "id": "jingpin_department:dimension:contact_learning_buckets",
+      "kind": "dimension",
+      "name": "触达与学习分段",
+      "aliases": [
+        "平均通话时长分段",
+        "试听时长分段",
+        "退款时间分段"
+      ],
+      "status": "pending_confirmation",
+      "source_path": "knowledge/channel_touch_reason.md",
+      "source_sha256": "fce045291d96f6af6ee10f8ab89f00bf97def082736c86a1323e060c8325c02d",
+      "automatic_compile": false
+    },
+    {
+      "id": "jingpin_department:dimension:historical_channel",
+      "kind": "dimension",
+      "name": "历史版本渠道",
+      "aliases": [
+        "渠道",
+        "历史渠道映射",
+        "rule_name清洗",
+        "未知渠道"
+      ],
+      "status": "pending_confirmation",
+      "source_path": "knowledge/channel_touch_reason.md",
+      "source_sha256": "fce045291d96f6af6ee10f8ab89f00bf97def082736c86a1323e060c8325c02d",
+      "automatic_compile": false
+    },
+    {
+      "id": "jingpin_department:dimension:refund_reason_evidence_level",
+      "kind": "dimension",
+      "name": "退款原因证据层级",
+      "aliases": [
+        "R",
+        "S",
+        "U",
+        "A",
+        "ASR标签",
+        "AI补充"
+      ],
+      "status": "pending_confirmation",
+      "source_path": "knowledge/channel_touch_reason.md",
+      "source_sha256": "fce045291d96f6af6ee10f8ab89f00bf97def082736c86a1323e060c8325c02d",
+      "automatic_compile": false
+    },
+    {
+      "id": "jingpin_department:dimension:summer_autumn_product",
+      "kind": "dimension",
+      "name": "暑秋产品",
+      "aliases": [
+        "产品",
+        "暑期三期",
+        "秋季",
+        "体验课",
+        "正价课"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/scope_metrics.md",
+      "source_sha256": "6f1074555dcc22c1e6a6dcdd90a04d48517c6b356e0850d071fc2c134960c3c0",
+      "automatic_compile": false
+    },
+    {
+      "id": "jingpin_department:join:finance_to_contact_learning_reason",
+      "kind": "join",
+      "name": "精品班财务集合关联触达学习与原因",
+      "aliases": [
+        "通话关联",
+        "学习关联",
+        "ASR关联",
+        "AI分析关联"
+      ],
+      "status": "pending_confirmation",
+      "source_path": "knowledge/channel_touch_reason.md",
+      "source_sha256": "fce045291d96f6af6ee10f8ab89f00bf97def082736c86a1323e060c8325c02d"
+    },
+    {
+      "id": "jingpin_department:join:finance_to_h_lead_channel",
+      "kind": "join",
+      "name": "精品班业财订单关联H线索渠道",
+      "aliases": [
+        "H线索表lead_id回挂",
+        "dwd_mkt_h_lead_detail_df渠道归因"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/channel_touch_reason.md",
+      "source_sha256": "fce045291d96f6af6ee10f8ab89f00bf97def082736c86a1323e060c8325c02d"
+    },
+    {
+      "id": "jingpin_department:join:finance_to_lead_channel",
+      "kind": "join",
+      "name": "精品班财务集合关联线索渠道",
+      "aliases": [
+        "lead_id关联全链路",
+        "渠道归因Join"
+      ],
+      "status": "pending_confirmation",
+      "source_path": "knowledge/channel_touch_reason.md",
+      "source_sha256": "fce045291d96f6af6ee10f8ab89f00bf97def082736c86a1323e060c8325c02d"
+    },
+    {
+      "id": "jingpin_department:join:payment_advisor_to_employee_day",
+      "kind": "join",
+      "name": "支付时顾问关联历史员工日快照",
+      "aliases": [
+        "顾问司龄Join",
+        "支付日员工快照"
+      ],
+      "status": "pending_confirmation",
+      "source_path": "knowledge/channel_touch_reason.md",
+      "source_sha256": "fce045291d96f6af6ee10f8ab89f00bf97def082736c86a1323e060c8325c02d"
+    },
+    {
+      "id": "jingpin_department:metric:advisor_tenure_bundle",
+      "kind": "metric",
+      "name": "支付时顾问司龄退费指标组",
+      "aliases": [
+        "顾问司龄",
+        "未满三个月",
+        "3至6个月",
+        "1年及以上"
+      ],
+      "status": "pending_confirmation",
+      "source_path": "knowledge/channel_touch_reason.md",
+      "source_sha256": "fce045291d96f6af6ee10f8ab89f00bf97def082736c86a1323e060c8325c02d",
+      "automatic_compile": false
+    },
+    {
+      "id": "jingpin_department:metric:contact_learning_reason_bundle",
+      "kind": "metric",
+      "name": "精品班触达学习与退款原因指标组",
+      "aliases": [
+        "通话时长分段",
+        "试听时长",
+        "二讲首次联系",
+        "退款原因",
+        "先报后退"
+      ],
+      "status": "pending_confirmation",
+      "source_path": "knowledge/channel_touch_reason.md",
+      "source_sha256": "fce045291d96f6af6ee10f8ab89f00bf97def082736c86a1323e060c8325c02d",
+      "automatic_compile": false
+    },
+    {
+      "id": "jingpin_department:metric:refund_core_bundle",
+      "kind": "metric",
+      "name": "精品班退费核心指标组",
+      "aliases": [
+        "实收GMV",
+        "退款金额",
+        "GMV退费率",
+        "人头退费率",
+        "人均退费金额"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/scope_metrics.md",
+      "source_sha256": "6f1074555dcc22c1e6a6dcdd90a04d48517c6b356e0850d071fc2c134960c3c0",
+      "automatic_compile": false
+    },
+    {
+      "id": "jingpin_department:metric:refund_timing_bundle",
+      "kind": "metric",
+      "name": "退款时长与节点指标组",
+      "aliases": [
+        "平均退款天数",
+        "中位退款天数",
+        "D30退款",
+        "24小时退款",
+        "7天退款"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/scope_metrics.md",
+      "source_sha256": "6f1074555dcc22c1e6a6dcdd90a04d48517c6b356e0850d071fc2c134960c3c0",
+      "automatic_compile": false
+    },
+    {
+      "id": "jingpin_department:scope:course_department",
+      "kind": "scope",
+      "name": "精品班课程部门范围",
+      "aliases": [
+        "精品班学部",
+        "H业务线精品班"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/scope_metrics.md",
+      "source_sha256": "6f1074555dcc22c1e6a6dcdd90a04d48517c6b356e0850d071fc2c134960c3c0"
+    },
+    {
+      "id": "jingpin_department:scope:learner_refund_threshold",
+      "kind": "scope",
+      "name": "学员窗口累计退款500元门槛",
+      "aliases": [
+        "小额退费不计算",
+        "累计退款大于等于500元",
+        "D30门槛"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/scope_metrics.md",
+      "source_sha256": "6f1074555dcc22c1e6a6dcdd90a04d48517c6b356e0850d071fc2c134960c3c0"
+    },
+    {
+      "id": "jingpin_department:scope:summer_autumn_products",
+      "kind": "scope",
+      "name": "精品班暑秋正价产品范围",
+      "aliases": [
+        "暑秋产品",
+        "暑期和秋季正价课"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/scope_metrics.md",
+      "source_sha256": "6f1074555dcc22c1e6a6dcdd90a04d48517c6b356e0850d071fc2c134960c3c0"
+    }
+  ],
+  "alias_collisions": {
+    "暑秋产品": [
+      "jingpin_department:dimension:summer_autumn_product",
+      "jingpin_department:scope:summer_autumn_products"
+    ]
+  }
+}

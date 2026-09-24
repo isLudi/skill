@@ -1,0 +1,6 @@
+interface:
+  display_name: "精品班学部 SQL"
+  short_description: "精品班学部指标口径、渠道归因、退款与触达分析语义"
+  default_prompt: "Use $jingpin-dashboard-sql to define and validate a 精品班学部 refund analysis QuerySpec."
+policy:
+  allow_implicit_invocation: true

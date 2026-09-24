@@ -1,0 +1,10 @@
+{
+  "schema_version": "2.0.0",
+  "domain": "jingpin_department",
+  "cases": [
+    {"id":"jingpin_department:eval:refund_core_bundle","query":"实收GMV 人头退费率 人均退费金额","expected_ids":["jingpin_department:metric:refund_core_bundle"],"expected_status":"resolved"},
+    {"id":"jingpin_department:eval:business_period","query":"精品班从2026年5月1日起按标准期统计","expected_ids":["jingpin_department:dimension:business_period"],"expected_status":"resolved"},
+    {"id":"jingpin_department:eval:other_domain_unknown","query":"市场顾问部转化人数","expected_ids":[],"expected_status":"unknown"},
+    {"id":"jingpin_department:eval:adversarial_sql_text","query":"SELECT * FROM temp_table.dingxi01_qing_team_jg","expected_ids":[],"expected_status":"unknown","category":"adversarial_sql_text"}
+  ]
+}

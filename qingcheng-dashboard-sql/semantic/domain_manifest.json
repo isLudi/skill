@@ -5,6 +5,7 @@
     "name": "青橙项目部",
     "skill": "qingcheng-dashboard-sql",
     "isolated_from": [
+      "jingpin_department",
       "market_consultant"
     ]
   },
@@ -65,6 +66,29 @@
       "temp_table.dingxi01_jiagou_db",
       "temp_table.shenbaoxin_channel_group"
     ],
+    "forbidden_temp_table_owners": {
+      "temp_table.dingxi01_channel_group": [
+        "market_consultant"
+      ],
+      "temp_table.dingxi01_cost": [
+        "market_consultant"
+      ],
+      "temp_table.dingxi01_daoke_1_6_t": [
+        "market_consultant"
+      ],
+      "temp_table.dingxi01_jiagou_zx": [
+        "market_consultant"
+      ],
+      "temp_table.dingxi01_pingyou_jg": [
+        "market_consultant"
+      ],
+      "temp_table.dingxi01_plan_id": [
+        "market_consultant"
+      ],
+      "temp_table.zhangjunyan01_pingyou_jg": [
+        "market_consultant"
+      ]
+    },
     "forbid_cross_domain_metric_defaulting": true,
     "cross_department_comparison_requires_two_specs": true
   },

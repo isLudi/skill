@@ -68,6 +68,24 @@ class QuerySpecTest(unittest.TestCase):
         )
         self.assertIn("SPEC_CROSS_DOMAIN_EVIDENCE", {item.code for item in spec.validate()})
 
+    def test_jingpin_query_spec_is_supported(self) -> None:
+        self.assertTrue(valid_spec("jingpin_department").is_executable)
+
+    def test_jingpin_rejects_both_other_domain_evidence_sources(self) -> None:
+        for source_path in (
+            "market-consultant-dashboard-sql/knowledge/metrics/market.md",
+            "qingcheng-dashboard-sql/knowledge/metrics/qingcheng.md",
+        ):
+            spec = valid_spec("jingpin_department")
+            spec.evidence.append(
+                {"source_path": source_path, "kind": "metric", "supports": ["other"]}
+            )
+            with self.subTest(source_path=source_path):
+                self.assertIn(
+                    "SPEC_CROSS_DOMAIN_EVIDENCE",
+                    {item.code for item in spec.validate()},
+                )
+
     def test_metric_id_requires_domain_namespace(self) -> None:
         spec = valid_spec()
         spec.metrics[0]["id"] = "net_revenue"

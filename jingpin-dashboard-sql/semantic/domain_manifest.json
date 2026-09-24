@@ -1,0 +1,284 @@
+{
+  "schema_version": "2.0.0",
+  "domain": {
+    "id": "jingpin_department",
+    "name": "精品班学部",
+    "skill": "jingpin-dashboard-sql",
+    "isolated_from": [
+      "market_consultant",
+      "qingcheng"
+    ]
+  },
+  "authority": {
+    "business_semantics": "domain_markdown_and_raw_sql",
+    "semantic_contract_role": "hash_bound_machine_interpretation_for_confirmed_entries_only",
+    "generated_manifest_role": "routing_and_validation_index",
+    "physical_catalog_role": "neutral_physical_facts_only"
+  },
+  "progressive_disclosure": {
+    "forward": [
+      "semantic/domain_manifest.json",
+      "semantic/current_model_bindings.json",
+      "semantic/generated/contract_index.json",
+      "knowledge/quick_reference.md",
+      "knowledge/decision_tree.md",
+      "targeted domain documents",
+      "resources/raw_sql/<selected evidence>.sql"
+    ],
+    "reverse": []
+  },
+  "boundary": {
+    "domain_local_temp_tables": [],
+    "exclusive_temp_tables": [],
+    "forbidden_temp_tables": [
+      "temp_table.dingxi01_channel_group",
+      "temp_table.dingxi01_cost",
+      "temp_table.dingxi01_daoke_1_6_t",
+      "temp_table.dingxi01_jiagou_db",
+      "temp_table.dingxi01_jiagou_zx",
+      "temp_table.dingxi01_pingyou_jg",
+      "temp_table.dingxi01_plan_id",
+      "temp_table.dingxi01_qing_daoke",
+      "temp_table.dingxi01_qing_goal",
+      "temp_table.dingxi01_qing_qi_moth",
+      "temp_table.dingxi01_qing_team_g_qi",
+      "temp_table.dingxi01_qing_team_goal",
+      "temp_table.dingxi01_qing_team_jg",
+      "temp_table.dingxi01_qing_zz",
+      "temp_table.shenbaoxin_channel_group",
+      "temp_table.zhangjunyan01_pingyou_jg"
+    ],
+    "same_name_temp_tables_require_domain_evidence": [],
+    "forbidden_temp_table_owners": {
+      "temp_table.dingxi01_channel_group": [
+        "market_consultant"
+      ],
+      "temp_table.dingxi01_cost": [
+        "market_consultant"
+      ],
+      "temp_table.dingxi01_daoke_1_6_t": [
+        "market_consultant"
+      ],
+      "temp_table.dingxi01_jiagou_db": [
+        "market_consultant",
+        "qingcheng"
+      ],
+      "temp_table.dingxi01_jiagou_zx": [
+        "market_consultant"
+      ],
+      "temp_table.dingxi01_pingyou_jg": [
+        "market_consultant"
+      ],
+      "temp_table.dingxi01_plan_id": [
+        "market_consultant"
+      ],
+      "temp_table.dingxi01_qing_daoke": [
+        "qingcheng"
+      ],
+      "temp_table.dingxi01_qing_goal": [
+        "qingcheng"
+      ],
+      "temp_table.dingxi01_qing_qi_moth": [
+        "qingcheng"
+      ],
+      "temp_table.dingxi01_qing_team_g_qi": [
+        "qingcheng"
+      ],
+      "temp_table.dingxi01_qing_team_goal": [
+        "qingcheng"
+      ],
+      "temp_table.dingxi01_qing_team_jg": [
+        "qingcheng"
+      ],
+      "temp_table.dingxi01_qing_zz": [
+        "qingcheng"
+      ],
+      "temp_table.shenbaoxin_channel_group": [
+        "market_consultant",
+        "qingcheng"
+      ],
+      "temp_table.zhangjunyan01_pingyou_jg": [
+        "market_consultant"
+      ]
+    },
+    "forbid_cross_domain_metric_defaulting": true,
+    "cross_department_comparison_requires_two_specs": true
+  },
+  "counts": {
+    "knowledge_files": 3,
+    "raw_sql_files": 1,
+    "by_category": {
+      "governance": 2,
+      "metrics": 1,
+      "raw_sql": 1
+    }
+  },
+  "semantic_contracts": {
+    "schema_version": "2.0.0",
+    "index_path": "semantic/generated/contract_index.json",
+    "counts": {
+      "dimension": 5,
+      "join": 4,
+      "metric": 4,
+      "scope": 3
+    },
+    "confirmed_counts": {
+      "dimension": 2,
+      "join": 1,
+      "metric": 2,
+      "scope": 3
+    },
+    "source_files": [
+      {
+        "source_path": "semantic/contracts/metric_contracts.json",
+        "sha256": "471ba5e562d8e723c11dfa28c2d24eeecc0a58b83b0ea897d4efd9220b7ff4e9"
+      },
+      {
+        "source_path": "semantic/contracts/dimension_contracts.json",
+        "sha256": "6bfbbbc770423b49cf62998d8fc77a1dad3dd7f3c073c2183246dd0da910b99b"
+      },
+      {
+        "source_path": "semantic/contracts/join_contracts.json",
+        "sha256": "0474eb3a3b13617efe41d45b5c588bf6b126e2eee108c3eaa0d80e6d07c04470"
+      },
+      {
+        "source_path": "semantic/contracts/scope_contracts.json",
+        "sha256": "b04d9b7989da4e5e4c4d6100040a9238a3dc955c3fd387d52ab4861e8c471ee1"
+      }
+    ]
+  },
+  "current_model_registry": {
+    "source_path": "semantic/current_model_bindings.json",
+    "source_sha256": "5a62e1b61d6d91778580243b0863af50851c45b761b4536a06cbaaed8e837bb2",
+    "policy": "one_current_model_per_id_and_semantic_slot",
+    "canonical_filename_policy": "No current dashboard or Data Center model is registered for 精品班学部.",
+    "model_count": 0,
+    "semantic_slot_count": 0
+  },
+  "dashboard_registry": {
+    "source": "knowledge/dashboard_web_profiles",
+    "policy": "unregistered_or_cross_domain_dashboard_blocks_design_and_mutation",
+    "count": 0,
+    "registered": [],
+    "cross_domain_conflicts": []
+  },
+  "entities": {
+    "governance": [
+      {
+        "id": "jingpin_department:governance:channel_touch_reason",
+        "source_path": "knowledge/channel_touch_reason.md",
+        "sha256": "fce045291d96f6af6ee10f8ab89f00bf97def082736c86a1323e060c8325c02d",
+        "bytes": 3761,
+        "title": "精品班学部渠道、触达、学习与退款原因",
+        "table_refs": [
+          "finance_dw.dwd_finance_order_refund_df",
+          "one_dw.dwd_mkt_ai_assistant_asr_record_df",
+          "service_dw.dws_service_user_learn_detail_hf",
+          "service_dw.ods_service_ai_ones_business_copilot__ai_call_analysis_result_df"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "channel_touch_reason",
+          "精品班学部渠道、触达、学习与退款原因"
+        ]
+      },
+      {
+        "id": "jingpin_department:governance:period_mapping",
+        "source_path": "knowledge/period_mapping.md",
+        "sha256": "a4fcbe295a4330b77314aac8b1208561cd1f4680587fd57d0c19eef55e5beac1",
+        "bytes": 2858,
+        "title": "精品班学部标准期映射",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "period_mapping",
+          "精品班学部标准期映射"
+        ]
+      }
+    ],
+    "metrics": [
+      {
+        "id": "jingpin_department:metrics:scope_metrics",
+        "source_path": "knowledge/metrics/scope_metrics.md",
+        "sha256": "6f1074555dcc22c1e6a6dcdd90a04d48517c6b356e0850d071fc2c134960c3c0",
+        "bytes": 2975,
+        "title": "精品班学部统计范围与指标",
+        "table_refs": [
+          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "scope_metrics",
+          "精品班学部统计范围与指标"
+        ]
+      }
+    ],
+    "raw_sql": [
+      {
+        "id": "jingpin_department:raw_sql:verified_course_scope_probe",
+        "source_path": "resources/raw_sql/verified_course_scope_probe.sql",
+        "sha256": "5a175cd340b768ae2e5fdffbb7092d416dc9a53c201f1677ba37b849ee149f65",
+        "bytes": 1819,
+        "title": "verified_course_scope_probe",
+        "table_refs": [
+          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "verified_course_scope_probe"
+        ]
+      }
+    ]
+  },
+  "reverse_lookup": {
+    "table_to_sources": {
+      "finance_dw.dwd_finance_order_refund_df": [
+        "knowledge/channel_touch_reason.md"
+      ],
+      "one_dw.dwd_mkt_ai_assistant_asr_record_df": [
+        "knowledge/channel_touch_reason.md"
+      ],
+      "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf": [
+        "knowledge/metrics/scope_metrics.md",
+        "resources/raw_sql/verified_course_scope_probe.sql"
+      ],
+      "service_dw.dws_service_user_learn_detail_hf": [
+        "knowledge/channel_touch_reason.md"
+      ],
+      "service_dw.ods_service_ai_ones_business_copilot__ai_call_analysis_result_df": [
+        "knowledge/channel_touch_reason.md"
+      ]
+    },
+    "raw_sql_to_sources": {}
+  },
+  "source_inventory": [
+    {
+      "source_path": "knowledge/channel_touch_reason.md",
+      "sha256": "fce045291d96f6af6ee10f8ab89f00bf97def082736c86a1323e060c8325c02d",
+      "bytes": 3761,
+      "category": "governance"
+    },
+    {
+      "source_path": "knowledge/metrics/scope_metrics.md",
+      "sha256": "6f1074555dcc22c1e6a6dcdd90a04d48517c6b356e0850d071fc2c134960c3c0",
+      "bytes": 2975,
+      "category": "metrics"
+    },
+    {
+      "source_path": "knowledge/period_mapping.md",
+      "sha256": "a4fcbe295a4330b77314aac8b1208561cd1f4680587fd57d0c19eef55e5beac1",
+      "bytes": 2858,
+      "category": "governance"
+    },
+    {
+      "source_path": "resources/raw_sql/verified_course_scope_probe.sql",
+      "sha256": "5a175cd340b768ae2e5fdffbb7092d416dc9a53c201f1677ba37b849ee149f65",
+      "bytes": 1819,
+      "category": "raw_sql"
+    }
+  ]
+}

@@ -5,6 +5,7 @@
     "name": "市场顾问部",
     "skill": "market-consultant-dashboard-sql",
     "isolated_from": [
+      "jingpin_department",
       "qingcheng"
     ]
   },
@@ -65,6 +66,29 @@
       "temp_table.dingxi01_jiagou_db",
       "temp_table.shenbaoxin_channel_group"
     ],
+    "forbidden_temp_table_owners": {
+      "temp_table.dingxi01_qing_daoke": [
+        "qingcheng"
+      ],
+      "temp_table.dingxi01_qing_goal": [
+        "qingcheng"
+      ],
+      "temp_table.dingxi01_qing_qi_moth": [
+        "qingcheng"
+      ],
+      "temp_table.dingxi01_qing_team_g_qi": [
+        "qingcheng"
+      ],
+      "temp_table.dingxi01_qing_team_goal": [
+        "qingcheng"
+      ],
+      "temp_table.dingxi01_qing_team_jg": [
+        "qingcheng"
+      ],
+      "temp_table.dingxi01_qing_zz": [
+        "qingcheng"
+      ]
+    },
     "forbid_cross_domain_metric_defaulting": true,
     "cross_department_comparison_requires_two_specs": true
   },

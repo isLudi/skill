@@ -44,6 +44,10 @@ class DomainAdapterRegistryTests(unittest.TestCase):
         )
         self.assertEqual(by_folder["青橙播报"].domain_id, "qingcheng")
 
+        # 精品班当前只注册为查询域，不得因查询支持而获得 Dashboard/Data Center 写适配器。
+        self.assertNotIn("jingpin_department", by_domain)
+        self.assertNotIn("jingpin", by_target)
+
     def test_registry_rejects_relative_path_escape(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

@@ -33,7 +33,7 @@
     "artifact_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
     "created_at": {"type": "string", "format": "date-time"},
     "trace_id": {"type": "string", "pattern": "^trace_[0-9a-f]{32}$"},
-    "domain": {"enum": ["market_consultant", "qingcheng", "unresolved"]},
+    "domain": {"enum": ["market_consultant", "qingcheng", "jingpin_department", "unresolved"]},
     "plan_id": {"type": ["string", "null"]},
     "sql_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
     "policy_report_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},

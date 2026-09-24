@@ -6,10 +6,11 @@ from dataclasses import dataclass, field
 from typing import Any, Iterable
 
 
-SUPPORTED_DOMAINS = {"market_consultant", "qingcheng"}
+SUPPORTED_DOMAINS = {"market_consultant", "qingcheng", "jingpin_department"}
 DOMAIN_SKILLS = {
     "market_consultant": "market-consultant-dashboard-sql",
     "qingcheng": "qingcheng-dashboard-sql",
+    "jingpin_department": "jingpin-dashboard-sql",
 }
 
 
@@ -145,7 +146,7 @@ class QuerySpec:
                 Diagnostic(
                     "SPEC_DOMAIN_REQUIRED",
                     "error",
-                    "domain must be unresolved, market_consultant, or qingcheng",
+                    "domain must be unresolved, market_consultant, qingcheng, or jingpin_department",
                     path="domain",
                 )
             )
@@ -212,7 +213,9 @@ class QuerySpec:
                     )
                 )
         expected_skill = DOMAIN_SKILLS[self.domain]
-        other_skill = next(skill for domain, skill in DOMAIN_SKILLS.items() if domain != self.domain)
+        other_skills = sorted(
+            skill for domain, skill in DOMAIN_SKILLS.items() if domain != self.domain
+        )
         for index, evidence in enumerate(self.evidence):
             source_path = str(evidence.get("source_path", "")).replace("\\", "/")
             if not source_path:
@@ -224,12 +227,13 @@ class QuerySpec:
                         path=f"evidence[{index}].source_path",
                     )
                 )
-            if other_skill in source_path:
+            crossed_skill = next((skill for skill in other_skills if skill in source_path), None)
+            if crossed_skill:
                 diagnostics.append(
                     Diagnostic(
                         "SPEC_CROSS_DOMAIN_EVIDENCE",
                         "error",
-                        f"evidence crosses from {expected_skill} into {other_skill}",
+                        f"evidence crosses from {expected_skill} into {crossed_skill}",
                         path=f"evidence[{index}].source_path",
                     )
                 )

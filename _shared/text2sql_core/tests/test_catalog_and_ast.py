@@ -120,11 +120,14 @@ class CatalogAndAstTest(unittest.TestCase):
                     self.assertTrue(entity["id"].startswith(f"{domain}:{category}:"))
             registry = manifest["dashboard_registry"]
             self.assertEqual(registry["count"], len(registry["registered"]))
-            self.assertGreater(registry["count"], 0)
+            if domain == "jingpin_department":
+                self.assertEqual(registry["count"], 0)
+            else:
+                self.assertGreater(registry["count"], 0)
             self.assertEqual([], registry["cross_domain_conflicts"])
             profile_sources = {
                 item["source_path"]: item["sha256"]
-                for item in manifest["entities"]["dashboard_web_profiles"]
+                for item in manifest["entities"].get("dashboard_web_profiles", [])
             }
             for dashboard in registry["registered"]:
                 for evidence in dashboard["evidence"]:
@@ -139,7 +142,7 @@ class CatalogAndAstTest(unittest.TestCase):
         self.assertTrue(catalog["tables"])
         self.assertFalse(any(item["name"].startswith("temp_table.") for item in catalog["tables"]))
         self.assertTrue(all(item["business_semantics_excluded"] for item in catalog["tables"]))
-        shared = [item for item in catalog["tables"] if len(item["domains"]) == 2]
+        shared = [item for item in catalog["tables"] if len(item["domains"]) >= 2]
         self.assertGreaterEqual(len(shared), 15)
 
     def test_same_name_temporary_tables_remain_domain_local(self) -> None:
@@ -156,9 +159,14 @@ class CatalogAndAstTest(unittest.TestCase):
         self.assertTrue(boundaries[0])
 
     def test_forward_and_reverse_lookup_reach_domain_evidence(self) -> None:
+        search_terms = {
+            "market_consultant": "转化",
+            "qingcheng": "转化",
+            "jingpin_department": "精品班",
+        }
         for domain, config in DOMAIN_CONFIG.items():
             bundle = CatalogBundle.load(REPO_ROOT / config["skill"], CORE_ROOT)
-            results = bundle.search("转化", limit=50)
+            results = bundle.search(search_terms[domain], limit=50)
             self.assertTrue(results, domain)
             self.assertTrue(any(row["category"] in {"metrics", "dashboards", "sql_patterns"} for row in results))
             reverse = bundle.domain_manifest["reverse_lookup"]["table_to_sources"]
@@ -169,6 +177,7 @@ class CatalogAndAstTest(unittest.TestCase):
         fixtures = {
             "market_consultant": "resources/raw_sql/data_center_market_2253.sql",
             "qingcheng": "resources/raw_sql/data_center_qingcheng_2460.sql",
+            "jingpin_department": "resources/raw_sql/verified_course_scope_probe.sql",
         }
         for domain, relative in fixtures.items():
             skill_root = REPO_ROOT / DOMAIN_CONFIG[domain]["skill"]

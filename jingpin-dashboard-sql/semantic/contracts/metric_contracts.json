@@ -1,0 +1,87 @@
+{
+  "schema_version": "2.0.0",
+  "domain": "jingpin_department",
+  "contracts": [
+    {
+      "id": "jingpin_department:metric:refund_core_bundle",
+      "name": "精品班退费核心指标组",
+      "aliases": ["实收GMV", "退款金额", "GMV退费率", "人头退费率", "人均退费金额"],
+      "status": "confirmed",
+      "automatic_compile": false,
+      "source_path": "knowledge/metrics/scope_metrics.md",
+      "source_sha256": "6f1074555dcc22c1e6a6dcdd90a04d48517c6b356e0850d071fc2c134960c3c0",
+      "description": "同一切面下的实收GMV、购买人数、满足窗口内学员累计退款门槛的退款金额与退费人数，以及由这些分子分母计算的退费金额占比、GMV退费率、人头退费率和人均退费金额。",
+      "sql_expression": "sum({base}.income_amount) / 100.0",
+      "output_alias": "refund_core_bundle",
+      "aggregation": "sum",
+      "candidate_tables": ["service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf"],
+      "calculation_grain": ["order_number", "original_order_user_number", "observation_window", "requested_output_slice"],
+      "allowed_dimensions": [
+        "jingpin_department:dimension:business_period",
+        "jingpin_department:dimension:summer_autumn_product",
+        "jingpin_department:dimension:historical_channel"
+      ],
+      "required_scope_fields": [
+        "dt",
+        "hour",
+        "course_first_level_department_name",
+        "course_second_level_department_name"
+      ],
+      "notes": "课程范围、暑秋产品及学员累计500元门槛已确认；仍须在结果中校验订单与退款事件回挂、不得按单笔退款先过滤。"
+    },
+    {
+      "id": "jingpin_department:metric:refund_timing_bundle",
+      "name": "退款时长与节点指标组",
+      "aliases": ["平均退款天数", "中位退款天数", "D30退款", "24小时退款", "7天退款"],
+      "status": "confirmed",
+      "automatic_compile": false,
+      "source_path": "knowledge/metrics/scope_metrics.md",
+      "source_sha256": "6f1074555dcc22c1e6a6dcdd90a04d48517c6b356e0850d071fc2c134960c3c0",
+      "description": "标准观察窗和D30观察窗的退款时长、退款区间及24/48/72小时和7天节点指标。",
+      "sql_expression": "avg(date_diff('second', {base}.stats_trade_timestamp, coalesce({base}.trade_timestamp, {base}.stats_trade_timestamp)) / 86400.0)",
+      "output_alias": "refund_timing_bundle",
+      "aggregation": "avg",
+      "candidate_tables": ["service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf"],
+      "calculation_grain": ["original_order_user_number", "first_scoped_payment", "observation_window"],
+      "allowed_dimensions": [
+        "jingpin_department:dimension:business_period",
+        "jingpin_department:dimension:summer_autumn_product",
+        "jingpin_department:dimension:historical_channel",
+        "jingpin_department:dimension:contact_learning_buckets"
+      ],
+      "required_scope_fields": [
+        "dt",
+        "hour",
+        "course_first_level_department_name",
+        "course_second_level_department_name"
+      ],
+      "notes": "D30只纳入观察日已成熟30天的学员并在窗口内重算500元门槛；节点风险集排除节点前已退款学员。"
+    },
+    {
+      "id": "jingpin_department:metric:contact_learning_reason_bundle",
+      "name": "精品班触达学习与退款原因指标组",
+      "aliases": ["通话时长分段", "试听时长", "二讲首次联系", "退款原因", "先报后退"],
+      "status": "pending_confirmation",
+      "automatic_compile": false,
+      "source_path": "knowledge/channel_touch_reason.md",
+      "source_sha256": "fce045291d96f6af6ee10f8ab89f00bf97def082736c86a1323e060c8325c02d",
+      "description": "支付前与支付后触达、体验课学习、正价首节、二讲联系、系统退款原因、ASR证据层级及先报后退人工复核候选。",
+      "candidate_tables": ["service_dw.dws_service_user_learn_detail_hf", "finance_dw.dwd_finance_order_refund_df", "one_dw.dwd_mkt_ai_assistant_asr_record_df", "service_dw.ods_service_ai_ones_business_copilot__ai_call_analysis_result_df"],
+      "calculation_grain": "learner + channel + event or call before aggregation",
+      "notes": "学习课程锚点、二讲身份、ASR/AI连接键和去重版本均未完成对账。"
+    },
+    {
+      "id": "jingpin_department:metric:advisor_tenure_bundle",
+      "name": "支付时顾问司龄退费指标组",
+      "aliases": ["顾问司龄", "未满三个月", "3至6个月", "1年及以上"],
+      "status": "pending_confirmation",
+      "automatic_compile": false,
+      "source_path": "knowledge/channel_touch_reason.md",
+      "source_sha256": "fce045291d96f6af6ee10f8ab89f00bf97def082736c86a1323e060c8325c02d",
+      "description": "按支付时业绩顾问及支付日员工历史快照计算司龄分组，并对比实收、退款、购买人数、退费人数和核心退费率。",
+      "candidate_tables": ["finance_dw.app_finance_performance_extend_details_hf", "finance_dw.dim_finance_employee_df"],
+      "calculation_grain": "payment event + performance advisor + employee day snapshot",
+      "notes": "跨业绩部门组织枚举和历史员工快照连接尚未确认。"
+    }
+  ]
+}

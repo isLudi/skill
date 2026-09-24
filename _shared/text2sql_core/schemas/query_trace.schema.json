@@ -23,7 +23,7 @@
     "trace_id": {"type": "string", "pattern": "^trace_[0-9a-f]{32}$"},
     "created_at": {"type": "string", "format": "date-time"},
     "updated_at": {"type": "string", "format": "date-time"},
-    "domain": {"enum": ["market_consultant", "qingcheng", "unresolved"]},
+    "domain": {"enum": ["market_consultant", "qingcheng", "jingpin_department", "unresolved"]},
     "question_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
     "references": {
       "type": "object",

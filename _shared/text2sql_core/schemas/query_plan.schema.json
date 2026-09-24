@@ -13,7 +13,7 @@
   "properties": {
     "schema_version": {"const": "2.0.0"},
     "plan_id": {"type": "string", "pattern": "^plan_[0-9a-f]{20}$"},
-    "domain": {"enum": ["market_consultant", "qingcheng"]},
+    "domain": {"enum": ["market_consultant", "qingcheng", "jingpin_department"]},
     "intent": {"type": "string"},
     "status": {"enum": ["executable", "requires_manual_sql", "blocked"]},
     "base_table": {"type": ["string", "null"]},

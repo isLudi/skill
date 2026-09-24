@@ -11,6 +11,7 @@
     "raw_sql"
   ],
   "domains": [
+    "jingpin_department",
     "market_consultant",
     "qingcheng"
   ],

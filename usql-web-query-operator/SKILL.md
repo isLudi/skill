@@ -13,6 +13,7 @@ description: Execute governed USQL, templates, Data Center and BI operations, an
 
 - `market_consultant`：`market-consultant-dashboard-sql`
 - `qingcheng`：`qingcheng-dashboard-sql`
+- `jingpin_department`：`jingpin-dashboard-sql`（仅查询，不注册 Dashboard/Data Center 写适配器）
 
 域未解析时只允许读取中立物理事实，不得生成或执行生产 SQL。
 

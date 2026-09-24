@@ -1,0 +1,56 @@
+{
+  "schema_version": "2.0.0",
+  "domain": "jingpin_department",
+  "contracts": [
+    {
+      "id": "jingpin_department:dimension:business_period",
+      "name": "精品班标准期",
+      "aliases": ["20260501期起点", "支付期次", "交易期次", "标准期"],
+      "status": "confirmed",
+      "automatic_compile": false,
+      "source_path": "knowledge/period_mapping.md",
+      "source_sha256": "a4fcbe295a4330b77314aac8b1208561cd1f4680587fd57d0c19eef55e5beac1",
+      "description": "按精品班标准期配置将日期映射到标准期；不存在20260501期，专题起点按日期不早于2026-05-01处理并单列审计5月1至2日。"
+    },
+    {
+      "id": "jingpin_department:dimension:summer_autumn_product",
+      "name": "暑秋产品",
+      "aliases": ["产品", "暑期三期", "秋季", "体验课", "正价课"],
+      "status": "confirmed",
+      "automatic_compile": false,
+      "source_path": "knowledge/metrics/scope_metrics.md",
+      "source_sha256": "6f1074555dcc22c1e6a6dcdd90a04d48517c6b356e0850d071fc2c134960c3c0",
+      "description": "2026学年、X/Q、bind_type=2且订单首付不早于2026-05-01的精品班正价产品；X/Q分别映射暑期/秋季，不能把体验课期次代码直接当产品。"
+    },
+    {
+      "id": "jingpin_department:dimension:historical_channel",
+      "name": "历史版本渠道",
+      "aliases": ["渠道", "历史渠道映射", "rule_name清洗", "未知渠道"],
+      "status": "pending_confirmation",
+      "automatic_compile": false,
+      "source_path": "knowledge/channel_touch_reason.md",
+      "source_sha256": "fce045291d96f6af6ee10f8ab89f00bf97def082736c86a1323e060c8325c02d",
+      "description": "按线索业务期间选用相应历史CASE并保持原始WHEN顺序，未命中后再使用审阅过的rule_name和原始渠道层级。"
+    },
+    {
+      "id": "jingpin_department:dimension:contact_learning_buckets",
+      "name": "触达与学习分段",
+      "aliases": ["平均通话时长分段", "试听时长分段", "退款时间分段"],
+      "status": "pending_confirmation",
+      "automatic_compile": false,
+      "source_path": "knowledge/channel_touch_reason.md",
+      "source_sha256": "fce045291d96f6af6ee10f8ab89f00bf97def082736c86a1323e060c8325c02d",
+      "description": "用户指定的通话、体验课学习和退款间隔区间；未匹配与已匹配但未上课必须分开。"
+    },
+    {
+      "id": "jingpin_department:dimension:refund_reason_evidence_level",
+      "name": "退款原因证据层级",
+      "aliases": ["R", "S", "U", "A", "ASR标签", "AI补充"],
+      "status": "pending_confirmation",
+      "automatic_compile": false,
+      "source_path": "knowledge/channel_touch_reason.md",
+      "source_sha256": "fce045291d96f6af6ee10f8ab89f00bf97def082736c86a1323e060c8325c02d",
+      "description": "R为明确退款原因，S为退款前支持性问题，U为证据不足，A为仅由AI字段补充的候选；A不得并入R。"
+    }
+  ]
+}

@@ -17,12 +17,14 @@ DOMAIN_CONFIG = {
     "market_consultant": {
         "skill": "market-consultant-dashboard-sql",
         "name": "市场顾问部",
-        "isolated_from": "qingcheng",
     },
     "qingcheng": {
         "skill": "qingcheng-dashboard-sql",
         "name": "青橙项目部",
-        "isolated_from": "market_consultant",
+    },
+    "jingpin_department": {
+        "skill": "jingpin-dashboard-sql",
+        "name": "精品班学部",
     },
 }
 ENTITY_FOLDERS = {
@@ -247,18 +249,19 @@ def _build_domain_manifest(
         for item in entities.get("temp_tables", [])
         if item.get("table_name")
     }
-    other_domain = str(config["isolated_from"])
-    other_skill = repo_root / str(DOMAIN_CONFIG[other_domain]["skill"])
-    other_temp_paths = list((other_skill / "knowledge" / "temp_tables").glob("*.md"))
-    other_temp_paths.extend(
-        path
-        for path in (other_skill / "knowledge" / "tables").glob("temp_table.*.md")
-    )
-    other_temps = {
-        path.name.removesuffix(".md")
-        for path in other_temp_paths
-        if path.name.lower().startswith("temp_table.")
-    }
+    other_domains = sorted(set(DOMAIN_CONFIG) - {domain})
+    other_temp_owners: dict[str, set[str]] = defaultdict(set)
+    for other_domain in other_domains:
+        other_skill = repo_root / str(DOMAIN_CONFIG[other_domain]["skill"])
+        other_temp_paths = list((other_skill / "knowledge" / "temp_tables").glob("*.md"))
+        other_temp_paths.extend(
+            path
+            for path in (other_skill / "knowledge" / "tables").glob("temp_table.*.md")
+        )
+        for path in other_temp_paths:
+            if path.name.lower().startswith("temp_table."):
+                other_temp_owners[path.name.removesuffix(".md")].add(other_domain)
+    other_temps = set(other_temp_owners)
     exclusive_own = sorted(own_temps - other_temps)
     forbidden = sorted(other_temps - own_temps)
     dashboard_registry = _build_dashboard_registry(
@@ -272,7 +275,7 @@ def _build_domain_manifest(
             "id": domain,
             "name": config["name"],
             "skill": config["skill"],
-            "isolated_from": [other_domain],
+            "isolated_from": other_domains,
         },
         "authority": {
             "business_semantics": "domain_markdown_and_raw_sql",
@@ -297,6 +300,11 @@ def _build_domain_manifest(
             "exclusive_temp_tables": exclusive_own,
             "forbidden_temp_tables": forbidden,
             "same_name_temp_tables_require_domain_evidence": sorted(own_temps & other_temps),
+            "forbidden_temp_table_owners": {
+                table: sorted(owners)
+                for table, owners in sorted(other_temp_owners.items())
+                if table not in own_temps
+            },
             "forbid_cross_domain_metric_defaulting": True,
             "cross_department_comparison_requires_two_specs": True,
         },

@@ -31,6 +31,7 @@ Validate the title during `plan`; do not create a node with a non-conforming tit
 
 - `metadata.domain=market_consultant` → title starts with `市场顾问部_`.
 - `metadata.domain=qingcheng` → title starts with `青橙项目部_`.
+- `metadata.domain=jingpin_department` → title starts with `精品班学部_`.
 - Separate period, date, and data-description segments with single underscores, for example `市场顾问部_20260808_渠道数据` or `青橙项目部_20260626期_抖音正价复用_过程数据`.
 - Do not use hyphens, spaces, slashes, empty segments, or a different department prefix. The plan is rejected before any remote write when the rule fails.
 
