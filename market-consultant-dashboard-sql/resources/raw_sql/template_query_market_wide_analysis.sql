@@ -63,8 +63,60 @@ with denglu_app as
       and t1.section_assign_employee_third_level_department_name = '市场顾问部'
       and t1.period_mapping_first_level_department_name = 'H业务线'
       and t1.period_mapping_second_level_department_name in ('精品班学部','青橙项目部','一对一学部','本地化大班学部','市场部','菁英班学部')
-      and (concat(cast(date_format(date_add('day',4,date_trunc('week',date_add('day',-1,date_parse(replace(concat(group_period_year,group_period_term),'期',''),'%Y%m%d')))),'%Y%m%d')as varchar),'期')) >= ${period_name1}
-      and (concat(cast(date_format(date_add('day',4,date_trunc('week',date_add('day',-1,date_parse(replace(concat(group_period_year,group_period_term),'期',''),'%Y%m%d')))),'%Y%m%d')as varchar),'期')) < ${period_name2}
+      and (case
+    when cast(date_parse(replace(concat(group_period_year,group_period_term),'期',''),'%Y%m%d') as date)
+        between date '2026-07-14' and date '2026-07-19'
+    then '20260716期'
+    when cast(date_parse(replace(concat(group_period_year,group_period_term),'期',''),'%Y%m%d') as date)
+        between date '2026-07-20' and date '2026-07-25'
+    then '20260722期'
+    when cast(date_parse(replace(concat(group_period_year,group_period_term),'期',''),'%Y%m%d') as date)
+        between date '2026-07-26' and date '2026-07-31'
+    then '20260728期'
+    when cast(date_parse(replace(concat(group_period_year,group_period_term),'期',''),'%Y%m%d') as date)
+        between date '2026-08-01' and date '2026-08-06'
+    then '20260803期'
+    when cast(date_parse(replace(concat(group_period_year,group_period_term),'期',''),'%Y%m%d') as date)
+        between date '2026-08-07' and date '2026-08-12'
+    then '20260808期'
+    when cast(date_parse(replace(concat(group_period_year,group_period_term),'期',''),'%Y%m%d') as date)
+        between date '2026-08-13' and date '2026-08-18'
+    then '20260815期'
+    else concat(
+        date_format(
+            date_trunc('week', cast(date_parse(replace(concat(group_period_year,group_period_term),'期',''),'%Y%m%d') as date)) + interval '4' day,
+            '%Y%m%d'
+        ),
+        '期'
+    )
+end) >= ${period_name1}
+      and (case
+    when cast(date_parse(replace(concat(group_period_year,group_period_term),'期',''),'%Y%m%d') as date)
+        between date '2026-07-14' and date '2026-07-19'
+    then '20260716期'
+    when cast(date_parse(replace(concat(group_period_year,group_period_term),'期',''),'%Y%m%d') as date)
+        between date '2026-07-20' and date '2026-07-25'
+    then '20260722期'
+    when cast(date_parse(replace(concat(group_period_year,group_period_term),'期',''),'%Y%m%d') as date)
+        between date '2026-07-26' and date '2026-07-31'
+    then '20260728期'
+    when cast(date_parse(replace(concat(group_period_year,group_period_term),'期',''),'%Y%m%d') as date)
+        between date '2026-08-01' and date '2026-08-06'
+    then '20260803期'
+    when cast(date_parse(replace(concat(group_period_year,group_period_term),'期',''),'%Y%m%d') as date)
+        between date '2026-08-07' and date '2026-08-12'
+    then '20260808期'
+    when cast(date_parse(replace(concat(group_period_year,group_period_term),'期',''),'%Y%m%d') as date)
+        between date '2026-08-13' and date '2026-08-18'
+    then '20260815期'
+    else concat(
+        date_format(
+            date_trunc('week', cast(date_parse(replace(concat(group_period_year,group_period_term),'期',''),'%Y%m%d') as date)) + interval '4' day,
+            '%Y%m%d'
+        ),
+        '期'
+    )
+end) < ${period_name2}
 )
 ,src_keyed AS (
     select
@@ -381,7 +433,33 @@ end as channel,
 
 ,data as
 (select distinct
-concat(cast(date_format(date_add('day',4,date_trunc('week',date_add('day',-1,date_parse(replace(concat(group_period_year,group_period_term),'期',''),'%Y%m%d')))),'%Y%m%d')as varchar),'期') period_name,
+case
+    when cast(date_parse(replace(concat(group_period_year,group_period_term),'期',''),'%Y%m%d') as date)
+        between date '2026-07-14' and date '2026-07-19'
+    then '20260716期'
+    when cast(date_parse(replace(concat(group_period_year,group_period_term),'期',''),'%Y%m%d') as date)
+        between date '2026-07-20' and date '2026-07-25'
+    then '20260722期'
+    when cast(date_parse(replace(concat(group_period_year,group_period_term),'期',''),'%Y%m%d') as date)
+        between date '2026-07-26' and date '2026-07-31'
+    then '20260728期'
+    when cast(date_parse(replace(concat(group_period_year,group_period_term),'期',''),'%Y%m%d') as date)
+        between date '2026-08-01' and date '2026-08-06'
+    then '20260803期'
+    when cast(date_parse(replace(concat(group_period_year,group_period_term),'期',''),'%Y%m%d') as date)
+        between date '2026-08-07' and date '2026-08-12'
+    then '20260808期'
+    when cast(date_parse(replace(concat(group_period_year,group_period_term),'期',''),'%Y%m%d') as date)
+        between date '2026-08-13' and date '2026-08-18'
+    then '20260815期'
+    else concat(
+        date_format(
+            date_trunc('week', cast(date_parse(replace(concat(group_period_year,group_period_term),'期',''),'%Y%m%d') as date)) + interval '4' day,
+            '%Y%m%d'
+        ),
+        '期'
+    )
+end period_name,
  virtual_third_department_name  depart_1,
 virtual_fourth_department_name  depart,
     virtual_leader_email_name  jingli,-- 大组长
@@ -564,18 +642,32 @@ where dt=format_datetime(NOW()-interval '2' hour,'YYYYMMdd') and hour=format_dat
                 user_number,
                 begin_time,
                 substr(begin_time, 12, 5) as ke_time,
-case 
-	when cast(begin_time as date) >= date '2026-02-25' and cast(begin_time as date) <= date '2026-03-02' then '20260227期'
-	when cast(begin_time as date) >= date '2026-02-17' and cast(begin_time as date) <= date '2026-02-24' then '20260220期'		
-	when cast(begin_time as date) >= date '2026-02-09' and cast(begin_time as date) <= date '2026-02-16' then '20260213期'
-	when cast(begin_time as date) >= date '2026-02-03' and cast(begin_time as date) <= date '2026-02-08' then '20260206期'
-    -- 对于其他日期，使用原有的周逻辑
-    else 
-        case 
-            when day_of_week(cast(begin_time as date)) = 2 
-                then date_format(date_add('day', -3, date_trunc('week', cast(begin_time as date))), '%Y%m%d') || '期'
-            else date_format(date_add('day', 4, date_trunc('week', cast(begin_time as date))), '%Y%m%d') || '期'
-        end
+case
+    when cast(begin_time as date)
+        between date '2026-07-14' and date '2026-07-19'
+    then '20260716期'
+    when cast(begin_time as date)
+        between date '2026-07-20' and date '2026-07-25'
+    then '20260722期'
+    when cast(begin_time as date)
+        between date '2026-07-26' and date '2026-07-31'
+    then '20260728期'
+    when cast(begin_time as date)
+        between date '2026-08-01' and date '2026-08-06'
+    then '20260803期'
+    when cast(begin_time as date)
+        between date '2026-08-07' and date '2026-08-12'
+    then '20260808期'
+    when cast(begin_time as date)
+        between date '2026-08-13' and date '2026-08-18'
+    then '20260815期'
+    else concat(
+        date_format(
+            date_trunc('week', cast(begin_time as date)) + interval '4' day,
+            '%Y%m%d'
+        ),
+        '期'
+    )
 end as qici,
                 mod(date_diff('day', cast('2021-02-01' as date), cast(begin_time as date)), 7) as dow,
                 is_need_attend,
@@ -594,17 +686,32 @@ end as qici,
 d.qici,d.user_id,d.employee_email_name,count(distinct d.course_subject ) as subject
  from 
 	(select *,
-        case 
-			when substr(trade_time, 1, 10) >= '2026-02-25' and substr(trade_time, 1, 10) <= '2026-03-02' then '20260227期'
-			when substr(trade_time, 1, 10) >= '2026-02-17' and substr(trade_time, 1, 10) <= '2026-02-24' then '20260220期'
-			when substr(trade_time, 1, 10) >= '2026-02-09' and substr(trade_time, 1, 10) <= '2026-02-16' then '20260213期'
-			when substr(trade_time, 1, 10) >= '2026-02-03' and substr(trade_time, 1, 10) <= '2026-02-08' then '20260206期'
-			when substr(trade_time, 1, 10) >= '2026-01-27' and substr(trade_time, 1, 10) <= '2026-02-02' then '20260130期'
-			when substr(trade_time, 1, 10) >= '2026-01-20' and substr(trade_time, 1, 10) <= '2026-01-26' then '20260123期'
-		else case when day_of_week(cast(trade_time as timestamp)) = 1 
-           then concat(date_format(date_add('day', -3, date_trunc('week', cast(trade_time as timestamp))),'%Y%m%d'),'期')
-           else concat(date_format(date_add('day', 4, date_trunc('week', cast(trade_time as timestamp))), '%Y%m%d'),'期')
-        end 
+        case
+    when cast(trade_time as date)
+        between date '2026-07-14' and date '2026-07-19'
+    then '20260716期'
+    when cast(trade_time as date)
+        between date '2026-07-20' and date '2026-07-25'
+    then '20260722期'
+    when cast(trade_time as date)
+        between date '2026-07-26' and date '2026-07-31'
+    then '20260728期'
+    when cast(trade_time as date)
+        between date '2026-08-01' and date '2026-08-06'
+    then '20260803期'
+    when cast(trade_time as date)
+        between date '2026-08-07' and date '2026-08-12'
+    then '20260808期'
+    when cast(trade_time as date)
+        between date '2026-08-13' and date '2026-08-18'
+    then '20260815期'
+    else concat(
+        date_format(
+            date_trunc('week', cast(trade_time as date)) + interval '4' day,
+            '%Y%m%d'
+        ),
+        '期'
+    )
 end as qici
     from finance_dw.app_finance_performance_extend_details_hf 
     where dt = FORMAT_DATETIME(NOW() - INTERVAL '2' HOUR,'YYYYMMdd')

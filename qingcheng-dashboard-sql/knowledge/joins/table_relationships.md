@@ -2,6 +2,15 @@
 
 本文件记录青橙项目部看板中表与表、表与临时表、CTE 与 CTE 的关系。
 
+## 0A. 订单收退款交易与 GMV Communication 候选关系
+
+- 交易事实表：`finance_dw.app_finance_order_income_refund_info_df`；用户明确的“业财表”为 `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df`。
+- 可执行候选键：`交易.user_number = GMV.user_id and 交易.email_prefix = GMV.employee_email_prefix`。
+- 市场大客户运营部 `20260923` 物理探针中，85 个交易用户-归属人键命中 83 个，604 条已命中流水直接 Join 后成为 1,839 行（3.0447 倍），58 个键跨多期次；Query ID `1599192970`。该证据只确认表间物理风险，不得代替青橙本域范围验证。
+- GMV `flow_order_number` 是引流课订单号，禁止与正价交易 `order_number` 直接关联；GMV 实际无 `section_assign_employee_email_prefix`，Query ID `1599194950` 已报字段不可解析。
+- 使用边界：青橙正式使用前须在青橙范围独立复验；仅做命中时用 `exists`，取 GMV 属性时先按明确期次/主线索规则唯一化或预聚合。交易金额、人次不得在 GMV 明细 Join 后汇总。
+- 状态：候选物理关系已验证为高覆盖但有多对多风险；主归因唯一化规则待本域确认。
+
 ## 0. 2026-08-05 完成度金额主链
 
 当前个人/团队完成度 canonical SQL 的金额关系如下，优先于历史 raw 快照中的 finance 主金额描述：
@@ -90,3 +99,11 @@
 - 用户后续提供修正版 SQL 时，应优先核对本文件中的待确认关系。
 - 青橙个人完成度/个人转化的 `gmv_t` 属于先聚合后 union 的特殊链路，调课调班必须按订单/课程粒度聚合；若按人员/用户粒度聚合，会改变退款和课程部门入桶结果。
 - 三份完成度 SQL 的 `order_change_order_map` 仅用 `select distinct` 消除完全相同的订单映射，不使用 `order_number + clazz_name + user_id + trade_status + trade_type + trade_time + employee_email_name + course_grade` 这类不完整投影键吞掉 finance 独立明细；`has_transfer_event` 只表示链路是否存在 transfer 事件，不能代替当前 service 明细行的真实退款判断。
+
+## 订单流水 MBR 双事实关系（跨域物理证据，青橙须独立复验）
+
+- 正价课事实：bdg_ba.dws_crm_order_income_refund_period_detail_hf，粒度为订单 + stats_trade_timestamp + 收退款类型。
+- 促销课/引流课事实：GMV Communication 的 flow_order_* / flow_orders_* 字段；市场模板归属人取 source_manager_username/source_manager_name。
+- 两个分支分别生成金额与事件行后 UNION ALL，禁止直接明细 Join 后汇总金额。
+- App 与 DWS 宽松交易键 Query ID 1599294111 仍有 8 个 app-only、8 个 DWS-only，不能视作一一同义事实。
+- Query ID 1599327539 只确认跨域物理方法；青橙部门范围、权限集合及归属语义必须本域验证后才能执行。

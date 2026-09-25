@@ -93,7 +93,7 @@
     "cross_department_comparison_requires_two_specs": true
   },
   "counts": {
-    "knowledge_files": 149,
+    "knowledge_files": 151,
     "raw_sql_files": 65,
     "by_category": {
       "dashboard_web_profiles": 38,
@@ -105,7 +105,7 @@
       "raw_sql": 65,
       "reverse_index": 4,
       "sql_patterns": 17,
-      "tables": 30,
+      "tables": 32,
       "temp_tables": 9,
       "update_log": 1
     }
@@ -136,7 +136,7 @@
       },
       {
         "source_path": "semantic/contracts/join_contracts.json",
-        "sha256": "21bf26e87fac3476644508bcf1c4b0e58e8b1c18c1d7322542d1d922322be12e"
+        "sha256": "a2172581a2597cb31a3590f0491215cd17ccb4910fcaa850d858c902a82f10a0"
       },
       {
         "source_path": "semantic/contracts/scope_contracts.json",
@@ -1576,15 +1576,17 @@
       {
         "id": "market_consultant:governance:01_table_index",
         "source_path": "knowledge/01_table_index.md",
-        "sha256": "0bd7e50a2ee418242c66727606935c216dd53aedac261d37e7d4f4e1174b71ad",
-        "bytes": 10591,
+        "sha256": "baff57f78efbfb2c8d7d2990b8de579ddacd938e41f4815669a0939a715545c4",
+        "bytes": 11250,
         "title": "表索引",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "bdg_ba.dws_crm_order_income_refund_period_detail_hf",
           "da.app_dim_jp_channel_case_version_df",
           "dw.dim_cstm_active_user_c_appliction_mb_df",
           "dw.dim_employee_chain",
           "dw.dws_user_active_user_c_appliction_hf",
+          "finance_dw.app_finance_order_income_refund_info_df",
           "finance_dw.app_finance_performance_extend_details_hf",
           "finance_dw.dim_finance_employee_df",
           "finance_dw.dwd_finance_order_refund_df",
@@ -1753,13 +1755,14 @@
       {
         "id": "market_consultant:joins:common_join_keys",
         "source_path": "knowledge/joins/common_join_keys.md",
-        "sha256": "b21c0d8ae11c4a629ad72e0ee3c7194baa0deb7bdfce0ac5bce662ee5cbe710b",
-        "bytes": 13208,
+        "sha256": "77cf82c1332cab0b1dd4ea93a9c6356ea284e5478896910c2c690760a5266107",
+        "bytes": 13792,
         "title": "常用 join key",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
           "dw.dim_cstm_active_user_c_appliction_mb_df",
           "dw.dim_employee_chain",
+          "finance_dw.app_finance_order_income_refund_info_df",
           "finance_dw.app_finance_performance_extend_details_hf",
           "finance_dw.dim_finance_employee_df",
           "finance_dw.dwd_finance_order_refund_df",
@@ -1797,15 +1800,17 @@
       {
         "id": "market_consultant:joins:table_relationships",
         "source_path": "knowledge/joins/table_relationships.md",
-        "sha256": "07eeac11344a5442325b0e902abc2c5267bf7d7afbcc5a5fef967c54665f7ff0",
-        "bytes": 38831,
+        "sha256": "9dca000c5f1edc61f18d958785c61cadd3d58d741217867999c1ed09f8f0922f",
+        "bytes": 40814,
         "title": "表关系",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "bdg_ba.dws_crm_order_income_refund_period_detail_hf",
           "da.app_dim_jp_channel_case_version_df",
           "dw.dim_cstm_active_user_c_appliction_mb_df",
           "dw.dim_employee_chain",
           "dw.dws_user_active_user_c_appliction_hf",
+          "finance_dw.app_finance_order_income_refund_info_df",
           "finance_dw.app_finance_performance_extend_details_hf",
           "finance_dw.dim_finance_employee_df",
           "finance_dw.dwd_finance_order_refund_df",
@@ -3375,8 +3380,8 @@
       {
         "id": "market_consultant:raw_sql:template_query_market_mantou_order_detail_pay_time",
         "source_path": "resources/raw_sql/template_query_market_mantou_order_detail_pay_time.sql",
-        "sha256": "8e580b5411d6b93a9cc547aace3d62b22caeba73fa9490f03267c20e22cbf0b5",
-        "bytes": 68364,
+        "sha256": "b180f3a49a793ffaa7d0f98925158ea6e1f869a52ce455e72755b5a7f05499a1",
+        "bytes": 69904,
         "title": "template_query_market_mantou_order_detail_pay_time",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -3394,8 +3399,8 @@
       {
         "id": "market_consultant:raw_sql:template_query_market_mantou_order_detail_trade_time",
         "source_path": "resources/raw_sql/template_query_market_mantou_order_detail_trade_time.sql",
-        "sha256": "be99aa368462212436947ed20df0962509e0b75f1650012a4cc3a5d01ae94643",
-        "bytes": 66267,
+        "sha256": "2455410757c1871e926e4685da070378b49e18eb1e53f872985528a960e14a3d",
+        "bytes": 67807,
         "title": "template_query_market_mantou_order_detail_trade_time",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -3413,8 +3418,8 @@
       {
         "id": "market_consultant:raw_sql:template_query_market_multi_subject_order_user",
         "source_path": "resources/raw_sql/template_query_market_multi_subject_order_user.sql",
-        "sha256": "a02eb572d77d8d971b5256bb01a24c81a3d78ae4f32da7fc119ed5b9bd45ef31",
-        "bytes": 56051,
+        "sha256": "20633753ee6e1930d1431ad4fffa9573f1ee629c4614e3735917ef8e49c1dee6",
+        "bytes": 57348,
         "title": "template_query_market_multi_subject_order_user",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df"
@@ -3428,8 +3433,8 @@
       {
         "id": "market_consultant:raw_sql:template_query_market_period_conversion",
         "source_path": "resources/raw_sql/template_query_market_period_conversion.sql",
-        "sha256": "c0af270cae3daf9c19d489f7cd96945fc8d543d4e3997a1dc364edf3c49d9004",
-        "bytes": 17632,
+        "sha256": "6a14d38bc36fd7bce00a4dbb26673630cd11ac8ce4d6ed76944739243e524291",
+        "bytes": 18889,
         "title": "template_query_market_period_conversion",
         "table_refs": [
           "finance_dw.app_finance_performance_extend_details_hf",
@@ -3473,8 +3478,8 @@
       {
         "id": "market_consultant:raw_sql:template_query_market_wide_analysis",
         "source_path": "resources/raw_sql/template_query_market_wide_analysis.sql",
-        "sha256": "db109cf07779b300fb1dd8791beef2d1120478c15a53288f3d8c7908471fc8fb",
-        "bytes": 72348,
+        "sha256": "37769e3b07dfff595de8c1cec88ee44493cb981747c962020c8aba1f74432b25",
+        "bytes": 75655,
         "title": "template_query_market_wide_analysis",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -3538,12 +3543,13 @@
       {
         "id": "market_consultant:reverse_index:join_risk_index",
         "source_path": "knowledge/reverse_index/join_risk_index.md",
-        "sha256": "036572c65a9cd6931e480c92559b79cd916c25a3bebbac7e526f977e6178d726",
-        "bytes": 64266,
+        "sha256": "223be5f0601f99a0b0084dbac02d0ab2c39bebc142a8ea65af5e14b8a949b43d",
+        "bytes": 65654,
         "title": "JOIN 与结果异常风险索引",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
           "dw.dim_employee_chain",
+          "finance_dw.app_finance_order_income_refund_info_df",
           "finance_dw.app_finance_performance_extend_details_hf",
           "finance_dw.dim_finance_employee_df",
           "gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf",
@@ -4040,6 +4046,24 @@
         ]
       },
       {
+        "id": "market_consultant:tables:bdg_ba.dws_crm_order_income_refund_period_detail_hf",
+        "source_path": "knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md",
+        "sha256": "35de96239a0c36ff3757f1651e099752dbd2d1e6c8eddc2f6786564b4af03d1e",
+        "bytes": 3553,
+        "title": "bdg_ba.dws_crm_order_income_refund_period_detail_hf",
+        "table_refs": [
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "bdg_ba.dws_crm_order_income_refund_period_detail_hf",
+          "finance_dw.app_finance_order_income_refund_info_df"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "table_name": "bdg_ba.dws_crm_order_income_refund_period_detail_hf",
+        "aliases": [
+          "bdg_ba.dws_crm_order_income_refund_period_detail_hf"
+        ]
+      },
+      {
         "id": "market_consultant:tables:da.app_dim_jp_channel_case_version_df",
         "source_path": "knowledge/tables/da.app_dim_jp_channel_case_version_df.md",
         "sha256": "1caf9afb6ccb4a7acba7110202e52b97e14a4542ff8c13fe75f2fdfd31e3d748",
@@ -4102,6 +4126,23 @@
         "table_name": "dw.dws_user_active_user_c_appliction_hf",
         "aliases": [
           "dw.dws_user_active_user_c_appliction_hf"
+        ]
+      },
+      {
+        "id": "market_consultant:tables:finance_dw.app_finance_order_income_refund_info_df",
+        "source_path": "knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md",
+        "sha256": "9de77461641ec3729cf3a9a2f280a70eb2a22d172258a4b81096c63c4e98a8a3",
+        "bytes": 13190,
+        "title": "finance_dw.app_finance_order_income_refund_info_df",
+        "table_refs": [
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "finance_dw.app_finance_order_income_refund_info_df"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "table_name": "finance_dw.app_finance_order_income_refund_info_df",
+        "aliases": [
+          "finance_dw.app_finance_order_income_refund_info_df"
         ]
       },
       {
@@ -4672,15 +4713,17 @@
       {
         "id": "market_consultant:update_log:changelog",
         "source_path": "knowledge/update_log/changelog.md",
-        "sha256": "95172b9d747b327a826695d13bc7a72140dc1dfbcb4223f14f97a8435b72f824",
-        "bytes": 158943,
+        "sha256": "cf710883647c438da3d9d0ac259b06de3f8e3e3602035175d9b9f10108b20e49",
+        "bytes": 163710,
         "title": "更新记录",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "bdg_ba.dws_crm_order_income_refund_period_detail_hf",
           "da.app_dim_jp_channel_case_version_df",
           "dw.dim_cstm_active_user_c_appliction_mb_df",
           "dw.dim_employee_chain",
           "dw.dws_user_active_user_c_appliction_hf",
+          "finance_dw.app_finance_order_income_refund_info_df",
           "finance_dw.app_finance_performance_extend_details_hf",
           "finance_dw.dim_finance_employee_df",
           "finance_dw.dwd_finance_order_refund_df",
@@ -4718,6 +4761,7 @@
           "template_query_market_mantou_order_detail_pay_time.sql",
           "template_query_market_mantou_order_detail_trade_time.sql",
           "template_query_market_multi_subject_order_user.sql",
+          "template_query_market_period_conversion.sql",
           "template_query_market_wide.sql",
           "template_query_market_wide_analysis.sql"
         ],
@@ -4760,6 +4804,8 @@
         "knowledge/sql_patterns/dashboard_query_patterns.md",
         "knowledge/sql_patterns/outbound_call_process_export_template.md",
         "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
+        "knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md",
+        "knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md",
         "knowledge/tables/gaotu_hl.dim_mkt_h_lead_channel_df.md",
         "knowledge/tables/gaotu_hl.dim_mkt_h_period_map_df.md",
         "knowledge/tables/gaotu_hl.ods_mkt_h_channel_rule_df.md",
@@ -4812,6 +4858,12 @@
         "resources/raw_sql/template_query_market_multi_subject_order_user.sql",
         "resources/raw_sql/template_query_market_wide.sql",
         "resources/raw_sql/template_query_market_wide_analysis.sql"
+      ],
+      "bdg_ba.dws_crm_order_income_refund_period_detail_hf": [
+        "knowledge/01_table_index.md",
+        "knowledge/joins/table_relationships.md",
+        "knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md",
+        "knowledge/update_log/changelog.md"
       ],
       "da.app_dim_jp_channel_case_version_df": [
         "knowledge/01_table_index.md",
@@ -4878,6 +4930,15 @@
         "resources/raw_sql/data_center_market_2688.sql",
         "resources/raw_sql/outbound_call_process_dashboard.sql",
         "resources/raw_sql/template_query_market_wide.sql"
+      ],
+      "finance_dw.app_finance_order_income_refund_info_df": [
+        "knowledge/01_table_index.md",
+        "knowledge/joins/common_join_keys.md",
+        "knowledge/joins/table_relationships.md",
+        "knowledge/reverse_index/join_risk_index.md",
+        "knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md",
+        "knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md",
+        "knowledge/update_log/changelog.md"
       ],
       "finance_dw.app_finance_performance_extend_details_hf": [
         "knowledge/01_table_index.md",
@@ -5957,7 +6018,8 @@
         "knowledge/update_log/changelog.md"
       ],
       "template_query_market_period_conversion.sql": [
-        "knowledge/dashboards/template_query_market_datasets.md"
+        "knowledge/dashboards/template_query_market_datasets.md",
+        "knowledge/update_log/changelog.md"
       ],
       "template_query_market_wide.sql": [
         "knowledge/dashboards/template_query_market_datasets.md",
@@ -5979,8 +6041,8 @@
     },
     {
       "source_path": "knowledge/01_table_index.md",
-      "sha256": "0bd7e50a2ee418242c66727606935c216dd53aedac261d37e7d4f4e1174b71ad",
-      "bytes": 10591,
+      "sha256": "baff57f78efbfb2c8d7d2990b8de579ddacd938e41f4815669a0939a715545c4",
+      "bytes": 11250,
       "category": "governance"
     },
     {
@@ -6357,14 +6419,14 @@
     },
     {
       "source_path": "knowledge/joins/common_join_keys.md",
-      "sha256": "b21c0d8ae11c4a629ad72e0ee3c7194baa0deb7bdfce0ac5bce662ee5cbe710b",
-      "bytes": 13208,
+      "sha256": "77cf82c1332cab0b1dd4ea93a9c6356ea284e5478896910c2c690760a5266107",
+      "bytes": 13792,
       "category": "joins"
     },
     {
       "source_path": "knowledge/joins/table_relationships.md",
-      "sha256": "07eeac11344a5442325b0e902abc2c5267bf7d7afbcc5a5fef967c54665f7ff0",
-      "bytes": 38831,
+      "sha256": "9dca000c5f1edc61f18d958785c61cadd3d58d741217867999c1ed09f8f0922f",
+      "bytes": 40814,
       "category": "joins"
     },
     {
@@ -6507,8 +6569,8 @@
     },
     {
       "source_path": "knowledge/reverse_index/join_risk_index.md",
-      "sha256": "036572c65a9cd6931e480c92559b79cd916c25a3bebbac7e526f977e6178d726",
-      "bytes": 64266,
+      "sha256": "223be5f0601f99a0b0084dbac02d0ab2c39bebc142a8ea65af5e14b8a949b43d",
+      "bytes": 65654,
       "category": "reverse_index"
     },
     {
@@ -6644,6 +6706,12 @@
       "category": "tables"
     },
     {
+      "source_path": "knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md",
+      "sha256": "35de96239a0c36ff3757f1651e099752dbd2d1e6c8eddc2f6786564b4af03d1e",
+      "bytes": 3553,
+      "category": "tables"
+    },
+    {
       "source_path": "knowledge/tables/da.app_dim_jp_channel_case_version_df.md",
       "sha256": "1caf9afb6ccb4a7acba7110202e52b97e14a4542ff8c13fe75f2fdfd31e3d748",
       "bytes": 2734,
@@ -6665,6 +6733,12 @@
       "source_path": "knowledge/tables/dw.dws_user_active_user_c_appliction_hf.md",
       "sha256": "89ca71f8750e1b589666e5338ee62f23ee432fe7fecc4c8548b4a4689d3cce38",
       "bytes": 3612,
+      "category": "tables"
+    },
+    {
+      "source_path": "knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md",
+      "sha256": "9de77461641ec3729cf3a9a2f280a70eb2a22d172258a4b81096c63c4e98a8a3",
+      "bytes": 13190,
       "category": "tables"
     },
     {
@@ -6861,8 +6935,8 @@
     },
     {
       "source_path": "knowledge/update_log/changelog.md",
-      "sha256": "95172b9d747b327a826695d13bc7a72140dc1dfbcb4223f14f97a8435b72f824",
-      "bytes": 158943,
+      "sha256": "cf710883647c438da3d9d0ac259b06de3f8e3e3602035175d9b9f10108b20e49",
+      "bytes": 163710,
       "category": "update_log"
     },
     {
@@ -7221,26 +7295,26 @@
     },
     {
       "source_path": "resources/raw_sql/template_query_market_mantou_order_detail_pay_time.sql",
-      "sha256": "8e580b5411d6b93a9cc547aace3d62b22caeba73fa9490f03267c20e22cbf0b5",
-      "bytes": 68364,
+      "sha256": "b180f3a49a793ffaa7d0f98925158ea6e1f869a52ce455e72755b5a7f05499a1",
+      "bytes": 69904,
       "category": "raw_sql"
     },
     {
       "source_path": "resources/raw_sql/template_query_market_mantou_order_detail_trade_time.sql",
-      "sha256": "be99aa368462212436947ed20df0962509e0b75f1650012a4cc3a5d01ae94643",
-      "bytes": 66267,
+      "sha256": "2455410757c1871e926e4685da070378b49e18eb1e53f872985528a960e14a3d",
+      "bytes": 67807,
       "category": "raw_sql"
     },
     {
       "source_path": "resources/raw_sql/template_query_market_multi_subject_order_user.sql",
-      "sha256": "a02eb572d77d8d971b5256bb01a24c81a3d78ae4f32da7fc119ed5b9bd45ef31",
-      "bytes": 56051,
+      "sha256": "20633753ee6e1930d1431ad4fffa9573f1ee629c4614e3735917ef8e49c1dee6",
+      "bytes": 57348,
       "category": "raw_sql"
     },
     {
       "source_path": "resources/raw_sql/template_query_market_period_conversion.sql",
-      "sha256": "c0af270cae3daf9c19d489f7cd96945fc8d543d4e3997a1dc364edf3c49d9004",
-      "bytes": 17632,
+      "sha256": "6a14d38bc36fd7bce00a4dbb26673630cd11ac8ce4d6ed76944739243e524291",
+      "bytes": 18889,
       "category": "raw_sql"
     },
     {
@@ -7251,8 +7325,8 @@
     },
     {
       "source_path": "resources/raw_sql/template_query_market_wide_analysis.sql",
-      "sha256": "db109cf07779b300fb1dd8791beef2d1120478c15a53288f3d8c7908471fc8fb",
-      "bytes": 72348,
+      "sha256": "37769e3b07dfff595de8c1cec88ee44493cb981747c962020c8aba1f74432b25",
+      "bytes": 75655,
       "category": "raw_sql"
     }
   ]

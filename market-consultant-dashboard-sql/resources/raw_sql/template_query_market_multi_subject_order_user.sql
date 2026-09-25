@@ -1,15 +1,32 @@
 with src as (
     select
-        concat(
-            date_format(
-                date_trunc(
-                    'week',
-                    date_parse(replace(concat(t.group_period_year, t.group_period_term), '期', ''), '%Y%m%d') - interval '1' day
-                ) + interval '4' day,
-                '%Y%m%d'
-            ),
-            '期'
-        ) as period_name,
+        case
+            when cast(date_parse(replace(concat(t.group_period_year, t.group_period_term), '期', ''), '%Y%m%d') as date)
+                between date '2026-07-14' and date '2026-07-19'
+            then '20260716期'
+            when cast(date_parse(replace(concat(t.group_period_year, t.group_period_term), '期', ''), '%Y%m%d') as date)
+                between date '2026-07-20' and date '2026-07-25'
+            then '20260722期'
+            when cast(date_parse(replace(concat(t.group_period_year, t.group_period_term), '期', ''), '%Y%m%d') as date)
+                between date '2026-07-26' and date '2026-07-31'
+            then '20260728期'
+            when cast(date_parse(replace(concat(t.group_period_year, t.group_period_term), '期', ''), '%Y%m%d') as date)
+                between date '2026-08-01' and date '2026-08-06'
+            then '20260803期'
+            when cast(date_parse(replace(concat(t.group_period_year, t.group_period_term), '期', ''), '%Y%m%d') as date)
+                between date '2026-08-07' and date '2026-08-12'
+            then '20260808期'
+            when cast(date_parse(replace(concat(t.group_period_year, t.group_period_term), '期', ''), '%Y%m%d') as date)
+                between date '2026-08-13' and date '2026-08-18'
+            then '20260815期'
+            else concat(
+                date_format(
+                    date_trunc('week', cast(date_parse(replace(concat(t.group_period_year, t.group_period_term), '期', ''), '%Y%m%d') as date)) + interval '4' day,
+                    '%Y%m%d'
+                ),
+                '期'
+            )
+        end as period_name,
         t.lead_id,
         t.user_id,
         t.rule_name,

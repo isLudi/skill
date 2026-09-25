@@ -5932,6 +5932,30 @@
       "business_semantics_excluded": true
     },
     {
+      "id": "physical:bdg_ba.dws_crm_order_income_refund_period_detail_hf",
+      "name": "bdg_ba.dws_crm_order_income_refund_period_detail_hf",
+      "domains": [
+        "market_consultant",
+        "qingcheng"
+      ],
+      "source_docs": [
+        {
+          "domain": "market_consultant",
+          "source_path": "market-consultant-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md",
+          "sha256": "35de96239a0c36ff3757f1651e099752dbd2d1e6c8eddc2f6786564b4af03d1e"
+        },
+        {
+          "domain": "qingcheng",
+          "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md",
+          "sha256": "6a41903b337632445efcdbdb299bfe0cdd601801d3f983b649d01bf82c6ffaa8"
+        }
+      ],
+      "columns": [],
+      "partition_candidates": [],
+      "conflicts": [],
+      "business_semantics_excluded": true
+    },
+    {
       "id": "physical:da.app_dim_jp_channel_case_version_df",
       "name": "da.app_dim_jp_channel_case_version_df",
       "domains": [
@@ -7927,6 +7951,1473 @@
       "partition_candidates": [
         "dt",
         "hour"
+      ],
+      "conflicts": [],
+      "business_semantics_excluded": true
+    },
+    {
+      "id": "physical:finance_dw.app_finance_order_income_refund_info_df",
+      "name": "finance_dw.app_finance_order_income_refund_info_df",
+      "domains": [
+        "market_consultant",
+        "qingcheng"
+      ],
+      "source_docs": [
+        {
+          "domain": "market_consultant",
+          "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md",
+          "sha256": "9de77461641ec3729cf3a9a2f280a70eb2a22d172258a4b81096c63c4e98a8a3"
+        },
+        {
+          "domain": "qingcheng",
+          "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md",
+          "sha256": "1e438c04c8cd36b155d78dee125d8baa78a3cc6b61f9f29a59c5f8967e32eed8"
+        }
+      ],
+      "columns": [
+        {
+          "name": "assistant_email_prefix",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "biz_line_type",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "biz_type",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "business_dt",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "calzz_beign_timestamp",
+          "types": [
+            "timestamp"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "timestamp",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "timestamp",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "channel_first_level_department_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "channel_first_level_department_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "channel_second_level_department_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "channel_second_level_department_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "channel_source",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "channel_third_level_department_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "channel_third_level_department_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "channel_top_level_department_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "channel_top_level_department_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "city_code",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "city_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "clazz_biz_number",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "clazz_end_timestamp",
+          "types": [
+            "timestamp"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "timestamp",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "timestamp",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "clazz_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "clazz_number",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "clazz_type",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "course_biz_number",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "course_category_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "course_first_level_department_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "course_first_level_department_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "course_first_level_subject_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "course_first_level_subject_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "course_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "course_number",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "course_second_level_department_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "course_second_level_department_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "course_second_level_subject_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "course_second_level_subject_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "course_third_level_department_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "course_third_level_department_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "course_third_level_subject_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "course_third_level_subject_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "course_top_level_department_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "course_top_level_department_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "current_subclazz_biz_number",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "current_subclazz_number",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "dt",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "email_prefix",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "employee_email_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "employee_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "final_paid_timestamp",
+          "types": [
+            "timestamp"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "timestamp",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "timestamp",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "fund_supervision_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "fund_supervision_number",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "goods_first_level_department_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "goods_number",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "goods_second_level_department_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "goods_third_level_department_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "goods_third_level_department_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "goods_top_level_department_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "goods_top_level_department_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "goods_type",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "order_number",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "order_price_category",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "order_status",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "order_type",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "original_order_number",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "pay_number",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "performance_employee_id",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "performance_first_level_department_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "performance_second_level_department_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "performance_third_level_department_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "performance_third_level_department_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "performance_top_level_department_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "performance_type",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "school_term_id",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "school_year_id",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "talent_type",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "talent_type_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "teacher_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "teacher_nickname_first",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "trade_timestamp",
+          "types": [
+            "timestamp"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "timestamp",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "timestamp",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "type",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "user_city_level",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "user_number",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "user_province",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        }
+      ],
+      "partition_candidates": [
+        "dt"
       ],
       "conflicts": [],
       "business_semantics_excluded": true

@@ -33,6 +33,8 @@ SCRIPT_VERSION = "1.2.0"
 DEFAULT_PARENT_URL = "https://gaotuedu.feishu.cn/wiki/FcLew9hPXi5ViSkxsf9cvrtCnZb"
 META_SHEET = "运行元数据"
 DATE_NAME_RE = re.compile(r"(日期|时间|date|time|dt|hour)", re.IGNORECASE)
+IDENTIFIER_NAME_RE = re.compile(r"(订单号|编号|用户号|id$|代码$|编码$|code$)", re.IGNORECASE)
+IDENTIFIER_EXACT_NAMES = {"业务线"}
 A1_RANGE_RE = re.compile(r"^([A-Z]+)([1-9][0-9]*):([A-Z]+)([1-9][0-9]*)$")
 DOMAIN_TITLE_PREFIX = {
     "market_consultant": "市场顾问部_",
@@ -114,14 +116,38 @@ def cli_command(args: list[str]) -> list[str]:
     raise FileNotFoundError("lark-cli was not found on PATH")
 
 
+def is_identifier_column(column: Any) -> bool:
+    name = str(column).strip()
+    return name in IDENTIFIER_EXACT_NAMES or bool(IDENTIFIER_NAME_RE.search(name))
+
+
+def identifier_value(value: Any) -> Any:
+    if value is None:
+        return None
+    try:
+        if pd.isna(value):
+            return None
+    except (TypeError, ValueError):
+        pass
+    if isinstance(value, float) and value.is_integer():
+        return format(value, ".0f")
+    return str(value)
+
+
 def read_table(path: Path) -> pd.DataFrame:
     suffix = path.suffix.lower()
     if suffix in {".xlsx", ".xlsm", ".xls"}:
-        frame = pd.read_excel(path, sheet_name=0)
+        columns = pd.read_excel(path, sheet_name=0, nrows=0).columns
+        converters = {column: identifier_value for column in columns if is_identifier_column(column)}
+        frame = pd.read_excel(path, sheet_name=0, converters=converters)
     elif suffix == ".csv":
-        frame = pd.read_csv(path)
+        columns = pd.read_csv(path, nrows=0).columns
+        dtypes = {column: "string" for column in columns if is_identifier_column(column)}
+        frame = pd.read_csv(path, dtype=dtypes)
     elif suffix == ".tsv":
-        frame = pd.read_csv(path, sep="\t")
+        columns = pd.read_csv(path, sep="\t", nrows=0).columns
+        dtypes = {column: "string" for column in columns if is_identifier_column(column)}
+        frame = pd.read_csv(path, sep="\t", dtype=dtypes)
     elif suffix == ".json":
         frame = pd.read_json(path)
     else:
@@ -142,6 +168,13 @@ def maybe_parse_dates(frame: pd.DataFrame) -> pd.DataFrame:
             continue
         parsed = pd.to_datetime(non_empty, errors="coerce")
         if parsed.notna().all():
+            if (
+                parsed.dt.hour.ne(0).any()
+                or parsed.dt.minute.ne(0).any()
+                or parsed.dt.second.ne(0).any()
+                or parsed.dt.microsecond.ne(0).any()
+            ):
+                continue
             result[column] = pd.to_datetime(result[column], errors="coerce")
     return result
 
@@ -385,7 +418,10 @@ def workbook_info(url: str) -> dict[str, Any]:
 
 
 def table_get(url: str) -> dict[str, Any]:
-    result = run_cli(["sheets", "+table-get", "--url", url, "--as", "user", "--format", "json"])
+    result = run_cli([
+        "sheets", "+table-get", "--url", url, "--max-chars", "20000000",
+        "--as", "user", "--format", "json",
+    ])
     return result.get("data", {})
 
 

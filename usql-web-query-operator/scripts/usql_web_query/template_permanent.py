@@ -183,7 +183,7 @@ def build_permanent_template_plan(
 
     placeholder_names, placeholder_diagnostics = extract_placeholder_names(sql_text)
     diagnostics.extend(placeholder_diagnostics)
-    if not placeholder_names:
+    if not placeholder_names and target_template_id is None:
         diagnostics.append(
             _diagnostic(
                 "PARAMETERIZED_SQL_REQUIRED",

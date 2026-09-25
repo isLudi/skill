@@ -7,6 +7,7 @@
 | 表名 | 中文名称 | 主要用途 | 分区字段 | 小时字段 | 状态 | 详情 |
 |---|---|---|---|---|---|---|
 | `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df` | 线索成本 GMV 沟通学习全链路表 | 青橙有效线索主表 | `dt` | `hour` | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md` |
+| `bdg_ba.dws_crm_order_income_refund_period_detail_hf` | 订单业绩收退款流水期归因明细 | 正价课现金流水/MBR 事实源；青橙部门范围待本域独立验证 | `dt` | `hour` | 数据地图和市场模板物理关系已确认 | `knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md` |
 | `bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf` | 潜客转线索指标统计表 | 青橙 TMK/规划系统潜客过程数据和潜客转正常线索链路回补 | `dt` | `hour` | 数据地图和 live SQL 已确认；转移承接顾问覆盖待补充来源 | `knowledge/tables/bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf.md` |
 | `dw.dim_employee_chain` | 员工组织链维表 | 员工青橙任职起止时间 | `dt` | 无 | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/dw.dim_employee_chain.md` |
 | `service_dw.dm_crm_lead_stats_detail_hf` | 线索统计明细小时表 | 首次接通时间差 | `dt` | `hour` | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/service_dw.dm_crm_lead_stats_detail_hf.md` |
@@ -16,6 +17,7 @@
 | `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` | CRM 订单线索归因收入退款明细小时表 | 青橙转化、收入、退款、净营收、完成度原始支付归属和 transfer 补充识别 | `dt` | `hour` | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md` |
 | `dw.dim_cstm_active_user_c_appliction_mb_df` | 用户应用活跃天级维表 | 近 7 天 APP/PC 登录 | `dt` | 无 | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/dw.dim_cstm_active_user_c_appliction_mb_df.md` |
 | `dw.dws_user_active_user_c_appliction_hf` | 用户应用活跃小时表 | 近 2 小时 APP/PC 登录 | `dt` | `hour` | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/dw.dws_user_active_user_c_appliction_hf.md` |
+| `finance_dw.app_finance_order_income_refund_info_df` | 订单收款退款交易信息表 | 收退款交易明细-日全量快照；精确流水唯一键待 USQL 验证 | `dt` | 否 | 数据地图已登记 86 个非分区字段和 1 个分区字段；与 GMV Communication 候选桥为用户+归属人，须先唯一化 | `knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md` |
 | `finance_dw.app_finance_performance_extend_details_hf` | 财务业绩扩展明细小时表 | 年季月营收、团队完成度、个人转化 | `dt` | `hour` | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/finance_dw.app_finance_performance_extend_details_hf.md` |
 | `finance_dw.dim_finance_employee_df` | 员工维表 | 员工账号、在职状态和组织架构补充 | `dt` | 无 | 公共表结构复用，字段待表结构确认 | `knowledge/tables/finance_dw.dim_finance_employee_df.md` |
 | `finance_dw.dm_finance_order_refund_detail_df` | 财务订单退款明细日表 | 全退订单行课节数、退 4 阈值 | `dt` | 无 | 已从 SQL 入库，字段待表结构确认 | `knowledge/tables/finance_dw.dm_finance_order_refund_detail_df.md` |

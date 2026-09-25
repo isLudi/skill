@@ -15,14 +15,33 @@ from (
         talent_type_name, city_name as city, department,
         biz_number, course_grade as grade_list,
         course_subject as subject,
-	 case 
-			when substr(trade_time, 1, 10) >= '2026-02-25' and substr(trade_time, 1, 10) <= '2026-03-02' then '20260227期'
-			when substr(trade_time, 1, 10) >= '2026-02-17' and substr(trade_time, 1, 10) <= '2026-02-24' then '20260220期'
-			when substr(trade_time, 1, 10) >= '2026-02-09' and substr(trade_time, 1, 10) <= '2026-02-16' then '20260213期'
-			when substr(trade_time, 1, 10) >= '2026-02-03' and substr(trade_time, 1, 10) <= '2026-02-08' then '20260206期'
-			when substr(trade_time, 1, 10) >= '2026-01-27' and substr(trade_time, 1, 10) <= '2026-02-02' then '20260130期'
-			when substr(trade_time, 1, 10) >= '2026-01-20' and substr(trade_time, 1, 10) <= '2026-01-26' then '20260123期'
-		else concat(date_format(date_add('day', 4, date_trunc('week', date_add('day', -1, cast(trade_time as timestamp)))), '%Y%m%d'), '期') end as qici,
+	 case
+    when cast(trade_time as date)
+        between date '2026-07-14' and date '2026-07-19'
+    then '20260716期'
+    when cast(trade_time as date)
+        between date '2026-07-20' and date '2026-07-25'
+    then '20260722期'
+    when cast(trade_time as date)
+        between date '2026-07-26' and date '2026-07-31'
+    then '20260728期'
+    when cast(trade_time as date)
+        between date '2026-08-01' and date '2026-08-06'
+    then '20260803期'
+    when cast(trade_time as date)
+        between date '2026-08-07' and date '2026-08-12'
+    then '20260808期'
+    when cast(trade_time as date)
+        between date '2026-08-13' and date '2026-08-18'
+    then '20260815期'
+    else concat(
+        date_format(
+            date_trunc('week', cast(trade_time as date)) + interval '4' day,
+            '%Y%m%d'
+        ),
+        '期'
+    )
+end as qici,
         leader_employee_email_name, teacher_name,
         case course_term_id 
             when 'C' then '春季' 
@@ -104,7 +123,33 @@ from (
 ------依据期次获取最新uid
 ,n_uid as (
 select aa.*,row_number() over (partition by original_order_user_number order by qici desc) as rn
-from (select lead_id,original_order_user_number,performance_employee_email_name,concat(cast(date_format(date_add('day',4,date_trunc('week',date_add('day',-1,date_parse(replace(concat(trade_group_period_year,trade_group_period_term),'期',''),'%Y%m%d')))),'%Y%m%d')as varchar),'期') qici
+from (select lead_id,original_order_user_number,performance_employee_email_name,case
+    when cast(date_parse(replace(concat(trade_group_period_year,trade_group_period_term),'期',''),'%Y%m%d') as date)
+        between date '2026-07-14' and date '2026-07-19'
+    then '20260716期'
+    when cast(date_parse(replace(concat(trade_group_period_year,trade_group_period_term),'期',''),'%Y%m%d') as date)
+        between date '2026-07-20' and date '2026-07-25'
+    then '20260722期'
+    when cast(date_parse(replace(concat(trade_group_period_year,trade_group_period_term),'期',''),'%Y%m%d') as date)
+        between date '2026-07-26' and date '2026-07-31'
+    then '20260728期'
+    when cast(date_parse(replace(concat(trade_group_period_year,trade_group_period_term),'期',''),'%Y%m%d') as date)
+        between date '2026-08-01' and date '2026-08-06'
+    then '20260803期'
+    when cast(date_parse(replace(concat(trade_group_period_year,trade_group_period_term),'期',''),'%Y%m%d') as date)
+        between date '2026-08-07' and date '2026-08-12'
+    then '20260808期'
+    when cast(date_parse(replace(concat(trade_group_period_year,trade_group_period_term),'期',''),'%Y%m%d') as date)
+        between date '2026-08-13' and date '2026-08-18'
+    then '20260815期'
+    else concat(
+        date_format(
+            date_trunc('week', cast(date_parse(replace(concat(trade_group_period_year,trade_group_period_term),'期',''),'%Y%m%d') as date)) + interval '4' day,
+            '%Y%m%d'
+        ),
+        '期'
+    )
+end qici
 from service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf 
 where dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
         and hour = format_datetime(now() - interval '2' hour, 'HH')

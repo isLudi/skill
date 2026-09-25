@@ -1266,3 +1266,53 @@
 - 当前 22 个 Data Center 完整 CASE 消费者全部完成保存哈希回读及新 `SUCCESS`；模型 `2533` 已远端删除并从 current binding 退役，未重建。模型 `2885` 触发后延迟建单，最终运行 `171482346` 成功。全部当前调度已启用、未过期，因此无需三个月续期。
 - 模板 `7689/7808/8735/8882/8948/9002` 保留原 ID 原位发布，发布 SQL 哈希与计划一致；发布后真实查询 `401698/401699/401700/401701/401702/401706` 分别返回 `10126/8606/77/155/110/586` 行并全部成功。原申请与权限关系保持不变，无需重新申请；9002 使用 28 字段无碰撞键及 36/36/36/36/35 分组结构，142 秒成功，未出现 504。
 - 线上回读 SQL 已同步至 22 个 Data Center、6 个模板 stable canonical 文件及最新共享入口 `resources/raw_sql/market_channel_case_when_0918.sql`；远端已删除资源不恢复，无关历史模型 `2978` 保持不变。
+
+## 2026-09-24 数据地图字段补充
+
+- 使用数据地图 `tableV2/searchTableList`、`normalColumns`、`partitionColumns` 和 `getDdl` 接口刷新物理表字段信息。
+- 覆盖 `knowledge/tables` 中 1 张物理表文档；追加 81 个数据地图字段，回填类型 0 处、字段说明 0 处。
+- 复扫结果为字段缺口 0、类型占位 0、说明占位 0。
+- 未覆盖 `temp_table.*` 临时表文档；临时表字段仍以本地 Excel、SQL 使用场景和人工维护规则为准。
+
+## 2026-09-24 订单交易表与 GMV Communication 关系探查
+
+- 新增 `finance_dw.app_finance_order_income_refund_info_df` 数据地图字段文档，并明确本任务“业财表”为 `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df`。
+- USQL Query ID `1599192970` 验证 `user_number + email_prefix` 对 `user_id + employee_email_prefix` 命中 83/85 个键、覆盖 604/614 条流水，但直接 Join 放大为 1,839 行（3.0447 倍），禁止明细金额直连。
+- Query ID `1599194950` 证明 GMV 表不存在 `section_assign_employee_email_prefix`；同步记录 `flow_order_number` 仅为引流课订单号，不能关联正价交易订单号。
+
+## 2026-09-24 DWS 订单流水与 MBR 双事实口径确认
+
+- 新增 bdg_ba.dws_crm_order_income_refund_period_detail_hf 表文档和索引：数据地图表 ID 36724，订单 + 交易时间 + 收退款类型粒度，dt/hour 全量快照。
+- 市场 MBR 订单流水由 DWS 正价课与 GMV Communication 促销课分别生成后 UNION ALL；禁止金额事实明细直连。
+- Query ID 1599327539 完成 8 月模板复核：70 行 × 36 列、五项汇总一致；一笔 GMV 退款时间相对历史模板漂移 54 秒，Query ID 1599324316 已证明当前源记录唯一。
+- 完整周期任务 ID 1599331293 返回 2,708 行，临时模板已下线并删除；运行结果未作为业务数据写入知识库。
+
+## 2026-09-25 模板取数 stable canonical SQL 同步（模板 7808）
+
+- 线上 `published` 模板 `市场运营专用_多维全链路分析`（id `7808`）回读 SQL SHA-256 为 `37769e3b07dfff595de8c1cec88ee44493cb981747c962020c8aba1f74432b25`，只保留稳定入口 `resources/raw_sql/template_query_market_wide_analysis.sql`。
+- 本次清理日期后缀历史副本 0 个；历史 SQL 文本不进入知识库，也不作为路由入口。
+- 保存后已重建反向索引、共享 catalog、唯一版本审计、域内 integrity 和完整 Text2SQL 栈。
+
+## 2026-09-25 模板取数 stable canonical SQL 同步（模板 8735）
+
+- 线上 `published` 模板 `馒头_订单明细_支付时间`（id `8735`）回读 SQL SHA-256 为 `b180f3a49a793ffaa7d0f98925158ea6e1f869a52ce455e72755b5a7f05499a1`，只保留稳定入口 `resources/raw_sql/template_query_market_mantou_order_detail_pay_time.sql`。
+- 本次清理日期后缀历史副本 0 个；历史 SQL 文本不进入知识库，也不作为路由入口。
+- 保存后已重建反向索引、共享 catalog、唯一版本审计、域内 integrity 和完整 Text2SQL 栈。
+
+## 2026-09-25 模板取数 stable canonical SQL 同步（模板 8866）
+
+- 线上 `published` 模板 `AI分析市场顾问部分周期转化数据`（id `8866`）回读 SQL SHA-256 为 `6a14d38bc36fd7bce00a4dbb26673630cd11ac8ce4d6ed76944739243e524291`，只保留稳定入口 `resources/raw_sql/template_query_market_period_conversion.sql`。
+- 本次清理日期后缀历史副本 0 个；历史 SQL 文本不进入知识库，也不作为路由入口。
+- 保存后已重建反向索引、共享 catalog、唯一版本审计、域内 integrity 和完整 Text2SQL 栈。
+
+## 2026-09-25 模板取数 stable canonical SQL 同步（模板 8882）
+
+- 线上 `published` 模板 `AI分析市场顾问部多科用户成单数据`（id `8882`）回读 SQL SHA-256 为 `20633753ee6e1930d1431ad4fffa9573f1ee629c4614e3735917ef8e49c1dee6`，只保留稳定入口 `resources/raw_sql/template_query_market_multi_subject_order_user.sql`。
+- 本次清理日期后缀历史副本 0 个；历史 SQL 文本不进入知识库，也不作为路由入口。
+- 保存后已重建反向索引、共享 catalog、唯一版本审计、域内 integrity 和完整 Text2SQL 栈。
+
+## 2026-09-25 模板取数 stable canonical SQL 同步（模板 8948）
+
+- 线上 `published` 模板 `馒头_订单明细_流水时间`（id `8948`）回读 SQL SHA-256 为 `2455410757c1871e926e4685da070378b49e18eb1e53f872985528a960e14a3d`，只保留稳定入口 `resources/raw_sql/template_query_market_mantou_order_detail_trade_time.sql`。
+- 本次清理日期后缀历史副本 0 个；历史 SQL 文本不进入知识库，也不作为路由入口。
+- 保存后已重建反向索引、共享 catalog、唯一版本审计、域内 integrity 和完整 Text2SQL 栈。

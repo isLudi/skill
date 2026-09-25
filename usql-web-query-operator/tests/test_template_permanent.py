@@ -170,6 +170,57 @@ class PermanentTemplatePlanTests(unittest.TestCase):
         self.assertEqual(plan.policy["target_template_id"], 42)
         self.assertTrue(plan.policy["preserve_existing_template_id_and_access"])
 
+    def test_update_plan_allows_existing_template_to_remain_unparameterized(self) -> None:
+        sql = "select owner_name from example.table_name"
+        parser_payload = {
+            "templateVariable": [
+                {
+                    "name": "owner_name",
+                    "showName": "owner_name",
+                    "attribute": 2,
+                    "type": "varchar",
+                }
+            ],
+            "templateParam": [],
+            "tableName": ["example.table_name"],
+        }
+        plan = build_plan(
+            sql_text=sql,
+            parser_payload=parser_payload,
+            parameter_config={},
+            variable_display_names={},
+            existing_template_ids=[42],
+            target_template_id=42,
+            baseline_state={"id": 42, "name": "测试参数模板", "status": 2, "sql_sha256": "old"},
+        )
+        self.assertEqual(plan.status, "ready")
+        self.assertEqual(plan.operation, UPDATE_PLAN_OPERATION)
+        self.assertEqual(plan.template_params, ())
+        self.assertNotIn("PARAMETERIZED_SQL_REQUIRED", {item["code"] for item in plan.diagnostics})
+
+    def test_creation_plan_still_requires_parameterized_sql(self) -> None:
+        sql = "select owner_name from example.table_name"
+        parser_payload = {
+            "templateVariable": [
+                {
+                    "name": "owner_name",
+                    "showName": "owner_name",
+                    "attribute": 2,
+                    "type": "varchar",
+                }
+            ],
+            "templateParam": [],
+            "tableName": ["example.table_name"],
+        }
+        plan = build_plan(
+            sql_text=sql,
+            parser_payload=parser_payload,
+            parameter_config={},
+            variable_display_names={},
+        )
+        self.assertEqual(plan.status, "blocked")
+        self.assertIn("PARAMETERIZED_SQL_REQUIRED", {item["code"] for item in plan.diagnostics})
+
     def test_update_plan_blocks_missing_exact_target(self) -> None:
         plan = build_plan(
             existing_template_ids=[99],

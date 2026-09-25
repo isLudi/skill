@@ -814,3 +814,23 @@
 
 - 按已审阅同步计划原子更新 model_id：`2064, 2460, 2677, 2680, 2769`；每个 model_id 只保留稳定 canonical 路径。
 - 写入后已强制重建反向索引和目录，并运行唯一版本审计、域内 integrity 与完整 Text2SQL 栈验证。
+
+## 2026-09-24 数据地图字段补充
+
+- 使用数据地图 `tableV2/searchTableList`、`normalColumns`、`partitionColumns` 和 `getDdl` 接口刷新物理表字段信息。
+- 覆盖 `knowledge/tables` 中 1 张物理表文档；追加 81 个数据地图字段，回填类型 0 处、字段说明 0 处。
+- 复扫结果为字段缺口 0、类型占位 0、说明占位 0。
+- 本次维护严格限定在 `qingcheng-dashboard-sql` 内，未同步到市场顾问 Skill；未覆盖 `temp_table.*` 临时表文档；临时表字段仍以本地 Excel、SQL 使用场景和人工维护规则为准。
+
+## 2026-09-24 订单交易表与 GMV Communication 关系探查
+
+- 新增 `finance_dw.app_finance_order_income_refund_info_df` 数据地图字段文档，并明确本任务“业财表”为 `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df`。
+- 复用市场大客户运营部物理探针作为跨表风险证据：Query ID `1599192970` 命中 83/85 个用户-归属人键，但直接 Join 放大 3.0447 倍；该结果不替代青橙范围独立验证。
+- Query ID `1599194950` 证明 GMV 表不存在 `section_assign_employee_email_prefix`；记录 `flow_order_number` 不得与正价交易订单号直接关联。
+
+## 2026-09-24 DWS 订单流水与 MBR 双事实物理关系补充
+
+- 新增 bdg_ba.dws_crm_order_income_refund_period_detail_hf 表文档和索引：数据地图表 ID 36724，订单 + 交易时间 + 收退款类型粒度，dt/hour 全量快照。
+- 记录市场模板验证的双事实方法：DWS 正价课与 GMV Communication 促销课分别生成后 UNION ALL，禁止金额明细直连；Query ID 1599327539 仅作为跨域物理证据。
+- App↔DWS 宽松键 Query ID 1599294111 仍有 8 个 app-only、8 个 DWS-only，不能视为一一同义事实。
+- 未执行青橙生产查询；青橙部门范围、权限集合和 GMV 归属字段须本域独立验证后才能进入可执行 QuerySpec。

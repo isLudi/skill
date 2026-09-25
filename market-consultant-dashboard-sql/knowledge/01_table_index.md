@@ -5,9 +5,11 @@
 | 完整表名 | 中文名 | 数据粒度 | 分区字段 | 小时表 | 库名前缀状态 | 字段校验状态 |
 |---|---|---|---|---|---|---|
 | bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df | 线索成本转化沟通行课全链路数据 | 线索-渠道-转化全链路明细，小时快照粒度待确认。 | dt, hour | 是 | 已确认 | 字段目录已补全；已确认可用期次联合键和渠道组逻辑关联，仍需按具体数据集校验历史覆盖 |
+| bdg_ba.dws_crm_order_income_refund_period_detail_hf | 订单业绩收退款流水期归因明细 | 正价课现金流水/MBR 事实源，订单+交易时间+收退款类型粒度 | dt, hour | 是 | 已确认 | 数据地图表 ID 36724；与 GMV 促销流水分支 UNION ALL，禁止金额明细直连 |
 | dw.dim_employee_chain | 员工信息表 | 员工-部门路径-任职时间段粒度，字段来自 Word 文档 | dt | 否 | 已确认 | 已根据 `E:\2000_work\GAOTU\员工信息表.docx` 补全 33 个非分区字段，主键唯一性待确认 |
 | dw.dim_cstm_active_user_c_appliction_mb_df | c端用户全量表应用粒度 | 用户-应用粒度，待确认 | dt | 否 | 已确认 | 字段目录已补全，口径需人工校验 |
 | dw.dws_user_active_user_c_appliction_hf | c端用户活跃表应用粒度_当日小时全量 | 用户-应用-小时粒度，待确认 | dt, hour | 是 | 已确认 | 字段目录已补全，口径需人工校验 |
+| finance_dw.app_finance_order_income_refund_info_df | 订单收款退款交易信息表 | 收退款交易明细-日全量快照；精确流水唯一键待 USQL 验证 | dt | 否 | 已确认 | 数据地图已登记 86 个非分区字段和 1 个分区字段；与 GMV Communication 候选桥为用户+归属人，禁止未经唯一化直接明细 Join |
 | finance_dw.app_finance_performance_extend_details_hf | 业绩归属信息扩展表 | 订单/交易明细-小时快照粒度，字段来自 Word 文档，指标口径需结合历史 SQL 校验 | dt, hour | 是 | 已确认 | 已根据 `E:\2000_work\GAOTU\新建 Microsoft Word 文档.docx` 补全 145 个非分区字段 |
 | finance_dw.dwd_finance_order_refund_df | 订单退款明细表 | 待确认；当前 2353 退费原因分析按订单关联该表 | dt | 否 | 已确认 | 已结合数据地图和当前 `resources/raw_sql/data_center_market_2353.sql` 补充字段；主键仍待确认 |
 | finance_dw.dim_finance_employee_df | 员工维表 | 员工-日级快照粒度，字段来自 Word 文档 | dt | 否 | 已确认 | 已根据 `E:\2000_work\GAOTU\员工维表.docx` 补全 42 个非分区字段 |

@@ -33,6 +33,16 @@
 - 范围限定：归因流水表需重点检查 `performance_first_level_department_name`、`performance_second_level_department_name`、`performance_third_level_department_name`。
 - 状态：字段结构已根据 `E:\2000_work\GAOTU\归因流水粒度统计明细表.docx` 补全。金额字段通常以分为单位，是否 `/100` 需按指标口径确认。
 
+## 订单收退款交易与 GMV Communication
+
+- 交易事实表：`finance_dw.app_finance_order_income_refund_info_df`。
+- 用户明确的“业财表”：`bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df`。
+- 可执行候选键：`交易.user_number = GMV.user_id and 交易.email_prefix = GMV.employee_email_prefix`。
+- 基数证据：`dt='20260923'`、GMV `hour='23'`、大客户运营部范围下，85 个交易用户-归属人键命中 83 个；GMV 明细直接 Join 将 604 条已命中流水放大为 1,839 行（3.0447 倍），58 个键跨多期次，Query ID `1599192970`。
+- 禁止关系：GMV `flow_order_number` 是引流课订单号，不等于正价交易 `order_number`；GMV 不存在 `section_assign_employee_email_prefix`，Query ID `1599194950` 已报字段不可解析。
+- 推荐模式：只做命中判断时使用 `exists`；需要 GMV 属性时，先用明确期次/主线索规则压到每个 `user_id + employee_email_prefix` 唯一一行，或先聚合再 Join。交易金额、人次始终在交易事实表原粒度计算。
+- 状态：物理候选关系和多对多风险已实测确认；唯一主归因线索规则尚未确认，因此不可自动编译为明细金额 Join。
+
 ## 员工维表补充新老顾问
 
 - 主表：`finance_dw.dim_finance_employee_df`
@@ -281,3 +291,11 @@
 - 数据地图发现 `gaotu_hl.ods_mkt_h_channel_rule_df` 和 `da.app_dim_jp_channel_case_version_df`，二者均只保存整段 `channel_case_when` 文本；未发现 H 业务线逐规则条件明细表。`da.app_crm_lead_channel_map_di` 虽有 `channel_map/rule_version/rule_seq_no`，仍是 `lead_id` 结果表，宽表没有共享规则版本键。
 - 当前唯一可行的目标架构是：上游事实表直接输出 `channel_map`，或新增带稳定 `rule_code`、版本、适用部门/期次、优先级和关系化条件的配置产物，并让宽表携带同一 `rule_code`。在此前，不得用 `min/max/arbitrary(channel_map)` 消歧，也不得把超长 CASE 批量替换为现有表 Join。
 - 证据 Query ID：`1545827397`、`1545833782`、`1545836172`、`1545839822`、`1545843263`。`gaotu_hl.ods_mkt_h_channel_rule_df` 数据探针被查询权限门禁阻断，只有 Data Map 字段/DDL证据。
+
+## 订单流水 MBR 双事实关系（2026-09-24 已验证）
+
+- 正价课事实：bdg_ba.dws_crm_order_income_refund_period_detail_hf，粒度为订单 + stats_trade_timestamp + 收退款类型。
+- 促销课/引流课事实：GMV Communication 的 flow_order_* / flow_orders_* 字段，归属人取 source_manager_username/source_manager_name。
+- 两个分支分别生成金额与事件行后 UNION ALL；不要把 GMV 明细 Join 到正价流水再汇总。
+- App 与 DWS 的宽松交易键 Query ID 1599294111 为 606 个匹配键、8 个 app-only、8 个 DWS-only，不能硬 Join 或替换 DWS 正价事实。
+- 8 月 Query ID 1599327539 与历史模板 70 行、36 列及五项汇总一致；完整周期任务 ID 1599331293 返回 2,708 行。

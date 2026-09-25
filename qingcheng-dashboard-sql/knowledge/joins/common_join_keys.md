@@ -52,6 +52,7 @@
 | `temp_table.dingxi01_qing_team_jg` | `temp_table.dingxi01_qing_qi_moth` | `qici` | left join | 个人转化按架构期次补充月份 | 已从 SQL 入库 |
 | `data` (CTE) | `f_call0` (CTE, from service_dw.app_h_crm_lead_task_process_info_detail_hf) | `period_name + assign_employee_email_name = employee_email_name + user_id + lead_id = call_answer_lead_count` | left join | 补充线索是否有 F 类首次外呼 | 已从 SQL 入库，`call_answer_lead_count` 作为 `lead_id` 使用语义待确认 |
 | `zhuanhua` (CTE) | `temp_table.shenbaoxin_channel_group` | `channel = channel_map` | left join | 补充渠道大类 `channel_group` | 已从 SQL 入库，临时表唯一性待确认 |
+| `finance_dw.app_finance_order_income_refund_info_df` | `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df` | `user_number = user_id and email_prefix = employee_email_prefix` | 候选桥接；先唯一化/预聚合或使用 `exists` | 市场大客户运营部 20260923 物理探针命中 83/85 键、覆盖 604/614 条流水，直接 Join 放大至 1,839 行（3.0447 倍）；仅为跨域物理证据，青橙范围须独立复验 | Query ID `1599192970`；GMV 无 `section_assign_employee_email_prefix`，Query ID `1599194950` |
 
 ## 维护规则
 

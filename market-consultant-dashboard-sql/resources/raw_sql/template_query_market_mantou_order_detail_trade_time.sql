@@ -11,7 +11,33 @@ and performance_third_level_department_name = '市场顾问部')
 dt, top_period, top_order_number, top_paid_time, order_number,lead_id, trade_time, user_id, type, trade_type, trade_status, course_grade, course_subject, clazz_biz_number, clazz_name, teacher_name, employee_email_name,leader_employee_email_name, cast(real_price_0 as decimal(38, 9)) as price
 from (
 select  dt,
-concat(date_format(date_trunc('week', cast(top_paid_time as timestamp) - interval '1' day) + interval '4' day, '%Y%m%d'), '期') as top_period, top_order_number, top_paid_time, ls.order_number, guiyin.lead_id,trade_time, user_id, type, trade_type, trade_status, course_grade, course_subject, clazz_biz_number, clazz_name, teacher_name,leader_employee_email_name, course_first_level_department_name as course_department1, course_second_level_department_name as course_department2, course_third_level_department_name as course_department3, employee_email_name, employee_first_level_department_name as department1, employee_second_level_department_name as department2, employee_third_level_department_name as department3,
+case
+    when cast(top_paid_time as date)
+        between date '2026-07-14' and date '2026-07-19'
+    then '20260716期'
+    when cast(top_paid_time as date)
+        between date '2026-07-20' and date '2026-07-25'
+    then '20260722期'
+    when cast(top_paid_time as date)
+        between date '2026-07-26' and date '2026-07-31'
+    then '20260728期'
+    when cast(top_paid_time as date)
+        between date '2026-08-01' and date '2026-08-06'
+    then '20260803期'
+    when cast(top_paid_time as date)
+        between date '2026-08-07' and date '2026-08-12'
+    then '20260808期'
+    when cast(top_paid_time as date)
+        between date '2026-08-13' and date '2026-08-18'
+    then '20260815期'
+    else concat(
+        date_format(
+            date_trunc('week', cast(top_paid_time as date)) + interval '4' day,
+            '%Y%m%d'
+        ),
+        '期'
+    )
+end as top_period, top_order_number, top_paid_time, ls.order_number, guiyin.lead_id,trade_time, user_id, type, trade_type, trade_status, course_grade, course_subject, clazz_biz_number, clazz_name, teacher_name,leader_employee_email_name, course_first_level_department_name as course_department1, course_second_level_department_name as course_department2, course_third_level_department_name as course_department3, employee_email_name, employee_first_level_department_name as department1, employee_second_level_department_name as department2, employee_third_level_department_name as department3,
 case when trade_status in ('全部退款', '部分退款') then -real_price
 when trade_type in ('调课调班') and trade_status in ('调出退款', '全部退款') then -transfer_price
 when trade_type in ('调课调班') and trade_status in ('支付') then transfer_price
@@ -43,7 +69,33 @@ and course_second_level_department_name in ('精品班学部')
           full_refund_chain_finish_lesson_count,---完全退款时调课链路总完课课节数
 		  original_order_pay_success_clazz_remain_lesson_count,-----原始父订单下单时剩余课节数
           clazz_number,clazz_biz_number,clazz_name,school_year,school_term_name,school_department_name,school_subject_name,
-		concat(date_format(date_trunc('week', cast(full_refund_timestamp as timestamp) - interval '1' day) + interval '4' day, '%Y%m%d'), '期') as qici_re,
+		case
+    when cast(full_refund_timestamp as date)
+        between date '2026-07-14' and date '2026-07-19'
+    then '20260716期'
+    when cast(full_refund_timestamp as date)
+        between date '2026-07-20' and date '2026-07-25'
+    then '20260722期'
+    when cast(full_refund_timestamp as date)
+        between date '2026-07-26' and date '2026-07-31'
+    then '20260728期'
+    when cast(full_refund_timestamp as date)
+        between date '2026-08-01' and date '2026-08-06'
+    then '20260803期'
+    when cast(full_refund_timestamp as date)
+        between date '2026-08-07' and date '2026-08-12'
+    then '20260808期'
+    when cast(full_refund_timestamp as date)
+        between date '2026-08-13' and date '2026-08-18'
+    then '20260815期'
+    else concat(
+        date_format(
+            date_trunc('week', cast(full_refund_timestamp as date)) + interval '4' day,
+            '%Y%m%d'
+        ),
+        '期'
+    )
+end as qici_re,
           CASE
             WHEN course_category_code = 10 THEN '公开课'
             WHEN course_category_code = 20 THEN '体验课'
