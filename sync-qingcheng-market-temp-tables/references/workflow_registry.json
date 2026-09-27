@@ -1,6 +1,6 @@
 {
-  "version": 5,
-  "updated_at": "2026-07-29",
+  "version": 6,
+  "updated_at": "2026-09-23",
   "require_source_quality_gates": true,
   "domains": {
     "qingcheng": {
@@ -24,7 +24,7 @@
   },
   "local_temp_table_inventories": {
     "market_consultant": {
-      "root": "E:\\1900_work\\GAOTU\\19002_市场顾问部看板维护表格",
+      "root": "D:\\GAOTU\\19002_市场顾问部看板维护表格",
       "platform_database": "temp_table",
       "observed_at": "2026-07-29",
       "verification": {
@@ -120,7 +120,7 @@
         "^(?:(?:0?[1-9]|1[0-2])月)?个人期次目标表\\.xlsx$"
       ],
       "source_sheet": "Sheet1",
-      "target_workbook": "E:\\1900_work\\GAOTU\\19003_青橙项目部看板维护表格\\qing_goal.xlsx",
+      "target_workbook": "D:\\GAOTU\\19003_青橙项目部看板维护表格\\qing_goal.xlsx",
       "target_sheet": "Sheet1",
       "platform_temp_table": "dingxi01_qing_goal",
       "target_columns": ["month", "qici", "xuebu", "jingli", "dazu", "xiaozu", "name", "qudao", "goal"],
@@ -163,7 +163,7 @@
         "^(?:(?:0?[1-9]|1[0-2])月)?团队期次目标表\\.xlsx$"
       ],
       "source_sheet": "Sheet1",
-      "target_workbook": "E:\\1900_work\\GAOTU\\19003_青橙项目部看板维护表格\\qing_team_goal_qi.xlsx",
+      "target_workbook": "D:\\GAOTU\\19003_青橙项目部看板维护表格\\qing_team_goal_qi.xlsx",
       "target_sheet": "Sheet1",
       "platform_temp_table": "dingxi01_qing_team_g_qi",
       "target_columns": ["month", "qici", "xuebu", "jingli", "dazu", "xiaozu", "emye_c", "goal"],
@@ -205,7 +205,7 @@
         "^(?:(?:0?[1-9]|1[0-2])月)?月度目标表\\.xlsx$"
       ],
       "source_sheet": "Sheet1",
-      "target_workbook": "E:\\1900_work\\GAOTU\\19003_青橙项目部看板维护表格\\qing_team_goal_moth.xlsx",
+      "target_workbook": "D:\\GAOTU\\19003_青橙项目部看板维护表格\\qing_team_goal_moth.xlsx",
       "target_sheet": "Sheet1",
       "platform_temp_table": "dingxi01_qing_team_goal",
       "target_columns": ["month", "xuebu", "jingli", "dazu", "xiaozu", "emye_c", "goal"],
@@ -244,7 +244,7 @@
         "^全员结果数据架构\\.xlsx$"
       ],
       "source_sheet": "data",
-      "target_workbook": "E:\\1900_work\\GAOTU\\19003_青橙项目部看板维护表格\\qing_team_jg.xlsx",
+      "target_workbook": "D:\\GAOTU\\19003_青橙项目部看板维护表格\\qing_team_jg.xlsx",
       "target_sheet": "data",
       "platform_temp_table": "dingxi01_qing_team_jg",
       "target_columns": ["employee_name", "employee_email_name", "email_prefix", "leader_employee_email_name", "leader_email_prefix", "dazu", "jingli", "xuebu", "qici"],
@@ -286,7 +286,7 @@
         "^(?:\\d{4}期)?(?:青橙)?(?:带班)?架构\\.xlsx$"
       ],
       "source_sheet": "Sheet1",
-      "target_workbook": "E:\\1900_work\\GAOTU\\19002_市场顾问部看板维护表格\\jiagou_db.xlsx",
+      "target_workbook": "D:\\GAOTU\\19002_市场顾问部看板维护表格\\jiagou_db.xlsx",
       "target_sheet": "zhengzhou",
       "platform_temp_table": "dingxi01_jiagou_db",
       "target_columns": ["xiaozu_z", "employee_email_prefix", "xiaozu", "employee_email_name", "department", "zaizhi", "qici", "dept_1", "dept_2", "jingli"],
@@ -340,12 +340,12 @@
       "source_expected_title_pattern": "^青橙行课--开课时间\\(1-6节课\\)$",
       "source_filename": "青橙行课--开课时间(1-6节课).xlsx",
       "source_env_file_env": "QINGCHENG_DOCS_ENV_FILE",
-      "source_env_file": "E:\\1900_work\\GAOTU\\19002_市场顾问部看板维护表格\\usql_api.env",
+      "source_env_file": "D:\\GAOTU\\19002_市场顾问部看板维护表格\\usql_api.env",
       "source_env_section": "USQL Web Query (Playwright) credentials",
       "source_browser_channel": "msedge",
       "source_download_timeout_seconds": 120,
       "source_sheet": "$active",
-      "target_workbook": "E:\\1900_work\\GAOTU\\19003_青橙项目部看板维护表格\\qing_daoke.xlsx",
+      "target_workbook": "D:\\GAOTU\\19003_青橙项目部看板维护表格\\qing_daoke.xlsx",
       "target_sheet": "Sheet1",
       "platform_temp_table": "dingxi01_qing_daoke",
       "target_columns": ["qudao", "begin_time", "qici", "dow", "grade", "ke_1"],
@@ -402,7 +402,7 @@
       "command_groups": ["goal", "cost"],
       "source_filename_patterns": ["^cost\\.xlsx$"],
       "source_sheet": "Sheet1",
-      "target_workbook": "E:\\1900_work\\GAOTU\\19002_市场顾问部看板维护表格\\cost.xlsx",
+      "target_workbook": "D:\\GAOTU\\19002_市场顾问部看板维护表格\\cost.xlsx",
       "target_sheet": "Sheet1",
       "platform_temp_table": "dingxi01_cost",
       "target_columns": ["channel", "grade", "cost", "goal", "qici"],
@@ -419,7 +419,17 @@
         "row_count": {"min": 10, "max": 200},
         "relative_change": {
           "baseline": "same_slice_or_latest_target",
-          "max_ratio": 0.6
+          "max_ratio": 0.6,
+          "reviewed_exceptions": [
+            {
+              "message_id": "om_x100b65cc8f1518a8b26faaedc3cf1e5",
+              "source_sha256": "e75b62ed223b4db91e71d253b9366a147ff1ebd6d242eb69ed33e5771c03fe8b",
+              "slice": "20260918期",
+              "source_count": 48,
+              "baseline_slice": "20260821期",
+              "baseline_count": 6
+            }
+          ]
         },
         "required_column_null_rate": {
           "channel": 0,
@@ -447,7 +457,7 @@
         "^\\d{4}期带班架构\\.xlsx$"
       ],
       "source_sheet": "zhengzhou",
-      "target_workbook": "E:\\1900_work\\GAOTU\\19002_市场顾问部看板维护表格\\jiagou_db.xlsx",
+      "target_workbook": "D:\\GAOTU\\19002_市场顾问部看板维护表格\\jiagou_db.xlsx",
       "target_sheet": "zhengzhou",
       "platform_temp_table": "dingxi01_jiagou_db",
       "target_columns": ["xiaozu_z", "employee_email_prefix", "xiaozu", "employee_email_name", "department", "zaizhi", "qici", "dept_1", "dept_2", "jingli"],
@@ -470,6 +480,12 @@
       "source_baseline_id": "market_period_architecture",
       "max_changed_slices": 4,
       "recent_slice_window": 4,
+      "reviewed_source_slice_scope": {
+        "message_id": "om_x100b6478f2c4f8a8b22fb3e79497104",
+        "source_sha256": "2bf1dfbcc6befc47b3d2d3cd2ee88b0493f17f5d02f89d6849a6ac1b9b730a54",
+        "selected_slices": ["20261002期"],
+        "baseline_update": "preserve"
+      },
       "allow_baseline_target_errors": true,
       "source_quality": {
         "policy_version": "1.0.0",
@@ -506,7 +522,7 @@
         "^daoke_1_6_t(?: \\(\\d+\\))?\\.xlsx$"
       ],
       "source_sheet": "Sheet1",
-      "target_workbook": "E:\\1900_work\\GAOTU\\19002_市场顾问部看板维护表格\\daoke_1_6_t.xlsx",
+      "target_workbook": "D:\\GAOTU\\19002_市场顾问部看板维护表格\\daoke_1_6_t.xlsx",
       "target_sheet": "Sheet1",
       "platform_temp_table": "dingxi01_daoke_1_6_t",
       "target_columns": ["qudao", "begin_time", "qici", "dow", "grade", "ke_1", "channel"],
@@ -536,7 +552,7 @@
       "source_quality": {
         "policy_version": "1.0.0",
         "max_age_hours": 360,
-        "row_count": {"min": 5000, "max": 8000},
+        "row_count": {"min": 5000, "max": 9000},
         "relative_change": {
           "baseline": "same_slice_or_latest_target",
           "max_ratio": 0.35
@@ -571,7 +587,7 @@
         "^\\d{4}期人产\\.xlsx$"
       ],
       "source_sheet": "Sheet1",
-      "target_workbook": "E:\\1900_work\\GAOTU\\19002_市场顾问部看板维护表格\\jinliang_goal.xlsx",
+      "target_workbook": "D:\\GAOTU\\19002_市场顾问部看板维护表格\\jinliang_goal.xlsx",
       "target_sheet": "Sheet1",
       "platform_temp_table": "dingxi01_jinliang_goal",
       "target_columns": ["channel_2", "grade", "goal", "qici"],
@@ -614,7 +630,7 @@
         "^\\d{4}期评优架构\\.xlsx$"
       ],
       "source_sheet": "Sheet4",
-      "target_workbook": "E:\\1900_work\\GAOTU\\19002_市场顾问部看板维护表格\\pingyou_jg.xlsx",
+      "target_workbook": "D:\\GAOTU\\19002_市场顾问部看板维护表格\\pingyou_jg.xlsx",
       "target_sheet": "Sheet4",
       "platform_temp_table": "dingxi01_pingyou_jg",
       "target_columns": ["xiaozu_z", "employee_email_prefix", "xiaozu", "employee_email_name", "department", "zaizhi", "qici", "dept", "jingli", "channel", "renchan", "grade", "is_emp", "x_qi_count"],
@@ -675,7 +691,7 @@
         "^plan_id(?:-\\d+)?\\.xlsx$"
       ],
       "source_sheet": "Sheet1",
-      "target_workbook": "E:\\1900_work\\GAOTU\\19002_市场顾问部看板维护表格\\plan_id.xlsx",
+      "target_workbook": "D:\\GAOTU\\19002_市场顾问部看板维护表格\\plan_id.xlsx",
       "target_sheet": "Sheet1",
       "platform_temp_table": "dingxi01_plan_id",
       "target_columns": ["year", "qici", "group_id", "group_name"],
@@ -700,7 +716,17 @@
         "row_count": {"min": 50, "max": 200},
         "relative_change": {
           "baseline": "same_slice_or_latest_target",
-          "max_ratio": 0.5
+          "max_ratio": 0.5,
+          "reviewed_exceptions": [
+            {
+              "message_id": "om_x100b658c66fb2ca0b30a48c42182520",
+              "source_sha256": "395492d0553ea49b3575fd4c978677571ac3c5430f17e80349b7298f57781dd8",
+              "slice": "0925期",
+              "source_count": 5,
+              "baseline_slice": "0918期",
+              "baseline_count": 3
+            }
+          ]
         },
         "required_column_null_rate": {
           "year": 0,
@@ -729,6 +755,60 @@
     "market_lead_goal",
     "market_evaluation_architecture",
     "market_plan_id"
+  ],
+  "source_bundles": [
+    {
+      "id": "qingcheng_archive_20260923_0828_0918",
+      "domain": "qingcheng",
+      "message_id": "om_x100b640fd08a28a0c233a69570c3c6f",
+      "create_time": "2026-09-23 19:37",
+      "chat_id": "oc_e604e064976c022ab4289fc2fb979332",
+      "sender_id": "ou_bf111effd2d71a52ee40c58c7cb4d105",
+      "folder_key": "file_v3_0115q_fa4264fa-9a08-486d-83a0-5319255f99dg",
+      "folder_name": "0828期~0918期",
+      "files": [
+        {
+          "file_key": "file_v3_0115q_f7969070-c9a4-4a62-b179-faa4c9fa558g",
+          "file_name": "0828期带班架构.xlsx",
+          "family_id": "period_architecture"
+        },
+        {
+          "file_key": "file_v3_0115q_27bb647e-bd4b-4749-a408-ff3bbca9900g",
+          "file_name": "0904期带班架构.xlsx",
+          "family_id": "period_architecture"
+        },
+        {
+          "file_key": "file_v3_0115q_da639d5b-653f-4f98-9660-e04855c10ccg",
+          "file_name": "0911期带班架构.xlsx",
+          "family_id": "period_architecture"
+        },
+        {
+          "file_key": "file_v3_0115q_3f70b885-d32e-4292-992a-a5936dead65g",
+          "file_name": "0918期带班架构.xlsx",
+          "family_id": "period_architecture"
+        },
+        {
+          "file_key": "file_v3_0115q_059b2dd4-7131-414c-b47a-23591fea516g",
+          "file_name": "9月个人期度目标表.xlsx",
+          "family_id": "personal_period_goal"
+        },
+        {
+          "file_key": "file_v3_0115q_dbc870cc-cf3c-48dd-a3a7-1cd25cad798g",
+          "file_name": "9月团队月度目标表.xlsx",
+          "family_id": "team_month_goal"
+        },
+        {
+          "file_key": "file_v3_0115q_925928e8-c8e2-47b3-95ea-104445e1102g",
+          "file_name": "9月团队期度目标表.xlsx",
+          "family_id": "team_period_goal"
+        },
+        {
+          "file_key": "file_v3_0115q_fc7a1ad1-5487-42de-8476-f02abd876c3g",
+          "file_name": "全员结果数据架构.xlsx",
+          "family_id": "result_architecture"
+        }
+      ]
+    }
   ],
   "deferred_filename_patterns": [
     "^qi\\d+daibanguocheng\\.xlsx$",

@@ -1,0 +1,95 @@
+{
+  "schema_version": 3,
+  "base_token": "OEJrbiCIaazfSss2R3Lcf1OonCc",
+  "url": "https://gaotuedu.feishu.cn/base/OEJrbiCIaazfSss2R3Lcf1OonCc",
+  "identity": "user",
+  "time_zone": "Asia/Shanghai",
+  "tables": {
+    "operator": {
+      "name": "运营填写",
+      "table_id": "tbl3iMKvD52jaMF1",
+      "primary_field": "申请编号",
+      "department_field": "申请部门",
+      "views": {
+        "basic": {
+          "name": "运营-基础信息",
+          "view_id": "vew5X8cdbU"
+        },
+        "metrics": {
+          "name": "运营-指标与提醒",
+          "view_id": "vewxW9QTvy"
+        }
+      }
+    },
+    "technical": {
+      "name": "技术配置",
+      "table_id": "tbl7ngY1sMS3eBWS",
+      "primary_field": "配置单ID",
+      "link_field": "关联运营申请",
+      "views": {
+        "intake": {
+          "name": "技术-待处理",
+          "view_id": "vewH0qEHWk"
+        },
+        "validation": {
+          "name": "技术-验证上线",
+          "view_id": "vewJWnPY70"
+        },
+        "machine": {
+          "name": "技术-机器参数（维护）",
+          "view_id": "vewQVBtlUq"
+        }
+      }
+    }
+  },
+  "advanced_permissions": {
+    "enabled": true,
+    "default_access": "deny",
+    "roles": {
+      "market_consultant_operator": {
+        "name": "运营-市场顾问部",
+        "role_id": "rolAsbYEVNg",
+        "department_name": "市场顾问部",
+        "department_open_id": null,
+        "member_binding_status": "manual_binding_required",
+        "requested_members": [
+          {"name": "王兴秀", "account": "wangxingxiu", "open_id": "ou_5b3ebbffd644241c9ae4f5572b313a5d"},
+          {"name": "王绅宇", "account": "wangshenyu01", "open_id": "ou_00ac3530b6be6cc18a5f84ff23968e53"},
+          {"name": "郭靖茹", "account": "guojingru01", "open_id": "ou_2f968f297e51585996531e9d9248f3dc"},
+          {"name": "贾琳涛", "account": "jialintao", "open_id": "ou_f9da2ffc1498c14d2561de26642c664f"}
+        ]
+      },
+      "qingcheng_operator": {
+        "name": "运营-青橙项目部",
+        "role_id": "rols4bKFJ8",
+        "department_name": "青橙项目部",
+        "department_open_id": null,
+        "member_binding_status": "manual_binding_required",
+        "requested_members": [
+          {"name": "行嵩丽", "account": "xingsongli", "open_id": "ou_d08d3edc55b3975de961ceb7f4f3e55d"},
+          {"name": "郅玲玉", "account": "zhilingyu", "open_id": "ou_bf111effd2d71a52ee40c58c7cb4d105"}
+        ]
+      }
+    },
+    "member_management": {
+      "method": "base_advanced_permission_custom_roles",
+      "api_member_readback_status": "unavailable_current_identity",
+      "last_api_readback_attempt": "2026-09-26"
+    },
+    "fallback_roles_no_table_access": [
+      "Reader",
+      "普通用户"
+    ]
+  },
+  "workflows": {
+    "operator_intake_to_technical": {
+      "name": "运营申请自动建立技术配置",
+      "workflow_id": "wkf9HF4vAMrOooKT",
+      "status": "enabled",
+      "trigger_table": "运营填写",
+      "target_table": "技术配置"
+    }
+  },
+  "local_source_of_truth": "config/channels.json",
+  "sync_policy": "reviewed_export_only"
+}

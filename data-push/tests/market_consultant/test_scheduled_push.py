@@ -70,7 +70,8 @@ class ScheduledPushTests(unittest.TestCase):
             "result_image_path": None, "volume_image_path": Path("volume.png"),
         }
         with tempfile.TemporaryDirectory() as folder, patch.object(sp, "now", return_value=slot + timedelta(minutes=20)), \
-             patch.object(sp, "verify_bot"), patch.object(sp, "upstream_ready", return_value={"ok": True}), \
+             patch.object(sp, "verify_bot"), patch.object(sp, "upstream_ready", return_value={
+                 "volume": {"periods": ["20260904期", "20260911期"], "total": 2}}), \
              patch.object(sp.vr, "prepare_context", return_value=context) as prepare_volume, \
              patch.object(sp, "prepare_report") as prepare_regular, patch.object(sp, "assert_current_revision"), \
              patch.object(sp.gp, "send_markdown") as dry_send:
@@ -80,6 +81,49 @@ class ScheduledPushTests(unittest.TestCase):
         prepare_volume.assert_called_once()
         prepare_regular.assert_not_called()
         self.assertTrue(dry_send.call_args.kwargs["dry_run"])
+
+    def test_volume_producer_requires_exact_schedule_file_and_complete_log(self):
+        slot = self.slot.replace(hour=17)
+        cfg = copy.deepcopy(self.cfg)
+        cfg["upstream"] = cfg["volume_report"]["upstream"]
+        u = cfg["upstream"]
+        stamp = slot.strftime("%Y-%m-%d %H:%M:%S")
+        execution = {"id": 99, "taskId": u["nezha_task_id"], "status": 6,
+                     "periodTime": stamp, "planRunTime": stamp,
+                     "startTime": "2026-09-08 17:00:04", "endTime": "2026-09-08 17:04:00",
+                     "runConfig": json.dumps({"execFileId": u["exec_file_id"], "triggerSourceEnum": "SCHEDULE"})}
+        log = ("采用dt=20260908, hour=15，延迟2小时\nKyuubi查询完成：3行、13列\n"
+               "数据校验通过：3行，期次[u'20260904\\u671f', u'20260911\\u671f']，2个归因渠道\n"
+               "目标多维表格校验通过：table_id=tblGUCxgUTZPjv3c\n目标字段校验通过：14个字段\n"
+               "写入前旧记录数：2\n新记录创建完成：3条\n"
+               "数据校验通过：3行，期次[u'20260904\\u671f', u'20260911\\u671f']，2个归因渠道\n"
+               "新记录回读校验通过\n旧记录删除完成：2条\n"
+               "数据校验通过：3行，期次[u'20260904\\u671f', u'20260911\\u671f']，2个归因渠道\n"
+               "最终回读校验通过：3条\n已按要求跳过旧KOC汇总表写入\nSUCCESS: done\nexit_code:  0\n")
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "stage.log"
+            path.write_text(log, encoding="utf-8")
+            doc = {"scope": u.copy(), "identity": {"name": u["owner"]}, "execution": execution,
+                   "execution_detail": {"status": 6}, "task_schedule": {
+                       "supervisor": u["owner"], "scheduleId": u["schedule_id"], "scheduleFrequency": "4h"},
+                   "stages": [{"metadata": {"statusDesc": "success", "taskId": u["nezha_task_id"]},
+                               "log_file": path.name, "log_sha256": hashlib.sha256(path.read_bytes()).hexdigest()}]}
+            self.assertEqual(sp.parse_volume_log(doc, Path(folder), cfg, slot, execution)["total"], 3)
+            bad = copy.deepcopy(doc)
+            bad["execution"]["runConfig"] = json.dumps({"execFileId": u["exec_file_id"] - 1,
+                                                         "triggerSourceEnum": "SCHEDULE"})
+            with self.assertRaisesRegex(ValueError, "published execution file"):
+                sp.parse_volume_log(bad, Path(folder), cfg, slot, execution)
+            path.write_text(log.replace("旧记录删除完成：2条", "旧记录删除完成：1条"), encoding="utf-8")
+            doc["stages"][0]["log_sha256"] = hashlib.sha256(path.read_bytes()).hexdigest()
+            with self.assertRaisesRegex(ValueError, "volume create/delete/readback"):
+                sp.parse_volume_log(doc, Path(folder), cfg, slot, execution)
+
+    def test_volume_and_lead_producers_must_agree_on_periods(self):
+        lead = {"periods": {"20260918期": {}, "20260925期": {}}}
+        sp.require_shared_periods(lead, {"periods": ["20260925期", "20260918期"]})
+        with self.assertRaisesRegex(ValueError, "periods disagree"):
+            sp.require_shared_periods(lead, {"periods": ["20260918期", "20261002期"]})
 
     def test_business_config_routes_regular_and_volume_after_approval(self):
         definition = sp.catalog.load_channel("market_consultant/business_koc_math")
@@ -115,11 +159,31 @@ class ScheduledPushTests(unittest.TestCase):
 
     def test_staggered_retry_grid_starts_from_each_task_minute(self):
         cfg = sp.load_config(sp.DEFAULT_CONFIG)
-        cfg.update({"stagger_order": 4, "prepare_minute": 23, "send_minute": 23})
+        cfg.update({"stagger_order": 4, "prepare_minute": 21, "send_minute": 21})
         sp.validate_config(cfg)
-        self.assertEqual(sp.next_check(self.slot + timedelta(minutes=23, seconds=1), self.slot, cfg).minute, 25)
+        self.assertEqual(sp.next_check(self.slot + timedelta(minutes=21, seconds=1), self.slot, cfg).minute, 23)
         self.assertEqual(sp.next_check(self.slot + timedelta(minutes=47), self.slot, cfg).minute, 49)
         self.assertEqual(sp.next_check(self.slot + timedelta(minutes=49), self.slot, cfg).minute, 51)
+
+    def test_registered_tasks_start_in_pairs_without_changing_order(self):
+        rows = []
+        for key in sp.catalog.registry()["channels"]:
+            definition = sp.catalog.load_channel(key)
+            if not definition["schedule"]["enabled"]:
+                continue
+            cfg = sp.catalog.schedule_config(definition, sp.catalog.select_targets(definition)[0])
+            sp.validate_config(cfg)
+            rows.append((cfg["stagger_order"], cfg["prepare_minute"], cfg["send_minute"]))
+        self.assertEqual(sorted(rows), [(order, 20 + (order - 1) // 2, 20 + (order - 1) // 2)
+                                        for order in range(1, len(rows) + 1)])
+        self.assertEqual(
+            [minute for _, minute, _ in sorted(rows)],
+            [20, 20, 21, 21, 22, 22, 23, 23, 24],
+        )
+        old = sp.load_config(sp.DEFAULT_CONFIG)
+        old.update({"stagger_order": 4, "prepare_minute": 23, "send_minute": 23})
+        with self.assertRaisesRegex(ValueError, "retry window"):
+            sp.validate_config(old)
 
     def test_live_status_is_removed_when_run_scope_ends(self):
         with tempfile.TemporaryDirectory() as folder:

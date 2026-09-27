@@ -26,11 +26,12 @@ def _source_fields() -> list[str]:
     seen: set[str] = set()
     result: list[str] = []
     for field in PROCESS_FIELDS:
-        # Fetch canonical names only; aliases are for reading copied views that
-        # use the display spelling, not for making a request with unknown names.
-        if field not in seen:
-            result.append(field)
-            seen.add(field)
+        # Keep the legacy Base input name 总通时; this path expects precomputed
+        # minutes, while the output field makes the unit explicit.
+        source = "总通时" if field == "总通时(min)" else field
+        if source not in seen:
+            result.append(source)
+            seen.add(source)
     return result
 
 
@@ -145,7 +146,7 @@ def _weighted_rate(rows: Sequence[Mapping[str, Any]], field: str) -> float | Non
 
 def make_total_row(rows: Sequence[Mapping[str, Any]], period: str) -> dict[str, Any]:
     fields: dict[str, Any] = {"期次": "总计", "顾问": "", "主管": "", "部门": "", "渠道": ""}
-    for field in ("退前线索", "退后线索", "总通时", "首call完成数", "48h外呼数", "外呼次数", "5min线索数", "好友线索数", "APP登陆线索数", "深沟线索数", "双沟线索数"):
+    for field in ("退前线索", "退后线索", "总通时(min)", "首call完成数", "48h外呼数", "外呼次数", "5min线索数", "好友线索数", "APP登陆线索数", "深沟线索数", "双沟线索数"):
         fields[field] = sum(_number(_raw_field(row, field)) or 0.0 for row in rows)
     for field in RATE_FIELDS:
         value = _weighted_rate(rows, field)

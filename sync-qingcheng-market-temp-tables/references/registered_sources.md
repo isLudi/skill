@@ -16,12 +16,12 @@
 
 | family_id | 登记源 | 本地累计工作簿 | 平台临时表 | 合并作用域 |
 |---|---|---|---|---|
-| `personal_period_goal` | `个人期度目标表.xlsx` / `个人期次目标表.xlsx` | `E:\1900_work\GAOTU\19003_青橙项目部看板维护表格\qing_goal.xlsx` | `dingxi01_qing_goal` | 源 `qici` 切片 |
+| `personal_period_goal` | `个人期度目标表.xlsx` / `个人期次目标表.xlsx` | `D:\GAOTU\19003_青橙项目部看板维护表格\qing_goal.xlsx` | `dingxi01_qing_goal` | 源 `qici` 切片 |
 | `team_period_goal` | `团队期度目标表.xlsx` / `团队期次目标表.xlsx` | `...\qing_team_goal_qi.xlsx` | `dingxi01_qing_team_g_qi` | 源 `qici` 切片 |
 | `team_month_goal` | `团队月度目标表.xlsx` / `月度目标表.xlsx` | `...\qing_team_goal_moth.xlsx` | `dingxi01_qing_team_goal` | 源 `month` 切片 |
 | `result_architecture` | `全员结果数据架构.xlsx` | `...\qing_team_jg.xlsx` | `dingxi01_qing_team_jg` | 源 `qici` 切片 |
-| `period_architecture` | 青橙带班架构文件 | `E:\1900_work\GAOTU\19002_市场顾问部看板维护表格\jiagou_db.xlsx` | `dingxi01_jiagou_db` | `dept_1=青橙项目部` 且源 `qici` |
-| `course_schedule` | 李怡青发布的登记文档链接 | `E:\1900_work\GAOTU\19003_青橙项目部看板维护表格\qing_daoke.xlsx` | `dingxi01_qing_daoke` | 活动页对应 `qici` |
+| `period_architecture` | 青橙带班架构文件 | `D:\GAOTU\19002_市场顾问部看板维护表格\jiagou_db.xlsx` | `dingxi01_jiagou_db` | `dept_1=青橙项目部` 且源 `qici` |
+| `course_schedule` | 李怡青发布的登记文档链接 | `D:\GAOTU\19003_青橙项目部看板维护表格\qing_daoke.xlsx` | `dingxi01_qing_daoke` | 活动页对应 `qici` |
 
 前三类目标表允许在登记文件名前增加一个严格的数字月份前缀：`1月`–`12月`，并兼容 `01月`–`09月`。月份以外的文本前缀、`0月`、`13月`、中文数字月份和其他扩展名仍不匹配。
 
@@ -29,7 +29,7 @@
 
 ## 市场本地工作簿与平台临时表全量映射
 
-2026-07-29 对 `E:\1900_work\GAOTU\19002_市场顾问部看板维护表格` 直属文件完成盘点：排除两个凭据环境文件后，共有 9 个 `.xlsx`。以下本地文件名和平台表名各自唯一，组成严格一一映射：
+2026-07-29 对 `D:\GAOTU\19002_市场顾问部看板维护表格` 直属文件完成盘点：排除两个凭据环境文件后，共有 9 个 `.xlsx`。以下本地文件名和平台表名各自唯一，组成严格一一映射：
 
 | 本地文件 | 大航海完整表名 | 当前用途 |
 |---|---|---|
@@ -60,7 +60,7 @@
 
 | family_id | 最新历史证据 | 本地累计工作簿 | 平台临时表 | 合并模式 |
 |---|---|---|---|---|
-| `market_cost` | `cost.xlsx`，2026-07-26，29 行 | `E:\1900_work\GAOTU\19002_市场顾问部看板维护表格\cost.xlsx` | `dingxi01_cost` | 源 `qici` 切片 upsert |
+| `market_cost` | `cost.xlsx`，2026-07-26，29 行 | `D:\GAOTU\19002_市场顾问部看板维护表格\cost.xlsx` | `dingxi01_cost` | 源 `qici` 切片 upsert |
 | `market_period_architecture` | `daiban_jg_db.xlsx`，2026-07-28，8602 行 | `...\jiagou_db.xlsx` | `dingxi01_jiagou_db` | 只处理新增/变更源切片；目标限定 `dept_1=市场顾问部` |
 | `market_attendance_schedule` | `daoke_1_6_t.xlsx`，2026-07-27，6881 行 | `...\daoke_1_6_t.xlsx` | `dingxi01_daoke_1_6_t` | 只处理新增/变更源切片 |
 | `market_lead_goal` | `leads_goal.xlsx`，2026-07-28，19 行 | `...\jinliang_goal.xlsx` | `dingxi01_jinliang_goal` | 源 `qici` 切片 upsert |
@@ -94,7 +94,7 @@
 | 青橙行课 | 240 小时 | 20–500 | 50% |
 | 市场成本 | 360 小时 | 10–200 | 60% |
 | 市场带班架构 | 360 小时 | 4000–9000 | 35% |
-| 市场到课 | 360 小时 | 5000–8000 | 35% |
+| 市场到课 | 360 小时 | 5000–9000 | 35% |
 | 市场进量目标 | 360 小时 | 5–100 | 50% |
 | 市场评优架构 | 480 小时 | 4500–7500 | 25% |
 | 市场计划 ID | 360 小时 | 50–200 | 50% |
@@ -102,6 +102,10 @@
 相对变化优先使用目标同一切片；新切片使用目标最新切片。必要列空值阈值按文件族登记在注册表，大多数关键字段为 0；青橙个人目标的少数组织层级列允许 2%。任何阈值缺失、来源过期、行数越界、变化超限、必要列空值超限或无可用基线都阻断。
 
 这些阈值是异常阻断线，不是业务目标。已确认的组织扩张或课程规模变化必须先评审并修改注册表和测试，再生成新 Plan；运行时不得临时放宽。
+
+2026-09-17 的市场有限评审登记在注册表：`market_plan_id` 只对张君言当日 `plan_id.xlsx` 的 `0925期` 5 组对 `0918期` 3 组启用来源消息、文件哈希和行数共同绑定的例外；`market_period_architecture` 只对当日 `daiban_jg_db.xlsx` 的新 `20260925期` 合并，历史差异仍未获同步授权。后者成功上传后保留旧来源切片基线，避免把未同步的历史变化误记为已接受。两项均不授予自动本地写入或平台上传的逐任务批准。
+
+2026-09-24 对张君言最新来源完成精确门禁范围复核：`market_period_architecture` 绑定消息 `om_x100b6478f2c4f8a8b22fb3e79497104`、文件 SHA-256 `2bf1dfbcc6befc47b3d2d3cd2ee88b0493f17f5d02f89d6849a6ac1b9b730a54`，只合并新 `20261002期`，历史期次保留目标基线；`market_attendance_schedule` 绑定消息 `om_x100b6478f24aa8a4b2e1a8a471f1098`，将来源行数上限调整为 9000 以容纳经登记变换后的 8087 行，必要列、重复键、切片和相对变化门禁仍保留；`market_lead_goal` 绑定消息 `om_x100b64788bc408bcb4b5db2268a99dd`，仅开放本次已预检的 `1002期` 20 行。以上是来源消息级的有限范围变更，不是无条件放行，也不包含逐任务生产上传批准。
 
 ## 来源切片基线
 

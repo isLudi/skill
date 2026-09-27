@@ -2,10 +2,12 @@ param([switch]$Watch, [ValidateRange(1, 60)][int]$RefreshSeconds = 2)
 $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 $pushDefinitions = @(
-    @{ Task = 'Codex-Lark-Market-KOC-GroupPush'; Status = 'C:\Users\Ludim\.codex\runtime\channel-broadcast-push\scheduled\live-status.json' },
-    @{ Task = 'Codex-Lark-Business-KOC-Math-Push'; Status = 'C:\Users\Ludim\.codex\runtime\channel-broadcast-push\business-koc-math\live-status.json' },
-    @{ Task = 'Codex-Lark-Supervisor-KOC-Douyin-Push'; Status = 'C:\Users\Ludim\.codex\runtime\channel-broadcast-push\supervisor-koc-douyin-sync\live-status.json' },
-    @{ Task = 'Codex-Lark-Supervisor-Private-App-Push'; Status = 'C:\Users\Ludim\.codex\runtime\channel-broadcast-push\supervisor-private-app-sync\live-status.json' }
+    @{ Task = 'Codex-Lark-Market-KOC-GroupPush'; Status = 'C:\Users\lvshuai01\.codex\runtime\channel-broadcast-push\scheduled\live-status.json' },
+    @{ Task = 'Codex-Lark-Business-KOC-Math-Push'; Status = 'C:\Users\lvshuai01\.codex\runtime\channel-broadcast-push\business-koc-math\live-status.json' },
+    @{ Task = 'Codex-Lark-Supervisor-KOC-Douyin-Push'; Status = 'C:\Users\lvshuai01\.codex\runtime\channel-broadcast-push\supervisor-koc-douyin-sync\live-status.json' },
+    @{ Task = 'Codex-Lark-Supervisor-Private-App-Push'; Status = 'C:\Users\lvshuai01\.codex\runtime\channel-broadcast-push\supervisor-private-app-sync\live-status.json' },
+    @{ Task = 'Codex-Lark-Supervisor-KOC-Grade9-Push'; Status = 'C:\Users\lvshuai01\.codex\runtime\channel-broadcast-push\supervisor-self-incubated-koc-5-grade-9\live-status.json' },
+    @{ Task = 'Codex-Lark-Supervisor-Yafei-Grade9-Push'; Status = 'C:\Users\lvshuai01\.codex\runtime\channel-broadcast-push\supervisor-yafei-grade-9\live-status.json' }
 )
 do {
     if ($Watch) { Clear-Host }

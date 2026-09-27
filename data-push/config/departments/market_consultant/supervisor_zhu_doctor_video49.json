@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "domain": "market_consultant",
+  "channel_id": "supervisor_zhu_doctor_video49",
+  "channel": "朱博士",
+  "adapter": "market-grade-manager-v1",
+  "source": {
+    "source_mode": "lead-detail",
+    "source_url": "https://gaotuedu.feishu.cn/wiki/MrPNwuFvPiiDX0k4jTXcLU8anse?table=tblqvlnqNslL1nWA&view=veweZNrbGI",
+    "raw_source_url": "https://gaotuedu.feishu.cn/wiki/MrPNwuFvPiiDX0k4jTXcLU8anse?table=tbljWRvaqKTdrCx4&view=vewO4yxS3O",
+    "raw_table_id": "tbljWRvaqKTdrCx4",
+    "raw_table_name": "市场顾问原始数据",
+    "channel_match": {
+      "field": "渠道",
+      "match_mode": "contains",
+      "keyword": "朱博士",
+      "case_sensitive": true
+    },
+    "report_profile": "supervisor-video49",
+    "reminder_rule": "channel_grade_source_advisor_minimum_all_ties",
+    "reminder_population": "raw_leads",
+    "mention_target": "consultant",
+    "report_type": "auto"
+  },
+  "sender": {
+    "identity": "bot",
+    "name": "管家",
+    "open_id": "ou_f3907e865135732c15a1dfce27828411"
+  },
+  "targets": [
+    {
+      "id": "zhu_doctor_ip_market",
+      "chat_id": "oc_a9d8b5c199c4602466eab5be43f7db3c",
+      "display_name": "🔥0925期【朱博士IP】对接群「市场顾问部」",
+      "enabled": true
+    }
+  ],
+  "report": {
+    "period_rule": "natural_week_friday",
+    "process_weekdays": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "result_weekdays": [
+      4,
+      5,
+      6
+    ],
+    "included_grades": [
+      "初一",
+      "初三",
+      "高一",
+      "高二",
+      "高三"
+    ],
+    "excluded_grades": [],
+    "minimum_post_leads": 1
+  },
+  "schedule": {
+    "enabled": true,
+    "first_send_at": "2026-09-21T13:26:00+08:00",
+    "timezone": "Asia/Shanghai",
+    "hours": [
+      13,
+      17,
+      21
+    ],
+    "windows_task_name": "Codex-Lark-Supervisor-Zhu-Doctor-Video49-Push",
+    "stagger_order": 7,
+    "prepare_minute": 23,
+    "send_minute": 23,
+    "deadline_minute": 50,
+    "retry_minutes": 2
+  },
+  "base_identity": "user",
+  "verification_identity": "user",
+  "state_dir": "C:/Users/lvshuai01/.codex/runtime/channel-broadcast-push/supervisor-zhu-doctor-video49",
+  "upstream": {
+    "project_id": 308,
+    "folder": "吕帅",
+    "menu_id": 102754,
+    "task_name": "market2lark",
+    "task_id": 47252,
+    "nezha_task_id": 66504,
+    "schedule_id": 53831,
+    "exec_file_id": 830401,
+    "verified_version_id": 207095,
+    "verified_source_sha256": "a652cb7adc0cb8b8cf5c6fe8224b15c94f5045c28a6046600963038cd0f54f0d",
+    "log_protocol": "two_period_clear_then_replace_v1_retry",
+    "owner": "lvshuai01",
+    "channel_mapping_version": "0918"
+  }
+}

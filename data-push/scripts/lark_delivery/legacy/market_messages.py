@@ -115,9 +115,9 @@ def build_markdown(
             % (_display(row, "退前线索", "count"), _display(row, "退后线索", "count"), _display(row, "线索留存率", "rate"))
         )
         lines.append(
-            "- 总通时：%s　首call：%s%s"
+            "- 总通时(min)：%s　首call：%s%s"
             % (
-                _display(row, "总通时", "duration"),
+                _display(row, "总通时(min)", "duration"),
                 _display(row, "首call率", "rate"),
                 "　外呼：" + " / ".join(
                     "%s=%s" % (label, _display(row, field, "rate"))
@@ -142,12 +142,12 @@ def build_markdown(
         [
             "",
             "### 汇总",
-            "- 退前线索：%s　退后线索：%s　线索留存率：%s　总通时：%s"
+            "- 退前线索：%s　退后线索：%s　线索留存率：%s　总通时(min)：%s"
             % (
                 _image_value(total, "退前线索", "count"),
                 _image_value(total, "退后线索", "count"),
                 _image_value(total, "线索留存率", "rate"),
-                _image_value(total, "总通时", "duration"),
+                _image_value(total, "总通时(min)", "duration"),
             ),
             "- 首call：%s　外呼频次：%s　5min比例：%s　好友率：%s　APP登录率：%s　深沟率：%s　双沟率：%s"
             % (

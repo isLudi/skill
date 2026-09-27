@@ -22,6 +22,7 @@ from governed_temp_table_event_service import (  # noqa: E402
     ReplyDispatcher,
     ServiceError,
     SyncExecutor,
+    assert_production_job_scope,
     families_for_chat,
     load_config,
     parse_command,
@@ -54,6 +55,10 @@ def test_config(runtime_root: Path, **overrides: object) -> dict[str, object]:
         "reply_progress_updates": False,
         "allow_local_apply": False,
         "allow_production_upload": False,
+        "production_source_message_ids": {
+            "personal_period_goal": "om_source",
+            "market_plan_id": "om_marketsource",
+        },
         "command_timeout_seconds": 60,
         "python_executable": r"D:\anaconda3\python.exe",
         "sync_script": str(
@@ -257,6 +262,78 @@ class EventServiceTests(unittest.TestCase):
         with self.assertRaisesRegex(ServiceError, "JSON boolean"):
             load_config(path)
 
+    def test_production_config_requires_exact_source_allowlist(self) -> None:
+        path = self.runtime_root / "missing-source-config.json"
+        value = test_config(
+            self.runtime_root,
+            mode="production",
+            allow_local_apply=True,
+            allow_production_upload=True,
+            production_source_message_ids={},
+        )
+        path.write_text(json.dumps(value), encoding="utf-8")
+        with self.assertRaisesRegex(ServiceError, "source-message allowlist"):
+            load_config(path)
+
+    def test_registered_sources_policy_allows_empty_message_map(self) -> None:
+        path = self.runtime_root / "registered-sources-config.json"
+        value = test_config(
+            self.runtime_root,
+            mode="production",
+            allow_local_apply=True,
+            allow_production_upload=True,
+            production_source_policy="registered_sources",
+            production_source_message_ids={},
+        )
+        path.write_text(json.dumps(value), encoding="utf-8")
+        loaded = load_config(path)
+        self.assertEqual(loaded["production_source_policy"], "registered_sources")
+
+    def test_registered_sources_scope_binds_plan_sources_without_static_allowlist(self) -> None:
+        config = test_config(
+            self.runtime_root,
+            mode="production",
+            allow_local_apply=True,
+            allow_production_upload=True,
+            production_source_policy="registered_sources",
+            production_source_message_ids={},
+        )
+        plan_path = self.runtime_root / "registered-plan.json"
+        plan = {
+            "status": "ready",
+            "selected_message_ids": {"personal_period_goal": "om_new_source"},
+            "tables": [{"family_id": "personal_period_goal"}],
+        }
+        plan_hash = workflow.write_artifact(plan_path, plan, "plan_sha256")
+        job = {
+            "family_ids": ["personal_period_goal"],
+            "plan_path": str(plan_path),
+            "plan_sha256": plan_hash,
+            "message_bindings": {"personal_period_goal": "om_new_source"},
+        }
+        assert_production_job_scope(config, job)
+
+    def test_production_scope_requires_hash_bound_exact_source(self) -> None:
+        config = test_config(self.runtime_root)
+        plan_path = self.runtime_root / "plan.json"
+        plan = {
+            "status": "ready",
+            "selected_message_ids": {"personal_period_goal": "om_source"},
+            "tables": [{"family_id": "personal_period_goal"}],
+        }
+        plan_hash = workflow.write_artifact(plan_path, plan, "plan_sha256")
+        job = {
+            "family_ids": ["personal_period_goal"],
+            "plan_path": str(plan_path),
+            "plan_sha256": plan_hash,
+        }
+        assert_production_job_scope(config, job)
+        plan["selected_message_ids"]["personal_period_goal"] = "om_other"
+        workflow.write_artifact(plan_path, plan, "plan_sha256")
+        job["plan_sha256"] = plan["plan_sha256"]
+        with self.assertRaisesRegex(ServiceError, "differ from the allowlist"):
+            assert_production_job_scope(config, job)
+
     def test_processor_rejects_missing_registered_source_sender(self) -> None:
         incomplete = test_config(self.runtime_root, source_sender_ids=[SOURCE])
 
@@ -437,6 +514,61 @@ class EventServiceTests(unittest.TestCase):
         self.assertEqual(job["status"], "queued")
         self.assertIsNone(job["authorized_by"])
 
+    def test_limited_production_rejects_full_upload_and_queues_allowed_table(self) -> None:
+        config = test_config(
+            self.runtime_root,
+            mode="production",
+            allow_local_apply=True,
+            allow_production_upload=True,
+        )
+        processor = EventProcessor(
+            config, self.registry, self.ledger, self.replies, None, None, self.logger
+        )
+        denied = processor.process(event("om_full", APPROVER, "@管家 上传最新临时表"))
+        allowed = processor.process(event("om_one", APPROVER, "@管家 上传个人期度目标表"))
+        job = self.ledger.recent_jobs(1)[0]
+        self.assertEqual(denied, "upload_scope_denied")
+        self.assertEqual(allowed, "job_queued")
+        self.assertEqual(job["family_ids"], ["personal_period_goal"])
+        self.assertEqual(job["action"], "upload")
+        self.assertEqual(job["authorized_by"], APPROVER)
+
+    def test_limited_production_rejects_approval_of_other_source(self) -> None:
+        config = test_config(
+            self.runtime_root,
+            mode="production",
+            allow_local_apply=True,
+            allow_production_upload=True,
+        )
+        processor = EventProcessor(
+            config, self.registry, self.ledger, self.replies, None, None, self.logger
+        )
+        plan_path = self.runtime_root / "other-source-plan.json"
+        plan = {
+            "status": "ready",
+            "selected_message_ids": {"personal_period_goal": "om_other"},
+            "tables": [{"family_id": "personal_period_goal"}],
+        }
+        plan_hash = workflow.write_artifact(plan_path, plan, "plan_sha256")
+        job_id = self.ledger.create_job(
+            request_message_id="om_old_plan",
+            chat_id=CHAT,
+            requester_id=APPROVER,
+            source="test",
+            action="plan",
+            family_ids=["personal_period_goal"],
+        )
+        self.ledger.update_job(
+            job_id,
+            status="planned",
+            stage="awaiting_approval",
+            plan_path=str(plan_path),
+            plan_sha256=plan_hash,
+        )
+        result = processor.process(event("om_approval", APPROVER, f"@管家 确认上传 {job_id}"))
+        self.assertEqual(result, "approve_scope_denied")
+        self.assertEqual(self.ledger.get_job(job_id)["status"], "planned")
+
     def test_message_id_is_the_idempotency_key(self) -> None:
         first = self.processor.process(event("om_evt3", APPROVER, "@管家 预检最新目标表"))
         second = self.processor.process(event("om_evt3", APPROVER, "@管家 预检最新目标表"))
@@ -548,7 +680,9 @@ class EventServiceTests(unittest.TestCase):
             {"ok": True, "status": "success", "receipt_path": "C:/runtime/upload.json", "receipt_sha256": "uploadhash", "uploads": [{}]},
         ]
 
-        with mock.patch.object(executor, "_run", side_effect=responses) as run:
+        with mock.patch.object(executor, "_run", side_effect=responses) as run, mock.patch(
+            "governed_temp_table_event_service.assert_production_job_scope"
+        ):
             executor.execute(job_id)
 
         job = self.ledger.get_job(job_id)
@@ -621,7 +755,9 @@ class EventServiceTests(unittest.TestCase):
             },
         ]
 
-        with mock.patch.object(executor, "_run", side_effect=responses):
+        with mock.patch.object(executor, "_run", side_effect=responses), mock.patch(
+            "governed_temp_table_event_service.assert_production_job_scope"
+        ):
             executor.execute(job_id)
 
         job = self.ledger.get_job(job_id)

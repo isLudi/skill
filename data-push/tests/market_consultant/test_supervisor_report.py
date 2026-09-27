@@ -1,11 +1,14 @@
 """Offline contract tests for the four-channel supervisor-detail report."""
 from pathlib import Path
 import sys
+import tempfile
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "scripts"))
 
 from lark_delivery.domains.market_consultant import supervisor_report as sr
 from lark_delivery.common.values import _rate as parse_rate
+from lark_delivery.common.values import _format_value
+from lark_delivery.common.images import _find_font, _center_text
 from lark_delivery.domains.market_consultant.style import _result_cell_fill
 
 
@@ -37,13 +40,37 @@ def build(rows):
 
 def test_exact_supervisor_columns():
     assert [column[1] for column in sr.COLUMNS["process"]] == [
-        "期次", "负责人", "主管", "退前线索", "退后线索", "线索留存率", "总通时",
+        "期次", "负责人", "主管", "退前线索", "退后线索", "线索留存率", "总通时(min)",
         "首call率", "48h外呼", "外呼频次", "5min", "好友率", "APP登陆率", "深沟率", "双沟率",
     ]
     assert [column[1] for column in sr.COLUMNS["result"]] == [
         "期次", "负责人", "主管", "退后线索", "5min", "双沟率",
         "首节到课率", "当期单效", "截面单效",
     ]
+
+
+def test_process_duration_converts_seconds_to_minutes_before_rendering():
+    rows = leads("主管甲", "顾问甲", 10, 5, 0)
+    rows[0]["总通时秒"] = 90
+    block = build(rows)["blocks"][0]
+    assert block["rows"][0]["fields"]["总通时(min)"] == 10.5
+    assert block["total"]["fields"]["总通时(min)"] == 10.5
+    assert _format_value(10.5, "duration") == "10.5"
+    assert "总通时" not in block["rows"][0]["fields"]
+    rendered = []
+
+    def capture_text(draw, box, content, font, fill):
+        rendered.append(content)
+        _center_text(draw, box, content, font, fill)
+
+    with tempfile.TemporaryDirectory() as directory:
+        image_path = Path(directory) / "process.png"
+        sr.render_image({"blocks": [block]}, "process", image_path,
+                        font_loader=_find_font, center_text=capture_text,
+                        format_value=_format_value, rate_parser=parse_rate)
+        assert image_path.is_file()
+    assert "总通时(min)" in rendered
+    assert "10.5" in rendered
 
 
 def test_reminders_are_independent_by_grade_and_include_exact_ties():

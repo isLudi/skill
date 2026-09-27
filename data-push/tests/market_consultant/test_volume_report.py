@@ -92,19 +92,25 @@ class VolumeReportTests(unittest.TestCase):
         result, _, _ = vr.aggregate_volume(rows, "20260918期")
         self.assertEqual([row["年级"] for row in result], ["高一", "高二", "高三"])
 
-    def test_abnormal_ratio_uses_exact_period_channel_grade_then_divides(self):
-        rows = [record(期次="20260918期", 渠道="KOC-A", 年级="初三", 异常流量标记=1),
-                record(期次="20260918期", 渠道="KOC-A", 年级="初三", 异常流量标记=0),
-                record(期次="20260918期", 渠道="自孵化B", 年级="初三", 异常流量标记=1),
-                record(期次="20260918期", 渠道="其他", 年级="初三", 异常流量标记=1),
-                record(期次="20260911期", 渠道="KOC-A", 年级="初三", 异常流量标记=1),
-                record(期次="20260918期", 渠道="KOC-A", 年级="高一", 异常流量标记=1)]
-        result, audit = vr.aggregate_abnormal(rows, "20260918期", {"KOC-A", "自孵化B"},
-                                                {("KOC-A", "初三"), ("自孵化B", "初三")})
+    def test_abnormal_ratio_uses_rule_channel_not_attribution_channel(self):
+        rows = [record(期次="20260918期", 规则="0918期-a-KOC甲-初三", 渠道="其他归因", 年级="初三", 异常流量标记=1),
+                record(期次="20260918期", 规则="0918期-a-KOC甲-初三", 渠道="KOC甲", 年级="初三", 异常流量标记=0),
+                record(期次="20260918期", 规则="0918期-a-自孵化B-初三", 渠道="其他归因", 年级="初三", 异常流量标记=1),
+                record(期次="20260918期", 规则="0918期-a-其他-初三", 渠道="KOC甲", 年级="初三", 异常流量标记=1),
+                record(期次="20260911期", 规则="0911期-a-KOC甲-初三", 渠道="KOC甲", 年级="初三", 异常流量标记=1),
+                record(期次="20260918期", 规则="0918期-a-KOC甲-高一", 渠道="KOC甲", 年级="高一", 异常流量标记=1)]
+        result, audit = vr.aggregate_abnormal(rows, "20260918期", {"KOC甲", "自孵化B"},
+                                                {("KOC甲", "初三"), ("自孵化B", "初三")})
         self.assertAlmostEqual(result["初三"]["异常流量占比"], 2 / 3)
         self.assertEqual(result["初三"]["线索量"], 3)
         self.assertEqual(audit["matched_dimensions"], 2)
         self.assertEqual(audit["missing_dimensions"], [])
+
+    def test_year_prefixed_rule_channel_and_malformed_rule(self):
+        self.assertEqual(vr.assignment_rule_channel("2026年-0925期-短期班-抖音私信-高中"), "短期班")
+        with self.assertRaisesRegex(ValueError, "无法解析分配渠道"):
+            vr.assignment_rule_channel("bad-rule")
+        self.assertIn("规则", vr.LEAD_FIELDS)
 
     def test_markdown_names_lowest_grade_and_lists_every_grade_abnormal_ratio(self):
         rows = [{"年级": grade, "量级完成度": completion} for grade, completion in

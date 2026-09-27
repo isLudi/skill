@@ -70,8 +70,8 @@ def validate(root=SKILL_ROOT):
     task_names = [schedule.get("windows_task_name") for _, schedule in enabled_schedules]
     if orders != list(range(1, len(enabled_schedules) + 1)):
         errors.append("Enabled local broadcasts must have contiguous stagger_order values starting at 1")
-    if minutes != list(range(20, 20 + len(enabled_schedules))):
-        errors.append("Enabled local broadcasts must start one minute apart beginning at :20")
+    if minutes != [20 + index // 2 for index in range(len(enabled_schedules))] or (minutes and minutes[-1] > 50):
+        errors.append("Enabled local broadcasts must start two per minute beginning at :20 and no later than :50")
     if len(set(task_names)) != len(task_names):
         errors.append("Enabled local broadcasts must use unique Windows task names")
     for key, schedule in enabled_schedules:

@@ -1,11 +1,13 @@
-param([switch]$ConfirmEnable)
+param([switch]$ConfirmEnable, [switch]$CreateDisabled)
 $ErrorActionPreference = 'Stop'
 $env:PYTHONIOENCODING = 'utf-8'
 $env:PYTHONUTF8 = '1'
 [Console]::InputEncoding = [System.Text.UTF8Encoding]::new($false)
 [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 $OutputEncoding = [Console]::OutputEncoding
-if (-not $ConfirmEnable) { throw 'Explicit -ConfirmEnable is required.' }
+if (($ConfirmEnable -and $CreateDisabled) -or (-not $ConfirmEnable -and -not $CreateDisabled)) {
+    throw 'Specify exactly one of -ConfirmEnable or -CreateDisabled.'
+}
 if ((Get-TimeZone).Id -ne 'China Standard Time') { throw 'Task host timezone must be China Standard Time.' }
 $pushScheduler = Join-Path $PSScriptRoot 'scheduled_push.py'
 $pushConfigPath = Join-Path (Split-Path $PSScriptRoot -Parent) 'config\business_koc_math_scheduled_push.json'
@@ -27,8 +29,12 @@ $pushTriggers = foreach ($pushHour in $pushConfig.hours) {
     New-ScheduledTaskTrigger -Daily -At $pushAt
 }
 $pushPrincipal = New-ScheduledTaskPrincipal -UserId ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name) -LogonType Interactive -RunLevel Limited
-$pushSettings = New-ScheduledTaskSettingsSet -Hidden -MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Minutes 40) -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
-$pushDescription = 'data-push business KOC broadcast at 13:21 and 17:21; retries every 2 minutes through :50. 13:21 sends separate KOC-Zhoushuai and KOC-Mengyafei process reports Mon-Thu or conversion reports Fri-Sun; 17:21 sends one combined KOC excluding self-incubated volume report daily.'
+if ($CreateDisabled) {
+    $pushSettings = New-ScheduledTaskSettingsSet -Disable -Hidden -MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Minutes 40) -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
+} else {
+    $pushSettings = New-ScheduledTaskSettingsSet -Hidden -MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Minutes 40) -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
+}
+$pushDescription = 'data-push business KOC broadcast at 13:20 and 17:20; retries every 2 minutes through :50. 13:20 sends separate KOC-Zhoushuai and KOC-Mengyafei process reports Mon-Thu or conversion reports Fri-Sun; 17:20 sends one combined KOC excluding self-incubated volume report daily.'
 $pushRegister = @{TaskName=$pushTaskName;Action=$pushAction;Trigger=$pushTriggers;Principal=$pushPrincipal;Settings=$pushSettings;Description=$pushDescription}
 if ($pushExisting) { $pushRegister.Force = $true }
 Register-ScheduledTask @pushRegister | Out-Null

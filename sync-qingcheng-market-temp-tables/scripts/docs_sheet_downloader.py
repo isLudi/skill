@@ -130,34 +130,49 @@ def download_docs_sheet(
     output_path.parent.mkdir(parents=True, exist_ok=True)
     timeout_ms = timeout_seconds * 1000
     page_title = ""
+    stage = "browser_launch"
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch(channel=browser_channel, headless=not headed)
         try:
             context = browser.new_context(accept_downloads=True)
             page = context.new_page()
             page.set_default_timeout(timeout_ms)
+            stage = "source_navigation"
             page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
             if urlparse(page.url).netloc.casefold() == "cas.baijia.com":
+                stage = "login_form"
                 page.get_by_placeholder("请输入邮箱前缀").fill(username)
                 page.get_by_placeholder("请输入密码").fill(password)
                 page.get_by_role("button", name="登录", exact=True).click()
+            stage = "document_navigation"
             page.wait_for_url(
                 re.compile(r"^https://docs\.baijia\.com/sheet/"),
                 wait_until="domcontentloaded",
                 timeout=timeout_ms,
             )
+            stage = "document_title"
             page_title = page.title().strip()
             if not re.fullmatch(expected_title_pattern, page_title):
                 raise DocsSheetDownloadError("Opened document title does not match the registered source.")
-            page.get_by_label("file").click()
+            stage = "document_ready"
+            page.wait_for_timeout(min(timeout_ms, 15000))
+            stage = "file_menu"
+            file_menu = page.get_by_label("file")
+            file_menu.wait_for(state="visible")
+            file_menu.click()
+            download_item = page.get_by_text("下载", exact=True).first
+            stage = "download_menu_ready"
+            download_item.wait_for(state="visible")
+            stage = "download"
             with page.expect_download(timeout=timeout_ms) as download_info:
-                page.get_by_text("下载", exact=True).click()
+                download_item.click()
             download_info.value.save_as(str(output_path))
         except DocsSheetDownloadError:
             raise
         except Exception as exc:  # noqa: BLE001
             raise DocsSheetDownloadError(
-                "Could not authenticate, open, or download the registered document."
+                "Could not authenticate, open, or download the registered document "
+                f"at {stage} ({type(exc).__name__})."
             ) from exc
         finally:
             browser.close()

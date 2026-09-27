@@ -26,7 +26,7 @@ class SupervisorYafeiGrade9Tests(unittest.TestCase):
         self.assertEqual(tuple(self.definition["source"]["channel_match"]["values"]), expected)
         self.assertEqual(self.definition["schedule"]["windows_task_name"], "Codex-Lark-Supervisor-Yafei-Grade9-Push")
         self.assertEqual(self.definition["schedule"]["stagger_order"], 6)
-        self.assertEqual(self.definition["schedule"]["prepare_minute"], 25)
+        self.assertEqual(self.definition["schedule"]["prepare_minute"], 22)
 
     def test_each_channel_keeps_supervisor_contract(self):
         for channel in policy.CHANNELS:

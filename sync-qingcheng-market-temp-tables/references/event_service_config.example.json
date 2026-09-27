@@ -28,12 +28,14 @@
   "reply_identity": "bot",
   "allow_local_apply": false,
   "allow_production_upload": false,
+  "production_source_policy": "explicit",
+  "production_source_message_ids": {},
   "event_key": "im.message.receive_v1",
   "event_ready_timeout_seconds": 30,
   "command_timeout_seconds": 1800,
   "python_executable": "D:\\anaconda3\\python.exe",
-  "sync_script": "C:\\Users\\Ludim\\.codex\\skills\\sync-qingcheng-market-temp-tables\\scripts\\governed_temp_table_sync.py",
-  "workflow_registry": "C:\\Users\\Ludim\\.codex\\skills\\sync-qingcheng-market-temp-tables\\references\\workflow_registry.json",
-  "runtime_root": "C:\\Users\\Ludim\\.codex\\runtime\\sync-qingcheng-market-temp-tables\\event-service",
-  "sync_runtime_root": "C:\\Users\\Ludim\\.codex\\runtime\\sync-qingcheng-market-temp-tables"
+  "sync_script": "C:\\Users\\lvshuai01\\.codex\\skills\\sync-qingcheng-market-temp-tables\\scripts\\governed_temp_table_sync.py",
+  "workflow_registry": "C:\\Users\\lvshuai01\\.codex\\skills\\sync-qingcheng-market-temp-tables\\references\\workflow_registry.json",
+  "runtime_root": "C:\\Users\\lvshuai01\\.codex\\runtime\\sync-qingcheng-market-temp-tables\\event-service",
+  "sync_runtime_root": "C:\\Users\\lvshuai01\\.codex\\runtime\\sync-qingcheng-market-temp-tables"
 }

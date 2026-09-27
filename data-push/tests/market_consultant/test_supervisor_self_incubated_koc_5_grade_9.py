@@ -27,7 +27,7 @@ class SupervisorSelfIncubatedKocGrade9Tests(unittest.TestCase):
                           "自孵化KOC-5元纯课": "自孵化KOC-5元纯课"})
         self.assertEqual(self.definition["schedule"]["windows_task_name"], "Codex-Lark-Supervisor-KOC-Grade9-Push")
         self.assertEqual(self.definition["schedule"]["stagger_order"], 5)
-        self.assertEqual(self.definition["schedule"]["prepare_minute"], 24)
+        self.assertEqual(self.definition["schedule"]["prepare_minute"], 22)
 
     def test_report_arguments_keep_supervisor_contract(self):
         for channel in policy.CHANNELS:

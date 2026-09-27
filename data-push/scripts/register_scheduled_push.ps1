@@ -1,11 +1,13 @@
-param([switch]$ConfirmEnable)
+param([switch]$ConfirmEnable, [switch]$CreateDisabled)
 $ErrorActionPreference = 'Stop'
 $env:PYTHONIOENCODING = 'utf-8'
 $env:PYTHONUTF8 = '1'
 [Console]::InputEncoding = [System.Text.UTF8Encoding]::new($false)
 [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 $OutputEncoding = [Console]::OutputEncoding
-if (-not $ConfirmEnable) { throw 'Explicit -ConfirmEnable is required.' }
+if (($ConfirmEnable -and $CreateDisabled) -or (-not $ConfirmEnable -and -not $CreateDisabled)) {
+    throw 'Specify exactly one of -ConfirmEnable or -CreateDisabled.'
+}
 if ((Get-TimeZone).Id -ne 'China Standard Time') { throw 'Task host timezone must be China Standard Time.' }
 $pushConfig = & 'D:\anaconda3\python.exe' (Join-Path $PSScriptRoot 'scheduled_push.py') --show-config | ConvertFrom-Json
 if ($LASTEXITCODE -ne 0) { throw 'Could not resolve the channel schedule configuration.' }
@@ -17,7 +19,6 @@ $pushAction = New-ScheduledTaskAction -Execute "$env:WINDIR\System32\WindowsPowe
 $pushExisting = Get-ScheduledTask -TaskName $pushTaskName -ErrorAction SilentlyContinue
 if ($pushExisting) {
     if ($pushExisting.Actions.Arguments -ne $pushArguments) { throw 'Existing task has another action; refusing overwrite.' }
-    throw 'Task already exists; inspect before explicitly updating it.'
 }
 $pushTriggers = foreach ($pushHour in $pushConfig.hours) {
     $pushAt = $pushFirst.Date.AddHours($pushHour).AddMinutes($pushConfig.prepare_minute)
@@ -25,9 +26,15 @@ $pushTriggers = foreach ($pushHour in $pushConfig.hours) {
     New-ScheduledTaskTrigger -Daily -At $pushAt
 }
 $pushPrincipal = New-ScheduledTaskPrincipal -UserId ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name) -LogonType Interactive -RunLevel Limited
-$pushSettings = New-ScheduledTaskSettingsSet -Hidden -MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Minutes 40) -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
-$pushDescription = 'data-push KOC group broadcast at 13:20 and 17:20; retries every 2 minutes through :50. 13:20 sends process Mon-Thu or conversion Fri-Sun; 17:20 sends volume daily. Live detail exists only while running; use view_live_push_status.ps1.'
-Register-ScheduledTask -TaskName $pushTaskName -Action $pushAction -Trigger $pushTriggers -Principal $pushPrincipal -Settings $pushSettings -Description $pushDescription | Out-Null
+if ($CreateDisabled) {
+    $pushSettings = New-ScheduledTaskSettingsSet -Disable -Hidden -MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Minutes 40) -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
+} else {
+    $pushSettings = New-ScheduledTaskSettingsSet -Hidden -MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Minutes 40) -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
+}
+$pushDescription = 'data-push KOC group paired-minute broadcast at 13:20 and 17:20; retries every 2 minutes through :50. 13:20 sends process Mon-Thu or conversion Fri-Sun; 17:20 sends volume daily. Live detail exists only while running; use view_live_push_status.ps1.'
+$pushRegister = @{TaskName=$pushTaskName;Action=$pushAction;Trigger=$pushTriggers;Principal=$pushPrincipal;Settings=$pushSettings;Description=$pushDescription}
+if ($pushExisting) { $pushRegister.Force = $true }
+Register-ScheduledTask @pushRegister | Out-Null
 $pushReadback = Get-ScheduledTask -TaskName $pushTaskName
 $pushInfo = Get-ScheduledTaskInfo -TaskName $pushTaskName
 [pscustomobject]@{TaskName=$pushTaskName;State=$pushReadback.State.ToString();NextRunTime=$pushInfo.NextRunTime;Triggers=@($pushReadback.Triggers | Select-Object StartBoundary,DaysInterval);Action=$pushReadback.Actions.Arguments;LogonType=$pushReadback.Principal.LogonType;MultipleInstances=$pushReadback.Settings.MultipleInstances;Enabled=$pushReadback.Settings.Enabled} | ConvertTo-Json -Depth 6

@@ -95,8 +95,10 @@ class ScheduledGradeTests(unittest.TestCase):
                "目标多维表格校验通过：table_id=tbljWRvaqKTdrCx4\n"
                "数据校验通过：11行，期次20260911期、20260918期，1个渠道\n"
                "渠道分布：" + json.dumps({bp.CHANNEL: 11}, ensure_ascii=False) + "\n"
-               "双期快照清单：" + json.dumps(audit) + "\n渠道映射版本：0904\n"
-               "新记录回读校验通过\n旧记录删除完成：1条\n最终回读校验通过：11条\n"
+               "双期快照清单：" + json.dumps(audit) + "\n渠道映射版本：" + u.get("channel_mapping_version", "0904") + "\n"
+               "清空前旧记录数：1\n写入前旧记录清空完成：1条\n写入前清空回读确认：0条\n"
+               "写入前旧记录数：0\n新记录创建完成：11条\n新记录回读校验通过\n"
+               "最终回读校验通过：11条\n"
                "SUCCESS: done\nexit_code:  0\n")
         raw = log.encode("utf-8")
         (directory / "stage.log").write_bytes(raw)
@@ -124,6 +126,43 @@ class ScheduledGradeTests(unittest.TestCase):
                 invalid, _ = self.log_doc(directory, bad)
                 with self.assertRaises(ValueError):
                     sp.parse_complete_log(invalid, directory, self.cfg, self.slot, invalid["execution"])
+
+            invalid, _ = self.log_doc(directory)
+            path = directory / "stage.log"
+            raw = path.read_text(encoding="utf-8").replace("写入前清空回读确认：0条", "写入前清空回读异常：1条").encode("utf-8")
+            path.write_bytes(raw)
+            invalid["stages"][0]["log_sha256"] = hashlib.sha256(raw).hexdigest()
+            with self.assertRaisesRegex(ValueError, "write/readback|clear-then-replace"):
+                sp.parse_complete_log(invalid, directory, self.cfg, self.slot, invalid["execution"])
+
+    def test_retry_stage_and_new_channel_mapping_version_are_accepted(self):
+        with tempfile.TemporaryDirectory() as folder:
+            directory = Path(folder)
+            cfg = copy.deepcopy(self.cfg)
+            cfg["upstream"]["log_protocol"] = "two_period_clear_then_replace_v1_retry"
+            cfg["upstream"]["channel_mapping_version"] = "0918"
+            doc, _ = self.log_doc(directory)
+            success_path = directory / "stage.log"
+            success_raw = success_path.read_text(encoding="utf-8").replace(
+                "渠道映射版本：0918", "渠道映射版本：0918"
+            ).encode("utf-8")
+            success_path.write_bytes(success_raw)
+            failed_raw = b"retryable stage failure\n"
+            (directory / "failed.log").write_bytes(failed_raw)
+            doc["stages"] = [
+                {
+                    "metadata": {"statusDesc": "failed", "taskId": 66504},
+                    "log_file": "failed.log",
+                    "log_sha256": hashlib.sha256(failed_raw).hexdigest(),
+                },
+                {
+                    "metadata": {"statusDesc": "success", "taskId": 66504},
+                    "log_file": "stage.log",
+                    "log_sha256": hashlib.sha256(success_raw).hexdigest(),
+                },
+            ]
+            result = sp.parse_complete_log(doc, directory, cfg, self.slot, doc["execution"])
+            self.assertEqual(result["total"], 11)
 
     def test_single_process_image_is_sent_and_cleaned_only_after_receipt(self):
         context = self.context()

@@ -245,6 +245,27 @@ def load_registry(path: Path) -> dict[str, Any]:
                 raise WorkflowError(
                     f"Changed-slice family {family['id']} needs max_changed_slices >= 1."
                 )
+        reviewed_scope = family.get("reviewed_source_slice_scope")
+        if reviewed_scope is not None:
+            if (
+                merge_mode != "changed_source_slices"
+                or not isinstance(reviewed_scope, dict)
+                or set(reviewed_scope) != {
+                    "message_id", "source_sha256", "selected_slices", "baseline_update"
+                }
+                or not re.fullmatch(r"om_[A-Za-z0-9]+", str(reviewed_scope["message_id"]))
+                or not re.fullmatch(r"[0-9a-f]{64}", str(reviewed_scope["source_sha256"]))
+                or not isinstance(reviewed_scope["selected_slices"], list)
+                or not reviewed_scope["selected_slices"]
+                or any(
+                    not isinstance(value, str) or not value
+                    for value in reviewed_scope["selected_slices"]
+                )
+                or len(set(reviewed_scope["selected_slices"])) != len(reviewed_scope["selected_slices"])
+                or reviewed_scope["baseline_update"] != "preserve"
+            ):
+                raise WorkflowError(f"Invalid reviewed source-slice scope for {family['id']}.")
+    _validate_source_bundles(registry)
     _validate_local_temp_table_inventories(registry)
     return registry
 
@@ -435,6 +456,33 @@ def _validate_source_quality_config(
         raise WorkflowError(f"Invalid relative_change.max_ratio for family {family_id}.")
     if relative_change.get("baseline") != "same_slice_or_latest_target":
         raise WorkflowError(f"Unsupported relative_change baseline for family {family_id}.")
+    reviewed_exceptions = relative_change.get("reviewed_exceptions", [])
+    if not isinstance(reviewed_exceptions, list):
+        raise WorkflowError(f"Invalid reviewed relative-change exceptions for {family_id}.")
+    seen_exceptions = set()
+    for item in reviewed_exceptions:
+        if not isinstance(item, dict) or set(item) != {
+            "message_id", "source_sha256", "slice", "source_count",
+            "baseline_slice", "baseline_count"
+        }:
+            raise WorkflowError(f"Invalid reviewed relative-change exception for {family_id}.")
+        if (
+            not re.fullmatch(r"om_[A-Za-z0-9]+", str(item["message_id"]))
+            or not re.fullmatch(r"[0-9a-f]{64}", str(item["source_sha256"]))
+            or not isinstance(item["slice"], str)
+            or not item["slice"]
+            or not isinstance(item["baseline_slice"], str)
+            or not item["baseline_slice"]
+            or any(
+                not isinstance(item[key], int) or isinstance(item[key], bool) or item[key] < 1
+                for key in ("source_count", "baseline_count")
+            )
+        ):
+            raise WorkflowError(f"Invalid reviewed relative-change exception for {family_id}.")
+        identity = (item["message_id"], item["slice"])
+        if identity in seen_exceptions:
+            raise WorkflowError(f"Duplicate reviewed relative-change exception for {family_id}.")
+        seen_exceptions.add(identity)
 
     required_columns = quality.get("required_column_null_rate") or {}
     if not required_columns:
@@ -457,6 +505,133 @@ def _validate_source_quality_config(
 
 def family_map(registry: dict[str, Any]) -> dict[str, dict[str, Any]]:
     return {family["id"]: family for family in registry["families"]}
+
+
+def _validate_source_bundles(registry: dict[str, Any]) -> None:
+    bundles = registry.get("source_bundles", [])
+    if not isinstance(bundles, list):
+        raise WorkflowError("Workflow registry source_bundles must be a list.")
+    families = family_map(registry)
+    seen_bundle_ids: set[str] = set()
+    seen_message_ids: set[str] = set()
+    seen_file_keys: set[str] = set()
+    for bundle in bundles:
+        required = {
+            "id", "domain", "message_id", "create_time", "chat_id", "sender_id",
+            "folder_key", "folder_name", "files",
+        }
+        if not isinstance(bundle, dict) or set(bundle) != required:
+            raise WorkflowError("Invalid registered source bundle shape.")
+        if (
+            not re.fullmatch(r"[a-z][a-z0-9_]*", str(bundle["id"]))
+            or bundle["id"] in seen_bundle_ids
+            or not re.fullmatch(r"om_[A-Za-z0-9]+", str(bundle["message_id"]))
+            or bundle["message_id"] in seen_message_ids
+            or not re.fullmatch(r"oc_[A-Za-z0-9]+", str(bundle["chat_id"]))
+            or not re.fullmatch(r"ou_[A-Za-z0-9]+", str(bundle["sender_id"]))
+            or not re.fullmatch(r"file_v3_[A-Za-z0-9_-]+", str(bundle["folder_key"]))
+            or not str(bundle["folder_name"]).strip()
+        ):
+            raise WorkflowError("Invalid identity in registered source bundle.")
+        if bundle["domain"] not in registry["domains"]:
+            raise WorkflowError(f"Unknown source-bundle domain: {bundle['domain']}")
+        domain = registry["domains"][bundle["domain"]]
+        if (
+            bundle["chat_id"] != domain["chat"]["expected_chat_id"]
+            or bundle["sender_id"] != domain["default_sender_open_id"]
+        ):
+            raise WorkflowError("Registered source bundle chat or sender does not match its domain.")
+        parse_datetime(str(bundle["create_time"]))
+        files = bundle["files"]
+        if not isinstance(files, list) or not files:
+            raise WorkflowError("Registered source bundle must contain files.")
+        seen_families: set[str] = set()
+        seen_names: set[str] = set()
+        for item in files:
+            if not isinstance(item, dict) or set(item) != {"file_key", "file_name", "family_id"}:
+                raise WorkflowError("Invalid registered source-bundle child shape.")
+            file_key = str(item["file_key"])
+            file_name = str(item["file_name"])
+            family_id = str(item["family_id"])
+            family = families.get(family_id)
+            if (
+                not re.fullmatch(r"file_v3_[A-Za-z0-9_-]+", file_key)
+                or file_key in seen_file_keys
+                or not file_name
+                or file_name in seen_names
+                or family is None
+                or family["domain"] != bundle["domain"]
+                or source_kind(family) != "file_attachment"
+                or not any(
+                    re.fullmatch(pattern, file_name)
+                    for pattern in family.get("source_filename_patterns", [])
+                )
+            ):
+                raise WorkflowError("Registered source-bundle child is not an approved family file.")
+            seen_file_keys.add(file_key)
+            seen_names.add(file_name)
+            seen_families.add(family_id)
+        seen_bundle_ids.add(str(bundle["id"]))
+        seen_message_ids.add(str(bundle["message_id"]))
+
+
+def _source_bundle_resource_nodes(content: str) -> list[dict[str, str]]:
+    return [
+        {"kind": match.group(1), "key": match.group(2), "name": match.group(3)}
+        for match in re.finditer(
+            r'<(folder|file)\s+key="([^"]+)"\s+name="([^"]+)"', content
+        )
+    ]
+
+
+def fetch_registered_source_bundle(
+    registry: dict[str, Any],
+    bundle: dict[str, Any],
+    *,
+    cli: str | None = None,
+) -> dict[str, Any]:
+    executable = cli or resolve_lark_cli()
+    response = run_json_command(
+        executable,
+        [
+            "im", "+messages-mget", "--message-ids", bundle["message_id"],
+            "--no-reactions", "--as", "bot", "--format", "json",
+        ],
+        timeout=60,
+    )
+    messages = response.get("data", {}).get("messages", [])
+    if len(messages) != 1:
+        raise WorkflowError("Registered archive folder message is unavailable.")
+    message = messages[0]
+    sender = message.get("sender") or {}
+    actual_sender_id = sender.get("id") or sender.get("open_id") or message.get("sender_id")
+    actual_type = message.get("msg_type") or message.get("message_type")
+    actual_resources = _source_bundle_resource_nodes(str(message.get("content") or ""))
+    expected_resources = [
+        {"kind": "folder", "key": bundle["folder_key"], "name": bundle["folder_name"]},
+        *[
+            {"kind": "file", "key": item["file_key"], "name": item["file_name"]}
+            for item in bundle["files"]
+        ],
+    ]
+    if (
+        message.get("message_id") != bundle["message_id"]
+        or message.get("chat_id") != bundle["chat_id"]
+        or actual_sender_id != bundle["sender_id"]
+        or actual_type != "folder"
+        or actual_resources != expected_resources
+        or str(message.get("create_time") or "") != str(bundle["create_time"])
+    ):
+        raise WorkflowError("Registered archive folder identity or child list changed.")
+    return {
+        "id": bundle["id"],
+        "message_id": bundle["message_id"],
+        "create_time": str(message.get("create_time")),
+        "chat_id": bundle["chat_id"],
+        "sender_id": bundle["sender_id"],
+        "folder_key": bundle["folder_key"],
+        "folder_name": bundle["folder_name"],
+    }
 
 
 def domain_map(registry: dict[str, Any]) -> dict[str, dict[str, Any]]:
@@ -1122,6 +1297,128 @@ def download_message(
     return saved
 
 
+def prepare_source_bundle_inputs(
+    registry: dict[str, Any],
+    family_ids: list[str],
+    output_dir: Path,
+) -> tuple[dict[str, list[dict[str, Any]]], list[dict[str, Any]], dict[str, str]]:
+    selected_families = set(family_ids)
+    inputs_by_family: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    contexts: list[dict[str, Any]] = []
+    errors: dict[str, str] = {}
+    relevant_bundles = [
+        bundle
+        for bundle in registry.get("source_bundles", [])
+        if any(item["family_id"] in selected_families for item in bundle["files"])
+    ]
+    if not relevant_bundles:
+        return {}, [], {}
+    output_dir.mkdir(parents=True, exist_ok=True)
+    cli = resolve_lark_cli()
+    for bundle in relevant_bundles:
+        relevant_files = [
+            item for item in bundle["files"] if item["family_id"] in selected_families
+        ]
+        family_ids_in_bundle = sorted({item["family_id"] for item in relevant_files})
+        try:
+            observed = fetch_registered_source_bundle(registry, bundle, cli=cli)
+            context = {**observed, "files": []}
+            for index, item in enumerate(relevant_files, start=1):
+                output_name = f"source_bundle_{bundle['id']}_{index:02d}.xlsx"
+                requested_path = (output_dir / output_name).resolve()
+                payload = run_json_command(
+                    cli,
+                    [
+                        "im", "+messages-resources-download",
+                        "--message-id", bundle["message_id"],
+                        "--file-key", item["file_key"],
+                        "--type", "file",
+                        "--output", f".\\{output_name}",
+                        "--as", "bot",
+                    ],
+                    cwd=output_dir,
+                    timeout=120,
+                )
+                saved_path = Path(payload["data"]["saved_path"]).resolve()
+                if (
+                    saved_path.parent != output_dir.resolve()
+                    or not saved_path.is_file()
+                    or saved_path.stat().st_size == 0
+                ):
+                    raise WorkflowError("Archive child download escaped the plan directory or is empty.")
+                if saved_path != requested_path:
+                    raise WorkflowError("Archive child download path did not match the requested artifact.")
+                file_context = {
+                    **item,
+                    "bundle_id": bundle["id"],
+                    "message_id": bundle["message_id"],
+                    "create_time": observed["create_time"],
+                    "download_path": str(saved_path),
+                    "source_sha256": sha256_file(saved_path),
+                    "size_bytes": saved_path.stat().st_size,
+                }
+                context["files"].append(file_context)
+                inputs_by_family[item["family_id"]].append(file_context)
+            context["bundle_sha256"] = hashlib.sha256(
+                json.dumps(context, ensure_ascii=True, sort_keys=True, separators=(",", ":")).encode("utf-8")
+            ).hexdigest()
+            contexts.append(context)
+        except Exception as exc:  # noqa: BLE001
+            for family_id in family_ids_in_bundle:
+                errors[family_id] = (
+                    f"Registered archive source bundle could not be read: {type(exc).__name__}."
+                )
+    return dict(inputs_by_family), contexts, errors
+
+
+def assert_plan_source_bundles_current(
+    plan: dict[str, Any],
+    registry: dict[str, Any],
+) -> None:
+    selected_families = set((plan.get("selection") or {}).get("family_ids", []))
+    expected_bundles = {
+        bundle["id"]: bundle
+        for bundle in registry.get("source_bundles", [])
+        if any(item["family_id"] in selected_families for item in bundle["files"])
+    }
+    contexts = plan.get("source_bundles", [])
+    if {item.get("id") for item in contexts} != set(expected_bundles):
+        raise WorkflowError("Registered archive source bundle set changed after planning.")
+    runtime_dir = Path(plan["runtime_dir"]).resolve()
+    for context in contexts:
+        bundle = expected_bundles[context["id"]]
+        observed = fetch_registered_source_bundle(registry, bundle)
+        for key in (
+            "message_id", "create_time", "chat_id", "sender_id", "folder_key", "folder_name"
+        ):
+            if context.get(key) != observed.get(key):
+                raise WorkflowError("Registered archive folder identity changed after planning.")
+        expected_files = [
+            item for item in bundle["files"] if item["family_id"] in selected_families
+        ]
+        actual_files = context.get("files", [])
+        if [
+            (item.get("file_key"), item.get("file_name"), item.get("family_id"))
+            for item in actual_files
+        ] != [
+            (item["file_key"], item["file_name"], item["family_id"])
+            for item in expected_files
+        ]:
+            raise WorkflowError("Registered archive child list changed after planning.")
+        for item in actual_files:
+            path = Path(item["download_path"]).resolve()
+            if not path.is_relative_to(runtime_dir / "downloads"):
+                raise WorkflowError("Archive child artifact escaped the plan download directory.")
+            if not path.is_file() or sha256_file(path) != item.get("source_sha256"):
+                raise WorkflowError("Downloaded archive child changed after planning.")
+        context_for_hash = {key: value for key, value in context.items() if key != "bundle_sha256"}
+        actual_hash = hashlib.sha256(
+            json.dumps(context_for_hash, ensure_ascii=True, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        ).hexdigest()
+        if context.get("bundle_sha256") != actual_hash:
+            raise WorkflowError("Archive bundle manifest hash mismatch.")
+
+
 def normalize_cell(value: Any) -> Any:
     if value is None:
         return None
@@ -1236,6 +1533,141 @@ def read_records(
         return records, metadata
     finally:
         workbook.close()
+
+
+def combine_source_inputs_by_slice(
+    family: dict[str, Any],
+    source_inputs: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], dict[str, Any], list[dict[str, Any]]]:
+    if not source_inputs:
+        raise WorkflowError(f"No source inputs are available for {family['id']}.")
+    slice_column = family["slice_column"]
+    grouped: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    source_audit = []
+    for input_index, source_input in enumerate(source_inputs):
+        source_write, metadata = read_records(
+            Path(source_input["download_path"]),
+            family["source_sheet"],
+            family["target_columns"],
+            aliases=family.get("column_aliases"),
+            constants=family.get("constant_columns"),
+            ignored_columns=family.get("ignored_source_columns"),
+            column_transforms=family.get("column_transforms"),
+            data_only=False,
+        )
+        source_effective, _ = read_records(
+            Path(source_input["download_path"]),
+            family["source_sheet"],
+            family["target_columns"],
+            aliases=family.get("column_aliases"),
+            constants=family.get("constant_columns"),
+            ignored_columns=family.get("ignored_source_columns"),
+            column_transforms=family.get("column_transforms"),
+            data_only=True,
+        )
+        if len(source_write) != len(source_effective):
+            raise WorkflowError(f"Source write/effective row count differs for {family['id']}.")
+        if not source_write:
+            raise WorkflowError(f"Registered source input is empty for {family['id']}.")
+        source_input["source_metadata"] = metadata
+        input_time = parse_datetime(str(source_input["create_time"]))
+        source_audit.append(
+            {
+                "source_kind": source_input.get("source_kind"),
+                "message_id": source_input["message_id"],
+                "create_time": str(source_input["create_time"]),
+                "file_name": source_input["file_name"],
+                "download_path": source_input["download_path"],
+                "source_sha256": source_input["source_sha256"],
+                "sheet": metadata["sheet"],
+                "row_count": len(source_effective),
+                "headers": metadata["headers"],
+            }
+        )
+        source_slices: dict[str, tuple[list[dict[str, Any]], list[dict[str, Any]]]] = defaultdict(
+            lambda: ([], [])
+        )
+        for write_record, effective_record in zip(source_write, source_effective):
+            slice_value = _text(effective_record.get(slice_column))
+            source_slices[slice_value][0].append(write_record)
+            source_slices[slice_value][1].append(effective_record)
+        for slice_value, (write_rows, effective_rows) in source_slices.items():
+            # Keep invalid blank-slice rows from hiding behind another source; the
+            # regular source validation below will report the blank business key.
+            group_key = slice_value or f"\x00blank:{input_index}"
+            grouped[group_key].append(
+                {
+                    "input_index": input_index,
+                    "create_time": input_time,
+                    "source": source_input,
+                    "write_rows": write_rows,
+                    "effective_rows": effective_rows,
+                }
+            )
+
+    combined_write: list[dict[str, Any]] = []
+    combined_effective: list[dict[str, Any]] = []
+    slice_sources = []
+    for group_key in sorted(grouped, key=slice_sort_key):
+        candidates = grouped[group_key]
+        newest_time = max(item["create_time"] for item in candidates)
+        winners = [item for item in candidates if item["create_time"] == newest_time]
+        selected = winners[0]
+        if len(winners) > 1:
+            selected_effective = Counter(
+                normalized_record(row, family["target_columns"])
+                for row in selected["effective_rows"]
+            )
+            selected_write = Counter(
+                normalized_record(row, family["target_columns"])
+                for row in selected["write_rows"]
+            )
+            for winner in winners[1:]:
+                if (
+                    Counter(
+                        normalized_record(row, family["target_columns"])
+                        for row in winner["effective_rows"]
+                    )
+                    != selected_effective
+                    or Counter(
+                        normalized_record(row, family["target_columns"])
+                        for row in winner["write_rows"]
+                    )
+                    != selected_write
+                ):
+                    raise WorkflowError(
+                        f"Same-time source inputs conflict for {family['id']} slice {group_key}."
+                    )
+        combined_write.extend(selected["write_rows"])
+        combined_effective.extend(selected["effective_rows"])
+        slice_sources.append(
+            {
+                "slice": group_key.removeprefix("\x00blank:"),
+                "create_time": selected["source"]["create_time"],
+                "message_id": selected["source"]["message_id"],
+                "file_name": selected["source"]["file_name"],
+                "row_count": len(selected["effective_rows"]),
+                "same_time_equivalent_sources": [
+                    {
+                        "message_id": winner["source"]["message_id"],
+                        "file_name": winner["source"]["file_name"],
+                    }
+                    for winner in winners[1:]
+                ],
+            }
+        )
+
+    metadata = dict(source_inputs[0].get("source_metadata") or {})
+    if not metadata:
+        metadata = {"sheet": family["source_sheet"], "headers": []}
+    metadata["row_count"] = len(combined_effective)
+    metadata["formula_count"] = sum(
+        int(source.get("source_metadata", {}).get("formula_count", 0))
+        for source in source_inputs
+    )
+    metadata["input_sources"] = source_audit
+    metadata["slice_sources"] = slice_sources
+    return combined_write, combined_effective, metadata, source_audit
 
 
 def _copy_records(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -1614,6 +2046,7 @@ def update_source_baseline_state(
         if table.get("source_slice_snapshot")
         and table.get("source_selection", {}).get("mode")
         == "changed_source_slices"
+        and not table.get("source_selection", {}).get("reviewed_source_slice_scope")
     ]
     if not eligible:
         return None
@@ -1652,6 +2085,10 @@ def select_source_records_for_merge(
     transformed_records: list[dict[str, Any]],
     snapshot: dict[str, Any],
     baselines: dict[str, Any],
+    target_records: list[dict[str, Any]] | None = None,
+    *,
+    source_message_id: str | None = None,
+    source_sha256: str | None = None,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     mode = family.get("source_merge_mode", "all_source_slices")
     current_slices = snapshot["slices"]
@@ -1697,18 +2134,73 @@ def select_source_records_for_merge(
         and value in current_slices
     ]
     selected = sorted(set(added + changed + bootstrap), key=slice_sort_key)
+    target_equivalent: list[str] = []
+    source_by_slice: dict[str, Counter[tuple[Any, ...]]] = defaultdict(Counter)
+    target_by_slice: dict[str, Counter[tuple[Any, ...]]] = defaultdict(Counter)
+    if target_records is not None:
+        for record in transformed_records:
+            source_by_slice[_text(record.get(family["slice_column"]))][
+                normalized_record(record, family["target_columns"])
+            ] += 1
+        for record in target_records:
+            if scope_matches(record, family):
+                target_by_slice[_text(record.get(family["slice_column"]))][
+                    normalized_record(record, family["target_columns"])
+                ] += 1
+        target_equivalent = [
+            value
+            for value in selected
+            if source_by_slice[value]
+            and source_by_slice[value] == target_by_slice[value]
+        ]
+    target_pending = sorted(
+        set(selected) - set(target_equivalent), key=slice_sort_key
+    )
+    reviewed_scope = family.get("reviewed_source_slice_scope")
+    active_scope = None
+    if (
+        reviewed_scope
+        and source_message_id == reviewed_scope["message_id"]
+        and source_sha256 == reviewed_scope["source_sha256"]
+    ):
+        if target_records is None:
+            raise WorkflowError("Reviewed source-slice scope requires target records.")
+        approved = sorted(set(reviewed_scope["selected_slices"]), key=slice_sort_key)
+        if not set(approved).issubset(selected):
+            raise WorkflowError(
+                f"Reviewed source-slice scope is not present in the changed source for {family['id']}."
+            )
+        if any(
+            target_by_slice[value] and source_by_slice[value] != target_by_slice[value]
+            for value in approved
+        ):
+            raise WorkflowError(
+                f"Reviewed new source slice already exists with different target rows for {family['id']}."
+            )
+        ignored = sorted(set(selected) - set(approved), key=slice_sort_key)
+        selected = approved
+        target_pending = [value for value in target_pending if value in set(approved)]
+        active_scope = {
+            "message_id": source_message_id,
+            "source_sha256": source_sha256,
+            "selected_slices": approved,
+            "ignored_changed_slices": ignored,
+            "baseline_update": "preserve",
+        }
     maximum = int(family["max_changed_slices"])
-    if len(selected) > maximum:
+    if len(target_pending) > maximum:
         raise WorkflowError(
             f"Source changed too many slices for {family['id']}: "
-            f"{len(selected)} > {maximum}; slices={selected}"
+            f"{len(target_pending)} > {maximum}; "
+            f"target_pending={target_pending}; "
+            f"target_equivalent={target_equivalent}"
         )
     window = int(family.get("recent_slice_window") or 4)
     recent = set(sorted(current_slices, key=slice_sort_key)[-window:])
     reviewed_historical = set(family.get("reviewed_historical_slices", []))
     unreviewed_historical = [
         value
-        for value in selected
+        for value in target_pending
         if value not in recent
         and value not in reviewed_historical
     ]
@@ -1731,8 +2223,11 @@ def select_source_records_for_merge(
         "changed_slices": changed,
         "added_slices": added,
         "bootstrap_slices": sorted(set(bootstrap), key=slice_sort_key),
+        "target_equivalent_slices": target_equivalent,
+        "target_pending_slices": target_pending,
         "removed_slices": removed,
         "recent_slice_window": window,
+        **({"reviewed_source_slice_scope": active_scope} if active_scope else {}),
     }
 
 
@@ -2070,6 +2565,20 @@ def evaluate_source_quality(
             )
             continue
         relative_change = abs(source_count - baseline_count) / baseline_count
+        threshold_ok = relative_change <= max_ratio
+        reviewed_exception = next(
+            (
+                item
+                for item in quality["relative_change"].get("reviewed_exceptions", [])
+                if item["message_id"] == message.get("message_id")
+                and item["source_sha256"] == message.get("source_sha256")
+                and item["slice"] == slice_value
+                and item["source_count"] == source_count
+                and item["baseline_slice"] == baseline_slice
+                and item["baseline_count"] == baseline_count
+            ),
+            None,
+        )
         result = {
             "slice": slice_value,
             "source_count": source_count,
@@ -2078,8 +2587,10 @@ def evaluate_source_quality(
             "baseline_kind": baseline_kind,
             "relative_change": round(relative_change, 6),
             "max_ratio": max_ratio,
-            "ok": relative_change <= max_ratio,
+            "ok": threshold_ok or reviewed_exception is not None,
         }
+        if reviewed_exception is not None and not threshold_ok:
+            result["reviewed_exception"] = reviewed_exception
         relative_results.append(result)
         if not result["ok"]:
             issues.append(
@@ -2581,37 +3092,85 @@ def plan_sync(args: argparse.Namespace) -> int:
     blockers = []
     tables = []
     families = family_map(registry)
+    archive_inputs_by_family, archive_bundle_contexts, archive_bundle_errors = (
+        prepare_source_bundle_inputs(
+            registry,
+            selection["family_ids"],
+            downloads_dir,
+        )
+    )
     for family_id in selection["family_ids"]:
         family = families[family_id]
         message = dict(selected[family_id])
         source_quality = None
         try:
+            if family_id in archive_bundle_errors:
+                raise WorkflowError(archive_bundle_errors[family_id])
             source_path = download_message(message, family, downloads_dir)
             message["download_path"] = str(source_path)
             message["source_sha256"] = sha256_file(source_path)
+            bundle_inputs = archive_inputs_by_family.get(family_id, [])
+            if bundle_inputs:
+                message["source_bundle_ids"] = sorted(
+                    {item["bundle_id"] for item in bundle_inputs}
+                )
+                message["source_bundle_files"] = bundle_inputs
             target_path = Path(family["target_workbook"]).resolve()
             if not target_path.exists():
                 raise WorkflowError(f"Target workbook does not exist: {target_path}")
-            source_write, source_meta = read_records(
-                source_path,
-                family["source_sheet"],
-                family["target_columns"],
-                aliases=family.get("column_aliases"),
-                constants=family.get("constant_columns"),
-                ignored_columns=family.get("ignored_source_columns"),
-                column_transforms=family.get("column_transforms"),
-                data_only=False,
-            )
-            source_effective, _ = read_records(
-                source_path,
-                family["source_sheet"],
-                family["target_columns"],
-                aliases=family.get("column_aliases"),
-                constants=family.get("constant_columns"),
-                ignored_columns=family.get("ignored_source_columns"),
-                column_transforms=family.get("column_transforms"),
-                data_only=True,
-            )
+            source_input_audit = []
+            if bundle_inputs:
+                source_inputs = [
+                    {
+                        "source_kind": source_kind(family),
+                        "message_id": message["message_id"],
+                        "create_time": message["create_time"],
+                        "file_name": message["file_name"],
+                        "download_path": str(source_path),
+                        "source_sha256": message["source_sha256"],
+                        "source_metadata": {},
+                    },
+                    *[
+                        {
+                            **item,
+                            "source_kind": "folder_attachment_bundle",
+                            "source_metadata": {},
+                        }
+                        for item in bundle_inputs
+                    ],
+                ]
+                source_write, source_effective, source_meta, source_input_audit = (
+                    combine_source_inputs_by_slice(family, source_inputs)
+                )
+                message["source_input_audit"] = source_input_audit
+                quality_message = {
+                    **message,
+                    "create_time": min(
+                        (parse_datetime(item["create_time"]) for item in source_inputs)
+                    ).strftime("%Y-%m-%d %H:%M"),
+                }
+            else:
+                source_write, source_meta = read_records(
+                    source_path,
+                    family["source_sheet"],
+                    family["target_columns"],
+                    aliases=family.get("column_aliases"),
+                    constants=family.get("constant_columns"),
+                    ignored_columns=family.get("ignored_source_columns"),
+                    column_transforms=family.get("column_transforms"),
+                    data_only=False,
+                )
+                source_effective, _ = read_records(
+                    source_path,
+                    family["source_sheet"],
+                    family["target_columns"],
+                    aliases=family.get("column_aliases"),
+                    constants=family.get("constant_columns"),
+                    ignored_columns=family.get("ignored_source_columns"),
+                    column_transforms=family.get("column_transforms"),
+                    data_only=True,
+                )
+                quality_message = message
             if family.get("materialize_source_values"):
                 source_write = [dict(record) for record in source_effective]
             target_write, target_meta = read_records(
@@ -2655,6 +3214,9 @@ def plan_sync(args: argparse.Namespace) -> int:
                     transformed_effective,
                     snapshot,
                     source_baselines,
+                    target_effective,
+                    source_message_id=message["message_id"],
+                    source_sha256=message["source_sha256"],
                 )
             )
             selected_slice_values = set(source_selection["selected_slices"])
@@ -2687,7 +3249,7 @@ def plan_sync(args: argparse.Namespace) -> int:
                 raise WorkflowError(f"Source validation failed: {source_issues}")
             source_quality = evaluate_source_quality(
                 family,
-                message,
+                quality_message,
                 transformed_effective,
                 target_effective,
                 relative_source_records=selected_effective,
@@ -2750,6 +3312,8 @@ def plan_sync(args: argparse.Namespace) -> int:
                     "business_name": family["business_name"],
                     "source_message": message,
                     "source_metadata": source_meta,
+                    "source_input_audit": source_input_audit,
+                    "source_bundle_files": message.get("source_bundle_files", []),
                     "source_transform_audit": transform_audit,
                     "source_slice_snapshot": snapshot,
                     "source_selection": source_selection,
@@ -2791,6 +3355,7 @@ def plan_sync(args: argparse.Namespace) -> int:
         "registry_sha256": sha256_file(registry_path),
         "source_baseline_context": source_baseline_context,
         "runtime_dir": str(run_dir),
+        "source_bundles": archive_bundle_contexts,
         "source_context": {
             "registered_chats": chat.get("registered_chats", []),
             "registered_sources": [
@@ -2830,6 +3395,13 @@ def plan_sync(args: argparse.Namespace) -> int:
                 "domain": families[table["family_id"]]["domain"],
                 "source_file": table["source_message"]["file_name"],
                 "source_time": table["source_message"]["create_time"],
+                "source_bundle_files": [
+                    {
+                        "file_name": item["file_name"],
+                        "source_sha256": item["source_sha256"],
+                    }
+                    for item in table.get("source_bundle_files", [])
+                ],
                 "source_quality": table["source_quality"],
                 "source_selection": table["source_selection"],
                 "source_transform_audit": table["source_transform_audit"],
@@ -2855,6 +3427,7 @@ def apply_local(args: argparse.Namespace) -> int:
         raise WorkflowError("Workflow registry drifted after planning.")
     assert_source_baseline_state_current(plan)
     registry = load_registry(registry_path)
+    assert_plan_source_bundles_current(plan, registry)
     assert_plan_source_quality_current(plan, registry)
     selection = plan.get("selection") or build_selection_spec(registry)
     explicit_ids = set(selection.get("explicit_message_ids", {}).values())
@@ -3064,6 +3637,7 @@ def upload_production(args: argparse.Namespace) -> int:
         raise WorkflowError("Workflow registry drifted after planning.")
     assert_source_baseline_state_current(plan)
     registry = load_registry(registry_path)
+    assert_plan_source_bundles_current(plan, registry)
     assert_plan_source_quality_current(plan, registry)
     selection = plan.get("selection") or build_selection_spec(registry)
     explicit_ids = set(selection.get("explicit_message_ids", {}).values())

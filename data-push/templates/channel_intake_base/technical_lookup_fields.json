@@ -1,0 +1,22 @@
+[
+  {"type":"lookup","name":"运营-申请状态","from":"运营填写","select":"申请状态","aggregate":"raw_value","where":{"logic":"and","conditions":[["申请编号","intersects",{"type":"field_ref","field":"关联运营申请"}]]}},
+  {"type":"lookup","name":"运营-部门","from":"运营填写","select":"申请部门","aggregate":"raw_value","where":{"logic":"and","conditions":[["申请编号","intersects",{"type":"field_ref","field":"关联运营申请"}]]}},
+  {"type":"lookup","name":"运营-渠道标准名称","from":"运营填写","select":"渠道标准名称","aggregate":"raw_value","where":{"logic":"and","conditions":[["申请编号","intersects",{"type":"field_ref","field":"关联运营申请"}]]}},
+  {"type":"lookup","name":"运营-原始渠道示例","from":"运营填写","select":"原始渠道示例","aggregate":"raw_value","where":{"logic":"and","conditions":[["申请编号","intersects",{"type":"field_ref","field":"关联运营申请"}]]}},
+  {"type":"lookup","name":"运营-目标群","from":"运营填写","select":"目标群","aggregate":"raw_value","where":{"logic":"and","conditions":[["申请编号","intersects",{"type":"field_ref","field":"关联运营申请"}]]}},
+  {"type":"lookup","name":"运营-目标群名称","from":"运营填写","select":"目标群名称（备用）","aggregate":"raw_value","where":{"logic":"and","conditions":[["申请编号","intersects",{"type":"field_ref","field":"关联运营申请"}]]}},
+  {"type":"lookup","name":"运营-过程指标","from":"运营填写","select":"过程指标（逐项勾选）","aggregate":"raw_value","where":{"logic":"and","conditions":[["申请编号","intersects",{"type":"field_ref","field":"关联运营申请"}]]}},
+  {"type":"lookup","name":"运营-其他过程指标","from":"运营填写","select":"其他过程指标（每行一项）","aggregate":"raw_value","where":{"logic":"and","conditions":[["申请编号","intersects",{"type":"field_ref","field":"关联运营申请"}]]}},
+  {"type":"lookup","name":"运营-过程指标展示顺序","from":"运营填写","select":"过程指标展示顺序（选填）","aggregate":"raw_value","where":{"logic":"and","conditions":[["申请编号","intersects",{"type":"field_ref","field":"关联运营申请"}]]}},
+  {"type":"lookup","name":"运营-转化指标","from":"运营填写","select":"转化指标（逐项勾选）","aggregate":"raw_value","where":{"logic":"and","conditions":[["申请编号","intersects",{"type":"field_ref","field":"关联运营申请"}]]}},
+  {"type":"lookup","name":"运营-其他转化指标","from":"运营填写","select":"其他转化指标（每行一项）","aggregate":"raw_value","where":{"logic":"and","conditions":[["申请编号","intersects",{"type":"field_ref","field":"关联运营申请"}]]}},
+  {"type":"lookup","name":"运营-转化指标展示顺序","from":"运营填写","select":"转化指标展示顺序（选填）","aggregate":"raw_value","where":{"logic":"and","conditions":[["申请编号","intersects",{"type":"field_ref","field":"关联运营申请"}]]}},
+  {"type":"lookup","name":"运营-指标口径补充","from":"运营填写","select":"指标口径补充（每行一项）","aggregate":"raw_value","where":{"logic":"and","conditions":[["申请编号","intersects",{"type":"field_ref","field":"关联运营申请"}]]}},
+  {"type":"lookup","name":"运营-过程重点提醒指标","from":"运营填写","select":"过程重点提醒指标","aggregate":"raw_value","where":{"logic":"and","conditions":[["申请编号","intersects",{"type":"field_ref","field":"关联运营申请"}]]}},
+  {"type":"lookup","name":"运营-转化重点提醒指标","from":"运营填写","select":"转化重点提醒指标","aggregate":"raw_value","where":{"logic":"and","conditions":[["申请编号","intersects",{"type":"field_ref","field":"关联运营申请"}]]}},
+  {"type":"lookup","name":"运营-提醒对象","from":"运营填写","select":"提醒对象","aggregate":"raw_value","where":{"logic":"and","conditions":[["申请编号","intersects",{"type":"field_ref","field":"关联运营申请"}]]}},
+  {"type":"lookup","name":"运营-播报层级","from":"运营填写","select":"播报层级","aggregate":"raw_value","where":{"logic":"and","conditions":[["申请编号","intersects",{"type":"field_ref","field":"关联运营申请"}]]}},
+  {"type":"lookup","name":"运营-过程文字提醒名次","from":"运营填写","select":"过程文字提醒名次","aggregate":"raw_value","where":{"logic":"and","conditions":[["申请编号","intersects",{"type":"field_ref","field":"关联运营申请"}]]}},
+  {"type":"lookup","name":"运营-转化文字提醒名次","from":"运营填写","select":"转化文字提醒名次","aggregate":"raw_value","where":{"logic":"and","conditions":[["申请编号","intersects",{"type":"field_ref","field":"关联运营申请"}]]}},
+  {"type":"lookup","name":"运营-运营备注","from":"运营填写","select":"运营备注","aggregate":"raw_value","where":{"logic":"and","conditions":[["申请编号","intersects",{"type":"field_ref","field":"关联运营申请"}]]}}
+]

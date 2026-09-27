@@ -157,7 +157,7 @@ class LeadReportTests(unittest.TestCase):
         self.assertEqual(totals["人均报科"], 3)
         self.assertEqual(totals["订单转化"], "150.00000000%")
         self.assertEqual(totals["退费率"], "200.00000000%")
-        self.assertEqual(totals["总通时"], 3)
+        self.assertEqual(totals["总通时(min)"], 3)
         self.assertEqual(actual["reminders"]["结果数据"], ["乙"])
 
     def test_exact_comparison_does_not_round_away_low_consultant(self):

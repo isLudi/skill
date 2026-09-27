@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "domain": "market_consultant",
+  "release_name": "market2lark-207095",
+  "channel_mapping_version": "0918",
+  "bound_execution_id": 172998981,
+  "bound_execution_start": "2026-09-27T01:00:11+08:00",
+  "upstream": {
+    "project_id": 308,
+    "folder": "吕帅",
+    "menu_id": 102754,
+    "task_name": "market2lark",
+    "task_id": 47252,
+    "nezha_task_id": 66504,
+    "schedule_id": 53831,
+    "exec_file_id": 830401,
+    "verified_version_id": 207095,
+    "verified_source_sha256": "a652cb7adc0cb8b8cf5c6fe8224b15c94f5045c28a6046600963038cd0f54f0d",
+    "log_protocol": "two_period_clear_then_replace_v1_retry",
+    "owner": "lvshuai01"
+  }
+}

@@ -97,6 +97,8 @@ def load_config(path: Path) -> dict[str, Any]:
         "reply_progress_updates": False,
         "allow_local_apply": False,
         "allow_production_upload": False,
+        "production_source_policy": "explicit",
+        "production_source_message_ids": {},
         "reply_identity": "bot",
         "command_timeout_seconds": 1800,
         "event_ready_timeout_seconds": 30,
@@ -175,6 +177,27 @@ def load_config(path: Path) -> dict[str, Any]:
         raise ServiceError("Shadow mode cannot enable local apply or production upload.")
     if merged["allow_production_upload"] and not merged["allow_local_apply"]:
         raise ServiceError("Production upload requires allow_local_apply=true.")
+    if merged["production_source_policy"] not in {"explicit", "registered_sources"}:
+        raise ServiceError(
+            "Config production_source_policy must be explicit or registered_sources."
+        )
+    production_sources = merged["production_source_message_ids"]
+    if not isinstance(production_sources, dict) or any(
+        not isinstance(family_id, str)
+        or not re.fullmatch(r"[a-z][a-z0-9_]*", family_id)
+        or not isinstance(message_id, str)
+        or not re.fullmatch(r"om_[A-Za-z0-9]+", message_id)
+        for family_id, message_id in production_sources.items()
+    ):
+        raise ServiceError(
+            "Config production_source_message_ids must map family ids to exact om_ message ids."
+        )
+    if (
+        merged["allow_production_upload"]
+        and merged["production_source_policy"] == "explicit"
+        and not production_sources
+    ):
+        raise ServiceError("Production upload requires an explicit source-message allowlist.")
     for key in ("python_executable", "sync_script", "workflow_registry"):
         if not Path(merged[key]).exists():
             raise ServiceError(f"Configured path does not exist: {key}={merged[key]}")
@@ -212,6 +235,25 @@ def validate_registered_sources(
             "Config chat_ids is missing registered workflow chats: "
             + ", ".join(missing_chat_ids)
         )
+    production_sources = config.get("production_source_message_ids") or {}
+    families_by_id = workflow.family_map(registry)
+    unknown = sorted(set(production_sources) - set(families_by_id))
+    if unknown:
+        raise ServiceError(f"Production source allowlist contains unknown families: {unknown}")
+    if len(set(production_sources.values())) != len(production_sources):
+        raise ServiceError("Production source allowlist contains duplicate message ids.")
+    if (
+        config["allow_production_upload"]
+        and config.get("production_source_policy", "explicit") == "explicit"
+    ):
+        allowed_chats = {
+            workflow.source_chat_id(registry, families_by_id[family_id])
+            for family_id in production_sources
+        }
+        if allowed_chats != registered_chat_ids:
+            raise ServiceError(
+                "Production source allowlist must include at least one family in each registered chat."
+            )
     for family in registry["families"]:
         if workflow.source_kind(family) != "link_workbook":
             continue
@@ -222,6 +264,36 @@ def validate_registered_sources(
             raise ServiceError(
                 f"Registered link source credential file is unavailable for {family['id']}."
             )
+
+
+def assert_production_job_scope(config: dict[str, Any], job: dict[str, Any]) -> None:
+    """Bind an upload job to the exact reviewed families and source messages."""
+    allowed = config["production_source_message_ids"]
+    policy = config.get("production_source_policy", "explicit")
+    family_ids = job["family_ids"]
+    if not family_ids or len(set(family_ids)) != len(family_ids):
+        raise ServiceError("Production job has an invalid family selection.")
+    if policy == "explicit" and not set(family_ids).issubset(allowed):
+        raise ServiceError("Production job contains a family outside the source allowlist.")
+    if not job.get("plan_path") or not job.get("plan_sha256"):
+        raise ServiceError("Production job has no verified Plan binding.")
+    plan = workflow.load_artifact(
+        Path(job["plan_path"]), "plan_sha256", job["plan_sha256"]
+    )
+    if plan.get("status") != "ready":
+        raise ServiceError("Production job Plan is not ready.")
+    selected = plan.get("selected_message_ids") or {}
+    if set(selected) != set(family_ids):
+        raise ServiceError("Production job source messages do not match the selected families.")
+    if policy == "explicit" and any(
+        selected[family_id] != allowed[family_id] for family_id in family_ids
+    ):
+        raise ServiceError("Production job source messages differ from the allowlist.")
+    bindings = job.get("message_bindings") or {}
+    if any(bindings.get(family_id) != selected[family_id] for family_id in bindings):
+        raise ServiceError("Production job source messages differ from the reviewed Plan.")
+    if {table.get("family_id") for table in plan.get("tables", [])} != set(family_ids):
+        raise ServiceError("Production job Plan tables differ from the selected families.")
 
 
 def configure_logging(runtime_root: Path) -> logging.Logger:
@@ -796,10 +868,33 @@ def help_text(
         f"  - {family_id}: {families[family_id]['business_name']}"
         for family_id in available
     )
+    if mode == "production":
+        if config.get("production_source_policy", "explicit") == "registered_sources":
+            upload_scope = (
+                "当前可生产上传：本群全部已登记表；每次按最新来源预检并通过质量、哈希和审批校验。\n"
+            )
+        else:
+            allowed_for_upload = [
+                family_id
+                for family_id in available
+                if family_id in config["production_source_message_ids"]
+            ]
+            upload_scope = (
+                "当前可生产上传：" + ", ".join(allowed_for_upload) + "。\n"
+                "上传时请指定表名；包含未开放表的全量上传指令会被拒绝。\n"
+            )
+    else:
+        upload_scope = ""
+    footer = (
+        "shadow 模式只生成计划，不修改本地表、不上传平台。"
+        if mode == "shadow"
+        else "生产上传仍需审批人操作，并逐项通过来源、质量、哈希和目标漂移校验。"
+    )
     return (
         f"青橙/市场顾问部临时表管家（当前模式：{mode}）\n"
         "本群登记表：\n"
         f"{family_lines}\n"
+        f"{upload_scope}"
         "可用指令：\n"
         "- @管家 预检最新临时表\n"
         "- @管家 预检 <表名或别名>\n"
@@ -807,8 +902,9 @@ def help_text(
         "- @管家 状态 [job_id]\n"
         "- @管家 取消 <job_id>\n"
         "- 审批人：@管家 确认上传 <job_id>\n"
-        "- 审批人：@管家 上传最新临时表\n"
-        "shadow 模式只生成计划，不修改本地表、不上传平台。"
+        "- 审批人：@管家 上传 <表名或别名>\n"
+        "- 审批人：@管家 上传最新临时表（仅全量开放时）\n"
+        f"{footer}"
     )
 
 
@@ -1187,6 +1283,7 @@ class SyncExecutor:
                 raise ServiceError("Production gates are not enabled in the event-service config.")
             if job.get("authorized_by") not in self.config["approver_ids"]:
                 raise ServiceError("The production job is not bound to a configured approver.")
+            assert_production_job_scope(self.config, job)
             self.ledger.update_job(job_id, status="applying_local", stage="apply_local")
             job = self.ledger.get_job(job_id)
             assert job is not None
@@ -1466,6 +1563,11 @@ class EventProcessor:
             ):
                 self._deny(event, f"任务不存在或不处于 planned：{intent.job_id}")
                 return "approve_conflict"
+            try:
+                assert_production_job_scope(self.config, job)
+            except (ServiceError, workflow.WorkflowError, OSError, ValueError):
+                self._deny(event, "该计划不在当前有限生产来源范围内，请重新预检已开放的表。")
+                return "approve_scope_denied"
             self.ledger.update_job(
                 intent.job_id or "",
                 action="upload",
@@ -1521,6 +1623,17 @@ class EventProcessor:
                 action = "plan"
                 shadow_note = "当前为 shadow/未启用生产门禁，本次仅生成计划。\n"
             else:
+                if self.config.get("production_source_policy", "explicit") == "explicit":
+                    allowed = self.config["production_source_message_ids"]
+                    if not set(family_ids).issubset(allowed) or any(
+                        allowed.get(family_id) != message_id
+                        for family_id, message_id in bindings.items()
+                    ):
+                        self._deny(
+                            event,
+                            "当前仅开放部分已预检来源生产上传，请指定已开放的表名。",
+                        )
+                        return "upload_scope_denied"
                 authorized_by = sender_id
         job_id = self.ledger.create_job(
             request_message_id=message_id,
@@ -1637,6 +1750,7 @@ class GovernedTempTableEventService:
             "reply_progress_updates": self.config["reply_progress_updates"],
             "allow_local_apply": self.config["allow_local_apply"],
             "allow_production_upload": self.config["allow_production_upload"],
+            "production_source_policy": self.config.get("production_source_policy", "explicit"),
             "lark_cli_path": self.lark_cli_path,
             "config_path": self.config["config_path"],
             "updated_at": now_iso(),

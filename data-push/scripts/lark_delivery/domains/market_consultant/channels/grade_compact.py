@@ -26,6 +26,17 @@ def business_period(at=None):
     return friday.strftime("%Y%m%d") + "期"
 
 
+def next_business_period(period):
+    """Return the following natural-week Friday period from an explicit period."""
+    if not isinstance(period, str) or not period.endswith("期"):
+        raise ValueError("无效的业务期次")
+    try:
+        friday = datetime.strptime(period[:-1], "%Y%m%d").date()
+    except ValueError as exc:
+        raise ValueError("无效的业务期次") from exc
+    return (friday + timedelta(days=7)).strftime("%Y%m%d") + "期"
+
+
 def scheduled_report_type(at=None):
     # 周五至周日只播报结果；周一至周四只播报过程。
     return "result" if business_date(at).weekday() >= 4 else "process"

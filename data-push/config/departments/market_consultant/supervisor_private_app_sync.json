@@ -14,7 +14,15 @@
     "raw_source_url": "https://gaotuedu.feishu.cn/wiki/MrPNwuFvPiiDX0k4jTXcLU8anse?table=tbljWRvaqKTdrCx4&view=vewO4yxS3O",
     "raw_table_id": "tbljWRvaqKTdrCx4",
     "raw_table_name": "市场顾问原始数据",
-    "channel_match": {"field": "渠道", "case_sensitive": true, "values": {"集团私域": "集团私域", "app": "app"}},
+    "channel_match": {
+      "field": "渠道",
+      "case_sensitive": true,
+      "values": {
+        "集团私域": "集团私域",
+        "app": "app"
+      },
+      "casefold_channels": ["app"]
+    },
     "report_profile": "supervisor-detail",
     "reminder_rule": "channel_grade_source_supervisor_minimum_all_ties",
     "reminder_population": "raw_leads",
@@ -36,8 +44,20 @@
   ],
   "report": {
     "period_rule": "natural_week_friday",
-    "process_weekdays": [0, 1, 2, 3, 4, 5, 6],
-    "result_weekdays": [4, 5, 6],
+    "process_weekdays": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "result_weekdays": [
+      4,
+      5,
+      6
+    ],
     "excluded_grades": [],
     "minimum_post_leads": 10
   },
@@ -45,16 +65,20 @@
     "enabled": true,
     "first_send_at": "2026-09-10T21:20:00+08:00",
     "timezone": "Asia/Shanghai",
-    "hours": [13, 17, 21],
+    "hours": [
+      13,
+      17,
+      21
+    ],
     "windows_task_name": "Codex-Lark-Supervisor-Private-App-Push",
     "stagger_order": 4,
-    "prepare_minute": 23,
-    "send_minute": 23,
+    "prepare_minute": 21,
+    "send_minute": 21,
     "deadline_minute": 50,
     "retry_minutes": 2
   },
   "base_identity": "user",
-  "state_dir": "C:/Users/Ludim/.codex/runtime/channel-broadcast-push/supervisor-private-app-sync",
+  "state_dir": "C:/Users/lvshuai01/.codex/runtime/channel-broadcast-push/supervisor-private-app-sync",
   "upstream": {
     "project_id": 308,
     "folder": "吕帅",
@@ -63,10 +87,11 @@
     "task_id": 47252,
     "nezha_task_id": 66504,
     "schedule_id": 53831,
-    "exec_file_id": 817941,
-    "verified_version_id": 205436,
-    "verified_source_sha256": "47824a43fe47b258d6cad4e2e00a1044c438d166c2b3637a65a31dd7bec4bd48",
-    "log_protocol": "two_period_audit_v1",
-    "owner": "lvshuai01"
+    "exec_file_id": 830401,
+    "verified_version_id": 207095,
+    "verified_source_sha256": "a652cb7adc0cb8b8cf5c6fe8224b15c94f5045c28a6046600963038cd0f54f0d",
+    "log_protocol": "two_period_clear_then_replace_v1_retry",
+    "owner": "lvshuai01",
+    "channel_mapping_version": "0918"
   }
 }

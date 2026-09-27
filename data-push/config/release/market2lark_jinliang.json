@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "domain": "market_consultant",
+  "release_name": "market2lark_jinliang-207067",
+  "volume_table_id": "tblGUCxgUTZPjv3c",
+  "bound_execution_id": 172770298,
+  "bound_execution_start": "2026-09-25T21:00:00+08:00",
+  "upstream": {
+    "project_id": 308,
+    "folder": "吕帅",
+    "menu_id": 101900,
+    "task_name": "market2lark_jinliang",
+    "task_id": 46817,
+    "nezha_task_id": 65369,
+    "schedule_id": 54106,
+    "exec_file_id": 827092,
+    "verified_version_id": 207067,
+    "verified_source_sha256": "3ed7b24b81129a1d241bcd52258e51208139b22257761b6bb7e8594625fdb4fc",
+    "log_protocol": "volume_two_period_create_then_delete_v1",
+    "owner": "lvshuai01"
+  }
+}

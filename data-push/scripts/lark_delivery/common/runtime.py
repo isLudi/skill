@@ -61,7 +61,9 @@ def resolve_lark_cli() -> str:
             return direct
         discovered = shutil.which(override)
         if discovered:
-            return discovered
+            direct = _existing_executable(Path(discovered))
+            if direct:
+                return direct
         raise FileNotFoundError("LARK_CLI 指向的 lark-cli 不存在或不可执行: %s" % override)
 
     candidates: list[Path] = []

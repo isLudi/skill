@@ -51,14 +51,23 @@ def _redacted_args(args):
 
 
 def resolve_lark_cli():
+    def native_candidate(path):
+        candidate = Path(path)
+        if os.name == "nt" and candidate.suffix.lower() in {".cmd", ".bat"}:
+            return None
+        return str(candidate) if candidate.is_file() else None
+
     override = os.environ.get("LARK_CLI", "").strip()
     if override:
         candidate = Path(os.path.expandvars(override)).expanduser()
-        if candidate.is_file():
-            return str(candidate)
+        direct = native_candidate(candidate)
+        if direct:
+            return direct
         found = shutil.which(override)
         if found:
-            return found
+            direct = native_candidate(found)
+            if direct:
+                return direct
         raise SystemExit("LARK_CLI 指向的 lark-cli 不存在: %s" % override)
     if os.name == "nt":
         candidates = []
@@ -68,11 +77,14 @@ def resolve_lark_cli():
             candidates.append(npm_root / "lark-cli.exe")
         candidates.append(Path(sys.executable).resolve().parent / "lark-cli.exe")
         for candidate in candidates:
-            if candidate.is_file():
-                return str(candidate)
+            direct = native_candidate(candidate)
+            if direct:
+                return direct
         found = shutil.which("lark-cli.exe")
         if found:
-            return found
+            direct = native_candidate(found)
+            if direct:
+                return direct
         raise SystemExit("未找到原生 lark-cli.exe，请设置 LARK_CLI")
     found = shutil.which("lark-cli")
     if found:

@@ -44,6 +44,8 @@
 
 生产命令仍按 `plan → apply-local → upload` 顺序执行。服务配置只是开启门禁，不替代每个任务的哈希和审批检查。
 
+默认的 `explicit` 策略下，`production_source_message_ids` 必须逐表登记已预检的准确 `om_` 来源消息 ID。需要让所有已登记表按每次最新预检自动进入生产流程时，可将 `production_source_policy` 设为 `registered_sources`，并将来源消息清单置空。此模式仍要求表族来自注册表和当前群、来源人/文件名匹配、Plan 与来源哈希一致、质量门禁通过、目标未漂移，并由审批人确认；它只取消人工维护“本次来源消息 ID 白名单”，不取消来源身份、质量、哈希、目标漂移或审批门禁。预检继续覆盖两群所有登记表。
+
 ## 固定指令
 
 在任一登记群中：
@@ -66,7 +68,7 @@
 
 运行时配置位于：
 
-`C:\Users\Ludim\.codex\runtime\sync-qingcheng-market-temp-tables\event-service\config.json`
+`C:\Users\lvshuai01\.codex\runtime\sync-qingcheng-market-temp-tables\event-service\config.json`
 
 Skill 中只保存安全示例：
 
@@ -75,8 +77,8 @@ Skill 中只保存安全示例：
 初始化：
 
 ```powershell
-D:\anaconda3\python.exe C:\Users\Ludim\.codex\skills\sync-qingcheng-market-temp-tables\scripts\governed_temp_table_event_service.py init-config `
-  --output C:\Users\Ludim\.codex\runtime\sync-qingcheng-market-temp-tables\event-service\config.json
+D:\anaconda3\python.exe C:\Users\lvshuai01\.codex\skills\sync-qingcheng-market-temp-tables\scripts\governed_temp_table_event_service.py init-config `
+  --output C:\Users\lvshuai01\.codex\runtime\sync-qingcheng-market-temp-tables\event-service\config.json
 ```
 
 必要字段：
@@ -94,14 +96,14 @@ D:\anaconda3\python.exe C:\Users\Ludim\.codex\skills\sync-qingcheng-market-temp-
 验证不启动服务：
 
 ```powershell
-D:\anaconda3\python.exe C:\Users\Ludim\.codex\skills\sync-qingcheng-market-temp-tables\scripts\governed_temp_table_event_service.py validate-config `
-  --config C:\Users\Ludim\.codex\runtime\sync-qingcheng-market-temp-tables\event-service\config.json
+D:\anaconda3\python.exe C:\Users\lvshuai01\.codex\skills\sync-qingcheng-market-temp-tables\scripts\governed_temp_table_event_service.py validate-config `
+  --config C:\Users\lvshuai01\.codex\runtime\sync-qingcheng-market-temp-tables\event-service\config.json
 ```
 
 离线处理一个已保存事件时会强制 shadow、禁回复、禁本地写入和禁上传：
 
 ```powershell
-D:\anaconda3\python.exe C:\Users\Ludim\.codex\skills\sync-qingcheng-market-temp-tables\scripts\governed_temp_table_event_service.py process-event `
+D:\anaconda3\python.exe C:\Users\lvshuai01\.codex\skills\sync-qingcheng-market-temp-tables\scripts\governed_temp_table_event_service.py process-event `
   --config <config.json> `
   --event-file <event.json>
 ```
@@ -121,7 +123,7 @@ D:\anaconda3\python.exe C:\Users\Ludim\.codex\skills\sync-qingcheng-market-temp-
 管理脚本：
 
 ```powershell
-$manager = 'C:\Users\Ludim\.codex\skills\sync-qingcheng-market-temp-tables\scripts\manage_event_service.ps1'
+$manager = 'C:\Users\lvshuai01\.codex\skills\sync-qingcheng-market-temp-tables\scripts\manage_event_service.ps1'
 & $manager -Action status
 & $manager -Action logs
 & $manager -Action stop
@@ -133,6 +135,8 @@ $manager = 'C:\Users\Ludim\.codex\skills\sync-qingcheng-market-temp-tables\scrip
 统一启动任务名：
 
 `Codex-Governed-TempTables-LarkEvent`
+
+Windows 启动任务必须使用当前用户的 `Interactive` 登录令牌，服务进程的 `SessionId` 必须大于 0。`Password` / `S4U` 登录会把服务放入 Session 0；该环境下 Excel COM 可启动但可能在 `Workbooks.Open` 拒绝暂存工作簿。管理脚本在 Session 0 启动时直接报错，避免把无公式表的成功预检误判为整条 Excel 重算链路可用。用户注销后交互式任务不会继续运行；重新登录后由登录触发器恢复。
 
 安装或删除登录启动任务属于外部状态变更，必须有明确授权：
 
@@ -189,6 +193,20 @@ runtime 中保存：
 - 全局包先升级到 `1.0.88` 后，本地 `.codex` 仍为 `1.0.87` 时，解析器正确阻断并保持生产停止；不得在版本漂移状态下试启动实时服务。
 - 对齐本地/全局 `package.json`、锁文件、原生 `lark-cli.exe` 版本与 SHA-256 后，`update --check --json` 必须返回 `already_up_to_date` 且 `skills_status.in_sync=true`。
 - 本次 `1.0.88` 通过 63 项 Skill 单测、Windows 多行/元字符回复 dry-run、`im +messages-mget` dry-run、事件消费 dry-run，以及独立 shadow `event_ready=true` 回归；shadow 停止后才恢复生产。
+
+### 2026-09-12：1.0.95 当前绑定记录
+
+- 官方 `lark-cli update --check --json` 返回 `already_up_to_date`；当前 npm 包与包内原生 exe 均为 `1.0.95`，原生 exe SHA-256 为 `403b56ab849b28b4072b46799bd898959dc55382c18d7f4e83cd65f49f570b3f`。
+- 临时表同步解析器和 `data-push` 运行时均回读到同一包内原生 `bin\lark-cli.exe`；Windows `.cmd` / `.bat` shim 仍被拒绝。
+- `im +messages-mget --dry-run`、`im +messages-reply --dry-run`（含多行与 `<target> | failed & retry > audit`、`%PATH% ^ (test)`）及 `event consume im.message.receive_v1 --dry-run` 已通过，未创建消息、Plan、Apply 或 Upload。
+- 本次升级前事件服务为 `shadow/not_started`，实时配置保持逐字节备份且未改变；六个 `data-push` Windows 任务保持 Disabled。生产恢复仍需完成本节固定八步及用户明确启用授权。
+- 按原 `shadow` 配置执行管理脚本重启时，新 CLI 的就绪门禁返回 `online_instance_cnt=1` / `failed_precondition`：平台检测到另一个远端事件连接。本机 `event status` 无运行 bus，重启后无残留服务进程；未强行启动第二个消费者，服务保持停止。
+
+### 2026-09-25：1.0.96 当前绑定记录
+
+- 官方 `lark-cli update --check --json` 返回 `already_up_to_date`；当前 npm 包与包内原生 exe 均为 `1.0.96`，原生 exe SHA-256 为 `f71aeff4a094fe3b401dcfc23d28bb9c1d7fe4923d144d15e01d1e917ba37ea`，`skills_status.in_sync=true`。
+- `sync-qingcheng-market-temp-tables` 与 `data-push` 运行时均回读到同一包内原生 `bin\\lark-cli.exe`；消息/事件 dry-run、原生 unittest 回归通过，`.cmd` / `.bat` shim 仍被拒绝。
+- 升级前生产配置 SHA-256 与重启后保持一致；`Codex-Governed-TempTables-LarkEvent` 由 Task Scheduler 的隐藏 `run-foreground` 动作恢复，当前 `status=running`、`event_ready=true`、单一消费者、`dropped=0`，两道生产写入门禁保持原值。
 
 ### 1. 冻结生产并记录基线
 

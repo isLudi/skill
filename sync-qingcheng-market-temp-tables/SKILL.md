@@ -14,11 +14,11 @@ description: 受治理地预检、修订、合并并上传青橙项目部与市�
 | `qingcheng` | 青橙数据对接 | 郅玲玉；行课表为李怡青 | 个人期度目标、团队期度目标、团队月度目标、全员结果架构、青橙带班架构、青橙行课 |
 | `market_consultant` | 市场顾问部临时表上传 | 张君言 | 成本、市场带班架构、到课课次、进量目标、评优架构、分配计划组 ID |
 
-来源身份、精确群 ID、列映射、质量阈值、合并模式与上传顺序以 [workflow_registry.json](references/workflow_registry.json) 为机器可执行真源。开始任务前必须读取 [registered_sources.md](references/registered_sources.md)；市场表还必须读取 [market_transformations.md](references/market_transformations.md)。
+来源身份、精确群 ID、列映射、质量阈值、合并模式与上传顺序以 [workflow_registry.json](references/workflow_registry.json) 为机器可执行真源。开始任务前必须读取 [registered_sources.md](references/registered_sources.md)；市场表还必须读取 [market_transformations.md](references/market_transformations.md)。生产服务可以使用 `production_source_policy=registered_sources`，让所有已登记表按每次最新预检自动进入审批和上传流程；来源身份、质量、哈希、目标漂移和审批门禁仍然强制执行。
 
 ## 市场本地表与平台表一一映射
 
-`E:\1900_work\GAOTU\19002_市场顾问部看板维护表格` 当前 9 个 `.xlsx` 与大航海 `temp_table` 数据库的精确映射如下：
+`D:\GAOTU\19002_市场顾问部看板维护表格` 当前 9 个 `.xlsx` 与大航海 `temp_table` 数据库的精确映射如下：
 
 | 本地工作簿 | 大航海完整表名 | 自动化范围 |
 |---|---|---|
@@ -45,7 +45,7 @@ description: 受治理地预检、修订、合并并上传青橙项目部与市�
 - `plan` 只读飞书和现有工作簿，可以下载到运行目录并生成候选文件；不得修改 E 盘目标或平台。
 - `apply-local` 只接受状态为 `ready` 的精确 Plan 哈希，并在原目录备份、原子替换、读回校验。它不授权上传。
 - `upload` 只接受成功的本地回执及其精确哈希；逐表调用 `usql-web-query-operator` 的既有临时表上传适配器并记录回执。
-- 来源过旧、行数越界、相对变化过大、必要列空值率超限、键重复、列/切片不合法、来源身份或群聊不匹配、哈希漂移、验证回归，均默认阻断。
+- 来源过旧、行数越界、相对变化过大、必要列空值率超限、键重复、列/切片不合法、来源身份或群聊不匹配、哈希漂移、验证回归，均默认阻断；取消人工来源消息白名单不会绕过这些门禁。
 - 分析、审计、设计或“预检”请求必须停在 `plan`。未经明确生产授权，不启动写入门禁，不恢复事件服务。
 - 任何一次失败都使旧 Plan 失效；修复后必须重新发现来源并生成新 Plan。
 
@@ -62,13 +62,13 @@ description: 受治理地预检、修订、合并并上传青橙项目部与市�
 默认只生成计划：
 
 ```powershell
-D:\anaconda3\python.exe C:\Users\Ludim\.codex\skills\sync-qingcheng-market-temp-tables\scripts\governed_temp_table_sync.py plan
+D:\anaconda3\python.exe C:\Users\lvshuai01\.codex\skills\sync-qingcheng-market-temp-tables\scripts\governed_temp_table_sync.py plan
 ```
 
 按领域或文件族缩小范围：
 
 ```powershell
-D:\anaconda3\python.exe C:\Users\Ludim\.codex\skills\sync-qingcheng-market-temp-tables\scripts\governed_temp_table_sync.py plan `
+D:\anaconda3\python.exe C:\Users\lvshuai01\.codex\skills\sync-qingcheng-market-temp-tables\scripts\governed_temp_table_sync.py plan `
   --domain market_consultant `
   --family market_cost `
   --family market_plan_id
@@ -77,7 +77,7 @@ D:\anaconda3\python.exe C:\Users\Ludim\.codex\skills\sync-qingcheng-market-temp-
 明确本地写入后：
 
 ```powershell
-D:\anaconda3\python.exe C:\Users\Ludim\.codex\skills\sync-qingcheng-market-temp-tables\scripts\governed_temp_table_sync.py apply-local `
+D:\anaconda3\python.exe C:\Users\lvshuai01\.codex\skills\sync-qingcheng-market-temp-tables\scripts\governed_temp_table_sync.py apply-local `
   --plan <sync_plan.json> `
   --expected-plan-sha256 <plan_sha256> `
   --confirm-local-write
@@ -86,7 +86,7 @@ D:\anaconda3\python.exe C:\Users\Ludim\.codex\skills\sync-qingcheng-market-temp-
 明确生产上传后：
 
 ```powershell
-D:\anaconda3\python.exe C:\Users\Ludim\.codex\skills\sync-qingcheng-market-temp-tables\scripts\governed_temp_table_sync.py upload `
+D:\anaconda3\python.exe C:\Users\lvshuai01\.codex\skills\sync-qingcheng-market-temp-tables\scripts\governed_temp_table_sync.py upload `
   --plan <sync_plan.json> `
   --expected-plan-sha256 <plan_sha256> `
   --local-receipt <local_apply_receipt.json> `

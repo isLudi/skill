@@ -1,0 +1,26 @@
+[
+  {
+    "type": "formula",
+    "name": "关联申请编号",
+    "expression": "[关联运营申请].[申请编号].FIRST()",
+    "description": "从关联运营申请实时取得稳定申请编号。"
+  },
+  {
+    "type": "formula",
+    "name": "配置上线门禁",
+    "expression": "IF(AND([源字段校验]=\"通过\",[群及成员校验]=\"通过\",[本地预览]=\"通过\",[离线测试]=\"通过\",[最终授权]=\"已授权\"),\"可上线\",\"未就绪\")",
+    "description": "仅汇总技术门禁状态，不替代真实发布授权。"
+  },
+  {
+    "type": "formula",
+    "name": "调度运行状态",
+    "expression": "IF(AND([schedule_enabled],[计划任务已启用]),\"已启用\",\"未完整启用\")",
+    "description": "同时检查渠道配置和Windows计划任务的启用标记。"
+  },
+  {
+    "type": "formula",
+    "name": "Prompt拼接",
+    "expression": "\"请配置或维护一个飞书数据推送渠道。先使用下面的 lark-cli 命令读取该技术记录完整字段，再执行任务；空值不得猜测。\" & CHAR(10) & \"详细配置读取命令：lark-cli base +record-get --base-token OEJrbiCIaazfSss2R3Lcf1OonCc --table-id tbl7ngY1sMS3eBWS --record-id \" & RECORD_ID() & \" --format json\" & CHAR(10) & \"部门：\" & IFERROR(ARRAYJOIN([运营-部门],\"、\"),[运营-部门]) & \"；渠道：\" & IFERROR(ARRAYJOIN([运营-渠道标准名称],\"、\"),[运营-渠道标准名称]) & CHAR(10) & \"原始匹配：字段=\" & [channel_match_field] & \"；模式=\" & [channel_match_mode] & \"；关键词=\" & [channel_match_values] & \"；源表=\" & [raw_table_id] & CHAR(10) & \"目标群ID：\" & [chat_id] & CHAR(10) & \"过程展示字段：\" & IFERROR(ARRAYJOIN([运营-过程指标展示顺序],\"、\"),[运营-过程指标展示顺序]) & CHAR(10) & \"转化展示字段：\" & IFERROR(ARRAYJOIN([运营-转化指标展示顺序],\"、\"),[运营-转化指标展示顺序]) & CHAR(10) & \"提醒：过程=\" & IFERROR(ARRAYJOIN([运营-过程重点提醒指标],\"、\"),[运营-过程重点提醒指标]) & \"；转化=\" & IFERROR(ARRAYJOIN([运营-转化重点提醒指标],\"、\"),[运营-转化重点提醒指标]) & \"；对象=\" & IFERROR(ARRAYJOIN([运营-提醒对象],\"、\"),[运营-提醒对象]) & CHAR(10) & \"周期：规则=\" & [period_rule] & \"；过程日=\" & [process_weekdays] & \"；转化日=\" & [result_weekdays] & \"；时段=\" & [hours] & \"；首次发送=\" & IFERROR(TEXT([first_send_at],\"YYYY-MM-DD hh:mm\"),[first_send_at]) & CHAR(10) & \"筛选：年级=\" & [included_grades] & \"；最小展示阈值=\" & [minimum_post_leads] & CHAR(10) & \"补充口径：\" & IFERROR(ARRAYJOIN([运营-指标口径补充],\"；\"),[运营-指标口径补充]) & \"；其他指标：\" & IFERROR(ARRAYJOIN([运营-其他过程指标],\"；\"),[运营-其他过程指标]) & \"；\" & IFERROR(ARRAYJOIN([运营-其他转化指标],\"；\"),[运营-其他转化指标]) & CHAR(10) & \"当前状态：实施=\" & [实施状态] & \"；上线门禁=\" & [配置上线门禁] & \"；调度=\" & [调度运行状态] & CHAR(10) & \"执行要求：按部门口径生成或维护本地脚本，先预览和验证；群绑定必须使用 chat_id，不使用群名。\"",
+    "description": "自动生成简洁的渠道配置任务入口。仅保留核心业务参数和记录定位；完整技术细节通过当前记录ID使用 lark-cli 读取。每条新增或更新技术记录都会自动重新计算，不为单一渠道写特例。"
+  }
+]

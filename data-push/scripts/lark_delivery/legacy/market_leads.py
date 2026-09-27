@@ -112,7 +112,7 @@ def metrics(sums: Mapping[str, Decimal]) -> dict[str, Any]:
     for field, (num, den) in RATES.items():
         if num in sums and den in sums:
             result[field] = f"{sums[num] / sums[den] * 100:.8f}%" if sums[den] else "-"
-    result["总通时"] = float(sums["总通时秒"] / 60)
+    result["总通时(min)"] = float(sums["总通时秒"] / 60)
     for field, num, den in (
         ("外呼频次", "外呼次数", "退后线索"),
         ("单效", "净收款", "退后线索"), ("单效（当期）", "当期净收款", "退后线索"),

@@ -11,7 +11,7 @@ PROCESS_FIELDS: tuple[str, ...] = (
     "退前线索",
     "退后线索",
     "线索留存率",
-    "总通时",
+    "总通时(min)",
     "首call完成数",
     "首call率",
     "6h外呼",
@@ -171,7 +171,7 @@ IMAGE_COLUMNS: tuple[tuple[str, str, str], ...] = (
     ("退前线索", "退前线索", "count"),
     ("退后线索", "退后线索", "count"),
     ("线索留存率", "线索留存率", "rate"),
-    ("总通时", "总通时", "duration"),
+    ("总通时(min)", "总通时(min)", "duration"),
     ("首call率", "首call", "rate"),
     ("6h外呼", "6h外呼", "rate"),
     ("12h外呼", "12h外呼", "rate"),
@@ -186,6 +186,7 @@ IMAGE_COLUMNS: tuple[tuple[str, str, str], ...] = (
 )
 
 FIELD_ALIASES: dict[str, tuple[str, ...]] = {
+    "总通时(min)": ("总通时(min)", "总通时"),
     "顾问": ("顾问", "负责人"),
     "APP登陆率": ("APP登陆率", "APP登录率"),
     "APP登陆线索数": ("APP登陆线索数", "APP登录线索数"),
@@ -219,7 +220,7 @@ IMAGE_WIDTHS = {
     "退前线索": 155,
     "退后线索": 155,
     "线索留存率": 200,
-    "总通时": 155,
+    "总通时(min)": 155,
     "首call率": 160,
     "6h外呼": 155,
     "12h外呼": 155,

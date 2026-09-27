@@ -6,7 +6,6 @@ from __future__ import annotations
 import argparse
 from contextlib import contextmanager
 from contextvars import ContextVar
-import hashlib
 import json
 import math
 import os
@@ -21,12 +20,16 @@ from datetime import datetime, timedelta, timezone
 from ...common import feishu as gp
 from ...core import catalog
 from ...core.locks import runner_lock
-from .workflow import prepare_report
-from .adapter import report_arguments
+from .workflow import prepare_report, prepare_weekend_dual_report, source_channel_count, source_present_channels
+from .adapter import SUPERVISOR_PROFILES, policy_for, report_arguments, report_module_for
+from .delivery_validation import receipt_readback, validate_weekend_dual_context
+from .weekend_dual import REPORT_TYPE as WEEKEND_DUAL_REPORT_TYPE
 from ...integrations import tiangong_release as rb
 from .channels import self_incubated_koc_5 as bp
 from . import grade_report as gr
 from . import volume_report as vr
+from . import volume_upstream as vu
+from . import lead_upstream as lu
 from .delivery_ledger import claim, connect_ledger, delivery_key
 from ...paths import SKILL_ROOT, SKILLS_ROOT
 
@@ -95,12 +98,13 @@ def validate_config(cfg):
         raise ValueError("Unreviewed legacy schedule")
     order = cfg.get("stagger_order")
     start_minute = cfg.get("prepare_minute")
-    if (not isinstance(order, int) or order < 1 or start_minute != 19 + order
+    if (type(order) is not int or order < 1 or start_minute != 20 + (order - 1) // 2
+            or start_minute > 50
             or cfg.get("send_minute") != start_minute
             or cfg.get("deadline_minute") != 50 or cfg.get("retry_minutes") != 2
             or not re.fullmatch(r"Codex-Lark-[A-Za-z0-9-]+Push", cfg.get("windows_task_name", ""))):
         raise ValueError("Unreviewed retry window")
-    if cfg.get("report_profile") not in {bp.PROFILE, "supervisor-detail"}:
+    if cfg.get("report_profile") not in {bp.PROFILE, *SUPERVISOR_PROFILES}:
         raise ValueError("Unreviewed delivery profile")
     if not cfg.get("channel_key") and (cfg.get("channels") != [bp.CHANNEL] or cfg.get("chat_id") != bp.CHAT_ID):
         raise ValueError("Unreviewed delivery scope")
@@ -113,6 +117,12 @@ def validate_config(cfg):
                 or volume.get("period_rule") != "latest_available" or volume.get("grain") != "年级"
                 or volume.get("channel_rule") not in vr.CHANNEL_RULE_DESCRIPTIONS):
             raise ValueError("Unreviewed volume-report policy")
+        if volume.get("stage") == "scheduled":
+            producer = volume.get("upstream", {})
+            if (producer.get("task_name") != "market2lark_jinliang"
+                    or producer.get("log_protocol") != "volume_two_period_create_then_delete_v1"
+                    or not re.fullmatch(r"[0-9a-f]{64}", str(producer.get("verified_source_sha256", "")))):
+                raise ValueError("Scheduled volume producer is not release-bound")
     if routed and volume.get("stage") != "scheduled":
         raise ValueError("Routed volume report must be scheduled")
     return cfg
@@ -200,79 +210,25 @@ def validate_history(history, cfg, slot):
 
 
 def parse_complete_log(doc, directory, cfg, slot, execution):
-    validate_history({**doc, "executions": [doc["execution"]]}, cfg, slot)
-    if doc["execution"]["id"] != execution["id"] or doc["execution_detail"].get("status") != 6:
-        raise ValueError("execution detail mismatch")
-    stages = doc["stages"]
-    if len(stages) != 1 or stages[0]["metadata"].get("statusDesc") != "success":
-        raise ValueError("upstream stages incomplete")
-    stage = stages[0]
-    if stage["metadata"].get("taskId") != cfg["upstream"]["nezha_task_id"]:
-        raise ValueError("stage task mismatch")
-    path = (directory / stage["log_file"]).resolve()
-    if not path.is_relative_to(directory.resolve()):
-        raise ValueError("invalid stage log path")
-    raw = path.read_bytes()
-    if hashlib.sha256(raw).hexdigest() != stage["log_sha256"]:
-        raise ValueError("stage log Hash mismatch")
-    log = raw.decode("utf-8")
-    required = ["新记录回读校验通过", "旧记录删除完成：", "最终回读校验通过：", "SUCCESS:"]
-    if any(x not in log for x in required) or not re.search(r"exit_code:\s+0\s*$", log):
-        raise ValueError("no complete write/readback success evidence")
-    partitions = re.findall(r"采用dt=(\d{8}), hour=(\d+)，延迟(\d+)小时", log)
-    counts = re.findall(r"数据校验通过：(\d+)行，期次([^，\r\n]+)，", log)
-    final = re.findall(r"最终回读校验通过：(\d+)条", log)
-    distributions = re.findall(r"渠道分布：(\{[^\r\n]+\})", log)
-    if len(partitions) != 1 or not counts or not final or not distributions:
-        raise ValueError("required upstream evidence missing")
-    dt, hour, lag = partitions[0]
-    if not 2 <= int(lag) <= 7:
-        raise ValueError("source partition outside approved 2-7 hour lookback")
-    source_at = datetime.strptime(dt + "%02d" % int(hour), "%Y%m%d%H").replace(tzinfo=TZ)
-    if slot - source_at != timedelta(hours=int(lag)):
-        raise ValueError("source partition not bound to current slot")
-    total, period = counts[-1]
-    channels = json.loads(distributions[-1])
-    if int(total) != int(final[-1]) or sum(channels.values()) != int(total):
-        raise ValueError("upstream counts disagree")
-    raw_table_id = cfg.get("raw_table_id") or catalog.load_channel(catalog.DEFAULT_CHANNEL)["source"]["raw_table_id"]
-    if "目标多维表格校验通过：table_id=" + raw_table_id not in log:
-        raise ValueError("upstream Base destination changed")
-    period_details = None
-    if cfg["upstream"].get("log_protocol") == "two_period_audit_v1":
-        audit_lines = re.findall(r"^双期快照清单：(\{[^\r\n]+\})\s*$", log, re.M)
-        if len(audit_lines) != 1 or "渠道映射版本：0904" not in log:
-            raise ValueError("two-period audit or channel-mapping evidence missing")
-        audit = json.loads(audit_lines[0])
-        period_details = audit.get("periods", {})
-        if (audit.get("schema_version") != "market2lark-two-period-audit-v1" or audit.get("field_count") != 45
-                or audit.get("row_count") != int(total) or len(period_details) != 2
-                or sorted(period_details) != sorted(period.split("、"))):
-            raise ValueError("invalid two-period source audit")
-        combined_channels = {}
-        for p, info in period_details.items():
-            if not re.fullmatch(r"\d{8}期", p):
-                raise ValueError("invalid audited period")
-            datetime.strptime(p[:8], "%Y%m%d")
-            n = info.get("row_count")
-            distribution = info.get("channel_counts", {})
-            if type(n) is not int or n <= 0 or any(type(v) is not int or v < 0 for v in distribution.values()) or sum(distribution.values()) != n:
-                raise ValueError("period/channel audit counts disagree")
-            snapshots = info.get("snapshots", [])
-            if len(snapshots) != 1 or snapshots[0][0] != dt or int(snapshots[0][1]) != int(hour):
-                raise ValueError("period audit has a different data snapshot")
-            if any(not re.fullmatch(r"[0-9a-f]{64}", str(info.get(key, ""))) for key in ("key_sha256", "records_sha256")):
-                raise ValueError("period audit fingerprints missing")
-            for channel, count in distribution.items():
-                combined_channels[channel] = combined_channels.get(channel, 0) + count
-        if sum(info["row_count"] for info in period_details.values()) != int(total) or combined_channels != channels:
-            raise ValueError("two-period totals disagree")
-    policy = rb.active_policy(cfg, slot)
-    if policy:
-        rb.verify_raw_only_log(log, policy, period)
-    return {"execution_id": execution["id"], "period": period, "periods": period_details, "dt": dt, "hour": int(hour),
-            "total": int(total), "channel_counts": channels, "log_sha256": stage["log_sha256"],
-            "artifact_dir": str(directory), "end_time": execution["endTime"]}
+    return lu.parse_complete_log(doc, directory, cfg, slot, execution, validate_history, TZ)
+
+
+def parse_volume_log(doc, directory, cfg, slot, execution):
+    return vu.parse_volume_log(doc, directory, cfg, slot, execution, validate_history, TZ)
+
+
+def volume_upstream_ready(cfg, slot):
+    volume_cfg = {**cfg, "upstream": cfg["volume_report"]["upstream"]}
+    directory = operator("list-execution-history", volume_cfg, "--limit", "12")
+    history = read_json(directory / "history.json")
+    execution = validate_history(history, volume_cfg, slot)
+    directory = operator("fetch-execution-log", volume_cfg, "--exec-id", str(execution["id"]))
+    return parse_volume_log(read_json(directory / "execution.json"), directory, volume_cfg, slot, execution)
+
+
+def require_shared_periods(lead_evidence, volume_evidence):
+    if sorted(volume_evidence["periods"]) != sorted((lead_evidence.get("periods") or {}).keys()):
+        raise ValueError("lead and volume upstream periods disagree")
 
 
 def upstream_ready(cfg, slot):
@@ -316,6 +272,9 @@ def upstream_ready(cfg, slot):
     if policy:
         evidence["approved_version_id"] = policy["version_id"]
         evidence["exec_file_id"] = file_id
+    if report_for_slot(cfg, slot.hour) == "volume":
+        evidence["volume"] = volume_upstream_ready(cfg, slot)
+        require_shared_periods(evidence, evidence["volume"])
     return evidence
 
 
@@ -335,38 +294,49 @@ def report_args(cfg, channel, slot=None):
     return report_arguments(definition, targets[0], channel=channel, state_dir=cfg["state_dir"], slot=slot or now())
 
 
-def validate_context(context, evidence, cfg=None, slot=None):
+def validate_context(context, evidence, cfg=None, slot=None, *, enforce_calendar=True):
+    if context.get("report_type") == WEEKEND_DUAL_REPORT_TYPE:
+        return validate_weekend_dual_context(context, evidence, cfg, slot, validate_context)
     policy = bp
     if cfg is not None and cfg.get("channel_key"):
         from .adapter import policy_for
         policy = policy_for(catalog.load_channel(cfg["channel_key"]))
     source_period = (evidence.get("periods") or {}).get(context["period"])
-    expected_count = source_period["channel_counts"].get(context["channel"]) if source_period else evidence["channel_counts"].get(context["channel"])
+    counts = source_period["channel_counts"] if source_period else evidence["channel_counts"]
+    match = (cfg or {}).get("channel_match", {})
+    expected_count = source_channel_count(counts, match, context["channel"])
     period_matches = source_period is not None if evidence.get("periods") is not None else context["period"] == evidence["period"]
     if (not period_matches or context["raw_count"] != expected_count
             or str(context["snapshot"][0]) != evidence["dt"] or int(context["snapshot"][1]) != evidence["hour"]):
         raise ValueError("Base channel/period/partition/count disagrees with complete upstream write")
     if context["raw_read_audit"].get("has_more") is not False or context["raw_read_audit"].get("rev") is None:
         raise ValueError("incomplete Base snapshot")
-    if context.get("report_profile") in {bp.PROFILE, "supervisor-detail"}:
+    if context.get("report_profile") in {bp.PROFILE, *SUPERVISOR_PROFILES}:
         policy.enforce_group_scope(context["chat_id"], context["channel"], context["report_profile"])
         if cfg is not None:
             if context["chat_id"] != cfg["chat_id"] or context["identity"] != "bot":
                 raise ValueError("configured group or sender mismatch")
-            policy.enforce_live_calendar(context["period"], context["report_type"], slot or now())
-            if context["report_type"] != policy.scheduled_report_type(slot or now()):
+            if enforce_calendar:
+                policy.enforce_live_calendar(context["period"], context["report_type"], slot or now())
+            if enforce_calendar and context["report_type"] != policy.scheduled_report_type(slot or now()):
                 raise ValueError("scheduled report type does not match the weekday policy")
         if context.get("skip_delivery"):
             report = context.get("supervisor_report")
-            if (context.get("report_profile") != "supervisor-detail"
-                    or context.get("skip_reason") != "no_supervisor_rows_meet_minimum_post_leads"
+            if (context.get("report_profile") not in SUPERVISOR_PROFILES
+                    or context.get("skip_reason") not in {
+                        "no_supervisor_rows_meet_minimum_post_leads",
+                        "no_advisor_rows_meet_minimum_post_leads",
+                    }
                     or not report or report["blocks"] or context.get("markdown")
                     or context.get("image_path") or context.get("result_image_path")
                     or report["reminder_names"]):
                 raise ValueError("invalid no-data skip context")
             return
         info = context["mention_info"]
-        expected_target = "supervisor" if context["report_profile"] == "supervisor-detail" else "manager"
+        definition = catalog.load_channel(cfg["channel_key"]) if cfg is not None else None
+        report_module = report_module_for(definition) if definition is not None else None
+        expected_target = getattr(report_module, "MENTION_TARGET",
+                                   "supervisor" if context["report_profile"] in SUPERVISOR_PROFILES else "manager")
         if context["mention_target"] != expected_target or any(info.get(k) for k in ("unresolved", "ambiguous", "lookup_error", "nonmembers")):
             raise ValueError("all lowest reminder accounts must be resolved and in the group")
         if set(info["resolved"]) != set(context["grade_report"]["reminder_names"]):
@@ -374,9 +344,9 @@ def validate_context(context, evidence, cfg=None, slot=None):
         if gr.mention_ids(context["markdown"]) != set(info["resolved"].values()):
             raise ValueError("unexpected or missing manager mentions")
         report_sections = gr.sections(context["report_type"])
-        if context["report_profile"] == "supervisor-detail":
-            from . import supervisor_report
-            report_sections = supervisor_report.sections(context["report_type"])
+        if context["report_profile"] in SUPERVISOR_PROFILES:
+            definition = catalog.load_channel(cfg["channel_key"])
+            report_sections = report_module_for(definition).sections(context["report_type"])
         for section in report_sections:
             if not context.get("image_path" if section == "process" else "result_image_path"):
                 raise ValueError("selected report image missing")
@@ -401,34 +371,6 @@ def assert_current_revision(context, cfg):
             "--output", "./revision.ndjson", "--format", "ndjson", "--as", cfg["base_as"]], cwd=folder, timeout=60)))
     if data.get("rev") != context["raw_read_audit"]["rev"]:
         raise ValueError("Base changed after snapshot; rebuild before sending")
-
-
-def receipt_readback(message_id, cfg, context, image_keys):
-    data = gp._unwrap(json.loads(gp.run_lark(["im", "+messages-mget", "--message-ids", message_id,
-                                            "--no-reactions", "--as", "bot", "--format", "json"], timeout=60)))
-    matches = [x for x in data.get("messages", []) if x.get("message_id") == message_id]
-    if len(matches) != 1:
-        raise ValueError("message readback missing")
-    msg = matches[0]
-    content = msg.get("content", "")
-    text = content if isinstance(content, str) else json.dumps(content, ensure_ascii=False)
-    if any(key not in text for key in image_keys.values()) or context["period"] not in text:
-        raise ValueError("message readback images or period mismatch")
-    expected_mentions = (set(context.get("mention_info", {}).get("resolved", {}).values())
-                         if context.get("report_profile") in {bp.PROFILE, "supervisor-detail"} else set())
-    actual_mentions = gr.mention_ids(content) | gr.mention_ids({"mentions": msg.get("mentions", [])})
-    if actual_mentions != expected_mentions:
-        raise ValueError("delivered mention accounts differ from the verified reminder set")
-    if msg.get("chat_id") and msg["chat_id"] != cfg["chat_id"]:
-        raise ValueError("message readback target mismatch")
-    sender = msg.get("sender", {})
-    sender_id = sender.get("open_bot_id") or sender.get("open_id") or sender.get("id")
-    if str(sender_id).startswith("ou_") and sender_id != cfg["bot_open_id"]:
-        raise ValueError("message readback sender ID mismatch")
-    if not str(sender_id).startswith("ou_") and sender.get("name") and sender["name"] != cfg["bot_name"]:
-        raise ValueError("message readback sender mismatch")
-    return {"message_id": message_id, "verified": True, "sender": sender,
-            "image_count": len(image_keys), "contains_mentions": bool(actual_mentions), "mention_ids": sorted(actual_mentions)}
 
 
 def reverify_unverified_delivery(db, key, cfg, context):
@@ -560,10 +502,27 @@ def run_slot(cfg, preflight, slot, state, db):
                     contexts = [vr.prepare_context(cfg, state / "prepared-volume")]
                 else:
                     contexts = []
-                    for channel in cfg["channels"]:
+                    definition = catalog.load_channel(cfg.get("channel_key", catalog.DEFAULT_CHANNEL))
+                    policy = policy_for(definition)
+                    current_period = policy.business_period(slot)
+                    selected, absent = source_present_channels(cfg, evidence, current_period)
+                    if policy.scheduled_report_type(slot) == WEEKEND_DUAL_REPORT_TYPE:
+                        next_period = policy.next_business_period(current_period)
+                        next_selected, _ = source_present_channels(cfg, evidence, next_period)
+                        selected = [channel for channel in cfg["channels"]
+                                    if channel in selected or channel in next_selected]
+                        absent = [channel for channel in cfg["channels"] if channel not in selected]
+                    for channel in absent:
+                        emit("channel_skipped_no_source_rows", channel=channel, period=current_period)
+                    if not selected:
+                        emit("all_channels_absent_in_upstream", period=current_period)
+                        return 0
+                    for channel in selected:
                         emit("preparing_channel_report", attempt=attempt, channel=channel, slot=slot.isoformat())
-                        definition = catalog.load_channel(cfg.get("channel_key", catalog.DEFAULT_CHANNEL))
-                        context = prepare_report(report_args(cfg, channel, slot), definition)
+                        args = report_args(cfg, channel, slot)
+                        context = (prepare_weekend_dual_report(args, definition)
+                                   if args.report_type == WEEKEND_DUAL_REPORT_TYPE
+                                   else prepare_report(args, definition))
                         emit("validating_channel_snapshot", attempt=attempt, channel=channel, slot=slot.isoformat())
                         validate_context(context, evidence, cfg, slot)
                         contexts.append(context)
@@ -571,7 +530,12 @@ def run_slot(cfg, preflight, slot, state, db):
                         raise ValueError("channels are not from the same Base revision")
                 cached = contexts
             for context in cached:
-                if context.get("report_kind") != "volume":
+                if context.get("report_kind") == "volume":
+                    volume_evidence = evidence.get("volume", {})
+                    if (context["period"] != max(volume_evidence.get("periods", [""]))
+                            or context["raw_count"] != volume_evidence.get("total")):
+                        raise ValueError("volume Base snapshot differs from bound upstream write")
+                else:
                     validate_context(context, evidence, cfg, slot)
                 assert_current_revision(context, cfg)
             if preflight:
@@ -596,7 +560,8 @@ def run_slot(cfg, preflight, slot, state, db):
                 continue
             if now() >= deadline + timedelta(minutes=1):
                 break
-            emit("delivering_channels", attempt=attempt, channels=cfg["channels"], slot=slot.isoformat())
+            emit("delivering_channels", attempt=attempt,
+                 channels=[context["channel"] for context in cached], slot=slot.isoformat())
             results = [deliver(context, cfg, slot, db, evidence) for context in cached]
             success = all(results)
             emit("round_finished" if success else "round_needs_attention", slot=slot.isoformat())

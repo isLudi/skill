@@ -43,6 +43,7 @@ from governed_temp_table_sync import (  # noqa: E402
     sha256_file,
     source_slice_snapshot,
     transform_source_records,
+    update_source_baseline_state,
     validate_source_records,
     write_artifact,
 )
@@ -634,6 +635,26 @@ class MergeWorkflowTests(unittest.TestCase):
             with self.assertRaisesRegex(WorkflowError, "Source quality gate is required"):
                 load_registry(path)
 
+    def test_registry_rejects_broad_or_malformed_reviewed_exceptions(self) -> None:
+        registry_path = SKILL_ROOT / "references" / "workflow_registry.json"
+        original = json.loads(registry_path.read_text(encoding="utf-8"))
+        for mutation, expected in (
+            ("scope_wildcard", "Invalid reviewed source-slice scope"),
+            ("ratio_missing_count", "Invalid reviewed relative-change exception"),
+        ):
+            with self.subTest(mutation=mutation), tempfile.TemporaryDirectory() as directory:
+                registry = json.loads(json.dumps(original))
+                families = {item["id"]: item for item in registry["families"]}
+                if mutation == "scope_wildcard":
+                    families["market_period_architecture"]["reviewed_source_slice_scope"]["source_sha256"] = "*"
+                else:
+                    exception = families["market_plan_id"]["source_quality"]["relative_change"]["reviewed_exceptions"][0]
+                    exception.pop("source_count")
+                path = Path(directory) / "registry.json"
+                path.write_text(json.dumps(registry, ensure_ascii=False), encoding="utf-8")
+                with self.assertRaisesRegex(WorkflowError, expected):
+                    load_registry(path)
+
     @unittest.skipUnless(os.name == "nt", "Windows lark-cli resolver")
     def test_lark_cli_resolver_prefers_package_native_exe(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -920,6 +941,202 @@ class MergeWorkflowTests(unittest.TestCase):
                 current_snapshot,
                 baselines,
             )
+
+    def test_target_equivalent_backlog_keeps_change_limit_for_real_edits(self) -> None:
+        family = {
+            "id": "market_period_architecture",
+            "target_columns": ["qici", "name", "dept"],
+            "slice_column": "qici",
+            "source_merge_mode": "changed_source_slices",
+            "source_baseline_id": "market_period_architecture",
+            "max_changed_slices": 1,
+            "recent_slice_window": 1,
+            "target_scope": {"column": "dept", "equals": "market"},
+        }
+        baseline_records = [
+            {"qici": "20260101期", "name": "old", "dept": "market"}
+        ]
+        current_records = [
+            *baseline_records,
+            {"qici": "20260201期", "name": "backfill", "dept": "market"},
+            {"qici": "20260301期", "name": "latest", "dept": "market"},
+        ]
+        baselines = {
+            "families": {
+                family["id"]: source_slice_snapshot(family, baseline_records)
+            }
+        }
+        target_records = [
+            *baseline_records,
+            {"qici": "20260201期", "name": "backfill", "dept": "market"},
+        ]
+
+        selected, selection = select_source_records_for_merge(
+            family,
+            current_records,
+            source_slice_snapshot(family, current_records),
+            baselines,
+            target_records,
+        )
+
+        self.assertEqual(len(selected), 2)
+        self.assertEqual(selection["target_equivalent_slices"], ["20260201期"])
+        self.assertEqual(selection["target_pending_slices"], ["20260301期"])
+
+    def test_target_equivalence_requires_exact_rows_and_department(self) -> None:
+        family = {
+            "id": "market_period_architecture",
+            "target_columns": ["qici", "name", "dept"],
+            "slice_column": "qici",
+            "source_merge_mode": "changed_source_slices",
+            "source_baseline_id": "market_period_architecture",
+            "max_changed_slices": 1,
+            "recent_slice_window": 2,
+            "target_scope": {"column": "dept", "equals": "market"},
+        }
+        baseline_records = [
+            {"qici": "20260101期", "name": "old", "dept": "market"}
+        ]
+        current_records = [
+            *baseline_records,
+            {"qici": "20260201期", "name": "A", "dept": "market"},
+            {"qici": "20260301期", "name": "B", "dept": "market"},
+        ]
+        baselines = {
+            "families": {
+                family["id"]: source_slice_snapshot(family, baseline_records)
+            }
+        }
+        target_records = [
+            *baseline_records,
+            {"qici": "20260201期", "name": "different", "dept": "market"},
+            {"qici": "20260301期", "name": "B", "dept": "qingcheng"},
+        ]
+
+        with self.assertRaisesRegex(WorkflowError, "target_pending"):
+            select_source_records_for_merge(
+                family,
+                current_records,
+                source_slice_snapshot(family, current_records),
+                baselines,
+                target_records,
+            )
+
+    def test_reviewed_source_scope_selects_only_exact_new_slice(self) -> None:
+        family = {
+            "id": "market_period_architecture",
+            "target_columns": ["qici", "name", "dept"],
+            "slice_column": "qici",
+            "source_merge_mode": "changed_source_slices",
+            "source_baseline_id": "market_period_architecture",
+            "max_changed_slices": 1,
+            "recent_slice_window": 1,
+            "target_scope": {"column": "dept", "equals": "market"},
+            "reviewed_source_slice_scope": {
+                "message_id": "om_approved",
+                "source_sha256": "a" * 64,
+                "selected_slices": ["20260925期"],
+                "baseline_update": "preserve",
+            },
+        }
+        baseline_records = [{"qici": "20260801期", "name": "old", "dept": "market"}]
+        source_records = [
+            {"qici": "20260801期", "name": "revised", "dept": "market"},
+            {"qici": "20260925期", "name": "new", "dept": "market"},
+        ]
+        target_records = [
+            *baseline_records,
+            {"qici": "20260801期", "name": "other", "dept": "qingcheng"},
+        ]
+        baselines = {"families": {family["id"]: source_slice_snapshot(family, baseline_records)}}
+        snapshot = source_slice_snapshot(family, source_records)
+
+        selected, selection = select_source_records_for_merge(
+            family, source_records, snapshot, baselines, target_records,
+            source_message_id="om_approved", source_sha256="a" * 64,
+        )
+        self.assertEqual(selected, [source_records[1]])
+        self.assertEqual(selection["target_pending_slices"], ["20260925期"])
+        self.assertEqual(
+            selection["reviewed_source_slice_scope"]["ignored_changed_slices"],
+            ["20260801期"],
+        )
+        merged, _, diff = merge_records(family, target_records, target_records, selected, selected)
+        self.assertEqual(diff["new_slices"], ["20260925期"])
+        self.assertEqual(diff["replaced_slices"], [])
+        self.assertIn(target_records[0], merged)
+        self.assertIn(target_records[1], merged)
+        self.assertIsNone(update_source_baseline_state(
+            {}, [{"source_slice_snapshot": snapshot, "source_selection": selection}]
+        ))
+
+        for message_id, source_sha in (("om_other", "a" * 64), ("om_approved", "b" * 64)):
+            with self.subTest(message_id=message_id, source_sha=source_sha):
+                with self.assertRaisesRegex(WorkflowError, "target_pending"):
+                    select_source_records_for_merge(
+                        family, source_records, snapshot, baselines, target_records,
+                        source_message_id=message_id, source_sha256=source_sha,
+                    )
+
+        with self.assertRaisesRegex(WorkflowError, "already exists with different target rows"):
+            select_source_records_for_merge(
+                family, source_records, snapshot, baselines,
+                [*target_records, {"qici": "20260925期", "name": "different", "dept": "market"}],
+                source_message_id="om_approved", source_sha256="a" * 64,
+            )
+
+    def test_reviewed_relative_change_is_exact_source_and_slice(self) -> None:
+        exception = {
+            "message_id": "om_approved",
+            "source_sha256": "a" * 64,
+            "slice": "0925期",
+            "source_count": 5,
+            "baseline_slice": "0918期",
+            "baseline_count": 3,
+        }
+        family = {
+            "id": "market_plan_id",
+            "slice_column": "qici",
+            "target_columns": ["qici", "group_id"],
+            "source_quality": {
+                "policy_version": "1.0.0",
+                "max_age_hours": 48,
+                "row_count": {"min": 1, "max": 10},
+                "relative_change": {
+                    "baseline": "same_slice_or_latest_target",
+                    "max_ratio": 0.5,
+                    "reviewed_exceptions": [exception],
+                },
+                "required_column_null_rate": {"qici": 0, "group_id": 0},
+            },
+        }
+        now = datetime(2026, 9, 17, tzinfo=timezone.utc)
+        source = [{"qici": "0925期", "group_id": str(i)} for i in range(5)]
+        target = [{"qici": "0918期", "group_id": str(i)} for i in range(3)]
+
+        for message_id, source_sha, expected in (
+            ("om_approved", "a" * 64, "pass"),
+            ("om_other", "a" * 64, "blocked"),
+            ("om_approved", "b" * 64, "blocked"),
+        ):
+            with self.subTest(message_id=message_id, source_sha=source_sha):
+                report = evaluate_source_quality(
+                    family,
+                    {"message_id": message_id, "source_sha256": source_sha, "create_time": now.isoformat()},
+                    source, target, now=now,
+                )
+                self.assertEqual(report["status"], expected)
+                self.assertEqual(
+                    bool(report["relative_change"]["slices"][0].get("reviewed_exception")),
+                    expected == "pass",
+                )
+
+        report = evaluate_source_quality(
+            family,
+            {"message_id": "om_approved", "source_sha256": "a" * 64, "create_time": now.isoformat()},
+            [*source, {"qici": "0925期", "group_id": "extra"}], target, now=now,
+        )
+        self.assertEqual(report["status"], "blocked")
 
     def test_plan_group_name_prefix_checks_only_period_prefixed_names(
         self,
@@ -1633,7 +1850,7 @@ class MergeWorkflowTests(unittest.TestCase):
                 source_candidate: Path,
                 destination: Path,
             ) -> None:
-                if Path(destination) == target_path:
+                if Path(destination).resolve() == target_path.resolve():
                     target_replace_attempts.append(
                         (Path(source_candidate), Path(destination))
                     )

@@ -20,7 +20,7 @@ from . import grade_report as gr
 
 
 VOLUME_FIELDS = ("期次", "年级", "渠道", "预估量级", "实际进量", "退前线索", "退后线索", "接量顾问数")
-LEAD_FIELDS = ("期次", "年级", "渠道", "异常流量标记")
+LEAD_FIELDS = ("期次", "年级", "渠道", "规则", "异常流量标记")
 IMAGE_COLUMNS = ("期次", "年级", "预估量级", "实际进量", "线索留存率", "人均带班", "量级完成度")
 REPORT_GRADE_ORDER = ("初三", "高一", "高二", "高三")
 GRADE_ORDER = {grade: index for index, grade in enumerate(REPORT_GRADE_ORDER)}
@@ -56,6 +56,13 @@ def _ratio(numerator: float, denominator: float) -> float | None:
 
 def normalize_channel(channel: str) -> str:
     return unicodedata.normalize("NFKC", channel).strip()
+
+
+def assignment_rule_channel(rule_name: str) -> str:
+    parts = rule_name.split("-")
+    if len(parts) < 3 or not parts[2].strip():
+        raise ValueError(f"线索规则无法解析分配渠道: {rule_name!r}")
+    return parts[2].strip()
 
 
 def eligible_channel(channel: str, rule: str = RULE_KOC_AND_SELF_INCUBATED) -> bool:
@@ -120,13 +127,16 @@ def aggregate_volume(rows: Iterable[Mapping[str, Any]], period: str,
 
 def aggregate_abnormal(rows: Iterable[Mapping[str, Any]], period: str, channels: set[str],
                        channel_grades: set[tuple[str, str]]) -> tuple[dict[str, dict[str, Any]], dict[str, Any]]:
-    """Match exact period+channel+grade, aggregate binary facts, then divide."""
+    """Match period, assignment-rule channel and grade before dividing."""
     buckets = defaultdict(lambda: {"异常量": 0.0, "线索量": 0, "matched_dimensions": set()})
     observed_dimensions: set[tuple[str, str]] = set()
     for row in rows:
-        channel, grade = _text(row, "渠道"), _text(row, "年级")
+        if _text(row, "期次") != period:
+            continue
+        channel = assignment_rule_channel(_text(row, "规则"))
+        grade = _text(row, "年级")
         dimension = (channel, grade)
-        if _text(row, "期次") != period or channel not in channels or dimension not in channel_grades:
+        if channel not in channels or dimension not in channel_grades:
             continue
         flag = _number(row, "异常流量标记")
         if flag < 0 or flag > 1:

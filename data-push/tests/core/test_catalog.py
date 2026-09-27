@@ -22,6 +22,8 @@ class CatalogTests(unittest.TestCase):
         self.assertEqual(cfg["enabled"], self.definition["schedule"]["enabled"])
         self.assertEqual(cfg["hours"], [13, 17])
         self.assertEqual(cfg["volume_report"]["stage"], "scheduled")
+        self.assertEqual(cfg["volume_report"]["upstream"]["verified_version_id"], 207067)
+        self.assertEqual(cfg["volume_report"]["upstream"]["exec_file_id"], 827092)
         self.assertEqual(catalog.resolve_compat_config(SKILL_ROOT / "config/scheduled_push.json", "schedule"), cfg)
         self.assertEqual(catalog.resolve_compat_config(SKILL_ROOT / "config/push_source.json", "source"),
                          catalog.source_defaults(self.definition, target))

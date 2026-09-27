@@ -7,8 +7,12 @@ import unittest
 from lark_delivery.core import catalog
 from lark_delivery.core.contracts import ReportPorts
 from lark_delivery.domains.market_consultant.adapter import report_arguments
-from lark_delivery.domains.market_consultant.workflow import prepare_report, _channel_scope
+from lark_delivery.domains.market_consultant.workflow import (
+    prepare_report, _channel_scope, _channel_filter, _channel_matches, source_present_channels,
+)
 from lark_delivery.domains.market_consultant.channels import self_incubated_koc_5 as policy
+from lark_delivery.domains.market_consultant.channels import supervisor_private_app_sync as private_policy
+from .test_supervisor_report import leads as supervisor_leads
 from .test_grade_report import leads
 
 
@@ -59,8 +63,59 @@ class WorkflowPortTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "负责人账号或群成员"):
             prepare_report(args, self.definition, ports=self.ports)
 
-    def test_channel_match_contract_excludes_case_variant_before_scope_validation(self):
+    def test_app_matches_exactly_without_case_sensitivity(self):
         definition = catalog.load_channel("market_consultant/supervisor_private_app_sync")
-        self.assertEqual(_channel_scope(definition, "app"), "app")
+        scope = _channel_scope(definition, "app")
+        self.assertEqual(scope, {"match_mode": "casefold_exact", "value": "app"})
         self.assertEqual(_channel_scope(definition, "集团私域"), "集团私域")
-        self.assertNotEqual(_channel_scope(definition, "app"), "APP")
+        self.assertIsNone(_channel_filter(scope))
+        self.assertTrue(all(_channel_matches(name, scope) for name in ("app", "APP", "App", "aPp")))
+        self.assertFalse(any(_channel_matches(name, scope) for name in ("APP推广", "途途APP", "集团私域")))
+
+    def test_app_period_read_keeps_all_case_variants_and_excludes_other_channels(self):
+        definition = catalog.load_channel("market_consultant/supervisor_private_app_sync")
+        target = catalog.select_targets(definition)[0]
+        rows = supervisor_leads("主管甲", "经理甲", 10, 5, 0)
+        for index, row in enumerate(rows):
+            row["渠道"] = ("app", "APP", "App", "aPp")[index % 4]
+        unrelated = deepcopy(rows[0])
+        unrelated["lead_id"] = "unrelated"
+        unrelated["渠道"] = "APP推广"
+        rows.append(unrelated)
+        ports = Mock(spec=ReportPorts)
+        ports.resolve_source.return_value = {"base_token": "fake", "table_id": definition["source"]["raw_table_id"], "view_id": "view"}
+        ports.field_names.return_value = set(rows[0])
+        def read(coords, args, fields, *, filter_json, audit):
+            self.assertEqual(filter_json, {"logic": "and", "conditions": [["期次", "==", "20260911期"]]})
+            audit.update(records_count=len(rows), pages=1, rev=123, has_more=False)
+            return deepcopy(rows)
+        ports.read_records.side_effect = read
+        ports.verify_target.return_value = {"name": "Test group", "name_changed": False}
+        with patch.object(private_policy, "business_period", return_value="20260911期"), tempfile.TemporaryDirectory() as directory:
+            args = report_arguments(definition, target, channel="app", report_type="process",
+                                    period="20260911期", state_dir=directory, no_mentions=True)
+            args.with_image = False
+            context = prepare_report(args, definition, ports=ports)
+        self.assertEqual(context["raw_count"], 10)
+        self.assertEqual(context["raw_read_audit"]["server_returned_count"], 11)
+        self.assertEqual(context["raw_read_audit"]["matched_channel_values"], ["APP", "App", "aPp", "app"])
+
+    def test_every_registered_multi_channel_group_skips_only_audited_zero_rows(self):
+        keys = ("business_koc_math", "supervisor_koc_douyin_sync",
+                "supervisor_private_app_sync", "supervisor_self_incubated_koc_5_grade_9")
+        period = "20260925期"
+        for key in keys:
+            with self.subTest(key=key):
+                definition = catalog.load_channel("market_consultant/" + key)
+                cfg = catalog.schedule_config(definition, catalog.select_targets(definition)[0])
+                counts = {name: 3 for name in cfg["channels"][1:]}
+                if key == "supervisor_private_app_sync":
+                    counts = {"APP": 3}
+                evidence = {"periods": {period: {"channel_counts": counts}}}
+                selected, absent = source_present_channels(cfg, evidence, period)
+                self.assertEqual(selected, cfg["channels"][1:])
+                self.assertEqual(absent, [cfg["channels"][0]])
+                self.assertEqual(source_present_channels(cfg, {"periods": {period: {"channel_counts": {}}}}, period),
+                                 ([], cfg["channels"]))
+                with self.assertRaisesRegex(ValueError, "审计|清单"):
+                    source_present_channels(cfg, {"periods": {}}, period)

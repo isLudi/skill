@@ -3,7 +3,10 @@
   "domain": "market_consultant",
   "channel_id": "supervisor_self_incubated_koc_5_grade_9",
   "channel": "KOC-孟亚飞数学",
-  "channels": ["KOC-孟亚飞数学", "自孵化KOC-5元纯课"],
+  "channels": [
+    "KOC-孟亚飞数学",
+    "自孵化KOC-5元纯课"
+  ],
   "adapter": "market-grade-manager-v1",
   "source": {
     "source_mode": "lead-detail",
@@ -34,33 +37,53 @@
     {
       "id": "koc_middle_grade_9",
       "chat_id": "oc_601bde838d4fbda7ac09840a58228f9c",
-      "display_name": "💗0911期【KOC初中】沟通群",
+      "display_name": "💗0925期【KOC初中】沟通群",
       "enabled": true
     }
   ],
   "report": {
     "period_rule": "natural_week_friday",
-    "process_weekdays": [0, 1, 2, 3, 4, 5, 6],
-    "result_weekdays": [4, 5, 6],
-    "included_grades": ["初三"],
+    "process_weekdays": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "result_weekdays": [
+      4,
+      5,
+      6
+    ],
+    "included_grades": [
+      "初三"
+    ],
     "excluded_grades": [],
-    "minimum_post_leads": 10
+    "minimum_post_leads": 10,
+    "weekend_next_process_enabled": true,
+    "weekend_next_process_minimum_post_leads": 5
   },
   "schedule": {
     "enabled": true,
     "first_send_at": "2026-09-11T21:20:00+08:00",
     "timezone": "Asia/Shanghai",
-    "hours": [13, 17, 21],
+    "hours": [
+      13,
+      17,
+      21
+    ],
     "windows_task_name": "Codex-Lark-Supervisor-KOC-Grade9-Push",
     "stagger_order": 5,
-    "prepare_minute": 24,
-    "send_minute": 24,
+    "prepare_minute": 22,
+    "send_minute": 22,
     "deadline_minute": 50,
     "retry_minutes": 2
   },
   "base_identity": "user",
   "verification_identity": "user",
-  "state_dir": "C:/Users/Ludim/.codex/runtime/channel-broadcast-push/supervisor-self-incubated-koc-5-grade-9",
+  "state_dir": "C:/Users/lvshuai01/.codex/runtime/channel-broadcast-push/supervisor-self-incubated-koc-5-grade-9",
   "upstream": {
     "project_id": 308,
     "folder": "吕帅",
@@ -69,10 +92,11 @@
     "task_id": 47252,
     "nezha_task_id": 66504,
     "schedule_id": 53831,
-    "exec_file_id": 817941,
-    "verified_version_id": 205436,
-    "verified_source_sha256": "47824a43fe47b258d6cad4e2e00a1044c438d166c2b3637a65a31dd7bec4bd48",
-    "log_protocol": "two_period_audit_v1",
-    "owner": "lvshuai01"
+    "exec_file_id": 830401,
+    "verified_version_id": 207095,
+    "verified_source_sha256": "a652cb7adc0cb8b8cf5c6fe8224b15c94f5045c28a6046600963038cd0f54f0d",
+    "log_protocol": "two_period_clear_then_replace_v1_retry",
+    "owner": "lvshuai01",
+    "channel_mapping_version": "0918"
   }
 }

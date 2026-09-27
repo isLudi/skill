@@ -14,6 +14,8 @@ from . import grade_report
 from .channels import grade_compact as grade_policy
 
 SECTIONS = {"process": "过程数据", "result": "转化数据"}
+SUPERVISOR_REPORT = True
+MENTION_TARGET = "supervisor"
 DIMENSIONS = ("lead_id", "期次", "渠道", "经理", "主管", "年级", "分区日期", "分区小时")
 COMMON = ("退前线索", "退后线索")
 PROCESS = ("总通时秒", "首call完成标记", "48h外呼标记", "外呼次数", "5min标记",
@@ -25,7 +27,7 @@ RESULT_REPORT = ("5min标记", "双沟标记", "首节到课标记", "当期净�
 COLUMNS = {
     "process": (("期次", "期次", "text"), ("负责人", "负责人", "text"), ("主管", "主管", "text"),
                 ("退前线索", "退前线索", "count"), ("退后线索", "退后线索", "count"),
-                ("线索留存率", "线索留存率", "rate"), ("总通时", "总通时", "duration"),
+                ("线索留存率", "线索留存率", "rate"), ("总通时(min)", "总通时(min)", "duration"),
                 ("首call率", "首call率", "rate"), ("48h外呼", "48h外呼", "rate"),
                 ("外呼频次", "外呼频次", "frequency"), ("5min", "5min", "rate"),
                 ("好友率", "好友率", "rate"), ("APP登陆率", "APP登陆率", "rate"),
@@ -84,7 +86,14 @@ def validate_scope(records, channel, period, *, source_channel=None):
         for field in DIMENSIONS:
             if not text(value(row, field)):
                 raise ValueError("线索缺少必要字段：" + field)
-        if text(value(row, "渠道")) != source_channel or text(value(row, "期次")) != period:
+        actual_channel = text(value(row, "渠道"))
+        if isinstance(source_channel, dict):
+            if source_channel.get("match_mode") != "casefold_exact":
+                raise ValueError("未审核的主管明细渠道匹配模式")
+            channel_matches = actual_channel.casefold() == source_channel["value"].casefold()
+        else:
+            channel_matches = actual_channel == source_channel
+        if not channel_matches or text(value(row, "期次")) != period:
             raise ValueError("返回记录超出本次渠道或期次")
         key = (period, text(value(row, "lead_id")))
         if key in seen:
@@ -116,7 +125,7 @@ def _metrics(sums):
         if numerator in sums:
             result[display] = _rate(sums[numerator], pre if display == "线索留存率" else post)
     if "总通时秒" in sums:
-        result["总通时"] = float(sums["总通时秒"])
+        result["总通时(min)"] = float(sums["总通时秒"] / 60)
         result["外呼频次"] = float(sums["外呼次数"] / post) if post else "-"
     if "净收款" in sums:
         result["单效（当期）"] = float(sums["当期净收款"] / post) if post else "-"
@@ -361,10 +370,15 @@ def write_preview(context, directory):
             if not block["reminders"][section]:
                 continue
             people = []
+            nonmembers = set(info.get("nonmembers", ()))
             for name in block["reminders"][section]:
                 label = html.escape(info.get("display_names", {}).get(name, name))
-                people.append(f'<span class="mention">@{label}</span>' if name in info["resolved"]
-                              else label + "（待核验）")
+                if name in info["resolved"] and name not in nonmembers:
+                    people.append(f'<span class="mention">@{label}</span>')
+                elif name in nonmembers:
+                    people.append(label + "（未入群，待核验）")
+                else:
+                    people.append(label + "（待核验）")
             reminders.append(f"<li>{html.escape(context['channel'])}渠道{html.escape(block['grade'])}年级 "
                              f"{metric}较低：{'、'.join(people)}</li>")
         cards.append(f'<section><h2>🔥 <strong>【{context["period"]}】{html.escape(context["channel"])}渠道{SECTIONS[section]}播报</strong></h2>'

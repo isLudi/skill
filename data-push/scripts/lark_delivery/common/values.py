@@ -103,7 +103,8 @@ def _format_value(value: Any, kind: str) -> str:
         return str(int(round(number))) if number is not None else _string(value)
     if kind == "duration":
         number = _number(value)
-        return str(int(round(number))) if number is not None else _string(value)
+        return (f"{number:.2f}".rstrip("0").rstrip(".")
+                if number is not None else _string(value))
     if kind == "frequency":
         number = _number(value)
         return "%.1f" % number if number is not None else _string(value)

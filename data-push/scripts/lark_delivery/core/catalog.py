@@ -12,6 +12,61 @@ from ..paths import CONFIG_ROOT, WORKSPACE_ROOT
 DEFAULT_CHANNEL = "market_consultant/self_incubated_koc_5"
 DEFAULT_MIAODA_DEPLOYMENT = "market_consultant/miaoda/cloud_data_push"
 DEFAULT_MIAODA_WORKFLOW = "supervisor_koc_douyin_sync"
+RELEASE_PIN_RELATIVE = Path("release/market2lark.json")
+VOLUME_RELEASE_PIN_RELATIVE = Path("release/market2lark_jinliang.json")
+
+
+def load_shared_release_pin(root=CONFIG_ROOT):
+    """Load the department-wide market2lark release pin, if installed.
+
+    All market channels share one upstream task.  Keeping the pin in one file
+    prevents a weekly channel-by-channel edit while retaining fail-closed
+    identity checks for every registered channel.
+    """
+    path = (Path(root) / RELEASE_PIN_RELATIVE).resolve()
+    root = Path(root).resolve()
+    if not path.is_relative_to(root):
+        raise ValueError("Shared release pin escaped configuration root")
+    if not path.is_file():
+        return None
+    pin = read_json(path)
+    if pin.get("schema_version") != 1 or pin.get("domain") != "market_consultant":
+        raise ValueError("Unsupported market2lark shared release pin")
+    upstream = pin.get("upstream")
+    required = ("project_id", "folder", "menu_id", "task_name", "task_id",
+                "nezha_task_id", "schedule_id", "exec_file_id", "verified_version_id",
+                "verified_source_sha256", "log_protocol", "owner")
+    if not isinstance(upstream, dict) or any(k not in upstream for k in required):
+        raise ValueError("Incomplete market2lark shared release pin")
+    if (upstream["task_name"] != "market2lark"
+            or not re.fullmatch(r"[0-9a-f]{64}", str(upstream["verified_source_sha256"]))):
+        raise ValueError("Invalid market2lark shared release identity")
+    if pin.get("channel_mapping_version") is not None:
+        if not re.fullmatch(r"[0-9]{4}", str(pin["channel_mapping_version"])):
+            raise ValueError("Invalid channel mapping version in shared release pin")
+    return pin
+
+
+def load_shared_volume_release_pin(root=CONFIG_ROOT):
+    """Require the reviewed producer pin for scheduled market volume reports."""
+    root = Path(root).resolve()
+    path = (root / VOLUME_RELEASE_PIN_RELATIVE).resolve()
+    if not path.is_relative_to(root) or not path.is_file():
+        raise ValueError("Missing market2lark_jinliang release pin")
+    pin = read_json(path)
+    upstream = pin.get("upstream")
+    required = ("project_id", "folder", "menu_id", "task_name", "task_id",
+                "nezha_task_id", "schedule_id", "exec_file_id", "verified_version_id",
+                "verified_source_sha256", "log_protocol", "owner")
+    if (pin.get("schema_version") != 1 or pin.get("domain") != "market_consultant"
+            or pin.get("volume_table_id") != "tblGUCxgUTZPjv3c"
+            or not isinstance(upstream, dict) or any(k not in upstream for k in required)
+            or upstream.get("project_id") != 308 or upstream.get("menu_id") != 101900
+            or upstream.get("task_id") != 46817 or upstream.get("task_name") != "market2lark_jinliang"
+            or upstream.get("log_protocol") != "volume_two_period_create_then_delete_v1"
+            or not re.fullmatch(r"[0-9a-f]{64}", str(upstream.get("verified_source_sha256", "")))):
+        raise ValueError("Invalid market2lark_jinliang release pin")
+    return pin
 
 
 def read_json(path):
@@ -247,16 +302,35 @@ def schedule_config(config, target):
     if target["id"] != config["targets"][0]["id"]:
         state = state / "targets" / target["id"]
     volume_report = {"volume_report": deepcopy(config["volume_report"])} if "volume_report" in config else {}
+    if volume_report and config["domain"] == "market_consultant":
+        volume_pin = load_shared_volume_release_pin()
+        if volume_report["volume_report"].get("volume_table_id") != volume_pin["volume_table_id"]:
+            raise ValueError("Volume table differs from its producer release pin")
+        volume_report["volume_report"]["upstream"] = deepcopy(volume_pin["upstream"])
+    pin = load_shared_release_pin()
+    upstream = deepcopy(config["upstream"])
+    if pin is not None:
+        shared = pin["upstream"]
+        identity_fields = ("project_id", "folder", "menu_id", "task_name", "task_id",
+                           "nezha_task_id", "schedule_id", "owner")
+        for field in identity_fields:
+            if upstream.get(field) != shared.get(field):
+                raise ValueError("Channel upstream identity differs from shared release pin: " + field)
+        for field in ("exec_file_id", "verified_version_id", "verified_source_sha256", "log_protocol"):
+            upstream[field] = shared[field]
+        if pin.get("channel_mapping_version") is not None:
+            upstream["channel_mapping_version"] = pin["channel_mapping_version"]
     return {**deepcopy(config["schedule"]), **volume_report, "schema_version": 2,
             "domain": config["domain"], "channel_id": config["channel_id"], "target_id": target["id"],
             "channel_key": f"{config['domain']}/{config['channel_id']}",
             "report_profile": config["source"]["report_profile"], **deepcopy(config["report"]),
+            "channel_match": deepcopy(config["source"].get("channel_match", {})),
             "channels": deepcopy(config.get("channels", [config["channel"]])),
             "chat_id": target["chat_id"], "chat_name": target["display_name"],
             "bot_name": config["sender"]["name"], "bot_open_id": config["sender"]["open_id"],
             "base_as": config["base_identity"], "state_dir": str(state),
             "raw_table_id": config["source"]["raw_table_id"],
-            "upstream": deepcopy(config["upstream"])}
+            "upstream": upstream}
 
 
 def resolve_compat_config(path, kind):

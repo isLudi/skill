@@ -1,8 +1,8 @@
 [CmdletBinding()]
 param(
-    [ValidateSet('start', 'stop', 'restart', 'status', 'logs', 'install-startup', 'uninstall-startup')]
+    [ValidateSet('start', 'stop', 'restart', 'status', 'logs', 'run-foreground', 'install-startup', 'uninstall-startup')]
     [string]$Action = 'status',
-    [string]$Config = 'C:\Users\Ludim\.codex\runtime\sync-qingcheng-market-temp-tables\event-service\config.json',
+    [string]$Config = 'C:\Users\lvshuai01\.codex\runtime\sync-qingcheng-market-temp-tables\event-service\config.json',
     [string]$TaskName = 'Codex-Governed-TempTables-LarkEvent'
 )
 
@@ -12,6 +12,7 @@ $env:PYTHONUTF8 = '1'
 [Console]::InputEncoding = [System.Text.UTF8Encoding]::new($false)
 [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 $OutputEncoding = [Console]::OutputEncoding
+$env:USQL_ENV_FILE = 'D:\GAOTU\19002_市场顾问部看板维护表格\usql_api.env'
 
 $Python = 'D:\anaconda3\python.exe'
 $SkillRoot = Split-Path -Parent (Split-Path -Parent $PSCommandPath)
@@ -51,6 +52,13 @@ function Test-ServiceProcess {
     }
 }
 
+function Assert-InteractiveSession {
+    $sessionId = [System.Diagnostics.Process]::GetCurrentProcess().SessionId
+    if ($sessionId -eq 0) {
+        throw 'The event service must run in an interactive user session because Excel COM cannot open staged workbooks from Session 0.'
+    }
+}
+
 function Show-Status {
     & $Python $ServiceScript status --config $ConfigPath
     if ($LASTEXITCODE -ne 0) {
@@ -59,6 +67,7 @@ function Show-Status {
 }
 
 function Start-ServiceProcess {
+    Assert-InteractiveSession
     & $Python $ServiceScript validate-config --config $ConfigPath
     if ($LASTEXITCODE -ne 0) {
         throw 'Configuration validation failed.'
@@ -119,6 +128,16 @@ function Stop-ServiceProcess {
     }
 }
 
+function Run-ForegroundService {
+    Assert-InteractiveSession
+    & $Python $ServiceScript validate-config --config $ConfigPath
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Configuration validation failed.'
+    }
+    & $Python $ServiceScript run --config $ConfigPath
+    exit $LASTEXITCODE
+}
+
 switch ($Action) {
     'start' {
         Start-ServiceProcess
@@ -142,22 +161,44 @@ switch ($Action) {
             throw "Log does not exist: $logPath"
         }
     }
+    'run-foreground' {
+        Run-ForegroundService
+    }
     'install-startup' {
         & $Python $ServiceScript validate-config --config $ConfigPath
         if ($LASTEXITCODE -ne 0) {
             throw 'Configuration validation failed.'
         }
         $powerShell = (Get-Command powershell.exe).Source
-        $arguments = "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" -Action start -Config `"$ConfigPath`""
+        $arguments = "-NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$PSCommandPath`" -Action run-foreground -Config `"$ConfigPath`""
         $taskAction = New-ScheduledTaskAction -Execute $powerShell -Argument $arguments
         $taskTrigger = New-ScheduledTaskTrigger -AtLogOn -User "$env:USERDOMAIN\$env:USERNAME"
+        $taskPrincipal = New-ScheduledTaskPrincipal `
+            -UserId "$env:USERDOMAIN\$env:USERNAME" `
+            -LogonType Interactive `
+            -RunLevel Limited
+        $taskSettings = New-ScheduledTaskSettingsSet `
+            -Hidden `
+            -MultipleInstances IgnoreNew `
+            -RestartCount 3 `
+            -RestartInterval (New-TimeSpan -Minutes 2) `
+            -AllowStartIfOnBatteries `
+            -DontStopIfGoingOnBatteries `
+            -DontStopOnIdleEnd `
+            -StartWhenAvailable
         Register-ScheduledTask `
             -TaskName $TaskName `
             -Action $taskAction `
             -Trigger $taskTrigger `
+            -Principal $taskPrincipal `
+            -Settings $taskSettings `
             -Description 'Start the governed Qingcheng and market-consultant temp-table event service at user logon.' `
             -Force | Out-Null
-        Get-ScheduledTask -TaskName $TaskName | Select-Object TaskName, State
+        $task = Get-ScheduledTask -TaskName $TaskName
+        if ($task.Principal.LogonType -ne 'Interactive') {
+            throw 'The event service startup task did not retain its interactive logon type.'
+        }
+        $task | Select-Object TaskName, State
     }
     'uninstall-startup' {
         $task = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue

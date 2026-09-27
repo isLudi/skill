@@ -35,7 +35,7 @@
 |---|---|---|
 | `resolve_source(args)` | 含source_url/base_as/timeout的参数 → base/table/view坐标 | 不按模糊表名替换目标；坐标只留内存 |
 | `field_names(coords, args)` | 坐标 → 字段名集合 | 上层projection负责缺少字段时阻断 |
-| `read_records(coords, args, fields, *, filter_json, audit)` | 精确条件、最小字段集 → 全量记录；回填audit | has_more终止、行数/记录ID/分页rev/查询范围一致；临时分页文件结束即清理 |
+| `read_records(coords, args, fields, *, filter_json, audit)` | 已审阅的精确或包含条件、最小字段集 → 全量记录；回填audit | has_more终止、行数/记录ID/分页rev/查询范围一致；临时分页文件结束即清理 |
 | `search_users(queries, args)` | 名称查询列表 → queries/users | 每批最多20；保留has_more及错误信息，精确身份判定由部门resolver执行 |
 | `verify_target(chat_id, name, identity, timeout)` | 唯一群ID → 当前名称及是否改名 | 名字不用于选群，不因改名换群 |
 | `missing_members(chat_id, resolved, identity, timeout)` | 姓名→open_id → 不在群名单 | 必须完整、无截断的群成员列表 |
