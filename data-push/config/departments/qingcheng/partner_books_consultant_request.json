@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "source": {
+    "system": "lark_base",
+    "operator_record_id": "recvwjW9ZAvRBW",
+    "request_id": "qingcheng/partner_books",
+    "request_status": "草稿",
+    "base_token": "OEJrbiCIaazfSss2R3Lcf1OonCc",
+    "table_id": "tbl3iMKvD52jaMF1"
+  },
+  "routing": {
+    "department": "青橙项目部",
+    "domain": "qingcheng",
+    "execution_surface": null,
+    "channel_id": null
+  },
+  "business": {
+    "channel_name": "图书",
+    "source_channel_examples": "图书",
+    "data_source_url": "https://gaotuedu.feishu.cn/base/QOVib6QCXaUvJ2s2PsbcnMmsnGg?table=tblXU4tla3bY36DE&view=vewO4yxS3O",
+    "raw_table_name": "青橙线索原始数据",
+    "target_chat_id": "oc_854e5427ec0f6ef2bf654fee0a759f83",
+    "target_chat_name": "🍊武汉图书koc",
+    "period_rule": "自然周周五期次",
+    "process_weekdays": ["周二", "周三", "周四"],
+    "result_weekdays": ["周五", "周六", "周日", "次周周一"],
+    "requested_first_send_at": "2026-09-26T00:00:00.000+08:00",
+    "requested_send_windows": "02:00、14:00、18:00、22:00",
+    "dimensions": ["期次", "渠道", "主管", "顾问", "年级"],
+    "grades": ["高一", "高二", "高三", "初三"],
+    "scope_notes": "排除：初二"
+  },
+  "report": {
+    "minimum": {"metric": "有效线索", "operator": ">=", "value": 3},
+    "process_metrics": ["好友率", "等待时长", "8min", "24h首call", "沟通率", "外呼时长", "外呼频次", "总通时", "有效线索"],
+    "other_process_metrics": null,
+    "process_display_order": "期次、主管、顾问、年级、有效线索、好友率、等待时长、8min、24h首call、沟通率、外呼时长、外呼频次、总通时",
+    "result_metrics": ["有效线索", "首节到课率", "综合人头转化率", "综合订单转化率", "综合营收", "退费金额", "净收款", "截面单效", "联报率"],
+    "other_result_metrics": null,
+    "result_display_order": "期次、主管、顾问、年级、有效线索、首节到课率、综合人头转化率、综合订单转化率、综合营收、退费金额、净收款、截面单效、联报率",
+    "metric_definitions": null,
+    "layout": null,
+    "style_reference": null
+  },
+  "reminder": {
+    "process_metric": "8min",
+    "result_metric": "截面单效",
+    "target": "顾问",
+    "process_direction": "最低",
+    "result_direction": "最高",
+    "tie_handling": null,
+    "report_level": "顾问",
+    "process_rank": "最后1名",
+    "result_rank": "前3名"
+  },
+  "validation": {
+    "complete_for_technical_review": true,
+    "missing_business_fields": [],
+    "technical_decisions_required": [
+      "execution_surface",
+      "channel_id",
+      "adapter/report_profile",
+      "source field mapping and metric formulas",
+      "sender identity IDs",
+      "local paths and state directory",
+      "schedule staggering and task name",
+      "upstream version gates"
+    ]
+  }
+}
