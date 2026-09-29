@@ -68,6 +68,60 @@ def _channel_filter(scope):
     return ["渠道", "contains", scope["keyword"]]
 
 
+DEDUP_MARKER_FIELDS = ("退前线索", "退后线索")
+DEDUP_EVIDENCE_FIELDS = ("lead_id", "渠道", "主管", "经理", "顾问", "年级",
+                         "退前线索", "退后线索", "record_id")
+
+
+def _marker_count(row):
+    """How many of the lead's real markers this row still carries."""
+    count = 0
+    for field in DEDUP_MARKER_FIELDS:
+        try:
+            if float(str(value(row, field) or 0).replace(",", "")) > 0:
+                count += 1
+        except (TypeError, ValueError):
+            continue
+    return count
+
+
+def _dedup_evidence(row):
+    return {field: value(row, field) for field in DEDUP_EVIDENCE_FIELDS
+            if value(row, field) is not None}
+
+
+def merge_duplicate_lead_ids(records, audit):
+    """Reviewed resolution for duplicate (期次, lead_id) rows.
+
+    Upstream keys its rows on (期次, lead_id, 顾问账号), so one lead reassigned
+    between consultants arrives twice: the superseded row keeps the lead_id but
+    has its 退前/退后线索 zeroed. Reviewed 2026-09-28 — keep the row whose markers
+    are still non-zero, fall back to the first row read, and record every dropped
+    row under ``audit['duplicate_lead_id_merged']`` so the receipt shows what was
+    merged instead of hiding it.
+
+    ``validate_scope`` still asserts uniqueness over the result, so this can only
+    narrow the input: a duplicate that survives the merge still fails closed.
+    """
+    chosen, order, dropped = {}, [], []
+    for row in records:
+        key = str(value(row, "lead_id"))
+        current = chosen.get(key)
+        if current is None:
+            chosen[key] = row
+            order.append(key)
+            continue
+        if _marker_count(row) > _marker_count(current):
+            dropped.append(_dedup_evidence(current))
+            chosen[key] = row
+        else:
+            dropped.append(_dedup_evidence(row))
+    if not dropped:
+        return records
+    audit["duplicate_lead_id_merged"] = dropped
+    return [chosen[key] for key in order]
+
+
 def source_channel_count(counts, match, channel):
     if channel in match.get("casefold_channels", []):
         source_value = match["values"][channel]
@@ -137,6 +191,8 @@ def prepare_report(args: argparse.Namespace, definition, *, ports: ReportPorts |
     raw_audit["client_excluded_count"] = server_returned_count - len(records)
     raw_audit["channel_match_mode"] = source_channel.get("match_mode", "exact") if isinstance(source_channel, dict) else "exact"
     raw_audit["matched_channel_values"] = sorted({str(value(row, "渠道")) for row in records})
+    records = merge_duplicate_lead_ids(records, raw_audit)
+    raw_audit["deduped_count"] = len(records)
     snapshot = report_module.validate_scope(records, channel, period, source_channel=source_channel)
     report_options = {
         "excluded_grades": tuple(definition["report"]["excluded_grades"]),

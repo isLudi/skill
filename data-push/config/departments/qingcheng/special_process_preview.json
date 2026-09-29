@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "domain": "qingcheng",
+  "execution_surface": "local",
+  "report_type": "process",
+  "report_level": "学部",
+  "status": "preview_only",
+  "schedule_enabled": false,
+  "source": {
+    "base_token": "QOVib6QCXaUvJ2s2PsbcnMmsnGg",
+    "table_id": "tblXU4tla3bY36DE",
+    "period_rule": "自然周周五期次",
+    "dimension_field": "经理",
+    "dimension_label": "负责人",
+    "lead_field": "退后线索"
+  },
+  "target_chat_id": "oc_a95c83e488e0dfcc777d5ffad849d8a4",
+  "target_chat_display_name": "⏰渠道专项讨论",
+  "sender": {"identity": "bot", "name": "管家", "open_id": "ou_f3907e865135732c15a1dfce27828411"},
+  "image_only": false,
+  "text_header": true,
+  "show_total": true,
+  "split_grade": true,
+  "sort": {"metric": "8min", "direction": "desc", "value": "unrounded"},
+  "visual": {
+    "metric_bars": {
+      "好友率": {"min": 0, "max": 1, "color": "#4f78ae"},
+      "等待时长": {"min": 0, "max": 48, "color": "#fb626b"},
+      "8min": {"min": 0, "max": 1, "color": "#f5ae23"},
+      "24h首call": {"min": 0, "max": 1, "color": "#2e9e6b"}
+    },
+    "integer_fields": ["带班人数", "有效线索", "总通时"]
+  },
+  "channels": [
+    {"id": "special_private", "name": "私域", "operator_record_id": "recvwk1kzL4vtb"},
+    {"id": "special_books", "name": "图书", "operator_record_id": "recvwk1l411M24"},
+    {"id": "special_douyin_dm", "name": "抖音私信", "operator_record_id": "recvwk1lwipGZ4"},
+    {"id": "special_public_pool", "name": "公海", "operator_record_id": "recvwk1mMwDv9n"}
+  ]
+}

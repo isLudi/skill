@@ -64,21 +64,49 @@ V16与V17均使用 `two_period_clear_then_replace_v1`：先校验旧/新两期�
 5. 机器人、群ID和负责人账号/群成员资格；所有最低负责人@集合精确一致，不@all。
 6. 图片生成后、发送前再次检查Base版本和时间窗口。SQLite/OS锁防并发，同一群/渠道/时点只允许一条消息。
 
-## 运行记录
+## 运行记录与日志存储规范
 
 状态目录：`C:\Users\lvshuai01\.codex\runtime\channel-broadcast-push\scheduled`（其余七个渠道使用各自配置中的隔离目录）。
 
 - `deliveries.sqlite3`：真实message_id、上游证据、清理及读回结果。
-- `live-status.json`：仅任务运行期间存在的实时状态快照，原子覆盖而不是追加；包含当前步骤、尝试次数、最近错误和下次重试时间。任务成功、失败或异常退出时都必须删除，不作为历史台账。启动器不再生成新的 `run-*.out.log` / `run-*.err.log`；旧文件是改造前历史，不代表当前实现仍会落日志。
+- `channel_events` 表（同一 SQLite 文件内）：每渠道每轮的结论 `at / slot / channel / status / reason`，追加写。它与 `deliveries` **分开**是因为 `deliveries` 是发送认领表，同一 key 存在任何一行都会让该渠道被当作已处理，观测记录绝不能抑制真实发送。
+- `live-status.json`：仅任务运行期间存在的实时状态快照，原子覆盖而不是追加；包含当前步骤、尝试次数、最近错误和下次重试时间。任务成功、失败或异常退出时都必须删除，不作为历史台账。
 - `preflight.json`：只读预检结果，不代表发送。
 
-任务计划程序只能直接显示 `Running/Ready` 与最终退出码，不能展示脚本自定义步骤。用下列只读命令同时查看已登记任务和仅运行期存在的详细步骤；任务不在运行时 `CurrentStep` 留空是正常现象：
+### 日志落盘规范（2026-09-28 起）
+
+根目录取机器本地 `codex_home/machine.local.json` 的 `paths.push_log_root`（模板见技能仓库 `codex-config/machine.local.example.json`）。当前值为 `D:\CodexLogs\data-push`。
+
+约束：
+
+- **不得写系统盘。** 日志根目录放在数据盘且必须位于 `D:\GAOTU` **之外**：`run_*.ps1` 会枚举 `D:\GAOTU` 下 `19002_*` 目录并要求恰好一个，在该目录内新建任何匹配项都会直接打断全部推送任务。
+- **写日志失败只降级告警，绝不阻断投递。** 路径不可用时会输出一条 `push_log_unavailable` 事件，运行继续。
+- 文本为 UTF-8 无 BOM；`.ps1` 侧用 `[System.IO.File]::AppendAllText` 显式指定 UTF-8，不要用 `Tee-Object`（PowerShell 5.1 下会写 UTF-16）。日志不得包含 token、cookie 或其它凭据。
+
+布局（`<部门>` 为 `market_consultant` 或 `qingcheng`；`<渠道>` 在市场顾问部取 `channel_ref` 的最后一段，在青橙项目部取批次配置的文件名主干，如 `process_batch`、`sec_process_batch`、`special_process_batch`）：
+
+| 路径 | 内容 |
+|---|---|
+| `<root>/<部门>/<渠道>/<YYYY-MM-DD>/<HHMMSS>-<任务名>.jsonl` | 一次进程运行的完整事件流（含该时点全部重试），JSON Lines |
+| `<root>/<部门>/<渠道>/<YYYY-MM-DD>/<HHMMSS>-<任务名>.result.json` | 该次运行结论：`slot`、`started_at`/`finished_at`、`exit_code`、`last_event`、逐渠道 `channels`、逐报告 `outcomes`、`needs_attention` |
+| `<root>/<部门>/<渠道>/<YYYY-MM-DD>/<HHMMSS>-process.log` | 进程 stdout/stderr，覆盖事件之外的崩溃、argparse 报错和启动器异常 |
+| `<root>/_index/runs.jsonl` | 每次运行一行汇总裁剪，单文件即可回答"今天哪些时段失败、哪些渠道需要关注" |
+
+保留期 30 天；每次开新日志时按天目录清理更早的文件并删除空目录。
+
+约定的事件名：市场顾问部时点生命周期 `started` / `checking_bot_identity` / `checking_upstream` / `preparing_channel_report` / `preparing_volume_report` / `validating_channel_snapshot` / `prepared_waiting_for_send_time` / `delivering_channels` / `round_finished` / `round_needs_attention`；门禁与重试 `not_ready` / `waiting_to_retry` / `deadline_skipped` / `outside_authorized_window` / `another_instance_active` / `all_channels_absent_in_upstream` / `channel_skipped_no_source_rows` / `approved_release_file_bound`；预检 `preflight_passed_no_send` / `preflight_incomplete`；青橙项目部 `run_started` / `report_ready` / `run_finished` / `run_needs_attention`；两者共用的 `outcome`（青橙逐条结论）；降级 `push_log_unavailable`。
+
+市场顾问部每渠道每轮的结论统一用 `channel_outcome` 事件承载，`result.json` 的 `channels` 由它归并，取值：`sent_verified` / `sent_unverified` / `uncertain` / `duplicate_suppressed` / `skipped_no_eligible_rows` / `skipped_no_source_rows` / `blocked_prepare` / `blocked_snapshot` / `blocked_revision` / `blocked_delivery` / `preflight_ready` / `blocked_preflight`。青橙项目部复用同一套词汇，按 `渠道/年级`（`public_pool/supervisor` 等）或按报告 id（`sec_no_friend_supervisor` 等）落成 `outcomes`；`needs_attention` 取两者中不属于 `push_log.CLEAN_STATUSES` 的键。任何 `return True` 的跳过路径都必须留下 `channel_outcome`、`outcome` 或台账行——只存在于 stdout 的结论视为不可观测。
+
+任务计划程序只能直接显示 `Running/Ready` 与最终退出码，不能展示脚本自定义步骤。用下列只读命令从上述日志汇总各渠道最近一次运行的时点、退出码、最后事件和受影响渠道：
 
 ```powershell
 & 'C:\Users\lvshuai01\.codex\skills\data-push\scripts\view_live_push_status.ps1' -Watch
 ```
 
-新增任务必须复用共享状态生命周期，不得通过保留日志来实现进度查看。`validate_layout.py` 会拒绝不连续/重复的错峰顺序、每分钟超过两个或偏离配对分钟、早于`:20`或晚于`:50`的任务、非2分钟重试或非`:50`截止。
+排查群静默的顺序：先看 `_index/runs.jsonl` 定位失败的时点与渠道，再读对应 `.jsonl` 看 `not_ready` / `deadline_skipped` 的原始 `reason`，最后用 `-process.log` 补 `emit` 之外的崩溃。**不要依赖 `live-status.json`**，它在每次运行结束时按设计删除。
+
+新增任务必须复用该共享 sink（`lark_delivery/common/push_log.py`）与共享状态生命周期，不得自建日志文件或自定义日志格式。市场顾问部的消费者是 `scheduler.emit`（`channel_outcome` 事件，并与 `deliveries.sqlite3` 的 `channel_events` 表同步）。青橙项目部的定时 runner 由任务计划程序直接调用、没有 PowerShell 包装层，因此在各自 `main()` 里用 `push_log.run_scope(部门, 渠道, 任务名)` 包住运行体：它同时镜像 stdout/stderr 到 `-process.log`，并在作用域退出时把批量结果按渠道/年级（或按报告）落成 `outcomes`。即使作用域内抛 `SystemExit`，`result.json` 仍会写完，且**任务退出码不被改变**。`validate_layout.py` 会拒绝不连续/重复的错峰顺序、每分钟超过两个或偏离配对分钟、早于`:20`或晚于`:50`的任务、非2分钟重试或非`:50`截止，以及模块内的未定义名字。
 
 消息返回真实ID后先持久保存回执，再删除本次PNG，最后独立读回图片、期次、群ID、发送人和@账号集合。上传失败保留PNG；发送状态不确定不盲目重发；不删除或清空历史发送台账。
 

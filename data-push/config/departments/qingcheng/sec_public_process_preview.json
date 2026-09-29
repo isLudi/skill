@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "domain": "qingcheng",
+  "execution_surface": "local",
+  "channel_id": "sec_public",
+  "report_type": "process",
+  "status": "preview_only",
+  "schedule_enabled": false,
+  "source": {
+    "base_token": "QOVib6QCXaUvJ2s2PsbcnMmsnGg",
+    "table_id": "tblXU4tla3bY36DE",
+    "view_id": "vewO4yxS3O",
+    "upstream_task_id": 47728,
+    "upstream_task_name": "qing2lark",
+    "match": {"一级渠道": "公域", "渠道": "公域学霸", "部门": "SEC"},
+    "process_lead_field": "退前线索"
+  },
+  "business_calendar": {
+    "period_rule": "自然周周五期次",
+    "requested_process_weekdays": ["周二", "周三", "周四", "周五", "周六", "周日"],
+    "requested_send_windows": ["12:00", "16:00", "20:00"],
+    "timezone": "Asia/Shanghai"
+  },
+  "visual": {
+    "header": "#3d8b4f",
+    "grid": "#aecfb2",
+    "metric_bars": {
+      "好友率": {"min": 0, "max": 1, "color": "#4f78ae"},
+      "24h首call": {"min": 0, "max": 1, "color": "#2e9e6b"},
+      "外呼时长": {"min": 0, "max": 5, "color": "#f5ae23"},
+      "外呼频次": {"min": 0, "max": 8, "color": "#9b7bcb"}
+    },
+    "band_title": "渠道-维度-期次",
+    "total_row": "sum_detail_then_recalculate_ratios",
+    "number_format": "总通时、有效线索、主管带班人数取整数；其他指标保留一位小数"
+  },
+  "profiles": {
+    "supervisor": {
+      "request_id": "qingcheng/sec_supervisor_public",
+      "target_chat_id": "oc_a9e3165a2509e9878fae04dc8394f6b0",
+      "level": "主管",
+      "allowed_grades": ["高一", "高二", "高三", "初三"],
+      "minimum_effective_leads": 5,
+      "process_sort": {"metric": "好友率", "direction": "desc", "value": "unrounded"},
+      "process_bars": ["好友率", "24h首call", "外呼时长", "外呼频次"],
+      "process_reminder": {"metric": "好友率", "direction": "最低", "rank": "最后1名", "tie_handling": "all_tied_minimum"},
+      "split_grade": false,
+      "reminder_by_grade": false,
+      "unresolved_mention_action": "block_send",
+      "show_total": true
+    },
+    "consultant": {
+      "request_id": "qingcheng/sec_partner_public",
+      "target_chat_id": "oc_a8e793c81080ebf5b14dd22bd83a05a1",
+      "level": "顾问",
+      "allowed_grades": ["高一", "高二", "高三", "初三"],
+      "minimum_effective_leads": 3,
+      "process_sort": {"metric": "好友率", "direction": "desc", "value": "unrounded"},
+      "process_bars": ["好友率", "24h首call", "外呼时长", "外呼频次"],
+      "process_reminder": {"metric": "好友率", "direction": "最低", "rank": "最后1名", "tie_handling": "all_tied_minimum"},
+      "split_grade": true,
+      "reminder_by_grade": true,
+      "unresolved_mention_action": "text_only_for_that_person",
+      "show_total": true
+    }
+  },
+  "open_decisions": ["正式发送身份与原生@群成员核验", "群内试发与定时任务部署"]
+}

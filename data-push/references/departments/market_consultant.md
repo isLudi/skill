@@ -52,3 +52,29 @@
 - 生产写入必须保留“创建新记录 -> 完整回读 -> 删除旧记录 -> 最终回读”顺序，并核对期次、渠道数、字段数、行数和快照清单。
 - 数据中心与群播报对账前，必须显式对齐期次、渠道筛选、年级/组织粒度和 `dt/hour`。低于图片最小退后线索门槛的财务行仍属于底层渠道总额，不得因未显示在图片中而判定为丢失。
 - 手工 Tiangong2 执行只能用于受控验收；Windows `preflight-now` 必须继续只接受当前计划批次的已验证执行文件，不得用手工成功放宽定时门禁。
+
+## 2026-09-28 四群静默与逐渠道隔离
+
+### 故障原因
+
+- 当日是业务期次切到 `20261002期` 后的第一个过程日。四个群没有推送，原因互不相同，其中只有一个是"当期确实没有合格数据"。
+- **朱博士群**（`supervisor_zhu_doctor_video49`）：`20261002期` 的 `朱博士` 渠道在 Base 里只有 1 条线索（高三、退前 0、退后 0），低于 `minimum_post_leads=1`；顾问粒度聚合后没有任何可见行，命中"零合格行静默跳过"。任务退出码 0，既不建预览目录也不写台账，事后完全无声。上游 `stage_*_market2lark.log` 的渠道分布证明 `朱博士-视频号49` 合计 130 = 20260925期 129 + 20261002期 1，数据形态本身正常，不是上游断数。
+- **KOC 与抖音私信群 / 商务 KOC 群**：`20261002期` 的 `KOC-周帅数学` 出现同一 `lead_id=334814970` 的两行（顾问账号不同，退前 0/0 与 1/0）。上游记录键含 `顾问账号`，而 Python 的 `validate_scope` 只按 `(期次, lead_id)` 判重，比受治理的记录键更严，于是抛"期次+lead_id重复，停止汇总"。同群其他渠道本身可发，但 `run_slot` 当时把整轮准备放在同一个 try 里，任一渠道异常就作废整轮并从头重试，导致 13:21/17:21/21:21 三次都跑满窗口后 `deadline_skipped`。
+- **商务 KOC 群 / 自营 KOC 群的 17 点进量报告**：`20261002期` 线索表有 1001 行 `规则=未识别规则`，其中 998 行同时 `渠道=KOC-退款订单复用`、`年级=未识别年级`。`assignment_rule_channel` 要求 `规则` 按 `-` 切分至少 3 段且第 3 段非空，这些行不满足即抛错；`aggregate_abnormal` 在渠道/年级过滤之前按整期逐行调用它，因此一行坏行同时阻断该批次所有进量渠道。该兜底模式长期存在（20260925期已有 124 行），不是本期新发生。
+- **自营 KOC 群 13 点**：常规报告的准备与发送都成功，但发送响应没有取到 `message_id`，按既有约定落为 `uncertain`。该消息可能已进群，需人工核对，不能按"未发送"直接补发。
+
+### 修复与生产验收
+
+- **逐渠道隔离**：`run_slot` 的逐渠道准备、快照复验、Base 版本一致性和投递四处改为按渠道独立 `try/except`。单渠道失败只记 `blocked_prepare` / `blocked_snapshot` / `blocked_revision` / `blocked_delivery` 并只重试该渠道，同群其他渠道照常生成与发送；退出码仍为 1，以便任务历史暴露异常。共享门禁保持全局：bot 身份、上游 release 钉、以及"同群各渠道必须同一 Base 版本"仍一次性校验，后者由 `rev_consensus` 保留多数版本、只隔离离群渠道。该行为与各渠道文档既有的"某个渠道没有当期数据或账号核验失败时停止该渠道"一致，此前代码并未实现。
+- **重复线索口径（已评审）**：`workflow.merge_duplicate_lead_ids` 在 `validate_scope` 之前按 `(期次, lead_id)` 合并，保留 `退前线索`/`退后线索` 非零的那一行，并列时取先读到的一行；被丢弃行写入 `raw_read_audit.duplicate_lead_id_merged` 并随投递 detail 落台账。`validate_scope` 的唯一性断言保留在合并之后，因此仍然失败关闭。以 `20261002期` 真实数据复算：保留张宏胜（退前 1）、丢弃左颖雪（0/0），既不虚增也不丢真实线索，分年级报表数字不变。
+- **不可解析规则口径（已评审）**：`aggregate_abnormal` 跳过不可解析行并按规则值计数，计数写入 `dimension_matching.unparseable_rule_rows`，经 `delivery_detail` 落台账。`assignment_rule_channel` 本身保持严格，评审策略只放在调用点。以 `20261002期` 真实全量复算：跳过 1001 行后两个进量渠道的维度全部匹配（商务 KOC 11/11、自营 KOC 7/7），四个进量渠道的数字与剔除坏行前一致。
+- **可观测性**：`emit` 的事件流按运行追加到机器本地 `paths.push_log_root`（`D:\CodexLogs\data-push\<渠道>\<日期>\`），同时写 `<HHMMSS>-<任务>.result.json` 结论与 `_index/runs.jsonl` 汇总；`run_*.ps1` 另把进程 stdout/stderr 落 `-process.log`，覆盖 `emit` 之外的崩溃与 argparse 报错。日志写入失败只降级为告警，不阻断投递。零合格行跳过现在写入台账 `channel_events`（`skipped_no_eligible_rows`），不再无声。
+- 离线验收：`tests` 304 项通过，3 项失败为既有的 Miaoda 部署与渠道导出问题，与本次改动无关；`validate_layout.py` 除同一条既有 Miaoda 报错外通过；9 个渠道 `--show-config` 与 9 个 `run_*.ps1` 语法校验通过；`runtime/channel-broadcast-push/investigation-20261002/verify-reviewed-narrowing.py` 在真实坏行上复现了两处故障并验证了两条评审口径。日志落盘以一次真实 `-Preflight` 运行端到端验证，未向任何群发送消息。
+
+### 防回归门禁
+
+- 新增或修改渠道时，单渠道异常必须只影响该渠道：不得再把逐渠道准备放回同一个 try，也不得让已就绪渠道随整轮作废被丢弃。
+- 上游记录键、Python 判重键和下游聚合粒度三者必须一致。当前上游键含 `顾问账号`，判重按 `(期次, lead_id)` 合并为一行；再改任一层都要同步本文与渠道文档，以及 `workflow.merge_duplicate_lead_ids`。
+- 进量报告的坏行只允许"跳过并计数"，不允许静默丢弃；`unparseable_rule_count` 必须出现在投递回执里。
+- 任何 `return True` 的跳过路径都必须留下 `channel_events` 行或运行日志；只存在于 stdout 的结论视为不可观测。
+- 排查群静默时先读 `paths.push_log_root` 下的 `result.json` 与 `_index/runs.jsonl`，再用 `view_live_push_status.ps1` 汇总；不要依赖 `live-status.json`，它在每次运行结束时按设计删除。

@@ -19,6 +19,7 @@ from ...common.records import value
 from . import grade_report as gr
 
 
+VOLUME_CHANNEL = "KOC渠道进量"
 VOLUME_FIELDS = ("期次", "年级", "渠道", "预估量级", "实际进量", "退前线索", "退后线索", "接量顾问数")
 LEAD_FIELDS = ("期次", "年级", "渠道", "规则", "异常流量标记")
 IMAGE_COLUMNS = ("期次", "年级", "预估量级", "实际进量", "线索留存率", "人均带班", "量级完成度")
@@ -127,13 +128,29 @@ def aggregate_volume(rows: Iterable[Mapping[str, Any]], period: str,
 
 def aggregate_abnormal(rows: Iterable[Mapping[str, Any]], period: str, channels: set[str],
                        channel_grades: set[tuple[str, str]]) -> tuple[dict[str, dict[str, Any]], dict[str, Any]]:
-    """Match period, assignment-rule channel and grade before dividing."""
+    """Match period, assignment-rule channel and grade before dividing.
+
+    A row whose 规则 cannot resolve an assignment channel is skipped and counted
+    rather than rejected outright (reviewed 2026-09-28). Upstream has emitted
+    such fallback rows continuously — 20260925期 already carried 124 — and their
+    derived channel never lands in the reported channel set, so skipping them
+    cannot move a published number. The count is surfaced in ``dimension_matching``
+    so the gap stays visible instead of silently shrinking a denominator.
+    ``assignment_rule_channel`` itself stays strict; the reviewed policy lives
+    here, at the call site, rather than in the primitive.
+    """
     buckets = defaultdict(lambda: {"异常量": 0.0, "线索量": 0, "matched_dimensions": set()})
     observed_dimensions: set[tuple[str, str]] = set()
+    unparseable: dict[str, int] = defaultdict(int)
     for row in rows:
         if _text(row, "期次") != period:
             continue
-        channel = assignment_rule_channel(_text(row, "规则"))
+        rule = _text(row, "规则")
+        try:
+            channel = assignment_rule_channel(rule)
+        except ValueError:
+            unparseable[rule] += 1
+            continue
         grade = _text(row, "年级")
         dimension = (channel, grade)
         if channel not in channels or dimension not in channel_grades:
@@ -152,7 +169,9 @@ def aggregate_abnormal(rows: Iterable[Mapping[str, Any]], period: str, channels:
         "匹配渠道年级数": len(bucket["matched_dimensions"]),
     } for grade, bucket in buckets.items()}
     return result, {"expected_dimensions": len(channel_grades), "matched_dimensions": len(observed_dimensions),
-                    "missing_dimensions": [{"渠道": c, "年级": g} for c, g in missing]}
+                    "missing_dimensions": [{"渠道": c, "年级": g} for c, g in missing],
+                    "unparseable_rule_rows": dict(sorted(unparseable.items())),
+                    "unparseable_rule_count": sum(unparseable.values())}
 
 
 def _fmt_number(number: float) -> str:
@@ -274,7 +293,7 @@ def prepare_context(config: Mapping[str, Any], output_root: Path, *, timeout: in
     image_path = run_dir / f"进量数据_{period}_KOC渠道.png"
     render_image(rows, image_path)
     return {
-        "report_kind": "volume", "report_profile": "volume", "channel": "KOC渠道进量",
+        "report_kind": "volume", "report_profile": "volume", "channel": VOLUME_CHANNEL,
         "period": period, "markdown": build_markdown(period, rows, abnormal),
         "image_path": None, "result_image_path": None, "volume_image_path": image_path,
         "raw_count": len(volume_rows), "raw_read_audit": volume_audit,
@@ -311,7 +330,10 @@ def assert_current_revisions(context: Mapping[str, Any], config: Mapping[str, An
 
 
 def delivery_detail(context: Mapping[str, Any]) -> dict[str, Any]:
-    return {"channels": context["channels"], "lead_rev": context["lead_read_audit"]["rev"]}
+    matching = context.get("dimension_matching") or {}
+    return {"channels": context["channels"], "lead_rev": context["lead_read_audit"]["rev"],
+            "unparseable_rule_rows": matching.get("unparseable_rule_rows", {}),
+            "unparseable_rule_count": matching.get("unparseable_rule_count", 0)}
 
 
 def generate_preview(config_path: Path, output_root: Path, *, timeout: int = 60) -> dict[str, Any]:

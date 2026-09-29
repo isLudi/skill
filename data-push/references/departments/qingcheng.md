@@ -1,6 +1,6 @@
 # 青橙接入边界
 
-`qingcheng` 已作为独立部门登记，但当前没有登记可执行的本地渠道、妙搭部署、源表、群ID、周期规则或适配器。未知渠道/部署必须阻断，不能落到市场顾问部默认 KOC 渠道，也不能使用 `runtime/cloud-data-push-miaoda`。
+`qingcheng` 已作为独立部门登记。本地过程播报已启用两个独立的 Windows 计划任务：公海、私域、抖音私信六群，以及 SEC 五条报告两群；具体源表、群 ID、时点和规则见 [青橙本地播报规则](qingcheng/local_broadcast_rules.md)。妙搭部署未启用。未知渠道/部署必须阻断，不能落到市场顾问部默认 KOC 渠道，也不能使用 `runtime/cloud-data-push-miaoda`。
 
 业务语义入口：[qingcheng-dashboard-sql](../../../qingcheng-dashboard-sql/SKILL.md)。用户明确新增青橙渠道后，先确认：
 

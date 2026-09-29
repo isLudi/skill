@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "domain": "qingcheng",
+  "execution_surface": "local",
+  "report_type": "process",
+  "status": "active",
+  "schedule_enabled": true,
+  "windows_task_name": "Codex-Lark-Qingcheng-SEC-Process-GroupPush",
+  "business_calendar": {
+    "period_rule": "自然周周五期次",
+    "process_weekdays": [1, 2, 3, 4, 5, 6],
+    "hours": [12, 16, 20],
+    "minute": 20,
+    "deadline_minute": 50,
+    "retry_interval_minutes": 2,
+    "timezone": "Asia/Shanghai"
+  },
+  "source": {
+    "base_token": "QOVib6QCXaUvJ2s2PsbcnMmsnGg",
+    "table_id": "tblXU4tla3bY36DE",
+    "view_id": "vewO4yxS3O",
+    "lead_field": "退前线索",
+    "sources": {
+      "sec_public": {"match": {"一级渠道": "公域", "渠道": "公域学霸", "部门": "SEC"}},
+      "sec_order_reuse": {
+        "match": {"一级渠道": "订单复用", "部门": "SEC"},
+        "allowed_secondary_channels": ["SEC未加好友", "SEC首期掉海", "SEC招生退费"]
+      }
+    }
+  },
+  "sender": {"identity": "bot", "open_id": "ou_f3907e865135732c15a1dfce27828411"},
+  "visual": {
+    "metric_bars": {
+      "好友率": {"min": 0, "max": 1, "color": "#4f78ae"},
+      "24h首call": {"min": 0, "max": 1, "color": "#2e9e6b"},
+      "外呼时长": {"min": 0, "max": 5, "color": "#f5ae23"},
+      "外呼频次": {"min": 0, "max": 8, "color": "#9b7bcb"}
+    },
+    "integer_fields": ["退前线索", "有效线索", "带班人数", "总通时"]
+  },
+  "reports": [
+    {"id": "sec_no_friend_supervisor", "source": "sec_order_reuse", "secondary_channel": "SEC未加好友", "channel_name": "SEC未加好友", "level": "主管", "request_file": "sec_supervisor_no_friend_request.json", "chat_id": "oc_a9e3165a2509e9878fae04dc8394f6b0", "minimum_leads": 5, "split_grade": true, "unresolved_mention_action": "block_send"},
+    {"id": "sec_first_period_drop_supervisor", "source": "sec_order_reuse", "secondary_channel": "SEC首期掉海", "channel_name": "SEC首期掉海", "level": "主管", "request_file": "sec_supervisor_first_period_drop_request.json", "chat_id": "oc_a9e3165a2509e9878fae04dc8394f6b0", "minimum_leads": 5, "split_grade": true, "unresolved_mention_action": "block_send"},
+    {"id": "sec_public_consultant", "source": "sec_public", "secondary_channel": null, "channel_name": "公域", "level": "顾问", "request_file": "sec_public_consultant_request.json", "chat_id": "oc_a8e793c81080ebf5b14dd22bd83a05a1", "minimum_leads": 3, "split_grade": true, "unresolved_mention_action": "text_only_for_that_person"},
+    {"id": "sec_order_reuse_consultant", "source": "sec_order_reuse", "secondary_channel": null, "channel_name": "订单复用", "level": "顾问", "request_file": "sec_order_reuse_consultant_request.json", "chat_id": "oc_a8e793c81080ebf5b14dd22bd83a05a1", "minimum_leads": 3, "split_grade": true, "unresolved_mention_action": "text_only_for_that_person"},
+    {"id": "sec_public_supervisor", "source": "sec_public", "secondary_channel": null, "channel_name": "公域", "level": "主管", "request_file": "sec_public_supervisor_request.json", "chat_id": "oc_a9e3165a2509e9878fae04dc8394f6b0", "minimum_leads": 5, "split_grade": false, "unresolved_mention_action": "block_send"}
+  ],
+  "upstream": {
+    "project_id": 308,
+    "folder": "吕帅",
+    "menu_id": 103625,
+    "task_id": 47728,
+    "nezha_task_id": 67318,
+    "task_name": "qing2lark_guocheng",
+    "owner": "lvshuai01",
+    "published_version": "V27",
+    "version_id": 207244,
+    "exec_file_id": 831460,
+    "source_sha256": "53f4a8f34bbbbef6b4c5b3d615249111909c14aa51e65841f83da3f7080bbd03",
+    "audit_schema": "market2lark-two-period-audit-v1"
+  },
+  "configuration_base_writeback": "setup_only"
+}

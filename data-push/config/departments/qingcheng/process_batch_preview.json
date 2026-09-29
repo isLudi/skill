@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "domain": "qingcheng",
+  "execution_surface": "local",
+  "report_type": "process",
+  "status": "active",
+  "schedule_enabled": true,
+  "business_calendar": {
+    "period_rule": "自然周周五期次",
+    "process_weekdays": [1, 2, 3],
+    "hours": [14, 18, 22],
+    "minute": 25,
+    "deadline_minute": 50,
+    "timezone": "Asia/Shanghai"
+  },
+  "channels": [
+    {"id": "public_pool", "config": "public_pool_process_preview.json", "supervisor_request": "public_pool_supervisor_request.json", "consultant_request": "public_pool_consultant_request.json"},
+    {"id": "private", "config": "private_process_preview.json", "supervisor_request": "private_supervisor_request.json", "consultant_request": "private_consultant_request.json"},
+    {"id": "douyin_dm", "config": "douyin_dm_process_preview.json", "supervisor_request": "douyin_dm_supervisor_request.json", "consultant_request": "douyin_dm_consultant_request.json"}
+  ],
+  "windows_task_name": "Codex-Lark-Qingcheng-Process-GroupPush",
+  "retry_interval_minutes": 2,
+  "upstream": {
+    "project_id": 308,
+    "folder": "吕帅",
+    "menu_id": 103625,
+    "task_id": 47728,
+    "nezha_task_id": 67318,
+    "task_name": "qing2lark_guocheng",
+    "owner": "lvshuai01",
+    "published_version": "V27",
+    "version_id": 207244,
+    "exec_file_id": 831460,
+    "source_sha256": "53f4a8f34bbbbef6b4c5b3d615249111909c14aa51e65841f83da3f7080bbd03",
+    "audit_schema": "market2lark-two-period-audit-v1"
+  }
+}

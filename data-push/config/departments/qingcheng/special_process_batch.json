@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "domain": "qingcheng",
+  "execution_surface": "local",
+  "report_type": "process",
+  "report_level": "学部",
+  "status": "active",
+  "schedule_enabled": true,
+  "windows_task_name": "Codex-Lark-Qingcheng-Special-Process-GroupPush",
+  "configuration_base_writeback": "setup_only",
+  "business_calendar": {
+    "period_rule": "自然周周五期次",
+    "process_weekdays": [1, 2, 3],
+    "hours": [14],
+    "minute": 25,
+    "deadline_minute": 50,
+    "retry_interval_minutes": 2,
+    "timezone": "Asia/Shanghai"
+  },
+  "source": {
+    "base_token": "QOVib6QCXaUvJ2s2PsbcnMmsnGg",
+    "table_id": "tblXU4tla3bY36DE",
+    "period_rule": "自然周周五期次",
+    "dimension_field": "经理",
+    "dimension_label": "负责人",
+    "lead_field": "退后线索"
+  },
+  "upstream": {
+    "project_id": 308,
+    "folder": "吕帅",
+    "menu_id": 103625,
+    "task_id": 47728,
+    "nezha_task_id": 67318,
+    "task_name": "qing2lark_guocheng",
+    "owner": "lvshuai01",
+    "published_version": "V27",
+    "version_id": 207244,
+    "exec_file_id": 831460,
+    "source_sha256": "53f4a8f34bbbbef6b4c5b3d615249111909c14aa51e65841f83da3f7080bbd03",
+    "audit_schema": "market2lark-two-period-audit-v1"
+  },
+  "target_chat_id": "oc_a95c83e488e0dfcc777d5ffad849d8a4",
+  "target_chat_display_name": "⏰渠道专项讨论",
+  "sender": {"identity": "bot", "name": "管家", "open_id": "ou_f3907e865135732c15a1dfce27828411"},
+  "image_only": false,
+  "text_header": true,
+  "show_total": true,
+  "split_grade": true,
+  "minimum_effective_leads": 5,
+  "display_columns": ["期次", "负责人", "年级", "带班人数", "有效线索", "好友率", "等待时长", "8min", "24h首call", "沟通率", "外呼时长", "外呼频次"],
+  "sort": {"metric": "8min", "direction": "desc", "value": "unrounded"},
+  "visual": {
+    "metric_bars": {
+      "好友率": {"min": 0, "max": 1, "color": "#4f78ae"},
+      "等待时长": {"min": 0, "max": 48, "color": "#fb626b"},
+      "8min": {"min": 0, "max": 1, "color": "#f5ae23"},
+      "24h首call": {"min": 0, "max": 1, "color": "#2e9e6b"}
+    },
+    "integer_fields": ["带班人数", "有效线索", "总通时"]
+  },
+  "channels": [
+    {"id": "special_private", "name": "私域", "source_key": "private", "audit_secondary_channels": ["私域表单", "私域品效"], "operator_record_id": "recvwk1kzL4vtb"},
+    {"id": "special_books", "name": "图书", "source_key": "special_books", "audit_secondary_channels": ["武汉图书"], "operator_record_id": "recvwk1l411M24"},
+    {"id": "special_douyin_dm", "name": "抖音私信", "source_key": "douyin_dm", "audit_secondary_channels": ["抖音私信"], "operator_record_id": "recvwk1lwipGZ4"},
+    {"id": "special_public_pool", "name": "公海", "source_key": "special_public_pool", "audit_secondary_channels": ["顾问未加好友"], "operator_record_id": "recvwk1mMwDv9n"}
+  ]
+}

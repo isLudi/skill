@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "domain": "qingcheng",
+  "execution_surface": "local",
+  "channel_id": "public_pool",
+  "report_type": "process",
+  "status": "active",
+  "schedule_enabled": true,
+  "delivery": {
+    "sender_identity": "bot",
+    "sender_name": "管家",
+    "sender_open_id": "ou_f3907e865135732c15a1dfce27828411",
+    "mention_format": "native_at",
+    "mention_resolution": "unique_active_employee_by_name_and_account",
+    "require_complete_group_membership": true,
+    "on_mention_gap": "block_send",
+    "failure_isolation": "per_group"
+  },
+  "source": {
+    "base_token": "QOVib6QCXaUvJ2s2PsbcnMmsnGg",
+    "table_id": "tblXU4tla3bY36DE",
+    "view_id": "vewO4yxS3O",
+    "upstream_task_id": 47728,
+    "upstream_task_name": "qing2lark",
+    "match": {
+      "一级渠道": "公海",
+      "渠道": "顾问未加好友"
+    },
+    "source_snapshot_scope": "最新两期，全表；公海渠道可仅有其中一期",
+    "current_public_pool_periods": [
+      "20260925期"
+    ]
+  },
+  "business_calendar": {
+    "period_rule": "自然周周五期次",
+    "process_weekdays": [
+      "周二",
+      "周三",
+      "周四"
+    ],
+    "requested_hours": [
+      "14:25",
+      "18:25",
+      "22:25"
+    ],
+    "timezone": "Asia/Shanghai"
+  },
+  "visual": {
+    "header": "#3d8b4f",
+    "grid": "#aecfb2",
+    "waiting_time_bar": "#fb626b",
+    "band_title": "渠道-维度-期次",
+    "total_row": "sum_detail_then_recalculate_ratios",
+    "number_format": "总通时、有效线索、主管带班人数取整数；其他指标保留一位小数"
+  },
+  "profiles": {
+    "supervisor": {
+      "request_id": "qingcheng/supervisor_public_pool",
+      "target_chat_id": "oc_69f05a0e0770bca9c8bf7be9f11e7111",
+      "level": "主管",
+      "group_by": [
+        "期次",
+        "主管"
+      ],
+      "allowed_grades": [
+        "高一",
+        "高二",
+        "高三",
+        "初三"
+      ],
+      "minimum_effective_leads": 5,
+      "process_sort": {
+        "metric": "8min",
+        "direction": "desc",
+        "value": "unrounded"
+      },
+      "process_bars": [
+        "好友率",
+        "24h首call",
+        "8min",
+        "等待时长"
+      ],
+      "process_reminder": {
+        "metric": "8min",
+        "direction": "最低",
+        "rank": "最后1名",
+        "tie_handling": "all_tied_minimum"
+      },
+      "show_total": true
+    },
+    "consultant": {
+      "request_id": "qingcheng/partner_public_pool",
+      "target_chat_id": "oc_fe72649e70d6aa3b7387b49e6bde619a",
+      "level": "顾问",
+      "group_by": [
+        "期次",
+        "主管",
+        "顾问账号",
+        "年级"
+      ],
+      "allowed_grades": [
+        "高一",
+        "高二",
+        "高三",
+        "初三"
+      ],
+      "minimum_effective_leads": 3,
+      "process_sort": {
+        "metric": "8min",
+        "direction": "desc",
+        "value": "unrounded"
+      },
+      "process_bars": [
+        "好友率",
+        "24h首call",
+        "8min",
+        "等待时长"
+      ],
+      "process_reminder": {
+        "metric": "8min",
+        "direction": "最低",
+        "rank": "最后1名",
+        "tie_handling": "all_tied_minimum"
+      },
+      "show_total": true
+    }
+  },
+  "open_decisions": []
+}

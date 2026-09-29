@@ -1,6 +1,7 @@
 """Offline structural validation; no authentication, API or scheduler calls."""
 from __future__ import annotations
 import ast
+import builtins
 import json
 from pathlib import Path
 import re
@@ -9,6 +10,44 @@ import sys
 from lark_delivery.paths import SKILL_ROOT, WORKSPACE_ROOT
 from lark_delivery.core import catalog
 from lark_delivery.core.registry import adapter_for
+
+BUILTIN_NAMES = set(dir(builtins)) | {"__name__", "__file__", "__doc__", "__package__", "__spec__", "__loader__"}
+
+
+def _bound_names(tree):
+    """Every name a module binds anywhere: imports, defs, assignments, args."""
+    bound = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Name) and isinstance(node.ctx, (ast.Store, ast.Del)):
+            bound.add(node.id)
+        elif isinstance(node, ast.arg):
+            bound.add(node.arg)
+        elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            bound.add(node.name)
+        elif isinstance(node, ast.alias):
+            bound.add((node.asname or node.name).split(".")[0])
+        elif isinstance(node, ast.ExceptHandler) and node.name:
+            bound.add(node.name)
+        elif isinstance(node, (ast.Global, ast.Nonlocal)):
+            bound.update(node.names)
+    return bound
+
+
+def undefined_globals(tree):
+    """Names read but never bound in the module.
+
+    Python accepts a missing global at compile time and only raises at the call
+    site. For this skill that means a scheduled broadcast retrying until :50,
+    or a weekend-only branch that stays broken all week, instead of a failed
+    offline check — so catch it here.
+    """
+    bound = _bound_names(tree)
+    found = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Load):
+            if node.id not in bound and node.id not in BUILTIN_NAMES:
+                found.add(node.id)
+    return sorted(found)
 
 
 def validate(root=SKILL_ROOT):
@@ -29,6 +68,9 @@ def validate(root=SKILL_ROOT):
             continue
         if len(text.splitlines()) > 650:
             errors.append(f"{relative}: oversized module; split along an interface boundary")
+        missing = undefined_globals(tree)
+        if missing:
+            errors.append(f"{relative}: names read but never defined or imported: {', '.join(missing)}")
         if relative == "scripts/lark_delivery/legacy/market_group.py" and len(text.splitlines()) > 180:
             errors.append("Compatibility facade is growing into an implementation again")
         for node in ast.walk(tree):
