@@ -143,12 +143,12 @@ foreach ($skill in $linkTargets) {
         Write-Host "  [backed up] $skill -> $BackupRoot"
     }
     New-Item -ItemType Junction -Path $wbPath -Target $repoPath | Out-Null
-    $probe = Join-Path $wbPath ".junction_probe"
-    Set-Content -LiteralPath $probe -Value "probe" -Encoding ASCII
-    if (-not (Test-Path -LiteralPath (Join-Path $repoPath ".junction_probe") -PathType Leaf)) {
-        throw "Junction probe failed for $skill"
+    $newItem = Get-Item -LiteralPath $wbPath -Force
+    $actualTarget = $newItem.Target
+    if ($actualTarget -is [array]) { $actualTarget = $actualTarget[0] }
+    if ($newItem.LinkType -ne "Junction" -or $actualTarget -ne $repoPath) {
+        throw "Junction verification failed for ${skill}: LinkType=$($newItem.LinkType), Target=$actualTarget"
     }
-    Remove-Item -LiteralPath $probe -Force
     $linked++
     Write-Host "  [linked] $skill -> $repoPath"
 }
