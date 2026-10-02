@@ -167,8 +167,33 @@ def set_header_row(frame: Any, header_row: bool) -> None:
 
 
 def open_temp_table_panel(frame: Any) -> None:
-    frame.get_by_text(TEMP_TABLE_TEXT, exact=True).click(timeout=10_000)
-    frame.get_by_text("临时表默认库名", exact=False).wait_for(timeout=15_000)
+    """Open the temporary-table tab after the SQL shell has mounted.
+
+    The SQL shell renders the tab asynchronously.  On slower loads the old
+    exact-text click raced the tab mount and failed even though the tab was
+    present a moment later.  Prefer the stable ARIA tab button and retry the
+    click while the shell settles.
+    """
+    candidates = [
+        frame.get_by_role("tab", name=TEMP_TABLE_TEXT, exact=True),
+        frame.locator(".ant-tabs-tab-btn", has_text=TEMP_TABLE_TEXT).first,
+        frame.get_by_text(TEMP_TABLE_TEXT, exact=True).last,
+    ]
+    deadline = time.monotonic() + 30
+    last_error: Exception | None = None
+    while time.monotonic() < deadline:
+        for candidate in candidates:
+            try:
+                candidate.wait_for(state="visible", timeout=2_000)
+                candidate.click(timeout=5_000)
+                frame.get_by_text("临时表默认库名", exact=False).wait_for(timeout=15_000)
+                return
+            except Exception as exc:  # noqa: BLE001
+                last_error = exc
+        frame.wait_for_timeout(500)
+    if last_error is not None:
+        raise last_error
+    raise UsageError("Timed out waiting for the temporary-table tab.")
 
 
 def open_upload_wizard(frame: Any) -> None:

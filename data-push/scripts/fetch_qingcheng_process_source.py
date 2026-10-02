@@ -16,7 +16,8 @@ BASE_TOKEN = "QOVib6QCXaUvJ2s2PsbcnMmsnGg"
 TABLE_ID = "tblXU4tla3bY36DE"
 PRIMARY = {"public_pool": "公海", "private": "私域", "douyin_dm": "抖音私信",
            "sec_public": "公域", "sec_order_reuse": "订单复用",
-           "special_books": "图书", "special_public_pool": "公海"}
+           "special_books": "图书", "special_public_pool": "公海",
+           "partner_books": "图书", "partner_local": "本地化"}
 SEC_ORDER_CHANNELS = {"SEC未加好友", "SEC首期掉海", "SEC招生退费"}
 PAGE_SIZE = 2000
 

@@ -64,14 +64,7 @@ dd_0 as (
             when cast(cast(trade_time as timestamp) as date) between date '2026-08-13' and date '2026-08-18' then '20260815期'
             else concat(
             date_format(
-                date_add(
-                    'day',
-                    4,
-                    date_trunc(
-                        'week',
-                        date_add('day', -1, cast(trade_time as timestamp))
-                    )
-                ),
+                date_trunc('week', cast(trade_time as timestamp)) + interval '4' day,
                 '%Y%m%d'
             ),
             '期'
@@ -95,14 +88,7 @@ dd_0 as (
       and employee_third_level_department_name = '市场顾问部'
       and concat(
             date_format(
-                date_add(
-                    'day',
-                    4,
-                    date_trunc(
-                        'week',
-                        date_add('day', -1, cast(trade_time as timestamp))
-                    )
-                ),
+                date_trunc('week', cast(trade_time as timestamp)) + interval '4' day,
                 '%Y%m%d'
             ),
             '期'

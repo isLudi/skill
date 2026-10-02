@@ -56,7 +56,7 @@ def test_aggregates_raw_numerators_before_ratio_and_applies_level_threshold():
 def test_only_requested_process_metrics_have_bars():
     assert set(MODULE.SCALES) == {"好友率", "24h首call", "8min", "等待时长"}
     assert set(MODULE.BAR_COLORS) == set(MODULE.SCALES)
-    assert MODULE.BAR_COLORS["等待时长"] == "#fb626b"
+    assert MODULE.BAR_COLORS["等待时长"] == "#fc999f"
 
 
 def test_process_display_precision_keeps_total_call_time_whole():

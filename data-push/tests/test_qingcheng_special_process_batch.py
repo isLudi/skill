@@ -18,14 +18,13 @@ import fetch_qingcheng_process_source as source  # noqa: E402
 def test_special_process_slot_and_period():
     cfg = special._config()
     zone = ZoneInfo("Asia/Shanghai")
-    slot = special._slot(datetime(2026, 9, 29, 14, 25, tzinfo=zone), cfg)
-    assert (slot.hour, slot.minute) == (14, 25)
+    slot = special._slot(datetime(2026, 9, 29, 14, 2, tzinfo=zone), cfg)
+    assert (slot.hour, slot.minute) == (14, 0)
     assert special._period(datetime(2026, 9, 29).date()) == "20261002期"
-    for now in (datetime(2026, 9, 29, 2, 25, tzinfo=zone),
-                datetime(2026, 9, 29, 14, 24, tzinfo=zone),
-                datetime(2026, 9, 29, 14, 26, tzinfo=zone),
+    for now in (datetime(2026, 9, 29, 2, 0, tzinfo=zone),
+                datetime(2026, 9, 29, 14, 3, tzinfo=zone),
                 datetime(2026, 9, 29, 14, 51, tzinfo=zone),
-                datetime(2026, 9, 27, 14, 25, tzinfo=zone)):
+                datetime(2026, 9, 27, 14, 0, tzinfo=zone)):
         with pytest.raises(ValueError, match="Outside"):
             special._slot(now, cfg)
 
@@ -56,7 +55,7 @@ def test_special_source_fetch_filters_primary_channel_only(monkeypatch, tmp_path
 
 @pytest.mark.parametrize("failed_stage", ["source", "build", "delivery"])
 def test_one_special_channel_failure_does_not_block_other_images(monkeypatch, tmp_path, failed_stage):
-    now = datetime(2026, 9, 29, 14, 25, tzinfo=ZoneInfo("Asia/Shanghai"))
+    now = datetime(2026, 9, 29, 14, 2, tzinfo=ZoneInfo("Asia/Shanghai"))
     counts = {name: 10 for group in special.AUDIT_NAMES for name in group}
     monkeypatch.setattr(special, "_upstream_audit", lambda period, slot: {
         "snapshot": ["20260929", "12"], "raw_channel_counts": counts})
@@ -87,15 +86,53 @@ def test_one_special_channel_failure_does_not_block_other_images(monkeypatch, tm
     assert json.loads((tmp_path / "batch.json").read_text(encoding="utf-8"))["channels"] == result["channels"]
 
 
-def test_existing_channel_receipt_is_not_retried(monkeypatch, tmp_path):
-    now = datetime(2026, 9, 29, 14, 25, tzinfo=ZoneInfo("Asia/Shanghai"))
+def test_only_a_verified_receipt_is_terminal(tmp_path):
+    # A receipt that never recorded a message id must be re-driven, not treated as
+    # the end of the slot: that guard cost the 2026-09-29 12:20 SEC broadcast.
+    settled = tmp_path / "settled.json"
+    settled.write_text(json.dumps({"status": "sent_verified", "message_id": "om_ok"}), encoding="utf-8")
+    assert special._existing(settled)["status"] == "sent_verified"
+
+    uncertain = tmp_path / "uncertain.json"
+    uncertain.write_text(json.dumps({"status": "send_result_uncertain"}), encoding="utf-8")
+    assert special._existing(uncertain) is None
+
+    unverified = tmp_path / "unverified.json"
+    unverified.write_text(json.dumps({"status": "sent_unverified", "message_id": "om_prior"}), encoding="utf-8")
+    assert special._existing(unverified) is None
+
+
+def test_unconfirmed_receipt_no_longer_ends_the_round(monkeypatch, tmp_path):
+    now = datetime(2026, 9, 29, 14, 2, tzinfo=ZoneInfo("Asia/Shanghai"))
     folder = tmp_path / "special_private"
     folder.mkdir()
     (folder / "send_receipt.json").write_text(
-        json.dumps({"status": "sent_unverified", "message_id": "om_prior"}), encoding="utf-8")
+        json.dumps({"status": "send_result_uncertain"}), encoding="utf-8")
     monkeypatch.setattr(special, "_upstream_audit", lambda period, slot: {
         "snapshot": ["20260929", "12"], "raw_channel_counts": {}})
     result = special.run(now=now, output=tmp_path)
-    assert result["channels"]["special_private"]["status"] == "previous_attempt_requires_review"
+    # The stale receipt no longer freezes this channel; it is re-driven like the rest.
     assert all(result["channels"][channel]["status"] == "skipped_no_source_rows"
-               for channel in special.CHANNEL_IDS[1:])
+               for channel in special.CHANNEL_IDS)
+
+
+def test_recorded_message_id_is_reverified_without_sending(monkeypatch, tmp_path):
+    # The safety half: a message already in the group is only ever re-read.
+    folder = tmp_path / "special_private"
+    folder.mkdir()
+    receipt_path = folder / "send_receipt.json"
+    receipt_path.write_text(json.dumps({
+        "status": "sent_unverified", "message_id": "om_prior", "image_key": "img_k",
+        "period": "20261002期", "resend_attempts": 0}), encoding="utf-8")
+    touched = []
+    monkeypatch.setattr(special, "upload_image", lambda *a, **k: touched.append("upload"))
+    monkeypatch.setattr(special, "_data", lambda *a, **k: touched.append("send"))
+    monkeypatch.setattr(special, "_verify_message",
+                        lambda *a, **k: {"message_id": "om_prior", "verified": True})
+    via = {"target_chat_id": "oc_x", "sender": {"open_id": "ou_x"}}
+    out = special._deliver({"id": "special_private", "source_key": "private", "name": "私域"},
+                           {"period": "20261002期", "image": "process.png"}, {"rev": 1},
+                           via, folder, datetime(2026, 9, 29, 14, 2, tzinfo=ZoneInfo("Asia/Shanghai")))
+    assert out["status"] == "sent_verified"
+    assert touched == []
+    assert special._existing(receipt_path)["status"] == "sent_verified"

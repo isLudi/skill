@@ -2,14 +2,14 @@ with biz_qici_calendar as (
 select *
 from (
     values
-        ('20260710期', '0710期', '20260710期', '0710期', date '2026-07-07', date '2026-07-13'),
-        ('20260716期', '0716期', '20260717期', '0717期', date '2026-07-14', date '2026-07-19'),
-        ('20260722期', '0722期', '20260724期', '0724期', date '2026-07-20', date '2026-07-25'),
-        ('20260728期', '0728期', '20260731期', '0731期', date '2026-07-26', date '2026-07-31'),
-        ('20260803期', '0803期', '20260807期', '0807期', date '2026-08-01', date '2026-08-06'),
-        ('20260808期', '0808期', '20260814期', '0814期', date '2026-08-07', date '2026-08-11'),
-        ('20260815期', '0815期', '20260814期', '0814期', date '2026-08-12', date '2026-08-18'),
-        ('20260821期', '0821期', '20260821期', '0821期', date '2026-08-19', date '2026-08-23')
+        ('20260710期', '0710期', '20260710期', '0710期', date '2026-07-06', date '2026-07-12'),
+        ('20260716期', '0716期', '20260717期', '0717期', date '2026-07-13', date '2026-07-19'),
+        ('20260722期', '0722期', '20260724期', '0724期', date '2026-07-20', date '2026-07-26'),
+        ('20260728期', '0728期', '20260731期', '0731期', date '2026-07-27', date '2026-08-02'),
+        ('20260803期', '0803期', '20260807期', '0807期', date '2026-08-03', date '2026-08-09'),
+        ('20260808期', '0808期', '20260814期', '0814期', date '2026-08-10', date '2026-08-16'),
+        ('20260815期', '0815期', '20260814期', '0814期', date '2026-08-17', date '2026-08-23'),
+        ('20260821期', '0821期', '20260821期', '0821期', date '2026-08-24', date '2026-08-30')
 ) as t(qici, short_qici, legacy_qici, legacy_short_qici, period_start_date, period_end_date)
 )
 ,douyin_refund_prelead_raw as (
@@ -33,13 +33,11 @@ select
         concat(
             cast(
                 date_format(
-                    date_trunc(
-                        'week',
+                    date_trunc('week',
                         date_parse(
                             replace(concat(f.group_period_year, f.group_period_term), '期', ''),
                             '%Y%m%d'
-                        ) - interval '1' day
-                    ) + interval '4' day,
+                        )) + interval '4' day,
                     '%Y%m%d'
                 ) as varchar
             ),
@@ -278,24 +276,7 @@ ld.grade_0,
 ld.virtual_direct_leader_email_name,
 coalesce(
     trade_cal.qici,
-    case
-        when day_of_week(cast(gmv.trade_timestamp as timestamp)) = 1 then
-            concat(
-                date_format(
-                    date_trunc('week', cast(gmv.trade_timestamp as timestamp)) - interval '3' day,
-                    '%Y%m%d'
-                ),
-                '期'
-            )
-        else
-            concat(
-                date_format(
-                    date_trunc('week', cast(gmv.trade_timestamp as timestamp)) + interval '4' day,
-                    '%Y%m%d'
-                ),
-                '期'
-            )
-    end
+    concat(date_format(date_trunc('week', cast(gmv.trade_timestamp as timestamp)) + interval '4' day, '%Y%m%d'), '期')
 ) as qici
 from service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf gmv
 left join biz_qici_calendar trade_cal
@@ -313,7 +294,7 @@ where gmv.dt=format_datetime(NOW()-interval '2' hour,'YYYYMMdd')
 left join biz_qici_calendar period_cal
   on base.qici = period_cal.qici
  and regexp_extract(base.rule_name, '(\d{4}期)', 1) = period_cal.legacy_short_qici
-where base.qici >= '20260424期'
+where base.qici >= '20260605期'
 )
 ,course_transfer_order_rows as (
 select
@@ -474,18 +455,7 @@ select
     f.section_assign_time as protected_section_assign_time,
     coalesce(
         trade_cal.qici,
-        case
-            when day_of_week(f.trade_time) = 1 then
-                concat(
-                    date_format(date_trunc('week', f.trade_time) - interval '3' day, '%Y%m%d'),
-                    '期'
-                )
-            else
-                concat(
-                    date_format(date_trunc('week', f.trade_time) + interval '4' day, '%Y%m%d'),
-                    '期'
-                )
-        end
+        concat(date_format(date_trunc('week', f.trade_time) + interval '4' day, '%Y%m%d'), '期')
     ) as qici
 from course_transfer_protected_finance f
 inner join lead_map ld
@@ -529,7 +499,7 @@ from course_transfer_base base
 left join biz_qici_calendar period_cal
   on base.qici = period_cal.qici
  and regexp_extract(base.rule_name, '(\d{4}期)', 1) = period_cal.legacy_short_qici
-where base.qici >= '20260424期'
+where base.qici >= '20260605期'
 )
 -- lead期次+分配时间
 ,prc as (
@@ -744,8 +714,7 @@ select
                                 ),
                                 '%Y%m%d'
                             )
-                        ) - interval '1' day
-                    ) + interval '4' day,
+                        )) + interval '4' day,
                     '%Y%m%d'
                 ),
                 '期'
@@ -753,7 +722,7 @@ select
     end as rule_friday_period,
     concat(
         date_format(
-            date_trunc('week', cast(g.trade_timestamp as timestamp) - interval '1' day) + interval '4' day,
+            date_trunc('week', cast(g.trade_timestamp as timestamp)) + interval '4' day,
             '%Y%m%d'
         ),
         '期'

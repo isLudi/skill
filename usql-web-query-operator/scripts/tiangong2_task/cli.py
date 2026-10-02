@@ -77,6 +77,27 @@ from .publishing import (
     verify_publish_readback,
     write_hashed_json,
 )
+from .schedule import (
+    RECEIPT_SCHEMA_VERSION as SCHEDULE_UPDATE_RECEIPT_SCHEMA_VERSION,
+    Tiangong2ScheduleUpdateClient,
+    authorize_schedule_update,
+    build_schedule_update_plan,
+    load_schedule_update_plan,
+    prepare_schedule_update,
+    task_schedule_update_lock,
+    verify_effective_scheduler_readback,
+    verify_schedule_update_readback,
+)
+from .nezha_schedule import (
+    RECEIPT_SCHEMA_VERSION as NEZHA_SCHEDULE_UPDATE_RECEIPT_SCHEMA_VERSION,
+    Tiangong2NezhaScheduleUpdateClient,
+    authorize_nezha_schedule_update,
+    build_nezha_schedule_update_plan,
+    load_nezha_schedule_update_plan,
+    nezha_schedule_update_lock,
+    prepare_nezha_schedule_update,
+    verify_nezha_schedule_readback,
+)
 from .scope import resolve_owned_task
 from .session import open_authenticated_session
 from .submission import (
@@ -323,6 +344,84 @@ def build_parser() -> argparse.ArgumentParser:
     apply_query_update.add_argument("--output-file", type=Path, default=None)
     _add_browser_arguments(apply_query_update)
     apply_query_update.set_defaults(func=cmd_apply_task_query_update)
+
+    plan_schedule_update = subparsers.add_parser(
+        "plan-task-schedule-update",
+        help=(
+            "Plan a schedule-only update for one exact owned Tiangong2 task "
+            "without remote writes."
+        ),
+    )
+    _add_exact_task_arguments(plan_schedule_update)
+    plan_schedule_update.add_argument("--schedule-patch-file", type=Path, required=True)
+    plan_schedule_update.add_argument(
+        "--artifacts-dir",
+        type=Path,
+        default=TIANGONG2_TASK_RUNTIME_DIR / "schedule-update-plans",
+    )
+    plan_schedule_update.add_argument("--output-file", type=Path, default=None)
+    _add_browser_arguments(plan_schedule_update)
+    plan_schedule_update.set_defaults(func=cmd_plan_task_schedule_update)
+
+    apply_schedule_update = subparsers.add_parser(
+        "apply-task-schedule-update",
+        help="Save one reviewed schedule-only update and verify exact schedule readback.",
+    )
+    apply_schedule_update.add_argument("--plan-file", type=Path, required=True)
+    apply_schedule_update.add_argument("--expected-plan-sha256", required=True)
+    apply_schedule_update.add_argument(
+        "--confirm-save-schedule",
+        action="store_true",
+        required=True,
+        help="Confirm the exact reviewed schedule plan; this performs one remote write.",
+    )
+    apply_schedule_update.add_argument(
+        "--artifacts-dir",
+        type=Path,
+        default=TIANGONG2_TASK_RUNTIME_DIR / "schedule-update-receipts",
+    )
+    apply_schedule_update.add_argument("--output-file", type=Path, default=None)
+    _add_browser_arguments(apply_schedule_update)
+    apply_schedule_update.set_defaults(func=cmd_apply_task_schedule_update)
+
+    plan_nezha_schedule_update = subparsers.add_parser(
+        "plan-nezha-schedule-update",
+        help=(
+            "Plan a periodic Nezha schedule update for one exact owned task "
+            "without remote writes."
+        ),
+    )
+    _add_exact_task_arguments(plan_nezha_schedule_update)
+    plan_nezha_schedule_update.add_argument("--schedule-patch-file", type=Path, required=True)
+    plan_nezha_schedule_update.add_argument(
+        "--artifacts-dir",
+        type=Path,
+        default=TIANGONG2_TASK_RUNTIME_DIR / "nezha-schedule-update-plans",
+    )
+    plan_nezha_schedule_update.add_argument("--output-file", type=Path, default=None)
+    _add_browser_arguments(plan_nezha_schedule_update)
+    plan_nezha_schedule_update.set_defaults(func=cmd_plan_nezha_schedule_update)
+
+    apply_nezha_schedule_update = subparsers.add_parser(
+        "apply-nezha-schedule-update",
+        help="Save one reviewed Nezha periodic schedule and verify config/list readback.",
+    )
+    apply_nezha_schedule_update.add_argument("--plan-file", type=Path, required=True)
+    apply_nezha_schedule_update.add_argument("--expected-plan-sha256", required=True)
+    apply_nezha_schedule_update.add_argument(
+        "--confirm-save-nezha-schedule",
+        action="store_true",
+        required=True,
+        help="Confirm the exact reviewed Nezha schedule plan; this performs one remote write.",
+    )
+    apply_nezha_schedule_update.add_argument(
+        "--artifacts-dir",
+        type=Path,
+        default=TIANGONG2_TASK_RUNTIME_DIR / "nezha-schedule-update-receipts",
+    )
+    apply_nezha_schedule_update.add_argument("--output-file", type=Path, default=None)
+    _add_browser_arguments(apply_nezha_schedule_update)
+    apply_nezha_schedule_update.set_defaults(func=cmd_apply_nezha_schedule_update)
 
     plan_submit = subparsers.add_parser(
         "plan-task-submit",
@@ -1207,6 +1306,373 @@ def cmd_apply_task_query_update(args: argparse.Namespace) -> int:
         if isinstance(exc, UsageError):
             raise
         raise UsageError(f"Tiangong2 task query update failed: {exc}") from exc
+    finally:
+        if session is not None:
+            session.close()
+
+
+def cmd_plan_task_schedule_update(args: argparse.Namespace) -> int:
+    validate_artifact_root(args.artifacts_dir)
+    if args.output_file is not None:
+        _validate_runtime_output(args.output_file)
+    sync_playwright = import_playwright()
+    with sync_playwright() as playwright:
+        session = open_authenticated_session(playwright, args)
+        try:
+            client = Tiangong2ReadOnlyClient(session.context.request)
+            task = resolve_owned_task(
+                client,
+                identity=session.identity,
+                project_id=args.project_id,
+                folder_name=args.folder,
+                menu_id=args.menu_id,
+                task_name=args.task_name,
+            )
+            plan = build_schedule_update_plan(
+                client,
+                task=task,
+                identity=session.identity,
+                schedule_patch_file=args.schedule_patch_file,
+            )
+            plan_path = args.output_file or _default_hashed_path(
+                args.artifacts_dir,
+                "task_schedule_update_plan",
+                task.menu_id,
+                plan["plan_sha256"],
+            )
+            _validate_runtime_output(plan_path)
+            finalized = write_hashed_json(plan_path, plan, hash_field="plan_sha256")
+            print(
+                json.dumps(
+                    {
+                        "ok": finalized["status"] == "ready",
+                        "read_only": True,
+                        "remote_mutations": 0,
+                        "status": finalized["status"],
+                        "plan_sha256": finalized["plan_sha256"],
+                        "plan_file": str(plan_path.resolve()),
+                        "task_id": finalized["scope"]["task_id"],
+                        "baseline_schedule_state_sha256": finalized["baseline"][
+                            "schedule_state_sha256"
+                        ],
+                        "desired_schedule_state_sha256": finalized["desired"][
+                            "schedule_state_sha256"
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+            )
+        finally:
+            session.close()
+    return 0
+
+
+def cmd_apply_task_schedule_update(args: argparse.Namespace) -> int:
+    _validate_runtime_output(args.plan_file)
+    validate_artifact_root(args.artifacts_dir)
+    plan = load_schedule_update_plan(args.plan_file)
+    authorization = authorize_schedule_update(
+        plan,
+        expected_plan_sha256=args.expected_plan_sha256,
+        confirm_save_schedule=bool(args.confirm_save_schedule),
+    )
+    scope = plan["scope"]
+    receipt_path = args.output_file or _default_hashed_path(
+        args.artifacts_dir,
+        "task_schedule_update_receipt",
+        int(scope["menu_id"]),
+        plan["plan_sha256"],
+    )
+    _validate_runtime_output(receipt_path)
+    receipt = {
+        "schema_version": SCHEDULE_UPDATE_RECEIPT_SCHEMA_VERSION,
+        "operation": plan["operation"],
+        "status": "running",
+        "ok": False,
+        "started_at": datetime.now(timezone.utc).isoformat(),
+        "plan_file": str(args.plan_file.resolve()),
+        "plan_sha256": plan["plan_sha256"],
+        "scope": scope,
+        "authorization": {"authorization_mode": "exact_phase_confirmation"},
+        "save_request_sent": False,
+        "remote_mutation_confirmed": False,
+        "manual_attention_required": False,
+        "publish_requested": False,
+        "task_execution_requested": False,
+    }
+    sync_playwright = import_playwright()
+    writer = None
+    session = None
+    try:
+        with sync_playwright() as playwright:
+            session = open_authenticated_session(playwright, args)
+            try:
+                if str(session.identity.get("name") or "") != str(
+                    plan["identity"].get("name") or ""
+                ):
+                    raise UsageError("Authenticated Tiangong2 identity changed after schedule planning")
+                reader = Tiangong2ReadOnlyClient(session.context.request)
+                task = resolve_owned_task(
+                    reader,
+                    identity=session.identity,
+                    project_id=int(scope["project_id"]),
+                    folder_name=str(scope["folder"]),
+                    menu_id=int(scope["menu_id"]),
+                    task_name=str(scope["task_name"]),
+                )
+                with task_schedule_update_lock(task.menu_id):
+                    payload, observed = prepare_schedule_update(
+                        reader,
+                        task=task,
+                        plan=plan,
+                    )
+                    writer = Tiangong2ScheduleUpdateClient(
+                        session.context.request,
+                        authorization=authorization,
+                    )
+                    save_response = writer.save_schedule(payload=payload)
+                    receipt["save_request_sent"] = True
+                    receipt["remote_mutation_confirmed"] = True
+                    receipt["save_response"] = save_response
+                    receipt["pre_save_readback"] = observed
+                    receipt["readback"] = verify_schedule_update_readback(
+                        reader,
+                        task=task,
+                        plan=plan,
+                    )
+                    effective_scheduler = Tiangong2OperationsReadOnlyClient(
+                        session.context.request
+                    )
+                    receipt["effective_scheduler_readback"] = verify_effective_scheduler_readback(
+                        effective_scheduler,
+                        task=task,
+                        plan=plan,
+                    )
+                    fully_verified = bool(
+                        receipt["readback"].get("configuration_fully_verified")
+                        and receipt["effective_scheduler_readback"].get("fully_verified")
+                    )
+                receipt.update(
+                    {
+                        "ok": fully_verified,
+                        "status": "success" if fully_verified else "saved_effective_scheduler_mismatch",
+                        "completed_at": datetime.now(timezone.utc).isoformat(),
+                        "remote_mutation_confirmed": True,
+                        "manual_attention_required": not fully_verified,
+                        "fully_verified": fully_verified,
+                    }
+                )
+                finalized = write_hashed_json(receipt_path, receipt, hash_field="receipt_sha256")
+                print(
+                    json.dumps(
+                        {**finalized, "receipt_file": str(receipt_path.resolve())},
+                        ensure_ascii=False,
+                        indent=2,
+                    )
+                )
+                return 0
+            finally:
+                session.close()
+                session = None
+    except Exception as exc:
+        request_sent = bool(writer is not None and writer.write_count > 0)
+        receipt.update(
+            {
+                "ok": False,
+                "status": "failed",
+                "failed_at": datetime.now(timezone.utc).isoformat(),
+                "error": str(exc),
+                "save_request_sent": request_sent,
+                "remote_mutation_confirmed": bool(receipt.get("remote_mutation_confirmed")),
+                "manual_attention_required": request_sent,
+                "fully_verified": False,
+            }
+        )
+        write_hashed_json(receipt_path, receipt, hash_field="receipt_sha256")
+        if isinstance(exc, UsageError):
+            raise
+        raise UsageError(f"Tiangong2 task schedule update failed: {exc}") from exc
+    finally:
+        if session is not None:
+            session.close()
+
+
+def cmd_plan_nezha_schedule_update(args: argparse.Namespace) -> int:
+    validate_artifact_root(args.artifacts_dir)
+    if args.output_file is not None:
+        _validate_runtime_output(args.output_file)
+    sync_playwright = import_playwright()
+    with sync_playwright() as playwright:
+        session = open_authenticated_session(playwright, args)
+        try:
+            reader = Tiangong2ReadOnlyClient(session.context.request)
+            task = resolve_owned_task(
+                reader,
+                identity=session.identity,
+                project_id=args.project_id,
+                folder_name=args.folder,
+                menu_id=args.menu_id,
+                task_name=args.task_name,
+            )
+            operations = Tiangong2OperationsReadOnlyClient(session.context.request)
+            plan = build_nezha_schedule_update_plan(
+                operations,
+                task=task,
+                identity=session.identity,
+                schedule_patch_file=args.schedule_patch_file,
+            )
+            plan_path = args.output_file or _default_hashed_path(
+                args.artifacts_dir,
+                "nezha_schedule_update_plan",
+                task.menu_id,
+                plan["plan_sha256"],
+            )
+            _validate_runtime_output(plan_path)
+            finalized = write_hashed_json(plan_path, plan, hash_field="plan_sha256")
+            print(
+                json.dumps(
+                    {
+                        "ok": finalized["status"] == "ready",
+                        "read_only": True,
+                        "remote_mutations": 0,
+                        "status": finalized["status"],
+                        "plan_sha256": finalized["plan_sha256"],
+                        "plan_file": str(plan_path.resolve()),
+                        "task_id": finalized["scope"]["task_id"],
+                        "nezha_task_id": finalized["scope"]["nezha_task_id"],
+                        "baseline_schedule_config_sha256": finalized["baseline"][
+                            "schedule_config_sha256"
+                        ],
+                        "desired_request_payload_sha256": finalized["desired"][
+                            "request_payload_sha256"
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+            )
+        finally:
+            session.close()
+    return 0
+
+
+def cmd_apply_nezha_schedule_update(args: argparse.Namespace) -> int:
+    _validate_runtime_output(args.plan_file)
+    validate_artifact_root(args.artifacts_dir)
+    plan = load_nezha_schedule_update_plan(args.plan_file)
+    authorization = authorize_nezha_schedule_update(
+        plan,
+        expected_plan_sha256=args.expected_plan_sha256,
+        confirm_save_schedule=bool(args.confirm_save_nezha_schedule),
+    )
+    scope = plan["scope"]
+    receipt_path = args.output_file or _default_hashed_path(
+        args.artifacts_dir,
+        "nezha_schedule_update_receipt",
+        int(scope["menu_id"]),
+        plan["plan_sha256"],
+    )
+    _validate_runtime_output(receipt_path)
+    receipt = {
+        "schema_version": NEZHA_SCHEDULE_UPDATE_RECEIPT_SCHEMA_VERSION,
+        "operation": plan["operation"],
+        "status": "running",
+        "ok": False,
+        "started_at": datetime.now(timezone.utc).isoformat(),
+        "plan_file": str(args.plan_file.resolve()),
+        "plan_sha256": plan["plan_sha256"],
+        "scope": scope,
+        "authorization": {"authorization_mode": "exact_phase_confirmation"},
+        "save_request_sent": False,
+        "remote_mutation_confirmed": False,
+        "manual_attention_required": False,
+        "dp_schedule_write_requested": False,
+        "publish_requested": False,
+        "task_execution_requested": False,
+    }
+    sync_playwright = import_playwright()
+    writer = None
+    session = None
+    try:
+        with sync_playwright() as playwright:
+            session = open_authenticated_session(playwright, args)
+            try:
+                if str(session.identity.get("name") or "") != str(
+                    plan["identity"].get("name") or ""
+                ):
+                    raise UsageError("Authenticated Tiangong2 identity changed after Nezha schedule planning")
+                reader = Tiangong2ReadOnlyClient(session.context.request)
+                task = resolve_owned_task(
+                    reader,
+                    identity=session.identity,
+                    project_id=int(scope["project_id"]),
+                    folder_name=str(scope["folder"]),
+                    menu_id=int(scope["menu_id"]),
+                    task_name=str(scope["task_name"]),
+                )
+                operations = Tiangong2OperationsReadOnlyClient(session.context.request)
+                with nezha_schedule_update_lock(task.nezha_task_id):
+                    payload, observed = prepare_nezha_schedule_update(
+                        operations,
+                        task=task,
+                        plan=plan,
+                    )
+                    writer = Tiangong2NezhaScheduleUpdateClient(
+                        session.context.request,
+                        authorization=authorization,
+                    )
+                    save_response = writer.save_schedule(payload=payload)
+                    receipt["save_request_sent"] = True
+                    receipt["remote_mutation_confirmed"] = True
+                    receipt["save_response"] = save_response
+                    receipt["pre_save_readback"] = observed
+                    receipt["readback"] = verify_nezha_schedule_readback(
+                        operations,
+                        task=task,
+                        plan=plan,
+                    )
+                    fully_verified = bool(receipt["readback"].get("fully_verified"))
+                receipt.update(
+                    {
+                        "ok": fully_verified,
+                        "status": "success" if fully_verified else "saved_nezha_schedule_readback_mismatch",
+                        "completed_at": datetime.now(timezone.utc).isoformat(),
+                        "remote_mutation_confirmed": True,
+                        "manual_attention_required": not fully_verified,
+                        "fully_verified": fully_verified,
+                    }
+                )
+                finalized = write_hashed_json(receipt_path, receipt, hash_field="receipt_sha256")
+                print(
+                    json.dumps(
+                        {**finalized, "receipt_file": str(receipt_path.resolve())},
+                        ensure_ascii=False,
+                        indent=2,
+                    )
+                )
+                return 0
+            finally:
+                session.close()
+                session = None
+    except Exception as exc:
+        request_sent = bool(writer is not None and writer.write_count > 0)
+        receipt.update(
+            {
+                "ok": False,
+                "status": "failed",
+                "failed_at": datetime.now(timezone.utc).isoformat(),
+                "error": str(exc),
+                "save_request_sent": request_sent,
+                "remote_mutation_confirmed": bool(receipt.get("remote_mutation_confirmed")),
+                "manual_attention_required": request_sent,
+                "fully_verified": False,
+            }
+        )
+        write_hashed_json(receipt_path, receipt, hash_field="receipt_sha256")
+        if isinstance(exc, UsageError):
+            raise
+        raise UsageError(f"Tiangong2 Nezha schedule update failed: {exc}") from exc
     finally:
         if session is not None:
             session.close()

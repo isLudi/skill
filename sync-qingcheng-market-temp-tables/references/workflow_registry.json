@@ -1,6 +1,8 @@
 {
-  "version": 6,
-  "updated_at": "2026-09-23",
+  "version": 8,
+  "updated_at": "2026-10-01",
+  "source_sender_policy": "any_group_member",
+  "source_sender_policy_notes": "2026-10-01 起登记群内任意成员发送的登记表格均可预检、识别与上传；发送人门禁放宽为群隔离 + 登记文件名模式 + 多族命中阻断。各家族 source_sender_open_id/name 降级为登记来源人元数据，仅用于审计展示，不再作为硬校验。授权记录：所有者 2026-10-01 指示。",
   "require_source_quality_gates": true,
   "domains": {
     "qingcheng": {
@@ -327,23 +329,15 @@
       "business_name": "青橙行课开课时间",
       "command_aliases": ["开课时间", "开课时间表", "到课", "到课表", "行课时间", "青橙行课"],
       "command_groups": ["attendance"],
-      "source_kind": "link_workbook",
+      "source_kind": "file_attachment",
       "source_sender_name": "李怡青",
       "source_sender_open_id": "ou_3168c83ffe93b49a192755c8e31e2bc5",
       "source_search_query": "",
-      "source_url_patterns": [
-        "^https://docs\\.baijia\\.com/sheet/[A-Za-z0-9_-]+(?:\\?[^\\s]*)?$"
+      "source_filename_patterns": [
+        "^青橙行课.*\\.xlsx$",
+        "(?i)^.*(?:到课|开课|行课|课表|课程|daoke|kaike|kebiao).*\\.xlsx$"
       ],
-      "source_message_patterns": [
-        "(?:青橙\\s*行课|(?:开课|上课|行课|到课|课程)\\s*(?:时间|安排|信息|表|课表|链接)|课\\s*表)"
-      ],
-      "source_expected_title_pattern": "^青橙行课--开课时间\\(1-6节课\\)$",
-      "source_filename": "青橙行课--开课时间(1-6节课).xlsx",
-      "source_env_file_env": "QINGCHENG_DOCS_ENV_FILE",
-      "source_env_file": "D:\\GAOTU\\19002_市场顾问部看板维护表格\\usql_api.env",
-      "source_env_section": "USQL Web Query (Playwright) credentials",
-      "source_browser_channel": "msedge",
-      "source_download_timeout_seconds": 120,
+      "source_filename_pattern_notes": "2026-10-01 起改为群内 Excel 附件直发。文件名含行课语义关键词即命中；大小写不敏感（含拼音 daoke/kaike/kebiao 变体）。与青橙群内其他登记文件名模式经 fullmatch 比对无交集。",
       "source_sheet": "$active",
       "target_workbook": "D:\\GAOTU\\19003_青橙项目部看板维护表格\\qing_daoke.xlsx",
       "target_sheet": "Sheet1",
@@ -391,7 +385,7 @@
         {"type": "datetime_format", "column": "begin_time", "format": "%Y-%m-%d %H:%M:%S"},
         {"type": "allowed_values", "column": "dow", "values": ["1", "2", "3", "4", "5", "6", "7"]},
         {"type": "allowed_values", "column": "ke_1", "values": ["1", "2", "3", "4", "5", "6"]},
-        {"type": "sheet_slice_suffix", "column": "qici"}
+        {"type": "single_slice", "column": "qici"}
       ]
     },
     {

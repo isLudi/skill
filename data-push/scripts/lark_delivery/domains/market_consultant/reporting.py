@@ -11,6 +11,7 @@ import json
 import tempfile
 
 from ...common import feishu as gp
+from ...common.retry import retry_transport
 from ...core import catalog
 from . import grade_report as gr
 from . import volume_report as vr
@@ -49,8 +50,11 @@ def validate_context(context, evidence, cfg=None, slot=None, *, enforce_calendar
     counts = source_period["channel_counts"] if source_period else evidence["channel_counts"]
     match = (cfg or {}).get("channel_match", {})
     expected_count = source_channel_count(counts, match, context["channel"])
+    matched_count = context["raw_read_audit"].get("matched_count", context["raw_count"])
+    if type(matched_count) is not int or matched_count < 0:
+        raise ValueError("invalid Base matched row count")
     period_matches = source_period is not None if evidence.get("periods") is not None else context["period"] == evidence["period"]
-    if (not period_matches or context["raw_count"] != expected_count
+    if (not period_matches or matched_count != expected_count
             or str(context["snapshot"][0]) != evidence["dt"] or int(context["snapshot"][1]) != evidence["hour"]):
         raise ValueError("Base channel/period/partition/count disagrees with complete upstream write")
     if context["raw_read_audit"].get("has_more") is not False or context["raw_read_audit"].get("rev") is None:
@@ -104,6 +108,16 @@ def validate_context(context, evidence, cfg=None, slot=None, *, enforce_calendar
 
 
 def assert_current_revision(context, cfg):
+    """Fail closed when the source moved; retry a probe that could not reach the API.
+
+    A drift is a *returned* revision and still fails closed on the first attempt. Only
+    a transport failure -- where nothing was learned -- is retried, so this can never
+    turn a real drift into a send.
+    """
+    return retry_transport(lambda: _assert_current_revision(context, cfg))
+
+
+def _assert_current_revision(context, cfg):
     # The one-row read is only a revision guard, never the source for aggregation.
     if context.get("report_kind") == "volume":
         vr.assert_current_revisions(context, cfg)

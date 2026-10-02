@@ -13,8 +13,11 @@ import re
 from zoneinfo import ZoneInfo
 
 from fetch_qingcheng_process_source import fetch, probe_revision
+from lark_delivery.common import resend
 from lark_delivery.common.im import upload_image, verify_chat
-from lark_delivery.common.runtime import run_lark
+from lark_delivery.common.readback import available as readback_available
+from lark_delivery.common.retry import retry_transport
+from lark_delivery.common.runtime import ensure_console_streams, run_lark
 from preview_qingcheng_public_pool_process import _number, _table_image
 from preview_qingcheng_special_process import _aggregate, DISPLAY_COLUMNS, GRADES, SOURCE_NUMBERS
 from run_qingcheng_process import _batch as _qingcheng_batch, _period, _upstream_audit, _write_json, run_scope
@@ -46,7 +49,7 @@ def _config() -> dict:
             5, "经理", "退后线索", "QOVib6QCXaUvJ2s2PsbcnMmsnGg", "tblXU4tla3bY36DE",
             "oc_a95c83e488e0dfcc777d5ffad849d8a4", "bot",
             "ou_f3907e865135732c15a1dfce27828411",
-            "自然周周五期次", [1, 2, 3], [14], 25, 50, 2, "Asia/Shanghai",
+             "自然周周五期次", [1, 2, 3], [14], 0, 50, 2, "Asia/Shanghai",
             {"metric": "8min", "direction": "desc", "value": "unrounded"}):
         raise ValueError("Special-channel process task configuration differs")
     if cfg["upstream"] != _qingcheng_batch()["upstream"]:
@@ -64,7 +67,7 @@ def _config() -> dict:
         raise ValueError("Special-channel source routing differs")
     bars = cfg["visual"]["metric_bars"]
     if (set(bars) != {"好友率", "等待时长", "8min", "24h首call"}
-            or bars["等待时长"]["color"] != "#fb626b"
+            or bars["等待时长"]["color"] != "#fc999f"
             or any(spec["min"] != 0 or spec["max"] <= 0 for spec in bars.values())
             or set(cfg["visual"]["integer_fields"]) != {"带班人数", "有效线索", "总通时"}):
         raise ValueError("Special-channel process image format differs")
@@ -184,12 +187,40 @@ def _build(entry: dict, rows: list[dict], manifest: dict, cfg: dict, folder: Pat
 
 
 def _existing(path: Path) -> dict | None:
+    """The settled verdict for one receipt, or None while the report may be re-driven.
+
+    A receipt whose send was never confirmed, or whose readback failed, must come
+    back as ``None`` so the round re-drives it. Only a verified send is settled.
+    """
     if not path.exists():
         return None
     receipt = json.loads(path.read_text(encoding="utf-8"))
-    if receipt.get("status") == "sent_verified":
+    if resend.decide(receipt.get("status"), receipt.get("message_id")) == resend.DONE:
         return {"status": "sent_verified", "message_id": receipt["message_id"], "receipt": str(path)}
-    return {"status": "previous_attempt_requires_review", "receipt": str(path)}
+    return None
+
+
+def _reverify(cfg: dict, prior: dict, receipt_path: Path) -> dict:
+    """Read back a special-channel message that is already in the group; never re-sends."""
+    message_id, image_key = prior.get("message_id"), prior.get("image_key")
+    if not message_id or not image_key:
+        raise ValueError("Special-channel receipt lacks the message id or image key needed to re-verify")
+    try:
+        readback = _verify_message(cfg["target_chat_id"], message_id, image_key,
+                                   prior["period"], set(), cfg["sender"]["open_id"])
+    except Exception as exc:
+        if not readback_available(cfg, cfg["target_chat_id"]):
+            # Unreadable group: the failure carries no information about delivery.
+            prior.update({"status": resend.UNVERIFIABLE, "readback_error": str(exc)})
+            _write_json(receipt_path, prior)
+            return {"status": resend.UNVERIFIABLE, "message_id": message_id, "receipt": str(receipt_path)}
+        prior.update({"status": "sent_readback_unverified", "readback_error": str(exc)})
+        _write_json(receipt_path, prior)
+        raise
+    prior.update({"status": "sent_verified", "readback": readback})
+    prior.pop("readback_error", None)
+    _write_json(receipt_path, prior)
+    return {"status": "sent_verified", "message_id": message_id, "receipt": str(receipt_path)}
 
 
 def _key(entry: dict, cfg: dict, period: str, slot: datetime) -> str:
@@ -200,10 +231,18 @@ def _key(entry: dict, cfg: dict, period: str, slot: datetime) -> str:
 
 def _deliver(entry: dict, review: dict, manifest: dict, cfg: dict, folder: Path, slot: datetime) -> dict:
     receipt_path = folder / "send_receipt.json"
-    existing = _existing(receipt_path)
-    if existing:
-        return existing
-    if probe_revision(entry["source_key"], review["period"], folder / "source_revision_probe.ndjson") != manifest["rev"]:
+    settled = _existing(receipt_path)
+    if settled:
+        return settled
+    prior = json.loads(receipt_path.read_text(encoding="utf-8")) if receipt_path.exists() else None
+    # A recorded message id means the message is in the group: re-read, never re-send.
+    if prior and resend.decide(prior.get("status"), prior.get("message_id")) == resend.REVERIFY:
+        return _reverify(cfg, prior, receipt_path)
+    # A transport failure here means nothing was learned, so it is retried in-round; a
+    # returned revision that differs still fails closed on the first attempt.
+    current = retry_transport(lambda: probe_revision(
+        entry["source_key"], review["period"], folder / "source_revision_probe.ndjson"))
+    if current != manifest["rev"]:
         raise ValueError("Special-channel source Base revision changed before delivery")
     _verify_group(cfg)
     image = folder / review["image"]
@@ -224,7 +263,11 @@ def _deliver(entry: dict, review: dict, manifest: dict, cfg: dict, folder: Path,
                "chat_id": cfg["target_chat_id"], "sender_open_id": cfg["sender"]["open_id"],
                "period": review["period"], "slot": slot.isoformat(), "source_rev": manifest["rev"],
                "image_sha256": image_sha, "image_key": image_key, "idempotency_key": key,
-               "message_sha256": hashlib.sha256(markdown.encode("utf-8")).hexdigest()}
+               "message_sha256": hashlib.sha256(markdown.encode("utf-8")).hexdigest(),
+               # Re-issue evidence: the key is unchanged, so the platform dedupes if an
+               # earlier attempt did land.
+               "resend_attempts": (prior or {}).get("resend_attempts", 0) + (1 if prior else 0),
+               "prior_status": (prior or {}).get("status", "")}
     _write_json(receipt_path, receipt)
     try:
         sent = _data(send_args)
@@ -242,7 +285,10 @@ def _deliver(entry: dict, review: dict, manifest: dict, cfg: dict, folder: Path,
                                    review["period"], set(), cfg["sender"]["open_id"])
         receipt.update({"status": "sent_verified", "readback": readback})
     except Exception as exc:
-        receipt.update({"status": "sent_readback_unverified", "readback_error": str(exc)})
+        if readback_available(cfg, cfg["target_chat_id"]):
+            receipt.update({"status": "sent_readback_unverified", "readback_error": str(exc)})
+        else:
+            receipt.update({"status": resend.UNVERIFIABLE, "readback_error": str(exc)})
     _write_json(receipt_path, receipt)
     return {"status": receipt["status"], "message_id": message_id, "receipt": str(receipt_path)}
 
@@ -322,6 +368,7 @@ def run(*, now: datetime | None = None, output: Path | None = None) -> dict:
 
 
 def main() -> None:
+    ensure_console_streams()  # pythonw.exe has no console streams
     parser = argparse.ArgumentParser(description=__doc__)
     choice = parser.add_mutually_exclusive_group(required=True)
     choice.add_argument("--check-config", action="store_true")
@@ -338,7 +385,8 @@ def main() -> None:
             batch = run()
         print(json.dumps(batch, ensure_ascii=True, indent=2))
         scope.adopt(batch)
-        failed = any(item["status"] not in {"sent_verified", "skipped_no_source_rows", "skipped_no_eligible_rows"}
+        failed = any(item["status"] not in {"sent_verified", resend.UNVERIFIABLE,
+                                            "skipped_no_source_rows", "skipped_no_eligible_rows"}
                      for item in batch["channels"].values())
         scope.exit_code = 1 if failed else 0
         if failed:

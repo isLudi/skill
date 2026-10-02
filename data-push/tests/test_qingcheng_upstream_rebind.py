@@ -1,6 +1,6 @@
 """Upstream rebinding for the Qingcheng process push: qing2lark -> qing2lark_guocheng.
 
-The task was renamed (and republished as V27) on 2026-09-28 while keeping the same
+The task was renamed (and republished as V29) on 2026-09-28 while keeping the same
 immutable Nezha task id. These tests pin the reviewed binding and the two places a
 rename leaks into: the execution ledger keeps the name a row was created with, and
 the stage log filename carries the task name.
@@ -26,12 +26,13 @@ SPEC.loader.exec_module(MODULE)
 REVIEWED = {
     "project_id": 308, "folder": "吕帅", "menu_id": 103625, "task_id": 47728,
     "nezha_task_id": 67318, "task_name": "qing2lark_guocheng", "owner": "lvshuai01",
-    "published_version": "V27", "version_id": 207244, "exec_file_id": 831460,
-    "source_sha256": "53f4a8f34bbbbef6b4c5b3d615249111909c14aa51e65841f83da3f7080bbd03",
+    "published_version": "V29", "version_id": 207387, "exec_file_id": 831981,
+    "source_sha256": "2da69b923428509481cb185017d8ad05a1a126e5600c8f418396f51d12130de6",
     "audit_schema": "market2lark-two-period-audit-v1",
 }
-BATCH_FILES = ("process_batch_preview.json", "sec_process_batch.json", "special_process_batch.json")
-SLOT = datetime(2026, 9, 29, 14, 25, tzinfo=ZoneInfo("Asia/Shanghai"))
+BATCH_FILES = ("process_batch_preview.json", "sec_process_batch.json", "special_process_batch.json",
+               "partner_process_batch.json")
+SLOT = datetime(2026, 9, 29, 14, 2, tzinfo=ZoneInfo("Asia/Shanghai"))
 
 
 def upstream(path):
@@ -71,13 +72,14 @@ def test_operator_read_uses_the_configured_identity(monkeypatch):
 
 
 def _artifact(tmp_path, *, row_name="qing2lark", stage_name="stage_4123_qing2lark_guocheng.log",
-              exec_file_id=831460, trigger="SCHEDULE", execution_id=173400001, row_count=3):
+              exec_file_id=831981, trigger="EXECUTE", execution_id=173400001, row_count=3,
+              status=6):
     period = MODULE._period(SLOT.date())
-    current_hour = SLOT.replace(minute=0, second=0, microsecond=0).strftime("%Y-%m-%d %H:%M:%S")
+    current_hour = MODULE._expected_upstream_period_time(SLOT)
     history_dir = tmp_path / "history"
     history_dir.mkdir(parents=True)
     (history_dir / "history.json").write_text(json.dumps({"executions": [{
-        "id": execution_id, "taskId": 67318, "taskName": row_name, "status": 6,
+        "id": execution_id, "taskId": 67318, "taskName": row_name, "status": status,
         "periodTime": current_hour, "planRunTime": current_hour, "startTime": current_hour,
         "triggerSource": 0 if trigger == "SCHEDULE" else 1,
         "runConfig": json.dumps({"projectId": 308, "execFileId": exec_file_id, "triggerSourceEnum": trigger}),
@@ -125,6 +127,11 @@ def test_audit_accepts_both_the_old_and_new_execution_row_name(tmp_path):
         assert result["expected_counts"] == {"public_pool": 3, "private": 0, "douyin_dm": 0}
 
 
+def test_audit_maps_on_the_hour_local_slot_to_the_upstream_40_minute_run():
+    slot = datetime(2026, 10, 1, 12, 0, tzinfo=ZoneInfo("Asia/Shanghai"))
+    assert MODULE._expected_upstream_period_time(slot) == "2026-10-01 11:00:00"
+
+
 def test_audit_accepts_either_stage_log_filename(tmp_path):
     for stage in ("stage_4123_qing2lark_guocheng.log", "stage_4123_qing2lark.log"):
         assert _audit(tmp_path / stage, stage_name=stage)["raw_channel_counts"] == {"顾问未加好友": 3}
@@ -136,15 +143,15 @@ def test_audit_rejects_an_unrelated_task_name(tmp_path):
 
 
 def test_audit_rejects_the_superseded_exec_file(tmp_path):
-    with pytest.raises(ValueError, match="not successful or has drifted"):
-        _audit(tmp_path, exec_file_id=831041)
-
-
-def test_audit_rejects_a_manual_only_history(tmp_path):
-    # A manual run is not a scheduled source, so the current hour has no eligible
-    # SCHEDULE instance and the audit refuses before any identity check.
     with pytest.raises(ValueError, match="is not unique"):
-        _audit(tmp_path, trigger="EXECUTE")
+        _audit(tmp_path, exec_file_id=831661)
+
+
+def test_audit_rejects_an_hour_without_a_successful_backfill(tmp_path):
+    # The 2026-09-29 20:00 shape: the SCHEDULE row died on the upstream defect and
+    # no successful V29 execution exists for the hour, so the audit refuses.
+    with pytest.raises(ValueError, match="is not unique"):
+        _audit(tmp_path, status=7)
 
 
 def test_audit_rejects_an_unrelated_stage_log(tmp_path):

@@ -429,7 +429,17 @@ def run_mandatory_maintenance(plans: list[DataCenterSkillSyncPlan]) -> list[dict
     commands: list[tuple[str, list[str], Path]] = []
     for root in targets:
         commands.append((f"reverse_indexes:{root.name}", [sys.executable, "scripts/build_reverse_indexes.py"], root))
-    commands.append(("build_text2sql_catalog", [sys.executable, "scripts/build_text2sql_catalog.py"], skills_root))
+    # Scope the shared catalog build to the domains actually synced so an unrelated
+    # domain's stale contracts cannot block this write; the shared physical catalog
+    # is only rewritten by a full (unscoped) build.
+    sync_domains = sorted({plan.target.domain for plan in plans})
+    commands.append(
+        (
+            "build_text2sql_catalog",
+            [sys.executable, "scripts/build_text2sql_catalog.py", "--domains", ",".join(sync_domains)],
+            skills_root,
+        )
+    )
     commands.append(("audit_knowledge_versions", [sys.executable, "scripts/audit_knowledge_versions.py"], skills_root))
     for root in targets:
         commands.append((f"integrity:{root.name}", [sys.executable, "scripts/check_skill_integrity.py"], root))
@@ -455,7 +465,10 @@ def run_mandatory_maintenance(plans: list[DataCenterSkillSyncPlan]) -> list[dict
         }
         results.append(item)
         if completed.returncode != 0:
-            raise UsageError(f"mandatory maintenance failed: {name}")
+            tail_lines = [line for line in (completed.stdout or "").strip().splitlines() if line.strip()][-12:]
+            err_lines = [line for line in (completed.stderr or "").strip().splitlines() if line.strip()][-6:]
+            detail = " || ".join(tail_lines + err_lines)[:1500]
+            raise UsageError(f"mandatory maintenance failed: {name}: {detail}")
     return results
 
 

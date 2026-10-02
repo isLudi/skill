@@ -580,7 +580,7 @@ transfer_enriched_candidates as (
         a.lead_qici,
         concat(
             date_format(
-                date_trunc('week', p.first_receiver_time + interval '2' day)
+                date_trunc('week', p.first_receiver_time)
                     + interval '4' day,
                 '%Y%m%d'
             ),
@@ -588,7 +588,7 @@ transfer_enriched_candidates as (
         ) as transfer_qici,
         concat(
             date_format(
-                date_trunc('week', p.first_receiver_time + interval '2' day)
+                date_trunc('week', p.first_receiver_time)
                     + interval '4' day,
                 '%Y%m%d'
             ),

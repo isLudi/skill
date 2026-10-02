@@ -114,7 +114,7 @@ def build(source: Path, operator: Path, output: Path, *, config_path: Path = DEF
     if len(by_id) != len(operator_rows):
         raise ValueError("Duplicate special-channel Base application IDs")
     bars = cfg["visual"]["metric_bars"]
-    if set(bars) != {"好友率", "等待时长", "8min", "24h首call"} or bars["等待时长"]["color"] != "#fb626b":
+    if set(bars) != {"好友率", "等待时长", "8min", "24h首call"} or bars["等待时长"]["color"] != "#fc999f":
         raise ValueError("Special-channel process bars differ")
     bar_specs = {field: (spec["min"], spec["max"], spec["color"]) for field, spec in bars.items()}
     output.mkdir(parents=True, exist_ok=True)
@@ -160,7 +160,7 @@ def build(source: Path, operator: Path, output: Path, *, config_path: Path = DEF
     page = ("<!doctype html><html lang='zh-CN'><meta charset='utf-8'><title>青橙渠道专项过程图片预览</title>"
             "<style>body{font:16px 'Microsoft YaHei',sans-serif;background:#edf2f8;color:#20314c;padding:24px}"
             "main{max-width:2100px;margin:auto}section{background:white;margin:22px 0;padding:20px;border-radius:12px}"
-            "img{max-width:100%;border:1px solid #aecfb2}</style>"
+            "img{max-width:100%;border:1px solid #c3cfe2}</style>"
             f"<main><h1>青橙渠道专项 · 过程数据图片本地预览</h1><p>{html.escape(manifest['period'])}</p>"
             + "".join(cards) + "</main></html>")
     (output / "index.html").write_text(page, encoding="utf-8")

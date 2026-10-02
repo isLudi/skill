@@ -24,10 +24,10 @@
   "sort": {"metric": "8min", "direction": "desc", "value": "unrounded"},
   "visual": {
     "metric_bars": {
-      "好友率": {"min": 0, "max": 1, "color": "#4f78ae"},
-      "等待时长": {"min": 0, "max": 48, "color": "#fb626b"},
-      "8min": {"min": 0, "max": 1, "color": "#f5ae23"},
-      "24h首call": {"min": 0, "max": 1, "color": "#2e9e6b"}
+      "好友率": {"min": 0, "max": 1, "color": "#8da7ca"},
+      "等待时长": {"min": 0, "max": 48, "color": "#fc999f"},
+      "8min": {"min": 0, "max": 1, "color": "#f8ca70"},
+      "24h首call": {"min": 0, "max": 1, "color": "#77c09f"}
     },
     "integer_fields": ["带班人数", "有效线索", "总通时"]
   },

@@ -124,7 +124,7 @@ iframe 编辑器工具栏中的运行按钮回退方案：
 
 临时表 UI 也位于 `/sql/` iframe 内。稳定自动化路径：
 
-1. 点击左侧 tab 文本 `临时表`。
+1. 等待 SQL shell 的 tablist 挂载后，点击 `role=tab` 且名称为 `临时表` 的左侧 tab；页面异步加载时重试，文本定位只作为回退。
 2. 点击 `.anticon-cloud-upload`。
 3. 点击菜单项 `建表向导`。
 4. 第 1 步选择 radio `excel` 或 `csv`，再点击 `下一步`。

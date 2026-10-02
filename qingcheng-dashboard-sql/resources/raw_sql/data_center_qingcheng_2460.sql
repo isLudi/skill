@@ -2,14 +2,14 @@ with biz_qici_calendar as (
 select *
 from (
     values
-        ('20260710期', '0710期', '20260710期', '0710期', date '2026-07-07', date '2026-07-13'),
-        ('20260716期', '0716期', '20260717期', '0717期', date '2026-07-14', date '2026-07-19'),
-        ('20260722期', '0722期', '20260724期', '0724期', date '2026-07-20', date '2026-07-25'),
-        ('20260728期', '0728期', '20260731期', '0731期', date '2026-07-26', date '2026-07-31'),
-        ('20260803期', '0803期', '20260807期', '0807期', date '2026-08-01', date '2026-08-06'),
-        ('20260808期', '0808期', '20260814期', '0814期', date '2026-08-07', date '2026-08-11'),
-        ('20260815期', '0815期', '20260814期', '0814期', date '2026-08-12', date '2026-08-18'),
-        ('20260821期', '0821期', '20260821期', '0821期', date '2026-08-19', date '2026-08-23')
+        ('20260710期', '0710期', '20260710期', '0710期', date '2026-07-06', date '2026-07-12'),
+        ('20260716期', '0716期', '20260717期', '0717期', date '2026-07-13', date '2026-07-19'),
+        ('20260722期', '0722期', '20260724期', '0724期', date '2026-07-20', date '2026-07-26'),
+        ('20260728期', '0728期', '20260731期', '0731期', date '2026-07-27', date '2026-08-02'),
+        ('20260803期', '0803期', '20260807期', '0807期', date '2026-08-03', date '2026-08-09'),
+        ('20260808期', '0808期', '20260814期', '0814期', date '2026-08-10', date '2026-08-16'),
+        ('20260815期', '0815期', '20260814期', '0814期', date '2026-08-17', date '2026-08-23'),
+        ('20260821期', '0821期', '20260821期', '0821期', date '2026-08-24', date '2026-08-30')
 ) as t(qici, short_qici, legacy_qici, legacy_short_qici, period_start_date, period_end_date)
 )
 ,douyin_refund_prelead_raw as (
@@ -33,13 +33,11 @@ select
         concat(
             cast(
                 date_format(
-                    date_trunc(
-                        'week',
+                    date_trunc('week',
                         date_parse(
                             replace(concat(f.group_period_year, f.group_period_term), '期', ''),
                             '%Y%m%d'
-                        ) - interval '1' day
-                    ) + interval '4' day,
+                        )) + interval '4' day,
                     '%Y%m%d'
                 ) as varchar
             ),
@@ -129,6 +127,7 @@ when (rule_name like '%私域会话%'
   or rule_name like '%私域表单%'
   or rule_name like '%私域品效%'
   or rule_name like '%私域图书%') then '私域'
+when rule_name like '%公域-自然流%' then '公域'
 when (rule_name like '%公域学霸%'
   or rule_name like '%青橙公域%') then '公域'
 when (rule_name like '%武汉图书%'
@@ -171,6 +170,7 @@ when (rule_name like '%顾问未加好友%'
   or rule_name like '%公海%') then '顾问未加好友'
 when rule_name like '%武汉图书%' then '武汉图书'
 when rule_name like '%西安图书%' then '西安图书'
+when rule_name like '%公域-自然流%' then '自然流'
 when (rule_name like '%公域学霸%'
   or rule_name like '%青橙公域%') then '公域学霸'
 when rule_name like '%抖音私信%' then '抖音私信'
@@ -278,24 +278,7 @@ ld.grade_0,
 ld.virtual_direct_leader_email_name,
 coalesce(
     trade_cal.qici,
-    case
-        when day_of_week(cast(gmv.trade_timestamp as timestamp)) = 1 then
-            concat(
-                date_format(
-                    date_trunc('week', cast(gmv.trade_timestamp as timestamp)) - interval '3' day,
-                    '%Y%m%d'
-                ),
-                '期'
-            )
-        else
-            concat(
-                date_format(
-                    date_trunc('week', cast(gmv.trade_timestamp as timestamp)) + interval '4' day,
-                    '%Y%m%d'
-                ),
-                '期'
-            )
-    end
+    concat(date_format(date_trunc('week', cast(gmv.trade_timestamp as timestamp)) + interval '4' day, '%Y%m%d'), '期')
 ) as qici
 from service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf gmv
 left join biz_qici_calendar trade_cal
@@ -313,7 +296,7 @@ where gmv.dt=format_datetime(NOW()-interval '2' hour,'YYYYMMdd')
 left join biz_qici_calendar period_cal
   on base.qici = period_cal.qici
  and regexp_extract(base.rule_name, '(\d{4}期)', 1) = period_cal.legacy_short_qici
-where base.qici >= '20260605期'
+where base.qici >= '20260501期'
 )
 ,course_transfer_order_rows as (
 select
@@ -474,18 +457,7 @@ select
     f.section_assign_time as protected_section_assign_time,
     coalesce(
         trade_cal.qici,
-        case
-            when day_of_week(f.trade_time) = 1 then
-                concat(
-                    date_format(date_trunc('week', f.trade_time) - interval '3' day, '%Y%m%d'),
-                    '期'
-                )
-            else
-                concat(
-                    date_format(date_trunc('week', f.trade_time) + interval '4' day, '%Y%m%d'),
-                    '期'
-                )
-        end
+        concat(date_format(date_trunc('week', f.trade_time) + interval '4' day, '%Y%m%d'), '期')
     ) as qici
 from course_transfer_protected_finance f
 inner join lead_map ld
@@ -529,7 +501,7 @@ from course_transfer_base base
 left join biz_qici_calendar period_cal
   on base.qici = period_cal.qici
  and regexp_extract(base.rule_name, '(\d{4}期)', 1) = period_cal.legacy_short_qici
-where base.qici >= '20260605期'
+where base.qici >= '20260501期'
 )
 -- lead期次+分配时间
 ,prc as (
@@ -755,9 +727,138 @@ sum(sc) as sc
 from udd
 group by qici,channel_map_1,qudao,grade_0,zhuguan,name
 )
+-- 合并链路主键：统计明细中的 lead_core_id 是跨小时稳定的根线索键。
+-- lead_derivative_dependence_leads_id 仅作为衍生依赖字段，
+-- 不将其猜测成 merged_to_lead_id。
+,normal_lead_merge_keys_raw as (
+    select
+        cast(s.lead_id as bigint) as lead_id,
+        nullif(try_cast(s.lead_core_id as bigint), 0) as merge_root_lead_id,
+        row_number() over (
+            partition by cast(s.lead_id as bigint)
+            order by
+                coalesce(try_cast(s.trace_update_time as timestamp), timestamp '1970-01-01 00:00:00') desc,
+                coalesce(try_cast(s.latest_trace_id as bigint), 0) desc,
+                coalesce(try_cast(s.lead_core_id as bigint), 0) desc
+        ) as stats_rn
+    from service_dw.dm_crm_lead_stats_detail_hf s
+    where s.dt = format_datetime(NOW() - interval '3' hour, 'YYYYMMdd')
+      and s.hour = format_datetime(NOW() - interval '3' hour, 'HH')
+      and s.mapping_first_level_department_name = 'H业务线'
+      and s.mapping_second_level_department_name in (
+          '精品班学部',
+          '菁英班学部',
+          '市场部',
+          '本地化大班学部',
+          '青橙项目部'
+      )
+),
+normal_lead_merge_keys as (
+    select
+        lead_id,
+        merge_root_lead_id
+    from normal_lead_merge_keys_raw
+    where stats_rn = 1
+),
+normal_lead_state_raw as (
+    select
+        f.*,
+        coalesce(
+            lead_cal.qici,
+            concat(
+                cast(
+                    date_format(
+                        date_trunc(
+                            'week',
+                            date_parse(
+                                replace(concat(group_period_year, group_period_term), '期', ''),
+                                '%Y%m%d'
+                            )
+                        ) + interval '4' day,
+                        '%Y%m%d'
+                    ) as varchar
+                ),
+                '期'
+            )
+        ) as derived_qici,
+        coalesce(try_cast(f.valid_lead_count as bigint), 0) as source_valid_lead_count,
+        coalesce(try_cast(f.merge_valid_lead_count as bigint), 0) as source_merge_valid_lead_count,
+        mk.merge_root_lead_id
+    from bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df f
+    left join biz_qici_calendar lead_cal
+      on cast(
+          date_parse(
+              replace(concat(group_period_year, group_period_term), '期', ''),
+              '%Y%m%d'
+          ) as date
+      ) between lead_cal.period_start_date and lead_cal.period_end_date
+    left join douyin_refund_transfer t
+      on cast(f.lead_id as bigint) = t.transfer_lead_id
+    left join normal_lead_merge_keys mk
+      on cast(f.lead_id as bigint) = mk.lead_id
+    where f.dt = format_datetime(NOW() - interval '2' hour, 'YYYYMMdd')
+      and f.hour = format_datetime(NOW() - interval '3' hour, 'HH')
+      and f.section_assign_employee_first_level_department_name = 'H业务线'
+      and f.section_assign_employee_second_level_department_name = '青橙项目部'
+      and f.period_mapping_first_level_department_name = 'H业务线'
+      and (
+          coalesce(try_cast(f.valid_lead_count as bigint), 0) = 1
+          or (
+              coalesce(try_cast(f.merge_valid_lead_count as bigint), 0) > 0
+              and mk.merge_root_lead_id is not null
+              and (
+                  replace(coalesce(f.rule_name, ''), ' ', '') like '%青橙本地化%'
+                  or replace(coalesce(f.rule_name, ''), ' ', '') like '%河南本地化%'
+                  or replace(coalesce(f.rule_name, ''), ' ', '') like '%私域本地化%'
+              )
+          )
+      )
+      and t.transfer_lead_id is null
+),
+-- 普通有效和 merge 有效是同一 lead 的状态迁移。按期次、顾问、lead_id
+-- 折叠后任一状态有效计 1，同时存在仍只计 1。
+normal_lead_state_ranked as (
+    select
+        normal_lead_state_raw.*,
+        max(source_valid_lead_count) over (
+            partition by derived_qici, employee_email_name, lead_id
+        ) as canonical_source_valid_lead_count,
+        max(source_merge_valid_lead_count) over (
+            partition by derived_qici, employee_email_name, lead_id
+        ) as canonical_source_merge_valid_lead_count,
+        row_number() over (
+            partition by derived_qici, employee_email_name, lead_id
+            order by
+                case when source_valid_lead_count > 0 then 0 else 1 end,
+                source_valid_lead_count desc,
+                source_merge_valid_lead_count desc,
+                section_assign_time desc,
+                rule_name
+        ) as normal_lead_rn
+    from normal_lead_state_raw
+)
 -- 线索量
 ,normal_bb as (
-select qici,channel_map_1,channel_map_2,grade_1,virtual_direct_leader_email_name,employee_email_name,sum(v_lead) as v_lead
+select
+    qici,
+    channel_map_1,
+    channel_map_2,
+    grade_1,
+    virtual_direct_leader_email_name,
+    employee_email_name,
+    sum(v_lead) as v_lead,
+    sum(merge_valid_lead_count_effective) as merge_valid_lead_count,
+    count(distinct case when merge_valid_lead_count_effective > 0 then merge_root_lead_id end) as merge_root_lead_count,
+    array_join(
+        array_sort(
+            array_agg(
+                distinct case
+                    when merge_valid_lead_count_effective > 0 then cast(merge_root_lead_id as varchar)
+                end
+            )
+        ),
+        ','
+    ) as merge_root_lead_ids
 from(
 select distinct f.*
 ,f.derived_qici as qici
@@ -839,28 +940,32 @@ when f.rule_name like '%初一%' then '初一'
 when f.rule_name like '%初二%' then '初二'
 when f.rule_name like '%初三%' then '初三'
 else f.lead_purchase_intention_level2_category_name end as grade_1
-,case when coalesce(try_cast(f.valid_lead_count as bigint), 0) = 1 then 1 else 0 end as v_lead
-from (
-    select
-        f.*,
-        coalesce(
-            lead_cal.qici,
-            concat(cast(date_format(date_trunc('week', date_parse(replace(concat(group_period_year, group_period_term), '期', ''), '%Y%m%d') - interval '1' day) + interval '4' day, '%Y%m%d') as varchar), '期')
-        ) as derived_qici
-    from bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df f
-    left join biz_qici_calendar lead_cal
-      on cast(date_parse(replace(concat(group_period_year, group_period_term), '期', ''), '%Y%m%d') as date)
-         between lead_cal.period_start_date and lead_cal.period_end_date
-    left join douyin_refund_transfer t
-      on cast(f.lead_id as bigint) = t.transfer_lead_id
-    where f.dt=format_datetime(NOW()-interval '2' hour,'YYYYMMdd') and f.hour=format_datetime(NOW()-interval '3' hour,'HH')
-    and f.section_assign_employee_first_level_department_name = 'H业务线'
-    and f.section_assign_employee_second_level_department_name = '青橙项目部'
-    and f.period_mapping_first_level_department_name = 'H业务线'
-    and coalesce(try_cast(f.valid_lead_count as bigint), 0) = 1
-    and t.transfer_lead_id is null
-) f )
-where qici >= '20260605期'
+,case
+    when f.canonical_source_valid_lead_count > 0 then 1
+    when f.canonical_source_merge_valid_lead_count > 0
+     and f.merge_root_lead_id is not null
+     and (
+         replace(coalesce(f.rule_name, ''), ' ', '') like '%青橙本地化%'
+         or replace(coalesce(f.rule_name, ''), ' ', '') like '%河南本地化%'
+         or replace(coalesce(f.rule_name, ''), ' ', '') like '%私域本地化%'
+     ) then 1
+    else 0
+end as v_lead
+,case
+    when f.canonical_source_valid_lead_count > 0 then 0
+    when f.canonical_source_merge_valid_lead_count > 0
+     and f.merge_root_lead_id is not null
+     and (
+         replace(coalesce(f.rule_name, ''), ' ', '') like '%青橙本地化%'
+         or replace(coalesce(f.rule_name, ''), ' ', '') like '%河南本地化%'
+         or replace(coalesce(f.rule_name, ''), ' ', '') like '%私域本地化%'
+     ) then f.canonical_source_merge_valid_lead_count
+    else 0
+end as merge_valid_lead_count_effective
+from normal_lead_state_ranked f
+where f.normal_lead_rn = 1
+)
+where qici >= '20260501期'
 group by qici,channel_map_1,channel_map_2,grade_1,virtual_direct_leader_email_name,employee_email_name)
 ,prelead_bb as (
 select
@@ -876,9 +981,12 @@ select
     p.grade_1,
     p.virtual_direct_leader_email_name,
     p.employee_email_name,
-    count(*) as v_lead
+    count(*) as v_lead,
+    sum(cast(0 as bigint)) as merge_valid_lead_count,
+    sum(cast(0 as bigint)) as merge_root_lead_count,
+    max(cast(null as varchar)) as merge_root_lead_ids
 from douyin_refund_prelead p
-where p.qici >= '20260605期'
+where p.qici >= '20260501期'
 group by
     p.qici,
     case
@@ -901,7 +1009,10 @@ select
     grade_1,
     virtual_direct_leader_email_name,
     employee_email_name,
-    sum(v_lead) as v_lead
+    sum(v_lead) as v_lead,
+    sum(merge_valid_lead_count) as merge_valid_lead_count,
+    sum(merge_root_lead_count) as merge_root_lead_count,
+    max(merge_root_lead_ids) as merge_root_lead_ids
 from (
     select
         qici,
@@ -910,7 +1021,10 @@ from (
         grade_1,
         virtual_direct_leader_email_name,
         employee_email_name,
-        v_lead
+        v_lead,
+        merge_valid_lead_count,
+        merge_root_lead_count,
+        merge_root_lead_ids
     from normal_bb
     union all
     select
@@ -920,7 +1034,10 @@ from (
         grade_1,
         virtual_direct_leader_email_name,
         employee_email_name,
-        v_lead
+        v_lead,
+        merge_valid_lead_count,
+        merge_root_lead_count,
+        merge_root_lead_ids
     from prelead_bb
 ) lead_union
 group by
@@ -949,6 +1066,9 @@ coalesce(bb1.channel_map_2, ud.qudao, '未知') as channel_map_2,
 coalesce(bb1.grade_1, ud.grade_0, '未知') as grade_1,
 coalesce(bb1.employee_email_name, ud.name) as employee_email_name,
 coalesce(bb1.v_lead, 0) as v_lead,
+coalesce(bb1.merge_valid_lead_count, 0) as merge_valid_lead_count,
+coalesce(bb1.merge_root_lead_count, 0) as merge_root_lead_count,
+coalesce(bb1.merge_root_lead_ids, '') as merge_root_lead_ids,
 coalesce(bb1.virtual_direct_leader_email_name, ud.zhuguan) as virtual_direct_leader_email_name,
 coalesce(bb1.if_jieliang, '0') as jieliang,
 coalesce(ud.pay_user, 0) as pay_user,
@@ -994,6 +1114,9 @@ mm.p_income,
 mm.refund_user,
 mm.podan,
 mm.sc,
+mm.merge_valid_lead_count,
+mm.merge_root_lead_count,
+mm.merge_root_lead_ids,
 case when channel_map_2 = '亚飞IP' then 120
 when channel_map_2 = '武汉图书' then 20
 when channel_map_2 = '抖音私信' then 130

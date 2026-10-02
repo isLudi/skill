@@ -15,10 +15,11 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 
-NAVY = "#3d8b4f"
-GRID = "#aecfb2"
-BAND = "#dcebdd"
+NAVY = "#e6efff"
+GRID = "#c3cfe2"
+BAND = "#e6efff"
 BAND_TEXT = "#111827"
+HEADER_TEXT = "#111827"
 PAPER = "#ffffff"
 FONT_PATH = "C:/Windows/Fonts/msyh.ttc"
 DEFAULT_CONFIG = Path(__file__).resolve().parents[1] / "config" / "departments" / "qingcheng" / "public_pool_process_preview.json"
@@ -31,10 +32,10 @@ SCALES = {
     "24h首call": (0.0, 1.0),
 }
 BAR_COLORS = {
-    "好友率": "#4f78ae",
-    "等待时长": "#fb626b",
-    "8min": "#f5ae23",
-    "24h首call": "#2e9e6b",
+    "好友率": "#8da7ca",
+    "等待时长": "#fc999f",
+    "8min": "#f8ca70",
+    "24h首call": "#77c09f",
 }
 PROCESS_TIE_HANDLING = "all_tied_minimum"
 
@@ -171,9 +172,12 @@ def _band_label(channel: str, level: str, period: str) -> str:
 
 def _table_image(rows: list[dict], columns: list[str], path: Path, level: str, period: str, channel: str = "公海", *,
                  split_grade: bool = False, bar_specs: dict[str, tuple[float, float, str]] | None = None,
-                 integer_fields: frozenset[str] = frozenset()) -> None:
+                 integer_fields: frozenset[str] = frozenset(), total_fn=None, display_fn=None) -> None:
+    """Render one table image; total_fn/display_fn let sibling report types reuse the layout."""
     if bar_specs is None:
         bar_specs = {field: (*scale, BAR_COLORS[field]) for field, scale in SCALES.items()}
+    total_fn = total_fn or _total_row
+    display_fn = display_fn or _display
     identity = {"期次", "主管", "顾问", "负责人", "年级"}
     widths = [136 if c == "期次" else 132 if c in identity else 145 for c in columns]
     width = sum(widths)
@@ -194,9 +198,9 @@ def _table_image(rows: list[dict], columns: list[str], path: Path, level: str, p
         x = 0
         for col, col_width in zip(columns, widths):
             d.rectangle((x, header, x + col_width, header + header_h), fill=NAVY, outline=GRID)
-            _center_text(d, (x, header, x + col_width, header + header_h), col, _font(19, bold=True), PAPER)
+            _center_text(d, (x, header, x + col_width, header + header_h), col, _font(19, bold=True), HEADER_TEXT)
             x += col_width
-        for index, row in enumerate([*block_rows, _total_row(block_rows)]):
+        for index, row in enumerate([*block_rows, total_fn(block_rows)]):
             y = header + header_h + index * row_h
             is_total = row.get("is_total", False)
             x = 0
@@ -209,14 +213,14 @@ def _table_image(rows: list[dict], columns: list[str], path: Path, level: str, p
                     label = str(value)
                 else:
                     raw = row["metrics"].get(col)
-                    label = _display(raw, col, integer_fields=integer_fields)
+                    label = display_fn(raw, col, integer_fields=integer_fields)
                     if not is_total and col in bar_specs and raw is not None:
                         lo, hi, color = bar_specs[col]
                         fraction = max(0.0, min(1.0, (raw - lo) / (hi - lo)))
                         if fraction:
                             d.rectangle((x + 5, y + 7, x + 5 + int((col_width - 10) * fraction), y + row_h - 7), fill=color)
                 d.rectangle((x, y, x + col_width, y + row_h), outline=GRID)
-                _center_text(d, (x, y, x + col_width, y + row_h), label, _font(18, bold=is_total), PAPER if is_total else "#111827")
+                _center_text(d, (x, y, x + col_width, y + row_h), label, _font(18, bold=is_total), HEADER_TEXT if is_total else "#111827")
                 x += col_width
         top = header + header_h + (len(block_rows) + 1) * row_h + gap
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -335,7 +339,7 @@ def build(source: Path, supervisor_request: Path, consultant_request: Path, outp
     cards = []
     for item in results.values():
         cards.append(f"<section><h2>{html.escape(item['level'])}</h2><h3>过程图片</h3><img src='{item['process_png']}'><h3>过程消息 <a href='{item['process_message_file']}'>查看 Markdown</a></h3><pre>{html.escape(item['process_message'])}</pre></section>")
-    page = """<!doctype html><html lang='zh-CN'><meta charset='utf-8'><title>青橙过程数据本地预览</title><style>body{font:16px 'Microsoft YaHei',sans-serif;background:#eef4ee;color:#20314c;margin:0;padding:32px}main{max-width:1800px;margin:auto}section{background:white;border-radius:16px;padding:24px;margin:24px 0;box-shadow:0 6px 24px 0 #3d8b4f18}img{max-width:100%;height:auto;border:1px solid #aecfb2}pre{white-space:pre-wrap;background:#f2f8f3;padding:18px;border-radius:8px;font:16px 'Microsoft YaHei',sans-serif}aside{background:#fff2dd;border-left:5px solid #de9b35;padding:16px}</style><main>""" + f"<h1>青橙{html.escape(channel)} · 过程数据本地预览</h1><aside>原始数据：{html.escape(period)}，分区 {html.escape(source_dt)} {html.escape(source_hour)}:00，共 {len(rows):,} 条。</aside>" + "".join(cards) + "</main></html>"
+    page = """<!doctype html><html lang='zh-CN'><meta charset='utf-8'><title>青橙过程数据本地预览</title><style>body{font:16px 'Microsoft YaHei',sans-serif;background:#eef4ee;color:#20314c;margin:0;padding:32px}main{max-width:1800px;margin:auto}section{background:white;border-radius:16px;padding:24px;margin:24px 0;box-shadow:0 6px 24px 0 #3d8b4f18}img{max-width:100%;height:auto;border:1px solid #c3cfe2}pre{white-space:pre-wrap;background:#f2f8f3;padding:18px;border-radius:8px;font:16px 'Microsoft YaHei',sans-serif}aside{background:#fff2dd;border-left:5px solid #de9b35;padding:16px}</style><main>""" + f"<h1>青橙{html.escape(channel)} · 过程数据本地预览</h1><aside>原始数据：{html.escape(period)}，分区 {html.escape(source_dt)} {html.escape(source_hour)}:00，共 {len(rows):,} 条。</aside>" + "".join(cards) + "</main></html>"
     (output / "index.html").write_text(page, encoding="utf-8")
     return review
 

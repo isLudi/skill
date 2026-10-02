@@ -1,6 +1,6 @@
 ---
 name: sync-qingcheng-market-temp-tables
-description: 受治理地预检、修订、合并并上传青橙项目部与市场顾问部的已登记临时表。适用于飞书群“青橙数据对接”或“市场顾问部临时表上传”中的最新附件/登记链接、本地工作簿与大航海 temp table 身份映射、来源新鲜度与行数/变化率/必要列空值门禁、E 盘累计工作簿候选生成、已有 USQL 临时表上传，以及 @管家 多群事件服务的配置、停启和审计。异常默认阻断上传。
+description: 受治理地预检、修订、合并并上传青橙项目部与市场顾问部的已登记临时表。适用于飞书群“青橙数据对接”或“市场顾问部临时表上传”中的最新 Excel 附件、本地工作簿与大航海 temp table 身份映射、来源新鲜度与行数/变化率/必要列空值门禁、E 盘累计工作簿候选生成、已有 USQL 临时表上传，以及 @管家 多群事件服务的配置、停启和审计。异常默认阻断上传。
 ---
 
 # 青橙与市场顾问部临时表同步
@@ -55,7 +55,7 @@ description: 受治理地预检、修订、合并并上传青橙项目部与市�
 - 市场累计源中的人工历史修订不得被整表覆盖。市场带班架构、到课课次和 `plan_id` 使用来源切片哈希，只允许新增或已审查的变更期次进入候选。
 - 市场评优表只允许执行已登记的确定性修订：精确去重、邮箱前缀小写、证据可解析的年级填补、`x_qi_count` 重排。无法唯一解释时阻断。
 - 市场到课表的空 `channel` 只能从同粒度现有目标记录唯一回填；缺失或多解时阻断。
-- 青橙行课链接源需额外遵循 [course_schedule_source.md](references/course_schedule_source.md)；其环境文件必须由 Registry 的 `source_env_section` 精确选取 `USQL Web Query (Playwright) credentials` 段，禁止同名键按文件末尾覆盖。
+- 青橙行课附件源（2026-10-01 起为群内 Excel 附件，链接取件已下线）需额外遵循 [course_schedule_source.md](references/course_schedule_source.md)；附件文件名必须命中 Registry 的 `source_filename_patterns`（行课语义关键词：到课、开课、行课、课表、课程、daoke 等）。
 
 ## 命令入口
 
@@ -83,14 +83,12 @@ D:\anaconda3\python.exe C:\Users\lvshuai01\.codex\skills\sync-qingcheng-market-t
   --confirm-local-write
 ```
 
-明确生产上传后：
+明确生产上传后（Plan 绑定信息已包含在本地回执中）：
 
 ```powershell
 D:\anaconda3\python.exe C:\Users\lvshuai01\.codex\skills\sync-qingcheng-market-temp-tables\scripts\governed_temp_table_sync.py upload `
-  --plan <sync_plan.json> `
-  --expected-plan-sha256 <plan_sha256> `
   --local-receipt <local_apply_receipt.json> `
-  --expected-local-receipt-sha256 <receipt_sha256> `
+  --expected-receipt-sha256 <receipt_sha256> `
   --confirm-production-upload
 ```
 

@@ -22,8 +22,6 @@ from xml.etree import ElementTree
 from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
 
-from docs_sheet_downloader import download_docs_sheet
-
 
 SKILL_ROOT = Path(__file__).resolve().parents[1]
 SKILLS_ROOT = SKILL_ROOT.parent
@@ -204,22 +202,10 @@ def load_registry(path: Path) -> dict[str, Any]:
                 f"Family {family.get('id')} has unknown domain: {domain_id}"
             )
         source_kind = family.get("source_kind", "file_attachment")
-        if source_kind not in {"file_attachment", "link_workbook"}:
+        if source_kind != "file_attachment":
             raise WorkflowError(f"Unsupported source_kind for {family['id']}: {source_kind}")
-        if source_kind == "file_attachment" and not family.get("source_filename_patterns"):
+        if not family.get("source_filename_patterns"):
             raise WorkflowError(f"File source family has no filename patterns: {family['id']}")
-        if source_kind == "link_workbook":
-            required = (
-                "source_sender_open_id",
-                "source_url_patterns",
-                "source_expected_title_pattern",
-                "source_env_file",
-                "source_env_section",
-                "source_filename",
-            )
-            missing = [key for key in required if not family.get(key)]
-            if missing:
-                raise WorkflowError(f"Link source family {family['id']} is missing: {missing}")
         quality = family.get("source_quality")
         if registry.get("require_source_quality_gates") and not quality:
             raise WorkflowError(f"Source quality gate is required for family {family['id']}.")
@@ -808,6 +794,22 @@ def source_sender_id(registry: dict[str, Any], family: dict[str, Any]) -> str:
     )
 
 
+def source_sender_policy(registry: dict[str, Any], family: dict[str, Any]) -> str:
+    return str(
+        family.get("source_sender_policy")
+        or registry.get("source_sender_policy")
+        or "registered"
+    )
+
+
+def source_sender_ids(registry: dict[str, Any], family: dict[str, Any]) -> list[str]:
+    explicit = family.get("source_sender_open_ids")
+    if isinstance(explicit, list) and explicit:
+        return [str(item) for item in explicit if str(item)]
+    single = source_sender_id(registry, family)
+    return [single] if single else []
+
+
 def source_sender_name(registry: dict[str, Any], family: dict[str, Any]) -> str:
     return str(
         family.get("source_sender_name")
@@ -821,16 +823,10 @@ def _extract_file_resource(content: str) -> tuple[str, str] | None:
     return (match.group(1), match.group(2)) if match else None
 
 
-def _extract_docs_sheet_url(content: str) -> str | None:
-    match = re.search(r"https://docs\.baijia\.com/sheet/[^\s<>\"']+", content)
-    return match.group(0).rstrip(".,，。；;") if match else None
-
-
 def normalize_source_message(message: dict[str, Any]) -> dict[str, Any] | None:
     content = str(message.get("content") or "")
     file_resource = _extract_file_resource(content)
-    source_url = _extract_docs_sheet_url(content)
-    if file_resource is None and source_url is None:
+    if file_resource is None:
         return None
     sender = message.get("sender") or {}
     sender_id = sender.get("id") or sender.get("open_id") or message.get("sender_id")
@@ -846,16 +842,13 @@ def normalize_source_message(message: dict[str, Any]) -> dict[str, Any] | None:
         "sender_id": sender_id,
         "sender_name": sender_name,
     }
-    if file_resource is not None:
-        normalized.update(
-            {
-                "source_kind": "file_attachment",
-                "file_key": file_resource[0],
-                "file_name": file_resource[1],
-            }
-        )
-    else:
-        normalized.update({"source_kind": "link_workbook", "source_url": source_url})
+    normalized.update(
+        {
+            "source_kind": "file_attachment",
+            "file_key": file_resource[0],
+            "file_name": file_resource[1],
+        }
+    )
     return normalized
 
 
@@ -872,25 +865,14 @@ def message_matches_family(
     expected_chat = source_chat_id(registry, family)
     if expected_chat and message.get("chat_id") != expected_chat:
         return False
-    expected_sender = source_sender_id(registry, family)
-    if expected_sender and message.get("sender_id") != expected_sender:
-        return False
-    if source_kind(family) == "file_attachment":
-        filename = str(message.get("file_name") or "")
-        return any(
-            re.fullmatch(pattern, filename)
-            for pattern in family.get("source_filename_patterns", [])
-        )
-    source_url = str(message.get("source_url") or "")
-    content = str(message.get("content") or "")
-    if not any(
-        re.fullmatch(pattern, source_url)
-        for pattern in family.get("source_url_patterns", [])
-    ):
-        return False
-    return all(
-        re.search(pattern, content)
-        for pattern in family.get("source_message_patterns", [])
+    if source_sender_policy(registry, family) != "any_group_member":
+        expected_senders = source_sender_ids(registry, family)
+        if expected_senders and message.get("sender_id") not in expected_senders:
+            return False
+    filename = str(message.get("file_name") or "")
+    return any(
+        re.fullmatch(pattern, filename)
+        for pattern in family.get("source_filename_patterns", [])
     )
 
 
@@ -916,21 +898,27 @@ def _source_search_profiles(
     profiles: dict[tuple[str, str, str, str], dict[str, str]] = {}
     for family_id in family_ids:
         family = families[family_id]
-        sender_id = source_sender_id(registry, family)
-        if not sender_id:
-            raise WorkflowError(f"Source sender open_id is not configured for {family_id}.")
         chat_id = source_chat_id(registry, family)
         if not chat_id:
             raise WorkflowError(f"Source chat id is not configured for {family_id}.")
         kind = source_kind(family)
         query = str(family.get("source_search_query") or "")
-        profiles[(chat_id, sender_id, kind, query)] = {
-            "chat_id": chat_id,
-            "chat_name": source_chat_name(registry, family),
-            "sender_id": sender_id,
-            "source_kind": kind,
-            "query": query,
-        }
+        if source_sender_policy(registry, family) == "any_group_member":
+            sender_ids: list[str] = [""]
+        else:
+            sender_ids = source_sender_ids(registry, family)
+            if not sender_ids:
+                raise WorkflowError(
+                    f"Source sender open_id is not configured for {family_id}."
+                )
+        for sender_id in sender_ids:
+            profiles[(chat_id, sender_id, kind, query)] = {
+                "chat_id": chat_id,
+                "chat_name": source_chat_name(registry, family),
+                "sender_id": sender_id,
+                "source_kind": kind,
+                "query": query,
+            }
     return list(profiles.values())
 
 
@@ -1005,9 +993,9 @@ def discover_live_messages(
             "+messages-search",
             "--chat-id",
             profile["chat_id"],
-            "--sender",
-            profile["sender_id"],
         ]
+        if profile.get("sender_id"):
+            command.extend(["--sender", profile["sender_id"]])
         if profile["query"]:
             command.extend(["--query", profile["query"]])
         if profile["source_kind"] == "file_attachment":
@@ -1028,7 +1016,8 @@ def discover_live_messages(
             result = run_json_command(cli, command, timeout=120)
             items = list(result.get("data", {}).get("messages", []))
             raw_messages.extend(items)
-        except WorkflowError:
+        except (WorkflowError, subprocess.TimeoutExpired):
+            # any_group_member 搜索可能覆盖全群附件而超时；退回 bot 全量列表。
             items = []
         if not items:
             raw_messages.extend(
@@ -1093,7 +1082,7 @@ def classify_messages(
             family = matches[0]
             item = dict(message)
             item["family_id"] = family["id"]
-            item["file_name"] = item.get("file_name") or family.get("source_filename")
+            item["file_name"] = item.get("file_name") or ""
             item["sender_name"] = item.get("sender_name") or source_sender_name(registry, family)
             classified[family["id"]].append(item)
         else:
@@ -1255,22 +1244,6 @@ def download_message(
     output_dir.mkdir(parents=True, exist_ok=True)
     family_id = family["id"]
     output_name = f"{family_id}__{message['message_id']}.xlsx"
-    if source_kind(family) == "link_workbook":
-        env_key = str(family.get("source_env_file_env") or "")
-        env_file_value = os.environ.get(env_key) if env_key else None
-        env_file = Path(env_file_value or family["source_env_file"]).resolve()
-        output_path = (output_dir / output_name).resolve()
-        download_docs_sheet(
-            url=str(message["source_url"]),
-            output_path=output_path,
-            env_file=env_file,
-            credential_section=str(family.get("source_env_section") or "") or None,
-            url_patterns=list(family["source_url_patterns"]),
-            expected_title_pattern=str(family["source_expected_title_pattern"]),
-            browser_channel=str(family.get("source_browser_channel") or "msedge"),
-            timeout_seconds=int(family.get("source_download_timeout_seconds") or 120),
-        )
-        return output_path
     cli = resolve_lark_cli()
     payload = run_json_command(
         cli,
@@ -2334,6 +2307,19 @@ def validate_source_records(
                 for index, record in enumerate(records, start=2)
                 if not sheet or not _text(record.get(rule["column"])).endswith(sheet)
             ]
+        elif rule_type == "single_slice":
+            slice_values = {_text(record.get(rule["column"])) for record in records}
+            invalid = (
+                [
+                    {
+                        "column": rule["column"],
+                        "distinct_values": len(slice_values),
+                        "values": sorted(slice_values)[:10],
+                    }
+                ]
+                if len(slice_values) > 1
+                else []
+            )
         elif rule_type == "formula_count_max":
             formula_count = int((source_metadata or {}).get("formula_count") or 0)
             invalid = (

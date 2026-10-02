@@ -14,8 +14,11 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from fetch_qingcheng_process_source import fetch, probe_revision
+from lark_delivery.common import resend
 from lark_delivery.common.im import upload_image
-from lark_delivery.common.runtime import run_lark
+from lark_delivery.common.readback import available as readback_available
+from lark_delivery.common.retry import retry_transport
+from lark_delivery.common.runtime import ensure_console_streams, run_lark
 from preview_qingcheng_public_pool_process import _aggregate, _read_snapshot, _table_image
 from preview_qingcheng_sec_process import SEC_BAR_FIELDS, _reminders, _sort_rows
 from run_qingcheng_process import _batch as _existing_qingcheng_batch, _upstream_audit, _write_json, run_scope
@@ -46,7 +49,7 @@ def _config() -> dict:
             cfg["source"]["base_token"], cfg["source"]["table_id"]) != (
             1, "qingcheng", "local", "process", "active", True,
             "Codex-Lark-Qingcheng-SEC-Process-GroupPush", "自然周周五期次",
-            [1, 2, 3, 4, 5, 6], [12, 16, 20], 20, 50, 2, "Asia/Shanghai", "退前线索",
+             [1, 2, 3, 4, 5, 6], [12, 16, 20], 0, 50, 2, "Asia/Shanghai", "退前线索",
             "bot", "ou_f3907e865135732c15a1dfce27828411", "setup_only",
             "QOVib6QCXaUvJ2s2PsbcnMmsnGg", "tblXU4tla3bY36DE"):
         raise ValueError("SEC schedule, sender, or Base-write boundary differs")
@@ -111,9 +114,10 @@ def _slot(now: datetime, cfg: dict) -> datetime:
     if (now.tzinfo is None or now.utcoffset() != timedelta(hours=8)
             or now.weekday() not in calendar["process_weekdays"]
             or now.hour not in calendar["hours"]
-            or not calendar["minute"] <= now.minute <= calendar["deadline_minute"]):
+            or not calendar["minute"] <= now.minute <= calendar["deadline_minute"]
+            or (now.minute - calendar["minute"]) % calendar["retry_interval_minutes"]):
         raise ValueError("Outside the SEC process schedule")
-    return now.replace(minute=20, second=0, microsecond=0)
+    return now.replace(minute=calendar["minute"], second=0, microsecond=0)
 
 
 @contextmanager
@@ -313,12 +317,22 @@ def _render(review: dict, resolved: dict[str, str], display: dict[str, str], tex
 
 
 def _receipt_status(path: Path) -> dict | None:
+    """The settled verdict for one receipt, or None while the report may be re-driven.
+
+    A receipt whose send was never confirmed, or whose readback failed, must come
+    back as ``None`` so the round re-drives it. Only a verified send is settled.
+
+    This used to return ``previous_attempt_requires_review`` for everything else,
+    which made one transport reset unrecoverable: on 2026-09-29 12:20 the SEC
+    公域主管 broadcast took a token-endpoint reset, and every later round read that
+    verdict and refused, burning the whole window without re-trying.
+    """
     if not path.exists():
         return None
     saved = json.loads(path.read_text(encoding="utf-8"))
-    if saved.get("status") == "sent_verified":
+    if resend.decide(saved.get("status"), saved.get("message_id")) == resend.DONE:
         return {"status": "sent_verified", "message_id": saved["message_id"], "receipt": str(path)}
-    return {"status": "previous_attempt_requires_review", "receipt": str(path)}
+    return None
 
 
 def _key(entry: dict, period: str, slot: datetime) -> str:
@@ -326,12 +340,48 @@ def _key(entry: dict, period: str, slot: datetime) -> str:
     return f"qcsec_{entry['id'][:12]}_{slot:%Y%m%d%H%M}_{hashlib.sha256(seed.encode('utf-8')).hexdigest()[:12]}"
 
 
+def _reverify(entry: dict, cfg: dict, prior: dict, receipt_path: Path) -> dict:
+    """Read back a SEC message that is already in the group; never re-sends.
+
+    This path has no send capability, so re-running it cannot duplicate a message.
+    Everything the readback needs was recorded on the first attempt.
+    """
+    message_id, image_key = prior.get("message_id"), prior.get("image_key")
+    if not message_id or not image_key:
+        raise ValueError("SEC receipt lacks the message id or image key needed to re-verify")
+    try:
+        readback = _verify_message(entry["chat_id"], message_id, image_key, prior["period"],
+                                   set(prior.get("mention_ids") or ()), cfg["sender"]["open_id"])
+    except Exception as exc:
+        if not readback_available(entry, entry["chat_id"]):
+            # This group's content cannot be read back by anyone, so the failure says
+            # nothing about delivery. Accept the acknowledged write and stop retrying.
+            prior.update({"status": resend.UNVERIFIABLE, "readback_error": str(exc)})
+            _write_json(receipt_path, prior)
+            return {"status": resend.UNVERIFIABLE, "message_id": message_id, "receipt": str(receipt_path)}
+        prior.update({"status": "sent_readback_unverified", "readback_error": str(exc)})
+        _write_json(receipt_path, prior)
+        raise
+    prior.update({"status": "sent_verified", "readback": readback})
+    prior.pop("readback_error", None)
+    _write_json(receipt_path, prior)
+    return {"status": "sent_verified", "message_id": message_id, "receipt": str(receipt_path)}
+
+
 def _deliver(entry: dict, review: dict, manifest: dict, cfg: dict, output: Path, slot: datetime) -> dict:
     receipt_path = output / "send_receipt.json"
-    existing = _receipt_status(receipt_path)
-    if existing:
-        return existing
-    if probe_revision(entry["source"], review["period"], output / "source_revision_probe.ndjson") != manifest["rev"]:
+    settled = _receipt_status(receipt_path)
+    if settled:
+        return settled
+    prior = json.loads(receipt_path.read_text(encoding="utf-8")) if receipt_path.exists() else None
+    # A recorded message id means the message is in the group: re-read, never re-send.
+    if prior and resend.decide(prior.get("status"), prior.get("message_id")) == resend.REVERIFY:
+        return _reverify(entry, cfg, prior, receipt_path)
+    # The probe is a precondition read: a transport failure means nothing was learned, so
+    # it is retried in-round, while a returned revision that differs still fails closed.
+    current = retry_transport(lambda: probe_revision(
+        entry["source"], review["period"], output / "source_revision_probe.ndjson"))
+    if current != manifest["rev"]:
         raise ValueError("SEC Base revision changed before delivery")
     member_ids = _members(entry["chat_id"], cfg["sender"]["open_id"])
     resolved, display, text_only = _resolve(entry, review, member_ids)
@@ -350,7 +400,12 @@ def _deliver(entry: dict, review: dict, manifest: dict, cfg: dict, output: Path,
                "text_only_names": sorted(person["name"] for group in review["reminders"]
                                          for person in group["people"] if _person_key(person) in text_only),
                "image_sha256": hashlib.sha256(image.read_bytes()).hexdigest(),
-               "message_sha256": hashlib.sha256(markdown.encode("utf-8")).hexdigest()}
+               "message_sha256": hashlib.sha256(markdown.encode("utf-8")).hexdigest(),
+               # Re-issue evidence: the key is unchanged, so the platform dedupes if an
+               # earlier attempt did land. Kept on the receipt because the retry loop
+               # replaces it every round and the run log only records the final word.
+               "resend_attempts": (prior or {}).get("resend_attempts", 0) + (1 if prior else 0),
+               "prior_status": (prior or {}).get("status", "")}
     _write_json(receipt_path, receipt)
     try:
         sent = _data(["im", "+messages-send", "--chat-id", entry["chat_id"],
@@ -372,7 +427,12 @@ def _deliver(entry: dict, review: dict, manifest: dict, cfg: dict, output: Path,
                                    review["period"], set(resolved.values()), cfg["sender"]["open_id"])
         receipt.update({"status": "sent_verified", "readback": readback})
     except Exception as exc:
-        receipt.update({"status": "sent_readback_unverified", "readback_error": str(exc)})
+        if readback_available(entry, entry["chat_id"]):
+            receipt.update({"status": "sent_readback_unverified", "readback_error": str(exc)})
+        else:
+            # Unreadable group: the write was acknowledged, verification is impossible by
+            # policy, and reporting a failure here would be a false alarm on every push.
+            receipt.update({"status": resend.UNVERIFIABLE, "readback_error": str(exc)})
     _write_json(receipt_path, receipt)
     return {"status": receipt["status"], "message_id": message_id, "receipt": str(receipt_path)}
 
@@ -463,6 +523,7 @@ def run(*, now: datetime | None = None, output: Path | None = None) -> dict:
 
 
 def main() -> None:
+    ensure_console_streams()  # pythonw.exe has no console streams
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check-config", action="store_true")
     parser.add_argument("--confirm-send", action="store_true")
@@ -481,7 +542,8 @@ def main() -> None:
         print(json.dumps({"period": result["period"], "slot": result["slot"],
                           "reports": result["reports"]}, ensure_ascii=True, indent=2))
         scope.adopt(result)
-        failed = any(value["status"] not in {"sent_verified", "skipped_no_source_rows", "skipped_no_eligible_rows"}
+        failed = any(value["status"] not in {"sent_verified", resend.UNVERIFIABLE,
+                                             "skipped_no_source_rows", "skipped_no_eligible_rows"}
                      for value in result["reports"].values())
         scope.exit_code = 1 if failed else 0
         if failed:

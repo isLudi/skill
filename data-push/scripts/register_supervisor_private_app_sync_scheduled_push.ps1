@@ -17,8 +17,9 @@ if (-not $pushConfig.enabled) { throw 'The registered channel schedule is disabl
 $pushFirst = [DateTimeOffset]::Parse($pushConfig.first_send_at).LocalDateTime
 $pushTaskName = 'Codex-Lark-Supervisor-Private-App-Push'
 $pushLauncher = Join-Path $PSScriptRoot 'run_supervisor_private_app_sync_scheduled_push.ps1'
-$pushArguments = '-NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -File "{0}"' -f $pushLauncher
-$pushAction = New-ScheduledTaskAction -Execute "$env:WINDIR\System32\WindowsPowerShell\v1.0\powershell.exe" -Argument $pushArguments -WorkingDirectory (Split-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -Parent)
+$pushHiddenLauncher = Join-Path $PSScriptRoot 'run_hidden_push.pyw'
+$pushArguments = '"{0}" "{1}"' -f $pushHiddenLauncher, $pushLauncher
+$pushAction = New-ScheduledTaskAction -Execute 'D:\anaconda3\pythonw.exe' -Argument $pushArguments -WorkingDirectory (Split-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -Parent)
 $pushExisting = Get-ScheduledTask -TaskName $pushTaskName -ErrorAction SilentlyContinue
 if ($pushExisting) {
     if ($pushExisting.Actions.Arguments -ne $pushArguments) { throw 'Existing task has another action; refusing overwrite.' }

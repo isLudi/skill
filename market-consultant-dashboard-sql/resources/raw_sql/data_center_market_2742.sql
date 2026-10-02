@@ -35,7 +35,7 @@ group by 1,2,3)
         talent_type_name, city_name as city, department,
         biz_number, course_grade as grade_list,
         course_subject as subject,
-        concat(date_format(date_add('day', 4, date_trunc('week', date_add('day', -1, cast(trade_time as timestamp)))), '%Y%m%d'), '期') as qici,
+        concat(date_format(date_trunc('week', cast(trade_time as timestamp)) + interval '4' day, '%Y%m%d'), '期') as qici,
         leader_employee_email_name, teacher_name,
         case course_term_id 
             when 'C' then '春季' 
@@ -53,7 +53,7 @@ group by 1,2,3)
         and employee_first_level_department_name = 'H业务线'
         and employee_second_level_department_name = '市场部'
 	    and employee_third_level_department_name = '市场顾问部'
-        and concat(date_format(date_add('day', 4, date_trunc('week', date_add('day', -1, cast(trade_time as timestamp)))), '%Y%m%d'), '期') >= '20250103期'
+        and concat(date_format(date_trunc('week', cast(trade_time as timestamp)) + interval '4' day, '%Y%m%d'), '期') >= '20250103期'
 )
 ,dd as (select dd_0.*
 from dd_0

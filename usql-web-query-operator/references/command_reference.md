@@ -63,6 +63,10 @@
 |---|---|---|---|---|
 | `list-projects` | Verify the scoped Tiangong2 identity and list accessible projects read-only. | `remote_read_only` | `explicit_command` | [tiangong2_task_exploration.md](tiangong2_task_exploration.md) |
 | `explore` | Recursively snapshot exact data-development folders without running or changing tasks. | `remote_read_only` | `explicit_command` | [tiangong2_task_exploration.md](tiangong2_task_exploration.md) |
+| `plan-task-schedule-update` | Plan a schedule-only update for one exact owned Tiangong2 task without remote writes. | `remote_read_only` | `explicit_command` | [tiangong2_task_operations.md](tiangong2_task_operations.md) |
+| `apply-task-schedule-update` | Save one reviewed schedule-only update and verify exact schedule readback. | `remote_write_explicit` | `exact_plan_hash_and_confirmation` | [tiangong2_task_operations.md](tiangong2_task_operations.md) |
+| `plan-nezha-schedule-update` | Plan a periodic Nezha schedule update for one exact owned task without remote writes. | `remote_read_only` | `explicit_command` | [tiangong2_task_operations.md](tiangong2_task_operations.md) |
+| `apply-nezha-schedule-update` | Save one reviewed Nezha periodic schedule and verify config/list readback. | `remote_write_explicit` | `exact_plan_hash_and_confirmation` | [tiangong2_task_operations.md](tiangong2_task_operations.md) |
 | `list-execution-history` | List recent execution attempts for one exact owned Tiangong2 task into redacted runtime artifacts. | `remote_read_only` | `explicit_command` | [tiangong2_task_operations.md](tiangong2_task_operations.md) |
 | `fetch-execution-log` | Read one exact owned Tiangong2 execution and all stage logs into redacted runtime artifacts. | `remote_read_only` | `explicit_command` | [tiangong2_task_operations.md](tiangong2_task_operations.md) |
 | `plan-task-maintenance-session` | Plan one time-bounded authorization session for exact-task save, submit, publish, and bounded debug execution. | `remote_read_only` | `explicit_command` | [tiangong2_task_operations.md](tiangong2_task_operations.md) |

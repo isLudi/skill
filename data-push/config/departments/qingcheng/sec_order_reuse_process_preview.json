@@ -23,13 +23,13 @@
     "timezone": "Asia/Shanghai"
   },
   "visual": {
-    "header": "#3d8b4f",
-    "grid": "#aecfb2",
+    "header": "#e6efff",
+    "grid": "#c3cfe2",
     "metric_bars": {
-      "好友率": {"min": 0, "max": 1, "color": "#4f78ae"},
-      "24h首call": {"min": 0, "max": 1, "color": "#2e9e6b"},
-      "外呼时长": {"min": 0, "max": 5, "color": "#f5ae23"},
-      "外呼频次": {"min": 0, "max": 8, "color": "#9b7bcb"}
+      "好友率": {"min": 0, "max": 1, "color": "#8da7ca"},
+      "24h首call": {"min": 0, "max": 1, "color": "#77c09f"},
+      "外呼时长": {"min": 0, "max": 5, "color": "#f8ca70"},
+      "外呼频次": {"min": 0, "max": 8, "color": "#bea9dd"}
     },
     "band_title": "渠道-维度-期次",
     "total_row": "sum_detail_then_recalculate_ratios",

@@ -434,11 +434,30 @@ def _build_physical_catalog(repo_root: Path, manifests: dict[str, dict[str, Any]
     }
 
 
-def build_outputs(repo_root: Path) -> dict[Path, str]:
+def build_outputs(repo_root: Path, domains: set[str] | None = None) -> dict[Path, str]:
+    """Build generated artifacts for every domain, or only the selected ones.
+
+    With ``domains=None`` (the default) this is the full repository build and it
+    also rewrites the shared physical catalog. With an explicit domain subset,
+    only the selected skills' ``domain_manifest.json`` and ``contract_index.json``
+    are produced; the shared ``physical_catalog.json`` is left untouched because
+    it aggregates every domain and rewriting it from a subset would drop the
+    excluded domains' tables from the compiler input.
+    """
+    selected: list[str] | None
+    if domains is None:
+        selected = None
+    else:
+        selected = sorted(set(domains))
+        unknown = [domain for domain in selected if domain not in DOMAIN_CONFIG]
+        if unknown:
+            raise ValueError(f"unknown text2sql domains: {', '.join(unknown)}")
+        if not selected:
+            raise ValueError("no text2sql domains selected")
     known_tables = _known_tables(repo_root)
     registries: dict[str, ContractRegistry] = {}
     manifests: dict[str, dict[str, Any]] = {}
-    for domain in sorted(DOMAIN_CONFIG):
+    for domain in (sorted(DOMAIN_CONFIG) if selected is None else selected):
         skill = str(DOMAIN_CONFIG[domain]["skill"])
         registry = ContractRegistry.load(repo_root / skill, domain)
         if not registry.ok:
@@ -468,8 +487,9 @@ def build_outputs(repo_root: Path) -> dict[Path, str]:
         outputs[repo_root / skill / "semantic" / "generated" / "contract_index.json"] = _json_text(
             registries[domain].generated_index()
         )
-    physical = _build_physical_catalog(repo_root, manifests)
-    outputs[repo_root / "_shared" / "text2sql_core" / "catalog" / "physical_catalog.json"] = _json_text(physical)
+    if selected is None:
+        physical = _build_physical_catalog(repo_root, manifests)
+        outputs[repo_root / "_shared" / "text2sql_core" / "catalog" / "physical_catalog.json"] = _json_text(physical)
     return outputs
 
 

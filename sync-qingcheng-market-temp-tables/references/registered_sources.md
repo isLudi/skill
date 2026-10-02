@@ -21,7 +21,7 @@
 | `team_month_goal` | `团队月度目标表.xlsx` / `月度目标表.xlsx` | `...\qing_team_goal_moth.xlsx` | `dingxi01_qing_team_goal` | 源 `month` 切片 |
 | `result_architecture` | `全员结果数据架构.xlsx` | `...\qing_team_jg.xlsx` | `dingxi01_qing_team_jg` | 源 `qici` 切片 |
 | `period_architecture` | 青橙带班架构文件 | `D:\GAOTU\19002_市场顾问部看板维护表格\jiagou_db.xlsx` | `dingxi01_jiagou_db` | `dept_1=青橙项目部` 且源 `qici` |
-| `course_schedule` | 李怡青发布的登记文档链接 | `D:\GAOTU\19003_青橙项目部看板维护表格\qing_daoke.xlsx` | `dingxi01_qing_daoke` | 活动页对应 `qici` |
+| `course_schedule` | 李怡青发布的群内 Excel 附件（文件名含行课语义，见 `course_schedule_source.md`） | `D:\GAOTU\19003_青橙项目部看板维护表格\qing_daoke.xlsx` | `dingxi01_qing_daoke` | 活动页对应 `qici` |
 
 前三类目标表允许在登记文件名前增加一个严格的数字月份前缀：`1月`–`12月`，并兼容 `01月`–`09月`。月份以外的文本前缀、`0月`、`13月`、中文数字月份和其他扩展名仍不匹配。
 

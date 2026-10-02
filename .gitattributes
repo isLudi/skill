@@ -18,5 +18,6 @@ usql-web-query-operator/references/*.json text eol=lf
 usql-web-query-operator/scripts/read_dashboard/** text eol=lf
 usql-web-query-operator/tests/** text eol=lf
 
-# Market canonical SQL is an exact production-source snapshot; preserve its remote hash.
+# Canonical SQL is an exact production-source snapshot; preserve its remote hash.
 market-consultant-dashboard-sql/resources/raw_sql/*.sql whitespace=-blank-at-eol,-space-before-tab
+qingcheng-dashboard-sql/resources/raw_sql/*.sql whitespace=-blank-at-eol,-space-before-tab

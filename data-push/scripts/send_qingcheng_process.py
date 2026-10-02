@@ -8,6 +8,7 @@ import json
 import re
 from pathlib import Path
 
+from lark_delivery.common import resend
 from lark_delivery.common.im import mention_nonmembers, upload_image
 from lark_delivery.common.runtime import run_lark
 
@@ -111,6 +112,39 @@ def _verify_message(chat_id: str, message_id: str, image_key: str, period: str, 
     return {"message_id": message_id, "verified": True, "mention_ids": sorted(actual_ids)}
 
 
+def _receipt_status(saved: dict) -> str:
+    """Normalise this script's two receipt shapes into one lifecycle word.
+
+    A success receipt is the raw send output and carries **no** ``status`` field;
+    its only confirmation signal is ``readback.verified``.
+    """
+    if saved.get("status"):
+        return saved["status"]
+    return "sent_verified" if (saved.get("readback") or {}).get("verified") is True else "sent_unverified"
+
+
+def _reverify(receipt: dict, receipt_path: Path, sender_open_id: str) -> dict:
+    """Read back one already-sent report; this path has no send capability.
+
+    Every input the readback needs was recorded by the first attempt, so no contact
+    search, group-membership probe or upload is repeated -- and no send is possible,
+    so a message already in the group can never be doubled by re-running this.
+    """
+    message_id = (receipt.get("response") or {}).get("message_id")
+    image_key = receipt.get("image_key")
+    if not (isinstance(message_id, str) and message_id.startswith("om_")) or not image_key:
+        raise ValueError("Receipt lacks the message id or image key needed to re-verify")
+    try:
+        receipt["readback"] = _verify_message(receipt["chat_id"], message_id, image_key, receipt["period"],
+                                              set(receipt.get("mention_ids") or ()), sender_open_id)
+    except Exception as exc:
+        receipt["readback"] = {"verified": False, "error": str(exc)}
+        receipt_path.write_text(json.dumps(receipt, ensure_ascii=False, indent=2), encoding="utf-8")
+        raise
+    receipt_path.write_text(json.dumps(receipt, ensure_ascii=False, indent=2), encoding="utf-8")
+    return receipt
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--level", choices=("supervisor", "consultant"), required=True)
@@ -119,6 +153,8 @@ def main() -> None:
     parser.add_argument("--image-key", default="")
     parser.add_argument("--idempotency-key", required=True)
     parser.add_argument("--send", action="store_true")
+    parser.add_argument("--reverify-only", action="store_true",
+                        help="re-run the readback of an already-sent message; never sends")
     args = parser.parse_args()
     if not re.fullmatch(r"[A-Za-z0-9_-]{1,50}", args.idempotency_key):
         raise ValueError("Idempotency key must be 1-50 safe characters")
@@ -131,8 +167,21 @@ def main() -> None:
     profile = config["profiles"][args.level]
     level, chat_id = profile["level"], profile["target_chat_id"]
     receipt = args.review_dir / f"{args.level}_process_send_{args.idempotency_key}.json"
+    if args.reverify_only:
+        if not receipt.exists():
+            raise ValueError("No receipt exists for this idempotency key")
+        saved = _reverify(json.loads(receipt.read_text(encoding="utf-8")), receipt, delivery["sender_open_id"])
+        print(json.dumps(saved, ensure_ascii=False, indent=2))
+        if not saved["readback"]["verified"]:
+            raise SystemExit(1)
+        return
     if args.send and receipt.exists():
-        raise ValueError("A send receipt already exists for this idempotency key; verify it before any retry")
+        saved = json.loads(receipt.read_text(encoding="utf-8"))
+        verdict = resend.decide(_receipt_status(saved), (saved.get("response") or {}).get("message_id"))
+        if verdict != resend.RESEND:
+            raise ValueError("This idempotency key already has a recorded outcome; re-verify instead of re-sending")
+        # Never confirmed: fall through and re-issue with the SAME key, so the platform
+        # dedupes if an earlier attempt did reach the group.
     review = json.loads((args.review_dir / "review.json").read_text(encoding="utf-8"))
     item = review["results"][args.level]
     if item["level"] != level or item["process_tie_handling"] != "all_tied_minimum":

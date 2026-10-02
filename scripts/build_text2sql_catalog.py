@@ -17,8 +17,16 @@ from text2sql_core.builder import build_outputs, check_outputs, write_outputs  #
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--check", action="store_true", help="fail if generated files are missing or stale")
+    parser.add_argument(
+        "--domains",
+        default="",
+        help="comma-separated domain ids to build (e.g. qingcheng,market_consultant); default builds all domains "
+        "including the shared physical catalog",
+    )
     args = parser.parse_args()
-    outputs = build_outputs(REPO_ROOT)
+    raw = (args.domains or "").strip()
+    selected = {item.strip() for item in raw.split(",") if item.strip()} or None
+    outputs = build_outputs(REPO_ROOT, selected)
     if args.check:
         failures = check_outputs(outputs)
         if failures:

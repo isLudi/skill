@@ -12,7 +12,7 @@
     "period_rule": "自然周周五期次",
     "process_weekdays": [1, 2, 3],
     "hours": [14],
-    "minute": 25,
+    "minute": 0,
     "deadline_minute": 50,
     "retry_interval_minutes": 2,
     "timezone": "Asia/Shanghai"
@@ -33,10 +33,10 @@
     "nezha_task_id": 67318,
     "task_name": "qing2lark_guocheng",
     "owner": "lvshuai01",
-    "published_version": "V27",
-    "version_id": 207244,
-    "exec_file_id": 831460,
-    "source_sha256": "53f4a8f34bbbbef6b4c5b3d615249111909c14aa51e65841f83da3f7080bbd03",
+    "published_version": "V29",
+    "version_id": 207387,
+    "exec_file_id": 831981,
+    "source_sha256": "2da69b923428509481cb185017d8ad05a1a126e5600c8f418396f51d12130de6",
     "audit_schema": "market2lark-two-period-audit-v1"
   },
   "target_chat_id": "oc_a95c83e488e0dfcc777d5ffad849d8a4",
@@ -51,10 +51,10 @@
   "sort": {"metric": "8min", "direction": "desc", "value": "unrounded"},
   "visual": {
     "metric_bars": {
-      "好友率": {"min": 0, "max": 1, "color": "#4f78ae"},
-      "等待时长": {"min": 0, "max": 48, "color": "#fb626b"},
-      "8min": {"min": 0, "max": 1, "color": "#f5ae23"},
-      "24h首call": {"min": 0, "max": 1, "color": "#2e9e6b"}
+      "好友率": {"min": 0, "max": 1, "color": "#8da7ca"},
+      "等待时长": {"min": 0, "max": 48, "color": "#fc999f"},
+      "8min": {"min": 0, "max": 1, "color": "#f8ca70"},
+      "24h首call": {"min": 0, "max": 1, "color": "#77c09f"}
     },
     "integer_fields": ["带班人数", "有效线索", "总通时"]
   },

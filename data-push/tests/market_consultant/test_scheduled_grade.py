@@ -16,6 +16,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "scripts"))
 import broadcast_policy as bp
 import grade_report as gr
 import group_push as gp
+from lark_delivery.domains.market_consultant import delivery_gate
 import scheduled_push as sp
 from .test_grade_report import leads, build
 
@@ -67,6 +68,17 @@ class ScheduledGradeTests(unittest.TestCase):
         sp.validate_context(self.context(), self.evidence(), self.cfg, self.slot)
         with self.assertRaises(ValueError):
             sp.validate_context({**self.context(), "period": "20260918期", "raw_count": 1}, self.evidence(), self.cfg, self.slot)
+
+    def test_snapshot_count_uses_matched_base_rows_before_reviewed_deduplication(self):
+        context = self.context()
+        context["raw_read_audit"]["matched_count"] = 11
+        evidence = self.evidence()
+        evidence["periods"]["20260911期"]["channel_counts"][bp.CHANNEL] = 11
+        sp.validate_context(context, evidence, self.cfg, self.slot)
+
+        context["raw_read_audit"]["matched_count"] = 10
+        with self.assertRaisesRegex(ValueError, "count"):
+            sp.validate_context(context, evidence, self.cfg, self.slot)
 
     def test_missing_or_extra_mentions_and_legacy_profile_are_blocked(self):
         for changes in ({"markdown": "no mentions"}, {"markdown": '<at user_id="all"></at>'},
@@ -140,13 +152,9 @@ class ScheduledGradeTests(unittest.TestCase):
             directory = Path(folder)
             cfg = copy.deepcopy(self.cfg)
             cfg["upstream"]["log_protocol"] = "two_period_clear_then_replace_v1_retry"
-            cfg["upstream"]["channel_mapping_version"] = "0918"
+            cfg["upstream"]["channel_mapping_version"] = "0925"
             doc, _ = self.log_doc(directory)
-            success_path = directory / "stage.log"
-            success_raw = success_path.read_text(encoding="utf-8").replace(
-                "渠道映射版本：0918", "渠道映射版本：0918"
-            ).encode("utf-8")
-            success_path.write_bytes(success_raw)
+            success_raw = (directory / "stage.log").read_bytes()
             failed_raw = b"retryable stage failure\n"
             (directory / "failed.log").write_bytes(failed_raw)
             doc["stages"] = [
@@ -230,7 +238,7 @@ class ScheduledGradeTests(unittest.TestCase):
                         json.dumps({"image_keys": {"process": "img_p"},
                                     "readback_error_type": "ValueError"})))
             db.commit()
-            with patch.object(sp, "receipt_readback", return_value={"verified": True}) as readback, \
+            with patch.object(delivery_gate, "receipt_readback", return_value={"verified": True}) as readback, \
                  patch.object(sp.gp, "upload_image") as upload, patch.object(sp.gp, "send_markdown") as send:
                 result = sp.reverify_unverified_delivery(db, "key", self.cfg, context)
             self.assertEqual(result["status"], "sent_verified")

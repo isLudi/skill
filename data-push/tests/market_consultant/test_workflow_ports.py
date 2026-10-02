@@ -100,6 +100,20 @@ class WorkflowPortTests(unittest.TestCase):
         self.assertEqual(context["raw_read_audit"]["server_returned_count"], 11)
         self.assertEqual(context["raw_read_audit"]["matched_channel_values"], ["APP", "App", "aPp", "app"])
 
+    def test_source_audit_preserves_pre_dedupe_count(self):
+        original_count = len(self.rows)
+        self.rows.append(deepcopy(self.rows[0]))
+        target = catalog.select_targets(self.definition)[0]
+        with tempfile.TemporaryDirectory() as directory:
+            args = report_arguments(self.definition, target, report_type="process", state_dir=directory,
+                                    no_mentions=True)
+            args.with_image = False
+            context = prepare_report(args, self.definition, ports=self.ports)
+        self.assertEqual(context["raw_count"], original_count)
+        self.assertEqual(context["raw_read_audit"]["matched_count"], original_count + 1)
+        self.assertEqual(context["raw_read_audit"]["deduped_count"], original_count)
+        self.assertEqual(len(context["raw_read_audit"]["duplicate_lead_id_merged"]), 1)
+
     def test_every_registered_multi_channel_group_skips_only_audited_zero_rows(self):
         keys = ("business_koc_math", "supervisor_koc_douyin_sync",
                 "supervisor_private_app_sync", "supervisor_self_incubated_koc_5_grade_9")

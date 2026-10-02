@@ -2,13 +2,13 @@ with biz_qici_calendar as (
     select *
     from (
         values
-            ('20260716期', date '2026-07-14', date '2026-07-19'),
-            ('20260722期', date '2026-07-20', date '2026-07-25'),
-            ('20260728期', date '2026-07-26', date '2026-07-31'),
-            ('20260803期', date '2026-08-01', date '2026-08-06'),
-            ('20260808期', date '2026-08-07', date '2026-08-11'),
-            ('20260815期', date '2026-08-12', date '2026-08-18'),
-            ('20260821期', date '2026-08-19', date '2026-08-23')
+            ('20260716期', date '2026-07-13', date '2026-07-19'),
+            ('20260722期', date '2026-07-20', date '2026-07-26'),
+            ('20260728期', date '2026-07-27', date '2026-08-02'),
+            ('20260803期', date '2026-08-03', date '2026-08-09'),
+            ('20260808期', date '2026-08-10', date '2026-08-16'),
+            ('20260815期', date '2026-08-17', date '2026-08-23'),
+            ('20260821期', date '2026-08-24', date '2026-08-30')
     ) as t(qici, period_start_date, period_end_date)
 ),
 data as (
@@ -16,7 +16,7 @@ select distinct
         f.*,
         coalesce(
             lead_cal.qici,
-            concat(date_format(date_trunc('week', cast(f.group_period_date as timestamp) - interval '1' day) + interval '4' day, '%Y%m%d'), '期')
+            concat(date_format(date_trunc('week', cast(f.group_period_date as timestamp)) + interval '4' day, '%Y%m%d'), '期')
         ) as qici
 ,case 
 when f.rule_name like '%私域%' then '青橙私域'
@@ -107,10 +107,7 @@ daoke as (
                 substr(begin_time, 12, 5) as ke_time,
             coalesce(
                 learn_cal.qici,
-                case when day_of_week(cast(begin_time as timestamp)) = 1 
-                     then concat(date_format(date_trunc('week', cast(begin_time as timestamp)) - interval '3' day, '%Y%m%d'), '期')
-                     else concat(date_format(date_trunc('week', cast(begin_time as timestamp)) + interval '4' day, '%Y%m%d'), '期')
-                end
+                concat(date_format(date_trunc('week', cast(begin_time as timestamp)) + interval '4' day, '%Y%m%d'), '期')
             ) as qici,
                 mod(date_diff('day', cast('2021-02-01' as date), cast(begin_time as date)), 7) as dow,
                 is_need_attend,

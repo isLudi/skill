@@ -191,6 +191,7 @@ def prepare_report(args: argparse.Namespace, definition, *, ports: ReportPorts |
     raw_audit["client_excluded_count"] = server_returned_count - len(records)
     raw_audit["channel_match_mode"] = source_channel.get("match_mode", "exact") if isinstance(source_channel, dict) else "exact"
     raw_audit["matched_channel_values"] = sorted({str(value(row, "渠道")) for row in records})
+    raw_audit["matched_count"] = len(records)
     records = merge_duplicate_lead_ids(records, raw_audit)
     raw_audit["deduped_count"] = len(records)
     snapshot = report_module.validate_scope(records, channel, period, source_channel=source_channel)

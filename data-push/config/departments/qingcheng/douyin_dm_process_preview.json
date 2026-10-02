@@ -35,9 +35,9 @@
     "timezone": "Asia/Shanghai"
   },
   "visual": {
-    "header": "#3d8b4f",
-    "grid": "#aecfb2",
-    "waiting_time_bar": "#fb626b",
+    "header": "#e6efff",
+    "grid": "#c3cfe2",
+    "waiting_time_bar": "#fc999f",
     "band_title": "渠道-维度-期次",
     "total_row": "sum_detail_then_recalculate_ratios",
     "number_format": "总通时、有效线索、主管带班人数取整数；其他指标保留一位小数"

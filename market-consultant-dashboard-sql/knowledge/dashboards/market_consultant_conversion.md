@@ -105,8 +105,8 @@ zz.period_name > '20260424期'
 | ww_pmit | `sum(case when d_w = '非当期' then income_amount / 100 - in_pay_period_refund_amount / 100 - non_pay_period_refund_amount / 100 else 0 end)` | `D:\Feishu\0522.txt` 中 `qici` 规则在本看板落为 `d_w` 后的非当期 GMV | 2026-05-22 更新 |
 | s_lead | `case when can_renew_ds_count_a >= 5 then can_renew_ds_count_a else 0 end` | 有效线索数达到 5 才计入 | 来自看板 SQL，阈值待业务确认 |
 | podan | `case when can_renew_ds_count_a >= 5 and trade_profit > 0 then 1 else 0 end` | 有效线索达 5 且净营收为正则破单 | 来自看板 SQL，阈值待业务确认 |
-| cb_cb | `coalesce(ct.cost, 0)` | 单例子成本，来自成本临时表 | 待确认成本表维护口径 |
-| gl_gl | `coalesce(ct.goal, 0)` | 单例子目标，来自成本临时表 | 待确认成本表维护口径 |
+| cb_cb | `coalesce(ct.cost, 0)` | 单lead成本，来自成本临时表 | 2026-09-29 用户确认：市场部提供的单lead成本表（源 `cost.xlsx` → `temp_table.dingxi01_cost.cost`；飞书 Base「渠道映射规则/04_渠道成本配置」`cb_of_lead` 为同口径配置源） |
+| gl_gl | `coalesce(ct.goal, 0)` | 单lead目标，来自成本临时表 | 2026-09-29 用户确认：部门基于目标 ROI 给顾问定的单 lead 净收款指标，goal = cost × 渠道目标 ROI；比值按（渠道×年级）维护，0918 期实测 1.09~13.14 |
 
 ## 9. 前端展示派生公式
 
@@ -131,7 +131,7 @@ zz.period_name > '20260424期'
 ## 10. 可复用 SQL 模式
 
 - `data` CTE：全链路明细表中做 `d_w`、`xiansuo`、渠道 CASE 映射、年级识别和基础指标空值处理。`D:\Feishu\0524.txt` 中输出别名为 `qici` 的当期/非当期 CASE，在本看板中沿用历史字段名 `d_w`。
-- 渠道 CASE 有独立最新来源：`resources/raw_sql/market_channel_case_when_0918.sql`（基于飞书 0904 规则逐分支融合，保留完整分支优先级），说明见 `knowledge/sql_patterns/channel_mapping_case_when.md`。
+- 渠道 CASE 有独立最新来源：`resources/raw_sql/market_channel_case_when_0925.sql`（以飞书 0925 完整顺序为基线，融合历史 first-match 保护规则），说明见 `knowledge/sql_patterns/channel_mapping_case_when.md`。
 - `zhuanhua` CTE：按期次、渠道、规则、年级、部门和员工聚合转化/收入指标。2026-05-24 起分组增加 `rule_name`，输出粒度细化到规则级别。
 - final select：补充成本、目标和架构信息，并派生 `s_lead`、`podan`、`sx_qi`、`jingli_1`。
 
@@ -142,7 +142,7 @@ zz.period_name > '20260424期'
 - SQL 在 `channel_map` CASE 中使用 `third_department_name`、`first_department_name`、`second_department_name`、`virtual_third_department_name`、`virtual_fourth_department_name`、`virtual_fifth_department_name` 等部门字段，但 where 中只显式限定了截面分配部门和期次映射一级部门；复用时需确认这是否满足公司范围限定规范。
 - `temp_table.dingxi01_channel_group`、`temp_table.dingxi01_cost`、`temp_table.dingxi01_jiagou_zx` 的真实字段类型和维护来源待补充。
 - `temp_table.dingxi01_jiagou_db` join 后未在最终 select 直接使用字段，但可能造成重复行；需确认该表在 join key 下是否唯一。
-- `channel_map` 是超长 CASE 规则，历史完整规则以原始 SQL 为准；最新渠道 CASE 已归档为 `resources/raw_sql/market_channel_case_when_0918.sql`。后续改写 SQL 时应优先使用该独立渠道映射知识，除非用户明确要求沿用本看板历史口径。
+- `channel_map` 是超长 CASE 规则，历史完整规则以原始 SQL 为准；最新渠道 CASE 已归档为 `resources/raw_sql/market_channel_case_when_0925.sql`。后续改写 SQL 时应优先使用该独立渠道映射知识，除非用户明确要求沿用本看板历史口径。
 - `xiansuo` 当前按底层 0/1 标记求和输出；如前端需要作为维度筛选，应另行确认是否改为明细维度，不能直接把当前聚合字段放入 group by。
 - `grade_1` 的 `rule_name` 来源是业财宽表主留痕规则，不等同于 CRM 当前页面能看到的所有分配规则。若 CRM 有规则但看板年级回退为购买意向，需对比 `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.rule_name`、`service_dw.dim_crm_assign_rule_lead_detail_hf.rule_name` 和 `service_dw.dm_crm_lead_stats_detail_hf.trace_rule_name`。
 - 所有指标口径来自历史看板 SQL，尚未经过业务口径文档确认。

@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "domain": "qingcheng",
+  "report_type": "transformation",
+  "status": "active",
+  "schedule_enabled": true,
+  "windows_task_name": "Codex-Lark-Qingcheng-Transformation-GroupPush",
+  "retry_interval_minutes": 2,
+  "business_calendar": {
+    "result_weekdays": [4, 5, 6, 0],
+    "weekday_names": ["周五", "周六", "周日", "次周周一"],
+    "hours_by_weekday": {
+      "4": [14, 18, 22],
+      "5": [14, 18, 22],
+      "6": [14, 18, 22],
+      "0": [2]
+    },
+    "minute": 2,
+    "deadline_minute": 55,
+    "timezone": "Asia/Shanghai",
+    "rule_note": "2026-10-01 用户两次调整：晚间窗口起于 :01 后整体改至 :02——周五/周六/周日 14:02、18:02、22:02 起各一窗口（每 2 分钟重试至 :55）；次周周一仅凌晨 02:02 起一个窗口，其他时刻不推送。Base 申请记录表 9 条记录（原 6 条 + 图书顾问/本地化顾问/本地化主管）的期望推送时段已同步为新值（update_base_push_windows.py 回读验证一致）。"
+  },
+  "source": {
+    "process_base_token": "QOVib6QCXaUvJ2s2PsbcnMmsnGg",
+    "process_table_id": "tblXU4tla3bY36DE",
+    "conversion_base_token": "QOVib6QCXaUvJ2s2PsbcnMmsnGg",
+    "conversion_table_id": "tbl9CcVtXPntqGvP"
+  },
+  "upstream": {
+    "project_id": 308,
+    "menu_id": 103713,
+    "task_id": 47775,
+    "nezha_task_id": 67397,
+    "task_name": "qing2lark_zhuanhua",
+    "owner": "lvshuai01",
+    "audit_mode": "none",
+    "audit_note": "qing2lark_zhuanhua 的平台调度时点未固定（曾出现 08 时执行而架构表未就绪的时序竞态，10-01 已确认重跑即修复），第一版调度不做天宫2执行行审计；改用转化表快照新鲜度门禁（freshness_max_age_minutes）兜底。建议后续将 zhuanhua 调度固定到每窗口前并补执行行审计。"
+  },
+  "freshness_max_age_minutes": 1560,
+  "no_data_policy": "skip_group_when_no_conversion_output",
+  "no_data_note": "渠道当期转化行（期次过滤后）的收款、退费、当期收款、成交人头、报科数全为 0 时，该渠道两群跳过发送（记 skipped_no_conversion_data），与 2026-10-01 用户确认的『无数据产出的群可跳过』规则一致。",
+  "schedule_gate_note": "2026-10-01 用户确认预览并授权后，五渠道全部 scheduled=true 参与周常调度（周五/六/日 14:02、18:02、22:02；次周周一仅 02:02）。",
+  "channels": [
+    {
+      "id": "public_pool",
+      "config": "transformation_preview.json",
+      "scheduled": true,
+      "operator_records": {
+        "supervisor": "recvwjZbPTL5aH",
+        "consultant": "recvwjX5b2YILG"
+      }
+    },
+    {
+      "id": "private",
+      "config": "transformation_preview.json",
+      "scheduled": true,
+      "operator_records": {
+        "supervisor": "recvwjZ8GbkWV7",
+        "consultant": "recvwjAT4WbHAS"
+      }
+    },
+    {
+      "id": "douyin_dm",
+      "config": "transformation_preview.json",
+      "scheduled": true,
+      "operator_records": {
+        "supervisor": "recvwjZ9JJylEQ",
+        "consultant": "recvwjX2koAHjx"
+      }
+    },
+    {
+      "id": "partner_books",
+      "config": "transformation_preview.json",
+      "scheduled": true,
+      "operator_records": {
+        "consultant": "recvwjW9ZAvRBW"
+      },
+      "note": "图书仅顾问维度（群 🍊武汉图书koc）；申请记录状态=草稿。20261002期无转化产出，即便启用调度也会按无数据规则跳过。"
+    },
+    {
+      "id": "partner_local",
+      "config": "transformation_preview.json",
+      "scheduled": true,
+      "operator_records": {
+        "supervisor": "recvwjZaMMix5H",
+        "consultant": "recvwjX409k8f2"
+      },
+      "note": "本地化主管（已上线）→ 青橙-河南本地化项目，提醒不 @ 主管、按年级点名截面单效；顾问（草稿）→ 🍊青橙河南本地化伙伴。2026-10-01 用户确认预览后启用周常调度。"
+    }
+  ]
+}

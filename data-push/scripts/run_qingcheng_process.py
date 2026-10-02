@@ -17,7 +17,10 @@ from zoneinfo import ZoneInfo
 
 from fetch_qingcheng_process_source import fetch, probe_revision
 from preview_qingcheng_public_pool_process import build
-from lark_delivery.common import push_log
+from lark_delivery.common import push_log, resend
+from lark_delivery.common.readback import available as readback_available
+from lark_delivery.common.retry import retry_transport
+from lark_delivery.common.runtime import CREATE_NO_WINDOW, ensure_console_streams
 
 
 SKILL = Path(__file__).resolve().parents[1]
@@ -41,6 +44,10 @@ AUDIT_CHANNELS = {"public_pool": ("顾问未加好友",), "private": ("私域表
 # 审计选不中唯一的 stage 日志，从而拦停全部青橙推送。
 TASK_NAME_ALIASES = ("qing2lark_guocheng", "qing2lark")
 STAGE_LOG_SUFFIXES = ("_qing2lark.log", "_qing2lark_guocheng.log")
+# The local Qingcheng batches start on the hour while qing2lark runs at :40.
+# Nezha's periodTime is normalized to the containing hour, so a 12:00 local
+# batch must audit the 11:40 upstream execution, represented as 11:00.
+UPSTREAM_RUN_LEAD_MINUTES = 20
 
 
 def _write_json(path: Path, value: dict) -> None:
@@ -81,7 +88,7 @@ def _batch() -> dict:
         raise ValueError("Unexpected Qingcheng process batch scope")
     if [item["id"] for item in batch["channels"]] != ["public_pool", "private", "douyin_dm"]:
         raise ValueError("All Qingcheng process channels must be explicit")
-    if (calendar["process_weekdays"], calendar["hours"], calendar["minute"], calendar["deadline_minute"], calendar["timezone"]) != ([1, 2, 3], [14, 18, 22], 25, 50, "Asia/Shanghai"):
+    if (calendar["process_weekdays"], calendar["hours"], calendar["minute"], calendar["deadline_minute"], calendar["timezone"]) != ([1, 2, 3], [14, 18, 22], 0, 50, "Asia/Shanghai"):
         raise ValueError("Process batch calendar differs from the reviewed slots")
     upstream = batch["upstream"]
     if (batch["retry_interval_minutes"], batch["windows_task_name"], upstream["project_id"], upstream["folder"],
@@ -89,8 +96,8 @@ def _batch() -> dict:
             upstream["owner"], upstream["published_version"], upstream["version_id"], upstream["exec_file_id"],
             upstream["source_sha256"], upstream["audit_schema"]) != (
             2, "Codex-Lark-Qingcheng-Process-GroupPush", 308, "吕帅", 103625, 47728, 67318,
-            "qing2lark_guocheng", "lvshuai01", "V27", 207244, 831460,
-            "53f4a8f34bbbbef6b4c5b3d615249111909c14aa51e65841f83da3f7080bbd03",
+            "qing2lark_guocheng", "lvshuai01", "V29", 207387, 831981,
+            "2da69b923428509481cb185017d8ad05a1a126e5600c8f418396f51d12130de6",
             "market2lark-two-period-audit-v1"):
         raise ValueError("Qingcheng upstream or Windows task pin differs")
     return batch
@@ -105,7 +112,9 @@ def _slot(now: datetime, batch: dict) -> datetime:
     calendar = batch["business_calendar"]
     if now.tzinfo is None or now.utcoffset() != timedelta(hours=8):
         raise ValueError("Task clock must be Asia/Shanghai")
-    if now.weekday() not in calendar["process_weekdays"] or now.hour not in calendar["hours"] or not calendar["minute"] <= now.minute <= calendar["deadline_minute"]:
+    if (now.weekday() not in calendar["process_weekdays"] or now.hour not in calendar["hours"]
+            or not calendar["minute"] <= now.minute <= calendar["deadline_minute"]
+            or (now.minute - calendar["minute"]) % batch["retry_interval_minutes"]):
         raise ValueError("Outside the authorized Qingcheng process window")
     return now.replace(minute=calendar["minute"], second=0, microsecond=0)
 
@@ -130,7 +139,8 @@ def _operator_read(command: str, *args: str) -> dict:
     result = subprocess.run([sys.executable, str(OPERATOR), command, "--project-id", str(upstream["project_id"]),
                              "--folder", upstream["folder"], "--menu-id", str(upstream["menu_id"]),
                              "--task-name", upstream["task_name"], *args],
-                            cwd=WORKSPACE, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120)
+                            cwd=WORKSPACE, capture_output=True, text=True, encoding="utf-8", errors="replace",
+                            timeout=120, creationflags=CREATE_NO_WINDOW)
     if result.returncode:
         raise ValueError(f"Tiangong2 {command} read failed: {result.stderr[-600:]}")
     payload = json.loads(result.stdout)
@@ -139,27 +149,47 @@ def _operator_read(command: str, *args: str) -> dict:
     return payload
 
 
+def _expected_upstream_period_time(slot: datetime) -> str:
+    upstream_start = slot - timedelta(minutes=UPSTREAM_RUN_LEAD_MINUTES)
+    return upstream_start.replace(minute=0, second=0, microsecond=0).strftime("%Y-%m-%d %H:%M:%S")
+
+
 def _upstream_audit(period: str, slot: datetime) -> dict:
     history_result = _operator_read("list-execution-history", "--limit", "50")
     history = json.loads((Path(history_result["artifact_dir"]) / "history.json").read_text(encoding="utf-8"))
-    current_hour = slot.replace(minute=0, second=0, microsecond=0).strftime("%Y-%m-%d %H:%M:%S")
-    scheduled = [entry for entry in history["executions"]
-                 if entry.get("triggerSource") == 0 and entry.get("periodTime") == current_hour]
-    if len(scheduled) != 1:
-        raise ValueError("Current-hour scheduled qing2lark execution is not unique")
-    latest = scheduled[0]
+    upstream_period_time = _expected_upstream_period_time(slot)
+    # The upstream runs at :40 before each local on-the-hour batch. Nezha reports
+    # that execution's periodTime at the containing hour (for example, 11:40 as
+    # 11:00). The source of truth is still the unique successful execution pinned
+    # to the reviewed exec file, whatever way it was triggered; uniqueness and the
+    # newest-execution guard stay enforced.
+    candidates = []
+    for entry in history["executions"]:
+        if entry.get("periodTime") != upstream_period_time or entry.get("status") != 6:
+            continue
+        try:
+            entry_config = json.loads(entry.get("runConfig") or "{}")
+        except (TypeError, json.JSONDecodeError):
+            continue
+        if (entry_config.get("projectId"), entry_config.get("execFileId")) == (308, 831981):
+            candidates.append(entry)
+    if len(candidates) != 1:
+        raise ValueError("Expected upstream-hour successful qing2lark execution is not unique")
+    latest = candidates[0]
     if latest["id"] != max(entry["id"] for entry in history["executions"]):
         raise ValueError("A newer qing2lark execution may have replaced the source")
     run_config = json.loads(latest["runConfig"])
     # 执行行报的是该行建立时的任务名快照：改名后建立的行已报新名，改名前的行仍报
     # 旧名。身份锚点是不可变的 Nezha 任务 ID，所以只要求名字落在兼容集合内。
     if latest.get("taskName") not in TASK_NAME_ALIASES:
-        raise ValueError("The current-hour execution is not the qing2lark task")
-    if (latest.get("taskId"), latest.get("status"), latest.get("periodTime"),
-            run_config.get("projectId"), run_config.get("execFileId"), run_config.get("triggerSourceEnum")) != (
-            67318, 6, current_hour,
-            308, 831460, "SCHEDULE"):
-        raise ValueError("The current-hour scheduled qing2lark execution is not successful or has drifted")
+        raise ValueError("The expected upstream-hour execution is not the qing2lark task")
+    if (latest.get("taskId"), latest.get("periodTime"),
+            run_config.get("projectId"), run_config.get("execFileId")) != (
+            67318, upstream_period_time,
+            308, 831981):
+        raise ValueError("The expected upstream-hour qing2lark execution is not successful or has drifted")
+    if run_config.get("triggerSourceEnum") not in ("SCHEDULE", "EXECUTE"):
+        raise ValueError("The expected upstream-hour qing2lark execution has an unexpected trigger")
     log_result = _operator_read("fetch-execution-log", "--exec-id", str(latest["id"]))
     log_dir = Path(log_result["artifact_dir"])
     execution = json.loads((log_dir / "execution.json").read_text(encoding="utf-8"))
@@ -186,49 +216,76 @@ def _upstream_audit(period: str, slot: datetime) -> dict:
     snapshot = info["snapshots"][0]
     if len(snapshot) != 2 or not re.fullmatch(r"20\d{6}", snapshot[0]) or not re.fullmatch(r"\d{1,2}", snapshot[1]):
         raise ValueError("Invalid process audit snapshot")
-    return {"execution_id": latest["id"], "snapshot": snapshot,
+    return {"execution_id": latest["id"], "upstream_period_time": upstream_period_time,
+            "snapshot": snapshot,
             "raw_channel_counts": info["channel_counts"],
             "expected_counts": {channel: sum(info["channel_counts"].get(name, 0) for name in names)
                                 for channel, names in AUDIT_CHANNELS.items()}}
 
 
-def _existing_receipt(channel: str, level: str, config_path: Path, review_dir: Path,
-                      period: str, slot: datetime) -> dict | None:
+def _receipt_path(channel: str, level: str, config_path: Path, review_dir: Path,
+                  period: str, slot: datetime) -> Path:
     config = json.loads(config_path.read_text(encoding="utf-8"))
     chat_id = config["profiles"][level]["target_chat_id"]
-    key = _key(channel, level, chat_id, period, slot)
-    receipt = review_dir / f"{level}_process_send_{key}.json"
-    if receipt.exists():
-        saved = json.loads(receipt.read_text(encoding="utf-8"))
-        return {"status": "sent_verified" if saved.get("readback", {}).get("verified") is True else "previous_attempt_requires_review",
-                "receipt": str(receipt)}
-    return None
+    return review_dir / f"{level}_process_send_{_key(channel, level, chat_id, period, slot)}.json"
+
+
+def _receipt_state(receipt: Path) -> tuple[str, str]:
+    """``(verdict, message_id)`` for one receipt; ``RESEND`` when nothing is on record.
+
+    A success receipt is the raw send output and carries **no** ``status`` field, so
+    the verdict comes from the recorded message id paired with ``readback.verified``.
+    """
+    if not receipt.exists():
+        return resend.RESEND, ""
+    saved = json.loads(receipt.read_text(encoding="utf-8"))
+    message_id = str((saved.get("response") or {}).get("message_id") or "")
+    if saved.get("status"):
+        saved_status = saved["status"]
+    else:
+        saved_status = "sent_verified" if (saved.get("readback") or {}).get("verified") is True else "sent_unverified"
+    return resend.decide(saved_status, message_id), message_id
 
 
 def _send_group(channel: str, level: str, config_path: Path, review_dir: Path, period: str, slot: datetime) -> dict:
-    existing = _existing_receipt(channel, level, config_path, review_dir, period, slot)
-    if existing is not None:
-        return existing
     config = json.loads(config_path.read_text(encoding="utf-8"))
     chat_id = config["profiles"][level]["target_chat_id"]
     key = _key(channel, level, chat_id, period, slot)
     receipt = review_dir / f"{level}_process_send_{key}.json"
+    verdict, message_id = _receipt_state(receipt)
+    if verdict == resend.DONE:
+        return {"status": "sent_verified", "message_id": message_id, "receipt": str(receipt)}
+    # The availability question is asked only on a readback failure (below), so a normal
+    # send costs no extra API call.
     script = SKILL / "scripts/send_qingcheng_process.py"
+    # A recorded message id means the message is in the group: re-read, never re-send.
+    # Otherwise re-issue with the SAME key, so the platform dedupes if the earlier
+    # attempt did land.
+    mode = "--reverify-only" if verdict == resend.REVERIFY else "--send"
     command = [sys.executable, str(script), "--level", level, "--review-dir", str(review_dir),
-               "--config", str(config_path), "--idempotency-key", key, "--send"]
-    result = subprocess.run(command, cwd=WORKSPACE, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=240)
+               "--config", str(config_path), "--idempotency-key", key, mode]
+    result = subprocess.run(command, cwd=WORKSPACE, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=240, creationflags=CREATE_NO_WINDOW)
     if result.returncode:
         if receipt.exists():
             saved = json.loads(receipt.read_text(encoding="utf-8"))
             message_id = saved.get("response", {}).get("message_id")
             if isinstance(message_id, str) and message_id.startswith("om_") and saved.get("readback", {}).get("verified") is False:
+                error = saved["readback"].get("error")
+                # Unreadable group: the write was acknowledged and verification is
+                # impossible by policy, so this is an accepted terminal state rather than
+                # a failure. Never re-issued -- a new key would post a second copy.
+                if not readback_available(config["profiles"][level], chat_id):
+                    return {"status": resend.UNVERIFIABLE, "message_id": message_id,
+                            "error": error, "receipt": str(receipt)}
                 return {"status": "readback_failed", "message_id": message_id,
-                        "error": saved["readback"].get("error"), "receipt": str(receipt)}
+                        "error": error, "receipt": str(receipt)}
         return {"status": "blocked_or_uncertain", "error": (result.stderr or result.stdout)[-1200:].strip(),
                 "receipt": str(receipt) if receipt.exists() else None}
     response = json.loads(result.stdout)
     if response.get("readback", {}).get("verified") is not True:
-        return {"status": "readback_failed", "receipt": str(receipt)}
+        unreadable = not readback_available(config["profiles"][level], chat_id)
+        return {"status": resend.UNVERIFIABLE if unreadable else "readback_failed",
+                "receipt": str(receipt)}
     return {"status": "sent_verified", "message_id": response["readback"]["message_id"], "receipt": str(receipt)}
 
 
@@ -246,7 +303,7 @@ def _index(output: Path, batch_result: dict) -> None:
     page = ("<!doctype html><html lang='zh-CN'><meta charset='utf-8'><title>青橙过程数据本地预览</title>"
             "<style>body{font:16px 'Microsoft YaHei',sans-serif;background:#edf2f8;color:#20314c;padding:24px}"
             "main{max-width:1900px;margin:auto}section{background:white;margin:22px 0;padding:20px;border-radius:12px}"
-            "img{max-width:100%;border:1px solid #aecfb2}pre{white-space:pre-wrap;background:#f2f6fb;padding:14px}</style>"
+            "img{max-width:100%;border:1px solid #c3cfe2}pre{white-space:pre-wrap;background:#f2f6fb;padding:14px}</style>"
             f"<main><h1>青橙公海、私域与抖音私信 · 过程数据本地预览</h1><p>{html.escape(batch_result['period'])}</p>"
             + "".join(cards) + "</main></html>")
     (output / "index.html").write_text(page, encoding="utf-8")
@@ -259,12 +316,19 @@ def _deliver_groups(batch: dict, result: dict, output: Path, slot: datetime) -> 
         channel = entry["id"]
         for level in LEVELS:
             group = result["channels"][channel]["groups"][level]
-            if group["status"] != "prepared":
+            if group["status"] not in ("prepared", resend.REVERIFY, resend.RESEND):
                 continue
             try:
-                current_rev = probe_revision(channel, period, output / channel / f"probe_{level}.ndjson")
-                if current_rev != result["channels"][channel]["source_rev"]:
-                    raise ValueError("Raw Base revision changed before delivery")
+                # A readback-only re-verify does not depend on the source at all, and the
+                # source has usually moved on by the time one is due -- probing it here
+                # would block the one path that cannot duplicate a message.
+                if group["status"] != resend.REVERIFY:
+                    # A transport failure means nothing was learned, so it is retried
+                    # in-round; a returned revision that differs still fails closed.
+                    current_rev = retry_transport(lambda: probe_revision(
+                        channel, period, output / channel / f"probe_{level}.ndjson"))
+                    if current_rev != result["channels"][channel]["source_rev"]:
+                        raise ValueError("Raw Base revision changed before delivery")
                 outcome = _send_group(channel, level, CONFIG_DIR / entry["config"], output / channel / level, period, slot)
             except Exception as exc:
                 outcome = {"status": "blocked", "error": str(exc)}
@@ -328,9 +392,17 @@ def run(*, period_date: str = "", confirm_send: bool = False, now: datetime | No
         for level in LEVELS:
             try:
                 if slot:
-                    existing = _existing_receipt(channel, level, config_path, channel_dir / level, period, slot)
-                    if existing is not None:
-                        channel_result["groups"][level] = existing
+                    path = _receipt_path(channel, level, config_path, channel_dir / level, period, slot)
+                    verdict, message_id = _receipt_state(path)
+                    if verdict == resend.DONE:
+                        channel_result["groups"][level] = {"status": "sent_verified",
+                                                           "message_id": message_id, "receipt": str(path)}
+                        continue
+                    if path.exists():
+                        # Prepared and dispatched once already, so the review on disk is
+                        # still the reviewed one; only the outcome is open. Re-preparing
+                        # would re-fetch a source that has since moved and block the retry.
+                        channel_result["groups"][level] = {"status": verdict}
                         continue
                 review = build(source, CONFIG_DIR / entry["supervisor_request"], CONFIG_DIR / entry["consultant_request"],
                                channel_dir / level, config_path, levels=(level,))
@@ -342,13 +414,20 @@ def run(*, period_date: str = "", confirm_send: bool = False, now: datetime | No
                 channel_result["groups"][level] = {"status": "prepared"}
             except Exception as exc:
                 channel_result["groups"][level] = {"status": "blocked_prepare", "error": str(exc)}
+    # 2026-10-01 用户要求推送解耦：任一渠道的快照漂移/版本变化只记录、只影响该
+    # 渠道自身（发送前每个群仍独立 probe 自身 rev，见 _deliver_groups），不再整批
+    # 拦停其他渠道的推送。上游审计（_upstream_audit）是数据闸而非群推送，保持整批。
     versions = {(item["source_rev"], item["snapshot"]) for item in result["channels"].values() if item["source_rev"] is not None}
-    if len(versions) > 1:
-        raise ValueError("Qingcheng channel source snapshots differ")
-    if previous and any((previous["channels"][channel]["source_rev"], previous["channels"][channel]["snapshot"]) !=
-                        (item["source_rev"], item["snapshot"]) for channel, item in result["channels"].items()
-                        if previous["channels"][channel]["source_rev"] is not None and item["source_rev"] is not None):
-        raise ValueError("Source version changed within an already attempted batch")
+    result["rev_consistency"] = "uniform" if len(versions) <= 1 else "mixed"
+    drifted = []
+    if previous:
+        for channel, item in result["channels"].items():
+            prev_item = previous["channels"].get(channel) or {}
+            if (item["source_rev"] is not None and prev_item.get("source_rev") is not None
+                    and (prev_item["source_rev"], prev_item.get("snapshot"))
+                    != (item["source_rev"], item["snapshot"])):
+                drifted.append(channel)
+    result["source_version_drift"] = drifted
     try:
         _index(output, result)
     except Exception as exc:
@@ -377,6 +456,7 @@ def run_scope(config_path: Path, channel_id: str):
 
 
 def main() -> None:
+    ensure_console_streams()  # pythonw.exe has no console streams
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--period-date", default="", help="Business Friday YYYYMMDD for local preview")
     parser.add_argument("--output", type=Path)
@@ -396,7 +476,8 @@ def main() -> None:
                          ensure_ascii=True, indent=2))
         scope.event("report_ready", period=result["period"], slot=result["slot"])
         scope.adopt(result)
-        accepted = {"sent_verified", "skipped_no_eligible_rows"} if args.confirm_send else {"prepared"}
+        accepted = ({"sent_verified", resend.UNVERIFIABLE, "skipped_no_eligible_rows"}
+                    if args.confirm_send else {"prepared"})
         failed = any(value.get("status") not in accepted
                      for item in result["channels"].values() for value in item["groups"].values())
         scope.exit_code = 1 if failed else 0

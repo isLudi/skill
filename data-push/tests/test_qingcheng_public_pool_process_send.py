@@ -1,6 +1,7 @@
 """Strict identity and native mention checks for Qingcheng process delivery."""
 
 import importlib.util
+import json
 import sys
 from pathlib import Path
 
@@ -81,3 +82,42 @@ def test_private_grade_lines_all_use_native_mentions():
                                     {"甲": "甲", "乙": "乙", "丙": "丙"}, "img_test", by_grade)
     assert result.count("<at user_id=") == 3
     assert "- 高二年级8min较低的顾问：<at user_id=\"ou_c\">丙</at>" in result
+
+
+def test_receipt_status_reads_both_shapes_this_sender_writes():
+    # A failure receipt carries `status`; a success receipt is the raw send output with
+    # no status at all, so `readback.verified` is the only confirmation signal.
+    assert MODULE._receipt_status({"status": "send_attempt_started"}) == "send_attempt_started"
+    assert MODULE._receipt_status({"status": "send_result_uncertain"}) == "send_result_uncertain"
+    assert MODULE._receipt_status({"response": {"message_id": "om_x"}}) == "sent_unverified"
+    assert MODULE._receipt_status({"response": {"message_id": "om_x"},
+                                   "readback": {"verified": True}}) == "sent_verified"
+    assert MODULE._receipt_status({"response": {"message_id": "om_x"},
+                                   "readback": {"verified": False}}) == "sent_unverified"
+
+
+def test_reverify_sends_nothing_and_updates_the_receipt(monkeypatch, tmp_path):
+    # `--reverify-only` has no send capability: it must not reach upload or the send
+    # outlet, and a message already in the group can therefore never be doubled.
+    touched = []
+    monkeypatch.setattr(MODULE, "upload_image", lambda *a, **k: touched.append("upload"))
+    monkeypatch.setattr(MODULE, "_data", lambda *a, **k: touched.append("send"))
+    monkeypatch.setattr(MODULE, "_verify_message",
+                        lambda *a, **k: {"message_id": "om_prior", "verified": True})
+    receipt_path = tmp_path / "supervisor_process_send_k.json"
+    receipt = {"response": {"message_id": "om_prior"}, "image_key": "img_k",
+               "chat_id": "oc_x", "period": "20261002期", "mention_ids": ["ou_a"]}
+    receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
+    out = MODULE._reverify(json.loads(receipt_path.read_text(encoding="utf-8")),
+                           receipt_path, "ou_bot")
+    assert out["readback"]["verified"] is True
+    assert touched == []
+    assert json.loads(receipt_path.read_text(encoding="utf-8"))["readback"]["verified"] is True
+
+
+def test_reverify_refuses_a_receipt_without_a_message_id(monkeypatch, tmp_path):
+    monkeypatch.setattr(MODULE, "_verify_message", lambda *a, **k: {"verified": True})
+    receipt_path = tmp_path / "supervisor_process_send_k.json"
+    (receipt_path).write_text(json.dumps({"status": "send_result_uncertain"}), encoding="utf-8")
+    with pytest.raises(ValueError, match="message id"):
+        MODULE._reverify({"status": "send_result_uncertain"}, receipt_path, "ou_bot")

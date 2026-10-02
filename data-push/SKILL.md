@@ -1,6 +1,6 @@
 ---
 name: data-push
-description: 按部门、渠道与执行面设计和维护本地 Python/Windows 及飞书妙搭数据推送。用于推送配置、预览、调度、投递、回执、迁移和渠道配置 Base；业务口径与渠道特例从对应知识库读取。
+description: 按部门、渠道与执行面设计和维护本地 Python/Windows 及飞书妙搭数据推送。用于推送配置、预览、调度、投递、回执、迁移和渠道配置 Base；青橙本地过程批次按整点启动并每两分钟重试；业务口径与渠道特例从对应知识库读取。
 metadata:
   short-description: "按部门与执行面隔离数据推送的配置、运行和回执"
 ---
@@ -43,6 +43,20 @@ metadata:
 - Base 是需求和实施台账；生产事实源仍是受治理的本地配置。角色权限按部门失败关闭，只读候选不直接发布或启用推送；具体字段和权限方案见 [渠道配置中心 Base](references/channel-registry-base.md)。
 - 飞书 Base、联系人、消息、身份和妙搭平台操作分别走 [lark-base](../lark-base/SKILL.md)、[lark-contact](../lark-contact/SKILL.md)、[lark-im](../lark-im/SKILL.md)、[lark-shared](../lark-shared/SKILL.md)、[lark-apps](../lark-apps/SKILL.md)。不要把凭证写入配置或预览产物。
 
+### 青橙本地整点批次
+
+青橙项目部当前启用的本地过程批次（过程三群、SEC 五报告、专项四渠道、伙伴三群）均按业务日历的整点启动：过程/专项/伙伴为周二至周四 `14:00`、`18:00`、`22:00`（专项仅 `14:00`），SEC 为周二至周日 `12:00`、`16:00`、`20:00`。每个触发器从 `:00` 开始，每两分钟重试至 `:50`，因此首轮允许在 `:00`～`:02` 内完成；不再沿用 `:20`、`:25`、`:26` 的延后启动规则。
+
+转化批次（`run_qingcheng_transformation.py`，五渠道九群：公海/私域/抖音私信/图书/本地化 × 主管/顾问维度）为 2026-10-01 启用的独立任务 `Codex-Lark-Qingcheng-Transformation-GroupPush`：周五/周六/周日 `14:02`、`18:02`、`22:02` 起，次周周一仅 `02:02`；每个触发器从 `:02` 起每两分钟重试至 `:55`。窗口配置以 `transformation_batch.json` 的 `hours_by_weekday`/`minute`/`deadline_minute` 为准，并与 Base 表九条 operator 记录的推送时段字段保持同步。
+
+四个执行器的 `upstream` 必须与当前已验证的 `qing2lark_guocheng` 绑定一致（菜单 `103625`、task `47728`、Nezha `67318`、V29/version `207387`/exec `831981`）；上游任务改版后，先读回最新版本和执行文件，再同步本地批次配置及技术 Base，不能只改任务计划程序。
+
+本地整点批次的上游审计时点与本地发送时点不是同一个小时字符串：`qing2lark_guocheng` 在每个本地 `HH:00` 批次前的 `HH-1:40` 运行，而 Nezha `periodTime` 按所在整点归一化。因此本地 `12:00/16:00/20:00` 分别审计上游 `11:00/15:00/19:00` 的成功执行行（对应 `11:40/15:40/19:40`），过程/专项/伙伴批次同理；仍须保留唯一成功执行、最新执行、版本/执行文件和完整 stage 日志门禁。
+
+天宫2 的 `qing2lark_guocheng`（过程）与 `qing2lark_zhuanhua`（转化）是两条独立上游，不能互换 task、版本或执行文件。调度保持每 2 小时一次的全部 `:40` 时刻（`23:40/01:40/03:40/05:40/07:40/09:40/11:40/13:40/15:40/17:40/19:40/21:40`）；本次处理时 `21:40` 已过，平台拒绝过去时间，因此两条任务从本轮下一可执行批次 `23:40` 起跑，下一轮包含 `21:40`。USQL operator 现提供 `plan-task-schedule-update`/`apply-task-schedule-update` 更新开发页配置，并提供 `plan-nezha-schedule-update`/`apply-nezha-schedule-update` 更新 Nezha 周期调度；两边都必须按精确 task/Nezha ID 做哈希计划、单次写入和回读。两边不一致时只能记录为“配置已保存、实际调度未确认”，不能用本地 taskschd 或本地配置冒充天宫2 已改。
+
 ## 离线验证
 
 按变更范围运行受影响测试、`scripts/validate_layout.py` 和对应渠道的无发送预览。Python 使用机器本地 `machine.local.json` 中的 `executables.python`。验证不发送消息，不启停任务，不修改上游生产资源。
+
+run 驱动脚本（`run_*.py`）改造后除 py_compile/单测外，必须再做两项：① `pyflakes` 或等价静态检查——py_compile 查不出函数体内未定义名（2026-10-02 转化批次因漏 import `retry_transport` 首轮调度 8 个 level 全 blocked）；② 盯改造后首个调度窗口的 push_log result（`machine.local.json` 的 `paths.push_log_root` 下按日期落盘）。注意任务 MultipleInstances=Parallel：手动触发与自动触发并行时，第二个实例被 `_single_instance()` 文件锁拒绝会以 exit 1 + 空 outcomes 退出，这是防重发保护不是故障。

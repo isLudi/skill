@@ -11,24 +11,24 @@ with biz_qici_calendar as (
             ('20260205期', date '2026-02-03', date '2026-02-08'),
             ('20260211期', date '2026-02-09', date '2026-02-15'),
             ('20260227期', date '2026-02-16', date '2026-03-02'),
-            ('20260306期', date '2026-03-03', date '2026-03-09'),
-            ('20260313期', date '2026-03-10', date '2026-03-16'),
-            ('20260320期', date '2026-03-17', date '2026-03-23'),
-            ('20260327期', date '2026-03-24', date '2026-03-30'),
-            ('20260403期', date '2026-03-31', date '2026-04-06'),
-            ('20260410期', date '2026-04-07', date '2026-04-13'),
-            ('20260417期', date '2026-04-14', date '2026-04-20'),
-            ('20260424期', date '2026-04-21', date '2026-04-27'),
-            ('20260501期', date '2026-04-28', date '2026-05-04'),
-            ('20260508期', date '2026-05-05', date '2026-05-11'),
-            ('20260515期', date '2026-05-12', date '2026-05-18'),
-            ('20260522期', date '2026-05-19', date '2026-05-25'),
-            ('20260529期', date '2026-05-26', date '2026-06-01'),
-            ('20260605期', date '2026-06-02', date '2026-06-08'),
-            ('20260612期', date '2026-06-09', date '2026-06-15'),
-            ('20260619期', date '2026-06-16', date '2026-06-22'),
-            ('20260626期', date '2026-06-23', date '2026-06-29'),
-            ('20260703期', date '2026-06-30', date '2026-07-07'),
+            ('20260306期', date '2026-03-02', date '2026-03-08'),
+            ('20260313期', date '2026-03-09', date '2026-03-15'),
+            ('20260320期', date '2026-03-16', date '2026-03-22'),
+            ('20260327期', date '2026-03-23', date '2026-03-29'),
+            ('20260403期', date '2026-03-30', date '2026-04-05'),
+            ('20260410期', date '2026-04-06', date '2026-04-12'),
+            ('20260417期', date '2026-04-13', date '2026-04-19'),
+            ('20260424期', date '2026-04-20', date '2026-04-26'),
+            ('20260501期', date '2026-04-27', date '2026-05-03'),
+            ('20260508期', date '2026-05-04', date '2026-05-10'),
+            ('20260515期', date '2026-05-11', date '2026-05-17'),
+            ('20260522期', date '2026-05-18', date '2026-05-24'),
+            ('20260529期', date '2026-05-25', date '2026-05-31'),
+            ('20260605期', date '2026-06-01', date '2026-06-07'),
+            ('20260612期', date '2026-06-08', date '2026-06-14'),
+            ('20260619期', date '2026-06-15', date '2026-06-21'),
+            ('20260626期', date '2026-06-22', date '2026-06-28'),
+            ('20260703期', date '2026-06-29', date '2026-07-05'),
             ('20260710期', date '2026-07-08', date '2026-07-13'),
             ('20260716期', date '2026-07-14', date '2026-07-19'),
             ('20260722期', date '2026-07-20', date '2026-07-25'),
@@ -40,33 +40,49 @@ with biz_qici_calendar as (
 ),
 crm_source as (
     select
-        t.employee_email_name,
-        t.lead_id,
-        t.user_id,
+        o.performance_employee_email_name as employee_email_name,
+        cast(o.lead_id as varchar) as lead_id,
+        cast(o.original_order_user_number as varchar) as user_id,
         cast(
             date_parse(
-                replace(concat(t.group_period_year, t.group_period_term), '期', ''),
+                replace(concat(o.trade_group_period_year, o.trade_group_period_term), '期', ''),
                 '%Y%m%d'
             ) as date
         ) as period_date,
-        coalesce(t.income_amount, 0) as income_amount,
-        coalesce(t.in_pay_period_refund_amount, 0) as in_pay_period_refund_amount,
-        coalesce(t.non_pay_period_refund_amount, 0) as non_pay_period_refund_amount
-    from bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df t
-    where t.dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
-      and t.hour = format_datetime(now() - interval '3' hour, 'HH')
-      and t.section_assign_employee_first_level_department_name = 'H业务线'
-      and t.section_assign_employee_second_level_department_name = '市场部'
-      and t.section_assign_employee_third_level_department_name = '市场顾问部'
-      and t.period_mapping_first_level_department_name = 'H业务线'
+        case
+            when o.pay_refund_type = '支付'
+             and o.is_pay_success_order = 1
+             and o.is_stats_conversion_amount = 'Y'
+            then coalesce(cast(o.income_amount as double), 0.0)
+            else 0.0
+        end as income_amount,
+        case
+            when o.pay_refund_type = '退款'
+            then coalesce(cast(o.refund_amount as double), 0.0)
+            else 0.0
+        end as refund_amount
+    from service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf o
+    where o.dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
+      and o.hour = format_datetime(now() - interval '2' hour, 'HH')
+      and o.performance_first_level_department_name = 'H业务线'
+      and o.performance_second_level_department_name = '市场部'
+      and o.performance_third_level_department_name = '市场顾问部'
+      and o.course_first_level_department_name = 'H业务线'
+      and o.course_second_level_department_name in (
+          '精品班学部',
+          '菁英班学部',
+          '本地化大班学部'
+      )
+      and o.trade_period_mapping_first_level_department_name = 'H业务线'
+      and o.pay_period_mapping_first_level_department_name = 'H业务线'
 ),
 crm_fact_row as (
-    select distinct
+    select
         coalesce(
             cal.qici,
             concat(
                 date_format(
-                    date_trunc('week', cast(s.period_date as timestamp) - interval '1' day)
+                    date_trunc('week', cast(s.period_date as timestamp))
                         + interval '4' day,
                     '%Y%m%d'
                 ),
@@ -77,8 +93,7 @@ crm_fact_row as (
         s.lead_id,
         s.user_id,
         s.income_amount,
-        s.in_pay_period_refund_amount,
-        s.non_pay_period_refund_amount
+        s.refund_amount
     from crm_source s
     left join biz_qici_calendar cal
       on s.period_date between cal.start_date and cal.end_date
@@ -87,9 +102,9 @@ crm_fact as (
     select
         qici,
         employee_email_name,
-        sum(income_amount - in_pay_period_refund_amount - non_pay_period_refund_amount) / 100.0 as pt,
+        sum(income_amount - refund_amount) / 100.0 as pt,
         sum(income_amount) / 100.0 as inc,
-        -sum(in_pay_period_refund_amount + non_pay_period_refund_amount) / 100.0 as ref
+        -sum(refund_amount) / 100.0 as ref
     from crm_fact_row
     where qici >= '20260101期'
     group by qici, employee_email_name

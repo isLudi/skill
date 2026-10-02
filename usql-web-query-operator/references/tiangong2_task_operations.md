@@ -2,13 +2,15 @@
 
 ## 适用范围
 
-`scripts/tiangong2_task.py` 在原只读任务探查之外提供八类严格分离的能力：
+`scripts/tiangong2_task.py` 在原只读任务探查之外提供九类严格分离的能力：
 
 - `fetch-execution-log`：只读拉取一个精确、自有任务的执行期、执行实例、stage 明细及完整分页日志；
 - `list-execution-history`：只读列出一个精确、自有任务最近的执行实例，便于先定位最新 exec id；
 - `plan-task-maintenance-session` → `authorize-task-maintenance-session`：把一个精确自有任务、默认参数块、资源、有效期、操作白名单和调试执行预算绑定为一次用户授权；会话内后续阶段不再重复向用户确认；
 - `plan-task-python-patch` → `apply-task-python-patch`：只允许不含疑似密钥的精确文本替换，禁止改变 `query_sql`、公司默认参数块和资源绑定；
 - `plan-task-query-update` → `apply-task-query-update`：只允许一个自有 Python 任务的唯一 `query_sql` 三引号正文变化，证明公司默认参数块逐字节不变，并强制通过 Hash 绑定的准确性优先 SQL 质量门禁；
+- `plan-task-schedule-update` → `apply-task-schedule-update`：只允许一个自有任务开发页的周期调度字段变化，保持执行器、重试、依赖、并发和资源等其他配置原值，并回读调度状态；
+- `plan-nezha-schedule-update` → `apply-nezha-schedule-update`：只允许一个精确自有任务 Nezha 周期调度字段变化，绑定当前 Nezha task ID，并回读调度配置、有效调度和调度列表；
 - `plan-task-submit` → `submit-task`：把已保存源码和版本说明绑定到只读 Plan，再显式提交该任务的新版本；
 - `plan-task-publish` → `publish-task`：先生成 Hash 绑定的只读发布计划，再在单独命令中显式确认发布一个已经保存到平台的任务版本。
 - `plan-task-execution` → `execute-task-once`：只允许一个已发布自有任务立即执行一次，强制不触发下游、不注入运行参数、不禁用 stage。
@@ -40,7 +42,7 @@ Tiangong2 命令采用四级权限：
 | R | 探查、计划、执行记录和日志等远端只读 | 请求本身即可，不产生远端写入 |
 | P | 一个精确阶段的保存、提交、发布或执行 | 精确阶段 Plan Hash 加对应 `--confirm-*` |
 | M | 一个精确自有任务的限时维护会话 | 只在激活会话时确认一次；会话内各阶段继续使用精确 Plan Hash，但不重复询问用户 |
-| X | 跨负责人/跨一级目录、凭据/默认块/资源/调度/权限修改、下游触发、既有执行重跑、任意完整源码替换 | 永久拒绝，M 级也不能放行 |
+| X | 跨负责人/跨一级目录、凭据/默认块/资源/权限修改、下游触发、既有执行重跑、任意完整源码替换 | 永久拒绝，M 级也不能放行 |
 
 M 级先生成只读计划：
 
@@ -67,6 +69,73 @@ D:\anaconda3\python.exe scripts\tiangong2_task.py authorize-task-maintenance-ses
 激活命令只写 Tiangong2 runtime 中的本地授权工件，不调用远端写接口。工件绑定账号、project/folder/menu/task/owner、基线源码/默认块/资源、允许操作、到期时间、激活时版本和执行 ID，以及最大新增执行次数。后续 Apply 命令使用 `--maintenance-session-file` 和 `--expected-maintenance-session-sha256` 替代该阶段的 `--confirm-*`。每个阶段仍必须提供自己的精确 Plan Hash。
 
 维护会话不会授权自动盲重试。每次执行后必须读取新 exec 的终态和完整日志；只有诊断表明需要新源码、形成新补丁 Plan 且执行预算尚未耗尽时，才可在同一会话继续下一轮。会话到期、执行预算耗尽、作用域/默认块/资源漂移或写请求状态不确定时立即停止。
+
+调度保存是独立的 P 级阶段，不纳入 M 级维护会话。开发页调度只接受精确自有任务、精确 Plan Hash 和 `--confirm-save-schedule`；Nezha 调度只接受精确 Plan Hash 和 `--confirm-save-nezha-schedule`。两条能力都会在写入前重新读取任务 ID、负责人、任务元数据和完整调度状态，任一漂移都阻断。它们不保存源码、不提交/发布版本、不执行任务，也不修改执行器、重试、依赖、并发或资源配置。
+
+## 调度配置更新
+
+页面探查确认调度页签使用 JSON `POST /api/dp/task/saveScheduleConfig`。平台要求发送当前完整调度对象，浏览器保存时保留当前任务 ID、依赖列表、其他配置和当前 `nextRunTime`；`nextRunTime` 仍是平台派生字段，不能由补丁文件控制。USQL 适配器只允许补丁文件修改以下字段：`scheduleType`、`firstRunTime`、`endRunTime`、`runInterval`、`timeUnit`。
+
+补丁示例：
+
+```json
+{
+  "schema_version": "tiangong2-task-schedule-patch-v1",
+  "changes": {
+    "firstRunTime": "2026-09-30 21:40:00",
+    "runInterval": 2,
+    "timeUnit": 1
+  }
+}
+```
+
+先生成只读计划：
+
+```powershell
+D:\anaconda3\python.exe scripts\tiangong2_task.py plan-task-schedule-update `
+  --project-id 308 `
+  --folder "吕帅" `
+  --menu-id 103625 `
+  --task-name "qing2lark_guocheng" `
+  --schedule-patch-file <schedule-patch.json>
+```
+
+审阅精确 Plan Hash 后执行一次保存并回读：
+
+```powershell
+D:\anaconda3\python.exe scripts\tiangong2_task.py apply-task-schedule-update `
+  --plan-file <schedule-plan.json> `
+  --expected-plan-sha256 <exact-plan-sha256> `
+  --confirm-save-schedule
+```
+
+写客户端只允许一次 JSON `task/saveScheduleConfig`，请求发出后不自动重试。保存后先回读开发页调度对象，再通过只读 Nezha 接口回读实际调度视图；只有两处都匹配、`taskId`/Nezha task id 仍绑定精确任务时才生成 `fully_verified=true`。若开发页已保存但 Nezha 仍是旧的首次执行时间，回执状态为 `saved_effective_scheduler_mismatch`，必须再执行 Nezha 调度同步，不能继续提交、发布或执行。
+
+## Nezha 周期调度同步
+
+页面探查确认保留的前端“周期调度”动作使用 JSON `POST /api/nezha/task/schedule`；它的请求体只发送精确 Nezha `taskId`、`firstRunTime`、`endRunTime`、`periodic=true`、`runInterval` 和 `timeUnit`。`id`、`nextRunTime` 与 `formatRunInterval` 是平台维护或派生字段，不进入补丁。计划和 Apply 还会读取 `POST /api/nezha/task/getSchedule`、`GET /api/nezha/task/getTaskAndSchedule` 以及 `POST /api/nezha/task/listTaskAndSchedule`，确认配置、有效调度和列表行均唯一匹配。
+
+先生成 Nezha 只读计划：
+
+```powershell
+D:\anaconda3\python.exe scripts\tiangong2_task.py plan-nezha-schedule-update `
+  --project-id 308 `
+  --folder "吕帅" `
+  --menu-id 103625 `
+  --task-name "qing2lark_guocheng" `
+  --schedule-patch-file <schedule-patch.json>
+```
+
+审阅精确 Plan Hash 后执行一次同步：
+
+```powershell
+D:\anaconda3\python.exe scripts\tiangong2_task.py apply-nezha-schedule-update `
+  --plan-file <nezha-schedule-plan.json> `
+  --expected-plan-sha256 <exact-plan-sha256> `
+  --confirm-save-nezha-schedule
+```
+
+Nezha 写客户端只允许一次 `task/schedule`，请求发出后不自动重试；只有调度配置、有效调度和调度列表三重回读都匹配时才生成 `fully_verified=true`。`task/executeOnce`、执行页单次重跑、提交、发布、暂停、启动和下线均不属于该能力。
 
 ## 执行日志调取
 
@@ -277,7 +346,7 @@ M 级会话可以替代 `--confirm-execute`；执行 Plan 会按会话激活时�
 
 - query_sql 更新不能夹带其他 Python；非 SQL 修复必须使用无密钥精确补丁。本 Skill 不提供完整源码文件替换、凭据编辑或任意代码编辑入口，任何模式都不得改变公司默认参数块；
 - 不使用编辑页试跑，不重跑既有执行；调试只能在新补丁/新版本后生成新的精确执行 Plan，并受会话执行预算约束；不触发下游，不启动或停止调度；
-- 不修改调度、资源、负责人、目录或权限；
+- 不通过源码、执行、资源或其他旁路修改调度；调度只能走上面的精确 P 级计划/保存/回读能力；
 - 一次会话授权不能把保存、提交、发布、单次执行合并成一个隐式写请求；各阶段的 Plan、Hash、漂移、单次客户端和回读必须保留；
 - 不跨项目、跨一级目录或操作其他负责人的任务；
 - 不把日志、计划或 Receipt 自动写入业务知识库。

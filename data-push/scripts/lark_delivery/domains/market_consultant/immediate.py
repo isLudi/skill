@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import re
 
+from ...common import resend
 from ...core import catalog
 from ...core.locks import runner_lock
 from . import scheduler as schedule
@@ -92,11 +93,14 @@ def run(definition, target, request_id, *, preflight=False, requested_slot=None,
             keys = ([request_key(cfg, request_id, "volume")] if volume else
                     [channel_request_key(cfg, request_id, channel) for channel in channels])
             priors = [db.execute("SELECT status,message_id FROM deliveries WHERE key=?", (key,)).fetchone() for key in keys]
-            if all(priors):
+            # Short-circuit only when every key is already settled. A request whose
+            # earlier attempt was never confirmed falls through to the per-channel
+            # loop, which re-issues it with the same key (the platform dedupes).
+            if all(priors) and all(resend.decide(prior[0], prior[1]) == resend.DONE for prior in priors):
                 for channel, prior in zip(channels, priors):
                     schedule.emit("immediate_duplicate_suppressed", channel=channel, status=prior[0],
                                   message_id=prior[1], request_id=request_id)
-                return 0 if all(prior[0] == "sent_verified" for prior in priors) else 1
+                return 0
             started = schedule.now()
             slot = requested_slot or latest_upstream_slot(started)
             if requested_slot is not None:
@@ -199,10 +203,13 @@ def run(definition, target, request_id, *, preflight=False, requested_slot=None,
                     results.append(True)
                     continue
                 prior = db.execute("SELECT status,message_id FROM deliveries WHERE key=?", (item["key"],)).fetchone()
-                if prior:
+                verdict = resend.decide(prior[0], prior[1]) if prior else resend.RESEND
+                if verdict == resend.DONE:
                     schedule.emit("immediate_duplicate_suppressed", channel=context["channel"],
                                   status=prior[0], message_id=prior[1], request_id=request_id)
-                    ok = prior[0] == "sent_verified"
+                    ok = True
+                elif verdict == resend.REVERIFY:
+                    ok = schedule._reverify_sent_message(db, item["key"], cfg, context, slot, prior)
                 else:
                     ok = schedule._deliver_verified(context, cfg, slot, db, evidence, key=item["key"],
                         time_guard=lambda current=context: guard(current))

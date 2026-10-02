@@ -4,7 +4,7 @@
     "system": "lark_base",
     "operator_record_id": "recvwjZaMMix5H",
     "request_id": "qingcheng/supervisor_local",
-    "request_status": "草稿",
+    "request_status": "已上线",
     "base_token": "OEJrbiCIaazfSss2R3Lcf1OonCc",
     "table_id": "tbl3iMKvD52jaMF1"
   },
@@ -39,18 +39,18 @@
     "other_result_metrics": null,
     "result_display_order": "期次、主管、带班人数、有效线索、首节到课率、综合人头转化率、综合订单转化率、综合营收、退费金额、净收款、当期单效、截面单效、联报率、人效、破蛋率、平均成交周期",
     "metric_definitions": null,
-    "layout": "沿用青橙过程图表格格式；表头为本地化-主管-{期次}，总计行与表头同色",
+    "layout": "沿用青橙过程图表格格式；表头为本地化-主管-{期次}并按年级分块（本地化-主管-{期次}｜{年级}），总计行与表头同色",
     "style_reference": "好友率、24h首call、8min、等待时长使用色阶条；等待时长为红色；其余过程列仅显示数值"
   },
   "reminder": {
-    "process_metric": "8min",
+    "process_metric": "不适用",
     "result_metric": "截面单效",
-    "target": "主管",
-    "process_direction": "最低",
+    "target": "不提醒",
+    "process_direction": "不适用",
     "result_direction": "最高",
     "tie_handling": null,
     "report_level": "主管",
-    "process_rank": "最后1名",
+    "process_rank": "不提醒",
     "result_rank": "第1名"
   },
   "validation": {

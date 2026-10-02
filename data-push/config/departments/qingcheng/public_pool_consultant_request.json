@@ -27,7 +27,7 @@
       "次周周一"
     ],
     "requested_first_send_at": "2026-09-26T00:00:00.000+08:00",
-    "requested_send_windows": "14:25、18:25、22:25",
+    "requested_send_windows": "周五/周六/周日 14:01、18:01、22:01；次周周一仅 02:01（2026-10-01 调整）",
     "dimensions": [
       "期次",
       "渠道",

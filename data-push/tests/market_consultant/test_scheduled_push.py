@@ -11,6 +11,7 @@ from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "scripts"))
 import scheduled_push as sp
+from lark_delivery.domains.market_consultant import delivery_gate
 
 
 class ScheduledPushTests(unittest.TestCase):
@@ -316,16 +317,58 @@ class ScheduledPushTests(unittest.TestCase):
             one.close()
             two.close()
 
-    def test_uncertain_never_resends_or_cleans(self):
+    def test_uncertain_resends_with_the_same_key_and_never_cleans(self):
+        # 2026-09-29 12:20: an unconfirmed send must not end the slot. The retry
+        # re-issues the SAME idempotency key, so the platform dedupes if the first
+        # attempt did land, and nothing is cleaned up while delivery is unknown.
         with tempfile.TemporaryDirectory() as folder:
             db = sp.connect_ledger(Path(folder))
             with patch.object(sp, "assert_current_revision"), patch.object(sp.gp, "upload_image", return_value="img_key"), \
                  patch.object(sp.gp, "send_markdown", side_effect=TimeoutError) as send, patch.object(sp.gp, "_cleanup_local_image") as cleanup:
                 self.assertFalse(sp.deliver(self.context(), self.cfg, self.slot, db, self.evidence()))
                 self.assertFalse(sp.deliver(self.context(), self.cfg, self.slot, db, self.evidence()))
-                self.assertEqual(send.call_count, 1)
+                self.assertEqual(send.call_count, 2)
+                self.assertEqual(send.call_args_list[0].args[2], send.call_args_list[1].args[2])
                 cleanup.assert_not_called()
                 self.assertEqual(db.execute("SELECT status FROM deliveries").fetchone()[0], "uncertain")
+            db.close()
+
+    def test_uncertain_converges_when_the_platform_returns_the_original_message(self):
+        # Why re-issuing the same key is worth doing: an outcome that was lost after
+        # dispatch is recovered rather than left ambiguous forever. The platform
+        # returns the ORIGINAL message, the readback verifies, the slot converges.
+        with tempfile.TemporaryDirectory() as folder:
+            db = sp.connect_ledger(Path(folder))
+            with patch.object(sp, "assert_current_revision"), patch.object(sp.gp, "upload_image", return_value="img_key"), \
+                 patch.object(sp.gp, "send_markdown", side_effect=[TimeoutError, {"message_id": "om_original"}]) as send, \
+                 patch.object(sp.gp, "_cleanup_local_image", return_value={"deleted": True}), \
+                 patch.object(sp, "receipt_readback", return_value={"verified": True}):
+                self.assertFalse(sp.deliver(self.context(), self.cfg, self.slot, db, self.evidence()))
+                self.assertTrue(sp.deliver(self.context(), self.cfg, self.slot, db, self.evidence()))
+                self.assertEqual(send.call_count, 2)
+                self.assertEqual(send.call_args_list[0].args[2], send.call_args_list[1].args[2])
+                self.assertEqual(db.execute("SELECT status,message_id FROM deliveries").fetchone(),
+                                 ("sent_verified", "om_original"))
+            db.close()
+
+    def test_recorded_message_id_is_only_reverified_never_resent(self):
+        # The safety half of the rule: a message already in the group is never
+        # re-issued, so a failing readback can never publish a second copy.
+        with tempfile.TemporaryDirectory() as folder:
+            db = sp.connect_ledger(Path(folder))
+            channel = self.cfg["channels"][0]
+            key = sp.delivery_key(self.cfg, self.slot, channel)
+            db.execute("INSERT INTO deliveries VALUES (?,?,?,?,?,?)",
+                       (key, self.slot.isoformat(), channel, "sent_unverified", "om_original",
+                        json.dumps({"image_keys": {"process": "img_p"}})))
+            db.commit()
+            # The readback-only path lives in delivery_gate, so that is where its
+            # readback has to be patched.
+            with patch.object(sp.gp, "send_markdown") as send, \
+                 patch.object(delivery_gate, "receipt_readback", return_value={"verified": True}):
+                self.assertTrue(sp.deliver(self.context(), self.cfg, self.slot, db, self.evidence()))
+                send.assert_not_called()
+                self.assertEqual(db.execute("SELECT status FROM deliveries").fetchone()[0], "sent_verified")
             db.close()
 
     def test_real_message_id_before_cleanup(self):

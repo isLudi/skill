@@ -72,7 +72,7 @@ when flow_pool_name='电商退款用户池' and rule_name like '%赠失%' and ru
 when flow_pool_name='电商退款用户池' and rule_name like '%赠失%' and rule_name like '%亚飞%' then '赠课失败-孟亚飞'
 when flow_pool_name='电商退款用户池' and rule_name like '%赠失%' and rule_name like '%星义%' then '赠课失败-赵星义'
 when flow_pool_name='电商退款用户池' and rule_name like '%赠失%' and rule_name like '%郭艺%' then '赠课失败-郭艺'
-when second_department_name='本地化大班学部' or source_manager_name in ('鲍大海','杨文卓','喻新娇') then '本地化市场流量'
+when second_department_name='本地化大班学部' or source_manager_name in ('鲍大海','杨文卓','喻新桥') then '本地化市场流量'
 when third_department_name in ('中价产品项目部','新媒体内容运营部') and rule_name like '%曹忆%' then '曹忆'
 when rule_name like '%语数英%' and third_department_name = '新媒体内容运营部' then '语数英'
 when third_department_name = '直播部' and sku_id_name like '%山东专版%' then '北京直播山东'
@@ -80,6 +80,9 @@ when third_department_name = '直播部' and sku_id_name like '%河南专版%' t
 when sku_id_name like '%江苏%' and third_department_name = '直播部'  then '北京直播江苏'
 when third_department_name like '%锋途%' and channel_name_2 = '抖音' then '锋途KOC'
 when put_plan_name like '%小红书打粉%' then 'EM-小红书合作'
+when sku_id_name like '%数理系统%' and third_department_name in ('快乐成长组','直播部') then '物理系统'
+when page_id_name like '%周帅0元腾讯%'  and third_department_name ='投放部'  then '信息流0转低'
+when page_id_name like '%0元领课%'  and third_department_name ='投放部'  then '信息流0元'
 when trace_type_name like '%转介绍%' then '转介绍'
 when ad_account_name in ('高途-高中-DYD搜索-QZ49','高途-高中-DYD搜索-XLHD49','高途-高中-DYD搜索-XLHD50','高途-高中-DYD搜索-QZ50') or ad_account_name like '%DYD1元搜索%' then '搜索1元'
 when (flow_pool_name like '%江苏预习%' or  flow_pool_name like '%江苏专版预习%') and channel_name_2 ='抖音' then '西安直播江苏-抖音'
@@ -200,6 +203,7 @@ when flow_pool_name = '百度搜索引擎' or channel_name_1='搜索营销' then
 when  flow_pool_name like '%小红书班课%' then '小红书投放'
 when third_department_name = '投放部' and get_customer_way_name = '短视频信息流' and flow_original_order_activity_price like '%100%' then '信息流'
 when put_plan_name like  '%福哥私域0元%'  then 'KOC-下引'
+when put_plan_name like  '%福哥私域5元%'  then 'KOC-下引5元'
 when flow_pool_name = '中考加油' and sku_id_name like '%孟帝%' then 'KOC-孟亚飞数学'
 when flow_pool_name = '中考加油' and sku_id_name  like '%帅师%' then 'KOC-周帅数学'
 when  source_manager_name in ('孙晗01','方俊结01','刘亦鹏02','何木玲','杨梓月','张可意03','任颖迪','曹蕊07','曲默晗') and (sku_id_name like '%孟帝%' or sku_id_name like '%dudu%' or sku_id_name like '%市场初二%' or rule_name like '%亚飞%' or sku_id_name like '%初二高阳%' or sku_id_name like '%高阳初二%' or sku_id_name like '%精品初二%' or rule_name like '%初二%' or sku_id_name like '%菁英初三%' or (virtual_second_department_name = '菁英班学部' and lead_purchase_intention_level2_category_name='初级' and lead_create_time>= '2026-04-15 00:00:00')) then 'KOC-孟亚飞数学'
@@ -217,7 +221,7 @@ when source_manager_name in ('包青青','蔡瑞涵','李文迁','李佳馨44','
 when source_manager_name in ('包青青','蔡瑞涵','李文迁','李佳馨44','孙昊17','王洁雅01','王硕北','朱文','贾铭锐','李壮壮04','陈晓菁04','赵艺雅') and channel_name_2 like '%书商%' then '进校书商'
 when source_manager_name in ('包青青','蔡瑞涵','李文迁','李佳馨44','孙昊17','王洁雅01','王硕北','朱文','贾铭锐','李壮壮04','陈晓菁04','赵艺雅') and channel_name_2 like '%综合%' and put_plan_name like '%18%' then '进校直播'
 when source_manager_name in ('包青青','蔡瑞涵','李文迁','李佳馨44','孙昊17','王洁雅01','王硕北','朱文','贾铭锐','李壮壮04','陈晓菁04','赵艺雅') and channel_name_2 like '%直播%' then '进校直播'
-when source_manager_name in ('包青青','蔡瑞涵','李文迁','李佳馨44','孙昊17','王洁雅01','王硕北','朱文','贾铭锐','李壮壮04','赵艺雅') and put_plan_name not like '%0元%' and flow_pool_name not like '%家校共育%' and flow_pool_name not like '%保持热爱%' and flow_pool_name not like '%青松%' and flow_pool_name not like '%原子初三%' and flow_pool_name not like '%南通欣创%' and flow_pool_name not like '%悟之道%' and flow_pool_name not like '%济南梦航%' and channel_name_3 <> '社群' and put_plan_name not like '%善悟%' and put_plan_name not like '%人人通%'  and put_plan_name not like '%%济南格乐' and flow_pool_name not like '%晨硕智学%' and flow_pool_name not like '%兴尧文化%'  and flow_pool_name not like '%济南映像%' and flow_pool_name not like '%山东简单%' and flow_pool_name not like '%争鸣科技%'  then '商务低价'
+when source_manager_name in ('包青青','蔡瑞涵','李文迁','李佳馨44','孙昊17','王洁雅01','王硕北','朱文','贾铭锐','李壮壮04') and put_plan_name not like '%0元%' and flow_pool_name not like '%家校共育%' and flow_pool_name not like '%保持热爱%' and flow_pool_name not like '%青松%' and flow_pool_name not like '%原子初三%' and flow_pool_name not like '%南通欣创%' and flow_pool_name not like '%悟之道%' and flow_pool_name not like '%济南梦航%' and channel_name_3 <> '社群' and put_plan_name not like '%善悟%' and put_plan_name not like '%人人通%'  and put_plan_name not like '%%济南格乐' and flow_pool_name not like '%晨硕智学%' and flow_pool_name not like '%兴尧文化%'  and flow_pool_name not like '%济南映像%' and flow_pool_name not like '%山东简单%' and flow_pool_name not like '%争鸣科技%'  then '商务低价'
 when flow_pool_name like '%南通欣创%' or  flow_pool_name like '%人人通科技%' or flow_pool_name like '%易而购%' or flow_pool_name like '%济南梦航%' or flow_pool_name like '%晨硕智学%' or flow_pool_name like '%兴尧文化%' or flow_pool_name like '%济南映像%' or flow_pool_name like '%山东简单%' or flow_pool_name like '%争鸣科技%'  then '进校私域合作'
 when (flow_pool_name like '%家校共育%' or flow_pool_name like '%保持热爱%' or flow_pool_name like '%青松%' or flow_pool_name like '%悟之道%') and put_plan_name not like '%0元%'  then '进校私域合作'
 when source_manager_name = '李宁24' and put_plan_name like '%0转低%' then '进校私域合作'
@@ -321,7 +325,7 @@ attend_c as (
                 else case
                     when day_of_week(cast(substr(ld.begin_time, 1, 10) as date)) = 2
                         then date_format(
-                            cast(date_trunc('week', cast(substr(ld.begin_time, 1, 10) as date)) - interval '3' day as timestamp),
+                            cast(date_trunc('week', cast(substr(ld.begin_time, 1, 10) as date)) + interval '4' day as timestamp),
                             '%Y%m%d'
                         ) || '期'
                     else date_format(

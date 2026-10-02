@@ -22,7 +22,7 @@ note,course_first_level_department_name,course_second_level_department_name,cour
 			when substr(trade_time, 1, 10) >= '2026-01-27' and substr(trade_time, 1, 10) <= '2026-02-02' then '20260130期'
 			when substr(trade_time, 1, 10) >= '2026-01-20' and substr(trade_time, 1, 10) <= '2026-01-26' then '20260123期'
 		else case when day_of_week(cast(trade_time as timestamp)) = 1 
-           then concat(date_format(date_trunc('week', cast(trade_time as timestamp)) - interval '3' day,'%Y%m%d'),'期')
+           then concat(date_format(date_trunc('week', cast(trade_time as timestamp)) + interval '4' day,'%Y%m%d'),'期')
            else concat(date_format(date_trunc('week', cast(trade_time as timestamp)) + interval '4' day, '%Y%m%d'),'期')
         end 
 end as qici
@@ -64,7 +64,7 @@ from (select lead_id,original_order_user_number,performance_employee_email_name,
     when cast(date_parse(replace(concat(trade_group_period_year,trade_group_period_term),'期',''),'%Y%m%d') as date) between date '2026-08-01' and date '2026-08-06' then '20260803期'
     when cast(date_parse(replace(concat(trade_group_period_year,trade_group_period_term),'期',''),'%Y%m%d') as date) between date '2026-08-07' and date '2026-08-12' then '20260808期'
     when cast(date_parse(replace(concat(trade_group_period_year,trade_group_period_term),'期',''),'%Y%m%d') as date) between date '2026-08-13' and date '2026-08-18' then '20260815期'
-    else concat(cast(date_format(date_trunc('week',date_parse(replace(concat(trade_group_period_year,trade_group_period_term),'期',''),'%Y%m%d') - interval '1' day) + interval '4' day,'%Y%m%d')as varchar),'期')
+    else concat(cast(date_format(date_trunc('week', date_parse(replace(concat(trade_group_period_year,trade_group_period_term),'期',''),'%Y%m%d')) + interval '4' day,'%Y%m%d')as varchar),'期')
 end qici
 from service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf 
 where dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
@@ -114,11 +114,14 @@ when rr.rule_name like '%图书KOC%' then '图书KOC'
 when rr.rule_name like '%朱汉祺IP%' then '朱汉祺IP'
 when rr.rule_name like '%西安图书%' then '西安图书'
 when rr.rule_name like '%常规KOC%' then '常规KOC'
-when rr.rule_name like '%进校%' then '进校0元'
+
+when rr.rule_name like '%本地化市场流量%' or rr.rule_name like '%本地化大班学部%' then '本地化市场流量'
+when rr.rule_name like '%集团私域%' then '集团私域'when rr.rule_name like '%进校%' then '进校0元'
 when rr.rule_name like '%春春B站99元%' then '春春B站99元'
 when rr.rule_name like '%肖晗ip19元%' or rr.rule_name like '%ip肖晗19元%' then '肖晗ip19元'
 when rr.rule_name like '%koc肖晗5元%' then 'koc肖晗5元' 
-when rr.rule_name like '%koc自孵化5元%' or rr.rule_name like '%koc广州本地化5元%' or rr.rule_name like '%koc常规5元%'  then 'koc5元' 
+
+when rr.rule_name like '%KOC-下引5元%' or rr.rule_name like '%福哥私域5元%' then 'KOC-下引5元'when rr.rule_name like '%koc自孵化5元%' or rr.rule_name like '%koc广州本地化5元%' or rr.rule_name like '%koc常规5元%'  then 'koc5元' 
 when rr.rule_name like '%koc朱汉祺5元%'  then 'koc朱汉祺5元' 
 when rr.rule_name like '%朱汉祺ip29元%' or rr.rule_name like '%朱汉祺退费0元%' then '朱汉祺ip29元'	
 when rr.rule_name like '%koc朱汉祺29元%' or rr.rule_name like '%koc周帅29元%' or rr.rule_name like '%周帅29元%' or rr.rule_name like '%朱汉祺29元%' 
@@ -131,11 +134,14 @@ when rr.rule_name like '%私域9元%'  then '私域9元'
 when rr.rule_name like '%拓展koc%' or rr.rule_name like '%拓展ip%' or rr.rule_name like '%koc外部发货%' or rr.rule_name like '%多学科拓展%' then '多学科拓展'
 when rr.rule_name like '%商务书商1元%' or rr.rule_name like '%商务1元%' or rr.rule_name like '%商务进校18元%' or rr.rule_name like '%商务TMK9元%' or rr.rule_name like '%商务%' then '商务'
 when rr.rule_name like '%训练营%' or rr.rule_name like '%CRM特殊链接分配策略%' then '训练营' 
-when rr.rule_name like '%信息流%' then '信息流'
+
+when rr.rule_name like '%信息流0元%' or rr.rule_name like '%0元领课%' then '信息流0元'
+when rr.rule_name like '%信息流0转低%' or rr.rule_name like '%周帅0元腾讯%' then '信息流0转低'when rr.rule_name like '%信息流%' then '信息流'
 when rr.rule_name like '%小红书%' then '小红书'
 when rr.rule_name like '%原子初三%' or rr.rule_name like '%原子高一%' or rr.rule_name like '%原子%'  then '原子'
 when rr.rule_name like '%9KM%' then '9KM'
-when rr.rule_name like '%百度星耀数学%' or rr.rule_name like '%数学%' or rr.rule_name like '%百度星耀物理%' or rr.rule_name like '%物理%'then '百度星耀'
+
+when rr.rule_name like '%物理系统%' or rr.rule_name like '%数理系统%' then '物理系统'when rr.rule_name like '%百度星耀数学%' or rr.rule_name like '%数学%' or rr.rule_name like '%百度星耀物理%' or rr.rule_name like '%物理%'then '百度星耀'
 else '未知' end as channel_1,
 case
         when substr(lead_gmv.qici, 1, 4) = '2026' and substr(rr.group_period_term, 1, 4) between '0714' and '0719'

@@ -19,26 +19,26 @@
   "sender": {"identity": "bot", "name": "管家", "open_id": "ou_f3907e865135732c15a1dfce27828411"},
   "visual": {
     "metric_bars": {
-      "好友率": {"min": 0, "max": 1, "color": "#4f78ae"},
-      "等待时长": {"min": 0, "max": 48, "color": "#fb626b"},
-      "8min": {"min": 0, "max": 1, "color": "#f5ae23"},
-      "24h首call": {"min": 0, "max": 1, "color": "#2e9e6b"}
+      "好友率": {"min": 0, "max": 1, "color": "#8da7ca"},
+      "等待时长": {"min": 0, "max": 48, "color": "#fc999f"},
+      "8min": {"min": 0, "max": 1, "color": "#f8ca70"},
+      "24h首call": {"min": 0, "max": 1, "color": "#77c09f"}
     },
     "integer_fields": ["带班人数", "有效线索", "退前线索", "退后线索", "总通时"],
-    "header": "#3d8b4f",
-    "grid": "#aecfb2"
+    "header": "#e6efff",
+    "grid": "#c3cfe2"
   },
   "process_sort": {"metric": "8min", "direction": "desc", "value": "unrounded"},
   "process_reminder": {"metric": "8min", "direction": "最低", "rank": "最后1名", "tie_handling": "all_tied_minimum"},
   "channels": [
     {"id": "partner_books", "name": "图书", "level": "顾问", "request_file": "partner_books_consultant_request.json",
      "target_chat_id": "oc_854e5427ec0f6ef2bf654fee0a759f83", "target_chat_name": "🍊武汉图书koc",
-     "minimum_effective_leads": 3, "split_grade": false, "operator_record_id": "recvwjW9ZAvRBW"},
+     "minimum_effective_leads": 3, "split_grade": false, "process_reminder": "8min_minimum", "operator_record_id": "recvwjW9ZAvRBW"},
     {"id": "partner_local", "name": "本地化", "level": "顾问", "request_file": "partner_local_consultant_request.json",
      "target_chat_id": "oc_7e4ac041d00e583b49749b9a0d01a64c", "target_chat_name": "🍊青橙河南本地化伙伴",
-     "minimum_effective_leads": 3, "split_grade": false, "operator_record_id": "recvwjX409k8f2"},
+     "minimum_effective_leads": 3, "split_grade": false, "process_reminder": "8min_minimum", "operator_record_id": "recvwjX409k8f2"},
     {"id": "supervisor_local", "name": "本地化", "level": "主管", "request_file": "supervisor_local_request.json",
      "target_chat_id": "oc_be403f4efca7f1adcb0d18a066308627", "target_chat_name": "青橙-河南本地化项目",
-     "minimum_effective_leads": 5, "split_grade": false, "operator_record_id": "recvwjZaMMix5H"}
+     "minimum_effective_leads": 5, "split_grade": true, "process_reminder": "8min_minimum_grade_text", "operator_record_id": "recvwjZaMMix5H"}
   ]
 }

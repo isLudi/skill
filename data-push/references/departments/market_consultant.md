@@ -71,6 +71,20 @@
 - **可观测性**：`emit` 的事件流按运行追加到机器本地 `paths.push_log_root`（`D:\CodexLogs\data-push\<渠道>\<日期>\`），同时写 `<HHMMSS>-<任务>.result.json` 结论与 `_index/runs.jsonl` 汇总；`run_*.ps1` 另把进程 stdout/stderr 落 `-process.log`，覆盖 `emit` 之外的崩溃与 argparse 报错。日志写入失败只降级为告警，不阻断投递。零合格行跳过现在写入台账 `channel_events`（`skipped_no_eligible_rows`），不再无声。
 - 离线验收：`tests` 304 项通过，3 项失败为既有的 Miaoda 部署与渠道导出问题，与本次改动无关；`validate_layout.py` 除同一条既有 Miaoda 报错外通过；9 个渠道 `--show-config` 与 9 个 `run_*.ps1` 语法校验通过；`runtime/channel-broadcast-push/investigation-20261002/verify-reviewed-narrowing.py` 在真实坏行上复现了两处故障并验证了两条评审口径。日志落盘以一次真实 `-Preflight` 运行端到端验证，未向任何群发送消息。
 
+### 未确认送达的重发与只回读重验（2026-09-29 起）
+
+`deliveries` 的 `key`（`delivery_key`）是**确定的**——只由 `chat_id|slot|channel|report_kind|bot`（配置了 `channel_key` 时再加前缀）决定，同槽位同渠道每一轮算出的键相同——而且它已经作为 `--idempotency-key` 传给飞书。因此判据收窄为一条（共享模块 `lark_delivery/common/resend.py` 的 `decide(status, message_id)`）：
+
+> **有 message_id → 只补回读，绝不重发；没有 message_id → 用原键重发。**
+
+`_deliver_verified` 原先是"任何 prior 行一律 `duplicate_suppressed` 并返回 `prior[0] == "sent_verified"`"，于是 `sending` / `uncertain` / `sent` / `sent_unverified` 全部永久挡死：一次令牌端点的传输重置就足以让该渠道烧完整个 `:20`–`:50` 窗口而从不重试。现在：
+
+- `sent_verified` → 原样返回 `True`，仍记 `duplicate_suppressed`。
+- **有 message_id**（`sent_unverified`，以及进程死在提交回执与回读之间的 `sent`）→ 走 `reverify_unverified_delivery`：它自带 `WHERE ... AND status=?` 乐观锁且**没有发送能力**，所以不可能把已在群内的消息补成两条。该函数此前已存在却无人调用；本次把它的资格判据从 `sent_unverified` 放宽到 `resend.DISPATCHED_STATUSES`，并接上调用点。持续回读失败记 `readback_failed`（不属于 `CLEAN_STATUSES`，交人工）。
+- **没有 message_id**（`sending` / `uncertain`）→ 落到发送路径并记 `resending_after_uncertain`；**不重新 `claim`**——`claim` 是 `INSERT OR IGNORE`，行已存在会返回 `False` 从而又挡死自己，所以只在无 prior 行时 claim。
+- `immediate.py`（`send-now` / `send-backfill` 一次性路径）的两处 prior 判断同样改为按判据分流：全部已结算才短路，其余落到逐渠道循环里重发或回读。
+- 重发安全的依据同上：平台按同键去重并**返回原 message_id**，于是"响应丢失"这种真正模糊的情况也能收敛，而不是停在 `uncertain`。
+
 ### 防回归门禁
 
 - 新增或修改渠道时，单渠道异常必须只影响该渠道：不得再把逐渠道准备放回同一个 try，也不得让已就绪渠道随整轮作废被丢弃。
@@ -78,3 +92,6 @@
 - 进量报告的坏行只允许"跳过并计数"，不允许静默丢弃；`unparseable_rule_count` 必须出现在投递回执里。
 - 任何 `return True` 的跳过路径都必须留下 `channel_events` 行或运行日志；只存在于 stdout 的结论视为不可观测。
 - 排查群静默时先读 `paths.push_log_root` 下的 `result.json` 与 `_index/runs.jsonl`，再用 `view_live_push_status.ps1` 汇总；不要依赖 `live-status.json`，它在每次运行结束时按设计删除。
+- 收据/台账判据不得回到"非 `sent_verified` 一律不重发"。任何新增状态都必须先过 `resend.decide`；**记录里有 message_id 就绝不能重发**，没有才可以同键重发。靠错误类型判断（例如"取令牌失败就一定没发出去"）是错的——令牌可能被缓存，刷新失败时发送仍可能已经出门。
+- **发送前探测的传输失败必须轮内重试。** `reporting.assert_current_revision` 是"此刻发送是否仍然安全"的一次读；它**返回**不同版本号才是结论（fail-closed、绝不重试），它**抛传输错误**只说明没能验证。该调用已包在 `common/retry.py` 的 `retry_transport` 里（3 次、间隔 2 秒），不要把它退回成"一次失败即整轮失败" —— 那会白丢一个 2 分钟槽位。新增任何"发送前的只读校验"都应同样包一层，并保持这个方向：**漂移是返回值，只重试异常**。
+- **内容不可回读的群不得判为投递失败，也不得换新键重发。** 目标群开启保密模式时（`restricted_mode_setting.status=true` / `message_has_permission_setting="not_anyone"`）发送仍被允许但消息内容读不到，"message_id 取不到"成为结构性必然。这种群的回读失败记 `sent_unverifiable`（干净终态，见 `resend.UNVERIFIABLE`）；换新键会每轮补发一条。判定见 `lark_delivery/common/readback.py`，配置声明优先、探测失败一律判为可回读。

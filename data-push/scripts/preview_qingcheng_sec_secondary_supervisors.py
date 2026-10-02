@@ -131,7 +131,7 @@ def build(source: Path, output: Path, audit_log: Path, config_path: Path = CONFI
     page = ("<!doctype html><html lang='zh-CN'><meta charset='utf-8'><title>青橙 SEC 主管过程本地预览</title>"
             "<style>body{font:16px 'Microsoft YaHei',sans-serif;background:#edf2f8;color:#20314c;padding:24px}"
             "main{max-width:1900px;margin:auto}section{background:white;margin:22px 0;padding:20px;border-radius:12px}"
-            "img{max-width:100%;border:1px solid #aecfb2}pre{white-space:pre-wrap;background:#f2f6fb;padding:14px}</style>"
+            "img{max-width:100%;border:1px solid #c3cfe2}pre{white-space:pre-wrap;background:#f2f6fb;padding:14px}</style>"
             f"<main><h1>青橙 SEC · 主管过程数据本地预览</h1><p>{html.escape(manifest['period'])}</p>"
             + "".join(cards) + "</main></html>")
     (output / "index.html").write_text(page, encoding="utf-8")

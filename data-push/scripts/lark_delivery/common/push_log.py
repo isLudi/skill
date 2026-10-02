@@ -45,8 +45,12 @@ RETENTION_DAYS = 30
 
 # Verdicts that mean "this run needs no follow-up". Everything else is surfaced
 # in ``needs_attention`` so a blocked channel is never mistaken for a delivered one.
+# `sent_unverifiable` (resend.UNVERIFIABLE) means the write was acknowledged but this
+# group's content cannot be read back at all, so verification is impossible by policy.
+# It is clean: the group is receiving its reports, and reporting a failure every push
+# would be a false alarm. Only groups declared or probed as unreadable produce it.
 CLEAN_STATUSES = frozenset({
-    "sent_verified", "sent_unverified", "skipped_no_eligible_rows",
+    "sent_verified", "sent_unverified", "sent_unverifiable", "skipped_no_eligible_rows",
     "skipped_no_source_rows", "prepared",
 })
 

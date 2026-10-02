@@ -131,25 +131,25 @@
     "source_files": [
       {
         "source_path": "semantic/contracts/metric_contracts.json",
-        "sha256": "471ba5e562d8e723c11dfa28c2d24eeecc0a58b83b0ea897d4efd9220b7ff4e9"
+        "sha256": "b3a1c285e41d03d868e664dc4ed10c56add8bb9877c72726c9dfd0354b7eb5f7"
       },
       {
         "source_path": "semantic/contracts/dimension_contracts.json",
-        "sha256": "6bfbbbc770423b49cf62998d8fc77a1dad3dd7f3c073c2183246dd0da910b99b"
+        "sha256": "6770bf6059b534c40b8be92132ae5832047f6fed53838fd6309184caf673d84f"
       },
       {
         "source_path": "semantic/contracts/join_contracts.json",
-        "sha256": "0474eb3a3b13617efe41d45b5c588bf6b126e2eee108c3eaa0d80e6d07c04470"
+        "sha256": "a35fe042f3923d508092acf404994b2a4ab4bebff291552edd03e2397963955b"
       },
       {
         "source_path": "semantic/contracts/scope_contracts.json",
-        "sha256": "b04d9b7989da4e5e4c4d6100040a9238a3dc955c3fd387d52ab4861e8c471ee1"
+        "sha256": "134e4537fc16eb8d07f98871834ae55534602f9d95bdc08c3a6eb2949e340674"
       }
     ]
   },
   "current_model_registry": {
     "source_path": "semantic/current_model_bindings.json",
-    "source_sha256": "fa95914aeb6db89cb7f56c7c71f7fa4c4da744a7aea9e3685aa6ed368e56b2dd",
+    "source_sha256": "354a910225f54f3f54cce083cd70e2725869a5dcf200d3ad17cf6b4e1506a111",
     "policy": "one_current_model_per_id_and_semantic_slot",
     "canonical_filename_policy": "No current dashboard or Data Center model is registered for 精品班学部.",
     "model_count": 0,
@@ -220,8 +220,8 @@
       {
         "id": "jingpin_department:raw_sql:verified_course_scope_probe",
         "source_path": "resources/raw_sql/verified_course_scope_probe.sql",
-        "sha256": "5a175cd340b768ae2e5fdffbb7092d416dc9a53c201f1677ba37b849ee149f65",
-        "bytes": 1819,
+        "sha256": "97773c9376482f7bb32773ebcfa2a0486ebb82982c3ad938cf6dc6da7583a2ca",
+        "bytes": 1858,
         "title": "verified_course_scope_probe",
         "table_refs": [
           "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf"
@@ -276,8 +276,8 @@
     },
     {
       "source_path": "resources/raw_sql/verified_course_scope_probe.sql",
-      "sha256": "5a175cd340b768ae2e5fdffbb7092d416dc9a53c201f1677ba37b849ee149f65",
-      "bytes": 1819,
+      "sha256": "97773c9376482f7bb32773ebcfa2a0486ebb82982c3ad938cf6dc6da7583a2ca",
+      "bytes": 1858,
       "category": "raw_sql"
     }
   ]

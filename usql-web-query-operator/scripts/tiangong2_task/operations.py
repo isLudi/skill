@@ -26,10 +26,12 @@ NEZHA_GET_ENDPOINTS = frozenset(
 NEZHA_JSON_READ_ENDPOINTS = frozenset(
     {
         "task/listTaskExecutionPeriods",
+        "task/listTaskAndSchedule",
     }
 )
 NEZHA_FORM_READ_ENDPOINTS = frozenset(
     {
+        "task/getSchedule",
         "task/listTaskExecutions",
         "stage/getStageLog",
     }
@@ -93,6 +95,24 @@ class Tiangong2OperationsReadOnlyClient:
 
     def get_task_and_schedule(self, task_id: int) -> dict[str, Any]:
         return dict(self._get_body("task/getTaskAndSchedule", {"taskId": task_id}).get("data") or {})
+
+    def get_schedule_config(self, task_id: int) -> dict[str, Any]:
+        return dict(
+            self._post_form_body("task/getSchedule", {"taskId": str(task_id)}).get("data") or {}
+        )
+
+    def list_task_and_schedule_page(
+        self,
+        project_id: int,
+        *,
+        page_no: int = 1,
+        page_size: int = 100,
+    ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+        body = self._post_json_body(
+            "task/listTaskAndSchedule",
+            {"pageNo": page_no, "pageSize": page_size, "projectId": project_id},
+        )
+        return list(body.get("data") or []), dict(body.get("pageQuery") or {})
 
     def list_execution_periods_page(
         self,

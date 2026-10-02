@@ -9,6 +9,19 @@ import sys
 from pathlib import Path
 from typing import Mapping, Sequence
 
+# Hide every child console: scheduled push tasks run under pythonw.exe (no console
+# of their own), so a console-subsystem child (lark-cli) would otherwise allocate a
+# visible window. CREATE_NO_WINDOW only exists on Windows.
+CREATE_NO_WINDOW = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
+
+
+def ensure_console_streams() -> None:
+    """Keep print()/logging safe under pythonw.exe, where sys.stdout is None."""
+    if sys.stdout is None:
+        sys.stdout = open(os.devnull, "w", encoding="utf-8")
+    if sys.stderr is None:
+        sys.stderr = open(os.devnull, "w", encoding="utf-8")
+
 
 _SENSITIVE_FLAGS = {
     "--base-token",
@@ -100,6 +113,34 @@ def resolve_lark_cli() -> str:
     raise FileNotFoundError("未找到 lark-cli；请安装 lark-cli，或设置 LARK_CLI")
 
 
+class LarkTransportError(RuntimeError):
+    """lark-cli could not complete the call because the connection failed.
+
+    Subclasses ``RuntimeError`` so every existing ``except RuntimeError`` keeps
+    working. It exists so a caller can tell "the read did not happen" apart from
+    "the read happened and disagreed" -- only the first may be retried.
+    """
+
+
+# Markers seen in production when the connection was reset rather than the call
+# rejected. `wsarecv ... forcibly closed` is the Windows socket wording; the
+# `"type": "network"` pair is lark-cli's own classification.
+TRANSPORT_MARKERS = (
+    '"subtype": "transport"',
+    '"type": "network"',
+    "wsarecv",
+    "forcibly closed",
+    "Connection reset",
+    "Connection aborted",
+    "i/o timeout",
+)
+
+
+def looks_like_transport(detail: str) -> bool:
+    """Whether a lark-cli failure looks like a connection fault, not a rejection."""
+    return any(marker in detail for marker in TRANSPORT_MARKERS)
+
+
 def run_lark(
     args: Sequence[object],
     *,
@@ -123,6 +164,7 @@ def run_lark(
         errors="replace",
         shell=False,
         timeout=timeout,
+        creationflags=CREATE_NO_WINDOW,
     )
     if result.returncode != 0:
         detail = result.stderr[-1000:].strip()
@@ -135,7 +177,11 @@ def run_lark(
                 prefix = flag + "="
                 if rendered.startswith(prefix):
                     detail = detail.replace(rendered[len(prefix):], "<redacted>")
-        raise RuntimeError(
-            "lark-cli 失败: %s\n%s" % (_redacted_args(args), detail)
-        )
+        message = "lark-cli 失败: %s\n%s" % (_redacted_args(args), detail)
+        # A connection-level failure is not a verdict about the data; callers that use a
+        # read as a precondition may retry it (see common/retry.py). Anything else keeps
+        # the plain RuntimeError so it is never retried.
+        if looks_like_transport(detail):
+            raise LarkTransportError(message)
+        raise RuntimeError(message)
     return result.stdout

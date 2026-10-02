@@ -94,9 +94,56 @@ V16与V17均使用 `two_period_clear_then_replace_v1`：先校验旧/新两期�
 
 保留期 30 天；每次开新日志时按天目录清理更早的文件并删除空目录。
 
-约定的事件名：市场顾问部时点生命周期 `started` / `checking_bot_identity` / `checking_upstream` / `preparing_channel_report` / `preparing_volume_report` / `validating_channel_snapshot` / `prepared_waiting_for_send_time` / `delivering_channels` / `round_finished` / `round_needs_attention`；门禁与重试 `not_ready` / `waiting_to_retry` / `deadline_skipped` / `outside_authorized_window` / `another_instance_active` / `all_channels_absent_in_upstream` / `channel_skipped_no_source_rows` / `approved_release_file_bound`；预检 `preflight_passed_no_send` / `preflight_incomplete`；青橙项目部 `run_started` / `report_ready` / `run_finished` / `run_needs_attention`；两者共用的 `outcome`（青橙逐条结论）；降级 `push_log_unavailable`。
+约定的事件名：市场顾问部时点生命周期 `started` / `checking_bot_identity` / `checking_upstream` / `preparing_channel_report` / `preparing_volume_report` / `validating_channel_snapshot` / `prepared_waiting_for_send_time` / `delivering_channels` / `round_finished` / `round_needs_attention`；门禁与重试 `not_ready` / `waiting_to_retry` / `deadline_skipped` / `outside_authorized_window` / `another_instance_active` / `all_channels_absent_in_upstream` / `channel_skipped_no_source_rows` / `approved_release_file_bound`；预检 `preflight_passed_no_send` / `preflight_incomplete`；青橙项目部 `run_started` / `report_ready` / `run_finished` / `run_needs_attention`；两者共用的 `outcome`（青橙逐条结论）；未确认送达的重发 `resending_after_uncertain`（市场侧 `channel_outcome`，只标记本轮决策，会被该轮最终结论覆盖）；降级 `push_log_unavailable`。
 
-市场顾问部每渠道每轮的结论统一用 `channel_outcome` 事件承载，`result.json` 的 `channels` 由它归并，取值：`sent_verified` / `sent_unverified` / `uncertain` / `duplicate_suppressed` / `skipped_no_eligible_rows` / `skipped_no_source_rows` / `blocked_prepare` / `blocked_snapshot` / `blocked_revision` / `blocked_delivery` / `preflight_ready` / `blocked_preflight`。青橙项目部复用同一套词汇，按 `渠道/年级`（`public_pool/supervisor` 等）或按报告 id（`sec_no_friend_supervisor` 等）落成 `outcomes`；`needs_attention` 取两者中不属于 `push_log.CLEAN_STATUSES` 的键。任何 `return True` 的跳过路径都必须留下 `channel_outcome`、`outcome` 或台账行——只存在于 stdout 的结论视为不可观测。
+市场顾问部每渠道每轮的结论统一用 `channel_outcome` 事件承载，`result.json` 的 `channels` 由它归并，取值：`sent_verified` / `sent_unverified` / `uncertain` / `readback_failed` / `duplicate_suppressed` / `skipped_no_eligible_rows` / `skipped_no_source_rows` / `blocked_prepare` / `blocked_snapshot` / `blocked_revision` / `blocked_delivery` / `preflight_ready` / `blocked_preflight`。`readback_failed` 表示**消息已在群内但回读未通过**：不再重发（重发只会多一条），需要人工核对。青橙项目部复用同一套词汇，按 `渠道/年级`（`public_pool/supervisor` 等）或按报告 id（`sec_no_friend_supervisor` 等）落成 `outcomes`；`needs_attention` 取两者中不属于 `push_log.CLEAN_STATUSES` 的键。任何 `return True` 的跳过路径都必须留下 `channel_outcome`、`outcome` 或台账行——只存在于 stdout 的结论视为不可观测。
+
+### 未确认送达的重发与只回读重验（2026-09-29 起）
+
+一次几秒的网络抖动曾经等于一条播报永久丢失：只要收据不是 `sent_verified`，所有后续轮次都读到"需人工复核"而拒绝重试，2 分钟的重试循环空转到 `:50`。判据太宽——**从未拿到 message_id 的发送本来就可以安全重发**。
+
+统一判据只有一条，两个部门共用 `lark_delivery/common/resend.py` 的 `decide(status, message_id)`：
+
+> **有 message_id → 只补回读，绝不重发；没有 message_id → 用原键重发。**
+
+- 重发安全的依据是**幂等键是确定的**：槽位被归一化到固定分钟，所以同一槽位每一轮算出的键逐字节相同（青橙 `_key`，市场 `delivery_ledger.delivery_key`），且市场侧该键已经作为 `--idempotency-key` 传给飞书。若那一条其实已进群，平台按同键去重并**返回原 message_id**，不会重复发；若没进群则补发。这也顺带自愈了"响应丢失"这种真正模糊的情况——拿回原 message_id 后回读通过，槽位收敛。
+- **不能靠错误类型判断。** 令牌可能是缓存的，刷新失败时发送照样可能已经出去，所以"错误发生在交付之前"并不证明消息没发。只有幂等键能定这件事。
+- 重试节奏两部门不同但都只需"不再挡"即可恢复：市场是 `run_slot` 的**进程内循环**，青橙是任务计划程序 `PT2M` 触发的**每轮全新进程**。
+- 只回读的一侧绝不调用发送出口（市场 `reverify_unverified_delivery` 自带乐观锁且没有发送能力；青橙 `send_qingcheng_process.py --reverify-only` 同样只读），所以**已在群内的消息不可能被补发成两条**。持续回读失败就是 `readback_failed`，交人工。
+- 重发证据落在收据上（`resend_attempts` / `prior_status`）：青橙每轮重写收据，而运行日志只记最终结论，收据才是唯一能看出"重发了几次、上一轮是什么状态"的地方。
+
+### 内容不可回读的群（保密模式）
+
+2026-09-29 又暴露了第二类假失败：目标群开了**保密模式**时，`restricted_mode_setting.status=true` 且 `message_has_permission_setting="not_anyone"`——**发送是写操作仍然允许，读取消息内容被禁止**。于是 `chat-messages-list` 和 `messages-mget` 一律返回空，收据里的 message_id "取不到"，而消息其实**已经进群**（该群当天确实收到了，同一群在管理端可见）。**读权限缺失与消息缺失在这一状态下完全无法区分。**
+
+这带来两个必须防住的后果，由 `lark_delivery/common/readback.py` 与 `resend.decide(..., readback_available=False)` 处理：
+
+- **永久假失败**：该渠道会每次推送都报 `readback_failed`、任务永远 `exit_code=1`，而群其实一直正常收到。
+- **重复发送**：这里"message_id 取不到"是**结构性必然**，所以任何"看起来没发出去就换新键重发"的规则都会**每一轮补发一条**（一个槽位最多约 13 条）。同一天一次手工新键尝试就制造了一条重复。**因此 `decide` 永远不产出新键动作。**
+
+判定顺序：渠道配置里的 `readback_unavailable` 声明最优先；否则在**回读失败的那条路径上**探测一次 `im chats get` 并按进程缓存（正常路径不额外调用）；**任何探测错误都判为"可回读"**——绝不能因为探针自身失败就默默接受一次真实的投递失败。
+
+该状态下的终态记为 `resend.UNVERIFIABLE`（`sent_unverifiable`），它是**干净状态**（在 `push_log.CLEAN_STATUSES` 里），不再计入 `needs_attention`。回读仍然会尝试，所以群里限制解除后会自动恢复为 `sent_verified`——2026-09-29 该群解除保密模式后已实测恢复：历史消息可读、两个已知 message_id 都能取回。
+
+### 发送前只读探测的传输失败：轮内重试（2026-09-29 起）
+
+2026-09-29 16:20 的 SEC 槽位连续丢掉三轮，原因不是数据问题，而是**发送前的 Base 版本探测**撞上连接重置：
+
+```
+base +record-list ... --limit 1 --as user
+→ wsarecv: An existing connection was forcibly closed by the remote host.
+```
+
+探测是**用来判断"此刻发送是否仍然安全"的一次读**。它读不到时，**关于数据什么都没得知**——而旧行为把整轮判为失败，白丢一个 2 分钟的槽位。判据因此拆成两半：
+
+- 探测**返回**了一个不同的版本号 → **这是结论**，立刻 fail-closed，**绝不重试**（数据真的动了）；
+- 探测**抛传输错误** → **无法验证**，在轮内短暂重试（默认 3 次、间隔 2 秒），仍失败才让错误冒出去，该轮照旧失败。
+
+**这个方向不可能掩盖真实的版本漂移**：漂移是**返回值**，而重试只作用于**异常**，且仅限传输类——其余异常第一次就原样抛出。
+
+实现：`lark_delivery/common/retry.py` 的 `retry_transport`，配合 `common/runtime.py` 新增的 `LarkTransportError`（`RuntimeError` 的子类，因此既有的 `except RuntimeError` 全部照旧）。已包住的站点：市场侧 `reporting.assert_current_revision`（覆盖 scheduler 与 immediate 的所有调用点），青橙侧四个 runner 的 `probe_revision`。
+
+**这条只保证不白丢轮次，网络故障本身并没有消失。** 另注：源抓取（`fetch`）与上游审计命中传输失败时**仍是整轮失败**（青橙会把整个渠道标成 `blocked_source`）——2026-09-29 14:47 丢掉的正是这一类；同一套 `retry_transport` 可以一行包住它们，是否需要另议。
 
 任务计划程序只能直接显示 `Running/Ready` 与最终退出码，不能展示脚本自定义步骤。用下列只读命令从上述日志汇总各渠道最近一次运行的时点、退出码、最后事件和受影响渠道：
 
@@ -135,3 +182,11 @@ Get-ScheduledTaskInfo -TaskName 'Codex-Lark-Market-KOC-GroupPush'
 恢复需用户另行明确授权，并重新核验当时的上游版本、账号权限、群成员和预览；届时再设置 `enabled=true` 并启用原Windows任务。不要重建/重复注册任务，也不要改动天宫调度。仅启用其中一个开关不足以恢复正常定时发送。
 
 暂停后续触发使用 `Disable-ScheduledTask`。若当时已有运行实例，须先核对任务/发送台账，再停止该精确实例；不能停其他飞书服务。
+
+### 计划任务后台隐藏运行（2026-10-01 起）
+
+用户反馈任务到点弹出前台控制台窗口。全部 14 个群推送任务已改为无窗口形态：5 个青橙 Python 任务的动作改为 `D:\anaconda3\pythonw.exe`（GUI 子系统，不分配控制台）；9 个市场 PowerShell 任务的动作改为 `pythonw.exe scripts/run_hidden_push.pyw "<原 ps1>"`，该包装器以 `CREATE_NO_WINDOW` 启动 powershell.exe（分配不可见控制台，`[Console]` API 仍可用），子进程继承隐藏控制台。退出码原样传播，`LastTaskResult` 语义不变。
+
+配套脚本改动：`lark_delivery/common/runtime.py` 新增 `CREATE_NO_WINDOW` 常量（`run_lark` 的子进程调用已带上）与 `ensure_console_streams()`（pythonw 下 `sys.stdout` 为 `None`，防止 print 崩溃）；5 个青橙执行器 `main()` 入口均调用该保护；`run_qingcheng_process.py`、`run_qingcheng_transformation.py` 内直连 subprocess 调用已加 `creationflags`。注册/安装脚本已同步（install_qingcheng_*、register_*scheduled_push* 均产出 pythonw 形态），重装与生产一致。
+
+注意事项：S4U（不管用户是否登录都运行）曾被用户首选，但本机安全策略层会拦截新任务创建并把 S4U 规范回 InteractiveToken，不可达，退回 pythonw 方案；任务仍保持 InteractiveToken/LeastPrivilege，只在用户登录时运行。`Codex-Governed-TempTables-LarkEvent` 为常驻监听服务、非推送任务，未改动。多群解耦核验：六群、SEC 五报告、专项四渠道、伙伴三渠道、转化、市场调度器均已有逐渠道 try/except 熔断与独立回执（市场按渠道一任务一配置结构性隔离），本次改造不触碰该逻辑。任务定义备份在 `runtime/task-hidden-backup-20261001/`。

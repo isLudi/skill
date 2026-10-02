@@ -4,14 +4,14 @@ biz_qici_calendar as (
     select *
     from (
         values
-            ('20260710期', date '2026-07-07', date '2026-07-13'),
-            ('20260716期', date '2026-07-14', date '2026-07-19'),
-            ('20260722期', date '2026-07-20', date '2026-07-25'),
-            ('20260728期', date '2026-07-26', date '2026-07-31'),
-            ('20260803期', date '2026-08-01', date '2026-08-06'),
-            ('20260808期', date '2026-08-07', date '2026-08-11'),
-            ('20260815期', date '2026-08-12', date '2026-08-18'),
-            ('20260821期', date '2026-08-19', date '2026-08-23')
+            ('20260710期', date '2026-07-06', date '2026-07-12'),
+            ('20260716期', date '2026-07-13', date '2026-07-19'),
+            ('20260722期', date '2026-07-20', date '2026-07-26'),
+            ('20260728期', date '2026-07-27', date '2026-08-02'),
+            ('20260803期', date '2026-08-03', date '2026-08-09'),
+            ('20260808期', date '2026-08-10', date '2026-08-16'),
+            ('20260815期', date '2026-08-17', date '2026-08-23'),
+            ('20260821期', date '2026-08-24', date '2026-08-30')
     ) as t(qici, start_date, end_date)
 ),
 d_ap as (
@@ -48,8 +48,8 @@ h_ap as (
         user_number,
         max(case when application_name in ('PC客户端', 'APP', 'PC') then 1 else 0 end) as is_app_denglu_h
     from dw.dws_user_active_user_c_appliction_hf
-    where dt = format_datetime(current_timestamp - interval '2' hour, 'YYYYMMdd')
-      and hour = format_datetime(current_timestamp - interval '2' hour, 'HH')
+    where dt = format_datetime(current_timestamp - interval '3' hour, 'YYYYMMdd')
+      and hour = format_datetime(current_timestamp - interval '3' hour, 'HH')
       and product_name in ('高途', '规划精品')
     group by user_number
 ),
@@ -116,8 +116,8 @@ tmk_output_transfer_ids as (
     from dwd_transfer_raw tr
     join bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf f
       on cast(f.lead_id as bigint) = tr.prelead_id
-    where f.dt = format_datetime(current_timestamp - interval '2' hour, 'YYYYMMdd')
-      and f.hour = format_datetime(current_timestamp - interval '2' hour, 'HH')
+    where f.dt = format_datetime(current_timestamp - interval '3' hour, 'YYYYMMdd')
+      and f.hour = format_datetime(current_timestamp - interval '3' hour, 'HH')
       and f.lead_model_type = 1
       and f.section_assign_employee_first_level_department_name = 'H业务线'
       and f.virtual_third_department_name is not null
@@ -138,17 +138,28 @@ tmk_output_transfer_ids as (
       )
 ),
 
-normal_first_connected as (
+-- 合并链路主键来自线索统计明细的 lead_core_id。
+-- 它是跨小时稳定的线索唯一标识；lead_derivative_dependence_leads_id
+-- 仅作为衍生依赖字段保留，不把它猜测为 merged_to_lead_id。
+normal_first_connected_raw as (
     select
         cast(lead_id as bigint) as lead_id,
         date_diff(
             'hour',
             cast(section_assign_time as timestamp),
             cast(section_assign_first_call_connected_time as timestamp)
-        ) as first_call_connected_time_diff_hour
+        ) as first_call_connected_time_diff_hour,
+        nullif(try_cast(lead_core_id as bigint), 0) as merge_root_lead_id,
+        row_number() over (
+            partition by cast(lead_id as bigint)
+            order by
+                coalesce(try_cast(trace_update_time as timestamp), timestamp '1970-01-01 00:00:00') desc,
+                coalesce(try_cast(latest_trace_id as bigint), 0) desc,
+                coalesce(try_cast(lead_core_id as bigint), 0) desc
+        ) as stats_rn
     from service_dw.dm_crm_lead_stats_detail_hf
-    where dt = format_datetime(current_timestamp - interval '2' hour, 'YYYYMMdd')
-      and hour = format_datetime(current_timestamp - interval '2' hour, 'HH')
+    where dt = format_datetime(current_timestamp - interval '3' hour, 'YYYYMMdd')
+      and hour = format_datetime(current_timestamp - interval '3' hour, 'HH')
       and mapping_first_level_department_name = 'H业务线'
       and mapping_second_level_department_name in (
           '精品班学部',
@@ -159,8 +170,19 @@ normal_first_connected as (
       )
 ),
 
+normal_first_connected as (
+    select
+        lead_id,
+        first_call_connected_time_diff_hour,
+        merge_root_lead_id
+    from normal_first_connected_raw
+    where stats_rn = 1
+),
+
 -- 原青橙正常线索路径，输出到共享过程行接口。
-normal_data as (
+-- 对本地化规则，源表 valid_lead_count 归零但 merge_valid_lead_count=1 时，
+-- 通过稳定 merge_root_lead_id 回补一次有效量；其他渠道保持原口径。
+normal_data_raw as (
     select distinct
         'normal_lead' as record_source,
         cast(null as bigint) as prelead_id,
@@ -171,13 +193,11 @@ normal_data as (
             cal.qici,
             concat(
                 date_format(
-                    date_trunc(
-                        'week',
+                    date_trunc('week',
                         date_parse(
                             replace(concat(f.group_period_year, f.group_period_term), '期', ''),
                             '%Y%m%d'
-                        ) - interval '1' day
-                    ) + interval '4' day,
+                        )) + interval '4' day,
                     '%Y%m%d'
                 ),
                 '期'
@@ -200,13 +220,10 @@ normal_data as (
         cast(null as varchar) as fallback_department,
         cast(null as varchar) as fallback_dept_2,
         cast(null as varchar) as fallback_xiaozu,
-        coalesce(try_cast(f.valid_lead_count as bigint), 0) as valid_lead_count,
-        case when coalesce(try_cast(f.valid_lead_count as bigint), 0) > 0 then 1 else 0 end as v_lead,
-        case
-            when coalesce(try_cast(f.valid_lead_count as bigint), 0) > 0
-            then coalesce(try_cast(f.friend_lead_count as bigint), 0)
-            else 0
-        end as is_friend_lead,
+        coalesce(try_cast(f.valid_lead_count as bigint), 0) as source_valid_lead_count,
+        coalesce(try_cast(f.merge_valid_lead_count as bigint), 0) as source_merge_valid_lead_count,
+        jt.merge_root_lead_id,
+        coalesce(try_cast(f.friend_lead_count as bigint), 0) as source_friend_lead_count,
         date_diff(
             'hour',
             cast(f.section_assign_time as timestamp),
@@ -226,15 +243,102 @@ normal_data as (
       ) between cal.start_date and cal.end_date
     left join tmk_output_transfer_ids tmk_dup
       on cast(f.lead_id as bigint) = tmk_dup.transfer_lead_id
-    where f.dt = format_datetime(current_timestamp - interval '2' hour, 'YYYYMMdd')
-      and f.hour = format_datetime(current_timestamp - interval '3' hour, 'HH')
+    where f.dt = format_datetime(current_timestamp - interval '3' hour, 'YYYYMMdd')
+      and f.hour = format_datetime(current_timestamp - interval '4' hour, 'HH')
       and f.section_assign_employee_first_level_department_name = 'H业务线'
       and f.section_assign_employee_second_level_department_name = '青橙项目部'
       and f.period_mapping_first_level_department_name = 'H业务线'
-      and f.period_mapping_second_level_department_name in ('精品班学部', '青橙项目部')
-      and coalesce(try_cast(f.valid_lead_count as bigint), 0) > 0
+      and f.period_mapping_second_level_department_name in (
+          '精品班学部', '菁英班学部', '市场部', '青橙项目部'
+      )
+      and (
+          coalesce(try_cast(f.valid_lead_count as bigint), 0) > 0
+          or (
+              coalesce(try_cast(f.merge_valid_lead_count as bigint), 0) > 0
+              and jt.merge_root_lead_id is not null
+              and (
+                  replace(coalesce(f.rule_name, ''), ' ', '') like '%青橙本地化%'
+                  or replace(coalesce(f.rule_name, ''), ' ', '') like '%河南本地化%'
+                  or replace(coalesce(f.rule_name, ''), ' ', '') like '%私域本地化%'
+              )
+          )
+      )
       and f.virtual_second_department_name = '青橙项目部'
       and tmk_dup.transfer_lead_id is null
+),
+
+-- 正常线索宽表的有效标志会随合并状态在普通字段和 merge 字段之间迁移，
+-- 且同一快照可能同时保留两种状态行。按期次、顾问和 lead_id 折叠为一次贡献：
+-- 普通字段或 merge 字段任一有效即计 1，两者同时有效仍只计 1。
+normal_data_ranked as (
+    select
+        normal_data_raw.*,
+        max(source_valid_lead_count) over (
+            partition by qici, employee_email_name, process_lead_id
+        ) as canonical_source_valid_lead_count,
+        max(source_merge_valid_lead_count) over (
+            partition by qici, employee_email_name, process_lead_id
+        ) as canonical_merge_valid_lead_count,
+        row_number() over (
+            partition by qici, employee_email_name, process_lead_id
+            order by
+                case when source_valid_lead_count > 0 then 0 else 1 end,
+                source_valid_lead_count desc,
+                source_merge_valid_lead_count desc,
+                section_assign_timestamp desc,
+                rule_name,
+                transfer_lead_id desc
+        ) as normal_lead_rn
+    from normal_data_raw
+),
+normal_data as (
+    select
+        record_source,
+        prelead_id,
+        transfer_lead_id,
+        process_lead_id,
+        user_id,
+        qici,
+        rule_name,
+        assign_day,
+        section_assign_timestamp,
+        tmk_channel_detail,
+        grade_1,
+        employee_email_name,
+        employee_email_prefix,
+        fallback_department,
+        fallback_dept_2,
+        fallback_xiaozu,
+        case
+            when canonical_source_valid_lead_count > 0 then canonical_source_valid_lead_count
+            when canonical_merge_valid_lead_count > 0 and merge_root_lead_id is not null
+            then canonical_merge_valid_lead_count
+            else 0
+        end as valid_lead_count,
+        case
+            when canonical_source_valid_lead_count > 0
+              or (canonical_merge_valid_lead_count > 0 and merge_root_lead_id is not null)
+            then 1 else 0
+        end as v_lead,
+        case
+            when canonical_source_valid_lead_count > 0
+              or (canonical_merge_valid_lead_count > 0 and merge_root_lead_id is not null)
+            then source_friend_lead_count else 0
+        end as is_friend_lead,
+        first_call_time_diff_hour,
+        first_call_connected_time_diff_hour_1,
+        source_call_duration_seconds,
+        source_call_connected_count,
+        source_call_missed_count,
+        merge_root_lead_id,
+        case
+            when canonical_source_valid_lead_count > 0 then 0
+            when canonical_merge_valid_lead_count > 0 and merge_root_lead_id is not null
+            then canonical_merge_valid_lead_count
+            else 0
+        end as merge_valid_lead_count
+    from normal_data_ranked
+    where normal_lead_rn = 1
 ),
 
 -- 潜客宽表可能一潜客多行；优先保留有效、规则/顾问完整且分配时间最新的一行。
@@ -249,13 +353,11 @@ tmk_prelead_raw as (
             cal.qici,
             concat(
                 date_format(
-                    date_trunc(
-                        'week',
+                    date_trunc('week',
                         date_parse(
                             replace(concat(f.group_period_year, f.group_period_term), '期', ''),
                             '%Y%m%d'
-                        ) - interval '1' day
-                    ) + interval '4' day,
+                        )) + interval '4' day,
                     '%Y%m%d'
                 ),
                 '期'
@@ -299,8 +401,8 @@ tmk_prelead_raw as (
           try(date_parse(replace(concat(f.group_period_year, f.group_period_term), '期', ''), '%Y%m%d'))
           as date
       ) between cal.start_date and cal.end_date
-    where f.dt = format_datetime(current_timestamp - interval '2' hour, 'YYYYMMdd')
-      and f.hour = format_datetime(current_timestamp - interval '2' hour, 'HH')
+    where f.dt = format_datetime(current_timestamp - interval '3' hour, 'YYYYMMdd')
+      and f.hour = format_datetime(current_timestamp - interval '3' hour, 'HH')
       and f.lead_model_type = 1
       and f.section_assign_employee_first_level_department_name = 'H业务线'
       and f.virtual_third_department_name is not null
@@ -379,7 +481,9 @@ tmk_data as (
         ) as first_call_connected_time_diff_hour_1,
         source_call_duration_seconds,
         source_call_connected_count,
-        source_call_missed_count
+        source_call_missed_count,
+        cast(null as bigint) as merge_root_lead_id,
+        cast(null as bigint) as merge_valid_lead_count
     from tmk_prelead_raw
     where prelead_rn = 1
       and valid_lead_count > 0
@@ -422,6 +526,7 @@ data as (
               or r.rule_name like '%私域表单%'
               or r.rule_name like '%私域品效%'
               or r.rule_name like '%私域图书%' then '私域'
+            when r.rule_name like '%公域-自然流%' then '公域'
             when r.rule_name like '%公域学霸%'
               or r.rule_name like '%青橙公域%' then '公域'
             when r.rule_name like '%武汉图书%'
@@ -468,6 +573,7 @@ data as (
               or r.rule_name like '%青橙公海%' then '顾问未加好友'
             when r.rule_name like '%武汉图书%' then '武汉图书'
             when r.rule_name like '%西安图书%' then '西安图书'
+            when r.rule_name like '%公域-自然流%' then '自然流'
             when r.rule_name like '%公域学霸%'
               or r.rule_name like '%青橙公域%' then '公域学霸'
             when r.rule_name like '%抖音私信%' then '抖音私信'
@@ -489,8 +595,8 @@ call_detail as (
         wf.data_source,
         wf.msg_type_name
     from service_dw.app_h_crm_lead_employee_workload_detail_hf wf
-    where wf.dt = format_datetime(current_timestamp - interval '2' hour, 'YYYYMMdd')
-      and wf.hour = format_datetime(current_timestamp - interval '2' hour, 'HH')
+    where wf.dt = format_datetime(current_timestamp - interval '3' hour, 'YYYYMMdd')
+      and wf.hour = format_datetime(current_timestamp - interval '3' hour, 'HH')
 ),
 call_c as (
     select
@@ -616,31 +722,15 @@ daoke as (
                 l.begin_time,
                 coalesce(
                     cal.qici,
-                    case
-                        when day_of_week(cast(l.begin_time as timestamp)) = 1
-                        then concat(
-                            date_format(
-                                date_trunc('week', cast(l.begin_time as timestamp)) - interval '3' day,
-                                '%Y%m%d'
-                            ),
-                            '期'
-                        )
-                        else concat(
-                            date_format(
-                                date_trunc('week', cast(l.begin_time as timestamp)) + interval '4' day,
-                                '%Y%m%d'
-                            ),
-                            '期'
-                        )
-                    end
+                    concat(date_format(date_trunc('week', cast(l.begin_time as timestamp)) + interval '4' day, '%Y%m%d'), '期')
                 ) as qici,
                 l.live_learn_duration,
                 l.is_valid_live_learn
             from service_dw.dws_service_user_learn_detail_hf l
             left join biz_qici_calendar cal
               on cast(l.begin_time as date) between cal.start_date and cal.end_date
-            where l.dt = format_datetime(current_timestamp - interval '2' hour, 'YYYYMMdd')
-              and l.hour = format_datetime(current_timestamp - interval '2' hour, 'HH')
+            where l.dt = format_datetime(current_timestamp - interval '3' hour, 'YYYYMMdd')
+              and l.hour = format_datetime(current_timestamp - interval '3' hour, 'HH')
               and l.course_first_level_department_name = 'H业务线'
               and l.course_second_level_department_name in ('精品班学部', '市场部', '青橙项目部')
               and l.is_need_attend = 1
@@ -676,7 +766,7 @@ daoke_flags as (
 jg_source as (
     select qici, employee_email_name, employee_email_prefix, department, dept_2, xiaozu
     from temp_table.dingxi01_jiagou_db
-    where qici >= '20260605期'
+    where qici >= '20260501期'
       and dept_1 = '青橙项目部'
       and qici is not null and employee_email_name is not null
       and department is not null and dept_2 is not null and xiaozu is not null
@@ -710,6 +800,8 @@ prc as (
         jg.xiaozu as xiaozu,
         data.employee_email_name,
         data.user_id,
+        data.merge_root_lead_id,
+        coalesce(data.merge_valid_lead_count, 0) as merge_valid_lead_count,
         data.v_lead,
         coalesce(data.is_friend_lead, 0) as is_friend_lead,
         coalesce(data.first_call_time_diff_hour, 0) as first_call_time_diff_hour,
@@ -798,7 +890,7 @@ prc as (
      and call_14d.employee_email_prefix = data.employee_email_prefix
     left join denglu_app
       on denglu_app.user_number = data.user_id
-    where data.qici >= '20260605期'
+    where data.qici >= '20260501期'
       and jg.department is not null
       and jg.dept_2 is not null
       and jg.xiaozu is not null
@@ -842,7 +934,13 @@ final_base as (
         sum(call_status) as call_status,
         sum(is_app_denglu) as is_app_denglu,
         sum(daoke1) as daoke1,
-        sum(valid_daoke_1) as valid_daoke_1
+        sum(valid_daoke_1) as valid_daoke_1,
+        sum(merge_valid_lead_count) as merge_valid_lead_count,
+        count(distinct merge_root_lead_id) as merge_root_lead_count,
+        array_join(
+            array_sort(array_agg(distinct cast(merge_root_lead_id as varchar))),
+            ','
+        ) as merge_root_lead_ids
     from prc
     group by
         qici,
@@ -924,5 +1022,8 @@ select
     call_status,
     is_app_denglu,
     daoke1,
-    valid_daoke_1
+    valid_daoke_1,
+    merge_valid_lead_count,
+    merge_root_lead_count,
+    merge_root_lead_ids
 from final_with_daiban

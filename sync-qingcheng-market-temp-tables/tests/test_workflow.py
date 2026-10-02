@@ -495,9 +495,15 @@ class MergeWorkflowTests(unittest.TestCase):
             for family in registry["families"]
             if family["id"] == "course_schedule"
         )
-        self.assertEqual(
-            course_family["source_env_section"],
-            "USQL Web Query (Playwright) credentials",
+        self.assertEqual(course_family["source_kind"], "file_attachment")
+        self.assertTrue(course_family["source_filename_patterns"])
+        self.assertFalse(
+            any(
+                key.startswith(("source_url", "source_env", "source_browser"))
+                or key in {"source_expected_title_pattern", "source_message_patterns"}
+                for key in course_family
+            ),
+            "course_schedule must not keep retired link-source fields",
         )
         for family in registry["families"]:
             quality = family["source_quality"]
@@ -1508,16 +1514,12 @@ class MergeWorkflowTests(unittest.TestCase):
 
         self.assertEqual(selected["a"]["message_id"], "om_after")
 
-    def test_course_schedule_link_accepts_common_wording_with_strict_source_guards(
+    def test_course_schedule_attachment_accepts_semantic_filenames_with_strict_guards(
         self,
     ) -> None:
         registry = load_registry(SKILL_ROOT / "references" / "workflow_registry.json")
-        source_url = (
-            "https://docs.baijia.com/sheet/"
-            "DQUZrYU50dkZPa1FtZWJSU1JE?tab=vhzqxm"
-        )
 
-        def message(content: str) -> dict[str, object]:
+        def message(file_name: str) -> dict[str, object]:
             return {
                 "message_id": "om_course",
                 "chat_id": "oc_e604e064976c022ab4289fc2fb979332",
@@ -1525,41 +1527,89 @@ class MergeWorkflowTests(unittest.TestCase):
                     "id": "ou_3168c83ffe93b49a192755c8e31e2bc5",
                     "name": "李怡青",
                 },
-                "content": f"{content}{source_url}",
+                "content": (
+                    f"最新到课表 <file key=\"file_v3_test\" name=\"{file_name}\"/>"
+                ),
             }
 
-        common_wording = [
-            "【青橙行课--开课时间(1-6节课)】\n",
-            "@吕帅 帅~辛苦上传上课时间",
-            "请更新最新开课时间表：",
-            "青橙行课安排 ",
-            "本期到课表 ",
-            "课程信息：",
-            "课 表更新：",
+        common_filenames = [
+            "青橙行课--开课时间(1-6节课).xlsx",
+            "到课表.xlsx",
+            "本期到课表0928.xlsx",
+            "开课时间.xlsx",
+            "青橙行课安排.xlsx",
+            "0728期课表.xlsx",
+            "课程安排.xlsx",
+            "daoke.xlsx",
+            "daoke_0928.xlsx",
+            "DaoKe_0928.xlsx",
+            "DAOKE.xlsx",
+            "kaike时间.xlsx",
+            "kebiao.xlsx",
         ]
-        for wording in common_wording:
-            with self.subTest(wording=wording):
+        for filename in common_filenames:
+            with self.subTest(filename=filename):
                 self.assertEqual(
-                    classify_source_message(registry, message(wording)),
+                    classify_source_message(registry, message(filename)),
                     "course_schedule",
                 )
 
-        unrelated = message("辛苦上传数据表：")
-        self.assertIsNone(classify_source_message(registry, unrelated))
+        unrelated_names = [
+            "个人期度目标表.xlsx",
+            "9月团队月度目标表.xlsx",
+            "全员结果数据架构.xlsx",
+            "0904期带班架构.xlsx",
+            "成本表.xlsx",
+            "其他数据.xlsx",
+        ]
+        for filename in unrelated_names:
+            with self.subTest(filename=filename):
+                self.assertNotEqual(
+                    classify_source_message(registry, message(filename)),
+                    "course_schedule",
+                )
 
-        wrong_sender = message("辛苦上传上课时间：")
-        wrong_sender["sender"] = {"id": "ou_unregistered", "name": "其他人"}
-        self.assertIsNone(classify_source_message(registry, wrong_sender))
+        self.assertIsNone(
+            classify_source_message(
+                registry,
+                {
+                    "message_id": "om_link_only",
+                    "chat_id": "oc_e604e064976c022ab4289fc2fb979332",
+                    "sender": {
+                        "id": "ou_3168c83ffe93b49a192755c8e31e2bc5",
+                        "name": "李怡青",
+                    },
+                    "content": (
+                        "辛苦上传上课时间：https://docs.baijia.com/sheet/abcd"
+                    ),
+                },
+            ),
+            "link-only messages must not classify after link-source retirement",
+        )
 
-        wrong_chat = message("辛苦上传上课时间：")
+        other_member = message("到课表.xlsx")
+        other_member["sender"] = {"id": "ou_unregistered", "name": "群内其他成员"}
+        self.assertEqual(
+            classify_source_message(registry, other_member),
+            "course_schedule",
+            "any_group_member policy must accept registered filenames from any chat member",
+        )
+
+        wrong_chat = message("到课表.xlsx")
         wrong_chat["chat_id"] = "oc_unregistered"
         self.assertIsNone(classify_source_message(registry, wrong_chat))
 
-        wrong_domain = message("辛苦上传上课时间：")
-        wrong_domain["content"] = (
-            "辛苦上传上课时间：https://example.com/sheet/not-registered"
+        market_message = {
+            "message_id": "om_market_sender",
+            "chat_id": "oc_7b9873ee89b18d11cf60c8768c6eba9e",
+            "sender": {"id": "ou_any_market_member", "name": "市场群其他成员"},
+            "content": "<file key=\"file_v3_cost\" name=\"cost.xlsx\"/>",
+        }
+        self.assertEqual(
+            classify_source_message(registry, market_message),
+            "market_cost",
+            "sender relaxation applies to every registered family",
         )
-        self.assertIsNone(classify_source_message(registry, wrong_domain))
 
         family = next(
             item

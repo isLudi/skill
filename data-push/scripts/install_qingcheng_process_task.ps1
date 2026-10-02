@@ -7,7 +7,7 @@ $OutputEncoding = [Console]::OutputEncoding
 
 $codexHome = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..\..\..')).Path
 $machine = Get-Content -LiteralPath (Join-Path $codexHome 'machine.local.json') -Raw -Encoding UTF8 | ConvertFrom-Json
-$pythonExe = $machine.executables.python
+$pythonExe = $machine.executables.python -replace 'python\.exe$', 'pythonw.exe'  # hidden: no console window
 if (-not (Test-Path -LiteralPath $pythonExe -PathType Leaf)) {
     throw 'Configured Python executable is missing'
 }
@@ -19,7 +19,7 @@ if ($batch.status -ne 'active' -or -not $batch.schedule_enabled -or
     $batch.retry_interval_minutes -ne 2 -or
     @($batch.business_calendar.process_weekdays) -join ',' -ne '1,2,3' -or
     @($batch.business_calendar.hours) -join ',' -ne '14,18,22' -or
-    $batch.business_calendar.minute -ne 25 -or $batch.business_calendar.deadline_minute -ne 50) {
+    $batch.business_calendar.minute -ne 0 -or $batch.business_calendar.deadline_minute -ne 50) {
     throw 'Qingcheng batch schedule differs from the reviewed configuration'
 }
 
@@ -42,11 +42,11 @@ $definition.Settings.ExecutionTimeLimit = 'PT40M'
 $startDay = (Get-Date).Date.AddDays(1)
 foreach ($hour in @(14, 18, 22)) {
     $trigger = $definition.Triggers.Create(3)
-    $trigger.StartBoundary = $startDay.AddHours($hour).AddMinutes(25).ToString('yyyy-MM-ddTHH:mm:ss')
+    $trigger.StartBoundary = $startDay.AddHours($hour).AddMinutes(0).ToString('yyyy-MM-ddTHH:mm:ss')
     $trigger.WeeksInterval = 1
     $trigger.DaysOfWeek = 28
     $trigger.Repetition.Interval = 'PT2M'
-    $trigger.Repetition.Duration = 'PT26M'
+    $trigger.Repetition.Duration = 'PT50M'
     $trigger.Repetition.StopAtDurationEnd = $false
 }
 $action = $definition.Actions.Create(0)

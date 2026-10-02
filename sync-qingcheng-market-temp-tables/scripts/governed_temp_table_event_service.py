@@ -209,10 +209,11 @@ def validate_registered_sources(
     config: dict[str, Any],
     registry: dict[str, Any],
 ) -> None:
-    registered_source_ids = {
-        workflow.source_sender_id(registry, family)
-        for family in registry["families"]
-    }
+    registered_source_ids: set[str] = set()
+    for family in registry["families"]:
+        if workflow.source_sender_policy(registry, family) == "any_group_member":
+            continue
+        registered_source_ids.update(workflow.source_sender_ids(registry, family))
     registered_source_ids.discard("")
     missing_source_ids = sorted(
         registered_source_ids.difference(config["source_sender_ids"])
@@ -255,14 +256,9 @@ def validate_registered_sources(
                 "Production source allowlist must include at least one family in each registered chat."
             )
     for family in registry["families"]:
-        if workflow.source_kind(family) != "link_workbook":
-            continue
-        env_key = str(family.get("source_env_file_env") or "")
-        env_file_value = os.environ.get(env_key) if env_key else None
-        env_file = Path(env_file_value or family["source_env_file"])
-        if not env_file.is_file():
+        if not family.get("source_filename_patterns"):
             raise ServiceError(
-                f"Registered link source credential file is unavailable for {family['id']}."
+                f"Registered file source has no filename patterns: {family['id']}."
             )
 
 
@@ -811,9 +807,9 @@ def parse_command(
     )
     if match:
         return Intent("approve", job_id=match.group(1))
-    if command in {"预检此文件", "检查此文件", "预检此表", "检查此表", "预检此链接", "检查此链接"}:
+    if command in {"预检此文件", "检查此文件", "预检此表", "检查此表"}:
         return Intent("plan", use_replied_file=True)
-    if command in {"上传此文件", "上传此表", "上传此链接"}:
+    if command in {"上传此文件", "上传此表"}:
         return Intent("upload", use_replied_file=True)
     match = re.fullmatch(r"(?:预检|检查|生成计划)(.*)", command)
     if match:
@@ -898,7 +894,7 @@ def help_text(
         "可用指令：\n"
         "- @管家 预检最新临时表\n"
         "- @管家 预检 <表名或别名>\n"
-        "- 回复一个已登记源附件/链接并 @管家 预检此表\n"
+        "- 回复一个已登记源附件并 @管家 预检此表\n"
         "- @管家 状态 [job_id]\n"
         "- @管家 取消 <job_id>\n"
         "- 审批人：@管家 确认上传 <job_id>\n"
@@ -1430,7 +1426,7 @@ class EventProcessor:
     def _resolve_replied_file(self, event: dict[str, Any]) -> tuple[list[str], dict[str, str]]:
         replied_id = event.get("reply_to")
         if not replied_id:
-            raise ServiceError("“此表”指令必须回复一条已登记的 Excel 附件或开课时间链接消息。")
+            raise ServiceError("“此表”指令必须回复一条已登记的 Excel 附件消息。")
         if self.gateway is None:
             raise ServiceError("Offline processor cannot resolve the replied-to message.")
         message = self.gateway.get_message(str(replied_id))
@@ -1471,10 +1467,7 @@ class EventProcessor:
         if not self.ledger.claim_event(event):
             return "duplicate"
         content = str(event.get("content") or "")
-        if (
-            self.config["auto_plan_source_attachments"]
-            and sender_id in self.config["source_sender_ids"]
-        ):
+        if self.config["auto_plan_source_attachments"]:
             try:
                 family_id = workflow.classify_source_message(self.registry, event)
             except workflow.WorkflowError as exc:
@@ -1957,8 +1950,10 @@ def main(argv: list[str] | None = None) -> int:
                     "allow_production_upload": config["allow_production_upload"],
                     "registered_source_count": len(
                         {
-                            workflow.source_sender_id(registry, family)
+                            sender_id
                             for family in registry["families"]
+                            for sender_id in workflow.source_sender_ids(registry, family)
+                            if sender_id
                         }
                     ),
                 }

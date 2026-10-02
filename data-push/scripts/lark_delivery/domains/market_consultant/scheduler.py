@@ -17,10 +17,13 @@ from datetime import datetime, timedelta
 
 from ...common import feishu as gp
 from ...common import push_log
+from ...common import resend
+from ...common.readback import available as readback_available
 from ...core import catalog
 from ...core.locks import runner_lock
 from .workflow import prepare_report, prepare_weekend_dual_report, source_present_channels
 from .adapter import SUPERVISOR_PROFILES, policy_for
+from .delivery_gate import reverify_unverified_delivery
 from .delivery_validation import receipt_readback
 from .delivery_ledger import claim, connect_ledger, delivery_key, record_outcome
 from .reporting import assert_current_revision, report_args, validate_context
@@ -230,23 +233,6 @@ def upstream_ready(cfg, slot):
     return evidence
 
 
-def reverify_unverified_delivery(db, key, cfg, context):
-    """Read back one already-sent message; this function has no send capability."""
-    row = db.execute("SELECT status,message_id,detail FROM deliveries WHERE key=?", (key,)).fetchone()
-    if not row or row[0] != "sent_unverified" or not row[1]:
-        raise ValueError("delivery is not eligible for readback-only reverification")
-    detail = json.loads(row[2])
-    detail["readback"] = receipt_readback(row[1], cfg, context, detail["image_keys"])
-    detail.pop("readback_error_type", None)
-    updated = db.execute(
-        "UPDATE deliveries SET status='sent_verified',detail=? WHERE key=? AND status='sent_unverified' AND message_id=?",
-        (json.dumps(detail, ensure_ascii=False), key, row[1]))
-    if updated.rowcount != 1:
-        db.rollback()
-        raise ValueError("delivery status changed during reverification")
-    db.commit()
-    return {"key": key, "message_id": row[1], "status": "sent_verified",
-            "readback": detail["readback"]}
 
 
 def deliver(context, cfg, slot, db, evidence):
@@ -259,6 +245,31 @@ def deliver(context, cfg, slot, db, evidence):
                              time_guard=lambda: require_send_window(slot, cfg))
 
 
+def _reverify_sent_message(db, key, cfg, context, slot, prior):
+    """Redo the readback of a message that is already in the group.
+
+    This path never calls the send outlet, so re-running it cannot duplicate a
+    message. A still-failing readback stays ``readback_failed`` rather than
+    re-sending: the message is in the group either way, and publishing a second
+    copy to fix a bookkeeping error would be worse than the bookkeeping error.
+    """
+    try:
+        reverify_unverified_delivery(db, key, cfg, context)
+    except Exception as exc:
+        if not readback_available(cfg, cfg.get("chat_id")):
+            record_channel(db, slot, context["channel"], resend.UNVERIFIABLE,
+                           "消息已确认写入，该群内容不可回读，验证不可能：按可接受终态处理",
+                           message_id=prior[1], key=key)
+            return True
+        record_channel(db, slot, context["channel"], "readback_failed",
+                       "消息已在群内但回读未通过：" + type(exc).__name__,
+                       message_id=prior[1], key=key)
+        return False
+    record_channel(db, slot, context["channel"], "sent_verified",
+                   "消息已在群内，补回读校验通过", message_id=prior[1], key=key)
+    return True
+
+
 def _deliver_verified(context, cfg, slot, db, evidence, *, key, time_guard):
     """Shared outlet; each authorized caller must supply its own real-time guard."""
     if context.get("skip_delivery"):
@@ -266,10 +277,30 @@ def _deliver_verified(context, cfg, slot, db, evidence, *, key, time_guard):
                        context.get("skip_reason", ""), period=context["period"])
         return True
     prior = db.execute("SELECT status,message_id FROM deliveries WHERE key=?", (key,)).fetchone()
-    if prior:
+    # The availability question is asked only when a prior row raises it, so a first
+    # attempt costs no extra API call. A group whose content cannot be read back at all
+    # treats a recorded message id as a completed delivery, not as something to keep
+    # re-verifying or re-issuing.
+    verdict = (resend.decide(prior[0], prior[1],
+                             readback_available=readback_available(cfg, cfg.get("chat_id")))
+               if prior else resend.RESEND)
+    if verdict == resend.DONE:
         record_channel(db, slot, context["channel"], "duplicate_suppressed",
                        "该时段该渠道已有投递记录，未重复发送", prior_status=prior[0], message_id=prior[1])
-        return prior[0] == "sent_verified"
+        return True
+    if verdict == resend.UNVERIFIABLE:
+        record_channel(db, slot, context["channel"], resend.UNVERIFIABLE,
+                       "消息已确认写入，该群内容不可回读，验证不可能：按可接受终态处理",
+                       prior_status=prior[0], message_id=prior[1], key=key)
+        return True
+    if verdict == resend.REVERIFY:
+        return _reverify_sent_message(db, key, cfg, context, slot, prior)
+    if prior:
+        # Re-issue with the SAME idempotency key. The platform dedupes, so this is
+        # safe even if the earlier attempt did reach the group -- and if it did, the
+        # returned message id lets the readback verify, so the slot converges.
+        record_channel(db, slot, context["channel"], "resending_after_uncertain",
+                       "上一轮未确认送达，用同一幂等键重发", prior_status=prior[0], key=key)
     time_guard()
     if context.get("report_kind") == "volume":
         vr.validate_scheduled_context(context, cfg)
@@ -292,7 +323,9 @@ def _deliver_verified(context, cfg, slot, db, evidence, *, key, time_guard):
     time_guard()
     if context.get("report_profile") in {bp.PROFILE, "volume"}:
         assert_current_revision(context, cfg)
-    if not claim(db, key, slot, context["channel"]):
+    # Only a first attempt claims the key; a re-issue already owns the row, and
+    # `claim` is INSERT OR IGNORE, so re-claiming would block the send it just allowed.
+    if prior is None and not claim(db, key, slot, context["channel"]):
         return False
     detail = {"upstream": evidence, "period": context["period"], "report_kind": context.get("report_kind", "regular"),
               "raw_count": context["raw_count"], "rev": context["raw_read_audit"]["rev"], "image_keys": keys,
@@ -321,14 +354,20 @@ def _deliver_verified(context, cfg, slot, db, evidence, *, key, time_guard):
         detail["readback"] = receipt_readback(message_id, cfg, context, keys)
         status = "sent_verified"
     except Exception as exc:
-        status = "sent_unverified"
-        detail["readback_error_type"] = type(exc).__name__
+        if readback_available(cfg, cfg.get("chat_id")):
+            status = "sent_unverified"
+            detail["readback_error_type"] = type(exc).__name__
+        else:
+            # Unreadable group: the write was acknowledged, verification is impossible by
+            # policy, and reporting a failure here would be a false alarm on every push.
+            status = resend.UNVERIFIABLE
+            detail["readback_error"] = str(exc)
     db.execute("UPDATE deliveries SET status=?,detail=? WHERE key=?", (status, json.dumps(detail, ensure_ascii=False), key))
     db.commit()
     record_channel(db, slot, context["channel"], status,
                    detail.get("readback_error_type", ""), message_id=message_id,
                    image_cleanup=detail["image_cleanup"])
-    return status == "sent_verified"
+    return status in ("sent_verified", resend.UNVERIFIABLE)
 
 
 def run(cfg, preflight=False):

@@ -17,8 +17,9 @@ if (-not $pushConfig.enabled -and $ConfirmEnable) { throw 'The registered adviso
 $pushFirst = [DateTimeOffset]::Parse($pushConfig.first_send_at).LocalDateTime
 $pushTaskName = 'Codex-Lark-Supervisor-Yafei-Grade9-Advisor-Push'
 $pushLauncher = Join-Path $PSScriptRoot 'run_supervisor_yafei_grade_9_advisor_scheduled_push.ps1'
-$pushArguments = '-NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -File "{0}"' -f $pushLauncher
-$pushAction = New-ScheduledTaskAction -Execute "$env:WINDIR\System32\WindowsPowerShell\v1.0\powershell.exe" -Argument $pushArguments -WorkingDirectory (Split-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -Parent)
+$pushHiddenLauncher = Join-Path $PSScriptRoot 'run_hidden_push.pyw'
+$pushArguments = '"{0}" "{1}"' -f $pushHiddenLauncher, $pushLauncher
+$pushAction = New-ScheduledTaskAction -Execute 'D:\anaconda3\pythonw.exe' -Argument $pushArguments -WorkingDirectory (Split-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -Parent)
 $pushExisting = Get-ScheduledTask -TaskName $pushTaskName -ErrorAction SilentlyContinue
 if ($pushExisting -and $pushExisting.Actions.Arguments -ne $pushArguments) { throw 'Existing task has another action; refusing overwrite.' }
 $pushTriggers = foreach ($pushHour in $pushConfig.hours) {

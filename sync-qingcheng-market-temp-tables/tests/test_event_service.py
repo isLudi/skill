@@ -334,19 +334,66 @@ class EventServiceTests(unittest.TestCase):
         with self.assertRaisesRegex(ServiceError, "differ from the allowlist"):
             assert_production_job_scope(config, job)
 
-    def test_processor_rejects_missing_registered_source_sender(self) -> None:
+    def test_processor_accepts_missing_source_senders_under_any_member_policy(
+        self,
+    ) -> None:
         incomplete = test_config(self.runtime_root, source_sender_ids=[SOURCE])
+
+        processor = EventProcessor(
+            incomplete,
+            self.registry,
+            self.ledger,
+            self.replies,
+            None,
+            None,
+            self.logger,
+        )
+        self.assertIsNotNone(processor)
+
+    def test_processor_still_rejects_missing_senders_for_registered_policy_family(
+        self,
+    ) -> None:
+        import copy
+
+        strict_registry = copy.deepcopy(self.registry)
+        strict_registry["source_sender_policy"] = "registered"
+        strict_registry["families"][0]["source_sender_policy"] = "registered"
+        incomplete = test_config(self.runtime_root, source_sender_ids=[COURSE_SOURCE, MARKET_SOURCE])
 
         with self.assertRaisesRegex(ServiceError, "missing registered workflow senders"):
             EventProcessor(
                 incomplete,
-                self.registry,
+                strict_registry,
                 self.ledger,
                 self.replies,
                 None,
                 None,
                 self.logger,
             )
+
+    def test_attachment_from_unlisted_member_is_auto_batched(self) -> None:
+        outsider = "ou_random_group_member"
+        queued = self.processor.process(
+            event(
+                "om_outsider1",
+                outsider,
+                '<file key="file_key_out" name="到课表.xlsx" />',
+                message_type="file",
+            )
+        )
+        with sqlite3.connect(self.ledger.path) as connection:
+            connection.execute(
+                "UPDATE pending_attachments SET queued_epoch = ? WHERE message_id = ?",
+                (time.time() - 10, "om_outsider1"),
+            )
+
+        job_id = self.processor.flush_pending()
+        job = self.ledger.get_job(job_id or "")
+
+        self.assertEqual(queued, "source_message_queued")
+        self.assertIsNotNone(job)
+        self.assertEqual(job["family_ids"], ["course_schedule"])
+        self.assertEqual(job["message_bindings"], {"course_schedule": "om_outsider1"})
 
     def test_reply_policy_defaults_to_final_known_commands_only(self) -> None:
         config = test_config(self.runtime_root, send_replies=True)
@@ -601,14 +648,12 @@ class EventServiceTests(unittest.TestCase):
         self.assertEqual(job["message_bindings"], {"personal_period_goal": "om_file1"})
         self.assertEqual(job["action"], "plan")
 
-    def test_course_link_from_registered_sender_is_auto_batched(self) -> None:
+    def test_course_attachment_from_registered_sender_is_auto_batched(self) -> None:
         source = event(
             "om_course1",
             COURSE_SOURCE,
-            (
-                "@吕帅 帅~辛苦上传上课时间"
-                "https://docs.baijia.com/sheet/DQUZrYU50dkZPa1FtZWJSU1JE?tab=vhzqxm"
-            ),
+            '<file key="file_key_course" name="到课表.xlsx" />',
+            message_type="file",
         )
         source["mentions"] = []
 
@@ -626,15 +671,29 @@ class EventServiceTests(unittest.TestCase):
         self.assertEqual(job["family_ids"], ["course_schedule"])
         self.assertEqual(job["message_bindings"], {"course_schedule": "om_course1"})
 
-    def test_reply_bound_course_link_creates_exact_message_plan(self) -> None:
+    def test_course_link_only_message_is_ignored_after_link_retirement(self) -> None:
+        source = event(
+            "om_course2",
+            COURSE_SOURCE,
+            (
+                "@吕帅 帅~辛苦上传上课时间"
+                "https://docs.baijia.com/sheet/DQUZrYU50dkZPa1FtZWJSU1JE?tab=vhzqxm"
+            ),
+        )
+        source["mentions"] = []
+
+        result = self.processor.process(source)
+
+        self.assertEqual(result, "ignored_no_mention")
+
+    def test_reply_bound_course_attachment_creates_exact_message_plan(self) -> None:
         gateway = mock.Mock()
         gateway.get_message.return_value = {
             "message_id": "om_coursesource",
             "chat_id": CHAT,
             "sender": {"id": COURSE_SOURCE, "name": "李怡青"},
             "content": (
-                "@吕帅 帅~辛苦上传上课时间"
-                "https://docs.baijia.com/sheet/DQUZrYU50dkZPa1FtZWJSU1JE?tab=vhzqxm"
+                '最新到课表 <file key="file_key_course" name="到课表.xlsx" />'
             ),
         }
         processor = EventProcessor(

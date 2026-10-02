@@ -182,7 +182,7 @@
 
 - `temp_table.dingxi01_channel_group`：通过 `channel = channel_map` 补充 `channel_group`。
 - `temp_table.shenbaoxin_channel_group`：通过 `channel = channel_map` 关联渠道分组；当前 SQL 仅 join，未输出字段，完整字段结构待确认。
-- `temp_table.dingxi01_cost`：通过 `channel = channel_map`、`grade = grade_1`、`qici = period_name` 补充 `cost` 和 `goal`。
+- `temp_table.dingxi01_cost`：通过 `channel = channel_map`、`grade = grade_1`、`qici = period_name` 补充 `cost` 和 `goal`。2026-09-29 确认：字段为 `qici/channel/grade/cost/goal`，`grade='0'` 行是渠道级默认值；`cost` 是市场部单 lead 成本，`goal` 是部门按目标 ROI 定的单 lead 净收款指标（= cost × 渠道目标 ROI）；来源本地 `cost.xlsx`（丁习01 维护，sync 技能自动维护），飞书 Base「渠道映射规则」的 `04_渠道成本配置`（cb_of_lead）是成本配置的另一权威源但不含 goal。2026-09-29 探查：该表仅维护到 20260918期，20260925期未同步导致看板 GMV 目标为 0。2026-09-30：源工作簿 cost.xlsx 已含 20260925期（67 行，朱博士系/陈瑞春系 goal 统一 550，抖音私信 cost 122），平台表 14:30 尚未落库；openpyxl 读取该工作簿时 grade='0' 会返回数值 0，归一化必须显式判断，不能用 rstrip('.0')（会把 '0' 清空）。
 - `temp_table.dingxi01_jiagou_zx`：通过 `employee_email_name` 补充 `xiaozu` 和 `jingli`。
 - 这些临时表结构来自 SQL 使用字段推断，真实字段类型、维护来源和唯一性需人工确认。
 
@@ -228,7 +228,7 @@
 - 首 call 任务桥接：`gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf` 通过 `account_id` 关联 `finance_dw.dim_finance_employee_df`，再用员工维表的 `employee_email_name + user_id` 关联主数据的 `employee_email_name + user_id`。
 - 渠道分组：`temp_table.shenbaoxin_channel_group` 通过 `channel = channel_map` 补充 `channel_group`（输出别名 `channel_1`）。
 - 粒度：部门级别聚合，无顾问个体维度。`zhuanhua` 按 `period_name + channel_map + rule_name + lead_purchase_intention_level2_category_name + depart_1 + dept_name + depart` 分组。
-- 渠道 CASE 使用 `resources/raw_sql/market_channel_case_when_0918.sql`。
+- 渠道 CASE 使用 `resources/raw_sql/market_channel_case_when_0925.sql`。
 - 主表 `dt/hour` 均使用 `now - 3h`（一致偏移）；首 call 表使用 `now - 2h`。
 - 状态：SQL 口径已入库；`data_base` 使用 `select t1.*`、双层 `select distinct`、首 call 未限定 `task_generate_rule_type = 2`、`valid_lead_count`/`can_renew_ds_count_a` 重复输出、员工维表 `account_id` 去重逻辑、`shenbaoxin_channel_group` 字段存在性、`period_mapping_first_level_department_name is null` 放宽条件需人工确认。
 
@@ -264,7 +264,7 @@
 
 - 主表：`bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df`
 - 可关联表：`gaotu_hl.ods_mkt_h_channel_group_df`
-- 确认 Join path：先用 `resources/raw_sql/market_channel_case_when_0918.sql` 从宽表原始字段派生逻辑字段 `channel_map`，再以 `channel_map = ods.channel` 关联，并限定 `ods.dt` 和 `ods.department_name='all'`。
+- 确认 Join path：先用 `resources/raw_sql/market_channel_case_when_0925.sql` 从宽表原始字段派生逻辑字段 `channel_map`，再以 `channel_map = ods.channel` 关联，并限定 `ods.dt` 和 `ods.department_name='all'`。
 - 不可直接关联：宽表没有物理 `channel_map` 字段；`channel_name_1/2/3` 与渠道组表 `channel` 不是同一稳定键，最新抽样的直接重合分别为 2/9、7/39、0/1。
 - 维表唯一性：`dt='20260812'`、`department_name='all'` 下 143 行、143 个非空 `channel`，`channel` 一行一类；应保留按 `channel` 预聚合作为防御性措施。
 - bounded CASE 覆盖：保持 0808 全部 175 条分支顺序的五段式探针，在宽表 50,000 个物理字段去重组合中，59 个派生渠道值有 56 个命中，49,765 行命中，渠道组侧最大匹配行数为 1。该结果验证 Join 方向和基数，不替代生产数据集完整范围的全量覆盖审计。

@@ -7,7 +7,7 @@ $OutputEncoding = [Console]::OutputEncoding
 
 $codexHome = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..\..\..')).Path
 $machine = Get-Content -LiteralPath (Join-Path $codexHome 'machine.local.json') -Raw -Encoding UTF8 | ConvertFrom-Json
-$pythonExe = $machine.executables.python
+$pythonExe = $machine.executables.python -replace 'python\.exe$', 'pythonw.exe'  # hidden: no console window
 if (-not (Test-Path -LiteralPath $pythonExe -PathType Leaf)) {
     throw 'Configured Python executable is missing'
 }
@@ -19,7 +19,7 @@ if ($config.status -ne 'active' -or -not $config.schedule_enabled -or
     $config.windows_task_name -ne 'Codex-Lark-Qingcheng-Special-Process-GroupPush' -or
     (@($calendar.process_weekdays) -join ',') -ne '1,2,3' -or
     (@($calendar.hours) -join ',') -ne '14' -or
-    $calendar.minute -ne 25 -or $calendar.deadline_minute -ne 50 -or
+    $calendar.minute -ne 0 -or $calendar.deadline_minute -ne 50 -or
     $calendar.retry_interval_minutes -ne 2 -or
     @($config.channels).Count -ne 4) {
     throw 'Special-channel process schedule differs from the reviewed configuration'
@@ -49,11 +49,11 @@ $definition.Settings.ExecutionTimeLimit = 'PT40M'
 $startDay = (Get-Date).Date.AddDays(1)
 foreach ($hour in @(14)) {
     $trigger = $definition.Triggers.Create(3)
-    $trigger.StartBoundary = $startDay.AddHours($hour).AddMinutes(25).ToString('yyyy-MM-ddTHH:mm:ss')
+    $trigger.StartBoundary = $startDay.AddHours($hour).AddMinutes(0).ToString('yyyy-MM-ddTHH:mm:ss')
     $trigger.WeeksInterval = 1
     $trigger.DaysOfWeek = 28
     $trigger.Repetition.Interval = 'PT2M'
-    $trigger.Repetition.Duration = 'PT25M'
+    $trigger.Repetition.Duration = 'PT50M'
     $trigger.Repetition.StopAtDurationEnd = $false
 }
 $action = $definition.Actions.Create(0)

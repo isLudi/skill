@@ -9,7 +9,7 @@
     "period_rule": "自然周周五期次",
     "process_weekdays": [1, 2, 3],
     "hours": [14, 18, 22],
-    "minute": 25,
+    "minute": 0,
     "deadline_minute": 50,
     "timezone": "Asia/Shanghai"
   },
@@ -28,10 +28,10 @@
     "nezha_task_id": 67318,
     "task_name": "qing2lark_guocheng",
     "owner": "lvshuai01",
-    "published_version": "V27",
-    "version_id": 207244,
-    "exec_file_id": 831460,
-    "source_sha256": "53f4a8f34bbbbef6b4c5b3d615249111909c14aa51e65841f83da3f7080bbd03",
+    "published_version": "V29",
+    "version_id": 207387,
+    "exec_file_id": 831981,
+    "source_sha256": "2da69b923428509481cb185017d8ad05a1a126e5600c8f418396f51d12130de6",
     "audit_schema": "market2lark-two-period-audit-v1"
   }
 }
