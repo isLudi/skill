@@ -79,7 +79,7 @@
     "retry_minutes": 2
   },
   "base_identity": "user",
-  "verification_identity": "user",
+  "verification_identity": "bot",
   "state_dir": "C:/Users/lvshuai01/.codex/runtime/channel-broadcast-push/supervisor-yafei-grade-9-advisor",
   "upstream": {
     "project_id": 308,

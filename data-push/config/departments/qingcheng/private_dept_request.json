@@ -1,0 +1,67 @@
+{
+  "source": {
+    "system": "lark_base",
+    "operator_record_id": "recvwk1kzL4vtb",
+    "request_id": "qingcheng/dept_private",
+    "request_status": "草稿",
+    "base_token": "OEJrbiCIaazfSss2R3Lcf1OonCc",
+    "table_id": "tbl3iMKvD52jaMF1"
+  },
+  "business": {
+    "channel_name": "私域",
+    "source_channel_examples": "私域",
+    "data_source_url": "https://gaotuedu.feishu.cn/base/QOVib6QCXaUvJ2s2PsbcnMmsnGg?table=tblXU4tla3bY36DE&view=vewO4yxS3O",
+    "raw_table_name": "青橙线索原始数据",
+    "target_chat_id": "oc_a95c83e488e0dfcc777d5ffad849d8a4",
+    "target_chat_name": "⏰渠道专项讨论",
+    "period_rule": "自然周周五期次",
+    "result_weekdays": [
+      "周五",
+      "周六",
+      "周日",
+      "次周周一"
+    ],
+    "requested_send_windows": "14:00（Base 期望推送时段字段原值；现有窗口为 14:02/18:02/22:02，周一收官档为 04:00）",
+    "dimensions": [
+      "期次",
+      "渠道",
+      "负责人",
+      "年级"
+    ],
+    "grades": [
+      "高一",
+      "高二",
+      "高三",
+      "初三"
+    ]
+  },
+  "report": {
+    "minimum": {
+      "metric": "有效线索",
+      "operator": ">=",
+      "value": 5
+    },
+    "result_metrics": [
+      "有效线索",
+      "首节到课率",
+      "综合人头转化率",
+      "综合订单转化率",
+      "综合营收",
+      "退费金额",
+      "净收款",
+      "综合单效",
+      "联报率",
+      "带班人数",
+      "当期单效",
+      "人效",
+      "破蛋率",
+      "平均成交周期"
+    ],
+    "result_display_order": "期次、负责人、年级、带班人数、有效线索、首节到课率、综合人头转化率、综合订单转化率、综合营收、退费金额、净收款、当期单效、综合单效、联报率、人效、破蛋率、平均成交周期"
+  },
+  "reminder": {
+    "result_metric": "综合单效",
+    "target": "不提醒",
+    "report_level": "学部"
+  }
+}

@@ -262,7 +262,7 @@ f.lead_purchase_intention_level2_category_name
 
 ## 9. 转化宽表-市场渠道版本（channel_map）
 
-来源：`resources/raw_sql/qingcheng_conversion_wide_table_market_channel_20260611.sql`
+来源：`resources/raw_sql/data_center_qingcheng_2834.sql`
 
 **重要**：这是中台市场渠道口径，与第 2~8 节中的青橙过程数据/转化/到课 raw 的 `rule_name` 简单模糊匹配渠道体系完全不同。两者不得混用。
 

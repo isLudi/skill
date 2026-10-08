@@ -208,6 +208,12 @@ runtime 中保存：
 - `sync-qingcheng-market-temp-tables` 与 `data-push` 运行时均回读到同一包内原生 `bin\\lark-cli.exe`；消息/事件 dry-run、原生 unittest 回归通过，`.cmd` / `.bat` shim 仍被拒绝。
 - 升级前生产配置 SHA-256 与重启后保持一致；`Codex-Governed-TempTables-LarkEvent` 由 Task Scheduler 的隐藏 `run-foreground` 动作恢复，当前 `status=running`、`event_ready=true`、单一消费者、`dropped=0`，两道生产写入门禁保持原值。
 
+### 2026-10-08：1.0.97 当前绑定记录
+
+- 官方 `lark-cli update --check --json` 返回 `already_up_to_date`；当前 npm 包与包内原生 exe 均为 `1.0.97`，原生 exe SHA-256 为 `69114a4f2ab03e127a6f0bd226a67d934e041023efdfbb62d83b859ace457e7c`，`skills_status.in_sync=true`。
+- `sync-qingcheng-market-temp-tables`、`data-push` 运行时和 `data-push/templates/refresh.py` 均回读到同一包内原生 `bin\\lark-cli.exe`；CLI dry-run 与受影响脚本回归通过，`.cmd` / `.bat` shim 仍被拒绝。
+- 本次升级与重启过程中未修改生产配置；任务计划程序 `Codex-Governed-TempTables-LarkEvent` 重新启动后为 `Running`，服务为 `production/event_ready=true`，单一 `im.message.receive_v1` 消费者、`dropped=0`，`online_instance_cnt=0`，两道生产写入门禁与回复开关保持原值。
+
 ### 1. 冻结生产并记录基线
 
 - 读取管理器状态和 SQLite 账本；存在 `queued`、`planning`、`applying_local` 或 `uploading` 任务时，等待安全结束并人工核验，不得直接升级。

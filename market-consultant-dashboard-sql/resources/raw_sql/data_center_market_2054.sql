@@ -559,7 +559,7 @@ call_c as (
             wf.msg_type_name
         from service_dw.app_h_crm_lead_employee_workload_detail_hf wf
         where wf.dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
-          and wf.hour = format_datetime(now() - interval '2' hour, 'HH')
+          and wf.hour = format_datetime(now() - interval '3' hour, 'HH')
     ) sub
     group by
         sub.user_number,

@@ -7,6 +7,10 @@ description: Resolve 市场顾问部 metrics and contracts; generate, review or 
 
 本 Skill 负责 `market_consultant` 业务语义、QuerySpec / QueryPlan、SQL 和看板设计。执行、下载、平台修改交给 `usql-web-query-operator`；本 Skill 不操作浏览器或 Excel。`馒头_订单明细_支付时间` 与 `馒头_订单明细_流水时间` 已登记为本域，无需重复询问领域。
 
+## 既有生产数据集修改前置要求
+
+每次调试、修复、优化或改写既有 Data Center 数据集 SQL，必须先由 `usql-web-query-operator` 从线上目标数据集读取最新已保存的完整 SQL 并落到本次任务本地工作目录，再以该版本为基线修改。此要求也适用于同一任务的后续修改轮次和仅生成待提交候选 SQL。不得从本 Skill 的 `resources/raw_sql/`、canonical SQL、历史快照、上次任务文件或记忆直接起稿；这些资料只用于业务语义参考。线上读取失败、正文不完整或目标身份不明确时，停止该修改链路，不得回退本地旧版。完整步骤见 [查询约束：生产数据集 SQL 修改流程](references/query_governance.md#生产数据集-sql-修改流程)。
+
 ## 按任务读取
 
 先用 `metadata.json` 确认领域，再按问题定位 `semantic/generated/contract_index.json` 中的 ID / 别名。读取命中的 `semantic/contracts/*.json` 及其 `source_path`，核对状态、哈希、范围和粒度。需要候选实体时查 `semantic/domain_manifest.json`；没有命中或发现冲突时，才扩展到 `references/decision_tree.md`、相关反向索引、表或历史 SQL。已有充分证据时停止扩大阅读，不重复遍历整套目录。
@@ -15,6 +19,7 @@ description: Resolve 市场顾问部 metrics and contracts; generate, review or 
 |---|---|
 | 生成、修复、审核生产 SQL / QueryPlan | [查询约束](references/query_governance.md)、命中的 contract 与源文档；只执行适用规则 |
 | 新增 SQL、修改 SQL 或判断验证范围 | [SQL 质量验证](references/sql_quality.md) |
+| 调试、修复或替换既有生产数据集 SQL | 先执行 [生产数据集 SQL 修改流程](references/query_governance.md#生产数据集-sql-修改流程)，再进入 SQL 质量验证与 operator Replacement Plan |
 | 看板设计、diff、dry-run、字段反查 | [看板设计工作流](knowledge/sql_patterns/dashboard_design_change_workflow.md)；实际能力以 operator registry 为准 |
 | 知识入库、contract、schema / canonical SQL / Web profile 同步 | [知识维护](references/knowledge_maintenance.md)；需明确维护授权 |
 | 执行、权限或平台错误 | 交给 operator 的对应操作 reference；失败回到原 QuerySpec，不切换领域 |

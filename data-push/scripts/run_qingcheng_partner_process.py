@@ -93,7 +93,7 @@ def _config() -> dict:
                                             "minimum_effective_leads", "audit_secondary_channels")) != expected[entry["id"]]:
             raise ValueError(f"Partner channel routing differs: {entry['id']}")
         if (entry["split_grade"], entry["process_reminder"]) != layout[entry["id"]] \
-                or entry["unresolved_mention_action"] != "block_send":
+                or entry["unresolved_mention_action"] != "invite_then_text":
             raise ValueError(f"Partner channel layout or mention gate differs: {entry['id']}")
         _request(entry)
     return cfg
@@ -300,9 +300,11 @@ def _render(review: dict, resolved: dict[str, str], display: dict[str, str], ima
     parts = []
     for person in people:
         key = _person_key(person)
-        if key not in resolved:
-            raise ValueError("Partner reminder person was not uniquely resolved")
-        parts.append(f'<at user_id="{resolved[key]}">{html.escape(display[key])}</at>')
+        if key in resolved:
+            parts.append(f'<at user_id="{resolved[key]}">{html.escape(display[key])}</at>')
+        else:
+            # Sanctioned plain-name fallback: invited already, still absent or unresolvable.
+            parts.append(html.escape(person["name"]))
     return message.replace(original, prefix + "、".join(parts)).replace("](process.png)", f"]({image_key})")
 
 
@@ -333,9 +335,11 @@ def _deliver(entry: dict, review: dict, manifest: dict, cfg: dict, folder: Path,
         member_ids = _members(entry["target_chat_id"], cfg["sender"]["open_id"])
         shim_entry = {"unresolved_mention_action": entry["unresolved_mention_action"]}
         shim_review = {"reminders": [{"grade": None, "people": review["reminder_people"]}]}
-        resolved, display, text_only = _resolve(shim_entry, shim_review, member_ids)
-        if text_only or len(resolved) != len(review["reminder_people"]):
-            raise ValueError(f"Partner reminder account is unresolved or ambiguous in target group: {entry['id']}")
+        resolved, display, text_only = _resolve(shim_entry, shim_review, member_ids,
+                                                chat_id=entry["target_chat_id"],
+                                                sender_open_id=cfg["sender"]["open_id"])
+        if len(resolved) + len(text_only) != len(review["reminder_people"]):
+            raise ValueError(f"Partner reminder coverage differs from the reviewed person set: {entry['id']}")
     else:
         resolved, display = {}, {}
     image = folder / review["image"]

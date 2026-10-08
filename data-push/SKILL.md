@@ -47,13 +47,13 @@ metadata:
 
 青橙项目部当前启用的本地过程批次（过程三群、SEC 五报告、专项四渠道、伙伴三群）均按业务日历的整点启动：过程/专项/伙伴为周二至周四 `14:00`、`18:00`、`22:00`（专项仅 `14:00`），SEC 为周二至周日 `12:00`、`16:00`、`20:00`。每个触发器从 `:00` 开始，每两分钟重试至 `:50`，因此首轮允许在 `:00`～`:02` 内完成；不再沿用 `:20`、`:25`、`:26` 的延后启动规则。
 
-转化批次（`run_qingcheng_transformation.py`，五渠道九群：公海/私域/抖音私信/图书/本地化 × 主管/顾问维度）为 2026-10-01 启用的独立任务 `Codex-Lark-Qingcheng-Transformation-GroupPush`：周五/周六/周日 `14:02`、`18:02`、`22:02` 起，次周周一仅 `02:02`；每个触发器从 `:02` 起每两分钟重试至 `:55`。窗口配置以 `transformation_batch.json` 的 `hours_by_weekday`/`minute`/`deadline_minute` 为准，并与 Base 表九条 operator 记录的推送时段字段保持同步。
+转化批次（`run_qingcheng_transformation.py`，五渠道十三群：公海/私域/抖音私信/图书/本地化 × 主管/顾问维度 + 公海/私域/抖音私信/图书学部级）为 2026-10-01 启用的独立任务 `Codex-Lark-Qingcheng-Transformation-GroupPush`：周五/周六/周日 `14:02`、`18:02`、`22:02` 起，次周周一改为 `04:00`；各窗口每两分钟重试至 `:55`（周一从 `04:00` 起）。周一 04:00 用于等待天宫2 `qing2lark_zhuanhua` 的 `03:40` 批次并读取 `00:00` 分区。学部级（dept，⏰渠道专项讨论同群）不整窗跟随：仅随周五/六/日 `14:02` 档 + 次周周一 `04:00` 收官档参与（`_dept_active`），其余窗口记 `skipped_not_in_window`。窗口配置以 `transformation_batch.json` 的 `hours_by_weekday`/`minute_by_weekday`/`deadline_minute` 为准，并与 Base 表 operator 记录的推送时段字段保持同步。
 
 四个执行器的 `upstream` 必须与当前已验证的 `qing2lark_guocheng` 绑定一致（菜单 `103625`、task `47728`、Nezha `67318`、V29/version `207387`/exec `831981`）；上游任务改版后，先读回最新版本和执行文件，再同步本地批次配置及技术 Base，不能只改任务计划程序。
 
 本地整点批次的上游审计时点与本地发送时点不是同一个小时字符串：`qing2lark_guocheng` 在每个本地 `HH:00` 批次前的 `HH-1:40` 运行，而 Nezha `periodTime` 按所在整点归一化。因此本地 `12:00/16:00/20:00` 分别审计上游 `11:00/15:00/19:00` 的成功执行行（对应 `11:40/15:40/19:40`），过程/专项/伙伴批次同理；仍须保留唯一成功执行、最新执行、版本/执行文件和完整 stage 日志门禁。
 
-天宫2 的 `qing2lark_guocheng`（过程）与 `qing2lark_zhuanhua`（转化）是两条独立上游，不能互换 task、版本或执行文件。调度保持每 2 小时一次的全部 `:40` 时刻（`23:40/01:40/03:40/05:40/07:40/09:40/11:40/13:40/15:40/17:40/19:40/21:40`）；本次处理时 `21:40` 已过，平台拒绝过去时间，因此两条任务从本轮下一可执行批次 `23:40` 起跑，下一轮包含 `21:40`。USQL operator 现提供 `plan-task-schedule-update`/`apply-task-schedule-update` 更新开发页配置，并提供 `plan-nezha-schedule-update`/`apply-nezha-schedule-update` 更新 Nezha 周期调度；两边都必须按精确 task/Nezha ID 做哈希计划、单次写入和回读。两边不一致时只能记录为“配置已保存、实际调度未确认”，不能用本地 taskschd 或本地配置冒充天宫2 已改。
+天宫2 的 `qing2lark_guocheng`（过程）与 `qing2lark_zhuanhua`（转化）是两条独立上游，不能互换 task、版本或执行文件。调度保持每 2 小时一次的全部 `:40` 时刻（`23:40/01:40/03:40/05:40/07:40/09:40/11:40/13:40/15:40/17:40/19:40/21:40`）；两条任务已按精确 task/Nezha ID 更新并回读。`qing2lark_zhuanhua` 当前绑定 V6/version `207547`、源码 SHA-256 `97aed7e48398d6a4321e0b11fab0cff44de67edb8f5f21622e7d1424a0521a39`，T-1 至 T-5 探针已发布；上游 task ID `47775`、Nezha `67397` 未变化。USQL operator 提供 `plan-task-schedule-update`/`apply-task-schedule-update` 与 `plan-nezha-schedule-update`/`apply-nezha-schedule-update`，调度修改后必须重读版本/执行信息并同步本地配置。
 
 ## 离线验证
 

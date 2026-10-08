@@ -5,7 +5,7 @@ per in-period lead with user-level 0/1 conversion markers; valid leads, headcoun
 first-lesson attendance come from the process table so denominators stay identical to
 the process report. Metric formulas follow the Qingcheng 2460 conversion dashboard
 front-end definitions (consistent with the market-consultant department):
-截面单效 = 综合单效 = promit(净收款)/有效线索, 当期单效 = p_income(当期收款)/有效线索,
+综合单效 = promit(净收款)/有效线索, 当期单效 = p_income(当期收款)/有效线索,
 综合订单转化率 = pay_sub(报科数)/有效线索, 联报率 = pay_sub/pay_user,
 破蛋率 = podan/有效线索, 人效 = promit/带班人数, 平均成交周期 = sc/pay_user.
 This script performs no network calls, registration, upload, scheduling, or
@@ -33,9 +33,9 @@ GRADES = ("高一", "高二", "高三", "初三")
 RATIO_FIELDS = frozenset({"首节到课率", "综合人头转化率", "综合订单转化率", "破蛋率"})
 INTEGER_FIELDS = frozenset({"带班人数", "有效线索", "综合营收", "退费金额", "净收款"})
 # 联报率 = sum(报科数)/sum(成交人头) 即人均科次，按用户要求以一位小数数值显示（如 1.2、2.0），不使用百分比。
-DECIMAL_FIELDS = frozenset({"当期单效", "截面单效", "人效", "平均成交周期", "联报率"})
+DECIMAL_FIELDS = frozenset({"当期单效", "综合单效", "人效", "平均成交周期", "联报率"})
 
-REMINDER_METRIC = "截面单效"
+REMINDER_METRIC = "综合单效"
 CONSULTANT_TOP_N = 3
 PRAISE_SUFFIX = " 🎉🎉🎉"  # 表扬行末尾的三个鼓励符号（用户指定）
 FALLBACK_REMINDER = f"本期暂无{REMINDER_METRIC}可比数据，大家加油呀💪💪💪"  # 全部为 0 时的兜底文案（用户指定）
@@ -74,6 +74,9 @@ def _source_of(row: dict) -> str:
 
 
 def _group_key(row: dict, level: str, *, split_grade: bool) -> tuple:
+    if level == "学部":
+        # 学部级按 负责人(经理)×年级 聚合（Base 申请记录数据维度：期次、渠道、负责人、年级）。
+        return (row["期次"], row["经理"], row["年级"])
     if level == "主管":
         return (row["期次"], row["主管"], row["年级"]) if split_grade else (row["期次"], row["主管"])
     return (row["期次"], row["主管"], row["顾问账号"], row["年级"])
@@ -90,21 +93,31 @@ def _split_grade_for(channel_cfg: dict, slug: str) -> bool:
     return bool(value[slug])
 
 
+def _rows_in_scope(rows: list[dict], level: str) -> list[dict]:
+    """Level-specific row validity filter shared by both aggregation passes."""
+    if level == "学部":
+        return [row for row in rows
+                if row.get("年级") in GRADES and row.get("经理") not in (None, "", "未分配经理")]
+    return [row for row in rows
+            if row.get("年级") in GRADES and row.get("主管") not in (None, "", "未分配主管")]
+
+
 def _aggregate(process_rows: list[dict], conversion_rows: list[dict], level: str, request: dict,
                channel_cfg: dict, *, period: str) -> list[dict]:
-    split_grade = _split_grade_for(channel_cfg, "supervisor" if level == "主管" else "consultant")
+    if level == "学部":
+        split_grade = True  # 学部级恒按年级分块（数据维度含年级）
+    else:
+        split_grade = _split_grade_for(channel_cfg, "supervisor" if level == "主管" else "consultant")
     minimum = float(request["report"]["minimum"]["value"])
+    process_rows = _rows_in_scope(process_rows, level)
+    conversion_rows = _rows_in_scope(conversion_rows, level)
     process_groups: dict[tuple, list[dict]] = defaultdict(list)
     for row in process_rows:
-        if row.get("年级") not in GRADES or row.get("主管") in (None, "", "未分配主管"):
-            continue
         process_groups[_group_key(row, level, split_grade=split_grade)].append(row)
 
     conversion_groups: dict[tuple, list[dict]] = defaultdict(list)
     for row in conversion_rows:
         _source_of(row)
-        if row.get("年级") not in GRADES or row.get("主管") in (None, "", "未分配主管"):
-            continue
         conversion_groups[_group_key(row, level, split_grade=split_grade)].append(row)
 
     output = []
@@ -123,7 +136,7 @@ def _aggregate(process_rows: list[dict], conversion_rows: list[dict], level: str
         accounts = frozenset(item["顾问账号"] for item in items)
         # 指标口径对齐青橙 2460 转化看板前端公式（与市场顾问部定义一致）：
         # 综合人头转化率=pay_user/线索、综合订单转化率=pay_sub(报科数)/线索、
-        # 当期单效=p_income(当期收款)/线索、综合单效(=截面单效)=promit(净收款)/线索、
+        # 当期单效=p_income(当期收款)/线索、综合单效=promit(净收款)/线索、
         # 人效=promit/带班人数、联报率=pay_sub/pay_user、破蛋率=podan/线索、
         # 平均成交周期=sc/pay_user（分母字段与成交人头标记等价）。
         metrics = {
@@ -137,19 +150,28 @@ def _aggregate(process_rows: list[dict], conversion_rows: list[dict], level: str
             "退费金额": sum(_number(item, "退费") for item in conversion_items),
             "净收款": net,
             "当期单效": _ratio(period_income, leads),
-            "截面单效": _ratio(net, leads),
+            "综合单效": _ratio(net, leads),
             "人效": _ratio(net, len(accounts)) if accounts else None,
             "联报率": _ratio(subjects, heads),
             "破蛋率": _ratio(sum(_number(item, "破蛋人数标记") for item in conversion_items), leads),
             "平均成交周期": _ratio(sum(_number(item, "成交周期天数分子") for item in conversion_items),
                                   sum(_number(item, "成交周期成交人数分母") for item in conversion_items)),
         }
+        if level == "学部":
+            name, grade = key[1], key[2]
+        elif level == "主管":
+            name, grade = key[1], (key[2] if split_grade else None)
+        else:
+            name, grade = None, key[3]
         output.append({
             "key": key,
-            "主管": key[1],
+            # key[1] 是主管名（主管/顾问维度分组键共享），学部维度 key[1]=经理、
+            # 无主管语义故置 None。2026-10-03 修复：此前误将顾问维度的主管列清空。
+            "主管": None if level == "学部" else key[1],
+            "负责人": name if level == "学部" else None,
             "顾问": items[0]["顾问"] if level == "顾问" else None,
             "顾问账号": key[2] if level == "顾问" else None,
-            "年级": key[3] if level == "顾问" else key[2] if split_grade else None,
+            "年级": grade,
             "metrics": metrics,
             "_accounts": accounts,
         })
@@ -163,8 +185,14 @@ def _sort_key_value(metrics: dict) -> float:
     return float(value)
 
 
-def _sort_rows(rows: list[dict], *, split_grade: bool) -> list[dict]:
+def _sort_rows(rows: list[dict], *, split_grade: bool, level: str = "主管") -> list[dict]:
     grade_order = {name: index for index, name in enumerate(GRADES)}
+    if level == "学部":
+        return sorted(rows, key=lambda item: (
+            grade_order.get(item["年级"], 99),
+            -_sort_key_value(item["metrics"]),
+            item["负责人"] or "",
+        ))
     return sorted(rows, key=lambda item: (
         grade_order.get(item["年级"], 99) if split_grade else 0,
         -_sort_key_value(item["metrics"]),
@@ -212,7 +240,7 @@ def _total_transformation(rows: list[dict]) -> dict:
         "退费金额": sum(row["metrics"]["退费金额"] for row in rows),
         "净收款": net,
         "当期单效": _ratio(period_income, leads),
-        "截面单效": _ratio(net, leads),
+        "综合单效": _ratio(net, leads),
         "人效": _ratio(net, len(accounts)),
         "联报率": _ratio(subjects, heads),
         "破蛋率": _ratio(podan, leads),
@@ -225,16 +253,17 @@ def _aggregate_with_extras(process_rows: list[dict], conversion_rows: list[dict]
                            channel_cfg: dict, *, period: str) -> list[dict]:
     """Same as _aggregate but keeps raw numerators/denominators for the total row."""
     rows = _aggregate(process_rows, conversion_rows, level, request, channel_cfg, period=period)
-    split_grade = _split_grade_for(channel_cfg, "supervisor" if level == "主管" else "consultant")
+    if level == "学部":
+        split_grade = True
+    else:
+        split_grade = _split_grade_for(channel_cfg, "supervisor" if level == "主管" else "consultant")
+    process_rows = _rows_in_scope(process_rows, level)
+    conversion_rows = _rows_in_scope(conversion_rows, level)
     process_groups: dict[tuple, list[dict]] = defaultdict(list)
     for row in process_rows:
-        if row.get("年级") not in GRADES or row.get("主管") in (None, "", "未分配主管"):
-            continue
         process_groups[_group_key(row, level, split_grade=split_grade)].append(row)
     conversion_groups: dict[tuple, list[dict]] = defaultdict(list)
     for row in conversion_rows:
-        if row.get("年级") not in GRADES or row.get("主管") in (None, "", "未分配主管"):
-            continue
         conversion_groups[_group_key(row, level, split_grade=split_grade)].append(row)
     for out in rows:
         items = process_groups[out["key"]]
@@ -263,10 +292,10 @@ def _reminder_supervisor(rows: list[dict]) -> list[dict]:
 
 
 def _reminder_grades(rows: list[dict]) -> list[str]:
-    """本地化主管提醒：不 @ 主管，按年级点名截面单效表现。
+    """本地化主管提醒：不 @ 主管，按年级点名综合单效表现。
 
     对齐过程推送 supervisor_local 的『8min较低年级』样式：按年级聚合
-    截面单效（sum(净收款)/sum(有效线索)），列出值最高（并列全列）的年级。
+    综合单效（sum(净收款)/sum(有效线索)），列出值最高（并列全列）的年级。
     """
     by_grade: dict[str, list[dict]] = {}
     for row in rows:
@@ -367,10 +396,12 @@ def build(process_source: Path, conversion_source: Path, output: Path,
 
     process_all, process_manifest = _read_rows(process_source)
     conversion_all, conversion_manifest = _read_rows(conversion_source)
-    # Match is per-channel below; validate snapshot coherence first.
+    # Match is per-channel below; validate snapshot coherence first. 2026-10-02:
+    # an empty conversion export is allowed (always-send policy) — the report
+    # renders all-zero metrics and the fallback line flags it in the message.
     process_dt = {f"{r['分区日期']} {r['分区小时']}:00" for r in process_all}
     conversion_dt = {f"{r['分区日期']} {r['分区小时']}:00" for r in conversion_all}
-    if len(process_dt) != 1 or len(conversion_dt) != 1:
+    if len(process_dt) != 1 or (conversion_all and len(conversion_dt) != 1):
         raise ValueError("Source rows span multiple warehouse snapshots")
 
     requested = channels or tuple(channel["id"] for channel in config["channels"])
@@ -390,13 +421,15 @@ def build(process_source: Path, conversion_source: Path, output: Path,
                            if row.get("期次") == period and all(row.get(k) == v for k, v in match.items())]
         conversion_channel = [row for row in conversion_all
                               if row.get("期次") == period and all(row.get(k) == v for k, v in match.items())]
-        if not conversion_channel and channel_cfg["id"] != "public_pool":
+        if not conversion_channel and channel_cfg["id"] != "public_pool" and not channel_cfg.get("allow_empty_conversion"):
+            # 2026-10-02 always-send policy: channels listed with allow_empty_conversion
+            # render an all-zero report + fallback flag instead of failing the batch.
             raise ValueError(f"{channel_cfg['id']}: no conversion rows for period {period}")
         channel_results = {}
-        for slug in ("supervisor", "consultant"):
+        for slug in ("supervisor", "consultant", "dept"):
             if f"{slug}_request" not in channel_cfg:
-                continue  # 图书仅顾问维度：渠道可只配置其中一个 level
-            level = "主管" if slug == "supervisor" else "顾问"
+                continue  # 渠道可只配置部分维度（图书无主管申请；学部级仅四渠道配置）
+            level = {"supervisor": "主管", "consultant": "顾问", "dept": "学部"}[slug]
             request_path = SKILL / "config" / "departments" / "qingcheng" / channel_cfg[f"{slug}_request"]
             request = json.loads(request_path.read_text(encoding="utf-8"))
             profile = channel_cfg["profiles"][slug]
@@ -410,9 +443,11 @@ def build(process_source: Path, conversion_source: Path, output: Path,
             reminder_mode = profile.get("reminder_mode", "mention")
             if reminder_mode == "grade_text" and request["reminder"]["target"] != "不提醒":
                 raise ValueError(f"{channel_cfg['id']}/{slug}: grade_text mode requires 不提醒 target")
-            split_grade = _split_grade_for(channel_cfg, slug)
+            if reminder_mode == "none" and request["reminder"]["target"] != "不提醒":
+                raise ValueError(f"{channel_cfg['id']}/{slug}: none mode requires 不提醒 target")
+            split_grade = True if level == "学部" else _split_grade_for(channel_cfg, slug)
             rows = _aggregate_with_extras(process_channel, conversion_channel, level, request, channel_cfg, period=period)
-            rows = _sort_rows(rows, split_grade=split_grade)
+            rows = _sort_rows(rows, split_grade=split_grade, level=level)
             columns = [c.strip() for c in request["report"]["result_display_order"].split("、")]
             output.mkdir(parents=True, exist_ok=True)
             png = output / f"{channel_cfg['id']}_{slug}_transformation.png"
@@ -427,7 +462,13 @@ def build(process_source: Path, conversion_source: Path, output: Path,
             _table_image(rows, columns, png, level, period, channel_cfg["name"],
                          split_grade=split_grade, bar_specs=bar_specs,
                          total_fn=_total_transformation, display_fn=_display_transformation)
-            if level == "主管":
+            if reminder_mode == "none":
+                # 学部级：文字抬头 + 图片，不 @ 人、不生成文字提醒（含 fallback）。
+                top_people = None
+                by_grade = None
+                grades = None
+                reminders = []
+            elif level == "主管":
                 if reminder_mode == "grade_text":
                     top_people = None
                     by_grade = None
@@ -446,7 +487,7 @@ def build(process_source: Path, conversion_source: Path, output: Path,
                 by_grade = _reminder_consultant_by_grade(rows)
                 reminders = [f"- {grade}年级{REMINDER_METRIC}较高的{level}：{'、'.join(p['name'] for p in people)}{PRAISE_SUFFIX}"
                              for grade, people in by_grade.items()]
-            if not reminders:
+            if not reminders and reminder_mode != "none":
                 reminders = [f"- {FALLBACK_REMINDER}"]
             message = _message(level, period, channel_cfg["name"], png.name, reminders)
             message_file = output / f"{channel_cfg['id']}_{slug}_transformation_message.md"

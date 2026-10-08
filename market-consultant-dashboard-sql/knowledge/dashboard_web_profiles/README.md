@@ -10,18 +10,15 @@
 
 | 文件夹 | 看板 | 文件 | dashboard_id | 状态 |
 |---|---|---|---|---|
-| 市场顾问数据 | KOC播报文字 | `dashboard_3961188156849958913_web_profile.md` | `dashboard_3961188156849958913` | ✅ 成功 |
-| 市场顾问数据 | KOC渠道播报数据 | `dashboard_3952506916510425088_web_profile.md` | `dashboard_3952506916510425088` | ✅ 成功 |
 | 市场顾问数据 | 【新人】前期过程转化数据 | `newcomer_early_stage_process_conversion_web_profile.md` | `dashboard_3874439982521286657` | ✅ 成功 |
 | 市场顾问数据 | 外呼过程数据看板 | `outbound_call_process_dashboard_web_profile.md` | `dashboard_3730722176629411841` | ✅ 成功 |
 | 市场顾问数据 | 市场顾问--评优看板 | `market_consultant_evaluation_web_profile.md` | `dashboard_3822396843512627200` | ✅ 成功 |
 | 市场顾问数据 | 市场顾问-用户画像分析 | `market_consultant_user_profile_analysis_web_profile.md` | `dashboard_3804681042591760385` | ✅ 成功 |
 | 市场顾问数据 | 市场顾问-进量节奏 | `market_consultant_volume_pace_web_profile.md` | `dashboard_3791961955008733184` | ✅ 成功 |
+| 市场顾问数据 | 市场顾问部 | `home_3955604854469165056_web_profile.md` | `home_3955604854469165056` | ✅ 成功 |
 | 市场顾问数据 | 市场顾问部_行课报表 | `market_consultant_attendance_report_web_profile.md` | `dashboard_3748410696516800512` | ✅ 成功 |
 | 市场顾问数据 | 昆仑山战役-暑期激励数据看板 | `kunlun_summer_incentive_web_profile.md` | `dashboard_3881610656431284224` | ✅ 成功 |
-| 市场顾问数据 | 测试 | `home_3955604854469165056_web_profile.md` | `home_3955604854469165056` | ✅ 成功 |
 | 市场顾问数据 | 渠道收款播报数据 | `dashboard_4023338611615817728_web_profile.md` | `dashboard_4023338611615817728` | ✅ 成功 |
 | 市场顾问数据 | 评优文字播报 | `evaluation_broadcast_text_web_profile.md` | `dashboard_3839499028752805888` | ✅ 成功 |
 | 市场顾问数据 | 转化数据 | `market_consultant_conversion_web_profile.md` | `dashboard_3767151344579387392` | ✅ 成功 |
-| 市场顾问数据 | 过程播报文字 | `process_broadcast_text_web_profile.md` | `dashboard_3845252580183867393` | ✅ 成功 |
 | 市场顾问数据 | 运营侧数据看板 | `operation_side_dashboard_web_profile.md` | `dashboard_3759973841100165121` | ✅ 成功 |

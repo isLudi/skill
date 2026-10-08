@@ -17,7 +17,7 @@ TABLE_ID = "tbl3iMKvD52jaMF1"
 RECORDS = ["recvwjZ8GbkWV7", "recvwjAT4WbHAS", "recvwjZ9JJylEQ", "recvwjX2koAHjx",
            "recvwjZbPTL5aH", "recvwjX5b2YILG",
            "recvwjW9ZAvRBW", "recvwjX409k8f2", "recvwjZaMMix5H"]
-NEW_VALUE = "周五/周六/周日 14:02、18:02、22:02；次周周一仅 02:02（2026-10-01 调整）"
+NEW_VALUE = "周五/周六/周日 14:02、18:02、22:02；次周周一仅 04:00（2026-10-05 调整，等待上游 03:40 批次）"
 
 
 def main() -> int:

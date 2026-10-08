@@ -2,9 +2,11 @@
 
 ## 1. 来源
 
-`resources/raw_sql/qingcheng_conversion_wide_table_market_channel_20260611.sql`
+`resources/raw_sql/data_center_qingcheng_2834.sql`
 
 入库时间：2026-06-11
+
+2026-10-08 核对线上 Data Center model `2834` 后，源 SQL 统一到上述稳定路径。原日期命名快照与线上 canonical 内容完全相同，SHA-256 为 `c33f3e09b5865daed5ce0623b3454764ca4572b1c13519d328f96953efac07f9`；本次只迁移源文件引用，不改变历史业务口径。
 
 ## 2. 查询目标
 

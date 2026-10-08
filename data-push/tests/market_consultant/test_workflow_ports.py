@@ -57,11 +57,16 @@ class WorkflowPortTests(unittest.TestCase):
             prepare_report(args, self.definition, ports=self.ports)
         self.ports.resolve_source.assert_not_called()
 
-    def test_member_failure_cannot_silently_become_names_only(self):
+    def test_member_failure_degrades_to_names_only_after_bot_invite(self):
         args = report_arguments(self.definition, catalog.select_targets(self.definition)[0])
-        self.ports.missing_members.return_value = ["负责人A"]
-        with self.assertRaisesRegex(ValueError, "负责人账号或群成员"):
-            prepare_report(args, self.definition, ports=self.ports)
+        self.ports.missing_members.side_effect = [["负责人A"], ["负责人A"]]
+        context = prepare_report(args, self.definition, ports=self.ports)
+        # 2026-10-04 policy: the bot invites the absent member once; when they are
+        # still absent, the push proceeds with a plain-name mention, never a block.
+        self.ports.invite_members.assert_called_once()
+        self.assertEqual(self.ports.missing_members.call_count, 2)
+        self.assertEqual(context["mention_info"]["resolved"], {})
+        self.assertEqual(context["mention_info"]["text_fallback_names"], ["负责人A"])
 
     def test_app_matches_exactly_without_case_sensitivity(self):
         definition = catalog.load_channel("market_consultant/supervisor_private_app_sync")

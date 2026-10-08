@@ -96,6 +96,17 @@ def resolve_lark_cli() -> str:
                 Path(sys.executable).resolve().parent / "lark-cli.exe",
             ]
         )
+        # S4U 计划任务会话不加载用户配置文件，APPDATA/PATH 可能缺失；
+        # 用 USERPROFILE 兜底定位本机 nodejs 安装目录中的 lark-cli。
+        user_profile = os.environ.get("USERPROFILE", "")
+        if user_profile:
+            nodejs_dir = Path(user_profile) / "AppData" / "Local" / "Programs" / "nodejs"
+            candidates.extend(
+                [
+                    nodejs_dir / "node_modules" / "@larksuite" / "cli" / "bin" / "lark-cli.exe",
+                    nodejs_dir / "lark-cli.exe",
+                ]
+            )
         for candidate in candidates:
             resolved = _existing_executable(candidate)
             if resolved:

@@ -8,9 +8,9 @@
 - 文件夹：`青橙项目部`
 - dashboard_id：`dashboard_3865509979877412864`
 - 打开入口：`https://uanalysis.baijia.com/dashboard-market?id=dashboard_3865509979877412864&sourceType=1`
-- profile 时间：2026-08-08 19:01:35
-- 原始结构 profile：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\dashboard-profiles\knowledge-qingcheng-all-20260808\青橙项目部\青橙-全年级营收看板\profile.json`
-- 页面渲染：成功
+- profile 时间：2026-10-08 12:23:28
+- 原始结构 profile：`..\runtime\usql-web-query-operator\production-knowledge-sync-20261008\dashboards\青橙项目部\青橙-全年级营收看板\profile.json`
+- 页面渲染：失败
 
 ## 2. 刷新验证
 

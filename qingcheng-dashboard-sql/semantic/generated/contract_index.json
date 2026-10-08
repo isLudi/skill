@@ -32,7 +32,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
-      "source_sha256": "ea297289bbf05ad5b909599e458e221c60a664b13321d407f2c6e9f42d3554b1"
+      "source_sha256": "21e1679bc0992f763083ebd989cd00cf196bbe4b09fa57682450a39cf2716525"
     },
     {
       "id": "qingcheng:dimension:department",
@@ -97,7 +97,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
-      "source_sha256": "ea297289bbf05ad5b909599e458e221c60a664b13321d407f2c6e9f42d3554b1"
+      "source_sha256": "21e1679bc0992f763083ebd989cd00cf196bbe4b09fa57682450a39cf2716525"
     },
     {
       "id": "qingcheng:dimension:order_user_id",
@@ -138,7 +138,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
-      "source_sha256": "ea297289bbf05ad5b909599e458e221c60a664b13321d407f2c6e9f42d3554b1"
+      "source_sha256": "21e1679bc0992f763083ebd989cd00cf196bbe4b09fa57682450a39cf2716525"
     },
     {
       "id": "qingcheng:dimension:process_channel_level_1",
@@ -151,7 +151,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/sql_patterns/qingcheng_channel_grade_mapping.md",
-      "source_sha256": "e3a41a034fc5626f6d71f5c79ad998e3a2806b79e667a49cf2fcf501db003799",
+      "source_sha256": "ced3b554b58dc5a4709ce3a9f717dfb9d09951a976c59dbdff5e7f181a541b1c",
       "automatic_compile": true
     },
     {
@@ -165,7 +165,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/sql_patterns/qingcheng_channel_grade_mapping.md",
-      "source_sha256": "e3a41a034fc5626f6d71f5c79ad998e3a2806b79e667a49cf2fcf501db003799",
+      "source_sha256": "ced3b554b58dc5a4709ce3a9f717dfb9d09951a976c59dbdff5e7f181a541b1c",
       "automatic_compile": true
     },
     {
@@ -179,7 +179,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
-      "source_sha256": "ea297289bbf05ad5b909599e458e221c60a664b13321d407f2c6e9f42d3554b1",
+      "source_sha256": "21e1679bc0992f763083ebd989cd00cf196bbe4b09fa57682450a39cf2716525",
       "automatic_compile": true
     },
     {
@@ -223,7 +223,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
-      "source_sha256": "ea297289bbf05ad5b909599e458e221c60a664b13321d407f2c6e9f42d3554b1"
+      "source_sha256": "21e1679bc0992f763083ebd989cd00cf196bbe4b09fa57682450a39cf2716525"
     },
     {
       "id": "qingcheng:dimension:trade_timestamp",
@@ -248,7 +248,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
-      "source_sha256": "ea297289bbf05ad5b909599e458e221c60a664b13321d407f2c6e9f42d3554b1"
+      "source_sha256": "21e1679bc0992f763083ebd989cd00cf196bbe4b09fa57682450a39cf2716525"
     },
     {
       "id": "qingcheng:dimension:xiaozu",

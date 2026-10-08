@@ -510,7 +510,7 @@
         {
           "domain": "qingcheng",
           "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
-          "sha256": "ea297289bbf05ad5b909599e458e221c60a664b13321d407f2c6e9f42d3554b1"
+          "sha256": "21e1679bc0992f763083ebd989cd00cf196bbe4b09fa57682450a39cf2716525"
         }
       ],
       "columns": [

@@ -24,10 +24,10 @@
 | 商务 KOC 数学 | [双渠道与进量播报](market_consultant/business_koc_math.md) |
 | KOC 与抖音私信主管 | [高中主管播报](market_consultant/supervisor_koc_douyin_sync.md) |
 | KOC 初三主管 | [双渠道初三播报](market_consultant/supervisor_self_incubated_koc_5_grade_9.md) |
-| 亚飞 B 站初三主管与顾问 | [初三双维度播报](market_consultant/supervisor_yafei_grade_9.md) |
+| 亚飞 B 站与 APP 初三主管、顾问 | [初三双维度播报](market_consultant/supervisor_yafei_grade_9.md) |
 | 集团私域与 APP 主管 | [多渠道同步播报](market_consultant/supervisor_private_app_sync.md) |
 | 朱博士视频号 49 | [顾问播报](market_consultant/supervisor_zhu_doctor_video49.md) |
-| 陈瑞春 | [顾问播报](market_consultant/supervisor_chenruichun.md) |
+| 陈瑞春（渠道名包含“陈瑞春”的全部渠道） | [顾问播报](market_consultant/supervisor_chenruichun.md) |
 
 ## 2026-09-13 跨渠道指标归属故障
 
@@ -95,3 +95,9 @@
 - 收据/台账判据不得回到"非 `sent_verified` 一律不重发"。任何新增状态都必须先过 `resend.decide`；**记录里有 message_id 就绝不能重发**，没有才可以同键重发。靠错误类型判断（例如"取令牌失败就一定没发出去"）是错的——令牌可能被缓存，刷新失败时发送仍可能已经出门。
 - **发送前探测的传输失败必须轮内重试。** `reporting.assert_current_revision` 是"此刻发送是否仍然安全"的一次读；它**返回**不同版本号才是结论（fail-closed、绝不重试），它**抛传输错误**只说明没能验证。该调用已包在 `common/retry.py` 的 `retry_transport` 里（3 次、间隔 2 秒），不要把它退回成"一次失败即整轮失败" —— 那会白丢一个 2 分钟槽位。新增任何"发送前的只读校验"都应同样包一层，并保持这个方向：**漂移是返回值，只重试异常**。
 - **内容不可回读的群不得判为投递失败，也不得换新键重发。** 目标群开启保密模式时（`restricted_mode_setting.status=true` / `message_has_permission_setting="not_anyone"`）发送仍被允许但消息内容读不到，"message_id 取不到"成为结构性必然。这种群的回读失败记 `sent_unverifiable`（干净终态，见 `resend.UNVERIFIABLE`）；换新键会每轮补发一条。判定见 `lark_delivery/common/readback.py`，配置声明优先、探测失败一律判为可回读。
+
+## @ 解析降级链与核验身份（2026-10-04，现行）
+
+- 群成员核验身份统一为发送 bot 管家（`verification_identity="bot"`），与个人用户身份解耦；历史 `verification_identity="user"` 的 5 条渠道（陈瑞春、自孵化KOC5-9年级、亚飞9年级、亚飞9年级顾问、朱博士视频49）已改。2026-10-04 陈瑞春/自孵化/亚飞三渠道曾因个人身份被移出群而 blocked_prepare（232011 operator is not in the chat），当日已补发完成（陈瑞春 om_x100b6316c7a634a0c2ae3a54cfcdef0、自孵化 om_x100b6316fb3af0a0c39b05ea6ae5a85、亚飞 om_x100b6316fba35ca0dd8bb412a9d837a、亚飞顾问 ×2 om_x100b6316f7d39ca0c45b029cef41fde/om_x100b6316f2fae8a4c2b917969f7cda5，均 sent_verified）。
+- @ 降级链与青橙一致：解析→bot 邀请入群并复核→纯名字兜底，人员问题不再阻断推送；`workflow.py` 中 strict_mentions 的阻断语义已移除，发送前 resolved 集合只保留在群成员（`build_markdown` 对无 open_id 者渲染纯名字）。
+- 既存测试漂移备忘（与本改动无关，待业务确认后修）：`tests/core/test_channel_registry_export.py` 期望陈瑞春门槛值 1，而生产配置 minimum_post_leads=6。

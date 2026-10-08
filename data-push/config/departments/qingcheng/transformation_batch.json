@@ -7,18 +7,48 @@
   "windows_task_name": "Codex-Lark-Qingcheng-Transformation-GroupPush",
   "retry_interval_minutes": 2,
   "business_calendar": {
-    "result_weekdays": [4, 5, 6, 0],
-    "weekday_names": ["周五", "周六", "周日", "次周周一"],
+    "result_weekdays": [
+      4,
+      5,
+      6,
+      0
+    ],
+    "weekday_names": [
+      "周五",
+      "周六",
+      "周日",
+      "次周周一"
+    ],
     "hours_by_weekday": {
-      "4": [14, 18, 22],
-      "5": [14, 18, 22],
-      "6": [14, 18, 22],
-      "0": [2]
+      "4": [
+        14,
+        18,
+        22
+      ],
+      "5": [
+        14,
+        18,
+        22
+      ],
+      "6": [
+        14,
+        18,
+        22
+      ],
+      "0": [
+        4
+      ]
     },
     "minute": 2,
+    "minute_by_weekday": {
+      "0": 0,
+      "4": 2,
+      "5": 2,
+      "6": 2
+    },
     "deadline_minute": 55,
     "timezone": "Asia/Shanghai",
-    "rule_note": "2026-10-01 用户两次调整：晚间窗口起于 :01 后整体改至 :02——周五/周六/周日 14:02、18:02、22:02 起各一窗口（每 2 分钟重试至 :55）；次周周一仅凌晨 02:02 起一个窗口，其他时刻不推送。Base 申请记录表 9 条记录（原 6 条 + 图书顾问/本地化顾问/本地化主管）的期望推送时段已同步为新值（update_base_push_windows.py 回读验证一致）。"
+    "rule_note": "2026-10-05 调整：周五/周六/周日仍为 14:02、18:02、22:02 起各一窗口（每 2 分钟重试至 :55）；次周周一改为凌晨 04:00 起一个窗口（每 2 分钟重试至 04:54），用于等待天宫2 转化上游凌晨 03:40 批次并读取 00:00 分区，其他时刻不推送。Base 申请记录表 9 条记录的既有周五至周日时段保持不变。"
   },
   "source": {
     "process_base_token": "QOVib6QCXaUvJ2s2PsbcnMmsnGg",
@@ -28,18 +58,22 @@
   },
   "upstream": {
     "project_id": 308,
+    "folder": "吕帅",
     "menu_id": 103713,
     "task_id": 47775,
     "nezha_task_id": 67397,
     "task_name": "qing2lark_zhuanhua",
     "owner": "lvshuai01",
+    "published_version": "V6",
+    "version_id": 207547,
+    "source_sha256": "97aed7e48398d6a4321e0b11fab0cff44de67edb8f5f21622e7d1424a0521a39",
     "audit_mode": "none",
-    "audit_note": "qing2lark_zhuanhua 的平台调度时点未固定（曾出现 08 时执行而架构表未就绪的时序竞态，10-01 已确认重跑即修复），第一版调度不做天宫2执行行审计；改用转化表快照新鲜度门禁（freshness_max_age_minutes）兜底。建议后续将 zhuanhua 调度固定到每窗口前并补执行行审计。"
+    "audit_note": "qing2lark_zhuanhua 已绑定最新已发布 V6/version 207547（T-1 至 T-5 分区探针，源码 SHA-256 97aed7e48398d6a4321e0b11fab0cff44de67edb8f5f21622e7d1424a0521a39）；task_id 47775、Nezha 67397 保持不变。第一版调度不做天宫2执行行审计；改用转化表快照新鲜度门禁（freshness_max_age_minutes）兜底。"
   },
   "freshness_max_age_minutes": 1560,
-  "no_data_policy": "skip_group_when_no_conversion_output",
-  "no_data_note": "渠道当期转化行（期次过滤后）的收款、退费、当期收款、成交人头、报科数全为 0 时，该渠道两群跳过发送（记 skipped_no_conversion_data），与 2026-10-01 用户确认的『无数据产出的群可跳过』规则一致。",
-  "schedule_gate_note": "2026-10-01 用户确认预览并授权后，五渠道全部 scheduled=true 参与周常调度（周五/六/日 14:02、18:02、22:02；次周周一仅 02:02）。",
+  "no_data_policy": "always_send_with_fallback_flag",
+  "no_data_note": "2026-10-02 用户指令：无论轮询批次是否有收款/人头/报科产出，均按预设窗口推送一次（不再跳过）；当期无转化产出的群（收款/退费/当期收款/成交人头/报科数全 0）由消息提醒行使用『本期暂无综合单效可比数据，大家加油呀💪💪💪』标识。学部级（reminder_mode=none）恒不带提醒行，含 fallback 也不加。原 skip_group_when_no_conversion_output 规则废弃，conversion_has_output 字段保留为诊断记录。",
+  "schedule_gate_note": "2026-10-02 学部级并入：run 脚本 LEVELS=(supervisor,consultant,dept)，公海/私域/抖音私信/图书四渠道各加 dept operator record（⏰渠道专项讨论同群），消息已于 19:24 手动实发 4 条 verified，Base 四条学部记录已回写时段与状态（已上线）。任务注册与其他推送任务保持一致（pythonw + Interactive + Hidden，用户 19:40 确认不做 S4U 特殊化）。2026-10-03 窗口修正：10-02 曾误将 dept 并入全部 :02 窗口（Base 申请原意为每日 14:00 单档）；现 dept 仅随周五/六/日 14:02 档参与，次周周一 04:00 收官档随大盘写入本周最后一次数据，其余窗口记 skipped_not_in_window。2026-10-05 调整周一发送至 04:00，以等待上游 03:40 批次并读取 00:00 分区。",
   "channels": [
     {
       "id": "public_pool",
@@ -47,7 +81,8 @@
       "scheduled": true,
       "operator_records": {
         "supervisor": "recvwjZbPTL5aH",
-        "consultant": "recvwjX5b2YILG"
+        "consultant": "recvwjX5b2YILG",
+        "dept": "recvwk1mMwDv9n"
       }
     },
     {
@@ -56,7 +91,8 @@
       "scheduled": true,
       "operator_records": {
         "supervisor": "recvwjZ8GbkWV7",
-        "consultant": "recvwjAT4WbHAS"
+        "consultant": "recvwjAT4WbHAS",
+        "dept": "recvwk1kzL4vtb"
       }
     },
     {
@@ -65,7 +101,8 @@
       "scheduled": true,
       "operator_records": {
         "supervisor": "recvwjZ9JJylEQ",
-        "consultant": "recvwjX2koAHjx"
+        "consultant": "recvwjX2koAHjx",
+        "dept": "recvwk1lwipGZ4"
       }
     },
     {
@@ -73,9 +110,10 @@
       "config": "transformation_preview.json",
       "scheduled": true,
       "operator_records": {
-        "consultant": "recvwjW9ZAvRBW"
+        "consultant": "recvwjW9ZAvRBW",
+        "dept": "recvwk1l411M24"
       },
-      "note": "图书仅顾问维度（群 🍊武汉图书koc）；申请记录状态=草稿。20261002期无转化产出，即便启用调度也会按无数据规则跳过。"
+      "note": "图书顾问维度（群 🍊武汉图书koc）+ 学部维度（⏰渠道专项讨论，recvwk1l411M24）。20261002期无转化产出，按无数据规则跳过。"
     },
     {
       "id": "partner_local",
@@ -85,7 +123,7 @@
         "supervisor": "recvwjZaMMix5H",
         "consultant": "recvwjX409k8f2"
       },
-      "note": "本地化主管（已上线）→ 青橙-河南本地化项目，提醒不 @ 主管、按年级点名截面单效；顾问（草稿）→ 🍊青橙河南本地化伙伴。2026-10-01 用户确认预览后启用周常调度。"
+      "note": "本地化主管（已上线）→ 青橙-河南本地化项目，提醒不 @ 主管、按年级点名综合单效；顾问（草稿）→ 🍊青橙河南本地化伙伴。2026-10-01 用户确认预览后启用周常调度。"
     }
   ]
 }

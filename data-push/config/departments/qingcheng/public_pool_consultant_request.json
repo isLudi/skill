@@ -70,18 +70,18 @@
       "综合营收",
       "退费金额",
       "净收款",
-      "截面单效",
+      "综合单效",
       "联报率"
     ],
     "other_result_metrics": null,
-    "result_display_order": "期次、主管、顾问、年级、有效线索、首节到课率、综合人头转化率、综合订单转化率、综合营收、退费金额、净收款、截面单效、联报率",
+    "result_display_order": "期次、主管、顾问、年级、有效线索、首节到课率、综合人头转化率、综合订单转化率、综合营收、退费金额、净收款、综合单效、联报率",
     "metric_definitions": null,
     "layout": null,
     "style_reference": null
   },
   "reminder": {
     "process_metric": "8min",
-    "result_metric": "截面单效",
+    "result_metric": "综合单效",
     "target": "顾问",
     "process_direction": "最低",
     "result_direction": "最高",

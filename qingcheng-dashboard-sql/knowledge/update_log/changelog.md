@@ -839,3 +839,21 @@
 
 - 按已审阅同步计划原子更新 model_id：`2064, 2244, 2460, 2576, 2677, 2680, 2740, 2769, 3180, 3226, 3227, 3240, 3264`；每个 model_id 只保留稳定 canonical 路径。
 - 写入后已强制重建反向索引和目录，并运行唯一版本审计、域内 integrity 与完整 Text2SQL 栈验证。
+
+## 2026-10-08 12:25:27
+
+- 通过 `usql-web-query-operator/scripts/read_dashboard.py profile-all --write-knowledge --confirm-skill-maintenance` 扫描 `青橙项目部` 和 `青橙播报` 文件夹，并将原始 `profile.json` 写入本地 runtime 目录。
+- 刷新 `knowledge/dashboard_web_profiles/README.md`，当前索引 19 个看板快照。
+- 本次 profile 结果：成功 19 个，失败 0 个。
+
+## 2026-10-08 Data Center model 2834 源文件归一
+
+- 线上 `转化-宽表-市场渠道`（model `2834`）与旧 `qingcheng_conversion_wide_table_market_channel_20260611.sql` 的完整 SQL SHA-256 均为 `c33f3e09b5865daed5ce0623b3454764ca4572b1c13519d328f96953efac07f9`。
+- current canonical 统一为 `resources/raw_sql/data_center_qingcheng_2834.sql`，由 operator 同步入口写入；移除重复的日期命名源文件，并迁移表索引、看板、指标、Join、物理表来源说明和公式联动中的当前源引用。历史入库日志及业务口径保留。
+- 旧 SQL 已在本机任务备份中保留，Git 历史也可恢复；本次归一不修改线上 SQL、不执行数据集刷新或看板发布。
+- 两份受引用证据文档的差异仅为上述源路径更新；审阅差异后重新绑定 8 条青橙维度契约的来源 Hash，契约定义与确认状态不变。
+
+## 2026-10-08 数据中心 stable canonical SQL 同步
+
+- 按已审阅同步计划原子更新 model_id：`2677, 2680, 2769, 2834`；每个 model_id 只保留稳定 canonical 路径。
+- 写入后已强制重建反向索引和目录，并运行唯一版本审计、域内 integrity 与完整 Text2SQL 栈验证。

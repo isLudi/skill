@@ -19,12 +19,12 @@ import re
 from pathlib import Path
 
 from lark_delivery.common import resend
-from lark_delivery.common.im import mention_nonmembers, upload_image
+from lark_delivery.common.im import invite_members, mention_nonmembers, upload_image
 
 from send_qingcheng_process import _data, _resolve_people, _verify_message
 
 DEFAULT_CONFIG = Path(__file__).resolve().parents[1] / "config" / "departments" / "qingcheng" / "transformation_preview.json"
-REMINDER_METRIC = "截面单效"
+REMINDER_METRIC = "综合单效"
 PRAISE_SUFFIX = " 🎉🎉🎉"
 
 
@@ -43,7 +43,11 @@ def _render_message(markdown: str, item: dict, resolved: dict[str, str], display
     for kind, grade, people in groups:
         names = [person["name"] for person in people]
         original = _reminder_line(kind, grade, names)
-        mentions = "、".join(f'<at user_id="{resolved[name]}">{html.escape(display[name])}</at>' for name in names)
+        # Names absent from `resolved` are the sanctioned plain-name fallback
+        # (bot invitation already attempted, still absent or unresolvable).
+        mentions = "、".join(
+            f'<at user_id="{resolved[name]}">{html.escape(display[name])}</at>' if name in resolved
+            else html.escape(name) for name in names)
         prefix = original.split("：", 1)[0]
         if markdown.count(original) != 1:
             raise ValueError("Reviewed reminder line differs from resolved people")
@@ -53,7 +57,8 @@ def _render_message(markdown: str, item: dict, resolved: dict[str, str], display
         raise ValueError("Reviewed message has no single uploaded image reference")
     rendered = markdown.replace(image_ref, f"]({image_key})")
     expected = {open_id for group in groups for _, _, people in [group]
-                for person in people for open_id in [resolved[person["name"]]]}
+                for person in people if person["name"] in resolved
+                for open_id in [resolved[person["name"]]]}
     actual_ids = set(re.findall(r'<at user_id="(ou_[A-Za-z0-9]+)">', rendered))
     if actual_ids != expected:
         raise ValueError("Native mentions do not match the verified reminder set")
@@ -75,7 +80,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--channel", required=True,
                         choices=("private", "douyin_dm", "public_pool", "partner_books", "partner_local"))
-    parser.add_argument("--level", choices=("supervisor", "consultant"), required=True)
+    parser.add_argument("--level", choices=("supervisor", "consultant", "dept"), required=True)
     parser.add_argument("--review-dir", type=Path, required=True)
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
     parser.add_argument("--image-key", default="")
@@ -93,7 +98,7 @@ def main() -> None:
     if (config["report_type"] != "transformation" or (config["status"], config["schedule_enabled"]) not in
             (("preview_only", False), ("active", True))
             or delivery["sender_identity"] != "bot" or delivery["mention_format"] != "native_at"
-            or delivery["require_complete_group_membership"] is not True or delivery["on_mention_gap"] != "block_send"):
+            or delivery["require_complete_group_membership"] is not True or delivery["on_mention_gap"] != "invite_then_text"):
         raise ValueError("Transformation delivery configuration is invalid")
     channel_cfg = next((c for c in config["channels"] if c["id"] == args.channel), None)
     if channel_cfg is None:
@@ -125,7 +130,11 @@ def main() -> None:
     people = list(item.get("reminder_people") or [])
     for group in (item.get("reminder_by_grade") or {}).values():
         people.extend(group)
-    if not people and item.get("reminder_grades"):
+    if item.get("reminder_mode") == "none":
+        # 学部级：消息本就不含提醒行（文字抬头 + 图片），原样发送、无 @。
+        resolved, display = {}, {}
+        mention_ids: list[str] = []
+    elif not people and item.get("reminder_grades"):
         # 本地化主管 grade_text 模式：消息只点名年级、不含任何 @，原样发送。
         resolved, display = {}, {}
         mention_ids: list[str] = []
@@ -136,10 +145,18 @@ def main() -> None:
     elif not people:
         raise ValueError("No reminder people in review; a fallback-only message needs manual sending")
     else:
-        resolved, display = _resolve_people(people)
-        missing = mention_nonmembers(chat_id, resolved, "bot", 60)
+        resolved_all, display = _resolve_people(people)
+        # 2026-10-04 policy: never block on person resolution; invite first, text after.
+        missing = mention_nonmembers(chat_id, resolved_all, "bot", 60)
+        invite_note = {"invited": [], "pending": [], "error": ""}
         if missing:
-            raise ValueError("Reminder people are absent from the target group: " + "、".join(missing))
+            invite_note = invite_members(chat_id, [resolved_all[name] for name in missing], "bot", 60)
+            try:
+                missing = mention_nonmembers(chat_id, resolved_all, "bot", 60)
+            except Exception as exc:  # noqa: BLE001 - a re-check failure degrades to text
+                invite_note["recheck_error"] = str(exc)[:300]
+        text_only = set(missing)
+        resolved = {name: open_id for name, open_id in resolved_all.items() if name not in text_only}
         mention_ids = sorted(resolved.values())
     image_key = args.image_key or (upload_image(args.review_dir / item["png"], "bot", 60) if args.send else "img_dry_run")
     markdown = (args.review_dir / item["message_file"]).read_text(encoding="utf-8")
@@ -165,6 +182,8 @@ def main() -> None:
         raise
     output = {"level": level, "channel": args.channel, "chat_id": chat_id, "period": review["period"],
               "image_key": image_key, "mention_ids": mention_ids,
+              "text_fallback_names": sorted(text_only) if people else [],
+              "invite_attempt": invite_note if people else {"invited": [], "pending": [], "error": ""},
               "dry_run": not args.send, "response": response}
     if args.send:
         message_id = response.get("message_id")

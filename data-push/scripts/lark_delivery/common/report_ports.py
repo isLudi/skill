@@ -36,3 +36,6 @@ class FeishuReportPorts:
 
     def missing_members(self, chat_id, resolved, identity, timeout):
         return self.backend.mention_nonmembers(chat_id, resolved, identity, timeout)
+
+    def invite_members(self, chat_id, open_ids, identity, timeout):
+        return self.backend.invite_members(chat_id, open_ids, identity, timeout)

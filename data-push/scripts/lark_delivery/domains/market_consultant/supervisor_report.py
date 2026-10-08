@@ -252,7 +252,7 @@ def build_markdown(report, period, channel, report_type, mention_info, image_ref
             for name in block["reminders"][section]:
                 open_id = mention_info["resolved"].get(name)
                 label = html.escape(mention_info.get("display_names", {}).get(name, name))
-                people.append(f'<at user_id="{open_id}">{label}</at>' if open_id else label + "（待核验）")
+                people.append(f'<at user_id="{open_id}">{label}</at>' if open_id else label)
             lines.append(f"- {html.escape(channel)}渠道{html.escape(block['grade'])}年级 {metric}较低："
                          + ("、".join(people) or "暂无退后线索不少于10的主管"))
     return "\n".join(lines)

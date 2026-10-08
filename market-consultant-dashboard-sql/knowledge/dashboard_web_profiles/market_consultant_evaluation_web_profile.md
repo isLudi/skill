@@ -8,8 +8,8 @@
 - 文件夹：`市场顾问数据`
 - dashboard_id：`dashboard_3822396843512627200`
 - 打开入口：`https://uanalysis.baijia.com/dashboard-market?id=dashboard_3822396843512627200&sourceType=1`
-- profile 时间：2026-08-08 18:45:36
-- 原始结构 profile：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\dashboard-profiles\knowledge-market-20260808\市场顾问数据\市场顾问--评优看板\profile.json`
+- profile 时间：2026-10-08 12:22:12
+- 原始结构 profile：`..\runtime\usql-web-query-operator\production-knowledge-sync-20261008\dashboards\市场顾问数据\市场顾问--评优看板\profile.json`
 - 页面渲染：成功
 
 ## 2. 刷新验证

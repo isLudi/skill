@@ -15,7 +15,7 @@ from zoneinfo import ZoneInfo
 
 from fetch_qingcheng_process_source import fetch, probe_revision
 from lark_delivery.common import resend
-from lark_delivery.common.im import upload_image
+from lark_delivery.common.im import invite_members, upload_image
 from lark_delivery.common.readback import available as readback_available
 from lark_delivery.common.retry import retry_transport
 from lark_delivery.common.runtime import ensure_console_streams, run_lark
@@ -69,11 +69,11 @@ def _config() -> dict:
     if set(cfg["visual"]["integer_fields"]) != {"退前线索", "有效线索", "带班人数", "总通时"}:
         raise ValueError("SEC process integer display fields differ")
     expected = {
-        "sec_no_friend_supervisor": ("sec_order_reuse", "SEC未加好友", "SEC未加好友", "主管", 5, True, "block_send", "oc_a9e3165a2509e9878fae04dc8394f6b0"),
-        "sec_first_period_drop_supervisor": ("sec_order_reuse", "SEC首期掉海", "SEC首期掉海", "主管", 5, True, "block_send", "oc_a9e3165a2509e9878fae04dc8394f6b0"),
-        "sec_public_consultant": ("sec_public", None, "公域", "顾问", 3, True, "text_only_for_that_person", "oc_a8e793c81080ebf5b14dd22bd83a05a1"),
-        "sec_order_reuse_consultant": ("sec_order_reuse", None, "订单复用", "顾问", 3, True, "text_only_for_that_person", "oc_a8e793c81080ebf5b14dd22bd83a05a1"),
-        "sec_public_supervisor": ("sec_public", None, "公域", "主管", 5, False, "block_send", "oc_a9e3165a2509e9878fae04dc8394f6b0"),
+        "sec_no_friend_supervisor": ("sec_order_reuse", "SEC未加好友", "SEC未加好友", "主管", 5, True, "invite_then_text", "oc_a9e3165a2509e9878fae04dc8394f6b0"),
+        "sec_first_period_drop_supervisor": ("sec_order_reuse", "SEC首期掉海", "SEC首期掉海", "主管", 5, True, "invite_then_text", "oc_a9e3165a2509e9878fae04dc8394f6b0"),
+        "sec_public_consultant": ("sec_public", None, "公域", "顾问", 3, True, "invite_then_text", "oc_a8e793c81080ebf5b14dd22bd83a05a1"),
+        "sec_order_reuse_consultant": ("sec_order_reuse", None, "订单复用", "顾问", 3, True, "invite_then_text", "oc_a8e793c81080ebf5b14dd22bd83a05a1"),
+        "sec_public_supervisor": ("sec_public", None, "公域", "主管", 5, False, "invite_then_text", "oc_a9e3165a2509e9878fae04dc8394f6b0"),
     }
     for entry in cfg["reports"]:
         if tuple(entry[field] for field in ("source", "secondary_channel", "channel_name", "level",
@@ -236,7 +236,16 @@ def _person_key(person: dict) -> str:
     return person.get("account") or person["name"]
 
 
-def _resolve(entry: dict, review: dict, member_ids: set[str]) -> tuple[dict[str, str], dict[str, str], set[str]]:
+def _resolve(entry: dict, review: dict, member_ids: set[str], chat_id: str = "",
+             sender_open_id: str = "") -> tuple[dict[str, str], dict[str, str], set[str]]:
+    """Resolve reminder people to native @ targets, with the 2026-10-04 fallback chain.
+
+    Every candidate is first resolved against the directory (unique active employee,
+    no group filter). A resolved account that is absent from the group is invited
+    once by the sender bot and re-checked; anyone still absent afterwards, or
+    unresolved/ambiguous in the directory, degrades to a plain-name mention. The
+    person set can no longer block a push.
+    """
     people = list({_person_key(person): person for group in review["reminders"]
                    for person in group["people"]}.values())
     if not people or any(not person.get("name") for person in people):
@@ -264,7 +273,7 @@ def _resolve(entry: dict, review: dict, member_ids: set[str]) -> tuple[dict[str,
         candidates = {}
         for user in users:
             if (user.get("matched_query") != query or user.get("is_activated") is not True
-                    or user.get("is_cross_tenant") or user.get("open_id") not in member_ids):
+                    or user.get("is_cross_tenant")):
                 continue
             label = user.get("localized_name")
             email = str(user.get("enterprise_email") or "")
@@ -276,14 +285,35 @@ def _resolve(entry: dict, review: dict, member_ids: set[str]) -> tuple[dict[str,
             open_id = user.get("open_id")
             if isinstance(open_id, str) and re.fullmatch(r"ou_[A-Za-z0-9]+", open_id):
                 candidates[open_id] = label
+        if len(candidates) > 1:
+            # Group membership may disambiguate same-name employees: if exactly one
+            # candidate is in the group, that is the precise @ target.
+            in_group = {open_id: label for open_id, label in candidates.items() if open_id in member_ids}
+            if len(in_group) == 1:
+                candidates = in_group
         if len(candidates) == 1:
             resolved[key], display[key] = next(iter(candidates.items()))
-        elif entry["unresolved_mention_action"] == "text_only_for_that_person":
-            text_only.add(key)
         else:
-            raise ValueError(f"Supervisor reminder account is unresolved or ambiguous in target group: {name}")
+            # Unresolved or ambiguous in the directory: plain-name fallback, never a block.
+            text_only.add(key)
     if len(set(resolved.values())) != len(resolved):
         raise ValueError("Two SEC reminder identities point to one Feishu account")
+
+    absent = {key: open_id for key, open_id in resolved.items() if open_id not in member_ids}
+    if absent and chat_id and sender_open_id:
+        invite = invite_members(chat_id, list(absent.values()), "bot", 90)
+        review.setdefault("invite_attempts", []).append(invite)
+        try:
+            member_ids = _members(chat_id, sender_open_id)
+        except Exception as exc:  # noqa: BLE001 - a re-check failure degrades to text
+            review.setdefault("invite_attempts", []).append(
+                {"invited": [], "pending": [], "error": str(exc)[:300]})
+        for key, open_id in list(absent.items()):
+            if open_id not in member_ids:
+                # Still absent after the bot invitation: plain-name fallback.
+                text_only.add(key)
+                resolved.pop(key, None)
+                display.pop(key, None)
     return resolved, display, text_only
 
 
@@ -384,7 +414,9 @@ def _deliver(entry: dict, review: dict, manifest: dict, cfg: dict, output: Path,
     if current != manifest["rev"]:
         raise ValueError("SEC Base revision changed before delivery")
     member_ids = _members(entry["chat_id"], cfg["sender"]["open_id"])
-    resolved, display, text_only = _resolve(entry, review, member_ids)
+    resolved, display, text_only = _resolve(entry, review, member_ids,
+                                            chat_id=entry["chat_id"],
+                                            sender_open_id=cfg["sender"]["open_id"])
     image = output / review["image"]
     image_key = upload_image(image, "bot", 90)
     markdown = _render(review, resolved, display, text_only, image_key)

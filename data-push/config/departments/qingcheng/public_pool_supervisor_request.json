@@ -68,7 +68,7 @@
       "综合营收",
       "退费金额",
       "净收款",
-      "截面单效",
+      "综合单效",
       "联报率",
       "带班人数",
       "当期单效",
@@ -77,14 +77,14 @@
       "平均成交周期"
     ],
     "other_result_metrics": null,
-    "result_display_order": "期次、主管、带班人数、有效线索、首节到课率、综合人头转化率、综合订单转化率、综合营收、退费金额、净收款、当期单效、截面单效、联报率、人效、破蛋率、平均成交周期",
+    "result_display_order": "期次、主管、带班人数、有效线索、首节到课率、综合人头转化率、综合订单转化率、综合营收、退费金额、净收款、当期单效、综合单效、联报率、人效、破蛋率、平均成交周期",
     "metric_definitions": null,
     "layout": null,
     "style_reference": null
   },
   "reminder": {
     "process_metric": "8min",
-    "result_metric": "截面单效",
+    "result_metric": "综合单效",
     "target": "主管",
     "process_direction": "最低",
     "result_direction": "最高",

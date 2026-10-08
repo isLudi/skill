@@ -42,7 +42,7 @@
       "process_reminder": {"metric": "好友率", "direction": "最低", "rank": "最后1名", "tie_handling": "all_tied_minimum"},
       "split_grade": true,
       "reminder_by_grade": true,
-      "unresolved_mention_action": "block_send",
+      "unresolved_mention_action": "invite_then_text",
       "show_total": true
     },
     {
@@ -59,7 +59,7 @@
       "process_reminder": {"metric": "好友率", "direction": "最低", "rank": "最后1名", "tie_handling": "all_tied_minimum"},
       "split_grade": true,
       "reminder_by_grade": true,
-      "unresolved_mention_action": "block_send",
+      "unresolved_mention_action": "invite_then_text",
       "show_total": true
     }
   ]

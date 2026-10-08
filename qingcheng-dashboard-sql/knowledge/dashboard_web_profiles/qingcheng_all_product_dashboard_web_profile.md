@@ -1,4 +1,4 @@
-# 青橙-全域产品数据看板 Web BI 结构快照
+# 青橙项目部-全域产品数据看板 Web BI 结构快照
 
 > 本文件记录自助 BI 页面结构、筛选器、组件单元、字段/指标和刷新验证结果。它补充 Web 前端配置，不替代历史 SQL 业务口径。
 > 为避免沉淀结果明细，知识库只保存结构、字段、任务 ID 和行数/序列计数，不保存返回数据行。
@@ -8,8 +8,8 @@
 - 文件夹：`青橙项目部`
 - dashboard_id：`dashboard_3852445620602875904`
 - 打开入口：`https://uanalysis.baijia.com/dashboard-market?id=dashboard_3852445620602875904&sourceType=1`
-- profile 时间：2026-08-08 19:01:25
-- 原始结构 profile：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\dashboard-profiles\knowledge-qingcheng-all-20260808\青橙项目部\青橙-全域产品数据看板\profile.json`
+- profile 时间：2026-10-08 12:23:20
+- 原始结构 profile：`..\runtime\usql-web-query-operator\production-knowledge-sync-20261008\dashboards\青橙项目部\青橙项目部-全域产品数据看板\profile.json`
 - 页面渲染：成功
 
 ## 2. 刷新验证

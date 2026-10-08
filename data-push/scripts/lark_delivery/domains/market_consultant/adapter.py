@@ -103,9 +103,10 @@ def validate_definition(definition):
         if not isinstance(values, dict) or tuple(values) != channels or any(values.get(name) != name for name in channels):
             raise ValueError("渠道匹配契约必须为每个登记渠道声明相同的规范值")
         folded = match.get("casefold_channels", [])
+        app_casefold_channels = {"supervisor_private_app_sync", "supervisor_yafei_grade_9"}
         if (not isinstance(folded, list) or
-                (folded and (definition["channel_id"] != "supervisor_private_app_sync" or folded != ["app"]))):
-            raise ValueError("只允许集团私域与APP渠道的app使用大小写不敏感精确匹配")
+                (folded and (definition["channel_id"] not in app_casefold_channels or folded != ["app"]))):
+            raise ValueError("只允许已登记的APP渠道使用大小写不敏感精确匹配")
     elif match_mode == "contains":
         if not isinstance(match.get("keyword"), str) or not match["keyword"].strip():
             raise ValueError("包含式渠道匹配必须声明非空 keyword")

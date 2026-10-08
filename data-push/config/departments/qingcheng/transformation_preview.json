@@ -6,7 +6,7 @@
   "report_type": "transformation",
   "status": "active",
   "schedule_enabled": true,
-  "schedule_note": "2026-10-01 用户两次调整并当日授权五渠道周常调度：调度依据 Base 申请记录表（tbl3iMKvD52jaMF1）9 条记录（转化数据星期=周五/周六/周日/次周周一），推送窗口起分定为 :02——周五/周六/周日 14:02、18:02、22:02 起各一窗口（每 2 分钟重试至 :55），次周周一仅凌晨 02:02 起一个窗口、其他时刻不推送；Windows 任务=Codex-Lark-Qingcheng-Transformation-GroupPush（retry 2 分钟），五渠道（公海/私域/抖音私信/图书/本地化，共 9 个群）全部 scheduled=true；无转化数据产出的渠道按规则跳过推送。",
+  "schedule_note": "2026-10-05 调整并当日授权五渠道周常调度：调度依据 Base 申请记录表（tbl3iMKvD52jaMF1）9 条记录（转化数据星期=周五/周六/周日/次周周一），周五/周六/周日仍为 14:02、18:02、22:02 起各一窗口（每 2 分钟重试至 :55），次周周一改为凌晨 04:00 起一个窗口（每 2 分钟重试至 04:54），用于等待天宫2 转化上游 03:40 批次并读取 00:00 分区，其他时刻不推送；Windows 任务=Codex-Lark-Qingcheng-Transformation-GroupPush（retry 2 分钟），五渠道（公海/私域/抖音私信/图书/本地化，共 9 个群）全部 scheduled=true；无转化数据产出的渠道仍按 always-send-with-fallback 规则推送并标注兜底状态。",
   "delivery": {
     "sender_identity": "bot",
     "sender_name": "管家",
@@ -14,7 +14,7 @@
     "mention_format": "native_at",
     "mention_resolution": "unique_active_employee_by_name_and_account",
     "require_complete_group_membership": true,
-    "on_mention_gap": "block_send",
+    "on_mention_gap": "invite_then_text",
     "failure_isolation": "per_group"
   },
   "source": {
@@ -24,10 +24,17 @@
     "conversion_table_id": "tbl9CcVtXPntqGvP",
     "conversion_upstream_task_id": 47775,
     "conversion_upstream_task_name": "qing2lark_zhuanhua",
-    "conversion_upstream_note": "转化上游 qing2lark_zhuanhua（菜单 103713、Nezha 67397）与过程上游 qing2lark_guocheng 相互独立；转化表每行 = 交易期次×线索×用户的收款聚合（Base\"期次\"=收退款发生的期次窗口，\"当期收款\"=线索期次=交易期次即 is_on_period 的收款，老线索当窗付款表现为 收款>0 且 当期收款=0，对应看板\"往期营收\"=income-当期收款）。2026-10-01 usql 逐笔核对（query 1609568397）证实 zhuanhua 写入与上游逐笔一致；抖音私信 20261002期 2 行\"未分配账号\"（¥3,600 收款+¥2,915 退费，均为 finance_only）根因是执行时序竞态：zhuanhua 于 10/1 08 时执行时 qing_team_jg/jiagou_db 的 20261002期 登记尚未写入，财务行仅单级 conversion_org 匹配无回退故落\"未分配账号\"+主管按线索虚拟直属领导（王博43）回退，而线索行有 jiagou→qing_team_jg→current_org→事实表四级回退故显示正常；当日稍后架构表补齐 1002期（张昊62/杜孝忠/三部两表均在）但任务未重跑。重跑 zhuanhua 即可归位（复现 join query 1609641863 已验证当前可命中）。修复建议：调度排至架构表维护之后或加当期架构就绪校验；跨期账号延续映射不适用本例（账号当期在表中）。有效线索、带班人数与首节到课率取自过程表，与过程图同口径；双表按 (期次,主管[,年级][,顾问账号]) 组键 join，join 覆盖率已写入 review.json 的 join_coverage。",
+    "conversion_upstream_note": "转化上游 qing2lark_zhuanhua（菜单 103713、task 47775、Nezha 67397，最新已发布 V6/version 207547，源码 SHA-256 97aed7e48398d6a4321e0b11fab0cff44de67edb8f5f21622e7d1424a0521a39）与过程上游 qing2lark_guocheng 相互独立；V6 将源分区探查窗口扩至 T-1 至 T-5，以容忍分区延迟。转化表每行 = 交易期次×线索×用户的收款聚合（Base\"期次\"=收退款发生的期次窗口，\"当期收款\"=线索期次=交易期次即 is_on_period 的收款，老线索当窗付款表现为 收款>0 且 当期收款=0，对应看板\"往期营收\"=income-当期收款）。2026-10-01 usql 逐笔核对（query 1609568397）证实 zhuanhua 写入与上游逐笔一致；抖音私信 20261002期 2 行\"未分配账号\"（¥3,600 收款+¥2,915 退费，均为 finance_only）根因是执行时序竞态：zhuanhua 于 10/1 08 时执行时 qing_team_jg/jiagou_db 的 20261002期 登记尚未写入，财务行仅单级 conversion_org 匹配无回退故落\"未分配账号\"+主管按线索虚拟直属领导（王博43）回退，而线索行有 jiagou→qing_team_jg→current_org→事实表四级回退故显示正常；当日稍后架构表补齐 1002期（张昊62/杜孝忠/三部两表均在）但任务未重跑。重跑 zhuanhua 即可归位（复现 join query 1609641863 已验证当前可命中）。修复建议：调度排至架构表维护之后或加当期架构就绪校验；跨期账号延续映射不适用本例（账号当期在表中）。有效线索、带班人数与首节到课率取自过程表，与过程图同口径；双表按 (期次,主管[,年级][,顾问账号]) 组键 join，join 覆盖率已写入 review.json 的 join_coverage。",
     "period_rule": "自然周周五期次",
-    "transformation_weekdays": ["周五", "周六", "周日", "次周周一"],
-    "current_periods": ["20261002期"]
+    "transformation_weekdays": [
+      "周五",
+      "周六",
+      "周日",
+      "次周周一"
+    ],
+    "current_periods": [
+      "20261002期"
+    ]
   },
   "visual": {
     "header": "#e6efff",
@@ -39,21 +46,41 @@
     "total_row": "sum_detail_then_recalculate_ratios",
     "number_format": "带班人数、有效线索、综合营收、退费金额、净收款取整数；比率保留一位小数百分比；单效、人效、平均成交周期保留一位小数；联报率以一位小数数值显示（人均科次，如 1.2、2.0、4.3），不使用百分比"
   },
-  "metric_definitions_note": "全部对齐青橙 2460 转化看板前端公式（与市场顾问部定义一致）：综合人头转化率=sum(成交人头)/有效线索；综合订单转化率=sum(报科数)/有效线索（报科数=2460 pay_sub 科目人次，非订单数）；当期单效=sum(当期收款)/有效线索；截面单效=综合单效=sum(净收款)/有效线索（净收款=promit=收款-退费）；人效=sum(净收款)/带班人数（2460 分母为接量人力，推送按申请口径用带班人数）；联报率=sum(报科数)/sum(成交人头)；破蛋率=sum(破蛋人数标记)/有效线索；平均成交周期=sum(成交周期天数分子)/sum(成交周期成交人数分母)（分母标记与成交人头等价）。",
+  "metric_definitions_note": "全部对齐青橙 2460 转化看板前端公式（与市场顾问部定义一致）：综合人头转化率=sum(成交人头)/有效线索；综合订单转化率=sum(报科数)/有效线索（报科数=2460 pay_sub 科目人次，非订单数）；当期单效=sum(当期收款)/有效线索；综合单效=sum(净收款)/有效线索（净收款=promit=收款-退费）；人效=sum(净收款)/带班人数（2460 分母为接量人力，推送按申请口径用带班人数）；联报率=sum(报科数)/sum(成交人头)；破蛋率=sum(破蛋人数标记)/有效线索；平均成交周期=sum(成交周期天数分子)/sum(成交周期成交人数分母)（分母标记与成交人头等价）。",
   "transformation_bars": {
-    "综合人头转化率": {"scale": [0.0, 1.0], "color": "#8da7ca"},
-    "截面单效": {"scale": null, "color": "#f8ca70", "note": "量程待业务审定后回填固定值；预览阶段按当期数据动态上限渲染并标注 draft_for_review"},
-    "联报率": {"scale": null, "color": "#77c09f", "note": "2460 口径联报率=sum(报科数)/sum(成交人头)=人均科次，通常≥100%，固定 0-1 不适用；预览阶段动态上限并标注 draft_for_review"},
-    "破蛋率": {"scale": [0.0, 1.0], "color": "#bea9dd"}
+    "综合人头转化率": {
+      "scale": [
+        0.0,
+        1.0
+      ],
+      "color": "#8da7ca"
+    },
+    "综合单效": {
+      "scale": null,
+      "color": "#f8ca70",
+      "note": "量程待业务审定后回填固定值；预览阶段按当期数据动态上限渲染并标注 draft_for_review"
+    },
+    "联报率": {
+      "scale": null,
+      "color": "#77c09f",
+      "note": "2460 口径联报率=sum(报科数)/sum(成交人头)=人均科次，通常≥100%，固定 0-1 不适用；预览阶段动态上限并标注 draft_for_review"
+    },
+    "破蛋率": {
+      "scale": [
+        0.0,
+        1.0
+      ],
+      "color": "#bea9dd"
+    }
   },
   "reminder_format": {
     "praise_line": "- {指标}较高的{维度}：{人名列表} 🎉🎉🎉（顾问按年级前三名、主管第1名，并列全提醒）",
-    "grade_line": "- 截面单效较高年级：{年级列表} 🎉🎉🎉（本地化主管专用 reminder_mode=grade_text：不 @ 人，按年级聚合截面单效=sum(净收款)/sum(有效线索) 取最高、并列全列，样式对齐过程推送『8min较低年级』）",
-    "fallback_line": "- 本期暂无截面单效可比数据，大家加油呀💪💪💪（全部为 0 或无可比数据时）",
-    "eligibility": "仅截面单效>0 的行参与排名；无符合者的年级整行省略"
+    "grade_line": "- 综合单效较高年级：{年级列表} 🎉🎉🎉（本地化主管专用 reminder_mode=grade_text：不 @ 人，按年级聚合综合单效=sum(净收款)/sum(有效线索) 取最高、并列全列，样式对齐过程推送『8min较低年级』）",
+    "fallback_line": "- 本期暂无综合单效可比数据，大家加油呀💪💪💪（全部为 0 或无可比数据时）",
+    "eligibility": "仅综合单效>0 的行参与排名；无符合者的年级整行省略"
   },
   "transformation_sort": {
-    "metric": "截面单效",
+    "metric": "综合单效",
     "direction": "desc",
     "value": "unrounded"
   },
@@ -61,72 +88,161 @@
     {
       "id": "public_pool",
       "name": "公海",
-      "match": {"一级渠道": "公海", "渠道": "顾问未加好友"},
+      "match": {
+        "一级渠道": "公海",
+        "渠道": "顾问未加好友"
+      },
       "split_grade": true,
       "supervisor_request": "public_pool_supervisor_request.json",
       "consultant_request": "public_pool_consultant_request.json",
+      "dept_request": "public_pool_dept_request.json",
       "profiles": {
-        "supervisor": {"target_chat_id": "oc_69f05a0e0770bca9c8bf7be9f11e7111", "level": "主管", "minimum_effective_leads": 5},
-        "consultant": {"target_chat_id": "oc_fe72649e70d6aa3b7387b49e6bde619a", "level": "顾问", "minimum_effective_leads": 3}
+        "supervisor": {
+          "target_chat_id": "oc_69f05a0e0770bca9c8bf7be9f11e7111",
+          "level": "主管",
+          "minimum_effective_leads": 5
+        },
+        "consultant": {
+          "target_chat_id": "oc_fe72649e70d6aa3b7387b49e6bde619a",
+          "level": "顾问",
+          "minimum_effective_leads": 3
+        },
+        "dept": {
+          "target_chat_id": "oc_a95c83e488e0dfcc777d5ffad849d8a4",
+          "level": "学部",
+          "minimum_effective_leads": 5,
+          "reminder_mode": "none"
+        }
       },
-      "note": "2026-10-01 已验证配置链并生成预览（过程 rev 5800/快照 15:00、转化 rev 4629/快照 14:00）：有效线索 2,134（高二 1,994、高三 140，七位主管），本期收款/退费全为 0，无转化数据产出，故两群当期跳过推送、提醒走 fallback 文案"
+      "note": "2026-10-01 已验证配置链并生成预览（过程 rev 5800/快照 15:00、转化 rev 4629/快照 14:00）：有效线索 2,134（高二 1,994、高三 140，七位主管），本期收款/退费全为 0，无转化数据产出，故两群当期跳过推送、提醒走 fallback 文案；学部级（2026-10-02 配置，仅本地预览未启用调度）：Base 申请 recvwk1mMwDv9n（草稿）→ ⏰渠道专项讨论（oc_a95c83e488e0dfcc777d5ffad849d8a4，四渠道同群），level=学部、reminder_mode=none（不 @ 人、不生成文字提醒含 fallback）、按负责人（经理字段）×年级聚合、门槛有效线索>=5、展示总计行，指标顺序按申请记录 17 列。20261002期 dept 预览 4 行（叶柱/王晓楠04 × 高二/高三）。"
     },
     {
       "id": "private",
       "name": "私域",
-      "match": {"一级渠道": "私域"},
+      "match": {
+        "一级渠道": "私域"
+      },
       "split_grade": true,
       "supervisor_request": "private_supervisor_request.json",
       "consultant_request": "private_consultant_request.json",
+      "dept_request": "private_dept_request.json",
       "profiles": {
-        "supervisor": {"target_chat_id": "oc_43eb67eed20a5cc8eb21d3bf4f6814c2", "level": "主管", "minimum_effective_leads": 5},
-        "consultant": {"target_chat_id": "oc_e6247649412363e3b4ea6c3f757a2da3", "level": "顾问", "minimum_effective_leads": 3}
-      }
+        "supervisor": {
+          "target_chat_id": "oc_43eb67eed20a5cc8eb21d3bf4f6814c2",
+          "level": "主管",
+          "minimum_effective_leads": 5
+        },
+        "consultant": {
+          "target_chat_id": "oc_e6247649412363e3b4ea6c3f757a2da3",
+          "level": "顾问",
+          "minimum_effective_leads": 3
+        },
+        "dept": {
+          "target_chat_id": "oc_a95c83e488e0dfcc777d5ffad849d8a4",
+          "level": "学部",
+          "minimum_effective_leads": 5,
+          "reminder_mode": "none"
+        }
+      },
+      "note": "学部级（2026-10-02 配置，仅本地预览未启用调度）：Base 申请 recvwk1kzL4vtb（草稿）→ ⏰渠道专项讨论（oc_a95c83e488e0dfcc777d5ffad849d8a4，四渠道同群），level=学部、reminder_mode=none（不 @ 人、不生成文字提醒含 fallback）、按负责人（经理字段）×年级聚合、门槛有效线索>=5、展示总计行，指标顺序按申请记录 17 列。20261002期 dept 预览 6 行（叶柱/王晓楠04 × 高一/高二/高三）。",
+      "allow_empty_conversion": true
     },
     {
       "id": "douyin_dm",
       "name": "抖音私信",
-      "match": {"一级渠道": "抖音私信", "渠道": "抖音私信"},
+      "match": {
+        "一级渠道": "抖音私信",
+        "渠道": "抖音私信"
+      },
       "split_grade": false,
       "supervisor_request": "douyin_dm_supervisor_request.json",
       "consultant_request": "douyin_dm_consultant_request.json",
+      "dept_request": "douyin_dm_dept_request.json",
       "profiles": {
-        "supervisor": {"target_chat_id": "oc_4940cd21a8e5c55c2016c8c59d8bb37b", "level": "主管", "minimum_effective_leads": 5},
-        "consultant": {"target_chat_id": "oc_440ee2fc3bc26878bae77d24454e4f1c", "level": "顾问", "minimum_effective_leads": 3}
-      }
+        "supervisor": {
+          "target_chat_id": "oc_4940cd21a8e5c55c2016c8c59d8bb37b",
+          "level": "主管",
+          "minimum_effective_leads": 5
+        },
+        "consultant": {
+          "target_chat_id": "oc_440ee2fc3bc26878bae77d24454e4f1c",
+          "level": "顾问",
+          "minimum_effective_leads": 3
+        },
+        "dept": {
+          "target_chat_id": "oc_a95c83e488e0dfcc777d5ffad849d8a4",
+          "level": "学部",
+          "minimum_effective_leads": 5,
+          "reminder_mode": "none"
+        }
+      },
+      "note": "学部级（2026-10-02 配置，仅本地预览未启用调度）：Base 申请 recvwk1lwipGZ4（草稿）→ ⏰渠道专项讨论（oc_a95c83e488e0dfcc777d5ffad849d8a4，四渠道同群），level=学部、reminder_mode=none（不 @ 人、不生成文字提醒含 fallback）、按负责人（经理字段）×年级聚合、门槛有效线索>=5、展示总计行，指标顺序按申请记录 17 列。20261002期 dept 预览 2 行（叶柱/王晓楠04 × 高一）。",
+      "allow_empty_conversion": true
     },
     {
       "id": "partner_books",
       "name": "图书",
-      "match": {"一级渠道": "图书", "渠道": "武汉图书"},
+      "match": {
+        "一级渠道": "图书",
+        "渠道": "武汉图书"
+      },
       "split_grade": false,
       "consultant_request": "partner_books_consultant_request.json",
+      "dept_request": "partner_books_dept_request.json",
       "profiles": {
-        "consultant": {"target_chat_id": "oc_854e5427ec0f6ef2bf654fee0a759f83", "level": "顾问", "minimum_effective_leads": 3}
+        "consultant": {
+          "target_chat_id": "oc_854e5427ec0f6ef2bf654fee0a759f83",
+          "level": "顾问",
+          "minimum_effective_leads": 3
+        },
+        "dept": {
+          "target_chat_id": "oc_a95c83e488e0dfcc777d5ffad849d8a4",
+          "level": "学部",
+          "minimum_effective_leads": 5,
+          "reminder_mode": "none"
+        }
       },
-      "note": "2026-10-01 配置（仅顾问维度，无主管申请）：Base 申请 recvwjW9ZAvRBW（草稿）→ 🍊武汉图书koc，minimum 3、截面单效前 3 名 @。20261002期转化表 455 行（全为武汉图书子渠道、conversion_fact），收款/退费/人头/报科全 0，无转化产出，按无数据规则当期跳过推送、预览走 fallback 文案。2026-10-01 20:07 用户指令手动推送 fallback 消息一次（om_x100b64d09b5020a0c47935d9572c31c，verified，--allow-fallback 授权）。"
+      "note": "2026-10-01 配置（仅顾问维度，无主管申请）：Base 申请 recvwjW9ZAvRBW（草稿）→ 🍊武汉图书koc，minimum 3、综合单效前 3 名 @。20261002期转化表 455 行（全为武汉图书子渠道、conversion_fact），收款/退费/人头/报科全 0，无转化产出，按无数据规则当期跳过推送、预览走 fallback 文案。2026-10-01 20:07 用户指令手动推送 fallback 消息一次（om_x100b64d09b5020a0c47935d9572c31c，verified，--allow-fallback 授权）。；学部级（2026-10-02 配置，仅本地预览未启用调度）：Base 申请 recvwk1l411M24（草稿）→ ⏰渠道专项讨论（oc_a95c83e488e0dfcc777d5ffad849d8a4，四渠道同群），level=学部、reminder_mode=none（不 @ 人、不生成文字提醒含 fallback）、按负责人（经理字段）×年级聚合、门槛有效线索>=5、展示总计行，指标顺序按申请记录 17 列。20261002期 dept 预览 5 行（叶柱/王晓楠04 × 高一/高二/高三(部分)）。",
+      "allow_empty_conversion": true
     },
     {
       "id": "partner_local",
       "name": "本地化",
-      "match": {"一级渠道": "本地化", "渠道": "河南本地化"},
-      "split_grade": {"supervisor": true, "consultant": false},
+      "match": {
+        "一级渠道": "本地化",
+        "渠道": "河南本地化"
+      },
+      "split_grade": {
+        "supervisor": true,
+        "consultant": false
+      },
       "supervisor_request": "supervisor_local_request.json",
       "consultant_request": "partner_local_consultant_request.json",
       "profiles": {
-        "supervisor": {"target_chat_id": "oc_be403f4efca7f1adcb0d18a066308627", "level": "主管", "minimum_effective_leads": 5, "reminder_mode": "grade_text"},
-        "consultant": {"target_chat_id": "oc_7e4ac041d00e583b49749b9a0d01a64c", "level": "顾问", "minimum_effective_leads": 3}
+        "supervisor": {
+          "target_chat_id": "oc_be403f4efca7f1adcb0d18a066308627",
+          "level": "主管",
+          "minimum_effective_leads": 5,
+          "reminder_mode": "grade_text"
+        },
+        "consultant": {
+          "target_chat_id": "oc_7e4ac041d00e583b49749b9a0d01a64c",
+          "level": "顾问",
+          "minimum_effective_leads": 3
+        }
       },
-      "note": "2026-10-01 配置：主管=Base recvwjZaMMix5H（已上线）→ 青橙-河南本地化项目，按年级分块（layout 与过程一致），提醒沿用过程样式——不 @ 主管、点名截面单效较高年级（reminder_mode=grade_text：按年级聚合截面单效取最高、并列全列）；顾问=Base recvwjX409k8f2（草稿）→ 🍊青橙河南本地化伙伴，minimum 3、按年级前三名 @。20261002期转化表 305 行（全为河南本地化），收款 ¥11,600/人头 1/报科 4 全部在高三（张卫卫11 净收款 ¥11,600），高一/高二为 0。2026-10-01 20:07 用户指令两群手动推送一次（主管 om_x100b64d09c384ca0de23c98adb28428、顾问 om_x100b64d09d0598a8de2b29067042357，均 verified）。"
+      "note": "2026-10-01 配置：主管=Base recvwjZaMMix5H（已上线）→ 青橙-河南本地化项目，按年级分块（layout 与过程一致），提醒沿用过程样式——不 @ 主管、点名综合单效较高年级（reminder_mode=grade_text：按年级聚合综合单效取最高、并列全列）；顾问=Base recvwjX409k8f2（草稿）→ 🍊青橙河南本地化伙伴，minimum 3、按年级前三名 @。20261002期转化表 305 行（全为河南本地化），收款 ¥11,600/人头 1/报科 4 全部在高三（张卫卫11 净收款 ¥11,600），高一/高二为 0。2026-10-01 20:07 用户指令两群手动推送一次（主管 om_x100b64d09c384ca0de23c98adb28428、顾问 om_x100b64d09d0598a8de2b29067042357，均 verified）。",
+      "allow_empty_conversion": true
     }
   ],
   "open_decisions": [
-    "截面单效色阶固定量程待用户审定（预览为动态上限）",
+    "综合单效色阶固定量程待用户审定（预览为动态上限）",
     "联报率色阶量程待确认（2460 口径=sum(报科数)/sum(成交人头) 人均科次，通常≥100%，固定 0-1 不适用，预览为动态上限）",
     "金额列整数显示、比率一位小数百分比的数字格式待用户确认",
-    "转化播报时点与转化批次 Windows 任务（周五至次周周一）待用户授权后再配置",
+    "转化播报时点已配置：周五/周六/周日 14:02、18:02、22:02，次周周一 04:00；Windows 任务已按配置重注册并回读",
     "顾问账号=未分配账号的未归属转化行处理方式待确认（本期私域 2 人头/¥6,798、抖音私信 1 人头/¥3,600）",
-    "提醒资格线待确认（当前仅截面单效>0 的行参与排名，无符合者的年级整行省略）",
-    "图书/本地化渠道已完成配置，2026-10-01 用户确认预览、手动推送一次并授权启用周常调度（五渠道 scheduled=true，窗口 :02）"
+    "提醒资格线待确认（当前仅综合单效>0 的行参与排名，无符合者的年级整行省略）",
+    "学部级已并入调度（2026-10-02）：四渠道 dept 维度随现有转化批次窗口推送（pythonw+Interactive 与其他任务一致），Base 四条学部记录已回写「期望推送时段」与「申请状态=已上线」（update_base_dept_records.py，mismatch=0）。学部级排序=年级分块+块内综合单效降序+总计行，如需调整告知即可",
+    "学部级表格排序当前为按年级分块、块内综合单效降序、块底总计行；申请记录未指定排序规则，如有偏好待用户确认"
   ]
 }

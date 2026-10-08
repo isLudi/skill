@@ -15,7 +15,7 @@ class SupervisorYafeiGrade9Tests(unittest.TestCase):
         self.target = catalog.select_targets(self.definition)[0]
 
     def test_registered_scope_target_profile_and_schedule(self):
-        expected = ("B站信息流-亚飞",)
+        expected = ("B站信息流-亚飞", "app")
         self.assertEqual(tuple(self.definition["channels"]), expected)
         self.assertEqual(tuple(self.definition["channels"]), policy.CHANNELS)
         self.assertEqual(tuple(self.definition["report"]["included_grades"]), ("初三",))
@@ -36,7 +36,7 @@ class SupervisorYafeiGrade9Tests(unittest.TestCase):
             self.assertEqual(args.report_profile, "supervisor-detail")
             self.assertEqual(args.mention_target, "supervisor")
             self.assertEqual(args.identity, "bot")
-            self.assertEqual(args.verification_identity, "user")
+            self.assertEqual(args.verification_identity, "bot")
             self.assertEqual(tuple(self.definition["report"]["included_grades"]), policy.INCLUDED_GRADES)
 
     def test_target_channel_and_grade_drift_are_blocked(self):

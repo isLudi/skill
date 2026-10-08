@@ -8,8 +8,8 @@
 - 文件夹：`青橙项目部`
 - dashboard_id：`dashboard_3733927793301065728`
 - 打开入口：`https://uanalysis.baijia.com/dashboard-market?id=dashboard_3733927793301065728&sourceType=1`
-- profile 时间：2026-08-08 19:01:06
-- 原始结构 profile：`C:\Users\Ludim\.codex\runtime\usql-web-query-operator\dashboard-profiles\knowledge-qingcheng-all-20260808\青橙项目部\过程数据报表-青橙\profile.json`
+- profile 时间：2026-10-08 12:23:07
+- 原始结构 profile：`..\runtime\usql-web-query-operator\production-knowledge-sync-20261008\dashboards\青橙项目部\过程数据报表-青橙\profile.json`
 - 页面渲染：成功
 
 ## 2. 刷新验证
@@ -69,6 +69,7 @@
 
 - unit_id：`unit_3991587710573936641`；类型：`u_pivot`；模型：`2064` / 青橙-过程数据
 - 刷新：unknown；task_ids：``；行数：0；序列：0 / 0 点
+- 单元筛选字段：channel_map_2（id=281834）
 
 ### 二级渠道-年级
 
@@ -84,4 +85,4 @@
 
 - unit_id：`unit_3751156666810601472`；类型：`u_pivot`；模型：`2064` / 青橙-过程数据
 - 刷新：unknown；task_ids：``；行数：0；序列：0 / 0 点
-- 单元筛选字段：grade_1（id=275418）、channel_map_2（id=281834）
+- 单元筛选字段：grade_1（id=275418）、channel_map_2（id=281834）、xiaozu（id=275420）、employee_email_name（id=275421）

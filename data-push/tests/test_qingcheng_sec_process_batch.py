@@ -29,7 +29,7 @@ def test_sec_calendar_uses_same_week_friday_through_sunday():
         sec._slot(datetime(2026, 9, 29, 20, 51, tzinfo=zone), config)
 
 
-def test_supervisor_resolution_requires_one_group_member_even_for_same_name(monkeypatch):
+def test_supervisor_resolution_disambiguates_by_group_membership(monkeypatch):
     def contacts(args, timeout=90):
         assert args[:2] == ["contact", "+search-user"]
         return {"queries": [{"query": "杨亮", "has_more": False}], "users": [
@@ -40,18 +40,22 @@ def test_supervisor_resolution_requires_one_group_member_even_for_same_name(monk
 
     monkeypatch.setattr(sec, "_data", contacts)
     review = {"reminders": [{"people": [{"name": "杨亮", "account": None}]}]}
-    entry = {"unresolved_mention_action": "block_send"}
+    entry = {"unresolved_mention_action": "invite_then_text"}
+    # Exactly one candidate in the group: membership disambiguates to a precise @.
     resolved, display, text_only = sec._resolve(entry, review, {"ou_group1"})
     assert resolved == {"杨亮": "ou_group1"}
     assert display == {"杨亮": "杨亮"}
     assert text_only == set()
-    with pytest.raises(ValueError, match="unresolved or ambiguous"):
-        sec._resolve(entry, review, {"ou_group1", "ou_else2"})
+    # Both candidates in the group: still ambiguous; 2026-10-04 policy falls back to
+    # a plain-name mention instead of blocking the push.
+    resolved, display, text_only = sec._resolve(entry, review, {"ou_group1", "ou_else2"})
+    assert resolved == {}
+    assert text_only == {"杨亮"}
 
 
 def test_consultant_text_exception_does_not_mask_incomplete_contacts(monkeypatch):
     review = {"reminders": [{"people": [{"name": "离职顾问", "account": "former"}]}]}
-    entry = {"unresolved_mention_action": "text_only_for_that_person"}
+    entry = {"unresolved_mention_action": "invite_then_text"}
     monkeypatch.setattr(sec, "_data", lambda args, timeout=90: {
         "queries": [{"query": "former@gaotu.cn", "has_more": False}], "users": []})
     assert sec._resolve(entry, review, set())[2] == {"former"}

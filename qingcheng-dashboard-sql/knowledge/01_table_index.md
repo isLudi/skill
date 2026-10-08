@@ -62,7 +62,7 @@
 | 青橙团队完成度【月】 | `resources/raw_sql/data_center_qingcheng_2677.sql` | `knowledge/metrics/qingcheng_team_completion_month_metrics.md` | 当前 canonical SQL；service 主金额字段为 `income_all/refund_all`，finance 仅补 service 缺失链路和规则字段 |
 | 青橙团队完成度【期】 | `resources/raw_sql/data_center_qingcheng_2680.sql` | `knowledge/metrics/qingcheng_team_completion_period_metrics.md` | 当前 canonical SQL；service 主金额字段为 `income_all/refund_all`，finance 仅补 service 缺失链路和规则字段 |
 | 青橙个人转化 | `resources/raw_sql/data_center_qingcheng_2769.sql` | `knowledge/metrics/qingcheng_personal_conversion_metrics.md` | 当前 canonical SQL；service 主金额字段为 `income_all/refund_all`，finance 仅补 service 缺失链路和规则字段 |
-| 青橙转化宽表-市场渠道 raw | `resources/raw_sql/qingcheng_conversion_wide_table_market_channel_20260611.sql` | `knowledge/metrics/qingcheng_conversion_wide_table_market_channel_metrics.md` | 已入库，100+ 分支 CASE WHEN 渠道映射，含 AND/OR 优先级风险 |
+| 青橙转化宽表-市场渠道 raw | `resources/raw_sql/data_center_qingcheng_2834.sql` | `knowledge/metrics/qingcheng_conversion_wide_table_market_channel_metrics.md` | 已入库，100+ 分支 CASE WHEN 渠道映射，含 AND/OR 优先级风险 |
 
 ## 4. 入库规则
 

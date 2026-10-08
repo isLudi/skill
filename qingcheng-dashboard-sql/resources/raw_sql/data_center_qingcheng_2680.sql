@@ -2,13 +2,13 @@ with biz_qici_calendar as (
 select *
 from (
     values
-        ('20260716期', '0716期', '20260717期', '0717期', date '2026-07-13', date '2026-07-19'),
-        ('20260722期', '0722期', '20260724期', '0724期', date '2026-07-20', date '2026-07-26'),
-        ('20260728期', '0728期', '20260731期', '0731期', date '2026-07-27', date '2026-08-02'),
-        ('20260803期', '0803期', '20260807期', '0807期', date '2026-08-03', date '2026-08-09'),
-        ('20260808期', '0808期', '20260814期', '0814期', date '2026-08-10', date '2026-08-16'),
-        ('20260815期', '0815期', '20260814期', '0814期', date '2026-08-17', date '2026-08-23'),
-        ('20260821期', '0821期', '20260821期', '0821期', date '2026-08-24', date '2026-08-30')
+        ('20260716期', '0716期', '20260717期', '0717期', date '2026-07-14', date '2026-07-19'),
+        ('20260722期', '0722期', '20260724期', '0724期', date '2026-07-20', date '2026-07-25'),
+        ('20260728期', '0728期', '20260731期', '0731期', date '2026-07-26', date '2026-07-31'),
+        ('20260803期', '0803期', '20260807期', '0807期', date '2026-08-01', date '2026-08-06'),
+        ('20260808期', '0808期', '20260814期', '0814期', date '2026-08-07', date '2026-08-11'),
+        ('20260815期', '0815期', '20260814期', '0814期', date '2026-08-12', date '2026-08-18'),
+        ('20260821期', '0821期', '20260821期', '0821期', date '2026-08-19', date '2026-08-23')
 ) as t(qici, short_qici, legacy_qici, legacy_short_qici, period_start_date, period_end_date)
 )
 ,org_t as (
@@ -682,6 +682,10 @@ and course_second_level_department_name in ('V项目部', '本地化部', '私�
         grade_list,
         sum(
             case
+                -- 2026-10-04 防回退：service 的 income_amount 是外部现金新增收入，transfer_in/out 是独立的内部调入/调出分量。
+                -- 同一行同时存在现金收入与 transfer_in（如阿锦奎子单 430591355717157063：2312.91 + 437.09）时，必须保留现金收入；禁止因存在调入/调出而整行清零，也禁止再从 income_amount 扣减 transfer_in。
+                when source_type = 'service' and income_amount_yuan > 0
+                then income_amount_yuan
                 when is_internal_order_change = 1
                 then 0
                 when income_amount_yuan >= 0 then income_amount_yuan
@@ -716,6 +720,11 @@ and course_second_level_department_name in ('V项目部', '本地化部', '私�
         ) as refund,
         sum(case when source_type = 'service' then refund_amount_yuan else 0 end) as refund_all,
         count(distinct case
+            -- 与收入金额同口径：service 混合流水中的正向现金收入必须保留产出科目，内部调入分量不单独计科目。
+            when source_type = 'service'
+             and subject not in ('选科志愿', '定制方案')
+             and income_amount_yuan > 0
+            then subject
             when is_internal_order_change = 1
             then null
             when subject not in ('选科志愿', '定制方案') and income_amount_yuan > 0 then subject

@@ -44,6 +44,34 @@ def mention_nonmembers(chat_id: str, resolved: Mapping[str, str], identity: str,
     return sorted(name for name, open_id in resolved.items() if open_id not in ids)
 
 
+def invite_members(chat_id: str, open_ids, identity: str, timeout: int, *, runner=None) -> dict[str, Any]:
+    """Invite @-targets into the chat as the sender bot; never raises for person-level failures.
+
+    2026-10-04 policy: a push must not depend on any specific human identity, and a
+    missing member must be invited by the bot before falling back to plain-name text.
+    The return value records the attempt for the delivery ledger: ``invited`` ids are
+    usable immediately, ``pending`` ids await group-owner approval and stay text-only,
+    and ``error`` carries any transport/API failure (which also leaves everyone
+    text-only instead of blocking the push).
+    """
+    ids = sorted({open_id for open_id in open_ids if isinstance(open_id, str) and open_id.startswith("ou_")})
+    if not ids:
+        return {"invited": [], "pending": [], "error": ""}
+    try:
+        payload = _unwrap(_json_payload((runner or run_lark)([
+            "im", "chat.members", "create", "--chat-id", chat_id,
+            "--member-id-type", "open_id",
+            "--data", json.dumps({"id_list": ids}, ensure_ascii=False),
+            "--as", identity, "--format", "json",
+        ], timeout=timeout)))
+    except Exception as exc:  # noqa: BLE001 - an invitation failure degrades to text, never a block
+        return {"invited": [], "pending": [], "error": str(exc)[:300]}
+    rejected = set(payload.get("invalid_id_list") or []) | set(payload.get("not_existed_id_list") or [])
+    pending = list(payload.get("pending_approval_id_list") or [])
+    return {"invited": [item for item in ids if item not in rejected and item not in set(pending)],
+            "pending": pending, "error": ""}
+
+
 def upload_image(image_path: Path, identity: str, timeout: int, *, runner=None) -> str:
     try:
         payload = _unwrap(

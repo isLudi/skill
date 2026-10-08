@@ -13,7 +13,7 @@
     "mention_format": "native_at",
     "mention_resolution": "unique_active_employee_by_name_and_account",
     "require_complete_group_membership": true,
-    "on_mention_gap": "block_send",
+    "on_mention_gap": "invite_then_text",
     "failure_isolation": "per_group"
   },
   "source": {

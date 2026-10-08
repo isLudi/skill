@@ -4,6 +4,8 @@
 
 ## 5. 维护入口
 
+既有生产数据集的修改基线按 [生产数据集 SQL 修改流程](query_governance.md#生产数据集-sql-修改流程) 每次从线上拉取。这里维护的 stable canonical SQL 只是知识快照，不能因为路径稳定或本地校验通过就作为下一次生产修改底稿。任务基线与候选放在独立工作目录；候选不得先写进 canonical 冒充已上线版本。只有线上保存并回读验证后，且知识维护在授权范围内，才通过原有同步流程刷新本地 canonical、契约及索引；取线上基线本身不要求先写知识库。
+
 新增或修改 SQL 时按 [SQL 质量验证](sql_quality.md) 区分文本变化与逻辑变化。来源 Hash、领域归属、受影响契约与生成索引仍须一致；验证命令按 [维护验证](../../references/maintenance-verification.md) 去重。
 
 - 新增或刷新物理表字段时，统一调用 `usql-web-query-operator sync-datamap-fields`。先 dry-run 核对目标表、字段缺口、类型和说明，再显式 `--write`；物理字段以天工数据地图及 DDL 返回为准，业务含义、范围、Join 和指标仍由本 Skill 的 confirmed contract 与业务文档治理。不要在本 Skill 中保存或解析表结构 PDF、截图、页面渲染图或手工字段目录 JSON。

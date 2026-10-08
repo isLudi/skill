@@ -37,7 +37,7 @@ class SupervisorSelfIncubatedKocGrade9Tests(unittest.TestCase):
             self.assertEqual(args.report_profile, "supervisor-detail")
             self.assertEqual(args.mention_target, "supervisor")
             self.assertEqual(args.identity, "bot")
-            self.assertEqual(args.verification_identity, "user")
+            self.assertEqual(args.verification_identity, "bot")
 
     def test_target_channel_and_grade_drift_are_blocked(self):
         for mutate in (

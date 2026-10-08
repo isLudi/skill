@@ -47,7 +47,7 @@
 1. 确认真 app_id（iframe src）和真仓库（`lark-cli apps +git-credential-init --app-id X` 会返回 repository_url）
 2. Base / 应用 / 自建应用三类权限转到自己名下
 3. 脚本里的硬编码路径改相对路径；子进程强制 `encoding="utf-8"`（Windows GBK 解码会炸）
-4. 运行前以 `lark-cli base +record-list --help` 检查 `--output/--overwrite`；本机当前已验证 1.0.96 提供这些参数，若环境不一致先按 `lark-shared` 处理版本/授权，不在脚本中自动升级
+4. 运行前以 `lark-cli base +record-list --help` 检查 `--output/--overwrite`；本机当前已验证 1.0.97 提供这些参数，若环境不一致先按 `lark-shared` 处理版本/授权，不在脚本中自动升级
 5. **确认原负责人的定时任务已关停**（否则两边互顶 git，push rejected 后 force 互相覆盖）
 6. 手动全链路跑一次：导出→推送→release finished→浏览器核对页面快照日期
 

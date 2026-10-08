@@ -236,10 +236,32 @@ def prepare_report(args: argparse.Namespace, definition, *, ports: ReportPorts |
         except Exception as exc:
             mention_info["lookup_error"] = str(exc)
             mention_info["unresolved"] = [name for name in report["reminder_names"] if name not in mention_info["resolved"]]
-    if args.strict_mentions and any(mention_info.get(k) for k in ("unresolved", "ambiguous", "lookup_error", "nonmembers")):
-        diagnostic = {key: mention_info.get(key) for key in ("unresolved", "ambiguous", "lookup_error", "nonmembers")
-                      if mention_info.get(key)}
-        raise ValueError("负责人账号或群成员资格未能完整核验：" + json.dumps(diagnostic, ensure_ascii=False, sort_keys=True))
+    # 2026-10-04 user-directed policy: a scheduled push must never block on person
+    # resolution, and it must not depend on any specific human identity. Resolved
+    # @-targets that are absent from the group are invited once by the sender bot;
+    # anyone still absent afterwards, unresolved, ambiguous, or hit by a lookup
+    # error degrades to a plain-name mention (no @), and the push proceeds.
+    if not disabled and report["reminder_names"]:
+        mention_info.setdefault("invite_attempts", [])
+        absent = [name for name in mention_info.get("nonmembers", []) if name in mention_info["resolved"]]
+        if absent:
+            attempt = ports.invite_members(
+                chat_id, [mention_info["resolved"][name] for name in absent], "bot", args.timeout)
+            mention_info["invite_attempts"].append(attempt)
+            try:
+                mention_info["nonmembers"] = ports.missing_members(
+                    chat_id, mention_info["resolved"], verification_identity, args.timeout)
+            except Exception as exc:  # noqa: BLE001 - a re-check failure degrades to text
+                mention_info["invite_attempts"].append({"invited": [], "pending": [], "error": str(exc)[:300]})
+        text_fallback = set(mention_info.pop("unresolved", [])) | set(mention_info.pop("nonmembers", []))
+        for name in mention_info.pop("ambiguous", {}):
+            text_fallback.add(name)
+        if mention_info.pop("lookup_error", ""):
+            text_fallback.update(name for name in report["reminder_names"] if name not in mention_info["resolved"])
+        for name in text_fallback:
+            # Removing the open_id downgrades that person to a plain-name mention.
+            mention_info["resolved"].pop(name, None)
+        mention_info["text_fallback_names"] = sorted(text_fallback)
     paths = {"process": None, "result": None}
     geometry = {}
     if args.with_image and not skip_delivery:

@@ -1,7 +1,7 @@
 """Check books (图书) and local (本地化) channel rows in the conversion table for 20261002期.
 
 Confirms secondary-channel values, supervisor/consultant/grade distribution,
-zero-field conversion output and per-grade 截面单效 numerators for the two
+zero-field conversion output and per-grade 综合单效 numerators for the two
 partner channels the user asked to configure (books consultant-only; local
 supervisor + consultant).
 """
@@ -79,7 +79,7 @@ def describe(tag: str, rows: list[dict]) -> None:
         for f in bucket:
             bucket[f] += float(r.get(f) or 0)
     print(f"{tag}_grade_numerators=" + json.dumps({k: {kk: round(vv, 2) for kk, vv in v.items()} for k, v in sorted(by_grade.items())}, ensure_ascii=False))
-    # top consultants by grade by 净收款 (rough; real 截面单效 needs process leads)
+    # top consultants by grade by 净收款 (rough; real 综合单效 needs process leads)
     by_grade_con = defaultdict(lambda: defaultdict(float))
     for r in rows:
         if r.get("年级") not in GRADES or r.get("主管") in (None, "", "未分配主管"):

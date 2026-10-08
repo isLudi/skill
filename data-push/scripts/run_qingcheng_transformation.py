@@ -2,11 +2,12 @@
 
 Scheduled runner for the conversion (transformation) push, mirroring
 run_qingcheng_process.py: window-checked slots, per-period source exports,
-per-group send isolation, idempotency keys and readback verification. Channels
-with no conversion output this period (all-zero 收款/退费/当期收款/成交人头/报科数)
-are skipped per the reviewed no-data rule; the remaining groups receive the
-latest preview image plus native-mention reminders (图书/本地化 stay
-schedule-disabled until the user confirms their previews).
+per-group send isolation, idempotency keys and readback verification. Every
+window pushes once (2026-10-02 always-send policy); groups with no conversion
+output carry the fallback flag line instead, and the dept level never carries
+reminder lines. The dept (学部) level only joins the 14:02 window on
+Fri/Sat/Sun plus the Monday 04:00 closing slot (2026-10-03 correction: the
+Base request asks for a single daily 14:00 push plus a final Monday write).
 
 Config: config/departments/qingcheng/transformation_batch.json (schedule base,
 operator record IDs) + transformation_preview.json (delivery, channel matches,
@@ -41,7 +42,11 @@ WORKSPACE = SKILL.parents[1]
 CONFIG_DIR = SKILL / "config/departments/qingcheng"
 BATCH_CONFIG = CONFIG_DIR / "transformation_batch.json"
 STATE = WORKSPACE / "runtime/qingcheng-transformation-batch"
-LEVELS = ("supervisor", "consultant")
+# 2026-10-02 学部级并入调度：四渠道（公海/私域/抖音私信/图书）dept 维度发
+# ⏰渠道专项讨论（同群）；本地化无 dept 申请，_channel_levels 按 profiles 自动跳过。
+# 2026-10-03 窗口修正：dept 仅随周五/六/日 14:02 档 + 次周周一 04:00 收官档参与
+# （_dept_active），其余窗口记 skipped_not_in_window，不再整窗跟随。
+LEVELS = ("supervisor", "consultant", "dept")
 CHANNEL_IDS = ["public_pool", "private", "douyin_dm", "partner_books", "partner_local"]
 SEND_SCRIPT = SKILL / "scripts/send_qingcheng_transformation.py"
 
@@ -50,7 +55,8 @@ SEND_SCRIPT = SKILL / "scripts/send_qingcheng_transformation.py"
 EXPECTED_SCHEDULED = {"public_pool": True, "private": True, "douyin_dm": True,
                       "partner_books": True, "partner_local": True}
 
-# “无数据产出”判定字段：任一非 0 即视为有转化产出。
+# “无转化产出”判定字段：任一非 0 即视为有转化产出。2026-10-02 起仅用于
+# 诊断记录（conversion_has_output），不再触发跳过——所有窗口恒推送。
 ZERO_FIELDS = ("收款", "退费", "当期收款", "成交人头", "报科数")
 
 
@@ -95,22 +101,26 @@ def _batch() -> dict:
     for item in batch["channels"]:
         if item.get("scheduled") is not EXPECTED_SCHEDULED[item["id"]]:
             raise ValueError(f"Transformation schedule flag differs for {item['id']}")
-    # 2026-10-01 用户调整（第二次）：窗口起分由 :01 改至 :02——周五/六/日 14:02、
-    # 18:02、22:02 起各一窗口（重试 2 分钟至 :55）；次周周一仅凌晨 02:02 一个窗口。
+    # 2026-10-05：周一改为 04:00，等待天宫2 zhuanhua 03:40 批次的 00:00 分区。
     if (calendar["result_weekdays"], calendar["minute"], calendar["deadline_minute"],
             calendar["timezone"]) != ([4, 5, 6, 0], 2, 55, "Asia/Shanghai"):
         raise ValueError("Transformation batch calendar differs from the reviewed slots")
+    if calendar.get("minute_by_weekday") != {"0": 0, "4": 2, "5": 2, "6": 2}:
+        raise ValueError("Transformation per-weekday minutes differ from the reviewed slots")
     hours = calendar["hours_by_weekday"]
     if (hours.get("4"), hours.get("5"), hours.get("6"), hours.get("0")) != (
-            [14, 18, 22], [14, 18, 22], [14, 18, 22], [2]):
+            [14, 18, 22], [14, 18, 22], [14, 18, 22], [4]):
         raise ValueError("Transformation per-weekday hours differ from the reviewed slots")
     if (batch["retry_interval_minutes"], batch["windows_task_name"], batch["freshness_max_age_minutes"],
             batch["no_data_policy"]) != (2, "Codex-Lark-Qingcheng-Transformation-GroupPush", 1560,
-                                         "skip_group_when_no_conversion_output"):
+                                         "always_send_with_fallback_flag"):
         raise ValueError("Transformation task pin or policy differs")
     upstream = batch["upstream"]
-    if (upstream["task_id"], upstream["task_name"], upstream["nezha_task_id"], upstream["menu_id"],
-            upstream["audit_mode"]) != (47775, "qing2lark_zhuanhua", 67397, 103713, "none"):
+    if (upstream["project_id"], upstream["folder"], upstream["task_id"], upstream["task_name"],
+            upstream["nezha_task_id"], upstream["menu_id"], upstream["published_version"],
+            upstream["version_id"], upstream["source_sha256"], upstream["audit_mode"]) != (
+                308, "吕帅", 47775, "qing2lark_zhuanhua", 67397, 103713, "V6", 207547,
+                "97aed7e48398d6a4321e0b11fab0cff44de67edb8f5f21622e7d1424a0521a39", "none"):
         raise ValueError("Transformation upstream pin differs")
     return batch
 
@@ -127,12 +137,26 @@ def _slot(now: datetime, batch: dict) -> datetime:
     calendar = batch["business_calendar"]
     if now.tzinfo is None or now.utcoffset() != timedelta(hours=8):
         raise ValueError("Task clock must be Asia/Shanghai")
-    hours = calendar["hours_by_weekday"].get(str(now.weekday()), [])
+    weekday = str(now.weekday())
+    minute = calendar.get("minute_by_weekday", {}).get(weekday, calendar["minute"])
+    hours = calendar["hours_by_weekday"].get(weekday, [])
     if (now.weekday() not in calendar["result_weekdays"] or now.hour not in hours
-            or not calendar["minute"] <= now.minute <= calendar["deadline_minute"]
-            or (now.minute - calendar["minute"]) % batch["retry_interval_minutes"]):
+            or not minute <= now.minute <= calendar["deadline_minute"]
+            or (now.minute - minute) % batch["retry_interval_minutes"]):
         raise ValueError("Outside the authorized Qingcheng transformation window")
-    return now.replace(minute=calendar["minute"], second=0, microsecond=0)
+    return now.replace(minute=minute, second=0, microsecond=0)
+
+
+def _dept_active(slot: datetime | None) -> bool:
+    """2026-10-03 学部级窗口修正：Base 申请为每日 14:00 单档推送。
+
+    dept 仅随周五/六/日 14:02 档参与；次周周一 04:00 收官档随大盘写入本周最后
+    一次数据（用户指令）。预览模式（slot=None）恒参与；其余窗口跳过并记
+    skipped_not_in_window（10-02 曾误并入全部 :02 窗口）。
+    """
+    if slot is None or slot.hour == 14:
+        return True
+    return slot.weekday() == 0 and slot.hour == 4
 
 
 def _key(channel: str, level: str, chat_id: str, period: str, slot: datetime) -> str:
@@ -158,6 +182,11 @@ def _fresh(review: dict, period: str, slot: datetime, batch: dict) -> None:
 
 
 def _conversion_output(rows: list[dict]) -> bool:
+    """2026-10-02 always-send policy: kept for diagnostics/receipts only.
+
+    The batch no longer skips groups without conversion output; every window
+    sends once and a no-data group carries the fallback flag line instead.
+    """
     return any(any(float(row.get(field) or 0) != 0 for field in ZERO_FIELDS) for row in rows)
 
 
@@ -205,8 +234,12 @@ def _send_group(channel: str, level: str, review_dir: Path, key: str) -> dict:
     if verdict == resend.DONE:
         return {"status": "sent_verified", "message_id": message_id, "receipt": str(receipt)}
     mode = "--reverify-only" if verdict == resend.REVERIFY else "--send"
+    # 2026-10-02 always-send policy: the scheduled path is pre-authorized to send
+    # fallback-only messages (no-data groups carry the flag line instead of being
+    # skipped). Manual sends still require the explicit --allow-fallback flag.
     command = [sys.executable, str(SEND_SCRIPT), "--channel", channel, "--level", level,
-               "--review-dir", str(review_dir), "--idempotency-key", key, mode]
+               "--review-dir", str(review_dir), "--idempotency-key", key,
+               "--allow-fallback", mode]
     result = subprocess.run(command, cwd=WORKSPACE, capture_output=True, text=True,
                             encoding="utf-8", errors="replace", timeout=300, creationflags=CREATE_NO_WINDOW)
     if result.returncode:
@@ -280,6 +313,7 @@ def run(*, period_date: str = "", confirm_send: bool = False, now: datetime | No
         slot = None
         period = period_date + "期"
     output = output or (STATE / "slots" / slot.strftime("%Y%m%d-%H%M") if slot else STATE / "previews" / period_date)
+    dept_on = _dept_active(slot)
     output.mkdir(parents=True, exist_ok=True)
     result_path = output / "batch.json"
     previous = json.loads(result_path.read_text(encoding="utf-8")) if result_path.exists() else None
@@ -309,10 +343,9 @@ def run(*, period_date: str = "", confirm_send: bool = False, now: datetime | No
             channel_result["conversion_rev"] = conversion_manifest["rev"]
             conversion_rows = [json.loads(line) for line
                                in conversion_source.read_text(encoding="utf-8").splitlines() if line]
-            if not _conversion_output(conversion_rows):
-                for level in levels:
-                    channel_result["groups"][level] = {"status": "skipped_no_conversion_data"}
-                continue
+            # 2026-10-02 用户指令：无论有无收款/人头/报科产出，均按预设窗口推送一次；
+            # 无数据的群由消息中的 fallback 文案标识（build 渲染，deliver 照常发送）。
+            channel_result["conversion_has_output"] = _conversion_output(conversion_rows)
             review = build(process_source, conversion_source, channel_dir,
                            CONFIG_DIR / entry["config"], channels=(channel,))
             if review["period"] != period:
@@ -322,10 +355,16 @@ def run(*, period_date: str = "", confirm_send: bool = False, now: datetime | No
             channel_result["review"] = review
             channel_result["snapshots"]["conversion"] = review["conversion_snapshot"]
             for level in levels:
-                channel_result["groups"][level] = {"status": "prepared"}
+                if level == "dept" and not dept_on:
+                    channel_result["groups"][level] = {"status": "skipped_not_in_window"}
+                else:
+                    channel_result["groups"][level] = {"status": "prepared"}
         except Exception as exc:
             for level in levels:
-                channel_result["groups"][level] = {"status": "blocked_prepare", "error": str(exc)}
+                if level == "dept" and not dept_on:
+                    channel_result["groups"][level] = {"status": "skipped_not_in_window"}
+                else:
+                    channel_result["groups"][level] = {"status": "blocked_prepare", "error": str(exc)}
     # 2026-10-01 用户要求推送解耦：任一渠道的版本漂移/快照不一致只记录、只影响
     # 该渠道自身（发送前每个群仍独立 probe 自身双表 rev，见 _deliver_groups），
     # 不再整批拦停其他渠道的推送。
@@ -385,9 +424,10 @@ def main() -> None:
         scope.event("report_ready", period=result["period"], slot=result["slot"])
         scope.adopt(result)
         accepted = ({"sent_verified", resend.UNVERIFIABLE, "skipped_no_conversion_data",
-                     "skipped_schedule_disabled"}
+                     "skipped_schedule_disabled", "skipped_not_in_window"}
                     if args.confirm_send else
-                    {"prepared", "skipped_no_conversion_data", "skipped_schedule_disabled"})
+                    {"prepared", "skipped_no_conversion_data", "skipped_schedule_disabled",
+                     "skipped_not_in_window"})
         failed = any(value.get("status") not in accepted
                      for item in result["channels"].values() for value in item["groups"].values())
         scope.exit_code = 1 if failed else 0

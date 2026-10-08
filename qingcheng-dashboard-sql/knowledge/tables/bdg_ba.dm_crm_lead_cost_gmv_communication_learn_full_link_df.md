@@ -430,5 +430,5 @@ case when f.valid_lead_count = '1' then 1 else 0 end as v_lead
 - 本表存在物理字段 `rn`。后续写窗口函数时不要再把别名命名为 `rn`，否则容易触发 `Column 'rn' is ambiguous`。
 - 若业务问“某批 lead 最原始从哪里来”，优先查看 `trace_type_name`、`final_new_source`、`channel_name_1/2/3`、`flow_pool_name`、`put_plan_name`、`source_put_plan_name`、`source_manager_name`、`get_customer_way_name`，不要先拿 `rule_name` 当结论。
 - 后续生成新 SQL 时不得使用三参数 `date_add` 计算期次，应改为 `interval` 写法。
-- 本表字段清单已大幅扩充（从 19 个增至 50+），新增字段均来自 `qingcheng_conversion_wide_table_market_channel_20260611.sql` 实际使用，完整字段含义待表结构确认。
+- 本表字段清单已大幅扩充（从 19 个增至 50+），新增字段均来自 `data_center_qingcheng_2834.sql` 实际使用，完整字段含义待表结构确认。
 - CRM 线索转移操作必须在当期开课前完成，数据库侧才能记录该转移状态；当期开课后发生退费、转移顾问或状态变化时，本表相关看板可能仍保留原顾问/原期次/原架构口径下的数据。该规则来自用户补充的 CRM 系统限制，青橙具体看板适用性待人工确认。

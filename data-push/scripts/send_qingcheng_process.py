@@ -9,7 +9,7 @@ import re
 from pathlib import Path
 
 from lark_delivery.common import resend
-from lark_delivery.common.im import mention_nonmembers, upload_image
+from lark_delivery.common.im import invite_members, mention_nonmembers, upload_image
 from lark_delivery.common.runtime import run_lark
 
 
@@ -82,7 +82,11 @@ def _render_message(markdown: str, level: str, people: list[dict], resolved: dic
         names = [person["name"] for person in people]
         reminder_lines.append((f"- 8min较低的{level}：{'、'.join(names)}", names))
     for original, names in reminder_lines:
-        mentions = "、".join(f'<at user_id="{resolved[name]}">{html.escape(display[name])}</at>' for name in names)
+        # Names absent from `resolved` are the sanctioned plain-name fallback:
+        # invited by the bot already and still not in the group (or unresolvable).
+        mentions = "、".join(
+            f'<at user_id="{resolved[name]}">{html.escape(display[name])}</at>' if name in resolved
+            else html.escape(name) for name in names)
         if markdown.count(original) != 1:
             raise ValueError("Reviewed reminder line differs from resolved people")
         markdown = markdown.replace(original, original.split("：", 1)[0] + "：" + mentions)
@@ -162,7 +166,7 @@ def main() -> None:
     delivery = config["delivery"]
     if (config["report_type"] != "process" or (config["status"], config["schedule_enabled"]) not in (("preview_only", False), ("active", True))
             or delivery["sender_identity"] != "bot" or delivery["mention_format"] != "native_at"
-            or delivery["require_complete_group_membership"] is not True or delivery["on_mention_gap"] != "block_send"):
+            or delivery["require_complete_group_membership"] is not True or delivery["on_mention_gap"] != "invite_then_text"):
         raise ValueError("Process delivery configuration is invalid")
     profile = config["profiles"][args.level]
     level, chat_id = profile["level"], profile["target_chat_id"]
@@ -187,10 +191,19 @@ def main() -> None:
     if item["level"] != level or item["process_tie_handling"] != "all_tied_minimum":
         raise ValueError("Review and process configuration differ")
     people = item["reminder_people"]
-    resolved, display = _resolve_people(people)
-    missing = mention_nonmembers(chat_id, resolved, "bot", 60)
+    resolved_all, display = _resolve_people(people)
+    # 2026-10-04 policy: never block on person resolution. Absent members are invited
+    # once by the sender bot; anyone still absent afterwards degrades to a plain name.
+    missing = mention_nonmembers(chat_id, resolved_all, "bot", 60)
+    invite_note = {"invited": [], "pending": [], "error": ""}
     if missing:
-        raise ValueError("Reminder people are absent from the target group: " + "、".join(missing))
+        invite_note = invite_members(chat_id, [resolved_all[name] for name in missing], "bot", 60)
+        try:
+            missing = mention_nonmembers(chat_id, resolved_all, "bot", 60)
+        except Exception as exc:  # noqa: BLE001 - a re-check failure degrades to text
+            invite_note["recheck_error"] = str(exc)[:300]
+    text_only = set(missing)
+    resolved = {name: open_id for name, open_id in resolved_all.items() if name not in text_only}
     image_key = args.image_key or (upload_image(args.review_dir / item["process_png"], "bot", 60) if args.send else "img_dry_run")
     markdown = (args.review_dir / item["process_message_file"]).read_text(encoding="utf-8")
     message = _render_message(markdown, level, people, resolved, display, image_key, item.get("reminder_by_grade"))
@@ -213,6 +226,7 @@ def main() -> None:
         raise
     output = {"level": level, "chat_id": chat_id, "period": review["period"],
               "image_key": image_key, "mention_ids": sorted(resolved.values()),
+              "text_fallback_names": sorted(text_only), "invite_attempt": invite_note,
               "dry_run": not args.send, "response": response}
     if args.send:
         message_id = response.get("message_id")

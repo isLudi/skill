@@ -2,7 +2,7 @@
 
 ## lark-cli 运行时绑定
 
-本地渠道和妙搭模板统一解析同一份包内原生 `lark-cli.exe`；Windows 上拒绝 `.cmd` / `.bat` shim。2026-09-25 已核验当前绑定版本为 `1.0.96`，原生 exe SHA-256 为 `f71aeff4a094fe3b401dcfc23d28bb9c1d7fe4923d144d15e01d1e917ba37ea`，路径为 `C:\Users\lvshuai01\AppData\Local\Programs\nodejs\node_modules\@larksuite\cli\bin\lark-cli.exe`。CLI 升级后先完成版本、原生 exe 哈希和 dry-run 回归。2026-09-25 实时查询显示六个 Windows 推送任务均为 Ready/Enabled；本次升级未改动其发送配置。
+本地渠道和妙搭模板统一解析同一份包内原生 `lark-cli.exe`；Windows 上拒绝 `.cmd` / `.bat` shim。2026-10-08 已核验当前绑定版本为 `1.0.97`，原生 exe SHA-256 为 `69114a4f2ab03e127a6f0bd226a67d934e041023efdfbb62d83b859ace457e7c`，路径为 `C:\Users\lvshuai01\AppData\Local\Programs\nodejs\node_modules\@larksuite\cli\bin\lark-cli.exe`。CLI 升级后先完成版本、原生 exe 哈希和 dry-run 回归。2026-10-08 三个 data-push 运行时解析器均回读到该路径；本次升级未改动发送配置。
 
 **历史记录（不构成当前授权）**：2026-09-10曾记录 Windows 任务 `Codex-Lark-Market-KOC-GroupPush` 的恢复授权。脚本维护、预览和 dry-run 本身不构成任务启停授权；实时状态以 Windows 任务查询为准。
 

@@ -60,7 +60,7 @@ def _validate_report(profile: dict, request: dict) -> list[str]:
             "主管", 5, {"metric": "好友率", "direction": "desc", "value": "unrounded"},
             list(SEC_BAR_FIELDS),
             {"metric": "好友率", "direction": "最低", "rank": "最后1名",
-             "tie_handling": "all_tied_minimum"}, True, True, True, "block_send"):
+             "tie_handling": "all_tied_minimum"}, True, True, True, "invite_then_text"):
         raise ValueError("Secondary SEC supervisor preview behavior differs")
     return columns
 
@@ -117,7 +117,7 @@ def build(source: Path, output: Path, audit_log: Path, config_path: Path = CONFI
                   "sort": "grade_then_好友率_desc_raw", "process_lead_field": "退前线索",
                   "displayed_pre_return_leads": sum(row["metrics"]["退前线索"] for row in grouped),
                   "reminders": reminders, "target_chat_id": profile["target_chat_id"],
-                  "unresolved_mention_action": "block_send", "image": image_path.name,
+                  "unresolved_mention_action": "invite_then_text", "image": image_path.name,
                   "message_file": "supervisor_process_message.md", "message": message,
                   "status": "preview_only"}
         (report_dir / "review.json").write_text(json.dumps(review, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
