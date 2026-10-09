@@ -857,3 +857,32 @@
 
 - 按已审阅同步计划原子更新 model_id：`2677, 2680, 2769, 2834`；每个 model_id 只保留稳定 canonical 路径。
 - 写入后已强制重建反向索引和目录，并运行唯一版本审计、域内 integrity 与完整 Text2SQL 栈验证。
+
+## 2026-10-08 数据地图字段补充
+
+- 使用数据地图 `tableV2/searchTableList`、`normalColumns`、`partitionColumns` 和 `getDdl` 接口刷新物理表字段信息。
+- 覆盖 `knowledge/tables` 中 1 张物理表文档；追加 206 个数据地图字段，回填类型 0 处、字段说明 0 处。
+- 复扫结果为字段缺口 0、类型占位 0、说明占位 0。
+- 本次维护严格限定在 `qingcheng-dashboard-sql` 内，未同步到市场顾问 Skill；未覆盖 `temp_table.*` 临时表文档；临时表字段仍以本地 Excel、SQL 使用场景和人工维护规则为准。
+
+## 2026-10-08 申老师 Excel 月度流水结构与权限探查
+
+- 新增 `knowledge/sql_patterns/qingcheng_monthly_cashflow_excel_replication.md` 与有序 28 列输出结构模板；在 Skill 和 decision tree 添加入口。
+- 记录财务候选表的商品一级/二级行权限、归因候选表整表拒绝，以及商品/课程/业绩部门不可互换的诊断边界。
+- 源表同义性、stat_judge_type、部门时点、零金额规则及整月对账尚未完成；模板保持 `pending_confirmation`、`execution_ready=false`，未注册 confirmed contract 或可执行生产 SQL。
+- 原始订单、金额明细、平台响应与下载文件仅留在任务目录；本次没有创建或发布远端取数模板。
+
+## 2026-10-09 数据地图字段补充
+
+- 使用数据地图 `tableV2/searchTableList`、`normalColumns`、`partitionColumns` 和 `getDdl` 接口刷新物理表字段信息。
+- 覆盖 `knowledge/tables` 中 1 张物理表文档；追加 105 个数据地图字段，回填类型 0 处、字段说明 0 处。
+- 复扫结果为字段缺口 0、类型占位 0、说明占位 0。
+- 本次维护严格限定在 `qingcheng-dashboard-sql` 内，未同步到市场顾问 Skill；未覆盖 `temp_table.*` 临时表文档；临时表字段仍以本地 Excel、SQL 使用场景和人工维护规则为准。
+
+## 2026-10-09 月度流水部分范围模板核验
+
+按用户授权更新申老师 Excel 月度复刻模板：以历史财务快照核验 27 列，记录业务交易日期、空课程编号兼容、CSV 引号转义和保留财务粒度；增加只补唯一归因码的 lookup SQL 与本地组装脚本。审批表已可查询但已探查范围为空，财务范围扩大后仍有二级部门缺口。模板状态为 validated_partial_scope，未建立完整复刻的生产契约；部分交付需用户明确接受，缺失归因码保持空白。证据引用与维护结果见配套模板和本次任务 runtime。
+
+## 2026-10-09 TT/V/T 月度流水替代范围验证
+
+根据用户要求探查其他流水源，并按用户选择追加原页末尾。归因统计源在 TT/V/T 历史范围的全部共有字段通过附件逐笔对账，增加限定范围补充 SQL、两个缺失编码字段的显式空值规则、原页追加与保留用户当前表结构的校验流程。该例外不推广到其他部门；目标月份财务独立对照和总体完整性仍未决。证据 Query ID：1621870844。

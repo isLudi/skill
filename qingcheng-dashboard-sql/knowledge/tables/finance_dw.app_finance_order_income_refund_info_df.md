@@ -126,6 +126,14 @@ Presto / Presto_lakehouse。
 | `current_subclazz_biz_number` | string | 当前在读辅导班业务编号 | 数据地图补充，业务口径需结合青橙 SQL 使用场景确认 |
 | `channel_source` | string | 引流课渠道来源 | 数据地图补充，业务口径需结合青橙 SQL 使用场景确认 |
 
+### 7.2 数据地图字段补充（2026-10-09）
+
+> 来源：天工2数据地图字段信息。该补充段只补齐平台已登记字段、类型和字段说明；具体业务口径仍以本 Skill 已沉淀的 SQL 和指标规则为准。
+
+| 字段名 | 类型 | 中文含义 | 备注 |
+|---|---|---|---|
+| `performance_top_level_department_name` | string | 业绩所属头部门名称 | 数据地图补充，业务口径需结合青橙 SQL 使用场景确认 |
+
 ## 8. 常用过滤条件
 
 - 必须固定 `dt` 快照日。

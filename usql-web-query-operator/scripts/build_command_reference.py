@@ -113,6 +113,13 @@ def validate_registry(registry: dict[str, Any]) -> dict[str, dict[str, str]]:
                 f"Command registry drift for {entrypoint}: missing={missing}, stale={stale}"
             )
         for item in entry["commands"]:
+            if (item.get("parameters") or {}).get("receipt_bound_schedule_resubmission"):
+                if entrypoint != "tiangong2_task.py" or item["name"] not in {"plan-task-submit", "submit-task"}:
+                    raise ValueError("Receipt-bound resubmission is only available to Tiangong2 submission")
+                submit_parser = _subparser(PARSER_BUILDERS[entrypoint](), "plan-task-submit")
+                options = {flag for action in submit_parser._actions for flag in action.option_strings}
+                if not {"--previous-submit-receipt", "--resubmit-after-schedule-receipt"} <= options:
+                    raise ValueError("Receipt-bound schedule resubmission CLI options are missing")
             reference_path = REFERENCES_DIR / item["reference"]
             if not reference_path.is_file():
                 raise ValueError(f"Command reference does not exist: {reference_path}")

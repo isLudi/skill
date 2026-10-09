@@ -93,7 +93,7 @@
     "cross_department_comparison_requires_two_specs": true
   },
   "counts": {
-    "knowledge_files": 182,
+    "knowledge_files": 184,
     "raw_sql_files": 26,
     "by_category": {
       "dashboard_web_profiles": 63,
@@ -103,8 +103,8 @@
       "metrics": 37,
       "raw_sql": 26,
       "reverse_index": 4,
-      "sql_patterns": 18,
-      "tables": 24,
+      "sql_patterns": 19,
+      "tables": 25,
       "temp_tables": 11,
       "update_log": 1
     }
@@ -2008,12 +2008,13 @@
       {
         "id": "qingcheng:governance:01_table_index",
         "source_path": "knowledge/01_table_index.md",
-        "sha256": "7e1bd58993e1bff9f23d4d94308a0f40462b27297afd87eb041a04cf8eb0436d",
-        "bytes": 13960,
+        "sha256": "fbe7f705e221a9d6660da23636cfcc40e33514f0ffd53aa23bc4d80f929c377d",
+        "bytes": 14233,
         "title": "表索引",
         "table_refs": [
           "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf",
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "bdg_ba.dwd_crm_crm_order_income_refund_info_hf",
           "bdg_ba.dws_crm_order_income_refund_period_detail_hf",
           "data_lake_fuwu.dwd_crm_leads_rt",
           "dw.dim_cstm_active_user_c_appliction_mb_df",
@@ -2147,8 +2148,8 @@
       {
         "id": "qingcheng:governance:decision_tree",
         "source_path": "knowledge/decision_tree.md",
-        "sha256": "1badbfa0cfd7cba15917a73977b04fbacaa46830e12ce82ca39b586cf75e1487",
-        "bytes": 11687,
+        "sha256": "2af5b5d7848d4cdc7271142896ccac36754ef9cccfdba5f7e44b4d4ca72e2802",
+        "bytes": 12129,
         "title": "用户需求到知识库路由",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -3439,12 +3440,14 @@
       {
         "id": "qingcheng:reverse_index:join_risk_index",
         "source_path": "knowledge/reverse_index/join_risk_index.md",
-        "sha256": "0d59cda3ee019553267b6e19b312a95d31a7a0b10dd99508541c760fa0dfdc8d",
-        "bytes": 57155,
+        "sha256": "d97a70edf9f16b251ba75a8c02f98fd6fb6bc18d1be2c96699f7a651c84044b8",
+        "bytes": 64884,
         "title": "JOIN 与结果异常风险索引",
         "table_refs": [
           "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf",
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "bdg_ba.dwd_crm_crm_order_income_refund_info_hf",
+          "bdg_ba.dws_crm_order_income_refund_period_detail_hf",
           "data_lake_fuwu.dwd_crm_leads_rt",
           "dw.dim_employee_chain",
           "finance_dw.app_finance_order_income_refund_info_df",
@@ -3736,6 +3739,25 @@
         ]
       },
       {
+        "id": "qingcheng:sql_patterns:qingcheng_monthly_cashflow_excel_replication",
+        "source_path": "knowledge/sql_patterns/qingcheng_monthly_cashflow_excel_replication.md",
+        "sha256": "b978965a431b3e892ce84f4f5d22f87708bd1555ee96e14a572f565cebb012fa",
+        "bytes": 9193,
+        "title": "青橙月度流水：按申老师 Excel 复刻",
+        "table_refs": [
+          "bdg_ba.dwd_crm_crm_order_income_refund_info_hf",
+          "bdg_ba.dws_crm_order_income_refund_period_detail_hf",
+          "finance_dw.app_finance_order_income_refund_info_df",
+          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "qingcheng_monthly_cashflow_excel_replication",
+          "青橙月度流水：按申老师 Excel 复刻"
+        ]
+      },
+      {
         "id": "qingcheng:sql_patterns:qingcheng_period_channel_process_export_template",
         "source_path": "knowledge/sql_patterns/qingcheng_period_channel_process_export_template.md",
         "sha256": "7859e7c5409ae7de48732d752ff75c6342a774e6c64766cc7d9692a0a85a4c9b",
@@ -3938,10 +3960,26 @@
         ]
       },
       {
+        "id": "qingcheng:tables:bdg_ba.dwd_crm_crm_order_income_refund_info_hf",
+        "source_path": "knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md",
+        "sha256": "b0e86a964797018ae7733eba2034a7562e9dda087c3fc06a7b0f62a7675cc4db",
+        "bytes": 17540,
+        "title": "bdg_ba.dwd_crm_crm_order_income_refund_info_hf",
+        "table_refs": [
+          "bdg_ba.dwd_crm_crm_order_income_refund_info_hf"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "table_name": "bdg_ba.dwd_crm_crm_order_income_refund_info_hf",
+        "aliases": [
+          "bdg_ba.dwd_crm_crm_order_income_refund_info_hf"
+        ]
+      },
+      {
         "id": "qingcheng:tables:bdg_ba.dws_crm_order_income_refund_period_detail_hf",
         "source_path": "knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md",
-        "sha256": "6a41903b337632445efcdbdb299bfe0cdd601801d3f983b649d01bf82c6ffaa8",
-        "bytes": 3138,
+        "sha256": "3d6d38c387597544b5dd05efdf08b74dc429a21198e2846cc7ba3392adf97536",
+        "bytes": 35467,
         "title": "bdg_ba.dws_crm_order_income_refund_period_detail_hf",
         "table_refs": [
           "bdg_ba.dws_crm_order_income_refund_period_detail_hf",
@@ -4025,8 +4063,8 @@
       {
         "id": "qingcheng:tables:finance_dw.app_finance_order_income_refund_info_df",
         "source_path": "knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md",
-        "sha256": "1e438c04c8cd36b155d78dee125d8baa78a3cc6b61f9f29a59c5f8967e32eed8",
-        "bytes": 16891,
+        "sha256": "38b9dee86f2411dbcf935b18171170535eabb7d79087d62a68b8e82ce2b5ba28",
+        "bytes": 17355,
         "title": "finance_dw.app_finance_order_income_refund_info_df",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -4486,8 +4524,8 @@
       {
         "id": "qingcheng:update_log:changelog",
         "source_path": "knowledge/update_log/changelog.md",
-        "sha256": "833404e1b61c4126c433d8edc0b2a09e9c80cf5d797d7c0b694db83309670426",
-        "bytes": 102110,
+        "sha256": "79b552f9be58fd44de87866c5a0eb1d832bd3dc3501a34a3194171d7ca495f37",
+        "bytes": 105151,
         "title": "更新日志",
         "table_refs": [
           "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf",
@@ -4604,9 +4642,17 @@
         "resources/raw_sql/qingcheng_refund_structure_share_analysis_20260710_20260728.sql",
         "resources/raw_sql/qingcheng_tmk_transfer_order_trace_20260718.sql"
       ],
+      "bdg_ba.dwd_crm_crm_order_income_refund_info_hf": [
+        "knowledge/01_table_index.md",
+        "knowledge/reverse_index/join_risk_index.md",
+        "knowledge/sql_patterns/qingcheng_monthly_cashflow_excel_replication.md",
+        "knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+      ],
       "bdg_ba.dws_crm_order_income_refund_period_detail_hf": [
         "knowledge/01_table_index.md",
         "knowledge/joins/table_relationships.md",
+        "knowledge/reverse_index/join_risk_index.md",
+        "knowledge/sql_patterns/qingcheng_monthly_cashflow_excel_replication.md",
         "knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md",
         "knowledge/update_log/changelog.md"
       ],
@@ -4678,6 +4724,7 @@
         "knowledge/joins/common_join_keys.md",
         "knowledge/joins/table_relationships.md",
         "knowledge/reverse_index/join_risk_index.md",
+        "knowledge/sql_patterns/qingcheng_monthly_cashflow_excel_replication.md",
         "knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md",
         "knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md",
         "knowledge/update_log/changelog.md"
@@ -4927,6 +4974,7 @@
         "knowledge/reverse_index/metric_to_raw_sql.md",
         "knowledge/reverse_index/table_to_dashboards.md",
         "knowledge/sql_patterns/qingcheng_completion_sql_repair_checklist.md",
+        "knowledge/sql_patterns/qingcheng_monthly_cashflow_excel_replication.md",
         "knowledge/sql_patterns/qingcheng_personal_completion_discounted_output_risks.md",
         "knowledge/sql_patterns/qingcheng_protected_course_transfer_conversion.md",
         "knowledge/sql_patterns/qingcheng_tmk_transfer_latency_observation_log.md",
@@ -5402,8 +5450,8 @@
     },
     {
       "source_path": "knowledge/01_table_index.md",
-      "sha256": "7e1bd58993e1bff9f23d4d94308a0f40462b27297afd87eb041a04cf8eb0436d",
-      "bytes": 13960,
+      "sha256": "fbe7f705e221a9d6660da23636cfcc40e33514f0ffd53aa23bc4d80f929c377d",
+      "bytes": 14233,
       "category": "governance"
     },
     {
@@ -5894,8 +5942,8 @@
     },
     {
       "source_path": "knowledge/decision_tree.md",
-      "sha256": "1badbfa0cfd7cba15917a73977b04fbacaa46830e12ce82ca39b586cf75e1487",
-      "bytes": 11687,
+      "sha256": "2af5b5d7848d4cdc7271142896ccac36754ef9cccfdba5f7e44b4d4ca72e2802",
+      "bytes": 12129,
       "category": "governance"
     },
     {
@@ -6146,8 +6194,8 @@
     },
     {
       "source_path": "knowledge/reverse_index/join_risk_index.md",
-      "sha256": "0d59cda3ee019553267b6e19b312a95d31a7a0b10dd99508541c760fa0dfdc8d",
-      "bytes": 57155,
+      "sha256": "d97a70edf9f16b251ba75a8c02f98fd6fb6bc18d1be2c96699f7a651c84044b8",
+      "bytes": 64884,
       "category": "reverse_index"
     },
     {
@@ -6223,6 +6271,12 @@
       "category": "sql_patterns"
     },
     {
+      "source_path": "knowledge/sql_patterns/qingcheng_monthly_cashflow_excel_replication.md",
+      "sha256": "b978965a431b3e892ce84f4f5d22f87708bd1555ee96e14a572f565cebb012fa",
+      "bytes": 9193,
+      "category": "sql_patterns"
+    },
+    {
       "source_path": "knowledge/sql_patterns/qingcheng_period_channel_process_export_template.md",
       "sha256": "7859e7c5409ae7de48732d752ff75c6342a774e6c64766cc7d9692a0a85a4c9b",
       "bytes": 3630,
@@ -6289,9 +6343,15 @@
       "category": "tables"
     },
     {
+      "source_path": "knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md",
+      "sha256": "b0e86a964797018ae7733eba2034a7562e9dda087c3fc06a7b0f62a7675cc4db",
+      "bytes": 17540,
+      "category": "tables"
+    },
+    {
       "source_path": "knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md",
-      "sha256": "6a41903b337632445efcdbdb299bfe0cdd601801d3f983b649d01bf82c6ffaa8",
-      "bytes": 3138,
+      "sha256": "3d6d38c387597544b5dd05efdf08b74dc429a21198e2846cc7ba3392adf97536",
+      "bytes": 35467,
       "category": "tables"
     },
     {
@@ -6320,8 +6380,8 @@
     },
     {
       "source_path": "knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md",
-      "sha256": "1e438c04c8cd36b155d78dee125d8baa78a3cc6b61f9f29a59c5f8967e32eed8",
-      "bytes": 16891,
+      "sha256": "38b9dee86f2411dbcf935b18171170535eabb7d79087d62a68b8e82ce2b5ba28",
+      "bytes": 17355,
       "category": "tables"
     },
     {
@@ -6482,8 +6542,8 @@
     },
     {
       "source_path": "knowledge/update_log/changelog.md",
-      "sha256": "833404e1b61c4126c433d8edc0b2a09e9c80cf5d797d7c0b694db83309670426",
-      "bytes": 102110,
+      "sha256": "79b552f9be58fd44de87866c5a0eb1d832bd3dc3501a34a3194171d7ca495f37",
+      "bytes": 105151,
       "category": "update_log"
     },
     {

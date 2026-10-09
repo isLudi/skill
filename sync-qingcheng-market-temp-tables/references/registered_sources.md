@@ -61,7 +61,7 @@
 | family_id | 最新历史证据 | 本地累计工作簿 | 平台临时表 | 合并模式 |
 |---|---|---|---|---|
 | `market_cost` | `cost.xlsx`，2026-07-26，29 行 | `D:\GAOTU\19002_市场顾问部看板维护表格\cost.xlsx` | `dingxi01_cost` | 源 `qici` 切片 upsert |
-| `market_period_architecture` | `daiban_jg_db.xlsx`，2026-07-28，8602 行 | `...\jiagou_db.xlsx` | `dingxi01_jiagou_db` | 只处理新增/变更源切片；目标限定 `dept_1=市场顾问部` |
+| `market_period_architecture` | `daiban_jg_db.xlsx` / `daiban.xlsx`，累计表或当前期次切片 | `...\jiagou_db.xlsx` | `dingxi01_jiagou_db` | 两个文件名均为已登记来源；活动工作表可为 `zhengzhou` 或 `Sheet1`；只处理新增/变更源切片；目标限定 `dept_1=市场顾问部` |
 | `market_attendance_schedule` | `daoke_1_6_t.xlsx`，2026-07-27，6881 行 | `...\daoke_1_6_t.xlsx` | `dingxi01_daoke_1_6_t` | 只处理新增/变更源切片 |
 | `market_lead_goal` | `leads_goal.xlsx`，2026-07-28，19 行 | `...\jinliang_goal.xlsx` | `dingxi01_jinliang_goal` | 源 `qici` 切片 upsert |
 | `market_evaluation_architecture` | `pingyou_jg.xlsx`，2026-07-21，5921 行 | `...\pingyou_jg.xlsx` | `dingxi01_pingyou_jg` | 确定性修订后完整替换 |
@@ -93,7 +93,7 @@
 | 青橙带班架构 | 360 小时 | 20–800 | 35% |
 | 青橙行课 | 240 小时 | 20–500 | 50% |
 | 市场成本 | 360 小时 | 10–200 | 60% |
-| 市场带班架构 | 360 小时 | 4000–9000 | 35% |
+| 市场带班架构 | 360 小时 | 100–9000 | 35% |
 | 市场到课 | 360 小时 | 5000–9000 | 35% |
 | 市场进量目标 | 360 小时 | 5–100 | 50% |
 | 市场评优架构 | 480 小时 | 4500–7500 | 25% |

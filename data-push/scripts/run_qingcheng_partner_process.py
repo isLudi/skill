@@ -9,6 +9,8 @@ audit, same-revision source snapshots) block the affected batch only.
 
 from __future__ import annotations
 
+from qingcheng_schedule import resolve_slot
+
 import argparse
 from contextlib import contextmanager
 from datetime import datetime, timedelta
@@ -52,13 +54,13 @@ def _config() -> dict:
     if (cfg["schema_version"], cfg["domain"], cfg["execution_surface"], cfg["report_type"],
             cfg["status"], cfg["schedule_enabled"], cfg["windows_task_name"],
             cfg["configuration_base_writeback"], cal["period_rule"], cal["process_weekdays"],
-            cal["hours"], cal["minute"], cal["deadline_minute"], cal["retry_interval_minutes"],
+            cal["hours"], cal["minute"], cal["retry_window_minutes"], cal["retry_interval_minutes"],
             cal["timezone"], cfg["source"]["lead_field"], cfg["sender"]["identity"],
             cfg["sender"]["open_id"], cfg["source"]["base_token"], cfg["source"]["table_id"],
             cfg["process_sort"], cfg["process_reminder"]) != (
             1, "qingcheng", "local", "process", "active", True,
             "Codex-Lark-Qingcheng-Partner-Process-GroupPush", "setup_only",
-             "自然周周五期次", [1, 2, 3], [14, 18, 22], 0, 50, 2, "Asia/Shanghai",
+             "自然周周五期次", [1, 2, 3], [13, 17, 21], 50, 50, 2, "Asia/Shanghai",
             "退后线索", "bot", "ou_f3907e865135732c15a1dfce27828411",
             "QOVib6QCXaUvJ2s2PsbcnMmsnGg", "tblXU4tla3bY36DE",
             {"metric": "8min", "direction": "desc", "value": "unrounded"},
@@ -121,12 +123,10 @@ def _request(entry: dict) -> dict:
 
 def _slot(now: datetime, cfg: dict) -> datetime:
     cal = cfg["business_calendar"]
-    if (now.tzinfo is None or now.utcoffset() != timedelta(hours=8)
-            or now.weekday() not in cal["process_weekdays"] or now.hour not in cal["hours"]
-            or not cal["minute"] <= now.minute <= cal["deadline_minute"]
-            or (now.minute - cal["minute"]) % cal["retry_interval_minutes"]):
-        raise ValueError("Outside the partner process delivery window")
-    return now.replace(minute=cal["minute"], second=0, microsecond=0)
+    return resolve_slot(now, weekdays=cal["process_weekdays"], hours=cal["hours"],
+                        minute=cal["minute"], retry_minutes=cal["retry_interval_minutes"],
+                        window_minutes=cal["retry_window_minutes"],
+                        error="Outside the partner process delivery window")
 
 
 @contextmanager

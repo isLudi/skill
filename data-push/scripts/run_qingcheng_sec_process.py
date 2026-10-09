@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 from contextlib import contextmanager
 import hashlib
 import html
@@ -156,7 +157,11 @@ def _source_rows(source: str, period: str, slot_dir: Path, audit: dict, cfg: dic
                  slot: datetime | None) -> tuple[list[dict], dict]:
     path = slot_dir / source / "source.ndjson"
     manifest = fetch(source, period, path)
-    rows, manifest = _read_snapshot(path, {"source": cfg["source"]["sources"][source]})
+    match = cfg["source"]["sources"][source]["match"]
+    # Upstream counts cover every department within the channel. Verify that
+    # complete slice before selecting the report's configured department.
+    channel_match = {key: value for key, value in match.items() if key != "部门"}
+    rows, manifest = _read_snapshot(path, {"source": {"match": channel_match}})
     names = ("公域学霸",) if source == "sec_public" else ("SEC未加好友", "SEC首期掉海", "SEC招生退费")
     expected = sum(audit["raw_channel_counts"].get(name, 0) for name in names) if audit else len(rows)
     if manifest["records_count"] != expected or manifest["period"] != period:
@@ -172,7 +177,22 @@ def _source_rows(source: str, period: str, slot_dir: Path, audit: dict, cfg: dic
                 raise ValueError(f"SEC {name} raw source count differs from upstream audit")
     if slot:
         _fresh(manifest, slot)
-    return rows, manifest
+    if any(not isinstance(row.get("部门"), str) or not row["部门"].strip() for row in rows):
+        raise ValueError("SEC source contains a missing department")
+    selected = [row for row in rows if row["部门"] == match["部门"]]
+    excluded = Counter(row["部门"] for row in rows if row["部门"] != match["部门"])
+    scope_audit = {
+        "department": match["部门"], "raw_records_count": len(rows),
+        "selected_records_count": len(selected), "excluded_records_count": sum(excluded.values()),
+        "excluded_department_counts": dict(sorted(excluded.items())),
+        "raw_channel_counts": dict(sorted(Counter(row["渠道"] for row in rows).items())),
+        "selected_channel_counts": dict(sorted(Counter(row["渠道"] for row in selected).items())),
+        "period": period, "source_rev": manifest["rev"], "snapshot": manifest["snapshot"],
+    }
+    _write_json(path.with_name("scope_audit.json"), scope_audit)
+    # Keep records_count tied to source.ndjson; selected rows have their own
+    # explicit count rather than changing the raw export's manifest.
+    return selected, {**manifest, "scope_audit": scope_audit}
 
 
 def _build_report(entry: dict, source_rows: list[dict], manifest: dict, cfg: dict, output: Path) -> dict | None:
@@ -202,6 +222,7 @@ def _build_report(entry: dict, source_rows: list[dict], manifest: dict, cfg: dic
     (output / "message.md").write_text(message + "\n", encoding="utf-8")
     review = {"report_id": entry["id"], "level": entry["level"], "chat_id": entry["chat_id"],
               "period": manifest["period"], "source_rev": manifest["rev"], "snapshot": manifest["snapshot"],
+              "source_scope_audit": manifest.get("scope_audit"),
               "raw_rows": len(rows), "eligible_rows": len(grouped), "reminders": reminders,
               "image": image.name, "message": message,
               "unresolved_mention_action": entry["unresolved_mention_action"]}
@@ -507,6 +528,8 @@ def run(*, now: datetime | None = None, output: Path | None = None) -> dict:
             continue
         try:
             source_data[source] = _source_rows(source, period, output, audit, cfg, slot)
+            if "scope_audit" in source_data[source][1]:
+                batch.setdefault("source_scope_audits", {})[source] = source_data[source][1]["scope_audit"]
         except Exception as exc:
             source_errors[source] = str(exc)
 

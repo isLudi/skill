@@ -100,6 +100,7 @@ from .nezha_schedule import (
 )
 from .scope import resolve_owned_task
 from .session import open_authenticated_session
+from .resubmission import consume_resubmission_attempt
 from .submission import (
     RECEIPT_SCHEMA_VERSION as SUBMIT_RECEIPT_SCHEMA_VERSION,
     Tiangong2SubmitClient,
@@ -425,13 +426,21 @@ def build_parser() -> argparse.ArgumentParser:
 
     plan_submit = subparsers.add_parser(
         "plan-task-submit",
-        help="Build a read-only, note-bound plan for submitting one exact saved owned task.",
+        help="Plan exact-task submission or receipt-bound reconfirmation after a verified schedule save.",
     )
     _add_exact_task_arguments(plan_submit)
     plan_submit.add_argument(
         "--note",
         required=True,
         help="Required version note: Chinese, letters, digits, and underscores only; max 200 characters.",
+    )
+    plan_submit.add_argument(
+        "--previous-submit-receipt", type=Path, default=None,
+        help="Verified successful submit receipt; required with --resubmit-after-schedule-receipt.",
+    )
+    plan_submit.add_argument(
+        "--resubmit-after-schedule-receipt", type=Path, default=None,
+        help="Verified later schedule-save receipt: permit one receipt-bound reconfirmation of a unique pending version.",
     )
     plan_submit.add_argument(
         "--artifacts-dir",
@@ -1700,6 +1709,9 @@ def cmd_plan_task_submit(args: argparse.Namespace) -> int:
                 task=task,
                 identity=session.identity,
                 note=args.note,
+                previous_submit_receipt=args.previous_submit_receipt,
+                resubmit_after_schedule_receipt=args.resubmit_after_schedule_receipt,
+                operations=Tiangong2OperationsReadOnlyClient(session.context.request),
             )
             plan_path = args.output_file or _default_hashed_path(
                 args.artifacts_dir,
@@ -1736,6 +1748,8 @@ def cmd_submit_task(args: argparse.Namespace) -> int:
     _validate_runtime_output(args.plan_file)
     validate_artifact_root(args.artifacts_dir)
     plan = load_submit_plan(args.plan_file)
+    if plan.get("resubmission") and not args.confirm_submit:
+        raise UsageError("Schedule-save resubmission requires exact-phase --confirm-submit")
     maintenance_session, maintenance_context = _maintenance_phase_authorization(
         args,
         plan=plan,
@@ -1764,6 +1778,7 @@ def cmd_submit_task(args: argparse.Namespace) -> int:
         "plan_sha256": plan["plan_sha256"],
         "scope": scope,
         "submission": plan["submission"],
+        "resubmission": plan.get("resubmission"),
         "authorization": _phase_authorization_receipt(maintenance_context),
         "submit_request_sent": False,
         "remote_mutation_confirmed": False,
@@ -1805,11 +1820,13 @@ def cmd_submit_task(args: argparse.Namespace) -> int:
                         reader,
                         task=task,
                         plan=plan,
+                        operations=Tiangong2OperationsReadOnlyClient(session.context.request),
                     )
                     writer = Tiangong2SubmitClient(
                         session.context.request,
                         authorization=authorization,
                     )
+                    receipt["resubmission_attempt_claim"] = consume_resubmission_attempt(plan)
                     submit_response = writer.submit_task(
                         task_id=task.task_id,
                         note=str(plan["submission"]["note"]),

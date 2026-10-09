@@ -1124,6 +1124,13 @@ def parse_datetime(value: str) -> datetime:
     return parsed.astimezone(timezone.utc)
 
 
+def earliest_source_timestamp(source_inputs: list[dict[str, Any]]) -> str:
+    """Return the earliest source timestamp with its UTC offset preserved."""
+    return min(
+        parse_datetime(str(item["create_time"])) for item in source_inputs
+    ).isoformat(timespec="seconds")
+
+
 def build_selection_spec(
     registry: dict[str, Any],
     family_ids: list[str] | None = None,
@@ -2033,11 +2040,21 @@ def update_source_baseline_state(
     families = state.setdefault("families", {})
     for table in eligible:
         baseline_id = table["source_selection"]["baseline_id"]
+        snapshot = table["source_slice_snapshot"]
+        baseline = families.get(baseline_id) or {}
+        slices = dict(baseline.get("slices") or {})
+        if table["source_selection"].get("source_coverage") == "slice_subset":
+            slices.update(snapshot.get("slices") or {})
+        else:
+            slices = dict(snapshot.get("slices") or {})
         families[baseline_id] = {
             "message_id": table["source_message"]["message_id"],
             "create_time": table["source_message"]["create_time"],
             "source_sha256": table["source_message"]["source_sha256"],
-            **table["source_slice_snapshot"],
+            "slices": slices,
+            "row_count": sum(
+                int(item.get("row_count") or 0) for item in slices.values()
+            ),
         }
     state["schema_version"] = "1.0.0"
     state["updated_at"] = datetime.now().astimezone().isoformat(
@@ -2062,6 +2079,7 @@ def select_source_records_for_merge(
     *,
     source_message_id: str | None = None,
     source_sha256: str | None = None,
+    source_file_name: str | None = None,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     mode = family.get("source_merge_mode", "all_source_slices")
     current_slices = snapshot["slices"]
@@ -2081,10 +2099,14 @@ def select_source_records_for_merge(
             f"Source slice baseline is missing for {family['id']}: {baseline_id}"
         )
     baseline_slices = baseline["slices"]
+    slice_subset = any(
+        re.fullmatch(pattern, str(source_file_name or ""))
+        for pattern in family.get("slice_subset_filename_patterns", [])
+    )
     removed = sorted(
         set(baseline_slices) - set(current_slices), key=slice_sort_key
     )
-    if removed:
+    if removed and not slice_subset:
         raise WorkflowError(
             f"Cumulative source removed registered slices for {family['id']}: {removed}"
         )
@@ -2199,6 +2221,7 @@ def select_source_records_for_merge(
         "target_equivalent_slices": target_equivalent,
         "target_pending_slices": target_pending,
         "removed_slices": removed,
+        "source_coverage": "slice_subset" if slice_subset else "cumulative",
         "recent_slice_window": window,
         **({"reviewed_source_slice_scope": active_scope} if active_scope else {}),
     }
@@ -3131,9 +3154,7 @@ def plan_sync(args: argparse.Namespace) -> int:
                 message["source_input_audit"] = source_input_audit
                 quality_message = {
                     **message,
-                    "create_time": min(
-                        (parse_datetime(item["create_time"]) for item in source_inputs)
-                    ).strftime("%Y-%m-%d %H:%M"),
+                    "create_time": earliest_source_timestamp(source_inputs),
                 }
             else:
                 source_write, source_meta = read_records(
@@ -3203,6 +3224,7 @@ def plan_sync(args: argparse.Namespace) -> int:
                     target_effective,
                     source_message_id=message["message_id"],
                     source_sha256=message["source_sha256"],
+                    source_file_name=message["file_name"],
                 )
             )
             selected_slice_values = set(source_selection["selected_slices"])

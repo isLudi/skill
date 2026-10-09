@@ -262,7 +262,7 @@ D:\anaconda3\python.exe scripts\tiangong2_task.py plan-task-submit `
   --note "修复KOC导入SQL_移除高风险多表广播连接"
 ```
 
-版本说明不能为空、最长 200 字，只允许中文、英文字母、数字和下划线。若已存在源码 Hash 与当前保存源码一致的“未发布”版本，提交计划必须返回 `blocked_already_submitted`，不得重复创建版本。显式提交只接受精确计划 Hash：
+版本说明不能为空、最长 200 字，只允许中文、英文字母、数字和下划线。默认情况下，若已存在源码 Hash 与当前保存源码一致的“未发布”版本，提交计划返回 `blocked_already_submitted`，不得自动重复提交。调度保存使平台要求再次提交时，仅允许下述回执绑定模式。显式提交只接受精确计划 Hash：
 
 ```powershell
 D:\anaconda3\python.exe scripts\tiangong2_task.py submit-task `
@@ -274,6 +274,24 @@ D:\anaconda3\python.exe scripts\tiangong2_task.py submit-task `
 M 级会话可以替代 `--confirm-submit`，但不能绕过版本说明、调度配置、源码/版本漂移和单次 `taskConfirm` 限制。
 
 提交前重新核验账号、所有权、目录、源码、任务元数据、版本状态及完整调度配置 Hash。调度必须继续绑定当前开发任务 ID；计划后若调度被补配、清空或修改，旧计划一律按漂移阻断并重新生成。单用途客户端只可 form POST 一次 `dataDevelop/taskConfirm`，payload 固定为计划 task ID 与 Hash 绑定的版本说明，不会再次保存源码。平台没有单独的提交状态读取接口：若任务元数据或版本状态发生变化，Receipt 记录 `fully_verified=true`；若成功响应后只观察到源码稳定，则如实记录 `accepted_with_stable_source_readback` 和 `fully_verified=false`，随后必须由独立发布及新版本源码回读给出最终确认。请求失败或响应不确定时不自动重试。
+
+### 调度保存后的重新提交
+
+当同一任务已成功提交、随后修改开发页周期调度，平台可能要求重新提交，而原待发布版本仍然存在。显式使用两个回执参数准备一次新的提交计划：
+
+```powershell
+D:\anaconda3\python.exe scripts\tiangong2_task.py plan-task-submit `
+  --project-id <project-id> --folder <owned-folder> --menu-id <menu-id> --task-name <task-name> `
+  --note "调度保存后重新确认已审阅代码" `
+  --previous-submit-receipt <verified-submit-receipt.json> `
+  --resubmit-after-schedule-receipt <verified-development-schedule-save-receipt.json>
+```
+
+两个回执及其原计划必须位于 Tiangong2 专用 runtime，Hash、精确任务及负责人一致；原提交已验证成功，调度保存时间必须晚于原提交。当前源码及最新发布版本必须与原提交计划一致，且恰好一个匹配的待发布版本是原提交计划之后产生的。开发页配置必须与保存回读一致（只忽略跨时间推进的派生 `nextRunTime`），实际 Nezha 配置与生效视图也必须匹配。曾有 `saved_effective_scheduler_mismatch` 的回执只证明开发页保存；必须由当前在线 Nezha 回读证明已完成同步，才能重提。
+
+执行仍使用独立 `submit-task --plan-file ... --expected-plan-sha256 ... --confirm-submit`，该模式不接受 M 级代替 P 级确认。提交前重验所有回执、源码、版本、配置与身份；请求前在 `resubmit-claims` 中按任务及原调度计划 Hash 独占预留一次尝试。更换文件名、重新生成计划或进程重启均不能复用已消费的证据，失败或状态不确定不得自动重试。回读必须保持源码不变且待发布目标唯一；出现重复目标时停止，不能任意选择最新版本发布。
+
+回执不是授权：使用本模式需要用户明确授权这次重提。它不更改代码、调度或资源，也不包含发布、执行及下游触发。
 
 ## 发布计划
 

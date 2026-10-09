@@ -386,13 +386,19 @@ def _join_coverage(process_channel: list[dict], conversion_channel: list[dict], 
 
 
 def build(process_source: Path, conversion_source: Path, output: Path,
-          config_path: Path = DEFAULT_CONFIG, channels: tuple[str, ...] | None = None) -> dict:
+          config_path: Path = DEFAULT_CONFIG, channels: tuple[str, ...] | None = None,
+          *, period: str | None = None, levels: tuple[str, ...] | None = None) -> dict:
     config = json.loads(config_path.read_text(encoding="utf-8"))
     if config["domain"] != "qingcheng" or config["report_type"] != "transformation":
         raise ValueError("Transformation config has unexpected scope")
+    if levels is not None and (not levels or set(levels) - {"supervisor", "consultant", "dept"}):
+        raise ValueError("Unknown or empty transformation levels")
     if (config["status"], config["schedule_enabled"]) not in (("preview_only", False), ("active", True)):
         raise ValueError("Config must be preview_only/unscheduled or active/scheduled")
-    period = config["source"]["current_periods"][0]
+    # Scheduled batches bind the same period used by both source exports.
+    # The configured period is only the default for standalone local previews.
+    if period is None:
+        period = config["source"]["current_periods"][0]
 
     process_all, process_manifest = _read_rows(process_source)
     conversion_all, conversion_manifest = _read_rows(conversion_source)
@@ -427,6 +433,8 @@ def build(process_source: Path, conversion_source: Path, output: Path,
             raise ValueError(f"{channel_cfg['id']}: no conversion rows for period {period}")
         channel_results = {}
         for slug in ("supervisor", "consultant", "dept"):
+            if levels is not None and slug not in levels:
+                continue
             if f"{slug}_request" not in channel_cfg:
                 continue  # 渠道可只配置部分维度（图书无主管申请；学部级仅四渠道配置）
             level = {"supervisor": "主管", "consultant": "顾问", "dept": "学部"}[slug]

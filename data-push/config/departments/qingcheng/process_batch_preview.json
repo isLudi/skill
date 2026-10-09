@@ -7,16 +7,40 @@
   "schedule_enabled": true,
   "business_calendar": {
     "period_rule": "自然周周五期次",
-    "process_weekdays": [1, 2, 3],
-    "hours": [14, 18, 22],
-    "minute": 0,
-    "deadline_minute": 50,
-    "timezone": "Asia/Shanghai"
+    "process_weekdays": [
+      1,
+      2,
+      3
+    ],
+    "hours": [
+      13,
+      17,
+      21
+    ],
+    "minute": 50,
+    "timezone": "Asia/Shanghai",
+    "retry_window_minutes": 50,
+    "rule_note": "2026-10-08 用户确认：原整点批次提前 10 分钟；从新起点每两分钟重试，窗口持续 50 分钟，可跨小时。"
   },
   "channels": [
-    {"id": "public_pool", "config": "public_pool_process_preview.json", "supervisor_request": "public_pool_supervisor_request.json", "consultant_request": "public_pool_consultant_request.json"},
-    {"id": "private", "config": "private_process_preview.json", "supervisor_request": "private_supervisor_request.json", "consultant_request": "private_consultant_request.json"},
-    {"id": "douyin_dm", "config": "douyin_dm_process_preview.json", "supervisor_request": "douyin_dm_supervisor_request.json", "consultant_request": "douyin_dm_consultant_request.json"}
+    {
+      "id": "public_pool",
+      "config": "public_pool_process_preview.json",
+      "supervisor_request": "public_pool_supervisor_request.json",
+      "consultant_request": "public_pool_consultant_request.json"
+    },
+    {
+      "id": "private",
+      "config": "private_process_preview.json",
+      "supervisor_request": "private_supervisor_request.json",
+      "consultant_request": "private_consultant_request.json"
+    },
+    {
+      "id": "douyin_dm",
+      "config": "douyin_dm_process_preview.json",
+      "supervisor_request": "douyin_dm_supervisor_request.json",
+      "consultant_request": "douyin_dm_consultant_request.json"
+    }
   ],
   "windows_task_name": "Codex-Lark-Qingcheng-Process-GroupPush",
   "retry_interval_minutes": 2,

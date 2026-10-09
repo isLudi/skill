@@ -1,6 +1,6 @@
 ---
 name: data-push
-description: 按部门、渠道与执行面设计和维护本地 Python/Windows 及飞书妙搭数据推送。用于推送配置、预览、调度、投递、回执、迁移和渠道配置 Base；青橙本地过程批次按整点启动并每两分钟重试；业务口径与渠道特例从对应知识库读取。
+description: 按部门、渠道与执行面设计和维护本地 Python/Windows 及飞书妙搭数据推送。用于推送配置、预览、调度、投递、回执、迁移和渠道配置 Base；青橙本地批次按审定时段启动并每两分钟重试；业务口径与渠道特例从对应知识库读取。
 metadata:
   short-description: "按部门与执行面隔离数据推送的配置、运行和回执"
 ---
@@ -43,15 +43,15 @@ metadata:
 - Base 是需求和实施台账；生产事实源仍是受治理的本地配置。角色权限按部门失败关闭，只读候选不直接发布或启用推送；具体字段和权限方案见 [渠道配置中心 Base](references/channel-registry-base.md)。
 - 飞书 Base、联系人、消息、身份和妙搭平台操作分别走 [lark-base](../lark-base/SKILL.md)、[lark-contact](../lark-contact/SKILL.md)、[lark-im](../lark-im/SKILL.md)、[lark-shared](../lark-shared/SKILL.md)、[lark-apps](../lark-apps/SKILL.md)。不要把凭证写入配置或预览产物。
 
-### 青橙本地整点批次
+### 青橙本地批次（2026-10-08 调整）
 
-青橙项目部当前启用的本地过程批次（过程三群、SEC 五报告、专项四渠道、伙伴三群）均按业务日历的整点启动：过程/专项/伙伴为周二至周四 `14:00`、`18:00`、`22:00`（专项仅 `14:00`），SEC 为周二至周日 `12:00`、`16:00`、`20:00`。每个触发器从 `:00` 开始，每两分钟重试至 `:50`，因此首轮允许在 `:00`～`:02` 内完成；不再沿用 `:20`、`:25`、`:26` 的延后启动规则。
+青橙项目部当前启用的本地过程批次：公海/私域/抖音私信六群及伙伴三群为周二至周四 `13:50`、`17:50`、`21:50`；专项四渠道仅 `13:50`。每两分钟重试，窗口持续 50 分钟，跨小时归一化为原始槽位，最晚为 `14:40/18:40/22:40`。SEC 五报告保持周二至周日 `12:00/16:00/20:00` 启动、每两分钟重试至 `:50`；不受本次提前十分钟调整影响。
 
-转化批次（`run_qingcheng_transformation.py`，五渠道十三群：公海/私域/抖音私信/图书/本地化 × 主管/顾问维度 + 公海/私域/抖音私信/图书学部级）为 2026-10-01 启用的独立任务 `Codex-Lark-Qingcheng-Transformation-GroupPush`：周五/周六/周日 `14:02`、`18:02`、`22:02` 起，次周周一改为 `04:00`；各窗口每两分钟重试至 `:55`（周一从 `04:00` 起）。周一 04:00 用于等待天宫2 `qing2lark_zhuanhua` 的 `03:40` 批次并读取 `00:00` 分区。学部级（dept，⏰渠道专项讨论同群）不整窗跟随：仅随周五/六/日 `14:02` 档 + 次周周一 `04:00` 收官档参与（`_dept_active`），其余窗口记 `skipped_not_in_window`。窗口配置以 `transformation_batch.json` 的 `hours_by_weekday`/`minute_by_weekday`/`deadline_minute` 为准，并与 Base 表 operator 记录的推送时段字段保持同步。
+转化使用同一 `run_qingcheng_transformation.py`，两类独立任务：普通主管/顾问九条报告由 `Codex-Lark-Qingcheng-Transformation-GroupPush` 在周五至次周周一每天 `13:52/17:52/21:52` 启动，保留两分钟错峰；专项学部四条报告由 `Codex-Lark-Qingcheng-Special-Transformation-GroupPush` 通过 `--audience dept` 每天仅 `13:50` 启动。取消周一凌晨单档，周一期次仍回溯到上周五。两类任务使用独立锁、源分页目录、批次和回执，每两分钟重试，窗口持续 53 分钟；普通末次有效重试为 `14:44/18:44/22:44`，专项为 `14:42`。配置以 `transformation_batch.json` 的 `business_calendar` / `dept_schedule.business_calendar` 为准，与 Base 配置时点保持一致。各群准备、解析、发送失败独立记录，正常推送不回写配置 Base。
 
 四个执行器的 `upstream` 必须与当前已验证的 `qing2lark_guocheng` 绑定一致（菜单 `103625`、task `47728`、Nezha `67318`、V29/version `207387`/exec `831981`）；上游任务改版后，先读回最新版本和执行文件，再同步本地批次配置及技术 Base，不能只改任务计划程序。
 
-本地整点批次的上游审计时点与本地发送时点不是同一个小时字符串：`qing2lark_guocheng` 在每个本地 `HH:00` 批次前的 `HH-1:40` 运行，而 Nezha `periodTime` 按所在整点归一化。因此本地 `12:00/16:00/20:00` 分别审计上游 `11:00/15:00/19:00` 的成功执行行（对应 `11:40/15:40/19:40`），过程/专项/伙伴批次同理；仍须保留唯一成功执行、最新执行、版本/执行文件和完整 stage 日志门禁。
+上游审计仍按固定槽位减 20 分钟后向下取整到小时：过程/专项/伙伴的 `13:50/17:50/21:50` 对应 Nezha `13:00/17:00/21:00`（实际约 `13:40/17:40/21:40`），SEC `12:00/16:00/20:00` 对应 `11:00/15:00/19:00`。重试跨小时也使用原始槽位审计；唯一成功执行、最新执行、版本/执行文件和完整 stage 日志门禁不变。
 
 天宫2 的 `qing2lark_guocheng`（过程）与 `qing2lark_zhuanhua`（转化）是两条独立上游，不能互换 task、版本或执行文件。调度保持每 2 小时一次的全部 `:40` 时刻（`23:40/01:40/03:40/05:40/07:40/09:40/11:40/13:40/15:40/17:40/19:40/21:40`）；两条任务已按精确 task/Nezha ID 更新并回读。`qing2lark_zhuanhua` 当前绑定 V6/version `207547`、源码 SHA-256 `97aed7e48398d6a4321e0b11fab0cff44de67edb8f5f21622e7d1424a0521a39`，T-1 至 T-5 探针已发布；上游 task ID `47775`、Nezha `67397` 未变化。USQL operator 提供 `plan-task-schedule-update`/`apply-task-schedule-update` 与 `plan-nezha-schedule-update`/`apply-nezha-schedule-update`，调度修改后必须重读版本/执行信息并同步本地配置。
 

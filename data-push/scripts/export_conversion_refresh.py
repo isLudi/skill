@@ -38,20 +38,22 @@ FILTERS = {
 }
 
 
-def export_conversion(channel: str, period: str, output: Path) -> dict:
+def export_conversion(channel: str, period: str, output: Path, *, cache_dir: Path | None = None) -> dict:
     """Export one channel's conversion slice, optionally filtered to one period."""
     if channel not in FILTERS:
         raise ValueError("channel must be one of: " + ", ".join(sorted(FILTERS)))
     if period and not re.fullmatch(r"20\d{6}期", period):
         raise ValueError(f"Unexpected period format: {period!r}")
     output.parent.mkdir(parents=True, exist_ok=True)
+    page_dir = cache_dir or OUT_DIR
+    page_dir.mkdir(parents=True, exist_ok=True)
     filtered = json.dumps(FILTERS[channel], ensure_ascii=True)
     rows: list[dict] = []
     revision: int | None = None
     offset = 0
     page = 0
     for page in range(20):
-        page_file = OUT_DIR / f"{channel}.page{page + 1}.ndjson"
+        page_file = page_dir / f"{channel}.page{page + 1}.ndjson"
         args = ["base", "+record-list", "--base-token", BASE_TOKEN, "--table-id", TABLE_ID,
                 "--filter-json", filtered, "--offset", str(offset), "--limit", str(PAGE_SIZE),
                 "--format", "ndjson", "--output", str(page_file), "--as", "user", "--overwrite"]
@@ -66,6 +68,8 @@ def export_conversion(channel: str, period: str, output: Path) -> dict:
         if not manifest.get("has_more"):
             break
         offset += len(page_rows)
+    else:
+        raise ValueError("Conversion export exceeded the page limit without a complete result")
     export_count = len(rows)
     if period:
         rows = [row for row in rows if row.get("期次") == period]

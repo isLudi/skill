@@ -10,12 +10,19 @@
   "configuration_base_writeback": "setup_only",
   "business_calendar": {
     "period_rule": "自然周周五期次",
-    "process_weekdays": [1, 2, 3],
-    "hours": [14],
-    "minute": 0,
-    "deadline_minute": 50,
+    "process_weekdays": [
+      1,
+      2,
+      3
+    ],
+    "hours": [
+      13
+    ],
+    "minute": 50,
     "retry_interval_minutes": 2,
-    "timezone": "Asia/Shanghai"
+    "timezone": "Asia/Shanghai",
+    "retry_window_minutes": 50,
+    "rule_note": "2026-10-08 用户确认：原整点批次提前 10 分钟；从新起点每两分钟重试，窗口持续 50 分钟，可跨小时。"
   },
   "source": {
     "base_token": "QOVib6QCXaUvJ2s2PsbcnMmsnGg",
@@ -41,27 +48,101 @@
   },
   "target_chat_id": "oc_a95c83e488e0dfcc777d5ffad849d8a4",
   "target_chat_display_name": "⏰渠道专项讨论",
-  "sender": {"identity": "bot", "name": "管家", "open_id": "ou_f3907e865135732c15a1dfce27828411"},
+  "sender": {
+    "identity": "bot",
+    "name": "管家",
+    "open_id": "ou_f3907e865135732c15a1dfce27828411"
+  },
   "image_only": false,
   "text_header": true,
   "show_total": true,
   "split_grade": true,
   "minimum_effective_leads": 5,
-  "display_columns": ["期次", "负责人", "年级", "带班人数", "有效线索", "好友率", "等待时长", "8min", "24h首call", "沟通率", "外呼时长", "外呼频次"],
-  "sort": {"metric": "8min", "direction": "desc", "value": "unrounded"},
+  "display_columns": [
+    "期次",
+    "负责人",
+    "年级",
+    "带班人数",
+    "有效线索",
+    "好友率",
+    "等待时长",
+    "8min",
+    "24h首call",
+    "沟通率",
+    "外呼时长",
+    "外呼频次"
+  ],
+  "sort": {
+    "metric": "8min",
+    "direction": "desc",
+    "value": "unrounded"
+  },
   "visual": {
     "metric_bars": {
-      "好友率": {"min": 0, "max": 1, "color": "#8da7ca"},
-      "等待时长": {"min": 0, "max": 48, "color": "#fc999f"},
-      "8min": {"min": 0, "max": 1, "color": "#f8ca70"},
-      "24h首call": {"min": 0, "max": 1, "color": "#77c09f"}
+      "好友率": {
+        "min": 0,
+        "max": 1,
+        "color": "#8da7ca"
+      },
+      "等待时长": {
+        "min": 0,
+        "max": 48,
+        "color": "#fc999f"
+      },
+      "8min": {
+        "min": 0,
+        "max": 1,
+        "color": "#f8ca70"
+      },
+      "24h首call": {
+        "min": 0,
+        "max": 1,
+        "color": "#77c09f"
+      }
     },
-    "integer_fields": ["带班人数", "有效线索", "总通时"]
+    "integer_fields": [
+      "带班人数",
+      "有效线索",
+      "总通时"
+    ]
   },
   "channels": [
-    {"id": "special_private", "name": "私域", "source_key": "private", "audit_secondary_channels": ["私域表单", "私域品效"], "operator_record_id": "recvwk1kzL4vtb"},
-    {"id": "special_books", "name": "图书", "source_key": "special_books", "audit_secondary_channels": ["武汉图书"], "operator_record_id": "recvwk1l411M24"},
-    {"id": "special_douyin_dm", "name": "抖音私信", "source_key": "douyin_dm", "audit_secondary_channels": ["抖音私信"], "operator_record_id": "recvwk1lwipGZ4"},
-    {"id": "special_public_pool", "name": "公海", "source_key": "special_public_pool", "audit_secondary_channels": ["顾问未加好友"], "operator_record_id": "recvwk1mMwDv9n"}
+    {
+      "id": "special_private",
+      "name": "私域",
+      "source_key": "private",
+      "audit_secondary_channels": [
+        "私域表单",
+        "私域品效"
+      ],
+      "operator_record_id": "recvwk1kzL4vtb"
+    },
+    {
+      "id": "special_books",
+      "name": "图书",
+      "source_key": "special_books",
+      "audit_secondary_channels": [
+        "武汉图书"
+      ],
+      "operator_record_id": "recvwk1l411M24"
+    },
+    {
+      "id": "special_douyin_dm",
+      "name": "抖音私信",
+      "source_key": "douyin_dm",
+      "audit_secondary_channels": [
+        "抖音私信"
+      ],
+      "operator_record_id": "recvwk1lwipGZ4"
+    },
+    {
+      "id": "special_public_pool",
+      "name": "公海",
+      "source_key": "special_public_pool",
+      "audit_secondary_channels": [
+        "顾问未加好友"
+      ],
+      "operator_record_id": "recvwk1mMwDv9n"
+    }
   ]
 }

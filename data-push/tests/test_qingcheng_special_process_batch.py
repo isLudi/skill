@@ -18,8 +18,8 @@ import fetch_qingcheng_process_source as source  # noqa: E402
 def test_special_process_slot_and_period():
     cfg = special._config()
     zone = ZoneInfo("Asia/Shanghai")
-    slot = special._slot(datetime(2026, 9, 29, 14, 2, tzinfo=zone), cfg)
-    assert (slot.hour, slot.minute) == (14, 0)
+    slot = special._slot(datetime(2026, 9, 29, 13, 52, tzinfo=zone), cfg)
+    assert (slot.hour, slot.minute) == (13, 50)
     assert special._period(datetime(2026, 9, 29).date()) == "20261002期"
     for now in (datetime(2026, 9, 29, 2, 0, tzinfo=zone),
                 datetime(2026, 9, 29, 14, 3, tzinfo=zone),
@@ -55,7 +55,7 @@ def test_special_source_fetch_filters_primary_channel_only(monkeypatch, tmp_path
 
 @pytest.mark.parametrize("failed_stage", ["source", "build", "delivery"])
 def test_one_special_channel_failure_does_not_block_other_images(monkeypatch, tmp_path, failed_stage):
-    now = datetime(2026, 9, 29, 14, 2, tzinfo=ZoneInfo("Asia/Shanghai"))
+    now = datetime(2026, 9, 29, 13, 52, tzinfo=ZoneInfo("Asia/Shanghai"))
     counts = {name: 10 for group in special.AUDIT_NAMES for name in group}
     monkeypatch.setattr(special, "_upstream_audit", lambda period, slot: {
         "snapshot": ["20260929", "12"], "raw_channel_counts": counts})
@@ -103,7 +103,7 @@ def test_only_a_verified_receipt_is_terminal(tmp_path):
 
 
 def test_unconfirmed_receipt_no_longer_ends_the_round(monkeypatch, tmp_path):
-    now = datetime(2026, 9, 29, 14, 2, tzinfo=ZoneInfo("Asia/Shanghai"))
+    now = datetime(2026, 9, 29, 13, 52, tzinfo=ZoneInfo("Asia/Shanghai"))
     folder = tmp_path / "special_private"
     folder.mkdir()
     (folder / "send_receipt.json").write_text(
@@ -132,7 +132,7 @@ def test_recorded_message_id_is_reverified_without_sending(monkeypatch, tmp_path
     via = {"target_chat_id": "oc_x", "sender": {"open_id": "ou_x"}}
     out = special._deliver({"id": "special_private", "source_key": "private", "name": "私域"},
                            {"period": "20261002期", "image": "process.png"}, {"rev": 1},
-                           via, folder, datetime(2026, 9, 29, 14, 2, tzinfo=ZoneInfo("Asia/Shanghai")))
+                           via, folder, datetime(2026, 9, 29, 13, 52, tzinfo=ZoneInfo("Asia/Shanghai")))
     assert out["status"] == "sent_verified"
     assert touched == []
     assert special._existing(receipt_path)["status"] == "sent_verified"

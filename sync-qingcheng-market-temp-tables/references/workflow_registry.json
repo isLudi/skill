@@ -1,6 +1,6 @@
 {
-  "version": 8,
-  "updated_at": "2026-10-01",
+  "version": 10,
+  "updated_at": "2026-10-08",
   "source_sender_policy": "any_group_member",
   "source_sender_policy_notes": "2026-10-01 起登记群内任意成员发送的登记表格均可预检、识别与上传；发送人门禁放宽为群隔离 + 登记文件名模式 + 多族命中阻断。各家族 source_sender_open_id/name 降级为登记来源人元数据，仅用于审计展示，不再作为硬校验。授权记录：所有者 2026-10-01 指示。",
   "require_source_quality_gates": true,
@@ -448,9 +448,11 @@
       "command_groups": ["architecture"],
       "source_filename_patterns": [
         "^daiban_jg_db\\.xlsx$",
+        "^daiban\\.xlsx$",
         "^\\d{4}期带班架构\\.xlsx$"
       ],
-      "source_sheet": "zhengzhou",
+      "slice_subset_filename_patterns": ["^daiban\\.xlsx$"],
+      "source_sheet": "$active",
       "target_workbook": "D:\\GAOTU\\19002_市场顾问部看板维护表格\\jiagou_db.xlsx",
       "target_sheet": "zhengzhou",
       "platform_temp_table": "dingxi01_jiagou_db",
@@ -484,7 +486,7 @@
       "source_quality": {
         "policy_version": "1.0.0",
         "max_age_hours": 360,
-        "row_count": {"min": 4000, "max": 9000},
+        "row_count": {"min": 100, "max": 9000},
         "relative_change": {
           "baseline": "same_slice_or_latest_target",
           "max_ratio": 0.35

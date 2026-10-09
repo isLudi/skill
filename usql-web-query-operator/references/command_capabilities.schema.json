@@ -73,7 +73,8 @@
                     },
                     "sql_quality_review_required": {"type": "boolean"},
                     "effective_scheduler_readback_required": {"type": "boolean"},
-                    "schedule_list_readback_required": {"type": "boolean"}
+                    "schedule_list_readback_required": {"type": "boolean"},
+                    "receipt_bound_schedule_resubmission": {"type": "boolean"}
                   }
                 }
               }

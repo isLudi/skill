@@ -30,9 +30,25 @@
   },
   "business_calendar": {
     "period_rule": "自然周周五期次",
-    "process_weekdays": ["周二", "周三", "周四"],
-    "requested_hours": ["14:25", "18:25", "22:25"],
-    "timezone": "Asia/Shanghai"
+    "process_weekdays": [
+      1,
+      2,
+      3
+    ],
+    "requested_hours": [
+      "13:50",
+      "17:50",
+      "21:50"
+    ],
+    "timezone": "Asia/Shanghai",
+    "hours": [
+      13,
+      17,
+      21
+    ],
+    "minute": 50,
+    "retry_window_minutes": 50,
+    "rule_note": "2026-10-08 用户确认：原整点批次提前 10 分钟；从新起点每两分钟重试，窗口持续 50 分钟，可跨小时。"
   },
   "visual": {
     "header": "#e6efff",
@@ -47,24 +63,70 @@
       "request_id": "qingcheng/supervisor_douyin_dm",
       "target_chat_id": "oc_4940cd21a8e5c55c2016c8c59d8bb37b",
       "level": "主管",
-      "group_by": ["期次", "主管"],
-      "allowed_grades": ["高一", "高二", "高三", "初三"],
+      "group_by": [
+        "期次",
+        "主管"
+      ],
+      "allowed_grades": [
+        "高一",
+        "高二",
+        "高三",
+        "初三"
+      ],
       "minimum_effective_leads": 5,
-      "process_sort": {"metric": "8min", "direction": "desc", "value": "unrounded"},
-      "process_bars": ["好友率", "24h首call", "8min", "等待时长"],
-      "process_reminder": {"metric": "8min", "direction": "最低", "rank": "最后1名", "tie_handling": "all_tied_minimum"},
+      "process_sort": {
+        "metric": "8min",
+        "direction": "desc",
+        "value": "unrounded"
+      },
+      "process_bars": [
+        "好友率",
+        "24h首call",
+        "8min",
+        "等待时长"
+      ],
+      "process_reminder": {
+        "metric": "8min",
+        "direction": "最低",
+        "rank": "最后1名",
+        "tie_handling": "all_tied_minimum"
+      },
       "show_total": true
     },
     "consultant": {
       "request_id": "qingcheng/partner_douyin_dm",
       "target_chat_id": "oc_440ee2fc3bc26878bae77d24454e4f1c",
       "level": "顾问",
-      "group_by": ["期次", "主管", "顾问账号", "年级"],
-      "allowed_grades": ["高一", "高二", "高三", "初三"],
+      "group_by": [
+        "期次",
+        "主管",
+        "顾问账号",
+        "年级"
+      ],
+      "allowed_grades": [
+        "高一",
+        "高二",
+        "高三",
+        "初三"
+      ],
       "minimum_effective_leads": 3,
-      "process_sort": {"metric": "8min", "direction": "desc", "value": "unrounded"},
-      "process_bars": ["好友率", "24h首call", "8min", "等待时长"],
-      "process_reminder": {"metric": "8min", "direction": "最低", "rank": "最后1名", "tie_handling": "all_tied_minimum"},
+      "process_sort": {
+        "metric": "8min",
+        "direction": "desc",
+        "value": "unrounded"
+      },
+      "process_bars": [
+        "好友率",
+        "24h首call",
+        "8min",
+        "等待时长"
+      ],
+      "process_reminder": {
+        "metric": "8min",
+        "direction": "最低",
+        "rank": "最后1名",
+        "tie_handling": "all_tied_minimum"
+      },
       "show_total": true
     }
   },

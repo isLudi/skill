@@ -22,20 +22,70 @@
     "target_chat_id": "oc_be403f4efca7f1adcb0d18a066308627",
     "target_chat_name": "青橙-河南本地化项目",
     "period_rule": "自然周周五期次",
-    "process_weekdays": ["周二", "周三", "周四"],
-    "result_weekdays": ["周五", "周六", "周日", "次周周一"],
+    "process_weekdays": [
+      "周二",
+      "周三",
+      "周四"
+    ],
+    "result_weekdays": [
+      "周五",
+      "周六",
+      "周日",
+      "次周周一"
+    ],
     "requested_first_send_at": "2026-09-26T00:00:00.000+08:00",
     "requested_send_windows": "04:00、14:00、18:00、22:00",
-    "dimensions": ["期次", "渠道", "主管"],
-    "grades": ["高一", "高二", "高三", "初三"],
-    "scope_notes": "排除：初二"
+    "dimensions": [
+      "期次",
+      "渠道",
+      "主管"
+    ],
+    "grades": [
+      "高一",
+      "高二",
+      "高三",
+      "初三"
+    ],
+    "scope_notes": "排除：初二",
+    "effective_local_send_windows": "过程周二至周四 13:50、17:50、21:50；转化周五至次周周一 13:52、17:52、21:52"
   },
   "report": {
-    "minimum": {"metric": "有效线索", "operator": ">=", "value": 5},
-    "process_metrics": ["有效线索", "带班人数", "好友率", "等待时长", "8min", "24h首call", "沟通率", "外呼时长", "外呼频次", "退前线索", "线索留存率"],
+    "minimum": {
+      "metric": "有效线索",
+      "operator": ">=",
+      "value": 5
+    },
+    "process_metrics": [
+      "有效线索",
+      "带班人数",
+      "好友率",
+      "等待时长",
+      "8min",
+      "24h首call",
+      "沟通率",
+      "外呼时长",
+      "外呼频次",
+      "退前线索",
+      "线索留存率"
+    ],
     "other_process_metrics": null,
     "process_display_order": "期次、主管、带班人数、退前线索、有效线索、线索留存率、好友率、等待时长、8min、24h首call、沟通率、外呼时长、外呼频次",
-    "result_metrics": ["有效线索", "首节到课率", "综合人头转化率", "综合订单转化率", "综合营收", "退费金额", "净收款", "综合单效", "联报率", "带班人数", "当期单效", "人效", "破蛋率", "平均成交周期"],
+    "result_metrics": [
+      "有效线索",
+      "首节到课率",
+      "综合人头转化率",
+      "综合订单转化率",
+      "综合营收",
+      "退费金额",
+      "净收款",
+      "综合单效",
+      "联报率",
+      "带班人数",
+      "当期单效",
+      "人效",
+      "破蛋率",
+      "平均成交周期"
+    ],
     "other_result_metrics": null,
     "result_display_order": "期次、主管、带班人数、有效线索、首节到课率、综合人头转化率、综合订单转化率、综合营收、退费金额、净收款、当期单效、综合单效、联报率、人效、破蛋率、平均成交周期",
     "metric_definitions": null,

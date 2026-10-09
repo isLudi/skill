@@ -22,9 +22,9 @@ SPEC.loader.exec_module(MODULE)
 
 def test_schedule_excludes_0200_and_rolls_to_business_friday():
     batch = MODULE._batch()
-    now = datetime(2026, 9, 29, 14, 2, tzinfo=ZoneInfo("Asia/Shanghai"))
+    now = datetime(2026, 9, 29, 13, 52, tzinfo=ZoneInfo("Asia/Shanghai"))
     slot = MODULE._slot(now, batch)
-    assert slot.strftime("%Y%m%d%H%M") == "202609291400"
+    assert slot.strftime("%Y%m%d%H%M") == "202609291350"
     assert MODULE._period(slot.date()) == "20261002期"
     with pytest.raises(ValueError, match="Outside"):
         MODULE._slot(datetime(2026, 9, 29, 2, 0, tzinfo=ZoneInfo("Asia/Shanghai")), batch)
@@ -45,7 +45,7 @@ def test_one_groups_mention_failure_does_not_block_other_groups(monkeypatch, tmp
         return {"status": "sent_verified"}
 
     monkeypatch.setattr(MODULE, "_send_group", send)
-    MODULE._deliver_groups(batch, result, tmp_path, datetime(2026, 9, 29, 14, 2, tzinfo=ZoneInfo("Asia/Shanghai")))
+    MODULE._deliver_groups(batch, result, tmp_path, datetime(2026, 9, 29, 13, 52, tzinfo=ZoneInfo("Asia/Shanghai")))
     assert calls == [("public_pool", "supervisor"), ("public_pool", "consultant"),
                      ("private", "supervisor"), ("private", "consultant"),
                      ("douyin_dm", "supervisor"), ("douyin_dm", "consultant")]
@@ -58,7 +58,7 @@ def test_batch_send_is_disabled_when_config_is_preview_only(monkeypatch):
     original = MODULE._batch()
     monkeypatch.setattr(MODULE, "_batch", lambda: {**original, "status": "preview_only", "schedule_enabled": False})
     with pytest.raises(ValueError, match="disabled"):
-        MODULE.run(confirm_send=True, now=datetime(2026, 9, 29, 14, 2, tzinfo=ZoneInfo("Asia/Shanghai")))
+        MODULE.run(confirm_send=True, now=datetime(2026, 9, 29, 13, 52, tzinfo=ZoneInfo("Asia/Shanghai")))
 
 
 def test_one_groups_image_failure_does_not_block_other_groups(monkeypatch, tmp_path):
@@ -86,7 +86,7 @@ def test_one_groups_image_failure_does_not_block_other_groups(monkeypatch, tmp_p
     monkeypatch.setattr(MODULE, "probe_revision", lambda *_args: 100)
     sent = []
     monkeypatch.setattr(MODULE, "_send_group", lambda channel, level, *_args: sent.append((channel, level)) or {"status": "sent_verified"})
-    result = MODULE.run(confirm_send=True, now=datetime(2026, 9, 29, 14, 2,
+    result = MODULE.run(confirm_send=True, now=datetime(2026, 9, 29, 13, 52,
                         tzinfo=ZoneInfo("Asia/Shanghai")), output=tmp_path / "slot")
     assert result["channels"]["private"]["groups"]["supervisor"]["status"] == "blocked_prepare"
     assert len(sent) == 5
@@ -115,7 +115,7 @@ def _group_fixture(tmp_path):
     review_dir = tmp_path / "supervisor"
     review_dir.mkdir()
     return (entry["id"], MODULE.CONFIG_DIR / entry["config"], review_dir,
-            "20261002期", datetime(2026, 9, 29, 14, 2, tzinfo=ZoneInfo("Asia/Shanghai")))
+            "20261002期", datetime(2026, 9, 29, 13, 52, tzinfo=ZoneInfo("Asia/Shanghai")))
 
 
 def _record_commands(monkeypatch):

@@ -1,0 +1,66 @@
+# 青橙月度流水：按申老师 Excel 复刻
+
+状态：`validated_partial_scope`。财务 27 列已在原附件月份、当前可读范围内逐笔核验；`stat_judge_type` 仅对唯一匹配记录核验。完整范围和未匹配归因码仍待确认，不能建立完整复刻的 executable QueryPlan。用户明确接受部分范围时，可以交付同序 28 列，并独立说明缺口；不能把部分交付写成完整月报。
+
+## 可复用文件
+
+- [有序 28 列与映射](qingcheng_monthly_cashflow_columns.json)
+- [财务事实参数 SQL](qingcheng_monthly_cashflow_finance.sql)
+- [归因码查询参数 SQL](qingcheng_monthly_cashflow_stat_lookup.sql)
+- [组装与校验脚本](../../scripts/assemble_monthly_cashflow.py)：只处理 operator 下载文件，不执行 SQL；标准 CSV 输出适用于后续 Lark typed 写入。
+
+SQL 占位符必须由真实分区、日期、已授权部门列表和经控制查询确认足够的导出上限替换。不得直接提交含占位符模板。业务起止日期、部门范围、快照时点都是每次运行参数，不能沿用旧任务授权白名单。
+
+## 财务事实与原附件对账
+
+主源 `finance_dw.app_finance_order_income_refund_info_df`（Data Map ID `21216`）。2026-10-09 的历史复核使用 `dt='20260803'`，与 8 月 4 日制作的 7 月附件相符；最新快照会回溯修订部门等字段，不能拿最新快照差异直接判定源表错误。Query ID `1621794896` 导出的 27 列，在可读范围内经以下明确格式处理后逐行、多重集合一致；金额与独立部门控制查询 `1621782501` 一致。
+
+- 业务范围为业绩二级部门青橙，或课程二级部门青橙；后者包括业绩字段为空的自有课程流水。
+- 非零策略为 `coalesce(income_amount,0)+coalesce(refund_amount,0)<>0`。这是与原附件核验过的提取口径，不能扩展为其他青橙报告的通用规则。
+- `trade_timestamp` 筛选业务期间，采用起日含、下一月首日不含。不要按支付日期筛选退款。
+- 输出 `dt` 取交易日期 `yyyyMMdd`；物理快照 `dt` 仅作扫描条件。
+- `final_paid_timestamp -> order_timestamp`；`employee_email_name -> performance_employee_email_name`。
+- 金额源为分，分转元保留两位小数；`gross_profit_yuan=income_yuan-refund_yuan` 表示净收款。
+- 订单、用户、课程、员工 ID 为文本。原 Excel 把无课程编号显示为文本 `0`；保持这一兼容格式，但课程名称和部门为空的商品行必须保留，不能补造课程信息。
+- operator 模板下载 CSV 的字段内引号采用反斜杠转义，读入使用 `escapechar='\\'`，再输出标准 CSV。不要用字符串全局替换来修课程名。
+- 不按订单号去重；同一事件可能有多条财务事实。保留原始行粒度、多重记录和金额。
+
+## 归因码补充与缺口
+
+财务表没有 `stat_judge_type`。可读补充源为 `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf`，使用同一日期快照和小时分区。以 `(order_number, trade_timestamp, performance_employee_id)` 获取唯一归因码。历史验证 Query ID `1621800286` 中，所有匹配附件记录的归因码一致。
+
+补充前对键分组：同键不同码必须停止；同键同码可收敛为标签 lookup。对财务事实作 many-to-one LEFT JOIN，金额仍来自财务表。关联前后行数、三项金额必须不变。不能将归因统计表金额作为财务金额的通用替代，它们的粒度和部分金额存在差异；TT/V/T 限定范围例外须遵循下节独立对账与披露规则。
+
+自有课程、部分非课程商品及少数其他事件可能没有匹配。缺失码保持空白，在口径页列明数量和范围；不能填常量 1，也不能用 `performance_type` 猜测。`bdg_ba.dws_crm_order_income_refund_period_detail_hf` 的样例探针同样未覆盖自有低价课程，尚不能补齐此缺口。
+
+## TT/V/T 限定范围补充
+
+2026-10-09，Query ID `1621870844` 对原附件 TT 业务线下 V/T 范围完成历史逐笔核验：归因统计表可提供的全部 26 列与附件多重集合一致，包括金额、课程和业绩各级部门、资金监管及归因码。证据支持该限定范围的补充，不推广为其他部门或所有月份的两表等价。
+
+使用 [TT 范围补充 SQL](../../knowledge/sql_patterns/qingcheng_monthly_cashflow_tt_supplement.sql)，参数化业务期间、快照与导出上限。保留源部门名称，不根据组织名称变更强行把 V/T 改写为 TT小学。源没有 `biz_type`、`goods_type`；输出仍按 28 列排列，但两列明确留空并披露，不能按历史值、课程名或其他部门默认值猜填。目标月份尚无财务权限时，说明未完成目标财务独立交叉核验。
+
+用户接受后可在原明细末尾追加，先读当前表、核对实际末行和已有订单/交易键，检查重复及补充金额，保留当前行列与用户对说明页的修改。不因旧回执中的页签或行数与线上变化而恢复用户已删除的说明或页签。精确追加范围、源 Query ID、空字段与组合合计写入回执；更新现存口径说明的对应金额，并全量回读。新建补充页不是固定要求，遵循用户选择。
+
+`finance_dw.dws_finance_order_income_info_df`、`finance_dw.dws_finance_order_refund_info_df` 在本次探查均返回整表无查询权限，不构成已可用的补码来源。原主源财务商品权限缺口仍存在；补充结果不应写成全部财务权限已齐或全量总体已验证。
+
+## 权限和空结果诊断：2026-10-09 快照
+
+- `bdg_ba.dwd_crm_crm_order_income_refund_info_hf`（Data Map ID `27345`）审批后已能提交；不再是整表权限拒绝。多个明确分区和青橙范围探针得到成功空结果，不能据此断言整表为空或 9 月业务为零。标量对照 Query ID `1621765285` 同时命中财务已知事件、DWD 为零，空结果仍需表维护方确认快照和覆盖范围。
+- 财务商品一级部门 `H业务线、EM业务线、TT业务线、创新中心` 已可用。二级白名单较 10 月 8 日扩大，包含清北、一对一、素养等。
+- 当前仍缺 `V学部、T学部、TT小学学部` 对应商品二级权限。V/T 的历史附件缺口已定位；9 月可读统计源出现 TT 小学，而当前财务范围未覆盖。商品部门与课程部门不是同一字段，申请时由管理员核实商品映射；不能用标签差集推算完整财务漏数。
+- 其他组织调整标签也需按所选快照核对。部门为空的课程记录可能仍映射到有权限的商品部门，不能排除所有空课程部门。
+
+这些是账号和日期相关的实测范围，不能当成通用白名单。不得改引擎、删权限条件、换账号来绕过权限。Data Map creator 不是已确认审批人；可读 schema 不等于可读数据。
+
+成功空结果必须以同一 Query ID 的完成状态与结果 API 共同验证。若 UI 历史仍显示 Running，但刷新后的精确查询历史为 Success、API 为零，先回读已有 Query ID，不重复提交相同 SQL。
+
+## 每次取数与交付
+
+1. 用 Data Map 核实 schema；参数化起止日、源快照、授权商品范围和青橙业务范围。原月份复刻优先查与附件生成时点相符的历史快照。
+2. 独立控制查询核对分部门行数和收退金额。查询有限明确范围、必要分区与字段；生成 AST / SQL 规则报告。现行旧 SQL 规则把每个 SELECT 中的部门字段都要求单独 WHERE 过滤，会误报该 28 列展示；应记录并人工审阅真实扫描范围，不能用无意义条件绕过，也不能伪称该静态检查通过。
+3. 大于 1000 行用 operator `template-download`，校验下载行数未触及截断上限，完成临时模板下线删除。查询时长遵循 300 秒门禁。
+4. 执行 `assemble_monthly_cashflow.py --finance <download.csv> --lookup <lookup.csv> --output <normalized.csv> --qa <qa.json>`。用控制合计、净额恒等式、关联不扩行、归因码缺失数和期间边界验证。
+5. 完整复制仍未通过时说明缺口；仅在用户明确接受部分交付后发布该范围。主表保持原 28 列，不把说明和统计行混进明细。
+6. Lark 输出交给 `query-result-to-lark-sheet`，独立添加口径与运行元数据。务必把英文 `_number`、`_id` 标识符声明为文本，三项 `_yuan` 为数值；通用交付脚本的默认 ID 名称识别不涵盖全部英文 `_number`，调用方需显式类型适配。日期时间按 datetime 类型写入并设置 `yyyy-mm-dd hh:mm:ss`。若 `+table-get` 只返回日期，用 `+cells-get --include value` 全量读取两列时间，检查 has_more、实际范围和行列索引，再与源逐项校验；不能丢弃时分秒来让 hash 通过，也不要重复建表。完成全量回读、行数和内容 hash 校验后交付。
+
+原始订单、结果文件、账号状态、权限响应、金额与具体行数只存任务工作目录。Skill 仅保留模板、口径和验证证据引用，不含客户明细。

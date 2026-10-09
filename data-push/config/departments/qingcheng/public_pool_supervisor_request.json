@@ -39,7 +39,8 @@
       "高三",
       "初三"
     ],
-    "scope_notes": "排除：初二"
+    "scope_notes": "排除：初二",
+    "effective_local_send_windows": "过程周二至周四 13:50、17:50、21:50；转化周五至次周周一 13:52、17:52、21:52"
   },
   "report": {
     "minimum": {

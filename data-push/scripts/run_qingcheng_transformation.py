@@ -5,9 +5,9 @@ run_qingcheng_process.py: window-checked slots, per-period source exports,
 per-group send isolation, idempotency keys and readback verification. Every
 window pushes once (2026-10-02 always-send policy); groups with no conversion
 output carry the fallback flag line instead, and the dept level never carries
-reminder lines. The dept (学部) level only joins the 14:02 window on
-Fri/Sat/Sun plus the Monday 04:00 closing slot (2026-10-03 correction: the
-Base request asks for a single daily 14:00 push plus a final Monday write).
+reminder lines. From 2026-10-08, standard supervisor/consultant reports run
+Fri..Mon at 13:52/17:52/21:52; the independent dept audience runs once at
+13:50 on those days. Both audiences use this script with separate state.
 
 Config: config/departments/qingcheng/transformation_batch.json (schedule base,
 operator record IDs) + transformation_preview.json (delivery, channel matches,
@@ -32,6 +32,7 @@ from zoneinfo import ZoneInfo
 from fetch_qingcheng_process_source import fetch, probe_revision
 from export_conversion_refresh import FILTERS, BASE_TOKEN, TABLE_ID, export_conversion
 from preview_qingcheng_transformation import build
+from qingcheng_schedule import resolve_slot
 from lark_delivery.common import push_log, resend
 from lark_delivery.common.retry import retry_transport
 from lark_delivery.common.runtime import CREATE_NO_WINDOW, ensure_console_streams, run_lark
@@ -44,8 +45,7 @@ BATCH_CONFIG = CONFIG_DIR / "transformation_batch.json"
 STATE = WORKSPACE / "runtime/qingcheng-transformation-batch"
 # 2026-10-02 学部级并入调度：四渠道（公海/私域/抖音私信/图书）dept 维度发
 # ⏰渠道专项讨论（同群）；本地化无 dept 申请，_channel_levels 按 profiles 自动跳过。
-# 2026-10-03 窗口修正：dept 仅随周五/六/日 14:02 档 + 次周周一 04:00 收官档参与
-# （_dept_active），其余窗口记 skipped_not_in_window，不再整窗跟随。
+# 2026-10-08：学部独立 13:50 调度；普通主管/顾问保留两分钟错峰。
 LEVELS = ("supervisor", "consultant", "dept")
 CHANNEL_IDS = ["public_pool", "private", "douyin_dm", "partner_books", "partner_local"]
 SEND_SCRIPT = SKILL / "scripts/send_qingcheng_transformation.py"
@@ -68,13 +68,14 @@ def _write_json(path: Path, value: dict) -> None:
 
 
 @contextmanager
-def _single_instance():
+def _single_instance(audience: str = "standard"):
     if os.name != "nt":
         raise RuntimeError("The scheduled Qingcheng sender requires Windows")
     import msvcrt
 
     STATE.mkdir(parents=True, exist_ok=True)
-    with (STATE / "scheduled.lock").open("a+b") as handle:
+    lock_name = "scheduled_dept.lock" if audience == "dept" else "scheduled.lock"
+    with (STATE / lock_name).open("a+b") as handle:
         handle.seek(0)
         if not handle.read(1):
             handle.write(b"\0")
@@ -101,16 +102,21 @@ def _batch() -> dict:
     for item in batch["channels"]:
         if item.get("scheduled") is not EXPECTED_SCHEDULED[item["id"]]:
             raise ValueError(f"Transformation schedule flag differs for {item['id']}")
-    # 2026-10-05：周一改为 04:00，等待天宫2 zhuanhua 03:40 批次的 00:00 分区。
-    if (calendar["result_weekdays"], calendar["minute"], calendar["deadline_minute"],
-            calendar["timezone"]) != ([4, 5, 6, 0], 2, 55, "Asia/Shanghai"):
+    if (calendar["result_weekdays"], calendar["minute"], calendar["retry_window_minutes"],
+            calendar["timezone"]) != ([4, 5, 6, 0], 52, 53, "Asia/Shanghai"):
         raise ValueError("Transformation batch calendar differs from the reviewed slots")
-    if calendar.get("minute_by_weekday") != {"0": 0, "4": 2, "5": 2, "6": 2}:
-        raise ValueError("Transformation per-weekday minutes differ from the reviewed slots")
     hours = calendar["hours_by_weekday"]
     if (hours.get("4"), hours.get("5"), hours.get("6"), hours.get("0")) != (
-            [14, 18, 22], [14, 18, 22], [14, 18, 22], [4]):
+            [13, 17, 21], [13, 17, 21], [13, 17, 21], [13, 17, 21]):
         raise ValueError("Transformation per-weekday hours differ from the reviewed slots")
+    dept = batch["dept_schedule"]
+    dept_cal = dept["business_calendar"]
+    if (dept["status"], dept["schedule_enabled"], dept["windows_task_name"],
+            dept_cal["result_weekdays"], dept_cal["hours_by_weekday"], dept_cal["minute"],
+            dept_cal["retry_window_minutes"], dept_cal["timezone"]) != (
+            "active", True, "Codex-Lark-Qingcheng-Special-Transformation-GroupPush",
+            [4, 5, 6, 0], {str(day): [13] for day in (4, 5, 6, 0)}, 50, 53, "Asia/Shanghai"):
+        raise ValueError("Transformation dept schedule differs from the reviewed slots")
     if (batch["retry_interval_minutes"], batch["windows_task_name"], batch["freshness_max_age_minutes"],
             batch["no_data_policy"]) != (2, "Codex-Lark-Qingcheng-Transformation-GroupPush", 1560,
                                          "always_send_with_fallback_flag"):
@@ -133,30 +139,15 @@ def _period(day: date) -> str:
     return (day + timedelta(days=offsets[day.weekday()])).strftime("%Y%m%d") + "期"
 
 
-def _slot(now: datetime, batch: dict) -> datetime:
-    calendar = batch["business_calendar"]
-    if now.tzinfo is None or now.utcoffset() != timedelta(hours=8):
-        raise ValueError("Task clock must be Asia/Shanghai")
-    weekday = str(now.weekday())
-    minute = calendar.get("minute_by_weekday", {}).get(weekday, calendar["minute"])
-    hours = calendar["hours_by_weekday"].get(weekday, [])
-    if (now.weekday() not in calendar["result_weekdays"] or now.hour not in hours
-            or not minute <= now.minute <= calendar["deadline_minute"]
-            or (now.minute - minute) % batch["retry_interval_minutes"]):
-        raise ValueError("Outside the authorized Qingcheng transformation window")
-    return now.replace(minute=minute, second=0, microsecond=0)
-
-
-def _dept_active(slot: datetime | None) -> bool:
-    """2026-10-03 学部级窗口修正：Base 申请为每日 14:00 单档推送。
-
-    dept 仅随周五/六/日 14:02 档参与；次周周一 04:00 收官档随大盘写入本周最后
-    一次数据（用户指令）。预览模式（slot=None）恒参与；其余窗口跳过并记
-    skipped_not_in_window（10-02 曾误并入全部 :02 窗口）。
-    """
-    if slot is None or slot.hour == 14:
-        return True
-    return slot.weekday() == 0 and slot.hour == 4
+def _slot(now: datetime, batch: dict, audience: str = "standard") -> datetime:
+    if audience not in ("standard", "dept"):
+        raise ValueError("Production audience must be standard or dept")
+    calendar = (batch["dept_schedule"] if audience == "dept" else batch)["business_calendar"]
+    return resolve_slot(now, weekdays=calendar["result_weekdays"],
+                        hours=calendar["hours_by_weekday"].get(str(now.weekday()), []),
+                        minute=calendar["minute"], retry_minutes=batch["retry_interval_minutes"],
+                        window_minutes=calendar["retry_window_minutes"],
+                        error="Outside the authorized Qingcheng transformation window")
 
 
 def _key(channel: str, level: str, chat_id: str, period: str, slot: datetime) -> str:
@@ -221,11 +212,12 @@ def _config_chat_id(channel: str, level: str) -> str:
     return entry["profiles"][level]["target_chat_id"]
 
 
-def _channel_levels(channel: str) -> tuple[str, ...]:
+def _channel_levels(channel: str, audience: str = "all") -> tuple[str, ...]:
     """Levels configured for one channel (图书 has no supervisor request)."""
     config = json.loads((CONFIG_DIR / "transformation_preview.json").read_text(encoding="utf-8"))
     entry = next(item for item in config["channels"] if item["id"] == channel)
-    return tuple(slug for slug in LEVELS if slug in entry["profiles"])
+    return tuple(slug for slug in LEVELS if slug in entry["profiles"]
+                 and (audience == "all" or (slug == "dept") == (audience == "dept")))
 
 
 def _send_group(channel: str, level: str, review_dir: Path, key: str) -> dict:
@@ -275,9 +267,11 @@ def _deliver_groups(batch: dict, batch_result: dict, output: Path, slot: datetim
     result_path = output / "batch.json"
     for entry in batch["channels"]:
         channel = entry["id"]
-        item = batch_result["channels"][channel]
+        item = batch_result["channels"].get(channel)
+        if item is None:
+            continue
         review_dir = output / channel
-        for level in _channel_levels(channel):
+        for level in item["groups"]:
             group = item["groups"][level]
             if group["status"] not in ("prepared", resend.REVERIFY, resend.RESEND):
                 continue
@@ -298,13 +292,17 @@ def _deliver_groups(batch: dict, batch_result: dict, output: Path, slot: datetim
 
 
 def run(*, period_date: str = "", confirm_send: bool = False, now: datetime | None = None,
-        output: Path | None = None) -> dict:
+        output: Path | None = None, audience: str | None = None) -> dict:
     batch = _batch()
     now = now or datetime.now(ZoneInfo("Asia/Shanghai"))
+    audience = audience or ("standard" if confirm_send else "all")
+    if audience not in ("standard", "dept", "all") or (confirm_send and audience == "all"):
+        raise ValueError("Production requires a separate standard or dept audience")
     if confirm_send:
-        if period_date or (batch["status"], batch["schedule_enabled"]) != ("active", True):
+        schedule = batch["dept_schedule"] if audience == "dept" else batch
+        if period_date or (schedule["status"], schedule["schedule_enabled"]) != ("active", True):
             raise ValueError("Batch sending is disabled or a diagnostic period was supplied")
-        slot = _slot(now, batch)
+        slot = _slot(now, batch, audience)
         period = _period(slot.date())
     else:
         if not re.fullmatch(r"20\d{6}", period_date) or date.fromisoformat(
@@ -312,21 +310,28 @@ def run(*, period_date: str = "", confirm_send: bool = False, now: datetime | No
             raise ValueError("Preview period must be a business Friday in YYYYMMDD format")
         slot = None
         period = period_date + "期"
-    output = output or (STATE / "slots" / slot.strftime("%Y%m%d-%H%M") if slot else STATE / "previews" / period_date)
-    dept_on = _dept_active(slot)
+    audience_state = STATE / "dept" if audience == "dept" else STATE
+    preview_name = period_date if audience == "all" else f"{period_date}-{audience}"
+    output = output or (audience_state / "slots" / slot.strftime("%Y%m%d-%H%M")
+                        if slot else audience_state / "previews" / preview_name)
     output.mkdir(parents=True, exist_ok=True)
     result_path = output / "batch.json"
     previous = json.loads(result_path.read_text(encoding="utf-8")) if result_path.exists() else None
     if previous and (previous["period"], previous["slot"]) != (period, slot.isoformat() if slot else None):
         raise ValueError("Existing batch identity differs from this run")
-    result = {"period": period, "slot": slot.isoformat() if slot else None, "channels": {}}
+    if previous and previous.get("audience", "standard") != audience:
+        raise ValueError("Existing batch audience differs from this run")
+    result = {"period": period, "slot": slot.isoformat() if slot else None,
+              "audience": audience, "channels": {}}
     for entry in batch["channels"]:
         channel = entry["id"]
+        levels = _channel_levels(channel, audience)
+        if not levels:
+            continue
         channel_dir = output / channel
         channel_result = {"process_rev": None, "conversion_rev": None, "snapshots": {},
                           "review": None, "groups": {}}
         result["channels"][channel] = channel_result
-        levels = _channel_levels(channel)
         if not entry.get("scheduled", True):
             # 审定门控：图书/本地化在用户确认预览前不参与调度（不取数、不发送）。
             for level in levels:
@@ -339,32 +344,39 @@ def run(*, period_date: str = "", confirm_send: bool = False, now: datetime | No
             channel_result["snapshots"]["process"] = " ".join(
                 (manifest["snapshot"][0], manifest["snapshot"][1] + ":00"))
             conversion_source = channel_dir / "source_conversion.ndjson"
-            conversion_manifest = export_conversion(channel, period, conversion_source)
+            conversion_manifest = export_conversion(channel, period, conversion_source,
+                                                    cache_dir=channel_dir / "conversion_pages")
             channel_result["conversion_rev"] = conversion_manifest["rev"]
             conversion_rows = [json.loads(line) for line
                                in conversion_source.read_text(encoding="utf-8").splitlines() if line]
             # 2026-10-02 用户指令：无论有无收款/人头/报科产出，均按预设窗口推送一次；
             # 无数据的群由消息中的 fallback 文案标识（build 渲染，deliver 照常发送）。
             channel_result["conversion_has_output"] = _conversion_output(conversion_rows)
-            review = build(process_source, conversion_source, channel_dir,
-                           CONFIG_DIR / entry["config"], channels=(channel,))
-            if review["period"] != period:
-                raise ValueError("Source period differs from requested period")
-            if slot:
-                _fresh(review, period, slot, batch)
-            channel_result["review"] = review
-            channel_result["snapshots"]["conversion"] = review["conversion_snapshot"]
+            merged_review = None
             for level in levels:
-                if level == "dept" and not dept_on:
-                    channel_result["groups"][level] = {"status": "skipped_not_in_window"}
-                else:
+                try:
+                    review = build(process_source, conversion_source, channel_dir,
+                                   CONFIG_DIR / entry["config"], channels=(channel,),
+                                   period=period, levels=(level,))
+                    if review["period"] != period:
+                        raise ValueError("Source period differs from requested period")
+                    if slot:
+                        _fresh(review, period, slot, batch)
+                    if merged_review is None:
+                        merged_review = review
+                    else:
+                        merged_review["results"][channel]["levels"].update(
+                            review["results"][channel]["levels"])
+                    channel_result["snapshots"]["conversion"] = review["conversion_snapshot"]
                     channel_result["groups"][level] = {"status": "prepared"}
+                except Exception as exc:
+                    channel_result["groups"][level] = {"status": "blocked_prepare", "error": str(exc)}
+            channel_result["review"] = merged_review
+            if merged_review is not None:
+                _write_json(channel_dir / "review.json", merged_review)
         except Exception as exc:
             for level in levels:
-                if level == "dept" and not dept_on:
-                    channel_result["groups"][level] = {"status": "skipped_not_in_window"}
-                else:
-                    channel_result["groups"][level] = {"status": "blocked_prepare", "error": str(exc)}
+                channel_result["groups"][level] = {"status": "blocked_prepare", "error": str(exc)}
     # 2026-10-01 用户要求推送解耦：任一渠道的版本漂移/快照不一致只记录、只影响
     # 该渠道自身（发送前每个群仍独立 probe 自身双表 rev，见 _deliver_groups），
     # 不再整批拦停其他渠道的推送。
@@ -392,9 +404,10 @@ def run(*, period_date: str = "", confirm_send: bool = False, now: datetime | No
     return result
 
 
-def run_scope(config_path: Path, channel_id: str):
+def run_scope(config_path: Path, channel_id: str, audience: str = "standard"):
     try:
-        name = json.loads(Path(config_path).read_text(encoding="utf-8")).get("windows_task_name")
+        config = json.loads(Path(config_path).read_text(encoding="utf-8"))
+        name = (config["dept_schedule"] if audience == "dept" else config).get("windows_task_name")
     except Exception:  # noqa: BLE001
         name = None
     return push_log.run_scope("qingcheng", channel_id, name or "unknown-task")
@@ -406,14 +419,21 @@ def main() -> None:
     parser.add_argument("--period-date", default="", help="Business Friday YYYYMMDD for local preview")
     parser.add_argument("--output", type=Path)
     parser.add_argument("--confirm-send", action="store_true")
+    parser.add_argument("--audience", choices=("standard", "dept", "all"))
+    parser.add_argument("--check-config", action="store_true")
     args = parser.parse_args()
-    with run_scope(BATCH_CONFIG, "transformation_batch") as scope:
+    if args.check_config:
+        print(json.dumps({"configuration": "valid", "batch": _batch()}, ensure_ascii=True))
+        return
+    audience = args.audience or ("standard" if args.confirm_send else "all")
+    category = "transformation_dept_batch" if audience == "dept" else "transformation_batch"
+    with run_scope(BATCH_CONFIG, category, audience) as scope:
         scope.event("run_started", confirmed=args.confirm_send, period_date=args.period_date)
         if args.confirm_send:
-            with _single_instance():
-                result = run(period_date=args.period_date, confirm_send=True, output=args.output)
+            with _single_instance(audience):
+                result = run(period_date=args.period_date, confirm_send=True, output=args.output, audience=audience)
         else:
-            result = run(period_date=args.period_date, output=args.output)
+            result = run(period_date=args.period_date, output=args.output, audience=audience)
         print(json.dumps({"period": result["period"], "slot": result["slot"],
                           "channels": {channel: {"process_rev": item["process_rev"],
                                                  "conversion_rev": item["conversion_rev"],

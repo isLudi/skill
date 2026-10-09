@@ -33,16 +33,24 @@
   "business_calendar": {
     "period_rule": "自然周周五期次",
     "process_weekdays": [
-      "周二",
-      "周三",
-      "周四"
+      1,
+      2,
+      3
     ],
     "requested_hours": [
-      "14:25",
-      "18:25",
-      "22:25"
+      "13:50",
+      "17:50",
+      "21:50"
     ],
-    "timezone": "Asia/Shanghai"
+    "timezone": "Asia/Shanghai",
+    "hours": [
+      13,
+      17,
+      21
+    ],
+    "minute": 50,
+    "retry_window_minutes": 50,
+    "rule_note": "2026-10-08 用户确认：原整点批次提前 10 分钟；从新起点每两分钟重试，窗口持续 50 分钟，可跨小时。"
   },
   "visual": {
     "header": "#e6efff",

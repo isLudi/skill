@@ -19,6 +19,11 @@ from _shared.errors import UsageError
 from .client import Tiangong2ReadOnlyClient
 from .publishing import finalize_hash, read_publish_state, text_sha256
 from .redaction import redact_structure
+from .resubmission import (
+    load_resubmission_evidence,
+    validate_resubmission_evidence,
+    verify_resubmission_schedule,
+)
 from .scope import ScopedTask
 
 
@@ -88,15 +93,28 @@ def build_submit_plan(
     task: ScopedTask,
     identity: dict[str, Any],
     note: str,
+    previous_submit_receipt: Path | None = None,
+    resubmit_after_schedule_receipt: Path | None = None,
+    operations: Any = None,
 ) -> dict[str, Any]:
     note = validate_submit_note(note)
     state = read_publish_state(reader, task)
     schedule_precondition = read_schedule_precondition(reader, task)
     already_published = state["source_matches_latest_published"]
     already_submitted = bool(state["matching_unpublished_version_ids"])
+    if bool(previous_submit_receipt) != bool(resubmit_after_schedule_receipt):
+        raise UsageError("Resubmission requires both previous-submit and schedule-save receipts")
+    resubmission = None
+    if previous_submit_receipt is not None:
+        resubmission = load_resubmission_evidence(
+            previous_submit_receipt=previous_submit_receipt,
+            schedule_save_receipt=resubmit_after_schedule_receipt,
+            scope=_safe_scope(task), baseline=state,
+        )
+        verify_resubmission_schedule(reader, operations, task=task, evidence=resubmission)
     if already_published:
         status = "blocked_already_published"
-    elif already_submitted:
+    elif already_submitted and resubmission is None:
         status = "blocked_already_submitted"
     elif not schedule_precondition["configured"]:
         status = "blocked_unconfigured_schedule"
@@ -138,6 +156,11 @@ def build_submit_plan(
             "save_publish_execute_and_configuration_changes_not_authorized": True,
         },
     }
+    if resubmission is not None:
+        payload["resubmission"] = resubmission
+        payload["policy"]["identical_unpublished_version_is_blocked"] = False
+        payload["policy"]["verified_schedule_save_required_for_resubmission"] = True
+        payload["policy"]["one_resubmission_attempt_per_schedule_save"] = True
     return finalize_hash(payload, "plan_sha256")
 
 
@@ -187,6 +210,14 @@ def validate_submit_plan(plan: dict[str, Any]) -> None:
     note = validate_submit_note(str(submission.get("note") or ""))
     if submission.get("note_sha256") != text_sha256(note):
         raise UsageError("Tiangong2 submit note SHA-256 validation failed")
+    baseline = plan.get("baseline") or {}
+    if plan.get("resubmission") is not None:
+        validate_resubmission_evidence(plan["resubmission"], scope=scope, baseline=baseline)
+    if plan.get("status") == "ready":
+        if baseline.get("source_matches_latest_published"):
+            raise UsageError("An already-published source cannot be submitted again")
+        if baseline.get("matching_unpublished_version_ids") and plan.get("resubmission") is None:
+            raise UsageError("A matching unpublished version requires verified resubmission evidence")
 
 
 def load_submit_plan(path: Path) -> dict[str, Any]:
@@ -285,6 +316,7 @@ def validate_pre_submit_drift(
     *,
     task: ScopedTask,
     plan: dict[str, Any],
+    operations: Any = None,
 ) -> dict[str, Any]:
     current = read_publish_state(reader, _refresh_task(reader, task))
     current_schedule = read_schedule_precondition(reader, task)
@@ -305,6 +337,10 @@ def validate_pre_submit_drift(
         raise UsageError("Tiangong2 submit precondition drifted after planning: schedule_state_sha256")
     if current.get("source_matches_latest_published"):
         raise UsageError("Tiangong2 current source is already the latest published version")
+    if plan.get("resubmission") is not None:
+        validate_resubmission_evidence(plan["resubmission"], scope=plan["scope"], baseline=current)
+        current["resubmission_schedule_readback"] = verify_resubmission_schedule(
+            reader, operations, task=task, evidence=plan["resubmission"])
     current["schedule_precondition"] = current_schedule
     return current
 
@@ -338,6 +374,8 @@ def verify_submit_readback(
             raise UsageError("Tiangong2 normalized source changed after submit request")
         metadata_changed = current["task_metadata_sha256"] != baseline["task_metadata_sha256"]
         version_state_changed = current["version_state_sha256"] != baseline["version_state_sha256"]
+        if plan.get("resubmission") is not None and len(current["matching_unpublished_version_ids"]) != 1:
+            raise UsageError("Resubmission readback has no unique pending version; inspect before publishing")
         if metadata_changed or version_state_changed:
             return {
                 "attempt": attempt,
@@ -347,6 +385,7 @@ def verify_submit_readback(
                 "latest_published_version_id": current["latest_published_version_id"],
                 "source_matches_latest_published": current["source_matches_latest_published"],
                 "submit_state_observed": True,
+                "matching_unpublished_version_ids": current["matching_unpublished_version_ids"],
                 "fully_verified": True,
             }
         if attempt < attempts:
@@ -360,6 +399,7 @@ def verify_submit_readback(
         "latest_published_version_id": last_state["latest_published_version_id"],
         "source_matches_latest_published": last_state["source_matches_latest_published"],
         "submit_state_observed": False,
+        "matching_unpublished_version_ids": last_state["matching_unpublished_version_ids"],
         "fully_verified": False,
         "verification_note": "taskConfirm succeeded; no dedicated submit-state read endpoint is available",
     }

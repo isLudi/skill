@@ -1,0 +1,248 @@
+{
+  "template_id": "qingcheng_monthly_cashflow_excel_replication",
+  "status": "validated_partial_scope",
+  "execution_ready": false,
+  "domain": "qingcheng",
+  "reference_sheet": "7月流水明细",
+  "required_parameters": [
+    "start_date",
+    "end_date_inclusive",
+    "snapshot_dt",
+    "snapshot_hour_if_required",
+    "verified_business_scope",
+    "verified_permission_scope",
+    "partial_scope_acceptance_if_incomplete"
+  ],
+  "columns": [
+    {
+      "position": 1,
+      "name": "dt",
+      "output_type": "text",
+      "finance_candidate_mapping": "format_datetime(trade_timestamp, 'yyyyMMdd')，不能取快照 dt",
+      "mapping_status": "verified_reference_month_within_readable_scope"
+    },
+    {
+      "position": 2,
+      "name": "trade_timestamp",
+      "output_type": "datetime",
+      "finance_candidate_mapping": "trade_timestamp",
+      "mapping_status": "verified_reference_month_within_readable_scope"
+    },
+    {
+      "position": 3,
+      "name": "order_timestamp",
+      "output_type": "datetime",
+      "finance_candidate_mapping": "final_paid_timestamp",
+      "mapping_status": "verified_reference_month_within_readable_scope"
+    },
+    {
+      "position": 4,
+      "name": "order_number",
+      "output_type": "text_id",
+      "finance_candidate_mapping": "order_number",
+      "mapping_status": "verified_reference_month_within_readable_scope"
+    },
+    {
+      "position": 5,
+      "name": "original_order_number",
+      "output_type": "text_id",
+      "finance_candidate_mapping": "original_order_number",
+      "mapping_status": "verified_reference_month_within_readable_scope"
+    },
+    {
+      "position": 6,
+      "name": "user_number",
+      "output_type": "text_id",
+      "finance_candidate_mapping": "user_number",
+      "mapping_status": "verified_reference_month_within_readable_scope"
+    },
+    {
+      "position": 7,
+      "name": "course_number",
+      "output_type": "text_id",
+      "finance_candidate_mapping": "cast(course_number AS varchar); render absent ID as text 0 for reference-Excel compatibility, without inferring course metadata",
+      "mapping_status": "verified_reference_month_within_readable_scope"
+    },
+    {
+      "position": 8,
+      "name": "course_name",
+      "output_type": "text",
+      "finance_candidate_mapping": "course_name",
+      "mapping_status": "verified_reference_month_within_readable_scope"
+    },
+    {
+      "position": 9,
+      "name": "course_first_level_subject_name",
+      "output_type": "text",
+      "finance_candidate_mapping": "course_first_level_subject_name",
+      "mapping_status": "verified_reference_month_within_readable_scope"
+    },
+    {
+      "position": 10,
+      "name": "course_second_level_subject_name",
+      "output_type": "text",
+      "finance_candidate_mapping": "course_second_level_subject_name",
+      "mapping_status": "verified_reference_month_within_readable_scope"
+    },
+    {
+      "position": 11,
+      "name": "course_third_level_subject_name",
+      "output_type": "text",
+      "finance_candidate_mapping": "course_third_level_subject_name",
+      "mapping_status": "verified_reference_month_within_readable_scope"
+    },
+    {
+      "position": 12,
+      "name": "course_top_level_department_name",
+      "output_type": "text",
+      "finance_candidate_mapping": "course_top_level_department_name",
+      "mapping_status": "verified_reference_month_within_readable_scope"
+    },
+    {
+      "position": 13,
+      "name": "course_first_level_department_name",
+      "output_type": "text",
+      "finance_candidate_mapping": "course_first_level_department_name",
+      "mapping_status": "verified_reference_month_within_readable_scope"
+    },
+    {
+      "position": 14,
+      "name": "course_second_level_department_name",
+      "output_type": "text",
+      "finance_candidate_mapping": "course_second_level_department_name",
+      "mapping_status": "verified_reference_month_within_readable_scope"
+    },
+    {
+      "position": 15,
+      "name": "course_third_level_department_name",
+      "output_type": "text",
+      "finance_candidate_mapping": "course_third_level_department_name",
+      "mapping_status": "verified_reference_month_within_readable_scope"
+    },
+    {
+      "position": 16,
+      "name": "performance_employee_id",
+      "output_type": "text_id",
+      "finance_candidate_mapping": "performance_employee_id",
+      "mapping_status": "verified_reference_month_within_readable_scope"
+    },
+    {
+      "position": 17,
+      "name": "performance_employee_email_name",
+      "output_type": "text",
+      "finance_candidate_mapping": "employee_email_name；需整月校验",
+      "mapping_status": "verified_reference_month_within_readable_scope"
+    },
+    {
+      "position": 18,
+      "name": "performance_top_level_department_name",
+      "output_type": "text",
+      "finance_candidate_mapping": "performance_top_level_department_name",
+      "mapping_status": "verified_reference_month_within_readable_scope"
+    },
+    {
+      "position": 19,
+      "name": "performance_first_level_department_name",
+      "output_type": "text",
+      "finance_candidate_mapping": "performance_first_level_department_name",
+      "mapping_status": "verified_reference_month_within_readable_scope"
+    },
+    {
+      "position": 20,
+      "name": "performance_second_level_department_name",
+      "output_type": "text",
+      "finance_candidate_mapping": "performance_second_level_department_name",
+      "mapping_status": "verified_reference_month_within_readable_scope"
+    },
+    {
+      "position": 21,
+      "name": "performance_third_level_department_name",
+      "output_type": "text",
+      "finance_candidate_mapping": "performance_third_level_department_name",
+      "mapping_status": "verified_reference_month_within_readable_scope"
+    },
+    {
+      "position": 22,
+      "name": "income_yuan",
+      "output_type": "decimal_yuan_2dp",
+      "finance_candidate_mapping": "income_amount / 100；需确认 NULL 和零金额策略",
+      "mapping_status": "verified_reference_month_within_readable_scope"
+    },
+    {
+      "position": 23,
+      "name": "refund_yuan",
+      "output_type": "decimal_yuan_2dp",
+      "finance_candidate_mapping": "refund_amount / 100；需确认 NULL 和零金额策略",
+      "mapping_status": "verified_reference_month_within_readable_scope"
+    },
+    {
+      "position": 24,
+      "name": "gross_profit_yuan",
+      "output_type": "decimal_yuan_2dp",
+      "finance_candidate_mapping": "income_yuan - refund_yuan；附件名称表示净收款",
+      "mapping_status": "verified_reference_month_within_readable_scope"
+    },
+    {
+      "position": 25,
+      "name": "biz_type",
+      "output_type": "integer_code",
+      "finance_candidate_mapping": "biz_type",
+      "mapping_status": "verified_reference_month_within_readable_scope"
+    },
+    {
+      "position": 26,
+      "name": "goods_type",
+      "output_type": "integer_code",
+      "finance_candidate_mapping": "goods_type",
+      "mapping_status": "verified_reference_month_within_readable_scope"
+    },
+    {
+      "position": 27,
+      "name": "stat_judge_type",
+      "output_type": "integer_code",
+      "finance_candidate_mapping": "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.stat_judge_type; unique (order_number, trade_timestamp, performance_employee_id) lookup; preserve blank when unmatched; reject conflicting keys",
+      "mapping_status": "verified_lookup_matches_only"
+    },
+    {
+      "position": 28,
+      "name": "fund_supervision_name",
+      "output_type": "text",
+      "finance_candidate_mapping": "fund_supervision_name",
+      "mapping_status": "verified_reference_month_within_readable_scope"
+    }
+  ],
+  "required_unresolved": [
+    "full_department_coverage",
+    "stat_judge_type_for_unmatched_events",
+    "full_population_target_month_reconciliation"
+  ],
+  "instructions": "27列财务映射已通过原月份可读范围逐笔核验；stat只补唯一匹配值，未匹配显式留空并披露。部分交付须用户接受范围，完整复刻未就绪；不等于 confirmed production contract。",
+  "partial_delivery_ready": true,
+  "full_replication_ready": false,
+  "evidence_query_ids": [
+    "1621794896",
+    "1621800286",
+    "1621782501",
+    "1621808862",
+    "1621813594"
+  ],
+  "full_replication_unresolved": [
+    "All required product-department permissions and product/course mapping",
+    "stat_judge_type for unmatched finance events",
+    "Target month full-population reconciliation"
+  ],
+  "scoped_alternatives": [
+    {
+      "scope": "TT业务线/TT 下的 V学部、T学部、TT小学学部，业绩二级青橙",
+      "source": "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
+      "status": "reference_month_26_columns_reconciled",
+      "unavailable_columns": [
+        "biz_type",
+        "goods_type"
+      ],
+      "query_id": "1621870844",
+      "target_finance_independent_reconciliation": "pending_permissions",
+      "full_population_confirmed": false
+    }
+  ]
+}

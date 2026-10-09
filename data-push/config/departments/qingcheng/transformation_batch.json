@@ -21,34 +21,30 @@
     ],
     "hours_by_weekday": {
       "4": [
-        14,
-        18,
-        22
+        13,
+        17,
+        21
       ],
       "5": [
-        14,
-        18,
-        22
+        13,
+        17,
+        21
       ],
       "6": [
-        14,
-        18,
-        22
+        13,
+        17,
+        21
       ],
       "0": [
-        4
+        13,
+        17,
+        21
       ]
     },
-    "minute": 2,
-    "minute_by_weekday": {
-      "0": 0,
-      "4": 2,
-      "5": 2,
-      "6": 2
-    },
-    "deadline_minute": 55,
+    "minute": 52,
+    "retry_window_minutes": 53,
     "timezone": "Asia/Shanghai",
-    "rule_note": "2026-10-05 调整：周五/周六/周日仍为 14:02、18:02、22:02 起各一窗口（每 2 分钟重试至 :55）；次周周一改为凌晨 04:00 起一个窗口（每 2 分钟重试至 04:54），用于等待天宫2 转化上游凌晨 03:40 批次并读取 00:00 分区，其他时刻不推送。Base 申请记录表 9 条记录的既有周五至周日时段保持不变。"
+    "rule_note": "2026-10-08 用户确认：普通主管/顾问转化在周五至次周周一每天 13:52、17:52、21:52 启动，保留基础批次后 2 分钟错峰；取消周一凌晨档。每两分钟重试，窗口持续 53 分钟，末次有效重试为下一小时 :44。"
   },
   "source": {
     "process_base_token": "QOVib6QCXaUvJ2s2PsbcnMmsnGg",
@@ -73,7 +69,7 @@
   "freshness_max_age_minutes": 1560,
   "no_data_policy": "always_send_with_fallback_flag",
   "no_data_note": "2026-10-02 用户指令：无论轮询批次是否有收款/人头/报科产出，均按预设窗口推送一次（不再跳过）；当期无转化产出的群（收款/退费/当期收款/成交人头/报科数全 0）由消息提醒行使用『本期暂无综合单效可比数据，大家加油呀💪💪💪』标识。学部级（reminder_mode=none）恒不带提醒行，含 fallback 也不加。原 skip_group_when_no_conversion_output 规则废弃，conversion_has_output 字段保留为诊断记录。",
-  "schedule_gate_note": "2026-10-02 学部级并入：run 脚本 LEVELS=(supervisor,consultant,dept)，公海/私域/抖音私信/图书四渠道各加 dept operator record（⏰渠道专项讨论同群），消息已于 19:24 手动实发 4 条 verified，Base 四条学部记录已回写时段与状态（已上线）。任务注册与其他推送任务保持一致（pythonw + Interactive + Hidden，用户 19:40 确认不做 S4U 特殊化）。2026-10-03 窗口修正：10-02 曾误将 dept 并入全部 :02 窗口（Base 申请原意为每日 14:00 单档）；现 dept 仅随周五/六/日 14:02 档参与，次周周一 04:00 收官档随大盘写入本周最后一次数据，其余窗口记 skipped_not_in_window。2026-10-05 调整周一发送至 04:00，以等待上游 03:40 批次并读取 00:00 分区。",
+  "schedule_gate_note": "2026-10-08 已确认时段：普通转化三档、专项转化一档，周一与周五至周日一致；共用转化脚本，按 audience 分开调度和状态，任一群失败独立记录。普通任务只送主管/顾问，专项转化任务只送四渠道学部，避免重复投递。",
   "channels": [
     {
       "id": "public_pool",
@@ -125,5 +121,36 @@
       },
       "note": "本地化主管（已上线）→ 青橙-河南本地化项目，提醒不 @ 主管、按年级点名综合单效；顾问（草稿）→ 🍊青橙河南本地化伙伴。2026-10-01 用户确认预览后启用周常调度。"
     }
-  ]
+  ],
+  "dept_schedule": {
+    "status": "active",
+    "schedule_enabled": true,
+    "windows_task_name": "Codex-Lark-Qingcheng-Special-Transformation-GroupPush",
+    "business_calendar": {
+      "result_weekdays": [
+        4,
+        5,
+        6,
+        0
+      ],
+      "hours_by_weekday": {
+        "4": [
+          13
+        ],
+        "5": [
+          13
+        ],
+        "6": [
+          13
+        ],
+        "0": [
+          13
+        ]
+      },
+      "minute": 50,
+      "retry_window_minutes": 53,
+      "timezone": "Asia/Shanghai"
+    },
+    "rule_note": "⏰渠道专项讨论四渠道学部转化每天仅 13:50 一档；同一转化脚本使用 --audience dept，独立锁、源导出目录、批次和回执，末次有效重试为 14:42。"
+  }
 }

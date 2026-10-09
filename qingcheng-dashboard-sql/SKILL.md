@@ -19,6 +19,7 @@ description: Resolve 青橙项目部 metrics and contracts; generate, review or 
 |---|---|
 | 生成、修复、审核生产 SQL / QueryPlan | [查询约束](references/query_governance.md)、命中的 contract 与源文档；只执行适用规则 |
 | 新增 SQL、修改 SQL 或判断验证范围 | [SQL 质量验证](references/sql_quality.md) |
+| 按申老师 Excel「7月流水明细」复刻月度流水、定位相关权限缺口 | [月度流水取数模板与范围边界](knowledge/sql_patterns/qingcheng_monthly_cashflow_excel_replication.md)；27 列财务已对齐历史可读范围，归因码仅唯一匹配；完整范围待补，部分交付需明确接受 |
 | 调试、修复或替换既有生产数据集 SQL | 先执行 [生产数据集 SQL 修改流程](references/query_governance.md#生产数据集-sql-修改流程)，再进入 SQL 质量验证与 operator Replacement Plan |
 | 看板设计、diff、dry-run、字段反查 | [看板设计工作流](knowledge/sql_patterns/dashboard_design_change_workflow.md)；实际能力以 operator registry 为准 |
 | 知识入库、contract、schema / canonical SQL / Web profile 同步 | [知识维护](references/knowledge_maintenance.md)；需明确维护授权 |

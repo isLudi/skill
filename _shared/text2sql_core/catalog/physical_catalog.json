@@ -5932,6 +5932,1393 @@
       "business_semantics_excluded": true
     },
     {
+      "id": "physical:bdg_ba.dwd_crm_crm_order_income_refund_info_hf",
+      "name": "bdg_ba.dwd_crm_crm_order_income_refund_info_hf",
+      "domains": [
+        "qingcheng"
+      ],
+      "source_docs": [
+        {
+          "domain": "qingcheng",
+          "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md",
+          "sha256": "b0e86a964797018ae7733eba2034a7562e9dda087c3fc06a7b0f62a7675cc4db"
+        }
+      ],
+      "columns": [
+        {
+          "name": "attribution_divide_reason",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "attribution_divide_reason_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "attribution_is_del",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "channel_name_1",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "channel_name_2",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "channel_name_3",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "channel_provider_id",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "channel_provider_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "channel_second_provider_id",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "channel_second_provider_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "clazz_biz_number",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "clazz_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "clazz_number",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "clazz_room_type",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "clazz_type",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "course_category_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "course_first_level_department_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "course_first_level_department_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "course_first_level_subject_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "course_first_level_subject_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "course_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "course_number",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "course_second_level_department_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "course_second_level_department_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "course_second_level_subject_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "course_second_level_subject_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "course_third_level_department_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "course_third_level_department_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "course_third_level_subject_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "course_third_level_subject_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "dt",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "final_new_source",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "flow_order_period_number",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "flow_pool_id",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "flow_pool_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "flow_pool_type_id",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "flow_pool_type_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "goods_type",
+          "types": [
+            "int"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "int",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "grade_code",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "grade_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "hour",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "income_amount",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "is_calculate_order_amount",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "is_calculate_order_cnt",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "is_full_refund_trade_tag",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "is_in_blacklist",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "is_lead_conversion_tag",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "is_same_period_type",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "is_valid_payed",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "latest_order_full_refund_timestamp",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "latest_order_is_full_refund_order",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "latest_order_number",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "lead_id",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "mapping_school_subject_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "mapping_school_subject_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "o_order99_is_payed_tag",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "o_order_is_fullrefund_tag",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "o_order_is_payed_tag",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "o_order_refund_is_same_pay_period",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "order_last_performance_employee_email_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "order_last_performance_employee_email_prefix",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "order_last_performance_employee_id",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "order_number",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "original_order_activity_number",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "original_order_activity_price",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "original_order_number",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "original_order_pay_number",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "original_order_pay_success_timestamp",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "original_order_price",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "pay_period_begin_time",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "pay_period_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "pay_period_end_time",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "pay_period_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "pay_refund_type",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "performance_attribution_type",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "performance_employee_email_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "performance_employee_email_prefix",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "performance_employee_id",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "performance_first_level_department_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "performance_first_level_department_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "performance_second_level_department_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "performance_second_level_department_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "performance_talent_type_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "performance_talent_type_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "performance_third_level_department_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "performance_third_level_department_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "performance_type",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "pre_clazz_type",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "price_ratio",
+          "types": [
+            "double"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "double",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "refund_amount",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "refund_is_same_pay_period",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "rn_number",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "school_subject_code",
+          "types": [
+            "int"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "int",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "school_subject_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "school_term_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "school_term_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "school_year",
+          "types": [
+            "int"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "int",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "stat_judge_type",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "trade_month",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "trade_period_begin_time",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "trade_period_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "trade_period_end_time",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "trade_period_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "trade_timestamp",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "user_number",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dwd_crm_crm_order_income_refund_info_hf.md"
+            }
+          ]
+        }
+      ],
+      "partition_candidates": [
+        "dt",
+        "hour"
+      ],
+      "conflicts": [],
+      "business_semantics_excluded": true
+    },
+    {
       "id": "physical:bdg_ba.dws_crm_order_income_refund_period_detail_hf",
       "name": "bdg_ba.dws_crm_order_income_refund_period_detail_hf",
       "domains": [
@@ -5947,11 +7334,2693 @@
         {
           "domain": "qingcheng",
           "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md",
-          "sha256": "6a41903b337632445efcdbdb299bfe0cdd601801d3f983b649d01bf82c6ffaa8"
+          "sha256": "3d6d38c387597544b5dd05efdf08b74dc429a21198e2846cc7ba3392adf97536"
         }
       ],
-      "columns": [],
-      "partition_candidates": [],
+      "columns": [
+        {
+          "name": "activity_number",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "activity_price",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "bind_main_order_number",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "bind_type",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "biz_line_type",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "clazz_begin_timestamp",
+          "types": [
+            "timestamp"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "timestamp",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "clazz_biz_number",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "clazz_end_timestamp",
+          "types": [
+            "timestamp"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "timestamp",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "clazz_hour_count",
+          "types": [
+            "decimal"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "decimal",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "clazz_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "clazz_number",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "clazz_room_type",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "clazz_type",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "course_biz_number",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "course_category_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "course_first_level_department_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "course_first_level_department_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "course_first_level_subject_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "course_first_level_subject_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "course_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "course_number",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "course_second_level_department_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "course_second_level_department_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "course_second_level_subject_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "course_second_level_subject_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "course_third_level_department_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "course_third_level_department_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "course_third_level_subject_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "course_third_level_subject_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "course_top_level_department_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "course_top_level_department_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "dt",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "flow_source_record_count",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "fourth_normal_lesson_begin_timestamp",
+          "types": [
+            "timestamp"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "timestamp",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "full_refund_timestamp",
+          "types": [
+            "timestamp"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "timestamp",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "fund_supervision_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "fund_supervision_number",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "goods_department_path_json",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "goods_first_level_department_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "goods_first_level_department_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "goods_last_level_department_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "goods_second_level_department_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "goods_second_level_department_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "goods_third_level_department_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "goods_third_level_department_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "goods_top_level_department_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "goods_top_level_department_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "grade_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "grade_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "hour",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "income_amount",
+          "types": [
+            "decimal"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "decimal",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "invoice_number",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "is_blacklist_user",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "is_exist_lead",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "is_full_refund_in_pay_period",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "is_full_refund_order",
+          "types": [
+            "int"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "int",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "is_latest_order_first_full_refund",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "is_original_order_pay_success",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "is_part_refund_order",
+          "types": [
+            "int"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "int",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "is_pay_success_order",
+          "types": [
+            "int"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "int",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "is_renew_class_amount",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "is_renew_class_user",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "is_same_lead_second_department",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "is_same_second_department",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "is_same_trade_lead_period",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "is_same_trade_pay_period",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "is_stats_conversion_amount",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "is_stats_conversion_num",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "is_trade_period_matched",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "latest_order_full_refund_timestamp",
+          "types": [
+            "timestamp"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "timestamp",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "latest_order_is_full_refund_order",
+          "types": [
+            "int"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "int",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "latest_order_is_part_refund_order",
+          "types": [
+            "int"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "int",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "latest_order_is_pay_success_order",
+          "types": [
+            "int"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "int",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "latest_order_number",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "lead_id",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "lead_period_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "lead_period_number",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "main_teacher_email_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "main_teacher_email_prefix",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "main_teacher_nickname",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "main_teacher_number",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "mapping_school_subject_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "mapping_school_subject_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "mark",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "order_number",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "order_price",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "order_ratio",
+          "types": [
+            "decimal"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "decimal",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "order_status",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "original_order_activity_number",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "original_order_activity_price",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "original_order_number",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "original_order_pay_number",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "original_order_pay_success_timestamp",
+          "types": [
+            "timestamp"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "timestamp",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "original_order_price",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "original_order_user_number",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "owner_candidate_count",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "owner_selection_rule_code",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "pay_group_period_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "pay_group_period_term",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "pay_group_period_year",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "pay_number",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "pay_period_clazz_begin_time",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "pay_period_conversion_begin_time",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "pay_period_conversion_end_time",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "pay_period_course_category_code",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "pay_period_first_level_course_project_code",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "pay_period_first_level_course_project_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "pay_period_first_level_subject_code",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "pay_period_first_level_subject_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "pay_period_is_test",
+          "types": [
+            "int"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "int",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "pay_period_main_teacher_nicknames",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "pay_period_main_teacher_numbers",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "pay_period_mapping_first_level_department_code",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "pay_period_mapping_first_level_department_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "pay_period_mapping_second_level_department_code",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "pay_period_mapping_second_level_department_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "pay_period_mapping_top_level_department_code",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "pay_period_mapping_top_level_department_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "pay_period_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "pay_period_number",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "pay_period_second_level_course_project_code",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "pay_period_second_level_course_project_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "pay_period_second_level_subject_code",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "pay_period_second_level_subject_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "pay_period_third_level_course_project_code",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "pay_period_third_level_course_project_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "pay_period_third_level_subject_code",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "pay_period_third_level_subject_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "pay_refund_type",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "pay_success_timestamp",
+          "types": [
+            "timestamp"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "timestamp",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "performance_city_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "performance_city_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "performance_department_path_json",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "performance_employee_email_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "performance_employee_email_prefix",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "performance_employee_id",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "performance_employee_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "performance_first_level_department_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "performance_first_level_department_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "performance_last_level_department_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "performance_second_level_department_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "performance_second_level_department_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "performance_talent_type_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "performance_talent_type_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "performance_third_level_department_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "performance_third_level_department_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "performance_top_level_department_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "performance_top_level_department_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "performance_type",
+          "types": [
+            "int"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "int",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "pre_clazz_type",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "pre_course_type",
+          "types": [
+            "int"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "int",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "price_ratio",
+          "types": [
+            "decimal"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "decimal",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "refund_amount",
+          "types": [
+            "decimal"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "decimal",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "refund_pay_diff_seconds",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "refund_type",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "school_department_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "school_department_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "school_subject_code",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "school_subject_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "school_term_code",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "school_term_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "school_year",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "sku_count",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "sku_number",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "spu_number",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "stat_judge_type",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "stats_trade_timestamp",
+          "types": [
+            "timestamp"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "timestamp",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "trade_group_period_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "trade_group_period_term",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "trade_group_period_year",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "trade_period_attribution_route",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "trade_period_candidate_count",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "trade_period_clazz_begin_time",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "trade_period_conversion_begin_time",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "trade_period_conversion_end_time",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "trade_period_course_category_code",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "trade_period_first_level_course_project_code",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "trade_period_first_level_course_project_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "trade_period_first_level_subject_code",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "trade_period_first_level_subject_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "trade_period_is_test",
+          "types": [
+            "int"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "int",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "trade_period_main_teacher_nicknames",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "trade_period_main_teacher_numbers",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "trade_period_mapping_first_level_department_code",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "trade_period_mapping_first_level_department_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "trade_period_mapping_second_level_department_code",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "trade_period_mapping_second_level_department_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "trade_period_mapping_top_level_department_code",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "trade_period_mapping_top_level_department_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "trade_period_match_rule_code",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "trade_period_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "trade_period_number",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "trade_period_second_level_course_project_code",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "trade_period_second_level_course_project_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "trade_period_second_level_subject_code",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "trade_period_second_level_subject_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "trade_period_third_level_course_project_code",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "trade_period_third_level_course_project_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "trade_period_third_level_subject_code",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "trade_period_third_level_subject_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "trade_timestamp",
+          "types": [
+            "timestamp"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "timestamp",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "transfer_in_amount",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "transfer_out_amount",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "user_id",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "user_id_source",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "user_ratio",
+          "types": [
+            "decimal"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "decimal",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.dws_crm_order_income_refund_period_detail_hf.md"
+            }
+          ]
+        }
+      ],
+      "partition_candidates": [
+        "dt",
+        "hour"
+      ],
       "conflicts": [],
       "business_semantics_excluded": true
     },
@@ -7971,7 +12040,7 @@
         {
           "domain": "qingcheng",
           "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md",
-          "sha256": "1e438c04c8cd36b155d78dee125d8baa78a3cc6b61f9f29a59c5f8967e32eed8"
+          "sha256": "38b9dee86f2411dbcf935b18171170535eabb7d79087d62a68b8e82ce2b5ba28"
         }
       ],
       "columns": [
@@ -9195,6 +13264,19 @@
             {
               "domain": "qingcheng",
               "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
+            }
+          ]
+        },
+        {
+          "name": "performance_top_level_department_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "qingcheng",
+              "type": "string",
               "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_order_income_refund_info_df.md"
             }
           ]

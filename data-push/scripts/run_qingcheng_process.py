@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from qingcheng_schedule import resolve_slot
+
 import argparse
 from contextlib import contextmanager
 import hashlib
@@ -88,7 +90,7 @@ def _batch() -> dict:
         raise ValueError("Unexpected Qingcheng process batch scope")
     if [item["id"] for item in batch["channels"]] != ["public_pool", "private", "douyin_dm"]:
         raise ValueError("All Qingcheng process channels must be explicit")
-    if (calendar["process_weekdays"], calendar["hours"], calendar["minute"], calendar["deadline_minute"], calendar["timezone"]) != ([1, 2, 3], [14, 18, 22], 0, 50, "Asia/Shanghai"):
+    if (calendar["process_weekdays"], calendar["hours"], calendar["minute"], calendar["retry_window_minutes"], calendar["timezone"]) != ([1, 2, 3], [13, 17, 21], 50, 50, "Asia/Shanghai"):
         raise ValueError("Process batch calendar differs from the reviewed slots")
     upstream = batch["upstream"]
     if (batch["retry_interval_minutes"], batch["windows_task_name"], upstream["project_id"], upstream["folder"],
@@ -110,13 +112,10 @@ def _period(day: date) -> str:
 
 def _slot(now: datetime, batch: dict) -> datetime:
     calendar = batch["business_calendar"]
-    if now.tzinfo is None or now.utcoffset() != timedelta(hours=8):
-        raise ValueError("Task clock must be Asia/Shanghai")
-    if (now.weekday() not in calendar["process_weekdays"] or now.hour not in calendar["hours"]
-            or not calendar["minute"] <= now.minute <= calendar["deadline_minute"]
-            or (now.minute - calendar["minute"]) % batch["retry_interval_minutes"]):
-        raise ValueError("Outside the authorized Qingcheng process window")
-    return now.replace(minute=calendar["minute"], second=0, microsecond=0)
+    return resolve_slot(now, weekdays=calendar["process_weekdays"], hours=calendar["hours"],
+                        minute=calendar["minute"], retry_minutes=batch["retry_interval_minutes"],
+                        window_minutes=calendar["retry_window_minutes"],
+                        error="Outside the authorized Qingcheng process window")
 
 
 def _key(channel: str, level: str, chat_id: str, period: str, slot: datetime) -> str:
@@ -461,7 +460,11 @@ def main() -> None:
     parser.add_argument("--period-date", default="", help="Business Friday YYYYMMDD for local preview")
     parser.add_argument("--output", type=Path)
     parser.add_argument("--confirm-send", action="store_true")
+    parser.add_argument("--check-config", action="store_true")
     args = parser.parse_args()
+    if args.check_config:
+        print(json.dumps({"configuration": "valid", "batch": _batch()}, ensure_ascii=True))
+        return
     with run_scope(BATCH_CONFIG, "process_batch") as scope:
         scope.event("run_started", confirmed=args.confirm_send, period_date=args.period_date)
         if args.confirm_send:

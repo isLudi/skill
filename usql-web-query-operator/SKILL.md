@@ -50,6 +50,7 @@ description: Execute governed USQL, templates, Data Center and BI operations, an
 - Tiangong2 非 SQL Python 修复只允许 `plan-task-python-patch`/`apply-task-python-patch` 的精确文本替换：每个旧片段必须唯一命中，补丁不得含疑似密钥、不得改变 `query_sql`、公司默认参数块或资源绑定，投影源码必须通过语法检查，完整含密钥源码始终只在内存中投影并提交，计划与工件只保存片段 Hash 和长度。本 Skill 仍不提供完整源码文件替换、凭据编辑或任意 Python 写入入口。
 - Tiangong2 权限分为四级：R 级只读；P 级使用单阶段精确 Plan Hash 与该阶段确认，调度保存只允许此模式；M 级由 `plan-task-maintenance-session`/`authorize-task-maintenance-session` 经用户一次确认激活，绑定精确自有任务、基线默认块、资源、有效期、操作白名单和调试执行预算，会话内每阶段仍生成精确 Plan Hash、执行漂移门和回读，但不再要求用户重复确认；X 级永久禁止跨负责人/跨一级目录、默认块或凭据修改、资源/权限变更、下游触发、既有执行重跑和任意完整源码替换。M 级到期、预算耗尽或出现请求已发出但状态不确定时立即停止，不能把一次授权复用于其他任务或后续无关需求。
 - `plan-task-submit`/`submit-task` 绑定已保存源码与版本说明；`plan-task-publish`/`publish-task` 发布并回读唯一匹配版本；`plan-task-execution`/`execute-task-once` 只允许最新已发布源码产生一个新执行，固定不触发下游、不注入参数、不禁用 stage。保存、提交、发布和执行继续使用相互独立的单用途单次客户端；P 级确认或同一 M 级会话只替代人工确认，不替代任何阶段 Plan、Hash、漂移门、单次调用或端到端验收。
+- 调度保存后的同源码重提仅通过提交命令的回执绑定模式：必须提供同一任务此前成功提交回执和其后已验证的开发页调度保存回执，在线核验源码、唯一待发布版本及实际 Nezha 调度一致；保留普通重复提交阻断。每份调度保存计划最多一次重提请求，须独立 P 级确认，持久记录尝试且失败不自动重试；此能力不保存源码、不修改调度、不发布、不执行。
 - QueryPlan 约束 `run` 以及 `run-with-fallback` 的每个独立 attempt：必须为受支持域、`status=executable`、`unresolved_slots=[]` 且 SQL SHA-256 完全一致。
 - `run` 在浏览器启动前强制执行只读 SQL Policy；DDL/DML、命令语句、多语句、解析失败和未解析模板参数不得通过 audit 模式绕过。
 - `run` 提交前必须稳定回读精确 SQL Hash 和引擎标签；一次运行只触发一次提交，平台受理后绑定一个新 Query ID，不得因页面响应慢而自动重复点击。

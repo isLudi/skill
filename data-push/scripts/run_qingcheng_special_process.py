@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from qingcheng_schedule import resolve_slot
+
 import argparse
 from contextlib import contextmanager
 from datetime import datetime, timedelta
@@ -43,13 +45,13 @@ def _config() -> dict:
             cfg["source"]["base_token"], cfg["source"]["table_id"],
             cfg["target_chat_id"], cfg["sender"]["identity"], cfg["sender"]["open_id"],
             cal["period_rule"], cal["process_weekdays"], cal["hours"], cal["minute"],
-            cal["deadline_minute"], cal["retry_interval_minutes"], cal["timezone"], cfg["sort"]) != (
+            cal["retry_window_minutes"], cal["retry_interval_minutes"], cal["timezone"], cfg["sort"]) != (
             1, "qingcheng", "local", "process", "学部", "active", True,
             "Codex-Lark-Qingcheng-Special-Process-GroupPush", "setup_only", False, True, True, True,
             5, "经理", "退后线索", "QOVib6QCXaUvJ2s2PsbcnMmsnGg", "tblXU4tla3bY36DE",
             "oc_a95c83e488e0dfcc777d5ffad849d8a4", "bot",
             "ou_f3907e865135732c15a1dfce27828411",
-             "自然周周五期次", [1, 2, 3], [14], 0, 50, 2, "Asia/Shanghai",
+             "自然周周五期次", [1, 2, 3], [13], 50, 50, 2, "Asia/Shanghai",
             {"metric": "8min", "direction": "desc", "value": "unrounded"}):
         raise ValueError("Special-channel process task configuration differs")
     if cfg["upstream"] != _qingcheng_batch()["upstream"]:
@@ -76,12 +78,10 @@ def _config() -> dict:
 
 def _slot(now: datetime, cfg: dict) -> datetime:
     cal = cfg["business_calendar"]
-    if (now.tzinfo is None or now.utcoffset() != timedelta(hours=8)
-            or now.weekday() not in cal["process_weekdays"] or now.hour not in cal["hours"]
-            or not cal["minute"] <= now.minute <= cal["deadline_minute"]
-            or (now.minute - cal["minute"]) % cal["retry_interval_minutes"]):
-        raise ValueError("Outside the special-channel process delivery window")
-    return now.replace(minute=cal["minute"], second=0, microsecond=0)
+    return resolve_slot(now, weekdays=cal["process_weekdays"], hours=cal["hours"],
+                        minute=cal["minute"], retry_minutes=cal["retry_interval_minutes"],
+                        window_minutes=cal["retry_window_minutes"],
+                        error="Outside the special-channel process delivery window")
 
 
 @contextmanager

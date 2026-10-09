@@ -28,6 +28,7 @@ from governed_temp_table_sync import (  # noqa: E402
     assert_plan_source_quality_current,
     build_selection_spec,
     classify_source_message,
+    earliest_source_timestamp,
     evaluate_source_quality,
     inspect_external_link_integrity,
     list_chat_messages_bot,
@@ -594,6 +595,81 @@ class MergeWorkflowTests(unittest.TestCase):
                     classify_source_message(registry, source_message(filename))
                 )
 
+    def test_market_period_architecture_accepts_daiban_alias(self) -> None:
+        registry = load_registry(SKILL_ROOT / "references" / "workflow_registry.json")
+        family = next(
+            item
+            for item in registry["families"]
+            if item["id"] == "market_period_architecture"
+        )
+        self.assertEqual(family["source_sheet"], "$active")
+        self.assertEqual(family["source_quality"]["row_count"]["min"], 100)
+
+        def source_message(filename: str) -> dict[str, object]:
+            return {
+                "message_id": "om_daiban_alias",
+                "chat_id": "oc_7b9873ee89b18d11cf60c8768c6eba9e",
+                "sender": {"id": "ou_source", "name": "张君言"},
+                "msg_type": "file",
+                "content": f'<file key="file_daiban" name="{filename}"/>',
+            }
+
+        self.assertEqual(
+            classify_source_message(registry, source_message("daiban.xlsx")),
+            "market_period_architecture",
+        )
+        for filename in ("daiban.xlsm", "daiban.csv", "new_daiban.xlsx"):
+            with self.subTest(filename=filename):
+                self.assertIsNone(
+                    classify_source_message(registry, source_message(filename))
+                )
+
+        with tempfile.TemporaryDirectory() as directory:
+            source_path = Path(directory) / "daiban.xlsx"
+            workbook = Workbook()
+            sheet = workbook.active
+            sheet.title = "Sheet1"
+            sheet.append(
+                [
+                    "xiaozu_z",
+                    "employee_email_prefix",
+                    "xiaozu",
+                    "employee_email_name",
+                    "department",
+                    "zaizhi",
+                    "qici",
+                    "dept_2",
+                    "jingli",
+                ]
+            )
+            sheet.append(
+                [
+                    "group01",
+                    "employee01",
+                    "组一",
+                    "员工01",
+                    "郑州市场顾问部",
+                    "1",
+                    "20261016期",
+                    "郑州顾问部",
+                    "经理01",
+                ]
+            )
+            workbook.save(source_path)
+            workbook.close()
+
+            records, metadata = read_records(
+                source_path,
+                family["source_sheet"],
+                family["target_columns"],
+                constants=family["constant_columns"],
+                data_only=True,
+            )
+
+        self.assertEqual(metadata["sheet"], "Sheet1")
+        self.assertEqual(records[0]["qici"], "20261016期")
+        self.assertEqual(records[0]["dept_1"], "市场顾问部")
+
     def test_registry_rejects_duplicate_platform_temp_table_mapping(self) -> None:
         registry_path = SKILL_ROOT / "references" / "workflow_registry.json"
         registry = json.loads(registry_path.read_text(encoding="utf-8"))
@@ -947,6 +1023,103 @@ class MergeWorkflowTests(unittest.TestCase):
                 current_snapshot,
                 baselines,
             )
+
+    def test_slice_subset_source_preserves_missing_history(self) -> None:
+        family = {
+            "id": "market_period_architecture",
+            "target_columns": ["qici", "name"],
+            "slice_column": "qici",
+            "source_merge_mode": "changed_source_slices",
+            "source_baseline_id": "market_period_architecture",
+            "max_changed_slices": 2,
+            "recent_slice_window": 1,
+            "slice_subset_filename_patterns": [r"^daiban\.xlsx$"],
+        }
+        baseline_records = [
+            {"qici": "20260728期", "name": "A"},
+            {"qici": "20260803期", "name": "B"},
+        ]
+        current_records = [{"qici": "20261016期", "name": "new"}]
+        baselines = {
+            "families": {
+                "market_period_architecture": source_slice_snapshot(
+                    family,
+                    baseline_records,
+                )
+            }
+        }
+
+        selected, selection = select_source_records_for_merge(
+            family,
+            current_records,
+            source_slice_snapshot(family, current_records),
+            baselines,
+            source_file_name="daiban.xlsx",
+        )
+
+        self.assertEqual(selected, current_records)
+        self.assertEqual(selection["source_coverage"], "slice_subset")
+        self.assertEqual(selection["removed_slices"], ["20260728期", "20260803期"])
+
+    def test_slice_subset_baseline_update_preserves_existing_slices(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            state_path = root / "state.json"
+            seed_path = root / "seed.json"
+            existing = {
+                "schema_version": "1.0.0",
+                "families": {
+                    "market_period_architecture": {
+                        "message_id": "om_old",
+                        "create_time": "2026-10-01 12:00",
+                        "source_sha256": "a" * 64,
+                        "slices": {
+                            "20261009期": {"row_count": 196, "sha256": "b" * 64}
+                        },
+                    },
+                    "market_plan_id": {"slices": {"1016期": {"row_count": 1}}},
+                },
+            }
+            state_path.write_text(json.dumps(existing), encoding="utf-8")
+            seed_path.write_text(json.dumps(existing), encoding="utf-8")
+            plan = {
+                "source_baseline_context": {
+                    "state_path": str(state_path),
+                    "seed_path": str(seed_path),
+                }
+            }
+            snapshot = {
+                "slices": {
+                    "20261016期": {"row_count": 195, "sha256": "c" * 64}
+                },
+                "row_count": 195,
+            }
+            result = update_source_baseline_state(
+                plan,
+                [
+                    {
+                        "family_id": "market_period_architecture",
+                        "source_slice_snapshot": snapshot,
+                        "source_selection": {
+                            "mode": "changed_source_slices",
+                            "baseline_id": "market_period_architecture",
+                            "source_coverage": "slice_subset",
+                        },
+                        "source_message": {
+                            "message_id": "om_new",
+                            "create_time": "2026-10-08 18:58",
+                            "source_sha256": "d" * 64,
+                        },
+                    }
+                ],
+            )
+            updated = json.loads(state_path.read_text(encoding="utf-8"))
+
+        self.assertIsNotNone(result)
+        family = updated["families"]["market_period_architecture"]
+        self.assertEqual(set(family["slices"]), {"20261009期", "20261016期"})
+        self.assertEqual(family["row_count"], 391)
+        self.assertIn("market_plan_id", updated["families"])
 
     def test_target_equivalent_backlog_keeps_change_limit_for_real_edits(self) -> None:
         family = {
@@ -1304,6 +1477,42 @@ class MergeWorkflowTests(unittest.TestCase):
             "latest_target_slice",
         )
         self.assertFalse(report["issues"])
+
+    def test_earliest_source_timestamp_preserves_utc_offset(self) -> None:
+        source_inputs = [
+            {"create_time": "2026-09-23 19:37"},
+            {"create_time": "2026-10-08 18:18"},
+        ]
+
+        self.assertEqual(
+            earliest_source_timestamp(source_inputs),
+            "2026-09-23T11:37:00+00:00",
+        )
+
+        family = {
+            "slice_column": "qici",
+            "target_columns": ["qici", "name"],
+            "source_quality": {
+                "policy_version": "1.0.0",
+                "max_age_hours": 360,
+                "row_count": {"min": 1, "max": 10},
+                "relative_change": {
+                    "baseline": "same_slice_or_latest_target",
+                    "max_ratio": 0.5,
+                },
+                "required_column_null_rate": {"qici": 0, "name": 0},
+            },
+        }
+        report = evaluate_source_quality(
+            family,
+            {"create_time": earliest_source_timestamp(source_inputs)},
+            [{"qici": "20261016期", "name": "A"}],
+            [{"qici": "20261009期", "name": "A"}],
+            now=datetime(2026, 10, 8, 10, 33, tzinfo=timezone.utc),
+        )
+
+        self.assertEqual(report["status"], "pass")
+        self.assertAlmostEqual(report["source_age_hours"], 358.933, places=3)
 
     def test_source_quality_blocks_age_rows_relative_change_and_null_rate(self) -> None:
         family = {
