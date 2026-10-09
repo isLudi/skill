@@ -1,0 +1,16 @@
+{
+  "base_token": "REPLACE_WITH_BASE_TOKEN",
+  "table_id": "REPLACE_WITH_DATA_TABLE_ID",
+  "config_table_id": "REPLACE_WITH_CONFIGURATION_TABLE_ID",
+  "config_record_id": "REPLACE_WITH_CONFIGURATION_RECORD_ID",
+  "credentials_file": "private/usql_api.env",
+  "runtime_dir": "data/runtime",
+  "output_dir": "data/runs",
+  "browser_channel": "msedge",
+  "lark_cli": "tools/lark-cli.exe",
+  "mail_wait_seconds": 600,
+  "mail_poll_seconds": 3,
+  "mail_scan_pages": 5,
+  "cache_retention_days": 7,
+  "log_retention_days": 30
+}

@@ -16,8 +16,8 @@ def import_playwright(include_timeout_error: bool = False) -> Any:
     except ModuleNotFoundError as exc:
         raise UsageError(
             "Python Playwright is not installed. Install with:\n"
-            "D:\\anaconda3\\python.exe -m pip install playwright\n"
-            "D:\\anaconda3\\python.exe -m playwright install chromium"
+            "python -m pip install playwright\n"
+            "python -m playwright install chromium (or use installed Microsoft Edge)"
         ) from exc
     if include_timeout_error:
         return sync_playwright, PlaywrightTimeoutError

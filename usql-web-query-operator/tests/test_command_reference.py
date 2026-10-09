@@ -18,7 +18,7 @@ class CommandReferenceTests(unittest.TestCase):
         help_index = build_command_reference.validate_registry(registry)
         self.assertEqual(
             set(help_index),
-            {"usql_web_query.py", "read_dashboard.py", "tiangong2_task.py"},
+            {"usql_web_query.py", "read_dashboard.py", "tiangong2_task.py", "oes_achievement.py"},
         )
         self.assertIn("run", help_index["usql_web_query.py"])
         run_entry = next(
@@ -32,6 +32,14 @@ class CommandReferenceTests(unittest.TestCase):
         self.assertIn("capture-dashboard-build-evidence", help_index["read_dashboard.py"])
         self.assertIn("verify-sandbox-dashboard-build", help_index["read_dashboard.py"])
         self.assertIn("explore", help_index["tiangong2_task.py"])
+        self.assertIn("session-status", help_index["oes_achievement.py"])
+        self.assertIn("export", help_index["oes_achievement.py"])
+        self.assertIn("base-setup", help_index["oes_achievement.py"])
+        self.assertIn("sync-base", help_index["oes_achievement.py"])
+        self.assertIn("clean-cache", help_index["oes_achievement.py"])
+        self.assertIn("mail-login", help_index["oes_achievement.py"])
+        self.assertIn("download-mail", help_index["oes_achievement.py"])
+        self.assertIn("export-and-download", help_index["oes_achievement.py"])
 
     def test_generated_reference_is_current(self) -> None:
         self.assertEqual(

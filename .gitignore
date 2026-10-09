@@ -23,6 +23,7 @@
 !*.yaml
 !*.yml
 !*.svg
+!usql-web-query-operator/assets/oes_credentials.env.example
 
 # Environment and secrets
 .env

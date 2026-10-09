@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "job_name": "oes_orders_daily",
+  "date_filter": {
+    "mode": "absolute",
+    "start_date": "2026-10-01",
+    "end_date": "2026-10-03"
+  },
+  "mail": {
+    "sender": "gtkt-lvyue",
+    "subject_contains": "业绩数据明细导出",
+    "wait_seconds": 600,
+    "poll_seconds": 15,
+    "scan_pages": 5
+  }
+}
