@@ -57,6 +57,22 @@
 | `profile-folder` | Profile selected dashboards under a folder. | `remote_read_only` | `explicit_command` | [platform_profile.md](platform_profile.md) |
 | `profile-all` | Scan configured folders into runtime; Skill knowledge writes require two explicit maintenance flags. | `local_write_explicit` | `explicit_flags` | [platform_profile.md](platform_profile.md) |
 
+## `scripts/oes_achievement.py`
+
+| 命令 | CLI 作用 | 影响类型 | 授权门禁 | 详细说明 |
+|---|---|---|---|---|
+| `login` | Create or refresh the isolated OES login state. | `local_write_explicit` | `explicit_command` | [oes_achievement_export.md](oes_achievement_export.md) |
+| `session-status` | Verify the saved OES state against the live board. | `remote_read_only` | `explicit_command` | [oes_achievement_export.md](oes_achievement_export.md) |
+| `inspect-range` | Read a tiny page to check date span, row count and complete native-export eligibility. | `remote_read_only` | `explicit_command` | [oes_achievement_export.md](oes_achievement_export.md) |
+| `export` | Query a date range, export all rows locally, then request native export. | `remote_write_explicit` | `explicit_command` | [oes_achievement_export.md](oes_achievement_export.md) |
+| `mail-login` | Create or refresh the isolated Outlook state using OES credentials. | `local_write_explicit` | `explicit_command` | [oes_achievement_export.md](oes_achievement_export.md) |
+| `mail-session-status` | Verify the live Outlook state and refresh login once if expired. | `local_write_explicit` | `explicit_command` | [oes_achievement_export.md](oes_achievement_export.md) |
+| `download-mail` | Download one unambiguous OES Excel attachment without resubmitting export. | `local_write_explicit` | `explicit_command` | [oes_achievement_export.md](oes_achievement_export.md) |
+| `export-and-download` | Query, split ranges over 10k rows, export each batch once, receive mail and merge verified XLSX; resume by run key. | `remote_write_explicit` | `explicit_command` | [oes_achievement_export.md](oes_achievement_export.md) |
+| `base-setup` | Initialize the target's 13 Excel fields and the maintained Base start-time configuration. | `remote_write_explicit` | `explicit_command` | [oes_achievement_export.md](oes_achievement_export.md) |
+| `sync-base` | Read the maintained Base start time, fix cutoff to run start, collect mail and clear old records in parallel, replace and verify all Excel fields. | `remote_write_explicit` | `explicit_command` | [oes_achievement_export.md](oes_achievement_export.md) |
+| `clean-cache` | Locally remove verified completed Base caches older than retention, preserve recovery files and compact replay guards, rotate daily logs. | `local_write_explicit` | `explicit_command` | [oes_achievement_export.md](oes_achievement_export.md) |
+
 ## `scripts/tiangong2_task.py`
 
 | 命令 | CLI 作用 | 影响类型 | 授权门禁 | 详细说明 |

@@ -15,7 +15,7 @@
         "additionalProperties": false,
         "required": ["entrypoint", "commands"],
         "properties": {
-          "entrypoint": {"enum": ["usql_web_query.py", "read_dashboard.py", "tiangong2_task.py"]},
+          "entrypoint": {"enum": ["usql_web_query.py", "read_dashboard.py", "tiangong2_task.py", "oes_achievement.py"]},
           "commands": {
             "type": "array",
             "items": {

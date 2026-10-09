@@ -56,6 +56,22 @@
       ]
     },
     {
+      "entrypoint": "oes_achievement.py",
+      "commands": [
+        {"name": "login", "effect": "local_write_explicit", "authorization": "explicit_command", "reference": "oes_achievement_export.md"},
+        {"name": "session-status", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "oes_achievement_export.md"},
+        {"name": "inspect-range", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "oes_achievement_export.md"},
+        {"name": "export", "effect": "remote_write_explicit", "authorization": "explicit_command", "reference": "oes_achievement_export.md"},
+        {"name": "mail-login", "effect": "local_write_explicit", "authorization": "explicit_command", "reference": "oes_achievement_export.md"},
+        {"name": "mail-session-status", "effect": "local_write_explicit", "authorization": "explicit_command", "reference": "oes_achievement_export.md"},
+        {"name": "download-mail", "effect": "local_write_explicit", "authorization": "explicit_command", "reference": "oes_achievement_export.md"},
+        {"name": "export-and-download", "effect": "remote_write_explicit", "authorization": "explicit_command", "reference": "oes_achievement_export.md"},
+        {"name": "base-setup", "effect": "remote_write_explicit", "authorization": "explicit_command", "reference": "oes_achievement_export.md"},
+        {"name": "sync-base", "effect": "remote_write_explicit", "authorization": "explicit_command", "reference": "oes_achievement_export.md"},
+        {"name": "clean-cache", "effect": "local_write_explicit", "authorization": "explicit_command", "reference": "oes_achievement_export.md"}
+      ]
+    },
+    {
       "entrypoint": "tiangong2_task.py",
       "commands": [
         {"name": "list-projects", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "tiangong2_task_exploration.md"},

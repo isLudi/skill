@@ -1,6 +1,6 @@
 ---
 name: usql-web-query-operator
-description: Execute governed USQL, templates, Data Center and BI operations, and inspect or maintain an owned Tiangong2 task. Use for these platforms; business SQL and metric semantics come from the resolved domain Skill.
+description: Execute governed USQL, templates, Data Center and BI operations, maintain an owned Tiangong2 task, and query/export OES achievements through Outlook Excel to full Feishu Base replacement. Business SQL and metric semantics come from the resolved domain Skill.
 ---
 
 # USQL Web Query Operator
@@ -23,6 +23,7 @@ description: Execute governed USQL, templates, Data Center and BI operations, an
 
 | 任务 | 必读 reference | 稳定入口 |
 |---|---|---|
+| OES 登录态、日期筛选、分批导出、Outlook Excel 下载、Base 全量覆盖与便携运行包 | [oes_achievement_export.md](references/oes_achievement_export.md) | `scripts/oes_achievement.py`；`scripts/run_oes_base_job.py`；`scripts/build_oes_deployment.py` |
 | SQL 执行、错误、小结果下载 | [sql_query_execution.md](references/sql_query_execution.md)；有 QueryPlan 再读 [query_plan_contract.md](references/query_plan_contract.md)；追踪和结果工件见 [text2sql_runtime_artifacts.md](references/text2sql_runtime_artifacts.md) | `scripts/usql_web_query.py` |
 | 模板 SQL、永久参数化模板创建/发布/回读、模板市场、Skill stable canonical 同步、大结果下载 | [template_query.md](references/template_query.md) | `scripts/usql_web_query.py` |
 | 手工临时表检查或上传 | [manual_temp_table_registry.md](references/manual_temp_table_registry.md) | `scripts/usql_web_query.py` |
@@ -44,6 +45,10 @@ description: Execute governed USQL, templates, Data Center and BI operations, an
 - 密码、Cookie、Token、登录态、截图、SQL 结果和下载文件不得进入 Skill 目录。
 - 登录态固定保存在 `C:\Users\Ludim\.codex\runtime\usql-web-query-operator\state.json`；通用 Playwright 不得读取、替换或管理它。
 - Tiangong2 任务入口只读取 `usql_api.env` 的 `# tiangong2 Web Query (Playwright) credentials` 精确区段，并使用独立 `runtime\usql-web-query-operator\tiangong2-task\state.json`；不得复用 USQL/Data Map 状态或普通 dotenv 的首个同名账号。
+- OES 和公司 Outlook 均读取 `# mi.gaotu100.com OES Web Query (Playwright) credentials` 精确区段，分别使用独立 `oes-achievement/state.json` 和 `oes-outlook/state.json`。邮件下载仅匹配本人邮箱中的 OES 导出；超过 1 万条按连续毫秒时间区间分批，每批以稳定 `--run-key` 保存单次提交和续跑回执，所有附件及合并 XLSX 必须与完整 OES 查询核验后才能报告完成。
+- OES `sync-base` 从 Base“导出配置”读取固定开始时间，截止本次运行时刻；原表完整备份/删除与 OES/邮件链路并行，确认表空后原生批量写入全部 Excel 字段。写入/删除每批最大 500 条、完整读取每页 2000 条且检查 `has_more/next_offset` 和版本；完整远端回读 13 个字段的多重集合一致才完成。同一表写请求串行，结果不确定时停止自动重复操作。便携包使用 Python、Edge 和官方 CLI，不含凭据或登录态；本能力不注册调度任务。
+- OES Base 同步按完成时刻自动清理本目标已完成且全字段核验成功、超过 7 天的完整任务缓存，精简完成索引另存并长期保留，防止旧标识重复导出；失败/待恢复任务及凭据/登录态不清理。每天保存元信息 JSONL 日志，默认保留 30 个日历日；`clean-cache` 为共用目标锁的本地维护入口，不访问远端。配置、保留边界、索引与日志路径见 OES reference 和部署说明。
+- OES 便携包含每 30 分钟的 Windows 任务模板及只生成 XML 的配置脚本，使用 pythonw 静默入口、Hidden、InteractiveToken 和 IgnoreNew；默认任务禁用，由部署者在执行电脑通过 taskschd.msc 导入并启用。静默入口保存去敏启动日志与真实退出码；执行电脑保持登录并按说明禁用自动睡眠/休眠。制作交付包不注册任务或修改当前机器电源。
 - Tiangong2 探查客户端仍只有读取接口白名单；`explore` 递归读取当前代码、版本、调度、资源和项目质量清单，源码在 runtime 落盘前脱敏。探查路径上的 save/new/update/delete/run/submit/publish 等接口必须在网络调用前阻断，探查结果不得自动写入业务知识库。
 - Tiangong2 运维读取使用独立的 Nezha 精确白名单；执行记录列表必须绑定当前账号拥有的精确项目/一级目录/menu/task，完整日志还必须绑定 exec/stage。记录与日志脱敏后只进入专用 runtime。`plan-task-query-update`/`apply-task-query-update` 只允许 Python 任务中唯一 `query_sql` 三引号正文变化，并证明其余 Python、公司默认参数块和资源语义不变。每次 query_sql 计划还必须提供与 SQL Hash 精确绑定的结构化质量审阅：先证明粒度、顺序列契约、不变量和证据，再用 `code-simplifier` 或等价结构化审阅消除重复处理；Spark AST 门禁不可绕过地拒绝多语句、物理表 `SELECT *`、`SELECT DISTINCT *`、占位符变化和输出契约漂移，并要求对重复物理扫描、三路以上同源 `UNION ALL`、大结果最终排序或结构复杂度回退逐项给出准确性必要说明。静态通过不得冒充运行时性能通过。
 - Tiangong2 开发页调度保存使用 JSON `task/saveScheduleConfig`，只允许 `plan-task-schedule-update`/`apply-task-schedule-update` 修改 `scheduleType`、`firstRunTime`、`endRunTime`、`runInterval`、`timeUnit`；保存后必须回读开发页配置。Nezha 周期调度同步使用保留前端动作的 JSON `task/schedule`，只允许 `plan-nezha-schedule-update`/`apply-nezha-schedule-update` 修改 `firstRunTime`、`endRunTime`、`runInterval`、`timeUnit` 并强制 `periodic=true`；保存后必须回读 `getSchedule`、`getTaskAndSchedule` 和 `listTaskAndSchedule`。`nextRunTime`、`formatRunInterval`、调度记录 ID 是平台派生或维护字段，不能由补丁控制。两处或三重回读不一致时不得宣称完全生效。执行器、重试、依赖、并发、资源、源码、版本提交/发布和任务执行均不在该能力范围内。
