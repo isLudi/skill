@@ -294,6 +294,7 @@ def prepare_report(args: argparse.Namespace, definition, *, ports: ReportPorts |
     flat_rows = {section: [row for block in report["blocks"] for row in report_module.sorted_rows(block, section)]
                  for section in report_module.sections(report_type)}
     return {"coords": raw_coords, "source_mode": "lead-detail", "report_profile": profile, "channel": channel,
+            "channel_key": definition["domain"] + "/" + definition["channel_id"],
             "report_type": report_type, "period": period, "snapshot": snapshot, "raw_table_id": args.raw_table_id,
             "skip_delivery": skip_delivery,
             "skip_reason": ("no_advisor_rows_meet_minimum_post_leads"
@@ -361,6 +362,7 @@ def prepare_weekend_dual_report(args: argparse.Namespace, definition) -> dict[st
     ).hexdigest()[:28]
     return {
         "coords": result_context["coords"], "source_mode": "lead-detail", "report_profile": report_profile,
+        "channel_key": definition["domain"] + "/" + definition["channel_id"],
         "channel": result_context["channel"], "report_type": WEEKEND_DUAL_REPORT_TYPE,
         "period": current_period, "next_process_period": next_period,
         "snapshot": result_context["snapshot"], "raw_table_id": args.raw_table_id,

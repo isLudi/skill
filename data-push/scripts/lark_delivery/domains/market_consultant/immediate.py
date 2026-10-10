@@ -134,6 +134,8 @@ def run(definition, target, request_id, *, preflight=False, requested_slot=None,
                     selected = [channel for channel in cfg["channels"]
                                 if channel in selected or channel in next_selected]
                     absent = [channel for channel in cfg["channels"] if channel not in selected]
+                from .app_sequence import delegated_channels
+                selected = delegated_channels(cfg, selected)
                 for channel in absent:
                     schedule.emit("channel_skipped_no_source_rows", channel=channel, period=current_period)
                 if not selected:

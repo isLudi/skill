@@ -8,6 +8,8 @@ crm订单归因流水表。数据地图表 ID：27345。
 
 青橙月度流水复刻的待核验候选源；物理字段通过 operator 数据地图同步维护。业务取数状态见 [月度流水复刻](../sql_patterns/qingcheng_monthly_cashflow_excel_replication.md)，不能仅因字段存在或权限获批就认定其与原 Excel 同口径。
 
+**已知业务覆盖缺口（用户确认，2026-10-09）：本表缺失 TT 业务线订单。** 青橙月度订单流水每次必须使用 `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` 检查并补充 TT。来源切换、TT/V/T 登记范围、共有字段对账、跨源重叠和缺失编码处理均遵循上述月度内置流程。此为本域业务适用性结论，不是 Data Map 字段或分区定义，也不意味着本表所有业务线均为空。
+
 ## 3. 数据粒度
 
 全量小时快照。具体业务行粒度、同订单同交易时间是否唯一、历史归属时点待本域探针确认。不得仅按订单号去重。

@@ -100,7 +100,7 @@
       ],
       "status": "pending_confirmation",
       "source_path": "knowledge/joins/table_relationships.md",
-          "source_sha256": "d5097a21c7e8470ff45bd38f1aed227142d957d4b946ed1c18f1a6629c1c4b0f",
+      "source_sha256": "81f12ddaa1ec77da939db588ba71fd97ae9898bcdc4a74694d3b96ddaa2f5cd3",
       "description": "历史市场转化看板以期次、归一化渠道和年级关联成本目标临时表。",
       "left_table": "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
       "right_table": "temp_table.dingxi01_cost",
@@ -122,8 +122,8 @@
       "risks": [
         "temp_table.dingxi01_cost 的 channel + grade + qici 必须先验证唯一，否则会放大线索和营收。",
         "channel_map 与最新渠道 CASE 的输出必须一致，不能直接使用原始 channel_name 字段替代。",
-            "grade_1 为看板派生年级，不能在未确认映射时静默替换为其他年级字段。",
-            "来源说明 grade='0' 行是渠道级默认值；是否允许具体年级未命中时回退到该行仍待确认，不得静默扩大关联。"
+        "grade_1 为看板派生年级，不能在未确认映射时静默替换为其他年级字段。",
+        "来源说明 grade='0' 行是渠道级默认值；是否允许具体年级未命中时回退到该行仍待确认，不得静默扩大关联。"
       ]
     }
   ]

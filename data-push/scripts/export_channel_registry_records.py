@@ -23,6 +23,7 @@ WEEKDAYS = ("周一", "周二", "周三", "周四", "周五", "周六", "周日"
 DEFAULT_GRADES = ("初一", "初二", "初三", "高一", "高二", "高三")
 
 DISPLAY_NAMES = {
+    "supervisor_koc_zhoushuai_warning": "KOC-周帅数学高中双期预警",
     "self_incubated_koc_5": "自孵化KOC-5元纯课",
     "business_koc_math": "商务KOC数学",
     "supervisor_koc_douyin_sync": "KOC与抖音私信",
@@ -35,6 +36,8 @@ DISPLAY_NAMES = {
 }
 
 SCHEDULE_FILES = {
+    "app_grade_9": None,  # Preview-only; no Windows task is registered.
+    "supervisor_koc_zhoushuai_warning": "supervisor_koc_zhoushuai_warning_scheduled_push.json",
     "self_incubated_koc_5": "scheduled_push.json",
     "business_koc_math": "business_koc_math_scheduled_push.json",
     "supervisor_koc_douyin_sync": "supervisor_koc_douyin_sync_scheduled_push.json",
@@ -47,6 +50,8 @@ SCHEDULE_FILES = {
 }
 
 SCRIPT_STEMS = {
+    "app_grade_9": (None, None),
+    "supervisor_koc_zhoushuai_warning": ("channels/market_consultant/supervisor_koc_zhoushuai_warning.py", "register_supervisor_koc_zhoushuai_warning_scheduled_push.ps1"),
     "self_incubated_koc_5": ("run_scheduled_push.ps1", "register_scheduled_push.ps1"),
     "business_koc_math": ("run_business_koc_math_scheduled_push.ps1", "register_business_koc_math_scheduled_push.ps1"),
     "supervisor_koc_douyin_sync": ("run_supervisor_koc_douyin_sync_scheduled_push.ps1", "register_supervisor_koc_douyin_sync_scheduled_push.ps1"),
@@ -59,6 +64,11 @@ SCRIPT_STEMS = {
 }
 
 PROFILE_COLUMNS = {
+    "supervisor-channel-warning": {
+        "dimensions": ["期次", "渠道", "年级", "主管"],
+        "process": "主管、首call率、5min率、外呼频次",
+        "result": "主管、截面单效、退费率",
+    },
     "grade-compact": {
         "dimensions": ["期次", "渠道", "年级", "负责人"],
         "process": "期次、负责人、退后线索、首call、48h外呼、5min、好友率、深沟率、双沟率",
@@ -167,12 +177,13 @@ def _task_state(task_name: str):
 
 def _paths(domain: str, channel_id: str):
     run_name, register_name = SCRIPT_STEMS[channel_id]
+    schedule_name = SCHEDULE_FILES[channel_id]
     return {
         "配置文件路径": str((CONFIG_ROOT / "departments" / domain / f"{channel_id}.json").resolve()),
         "入口脚本路径": str((SKILL_ROOT / "scripts" / "channels" / domain / f"{channel_id}.py").resolve()),
-        "定时参数文件路径": str((CONFIG_ROOT / SCHEDULE_FILES[channel_id]).resolve()),
-        "任务执行脚本路径": str((SKILL_ROOT / "scripts" / run_name).resolve()),
-        "任务注册脚本路径": str((SKILL_ROOT / "scripts" / register_name).resolve()),
+        "定时参数文件路径": str((CONFIG_ROOT / schedule_name).resolve()) if schedule_name else "",
+        "任务执行脚本路径": str((SKILL_ROOT / "scripts" / run_name).resolve()) if run_name else "",
+        "任务注册脚本路径": str((SKILL_ROOT / "scripts" / register_name).resolve()) if register_name else "",
     }
 
 
@@ -190,6 +201,7 @@ def _operator_record(channel_ref: str, config):
         "channel_grade_source_supervisor_minimum_all_ties": "最低值",
         "channel_grade_source_advisor_minimum_all_ties": "最低值",
         "channel_grade_source_advisor_bottom_10pct_minimum_one": "底部10%（每年级至少1名）",
+        "all_current_supervisors_above_full_channel_team": "较团队整体高",
     }
     reminder_rule = source.get("reminder_rule")
     if reminder_rule not in reminder_rank_by_rule:
@@ -280,6 +292,21 @@ def _operator_record(channel_ref: str, config):
         "异常与重试要求": f"失败后每{schedule.get('retry_minutes', 2)}分钟重试至:{schedule.get('deadline_minute', 50):02d}；不盲目补发历史批次。",
         "运营备注": "由本地配置自动导入；修改运营需求后仍需技术评审并同步到受治理配置。" + weekend_note,
     }
+    if config.get("adapter") == "market-channel-warning-v1":
+        fields.update({
+            "期望推送时段": "17:50",
+            "展示门槛指标": "两期退后线索；转化另需两期收款大于0",
+            "过程数据排序规则": "本期5min率降序；并列按主管名称",
+            "转化数据排序规则": "本期截面单效降序；并列按主管名称",
+            "图片分组与排版": "高中年级合并；每个指标合并表头下分指标值、较上期环比、较团队整体三列",
+            "颜色或样式参考": "表头及团队整体蓝绿淡色；过程另有紫色外呼频次；图片无单位、无注释",
+            "异常与重试要求": "每日只发送一次；无追加触发或错过补发；不确定发送留存台账等待核验",
+            "运营备注": "团队整体按全部渠道高中线索的原始分子分母汇总；主管展示过滤不影响团队口径。",
+        })
+        # Above-team reminders use the reviewed technical rule. Legacy rank-select
+        # options do not represent it; do not generate unsupported select values.
+        for name in ("过程文字提醒名次", "转化文字提醒名次", "过程指标提醒方向", "转化指标提醒方向"):
+            fields.pop(name, None)
     return {key: value for key, value in fields.items() if value is not None}
 
 

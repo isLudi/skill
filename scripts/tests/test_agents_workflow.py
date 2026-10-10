@@ -9,9 +9,11 @@ import json
 import os
 from pathlib import Path
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 from unittest.mock import patch
 
@@ -22,6 +24,36 @@ SPEC = importlib.util.spec_from_file_location("agents_layout_under_test", ROOT /
 layout = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(layout)
 CANONICAL_TEXT = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
+
+
+def remove_test_workspace(workspace, attempts=20):
+    """Retry transient Windows handles without hiding a cleanup failure."""
+    if attempts < 1:
+        raise ValueError("cleanup must make at least one attempt")
+    workspace = Path(workspace).resolve()
+    if workspace.parent != RUNTIME.resolve() or not workspace.name.startswith("case-"):
+        raise ValueError("cleanup is restricted to an isolated case directory")
+
+    def remove_readonly(action, path, error):
+        target = Path(path).resolve()
+        if not target.is_relative_to(workspace):
+            raise ValueError("cleanup error target escapes the isolated case")
+        exception = error[1]
+        if isinstance(exception, PermissionError) and getattr(exception, "winerror", None) == 5:
+            target.chmod(stat.S_IWRITE)
+            action(path)
+        else:
+            raise exception
+
+    for attempt in range(attempts):
+        try:
+            if workspace.exists():
+                shutil.rmtree(workspace, onerror=remove_readonly)
+            return
+        except PermissionError as exception:
+            if getattr(exception, "winerror", None) not in (5, 32) or attempt == attempts - 1:
+                raise
+            time.sleep(0.1)
 
 
 class WorkspaceFixture(unittest.TestCase):
@@ -67,6 +99,7 @@ class WorkspaceFixture(unittest.TestCase):
         self.patcher.stop()
         # Only the verified temporary test tree may be removed.
         self.assertTrue(self.workspace.is_relative_to(RUNTIME.resolve()))
+        remove_test_workspace(self.workspace)
         self.temp.cleanup()
 
     def validate(self):
@@ -74,6 +107,55 @@ class WorkspaceFixture(unittest.TestCase):
         with contextlib.redirect_stdout(output):
             result = layout.main()
         return result, output.getvalue()
+
+
+class CleanupTests(unittest.TestCase):
+    def make_workspace(self):
+        RUNTIME.mkdir(parents=True, exist_ok=True)
+        return Path(tempfile.mkdtemp(prefix="case-", dir=RUNTIME)).resolve()
+
+    def locked(self):
+        exception = PermissionError("transient Windows directory handle")
+        exception.winerror = 32
+        return exception
+
+    def test_transient_lock_retries_then_removes(self):
+        workspace = self.make_workspace()
+        actual_remove = shutil.rmtree
+        calls = []
+
+        def remove(path, **kwargs):
+            calls.append(path)
+            if len(calls) == 1:
+                raise self.locked()
+            return actual_remove(path, **kwargs)
+
+        try:
+            with patch.object(shutil, "rmtree", side_effect=remove), patch.object(time, "sleep") as sleep:
+                remove_test_workspace(workspace, attempts=3)
+            self.assertEqual(calls, [workspace, workspace])
+            sleep.assert_called_once_with(0.1)
+            self.assertFalse(workspace.exists())
+        finally:
+            if workspace.exists():
+                actual_remove(workspace)
+
+    def test_persistent_lock_remains_a_failure(self):
+        workspace = self.make_workspace()
+        try:
+            with patch.object(shutil, "rmtree", side_effect=self.locked()) as remove, patch.object(time, "sleep"):
+                with self.assertRaises(PermissionError):
+                    remove_test_workspace(workspace, attempts=3)
+                self.assertEqual(remove.call_count, 3)
+            self.assertTrue(workspace.exists())
+        finally:
+            shutil.rmtree(workspace)
+
+    def test_runtime_root_is_never_deleted(self):
+        with patch.object(shutil, "rmtree") as remove:
+            with self.assertRaises(ValueError):
+                remove_test_workspace(RUNTIME)
+            remove.assert_not_called()
 
 
 class LayoutTests(WorkspaceFixture):

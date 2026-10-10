@@ -147,12 +147,11 @@ class ScheduledGradeTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "write/readback|clear-then-replace"):
                 sp.parse_complete_log(invalid, directory, self.cfg, self.slot, invalid["execution"])
 
-    def test_retry_stage_and_new_channel_mapping_version_are_accepted(self):
+    def test_retry_stage_and_current_channel_mapping_version_are_accepted(self):
         with tempfile.TemporaryDirectory() as folder:
             directory = Path(folder)
             cfg = copy.deepcopy(self.cfg)
             cfg["upstream"]["log_protocol"] = "two_period_clear_then_replace_v1_retry"
-            cfg["upstream"]["channel_mapping_version"] = "0925"
             doc, _ = self.log_doc(directory)
             success_raw = (directory / "stage.log").read_bytes()
             failed_raw = b"retryable stage failure\n"

@@ -1,6 +1,6 @@
 {
   "name": "qingcheng-dashboard-sql",
-  "description": "Resolve Qingcheng semantic contracts, plan and compile governed Presto SQL, generate bounded data probes, and maintain an isolated Qingcheng dashboard knowledge base.",
+  "description": "Resolve Qingcheng semantic contracts, plan governed Presto SQL, generate bounded probes, and provide recurring monthly order cashflow with required TT coverage supplementation.",
   "version": "0.3.1",
   "language": "zh-CN",
   "query_engine": "Presto",

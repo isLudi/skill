@@ -92,11 +92,11 @@
     "task_id": 47252,
     "nezha_task_id": 66504,
     "schedule_id": 53831,
-    "exec_file_id": 832776,
-    "verified_version_id": 207461,
-    "verified_source_sha256": "828873a2a0287ca28ad339742d457cddc004b2bddc28cd9046bb3439f57554bb",
+    "exec_file_id": 835583,
+    "verified_version_id": 207832,
+    "verified_source_sha256": "e86aa2e02adbd0c02a885c5a457d0e731302d07b93527c5cdea4b901ecd39750",
     "log_protocol": "two_period_clear_then_replace_v1_retry",
     "owner": "lvshuai01",
-    "channel_mapping_version": "0925"
+    "channel_mapping_version": "1002"
   }
 }

@@ -97,8 +97,13 @@ section_assign_employee_first_level_department_name = 'H业务线'
 and section_assign_employee_second_level_department_name = '市场部'
 and section_assign_employee_third_level_department_name = '市场顾问部'
 and period_mapping_first_level_department_name = 'H业务线'
+and period_mapping_second_level_department_name in (
+    '精品班学部', '市场部', '菁英班学部', '本地化大班学部', '一对一学部'
+)
 ```
+
+2026-10-09 生产范围修正：截面分配到市场顾问部与期次映射二级学部是两个独立条件，不能以期次映射仅为市场部代替原截面归属范围。用户明确要求纳入上述五个二级部门；当前数据集保留原截面分配一级、二级、三级和期次映射一级条件，增加五部门显式范围。该范围不包含空值或未列出的其他部门，不能宣称与历史未限定二级部门的范围完全等价。渠道 CASE、金额计算、去重粒度、期次和分区逻辑保持生产版本。
 
 ## 8. 待人工确认
 
-是。仍需确认金额单位、`>= 5` 阈值、成本表维护口径、时间偏移口径以及 `xiansuo` 是否只作为聚合指标输出。20260911 期的目标记录有效标记主要落在 merge 字段，20260917 原始期次的目标记录又主要落在普通字段；上游为何按批次切换尚未确认。按 2026-09-16 的生产恢复要求，抖音私信退前、退后均使用普通字段；这会使仅在 merge 字段有效的历史批次显示较低。渠道 CASE 已按 2026-09-25 规则更新，维护入口见 `knowledge/sql_patterns/channel_mapping_case_when.md`，归档片段为 `resources/raw_sql/market_channel_case_when_0925.sql`。
+是。仍需确认金额单位、`>= 5` 阈值、成本表维护口径、时间偏移口径以及 `xiansuo` 是否只作为聚合指标输出。20260911 期的目标记录有效标记主要落在 merge 字段，20260917 原始期次的目标记录又主要落在普通字段；上游为何按批次切换尚未确认。按 2026-09-16 的生产恢复要求，抖音私信退前、退后均使用普通字段；这会使仅在 merge 字段有效的历史批次显示较低。共享渠道 CASE 已按 20261002 规则融合，生产部署完成与待同步状态见维护入口，维护入口见 `knowledge/sql_patterns/channel_mapping_case_when.md`，归档片段为 `resources/raw_sql/market_channel_case_when_1002.sql`。

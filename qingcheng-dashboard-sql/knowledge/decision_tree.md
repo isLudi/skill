@@ -5,7 +5,7 @@
 | 用户说法 | 先读 | 再读 | 必要规则/踩坑 |
 |---|---|---|---|
 | 用户给出青橙指标、维度、join 或范围别名 | `semantic/generated/contract_index.json` | 命中的 `semantic/contracts/*.json` 条目及其 `source_path` | contract index 只负责路由；`confirmed` 才能进入可执行计划，`pending_confirmation` 必须保留为未决 |
-| 按申老师 Excel「7月流水明细」导出月度流水、排查所需权限 | `knowledge/sql_patterns/qingcheng_monthly_cashflow_excel_replication.md` | 同目录 `qingcheng_monthly_cashflow_columns.json` 与本次 operator 权限证据 | 财务 27 列在历史可读范围逐笔一致；stat 只补唯一匹配，完整范围待权限与缺失码；支持经用户接受的部分交付 |
+| 常态化青橙月度流水、申老师 Excel 复刻、TT/V/T 补数 | `knowledge/sql_patterns/qingcheng_monthly_cashflow_excel_replication.md` | 同目录 `qingcheng_monthly_cashflow_columns.json` 与本次 operator 权限证据 | DWD 已知缺 TT 订单，每次必查 service TT；内置脚本合并 28 列，重叠多重集合一致则跳过、冲突则停止，缺字段明示 |
 | 用户只说“顾问” | contract index 中别名 `顾问` 的两个候选 | `qingcheng:dimension:section_consultant` 与 `qingcheng:dimension:performance_consultant` | 询问是线索分配顾问还是业绩归属顾问；不得按当前候选表自动决定 |
 | 已解析 confirmed 指标，候选指标共享一个基础表 | 命中的 metric/dimension/scope contracts | 对应表文档、范围文档和 QuerySpec | 先生成 QueryPlan；仅无未决槽位、无 join 的单基础表计划可自动 compile |
 | 命中 pending 契约或多表 join | 对应契约的 `source_path` | `knowledge/joins/`、`knowledge/reverse_index/join_risk_index.md`、命中的 Raw SQL | pending 阻断生产；多表 join 只输出计划并人工审阅，不能用另一部门口径补齐 |

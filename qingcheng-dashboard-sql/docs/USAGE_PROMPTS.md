@@ -84,3 +84,16 @@ SQL：
 【粘贴 SQL】
 ```
 
+
+## 青橙月度订单流水（内置 TT 补充）
+
+```text
+使用 qingcheng-dashboard-sql 的月度订单流水内置能力，拉取【起止日期】的青橙流水，
+快照使用【已确认日期/小时】，按申老师表的 28 列输出为 Lark Sheet。
+按内置规则检查 service 源并补充 DWD 缺失的 TT 订单；保留编号为文本，
+核对跨源重复、金额及缺失字段。沿用已说明的部分范围和空值边界，新增异常单独说明。
+```
+
+无需再提供旧 Excel 来重新探索字段与来源；参见
+[月度流水内置流程](../knowledge/sql_patterns/qingcheng_monthly_cashflow_excel_replication.md)。
+需要更新既有表时提供其 URL，并说明追加或其他写入范围。

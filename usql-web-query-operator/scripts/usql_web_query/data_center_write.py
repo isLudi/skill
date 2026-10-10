@@ -116,6 +116,16 @@ class DataCenterReplacementExecutor:
 
         self.progress["phase"] = "preview"
         phase_started = time.perf_counter()
+        # The edit page can finish parsing the old SQL after replacement and
+        # show an error acknowledgement over the run control. Dismiss only
+        # Ant's error dialog; save/schedule confirmations remain untouched.
+        add_handler = getattr(self.page, "add_locator_handler", None)
+        if callable(add_handler):
+            add_handler(
+                self.page.locator(".ant-modal-confirm-error:visible"),
+                lambda modal: _dismiss_preview_error(modal, self.progress),
+                times=1,
+            )
         with self.page.expect_response(
             lambda response: _matches_sql_response(
                 response,
@@ -256,3 +266,11 @@ class DataCenterReplacementExecutor:
             timeout_ms=self.refresh_timeout_ms,
             poll_interval_ms=self.poll_interval_ms,
         )
+
+
+def _dismiss_preview_error(modal: Any, progress: dict[str, Any]) -> None:
+    progress["pre_preview_error_acknowledgement"] = modal.inner_text()[:1000]
+    button = modal.get_by_role("button", name=re.compile(r"^\s*(?:确\s*定|知\s*道\s*了|OK)\s*$"))
+    if button.count() != 1:
+        raise UsageError("Data Center error acknowledgement is ambiguous")
+    button.click()

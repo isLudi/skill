@@ -247,13 +247,19 @@ def build_markdown(report, period, channel, report_type, mention_info, image_ref
     return "\n".join(lines)
 
 
-def render_image(report, section, output_path, *, font_loader, center_text, format_value, rate_parser):
+def render_image(report, section, output_path, *, font_loader, center_text, format_value, rate_parser,
+                 columns=None, widths=None):
     from PIL import Image, ImageDraw
 
-    columns, widths = COLUMNS[section], WIDTHS[section]
+    columns = COLUMNS[section] if columns is None else columns
+    widths = WIDTHS[section] if widths is None else widths
+    if len(columns) != len(widths):
+        raise ValueError("Image column widths differ from the column contract")
     width = sum(widths)
     band_h, header_h, row_h, total_h, gap = 48, 58, 50, 54, 20
-    heights = [band_h + header_h + len(block["rows"]) * row_h + total_h for block in report["blocks"]]
+    show_totals = report.get("show_totals", True)
+    heights = [band_h + header_h + len(block["rows"]) * row_h + (total_h if show_totals else 0)
+               for block in report["blocks"]]
     image = Image.new("RGB", (width, sum(heights) + gap * (len(heights) - 1)), "#ffffff")
     draw = ImageDraw.Draw(image)
     navy, grid = "#203b72", "#b8c4d3"
@@ -280,7 +286,8 @@ def render_image(report, section, output_path, *, font_loader, center_text, form
                                    reverse=True)
             effect_rank = {id(item): effect_values.index(float(item["fields"][effect_source]))
                            for item in ordered if isinstance(item["fields"].get(effect_source), (int, float, Decimal))}
-            for index, row in enumerate([*ordered, block["total"]]):
+            image_rows = [*ordered, block["total"]] if show_totals else ordered
+            for index, row in enumerate(image_rows):
                 y, total = header + header_h + index * row_h, index == len(ordered)
                 bottom = y + (total_h if total else row_h)
                 draw.rectangle((0, y, width, bottom), fill=navy if total else "#ffffff")

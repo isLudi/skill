@@ -1,11 +1,17 @@
 ---
 name: qingcheng-dashboard-sql
-description: Resolve 青橙项目部 metrics and contracts; generate, review or repair governed SQL and dashboard designs. Use for explicit qingcheng requests or its registered artifacts, including authorized knowledge maintenance; do not infer another department's semantics.
+description: Resolve 青橙项目部 metrics and contracts; generate governed SQL, dashboard designs and recurring monthly order cashflow with TT coverage supplementation. Use for explicit qingcheng requests or its registered artifacts, including authorized knowledge maintenance; do not infer another department's semantics.
 ---
 
 # 青橙项目部 SQL 与契约
 
 本 Skill 负责 `qingcheng` 业务语义、QuerySpec / QueryPlan、SQL 和看板设计。执行、下载、平台修改交给 `usql-web-query-operator`；本 Skill 不操作浏览器或 Excel。“顾问”可能指线索分配顾问或业绩归属顾问；上下文不能唯一确定时必须消歧。
+
+## 内置能力：月度订单流水与 TT 补充
+
+“青橙月度流水”“按申老师表拉流水”“TT/V/T 补数”直接进入[月度流水流程](knowledge/sql_patterns/qingcheng_monthly_cashflow_excel_replication.md)，复用 28 列映射、参数 SQL 和本地组装校验脚本。已知 `bdg_ba.dwd_crm_crm_order_income_refund_info_hf` 缺失 TT 业务线订单（用户于 2026-10-09 明确确认）；每次此类取数均需查询 `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` 补充 TT，不得把 DWD 成功或空结果当作 TT 已完整覆盖。
+
+财务主表、归因码 lookup、TT 补充源分工固定；复用已确认口径，按本次业务期间、快照和权限取数。TT 与已有主表重叠时按完整交易明细多重集合核对：完全一致则保留主表，冲突则停止合并。补充源没有的 `biz_type`、`goods_type` 显式留空。该能力不等于已证明所有部门全量覆盖，也不自动创建定时任务。
 
 ## 既有生产数据集修改前置要求
 
@@ -19,7 +25,7 @@ description: Resolve 青橙项目部 metrics and contracts; generate, review or 
 |---|---|
 | 生成、修复、审核生产 SQL / QueryPlan | [查询约束](references/query_governance.md)、命中的 contract 与源文档；只执行适用规则 |
 | 新增 SQL、修改 SQL 或判断验证范围 | [SQL 质量验证](references/sql_quality.md) |
-| 按申老师 Excel「7月流水明细」复刻月度流水、定位相关权限缺口 | [月度流水取数模板与范围边界](knowledge/sql_patterns/qingcheng_monthly_cashflow_excel_replication.md)；27 列财务已对齐历史可读范围，归因码仅唯一匹配；完整范围待补，部分交付需明确接受 |
+| 青橙常态化月度订单流水、复刻申老师 Excel、TT/V/T 补数 | [月度流水内置流程](knowledge/sql_patterns/qingcheng_monthly_cashflow_excel_replication.md)；固定执行 service TT 覆盖检查，统一组装 28 列并校验去重、金额和缺失字段 |
 | 调试、修复或替换既有生产数据集 SQL | 先执行 [生产数据集 SQL 修改流程](references/query_governance.md#生产数据集-sql-修改流程)，再进入 SQL 质量验证与 operator Replacement Plan |
 | 看板设计、diff、dry-run、字段反查 | [看板设计工作流](knowledge/sql_patterns/dashboard_design_change_workflow.md)；实际能力以 operator registry 为准 |
 | 知识入库、contract、schema / canonical SQL / Web profile 同步 | [知识维护](references/knowledge_maintenance.md)；需明确维护授权 |

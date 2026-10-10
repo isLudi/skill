@@ -415,6 +415,9 @@ def run_slot(cfg, preflight, slot, state, db):
     upstream release are still verified once per attempt, and every prepared
     channel still has to agree on one Base revision.
     """
+    if cfg.get("channel_key") == "market_consultant/app_grade_9":
+        from . import app_sequence
+        return app_sequence.run_slot(cfg, preflight, slot, state, db)
     cached = []
     pending = None
     blocked = {}
@@ -448,6 +451,8 @@ def run_slot(cfg, preflight, slot, state, db):
                         selected = [channel for channel in cfg["channels"]
                                     if channel in selected or channel in next_selected]
                         absent = [channel for channel in cfg["channels"] if channel not in selected]
+                    from .app_sequence import delegated_channels
+                    selected = delegated_channels(cfg, selected)
                     for channel in absent:
                         emit("channel_skipped_no_source_rows", channel=channel, period=current_period)
                         record_channel(db, slot, channel, "skipped_no_source_rows",

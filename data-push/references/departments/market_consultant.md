@@ -25,6 +25,7 @@
 | KOC 与抖音私信主管 | [高中主管播报](market_consultant/supervisor_koc_douyin_sync.md) |
 | KOC 初三主管 | [双渠道初三播报](market_consultant/supervisor_self_incubated_koc_5_grade_9.md) |
 | 亚飞 B 站与 APP 初三主管、顾问 | [初三双维度播报](market_consultant/supervisor_yafei_grade_9.md) |
+| APP 初三顾问及四条消息顺序 | [APP有序播报](market_consultant/app_grade_9.md) |
 | 集团私域与 APP 主管 | [多渠道同步播报](market_consultant/supervisor_private_app_sync.md) |
 | 朱博士视频号 49 | [顾问播报](market_consultant/supervisor_zhu_doctor_video49.md) |
 | 陈瑞春（渠道名包含“陈瑞春”的全部渠道） | [顾问播报](market_consultant/supervisor_chenruichun.md) |

@@ -1,0 +1,116 @@
+{
+  "schema_version": 1,
+  "domain": "market_consultant",
+  "channel_id": "app_grade_9",
+  "channel": "app",
+  "channels": [
+    "app"
+  ],
+  "adapter": "market-grade-manager-v1",
+  "source": {
+    "source_mode": "lead-detail",
+    "source_url": "https://gaotuedu.feishu.cn/base/PmpybDuXGaudYost6I3cTwChn3d?table=tbljWRvaqKTdrCx4&view=vewO4yxS3O",
+    "raw_source_url": "https://gaotuedu.feishu.cn/base/PmpybDuXGaudYost6I3cTwChn3d?table=tbljWRvaqKTdrCx4&view=vewO4yxS3O",
+    "raw_table_id": "tbljWRvaqKTdrCx4",
+    "raw_table_name": "市场顾问线索原始数据",
+    "channel_match": {
+      "field": "渠道",
+      "case_sensitive": true,
+      "values": {
+        "app": "app"
+      },
+      "casefold_channels": [
+        "app"
+      ]
+    },
+    "report_profile": "supervisor-advisor-detail",
+    "reminder_rule": "channel_grade_source_advisor_minimum_all_ties",
+    "reminder_population": "raw_leads",
+    "mention_target": "consultant",
+    "report_type": "auto"
+  },
+  "sender": {
+    "identity": "bot",
+    "name": "管家",
+    "open_id": "ou_f3907e865135732c15a1dfce27828411"
+  },
+  "targets": [
+    {
+      "id": "app_grade_9",
+      "chat_id": "oc_3c652da1589558f0b0585d2bdb2f8cb9",
+      "display_name": "💪1009期【B站＋APP】沟通群",
+      "enabled": true
+    }
+  ],
+  "report": {
+    "period_rule": "natural_week_friday",
+    "process_weekdays": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "result_weekdays": [
+      4,
+      5,
+      6
+    ],
+    "included_grades": [
+      "初三"
+    ],
+    "excluded_grades": [],
+    "minimum_post_leads": 5,
+    "weekend_next_process_enabled": true,
+    "show_totals": false,
+    "result_reminder_metric": "截面单效"
+  },
+  "schedule": {
+    "enabled": false,
+    "first_send_at": "2026-10-11T00:00:00+08:00",
+    "timezone": "Asia/Shanghai",
+    "hours": [
+      13,
+      17,
+      21
+    ],
+    "windows_task_name": "Codex-Lark-App-Grade9-Push",
+    "stagger_order": 10,
+    "prepare_minute": 24,
+    "send_minute": 24,
+    "deadline_minute": 50,
+    "retry_minutes": 2
+  },
+  "delivery_sequence": {
+    "stage": "preview_only",
+    "supervisor_channel_ref": "market_consultant/supervisor_yafei_grade_9",
+    "weekend_order": ["supervisor_result", "advisor_result", "supervisor_process", "advisor_process"],
+    "weekday_order": ["supervisor_process", "advisor_process"]
+  },
+  "base_identity": "user",
+  "verification_identity": "bot",
+  "state_dir": "C:/Users/lvshuai01/.codex/runtime/channel-broadcast-push/app-grade-9",
+  "upstream": {
+    "project_id": 308,
+    "folder": "吕帅",
+    "menu_id": 102754,
+    "task_name": "market2lark",
+    "task_id": 47252,
+    "nezha_task_id": 66504,
+    "schedule_id": 53831,
+    "exec_file_id": 835583,
+    "verified_version_id": 207832,
+    "verified_source_sha256": "e86aa2e02adbd0c02a885c5a457d0e731302d07b93527c5cdea4b901ecd39750",
+    "log_protocol": "two_period_clear_then_replace_v1_retry",
+    "owner": "lvshuai01",
+    "channel_mapping_version": "1002"
+  },
+  "intake": {
+    "request_number": "market_consultant/app_grade_9",
+    "record_id": "recvxD76bIB8eG",
+    "request_sha256": "a636469a25eb3d8d2672187c2ebc137b478b052d9bffaa1d4e08732ea318bbf9",
+    "result_reminder_confirmation": "user-confirmed-cross-section-effect-minimum-all-ties"
+  }
+}

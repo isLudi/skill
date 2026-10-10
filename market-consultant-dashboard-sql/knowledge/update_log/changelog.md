@@ -1388,3 +1388,87 @@
 - 通过 `usql-web-query-operator/scripts/read_dashboard.py profile-all --write-knowledge --confirm-skill-maintenance` 扫描 `市场顾问数据` 文件夹，并将原始 `profile.json` 写入本地 runtime 目录。
 - 刷新 `knowledge/dashboard_web_profiles/README.md`，当前索引 12 个看板快照。
 - 本次 profile 结果：成功 12 个，失败 0 个。
+
+## 2026-10-09 数据中心 stable canonical SQL 同步
+
+- 按已审阅同步计划原子更新 model_id：`2132, 2253, 2293, 2344, 2345, 2349, 2350, 2353, 2423, 2424, 2461, 2623, 2634, 2683, 2688, 2774, 2812, 3039`；每个 model_id 只保留稳定 canonical 路径。
+- 写入后已强制重建反向索引和目录，并运行唯一版本审计、域内 integrity 与完整 Text2SQL 栈验证。
+
+## 2026-10-09 模板取数 stable canonical SQL 同步（模板 7689）
+
+- 线上 `published` 模板 `业财用户出单明细`（id `7689`）回读 SQL SHA-256 为 `f5b5a0bc63f21e9e45e7abcffcb4832654a7d8db145842c8fc3f5cb2d093e216`，只保留稳定入口 `resources/raw_sql/template_query_market_finance_order_detail.sql`。
+- 本次清理日期后缀历史副本 0 个；历史 SQL 文本不进入知识库，也不作为路由入口。
+- 保存后已重建反向索引、共享 catalog、唯一版本审计、域内 integrity 和完整 Text2SQL 栈。
+
+## 2026-10-09 模板取数 stable canonical SQL 同步（模板 7808）
+
+- 线上 `published` 模板 `市场运营专用_多维全链路分析`（id `7808`）回读 SQL SHA-256 为 `49b5b9cf4a5bb82afaa5e788650c5ec5ef8fcfc3125d8d98d63cf802bcff4865`，只保留稳定入口 `resources/raw_sql/template_query_market_wide_analysis.sql`。
+- 本次清理日期后缀历史副本 0 个；历史 SQL 文本不进入知识库，也不作为路由入口。
+- 保存后已重建反向索引、共享 catalog、唯一版本审计、域内 integrity 和完整 Text2SQL 栈。
+
+## 2026-10-09 模板取数 stable canonical SQL 同步（模板 8735）
+
+- 线上 `published` 模板 `馒头_订单明细_支付时间`（id `8735`）回读 SQL SHA-256 为 `0cfe5463306277749238d69b1e3ae353c41bf67dc2fabf85c75a655739ea8776`，只保留稳定入口 `resources/raw_sql/template_query_market_mantou_order_detail_pay_time.sql`。
+- 本次清理日期后缀历史副本 0 个；历史 SQL 文本不进入知识库，也不作为路由入口。
+- 保存后已重建反向索引、共享 catalog、唯一版本审计、域内 integrity 和完整 Text2SQL 栈。
+
+## 2026-10-09 模板取数 stable canonical SQL 同步（模板 8948）
+
+- 线上 `published` 模板 `馒头_订单明细_流水时间`（id `8948`）回读 SQL SHA-256 为 `80e029e2f733d867512df6976bbf59416e57122bc5eb1d3ddad765bcd41bb1df`，只保留稳定入口 `resources/raw_sql/template_query_market_mantou_order_detail_trade_time.sql`。
+- 本次清理日期后缀历史副本 0 个；历史 SQL 文本不进入知识库，也不作为路由入口。
+- 保存后已重建反向索引、共享 catalog、唯一版本审计、域内 integrity 和完整 Text2SQL 栈。
+
+## 2026-10-09 模板取数 stable canonical SQL 同步（模板 8866）
+
+- 线上 `published` 模板 `AI分析市场顾问部分周期转化数据`（id `8866`）回读 SQL SHA-256 为 `b71105d287e16ffa189705d2a5df3bd1f0021fbb86a7aadc99eeef9e7d3848fe`，只保留稳定入口 `resources/raw_sql/template_query_market_period_conversion.sql`。
+- 本次清理日期后缀历史副本 0 个；历史 SQL 文本不进入知识库，也不作为路由入口。
+- 保存后已重建反向索引、共享 catalog、唯一版本审计、域内 integrity 和完整 Text2SQL 栈。
+
+## 2026-10-09 21:42:12 渠道 CASE 1002 融合与生产部分验收
+
+- 从飞书 20261002期 / all 记录 `recvwIc5LGMZ90` 读取完整源 CASE（SHA-256 `721a6bb817df544a182413012db717c6883ca9554e90c65a8c365db2c48af699`），按历史分支/注释/顺序融合 188 条规则；新 canonical `resources/raw_sql/market_channel_case_when_1002.sql` SHA-256 `62959e364212092c93ba4f361ed432b6189e80a7ba4f2c9da45d2d31f5df8b56`，旧 0925 入口退役，更新引用与受影响契约源 Hash，保留 pending 状态。
+- AST 重算 WHEN 输出值为 131（含兜底 132）；旧 0925 为 127（含兜底 128），纠正此前输出计数。新增 5 个分支、4 个标签，保留 3 个进校私域合作 first-match 排除条件及实时专用 CASE/退款覆盖。
+- 所有生产 SQL 修改均从当次实时完整 SQL immutable baseline 起步，保持已有二级部门条件。原本缺少且被平台要求的目标按用户确认补充市场部，保留三级市场顾问部。
+- 18/28 个数据集完成预览、SQL 保存哈希回读与新 SUCCESS，并通过 operator 原子同步 canonical；10 个仍被原一级 OR/NULL 权限校验阻挡，未替换。所有发现调度未过期，没有更改周期。
+- 模板 7689/7808/8735/8948/8866 保持原 ID 发布并实际查询成功（407937/407930/407931/407932/407933）；8882/9002 保留原生产范围，权限阻塞未替换。7689 移除重复键/扫描/回连，保持五组 COALESCE first-match 和最终输出，7 秒返回 7,381 行；900 秒失败的旧查询不作为验收。
+- market2lark task 47252 发布 V23 / version 207832 / exec_file 835583 / source SHA-256 `e86aa2e02adbd0c02a885c5a457d0e731302d07b93527c5cdea4b901ecd39750`，立即执行 175403906 与自动 SCHEDULE 175410072 都成功，Base 完整回读 7,937 行/45 列。执行适配器初始 period_time 匹配失败的回执保留，后续仅只读定位同一次执行，没有重复触发。9 份本地群推送配置和 release 绑定最新版本，完整日志解析及 --show-config 验证通过；没有发送群消息或更改调度。
+- 同步清单明确保留上述权限待办；本轮尚未全部验收。反向索引、catalog、唯一版本审计、integrity 与完整 Text2SQL 栈按治理流程验证，失败则回滚本批本地知识候选。
+
+## 2026-10-09 22:42:39 市场顾问数据集期次映射二级部门范围修正
+
+- 对刚完成渠道更新且原生产未限定期次映射二级部门的六个数据集（2253、2293、2344、2634、2688、3039）重新拉取实时 SQL 基线，按用户明确要求将本次新增的仅市场部条件扩展为精品班学部、市场部、菁英班学部、本地化大班学部、一对一学部。其余 SQL 语义及既有二级部门条件保持原状。
+- 六个数据集均经 operator 预览、保存 Hash 回读、立即抽数和新 SUCCESS 验收，canonical 通过 sync-data-center-sql 精确计划同步；同步转化范围文档、confirmed scope、source Hash 和生成索引。
+- 截面分配到市场顾问部不等于期次映射学部仅市场部；后续维护需先量化部门范围差额，不能以抽数 SUCCESS 代替口径一致性验收。五部门显式范围未覆盖空值或其他学部。
+- 诊断查询、金额结果、上线前后对照和逐数据集回执保留在 runtime；知识库只记录范围和操作边界。
+
+## 2026-10-10 数据中心 stable canonical SQL 同步
+
+- 按已审阅同步计划原子更新 model_id：`2310`；每个 model_id 只保留稳定 canonical 路径。
+- 写入后已强制重建反向索引和目录，并运行唯一版本审计、域内 integrity 与完整 Text2SQL 栈验证。
+
+## 2026-10-10 10:36:06 一级部门空值范围授权调整与渠道补充验收
+
+- 重新拉取剩余十个数据集的实时生产 SQL，以 1002 的 188 分支渠道规则结合历史注释、顺序和 first-match 保护条件逐项融合；一级 H业务线 OR 空值按用户明确授权改为仅 H业务线，排除一级空值记录。
+- 2310、2886 完成预览与保存 Hash 回读，通过 operator 精确计划同步 stable canonical；2310 新抽数 SUCCESS，2886 已保存并回读新 SQL，但尚未取得新抽数 SUCCESS，不计为验收完成。累计 19/28 个渠道消费者通过验收，20/28 个已保存新 SQL。2310 的已有二级六部门保持原状；2886 缺少二级条件，补充此前授权的五部门。
+- 其余八个数据集仍被已有二级 IN/OR 空值行权限条件拒绝，未保存替换；二级空值范围未经授权不移除。模板仍 5/7 个通过，本轮未修改 market2lark 或推送配置。
+- 修复 operator 对编辑页已知“知道了”错误确认按钮的精确识别，仍只处理错误框，不触碰保存或调度确认；相关回归检查及知识完整栈按变更范围验证。
+
+## 2026-10-10 模板取数 stable canonical SQL 同步（模板 8882）
+
+- 线上 `published` 模板 `AI分析市场顾问部多科用户成单数据`（id `8882`）回读 SQL SHA-256 为 `b24be7c569a4d7e3313c1a97d7529221247388bb0d9d2a4a73c7a58714d1581b`，只保留稳定入口 `resources/raw_sql/template_query_market_multi_subject_order_user.sql`。
+- 本次清理日期后缀历史副本 0 个；历史 SQL 文本不进入知识库，也不作为路由入口。
+- 保存后已重建反向索引、共享 catalog、唯一版本审计、域内 integrity 和完整 Text2SQL 栈。
+
+## 2026-10-10 模板取数 stable canonical SQL 同步（模板 9002）
+
+- 线上 `published` 模板 `AI分析市场顾问部_宽表`（id `9002`）回读 SQL SHA-256 为 `b5441add2c85a4948e7eb77a6438d992701f34bc752bf7c9b3b5235307325fe2`，只保留稳定入口 `resources/raw_sql/template_query_market_wide.sql`。
+- 本次清理日期后缀历史副本 0 个；历史 SQL 文本不进入知识库，也不作为路由入口。
+- 保存后已重建反向索引、共享 catalog、唯一版本审计、域内 integrity 和完整 Text2SQL 栈。
+
+## 2026-10-10 13:48:25 二级空值范围授权调整与剩余渠道验收
+
+- 用户明确授权八个指定数据集移除二级 IN/OR 空值分支，严格保留每份原部门名单；与已有一级 H业务线授权合并。每个候选从当次实时完整生产 SQL 生成，结合 1002 分支、历史注释及 first-match 排除保护融合，结构比对确认其他过滤、公式、关联、粒度、期次和输出未改变。
+- 八个新 SQL 全部保存并回读一致，经官方 sync-data-center-sql 精确计划同步；八个均完成预览、保存 Hash 回读及保存后新抽数 `SUCCESS`。2886 保留原轮询失败回执，后续只读证明新执行 175430352 SUCCESS，补足验收。累计 28/28 个数据集完成、28/28 个保存新渠道 SQL。
+- 空值排除属于已确认的范围缩小；不声称与原含空值范围等价，不擅自扩充既有二级名单。调度未过期，未修改周期或重复触发失败回执。模板 7/7；8882/9002 也已获单独范围授权，保持原 ID、参数、输出和申请关系原位发布，发布后真实查询均 SUCCESS。market2lark 与本地群推送版本维持原已验收配置。
+- 复核 channel_map 契约来源、更新部署证据 Hash，保持 pending_confirmation；反向索引、catalog、领域完整性及完整 Text2SQL 栈在独占锁与可回滚事务中验证。
+- 9002 模板本地同步完整输出定位到 AGENTS 隔离测试临时目录清理的 Windows 占用错误，修复测试资源清理为受边界校验的有限重试；持续占用仍报错，原断言不变，新增三项回归，13 项专项测试通过。随后官方同步及最终完整栈均保持全门禁验证；未修改生产服务、全局配置或跳过检查。

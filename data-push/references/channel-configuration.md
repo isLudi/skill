@@ -17,7 +17,7 @@
 |---|---|
 | schema_version | 当前为1；不默默接受未知版本 |
 | domain, channel_id, channel, adapter | 精确身份与已实现的adapter；domain不能互相补齐 |
-| source | 原始链接/表ID/报告profile等；当前市场配置的source_url只为旧格式兼容，raw_source_url用于当前模式；`channel_match` 必须声明 `field=渠道`、`case_sensitive=true`，精确模式声明与 `channels` 同序的规范值映射，包含模式声明非空 `keyword`。仅 `supervisor_private_app_sync` 可用 `casefold_channels=["app"]` 对 APP 精确值忽略大小写；集团私域及其他渠道仍区分大小写 |
+| source | 原始链接/表ID/报告profile等；当前市场配置的source_url只为旧格式兼容，raw_source_url用于当前模式；`channel_match` 必须声明 `field=渠道`、`case_sensitive=true`，精确模式声明与 `channels` 同序的规范值映射，包含模式声明非空 `keyword`。`supervisor_private_app_sync`、`supervisor_yafei_grade_9` 和 `app_grade_9` 可用 `casefold_channels=["app"]` 对 APP 精确值忽略大小写；集团私域及其他渠道仍区分大小写 |
 | sender | identity、name、open_id；机器人/用户不可在失败时自动切换 |
 | targets | 目标列表：id、chat_id、display_name、enabled；ID唯一、群ID不重复，display_name可变 |
 | report | 部门adapter支持的策略参数；当前市场使用period_rule、星期数组、excluded_grades、minimum_post_leads |

@@ -244,5 +244,39 @@
       "target_finance_independent_reconciliation": "pending_permissions",
       "full_population_confirmed": false
     }
-  ]
+  ],
+  "builtin_capability": {
+    "id": "monthly_order_cashflow_with_tt_supplement",
+    "status": "available_with_disclosed_source_gaps",
+    "assembler": "scripts/assemble_monthly_cashflow.py",
+    "required_inputs": [
+      "finance",
+      "stat_lookup",
+      "tt_supplement",
+      "start_date",
+      "end_date_inclusive"
+    ],
+    "tt_check_required_each_run": true,
+    "known_source_coverage_issue": {
+      "table": "bdg_ba.dwd_crm_crm_order_income_refund_info_hf",
+      "missing_scope": "TT业务线订单",
+      "status": "user_confirmed",
+      "confirmed_on": "2026-10-09",
+      "required_supplement_source": "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
+      "retire_only_after_reconciliation_and_rule_update": true
+    },
+    "cross_source_merge": {
+      "event_group": [
+        "order_number",
+        "trade_timestamp"
+      ],
+      "comparison": "multiset_of_26_shared_columns",
+      "equal_overlap": "retain_finance_and_skip_tt_overlap",
+      "conflicting_overlap": "stop_before_output",
+      "missing_events": "append_all_rows_without_order_level_deduplication"
+    },
+    "empty_tt_requires_operator_verified_zero": true,
+    "full_population_confirmed": false,
+    "scheduling_included": false
+  }
 }

@@ -170,7 +170,7 @@ class ScheduledPushTests(unittest.TestCase):
         rows = []
         for key in sp.catalog.registry()["channels"]:
             definition = sp.catalog.load_channel(key)
-            if not definition["schedule"]["enabled"]:
+            if not definition["schedule"]["enabled"] or definition["adapter"] != "market-grade-manager-v1":
                 continue
             cfg = sp.catalog.schedule_config(definition, sp.catalog.select_targets(definition)[0])
             sp.validate_config(cfg)

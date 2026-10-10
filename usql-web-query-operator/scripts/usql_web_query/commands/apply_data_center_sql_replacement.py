@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -20,6 +21,25 @@ from usql_web_query.data_center_replacement import (
     sql_sha256,
 )
 from usql_web_query.data_center_write import DataCenterReplacementExecutor
+
+
+@contextmanager
+def _browser_session(playwright: Any, args: argparse.Namespace):
+    browser, context = launch_context(
+        playwright, args.state_path, args.headed,
+        args.browser_channel, args.executable_path,
+    )
+    try:
+        yield browser, context
+    finally:
+        # Close sync API resources while the Playwright dispatcher is alive.
+        # Calling close after its context manager stops can mask the original
+        # preview error and leave the CLI waiting on a stopped event loop.
+        for resource in (context, browser):
+            try:
+                resource.close()
+            except Exception:
+                pass
 
 
 def cmd_apply_data_center_sql_replacement(args: argparse.Namespace) -> int:
@@ -56,14 +76,7 @@ def cmd_apply_data_center_sql_replacement(args: argparse.Namespace) -> int:
     page = None
     try:
         with data_center_replacement_lock(str(plan.dataset.get("id") or "")):
-            with sync_playwright() as playwright:
-                browser, context = launch_context(
-                    playwright,
-                    args.state_path,
-                    args.headed,
-                    args.browser_channel,
-                    args.executable_path,
-                )
+            with sync_playwright() as playwright, _browser_session(playwright, args) as (browser, context):
                 page = context.new_page()
                 client = DataCenterClient(page, args.state_path)
                 client.ensure_authenticated(args.username, args.password)
@@ -119,17 +132,6 @@ def cmd_apply_data_center_sql_replacement(args: argparse.Namespace) -> int:
         if isinstance(exc, UsageError):
             raise
         raise UsageError(f"Data Center replacement failed: {exc}") from exc
-    finally:
-        if context is not None:
-            try:
-                context.close()
-            except Exception:
-                pass
-        if browser is not None:
-            try:
-                browser.close()
-            except Exception:
-                pass
 
 
 def validate_apply_request(args: argparse.Namespace, plan: Any) -> None:

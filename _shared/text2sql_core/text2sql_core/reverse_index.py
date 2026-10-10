@@ -18,6 +18,7 @@ TABLE_RE = re.compile(r"\b[a-zA-Z_][\w]*\.[a-zA-Z_][\w]*(?:\.[a-zA-Z_][\w]*)?\b"
 RAW_SQL_RE = re.compile(r"(?:resources/raw_sql/)?([A-Za-z0-9_.-]+\.sql)")
 IDENT_RE = re.compile(r"`([A-Za-z_][A-Za-z0-9_]*)`")
 HEADING_RE = re.compile(r"^(#{1,4})\s+(.+?)\s*$")
+INLINE_LINK_RE = re.compile(r"\[([^\]\n]+)\]\((?:<[^>\n]+>|[^)\n]+)\)")
 
 SKIP_IDENTIFIERS = {
     "as",
@@ -360,6 +361,10 @@ class ReverseIndexBuilder:
                 lower_line = line.lower()
                 if not any(keyword.lower() in lower_line for keyword in RISK_KEYWORDS):
                     continue
+                # Excerpts are displayed beside a link to the original document.
+                # Its inline links are relative to that document, not this index;
+                # retain their labels without copying invalid link destinations.
+                line = INLINE_LINK_RE.sub(r"\1", line)
                 if len(line) > 220:
                     line = line[:217] + "..."
                 lines.append(

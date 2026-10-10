@@ -297,6 +297,9 @@ def source_defaults(config, target=None):
 
 
 def schedule_config(config, target):
+    if (config.get("domain"), config.get("adapter")) == ("market_consultant", "market-channel-warning-v1"):
+        from .registry import adapter_for
+        return adapter_for(config).schedule_config(config, target)
     state = Path(config["state_dir"])
     # Preserve the deployed primary ledger; extra groups get independent state.
     if target["id"] != config["targets"][0]["id"]:

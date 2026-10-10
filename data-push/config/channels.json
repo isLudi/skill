@@ -17,6 +17,8 @@
     "market_consultant/supervisor_yafei_grade_9": "departments/market_consultant/supervisor_yafei_grade_9.json",
     "market_consultant/supervisor_yafei_grade_9_advisor": "departments/market_consultant/supervisor_yafei_grade_9_advisor.json",
     "market_consultant/supervisor_zhu_doctor_video49": "departments/market_consultant/supervisor_zhu_doctor_video49.json",
-    "market_consultant/supervisor_chenruichun": "departments/market_consultant/supervisor_chenruichun.json"
+    "market_consultant/supervisor_chenruichun": "departments/market_consultant/supervisor_chenruichun.json",
+    "market_consultant/supervisor_koc_zhoushuai_warning": "departments/market_consultant/supervisor_koc_zhoushuai_warning.json",
+    "market_consultant/app_grade_9": "departments/market_consultant/app_grade_9.json"
   }
 }

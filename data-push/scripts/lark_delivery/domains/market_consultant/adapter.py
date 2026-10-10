@@ -8,7 +8,7 @@ from .channels import (
     supervisor_private_app_sync, supervisor_self_incubated_koc_5_grade_9,
     supervisor_yafei_grade_9, supervisor_yafei_grade_9_advisor,
     supervisor_zhu_doctor_video49,
-    supervisor_chenruichun,
+    supervisor_chenruichun, app_grade_9,
 )
 from .weekend_dual import REPORT_TYPE as WEEKEND_DUAL_REPORT_TYPE, write_preview as write_weekend_dual_preview
 
@@ -24,18 +24,21 @@ POLICIES = {
     "supervisor_yafei_grade_9_advisor": supervisor_yafei_grade_9_advisor,
     "supervisor_zhu_doctor_video49": supervisor_zhu_doctor_video49,
     "supervisor_chenruichun": supervisor_chenruichun,
+    "app_grade_9": app_grade_9,
 }
 
 ADVISOR_GRAIN_CHANNELS = frozenset({
     "supervisor_zhu_doctor_video49",
     "supervisor_chenruichun",
     "supervisor_yafei_grade_9_advisor",
+    "app_grade_9",
 })
 
 ADVISOR_REPORT_CHANNELS = {
     "supervisor_zhu_doctor_video49": "supervisor_video49_report",
     "supervisor_chenruichun": "supervisor_video49_report",
     "supervisor_yafei_grade_9_advisor": "supervisor_yafei_advisor_report",
+    "app_grade_9": "supervisor_app_grade9_report",
 }
 
 
@@ -49,10 +52,11 @@ def policy_for(definition):
 def report_module_for(definition):
     """Return the report implementation explicitly owned by this channel."""
     if definition["channel_id"] in ADVISOR_REPORT_CHANNELS:
-        from . import supervisor_video49_report, supervisor_yafei_advisor_report
+        from . import supervisor_video49_report, supervisor_yafei_advisor_report, supervisor_app_grade9_report
         modules = {
             "supervisor_video49_report": supervisor_video49_report,
             "supervisor_yafei_advisor_report": supervisor_yafei_advisor_report,
+            "supervisor_app_grade9_report": supervisor_app_grade9_report,
         }
         return modules[ADVISOR_REPORT_CHANNELS[definition["channel_id"]]]
     if definition["source"]["report_profile"] == "supervisor-detail":
@@ -103,7 +107,7 @@ def validate_definition(definition):
         if not isinstance(values, dict) or tuple(values) != channels or any(values.get(name) != name for name in channels):
             raise ValueError("渠道匹配契约必须为每个登记渠道声明相同的规范值")
         folded = match.get("casefold_channels", [])
-        app_casefold_channels = {"supervisor_private_app_sync", "supervisor_yafei_grade_9"}
+        app_casefold_channels = {"supervisor_private_app_sync", "supervisor_yafei_grade_9", "app_grade_9"}
         if (not isinstance(folded, list) or
                 (folded and (definition["channel_id"] not in app_casefold_channels or folded != ["app"]))):
             raise ValueError("只允许已登记的APP渠道使用大小写不敏感精确匹配")
@@ -118,12 +122,17 @@ def validate_definition(definition):
     if definition["channel_id"] == "supervisor_chenruichun":
         if report["minimum_post_leads"] != policy.MIN_POST_LEADS:
             raise ValueError("陈瑞春顾问退后线索门槛与已审阅规则不一致")
+    if definition["channel_id"] == "app_grade_9":
+        if (report["minimum_post_leads"] != 5 or report.get("show_totals") is not False
+                or report.get("result_reminder_metric") != "截面单效"
+                or report.get("weekend_next_process_enabled") is not True):
+            raise ValueError("APP初三顾问展示门槛、总计或提醒指标与已确认需求不一致")
     for target in definition["targets"]:
         if definition["channel_id"] in {
                 "business_koc_math", "supervisor_koc_douyin_sync", "supervisor_private_app_sync",
                 "supervisor_self_incubated_koc_5_grade_9", "supervisor_yafei_grade_9",
                 "supervisor_yafei_grade_9_advisor",
-                "supervisor_zhu_doctor_video49", "supervisor_chenruichun"
+                "supervisor_zhu_doctor_video49", "supervisor_chenruichun", "app_grade_9"
         } and target["chat_id"] != policy.CHAT_ID:
             raise ValueError("Configured target differs from the reviewed channel policy")
         policy.enforce_group_scope(target["chat_id"], channels[0], definition["source"]["report_profile"])
@@ -181,7 +190,9 @@ def write_preview(context):
     path = context.get("image_path") or context.get("result_image_path")
     if context.get("report_type") == WEEKEND_DUAL_REPORT_TYPE:
         return write_weekend_dual_preview(context, Path(path).parent)
-    if context["report_profile"] == "supervisor-video49":
+    if context.get("channel_key") == "market_consultant/app_grade_9":
+        from . import supervisor_app_grade9_report as report_module
+    elif context["report_profile"] == "supervisor-video49":
         from . import supervisor_video49_report as report_module
     elif context["report_profile"] == "supervisor-advisor-detail":
         from . import supervisor_yafei_advisor_report as report_module
@@ -202,7 +213,20 @@ def schedule(definition, target, *, preflight=False):
     return scheduler.run_locked(cfg, preflight=preflight)
 
 
+def preview_order(definition, target, state_dir):
+    from datetime import datetime
+    from . import app_sequence
+    if definition["channel_id"] != "app_grade_9":
+        raise ValueError("preview-order is only registered for APP grade-9 messages")
+    bundle = app_sequence.prepare(definition, target, datetime.now(app_grade_9.TZ),
+                                  Path(state_dir) / "ordered", no_mentions=True)
+    return app_sequence.write_preview(bundle, state_dir)
+
+
 def send_now(definition, target, request_id, *, preflight=False):
+    if definition["channel_id"] == "app_grade_9":
+        from .app_sequence import send_now as send_sequence_now
+        return send_sequence_now(definition, target, request_id, preflight=preflight)
     from . import immediate
     validate_definition(definition)
     return immediate.run(definition, target, request_id, preflight=preflight)
@@ -220,6 +244,10 @@ def send_backfill(definition, target, request_id, slot, *, preflight=False):
     This path is separate from ``send_now`` so a late catch-up can never be
     inferred from a normal immediate request or a recurring task retry.
     """
+    if definition["channel_id"] == "app_grade_9":
+        from .app_sequence import send_now as send_sequence_now
+        return send_sequence_now(definition, target, request_id, preflight=preflight,
+                                 requested_slot=slot, allow_expired=True)
     from . import immediate
     validate_definition(definition)
     return immediate.run(definition, target, request_id, preflight=preflight,

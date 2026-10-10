@@ -42,7 +42,9 @@ def test_operator_export_covers_registry_and_uses_business_calendar():
     assert chen["渠道标准名称"] == "陈瑞春"
     assert chen["渠道匹配方式"] == ["名称包含"]
     assert chen["数据维度"] == ["期次", "渠道", "年级", "负责人", "主管", "顾问"]
-    assert chen["门槛值"] == 1
+    assert chen["门槛值"] == 6
+    preview = records["market_consultant/app_grade_9"]
+    assert preview["渠道标准名称"] == "app"
     advisor = records["market_consultant/supervisor_yafei_grade_9_advisor"]
     assert advisor["渠道标准名称"] == "亚飞B站初三顾问"
     assert advisor["门槛值"] == 5
@@ -76,3 +78,8 @@ def test_technical_export_preserves_full_config_and_link_mapping():
     assert advisor["minimum_post_leads"] == 5
     assert advisor["schedule_enabled"] is True
     assert advisor["关联运营申请"] == [{"id": link_map[advisor["配置单ID"]]}]
+    preview = records["market_consultant/app_grade_9"]
+    assert preview["schedule_enabled"] is False
+    assert preview["定时参数文件路径"] == ""
+    assert preview["任务执行脚本路径"] == ""
+    assert preview["任务注册脚本路径"] == ""

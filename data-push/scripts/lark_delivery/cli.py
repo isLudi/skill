@@ -13,7 +13,7 @@ from .common import feishu
 
 def main(argv=None, *, bound_channel=None):
     parser = argparse.ArgumentParser(description="data-push: department/channel-scoped Feishu delivery")
-    parser.add_argument("command", nargs="?", default="describe", choices=("describe", "preview", "dry-run", "preflight", "run", "preflight-now", "send-now", "preflight-volume-now", "send-volume-now", "preflight-backfill", "send-backfill"))
+    parser.add_argument("command", nargs="?", default="describe", choices=("describe", "preview", "preview-order", "dry-run", "preflight", "run", "preflight-now", "send-now", "preflight-volume-now", "send-volume-now", "preflight-backfill", "send-backfill"))
     parser.add_argument("--domain", required=bound_channel is None)
     parser.add_argument("--channel", required=bound_channel is None, help="Registered channel ID, not its display label")
     parser.add_argument("--target", action="append", help="Repeatable registered target ID; default: all enabled targets")
@@ -55,6 +55,8 @@ def main(argv=None, *, bound_channel=None):
     if args.command == "run" and not definition["schedule"]["enabled"]:
         print(json.dumps({"status": "paused_no_send", "channel_key": key}, ensure_ascii=False))
         return 0
+    if args.command == "preview-order" and (args.report_type != "auto" or args.period or args.preview_allow_mention_gaps):
+        parser.error("Ordered preview uses the current business calendar and read-only names")
 
     def operation(target):
         if args.command in {"preflight-now", "send-now"}:
@@ -73,6 +75,11 @@ def main(argv=None, *, bound_channel=None):
             return adapter.schedule(definition, target, preflight=args.command == "preflight")
         root = args.state_dir or (Path(definition["state_dir"]) / "previews")
         state = root / definition["domain"] / definition["channel_id"] / target["id"]
+        if args.command == "preview-order":
+            if not hasattr(adapter, "preview_order"):
+                raise ValueError("This channel adapter has no ordered preview")
+            print(json.dumps(adapter.preview_order(definition, target, state), ensure_ascii=False, indent=2))
+            return 0
         channels = definition.get("channels", [definition["channel"]])
         previews = []
         for index, channel in enumerate(channels, start=1):
@@ -80,7 +87,8 @@ def main(argv=None, *, bound_channel=None):
             context = adapter.prepare(definition, target, channel=channel, report_type=args.report_type,
                                       state_dir=channel_state, period=args.period,
                                       allow_period_override=bool(args.period),
-                                      strict_mentions=not args.preview_allow_mention_gaps)
+                                      strict_mentions=not args.preview_allow_mention_gaps,
+                                      **({"no_mentions": True} if key == "market_consultant/app_grade_9" else {}))
             artifacts = adapter.write_preview(context)
             previews.append({"channel": channel,
                              "status": "skipped_no_eligible_rows" if context.get("skip_delivery") else "preview_generated",

@@ -3,6 +3,10 @@
 
 def adapter_for(definition):
     key = (definition["domain"], definition["adapter"])
+    if key == ("market_consultant", "market-channel-warning-v1"):
+        from ..domains.market_consultant import warning_adapter
+        warning_adapter.validate_definition(definition)
+        return warning_adapter
     if key == ("market_consultant", "market-grade-manager-v1"):
         from ..domains.market_consultant import adapter
         adapter.validate_definition(definition)

@@ -73,3 +73,24 @@ class ChannelCliTests(unittest.TestCase):
         self.assertIn("skipped_no_eligible_rows", output.getvalue())
         adapter.write_preview.assert_called_once_with(context)
         send.assert_not_called()
+
+    def test_app_advisor_preview_disables_person_lookup_and_member_invites(self):
+        adapter = SimpleNamespace(prepare=Mock(return_value={"period": "20261009期"}),
+                                  write_preview=Mock(return_value={}))
+        with patch.object(cli, "adapter_for", return_value=adapter), \
+             patch.object(cli.feishu, "send_markdown") as send, redirect_stdout(io.StringIO()):
+            self.assertEqual(cli.main(["preview"], bound_channel="market_consultant/app_grade_9"), 0)
+        self.assertIs(adapter.prepare.call_args.kwargs["no_mentions"], True)
+        send.assert_not_called()
+
+    def test_app_order_preview_uses_readonly_sequence_and_never_sends(self):
+        adapter = SimpleNamespace(preview_order=Mock(return_value={"message_sent": False}))
+        with patch.object(cli, "adapter_for", return_value=adapter), \
+             patch.object(cli.feishu, "send_markdown") as send, redirect_stdout(io.StringIO()):
+            self.assertEqual(cli.main(["preview-order"], bound_channel="market_consultant/app_grade_9"), 0)
+        adapter.preview_order.assert_called_once()
+        send.assert_not_called()
+
+    def test_order_preview_cannot_override_report_policy(self):
+        with redirect_stdout(io.StringIO()), self.assertRaises(SystemExit):
+            cli.main(["preview-order", "--report-type", "result"], bound_channel="market_consultant/app_grade_9")

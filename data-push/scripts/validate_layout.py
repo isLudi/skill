@@ -95,6 +95,7 @@ def validate(root=SKILL_ROOT):
             if not (path.parent / target).resolve().exists():
                 errors.append(f"{path.relative_to(root)}: missing link {target}")
     enabled_schedules = []
+    daily_schedules = []
     for key in catalog.registry(root / "config")["channels"]:
         try:
             definition = catalog.load_channel(key, root / "config")
@@ -104,12 +105,15 @@ def validate(root=SKILL_ROOT):
                 errors.append(f"Missing/mismatched channel entrypoint: {key}")
             schedule = definition.get("schedule", {})
             if schedule.get("enabled"):
-                enabled_schedules.append((key, schedule))
+                if definition.get("adapter") == "market-channel-warning-v1" and schedule.get("kind") == "daily_once":
+                    daily_schedules.append((key, schedule))
+                else:
+                    enabled_schedules.append((key, schedule))
         except (ValueError, KeyError) as exc:
             errors.append(f"{key}: {exc}")
     orders = sorted(schedule.get("stagger_order") for _, schedule in enabled_schedules)
     minutes = sorted(schedule.get("prepare_minute") for _, schedule in enabled_schedules)
-    task_names = [schedule.get("windows_task_name") for _, schedule in enabled_schedules]
+    task_names = [schedule.get("windows_task_name") for _, schedule in enabled_schedules + daily_schedules]
     if orders != list(range(1, len(enabled_schedules) + 1)):
         errors.append("Enabled local broadcasts must have contiguous stagger_order values starting at 1")
     if minutes != [20 + index // 2 for index in range(len(enabled_schedules))] or (minutes and minutes[-1] > 50):

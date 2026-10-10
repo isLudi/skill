@@ -6,7 +6,7 @@
 
 入库时间：2026-05-01
 
-最近更新：2026-05-24
+最近更新：2026-10-09（生产部门范围修正）
 
 ## 2. 查询目标
 
@@ -57,7 +57,12 @@ section_assign_employee_first_level_department_name = 'H业务线'
 and section_assign_employee_second_level_department_name = '市场部'
 and section_assign_employee_third_level_department_name = '市场顾问部'
 and period_mapping_first_level_department_name = 'H业务线'
+and period_mapping_second_level_department_name in (
+    '精品班学部', '市场部', '菁英班学部', '本地化大班学部', '一对一学部'
+)
 ```
+
+2026-10-09 生产范围修正：截面分配到市场顾问部与期次映射二级学部是两个独立条件，不能以期次映射仅为市场部代替原截面归属范围。用户明确要求纳入上述五个二级部门；当前数据集保留原截面分配一级、二级、三级和期次映射一级条件，增加五部门显式范围。该范围不包含空值或未列出的其他部门，不能宣称与历史未限定二级部门的范围完全等价。渠道 CASE、金额计算、去重粒度、期次和分区逻辑保持生产版本。
 
 最终结果过滤：
 
@@ -131,7 +136,7 @@ zz.period_name > '20260424期'
 ## 10. 可复用 SQL 模式
 
 - `data` CTE：全链路明细表中做 `d_w`、`xiansuo`、渠道 CASE 映射、年级识别和基础指标空值处理。`D:\Feishu\0524.txt` 中输出别名为 `qici` 的当期/非当期 CASE，在本看板中沿用历史字段名 `d_w`。
-- 渠道 CASE 有独立最新来源：`resources/raw_sql/market_channel_case_when_0925.sql`（以飞书 0925 完整顺序为基线，融合历史 first-match 保护规则），说明见 `knowledge/sql_patterns/channel_mapping_case_when.md`。
+- 渠道 CASE 有独立最新来源：`resources/raw_sql/market_channel_case_when_1002.sql`（以飞书 1002 完整顺序为基线，融合历史 first-match 保护规则），说明见 `knowledge/sql_patterns/channel_mapping_case_when.md`。
 - `zhuanhua` CTE：按期次、渠道、规则、年级、部门和员工聚合转化/收入指标。2026-05-24 起分组增加 `rule_name`，输出粒度细化到规则级别。
 - final select：补充成本、目标和架构信息，并派生 `s_lead`、`podan`、`sx_qi`、`jingli_1`。
 
@@ -139,10 +144,10 @@ zz.period_name > '20260424期'
 
 - `data` CTE 内部同时生成 `period_name`，又在部分 CASE 条件中引用 `period_name`；需确认 Presto 环境是否允许同层 select 引用别名，或主表是否本身已有 `period_name` 字段。
 - `dt` 使用最近 2 小时，`hour` 使用最近 3 小时，存在时间偏移不一致；需确认是否为平台产出延迟口径。
-- SQL 在 `channel_map` CASE 中使用 `third_department_name`、`first_department_name`、`second_department_name`、`virtual_third_department_name`、`virtual_fourth_department_name`、`virtual_fifth_department_name` 等部门字段，但 where 中只显式限定了截面分配部门和期次映射一级部门；复用时需确认这是否满足公司范围限定规范。
+- SQL 在 `channel_map` CASE 中使用多种部门字段；当前主表 where 同时保留截面分配部门、期次映射一级部门及经用户确认的五个期次映射二级部门。复用时应保持这几个条件各自的含义，不能把期次映射二级学部再次收窄为仅市场部。
 - `temp_table.dingxi01_channel_group`、`temp_table.dingxi01_cost`、`temp_table.dingxi01_jiagou_zx` 的真实字段类型和维护来源待补充。
 - `temp_table.dingxi01_jiagou_db` join 后未在最终 select 直接使用字段，但可能造成重复行；需确认该表在 join key 下是否唯一。
-- `channel_map` 是超长 CASE 规则，历史完整规则以原始 SQL 为准；最新渠道 CASE 已归档为 `resources/raw_sql/market_channel_case_when_0925.sql`。后续改写 SQL 时应优先使用该独立渠道映射知识，除非用户明确要求沿用本看板历史口径。
+- `channel_map` 是超长 CASE 规则，历史完整规则以原始 SQL 为准；最新渠道 CASE 已归档为 `resources/raw_sql/market_channel_case_when_1002.sql`。后续改写 SQL 时应优先使用该独立渠道映射知识，除非用户明确要求沿用本看板历史口径。
 - `xiansuo` 当前按底层 0/1 标记求和输出；如前端需要作为维度筛选，应另行确认是否改为明细维度，不能直接把当前聚合字段放入 group by。
 - `grade_1` 的 `rule_name` 来源是业财宽表主留痕规则，不等同于 CRM 当前页面能看到的所有分配规则。若 CRM 有规则但看板年级回退为购买意向，需对比 `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.rule_name`、`service_dw.dim_crm_assign_rule_lead_detail_hf.rule_name` 和 `service_dw.dm_crm_lead_stats_detail_hf.trace_rule_name`。
 - 所有指标口径来自历史看板 SQL，尚未经过业务口径文档确认。

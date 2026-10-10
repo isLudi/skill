@@ -1,0 +1,65 @@
+{
+  "field_mapping": {
+    "record_key": "记录键",
+    "snapshot_dt": "分区日期",
+    "snapshot_hour": "分区小时",
+    "period_name": "期次",
+    "lead_id": "lead_id",
+    "user_id": "user_id",
+    "consultant_name": "顾问",
+    "consultant_email_prefix": "顾问账号",
+    "supervisor_name": "主管",
+    "supervisor_match_source": "主管匹配来源",
+    "manager_name": "经理",
+    "manager_match_source": "经理匹配来源",
+    "department_name": "部门",
+    "channel_name": "渠道",
+    "grade_name": "年级",
+    "rule_name": "规则",
+    "source_manager_name": "源投放经理",
+    "section_assign_time": "分配时间",
+    "pre_lead_count": "退前线索",
+    "post_lead_count": "退后线索",
+    "income_amount_yuan": "收款",
+    "refund_amount_yuan": "退费",
+    "net_revenue_yuan": "净收款",
+    "long_call_5min_flag": "5min标记",
+    "first_call_task_completed_flag": "首call完成标记",
+    "outbound_call_count": "外呼次数"
+  },
+  "numeric_fields": [
+    "pre_lead_count",
+    "post_lead_count",
+    "income_amount_yuan",
+    "refund_amount_yuan",
+    "net_revenue_yuan",
+    "long_call_5min_flag",
+    "first_call_task_completed_flag",
+    "outbound_call_count"
+  ],
+  "business_grain": [
+    "period_name",
+    "channel_name",
+    "lead_id",
+    "user_id",
+    "consultant_email_prefix"
+  ],
+  "process_formulas": {
+    "首call率": "sum(first_call_task_completed_flag)/sum(post_lead_count)",
+    "5min率": "sum(long_call_5min_flag)/sum(post_lead_count)",
+    "外呼频次": "sum(outbound_call_count)/sum(post_lead_count)"
+  },
+  "call_identity": [
+    "period_name",
+    "user_id",
+    "lead_id",
+    "consultant_email_prefix",
+    "call_duration",
+    "call_status",
+    "call_time",
+    "call_type_name",
+    "data_source",
+    "msg_type_name"
+  ],
+  "scope": "All channels and grades; conversion calendar current/prior periods; snapshots dt-7 same hour; historical roster with global finance dt-1 fallback"
+}

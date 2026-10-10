@@ -81,6 +81,16 @@ class ReverseIndexTest(unittest.TestCase):
         self.assertEqual(1, result)
         self.assertEqual(before, target.read_bytes())
 
+    def test_risk_excerpt_retains_link_label_without_changing_source(self) -> None:
+        source = self.skill_root / "knowledge/joins/risks.md"
+        content = "# Join Risk\n\n- null risk: use [SQL detail](../../resources/raw_sql/real_query.sql).\n"
+        source.write_text(content, encoding="utf-8")
+        rendered = ReverseIndexBuilder(self.skill_root).build_join_risk_index()
+        self.assertIn("null risk: use SQL detail.", rendered)
+        self.assertNotIn("[SQL detail]", rendered)
+        self.assertIn("[knowledge/joins/risks.md](../joins/risks.md)", rendered)
+        self.assertEqual(content, source.read_text(encoding="utf-8"))
+
     def test_legacy_no_argument_cli_and_check(self) -> None:
         with redirect_stdout(io.StringIO()):
             self.assertEqual(0, main_for_skill(self.skill_root, []))

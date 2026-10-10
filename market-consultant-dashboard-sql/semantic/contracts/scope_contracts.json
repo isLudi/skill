@@ -12,7 +12,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
-      "source_sha256": "50fd19ab63c9e21dfdad69d5aef5643d504793c926cb22f6a13004b56478887d",
+      "source_sha256": "146105928872a892c00ac12674e3b1eb4a76a70df6c89d57c4ba346139691e2a",
       "description": "市场顾问转化看板主全链路表的分区与部门范围。",
       "candidate_tables": [
         "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df"
@@ -47,9 +47,20 @@
           "field": "period_mapping_first_level_department_name",
           "operator": "=",
           "value": "H业务线"
+        },
+        {
+          "field": "period_mapping_second_level_department_name",
+          "operator": "in",
+          "value": [
+            "精品班学部",
+            "市场部",
+            "菁英班学部",
+            "本地化大班学部",
+            "一对一学部"
+          ]
         }
       ],
-      "notes": "dt/hour 必须在执行前解析为目标分区；不得沿用文档中的历史 now 偏移而不先检查数据新鲜度。"
+      "notes": "dt/hour 必须在执行前解析为目标分区；不得沿用文档中的历史 now 偏移而不先检查数据新鲜度。 2026-10-09 用户确认期次映射二级部门为精品班学部、市场部、菁英班学部、本地化大班学部、一对一学部；截面归属仍为市场顾问部。此五部门范围不覆盖空值或其他学部，不与历史无限制二级范围混称。"
     },
     {
       "id": "market_consultant:scope:outbound_dashboard",
