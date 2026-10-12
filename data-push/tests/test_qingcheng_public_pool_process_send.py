@@ -28,10 +28,9 @@ def test_account_suffix_selects_exact_employee(monkeypatch):
     assert display == {"杨婷婷29": "杨婷婷"}
 
 
-def test_incomplete_contact_search_blocks_delivery(monkeypatch):
+def test_incomplete_contact_search_keeps_plain_name(monkeypatch):
     monkeypatch.setattr(MODULE, "_data", lambda _: {"queries": [{"query": "shiyuyan@gaotu.cn", "has_more": True}], "users": []})
-    with pytest.raises(ValueError, match="incomplete"):
-        MODULE._resolve_people([{"name": "师豫雁", "account": "shiyuyan"}])
+    assert MODULE._resolve_people([{"name": "师豫雁", "account": "shiyuyan"}]) == ({}, {})
 
 
 def test_exact_email_account_uses_contacts_current_display_name(monkeypatch):
@@ -46,10 +45,9 @@ def test_exact_email_account_uses_contacts_current_display_name(monkeypatch):
     assert display == {"张翔12": "张翔"}
 
 
-def test_two_accounts_with_one_source_name_block_before_contact_lookup():
-    with pytest.raises(ValueError, match="share one source display name"):
-        MODULE._resolve_people([{"name": "同名", "account": "account01"},
-                                {"name": "同名", "account": "account02"}])
+def test_two_accounts_with_one_source_name_use_plain_name_before_contact_lookup():
+    assert MODULE._resolve_people([{"name": "同名", "account": "account01"},
+                                   {"name": "同名", "account": "account02"}]) == ({}, {})
 
 
 def test_render_replaces_every_tied_name_with_native_at():

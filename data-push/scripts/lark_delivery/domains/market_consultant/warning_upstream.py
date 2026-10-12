@@ -4,6 +4,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 import hashlib
 import json
+import os
 from pathlib import Path
 import re
 import subprocess
@@ -27,12 +28,18 @@ def operator(command, definition, *extra):
     args = [python, str(OPERATOR), command, '--project-id', str(u['project_id']),
             '--folder', u['folder'], '--menu-id', str(u['menu_id']), '--task-name', u['task_name'],
             '--artifacts-dir', str(ARTIFACTS), *extra]
-    result = subprocess.run(args, cwd=str(WORKSPACE_ROOT), capture_output=True, text=True,
-                            encoding='utf-8', timeout=100,
+    # Task Scheduler starts pythonw without the interactive shell's UTF-8
+    # variables. Pin the producer as well as the consumer's encoding.
+    child_env = dict(os.environ, PYTHONIOENCODING='utf-8', PYTHONUTF8='1')
+    result = subprocess.run(args, cwd=str(WORKSPACE_ROOT), capture_output=True,
+                            env=child_env, timeout=100,
                             creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
     if result.returncode:
         raise RuntimeError(f'Governed upstream read failed: {command} exit={result.returncode}')
-    reply = json.loads(result.stdout)
+    try:
+        reply = json.loads(result.stdout.decode('utf-8'))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise RuntimeError(f'Governed upstream read returned invalid UTF-8 JSON: {command}') from exc
     if reply.get('read_only') is not True or reply.get('remote_mutations') != 0:
         raise ValueError('Missing read-only upstream receipt')
     return reply

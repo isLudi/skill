@@ -8,6 +8,7 @@ from typing import Any, Mapping, Sequence
 from .market_schema import PROCESS_FIELDS, TEXT_SECTION_ORDER, RESULT_FIELDS, RESULT_IMAGE_COLUMNS, IMAGE_ROW_FILTER
 from . import market_leads as lead_report
 from ..domains.market_consultant.channels import self_incubated_koc_5 as broadcast_policy
+from ..domains.market_consultant.reminder_fallback import normalize
 
 
 def prepare_lead_report(args: argparse.Namespace, *, services) -> dict[str, Any]:
@@ -72,17 +73,21 @@ def prepare_lead_report(args: argparse.Namespace, *, services) -> dict[str, Any]
         [], mention_map={} if mentions_disabled else services._load_mention_map(args.mention_map or None), no_lookup=False,
         disable_mentions=mentions_disabled, extra_names=configured_names, timeout=args.timeout,
     )
-    if args.strict_mentions and (mention_info["unresolved"] or mention_info["ambiguous"]):
-        raise SystemExit("存在未能唯一解析的 @ 姓名，请提供 --mention-map 消歧")
+    if not mentions_disabled:
+        mention_info["unresolved"] = sorted(set(mention_info.get("unresolved", ()))
+                                           | set(report.get("ambiguous_reminder_names", ())))
     chat_id = lead_report.configured_chat(configs, args.chat_id.strip())
     if args.chat_name:
         if not chat_id:
             raise SystemExit("校验群名称前需要接收群配置或 --chat-id")
         services.verify_chat(chat_id, args.chat_name, args.identity, args.timeout)
     if getattr(args, "require_mention_membership", False) and not mentions_disabled:
-        mention_info["nonmembers"] = services.mention_nonmembers(chat_id, mention_info["resolved"], args.identity, args.timeout)
-        if args.strict_mentions and mention_info["nonmembers"]:
-            raise SystemExit("以下 @ 人员未在目标群内：" + "、".join(mention_info["nonmembers"]))
+        try:
+            mention_info["nonmembers"] = services.mention_nonmembers(chat_id, mention_info["resolved"], args.identity, args.timeout)
+        except Exception:
+            mention_info["nonmembers"] = list(mention_info["resolved"])
+    if not mentions_disabled:
+        mention_info = normalize(configured_names, mention_info)
 
     def project_rows(allowed: Sequence[str], sort_field: str, rate: bool = False) -> list[dict[str, Any]]:
         selected = [{"record_id": "", "fields": {k: v for k, v in row["fields"].items() if k in allowed}}
@@ -194,8 +199,8 @@ def prepare_summary_view(args: argparse.Namespace, *, services) -> dict[str, Any
         extra_names=configured_reminder_names,
         timeout=args.timeout,
     )
-    if args.strict_mentions and (mention_info["unresolved"] or mention_info["ambiguous"]):
-        raise SystemExit("存在未能唯一解析的 @ 姓名：%s" % ", ".join(mention_info["unresolved"] + list(mention_info["ambiguous"])))
+    if not mentions_disabled:
+        mention_info = normalize(configured_reminder_names, mention_info)
     chat_id = (args.chat_id or "").strip()
     if args.chat_name:
         services.verify_chat(chat_id, args.chat_name, args.identity, args.timeout)

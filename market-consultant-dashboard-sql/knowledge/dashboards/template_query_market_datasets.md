@@ -1,6 +1,6 @@
 # 市场顾问部模板取数源 SQL 清单
 
-维护日期：2026-10-09
+维护日期：2026-10-12
 
 本文件记录从 `模板取数 -> 模板查询 -> 我的模板 -> 我创建的` 中抓取的市场顾问部模板 SQL。所有条目的使用口径均为 **模板取数**，与数据中心数据集源 SQL、Web BI 看板 canonical SQL 分开维护。模板 raw SQL 只保留线上 `published` 版本的 stable canonical 文件，不保留日期副本；后续排查模板取数代码时优先读取本清单和下表中的具体 raw SQL 文件。
 
@@ -19,19 +19,19 @@
 - 2026-07-26 仅原位更新 `AI分析市场顾问部_宽表`（模板 id `9002`）：基于宽表现有字段别名和辅助字段整合 0726 渠道归因，未直接粘贴标准 CASE；保留 `${qici:1}`、`${qici:2}` 两个参数和原 122 个输出字段，并将相同期次半开区间下推至 `lead_raw` 主链。该历史代码已清理，当前线上 SQL 只从上方 stable canonical 入口读取。
 - 2026-08-03 原位更新 `业财用户出单明细`（模板 id `7689`）：仅用历史 `market_channel_case_when_0726_legacy.sql` 的 156 条共享渠道分支替换旧的 196 条 `channel_map` 分支，保留模板身份、申请关系、`${dt}`、暑期期次表达式、来源表和 26 个最终字段。线上 SQL 文本 SHA-256 为 `8704c71c2962a75173e66873e3b9d5388d63e7eb0623bfa7b5ae35ad37a38cfa`；发布后查询 `384631` 为 `SUCCESS`。本条为历史记录，当前线上口径以本节最新 stable 清单为准。
 
-## 当前有效渠道模板清单（2026-10-09：5 个 1002，2 个待同步）
+## 当前有效渠道模板清单（2026-10-12：7/7已发布1009并查询成功）
 
-| 模板名称 | 模板 id | 状态/渠道版本 | 发布后 SQL SHA-256 | raw SQL | SQL 行数/字节 | 模板参数 | 本次验证 |
+| 模板名称 | 模板id | 状态/渠道版本 | 发布后SQL SHA-256 | raw SQL | SQL行数/字节 | 模板参数 | 本次验证 |
 |---|---:|---|---|---|---:|---|---|
-| 业财用户出单明细 | 7689 | published / 1002 | `f5b5a0bc63f21e9e45e7abcffcb4832654a7d8db145842c8fc3f5cb2d093e216` | [template_query_market_finance_order_detail.sql](../../resources/raw_sql/template_query_market_finance_order_detail.sql) | 551 / 49891 | `${dt}` | query `407937`，7,381 行，7 秒，SUCCESS |
-| 市场运营专用_多维全链路分析 | 7808 | published / 1002 | `49b5b9cf4a5bb82afaa5e788650c5ec5ef8fcfc3125d8d98d63cf802bcff4865` | [template_query_market_wide_analysis.sql](../../resources/raw_sql/template_query_market_wide_analysis.sql) | 1044 / 77038 | `${period_name1}`, `${period_name2}` | query `407930`，8,825 行，28 秒，SUCCESS |
-| 馒头_订单明细_支付时间 | 8735 | published / 1002 | `0cfe5463306277749238d69b1e3ae353c41bf67dc2fabf85c75a655739ea8776` | [template_query_market_mantou_order_detail_pay_time.sql](../../resources/raw_sql/template_query_market_mantou_order_detail_pay_time.sql) | 959 / 71355 | `${day:1}`, `${day:2}` | query `407931`，218 行，12 秒，SUCCESS |
-| AI分析市场顾问部分周期转化数据 | 8866 | published / 1002 | `b71105d287e16ffa189705d2a5df3bd1f0021fbb86a7aadc99eeef9e7d3848fe` | [template_query_market_period_conversion.sql](../../resources/raw_sql/template_query_market_period_conversion.sql) | 372 / 19741 | 无 | query `407933`，8,407 行，9 秒，SUCCESS |
-| AI分析市场顾问部多科用户成单数据 | 8882 | published / 0925 | `c4a66422fccedc99113a9c15bc65dc161ebd2203e2de85e20b338542cccd2d0e` | [template_query_market_multi_subject_order_user.sql](../../resources/raw_sql/template_query_market_multi_subject_order_user.sql) | 422 / 57734 | `${qici:1}`, `${qici:2}` | 1002 待同步：原一级 OR/NULL 被行权限校验拒绝；本次未保存替换 |
-| 馒头_订单明细_流水时间 | 8948 | published / 1002 | `80e029e2f733d867512df6976bbf59416e57122bc5eb1d3ddad765bcd41bb1df` | [template_query_market_mantou_order_detail_trade_time.sql](../../resources/raw_sql/template_query_market_mantou_order_detail_trade_time.sql) | 882 / 69258 | `${day:1}`, `${day:2}` | query `407932`，258 行，11 秒，SUCCESS |
-| AI分析市场顾问部_宽表 | 9002 | published / 0925 | `274d12a9b47e83d944c7ce5c0cda546e0b7d2f74eb0541dfb0d79edb90137591` | [template_query_market_wide.sql](../../resources/raw_sql/template_query_market_wide.sql) | 232 / 85534 | `${qici:1}`, `${qici:2}` | 1002 待同步：原一级 OR/NULL 被行权限校验拒绝；本次未保存替换 |
+| 业财用户出单明细 | 7689 | published / 1009 | `766170fb3eb82bcc2dca3b01519a4c037fe9e4598390fec4de5f0ce5e31f153c` | [template_query_market_finance_order_detail.sql](../../resources/raw_sql/template_query_market_finance_order_detail.sql) | 749 / 50721 | `${dt}` | query `408704`，3,707行，22秒，SUCCESS |
+| 市场运营专用_多维全链路分析 | 7808 | published / 1009 | `78eb10726ebcc4a33b7b600c5efc5e40a210a817cef459df88867406f38cbffb` | [template_query_market_wide_analysis.sql](../../resources/raw_sql/template_query_market_wide_analysis.sql) | 1242 / 77868 | `${period_name1}`, `${period_name2}` | query `408705`，6,594行，267秒，SUCCESS |
+| 馒头_订单明细_支付时间 | 8735 | published / 1009 | `e3c3ea703f0163f1ddacb4e05e8e0fad13df39b5d64ca95a327430d19637cd9b` | [template_query_market_mantou_order_detail_pay_time.sql](../../resources/raw_sql/template_query_market_mantou_order_detail_pay_time.sql) | 1245 / 72523 | `${day:1}`, `${day:2}` | query `408711`，519行，150秒，SUCCESS |
+| AI分析市场顾问部分周期转化数据 | 8866 | published / 1009 | `ae77dfa98af3f3bcc618f20e5c113afa58ac0c7f47072779f30697697b21202a` | [template_query_market_period_conversion.sql](../../resources/raw_sql/template_query_market_period_conversion.sql) | 502 / 20001 | 无 | query `408743`，8,525行，28秒，SUCCESS |
+| AI分析市场顾问部多科用户成单数据 | 8882 | published / 1009 | `a628acbd4e587c985c849a412ce107190dd44c906b05c19b9cd4319e4d6e8e34` | [template_query_market_multi_subject_order_user.sql](../../resources/raw_sql/template_query_market_multi_subject_order_user.sql) | 812 / 59422 | `${qici:1}`, `${qici:2}` | query `408721`，103行，147秒，SUCCESS |
+| 馒头_订单明细_流水时间 | 8948 | published / 1009 | `b045570607c9cdac927103c5625695a410948e6838d2dae14997399dbbb51b97` | [template_query_market_mantou_order_detail_trade_time.sql](../../resources/raw_sql/template_query_market_mantou_order_detail_trade_time.sql) | 1168 / 70426 | `${day:1}`, `${day:2}` | query `408716`，578行，95秒，SUCCESS |
+| AI分析市场顾问部_宽表 | 9002 | published / 1009 | `22dd76462e114d76f7473f6cc6d8747f67346ac427034f600a825e846301f284` | [template_query_market_wide.sql](../../resources/raw_sql/template_query_market_wide.sql) | 636 / 83458 | `${qici:1}`, `${qici:2}` | query `408722`，508行，230秒，SUCCESS |
 
-已有模板原位更新，申请过的人无需再次申请；原有二级部门条件不改动。模板 7689/8735/8948 仅在原条件缺失且平台要求时补充二级市场部，保留三级市场顾问部。8882/9002 保留原 IN、OR/NULL 和线上 SQL，尚未完成本轮更新验收。
+所有模板保留原ID、申请关系、参数及最终字段原位更新；已申请者无需再次申请。部门条件、IN名单及NULL范围保持本轮实时生产原状；1002阶段的授权范围变化保留为历史。8866专用CASE的精确新标签优先级修正后再次发布，最终query408743作为验收，初次query408720保留为历史执行。
 
 下方表格仅保留历史验证记录；历史 SQL 文本和日期文件均已清理，当前线上口径只从本节 stable 清单路由。
 
@@ -52,7 +52,7 @@
 - 用户要排查 Web BI 看板或数据中心数据集时，不要直接用本批模板 SQL 替代 canonical 看板 SQL；先确认来源口径是否就是模板取数。
 - 本批 SQL 来源为模板平台 `sqlDetail`，可能包含模板参数 `${...}`；生成验证版 SQL 时可临时替换为实际日期/期次，写回模板或知识库时仍保留模板参数形态。
 - 若同一业务主题同时存在 canonical raw SQL 和模板取数 raw SQL，回答时必须说明当前采用的是“模板取数口径”还是“看板/数据中心口径”。
-- 两个馒头模板永久归入 `market_consultant` 域，必须与其他市场顾问渠道消费者一同盘点和更新。支付时间/流水时间当前 SHA-256 分别为 `0cfe5463306277749238d69b1e3ae353c41bf67dc2fabf85c75a655739ea8776`、`80e029e2f733d867512df6976bbf59416e57122bc5eb1d3ddad765bcd41bb1df`；后续不得恢复会放大 stages 的重 CTE 多路扫描。
+- 两个馒头模板永久归入 `market_consultant` 域，必须与其他市场顾问渠道消费者一同盘点和更新。支付时间/流水时间当前 SHA-256 分别为 `e3c3ea703f0163f1ddacb4e05e8e0fad13df39b5d64ca95a327430d19637cd9b`、`b045570607c9cdac927103c5625695a410948e6838d2dae14997399dbbb51b97`；后续不得恢复会放大 stages 的重 CTE 多路扫描。
 - `业财用户出单明细` 是共享渠道 CASE 的强制同步消费者。每次更新 `market_channel_case_when_MMDD.sql`，必须把模板 id `7689` 纳入规则级差异检查、同 id 保存/发布、SQL 哈希回读、真实模板查询和本清单 raw SQL 刷新；不得只更新数据中心或其他 AI 模板。
 
 ## 同步来源

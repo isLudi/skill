@@ -1,10 +1,10 @@
-"""Deliver the three Qingcheng partner-channel process reports in one batch.
+"""Deliver Qingcheng partner-channel process reports in the existing batch.
 
-Each channel (partner_books / partner_local / supervisor_local) has its own
+Each channel (partner_books / partner_local / supervisor_local / internal_books) has its own
 target group and is fully isolated: source filtering, image build, mention
 resolution, group membership check, delivery, and receipt are per channel; a
-failure in one channel never blocks the other two. Shared gates (upstream
-audit, same-revision source snapshots) block the affected batch only.
+failure in one channel never blocks the others. The internal-books Data Center
+branch remains independent of the partner Base source and upstream audit.
 """
 
 from __future__ import annotations
@@ -13,7 +13,7 @@ from qingcheng_schedule import resolve_slot
 
 import argparse
 from contextlib import contextmanager
-from datetime import datetime, timedelta
+from datetime import datetime
 import hashlib
 import html
 import json
@@ -37,6 +37,7 @@ from preview_qingcheng_public_pool_process import (
 from run_qingcheng_process import _batch as _qingcheng_batch, _period, _upstream_audit, _write_json, run_scope
 from run_qingcheng_sec_process import _members, _resolve
 from send_qingcheng_process import _verify_message
+import qingcheng_internal_books as internal_books
 
 
 SKILL = Path(__file__).resolve().parents[1]
@@ -48,7 +49,7 @@ FETCH_KEY = {"partner_books": "partner_books", "partner_local": "partner_local",
              "supervisor_local": "partner_local"}
 
 
-def _config() -> dict:
+def _config(*, validate_channels: bool = True) -> dict:
     cfg = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
     cal = cfg["business_calendar"]
     if (cfg["schema_version"], cfg["domain"], cfg["execution_surface"], cfg["report_type"],
@@ -68,8 +69,8 @@ def _config() -> dict:
         raise ValueError("Partner process schedule, sender, or Base-write boundary differs")
     if cfg["upstream"] != _qingcheng_batch()["upstream"]:
         raise ValueError("Partner qing2lark task pin differs from the active Qingcheng batch")
-    if [entry["id"] for entry in cfg["channels"]] != list(CHANNEL_IDS):
-        raise ValueError("The three partner channels or their delivery order differ")
+    if [entry["id"] for entry in cfg["channels"]] not in (list(CHANNEL_IDS), [*CHANNEL_IDS,"internal_books"]):
+        raise ValueError("Partner channels or their delivery order differ")
     if cfg["source"]["matches"] != {
             "partner_books": {"一级渠道": "图书", "渠道": "武汉图书"},
             "partner_local": {"一级渠道": "本地化", "渠道": "河南本地化"},
@@ -83,6 +84,14 @@ def _config() -> dict:
         raise ValueError("Partner process color bars differ")
     if set(cfg["visual"]["integer_fields"]) != {"带班人数", "有效线索", "退前线索", "退后线索", "总通时"}:
         raise ValueError("Partner integer display fields differ")
+    if validate_channels:
+        for entry in cfg["channels"]:
+            if entry["id"] != "internal_books":
+                _validate_entry(entry)
+    return cfg
+
+
+def _validate_entry(entry: dict) -> None:
     expected = {
         "partner_books": ("图书", "顾问", "oc_854e5427ec0f6ef2bf654fee0a759f83", 3, ["武汉图书"]),
         "partner_local": ("本地化", "顾问", "oc_7e4ac041d00e583b49749b9a0d01a64c", 3, ["河南本地化"]),
@@ -90,15 +99,13 @@ def _config() -> dict:
     }
     layout = {"partner_books": (False, "8min_minimum"), "partner_local": (False, "8min_minimum"),
               "supervisor_local": (True, "8min_minimum_grade_text")}
-    for entry in cfg["channels"]:
-        if tuple(entry[field] for field in ("name", "level", "target_chat_id",
-                                            "minimum_effective_leads", "audit_secondary_channels")) != expected[entry["id"]]:
-            raise ValueError(f"Partner channel routing differs: {entry['id']}")
-        if (entry["split_grade"], entry["process_reminder"]) != layout[entry["id"]] \
-                or entry["unresolved_mention_action"] != "invite_then_text":
-            raise ValueError(f"Partner channel layout or mention gate differs: {entry['id']}")
-        _request(entry)
-    return cfg
+    if tuple(entry[field] for field in ("name", "level", "target_chat_id",
+                                        "minimum_effective_leads", "audit_secondary_channels")) != expected[entry["id"]]:
+        raise ValueError(f"Partner channel routing differs: {entry['id']}")
+    if (entry["split_grade"], entry["process_reminder"]) != layout[entry["id"]] \
+            or entry["unresolved_mention_action"] != "invite_then_text":
+        raise ValueError(f"Partner channel layout or mention gate differs: {entry['id']}")
+    _request(entry)
 
 
 def _request(entry: dict) -> dict:
@@ -303,7 +310,7 @@ def _render(review: dict, resolved: dict[str, str], display: dict[str, str], ima
         if key in resolved:
             parts.append(f'<at user_id="{resolved[key]}">{html.escape(display[key])}</at>')
         else:
-            # Sanctioned plain-name fallback: invited already, still absent or unresolvable.
+            # Optional identity or membership could not be verified: keep the name.
             parts.append(html.escape(person["name"]))
     return message.replace(original, prefix + "、".join(parts)).replace("](process.png)", f"]({image_key})")
 
@@ -338,10 +345,12 @@ def _deliver(entry: dict, review: dict, manifest: dict, cfg: dict, folder: Path,
         resolved, display, text_only = _resolve(shim_entry, shim_review, member_ids,
                                                 chat_id=entry["target_chat_id"],
                                                 sender_open_id=cfg["sender"]["open_id"])
-        if len(resolved) + len(text_only) != len(review["reminder_people"]):
+        if (set(resolved) | set(text_only) != {_person_key(p) for p in review["reminder_people"]}
+                or set(resolved) & set(text_only)):
             raise ValueError(f"Partner reminder coverage differs from the reviewed person set: {entry['id']}")
     else:
-        resolved, display = {}, {}
+        resolved, display, text_only = {}, {}, set()
+        shim_review = {}
     image = folder / review["image"]
     image_key = upload_image(image, "bot", 90)
     markdown = _render(review, resolved, display, image_key)
@@ -356,6 +365,9 @@ def _deliver(entry: dict, review: dict, manifest: dict, cfg: dict, folder: Path,
                "chat_id": entry["target_chat_id"], "sender_open_id": cfg["sender"]["open_id"],
                "period": review["period"], "slot": slot.isoformat(), "source_rev": manifest["rev"],
                "idempotency_key": key, "mention_ids": sorted(resolved.values()),
+               "text_fallback_names": sorted({p["name"] for p in review["reminder_people"]
+                                              if _person_key(p) in text_only}),
+               "text_fallback_reasons": shim_review.get("text_fallback_reasons", {}),
                "image_sha256": hashlib.sha256(image.read_bytes()).hexdigest(),
                "message_sha256": hashlib.sha256(markdown.encode("utf-8")).hexdigest(),
                # Re-issue evidence: the key is unchanged, so the platform dedupes if an
@@ -387,8 +399,9 @@ def _deliver(entry: dict, review: dict, manifest: dict, cfg: dict, folder: Path,
     return {"status": receipt["status"], "message_id": message_id, "receipt": str(receipt_path)}
 
 
-def run(*, now: datetime | None = None, output: Path | None = None) -> dict:
-    cfg = _config()
+def _run_base(*, now: datetime | None = None, output: Path | None = None) -> dict:
+    cfg = _config(validate_channels=False)
+    cfg = {**cfg,"channels":[entry for entry in cfg["channels"] if entry["id"] in CHANNEL_IDS]}
     slot = _slot(now or datetime.now(ZoneInfo("Asia/Shanghai")), cfg)
     period = _period(slot.date())
     output = output or STATE / "slots" / slot.strftime("%Y%m%d-%H%M")
@@ -398,9 +411,20 @@ def run(*, now: datetime | None = None, output: Path | None = None) -> dict:
         previous = json.loads(batch_path.read_text(encoding="utf-8"))
         if (previous["period"], previous["slot"]) != (period, slot.isoformat()):
             raise ValueError("Partner batch folder belongs to another business slot")
-    results = {entry["id"]: _existing(output / entry["id"] / "send_receipt.json")
-               for entry in cfg["channels"]}
-    pending = [entry for entry in cfg["channels"] if results[entry["id"]] is None]
+    results = {}
+    for entry in cfg["channels"]:
+        try:
+            results[entry["id"]] = _existing(output / entry["id"] / "send_receipt.json")
+        except Exception as exc:
+            results[entry["id"]] = {"status":"blocked","error":str(exc)}
+    pending = []
+    for entry in cfg["channels"]:
+        if results[entry["id"]] is None:
+            try:
+                _validate_entry(entry)
+                pending.append(entry)
+            except Exception as exc:
+                results[entry["id"]] = {"status":"blocked","error":str(exc)}
     batch = {"period": period, "slot": slot.isoformat(), "channels": results}
     if not pending:
         _write_json(batch_path, batch)
@@ -433,23 +457,19 @@ def run(*, now: datetime | None = None, output: Path | None = None) -> dict:
         except Exception as exc:
             source_errors[fetch_key] = str(exc)
 
-    # All partner sources come from one raw table: revisions and snapshots must agree.
-    pin_path = output / "source_version.json"
-    pin = json.loads(pin_path.read_text(encoding="utf-8")) if pin_path.exists() else None
-    observed = {(manifest["rev"], tuple(manifest["snapshot"])) for _, manifest in source_data.values()}
-    if len(observed) > 1:
-        for fetch_key in source_data:
-            source_errors[fetch_key] = "Partner source slices came from different Base revisions or snapshots"
-        source_data.clear()
-    elif observed:
-        revision, snapshot = next(iter(observed))
-        if pin and (pin["rev"], tuple(pin["snapshot"])) != (revision, snapshot):
-            for fetch_key in source_data:
-                source_errors[fetch_key] = "Partner source version changed inside the same delivery slot"
-            source_data.clear()
-        elif not pin:
-            _write_json(pin_path, {"period": period, "slot": slot.isoformat(),
-                                   "rev": revision, "snapshot": list(snapshot)})
+    # A mismatching source slice blocks only its own consumers. Retain each
+    # slice's slot pin, including the old shared pin when migrating active slots.
+    legacy_pin_path = output / "source_version.json"
+    legacy_pin = json.loads(legacy_pin_path.read_text(encoding="utf-8")) if legacy_pin_path.exists() else None
+    for fetch_key, (_, manifest) in list(source_data.items()):
+        pin_path = output / f"source_version_{fetch_key}.json"
+        pin = json.loads(pin_path.read_text(encoding="utf-8")) if pin_path.exists() else legacy_pin
+        revision, snapshot = manifest["rev"], tuple(manifest["snapshot"])
+        if pin and (pin["rev"],tuple(pin["snapshot"])) != (revision,snapshot):
+            source_errors[fetch_key] = "Partner source version changed inside the same delivery slot"
+            del source_data[fetch_key]
+        elif not pin_path.exists():
+            _write_json(pin_path,{"period":period,"slot":slot.isoformat(),"rev":revision,"snapshot":list(snapshot)})
 
     # Per-channel build and delivery: one channel's failure never affects the others.
     for entry in pending:
@@ -474,9 +494,44 @@ def run(*, now: datetime | None = None, output: Path | None = None) -> dict:
                 else:
                     results[channel_id] = _deliver(entry, review, manifest, cfg, folder, slot)
         except Exception as exc:
-            results[channel_id] = _existing(folder / "send_receipt.json") or {
-                "status": "blocked", "error": str(exc)}
+            try:
+                settled = _existing(folder / "send_receipt.json")
+            except Exception:
+                settled = None
+            results[channel_id] = settled or {"status": "blocked", "error": str(exc)}
         _write_json(batch_path, batch)
+    return batch
+
+
+def run(*, now: datetime | None = None, output: Path | None = None) -> dict:
+    cfg = _config(validate_channels=False)
+    slot = _slot(now or datetime.now(ZoneInfo("Asia/Shanghai")),cfg)
+    period = _period(slot.date())
+    output = output or STATE / "slots" / slot.strftime("%Y%m%d-%H%M")
+    try:
+        batch = _run_base(now=now,output=output)
+    except Exception as exc:
+        batch = {"period":period,"slot":slot.isoformat(),"channels":{
+            channel:{"status":"blocked","error":str(exc)} for channel in CHANNEL_IDS}}
+    entry = next((e for e in cfg["channels"] if e["id"] == "internal_books"),None)
+    if entry is not None:
+        folder = output/"internal_books"
+        try:
+            if not entry.get("scheduled",False):
+                outcome = {"status":"skipped_schedule_disabled"}
+            else:
+                review_file = folder/"review.json"
+                if (folder/"send_receipt.json").exists():
+                    review = json.loads(review_file.read_text(encoding="utf-8"))
+                else:
+                    review = internal_books.prepare("process",period,folder)
+                outcome = internal_books.deliver(review,folder,slot)
+        except internal_books.NoEligibleRows:
+            outcome = {"status":"skipped_no_eligible_rows"}
+        except Exception as exc:
+            outcome = {"status":"blocked","error":str(exc)}
+        batch["channels"]["internal_books"] = outcome
+    _write_json(output/"batch.json",batch)
     return batch
 
 
@@ -489,6 +544,8 @@ def main() -> None:
     args = parser.parse_args()
     if args.check_config:
         cfg = _config()
+        if any(e["id"] == "internal_books" for e in cfg["channels"]):
+            internal_books.config()
         print(json.dumps({"status": "valid", "task": cfg["windows_task_name"],
                           "channels": [entry["id"] for entry in cfg["channels"]]}, ensure_ascii=True))
         return
@@ -499,7 +556,7 @@ def main() -> None:
         print(json.dumps(batch, ensure_ascii=False, indent=2))
         scope.adopt(batch)
         failed = any(item["status"] not in {"sent_verified", resend.UNVERIFIABLE, "skipped_no_source_rows",
-                                            "skipped_no_eligible_rows"}
+                                            "skipped_no_eligible_rows","skipped_schedule_disabled"}
                      for item in batch["channels"].values())
         scope.exit_code = 1 if failed else 0
         if failed:

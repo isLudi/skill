@@ -9,10 +9,16 @@ import hashlib
 import html
 import json
 from pathlib import Path
-import re
 import sys
 
 from PIL import Image, ImageDraw, ImageFont
+
+if __package__:
+    from .warning_reminder_policy import conversion_policy
+    from .warning_mention_render import fragments
+else:
+    from warning_reminder_policy import conversion_policy
+    from warning_mention_render import fragments
 
 # Header and total-row fills: blend the original colors with 40% white.
 NAVY, TEAL = "#798aa9", "#7dacb0"
@@ -28,21 +34,21 @@ def fixed(value):
 
 def percentage(value, signed=False):
     if value is None:
-        return "—"
+        return ""
     value = Decimal(str(value))
     return ("+" if signed and value > 0 else "") + fixed(value * 100) + "%"
 
 
 def change_text(value):
     if value is None:
-        return "不可计算"
+        return ""
     value = Decimal(str(value))
     return "持平" if value == 0 else ("增加" if value > 0 else "减少") + percentage(abs(value))
 
 
 def metric_text(value, key, unit=False):
     if value is None:
-        return "—"
+        return ""
     return fixed(value) + ("元/条" if unit else "") if key == "unit" else percentage(value)
 
 
@@ -54,13 +60,12 @@ def unavailable_reason(row, key):
     return "上期为0" if Decimal(str(row["prior"][key])) == 0 else "上期为负"
 
 
-def select_display_rows(rows):
+def select_display_rows(rows, *, current_only=False):
     """Filter supervisor display only; team metrics keep the complete scope."""
     displayed, excluded = [], []
-    rules = [("now_sums", "收款", "本期无收款"),
-             ("prior_sums", "收款", "上期无收款"),
-             ("now_sums", "退后线索", "本期无退后线索"),
-             ("prior_sums", "退后线索", "上期无退后线索")]
+    rules = [("now_sums", "收款", "本期无收款"), ("now_sums", "退后线索", "本期无退后线索")]
+    if not current_only:
+        rules.extend([("prior_sums", "收款", "上期无收款"), ("prior_sums", "退后线索", "上期无退后线索")])
     for row in rows:
         reasons = []
         for period, field, reason in rules:
@@ -81,44 +86,26 @@ def select_display_rows(rows):
 
 def build_reminder(data, mention_info):
     """Use the complete current population, distinct from the image filter."""
-    team_unit = data["team"]["now"]["unit"]
-    if team_unit is None:
-        raise ValueError("Team unit efficiency is missing")
-    names = [row["supervisor"] for row in data["rows"] if row["now"]["unit"] is not None
-             and Decimal(str(row["now"]["unit"])) > Decimal(str(team_unit))]
+    policy = conversion_policy(data)
+    names = policy["target_names"]
     if (mention_info.get("chat_id") != data.get("target_chat_id", CHAT_ID)
-            or mention_info.get("member_read_complete") is not True
             or mention_info.get("current_snapshot") != data["current_snapshot"]
             or mention_info.get("source_table_id") != data["source_table_id"]
             or mention_info.get("source_rev") != data["source_rev"]
+            or mention_info.get("reminder_mode", policy["mode"]) != policy["mode"]
             or mention_info.get("target_names") != names):
         raise ValueError("Mention evidence does not match the group, source, snapshot or targets")
-    entries, md_mentions, html_mentions, nodes = [], [], [], []
-    for name in names:
-        person = mention_info["resolved"].get(name)
-        if not person or not person.get("in_chat") or not re.fullmatch(r"ou_[A-Za-z0-9]+", person.get("open_id", "")):
-            raise ValueError(f"Mention target is not verified: {name}")
-        label, user_id = html.escape(person["display_name"]), person["open_id"]
-        account = person.get("account_label", "")
-        if account and not re.fullmatch(r"[A-Za-z0-9._-]+", account):
-            raise ValueError(f"Invalid account display label: {name}")
-        account_suffix = f"（{account}）" if account else ""
-        md_mentions.append(f'<at user_id="{user_id}">{label}</at>{account_suffix}')
-        html_mentions.append(f'<span class="mention" data-user-id="{user_id}">@{label}{account_suffix}</span>')
-        entries.append({"supervisor": name, "display_name": person["display_name"], "open_id": user_id,
-                        "account_label": account})
-        if nodes:
-            nodes.append({"tag": "text", "text": " "})
-        nodes.append({"tag": "at", "user_id": user_id})
-        if account_suffix:
-            nodes.append({"tag": "text", "text": account_suffix})
-    if len({entry["open_id"] for entry in entries}) != len(entries):
-        raise ValueError("Duplicate user IDs in mention targets")
+    entries, md_mentions, html_mentions, nodes, plain_names = fragments(data, mention_info, names)
     snapshot = data["current_snapshot"]
     prefix = f"截至dt={snapshot['dt']}，hour={snapshot['hour']}时，"
     suffix = "的截面单效"
-    if names:
-        md_line = prefix + "\n" + " ".join(md_mentions) + suffix + "**【比团队整体高】** 🌟👏"
+    if policy["text"]:
+        md_line = prefix + "\n" + policy["text"]
+        html_line = html.escape(md_line).replace("\n", "<br>")
+        post_lines = [[{"tag": "text", "text": prefix}],
+                      [{"tag": "text", "text": policy["text"]}]]
+    elif names:
+        md_line = prefix + "\n" + " ".join(md_mentions) + suffix + " 【<font color='green'>**比团队整体高**</font>】 🌟👏"
         html_line = html.escape(prefix) + "<br>" + " ".join(html_mentions) + suffix + '<strong class="highlight-good">【比团队整体高】</strong> 🌟👏'
         post_lines = [[{"tag": "text", "text": prefix}],
                       [*nodes, {"tag": "text", "text": suffix},
@@ -131,7 +118,8 @@ def build_reminder(data, mention_info):
                       [{"tag": "text", "text": "暂无主管的截面单效高于团队整体。"}]]
     post_line = [*post_lines[0], {"tag": "text", "text": "\n"}, *post_lines[1]]
     return {"markdown": md_line, "html": html_line, "post_line": post_line, "post_lines": post_lines, "targets": entries,
-            "chat_id": mention_info["chat_id"], "selection": "all_current_supervisors_unit_above_full_channel_team"}
+            "chat_id": mention_info["chat_id"], "selection": policy["selection"],
+            "mode": policy["mode"], "population": policy["population"], "plain_name_reminders": plain_names}
 
 
 @lru_cache(maxsize=80)
@@ -182,7 +170,7 @@ def draw_image(data, path):
         if not total:
             for ci, key in [(2, "unit"), (5, "refund")]:
                 if row[key + "_mom"] is None:
-                    values[ci] = "—\n" + unavailable_reason(row, key)
+                    values[ci] = ""
         for ci, text in enumerate(values):
             background = (NAVY if ci < 4 else TEAL) if total else ("#f7f9fc" if ri % 2 else "white")
             ink, size = ("white" if total else "#26354a"), 25
@@ -210,15 +198,23 @@ def render_preview(data, output_dir, mention_info):
     output_dir.mkdir(parents=True, exist_ok=True)
     reminder = build_reminder(data, mention_info)
     png = output_dir / "channel-conversion-preview.png"
-    displayed, excluded = select_display_rows(data["rows"])
+    displayed, excluded = select_display_rows(data["rows"], current_only=data.get("display_current_only", False))
     dimensions = draw_image({**data, "rows": displayed}, png)
     date = datetime.strptime(data["current_snapshot"]["dt"], "%Y%m%d")
     weekday = WEEKDAYS[date.weekday()]
     team = data["team"]
     heading = f"今日{data['channel']}渠道转化数据概览（{date.month}月{date.day}日）"
-    unit_line = f"截面单效 **{metric_text(team['now']['unit'], 'unit', True)}**，较上{weekday}{change_text(team['unit_mom'])}（{metric_text(team['prior']['unit'], 'unit', True)}）；"
-    refund_line = f"退费率 **{percentage(team['now']['refund'])}**，较上{weekday}{change_text(team['refund_mom'])}（{percentage(team['prior']['refund'])}）。"
-    heading_md = f"📊 今日<span style=\"color:{RED}\">**{html.escape(data['channel'])}**</span>渠道转化数据概览（{date.month}月{date.day}日）"
+    unit_line = f"截面单效 **{metric_text(team['now']['unit'], 'unit', True)}**"
+    if team['unit_mom'] is not None:
+        unit_line += f"，较上{weekday}{change_text(team['unit_mom'])}（{metric_text(team['prior']['unit'], 'unit', True)}）"
+    unit_line += "；"
+    refund_line = "退费率"
+    if team['now']['refund'] is not None:
+        refund_line += f" **{percentage(team['now']['refund'])}**"
+    if team['refund_mom'] is not None:
+        refund_line += f"，较上{weekday}{change_text(team['refund_mom'])}（{percentage(team['prior']['refund'])}）"
+    refund_line += "。"
+    heading_md = f"📊 今日 <font color='red'>**{html.escape(data['channel'])}**</font> 渠道转化数据概览（{date.month}月{date.day}日）"
     heading_html = f'📊 今日<strong class="channel-name">{html.escape(data["channel"])}</strong>渠道转化数据概览（{date.month}月{date.day}日）'
     def decorated_line(line, change, key, as_html=False):
         if change is None:
@@ -228,12 +224,13 @@ def render_preview(data, output_dir, mention_info):
         good = delta > 0 if key == "unit" else delta < 0
         color = GREEN if good else RED if delta else GRAY
         phrase = f"较上{weekday}{change_text(change)}"
-        opening = f'<strong style="color:{color}">' if as_html else f'<span style="color:{color}">**'
-        closing = "</strong>" if as_html else "**</span>"
+        native_color = 'green' if good else 'red' if delta else 'grey'
+        opening = f'<strong style="color:{color}">' if as_html else f"<font color='{native_color}'>**"
+        closing = "</strong>" if as_html else "**</font>"
         return line.replace(phrase, opening + phrase + " " + icon + closing)
     unit_md = decorated_line("💰 " + unit_line, team["unit_mom"], "unit")
     refund_md = decorated_line("🧾 " + refund_line, team["refund_mom"], "refund")
-    closing_md = "继续加油，**【祝本期爆单】** 🚀🔥"
+    closing_md = "继续加油，【<font color='orange'>**祝本期爆单**</font>】 🚀🔥"
     message = f"{heading_md}\n\n{unit_md}\n{refund_md}\n\n![渠道主管转化对比]({png.name})\n\n{reminder['markdown']}\n{closing_md}\n"
     (output_dir / "message-preview.md").write_text(message, encoding="utf-8")
     unit_html = unit_line.replace("**" + metric_text(team["now"]["unit"], "unit", True) + "**", "<b>" + metric_text(team["now"]["unit"], "unit", True) + "</b>")
@@ -250,9 +247,12 @@ def render_preview(data, output_dir, mention_info):
     (output_dir / "reminder-preview.json").write_text(json.dumps({"local_only": True, "message_sent": False,
         "chat_id": reminder["chat_id"], "current_snapshot": data["current_snapshot"],
         "post_line": reminder["post_line"], "post_lines": reminder["post_lines"],
-        "targets": reminder["targets"], "selection": reminder["selection"]},
+        "targets": reminder["targets"], "selection": reminder["selection"],
+        "plain_name_reminders": reminder["plain_name_reminders"],
+        "reminder_mode": reminder["mode"], "reminder_population": reminder["population"]},
         ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    receipt = {"local_only": True, "message_sent": False, "renderer": "render_preview.py", "layout_version": 8,
+    receipt = {"local_only": True, "message_sent": False, "renderer": "render_preview.py", "layout_version": 11,
+               "missing_comparison_policy": "blank", "display_current_only": data.get("display_current_only", False),
                "sorting": "current_unit_descending_unavailable_last_supervisor_name_tiebreak",
                "image_band_colors": {"blue": NAVY, "green": TEAL,
                                      "original_blue": "#203c70", "original_green": "#26757b",
@@ -264,11 +264,19 @@ def render_preview(data, output_dir, mention_info):
                "supervisors": len(displayed), "source_supervisors": len(data["rows"]),
                "displayed_supervisors": [row["supervisor"] for row in displayed],
                "excluded_supervisors": excluded,
-               "display_filter": "两期收款及退后线索均大于0；仅影响主管展示，团队指标保持全量口径",
+               "display_filter": "有历史口径时两期收款及退后线索均大于0；整渠道历史不可比时按本期筛选；团队保持全量",
                "mention_targets": reminder["targets"], "mention_selection": reminder["selection"],
+               "reminder_mode": reminder["mode"], "reminder_population": reminder["population"],
+               "plain_name_reminders": reminder["plain_name_reminders"],
                "mention_membership_verified": True, "target_chat_id": reminder["chat_id"],
                "image_dimensions": dimensions,
                "image_sha256": hashlib.sha256(png.read_bytes()).hexdigest(), "generated_at": datetime.now().isoformat(timespec="seconds")}
+    if __package__:
+        from .warning_card_message import write_preview
+    else:
+        from warning_card_message import write_preview
+    receipt.update(write_preview(output_dir, heading_md, [unit_md, refund_md], reminder['markdown'],
+                                 closing_md, png.name, mention_info))
     (output_dir / "preview_receipt.json").write_text(json.dumps(receipt, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     return receipt
 

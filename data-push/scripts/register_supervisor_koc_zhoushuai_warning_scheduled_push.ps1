@@ -31,7 +31,7 @@ $trigger = New-ScheduledTaskTrigger -Daily -At $prepareAt
 $settings = New-ScheduledTaskSettingsSet -MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Minutes 15) -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
 $settings.StartWhenAvailable = $false
 $principal = New-ScheduledTaskPrincipal -UserId ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name) -LogonType Interactive -RunLevel Limited
-$task = New-ScheduledTask -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Description 'KOC Zhoushuai: prepare 17:45, send once 17:50; Mon-Thu process, Fri-Sun conversion; first 2026-10-11.'
+$task = New-ScheduledTask -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Description 'Market warnings: 4 independent reports to 2 pinned groups; KOC Zhoushuai/Douyin high-school, Mengyafei/self-incubated grade9. Native Card 2.0; no warnings to self-operated or business KOC Gaoyang groups. Prepare 17:45, send once per report 17:50; Mon-Thu process, Fri-Sun conversion; unavailable comparisons blank.'
 if (-not $VerifyOnly) { Register-ScheduledTask -TaskName $taskName -InputObject $task | Out-Null }
 $installed = Get-ScheduledTask -TaskName $taskName
 $info = Get-ScheduledTaskInfo -TaskName $taskName

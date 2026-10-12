@@ -4,14 +4,19 @@ import json
 from typing import Any
 from ..domains.market_consultant import grade_report
 from ..domains.market_consultant.channels import self_incubated_koc_5 as broadcast_policy
+from ..domains.market_consultant.reminder_fallback import refresh_before_send, validate_coverage
 
 
 def deliver_context(context, args, *, services):
+    if not context["chat_id"]:
+        raise SystemExit("真实发送需要 --chat-id 或 CHAT_ID")
+    refresh_before_send(context, context["chat_id"], services.mention_nonmembers)
     if context.get("report_profile") == "grade-compact":
         if context["identity"] != "bot":
             raise SystemExit("该固定群的正式播报只允许已核验的管家机器人身份")
-        if context["mention_target"] != "manager" or any(context["mention_info"].get(k) for k in ("lookup_error", "unresolved", "ambiguous", "nonmembers")):
-            raise SystemExit("正式分年级播报要求所有最低负责人均已核验并在群内，不能降级为纯姓名")
+        if context["mention_target"] != "manager":
+            raise SystemExit("正式分年级播报的提醒维度必须为负责人")
+        validate_coverage(context["mention_info"].get("names", ()), context["mention_info"], context["markdown"])
         if grade_report.mention_ids(context["markdown"]) != set(context["mention_info"]["resolved"].values()):
             raise SystemExit("消息中的@账号与已核验负责人集合不一致")
         if not args.dry_run:
@@ -21,15 +26,6 @@ def deliver_context(context, args, *, services):
                 if not context.get("image_path" if section == "process" else "result_image_path"):
                     raise SystemExit("正式分年级播报必须包含所选类型的图片")
         services.verify_chat(context["chat_id"], context.get("chat_name", ""), context["identity"], args.timeout)
-
-    if context["mention_info"]["lookup_error"] and not args.allow_unresolved_mentions and not args.no_mentions:
-        raise SystemExit("通讯录查询失败，未取得可验证的 @ 结果；请修复 user 权限、提供 --mention-map，或显式 --allow-unresolved-mentions")
-    if (context["mention_info"]["unresolved"] or context["mention_info"]["ambiguous"]) and not args.allow_unresolved_mentions and not args.no_mentions:
-        raise SystemExit("存在未唯一解析的 @ 姓名；为避免误 @，请补充 --mention-map/权限，或显式 --allow-unresolved-mentions")
-    if not context["chat_id"]:
-        raise SystemExit("真实发送需要 --chat-id 或 CHAT_ID")
-    if context["mention_info"].get("nonmembers"):
-        raise SystemExit("存在尚未入群的 @ 人员，停止发送")
 
     if args.dry_run:
         services.send_markdown(context["chat_id"], context["markdown"], context["idempotency_key"], context["identity"], dry_run=True, timeout=args.timeout)
@@ -78,8 +74,9 @@ def deliver_context(context, args, *, services):
                 markdown = markdown.replace("](%s)" % ref, "](%s)" % image_key)
         if context.get("report_profile") == "grade-compact":
             broadcast_policy.enforce_live_calendar(context["period"], context["report_type"])
-            if services.mention_nonmembers(context["chat_id"], context["mention_info"]["resolved"], "bot", args.timeout):
-                raise ValueError("负责人已离开目标群，停止发送")
+        context["markdown"] = markdown
+        refresh_before_send(context, context["chat_id"], services.mention_nonmembers)
+        markdown = context["markdown"]
         response = services.send_markdown(context["chat_id"], markdown, context["idempotency_key"], context["identity"], dry_run=False, timeout=args.timeout)
         message_id = services._message_id(response)
         if not message_id:
@@ -104,6 +101,7 @@ def deliver_context(context, args, *, services):
                 "image_key": image_keys.get("process") or None,
                 "result_image_key": image_keys.get("result") or None,
                 "image_local_cleanup": image_cleanup,
+                "text_fallback_names": context["mention_info"].get("text_fallback_names", []),
             },
         )
         print(

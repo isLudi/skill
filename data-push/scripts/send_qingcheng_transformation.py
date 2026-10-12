@@ -19,7 +19,8 @@ import re
 from pathlib import Path
 
 from lark_delivery.common import resend
-from lark_delivery.common.im import invite_members, mention_nonmembers, upload_image
+from lark_delivery.common.im import upload_image, verify_sender_membership
+from lark_delivery.common.reminders import refresh_membership
 
 from send_qingcheng_process import _data, _resolve_people, _verify_message
 
@@ -44,7 +45,7 @@ def _render_message(markdown: str, item: dict, resolved: dict[str, str], display
         names = [person["name"] for person in people]
         original = _reminder_line(kind, grade, names)
         # Names absent from `resolved` are the sanctioned plain-name fallback
-        # (bot invitation already attempted, still absent or unresolvable).
+        # because identity or group membership could not be verified.
         mentions = "、".join(
             f'<at user_id="{resolved[name]}">{html.escape(display[name])}</at>' if name in resolved
             else html.escape(name) for name in names)
@@ -87,7 +88,7 @@ def main() -> None:
     parser.add_argument("--idempotency-key", required=True)
     parser.add_argument("--send", action="store_true")
     parser.add_argument("--allow-fallback", action="store_true",
-                        help="allow sending a fallback-only message (no reminder people) on explicit manual order")
+                        help="compatibility flag; reviewed fallback-only messages are always supported")
     parser.add_argument("--reverify-only", action="store_true",
                         help="re-run the readback of an already-sent message; never sends")
     args = parser.parse_args()
@@ -128,8 +129,12 @@ def main() -> None:
     if item["level"] != level:
         raise ValueError("Review and transformation configuration differ")
     people = list(item.get("reminder_people") or [])
+    verify_sender_membership(chat_id, delivery["sender_open_id"])
     for group in (item.get("reminder_by_grade") or {}).values():
         people.extend(group)
+    invite_note = {"invited": [], "pending": [], "error": ""}
+    membership_note = {}
+    text_only = set()
     if item.get("reminder_mode") == "none":
         # 学部级：消息本就不含提醒行（文字抬头 + 图片），原样发送、无 @。
         resolved, display = {}, {}
@@ -138,25 +143,14 @@ def main() -> None:
         # 本地化主管 grade_text 模式：消息只点名年级、不含任何 @，原样发送。
         resolved, display = {}, {}
         mention_ids: list[str] = []
-    elif not people and args.allow_fallback:
-        # 手动指令明确授权：fallback 文案（无可比数据）原样发送，无 @。
+    elif not people:
+        # A reviewed fallback or encouragement line carries no native mentions.
         resolved, display = {}, {}
         mention_ids = []
-    elif not people:
-        raise ValueError("No reminder people in review; a fallback-only message needs manual sending")
     else:
         resolved_all, display = _resolve_people(people)
-        # 2026-10-04 policy: never block on person resolution; invite first, text after.
-        missing = mention_nonmembers(chat_id, resolved_all, "bot", 60)
-        invite_note = {"invited": [], "pending": [], "error": ""}
-        if missing:
-            invite_note = invite_members(chat_id, [resolved_all[name] for name in missing], "bot", 60)
-            try:
-                missing = mention_nonmembers(chat_id, resolved_all, "bot", 60)
-            except Exception as exc:  # noqa: BLE001 - a re-check failure degrades to text
-                invite_note["recheck_error"] = str(exc)[:300]
-        text_only = set(missing)
-        resolved = {name: open_id for name, open_id in resolved_all.items() if name not in text_only}
+        resolved, membership_note = refresh_membership(chat_id, resolved_all)
+        text_only = {person['name'] for person in people} - set(resolved)
         mention_ids = sorted(resolved.values())
     image_key = args.image_key or (upload_image(args.review_dir / item["png"], "bot", 60) if args.send else "img_dry_run")
     markdown = (args.review_dir / item["message_file"]).read_text(encoding="utf-8")
@@ -183,7 +177,8 @@ def main() -> None:
     output = {"level": level, "channel": args.channel, "chat_id": chat_id, "period": review["period"],
               "image_key": image_key, "mention_ids": mention_ids,
               "text_fallback_names": sorted(text_only) if people else [],
-              "invite_attempt": invite_note if people else {"invited": [], "pending": [], "error": ""},
+              "invite_attempt": invite_note,
+              "member_lookup_error": membership_note.get("member_lookup_error", ""),
               "dry_run": not args.send, "response": response}
     if args.send:
         message_id = response.get("message_id")

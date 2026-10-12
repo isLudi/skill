@@ -34,6 +34,7 @@ metadata:
 
 ## 配置与执行边界
 
+- **全局提醒兜底（2026-10-11）**：提醒人不在群、无法唯一解析、账号无效、通讯录查询失败或群成员分页不完整时，保留该人的姓名文字；其他已核验且在群的人员正常使用原生 @。准备、发送前复核和回执校验均不得把这些人员异常作为阻断消息的条件，不要求手工开启开关，不自动邀请入群。所选提醒名单必须由「已核验 @＋姓名文字」完整覆盖。该规则适用于全部部门、渠道及后续新增推送，覆盖旧的「全部提醒人必须能 @」要求和自动邀请流程。机器人身份、目标群 ID、数据源、期次、发送窗口、幂等和实际投递回读继续独立核验。
 - `config/channels.json` 登记本地渠道，部门配置位于 `config/departments/<domain>/<channel_id>.json`，入口位于 `scripts/channels/<domain>/<channel_id>.py`。`config/deployments.json` 登记妙搭部署和 workflow。两个注册表互不继承目标群、发送身份、任务、状态或授权。
 - 聚合、指标、日历、图片、配色、排名和文案归部门 adapter 或部署模块所有；`scripts/lark_delivery/common/` 只承载中性传输能力。任务名、应用、自动化、台账和状态目录必须有明确且唯一的所有者。
 - 纯计算、只读取数、预览、真实投递、启用调度、妙搭发布和启用自动化分别验收。前一阶段的成功不自动授权后一阶段；维护与测试不授权群消息、生产任务或发布。
@@ -45,9 +46,9 @@ metadata:
 
 ### 青橙本地批次（2026-10-08 调整）
 
-青橙项目部当前启用的本地过程批次：公海/私域/抖音私信六群及伙伴三群为周二至周四 `13:50`、`17:50`、`21:50`；专项四渠道仅 `13:50`。每两分钟重试，窗口持续 50 分钟，跨小时归一化为原始槽位，最晚为 `14:40/18:40/22:40`。SEC 五报告保持周二至周日 `12:00/16:00/20:00` 启动、每两分钟重试至 `:50`；不受本次提前十分钟调整影响。
+青橙项目部当前启用的本地过程批次：公海/私域/抖音私信六群及伙伴四群（2026-10-11 并入内部图书顾问）为周二至周四 `13:50`、`17:50`、`21:50`；专项四渠道仅 `13:50`。每两分钟重试，窗口持续 50 分钟，跨小时归一化为原始槽位，最晚为 `14:40/18:40/22:40`。SEC 五报告保持周二至周日 `12:00/16:00/20:00` 启动、每两分钟重试至 `:50`；不受本次提前十分钟调整影响。
 
-转化使用同一 `run_qingcheng_transformation.py`，两类独立任务：普通主管/顾问九条报告由 `Codex-Lark-Qingcheng-Transformation-GroupPush` 在周五至次周周一每天 `13:52/17:52/21:52` 启动，保留两分钟错峰；专项学部四条报告由 `Codex-Lark-Qingcheng-Special-Transformation-GroupPush` 通过 `--audience dept` 每天仅 `13:50` 启动。取消周一凌晨单档，周一期次仍回溯到上周五。两类任务使用独立锁、源分页目录、批次和回执，每两分钟重试，窗口持续 53 分钟；普通末次有效重试为 `14:44/18:44/22:44`，专项为 `14:42`。配置以 `transformation_batch.json` 的 `business_calendar` / `dept_schedule.business_calendar` 为准，与 Base 配置时点保持一致。各群准备、解析、发送失败独立记录，正常推送不回写配置 Base。
+转化使用同一 `run_qingcheng_transformation.py`，两类独立任务：普通主管/顾问十条报告（含内部图书顾问）由 `Codex-Lark-Qingcheng-Transformation-GroupPush` 在周五至次周周一每天 `13:52/17:52/21:52` 启动，保留两分钟错峰；专项学部四条报告由 `Codex-Lark-Qingcheng-Special-Transformation-GroupPush` 通过 `--audience dept` 每天仅 `13:50` 启动。取消周一凌晨单档，周一期次仍回溯到上周五。两类任务使用独立锁、源分页目录、批次和回执，每两分钟重试，窗口持续 53 分钟；普通末次有效重试为 `14:44/18:44/22:44`，专项为 `14:42`。配置以 `transformation_batch.json` 的 `business_calendar` / `dept_schedule.business_calendar` 为准，与 Base 配置时点保持一致。各群准备、解析、发送失败独立记录，正常推送不回写配置 Base。
 
 四个执行器的 `upstream` 必须与当前已验证的 `qing2lark_guocheng` 绑定一致（菜单 `103625`、task `47728`、Nezha `67318`、V29/version `207387`/exec `831981`）；上游任务改版后，先读回最新版本和执行文件，再同步本地批次配置及技术 Base，不能只改任务计划程序。
 
@@ -60,3 +61,5 @@ metadata:
 按变更范围运行受影响测试、`scripts/validate_layout.py` 和对应渠道的无发送预览。Python 使用机器本地 `machine.local.json` 中的 `executables.python`。验证不发送消息，不启停任务，不修改上游生产资源。
 
 run 驱动脚本（`run_*.py`）改造后除 py_compile/单测外，必须再做两项：① `pyflakes` 或等价静态检查——py_compile 查不出函数体内未定义名（2026-10-02 转化批次因漏 import `retry_transport` 首轮调度 8 个 level 全 blocked）；② 盯改造后首个调度窗口的 push_log result（`machine.local.json` 的 `paths.push_log_root` 下按日期落盘）。注意任务 MultipleInstances=Parallel：手动触发与自动触发并行时，第二个实例被 `_single_instance()` 文件锁拒绝会以 exit 1 + 空 outcomes 退出，这是防重发保护不是故障。
+
+新增或修改计划任务取数链路时，Python 子进程必须显式设置 UTF-8 输出，父进程按同一编码解码；使用真实后台启动方式完成无发送探针，在独立探针环境中移除父进程的编码变量。查询成功但 stdout 解析失败时，先依据持久化查询工件恢复原 Query ID；仅有 `started` 的未知尝试不得直接重新提交。具体要求见 [计划任务编码与结果恢复](references/operations.md#计划任务编码与结果恢复)。

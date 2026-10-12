@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
   "domain": "market_consultant",
-  "release_name": "market2lark-207832",
-  "channel_mapping_version": "1002",
-  "bound_execution_id": 175410072,
-  "bound_execution_start": "2026-10-09T21:00:02+08:00",
+  "release_name": "market2lark-207988",
+  "channel_mapping_version": "1009",
+  "bound_execution_id": 175897952,
+  "bound_execution_start": "2026-10-12T10:10:44+08:00",
   "upstream": {
     "project_id": 308,
     "folder": "吕帅",
@@ -13,9 +13,9 @@
     "task_id": 47252,
     "nezha_task_id": 66504,
     "schedule_id": 53831,
-    "exec_file_id": 835583,
-    "verified_version_id": 207832,
-    "verified_source_sha256": "e86aa2e02adbd0c02a885c5a457d0e731302d07b93527c5cdea4b901ecd39750",
+    "exec_file_id": 837025,
+    "verified_version_id": 207988,
+    "verified_source_sha256": "6a718d8314b89251a3a4365cdc66f58b2d2e627934228ad45209196baba85c79",
     "log_protocol": "two_period_clear_then_replace_v1_retry",
     "owner": "lvshuai01"
   }

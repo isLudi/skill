@@ -1,6 +1,7 @@
 """Legacy mention lookup; current grade reports use the strict manager resolver."""
 from __future__ import annotations
 import json
+import re
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 from ..common.values import _iter_dicts, _string
@@ -9,16 +10,17 @@ from ..common.values import _iter_dicts, _string
 def _load_mention_map(path: str | None) -> dict[str, str]:
     if not path:
         return {}
-    data = json.loads(Path(path).expanduser().read_text(encoding="utf-8"))
+    try:
+        data = json.loads(Path(path).expanduser().read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
     if not isinstance(data, Mapping):
-        raise SystemExit("--mention-map 必须是 JSON 对象，格式为 {\"姓名\": \"ou_xxx\"}")
+        return {}
     result: dict[str, str] = {}
     for name, value in data.items():
         open_id = value.get("open_id") if isinstance(value, Mapping) else value
-        if isinstance(open_id, str) and open_id.startswith("ou_"):
+        if isinstance(open_id, str) and re.fullmatch(r"ou_[A-Za-z0-9]+", open_id):
             result[str(name)] = open_id
-        else:
-            raise SystemExit("--mention-map 中 %s 的 open_id 不是 ou_ 开头" % name)
     return result
 
 

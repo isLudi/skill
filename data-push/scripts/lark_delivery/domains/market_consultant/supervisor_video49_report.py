@@ -238,10 +238,8 @@ def build_markdown(report, period, channel, report_type, mention_info, image_ref
                 label = html.escape(mention_info.get("display_names", {}).get(name, name))
                 if open_id and name not in nonmembers:
                     people.append(f'<at user_id="{open_id}">{label}</at>')
-                elif name in nonmembers:
-                    people.append(label + "（未入群，待核验）")
                 else:
-                    people.append(label + "（待核验）")
+                    people.append(label)
             lines.append(f"- {html.escape(channel)}渠道{html.escape(block['grade'])}年级 {metric}较低的顾问："
                          + ("、".join(people) or f"暂无退后线索不少于{report['min_post_leads']}的顾问"))
     return "\n".join(lines)

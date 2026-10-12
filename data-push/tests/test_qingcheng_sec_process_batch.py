@@ -53,7 +53,7 @@ def test_supervisor_resolution_disambiguates_by_group_membership(monkeypatch):
     assert text_only == {"杨亮"}
 
 
-def test_consultant_text_exception_does_not_mask_incomplete_contacts(monkeypatch):
+def test_consultant_plain_name_fallback_covers_incomplete_contacts(monkeypatch):
     review = {"reminders": [{"people": [{"name": "离职顾问", "account": "former"}]}]}
     entry = {"unresolved_mention_action": "invite_then_text"}
     monkeypatch.setattr(sec, "_data", lambda args, timeout=90: {
@@ -61,8 +61,7 @@ def test_consultant_text_exception_does_not_mask_incomplete_contacts(monkeypatch
     assert sec._resolve(entry, review, set())[2] == {"former"}
     monkeypatch.setattr(sec, "_data", lambda args, timeout=90: {
         "queries": [{"query": "former@gaotu.cn", "has_more": True}], "users": []})
-    with pytest.raises(ValueError, match="incomplete"):
-        sec._resolve(entry, review, set())
+    assert sec._resolve(entry, review, set())[2] == {"former"}
 
 
 def test_one_sec_report_failure_does_not_block_other_reports(monkeypatch, tmp_path):

@@ -36,6 +36,7 @@ from qingcheng_schedule import resolve_slot
 from lark_delivery.common import push_log, resend
 from lark_delivery.common.retry import retry_transport
 from lark_delivery.common.runtime import CREATE_NO_WINDOW, ensure_console_streams, run_lark
+import qingcheng_internal_books as internal_books
 
 
 SKILL = Path(__file__).resolve().parents[1]
@@ -47,7 +48,7 @@ STATE = WORKSPACE / "runtime/qingcheng-transformation-batch"
 # ⏰渠道专项讨论（同群）；本地化无 dept 申请，_channel_levels 按 profiles 自动跳过。
 # 2026-10-08：学部独立 13:50 调度；普通主管/顾问保留两分钟错峰。
 LEVELS = ("supervisor", "consultant", "dept")
-CHANNEL_IDS = ["public_pool", "private", "douyin_dm", "partner_books", "partner_local"]
+CHANNEL_IDS = ["public_pool", "private", "douyin_dm", "partner_books", "partner_local", "internal_books"]
 SEND_SCRIPT = SKILL / "scripts/send_qingcheng_transformation.py"
 
 # 2026-10-01 审定状态：五渠道全部参与周常调度（用户确认预览后授权；图书/本地化
@@ -97,9 +98,13 @@ def _batch() -> dict:
     calendar = batch["business_calendar"]
     if (batch["schema_version"], batch["domain"], batch["report_type"]) != (1, "qingcheng", "transformation"):
         raise ValueError("Unexpected Qingcheng transformation batch scope")
-    if [item["id"] for item in batch["channels"]] != CHANNEL_IDS:
+    if [item["id"] for item in batch["channels"]] not in (CHANNEL_IDS,CHANNEL_IDS[:-1]):
         raise ValueError("All Qingcheng transformation channels must be explicit")
     for item in batch["channels"]:
+        if item["id"] == "internal_books":
+            if not isinstance(item.get("scheduled"),bool):
+                raise ValueError("Internal-books scheduled state is missing")
+            continue
         if item.get("scheduled") is not EXPECTED_SCHEDULED[item["id"]]:
             raise ValueError(f"Transformation schedule flag differs for {item['id']}")
     if (calendar["result_weekdays"], calendar["minute"], calendar["retry_window_minutes"],
@@ -214,6 +219,8 @@ def _config_chat_id(channel: str, level: str) -> str:
 
 def _channel_levels(channel: str, audience: str = "all") -> tuple[str, ...]:
     """Levels configured for one channel (图书 has no supervisor request)."""
+    if channel == "internal_books":
+        return () if audience == "dept" else ("consultant",)
     config = json.loads((CONFIG_DIR / "transformation_preview.json").read_text(encoding="utf-8"))
     entry = next(item for item in config["channels"] if item["id"] == channel)
     return tuple(slug for slug in LEVELS if slug in entry["profiles"]
@@ -257,7 +264,7 @@ def _index(output: Path, batch_result: dict) -> None:
             "<style>body{font:16px 'Microsoft YaHei',sans-serif;background:#eef3fb;color:#20314c;padding:24px}"
             "main{max-width:1800px;margin:auto}section{background:white;margin:22px 0;padding:20px;border-radius:12px}"
             "img{max-width:100%;border:1px solid #c3cfe2}pre{white-space:pre-wrap;background:#f2f6fd;padding:14px}</style>"
-            f"<main><h1>青橙渠道（公海/私域/抖音私信/图书/本地化）· 转化数据批次</h1><p>{html.escape(batch_result['period'])}</p>"
+            f"<main><h1>青橙渠道（公海/私域/抖音私信/图书/本地化/内部图书）· 转化数据批次</h1><p>{html.escape(batch_result['period'])}</p>"
             + "".join(cards) + "</main></html>")
     (output / "index.html").write_text(page, encoding="utf-8")
 
@@ -276,6 +283,11 @@ def _deliver_groups(batch: dict, batch_result: dict, output: Path, slot: datetim
             if group["status"] not in ("prepared", resend.REVERIFY, resend.RESEND):
                 continue
             try:
+                if channel == "internal_books":
+                    outcome = internal_books.deliver(item["review"],review_dir,slot)
+                    item["groups"][level] = outcome
+                    _write_json(result_path,batch_result)
+                    continue
                 if group["status"] != resend.REVERIFY:
                     probe_file = review_dir / f"probe_{level}_process.ndjson"
                     current_process_rev = retry_transport(lambda: probe_revision(channel, period, probe_file))
@@ -325,7 +337,12 @@ def run(*, period_date: str = "", confirm_send: bool = False, now: datetime | No
               "audience": audience, "channels": {}}
     for entry in batch["channels"]:
         channel = entry["id"]
-        levels = _channel_levels(channel, audience)
+        try:
+            levels = _channel_levels(channel, audience)
+        except Exception as exc:
+            result["channels"][channel] = {"process_rev":None,"conversion_rev":None,"review":None,
+                "groups":{"configuration":{"status":"blocked_prepare","error":str(exc)}}}
+            continue
         if not levels:
             continue
         channel_dir = output / channel
@@ -338,6 +355,16 @@ def run(*, period_date: str = "", confirm_send: bool = False, now: datetime | No
                 channel_result["groups"][level] = {"status": "skipped_schedule_disabled"}
             continue
         try:
+            if channel == "internal_books":
+                review_file = channel_dir/"review.json"
+                if confirm_send and (channel_dir/"send_receipt.json").exists():
+                    review = json.loads(review_file.read_text(encoding="utf-8"))
+                else:
+                    review = internal_books.prepare("transformation",period,channel_dir)
+                channel_result["review"] = review
+                channel_result["snapshots"] = {"process":review["process_snapshot"],"conversion":review["conversion_snapshot"]}
+                channel_result["groups"]["consultant"] = {"status":"prepared"}
+                continue
             process_source = channel_dir / "source_process.ndjson"
             manifest = fetch(channel, period, process_source)
             channel_result["process_rev"] = manifest["rev"]
@@ -374,6 +401,9 @@ def run(*, period_date: str = "", confirm_send: bool = False, now: datetime | No
             channel_result["review"] = merged_review
             if merged_review is not None:
                 _write_json(channel_dir / "review.json", merged_review)
+        except internal_books.NoEligibleRows:
+            for level in levels:
+                channel_result["groups"][level] = {"status":"skipped_no_conversion_data"}
         except Exception as exc:
             for level in levels:
                 channel_result["groups"][level] = {"status": "blocked_prepare", "error": str(exc)}
@@ -423,7 +453,10 @@ def main() -> None:
     parser.add_argument("--check-config", action="store_true")
     args = parser.parse_args()
     if args.check_config:
-        print(json.dumps({"configuration": "valid", "batch": _batch()}, ensure_ascii=True))
+        checked = _batch()
+        if any(e["id"] == "internal_books" for e in checked["channels"]):
+            internal_books.config()
+        print(json.dumps({"configuration": "valid", "batch": checked}, ensure_ascii=True))
         return
     audience = args.audience or ("standard" if args.confirm_send else "all")
     category = "transformation_dept_batch" if audience == "dept" else "transformation_batch"

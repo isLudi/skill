@@ -44,12 +44,28 @@ def mention_nonmembers(chat_id: str, resolved: Mapping[str, str], identity: str,
     return sorted(name for name, open_id in resolved.items() if open_id not in ids)
 
 
+def verify_sender_membership(chat_id: str, sender_open_id: str, timeout: int = 60) -> dict[str, Any]:
+    """Verify the configured sender separately from optional human membership."""
+    data = _unwrap(_json_payload(run_lark([
+        "im", "+chat-members-list", "--chat-id", chat_id, "--member-types", "bot",
+        "--member-id-type", "open_id", "--page-all", "--page-limit", "10",
+        "--as", "bot", "--format", "json",
+    ], timeout=timeout)))
+    bots = data.get("bots", [])
+    ids = {item.get("member_id") for item in bots}
+    if (data.get("has_more") is not False or data.get("truncations")
+            or data.get("bot_total") != len(bots) or len(ids) != len(bots)
+            or sender_open_id not in ids):
+        raise ValueError("Sender bot membership is not verified for the target group")
+    return {"chat_id": chat_id, "sender_open_id": sender_open_id, "verified": True}
+
+
 def invite_members(chat_id: str, open_ids, identity: str, timeout: int, *, runner=None) -> dict[str, Any]:
     """Invite @-targets into the chat as the sender bot; never raises for person-level failures.
 
-    2026-10-04 policy: a push must not depend on any specific human identity, and a
-    missing member must be invited by the bot before falling back to plain-name text.
-    The return value records the attempt for the delivery ledger: ``invited`` ids are
+    Explicitly authorized membership operations may use this transport. Automatic
+    reminders use plain-name fallback directly and never call it. The return value
+    records the attempt for the delivery ledger: ``invited`` ids are
     usable immediately, ``pending`` ids await group-owner approval and stay text-only,
     and ``error`` carries any transport/API failure (which also leaves everyone
     text-only instead of blocking the push).

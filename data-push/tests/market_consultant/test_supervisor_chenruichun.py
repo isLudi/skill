@@ -111,5 +111,5 @@ def test_preview_marks_resolved_but_nonmember_advisors_without_native_at():
          "nonmembers": ["顾问甲"]},
         {"process": "img_process", "result": None},
     )
-    assert "顾问甲（未入群，待核验）" in markdown
+    assert "顾问甲" in markdown
     assert '<at user_id="ou_advisor">' not in markdown

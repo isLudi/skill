@@ -38,7 +38,7 @@
 | `read_records(coords, args, fields, *, filter_json, audit)` | 已审阅的精确或包含条件、最小字段集 → 全量记录；回填audit | has_more终止、行数/记录ID/分页rev/查询范围一致；临时分页文件结束即清理 |
 | `search_users(queries, args)` | 名称查询列表 → queries/users | 每批最多20；保留has_more及错误信息，精确身份判定由部门resolver执行 |
 | `verify_target(chat_id, name, identity, timeout)` | 唯一群ID → 当前名称及是否改名 | 名字不用于选群，不因改名换群 |
-| `missing_members(chat_id, resolved, identity, timeout)` | 姓名→open_id → 不在群名单 | 必须完整、无截断的群成员列表 |
+| `missing_members(chat_id, resolved, identity, timeout)` | 姓名→open_id → 不在群名单 | 原生 @ 需要完整成员证据；查询失败或分页不完整时由调用方将待核验人员全部降级为姓名文字 |
 
 准备接口没有“上传”或“发送”方法，避免绘图/预览触发外部写入。旧门面仍可通过 `services=` 注入以维持既有调用，新增代码使用 `ports=`。
 
@@ -69,13 +69,13 @@
 - `image_path / result_image_path`：当前v1最多两种PNG槽位，未选类型为None。
 - 市场部门额外提供 `grade_report、mention_info、coords、raw_table_id` 等字段供自己的验收使用。`coords` 中的Base token不得进入持久化预览或日志。
 
-`mention_info` 需含 `resolved、unresolved、ambiguous、lookup_error、nonmembers`。正式负责人提醒必须后三类异常和未解析名单均为空，消息实际@集合与resolved的open_id集合完全一致。
+`mention_info` 需记录已核验的 `resolved` 以及 `text_fallback_names、fallback_reasons`；原始解析异常可作为诊断保留。`resolved` 姓名集合与文字兜底姓名集合互斥，合并后必须完整覆盖业务选出的提醒名单。消息实际 @ 集合与 `resolved` 的 open_id 集合完全一致；不在群、解析失败、歧义、通讯录或成员读取失败均只降级为姓名文字，不阻断整条消息。准备和发送前复核使用同一规则，不自动邀请人员入群。青橙旧配置值 `invite_then_text` 为兼容别名，执行语义已统一为直接姓名兜底。
 
 当前接口不是任意图表/卡片万能插件。增加第三张图、附件、卡片或非post消息时，先定义新的artifact/消息接口版本、调整上传/回执读回和清理测试，再在新adapter启用；不要塞入未知字段后假装已支持。
 
 ## 6. 传输与真实投递
 
-`common/im.py` 保留 `verify_chat、mention_nonmembers、upload_image、send_markdown`；最后两个是外部写入。`send_markdown(..., dry_run=True)` 不发送。上传与发送必须同身份；机器人私聊可用范围与群成员是不同约束，失败不能自动改成用户身份。
+`common/im.py` 保留 `verify_chat、verify_sender_membership、mention_nonmembers、upload_image、send_markdown`；最后两个是外部写入。`verify_sender_membership` 只核验配置的发送 bot，不依赖可选提醒人的成员读取；`common/reminders.py` 处理通讯录解析与姓名兜底。`send_markdown(..., dry_run=True)` 不发送。上传与发送必须同身份；机器人私聊可用范围与群成员是不同约束，失败不能自动改成用户身份。
 
 当前真实出口是部门 `scheduler.deliver`：
 

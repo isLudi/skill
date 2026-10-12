@@ -9,10 +9,14 @@ import hashlib
 import html
 import json
 from pathlib import Path
-import re
 import sys
 
 from PIL import Image, ImageDraw, ImageFont
+
+if __package__:
+    from .warning_mention_render import fragments
+else:
+    from warning_mention_render import fragments
 
 # Header and total-row fills: blend the original colors with 40% white.
 NAVY, TEAL, PURPLE = "#798aa9", "#7dacb0", "#a493b7"
@@ -31,21 +35,21 @@ def fixed(value):
 
 def percentage(value, signed=False):
     if value is None:
-        return "—"
+        return ""
     value = Decimal(str(value))
     return ("+" if signed and value > 0 else "") + fixed(value * 100) + "%"
 
 
 def change_text(value):
     if value is None:
-        return "不可计算"
+        return ""
     value = Decimal(str(value))
     return "持平" if value == 0 else ("增加" if value > 0 else "减少") + percentage(abs(value))
 
 
 def metric_text(value, key, five_min=False):
     if value is None:
-        return "—"
+        return ""
     return fixed(value) if key == "frequency" else percentage(value)
 
 
@@ -57,11 +61,12 @@ def unavailable_reason(row, key):
     return "上期为0" if Decimal(str(row["prior"][key])) == 0 else "上期为负"
 
 
-def select_display_rows(rows):
+def select_display_rows(rows, *, current_only=False):
     """Filter supervisor display only; team metrics keep the complete scope."""
     displayed, excluded = [], []
-    rules = [("now_sums", "退后线索", "本期无退后线索"),
-             ("prior_sums", "退后线索", "上期无退后线索")]
+    rules = [("now_sums", "退后线索", "本期无退后线索")]
+    if not current_only:
+        rules.append(("prior_sums", "退后线索", "上期无退后线索"))
     for row in rows:
         reasons = []
         for period, field, reason in rules:
@@ -88,38 +93,17 @@ def build_reminder(data, mention_info):
     names = [row["supervisor"] for row in data["rows"] if row["now"]["five_min"] is not None
              and Decimal(str(row["now"]["five_min"])) > Decimal(str(team_five_min))]
     if (mention_info.get("chat_id") != data.get("target_chat_id", CHAT_ID)
-            or mention_info.get("member_read_complete") is not True
             or mention_info.get("current_snapshot") != data["current_snapshot"]
             or mention_info.get("source_table_id") != data["source_table_id"]
             or mention_info.get("source_rev") != data["source_rev"]
             or mention_info.get("target_names") != names):
         raise ValueError("Mention evidence does not match the group, source, snapshot or targets")
-    entries, md_mentions, html_mentions, nodes = [], [], [], []
-    for name in names:
-        person = mention_info["resolved"].get(name)
-        if not person or not person.get("in_chat") or not re.fullmatch(r"ou_[A-Za-z0-9]+", person.get("open_id", "")):
-            raise ValueError(f"Mention target is not verified: {name}")
-        label, user_id = html.escape(person["display_name"]), person["open_id"]
-        account = person.get("account_label", "")
-        if account and not re.fullmatch(r"[A-Za-z0-9._-]+", account):
-            raise ValueError(f"Invalid account display label: {name}")
-        account_suffix = f"（{account}）" if account else ""
-        md_mentions.append(f'<at user_id="{user_id}">{label}</at>{account_suffix}')
-        html_mentions.append(f'<span class="mention" data-user-id="{user_id}">@{label}{account_suffix}</span>')
-        entries.append({"supervisor": name, "display_name": person["display_name"], "open_id": user_id,
-                        "account_label": account})
-        if nodes:
-            nodes.append({"tag": "text", "text": " "})
-        nodes.append({"tag": "at", "user_id": user_id})
-        if account_suffix:
-            nodes.append({"tag": "text", "text": account_suffix})
-    if len({entry["open_id"] for entry in entries}) != len(entries):
-        raise ValueError("Duplicate user IDs in mention targets")
+    entries, md_mentions, html_mentions, nodes, plain_names = fragments(data, mention_info, names)
     snapshot = data["current_snapshot"]
     prefix = f"截至dt={snapshot['dt']}，hour={snapshot['hour']}时，"
     suffix = "的5min率"
     if names:
-        md_line = prefix + "\n" + " ".join(md_mentions) + suffix + "**【比团队整体高】** 🌟👏"
+        md_line = prefix + "\n" + " ".join(md_mentions) + suffix + " 【<font color='green'>**比团队整体高**</font>】 🌟👏"
         html_line = html.escape(prefix) + "<br>" + " ".join(html_mentions) + suffix + '<strong class="highlight-good">【比团队整体高】</strong> 🌟👏'
         post_lines = [[{"tag": "text", "text": prefix}],
                       [*nodes, {"tag": "text", "text": suffix},
@@ -132,7 +116,8 @@ def build_reminder(data, mention_info):
                       [{"tag": "text", "text": "暂无主管的5min率高于团队整体。"}]]
     post_line = [*post_lines[0], {"tag": "text", "text": "\n"}, *post_lines[1]]
     return {"markdown": md_line, "html": html_line, "post_line": post_line, "post_lines": post_lines, "targets": entries,
-            "chat_id": mention_info["chat_id"], "selection": "all_current_supervisors_5min_above_full_channel_team"}
+            "chat_id": mention_info["chat_id"], "selection": "all_current_supervisors_5min_above_full_channel_team",
+            "plain_name_reminders": plain_names}
 
 
 @lru_cache(maxsize=80)
@@ -188,7 +173,7 @@ def draw_image(data, path):
             for mi, (key, label, color, icon) in enumerate(METRICS):
                 ci = 2 + 3 * mi
                 if row[key + "_mom"] is None:
-                    values[ci] = "—\n" + unavailable_reason(row, key)
+                    values[ci] = ""
         for ci, text in enumerate(values):
             band_color = NAVY if ci == 0 else METRICS[(ci-1)//3][2]
             background = band_color if total else ("#f7f9fc" if ri % 2 else "white")
@@ -217,13 +202,13 @@ def render_preview(data, output_dir, mention_info):
     output_dir.mkdir(parents=True, exist_ok=True)
     reminder = build_reminder(data, mention_info)
     png = output_dir / "channel-process-preview.png"
-    displayed, excluded = select_display_rows(data["rows"])
+    displayed, excluded = select_display_rows(data["rows"], current_only=data.get("display_current_only", False))
     dimensions = draw_image({**data, "rows": displayed}, png)
     date = datetime.strptime(data["current_snapshot"]["dt"], "%Y%m%d")
     weekday = WEEKDAYS[date.weekday()]
     team = data["team"]
     heading = f"今日{data['channel']}渠道过程数据概览（{date.month}月{date.day}日）"
-    heading_md = f"📊 今日<span style=\"color:{RED}\">**{html.escape(data['channel'])}**</span>渠道过程数据概览（{date.month}月{date.day}日）"
+    heading_md = f"📊 今日 <font color='red'>**{html.escape(data['channel'])}**</font> 渠道过程数据概览（{date.month}月{date.day}日）"
     heading_html = f'📊 今日<strong class="channel-name">{html.escape(data["channel"])}</strong>渠道过程数据概览（{date.month}月{date.day}日）'
     def decorated_line(line, change, key, as_html=False):
         if change is None:
@@ -233,8 +218,9 @@ def render_preview(data, output_dir, mention_info):
         good = delta > 0
         color = GREEN if good else RED if delta else GRAY
         phrase = f"较上{weekday}{change_text(change)}"
-        opening = f'<strong style="color:{color}">' if as_html else f'<span style="color:{color}">**'
-        closing = "</strong>" if as_html else "**</span>"
+        native_color = 'green' if good else 'red' if delta else 'grey'
+        opening = f'<strong style="color:{color}">' if as_html else f"<font color='{native_color}'>**"
+        closing = "</strong>" if as_html else "**</font>"
         return line.replace(phrase, opening + phrase + " " + icon + closing)
     md_lines, html_lines = [], []
     for mi, (key, label, color, icon) in enumerate(METRICS):
@@ -242,11 +228,14 @@ def render_preview(data, output_dir, mention_info):
         # Units are absent from the picture; the message uses the confirmed frequency unit.
         unit = "次/条" if key == "frequency" else ""
         stop = "。" if mi == len(METRICS)-1 else "；"
-        line = f"{icon} {label} **{value}{unit}**，较上{weekday}{change_text(team[key+'_mom'])}（{prior}{unit}）{stop}"
+        line = f"{icon} {label} **{value}{unit}**"
+        if team[key+'_mom'] is not None:
+            line += f"，较上{weekday}{change_text(team[key+'_mom'])}（{prior}{unit}）"
+        line += stop
         md_lines.append(decorated_line(line, team[key+'_mom'], key))
         html_line = line.replace(f"**{value}{unit}**", f"<b>{value}{unit}</b>")
         html_lines.append(decorated_line(html_line, team[key+'_mom'], key, True))
-    closing_md = "继续加油，**【祝本期爆单】** 🚀🔥"
+    closing_md = "继续加油，【<font color='orange'>**祝本期爆单**</font>】 🚀🔥"
     message = heading_md+"\n\n"+"\n".join(md_lines)+f"\n\n![渠道主管过程对比]({png.name})\n\n{reminder['markdown']}\n{closing_md}\n"
     (output_dir / "message-preview.md").write_text(message, encoding="utf-8")
     metrics_html = "<br>".join(html_lines)
@@ -260,9 +249,11 @@ def render_preview(data, output_dir, mention_info):
     (output_dir / "reminder-preview.json").write_text(json.dumps({"local_only": True, "message_sent": False,
         "chat_id": reminder["chat_id"], "current_snapshot": data["current_snapshot"],
         "post_line": reminder["post_line"], "post_lines": reminder["post_lines"],
-        "targets": reminder["targets"], "selection": reminder["selection"]},
+        "targets": reminder["targets"], "selection": reminder["selection"],
+        "plain_name_reminders": reminder["plain_name_reminders"]},
         ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    receipt = {"local_only": True, "message_sent": False, "renderer": "render_preview.py", "layout_version": 11,
+    receipt = {"local_only": True, "message_sent": False, "renderer": "render_preview.py", "layout_version": 13,
+               "missing_comparison_policy": "blank", "display_current_only": data.get("display_current_only", False),
                "sorting": "current_five_min_descending_unavailable_last_supervisor_name_tiebreak",
                "metric_display_order": [key for key, _, _, _ in METRICS],
                "image_has_unit_labels": False,
@@ -276,11 +267,18 @@ def render_preview(data, output_dir, mention_info):
                "supervisors": len(displayed), "source_supervisors": len(data["rows"]),
                "displayed_supervisors": [row["supervisor"] for row in displayed],
                "excluded_supervisors": excluded,
-               "display_filter": "两期退后线索均大于0；仅影响主管展示，团队指标保持全量口径",
+               "display_filter": "有历史口径时两期退后线索均大于0；整渠道历史不可比时展示本期符合门槛主管；团队保持全量",
                "mention_targets": reminder["targets"], "mention_selection": reminder["selection"],
+               "plain_name_reminders": reminder["plain_name_reminders"],
                "mention_membership_verified": True, "target_chat_id": reminder["chat_id"],
                "image_dimensions": dimensions,
                "image_sha256": hashlib.sha256(png.read_bytes()).hexdigest(), "generated_at": datetime.now().isoformat(timespec="seconds")}
+    if __package__:
+        from .warning_card_message import write_preview
+    else:
+        from warning_card_message import write_preview
+    receipt.update(write_preview(output_dir, heading_md, md_lines, reminder['markdown'],
+                                 closing_md, png.name, mention_info))
     (output_dir / "preview_receipt.json").write_text(json.dumps(receipt, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     return receipt
 

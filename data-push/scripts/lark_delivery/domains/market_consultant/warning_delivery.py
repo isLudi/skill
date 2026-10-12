@@ -1,154 +1,184 @@
-"""One daily slot, one durable send claim, complete bot message readback."""
+"""One shared audited read, independent channel preparations and daily sends."""
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor, as_completed, TimeoutError as FutureTimeout
 from datetime import datetime, timedelta
-import hashlib
 import json
 from pathlib import Path
 import time
 
 from ...core.catalog import load_channel
 from ...core.locks import runner_lock
-from ...common.im import upload_image, send_markdown, _message_id, mention_nonmembers
 from ...common.push_log import run_scope
-from .delivery_ledger import connect_ledger, delivery_key, claim, record_outcome
+from .delivery_ledger import connect_ledger, record_outcome
 from . import warning_adapter as wa, warning_data as wd, warning_upstream as wu
+from . import warning_channel_delivery as channel_delivery
+from . import warning_routes as routes
 from .upstream import verify_bot
+
+CLEAN = {'prepared', 'sent_verified', 'skipped_no_source_rows'}
 
 
 def now():
     return datetime.now(wu.TZ)
 
 
-def verify_message(definition, target, message_id, markdown, mentions, image_key):
-    response = wd.api(['im', '+messages-mget', '--message-ids', message_id,
-                       '--no-reactions', '--as', 'bot', '--format', 'json'])
-    messages = response['data']['messages']
-    if response.get('identity') != 'bot' or response['data']['total'] != 1 or len(messages) != 1:
-        raise ValueError('Warning message readback missing or ambiguous')
-    message = messages[0]
-    expected_mentions = {p['open_id'] for p in mentions['resolved'].values()}
-    if (message['message_id'] != message_id or message['chat_id'] != target['chat_id']
-            or message.get('deleted') is not False or message.get('msg_type') != 'post'
-            or message['sender'].get('open_bot_id') != definition['sender']['open_id']
-            or message['sender'].get('name') != definition['sender']['name']
-            or message['content'].strip() != markdown.strip() or image_key not in message['content']
-            or {m['id'] for m in message.get('mentions', [])} != expected_mentions
-            or len(message.get('mentions', [])) != len(expected_mentions)):
-        raise ValueError('Warning message content, image, sender or mentions do not match')
-    return response
+def parallel_phase(items, operation, emit, failure_status, deadline=None):
+    """A slow or failed channel cannot consume another channel's send window.
+
+    Preparation/upload workers have no send capability. Their late results
+    are discarded. Actual sends use bounded API calls and durable claims.
+    """
+    if not items:
+        return {}
+    pool = ThreadPoolExecutor(max_workers=len(items))
+    futures = {pool.submit(operation, channel, item): channel for channel, item in items.items()}
+    completed, results = set(), {}
+    timeout = None if deadline is None else max(0, (deadline - now()).total_seconds())
+    try:
+        for future in as_completed(futures, timeout=timeout):
+            channel = futures[future]
+            completed.add(channel)
+            try:
+                results[channel] = future.result()
+            except Exception as exc:
+                emit(channel, {'status': failure_status, 'reason': str(exc)[:1000]})
+    except FutureTimeout:
+        pass
+    finally:
+        for future, channel in futures.items():
+            if channel not in completed:
+                future.cancel()
+                emit(channel, {'status': failure_status, 'reason': 'Channel phase exceeded its preparation deadline'})
+        pool.shutdown(wait=False, cancel_futures=True)
+    return results
 
 
-def run(definition, target, preflight=False):
+def run(definition, targets, preflight=False):
     wa.validate_definition(definition)
     started = now()
-    cfg = wa.schedule_config(definition, target)
+    cfg = wa.schedule_config(definition, targets[0])
     state = Path(definition['state_dir'])
     slot = started.replace(hour=17, minute=50, second=0, microsecond=0)
     first = datetime.fromisoformat(definition['schedule']['first_send_at'])
-    live = state / 'live-status.json'
+    kind = wa.report_kind(definition, started)
+    reports = routes.selected(definition, targets)
+    channels = list(reports)
+    live, outcomes = state / 'live-status.json', {}
     with run_scope(definition['domain'], definition['channel_id'], cfg['windows_task_name'], started) as log:
         with runner_lock(state) as locked:
-            db = connect_ledger(state)
-            def outcome(status, reason='', **extra):
-                record_outcome(db, now().isoformat(), slot, definition['channel'], status, reason)
-                log.event('channel_outcome', channel=definition['channel'], status=status, reason=reason,
-                          slot=slot.isoformat(), **extra)
-                log.outcome(definition['channel'], status, reason, **extra)
-                log.exit_code = 0 if status in {'prepared','sent_verified','skipped_no_source_rows'} else 1
-                return {'status': status, 'reason': reason, 'slot': slot.isoformat(), **extra}
-            claimed, key = False, None
+            def emit(channel, result):
+                route = reports[channel]
+                result = {'reason': '', **result, 'channel': route['channel'],
+                          'chat_id': route['target']['chat_id'], 'included_grades': route['included_grades']}
+                outcomes[channel] = result
+                db = None
+                try:
+                    db = connect_ledger(channel_delivery.state_for(definition, route))
+                    record_outcome(db, now().isoformat(), slot, route['channel'], result['status'], result['reason'])
+                except Exception as exc:
+                    log.event('channel_event_ledger_unavailable', channel=channel, reason=str(exc)[:400])
+                finally:
+                    if db is not None:
+                        db.close()
+                log.event('channel_outcome', report_id=channel, slot=slot.isoformat(), **result)
+                log.outcome(channel, **result)
+
+            def finish():
+                # CLI fanout requires an integer exit code; detailed verdicts
+                # remain in the per-channel ledger and shared run summary.
+                log.exit_code = 0 if len(outcomes) == len(channels) and all(
+                    item['status'] in CLEAN for item in outcomes.values()) else 1
+                print(json.dumps({'slot': slot.isoformat(), 'channels': outcomes,
+                                  'exit_code': log.exit_code}, ensure_ascii=False, default=str), flush=True)
+                return log.exit_code
+
             try:
+                if not reports:
+                    log.event('no_enabled_report_routes', slot=slot.isoformat())
+                    return finish()
+                reason, status = '', 'prepared'
                 if not locked:
-                    return outcome('blocked_parallel_run', 'Process lock already held; no send attempted')
-                if preflight:
-                    context = wa.prepare(definition, target, state_dir=state / 'preflight', scheduled=False)
-                    files = wa.write_preview(context)
-                    return outcome('prepared', 'Read-only preflight; no upload or send', files=files)
-                if not definition['schedule']['enabled'] or not target['enabled']:
-                    return outcome('prepared', 'Schedule or target paused; no send')
-                if slot < first:
-                    return outcome('prepared', 'Before the explicitly configured first daily slot')
-                if not slot - timedelta(minutes=5) <= started < slot + timedelta(minutes=1):
-                    return outcome('blocked_outside_slot', 'Only prepare 17:45–17:50 and send during 17:50; no catch-up')
-                kind = wa.report_kind(definition, started)
-                key = delivery_key(cfg, slot, definition['channel'], kind)
-                prior = db.execute('SELECT status,message_id FROM deliveries WHERE key=?', (key,)).fetchone()
-                if prior:
-                    if prior[0] in {'sent_verified','skipped_no_source_rows'}:
-                        return outcome(prior[0], 'This daily slot is already handled; no resend', message_id=prior[1])
-                    return outcome('blocked_previous_attempt', 'Existing send claim requires readback; never resend blindly', message_id=prior[1])
-                wd.save(live, {'status': 'preparing', 'slot': slot.isoformat(), 'report_kind': kind, 'started_at': started.isoformat()})
-                context = wa.prepare(definition, target, state_dir=state / 'batches', scheduled=True)
-                files = wa.write_preview(context)
-                if context['skip_delivery']:
-                    if claim(db, key, slot, definition['channel']):
-                        db.execute("UPDATE deliveries SET status='skipped_no_source_rows',detail=? WHERE key=?",
-                                   (json.dumps({'execution_id': context['evidence']['execution_id']}), key))
-                        db.commit()
-                    return outcome('skipped_no_source_rows', 'Full successful current source has no eligible current channel post leads')
+                    reason, status = 'Process lock already held', 'blocked_parallel_run'
+                elif not preflight and not definition['schedule']['enabled']:
+                    reason = 'Schedule or target paused'
+                elif not preflight and slot < first:
+                    reason = 'Before the configured first daily slot'
+                elif not preflight and not slot - timedelta(minutes=5) <= started < slot + timedelta(minutes=1):
+                    reason, status = 'Outside 17:45 preparation / 17:50 send window; no catch-up', 'blocked_outside_slot'
+                if reason:
+                    for channel in channels:
+                        emit(channel, {'status': status, 'reason': reason})
+                    return finish()
+                pending = {}
+                for channel in channels:
+                    try:
+                        routes.initialize_state(definition, reports[channel])
+                        prior = None if preflight else channel_delivery.existing_outcome(
+                            definition, reports[channel], slot, kind)
+                        if prior:
+                            emit(channel, prior)
+                        else:
+                            pending[channel] = reports[channel]
+                    except Exception as exc:
+                        emit(channel, {'status': 'blocked_channel_ledger', 'reason': str(exc)[:1000]})
+                if not pending:
+                    return finish()
+                wd.save(live, {'status': 'preparing', 'slot': slot.isoformat(), 'report_kind': kind,
+                               'channels': list(pending), 'started_at': started.isoformat()})
+                source = wa.prepare_source(definition, targets[0], state / 'shared-source', scheduled=not preflight)
+                prepared = parallel_phase(pending, lambda _, route: channel_delivery.prepare_channel(
+                    definition, route, source, kind, preflight), emit, 'blocked_channel_preparation',
+                    None if preflight else slot - timedelta(minutes=1))
+                ready = {}
+                for channel, context in prepared.items():
+                    if context['skip_delivery']:
+                        try:
+                            if not preflight:
+                                channel_delivery.mark_absent(definition, reports[channel], slot, kind, source['evidence'])
+                            emit(channel, {'status': 'skipped_no_source_rows',
+                                           'reason': 'Complete audited source has no current channel post leads'})
+                        except Exception as exc:
+                            emit(channel, {'status': 'blocked_channel_ledger', 'reason': str(exc)[:1000]})
+                    elif preflight:
+                        emit(channel, {'status': 'prepared', 'reason': 'Read-only preflight', 'files': context['files']})
+                    else:
+                        ready[channel] = context
+                if preflight or not ready:
+                    return finish()
                 if load_channel(wa.KEY) != definition:
-                    raise ValueError('Canonical channel configuration changed during preparation')
-                # Read current publication/history again before the only possible send.
+                    raise ValueError('Canonical warning configuration changed')
                 wu.publication(definition)
-                latest = wu.history(definition, slot, scheduled=True)
-                if latest['id'] != context['evidence']['execution_id']:
+                if wu.history(definition, slot, scheduled=True)['id'] != source['evidence']['execution_id']:
                     raise ValueError('Newer warning producer replaced the prepared data')
                 verify_bot(cfg)
-                targets = {name: person['open_id'] for name, person in context['mentions']['resolved'].items()}
-                if mention_nonmembers(target['chat_id'], targets, 'bot', 60):
-                    raise ValueError('Reminder targets left the group after preparation')
-                wd.unchanged(definition, context['root'] / 'revision-check', context['source_rev'])
-                if now() >= slot + timedelta(minutes=1):
-                    raise ValueError('Preparation finished after the daily send window')
-                if hashlib.sha256(context['image'].read_bytes()).hexdigest() != context['receipt']['image_sha256']:
-                    raise ValueError('Prepared warning image changed')
-                image_key = upload_image(context['image'], 'bot', 45)
-                markdown = context['markdown'].replace('(' + context['image'].name + ')', '(' + image_key + ')')
-                wd.save(context['root'] / 'send_payload.json', {'chat_id': target['chat_id'], 'markdown': markdown,
-                        'idempotency_key': key, 'image_key': image_key, 'slot': slot.isoformat()})
-                wd.save(live, {'status': 'waiting_for_17_50', 'slot': slot.isoformat(), 'files': files})
-                while now() < slot:
-                    time.sleep(min(1, (slot - now()).total_seconds()))
-                if now() >= slot + timedelta(minutes=1):
-                    raise ValueError('Daily send window expired; no late send')
+                wd.unchanged(definition, source['root'] / 'revision-check', source['rev'])
+                staged = parallel_phase(ready, lambda _, context: channel_delivery.stage_upload(context, slot),
+                                        emit, 'blocked_channel_upload', slot - timedelta(seconds=15))
+                if not staged:
+                    return finish()
+                wd.save(live, {'status': 'waiting_for_17_50', 'slot': slot.isoformat(), 'channels': list(staged)})
+                while now() < slot - timedelta(seconds=15):
+                    time.sleep(min(1, max(0, (slot - timedelta(seconds=15) - now()).total_seconds())))
                 if load_channel(wa.KEY) != definition:
-                    raise ValueError('Channel paused or changed while waiting for the daily slot')
-                if wu.history(definition, slot, scheduled=True)['id'] != context['evidence']['execution_id']:
-                    raise ValueError('Producer started another execution before the daily send')
-                wd.unchanged(definition, context['root'] / 'send-revision-check', context['source_rev'])
+                    raise ValueError('Configuration paused or changed before send')
+                if wu.history(definition, slot, scheduled=True)['id'] != source['evidence']['execution_id']:
+                    raise ValueError('Producer started another execution before send')
+                wd.unchanged(definition, source['root'] / 'send-revision-check', source['rev'])
+                while now() < slot:
+                    time.sleep(min(1, max(0, (slot - now()).total_seconds())))
                 if now() >= slot + timedelta(minutes=1):
-                    raise ValueError('Final source check exceeded the send window')
-                if not claim(db, key, slot, definition['channel']):
-                    return outcome('blocked_previous_attempt', 'Another process already claimed this slot')
-                claimed = True
-                response = send_markdown(target['chat_id'], markdown, key, 'bot', dry_run=False, timeout=45)
-                message_id = _message_id(response)
-                wd.save(context['root'] / 'send_response.json', response)
-                if not message_id.startswith('om_'):
-                    raise ValueError('Send acknowledged without a verifiable message id')
-                db.execute("UPDATE deliveries SET status='sent_pending_readback',message_id=?,detail=? WHERE key=?",
-                           (message_id, json.dumps({'image_key': image_key, 'batch': str(context['root'])}), key))
-                db.commit()
-                readback = verify_message(definition, target, message_id, markdown, context['mentions'], image_key)
-                wd.save(context['root'] / 'message_readback.json', readback)
-                receipt = {'status': 'sent_verified', 'message_id': message_id, 'slot': slot.isoformat(),
-                           'report_kind': kind, 'source_rev': context['source_rev'],
-                           'execution_id': context['evidence']['execution_id'], 'current_snapshot': context['data']['current_snapshot'],
-                           'image_sha256': context['receipt']['image_sha256'], 'image_key': image_key,
-                           'chat_id': target['chat_id'], 'sender_open_id': definition['sender']['open_id'],
-                           'mentions': targets, 'verified_at': now().isoformat()}
-                wd.save(context['root'] / 'delivery_receipt.json', receipt)
-                db.execute("UPDATE deliveries SET status='sent_verified',detail=? WHERE key=?", (json.dumps(receipt), key))
-                db.commit()
-                return outcome('sent_verified', message_id=message_id, report_kind=kind, receipt=str(context['root'] / 'delivery_receipt.json'))
+                    raise ValueError('Final shared source check exceeded the send window')
+                results = parallel_phase(staged, lambda _, context: channel_delivery.send_channel(context, slot),
+                                         emit, 'blocked_channel_delivery')
+                for channel, result in results.items():
+                    emit(channel, result)
+                return finish()
             except Exception as exc:
-                status = 'send_uncertain' if claimed else 'blocked_before_send'
-                if claimed:
-                    db.execute('UPDATE deliveries SET status=? WHERE key=?', (status, key))
-                    db.commit()
-                return outcome(status, str(exc)[:1000])
+                for channel in channels:
+                    if channel not in outcomes:
+                        emit(channel, {'status': 'blocked_before_send', 'reason': str(exc)[:1000]})
+                return finish()
             finally:
                 if locked:
                     live.unlink(missing_ok=True)
-                db.close()

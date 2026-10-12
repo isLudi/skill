@@ -61,7 +61,7 @@ V16与V17均使用 `two_period_clear_then_replace_v1`：先校验旧/新两期�
 2. 所有stage完整成功日志及Hash、创建/回读/旧记录删除/最终回读、exit_code=0。
 3. 两期清单的字段数、逐期行数和渠道分布、同一分区、键及字段指纹；所有逐期汇总与日志总量一致。
 4. 本群只取业务当期＋唯一渠道；Base完整分页且revision一致，行数与上游该期该渠道一致，再排除初二和小样本年级。
-5. 机器人、群ID和负责人账号/群成员资格；所有最低负责人@集合精确一致，不@all。
+5. 机器人身份和目标群 ID 独立核验；业务提醒名单由已核验 @ 与姓名文字完整覆盖。无法解析、不在群、通讯录或群成员查询失败的人员直接使用姓名文字；实际 @ 集合只与已核验且在群的账号集合一致，不 @all、不自动邀请人员。
 6. 图片生成后、发送前再次检查Base版本和时间窗口。SQLite/OS锁防并发，同一群/渠道/时点只允许一条消息。
 
 ## 运行记录与日志存储规范
@@ -190,3 +190,56 @@ Get-ScheduledTaskInfo -TaskName 'Codex-Lark-Market-KOC-GroupPush'
 配套脚本改动：`lark_delivery/common/runtime.py` 新增 `CREATE_NO_WINDOW` 常量（`run_lark` 的子进程调用已带上）与 `ensure_console_streams()`（pythonw 下 `sys.stdout` 为 `None`，防止 print 崩溃）；5 个青橙执行器 `main()` 入口均调用该保护；`run_qingcheng_process.py`、`run_qingcheng_transformation.py` 内直连 subprocess 调用已加 `creationflags`。注册/安装脚本已同步（install_qingcheng_*、register_*scheduled_push* 均产出 pythonw 形态），重装与生产一致。
 
 注意事项：S4U（不管用户是否登录都运行）曾被用户首选，但本机安全策略层会拦截新任务创建并把 S4U 规范回 InteractiveToken，不可达，退回 pythonw 方案；任务仍保持 InteractiveToken/LeastPrivilege，只在用户登录时运行。`Codex-Governed-TempTables-LarkEvent` 为常驻监听服务、非推送任务，未改动。多群解耦核验：六群、SEC 五报告、专项四渠道、伙伴三渠道、转化、市场调度器均已有逐渠道 try/except 熔断与独立回执（市场按渠道一任务一配置结构性隔离），本次改造不触碰该逻辑。任务定义备份在 `runtime/task-hidden-backup-20261001/`。
+
+### 计划任务编码与结果恢复
+
+新增渠道或修改本地取数链路时，以下要求同时适用于独立任务和并入现有批次的渠道。
+
+#### 子进程编码
+
+父进程的 `encoding="utf-8"` 只设置读取端，不能改变子进程输出编码。Python 查询工具必须在每次调用时显式设置子进程环境，保留其他环境变量；不得依赖交互终端已有的 UTF-8 设置。沿用机器登记的 Python、工作目录、隐藏窗口和超时，例如：
+
+```python
+import os
+import subprocess
+
+from lark_delivery.common.runtime import CREATE_NO_WINDOW
+
+
+def run_python_child(command, workdir, timeout_seconds):
+    child_env = os.environ.copy()
+    child_env.update(PYTHONIOENCODING="utf-8", PYTHONUTF8="1")
+    return subprocess.run(
+        command,
+        cwd=workdir,
+        env=child_env,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=timeout_seconds,
+        creationflags=CREATE_NO_WINDOW,
+    )
+```
+
+非 Python CLI 按其已核验的输出协议设置编码。禁止用 `errors="replace"`、`errors="ignore"` 或猜测编码把损坏的 JSON 当作有效结果。stdout 为 `None`、空内容或解析失败时，记录为传输/解析异常，不能解释为零条业务数据；按共享日志规范保留失败步骤、异常类型及已知 Query ID/SQL Hash，不输出凭证。
+
+#### 后台环境验收
+
+- 只读回实际任务动作、参数、工作目录、身份和 `LogonType`；用对应的 `pythonw.exe` 或隐藏包装器执行无发送探针，核对登录/session 条件，保持任务定义不变。
+- 在独立探针的父进程环境中移除 `PYTHONIOENCODING`、`PYTHONUTF8`，让被测调用自行设置子进程编码。探针至少覆盖含中文渠道、期次的 JSON 往返、返回码和状态工件落盘；结果必须保存为可回读证据。
+- 对结果恢复补有意义的验证：上游已成功但 stdout 缺失、SQL Hash 漂移、Query ID 歧义、未知尝试、不完整分页及过期快照。验证不会重复提交未知查询、不会补零，并且其他渠道继续处理；离线验证使用固定工件或 mock，不发送消息。
+- 交互预览、后台探针和真实调度投递分别验收。部署后追踪已授权的首个自动窗口，逐渠道检查 push_log result、原始进程日志、发送回执和消息读回；任务退出码或查询 `Success` 不能单独证明消息送达。
+
+#### 查询结果持久化与恢复
+
+提交前原子保存尝试状态，绑定渠道、原始槽位、源身份、期次/范围、SQL Hash 和本次独立结果工件路径；取得 Query ID 后及时持久化。结果工件、summary 和尝试状态采用原子写入，使后续重试能读到完整证据。
+
+本地 summary 缺失或尝试停在 `started` 时，先检查原查询证据：
+
+1. 工件位于本渠道、本尝试绑定的目录；源身份、期次/范围及 SQL Hash 一致。涉及编辑器与提交 Hash 的查询须同时匹配，Query ID 必须唯一且无冲突。
+2. 原生状态已终结为成功，工件类型、`ok`、完整性校验均通过；仅有预览行、退出码 0 或 `started` 不足以确认成功。
+3. 依据原 Query ID 完整读取分页结果，再核验源版本、分区、同快照和新鲜度，沿原槽位继续准备消息。stdout 解析失败本身不能触发重新提交 SQL。
+
+查询仍运行或结果未知时保留证据并阻断本渠道；禁止删除尝试状态、扩大新鲜度或补零来解锁。已确认原查询完成但快照过期时，按原取数规则刷新数据并保留旧证据。某渠道的查询、解码或恢复失败须落成该渠道 outcome，继续处理其他独立渠道和群。
+
+恢复发送仍使用原槽位、payload 和幂等键；已有 message_id 只补读回，已验证消息不重发，不清空发送台账。实际故障与恢复实例见 [青橙内部图书首轮计划任务编码故障记录](departments/qingcheng/local_broadcast_rules.md)。

@@ -4,7 +4,10 @@
   "channel_id": "supervisor_koc_zhoushuai_warning",
   "channel": "KOC-周帅数学",
   "channels": [
-    "KOC-周帅数学"
+    "KOC-周帅数学",
+    "抖音私信",
+    "KOC-孟亚飞数学",
+    "自孵化KOC-5元纯课"
   ],
   "adapter": "market-channel-warning-v1",
   "base_identity": "user",
@@ -20,6 +23,65 @@
       "chat_id": "oc_6f06cad338d520a89e1607a18592e56b",
       "display_name": "🌟【1009期】KOC+抖音私信🔥信息同步",
       "enabled": true
+    },
+    {
+      "id": "koc_middle_grade_9",
+      "chat_id": "oc_601bde838d4fbda7ac09840a58228f9c",
+      "display_name": "💗0925期【KOC初中】沟通群",
+      "enabled": true
+    },
+    {
+      "id": "self_incubated_high_school",
+      "chat_id": "oc_b9dc09ba622ca00059bbc472922a803d",
+      "display_name": "【自营koc】&【高阳团队】",
+      "enabled": false
+    }
+  ],
+  "broadcasts": [
+    {
+      "id": "koc_zhoushuai_high_school",
+      "channel": "KOC-周帅数学",
+      "target_id": "koc_douyin_sync",
+      "included_grades": ["高一", "高二", "高三"],
+      "school_scope": "高中",
+      "state_relative": ".",
+      "enabled": true
+    },
+    {
+      "id": "douyin_private_message_high_school",
+      "channel": "抖音私信",
+      "target_id": "koc_douyin_sync",
+      "included_grades": ["高一", "高二", "高三"],
+      "school_scope": "高中",
+      "state_relative": "channels/douyin_private_message",
+      "enabled": true
+    },
+    {
+      "id": "mengyafei_grade_9",
+      "channel": "KOC-孟亚飞数学",
+      "target_id": "koc_middle_grade_9",
+      "included_grades": ["初三"],
+      "school_scope": "初三",
+      "state_relative": "reports/mengyafei_grade_9",
+      "enabled": true
+    },
+    {
+      "id": "self_incubated_grade_9",
+      "channel": "自孵化KOC-5元纯课",
+      "target_id": "koc_middle_grade_9",
+      "included_grades": ["初三"],
+      "school_scope": "初三",
+      "state_relative": "reports/self_incubated_grade_9",
+      "enabled": true
+    },
+    {
+      "id": "self_incubated_high_school",
+      "channel": "自孵化KOC-5元纯课",
+      "target_id": "self_incubated_high_school",
+      "included_grades": ["高一", "高二", "高三"],
+      "school_scope": "高中",
+      "state_relative": "reports/self_incubated_high_school",
+      "enabled": false
     }
   ],
   "source": {
@@ -35,7 +97,10 @@
       "field": "渠道",
       "match_mode": "values",
       "values": [
-        "KOC-周帅数学"
+        "KOC-周帅数学",
+        "抖音私信",
+        "KOC-孟亚飞数学",
+        "自孵化KOC-5元纯课"
       ],
       "case_sensitive": true
     },
@@ -74,6 +139,10 @@
     "result_sort": "current_unit_descending",
     "process_display": "both_period_post_positive",
     "result_display": "both_period_income_and_post_positive",
+    "missing_comparison_policy": "blank",
+    "missing_channel_history_display": "current_eligible_supervisors",
+    "channel_failure_policy": "continue_other_channels",
+    "mention_failure_policy": "plain_name",
     "process_reminder_metric": "five_min",
     "result_reminder_metric": "unit"
   },

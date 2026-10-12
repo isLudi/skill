@@ -103,14 +103,18 @@ class LeadReportTests(unittest.TestCase):
         self.assertNotIn("<at", rendered)
         self.assertNotIn("主管", rendered)
 
-    def test_nonmember_gate_blocks_upload_even_if_unresolved_mentions_allowed(self):
-        context = {"chat_id": "oc_test", "mention_info": {"lookup_error": "", "unresolved": [],
-                   "ambiguous": {}, "nonmembers": ["主管甲"]}}
-        with patch.object(gp, "prepare", return_value=context), patch.object(gp, "upload_image") as upload, patch.object(gp, "send_markdown") as send:
-            with self.assertRaisesRegex(SystemExit, "尚未入群"):
-                gp.main(["send", "--confirm-send", "--allow-unresolved-mentions"])
+    def test_nonmember_uses_plain_name_in_dry_run_without_upload(self):
+        context = {"chat_id": "oc_test", "identity": "bot", "idempotency_key": "test-key",
+                   "markdown": '<at user_id="ou_manager">主管甲</at>',
+                   "mention_info": {"names": ["主管甲"], "resolved": {"主管甲": "ou_manager"},
+                                    "display_names": {"主管甲": "主管甲"}, "nonmembers": []}}
+        with patch.object(gp, "prepare", return_value=context), patch.object(gp, "mention_nonmembers", return_value=["主管甲"]), \
+                patch.object(gp, "upload_image") as upload, patch.object(gp, "send_markdown") as send, \
+                patch.object(gp, "print_preview"):
+            self.assertEqual(gp.main(["send", "--dry-run"]), 0)
             upload.assert_not_called()
-            send.assert_not_called()
+            self.assertEqual(send.call_args.args[1], "主管甲")
+            self.assertTrue(send.call_args.kwargs["dry_run"])
 
     def test_defaults_migrate_source_and_do_not_inherit_legacy_coordinates(self):
         with patch.dict("os.environ", {"SOURCE_URL": "old", "BASE_TOKEN": "old", "TABLE_ID": "old", "VIEW_ID": "old"}):
@@ -182,10 +186,11 @@ class LeadReportTests(unittest.TestCase):
             with self.subTest(value=invalid), self.assertRaises(ValueError):
                 report([lead(1, **{"5min标记": invalid})])
 
-    def test_same_name_different_accounts_blocks_even_if_only_one_low(self):
-        with self.assertRaisesRegex(ValueError, "同名不同账号"):
-            report([lead(1, **{"顾问账号": "a", "5min标记": 0}),
-                    lead(2, **{"顾问账号": "b", "5min标记": 1})])
+    def test_same_name_different_accounts_retains_plain_name_reminder(self):
+        result = report([lead(1, **{"顾问账号": "a", "5min标记": 0}),
+                         lead(2, **{"顾问账号": "b", "5min标记": 1})])
+        self.assertEqual(result["reminders"]["过程数据"], ["甲"])
+        self.assertEqual(result["ambiguous_reminder_names"], ["甲"])
 
     def test_config_scope_and_conflicting_period_or_chat(self):
         configs = lr.select_configs([config(), config("结果数据")], "渠道甲", "process", "")

@@ -505,7 +505,7 @@
         {
           "domain": "market_consultant",
           "source_path": "market-consultant-dashboard-sql/knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
-          "sha256": "18c7e0b58669f77dfeb4d3c2dba782c0ed688464bb96a5dccf60ad2ea4af4363"
+          "sha256": "99f36304fef071e0c7e700709448f0a9e3bc0573d2a3883113e77b98528af68d"
         },
         {
           "domain": "qingcheng",
@@ -19568,7 +19568,7 @@
         {
           "domain": "market_consultant",
           "source_path": "market-consultant-dashboard-sql/knowledge/tables/gaotu_hl.ods_mkt_h_channel_group_df.md",
-          "sha256": "cc4e0ccefed6de40c55db5d280e647229f01109d7dea2be584637e3ce342f71e"
+          "sha256": "c4edac84af83fbdf438942d93188a59cf02746373028e443dcc2c2462789dfa4"
         }
       ],
       "columns": [
@@ -24678,7 +24678,7 @@
         {
           "domain": "market_consultant",
           "source_path": "market-consultant-dashboard-sql/knowledge/tables/service_dw.dim_crm_assign_rule_lead_detail_hf.md",
-          "sha256": "60fb2b6b92dbf42be551b2211904df2eabcedf7e5b5eff6085f4cc1d5c264f4a"
+          "sha256": "c6f26561e117af0b9767973312de7fc41dd7e627656b2cfc6dfa820edbc1fc42"
         },
         {
           "domain": "qingcheng",

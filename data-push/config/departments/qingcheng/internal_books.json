@@ -1,0 +1,145 @@
+{
+  "schema_version": 1,
+  "domain": "qingcheng",
+  "execution_surface": "local",
+  "channel_id": "internal_books",
+  "channel": "内部图书",
+  "status": "active",
+  "schedule_enabled": true,
+  "configuration_base_writeback": "setup_only",
+  "source": {
+    "kind": "data_center",
+    "freshness_max_age_minutes": 240,
+    "models": {
+      "2064": {
+        "name": "青橙-过程数据",
+        "menu_id": "menu_set_3733940369833271296",
+        "sql_sha256": "23038006a67d455244a13addc3eff4d229114a9deceaa8a580bde1b6daf7e38f"
+      },
+      "2460": {
+        "name": "转化数据",
+        "menu_id": "menu_set_3833505841890963456",
+        "sql_sha256": "b42a6776a2721d7e7f716538780613607ab908c5e601c3b6871eb0bc1e4d4e5f"
+      }
+    },
+    "note": "用户指定数据中心 2064/2460；按精确菜单身份和已预览的源 SQL Hash 读取，源代码漂移只阻断内部图书。"
+  },
+  "target": {
+    "chat_id": "oc_34c7aa744d1bed96c2d97863531f4e7b",
+    "name": "青橙-内部图书"
+  },
+  "sender": {
+    "identity": "bot",
+    "name": "管家",
+    "open_id": "ou_f3907e865135732c15a1dfce27828411"
+  },
+  "report": {
+    "level": "顾问",
+    "minimum_effective_leads": 3,
+    "split_grade": true,
+    "grades": [
+      "高一",
+      "高二",
+      "高三",
+      "初三"
+    ],
+    "process_columns": [
+      "期次",
+      "主管",
+      "顾问",
+      "年级",
+      "有效线索",
+      "好友率",
+      "等待时长",
+      "8min",
+      "24h首call",
+      "沟通率",
+      "外呼时长",
+      "外呼频次",
+      "总通时"
+    ],
+    "transformation_columns": [
+      "期次",
+      "主管",
+      "顾问",
+      "年级",
+      "有效线索",
+      "首节到课率",
+      "综合人头转化率",
+      "综合订单转化率",
+      "综合营收",
+      "退费金额",
+      "净收款",
+      "综合单效",
+      "联报率"
+    ]
+  },
+  "reminder": {
+    "process": "8min最低值，分年级、原始值并列全部提醒",
+    "transformation": "综合单效正值前三名，分年级、边界并列全部提醒"
+  },
+  "delivery": {
+    "mention_format": "native_at",
+    "require_complete_group_membership": true,
+    "on_mention_gap": "invite_then_text"
+  },
+  "visual": {
+    "process_bars": {
+      "好友率": [
+        0,
+        1,
+        "#8da7ca"
+      ],
+      "等待时长": [
+        0,
+        48,
+        "#fc999f"
+      ],
+      "8min": [
+        0,
+        1,
+        "#f8ca70"
+      ],
+      "24h首call": [
+        0,
+        1,
+        "#77c09f"
+      ]
+    },
+    "transformation_bars": {
+      "综合人头转化率": [
+        0,
+        1,
+        "#8da7ca"
+      ],
+      "综合单效": [
+        0,
+        null,
+        "#f8ca70"
+      ],
+      "联报率": [
+        0,
+        null,
+        "#77c09f"
+      ]
+    },
+    "number_format": "有效线索、总通时取整数；其他指标一位小数；率类一位小数百分比，联报率为一位小数数值；零分母显示—。",
+    "bar_note": "转化沿用已预览和现有脚本的量程处理；综合单效/联报率未审定固定量程，保持现有动态上限。"
+  },
+  "integration": {
+    "process": "partner_process_batch.json",
+    "transformation": "transformation_batch.json",
+    "process_windows": [
+      "周二至周四 13:50",
+      "周二至周四 17:50",
+      "周二至周四 21:50"
+    ],
+    "transformation_windows": [
+      "周五至次周周一 13:52",
+      "周五至次周周一 17:52",
+      "周五至次周周一 21:52"
+    ],
+    "failure_isolation": "per_channel_and_group",
+    "new_windows_task": false
+  }
+}

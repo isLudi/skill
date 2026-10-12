@@ -48,6 +48,7 @@ def bundle_for_delivery():
         "coords": {"base_token": "same-base"}, "raw_table_id": "same-table",
         "snapshot": ("20261010", "15"), "raw_count": 1,
         "raw_read_audit": {"rev": 22, "has_more": False},
+        "mention_info": {"names": [], "resolved": {}, "text_fallback_names": []},
         "markdown": spec["label"], "image_path": None, "result_image_path": None,
     }} for spec in sequence.specs(SLOT)]}
 
@@ -81,6 +82,7 @@ def test_retry_preserves_order_and_deduplicates_real_durable_claims(monkeypatch,
     monkeypatch.setattr(scheduler.gp, "send_markdown", send)
     monkeypatch.setattr(scheduler, "assert_current_revision", lambda *args: None)
     monkeypatch.setattr(scheduler, "require_send_window", lambda *args: None)
+    monkeypatch.setattr(scheduler, "review_before_send", lambda *args: None)
     monkeypatch.setattr(scheduler, "receipt_readback", lambda *args: {"verified": True})
     monkeypatch.setattr(scheduler, "readback_available", lambda *args: True)
     monkeypatch.setattr(scheduler, "emit", lambda *args, **kwargs: None)

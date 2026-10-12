@@ -9,7 +9,8 @@ import re
 from pathlib import Path
 
 from lark_delivery.common import resend
-from lark_delivery.common.im import invite_members, mention_nonmembers, upload_image
+from lark_delivery.common.im import upload_image, verify_sender_membership
+from lark_delivery.common.reminders import resolve_contacts, refresh_membership
 from lark_delivery.common.runtime import run_lark
 
 
@@ -24,51 +25,8 @@ def _data(args: list[str]) -> dict:
 
 
 def _resolve_people(people: list[dict]) -> tuple[dict[str, str], dict[str, str]]:
-    """Match source identities to one active employee using name and email account."""
-    if not people or any(not p.get("name") for p in people):
-        raise ValueError("Missing process reminder people")
-    identities = {(person["name"], person.get("account")) for person in people}
-    if len({name for name, _ in identities}) != len(identities):
-        raise ValueError("Two reminder accounts share one source display name")
-    def query_for(person: dict) -> str:
-        account = person.get("account")
-        return f"{account}@gaotu.cn" if account else re.sub(r"\d+$", "", person["name"])
-
-    queries = sorted({query_for(p) for p in people})
-    responses = [_data(["contact", "+search-user", "--queries", ",".join(queries[start:start + 20]),
-                        "--exclude-external-users", "--lang", "zh_cn", "--as", "user", "--format", "json"])
-                 for start in range(0, len(queries), 20)]
-    status = {item["query"]: item for data in responses for item in data.get("queries", [])}
-    users = [user for data in responses for user in data.get("users", [])]
-    resolved, display = {}, {}
-    for person in people:
-        source_name = person["name"]
-        query = query_for(person)
-        if query not in status or status[query].get("error") or status[query].get("has_more") is not False:
-            raise ValueError(f"Contact search was incomplete for {source_name}")
-        suffix = re.search(r"(\d+)$", source_name)
-        account = person.get("account")
-        candidates = {}
-        for user in users:
-            if user.get("matched_query") != query or user.get("is_activated") is not True or user.get("is_cross_tenant"):
-                continue
-            label = user.get("localized_name")
-            email_account = str(user.get("enterprise_email") or "").split("@", 1)[0]
-            if account:
-                if str(user.get("enterprise_email") or "").casefold() != query.casefold():
-                    continue
-            elif label not in {source_name, query} or (suffix and not email_account.endswith(suffix.group(1))):
-                continue
-            open_id = user.get("open_id")
-            if isinstance(open_id, str) and re.fullmatch(r"ou_[A-Za-z0-9]+", open_id):
-                candidates[open_id] = label
-        if len(candidates) != 1:
-            raise ValueError(f"Reminder identity is unresolved or ambiguous: {source_name}")
-        open_id, label = next(iter(candidates.items()))
-        resolved[source_name] = open_id
-        display[source_name] = label
-    if len(set(resolved.values())) != len(resolved):
-        raise ValueError("Two reminder names resolved to the same employee")
+    """Keep every selected name; only uniquely verified contacts get native @."""
+    resolved, display, _ = resolve_contacts(people, _data)
     return resolved, display
 
 
@@ -83,7 +41,7 @@ def _render_message(markdown: str, level: str, people: list[dict], resolved: dic
         reminder_lines.append((f"- 8min较低的{level}：{'、'.join(names)}", names))
     for original, names in reminder_lines:
         # Names absent from `resolved` are the sanctioned plain-name fallback:
-        # invited by the bot already and still not in the group (or unresolvable).
+        # identity or group membership could not be verified.
         mentions = "、".join(
             f'<at user_id="{resolved[name]}">{html.escape(display[name])}</at>' if name in resolved
             else html.escape(name) for name in names)
@@ -191,19 +149,11 @@ def main() -> None:
     if item["level"] != level or item["process_tie_handling"] != "all_tied_minimum":
         raise ValueError("Review and process configuration differ")
     people = item["reminder_people"]
+    verify_sender_membership(chat_id, delivery["sender_open_id"])
     resolved_all, display = _resolve_people(people)
-    # 2026-10-04 policy: never block on person resolution. Absent members are invited
-    # once by the sender bot; anyone still absent afterwards degrades to a plain name.
-    missing = mention_nonmembers(chat_id, resolved_all, "bot", 60)
+    resolved, membership_note = refresh_membership(chat_id, resolved_all)
+    text_only = {person['name'] for person in people} - set(resolved)
     invite_note = {"invited": [], "pending": [], "error": ""}
-    if missing:
-        invite_note = invite_members(chat_id, [resolved_all[name] for name in missing], "bot", 60)
-        try:
-            missing = mention_nonmembers(chat_id, resolved_all, "bot", 60)
-        except Exception as exc:  # noqa: BLE001 - a re-check failure degrades to text
-            invite_note["recheck_error"] = str(exc)[:300]
-    text_only = set(missing)
-    resolved = {name: open_id for name, open_id in resolved_all.items() if name not in text_only}
     image_key = args.image_key or (upload_image(args.review_dir / item["process_png"], "bot", 60) if args.send else "img_dry_run")
     markdown = (args.review_dir / item["process_message_file"]).read_text(encoding="utf-8")
     message = _render_message(markdown, level, people, resolved, display, image_key, item.get("reminder_by_grade"))
@@ -227,6 +177,7 @@ def main() -> None:
     output = {"level": level, "chat_id": chat_id, "period": review["period"],
               "image_key": image_key, "mention_ids": sorted(resolved.values()),
               "text_fallback_names": sorted(text_only), "invite_attempt": invite_note,
+              "member_lookup_error": membership_note.get("member_lookup_error", ""),
               "dry_run": not args.send, "response": response}
     if args.send:
         message_id = response.get("message_id")

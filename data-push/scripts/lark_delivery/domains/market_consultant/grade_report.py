@@ -360,7 +360,7 @@ def write_preview(context, directory):
                 if name in info["resolved"]:
                     people.append(f'<span class="mention">@{label}</span>')
                 else:
-                    people.append(f'<span class="unresolved">{label}（待核验）</span>')
+                    people.append(label)
             lines.append(f"<li>{html.escape(block['grade'])}年级{metric}较低：" + ("、".join(people) or "暂无有效负责人") + "</li>")
         cards.append(f'<section class="section"><h2>🔥【{html.escape(context["channel"])}】{SECTIONS[section]}</h2>{picture}<ul>{"".join(lines)}</ul></section>')
     today = "仅过程数据" if context["scheduled_report_type_today"] == "process" else "过程＋转化数据"

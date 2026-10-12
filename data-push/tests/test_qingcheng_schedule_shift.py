@@ -49,9 +49,12 @@ def test_sec_clock_remains_at_the_reviewed_hours():
         sec._slot(datetime(2026, 10, 8, 13, 50, tzinfo=ZONE), cfg)
 
 
-@pytest.mark.parametrize('audience,expected_count', [('standard', 9), ('dept', 4)])
+@pytest.mark.parametrize('audience,expected_count', [('standard', 10), ('dept', 4)])
 def test_audience_preparation_and_send_failures_are_isolated(monkeypatch, tmp_path, audience, expected_count):
     sent, built, caches = [], [], []
+    batch = conversion._batch()
+    next(c for c in batch['channels'] if c['id'] == 'internal_books')['scheduled'] = True
+    monkeypatch.setattr(conversion, '_batch', lambda: batch)
     def fetch(channel, period, output):
         return {'rev': 1, 'snapshot': ['20261009', '12']}
     def refresh(channel, period, output, *, cache_dir):
@@ -79,6 +82,10 @@ def test_audience_preparation_and_send_failures_are_isolated(monkeypatch, tmp_pa
     monkeypatch.setattr(conversion, 'probe_revision', lambda *args: 1)
     monkeypatch.setattr(conversion, '_probe_conversion_rev', lambda *args: 2)
     monkeypatch.setattr(conversion, '_send_group', send)
+    def internal_prepare(report_type, period, output):
+        return build(None, None, output, None, channels=('internal_books',), period=period, levels=('consultant',))
+    monkeypatch.setattr(conversion.internal_books, 'prepare', internal_prepare)
+    monkeypatch.setattr(conversion.internal_books, 'deliver', lambda *args: send('internal_books', 'consultant'))
     now = datetime(2026, 10, 9, 13, 50 if audience == 'dept' else 52, tzinfo=ZONE)
     result = conversion.run(confirm_send=True, now=now, output=tmp_path / audience, audience=audience)
     assert len(built) == expected_count

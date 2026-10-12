@@ -20,6 +20,7 @@ from .channels import self_incubated_koc_5 as bp
 from .delivery_validation import validate_weekend_dual_context
 from .weekend_dual import REPORT_TYPE as WEEKEND_DUAL_REPORT_TYPE
 from .workflow import source_channel_count
+from .reminder_fallback import validate_coverage
 
 
 def _clock():
@@ -85,10 +86,9 @@ def validate_context(context, evidence, cfg=None, slot=None, *, enforce_calendar
         report_module = report_module_for(definition) if definition is not None else None
         expected_target = getattr(report_module, "MENTION_TARGET",
                                    "supervisor" if context["report_profile"] in SUPERVISOR_PROFILES else "manager")
-        if context["mention_target"] != expected_target or any(info.get(k) for k in ("unresolved", "ambiguous", "lookup_error", "nonmembers")):
-            raise ValueError("all lowest reminder accounts must be resolved and in the group")
-        if set(info["resolved"]) != set(context["grade_report"]["reminder_names"]):
-            raise ValueError("reminder account set mismatch")
+        if context["mention_target"] != expected_target:
+            raise ValueError("reminder target does not match the report grain")
+        validate_coverage(context["grade_report"]["reminder_names"], info, context["markdown"])
         if gr.mention_ids(context["markdown"]) != set(info["resolved"].values()):
             raise ValueError("unexpected or missing manager mentions")
         report_sections = gr.sections(context["report_type"])

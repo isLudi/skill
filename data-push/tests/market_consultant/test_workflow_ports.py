@@ -57,14 +57,13 @@ class WorkflowPortTests(unittest.TestCase):
             prepare_report(args, self.definition, ports=self.ports)
         self.ports.resolve_source.assert_not_called()
 
-    def test_member_failure_degrades_to_names_only_after_bot_invite(self):
+    def test_member_failure_degrades_to_names_only_without_invite(self):
         args = report_arguments(self.definition, catalog.select_targets(self.definition)[0])
         self.ports.missing_members.side_effect = [["负责人A"], ["负责人A"]]
         context = prepare_report(args, self.definition, ports=self.ports)
-        # 2026-10-04 policy: the bot invites the absent member once; when they are
-        # still absent, the push proceeds with a plain-name mention, never a block.
-        self.ports.invite_members.assert_called_once()
-        self.assertEqual(self.ports.missing_members.call_count, 2)
+        # Missing people remain plain names; no automatic invitation is sent.
+        self.ports.invite_members.assert_not_called()
+        self.assertEqual(self.ports.missing_members.call_count, 1)
         self.assertEqual(context["mention_info"]["resolved"], {})
         self.assertEqual(context["mention_info"]["text_fallback_names"], ["负责人A"])
 

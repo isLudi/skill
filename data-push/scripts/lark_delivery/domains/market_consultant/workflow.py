@@ -19,6 +19,7 @@ from ...core.contracts import ReportPorts
 from . import grade_report, supervisor_report
 from .style import BAR_FIELDS, _result_cell_fill
 from .adapter import policy_for, report_module_for
+from .reminder_fallback import normalize as normalize_reminders
 from .weekend_dual import REPORT_TYPE as WEEKEND_DUAL_REPORT_TYPE, compose_markdown, merge_mention_info
 
 
@@ -230,38 +231,20 @@ def prepare_report(args: argparse.Namespace, definition, *, ports: ReportPorts |
         try:
             payload = ports.search_users(queries, args)
             mention_info = candidate_resolver(report["reminder_names"], payload)
-            mention_info["nonmembers"] = ports.missing_members(
-                chat_id, mention_info["resolved"], verification_identity, args.timeout
-            )
         except Exception as exc:
             mention_info["lookup_error"] = str(exc)
             mention_info["unresolved"] = [name for name in report["reminder_names"] if name not in mention_info["resolved"]]
-    # 2026-10-04 user-directed policy: a scheduled push must never block on person
-    # resolution, and it must not depend on any specific human identity. Resolved
-    # @-targets that are absent from the group are invited once by the sender bot;
-    # anyone still absent afterwards, unresolved, ambiguous, or hit by a lookup
-    # error degrades to a plain-name mention (no @), and the push proceeds.
-    if not disabled and report["reminder_names"]:
-        mention_info.setdefault("invite_attempts", [])
-        absent = [name for name in mention_info.get("nonmembers", []) if name in mention_info["resolved"]]
-        if absent:
-            attempt = ports.invite_members(
-                chat_id, [mention_info["resolved"][name] for name in absent], "bot", args.timeout)
-            mention_info["invite_attempts"].append(attempt)
+        membership_error = ""
+        if mention_info["resolved"]:
             try:
                 mention_info["nonmembers"] = ports.missing_members(
                     chat_id, mention_info["resolved"], verification_identity, args.timeout)
-            except Exception as exc:  # noqa: BLE001 - a re-check failure degrades to text
-                mention_info["invite_attempts"].append({"invited": [], "pending": [], "error": str(exc)[:300]})
-        text_fallback = set(mention_info.pop("unresolved", [])) | set(mention_info.pop("nonmembers", []))
-        for name in mention_info.pop("ambiguous", {}):
-            text_fallback.add(name)
-        if mention_info.pop("lookup_error", ""):
-            text_fallback.update(name for name in report["reminder_names"] if name not in mention_info["resolved"])
-        for name in text_fallback:
-            # Removing the open_id downgrades that person to a plain-name mention.
-            mention_info["resolved"].pop(name, None)
-        mention_info["text_fallback_names"] = sorted(text_fallback)
+            except Exception as exc:
+                membership_error = type(exc).__name__
+        # Person lookup and membership are optional enhancements to a reminder.
+        # Preserve every selected name; unverified people receive plain text.
+        mention_info = normalize_reminders(report["reminder_names"], mention_info,
+                                           membership_error=membership_error)
     paths = {"process": None, "result": None}
     geometry = {}
     if args.with_image and not skip_delivery:
@@ -339,6 +322,8 @@ def prepare_weekend_dual_report(args: argparse.Namespace, definition) -> dict[st
     report_profile = result_context["report_profile"]
     is_supervisor = bool(result_context.get("supervisor_report"))
     dual_sections = {"result": result_context, "process": process_context}
+    from .reminder_fallback import harmonize_contexts
+    harmonize_contexts(result_context, process_context)
     mention_info = merge_mention_info(result_context["mention_info"], process_context["mention_info"])
     skip_delivery = result_context.get("skip_delivery", False) and process_context.get("skip_delivery", False)
     raw_audit = dict(result_context["raw_read_audit"])

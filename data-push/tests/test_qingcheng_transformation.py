@@ -76,6 +76,9 @@ def test_conversion_metric_label_is_comprehensive_effect_everywhere():
 @pytest.mark.parametrize("period_date", ["20261009", "20261016"])
 def test_batch_passes_its_requested_period_to_every_channel(monkeypatch, tmp_path, period_date):
     calls = []
+    batch = MODULE._batch()
+    next(c for c in batch["channels"] if c["id"] == "internal_books")["scheduled"] = True
+    monkeypatch.setattr(MODULE, "_batch", lambda: batch)
 
     def fetch(channel, period, output):
         return {"rev": 1, "snapshot": ["20261008", "12"]}
@@ -93,6 +96,10 @@ def test_batch_passes_its_requested_period_to_every_channel(monkeypatch, tmp_pat
     monkeypatch.setattr(MODULE, "fetch", fetch)
     monkeypatch.setattr(MODULE, "export_conversion", export)
     monkeypatch.setattr(MODULE, "build", build)
+    def internal_prepare(report_type, period, output):
+        calls.append((("internal_books",), period, ("consultant",)))
+        return {"period":period,"process_snapshot":"20261008 12:00","conversion_snapshot":"20261008 12:00"}
+    monkeypatch.setattr(MODULE.internal_books, "prepare", internal_prepare)
     monkeypatch.setattr(MODULE, "_index", lambda *args: None)
     result = MODULE.run(period_date=period_date, output=tmp_path)
     assert calls == [((channel,), period_date + "期", (level,))

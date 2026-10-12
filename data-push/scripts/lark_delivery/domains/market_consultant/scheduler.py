@@ -27,6 +27,7 @@ from .delivery_gate import reverify_unverified_delivery
 from .delivery_validation import receipt_readback
 from .delivery_ledger import claim, connect_ledger, delivery_key, record_outcome
 from .reporting import assert_current_revision, report_args, validate_context
+from .reminder_fallback import review_before_send
 from .weekend_dual import REPORT_TYPE as WEEKEND_DUAL_REPORT_TYPE
 from .upstream import parse_complete_log, parse_volume_log, read_json, require_shared_periods, validate_history, verify_bot
 from .window import TZ, active_slot, next_check, report_for_slot
@@ -304,10 +305,8 @@ def _deliver_verified(context, cfg, slot, db, evidence, *, key, time_guard):
     time_guard()
     if context.get("report_kind") == "volume":
         vr.validate_scheduled_context(context, cfg)
-    elif cfg.get("report_profile") == bp.PROFILE or context.get("report_profile") == bp.PROFILE:
-        validate_context(context, evidence, cfg, slot)
-        if gp.mention_nonmembers(cfg["chat_id"], context["mention_info"]["resolved"], "bot", 60):
-            raise ValueError("reminded manager left the group before sending")
+    elif context.get("report_profile") in {bp.PROFILE, *SUPERVISOR_PROFILES}:
+        review_before_send(context, evidence, cfg, slot, validate_context, gp.mention_nonmembers, emit)
     assert_current_revision(context, cfg)
     markdown = context["markdown"]
     keys = {}
@@ -330,7 +329,9 @@ def _deliver_verified(context, cfg, slot, db, evidence, *, key, time_guard):
     detail = {"upstream": evidence, "period": context["period"], "report_kind": context.get("report_kind", "regular"),
               "raw_count": context["raw_count"], "rev": context["raw_read_audit"]["rev"], "image_keys": keys,
               # Full read audit: carries the reviewed duplicate-lead_id merge evidence.
-              "raw_read_audit": context["raw_read_audit"]}
+              "raw_read_audit": context["raw_read_audit"],
+              "reminders": {name: context.get("mention_info", {}).get(name)
+                            for name in ("resolved", "text_fallback_names", "fallback_reasons")}}
     if context.get("report_kind") == "volume":
         detail.update(vr.delivery_detail(context))
     try:

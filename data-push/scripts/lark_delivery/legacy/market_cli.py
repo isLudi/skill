@@ -71,7 +71,7 @@ def add_common_arguments(parser: argparse.ArgumentParser, *, services) -> None:
     parser.add_argument("--no-mentions", action="store_true", default=defaults.get("mention_target", "none") == "none",
                         help="仅供无@预览或旧模式使用；固定群正式播报不允许禁用已要求的@")
     parser.add_argument("--strict-mentions", action="store_true", help="预览时也要求所有姓名都能精确解析")
-    parser.add_argument("--allow-unresolved-mentions", action="store_true", help="发送时允许无法精确解析的姓名以纯文本发送")
+    parser.add_argument("--allow-unresolved-mentions", action="store_true", help="兼容参数；无法核验的提醒人始终使用姓名文字兜底")
     parser.add_argument("--no-image", dest="with_image", action="store_false", help="不生成汇总表图片")
     parser.set_defaults(with_image=True)
     parser.add_argument("--output-image", default=os.environ.get("OUTPUT_IMAGE", ""), help="图片输出路径；默认写入状态目录")

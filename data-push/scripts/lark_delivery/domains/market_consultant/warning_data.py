@@ -164,36 +164,47 @@ def metrics(values):
             'unit': ratio(values['净收款'], values['退后线索']), 'refund': ratio(values['退费'], values['收款'])}
 
 
-def aggregate(definition, target, rows, rev, evidence, kind):
+def aggregate(definition, target, rows, rev, evidence, kind, *, channel=None):
     periods = sorted(evidence['audit']['periods'])
     prior, period = periods
-    selected = [r for r in rows if r['渠道'] == definition['channel'] and r['年级'] in definition['report']['included_grades']]
+    channel = channel or definition['channel']
+    if channel not in definition['channels']:
+        raise ValueError('Unregistered warning channel filter')
+    selected = [r for r in rows if r['渠道'] == channel and r['年级'] in definition['report']['included_grades']]
     current = [r for r in selected if r['期次'] == period]
     if not current or sum(Decimal(str(r['退后线索'])) for r in current) <= 0:
         return None
     totals = {p: {f: Decimal(0) for f in FIELDS} for p in periods}
     groups = defaultdict(lambda: {f: Decimal(0) for f in FIELDS})
     counts = Counter()
+    historical_supervisor_errors = 0
     for row in selected:
         p, supervisor = row['期次'], row['主管']
-        if not supervisor or row['主管匹配来源'] == '未匹配':
-            raise ValueError('Channel historical supervisor unresolved')
         expected_finance = (datetime.strptime(row['分区日期'], '%Y%m%d') - timedelta(days=1)).strftime('%Y%m%d')
-        if row['主管匹配来源'] not in {'期次架构', '财务历史快照:' + expected_finance}:
-            raise ValueError('Channel historical supervisor source invalid')
-        counts[p, supervisor] += 1
+        organization_valid = bool(supervisor) and row['主管匹配来源'] in {'期次架构', '财务历史快照:' + expected_finance}
+        # Keep all historical amounts in the team total even when the history
+        # cannot be attributed to a supervisor. Never guess current identities.
         for field in FIELDS:
             value = Decimal(str(row[field]))
             totals[p][field] += value
+        if not organization_valid:
+            if p == period:
+                raise ValueError('Current channel supervisor unresolved or source invalid')
+            historical_supervisor_errors += 1
+            continue
+        counts[p, supervisor] += 1
+        for field in FIELDS:
+            value = Decimal(str(row[field]))
             groups[p, supervisor][field] += value
     team = {'supervisor': '团队整体', 'now_sums': totals[period], 'prior_sums': totals[prior],
             'now': metrics(totals[period]), 'prior': metrics(totals[prior])}
     keys = ('first_call', 'five_min', 'frequency') if kind == 'process' else ('unit', 'refund')
-    if any(team['prior'][k] is None or team['now'][k] is None for k in keys):
-        raise ValueError('Channel team comparison denominator unavailable')
+    prior_available = totals[prior]['退后线索'] > 0 and (kind == 'process' or totals[prior]['收款'] > 0)
     result_rows = []
     for supervisor in sorted({s for p, s in groups if p == period}):
         before = groups.get((prior, supervisor), {f: Decimal(0) for f in FIELDS})
+        if historical_supervisor_errors:
+            before = {f: Decimal(0) for f in FIELDS}
         row = {'supervisor': supervisor, 'now_sums': groups[period, supervisor], 'prior_sums': before,
                'now_rows': counts[period, supervisor], 'prior_rows': counts[prior, supervisor],
                'now': metrics(groups[period, supervisor]), 'prior': metrics(before)}
@@ -208,8 +219,13 @@ def aggregate(definition, target, rows, rev, evidence, kind):
     result_rows.sort(key=lambda r: (r['now'][sort_key] is None,
                      -r['now'][sort_key] if r['now'][sort_key] is not None else Decimal(0), r['supervisor']))
     return {'source_table_id': definition['source']['raw_table_id'], 'source_rev': rev,
-            'channel': definition['channel'], 'target_chat_id': target['chat_id'],
+            'channel': channel, 'target_chat_id': target['chat_id'],
             'grades': definition['report']['included_grades'], 'period': period, 'previous_period': prior,
             'current_snapshot': evidence['current_snapshot'], 'prior_snapshot': evidence['prior_snapshot'],
             'team': team, 'rows': result_rows, 'selected_rows': len(selected), 'all_source_rows': len(rows),
-            'report_kind': kind, 'local_only': True, 'message_sent': False}
+            'report_kind': kind, 'local_only': True, 'message_sent': False,
+            'channel_prior_comparison_available': prior_available,
+            'supervisor_history_complete': historical_supervisor_errors == 0,
+            'historical_supervisor_error_rows': historical_supervisor_errors,
+            'display_current_only': not prior_available or historical_supervisor_errors > 0,
+            'missing_comparison_policy': 'blank'}

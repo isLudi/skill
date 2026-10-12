@@ -181,9 +181,8 @@ def build_report(records: Sequence[Mapping[str, Any]], counters: Mapping[str, st
             reminder_supervisors[section].update(person["supervisor"] for person in ranked[:quota])
     reminded = set().union(*reminders.values())
     ambiguous = sorted(name for name in reminded if len(name_accounts[name]) > 1)
-    if ambiguous:
-        raise ValueError("提醒存在同名不同账号的顾问，需人工消歧：" + "、".join(ambiguous))
     return {"rows": rows, "totals": metrics(grand), "reminders": {k: sorted(v) for k, v in reminders.items()},
+            "ambiguous_reminder_names": ambiguous,
             "reminder_supervisors": {k: sorted(v) for k, v in reminder_supervisors.items()},
             "channels": sorted(channels), "consultant_count": len(consultants), "reminder_quotas": quotas}
 

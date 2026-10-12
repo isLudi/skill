@@ -17,6 +17,7 @@ import broadcast_policy as bp
 import grade_report as gr
 import group_push as gp
 from lark_delivery.domains.market_consultant import delivery_gate
+from lark_delivery.domains.market_consultant.reminder_fallback import normalize
 import scheduled_push as sp
 from .test_grade_report import leads, build
 
@@ -80,17 +81,24 @@ class ScheduledGradeTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "count"):
             sp.validate_context(context, evidence, self.cfg, self.slot)
 
-    def test_missing_or_extra_mentions_and_legacy_profile_are_blocked(self):
+    def test_invalid_mentions_blocked_but_personnel_anomalies_use_plain_names(self):
         for changes in ({"markdown": "no mentions"}, {"markdown": '<at user_id="all"></at>'},
                         {"report_profile": "standard"}, {"mention_target": "none"}, {"image_path": None},
                         {"report_type": "both"}):
             with self.subTest(changes=changes), self.assertRaises(ValueError):
                 sp.validate_context({**self.context(), **changes}, self.evidence(), self.cfg, self.slot)
-        for field, bad in (("unresolved", ["甲"]), ("nonmembers", ["甲"]), ("ambiguous", {"甲": ["ou_x"]}), ("lookup_error", "error")):
+        for field, bad in (("unresolved", ["负责人A"]), ("nonmembers", ["负责人A"]),
+                           ("ambiguous", {"负责人A": ["ou_x"]}), ("lookup_error", "error")):
             context = self.context()
             context["mention_info"][field] = bad
-            with self.assertRaises(ValueError):
-                sp.validate_context(context, self.evidence(), self.cfg, self.slot)
+            if field == "lookup_error":
+                context["mention_info"]["resolved"] = {}
+            context["mention_info"] = normalize(["负责人A"], context["mention_info"])
+            context["markdown"] = gr.build_markdown(context["grade_report"], context["period"], context["channel"],
+                                                     context["report_type"], context["mention_info"],
+                                                     {"process": "img_process_preview", "result": "img_result_preview"})
+            sp.validate_context(context, self.evidence(), self.cfg, self.slot)
+            self.assertEqual(context["mention_info"]["text_fallback_names"], ["负责人A"])
 
     def log_doc(self, directory, audit=None):
         u = self.cfg["upstream"]

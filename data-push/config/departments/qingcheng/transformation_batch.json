@@ -120,6 +120,15 @@
         "consultant": "recvwjX409k8f2"
       },
       "note": "本地化主管（已上线）→ 青橙-河南本地化项目，提醒不 @ 主管、按年级点名综合单效；顾问（草稿）→ 🍊青橙河南本地化伙伴。2026-10-01 用户确认预览后启用周常调度。"
+    },
+    {
+      "id": "internal_books",
+      "source_kind": "data_center",
+      "config": "internal_books.json",
+      "scheduled": true,
+      "operator_records": {
+        "consultant": "recvxsKQ9g0ITU"
+      }
     }
   ],
   "dept_schedule": {

@@ -20,10 +20,15 @@ def merge_mention_info(*infos):
     """Merge reminder resolution from the two independently prepared reports."""
     resolved, display_names, ambiguous, nonmembers = {}, {}, {}, set()
     unresolved, lookup_errors = set(), []
+    names, text_fallback, fallback_reasons = set(), set(), {}
+    conflicts = set()
     for info in infos:
+        names.update(info.get("names", ()))
+        text_fallback.update(info.get("text_fallback_names", ()))
+        fallback_reasons.update(info.get("fallback_reasons", {}))
         for name, open_id in info.get("resolved", {}).items():
             if name in resolved and resolved[name] != open_id:
-                raise ValueError("同名提醒对象解析到不同账号：" + name)
+                conflicts.add(name)
             resolved[name] = open_id
         display_names.update(info.get("display_names", {}))
         unresolved.update(info.get("unresolved", ()))
@@ -32,14 +37,21 @@ def merge_mention_info(*infos):
             ambiguous[name] = candidates
         if info.get("lookup_error"):
             lookup_errors.append(str(info["lookup_error"]))
+    for name in conflicts:
+        resolved.pop(name, None)
+        text_fallback.add(name)
+        fallback_reasons[name] = "identity_ambiguous"
     return {
-        "names": sorted(set(resolved) | unresolved | set(ambiguous)),
+        "names": sorted(names | set(resolved) | unresolved | set(ambiguous) | text_fallback),
         "resolved": resolved,
         "display_names": display_names,
         "unresolved": sorted(unresolved),
         "ambiguous": ambiguous,
         "lookup_error": "; ".join(dict.fromkeys(lookup_errors)),
         "nonmembers": sorted(nonmembers),
+        "text_fallback_names": sorted(text_fallback - set(resolved)),
+        "fallback_reasons": {name: fallback_reasons.get(name, "identity_not_resolved")
+                             for name in sorted(text_fallback - set(resolved))},
     }
 
 
@@ -98,12 +110,10 @@ def write_preview(context, directory):
             people = []
             for name in names:
                 label = html.escape(info.get("display_names", {}).get(name, name))
-                if name in info.get("nonmembers", ()):
-                    people.append(label + "（未入群，待核验）")
-                elif name in info.get("resolved", {}):
+                if name in info.get("resolved", {}):
                     people.append(f'<span class="mention">@{label}</span>')
                 else:
-                    people.append(label + "（待核验）")
+                    people.append(label)
             reminders.append(
                 f"<li>{html.escape(context['channel'])}渠道{html.escape(block['grade'])}年级 "
                 f"{metric}较低：{'、'.join(people)}</li>"

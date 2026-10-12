@@ -375,10 +375,8 @@ def write_preview(context, directory):
                 label = html.escape(info.get("display_names", {}).get(name, name))
                 if name in info["resolved"] and name not in nonmembers:
                     people.append(f'<span class="mention">@{label}</span>')
-                elif name in nonmembers:
-                    people.append(label + "（未入群，待核验）")
                 else:
-                    people.append(label + "（待核验）")
+                    people.append(label)
             reminders.append(f"<li>{html.escape(context['channel'])}渠道{html.escape(block['grade'])}年级 "
                              f"{metric}较低：{'、'.join(people)}</li>")
         cards.append(f'<section><h2>🔥 <strong>【{context["period"]}】{html.escape(context["channel"])}渠道{SECTIONS[section]}播报</strong></h2>'

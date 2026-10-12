@@ -16,7 +16,8 @@ from zoneinfo import ZoneInfo
 
 from fetch_qingcheng_process_source import fetch, probe_revision
 from lark_delivery.common import resend
-from lark_delivery.common.im import invite_members, upload_image
+from lark_delivery.common.im import upload_image, verify_sender_membership
+from lark_delivery.common.reminders import resolve_contacts
 from lark_delivery.common.readback import available as readback_available
 from lark_delivery.common.retry import retry_transport
 from lark_delivery.common.runtime import ensure_console_streams, run_lark
@@ -238,19 +239,22 @@ def _data(args: list[str], timeout: int = 90) -> dict:
 
 
 def _members(chat_id: str, sender_open_id: str) -> set[str]:
-    data = _data(["im", "+chat-members-list", "--chat-id", chat_id, "--member-types", "user,bot",
-                  "--member-id-type", "open_id", "--page-all", "--page-limit", "10",
-                  "--as", "bot", "--format", "json"])
-    users, bots = data.get("users", []), data.get("bots", [])
-    if (data.get("has_more") is not False or data.get("truncations")
-            or data.get("user_total") != len(users) or data.get("bot_total") != len(bots)):
-        raise ValueError("SEC group member list is incomplete")
-    ids = {item.get("member_id") for item in users}
-    if not all(ids) or len(ids) != len(users):
-        raise ValueError("SEC group member IDs are missing or duplicated")
-    if sender_open_id not in {item.get("member_id") for item in bots}:
-        raise ValueError("SEC sender bot is absent from the target group")
-    return ids
+    # Sender verification is independent of optional human reminder membership.
+    verify_sender_membership(chat_id, sender_open_id, 90)
+    try:
+        data = _data(["im", "+chat-members-list", "--chat-id", chat_id, "--member-types", "user",
+                      "--member-id-type", "open_id", "--page-all", "--page-limit", "10",
+                      "--as", "bot", "--format", "json"])
+        users = data.get("users", [])
+        ids = {item.get("member_id") for item in users}
+        if (data.get("has_more") is not False or data.get("truncations")
+                or data.get("user_total") != len(users) or len(ids) != len(users)
+                or any(not re.fullmatch(r"ou_[A-Za-z0-9]+", str(oid)) for oid in ids)):
+            raise ValueError("Human group membership is incomplete")
+        return ids
+    except Exception:
+        # No unverified native @ is emitted when the optional user lookup fails.
+        return set()
 
 
 def _person_key(person: dict) -> str:
@@ -259,83 +263,11 @@ def _person_key(person: dict) -> str:
 
 def _resolve(entry: dict, review: dict, member_ids: set[str], chat_id: str = "",
              sender_open_id: str = "") -> tuple[dict[str, str], dict[str, str], set[str]]:
-    """Resolve reminder people to native @ targets, with the 2026-10-04 fallback chain.
-
-    Every candidate is first resolved against the directory (unique active employee,
-    no group filter). A resolved account that is absent from the group is invited
-    once by the sender bot and re-checked; anyone still absent afterwards, or
-    unresolved/ambiguous in the directory, degrades to a plain-name mention. The
-    person set can no longer block a push.
-    """
-    people = list({_person_key(person): person for group in review["reminders"]
-                   for person in group["people"]}.values())
-    if not people or any(not person.get("name") for person in people):
-        raise ValueError("SEC reminder person set is empty or malformed")
-
-    def query_for(person: dict) -> str:
-        return (f"{person['account']}@gaotu.cn" if person.get("account")
-                else re.sub(r"\d+$", "", person["name"]))
-
-    queries = sorted({query_for(person) for person in people})
-    statuses, users = {}, []
-    for start in range(0, len(queries), 20):
-        contact = _data(["contact", "+search-user", "--queries", ",".join(queries[start:start + 20]),
-                         "--exclude-external-users", "--lang", "zh_cn", "--as", "user", "--format", "json"])
-        statuses.update({item["query"]: item for item in contact.get("queries", [])})
-        users.extend(contact.get("users", []))
-    resolved, display, text_only = {}, {}, set()
-    for person in people:
-        key, name, account = _person_key(person), person["name"], person.get("account")
-        query = query_for(person)
-        status = statuses.get(query, {})
-        if status.get("error") or status.get("has_more") is not False:
-            raise ValueError(f"Contact search is incomplete for {name}")
-        suffix = re.search(r"(\d+)$", name)
-        candidates = {}
-        for user in users:
-            if (user.get("matched_query") != query or user.get("is_activated") is not True
-                    or user.get("is_cross_tenant")):
-                continue
-            label = user.get("localized_name")
-            email = str(user.get("enterprise_email") or "")
-            if account:
-                if email.casefold() != query.casefold():
-                    continue
-            elif label not in {name, query} or (suffix and not email.split("@", 1)[0].endswith(suffix.group(1))):
-                continue
-            open_id = user.get("open_id")
-            if isinstance(open_id, str) and re.fullmatch(r"ou_[A-Za-z0-9]+", open_id):
-                candidates[open_id] = label
-        if len(candidates) > 1:
-            # Group membership may disambiguate same-name employees: if exactly one
-            # candidate is in the group, that is the precise @ target.
-            in_group = {open_id: label for open_id, label in candidates.items() if open_id in member_ids}
-            if len(in_group) == 1:
-                candidates = in_group
-        if len(candidates) == 1:
-            resolved[key], display[key] = next(iter(candidates.items()))
-        else:
-            # Unresolved or ambiguous in the directory: plain-name fallback, never a block.
-            text_only.add(key)
-    if len(set(resolved.values())) != len(resolved):
-        raise ValueError("Two SEC reminder identities point to one Feishu account")
-
-    absent = {key: open_id for key, open_id in resolved.items() if open_id not in member_ids}
-    if absent and chat_id and sender_open_id:
-        invite = invite_members(chat_id, list(absent.values()), "bot", 90)
-        review.setdefault("invite_attempts", []).append(invite)
-        try:
-            member_ids = _members(chat_id, sender_open_id)
-        except Exception as exc:  # noqa: BLE001 - a re-check failure degrades to text
-            review.setdefault("invite_attempts", []).append(
-                {"invited": [], "pending": [], "error": str(exc)[:300]})
-        for key, open_id in list(absent.items()):
-            if open_id not in member_ids:
-                # Still absent after the bot invitation: plain-name fallback.
-                text_only.add(key)
-                resolved.pop(key, None)
-                display.pop(key, None)
-    return resolved, display, text_only
+    """Every selected person is either a verified native @ or plain name."""
+    people = [person for group in review["reminders"] for person in group["people"]]
+    resolved, display, fallback = resolve_contacts(people, _data, account_keys=True, member_ids=member_ids)
+    review["text_fallback_reasons"] = fallback
+    return resolved, display, set(fallback)
 
 
 def _render(review: dict, resolved: dict[str, str], display: dict[str, str], text_only: set[str], image_key: str) -> str:
@@ -450,6 +382,7 @@ def _deliver(entry: dict, review: dict, manifest: dict, cfg: dict, output: Path,
     receipt = {"status": "send_attempt_started", "report_id": entry["id"], "chat_id": entry["chat_id"],
                "period": review["period"], "slot": slot.isoformat(), "source_rev": manifest["rev"],
                "idempotency_key": key, "mention_ids": sorted(resolved.values()),
+               "text_fallback_reasons": review.get("text_fallback_reasons", {}),
                "text_only_names": sorted(person["name"] for group in review["reminders"]
                                          for person in group["people"] if _person_key(person) in text_only),
                "image_sha256": hashlib.sha256(image.read_bytes()).hexdigest(),

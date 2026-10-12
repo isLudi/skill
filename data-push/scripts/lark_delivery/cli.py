@@ -57,6 +57,8 @@ def main(argv=None, *, bound_channel=None):
         return 0
     if args.command == "preview-order" and (args.report_type != "auto" or args.period or args.preview_allow_mention_gaps):
         parser.error("Ordered preview uses the current business calendar and read-only names")
+    if args.command in {"preflight", "run"} and hasattr(adapter, "schedule_batch"):
+        return adapter.schedule_batch(definition, targets, preflight=args.command == "preflight")
 
     def operation(target):
         if args.command in {"preflight-now", "send-now"}:
@@ -80,7 +82,8 @@ def main(argv=None, *, bound_channel=None):
                 raise ValueError("This channel adapter has no ordered preview")
             print(json.dumps(adapter.preview_order(definition, target, state), ensure_ascii=False, indent=2))
             return 0
-        channels = definition.get("channels", [definition["channel"]])
+        channels = (adapter.channels_for_target(definition, target) if hasattr(adapter, "channels_for_target")
+                    else definition.get("channels", [definition["channel"]]))
         previews = []
         for index, channel in enumerate(channels, start=1):
             channel_state = state if len(channels) == 1 else state / f"channel-{index}"

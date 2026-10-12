@@ -1,5 +1,4 @@
-CASE
--- 20261002 Bitable rule order; historical 进校私域合作 exclusion guards retained.
+case
 when get_customer_way_name in ('平台自播') and flow_pool_name in ('赢战广东中考','高途专版图书','状元帮教辅','高途专版视频书','本地化专版图书') then '广东图书'
    
 when get_customer_way_name in ('平台自播') and flow_pool_name in ('途铭文化专版图书','途铭文化','博慧星辰文化图书','启迪蔚来','智慧航迹图书','高途浙江初中','高途浙江高中','高途浙江新高一','浙江专版图书教辅') then '浙江图书'
@@ -32,6 +31,8 @@ when sku_id_name like '%江苏%' and third_department_name = '直播部'  then '
 
 when third_department_name like '%锋途%' and channel_name_2 = '抖音' then '锋途KOC'
 
+when third_department_name='线上商务部' and flow_pool_name like '%图书订单%' then '图书解密'
+
 when put_plan_name like '%小红书打粉%' then 'EM-小红书合作'
 
 when third_department_name in ('投放部','线上商务部','小红书攻坚组') and channel_name_2 ='小红书' then '小红书-闯闯组'
@@ -42,7 +43,9 @@ when page_id_name like '%0元领课%'  and third_department_name ='投放部'  t
 
 when page_id_name like '%周帅0元腾讯%'  and third_department_name ='投放部'  then '信息流0转低'
 
-when sku_id_name like '%数理系统%' and third_department_name in ('快乐成长组','直播部') then '物理系统'
+when page_id_name like '%信息流下引%'  and third_department_name ='私域运营部'  then '信息流0转低'
+
+when sku_id_name like '%数理系统%' and third_department_name in ('快乐成长组','直播部','市场效能部') then '物理系统'
 
 when trace_type_name like '%转介绍%' then '转介绍'
 
@@ -62,7 +65,7 @@ when sku_id_name like '%2000题%' and third_department_name='图书营销部' th
 
 when sku_id_name like '%五年高考%' and third_department_name='图书营销部' then '西安直播五年真题'
 
-when rule_name like '%北京图书%' and third_department_name='图书营销部' then '西安直播北京'
+when (rule_name like '%北京图书%' or sku_id_name like '%北京专版%') and third_department_name='图书营销部' then '西安直播北京'
 
 when sku_id_name like '%安徽%' and third_department_name='图书营销部' then '西安直播安徽'
 
@@ -106,7 +109,11 @@ when (flow_pool_name like '%北大汤哥%' or flow_pool_name like '%海淀名师
 
 when  third_department_name like '%私域%' and rule_name like '%私域%' and rule_name like '%图书%' then '市场私域图书'
 
+when  third_department_name like '%私域%' and rule_name like '%公域自然流%' then '小红书自然流-绍孜组'
+
 when  third_department_name like '%私域%' and rule_name like '%品效%'  then '市场私域品效'
+
+when  third_department_name like '%私域%' and put_plan_name like '%会话%'  then '市场私域会话'
 
 when  third_department_name like '%私域%' and rule_name like '%公域学霸%'  then '市场私域公域组'
 
@@ -147,6 +154,8 @@ when third_department_name = '直播部' and (sku_id_name like '%朱博士99%' o
 when third_department_name = '直播部' and (sku_id_name like '%朱博士99%' or rule_name like '%朱汉祺99%' or rule_name like '%朱博士%' or flow_pool_name like '%朱博士%' or sku_id_name like '%朱博士%') and channel_name_2 = '百度' then '朱博士-百度'
 
 when third_department_name = '直播部' and (sku_id_name like '%抖音99%' and sku_id_name like '%朱博士%') and channel_name_2 = '抖音' then '朱博士-抖音99'
+
+when third_department_name = '直播部' and (sku_id_name like '%朱博士99%') and channel_name_2 = '抖音' then '朱博士-抖音99'
 
 when third_department_name = '直播部' and (sku_id_name like '%朱博士99%' or rule_name like '%朱汉祺99%' or rule_name like '%朱博士%' or flow_pool_name like '%朱博士%' or sku_id_name like '%朱博士%') and channel_name_2 = '抖音' then '朱博士-抖音199'
 
@@ -330,7 +339,7 @@ when third_department_name = '直播部' and sku_id_name like '%朱汉祺%' then
 
 when flow_pool_name like '%0转低转正%' or channel_name_2='产研测试' then '进校私域合作'
 
-when flow_pool_name like '%天津智慧双子%'        then '创新社群'
+when flow_pool_name like '%天津智慧双子%' then '创新社群'
 
 when third_department_name like '%城市定制%' then '点睛卷'        
 
@@ -379,5 +388,4 @@ when rule_name like '%训练营%' and rule_name like '%市场私域%' then '市�
 when channel_name_1= '信息流' and (put_plan_name like '%抖音私信%' or put_plan_name like '%初三0元%' or put_plan_name like '%高中0元%') then '信息流-抖音私信'
 
 when rule_name like '%途途私域%' or (rule_name like '%私域%' and first_department_name = 'TT') then '途途私域'
-
-ELSE '其他未知流量' END as qudao
+else '其他未知流量' end as qudao
