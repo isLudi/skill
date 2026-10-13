@@ -39,9 +39,13 @@ class BaseClient:
         self.directory.mkdir(parents=True, exist_ok=True)
         self.executable = resolve_cli(executable)
 
+    def argv(self, *options: str) -> list[str]:
+        profile = os.environ.get("OES_LARK_PROFILE")
+        return [self.executable, *(["--profile", profile] if profile else []), *options]
+
     def call(self, command: str, *options: str, payload: Any = None, payload_flag: str = "--json",
              confirm: bool = False) -> dict[str, Any]:
-        argv = [self.executable, "base", command, "--base-token", self.base_token, "--as", "user", *options]
+        argv = self.argv("base", command, "--base-token", self.base_token, "--as", "user", *options)
         temporary = None
         if payload is not None:
             temporary = self.directory / f"payload-{uuid.uuid4().hex}.json"
@@ -83,7 +87,7 @@ class BaseClient:
         if operation not in ("batch_create", "batch_delete") or not table_id.startswith("tbl"):
             raise UsageError("Unsupported native Base operation or target table ID.")
         path = f"/open-apis/bitable/v1/apps/{self.base_token}/tables/{table_id}/records/{operation}"
-        argv = [self.executable, "api", "POST", path, "--as", "user", "--format", "json", "--data", "-"]
+        argv = self.argv("api", "POST", path, "--as", "user", "--format", "json", "--data", "-")
         if params:
             argv.extend(["--params", json.dumps(params, ensure_ascii=True)])
         environment = {**os.environ, "LARKSUITE_CLI_NO_UPDATE_NOTIFIER": "1", "LARKSUITE_CLI_NO_SKILLS_NOTIFIER": "1"}

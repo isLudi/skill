@@ -5,13 +5,14 @@ from datetime import datetime
 import json
 import os
 from pathlib import Path
+import re
 import sys
 from zoneinfo import ZoneInfo
 
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("action", choices=("sync", "login", "mail-login", "check", "cleanup"))
+    parser.add_argument("action", choices=("sync", "login", "mail-login", "check", "health", "cleanup"))
     parser.add_argument("--settings", type=Path, required=True)
     parser.add_argument("--run-key", help="Omit to use the current Shanghai 30-minute scheduler occurrence.")
     args = parser.parse_args(argv)
@@ -23,6 +24,12 @@ def main(argv=None) -> int:
         return value if value.is_absolute() else root / value
     os.environ["OES_AUTOMATION_HOME"] = str(path("runtime_dir").resolve())
     os.environ["USQL_ENV_FILE"] = str(path("credentials_file").resolve())
+    if settings.get("lark_profile"):
+        if not re.fullmatch(r"[A-Za-z0-9_-]{1,80}", settings["lark_profile"]):
+            raise SystemExit("Invalid local Feishu profile name.")
+        os.environ["OES_LARK_PROFILE"] = settings["lark_profile"]
+    if (root / "data/browsers").is_dir():
+        os.environ["PLAYWRIGHT_BROWSERS_PATH"] = str(root / "data/browsers")
     # Imports occur only after per-machine runtime and credential paths have been configured.
     from oes_achievement.cli import main as oes_main
     retention = ["--cache-retention-days", str(settings.get("cache_retention_days", 7)),
@@ -35,7 +42,7 @@ def main(argv=None) -> int:
         return oes_main(["login", "--headed", *common])
     if args.action == "mail-login":
         return oes_main(["mail-login", *common])
-    if args.action == "check":
+    if args.action in ("check", "health"):
         from oes_achievement.base_client import BaseClient
         from oes_achievement.base_records import validate_schema, timestamp_ms
         from oes_achievement.base_sync import CONFIG_FIELDS
@@ -49,6 +56,11 @@ def main(argv=None) -> int:
             raise SystemExit("Check the selected enabled Base configuration and its target table.")
         timestamp_ms(selected[0].get("开始时间"))
         load_credentials(path("credentials_file"))
+        if args.action == "health":
+            for command in ("session-status", "mail-session-status"):
+                status = oes_main([command, *common])
+                if status:
+                    return status
         print(json.dumps({"status": "ok", "data_table_schema_verified": True, "base_configuration_verified": True,
                           "credentials_section_verified": True, "runtime_dir": str(path("runtime_dir")),
                           "python": sys.executable}, ensure_ascii=False))

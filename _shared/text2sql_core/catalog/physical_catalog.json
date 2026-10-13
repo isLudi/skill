@@ -19708,13 +19708,19 @@
       "id": "physical:one_dw.dwd_mkt_ai_assistant_asr_record_df",
       "name": "one_dw.dwd_mkt_ai_assistant_asr_record_df",
       "domains": [
-        "market_consultant"
+        "market_consultant",
+        "qingcheng"
       ],
       "source_docs": [
         {
           "domain": "market_consultant",
           "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_ai_assistant_asr_record_df.md",
           "sha256": "d5855fbcaed4fae9090817a68a069f5912531abe9bc699af614bf3ba889ec463"
+        },
+        {
+          "domain": "qingcheng",
+          "source_path": "qingcheng-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_ai_assistant_asr_record_df.md",
+          "sha256": "184904c3e48ca1e77c7cbedfa0bbced6c514f335b15788316bd11aa116e6e844"
         }
       ],
       "columns": [
@@ -19728,6 +19734,11 @@
               "domain": "market_consultant",
               "type": "string",
               "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_ai_assistant_asr_record_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_ai_assistant_asr_record_df.md"
             }
           ]
         },
@@ -19741,6 +19752,11 @@
               "domain": "market_consultant",
               "type": "string",
               "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_ai_assistant_asr_record_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_ai_assistant_asr_record_df.md"
             }
           ]
         },
@@ -19754,6 +19770,11 @@
               "domain": "market_consultant",
               "type": "string",
               "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_ai_assistant_asr_record_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_ai_assistant_asr_record_df.md"
             }
           ]
         },
@@ -19767,6 +19788,11 @@
               "domain": "market_consultant",
               "type": "string",
               "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_ai_assistant_asr_record_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_ai_assistant_asr_record_df.md"
             }
           ]
         },
@@ -19780,6 +19806,11 @@
               "domain": "market_consultant",
               "type": "bigint",
               "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_ai_assistant_asr_record_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "bigint",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_ai_assistant_asr_record_df.md"
             }
           ]
         },
@@ -19793,6 +19824,11 @@
               "domain": "market_consultant",
               "type": "string",
               "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_ai_assistant_asr_record_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_ai_assistant_asr_record_df.md"
             }
           ]
         },
@@ -19806,6 +19842,11 @@
               "domain": "market_consultant",
               "type": "string",
               "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_ai_assistant_asr_record_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_ai_assistant_asr_record_df.md"
             }
           ]
         },
@@ -19819,6 +19860,11 @@
               "domain": "market_consultant",
               "type": "int",
               "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_ai_assistant_asr_record_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "int",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_ai_assistant_asr_record_df.md"
             }
           ]
         },
@@ -19832,6 +19878,11 @@
               "domain": "market_consultant",
               "type": "int",
               "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_ai_assistant_asr_record_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "int",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_ai_assistant_asr_record_df.md"
             }
           ]
         },
@@ -19845,6 +19896,11 @@
               "domain": "market_consultant",
               "type": "int",
               "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_ai_assistant_asr_record_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "int",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_ai_assistant_asr_record_df.md"
             }
           ]
         },
@@ -19858,6 +19914,11 @@
               "domain": "market_consultant",
               "type": "string",
               "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_ai_assistant_asr_record_df.md"
+            },
+            {
+              "domain": "qingcheng",
+              "type": "string",
+              "source_path": "qingcheng-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_ai_assistant_asr_record_df.md"
             }
           ]
         }

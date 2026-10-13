@@ -12,7 +12,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/03_range_limit_rules.md",
-      "source_sha256": "8b26e61dca2273afce4dfdd1354af81d8e75462a8b839772d87a2fb6cd49bb16",
+      "source_sha256": "746b95d405e67887931bb938461ce98a40c8da56941241178510b3b037455822",
       "filters": [
         {
           "field": "performance_second_level_department_name",
@@ -41,7 +41,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/03_range_limit_rules.md",
-      "source_sha256": "8b26e61dca2273afce4dfdd1354af81d8e75462a8b839772d87a2fb6cd49bb16",
+      "source_sha256": "746b95d405e67887931bb938461ce98a40c8da56941241178510b3b037455822",
       "filters": [
         {
           "field": "section_assign_employee_first_level_department_name",
@@ -63,6 +63,8 @@
           "operator": "IN",
           "value": [
             "精品班学部",
+            "菁英班学部",
+            "市场部",
             "青橙项目部"
           ]
         }
@@ -73,6 +75,9 @@
       "partition_requirements": [
         "dt",
         "hour"
+      ],
+      "notes": [
+        "四类引流课期范围与已登记过程 SQL 2064 的正常线索路径一致；不能替代有效线索回补、SEC 来源限域及成交课程范围的独立审查。"
       ]
     },
     {
@@ -134,7 +139,7 @@
       ],
       "status": "pending_confirmation",
       "source_path": "knowledge/03_range_limit_rules.md",
-      "source_sha256": "8b26e61dca2273afce4dfdd1354af81d8e75462a8b839772d87a2fb6cd49bb16",
+      "source_sha256": "746b95d405e67887931bb938461ce98a40c8da56941241178510b3b037455822",
       "filters": [
         {
           "field": "<first_level_department_field>",

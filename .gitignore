@@ -24,6 +24,7 @@
 !*.yml
 !*.svg
 !usql-web-query-operator/assets/oes_credentials.env.example
+!usql-web-query-operator/assets/oes_install.cmd
 
 # Environment and secrets
 .env

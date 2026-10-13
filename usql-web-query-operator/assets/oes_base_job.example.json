@@ -8,6 +8,8 @@
   "output_dir": "data/runs",
   "browser_channel": "msedge",
   "lark_cli": "tools/lark-cli.exe",
+  "lark_profile": "",
+  "lark_app_id": "",
   "mail_wait_seconds": 600,
   "mail_poll_seconds": 3,
   "mail_scan_pages": 5,

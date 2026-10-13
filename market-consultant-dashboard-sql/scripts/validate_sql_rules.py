@@ -8,6 +8,10 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
+import sqlglot
+from sqlglot import exp
+from sqlglot.optimizer.scope import Scope, traverse_scope
+
 
 ROOT = Path(__file__).resolve().parents[1]
 TABLE_DIR = ROOT / "knowledge" / "tables"
@@ -121,66 +125,136 @@ def split_top_level_csv(fragment: str) -> list[str]:
     return parts
 
 
+def _own_columns(expression: exp.Expression | None, select: exp.Select) -> list[exp.Column]:
+    if expression is None:
+        return []
+    return [column for column in expression.find_all(exp.Column) if column.find_ancestor(exp.Select) is select]
+
+
+def _matches_column(column: exp.Column, alias: str, field: str, scope: Scope) -> bool:
+    if column.name.lower() != field.lower():
+        return False
+    if column.table:
+        return column.table.lower() == alias.lower()
+    # An unqualified field cannot prove a filter for both sides of a Join.
+    return len(scope.selected_sources) == 1
+
+
+def _normalized(expression: exp.Expression, scope: Scope) -> str:
+    value = expression.this if isinstance(expression, exp.Alias) else expression
+    value = value.copy()
+    for node in value.walk():
+        node.comments = []
+        if isinstance(node, exp.Column) and not node.table and len(scope.selected_sources) == 1:
+            node.set('table', exp.to_identifier(next(iter(scope.selected_sources))))
+    return value.sql(dialect='presto', normalize=True)
+
+
+def _regular_aggregate(node: exp.Expression, select: exp.Select) -> bool:
+    if not isinstance(node, exp.AggFunc) or node.find_ancestor(exp.Select) is not select:
+        return False
+    window = node.find_ancestor(exp.Window)
+    # SUM(x) OVER is a window operation; SUM(SUM(x)) OVER contains a regular inner SUM.
+    return window is None or window.this is not node
+
+
+def _group_issues(scope: Scope) -> list[str]:
+    select = scope.expression
+    if not isinstance(select, exp.Select):
+        return []
+    group = select.args.get('group')
+    aggregating = any(_regular_aggregate(node, select) for item in select.expressions for node in item.walk())
+    if group is None and not aggregating:
+        return []
+    aliases = {item.alias.lower(): item.this for item in select.expressions if isinstance(item, exp.Alias)}
+    grouped: set[str] = set()
+    for item in group.expressions if group else []:
+        if isinstance(item, exp.Literal) and item.is_int and 1 <= int(item.this) <= len(select.expressions):
+            item = select.expressions[int(item.this) - 1]
+        elif isinstance(item, exp.Column) and not item.table and item.name.lower() in aliases:
+            item = aliases[item.name.lower()]
+        grouped.add(_normalized(item, scope))
+
+    def covered(node: exp.Expression) -> bool:
+        if _normalized(node, scope) in grouped or _regular_aggregate(node, select):
+            return True
+        if isinstance(node, exp.Query):
+            return True  # The nested query is checked in its own scope.
+        if isinstance(node, exp.Column) or isinstance(node, exp.Star):
+            return False
+        return all(covered(child) for child in node.iter_expressions())
+
+    return [
+        f"group by 可能不完整，非聚合字段未分组：{item.sql(dialect='presto')}"
+        for item in select.expressions if not covered(item.this if isinstance(item, exp.Alias) else item)
+    ]
+
+
 def validate(sql: str, exploratory: bool = False) -> list[str]:
     knowledge = load_knowledge()
     cleaned = strip_comments(sql)
-    aliases, raw_tables, ctes = find_tables(sql)
     issues: list[str] = []
+    try:
+        statements = sqlglot.parse(sql, read='presto')
+        if len(statements) != 1 or statements[0] is None:
+            return ['SQL 必须是单条完整语句']
+        tree = statements[0]
+        scopes = list(traverse_scope(tree))
+    except (sqlglot.errors.ParseError, sqlglot.errors.OptimizeError) as error:
+        return [f'SQL AST 解析失败：{error}']
 
-    for table in raw_tables:
-        if table.lower() in ctes:
+    for scope in scopes:
+        select = scope.expression
+        if not isinstance(select, exp.Select):
             continue
-        if "." not in table:
-            issues.append(f"表名未使用完整库名前缀：{table}")
-
-    where = where_fragment(sql)
-    for alias, table_name in aliases.items():
-        tk = knowledge.get(table_name)
-        if tk is None:
-            issues.append(f"表未出现在知识库：{table_name}")
+        try:
+            physical = {alias: source for alias, (_, source) in scope.selected_sources.items() if isinstance(source, exp.Table)}
+        except sqlglot.errors.OptimizeError as error:
+            issues.append(f'SQL 查询块来源解析失败：{error}')
             continue
-        if "dt" in tk.partitions and not re.search(rf"\b{re.escape(alias)}\.dt\b|\bdt\b", where, flags=re.I):
-            issues.append(f"分区表遗漏 dt 条件：{tk.full_name} alias {alias}")
-        hour_filtered = re.search(rf"\b{re.escape(alias)}\.hour\b|\bhour\b", where, flags=re.I)
-        hour_explored = re.search(rf"\b{re.escape(alias)}\.hour\b", cleaned, flags=re.I) and re.search(r"\bgroup\s+by\b", cleaned, flags=re.I)
-        if tk.has_hour and not hour_filtered and not hour_explored:
-            issues.append(f"小时表建议补充 hour 条件：{tk.full_name} alias {alias}")
-        for field in tk.department_fields:
-            referenced = re.search(rf"\b{re.escape(alias)}\.{re.escape(field)}\b|\b{re.escape(field)}\b", cleaned, flags=re.I)
-            filtered = re.search(rf"\b{re.escape(alias)}\.{re.escape(field)}\b\s*(=|in|like)|\b{re.escape(field)}\b\s*(=|in|like)", where, flags=re.I)
-            if referenced and not filtered:
-                issues.append(f"涉及 department_name 字段但未过滤：{alias}.{field}")
+        where = select.args.get('where')
+        where_columns = _own_columns(where, select)
+        local_columns = _own_columns(select, select)
+        predicates = [
+            node for node in where.walk() if isinstance(node, (exp.EQ, exp.In, exp.Like, exp.ILike))
+            and node.find_ancestor(exp.Select) is select
+        ] if where else []
+        group = select.args.get('group')
+        group_columns = _own_columns(group, select)
+        for alias, table in physical.items():
+            full_name = '.'.join(part for part in [table.catalog, table.db, table.name] if part).lower()
+            if not table.db:
+                issues.append(f'表名未使用完整库名前缀：{full_name}')
+            tk = knowledge.get(full_name)
+            if tk is None:
+                issues.append(f'表未出现在知识库：{full_name}')
+                continue
+            if 'dt' in tk.partitions and not any(_matches_column(column, alias, 'dt', scope) for column in where_columns):
+                issues.append(f'分区表遗漏 dt 条件：{tk.full_name} alias {alias}')
+            hour_filtered = any(_matches_column(column, alias, 'hour', scope) for column in where_columns)
+            hour_explored = any(_matches_column(column, alias, 'hour', scope) for column in group_columns)
+            if tk.has_hour and not hour_filtered and not hour_explored:
+                issues.append(f'小时表建议补充 hour 条件：{tk.full_name} alias {alias}')
+            for field in sorted(tk.department_fields):
+                referenced = any(_matches_column(column, alias, field, scope) for column in local_columns)
+                filtered = any(
+                    _matches_column(column, alias, field, scope)
+                    for predicate in predicates for column in _own_columns(predicate, select)
+                )
+                if referenced and not filtered:
+                    issues.append(f'涉及 department_name 字段但未过滤：{alias}.{field}')
+            for column in local_columns:
+                if column.table.lower() == alias.lower() and not column.is_star and column.name not in tk.fields | {'rn'}:
+                    issues.append(f'字段未出现在知识库：{alias}.{column.name} -> {tk.full_name}')
+        issues.extend(_group_issues(scope))
 
-    if exploratory and not re.search(r"\blimit\s+\d+\b", cleaned, flags=re.I):
-        issues.append("探索型查询遗漏 limit")
-
-    for m in NUMERIC_STRING_RE.finditer(cleaned):
-        issues.append(f"疑似字符串数字混用：{m.group(0)}")
-
+    if exploratory and tree.args.get('limit') is None:
+        issues.append('探索型查询遗漏 limit')
+    for match in NUMERIC_STRING_RE.finditer(cleaned):
+        issues.append(f'疑似字符串数字混用：{match.group(0)}')
     if THREE_ARG_DATE_ADD_RE.search(cleaned):
         issues.append("平台会将 date_add 解析为 Hive 两参数函数；禁止使用 Presto 三参数 date_add('day', n, expr)，请改用 interval 日期偏移")
-
-    for alias, field in ALIAS_FIELD_RE.findall(cleaned):
-        table_name = aliases.get(alias.lower())
-        if not table_name:
-            continue
-        tk = knowledge.get(table_name)
-        if tk and field not in tk.fields and field not in {"rn"}:
-            issues.append(f"字段未出现在知识库：{alias}.{field} -> {tk.full_name}")
-
-    select_items = split_top_level_csv(select_fragment(sql))
-    group_text = group_fragment(sql)
-    if group_text:
-        group_items = {re.sub(r"\s+", " ", x.strip().lower()) for x in split_top_level_csv(group_text)}
-        for item in select_items:
-            normalized = re.sub(r"\s+as\s+[a-zA-Z_][\w]*$", "", item, flags=re.I).strip()
-            normalized = re.sub(r"\s+", " ", normalized.lower())
-            if AGG_FUNC_RE.search(item) or normalized in {"*", ""}:
-                continue
-            if normalized not in group_items:
-                issues.append(f"group by 可能不完整，非聚合字段未分组：{item}")
-
-    return issues
+    return list(dict.fromkeys(issues))
 
 
 def main() -> int:

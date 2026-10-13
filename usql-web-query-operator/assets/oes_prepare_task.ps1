@@ -13,7 +13,10 @@ if ($TaskName -match '[\\/"\x00-\x1f]' -or [string]::IsNullOrWhiteSpace($TaskNam
     throw 'TaskName must be a single nonempty task name without path separators or quotes.'
 }
 $oesBundle = (Resolve-Path -LiteralPath $BundleRoot).Path
-$oesPythonw = Join-Path $oesBundle '.venv/Scripts/pythonw.exe'
+$oesPythonw = Join-Path $oesBundle 'runtime/python/pythonw.exe'
+if (-not (Test-Path -LiteralPath $oesPythonw -PathType Leaf)) {
+    $oesPythonw = Join-Path $oesBundle '.venv/Scripts/pythonw.exe'
+}
 $oesLauncher = Join-Path $oesBundle 'skills/usql-web-query-operator/scripts/run_oes_base_silent.py'
 $oesSettings = Join-Path $oesBundle 'settings.json'
 $oesTemplate = Join-Path $oesBundle 'task-scheduler/task-template.xml'

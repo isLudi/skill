@@ -27,7 +27,7 @@
 - 原生 XLSX 可能错误声明 A1 范围；验证器重置维度后扫描实际行，避免把有数据的文件误读成空表。
 - CAS 图形验证码不自动识别或绕过。首次或失效时做一次可见登录，之后 session-status 和 export 静默复用状态。
 - Outlook 在状态过期时用同一凭据提交一次普通登录并保存状态；登录失败、CAPTCHA、MFA 或风控不自动重试或绕过。
-- 本能力支持 Base 配置表和订单覆盖，不自动注册或启用定时任务。每个目标表只使用一台执行电脑，本地文件锁不能保护跨电脑的同时运行。
+- Python 查询/覆盖命令不自动注册定时任务。便携包另提供未来执行电脑的一键安装向导，须部署者确认、完成授权及首次全字段同步验收才注册/启用任务；制作及测试不配置开发机。每个目标表只使用一台执行电脑，本地锁不能保护跨电脑的同时运行。
 
 ## 日期跨度与容量实测
 
@@ -150,17 +150,18 @@ Base 不提供整表原子替换。失败会尽可能恢复备份的旧数据值
 模板：[oes_base_job.example.json](../assets/oes_base_job.example.json)；空白凭据格式：[oes_credentials.env.example](../assets/oes_credentials.env.example)；说明：[oes_base_deployment.md](../assets/oes_base_deployment.md)，包含每台电脑的登录态位置、首次登录/恢复、换账号、缓存规则、taskschd.msc 导入和防休眠配置。
 
 ```powershell
-python scripts/build_oes_deployment.py --output-dir <仓库外新目录> --lark-cli <官方原生lark-cli.exe>
+python scripts/prepare_oes_runtime.py --output-dir <仓库外运行时目录>
+python scripts/build_oes_deployment.py --output-dir <仓库外新目录> --lark-cli <官方原生lark-cli.exe> --runtime-payload <运行时目录>
 python scripts/run_oes_base_job.py check --settings <本机settings.json>
 python scripts/run_oes_base_job.py sync --settings <本机settings.json>
 python scripts/run_oes_base_job.py cleanup --settings <本机settings.json>
 ```
 
-便携 ZIP 含源码、官方 CLI 和独立环境安装器，需要 Python 3.11+、Edge 和公司网络。相对路径按设置文件目录解析，`OES_AUTOMATION_HOME` 隔离本机登录态、回执和锁。不依赖 Codex、Anaconda 或 Node.js。每台电脑自行维护凭据和完成飞书用户授权，不复制开发电脑登录态或 Token。启动器默认用当前上海半小时时段生成稳定标识，但不自动启用计划任务。
+上述维护命令的 Python 从本机 `machine.local.json` 的 `executables.python` 解析。新便携 ZIP 包含官方 Python 3.13.16 嵌入版及固定依赖，全部 SHA-256 核验；同事无需 Python、Codex、Anaconda 或 Node.js。双击 `Install.cmd` 引导账号密码、专属 CLI profile、飞书本人授权、两站登录和首次完整验收，默认安装到本机 LOCALAPPDATA。Edge 不可用时联网安装私有 Chromium；公司应用权限和本人验证码不能自动批准。相对路径按设置文件目录解析，`OES_AUTOMATION_HOME` 隔离本机状态、回执和锁。`run_oes_base_job.py health` 是在线只读检查，不导出或替换 Base；业务启动器本身不启用任务。
 
-包内 `prepare-task.ps1` 使用模板生成当前 Windows 用户 SID、绝对路径及上海时区开始时间的 XML，默认禁用，不注册任务或修改电源。部署者在未来执行电脑通过 taskschd.msc 导入、核对并启用。模板每天重复、30 分钟间隔、`Hidden=true`、`InteractiveToken`、`IgnoreNew`；动作直接使用 `.venv/Scripts/pythonw.exe` 与 `run_oes_base_silent.py`。静默入口补齐 pythonw 的无控制台环境，只保存元信息启动日志，吞掉原始输出，保留真实退出码。启动日志在运行根目录 launcher-logs，跟随 log_retention_days 保留。
+`prepare-task.ps1` 仍只生成本机 SID、绝对路径及上海开始时间的禁用 XML，不注册或改电源；支持管理员在 taskschd.msc 手动导入。安装向导另负责目标确认后的注册/启用：先完成首次完整同步并核验 13 字段回执，再注册默认禁用任务；电源修改备份、UAC 及回读通过后才启用。任务每天重复、30 分钟、Hidden、InteractiveToken、IgnoreNew，使用 `runtime/python/pythonw.exe`，兼容旧 `.venv/Scripts/pythonw.exe`。任务所有权绑定安装 ID、SID、可执行文件、参数和工作目录；维护拒绝覆盖外部任务，正在执行/排队时不更新代码。静默入口只记录元信息与真实退出码，吞掉原始输出。
 
-执行电脑按部署说明把 AC/DC 自动睡眠设为“从不”、关闭系统休眠，笔记本合盖不采取操作；账号保持登录。Hidden 不表示窗口控制，静默由 pythonw、headless 浏览器和 CLI 的 CREATE_NO_WINDOW 实现。此交付只制作配置与说明，不在原开发机安装定时任务或更改电源。
+执行电脑保持登录；向导可经部署者勾选和 UAC 备份/设置 AC/DC 自动睡眠、休眠、合盖并提供恢复入口。独立设置漂移时停止恢复，不覆盖无关变更。Hidden 不控制窗口，静默由 pythonw、headless 浏览器与 CLI CREATE_NO_WINDOW 实现。部署日志去敏保留 30 日；更改账号/密码仅重建两站状态，保留失败回执。失败或不确定的首次同步维持原标识，已完成及清理后的索引允许以后重新验收。`VerifyPackage`、`PrepareOnly`、UI 构建测试、电源 Plan 和模拟调度测试不配置开发机；真实跨机器授权/UAC须在执行电脑完成。
 
 每个新运行先保留原 Excel；分批时另保留合并表，写 Base 后保留字段快照、旧表备份与远端回读。每次同步在目标文件锁内先清理本目标 `completed`、13 字段零差异且完成超过 7×24 小时的整个 `base-sync-*` 目录，失败/待恢复/未确认任务保留。以 `completed_at` 计算，不能按订单日期或文件修改时间删除。符号链接/junction、索引或回执身份变化会阻止该目录清理并记录日志。
 

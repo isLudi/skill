@@ -119,3 +119,12 @@
 - 期次团队目标来自 `temp_table.dingxi01_qing_team_g_qi`，按 `qici = qici` 对齐。
 - 月份来自 `temp_table.dingxi01_qing_qi_moth.moth`，不是直接从 `trade_time` 自然月截取；期次版保留该字段但最终目标 join 不依赖月份。
 - 个人转化不 join 目标表，而是以 `temp_table.dingxi01_qing_team_jg` 为主表，按 `employee_email_name + qici` 合并个人业绩。
+
+## 8. 青橙过程线索使用四类引流课期并保留青橙人力归属
+
+来源：`resources/raw_sql/data_center_qingcheng_2064.sql` 的 `normal_data_raw`，2026-10-09 经用户确认修正本地范围契约。
+
+- 截面分配人力同时限定 `section_assign_employee_first_level_department_name = 'H业务线'` 与 `section_assign_employee_second_level_department_name = '青橙项目部'`。
+- 期次映射同时限定 `period_mapping_first_level_department_name = 'H业务线'` 与 `period_mapping_second_level_department_name IN ('精品班学部','菁英班学部','市场部','青橙项目部')`。
+- 这四类是引流课期范围，不是正价成交课程白名单。青橙人员可销售其他部门的课程和产品，不能额外按成交课程二级部门等于青橙截断业绩。
+- 有效线索合并回补、虚拟架构、SEC 来源限域和转移排重仍须按对应过程口径分别审查；四类范围本身不证明这些环节已经完成。

@@ -47,7 +47,10 @@ def read_env_section(path: Path | None, section_name: str) -> dict[str, str]:
             continue
         if key in values:
             raise ValueError(f"Duplicate key in environment section {section_name!r}: {key}")
-        values[key] = value.strip().strip('"').strip("'")
+        value = value.strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in ('"', "'"):
+            value = value[1:-1]
+        values[key] = value
     return values
 
 
