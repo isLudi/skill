@@ -21,11 +21,59 @@ from read_dashboard.dashboard_write_adapters import (  # noqa: E402
     find_filter_formats,
     planned_operation_target,
     restore_planned_operation,
+    _write_dashboard_schema,
     verify_reversible_adapter,
 )
 
 
 class DashboardWriteAdapterTests(unittest.TestCase):
+    def test_dashboard_schema_write_double_reads_hash_and_preserves_description(self) -> None:
+        from unittest.mock import patch
+
+        schema = {"componentsTree": [{"id": "root"}]}
+        config = {
+            "dashboardName": "P4A test",
+            "dashboardHtmlJson": json.dumps(schema),
+            "description": "Keep this description",
+            "jsPackages": [], "htmlId": "html_1",
+        }
+        with patch(
+            "read_dashboard.dashboard_write_adapters.fetch_edit_dashboard_config",
+            side_effect=[config, config],
+        ) as read_config, patch(
+            "read_dashboard.dashboard_write_adapters._recorded_post",
+            return_value={"status": "success"},
+        ) as write:
+            result = _write_dashboard_schema(
+                None, "dashboard_1", "P4A test", schema, [],
+                expected_schema_sha256=canonical_sha256(schema),
+            )
+        self.assertEqual({"status": "success"}, result)
+        self.assertEqual(2, read_config.call_count)
+        payload = write.call_args.args[2]
+        self.assertEqual("Keep this description", payload["description"])
+        self.assertEqual(schema, json.loads(payload["dashboardHtmlJson"]))
+
+    def test_dashboard_schema_write_stops_on_double_read_drift(self) -> None:
+        from unittest.mock import patch
+
+        schema = {"componentsTree": [{"id": "root"}]}
+        changed = {"componentsTree": [{"id": "other"}]}
+        first = {"dashboardName": "P4A test", "dashboardHtmlJson": json.dumps(schema)}
+        second = {"dashboardName": "P4A test", "dashboardHtmlJson": json.dumps(changed)}
+        with patch(
+            "read_dashboard.dashboard_write_adapters.fetch_edit_dashboard_config",
+            side_effect=[first, second],
+        ), patch(
+            "read_dashboard.dashboard_write_adapters._recorded_post",
+        ) as write:
+            with self.assertRaisesRegex(UsageError, "double-read"):
+                _write_dashboard_schema(
+                    None, "dashboard_1", "P4A test", changed, [],
+                    expected_schema_sha256=canonical_sha256(schema),
+                )
+        write.assert_not_called()
+
     def test_unverified_pivot_adapter_is_not_production_registered(self) -> None:
         self.assertIn("replace_pivot_measure_fields", UNVERIFIED_LOCAL_ADAPTERS)
         self.assertNotIn("replace_pivot_measure_fields", ADAPTERS)

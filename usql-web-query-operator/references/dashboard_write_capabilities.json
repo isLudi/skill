@@ -337,17 +337,17 @@
       "evidence": [
         {
           "source_path": "scripts/read_dashboard/commands/rebind_pivot_fields_sandbox.py",
-          "source_sha256": "9d011fe448243dd973a24fbc6d99b58ca5d74545a9ccc3fa657b880841eefda5",
-          "note": "Sandbox-only command requires an explicit sandbox identity, confirmation, full backups, schema readback, and blocks production mode before browser launch."
+          "source_sha256": "1bdac2666273de28a3fd4aaf489ff9fb715e78e044f653fb7e9288b34d584d21",
+          "note": "Copy/rebind remains sandbox-only, requires an explicit sandbox identity and confirmation, and blocks the copy path in production mode before browser launch."
         },
         {
           "source_path": "scripts/read_dashboard/pivot_rebind.py",
-          "source_sha256": "f18540ab59b831357fc6d1a2ed053715589b9baf97976c34a57c9bec428aa4d1",
+          "source_sha256": "d2936f88859a8a87288fa42e898cc89556f97c8c0de9ba9a3caabf46988a5b18",
           "note": "Field-list rebuild helper plus optional public-filter-scoped value assertions for sandbox verification."
         },
         {
           "source_path": "tests/test_pivot_rebind.py",
-          "source_sha256": "a1b09f35ea72cf7a1d439e3f1fe06199ccaa59a24ce70fbedcd61bccf1f2d015",
+          "source_sha256": "a8cd0d5bff624c159e4d82567a2905f509b686cfcba6cf6ca4edf06172f5b451",
           "note": "Unit field rebuild, production-mode rejection, required-measure guards, component reference replacement, and filtered value tests."
         },
         {
@@ -358,9 +358,75 @@
       ],
       "limitations": [
         "Sandbox-only for copy-rebuilding existing pivot components using an already-correct source unit from the same dashboard/model.",
-        "Production pivot copy/rebind is blocked_unsupported and has no CLI entrypoint or Registry allowlist.",
+        "Production copy/rebind remains blocked; only the separately registered same-model draft sync may update an existing pivot while preserving its unit identity.",
         "Filtered value assertions may call value/unit with publicFilterList for a specified qici/period; unfiltered output remains diagnostic only.",
         "The sandbox recovery path restores dashboardHtml references to the pre-write schema; copied orphan units may remain unreferenced in the backend."
+      ]
+    },
+    {
+      "operation": "sync_existing_pivot_fields_from_same_model_source",
+      "phase": "draft",
+      "maturity": "verified",
+      "write_policy": "allowlisted",
+      "transaction_class": "compensating_restore",
+      "recovery_policy": "compensating_restore",
+      "readback_coverage": "full",
+      "risk": "critical",
+      "adapter": "read_dashboard.commands.rebind_pivot_fields_sandbox.cmd_rebind_pivot_fields_sandbox[production_draft]",
+      "write_endpoints": [
+        "model/customized/column/saveAndUpdate",
+        "config/update/unit",
+        "config/save/dashboardHtml"
+      ],
+      "readback_endpoints": [
+        "model/customized/column/list",
+        "model/subject/param/list",
+        "value/unit/consumer/detail",
+        "config/dashBoard"
+      ],
+      "evidence": [
+        {
+          "source_path": "references/pivot_field_sync_draft_evidence_20261016.json",
+          "source_sha256": "89f688d4757249a382d1bec0b13cc1c510a745d10f56c7131fa2152a1d494580",
+          "note": "Redacted production-draft receipt evidence binds source and target hashes, target-subject formula materialization, complete unit/profile readback, recovery, and unchanged published config."
+        },
+        {
+          "source_path": "references/pivot_style_sync_draft_evidence_20261016.json",
+          "source_sha256": "eca453dfe39f47117cb765d2e92bc467b6455d39e1be77ed48f8d12dba40634c",
+          "note": "Redacted production-draft evidence verifies pivot component colors and font sizes, all 36 measure column styles, stable fields and layout, and an unchanged published config."
+        },
+        {
+          "source_path": "scripts/read_dashboard/commands/rebind_pivot_fields_sandbox.py",
+          "source_sha256": "1bdac2666273de28a3fd4aaf489ff9fb715e78e044f653fb7e9288b34d584d21",
+          "note": "Draft-only adapter enforces production confirmation, profile, unit, and component-style hashes, same-model source, target-subject formulas, complete backups, exact full-schema/unit/profile readback, and compensating recovery."
+        },
+        {
+          "source_path": "scripts/read_dashboard/pivot_rebind.py",
+          "source_sha256": "d2936f88859a8a87288fa42e898cc89556f97c8c0de9ba9a3caabf46988a5b18",
+          "note": "Complete write projection retains formulas, number formats, visual styles, safe pivot format, field order, model identity, and stable unit identity."
+        },
+        {
+          "source_path": "tests/test_pivot_rebind.py",
+          "source_sha256": "a8cd0d5bff624c159e4d82567a2905f509b686cfcba6cf6ca4edf06172f5b451",
+          "note": "Draft-mode, copy-rejection, formula catalog/reference, full-schema readback, style-format projection, dimension rename, retry, drift, and recovery tests."
+        },
+        {
+          "source_path": "scripts/read_dashboard/dashboard_write_adapters.py",
+          "source_sha256": "d0cf9e557ffa51198ad99eaf53defd8e86cf98224c0e294595aa90b84fe2d4fe",
+          "note": "Dashboard schema writes bind the reviewed schema hash, double-read before mutation, preserve description metadata, and verify recovery against observed state."
+        },
+        {
+          "source_path": "tests/test_dashboard_write_adapters.py",
+          "source_sha256": "7363623d757d7e9566450665f276efdc2ca562013cdfcc555f2737422ab2de2b",
+          "note": "Schema writer tests cover expected-hash preflight, concurrent-drift refusal, description preservation, and guarded restoration."
+        }
+      ],
+      "limitations": [
+        "Only one existing stable pivot unit and one reviewed same-application-model source are supported per operation.",
+        "Custom formulas are created or reused only in the target pivot subject after exact source-formula and dependency checks.",
+        "Apply can synchronize the allowlisted pivot component visual style while preserving its stable unit identity; the source and target style projections require exact hashes and full draft readback.",
+        "Apply never publishes; publishing remains a separate authorization and command.",
+        "Created formula resources are retained and reported if a later failure occurs; automatic formula deletion is forbidden."
       ]
     },
     {
@@ -383,12 +449,12 @@
       "evidence": [
         {
           "source_path": "scripts/read_dashboard/dashboard_write_adapters.py",
-          "source_sha256": "04e3cef613c5fd5e067d07609c954c432405de8eebbb515ac5f394961b1e30fd",
+          "source_sha256": "d0cf9e557ffa51198ad99eaf53defd8e86cf98224c0e294595aa90b84fe2d4fe",
           "note": "Stable unit/group/field adapter with target-state readback and reversible recovery."
         },
         {
           "source_path": "tests/test_dashboard_write_adapters.py",
-          "source_sha256": "38e45888beeab2bc266e725113359ab30220a6c78762c4362049d68f97b9efc8",
+          "source_sha256": "7363623d757d7e9566450665f276efdc2ca562013cdfcc555f2737422ab2de2b",
           "note": "Drift, stable identity, unrelated-state preservation, and recovery tests."
         },
         {
@@ -439,12 +505,12 @@
       "evidence": [
         {
           "source_path": "scripts/read_dashboard/dashboard_write_adapters.py",
-          "source_sha256": "04e3cef613c5fd5e067d07609c954c432405de8eebbb515ac5f394961b1e30fd",
+          "source_sha256": "d0cf9e557ffa51198ad99eaf53defd8e86cf98224c0e294595aa90b84fe2d4fe",
           "note": "Stable unitFilterList field adapter changes only showName and restores the exact original label."
         },
         {
           "source_path": "tests/test_dashboard_write_adapters.py",
-          "source_sha256": "38e45888beeab2bc266e725113359ab30220a6c78762c4362049d68f97b9efc8",
+          "source_sha256": "7363623d757d7e9566450665f276efdc2ca562013cdfcc555f2737422ab2de2b",
           "note": "Stable identity, target-only mutation, readback, and recovery tests."
         },
         {
@@ -478,12 +544,12 @@
       "evidence": [
         {
           "source_path": "scripts/read_dashboard/dashboard_write_adapters.py",
-          "source_sha256": "04e3cef613c5fd5e067d07609c954c432405de8eebbb515ac5f394961b1e30fd",
+          "source_sha256": "d0cf9e557ffa51198ad99eaf53defd8e86cf98224c0e294595aa90b84fe2d4fe",
           "note": "Stable component adapter keeps schema componentName and data-unit unitName consistent with compensating recovery."
         },
         {
           "source_path": "tests/test_dashboard_write_adapters.py",
-          "source_sha256": "38e45888beeab2bc266e725113359ab30220a6c78762c4362049d68f97b9efc8",
+          "source_sha256": "7363623d757d7e9566450665f276efdc2ca562013cdfcc555f2737422ab2de2b",
           "note": "Schema plus unit-name projection, partial-write compensation, and exact recovery tests."
         },
         {
@@ -557,12 +623,12 @@
       "evidence": [
         {
           "source_path": "scripts/read_dashboard/dashboard_write_adapters.py",
-          "source_sha256": "04e3cef613c5fd5e067d07609c954c432405de8eebbb515ac5f394961b1e30fd",
+          "source_sha256": "d0cf9e557ffa51198ad99eaf53defd8e86cf98224c0e294595aa90b84fe2d4fe",
           "note": "Existing-formula adapter excludes volatile server metadata and restores exact expression."
         },
         {
           "source_path": "tests/test_dashboard_write_adapters.py",
-          "source_sha256": "38e45888beeab2bc266e725113359ab30220a6c78762c4362049d68f97b9efc8",
+          "source_sha256": "7363623d757d7e9566450665f276efdc2ca562013cdfcc555f2737422ab2de2b",
           "note": "Formula metadata normalization, drift, and recovery tests."
         },
         {
@@ -676,12 +742,12 @@
       "evidence": [
         {
           "source_path": "scripts/read_dashboard/dashboard_write_adapters.py",
-          "source_sha256": "04e3cef613c5fd5e067d07609c954c432405de8eebbb515ac5f394961b1e30fd",
+          "source_sha256": "d0cf9e557ffa51198ad99eaf53defd8e86cf98224c0e294595aa90b84fe2d4fe",
           "note": "Stable relation_id + filter_id + field_id adapter changes only unitName and restores the original title."
         },
         {
           "source_path": "tests/test_dashboard_write_adapters.py",
-          "source_sha256": "38e45888beeab2bc266e725113359ab30220a6c78762c4362049d68f97b9efc8",
+          "source_sha256": "7363623d757d7e9566450665f276efdc2ca562013cdfcc555f2737422ab2de2b",
           "note": "Stable triple, target-only title mutation, readback, and recovery tests."
         },
         {
@@ -732,12 +798,12 @@
       "evidence": [
         {
           "source_path": "scripts/read_dashboard/dashboard_write_adapters.py",
-          "source_sha256": "04e3cef613c5fd5e067d07609c954c432405de8eebbb515ac5f394961b1e30fd",
+          "source_sha256": "d0cf9e557ffa51198ad99eaf53defd8e86cf98224c0e294595aa90b84fe2d4fe",
           "note": "Stable component_id + slot_key + slot_id adapter changes only one existing tab label."
         },
         {
           "source_path": "tests/test_dashboard_write_adapters.py",
-          "source_sha256": "38e45888beeab2bc266e725113359ab30220a6c78762c4362049d68f97b9efc8",
+          "source_sha256": "7363623d757d7e9566450665f276efdc2ca562013cdfcc555f2737422ab2de2b",
           "note": "Stable slot identity, membership preservation, target-only mutation, and recovery tests."
         },
         {
@@ -769,12 +835,12 @@
       "evidence": [
         {
           "source_path": "scripts/read_dashboard/dashboard_write_adapters.py",
-          "source_sha256": "04e3cef613c5fd5e067d07609c954c432405de8eebbb515ac5f394961b1e30fd",
+          "source_sha256": "d0cf9e557ffa51198ad99eaf53defd8e86cf98224c0e294595aa90b84fe2d4fe",
           "note": "Stable node layout patch with full schema readback and target-only recovery."
         },
         {
           "source_path": "tests/test_dashboard_write_adapters.py",
-          "source_sha256": "38e45888beeab2bc266e725113359ab30220a6c78762c4362049d68f97b9efc8",
+          "source_sha256": "7363623d757d7e9566450665f276efdc2ca562013cdfcc555f2737422ab2de2b",
           "note": "Layout key allowlist, drift, unrelated-state preservation, and recovery tests."
         },
         {
@@ -806,12 +872,12 @@
       "evidence": [
         {
           "source_path": "scripts/read_dashboard/dashboard_write_adapters.py",
-          "source_sha256": "04e3cef613c5fd5e067d07609c954c432405de8eebbb515ac5f394961b1e30fd",
+          "source_sha256": "d0cf9e557ffa51198ad99eaf53defd8e86cf98224c0e294595aa90b84fe2d4fe",
           "note": "Root background-color adapter with theme identity readback and target-only recovery."
         },
         {
           "source_path": "tests/test_dashboard_write_adapters.py",
-          "source_sha256": "38e45888beeab2bc266e725113359ab30220a6c78762c4362049d68f97b9efc8",
+          "source_sha256": "7363623d757d7e9566450665f276efdc2ca562013cdfcc555f2737422ab2de2b",
           "note": "Theme identity, unrelated-state preservation, drift, and recovery tests."
         },
         {
@@ -1073,5 +1139,5 @@
       ]
     }
   ],
-  "registry_sha256": "0b0b024c21f8754d8a6ac4fa47c74651bbb9edecddcd95e6e4f1a414ac0e6511"
+  "registry_sha256": "08aacfd8220c48810fc1a9d2bb7212fa65d2a193d81728c270d82a3e1fe3b864"
 }

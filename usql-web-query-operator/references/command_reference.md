@@ -9,6 +9,7 @@
 |---|---|---|---|---|
 | `doctor` | Check local Playwright availability. | `local_read_only` | `none` | [sql_query_execution.md](sql_query_execution.md) |
 | `login` | Authenticate and save browser storage state. | `local_write_explicit` | `explicit_command` | [sql_query_execution.md](sql_query_execution.md) |
+| `prepare-sql` | Write a separate query copy without leading comments; does not execute or rebind QueryPlan. | `local_write_explicit` | `explicit_command` | [sql_query_execution.md](sql_query_execution.md) |
 | `run` | Run one SQL attempt in the web UI. | `remote_read_only` | `explicit_command` | [sql_query_execution.md](sql_query_execution.md) |
 | `run-with-fallback` | Run fallback_once: one primary SQL attempt and, only when eligible, one fallback attempt. | `remote_read_only` | `explicit_command` | [sql_query_execution.md](sql_query_execution.md) |
 | `upload-temp-table` | Upload a local CSV/Excel file as a SQL temporary table. | `remote_write_explicit` | `explicit_flags` | [manual_temp_table_registry.md](manual_temp_table_registry.md) |
@@ -53,6 +54,7 @@
 | `verify-sandbox-dashboard-build` | Verify immutable P4C evidence coverage offline; does not promote production capabilities. | `local_read_only` | `none` | [dashboard_build_workflow.md](dashboard_build_workflow.md) |
 | `verify-sandbox-write-adapters` | Run reversible P4B adapters and a forward/reverse transaction in an exact sandbox, requiring a full-profile recovery match. | `sandbox_write` | `sandbox_confirmation` | [dashboard_write_capabilities.md](dashboard_write_capabilities.md) |
 | `rebind-pivot-fields-sandbox` | Rebuild existing pivot field bindings in an explicit sandbox after full config backups; never publishes. | `sandbox_write` | `sandbox_confirmation` | [dashboard_change_workflow.md](dashboard_change_workflow.md) |
+| `sync-pivot-fields-draft` | Synchronize one existing pivot from a reviewed same-model source into a production draft; never publishes. | `draft_write` | `exact_manifest_hash_and_confirmation` | [dashboard_change_workflow.md](dashboard_change_workflow.md) |
 | `edit-public-filters` | Legacy ordinal dry-run inspection only; all write/publish flags are rejected. | `remote_read_only` | `explicit_command` | [platform_profile.md](platform_profile.md) |
 | `profile-folder` | Profile selected dashboards under a folder. | `remote_read_only` | `explicit_command` | [platform_profile.md](platform_profile.md) |
 | `profile-all` | Scan configured folders into runtime; Skill knowledge writes require two explicit maintenance flags. | `local_write_explicit` | `explicit_flags` | [platform_profile.md](platform_profile.md) |

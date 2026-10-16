@@ -107,7 +107,7 @@ def _submitted_engine(payload: Any) -> str | None:
             continue
         if "engine" in key or key in {"instancekey", "datasource", "datasourcekey"}:
             preferred.append(rendered[:200])
-        elif key == "mode":
+        elif key == "mode" or (key == "type" and len(path) == 1):
             fallback.append(rendered[:200])
     return (preferred or fallback or [None])[0]
 

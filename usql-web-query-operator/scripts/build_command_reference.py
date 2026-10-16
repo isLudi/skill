@@ -115,6 +115,15 @@ def validate_registry(registry: dict[str, Any]) -> dict[str, dict[str, str]]:
                 f"Command registry drift for {entrypoint}: missing={missing}, stale={stale}"
             )
         for item in entry["commands"]:
+            if item.get("authorization") == "exact_manifest_hash_and_confirmation":
+                parser = PARSER_BUILDERS[entrypoint]()
+                if not all(
+                    _option_required(parser, item["name"], option)
+                    for option in ("--manifest-sha256", "--confirm-production-write")
+                ):
+                    raise ValueError(
+                        f"Exact manifest authorization requires hash and confirmation flags: {entrypoint} {item['name']}"
+                    )
             if (item.get("parameters") or {}).get("receipt_bound_schedule_resubmission"):
                 if entrypoint != "tiangong2_task.py" or item["name"] not in {"plan-task-submit", "submit-task"}:
                     raise ValueError("Receipt-bound resubmission is only available to Tiangong2 submission")

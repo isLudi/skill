@@ -69,7 +69,7 @@ description: Execute governed USQL, templates, Data Center and BI operations, ma
 - 领域适配器解析成功不构成知识写入、Apply 或 Publish 授权；metadata、路径或域不匹配时必须失败，不得猜测回退目录。
 - DashboardProfile、DesignSpec、ChangePlan、BuildPlan、Data Center Plan 和 Receipt 都是证据工件，不是下一阶段授权。
 - 看板 Apply 只写 draft，Publish 必须独立命令和独立确认。
-- P4B 只允许 capability registry 中九类 `verified/allowlisted` 既有对象窄修改；其他修改阻断。
+- P4B `apply-dashboard-change` 只允许九类 `verified/allowlisted` 既有对象窄修改；另有独立的 `sync-pivot-fields-draft` 专用透视表同步入口，必须通过其精确 manifest Hash 和专属 capability registry 门禁，不扩展通用 ChangePlan Apply。
 - P4C 使用独立创建 Saga；失败不自动删除资源，Receipt 必须列出孤立资源和人工清理要求。
 - Data Center 替换和创建分别要求独立只读 Plan、精确 Hash、`--confirm-production-write`、保存后回读、立即执行和新的 `SUCCESS`。
 - `sync-data-center-sql --write` 只写本地业务 Skill，绝不等于远端生产写入。

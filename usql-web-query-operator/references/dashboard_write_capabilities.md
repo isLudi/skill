@@ -14,9 +14,11 @@ P4A 只建立写能力证据和白名单，不把自然语言请求直接变成�
 
 默认策略始终是 `block_unverified`。一次沙箱探测不会自动修改或提升注册表。
 
-P4B 当前生产 `allowlisted` 操作为 `update_component_fields`、`update_component_filter_label`、`update_component_title`、`update_public_filter_title`、`update_tab_label`、`update_layout`、`update_formula`、`update_filter_dynamic_default`、`update_theme`。透视表 `rebuild_pivot_unit_by_copy` 仅为 `sandbox_verified/sandbox_only`，不能进入生产 Apply。这不是开放式写权限：每类生产操作都受共享 Diff 的窄约束，必须绑定完整 Profile、精确 Hash、目标双读、写后回读、最终全量画像和恢复策略。
+通用 P4B `apply-dashboard-change` 仍只支持九类既有对象窄修改。`sync_existing_pivot_fields_from_same_model_source` 是独立注册的专用 draft 能力，仅可经 `sync-pivot-fields-draft` 和其独立 manifest/receipt 流程调用，不进入通用 ChangePlan Apply。透视表 `rebuild_pivot_unit_by_copy` 仍为 `sandbox_verified/sandbox_only`，不能进入生产 Apply。这不是开放式写权限：每类生产操作都受窄约束，必须绑定完整 Profile、精确 Hash、目标双读、写后回读、最终全量画像和恢复策略。
 
-Registry 1.1.0 共 30 项：22 项 `verified/allowlisted`、1 项 `sandbox_verified/sandbox_only`、6 项 `blocked`、1 项 `separate_confirmation`。新增的 `replace_pivot_measure_fields` 为 `unverified/blocked`：已有纯本地有序契约与可补偿测试适配器，但没有真实沙箱证据，且未进入生产 `ADAPTERS`/`SUPPORTED_APPLY_OPERATIONS`。P4C 的 `create_dashboard`、`create_formula`、四类组件创建、`create_public_filter`、`assemble_new_dashboard`、`rename_new_component_metrics`、`style_new_components`、`create_tab_container`、`assemble_tab_slots` 和 `create_text_component` 共十三项 operation，均为 `transaction_class=creation_saga`、`recovery_policy=creation_saga_no_auto_delete`，生产 adapter 为 `taitan_dashboard_build_v1`。既有局部筛选器只开放单个 `showName` 标签修改，泛化 `update_component_filter` 仍 blocked；其余 blocked 项是既有组件 `bind_dataset`、模板克隆、移动文件夹和权限修改。详见 `references/dashboard_build_workflow.md`。
+Registry 共 31 项：23 项 `verified/allowlisted`、1 项 `sandbox_verified/sandbox_only`、6 项 `blocked`、1 项 `separate_confirmation`。新增的 `replace_pivot_measure_fields` 为 `unverified/blocked`：已有纯本地有序契约与可补偿测试适配器，但没有真实沙箱证据，且未进入生产 `ADAPTERS`/`SUPPORTED_APPLY_OPERATIONS`。P4C 的 `create_dashboard`、`create_formula`、四类组件创建、`create_public_filter`、`assemble_new_dashboard`、`rename_new_component_metrics`、`style_new_components`、`create_tab_container`、`assemble_tab_slots` 和 `create_text_component` 共十三项 operation，均为 `transaction_class=creation_saga`、`recovery_policy=creation_saga_no_auto_delete`，生产 adapter 为 `taitan_dashboard_build_v1`。既有局部筛选器只开放单个 `showName` 标签修改，泛化 `update_component_filter` 仍 blocked；其余 blocked 项是既有组件 `bind_dataset`、模板克隆、移动文件夹和权限修改。详见 `references/dashboard_build_workflow.md`。
+
+`sync_existing_pivot_fields_from_same_model_source` 仅允许一个既有透视表在 draft 中从同模型来源同步已审阅字段、公式引用及受限格式/组件样式。此为独立于通用 P4B `ChangePlan` 的专用能力：入口 `sync-pivot-fields-draft` 必须同时提供 `--confirm-production-write` 和目标清单的规范化 `--manifest-sha256`；执行前重新校验 capability registry、完整目标 Profile Hash、来源/目标单元投影 Hash 和（如涉及样式）来源/目标样式 Hash。写入前保存目标完整备份；写后完整回读并验证稳定 unit ID。失败时补偿恢复；新建公式不会自动删除，失败回执必须列出可能孤立的公式和人工清理要求。只写 draft，不提供发布参数；发布仍须走独立工作流和确认。
 
 `replace_pivot_measure_fields` 只接受稳定 component/unit/model 身份、完整且精确的前后有序指标 ID 列表，以及同模型既有正确单元中的完整字段模板。它仅允许新增与重排，不允许删除、重复、跨模型字段、公式/筛选/维度/格式联动；既有字段 payload 原样保留，异常时恢复完整原始 unit。上述行为当前仅由本地测试证明，不能用于正式看板或作为平台写入成功证据。
 
@@ -91,7 +93,7 @@ D:\anaconda3\python.exe scripts\read_dashboard.py verify-sandbox-write-adapters 
 5. 写后完整回读，可证明目标状态精确一致。
 6. 幂等或明确的补偿/恢复方案；多操作必须验证正向顺序、反向恢复顺序和完整 Profile Hash 复原。
 7. 正向、反向、漂移、跨域和错误 payload 测试。
-8. 接入共享 Profile/DesignSpec/Diff/ChangePlan 和生产 ApplyReceipt；沙箱命令本身不能作为生产入口。
+8. 接入共享 Profile/DesignSpec/Diff/ChangePlan 和生产 ApplyReceipt；若 operation 属于明确独立工作流，Registry 必须绑定唯一专用 adapter、typed manifest 的精确 Hash 与独立确认，并要求完整 Profile、目标回读、补偿策略和专属 Receipt。沙箱命令本身不能作为生产入口。
 9. 更新 Registry evidence SHA、重新计算 Registry Hash，并通过完整 Text2SQL stack。
 
 Chrome 插件只用于需要现有登录态的人工动作、页面观察和视觉确认。正式自动 Apply 必须回到 operator 的已验证适配器。

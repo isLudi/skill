@@ -27,6 +27,7 @@ from usql_web_query.error_detection import (
     extract_error_from_page,
 )
 from usql_web_query.executor import click_run
+from usql_web_query.query_auth import query_credentials, verify_query_identity
 from usql_web_query.models import RunSummary
 from usql_web_query.page_helpers import create_query_tab, wait_for_query_page
 from usql_web_query.query_contract import (
@@ -50,7 +51,7 @@ from usql_web_query.query_history import (
 )
 from usql_web_query.result_panel import _wait_for_result_panel, extract_result_preview
 from usql_web_query.result_resolution import resolve_result_state
-from usql_web_query.sql_utils import enforce_download_policy_before_run, parse_duration_seconds, read_sql
+from usql_web_query.sql_utils import enforce_download_policy_before_run, enforce_query_prefix, parse_duration_seconds, read_sql
 from usql_web_query.sql_policy import analyze_sql_policy, enforce_sql_policy, write_policy_report
 from usql_web_query.status_poller_api import wait_for_query_result_evidence, wait_for_status
 
@@ -99,6 +100,7 @@ def execute_run(args: argparse.Namespace, *, emit_summary: bool = False) -> RunC
     if query_plan_path is not None:
         query_plan_contract = load_query_plan_contract(query_plan_path, sql)
         enforce_query_plan_download_policy(query_plan_contract, download=args.download)
+    enforce_query_prefix(sql)
     enforce_download_policy_before_run(sql, download=args.download)
     ensure_runtime([args.state_path.parent, args.artifacts_dir])
     artifacts_dir = safe_artifact_dir(args.artifacts_dir)
@@ -145,6 +147,7 @@ def execute_run(args: argparse.Namespace, *, emit_summary: bool = False) -> RunC
         write_query_trace(trace_path, trace)
         raise
     sync_playwright, _ = import_playwright(include_timeout_error=True)
+    expected_username, _ = query_credentials(args.env_file, args.username, args.password)
 
     with sync_playwright() as playwright:
         browser, context = launch_context(playwright, args.state_path, args.headed, args.browser_channel, args.executable_path)
@@ -162,6 +165,9 @@ def execute_run(args: argparse.Namespace, *, emit_summary: bool = False) -> RunC
             if "cas.baijia.com" in page.url or "login" in page.url.lower():
                 raise UsageError("Login state expired. Run the login command again.")
             wait_for_query_page(page)
+            identity = verify_query_identity(page, expected_username)
+            append_trace_stage(trace, name="identity", status="success", details=identity)
+            write_query_trace(trace_path, trace)
             if args.new_tab:
                 create_query_tab(page)
             engine_evidence = switch_query_engine(
@@ -203,6 +209,11 @@ def execute_run(args: argparse.Namespace, *, emit_summary: bool = False) -> RunC
                         f"selected={engine_evidence.selected_key}, request={submitted_engine_key}, "
                         f"query_id={submission_evidence.query_id}"
                     )
+                append_trace_stage(
+                    trace, name="submission", status="success",
+                    details=submission_evidence.to_summary(),
+                )
+                write_query_trace(trace_path, trace)
                 status, text, error_details, current_row = wait_for_status(
                     page,
                     args.timeout_ms,

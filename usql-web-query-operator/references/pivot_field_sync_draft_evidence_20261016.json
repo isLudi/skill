@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_type": "DashboardPivotFieldSyncDraftEvidence",
+  "captured_at": "2026-10-16T14:52:46+08:00",
+  "domain": "market_consultant",
+  "target": {
+    "dashboard_id": "dashboard_3767151344579387392",
+    "dashboard_name": "转化数据",
+    "unit_id": "unit_4124826867196043265",
+    "subject_id": 206708
+  },
+  "source": {
+    "dashboard_id": "dashboard_3759973841100165121",
+    "unit_id": "unit_4014658115619344390",
+    "application_model_id": 2293
+  },
+  "manifest_sha256": "0356a2ffda23e1007ac543e0faf9b83ec3afb757926ccce9ed9145e885806e4e",
+  "receipt_sha256": "180ea727bcb193b5b6b6b5895771dab432b765da204dac395d91cbae1e7ca807",
+  "pre_profile_sha256": "934bee32a70dbf7df8e08ae5098ff5b7e091a566e99a6505f1e631c5a3256834",
+  "post_profile_sha256": "12e83f065d10394c5648d5589cce5d023c2838ff43f0d91ab12353524a5c37d4",
+  "request_paths": [
+    "/uanalysis-intelligence/model/customized/column/saveAndUpdate",
+    "/uanalysis-intelligence/config/update/unit"
+  ],
+  "write_response_statuses": [200],
+  "readback": {
+    "profile_complete": true,
+    "unit_identity_preserved": true,
+    "layout_unchanged": true,
+    "theme_unchanged": true,
+    "dimension_count": 3,
+    "measure_count": 36,
+    "custom_formula_count": 30,
+    "measure_payloads_match_source_with_target_formula_ids": true,
+    "safe_format_match": true,
+    "formulas_match": true,
+    "formula_dependencies_match": true,
+    "profile_error_count": 0
+  },
+  "publish_boundary": {
+    "publish_endpoint_called": false,
+    "published_config_unchanged": true,
+    "published_before_sha256": "12463bcc7de46923ede505b2230faa3e821600eed6b1a939c95af2ac07a61924",
+    "published_after_sha256": "12463bcc7de46923ede505b2230faa3e821600eed6b1a939c95af2ac07a61924"
+  },
+  "recovery_evidence": {
+    "failed_attempts_restored": true,
+    "successful_attempt_recovery_needed": false
+  },
+  "redaction": {
+    "formula_text_omitted": true,
+    "business_rows_omitted": true,
+    "credentials_and_session_state_omitted": true
+  }
+}

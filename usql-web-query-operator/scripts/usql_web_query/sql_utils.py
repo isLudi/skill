@@ -14,6 +14,57 @@ def read_sql(path: Path) -> str:
         raise UsageError(f"SQL file is empty: {path}")
     return text
 
+
+def prepare_query_sql(sql: str) -> str:
+    """Remove only ordinary prefix comments, before any plan/hash is bound.
+
+    The SQL gateway can reject a leading comment as sql[] permission denial.
+    Never rewrite the statement, internal comments, literals, or SQL hints.
+    """
+    cursor = 1 if sql.startswith("\ufeff") else 0
+    while True:
+        while cursor < len(sql) and sql[cursor].isspace():
+            cursor += 1
+        if sql.startswith(("--+", "--!"), cursor):
+            raise UsageError("Leading SQL hints/directives require manual review; not removed.")
+        if sql.startswith("--", cursor):
+            end = re.search(r"[\r\n]", sql[cursor:])
+            if end is None:
+                raise UsageError("SQL contains only leading comments; no query was prepared.")
+            cursor += end.end()
+        elif sql.startswith("/*", cursor):
+            if sql[cursor + 2:cursor + 3] in {"+", "!"}:
+                raise UsageError("Leading SQL hints/directives require manual review; not removed.")
+            depth = 1
+            end = cursor + 2
+            while depth and end < len(sql):
+                if sql.startswith("/*", end):
+                    depth += 1
+                    end += 2
+                elif sql.startswith("*/", end):
+                    depth -= 1
+                    end += 2
+                else:
+                    end += 1
+            if depth:
+                raise UsageError("Unterminated leading SQL comment; no query was prepared.")
+            cursor = end
+        else:
+            break
+    if not sql[cursor:].strip():
+        raise UsageError("SQL contains no statement after its leading comments.")
+    return sql[cursor:]
+
+
+def enforce_query_prefix(sql: str) -> None:
+    if sql.removeprefix("\ufeff").lstrip().startswith(("--", "/*")):
+        raise UsageError(
+            "Leading SQL comments can trigger the gateway's sql[] permission error. "
+            "Use prepare-sql --sql-file SOURCE --output PREPARED, review the copy, "
+            "and bind any QueryPlan to the prepared file before run. "
+            "The operator will not silently change an approved SQL hash."
+        )
+
 def visible_download_limit(sql: str) -> int | None:
     matches = re.findall(r"\blimit\s+(\d+)\b", sql, flags=re.I)
     if not matches:

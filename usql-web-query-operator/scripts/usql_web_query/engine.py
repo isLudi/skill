@@ -72,6 +72,9 @@ def recognize_engine_value(value: str | None) -> str | None:
     compact = re.sub(r"[\s_-]+", "", (value or "").strip().lower())
     if not compact:
         return None
+    # Observed SQL execute.type and driverSelect value, 2026-10-16.
+    if compact == "10":
+        return "presto-lakehouse"
     if compact in DORIS_INTERNAL_ENGINE_VALUES:
         return "doris-presto"
     if "doris" in compact:

@@ -282,7 +282,13 @@ def _query_status_from_log_api(page: Any, query_id: str | None):
         return "Failed", log_text, _api_error_result("log_area", log_text, query_id)
 
     task_status = data.get("taskStatus")
-    if task_status in {3, "3"} and ("rowAffectInfo" in log_text or "进度percentage : 100%" in log_text):
+    lakehouse_completed = (
+        "执行完成，存储查询结果" in log_text
+        and re.search(r"LAKEHOUSE file 模式上传完成：rows=\d+\b", log_text) is not None
+    )
+    if task_status in {3, "3"} and (
+        "rowAffectInfo" in log_text or "进度percentage : 100%" in log_text or lakehouse_completed
+    ):
         return "Success", f"query_id={query_id}", None
     if task_status in {-1, 4, 5, "-1", "4", "5"}:
         return "Failed", log_text, _api_error_result("log_area", log_text, query_id)

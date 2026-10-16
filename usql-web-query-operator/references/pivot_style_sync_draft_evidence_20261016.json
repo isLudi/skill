@@ -1,0 +1,72 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_type": "DashboardPivotStyleDraftEvidence",
+  "domain": "market_consultant",
+  "target": {
+    "dashboard_id": "dashboard_3767151344579387392",
+    "unit_id": "unit_4124826867196043265"
+  },
+  "source": {
+    "dashboard_id": "dashboard_3759973841100165121",
+    "unit_id": "unit_4014658115619344390"
+  },
+  "checks": {
+    "draft_profile_complete": true,
+    "component_style_matches_source": true,
+    "target_unit_field_projection_unchanged": true,
+    "source_unit_field_projection_current": true,
+    "measure_count_is_36": true,
+    "measure_column_styles_match_source": true,
+    "dimension_count_is_3": true,
+    "dimension_names_are_expected": true,
+    "dimension_column_styles_match_source": true,
+    "profile_data_units_unchanged": true,
+    "formulas_unchanged": true,
+    "layout_unchanged": true,
+    "published_config_unchanged": true,
+    "publish_endpoint_not_called": true
+  },
+  "style_summary": {
+    "theme": "ARCO",
+    "header_font_size": 11,
+    "body_font_size": 11,
+    "corner_header_font_size": 11,
+    "row_header_font_size": 11,
+    "corner_header_bg_color": "#f1debc",
+    "row_header_bg_color": "rgba(241,222,188,0.48)",
+    "column_style_value_counts": {
+      "bgColor=#EDF1F5": 1,
+      "bgColor=#c3d7ec": 2,
+      "bgColor=#d7b3f6": 6,
+      "bgColor=#d7ecc1": 8,
+      "bgColor=#f1ecaf": 4,
+      "bgColor=#ffffff": 21,
+      "color=#000": 39,
+      "color=#d0021b": 3,
+      "fontSize=11": 30,
+      "fontSize=12": 12,
+      "fontWeight=bold": 24,
+      "fontWeight=normal": 18
+    }
+  },
+  "draft_readback": {
+    "pre_profile_sha256": "849abbfc6f8b8478f973a5666c0167c39bf7f6cec3e844947a629d0d284a0623",
+    "post_profile_sha256": "2c7f991592033d40478669cb01e5aeb465b7913e33dd1691cb4ef3866e7cfdf9",
+    "receipt_sha256": "d408b9c10516a68c0bd63567bab5bec9a5a0d8bb96bb6afb5480c384f83f49e1",
+    "style_readback_status": "matched",
+    "request_paths": [
+      "/uanalysis-intelligence/config/save/dashboardHtml"
+    ]
+  },
+  "publish_boundary": {
+    "publish_endpoint_called": false,
+    "published_config_unchanged": true,
+    "published_before_sha256": "d9d0fffc3eec0e4bb77fb7bc3f12308c148f079abf7b218d5a0c878faf8dad93",
+    "published_after_sha256": "d9d0fffc3eec0e4bb77fb7bc3f12308c148f079abf7b218d5a0c878faf8dad93"
+  },
+  "redaction": {
+    "business_rows_omitted": true,
+    "credentials_and_session_state_omitted": true
+  },
+  "captured_at": "2026-10-16T15:16:00+08:00"
+}

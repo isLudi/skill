@@ -25,6 +25,7 @@ from usql_web_query.result_resolution import resolve_result_state  # noqa: E402
 from usql_web_query.status_poller_api import (  # noqa: E402
     _new_query_id,
     _query_status_from_api,
+    _query_status_from_log_api,
     fetch_query_result_evidence,
     wait_for_query_result_evidence,
 )
@@ -110,6 +111,32 @@ class FakeSubmitPage:
 
 
 class QueryExecutionStateTests(unittest.TestCase):
+    def test_lakehouse_file_completion_including_empty_results(self) -> None:
+        for rows in (0, 12):
+            payload = {"data": {"taskStatus": 3, "data": (
+                "presto_lake_house：{execute，执行完成，存储查询结果}\n"
+                f"LAKEHOUSE file 模式上传完成：rows={rows} path=redacted"
+            )}}
+            response = FakeResponse({}, payload, url="https://example.invalid/log")
+            client = type("Client", (), {"get": lambda _self, *_a, **_k: response})()
+            page = type("Page", (), {"context": type("Context", (), {"request": client})()})()
+            self.assertEqual(_query_status_from_log_api(page, "1636500128"),
+                             ("Success", "query_id=1636500128", None))
+
+    def test_lakehouse_incomplete_or_failed_logs_do_not_report_success(self) -> None:
+        for status, text, expected in [
+            (2, "执行完成，存储查询结果\nLAKEHOUSE file 模式上传完成：rows=0", None),
+            (3, "执行完成，存储查询结果", None),
+            (3, "LAKEHOUSE file 模式上传完成：rows=0", None),
+            (3, "执行完成，存储查询结果\nLAKEHOUSE file 模式上传完成：rows=0\n上传失败", "Failed"),
+        ]:
+            response = FakeResponse({}, {"data": {"taskStatus": status, "data": text}},
+                                    url="https://example.invalid/log")
+            client = type("Client", (), {"get": lambda _self, *_a, **_k: response})()
+            page = type("Page", (), {"context": type("Context", (), {"request": client})()})()
+            result = _query_status_from_log_api(page, "1636500128")
+            self.assertEqual(result[0] if result else None, expected)
+
     def test_editor_requires_exact_stable_hash_readback(self) -> None:
         sql = "select '中文' as value limit 1"
         evidence = set_monaco_sql(FakeEditorPage(FakeEditorFrame()), sql)
@@ -159,6 +186,16 @@ class QueryExecutionStateTests(unittest.TestCase):
             url="https://uanalysis.baijia.com/uanalysis-sql/api/result/list",
         )
         self.assertIsNone(summarize_submission_response(response))
+
+    def test_live_lakehouse_numeric_submission_type_is_checked(self) -> None:
+        response = FakeResponse(
+            {"sql": "SELECT 1 LIMIT 1", "type": 10},
+            {"data": {"queryId": 1525000001}},
+            url="https://uanalysis.baijia.com/uanalysis-sql/api/sql/execute",
+        )
+        summary = summarize_submission_response(response)
+        self.assertEqual(summary["submitted_engine"], "10")
+        self.assertEqual(recognize_engine_value(summary["submitted_engine"]), "presto-lakehouse")
 
     def test_generic_query_list_response_is_not_submission_acknowledgement(self) -> None:
         response = FakeResponse(

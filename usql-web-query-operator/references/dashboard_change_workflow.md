@@ -13,7 +13,7 @@
 5. [独立发布确认](#独立发布确认)
 6. [公共筛选器稳定定位](#公共筛选器稳定定位)
 7. [受支持与阻断的操作](#受支持与阻断的操作)
-8. [复制重建透视表组件](#复制重建透视表组件)
+8. [透视表字段同步与沙箱复制重建](#透视表字段同步与沙箱复制重建)
 9. [故障与恢复](#故障与恢复)
 10. [Legacy 兼容命令](#legacy-兼容命令)
 
@@ -197,9 +197,24 @@ P3B 不再使用“第一个/第二个筛选器”定位。每个可写 operatio
 
 共享公式、跨组件公式和任何影响范围不明的改动必须阻断。没有抓取并验证真实请求的接口，不得凭字段名猜测写 payload。
 
-## 复制重建透视表组件
+## 透视表字段同步与沙箱复制重建
 
-复制重建用于在明确的沙箱/测试看板中验证“既有透视表 unit 可见字段正确、但 `value/unit` 仍走旧任务或旧绑定”的修复方式。唯一入口是 `rebind-pivot-fields-sandbox`；Registry 将 `rebuild_pivot_unit_by_copy` 固定为 `sandbox_verified/sandbox_only`。生产 CLI 已移除，内部收到生产确认参数也会在浏览器启动前返回 `blocked_unsupported`。该沙箱能力不能进入 P4B 生产 Apply。
+独立专用入口 `sync-pivot-fields-draft` 可原位同步一个既有透视表，但不扩展通用 `ChangePlan` 的九类 Apply 操作。它必须以 `--manifest-sha256` 绑定审阅清单，并绑定完整目标 Profile Hash、来源/目标单元投影 Hash、稳定 unit ID 与同模型来源。执行器必须验证 capability registry 中对应操作为 `verified/allowlisted`。该命令禁止复制或替换 unit，不改 dashboard 布局或结构；组件样式仅可按注册表允许的 projection 同步。写前完整备份；写后核对目标 unit 和完整 dashboard schema Hash，并重建完整 draft profile；失败时仅在状态仍符合本次尝试时补偿恢复。新建公式若无法确认或操作失败，回执列出可能孤立资源；不自动删除。该命令没有发布参数。
+
+专用 manifest 必须声明 `artifact_type=DashboardPivotFieldRebindManifest`、`schema_version=1.0.0`、`production_draft_sync=true`、域、目标 dashboard ID/name、`expected_profile_sha256` 和恰好一个 operation。operation 必须绑定 `operation_id`、target/source unit ID、维度 field IDs、`expected_before_sha256` 和 `expected_source_sha256`；若启用组件样式同步，还必须提供来源与目标样式 Hash。来源包含自定义公式时必须完整声明 `source_custom_formulas`，绑定来源公式 Hash；无法识别的来源字段引用会阻断执行。`--manifest-sha256` 是最终 manifest 对象按 UTF-8、键排序、无空白分隔规范化后的 SHA-256，不包含外置参数本身。
+
+```powershell
+D:\anaconda3\python.exe scripts\read_dashboard.py sync-pivot-fields-draft `
+  --target-manifest C:\runtime\pivot_sync_manifest.json `
+  --dashboard-id dashboard_123 `
+  --expected-dashboard-name "转化数据" `
+  --domain market_consultant `
+  --manifest-sha256 REPLACE_WITH_64_CHAR_MANIFEST_SHA256 `
+  --confirm-production-write `
+  --output C:\runtime\pivot_sync_receipt.json
+```
+
+复制重建用于在明确的沙箱/测试看板中验证“既有透视表 unit 可见字段正确、但 `value/unit` 仍走旧任务或旧绑定”的修复方式。唯一入口是 `rebind-pivot-fields-sandbox`；Registry 将 `rebuild_pivot_unit_by_copy` 固定为 `sandbox_verified/sandbox_only`。该入口只接受沙箱确认参数；生产 copy/rebind 通过专用入口也会在浏览器启动前被拒绝。该沙箱能力不能进入 P4B 生产 Apply。
 
 沙箱命令：
 

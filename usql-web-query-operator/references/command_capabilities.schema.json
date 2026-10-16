@@ -42,6 +42,7 @@
                     "explicit_command",
                     "explicit_flags",
                     "exact_plan_hash_and_confirmation",
+                    "exact_manifest_hash_and_confirmation",
                     "maintenance_session_or_exact_phase_confirmation",
                     "separate_publish_confirmation",
                     "sandbox_confirmation"

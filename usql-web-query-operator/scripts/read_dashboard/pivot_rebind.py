@@ -18,6 +18,12 @@ FIELD_LIST_GROUPS = (
 
 FIELD_DISPLAY_KEYS = ("showName",)
 FIELD_FORMAT_DISPLAY_KEYS = ("sortValue", "condition")
+PIVOT_SYNC_FORMAT_KEYS = (
+    "displaySettingType", "switchGroups", "isDownload", "displayList",
+    "switchOrderList", "pageSize", "isOpen", "isTotal",
+    "funnelConvertRateList", "labelSelectList", "freezeRow",
+    "fieldMeasureNameSortList",
+)
 FILTERED_VALUE_CHECKS_KEY = "filtered_value_checks"
 
 PUBLIC_FILTER_FIELD_KEYS = ("fieldId", "field_id", "paramId", "param_id", "name", "field_name")
@@ -306,22 +312,32 @@ def assert_filtered_value_response(
 
 
 def project_unit_field_state(detail: Mapping[str, Any]) -> dict[str, Any]:
-    """Return a stable, low-noise projection of configured pivot fields."""
+    """Return the complete write-relevant projection of configured pivot fields.
+
+    Volatile unique keys are excluded, but formulas, render modes, number
+    formats, visual styles, and safe pivot display settings are retained.
+    """
 
     projection: dict[str, Any] = {
         "unit_id": detail.get("unitId"),
         "unit_name": detail.get("unitName"),
         "model_id": detail.get("modelId"),
+        "dashboard_model": copy.deepcopy(detail.get("dashboardModel")),
+        "format": {},
         "groups": {},
     }
+    detail_format = detail.get("format")
+    if isinstance(detail_format, Mapping):
+        projection["format"] = {
+            key: copy.deepcopy(detail_format.get(key))
+            for key in PIVOT_SYNC_FORMAT_KEYS
+            if key in detail_format
+        }
     for group in FIELD_LIST_GROUPS:
         projection["groups"][group] = [
             {
                 "field_id": _field_id(field),
-                "name": field.get("name"),
-                "show_name": field.get("showName"),
-                "field_type": field.get("fieldType"),
-                "org_param_type": field.get("orgParamType"),
+                **{key: copy.deepcopy(value) for key, value in field.items() if key != "uniqueKeyWithTimeStamp"},
             }
             for field in _fields(detail, group)
             if _field_id(field)
@@ -421,11 +437,14 @@ def rebuild_pivot_unit_fields(
     measure_field_ids: Iterable[str] | None = None,
     required_measure_field_ids: Iterable[str] = (),
     preserve_target_display: bool = True,
+    dimension_show_names: Mapping[str, str] | None = None,
+    sync_source_format: bool = False,
 ) -> dict[str, Any]:
     """Rebuild a target pivot's field lists from a known-good source unit.
 
-    This intentionally updates only field-list groups. The caller owns the
-    write boundary, backup, drift checks, and recovery.
+    This updates field-list groups and, when explicitly requested, a narrow
+    allowlist of pivot display settings. The caller owns the write boundary,
+    backup, drift checks, and recovery.
     """
 
     target_model = target_detail.get("modelId")
@@ -454,6 +473,16 @@ def rebuild_pivot_unit_fields(
         )
         for field_id in dimensions
     ]
+    show_names = {str(key): str(value).strip() for key, value in (dimension_show_names or {}).items()}
+    unknown_show_names = sorted(set(show_names) - set(dimensions))
+    if unknown_show_names:
+        raise UsageError(f"dimension_show_names contains fields outside dimension_field_ids: {unknown_show_names}")
+    if any(not value for value in show_names.values()):
+        raise UsageError("dimension_show_names cannot contain an empty display name.")
+    for field in rebuilt["unitDimensionList"]:
+        field_id = _field_id(field)
+        if field_id in show_names:
+            field["showName"] = show_names[field_id]
     rebuilt["unitColumnDimensionList"] = []
 
     if measure_mode == "source_all":
@@ -495,4 +524,20 @@ def rebuild_pivot_unit_fields(
     missing_required = [field_id for field_id in required_measures if field_id not in actual_measure_ids]
     if missing_required:
         raise UsageError(f"Required measure fields are missing after rebuild: {missing_required}")
+
+    if sync_source_format:
+        source_format = source_detail.get("format")
+        if not isinstance(source_format, Mapping):
+            raise UsageError("Source unit format must be an object when sync_source_format=true.")
+        target_format = rebuilt.get("format")
+        if target_format is None:
+            target_format = {}
+            rebuilt["format"] = target_format
+        if not isinstance(target_format, dict):
+            raise UsageError("Target unit format must be an object when sync_source_format=true.")
+        for key in PIVOT_SYNC_FORMAT_KEYS:
+            if key in source_format:
+                target_format[key] = copy.deepcopy(source_format[key])
+            else:
+                target_format.pop(key, None)
     return rebuilt

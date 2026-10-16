@@ -19,11 +19,22 @@ D:\anaconda3\python.exe scripts\usql_web_query.py doctor
 D:\anaconda3\python.exe scripts\usql_web_query.py login --headed
 ```
 
-凭据只从环境变量、`--env-file`、`USQL_ENV_FILE` 或交互输入读取。SSO、MFA、二维码或风控阻断自动登录时，使用 `login --manual --headed`，不得尝试绕过。
+配置文件存在时，`login` / `run` 只读取其中 `# USQL Web Query (Playwright) credentials` 精确区段的账号密码，不使用其他区段或残留环境变量。也可显式提供完整凭据对；没有配置文件时才回退环境变量或登录交互。登录保存状态前与查询提交前均通过 USQL `getAuth` 核对实际账号。账号不匹配时停止，不自动切换身份。SSO、MFA、二维码或风控阻断自动登录时，使用 `login --manual --headed`，不得尝试绕过。
 
 登录态固定保存在 Git 外的 `C:\Users\Ludim\.codex\runtime\usql-web-query-operator\state.json`。
 
 ## 3. 执行
+
+平台可能把开头带说明注释的 SQL 拒绝为“你没有操作权限，sql[]”。2026-10-16 同账号、同 Lakehouse 引擎的对照验证中，去掉开头注释后的相同查询成功。此错误不能单凭文字认定为表权限不足。
+
+`run` 不静默改写已绑定 Hash 的 SQL；带开头注释时在浏览器启动前阻断。先生成独立执行副本，审阅后对该副本重新生成需要的 QueryPlan：
+
+```powershell
+D:\anaconda3\python.exe scripts\usql_web_query.py prepare-sql `
+  --sql-file C:\path\to\source.sql --output C:\path\to\prepared.sql
+```
+
+准备命令只移除语句之前的普通注释、空白和 UTF-8 BOM 标记，保留内部注释、字符串与语句；拒绝自动去除提示/执行指令，保留源文件，不覆盖已有目标，不提交、不修改 QueryPlan。回执分别记录源与副本 Hash。之后 `run` 的输入、QueryPlan、编辑器、实际提交内容仍须精确一致。
 
 ```powershell
 D:\anaconda3\python.exe scripts\usql_web_query.py run `

@@ -14,7 +14,7 @@ from _shared.errors import UsageError
 
 from .edit_profile import fetch_edit_dashboard_config, fetch_edit_unit_detail
 from .filter_edit import fetch_public_filter_detail, find_public_filter_unit
-from .profile import post_json
+from .profile import parse_dashboard_html, post_json
 from .pivot_rebind import project_unit_field_state, replace_pivot_measure_fields
 from .write_capabilities import request_key_paths
 
@@ -238,14 +238,24 @@ def _write_dashboard_schema(
     dashboard_name: str,
     schema: dict[str, Any],
     observations: list[dict[str, Any]],
+    expected_schema_sha256: str | None = None,
 ) -> dict[str, Any]:
     current = fetch_edit_dashboard_config(page, dashboard_id, "draft")
     if str(current.get("dashboardName") or "") != dashboard_name:
         raise UsageError("Sandbox dashboard identity drifted before schema write.")
+    if expected_schema_sha256 is not None:
+        if canonical_sha256(parse_dashboard_html(current)) != expected_schema_sha256:
+            raise UsageError("Dashboard schema drifted before write; no schema update was attempted.")
+        confirmed = fetch_edit_dashboard_config(page, dashboard_id, "draft")
+        if str(confirmed.get("dashboardName") or "") != dashboard_name:
+            raise UsageError("Dashboard identity drifted during schema double-read.")
+        if canonical_sha256(parse_dashboard_html(confirmed)) != expected_schema_sha256:
+            raise UsageError("Dashboard schema changed during the pre-write double-read.")
+        current = confirmed
     payload = {
         "dashboardHtmlJson": json.dumps(schema, ensure_ascii=False, separators=(",", ":")),
         "dashboardName": current.get("dashboardName"),
-        "description": "",
+        "description": current.get("description") or "",
         "dashboardId": dashboard_id,
         "jsPackages": current.get("jsPackages"),
         "saveUnitList": _extract_key_values(schema, {"unitId"}),

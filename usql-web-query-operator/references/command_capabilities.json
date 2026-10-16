@@ -6,6 +6,7 @@
       "commands": [
         {"name": "doctor", "effect": "local_read_only", "authorization": "none", "reference": "sql_query_execution.md"},
         {"name": "login", "effect": "local_write_explicit", "authorization": "explicit_command", "reference": "sql_query_execution.md"},
+        {"name": "prepare-sql", "effect": "local_write_explicit", "authorization": "explicit_command", "reference": "sql_query_execution.md"},
         {"name": "run", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "sql_query_execution.md", "parameters": {"default_engine": "presto-lakehouse", "engine_choices": ["presto", "presto-lakehouse", "doris-presto"]}},
         {"name": "run-with-fallback", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "sql_query_execution.md", "parameters": {"default_engine": "presto-lakehouse", "engine_choices": ["presto", "presto-lakehouse", "doris-presto"], "fallback_engine_choices": ["presto", "presto-lakehouse", "doris-presto"], "empty_result_policy_choices": ["stop", "crosscheck-only"]}},
         {"name": "upload-temp-table", "effect": "remote_write_explicit", "authorization": "explicit_flags", "reference": "manual_temp_table_registry.md"},
@@ -50,6 +51,7 @@
         {"name": "verify-sandbox-dashboard-build", "effect": "local_read_only", "authorization": "none", "reference": "dashboard_build_workflow.md"},
         {"name": "verify-sandbox-write-adapters", "effect": "sandbox_write", "authorization": "sandbox_confirmation", "reference": "dashboard_write_capabilities.md"},
         {"name": "rebind-pivot-fields-sandbox", "effect": "sandbox_write", "authorization": "sandbox_confirmation", "reference": "dashboard_change_workflow.md"},
+        {"name": "sync-pivot-fields-draft", "effect": "draft_write", "authorization": "exact_manifest_hash_and_confirmation", "reference": "dashboard_change_workflow.md"},
         {"name": "edit-public-filters", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "platform_profile.md"},
         {"name": "profile-folder", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "platform_profile.md"},
         {"name": "profile-all", "effect": "local_write_explicit", "authorization": "explicit_flags", "reference": "platform_profile.md"}

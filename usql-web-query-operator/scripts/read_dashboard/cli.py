@@ -476,6 +476,32 @@ def build_parser() -> argparse.ArgumentParser:
     rebind_pivot.add_argument("--debug-artifacts", action="store_true")
     rebind_pivot.set_defaults(func=cmd_rebind_pivot_fields_sandbox)
 
+    sync_pivot = subparsers.add_parser(
+        "sync-pivot-fields-draft",
+        help="Synchronize one existing pivot from a reviewed same-model source into a production draft; never publishes.",
+    )
+    sync_pivot.add_argument("--target-manifest", type=Path, required=True)
+    sync_pivot.add_argument("--dashboard-id", required=True)
+    sync_pivot.add_argument("--expected-dashboard-name", required=True)
+    sync_pivot.add_argument("--domain", choices=["market_consultant", "qingcheng"], required=True)
+    sync_pivot.add_argument("--confirm-production-write", action="store_true", required=True)
+    sync_pivot.add_argument("--manifest-sha256", required=True)
+    sync_pivot.add_argument("--registry", type=Path, default=DEFAULT_REGISTRY)
+    sync_pivot.add_argument("--restore-after-apply", action="store_true")
+    sync_pivot.add_argument("--output", type=Path, default=None)
+    sync_pivot.add_argument("--headed", action="store_true")
+    sync_pivot.add_argument("--state-path", type=Path, default=DEFAULT_STATE)
+    sync_pivot.add_argument("--artifacts-dir", type=Path, default=DEFAULT_ARTIFACTS)
+    sync_pivot.add_argument("--env-file", type=Path, default=DEFAULT_ENV_FILE)
+    sync_pivot.add_argument("--username", default=os.environ.get("BAIJIA_USERNAME"))
+    sync_pivot.add_argument("--password", default=os.environ.get("BAIJIA_PASSWORD"))
+    sync_pivot.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL)
+    sync_pivot.add_argument("--executable-path", default=None)
+    sync_pivot.add_argument("--wait-ms", type=int, default=3_000)
+    sync_pivot.add_argument("--touch-wait-ms", type=int, default=1_000)
+    sync_pivot.add_argument("--debug-artifacts", action="store_true")
+    sync_pivot.set_defaults(func=cmd_rebind_pivot_fields_sandbox, confirm_sandbox_write=False)
+
     edit_filters = subparsers.add_parser(
         "edit-public-filters",
         help="Legacy ordinal dry-run inspection only; all write/publish flags are rejected.",

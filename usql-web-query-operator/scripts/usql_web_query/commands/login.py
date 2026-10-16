@@ -7,12 +7,12 @@ import argparse
 from _shared.browser import import_playwright, launch_browser
 from _shared.config import QUERY_URL
 from _shared.auth import fill_login_if_present
-from _shared.env import load_env_file
 from _shared.fs_utils import ensure_runtime
+from usql_web_query.query_auth import query_credentials, verify_query_identity
 
 
 def cmd_login(args: argparse.Namespace) -> int:
-    load_env_file(args.env_file)
+    username, password = query_credentials(args.env_file, args.username, args.password)
     sync_playwright, _ = import_playwright(include_timeout_error=True)
     ensure_runtime([args.state_path.parent, args.artifacts_dir])
     with sync_playwright() as playwright:
@@ -25,10 +25,12 @@ def cmd_login(args: argparse.Namespace) -> int:
             print("Complete login in the opened browser, then press Enter here.")
             input()
         else:
-            fill_login_if_present(page, args.username, args.password)
+            fill_login_if_present(page, username, password)
             page.wait_for_load_state("domcontentloaded", timeout=30_000)
             page.wait_for_timeout(3000)
+        identity = verify_query_identity(page, username)
         context.storage_state(path=str(args.state_path))
+        print(f"Verified USQL account: {identity['account']}")
         print(f"Saved login state: {args.state_path}")
         browser.close()
     return 0

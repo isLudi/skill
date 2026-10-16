@@ -29,6 +29,7 @@ from .commands.doctor import cmd_doctor
 from .commands.fetch_market_template_sql import cmd_fetch_market_template_sql
 from .commands.fetch_template_sql import cmd_fetch_template_sql
 from .commands.login import cmd_login
+from .commands.prepare_sql import cmd_prepare_sql
 from .commands.apply_template_creation import cmd_apply_template_creation
 from .commands.apply_data_center_dataset_creation import cmd_apply_data_center_dataset_creation
 from .commands.apply_data_center_sql_replacement import cmd_apply_data_center_sql_replacement
@@ -62,8 +63,8 @@ def _add_query_run_arguments(
     command.add_argument("--state-path", type=Path, default=DEFAULT_STATE)
     command.add_argument("--artifacts-dir", type=Path, default=DEFAULT_ARTIFACTS)
     command.add_argument("--env-file", type=Path, default=DEFAULT_ENV_FILE)
-    command.add_argument("--username", default=os.environ.get("BAIJIA_USERNAME"))
-    command.add_argument("--password", default=os.environ.get("BAIJIA_PASSWORD"))
+    command.add_argument("--username", default=None)
+    command.add_argument("--password", default=None)
     command.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL, help="Installed browser channel, e.g. msedge or chrome.")
     command.add_argument("--executable-path", default=None, help="Explicit browser executable path; overrides --browser-channel.")
     command.add_argument(
@@ -104,14 +105,19 @@ def build_parser() -> argparse.ArgumentParser:
     login = subparsers.add_parser("login", help="Authenticate and save browser storage state.")
     login.add_argument("--headed", action="store_true", help="Show browser window.")
     login.add_argument("--manual", action="store_true", help="Let the user complete login manually.")
-    login.add_argument("--username", default=os.environ.get("BAIJIA_USERNAME"))
-    login.add_argument("--password", default=os.environ.get("BAIJIA_PASSWORD"))
+    login.add_argument("--username", default=None)
+    login.add_argument("--password", default=None)
     login.add_argument("--state-path", type=Path, default=DEFAULT_STATE)
     login.add_argument("--artifacts-dir", type=Path, default=DEFAULT_ARTIFACTS)
     login.add_argument("--env-file", type=Path, default=DEFAULT_ENV_FILE)
     login.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL, help="Installed browser channel, e.g. msedge or chrome.")
     login.add_argument("--executable-path", default=None, help="Explicit browser executable path; overrides --browser-channel.")
     login.set_defaults(func=cmd_login)
+
+    prepare = subparsers.add_parser("prepare-sql", help="Write a separate query copy without leading comments; does not execute or rebind QueryPlan.")
+    prepare.add_argument("--sql-file", type=Path, required=True)
+    prepare.add_argument("--output", type=Path, required=True)
+    prepare.set_defaults(func=cmd_prepare_sql)
 
     run = subparsers.add_parser("run", help="Run one SQL attempt in the web UI.")
     _add_query_run_arguments(run, include_single_attempt_paths=True)
