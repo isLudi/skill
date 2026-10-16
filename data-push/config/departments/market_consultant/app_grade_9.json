@@ -64,11 +64,11 @@
     "excluded_grades": [],
     "minimum_post_leads": 5,
     "weekend_next_process_enabled": true,
-    "show_totals": false,
+    "show_totals": true,
     "result_reminder_metric": "截面单效"
   },
   "schedule": {
-    "enabled": false,
+    "enabled": true,
     "first_send_at": "2026-10-11T00:00:00+08:00",
     "timezone": "Asia/Shanghai",
     "hours": [
@@ -84,10 +84,24 @@
     "retry_minutes": 2
   },
   "delivery_sequence": {
-    "stage": "preview_only",
+    "stage": "scheduled",
     "supervisor_channel_ref": "market_consultant/supervisor_yafei_grade_9",
-    "weekend_order": ["supervisor_result", "advisor_result", "supervisor_process", "advisor_process"],
-    "weekday_order": ["supervisor_process", "advisor_process"]
+    "bilibili_advisor_channel_ref": "market_consultant/supervisor_yafei_grade_9_advisor",
+    "channel_order": [
+      "app",
+      "B站信息流-亚飞"
+    ],
+    "failure_policy": "independent_messages",
+    "weekend_order": [
+      "supervisor_result",
+      "advisor_result",
+      "supervisor_process",
+      "advisor_process"
+    ],
+    "weekday_order": [
+      "supervisor_process",
+      "advisor_process"
+    ]
   },
   "base_identity": "user",
   "verification_identity": "bot",
@@ -100,12 +114,12 @@
     "task_id": 47252,
     "nezha_task_id": 66504,
     "schedule_id": 53831,
-    "exec_file_id": 837025,
-    "verified_version_id": 207988,
-    "verified_source_sha256": "6a718d8314b89251a3a4365cdc66f58b2d2e627934228ad45209196baba85c79",
+    "exec_file_id": 837865,
+    "verified_version_id": 208042,
+    "verified_source_sha256": "ebf2bfd2635d336d1584827a56e41602d2d834671afc71feacb11472be5c958d",
     "log_protocol": "two_period_clear_then_replace_v1_retry",
     "owner": "lvshuai01",
-    "channel_mapping_version": "1002"
+    "channel_mapping_version": "1009"
   },
   "intake": {
     "request_number": "market_consultant/app_grade_9",

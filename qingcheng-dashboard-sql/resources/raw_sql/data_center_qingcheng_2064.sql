@@ -182,89 +182,152 @@ normal_first_connected as (
 -- 原青橙正常线索路径，输出到共享过程行接口。
 -- 对本地化规则，源表 valid_lead_count 归零但 merge_valid_lead_count=1 时，
 -- 通过稳定 merge_root_lead_id 回补一次有效量；其他渠道保持原口径。
+
+-- 本地化 merge 回补按本次分配核验；抖音私信等其他渠道保持原口径。
+local_merge_allocation_keys AS (
+SELECT DISTINCT
+  f.group_period_year AS source_period_year,
+  f.group_period_term AS source_period_term,
+  f.lead_id,
+  f.employee_email_prefix,
+  f.section_assign_time
+FROM bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df AS f
+WHERE
+  f.dt = FORMAT_DATETIME(CURRENT_TIMESTAMP - INTERVAL '3' HOUR, 'YYYYMMdd')
+  AND f.hour = FORMAT_DATETIME(CURRENT_TIMESTAMP - INTERVAL '4' HOUR, 'HH')
+  AND f.section_assign_employee_first_level_department_name = 'H业务线'
+  AND f.section_assign_employee_second_level_department_name = '青橙项目部'
+  AND f.period_mapping_first_level_department_name = 'H业务线'
+  AND f.period_mapping_second_level_department_name IN ('精品班学部', '菁英班学部', '市场部', '青橙项目部')
+  AND f.virtual_second_department_name = '青橙项目部'
+  AND (
+    COALESCE(TRY_CAST(f.valid_lead_count AS BIGINT), 0) = 0
+    AND COALESCE(TRY_CAST(f.merge_valid_lead_count AS BIGINT), 0) > 0
+    AND (
+      REPLACE(COALESCE(f.rule_name, ''), ' ', '') LIKE '%青橙本地化%'
+      OR REPLACE(COALESCE(f.rule_name, ''), ' ', '') LIKE '%河南本地化%'
+      OR REPLACE(COALESCE(f.rule_name, ''), ' ', '') LIKE '%私域本地化%'
+    )
+  )
+),
+local_merge_allocation_resolved AS (
+SELECT
+  k.source_period_year,
+  k.source_period_term,
+  k.lead_id,
+  k.employee_email_prefix,
+  k.section_assign_time,
+  COUNT(r.lead_id) AS assignment_match_count,
+  MAX(r.rule_name) AS actual_assignment_rule
+FROM local_merge_allocation_keys AS k
+LEFT JOIN service_dw.dim_crm_assign_rule_lead_detail_hf AS r
+  ON r.lead_id = k.lead_id
+  AND r.account_domain = k.employee_email_prefix
+  AND r.create_time BETWEEN TRY_CAST(k.section_assign_time AS TIMESTAMP) - INTERVAL '1' SECOND AND TRY_CAST(k.section_assign_time AS TIMESTAMP) + INTERVAL '1' SECOND
+  AND r.dt = FORMAT_DATETIME(CURRENT_TIMESTAMP - INTERVAL '3' HOUR, 'YYYYMMdd')
+  AND r.hour = FORMAT_DATETIME(CURRENT_TIMESTAMP - INTERVAL '4' HOUR, 'HH')
+  AND r.state IN (1, 3)
+  AND r.fail_reason = 0
+GROUP BY
+  k.source_period_year,
+  k.source_period_term,
+  k.lead_id,
+  k.employee_email_prefix,
+  k.section_assign_time
+),
 normal_data_raw as (
-    select distinct
-        'normal_lead' as record_source,
-        cast(null as bigint) as prelead_id,
-        cast(f.lead_id as bigint) as transfer_lead_id,
-        cast(f.lead_id as bigint) as process_lead_id,
-        cast(f.user_id as bigint) as user_id,
-        coalesce(
-            cal.qici,
-            concat(
-                date_format(
-                    date_trunc('week',
-                        date_parse(
-                            replace(concat(f.group_period_year, f.group_period_term), '期', ''),
-                            '%Y%m%d'
-                        )) + interval '4' day,
-                    '%Y%m%d'
-                ),
-                '期'
-            )
-        ) as qici,
-        f.rule_name,
-        substr(f.section_assign_time, 1, 10) as assign_day,
-        cast(f.section_assign_time as timestamp) as section_assign_timestamp,
-        cast(null as varchar) as tmk_channel_detail,
-        case
-            when f.rule_name like '%高一%' then '高一'
-            when f.rule_name like '%高二%' then '高二'
-            when f.rule_name like '%高三%' then '高三'
-            when f.rule_name like '%初二%' then '初二'
-            when f.rule_name like '%初三%' then '初三'
-            else f.lead_purchase_intention_level2_category_name
-        end as grade_1,
-        f.employee_email_name,
-        f.employee_email_prefix,
-        cast(null as varchar) as fallback_department,
-        cast(null as varchar) as fallback_dept_2,
-        cast(null as varchar) as fallback_xiaozu,
-        coalesce(try_cast(f.valid_lead_count as bigint), 0) as source_valid_lead_count,
-        coalesce(try_cast(f.merge_valid_lead_count as bigint), 0) as source_merge_valid_lead_count,
-        jt.merge_root_lead_id,
-        coalesce(try_cast(f.friend_lead_count as bigint), 0) as source_friend_lead_count,
-        date_diff(
-            'hour',
-            cast(f.section_assign_time as timestamp),
-            cast(f.first_call_time as timestamp)
-        ) as first_call_time_diff_hour,
-        jt.first_call_connected_time_diff_hour as first_call_connected_time_diff_hour_1,
-        cast(null as bigint) as source_call_duration_seconds,
-        cast(null as bigint) as source_call_connected_count,
-        cast(null as bigint) as source_call_missed_count
-    from bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df f
-    left join normal_first_connected jt
-      on cast(f.lead_id as bigint) = jt.lead_id
-    left join biz_qici_calendar cal
-      on cast(
-          try(date_parse(replace(concat(f.group_period_year, f.group_period_term), '期', ''), '%Y%m%d'))
-          as date
-      ) between cal.start_date and cal.end_date
-    left join tmk_output_transfer_ids tmk_dup
-      on cast(f.lead_id as bigint) = tmk_dup.transfer_lead_id
-    where f.dt = format_datetime(current_timestamp - interval '3' hour, 'YYYYMMdd')
-      and f.hour = format_datetime(current_timestamp - interval '4' hour, 'HH')
-      and f.section_assign_employee_first_level_department_name = 'H业务线'
-      and f.section_assign_employee_second_level_department_name = '青橙项目部'
-      and f.period_mapping_first_level_department_name = 'H业务线'
-      and f.period_mapping_second_level_department_name in (
-          '精品班学部', '菁英班学部', '市场部', '青橙项目部'
+SELECT DISTINCT
+  'normal_lead' AS record_source,
+  CAST(NULL AS BIGINT) AS prelead_id,
+  CAST(f.lead_id AS BIGINT) AS transfer_lead_id,
+  CAST(f.lead_id AS BIGINT) AS process_lead_id,
+  CAST(f.user_id AS BIGINT) AS user_id,
+  COALESCE(
+    cal.qici,
+    CONCAT(
+      DATE_FORMAT(
+        DATE_TRUNC(
+          'WEEK',
+          DATE_PARSE(REPLACE(CONCAT(f.group_period_year, f.group_period_term), '期', ''), '%Y%m%d')
+        ) + INTERVAL '4' DAY,
+        '%Y%m%d'
+      ),
+      '期'
+    )
+  ) AS qici,
+  f.rule_name,
+  SUBSTR(f.section_assign_time, 1, 10) AS assign_day,
+  CAST(f.section_assign_time AS TIMESTAMP) AS section_assign_timestamp,
+  CAST(NULL AS VARCHAR) AS tmk_channel_detail,
+  CASE
+    WHEN f.rule_name LIKE '%高一%'
+    THEN '高一'
+    WHEN f.rule_name LIKE '%高二%'
+    THEN '高二'
+    WHEN f.rule_name LIKE '%高三%'
+    THEN '高三'
+    WHEN f.rule_name LIKE '%初二%'
+    THEN '初二'
+    WHEN f.rule_name LIKE '%初三%'
+    THEN '初三'
+    ELSE f.lead_purchase_intention_level2_category_name
+  END AS grade_1,
+  f.employee_email_name,
+  f.employee_email_prefix,
+  CAST(NULL AS VARCHAR) AS fallback_department,
+  CAST(NULL AS VARCHAR) AS fallback_dept_2,
+  CAST(NULL AS VARCHAR) AS fallback_xiaozu,
+  COALESCE(TRY_CAST(f.valid_lead_count AS BIGINT), 0) AS source_valid_lead_count,
+  COALESCE(TRY_CAST(f.merge_valid_lead_count AS BIGINT), 0) AS source_merge_valid_lead_count,
+  jt.merge_root_lead_id,
+  COALESCE(TRY_CAST(f.friend_lead_count AS BIGINT), 0) AS source_friend_lead_count,
+  DATE_DIFF(
+    'HOUR',
+    CAST(f.section_assign_time AS TIMESTAMP),
+    CAST(f.first_call_time AS TIMESTAMP)
+  ) AS first_call_time_diff_hour,
+  jt.first_call_connected_time_diff_hour AS first_call_connected_time_diff_hour_1,
+  CAST(NULL AS BIGINT) AS source_call_duration_seconds,
+  CAST(NULL AS BIGINT) AS source_call_connected_count,
+  CAST(NULL AS BIGINT) AS source_call_missed_count,
+  ma.assignment_match_count AS local_merge_assignment_match_count,
+  ma.actual_assignment_rule AS local_merge_actual_assignment_rule
+FROM bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df AS f
+LEFT JOIN normal_first_connected AS jt
+  ON CAST(f.lead_id AS BIGINT) = jt.lead_id
+LEFT JOIN biz_qici_calendar AS cal
+  ON CAST(TRY(
+    DATE_PARSE(REPLACE(CONCAT(f.group_period_year, f.group_period_term), '期', ''), '%Y%m%d')
+  ) AS DATE) BETWEEN cal.start_date AND cal.end_date
+LEFT JOIN tmk_output_transfer_ids AS tmk_dup
+  ON CAST(f.lead_id AS BIGINT) = tmk_dup.transfer_lead_id
+LEFT JOIN local_merge_allocation_resolved AS ma
+  ON ma.source_period_year = f.group_period_year
+  AND ma.source_period_term = f.group_period_term
+  AND ma.lead_id = f.lead_id
+  AND ma.employee_email_prefix = f.employee_email_prefix
+  AND ma.section_assign_time = f.section_assign_time
+WHERE
+  f.dt = FORMAT_DATETIME(CURRENT_TIMESTAMP - INTERVAL '3' HOUR, 'YYYYMMdd')
+  AND f.hour = FORMAT_DATETIME(CURRENT_TIMESTAMP - INTERVAL '4' HOUR, 'HH')
+  AND f.section_assign_employee_first_level_department_name = 'H业务线'
+  AND f.section_assign_employee_second_level_department_name = '青橙项目部'
+  AND f.period_mapping_first_level_department_name = 'H业务线'
+  AND f.period_mapping_second_level_department_name IN ('精品班学部', '菁英班学部', '市场部', '青橙项目部')
+  AND (
+    COALESCE(TRY_CAST(f.valid_lead_count AS BIGINT), 0) > 0
+    OR (
+      COALESCE(TRY_CAST(f.merge_valid_lead_count AS BIGINT), 0) > 0
+      AND NOT jt.merge_root_lead_id IS NULL
+      AND (
+        REPLACE(COALESCE(f.rule_name, ''), ' ', '') LIKE '%青橙本地化%'
+        OR REPLACE(COALESCE(f.rule_name, ''), ' ', '') LIKE '%河南本地化%'
+        OR REPLACE(COALESCE(f.rule_name, ''), ' ', '') LIKE '%私域本地化%'
       )
-      and (
-          coalesce(try_cast(f.valid_lead_count as bigint), 0) > 0
-          or (
-              coalesce(try_cast(f.merge_valid_lead_count as bigint), 0) > 0
-              and jt.merge_root_lead_id is not null
-              and (
-                  replace(coalesce(f.rule_name, ''), ' ', '') like '%青橙本地化%'
-                  or replace(coalesce(f.rule_name, ''), ' ', '') like '%河南本地化%'
-                  or replace(coalesce(f.rule_name, ''), ' ', '') like '%私域本地化%'
-              )
-          )
-      )
-      and f.virtual_second_department_name = '青橙项目部'
-      and tmk_dup.transfer_lead_id is null
+    )
+  )
+  AND f.virtual_second_department_name = '青橙项目部'
+  AND tmk_dup.transfer_lead_id IS NULL
 ),
 
 -- 正常线索宽表的有效标志会随合并状态在普通字段和 merge 字段之间迁移，
@@ -292,53 +355,81 @@ normal_data_ranked as (
     from normal_data_raw
 ),
 normal_data as (
-    select
-        record_source,
-        prelead_id,
-        transfer_lead_id,
-        process_lead_id,
-        user_id,
-        qici,
-        rule_name,
-        assign_day,
-        section_assign_timestamp,
-        tmk_channel_detail,
-        grade_1,
-        employee_email_name,
-        employee_email_prefix,
-        fallback_department,
-        fallback_dept_2,
-        fallback_xiaozu,
-        case
-            when canonical_source_valid_lead_count > 0 then canonical_source_valid_lead_count
-            when canonical_merge_valid_lead_count > 0 and merge_root_lead_id is not null
-            then canonical_merge_valid_lead_count
-            else 0
-        end as valid_lead_count,
-        case
-            when canonical_source_valid_lead_count > 0
-              or (canonical_merge_valid_lead_count > 0 and merge_root_lead_id is not null)
-            then 1 else 0
-        end as v_lead,
-        case
-            when canonical_source_valid_lead_count > 0
-              or (canonical_merge_valid_lead_count > 0 and merge_root_lead_id is not null)
-            then source_friend_lead_count else 0
-        end as is_friend_lead,
-        first_call_time_diff_hour,
-        first_call_connected_time_diff_hour_1,
-        source_call_duration_seconds,
-        source_call_connected_count,
-        source_call_missed_count,
-        merge_root_lead_id,
-        case
-            when canonical_source_valid_lead_count > 0 then 0
-            when canonical_merge_valid_lead_count > 0 and merge_root_lead_id is not null
-            then canonical_merge_valid_lead_count
-            else 0
-        end as merge_valid_lead_count
-    from normal_data_ranked
-    where normal_lead_rn = 1
+SELECT
+  record_source,
+  prelead_id,
+  transfer_lead_id,
+  process_lead_id,
+  user_id,
+  qici,
+  rule_name,
+  assign_day,
+  section_assign_timestamp,
+  tmk_channel_detail,
+  grade_1,
+  employee_email_name,
+  employee_email_prefix,
+  fallback_department,
+  fallback_dept_2,
+  fallback_xiaozu,
+  CASE
+    WHEN canonical_source_valid_lead_count > 0
+    THEN canonical_source_valid_lead_count
+    WHEN canonical_merge_valid_lead_count > 0 AND NOT merge_root_lead_id IS NULL
+    THEN canonical_merge_valid_lead_count
+    ELSE 0
+  END AS valid_lead_count,
+  CASE
+    WHEN canonical_source_valid_lead_count > 0
+    OR (
+      canonical_merge_valid_lead_count > 0 AND NOT merge_root_lead_id IS NULL
+    )
+    THEN 1
+    ELSE 0
+  END AS v_lead,
+  CASE
+    WHEN canonical_source_valid_lead_count > 0
+    OR (
+      canonical_merge_valid_lead_count > 0 AND NOT merge_root_lead_id IS NULL
+    )
+    THEN source_friend_lead_count
+    ELSE 0
+  END AS is_friend_lead,
+  first_call_time_diff_hour,
+  first_call_connected_time_diff_hour_1,
+  source_call_duration_seconds,
+  source_call_connected_count,
+  source_call_missed_count,
+  merge_root_lead_id,
+  CASE
+    WHEN canonical_source_valid_lead_count > 0
+    THEN 0
+    WHEN canonical_merge_valid_lead_count > 0 AND NOT merge_root_lead_id IS NULL
+    THEN canonical_merge_valid_lead_count
+    ELSE 0
+  END AS merge_valid_lead_count
+FROM normal_data_ranked
+WHERE
+  normal_lead_rn = 1
+  AND CASE
+    WHEN canonical_source_valid_lead_count > 0
+    THEN 1
+    WHEN canonical_merge_valid_lead_count > 0 AND NOT merge_root_lead_id IS NULL
+    THEN CAST(CASE
+      WHEN COALESCE(local_merge_assignment_match_count, 0) = 1
+      THEN CASE
+        WHEN (
+          REPLACE(COALESCE(local_merge_actual_assignment_rule, ''), ' ', '') LIKE '%青橙本地化%'
+          OR REPLACE(COALESCE(local_merge_actual_assignment_rule, ''), ' ', '') LIKE '%河南本地化%'
+          OR REPLACE(COALESCE(local_merge_actual_assignment_rule, ''), ' ', '') LIKE '%私域本地化%'
+        )
+        THEN '1'
+        ELSE '0'
+      END
+      ELSE 'UNRESOLVED_LOCAL_MERGE_ALLOCATION'
+    END AS INTEGER)
+    ELSE 0
+  END = 1
 ),
 
 -- 潜客宽表可能一潜客多行；优先保留有效、规则/顾问完整且分配时间最新的一行。
@@ -433,6 +524,11 @@ tmk_data as (
         substr(section_assign_time, 1, 10) as assign_day,
         cast(section_assign_time as timestamp) as section_assign_timestamp,
         case
+    when rule_name like '%私域裂变%' then '私域裂变'
+    when rule_name like '%公域自然流%' then '公域自然流'
+    when rule_name like '%公域-自然流%' then '公域自然流'
+    when rule_name like '%内部图书%' then '内部图书'
+    when rule_name like '%SEC内部未加好友%' then 'SEC内部未加好友'
             when rule_name like '%武汉图书%' then '武汉图书'
             when rule_name like '%西安图书%' then '西安图书'
             when rule_name like '%公域学霸%'
@@ -500,6 +596,11 @@ data as (
     select
         r.*,
         case
+    when r.rule_name like '%私域裂变%' then '私域'
+    when r.rule_name like '%公域自然流%' then '公域'
+    when r.rule_name like '%公域-自然流%' then '公域'
+    when r.rule_name like '%内部图书%' then '图书'
+    when r.rule_name like '%SEC内部未加好友%' then '订单复用'
             when r.record_source = 'tmk_prelead'
               and r.tmk_channel_detail = '公域学霸' then '公域'
             when r.record_source = 'tmk_prelead'
@@ -543,6 +644,11 @@ data as (
               or r.rule_name like '%进校%' then '进校9元'
         end as channel_map_1,
         case
+    when r.rule_name like '%私域裂变%' then '私域裂变'
+    when r.rule_name like '%公域自然流%' then '公域自然流'
+    when r.rule_name like '%公域-自然流%' then '公域自然流'
+    when r.rule_name like '%内部图书%' then '内部图书'
+    when r.rule_name like '%SEC内部未加好友%' then 'SEC内部未加好友'
             when r.record_source = 'tmk_prelead' then r.tmk_channel_detail
             when r.record_source = 'normal_lead'
               and replace(coalesce(r.rule_name, ''), ' ', '') like '%青橙IP-招生退费-春春%' then '春春'

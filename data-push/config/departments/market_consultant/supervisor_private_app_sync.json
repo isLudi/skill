@@ -5,7 +5,8 @@
   "channel": "集团私域",
   "channels": [
     "集团私域",
-    "app"
+    "app",
+    "人工外呼"
   ],
   "adapter": "market-grade-manager-v1",
   "source": {
@@ -19,7 +20,8 @@
       "case_sensitive": true,
       "values": {
         "集团私域": "集团私域",
-        "app": "app"
+        "app": "app",
+        "人工外呼": ["人工外呼", "唐山TMK"]
       },
       "casefold_channels": ["app"]
     },
@@ -38,7 +40,7 @@
     {
       "id": "private_app_sync",
       "chat_id": "oc_b43002a3c802ee5ae2d5b2f10d7d50a2",
-      "display_name": "💪【0911期】APP+私域+图书直播🔥信息同步",
+      "display_name": "💪【1016期】APP➕自营TMK",
       "enabled": true
     }
   ],
@@ -59,6 +61,7 @@
       6
     ],
     "excluded_grades": [],
+    "included_grades": ["高一", "高二", "高三"],
     "minimum_post_leads": 10
   },
   "schedule": {
@@ -87,11 +90,11 @@
     "task_id": 47252,
     "nezha_task_id": 66504,
     "schedule_id": 53831,
-    "exec_file_id": 837025,
-    "verified_version_id": 207988,
-    "verified_source_sha256": "6a718d8314b89251a3a4365cdc66f58b2d2e627934228ad45209196baba85c79",
+    "exec_file_id": 837865,
+    "verified_version_id": 208042,
+    "verified_source_sha256": "ebf2bfd2635d336d1584827a56e41602d2d834671afc71feacb11472be5c958d",
     "log_protocol": "two_period_clear_then_replace_v1_retry",
     "owner": "lvshuai01",
-    "channel_mapping_version": "1002"
+    "channel_mapping_version": "1009"
   }
 }

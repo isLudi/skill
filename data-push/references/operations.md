@@ -51,6 +51,10 @@ V16与V17均使用 `two_period_clear_then_replace_v1`：先校验旧/新两期�
 
 2026-09-25 进量版本联动：`market2lark_jinliang` V26 / 207067 / `execFileId=827092` / SHA-256 `3ed7b24b81129a1d241bcd52258e51208139b22257761b6bb7e8594625fdb4fc`，21:00 唯一计划执行 172770298 成功，采用 `dt=20260925/hour=19`，49 行、13 列、两期、15 个渠道；创建 49 条、回读 49 条、删除旧 49 条并最终回读 49 条。源码与最新已发布源码 Hash 相同。此版将预估量级和实际进量统一按分配规则渠道汇总，并修复带年份的规则期次解析；本地共用进量 pin 已绑定到该计划实例。
 
+2026-10-13 warning 批次升级收尾：`market2lark_warning` 当前绑定 V8/version `208044`、实际 `execFileId=837867`、源码 SHA-256 `87c47311119ccd42807cad0a28fa520726307896b5413042aa8913632590c1cf`。自有 task `47889`、Nezha `67653`、menu `104255`、schedule `55203` 保持原样。2026-10-12 17:10 的既有唯一 `SCHEDULE` 执行 `175809802` 于 17:20:12 成功完成，26 字段，新记录创建及全量逐字段回读 9857 条、旧记录删除 15432 条、最终回读 9857 条，`exit_code=0`；当前源码与最新已发布源码一致。删除每批 500、写入每批 1000，日志协议仍为 `warning_two_period_create_then_delete_v1`。本机 `supervisor_koc_zhoushuai_warning` 配置已同步版本、源码 Hash、执行文件及验收执行编号。
+
+此次 warning 联动完成晚于本机窗口：2026-10-12 17:45 启动时仍绑定旧版本，KOC-周帅数学、抖音私信、KOC-孟亚飞数学、自孵化 KOC 初三四份报告均 `blocked_before_send`，原因是 `Published warning source/version no longer matches local binding`，没有消息发送。验收监测在北京时间次日凌晨才触发。故障回执位于机器 `paths.push_log_root` 下本渠道 `2026-10-12/174501-Codex-Lark-Market-KOC-Zhoushuai-Warning-Push.result.json`。历史执行日志 parser 仅按执行结束时刻核验历史数据；当前过期快照仍被新鲜度门禁拒绝。未改任务计划、群、发送日历或启停状态，未补发历史报告。将来再次发布应在已启用本机触发前完成绑定，监测配置必须核对时区及实际下一次触发时刻。
+
 未完成上述联动时，旧 `exec_file_id` 门禁应继续拒绝新执行文件；不得删除版本比较、改成自动接受最新版或依靠重试掩盖发布漂移。
 
 **2026-09-14故障记录**：V16于17:15发布，21:00计划实例已使用819021并成功写入Base，但本地四个21点任务仍绑定V14/818459。它们从21:22至约21:50持续命中 `published execution file changed`，最终退出1且没有生成当批图片或写入发送ledger。根因是远端发布与本地pin同步被拆成两个未闭环步骤。

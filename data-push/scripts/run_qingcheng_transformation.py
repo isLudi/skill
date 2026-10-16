@@ -129,9 +129,9 @@ def _batch() -> dict:
     upstream = batch["upstream"]
     if (upstream["project_id"], upstream["folder"], upstream["task_id"], upstream["task_name"],
             upstream["nezha_task_id"], upstream["menu_id"], upstream["published_version"],
-            upstream["version_id"], upstream["source_sha256"], upstream["audit_mode"]) != (
-                308, "吕帅", 47775, "qing2lark_zhuanhua", 67397, 103713, "V6", 207547,
-                "97aed7e48398d6a4321e0b11fab0cff44de67edb8f5f21622e7d1424a0521a39", "none"):
+            upstream["version_id"], upstream["exec_file_id"], upstream["source_sha256"], upstream["audit_mode"]) != (
+                308, "吕帅", 47775, "qing2lark_zhuanhua", 67397, 103713, "V7", 207706, 837872,
+                "5ed53a45e32dc9e2cfa9e08b88bae3a9103b2e6a68936ec574c501281c2f5db0", "none"):
         raise ValueError("Transformation upstream pin differs")
     return batch
 

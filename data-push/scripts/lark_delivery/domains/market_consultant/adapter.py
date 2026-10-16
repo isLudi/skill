@@ -104,8 +104,9 @@ def validate_definition(definition):
     match_mode = match.get("match_mode", "exact")
     if match_mode == "exact":
         values = match.get("values")
-        if not isinstance(values, dict) or tuple(values) != channels or any(values.get(name) != name for name in channels):
-            raise ValueError("渠道匹配契约必须为每个登记渠道声明相同的规范值")
+        expected_values = getattr(policy, "SOURCE_CHANNEL_VALUES", {name: name for name in channels})
+        if not isinstance(values, dict) or tuple(values) != channels or values != expected_values:
+            raise ValueError("渠道匹配契约必须与本渠道已审阅的原始渠道映射一致")
         folded = match.get("casefold_channels", [])
         app_casefold_channels = {"supervisor_private_app_sync", "supervisor_yafei_grade_9", "app_grade_9"}
         if (not isinstance(folded, list) or
@@ -123,7 +124,7 @@ def validate_definition(definition):
         if report["minimum_post_leads"] != policy.MIN_POST_LEADS:
             raise ValueError("陈瑞春顾问退后线索门槛与已审阅规则不一致")
     if definition["channel_id"] == "app_grade_9":
-        if (report["minimum_post_leads"] != 5 or report.get("show_totals") is not False
+        if (report["minimum_post_leads"] != 5 or report.get("show_totals") is not True
                 or report.get("result_reminder_metric") != "截面单效"
                 or report.get("weekend_next_process_enabled") is not True):
             raise ValueError("APP初三顾问展示门槛、总计或提醒指标与已确认需求不一致")

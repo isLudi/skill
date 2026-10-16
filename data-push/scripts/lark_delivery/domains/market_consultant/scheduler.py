@@ -419,6 +419,14 @@ def run_slot(cfg, preflight, slot, state, db):
     if cfg.get("channel_key") == "market_consultant/app_grade_9":
         from . import app_sequence
         return app_sequence.run_slot(cfg, preflight, slot, state, db)
+    if cfg.get("channel_key") in {
+            "market_consultant/supervisor_yafei_grade_9",
+            "market_consultant/supervisor_yafei_grade_9_advisor"}:
+        from .app_sequence import delegated_channels
+        if not delegated_channels(cfg, cfg["channels"]):
+            record_channel(db, slot, "legacy_grade9_route", "delegated_to_group_coordinator",
+                           "APP与B站主管/顾问消息由统一初三任务投递")
+            return 0
     cached = []
     pending = None
     blocked = {}

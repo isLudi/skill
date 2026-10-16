@@ -98,8 +98,8 @@ def _batch() -> dict:
             upstream["owner"], upstream["published_version"], upstream["version_id"], upstream["exec_file_id"],
             upstream["source_sha256"], upstream["audit_schema"]) != (
             2, "Codex-Lark-Qingcheng-Process-GroupPush", 308, "吕帅", 103625, 47728, 67318,
-            "qing2lark_guocheng", "lvshuai01", "V29", 207387, 831981,
-            "2da69b923428509481cb185017d8ad05a1a126e5600c8f418396f51d12130de6",
+            "qing2lark_guocheng", "lvshuai01", "V31", 208745, 840241,
+            "9bf5300e48b42c31a6bb7512b02b537ed9a43ba37bb30c4062e34c0d90138604",
             "market2lark-two-period-audit-v1"):
         raise ValueError("Qingcheng upstream or Windows task pin differs")
     return batch
@@ -153,6 +153,22 @@ def _expected_upstream_period_time(slot: datetime) -> str:
     return upstream_start.replace(minute=0, second=0, microsecond=0).strftime("%Y-%m-%d %H:%M:%S")
 
 
+def _execution_order(entry: dict) -> tuple[datetime, int]:
+    # Scheduled rows receive IDs before dispatch. A later manual validation can
+    # have a larger ID while starting earlier than the queued natural run.
+    # A row still queued without a start/dispatch cannot have replaced Base.
+    # Other rows without an actual time retain their conservative planned time.
+    point = (entry.get("startTime") or entry.get("dispatchTime") or entry.get("planRunTime")
+             or entry.get("triggerTime") or entry.get("periodTime"))
+    try:
+        observed = datetime.strptime(point, "%Y-%m-%d %H:%M:%S")
+        if entry.get("status") == 0 and not entry.get("startTime") and not entry.get("dispatchTime"):
+            observed = datetime.min
+        return observed, int(entry["id"])
+    except (KeyError, TypeError, ValueError) as exc:
+        raise ValueError("Qingcheng execution chronology is missing or invalid") from exc
+
+
 def _upstream_audit(period: str, slot: datetime) -> dict:
     history_result = _operator_read("list-execution-history", "--limit", "50")
     history = json.loads((Path(history_result["artifact_dir"]) / "history.json").read_text(encoding="utf-8"))
@@ -170,12 +186,12 @@ def _upstream_audit(period: str, slot: datetime) -> dict:
             entry_config = json.loads(entry.get("runConfig") or "{}")
         except (TypeError, json.JSONDecodeError):
             continue
-        if (entry_config.get("projectId"), entry_config.get("execFileId")) == (308, 831981):
+        if (entry_config.get("projectId"), entry_config.get("execFileId")) == (308, 840241):
             candidates.append(entry)
     if len(candidates) != 1:
         raise ValueError("Expected upstream-hour successful qing2lark execution is not unique")
     latest = candidates[0]
-    if latest["id"] != max(entry["id"] for entry in history["executions"]):
+    if latest["id"] != max(history["executions"], key=_execution_order)["id"]:
         raise ValueError("A newer qing2lark execution may have replaced the source")
     run_config = json.loads(latest["runConfig"])
     # 执行行报的是该行建立时的任务名快照：改名后建立的行已报新名，改名前的行仍报
@@ -185,7 +201,7 @@ def _upstream_audit(period: str, slot: datetime) -> dict:
     if (latest.get("taskId"), latest.get("periodTime"),
             run_config.get("projectId"), run_config.get("execFileId")) != (
             67318, upstream_period_time,
-            308, 831981):
+            308, 840241):
         raise ValueError("The expected upstream-hour qing2lark execution is not successful or has drifted")
     if run_config.get("triggerSourceEnum") not in ("SCHEDULE", "EXECUTE"):
         raise ValueError("The expected upstream-hour qing2lark execution has an unexpected trigger")

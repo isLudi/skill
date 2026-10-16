@@ -287,7 +287,7 @@ D:\anaconda3\python.exe scripts\tiangong2_task.py plan-task-submit `
   --resubmit-after-schedule-receipt <verified-development-schedule-save-receipt.json>
 ```
 
-两个回执及其原计划必须位于 Tiangong2 专用 runtime，Hash、精确任务及负责人一致；原提交已验证成功，调度保存时间必须晚于原提交。当前源码及最新发布版本必须与原提交计划一致，且恰好一个匹配的待发布版本是原提交计划之后产生的。开发页配置必须与保存回读一致（只忽略跨时间推进的派生 `nextRunTime`），实际 Nezha 配置与生效视图也必须匹配。曾有 `saved_effective_scheduler_mismatch` 的回执只证明开发页保存；必须由当前在线 Nezha 回读证明已完成同步，才能重提。
+两个回执及其原计划必须位于 Tiangong2 专用 runtime，Hash、精确任务及负责人一致；原提交已验证成功，调度保存时间必须晚于原提交。当前源码及最新发布版本必须与原提交计划一致，且恰好一个匹配的待发布版本是原提交计划之后产生的；平台复用已有待发布版本 ID 时，原计划必须记录该版本的不同源码 Hash，当前回读必须证明它已变为本次已保存源码 Hash，缺失、重复或原本已匹配的 Hash 证据均阻断。开发页配置必须与保存回读一致（只忽略跨时间推进的派生 `nextRunTime`），实际 Nezha 配置与生效视图也必须匹配。曾有 `saved_effective_scheduler_mismatch` 的回执只证明开发页保存；必须由当前在线 Nezha 回读证明已完成同步，才能重提。
 
 执行仍使用独立 `submit-task --plan-file ... --expected-plan-sha256 ... --confirm-submit`，该模式不接受 M 级代替 P 级确认。提交前重验所有回执、源码、版本、配置与身份；请求前在 `resubmit-claims` 中按任务及原调度计划 Hash 独占预留一次尝试。更换文件名、重新生成计划或进程重启均不能复用已消费的证据，失败或状态不确定不得自动重试。回读必须保持源码不变且待发布目标唯一；出现重复目标时停止，不能任意选择最新版本发布。
 

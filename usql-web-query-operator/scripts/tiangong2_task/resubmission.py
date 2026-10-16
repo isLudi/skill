@@ -85,9 +85,21 @@ def load_resubmission_evidence(*, previous_submit_receipt: Path, schedule_save_r
         if not prior_state.get(key) or prior_state[key] != baseline.get(key):
             raise UsageError(f"Resubmission source or published version differs from previous submit: {key}")
     matches = baseline.get("matching_unpublished_version_ids") or []
-    if (baseline.get("source_matches_latest_published") or len(matches) != 1
-            or matches[0] in prior_state.get("baseline_version_ids", [])):
+    if baseline.get("source_matches_latest_published") or len(matches) != 1:
         raise UsageError("Resubmission requires exactly one pending version created after the previous submit plan")
+    reused_version = matches[0] in prior_state.get("baseline_version_ids", [])
+    if reused_version:
+        before = [row.get("source_comparison_sha256")
+                  for row in prior_state.get("unpublished_version_sources", [])
+                  if row.get("version_id") == matches[0]]
+        after = [row.get("source_comparison_sha256")
+                 for row in baseline.get("unpublished_version_sources", [])
+                 if row.get("version_id") == matches[0]]
+        expected = prior_state["current_source_comparison_sha256"]
+        if (len(before) != 1 or len(after) != 1 or not before[0]
+                or before[0] == expected or after != [expected]
+                or matches[0] in prior_state.get("matching_unpublished_version_ids", [])):
+            raise UsageError("Reused pending version requires a verified submitted source-hash transition")
     readback = schedule.get("readback") or {}
     if (schedule.get("save_request_sent") is not True
             or readback.get("configuration_fully_verified") is not True
@@ -111,6 +123,7 @@ def load_resubmission_evidence(*, previous_submit_receipt: Path, schedule_save_r
         "schedule_plan_sha256": schedule_plan["plan_sha256"],
         "saved_schedule": _schedule_compare_value(saved),
         "pending_version_id": matches[0],
+        "pending_version_reused_with_source_transition": reused_version,
     }
     if claim_path(evidence, scope).exists():
         raise UsageError("This schedule save already consumed its single resubmission attempt; inspect its receipt")

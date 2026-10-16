@@ -120,6 +120,48 @@ class ResubmissionTests(unittest.TestCase):
         with self.assertRaisesRegex(UsageError, "resubmission evidence"):
             validate_submit_plan(finalize_hash(plan, "plan_sha256"))
 
+    def reused_version_evidence(self, previous_hash):
+        original = copy.deepcopy(self.original)
+        original["baseline"]["baseline_version_ids"].append(2)
+        original["baseline"]["unpublished_version_sources"] = [
+            {"version_id": 2, "source_comparison_sha256": previous_hash}]
+        path = self.write("reused_submit_plan.json", original, "plan_sha256")
+        receipt = json.loads(self.prior_path.read_text(encoding="utf-8"))
+        receipt["plan_file"] = str(path)
+        receipt["plan_sha256"] = json.loads(path.read_text(encoding="utf-8"))["plan_sha256"]
+        self.write(self.prior_path.name, receipt)
+
+    def test_reused_pending_version_requires_previous_different_source_hash(self):
+        self.reused_version_evidence("a" * 64)
+        plan = self.plan()
+        self.assertEqual(plan["status"], "ready")
+        self.assertTrue(plan["resubmission"]["pending_version_reused_with_source_transition"])
+        validate_submit_plan(plan)
+        validate_pre_submit_drift(self.reader, task=self.task, plan=plan, operations=self.operations)
+
+    def test_reused_pending_version_already_matching_is_rejected(self):
+        self.reused_version_evidence(self.original["baseline"]["current_source_comparison_sha256"])
+        with self.assertRaisesRegex(UsageError, "source-hash transition"):
+            self.plan()
+
+    def test_reused_pending_version_without_baseline_hash_is_rejected(self):
+        self.reused_version_evidence(None)
+        with self.assertRaisesRegex(UsageError, "source-hash transition"):
+            self.plan()
+
+    def test_reused_pending_version_duplicate_baseline_hash_is_rejected(self):
+        self.reused_version_evidence("a" * 64)
+        receipt = json.loads(self.prior_path.read_text(encoding="utf-8"))
+        path = Path(receipt["plan_file"])
+        original = json.loads(path.read_text(encoding="utf-8"))
+        original["baseline"]["unpublished_version_sources"].append(
+            {"version_id": 2, "source_comparison_sha256": "b" * 64})
+        self.write(path.name, original, "plan_sha256")
+        receipt["plan_sha256"] = json.loads(path.read_text(encoding="utf-8"))["plan_sha256"]
+        self.write(self.prior_path.name, receipt)
+        with self.assertRaisesRegex(UsageError, "source-hash transition"):
+            self.plan()
+
     def test_requires_both_receipts_and_live_scheduler(self):
         with self.assertRaisesRegex(UsageError, "both"):
             self.plan(previous_submit_receipt=None)

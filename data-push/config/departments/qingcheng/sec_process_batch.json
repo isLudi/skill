@@ -8,8 +8,19 @@
   "windows_task_name": "Codex-Lark-Qingcheng-SEC-Process-GroupPush",
   "business_calendar": {
     "period_rule": "自然周周五期次",
-    "process_weekdays": [1, 2, 3, 4, 5, 6],
-    "hours": [12, 16, 20],
+    "process_weekdays": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "hours": [
+      12,
+      16,
+      20
+    ],
     "minute": 0,
     "deadline_minute": 50,
     "retry_interval_minutes": 2,
@@ -21,29 +32,121 @@
     "view_id": "vewO4yxS3O",
     "lead_field": "退前线索",
     "sources": {
-      "sec_public": {"match": {"一级渠道": "公域", "渠道": "公域学霸", "部门": "SEC"}},
+      "sec_public": {
+        "match": {
+          "一级渠道": "公域",
+          "渠道": "公域学霸",
+          "部门": "SEC"
+        }
+      },
       "sec_order_reuse": {
-        "match": {"一级渠道": "订单复用", "部门": "SEC"},
-        "allowed_secondary_channels": ["SEC未加好友", "SEC首期掉海", "SEC招生退费"]
+        "match": {
+          "一级渠道": "订单复用",
+          "部门": "SEC"
+        },
+        "allowed_secondary_channels": [
+          "SEC未加好友",
+          "SEC首期掉海",
+          "SEC招生退费"
+        ]
       }
     }
   },
-  "sender": {"identity": "bot", "open_id": "ou_f3907e865135732c15a1dfce27828411"},
+  "sender": {
+    "identity": "bot",
+    "open_id": "ou_f3907e865135732c15a1dfce27828411"
+  },
   "visual": {
     "metric_bars": {
-      "好友率": {"min": 0, "max": 1, "color": "#8da7ca"},
-      "24h首call": {"min": 0, "max": 1, "color": "#77c09f"},
-      "外呼时长": {"min": 0, "max": 5, "color": "#f8ca70"},
-      "外呼频次": {"min": 0, "max": 8, "color": "#bea9dd"}
+      "好友率": {
+        "min": 0,
+        "max": 1,
+        "color": "#8da7ca"
+      },
+      "24h首call": {
+        "min": 0,
+        "max": 1,
+        "color": "#77c09f"
+      },
+      "外呼时长": {
+        "min": 0,
+        "max": 5,
+        "color": "#f8ca70"
+      },
+      "外呼频次": {
+        "min": 0,
+        "max": 8,
+        "color": "#bea9dd"
+      }
     },
-    "integer_fields": ["退前线索", "有效线索", "带班人数", "总通时"]
+    "integer_fields": [
+      "退前线索",
+      "有效线索",
+      "带班人数",
+      "总通时"
+    ]
   },
   "reports": [
-    {"id": "sec_no_friend_supervisor", "source": "sec_order_reuse", "secondary_channel": "SEC未加好友", "channel_name": "SEC未加好友", "level": "主管", "request_file": "sec_supervisor_no_friend_request.json", "chat_id": "oc_a9e3165a2509e9878fae04dc8394f6b0", "minimum_leads": 5, "split_grade": true, "unresolved_mention_action": "invite_then_text"},
-    {"id": "sec_first_period_drop_supervisor", "source": "sec_order_reuse", "secondary_channel": "SEC首期掉海", "channel_name": "SEC首期掉海", "level": "主管", "request_file": "sec_supervisor_first_period_drop_request.json", "chat_id": "oc_a9e3165a2509e9878fae04dc8394f6b0", "minimum_leads": 5, "split_grade": true, "unresolved_mention_action": "invite_then_text"},
-    {"id": "sec_public_consultant", "source": "sec_public", "secondary_channel": null, "channel_name": "公域", "level": "顾问", "request_file": "sec_public_consultant_request.json", "chat_id": "oc_a8e793c81080ebf5b14dd22bd83a05a1", "minimum_leads": 3, "split_grade": true, "unresolved_mention_action": "invite_then_text"},
-    {"id": "sec_order_reuse_consultant", "source": "sec_order_reuse", "secondary_channel": null, "channel_name": "订单复用", "level": "顾问", "request_file": "sec_order_reuse_consultant_request.json", "chat_id": "oc_a8e793c81080ebf5b14dd22bd83a05a1", "minimum_leads": 3, "split_grade": true, "unresolved_mention_action": "invite_then_text"},
-    {"id": "sec_public_supervisor", "source": "sec_public", "secondary_channel": null, "channel_name": "公域", "level": "主管", "request_file": "sec_public_supervisor_request.json", "chat_id": "oc_a9e3165a2509e9878fae04dc8394f6b0", "minimum_leads": 5, "split_grade": false, "unresolved_mention_action": "invite_then_text"}
+    {
+      "id": "sec_no_friend_supervisor",
+      "source": "sec_order_reuse",
+      "secondary_channel": "SEC未加好友",
+      "channel_name": "SEC未加好友",
+      "level": "主管",
+      "request_file": "sec_supervisor_no_friend_request.json",
+      "chat_id": "oc_a9e3165a2509e9878fae04dc8394f6b0",
+      "minimum_leads": 5,
+      "split_grade": true,
+      "unresolved_mention_action": "invite_then_text"
+    },
+    {
+      "id": "sec_first_period_drop_supervisor",
+      "source": "sec_order_reuse",
+      "secondary_channel": "SEC首期掉海",
+      "channel_name": "SEC首期掉海",
+      "level": "主管",
+      "request_file": "sec_supervisor_first_period_drop_request.json",
+      "chat_id": "oc_a9e3165a2509e9878fae04dc8394f6b0",
+      "minimum_leads": 5,
+      "split_grade": true,
+      "unresolved_mention_action": "invite_then_text"
+    },
+    {
+      "id": "sec_public_consultant",
+      "source": "sec_public",
+      "secondary_channel": null,
+      "channel_name": "公域",
+      "level": "顾问",
+      "request_file": "sec_public_consultant_request.json",
+      "chat_id": "oc_a8e793c81080ebf5b14dd22bd83a05a1",
+      "minimum_leads": 3,
+      "split_grade": true,
+      "unresolved_mention_action": "invite_then_text"
+    },
+    {
+      "id": "sec_order_reuse_consultant",
+      "source": "sec_order_reuse",
+      "secondary_channel": null,
+      "channel_name": "订单复用",
+      "level": "顾问",
+      "request_file": "sec_order_reuse_consultant_request.json",
+      "chat_id": "oc_a8e793c81080ebf5b14dd22bd83a05a1",
+      "minimum_leads": 3,
+      "split_grade": true,
+      "unresolved_mention_action": "invite_then_text"
+    },
+    {
+      "id": "sec_public_supervisor",
+      "source": "sec_public",
+      "secondary_channel": null,
+      "channel_name": "公域",
+      "level": "主管",
+      "request_file": "sec_public_supervisor_request.json",
+      "chat_id": "oc_a9e3165a2509e9878fae04dc8394f6b0",
+      "minimum_leads": 5,
+      "split_grade": false,
+      "unresolved_mention_action": "invite_then_text"
+    }
   ],
   "upstream": {
     "project_id": 308,
@@ -53,10 +156,10 @@
     "nezha_task_id": 67318,
     "task_name": "qing2lark_guocheng",
     "owner": "lvshuai01",
-    "published_version": "V29",
-    "version_id": 207387,
-    "exec_file_id": 831981,
-    "source_sha256": "2da69b923428509481cb185017d8ad05a1a126e5600c8f418396f51d12130de6",
+    "published_version": "V31",
+    "version_id": 208745,
+    "exec_file_id": 840241,
+    "source_sha256": "9bf5300e48b42c31a6bb7512b02b537ed9a43ba37bb30c4062e34c0d90138604",
     "audit_schema": "market2lark-two-period-audit-v1"
   },
   "configuration_base_writeback": "setup_only"

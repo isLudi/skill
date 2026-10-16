@@ -34,6 +34,12 @@ def _channel_scope(definition, requested):
     match_mode = contract.get("match_mode", "exact")
     if match_mode == "exact":
         source_value = contract.get("values", {}).get(requested)
+        if isinstance(source_value, list):
+            if (not source_value or any(not isinstance(name, str) or not name for name in source_value)
+                    or len(source_value) != len(set(source_value))
+                    or requested in contract.get("casefold_channels", [])):
+                raise ValueError("合并渠道必须声明非空、去重、大小写敏感的精确原始值")
+            return {"match_mode": "any_exact", "values": source_value}
         if not isinstance(source_value, str) or not source_value:
             raise ValueError(f"渠道 {requested} 缺少大小写敏感的 source_value 规范")
         if requested in contract.get("casefold_channels", []):
@@ -53,6 +59,8 @@ def _channel_matches(candidate, scope):
         return candidate == scope
     if scope.get("match_mode") == "casefold_exact":
         return candidate.casefold() == scope["value"].casefold()
+    if scope.get("match_mode") == "any_exact":
+        return candidate in scope["values"]
     if scope.get("match_mode") == "contains":
         keyword = scope["keyword"]
         if scope.get("case_sensitive", True):
@@ -67,6 +75,34 @@ def _channel_filter(scope):
     if scope.get("match_mode") == "casefold_exact":
         return None  # Base has no reviewed casefold filter; read the period, then match locally.
     return ["渠道", "contains", scope["keyword"]]
+
+
+def _read_channel_records(ports, coords, args, fields, period, scope, audit):
+    """Union exact source members; an empty member remains a valid zero-row read."""
+    if isinstance(scope, dict) and scope.get("match_mode") == "any_exact":
+        records, members = [], {}
+        for name in scope["values"]:
+            member = {}
+            chunk = ports.read_records(coords, args, fields, audit=member,
+                filter_json={"logic": "and", "conditions": [["渠道", "==", name], ["期次", "==", period]]})
+            member["matched_count"] = sum(_channel_matches(value(row, "渠道"), name)
+                                          and str(value(row, "期次")) == period for row in chunk)
+            records.extend(chunk)
+            members[name] = member
+        revisions = {member.get("rev") for member in members.values()}
+        if (len(revisions) != 1 or None in revisions
+                or any(member.get("has_more") is not False for member in members.values())):
+            raise ValueError("合并渠道的原始数据读取不完整或Base版本不一致")
+        audit.update(records_count=len(records), pages=sum(member.get("pages", 0) for member in members.values()),
+                     rev=next(iter(revisions)), has_more=False, source_channels=members,
+                     table_id=coords["table_id"], view_id=coords.get("view_id", ""))
+        return records
+    conditions = [["期次", "==", period]]
+    channel_filter = _channel_filter(scope)
+    if channel_filter is not None:
+        conditions.insert(0, channel_filter)
+    return ports.read_records(coords, args, fields, audit=audit,
+                              filter_json={"logic": "and", "conditions": conditions})
 
 
 DEDUP_MARKER_FIELDS = ("退前线索", "退后线索")
@@ -130,7 +166,10 @@ def source_channel_count(counts, match, channel):
     if match.get("match_mode") == "contains":
         keyword = match["keyword"]
         return sum(n for name, n in counts.items() if keyword in str(name))
-    return counts.get(channel, 0)
+    source_value = match.get("values", {}).get(channel, channel)
+    if isinstance(source_value, list):
+        return sum(counts.get(name, 0) for name in source_value)
+    return counts.get(source_value, 0)
 
 
 def source_present_channels(cfg, evidence, period):
@@ -179,12 +218,7 @@ def prepare_report(args: argparse.Namespace, definition, *, ports: ReportPorts |
     fields, counters = report_module.projection(names, report_type)
     raw_audit = {}
     source_channel = _channel_scope(definition, channel)
-    channel_filter = _channel_filter(source_channel)
-    conditions = [["期次", "==", period]]
-    if channel_filter is not None:
-        conditions.insert(0, channel_filter)
-    records = ports.read_records(raw_coords, args, fields, audit=raw_audit,
-        filter_json={"logic": "and", "conditions": conditions})
+    records = _read_channel_records(ports, raw_coords, args, fields, period, source_channel, raw_audit)
     server_returned_count = len(records)
     records = [row for row in records if _channel_matches(value(row, "渠道"), source_channel)
                and str(value(row, "期次")) == period]
@@ -192,6 +226,8 @@ def prepare_report(args: argparse.Namespace, definition, *, ports: ReportPorts |
     raw_audit["client_excluded_count"] = server_returned_count - len(records)
     raw_audit["channel_match_mode"] = source_channel.get("match_mode", "exact") if isinstance(source_channel, dict) else "exact"
     raw_audit["matched_channel_values"] = sorted({str(value(row, "渠道")) for row in records})
+    if isinstance(source_channel, dict) and source_channel.get("match_mode") == "any_exact":
+        raw_audit["requested_channel_values"] = list(source_channel["values"])
     raw_audit["matched_count"] = len(records)
     records = merge_duplicate_lead_ids(records, raw_audit)
     raw_audit["deduped_count"] = len(records)

@@ -27,6 +27,7 @@ description: Resolve 青橙项目部 metrics and contracts; generate governed SQ
 | 新增 SQL、修改 SQL 或判断验证范围 | [SQL 质量验证](references/sql_quality.md) |
 | 青橙常态化月度订单流水、复刻申老师 Excel、TT/V/T 补数 | [月度流水内置流程](knowledge/sql_patterns/qingcheng_monthly_cashflow_excel_replication.md)；固定执行 service TT 覆盖检查，统一组装 28 列并校验去重、金额和缺失字段 |
 | 调试、修复或替换既有生产数据集 SQL | 先执行 [生产数据集 SQL 修改流程](references/query_governance.md#生产数据集-sql-修改流程)，再进入 SQL 质量验证与 operator Replacement Plan |
+| 本地化误入 SEC/app、merge 与抖音私信回补差异 | [2026-10-16 分配归因排查](knowledge/sql_patterns/qingcheng_local_merge_attribution_20261016.md)；核对本次分配、canonical折叠、历史影响及抖音独立边界 |
 | 看板设计、diff、dry-run、字段反查 | [看板设计工作流](knowledge/sql_patterns/dashboard_design_change_workflow.md)；实际能力以 operator registry 为准 |
 | 知识入库、contract、schema / canonical SQL / Web profile 同步 | [知识维护](references/knowledge_maintenance.md)；需明确维护授权 |
 | 执行、权限或平台错误 | 交给 operator 的对应操作 reference；失败回到原 QuerySpec，不切换领域 |

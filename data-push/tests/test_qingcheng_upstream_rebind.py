@@ -26,8 +26,8 @@ SPEC.loader.exec_module(MODULE)
 REVIEWED = {
     "project_id": 308, "folder": "吕帅", "menu_id": 103625, "task_id": 47728,
     "nezha_task_id": 67318, "task_name": "qing2lark_guocheng", "owner": "lvshuai01",
-    "published_version": "V29", "version_id": 207387, "exec_file_id": 831981,
-    "source_sha256": "2da69b923428509481cb185017d8ad05a1a126e5600c8f418396f51d12130de6",
+    "published_version": "V31", "version_id": 208745, "exec_file_id": 840241,
+    "source_sha256": "9bf5300e48b42c31a6bb7512b02b537ed9a43ba37bb30c4062e34c0d90138604",
     "audit_schema": "market2lark-two-period-audit-v1",
 }
 BATCH_FILES = ("process_batch_preview.json", "sec_process_batch.json", "special_process_batch.json",
@@ -72,7 +72,7 @@ def test_operator_read_uses_the_configured_identity(monkeypatch):
 
 
 def _artifact(tmp_path, *, row_name="qing2lark", stage_name="stage_4123_qing2lark_guocheng.log",
-              exec_file_id=831981, trigger="EXECUTE", execution_id=173400001, row_count=3,
+              exec_file_id=840241, trigger="EXECUTE", execution_id=173400001, row_count=3,
               status=6):
     period = MODULE._period(SLOT.date())
     current_hour = MODULE._expected_upstream_period_time(SLOT)
@@ -142,9 +142,10 @@ def test_audit_rejects_an_unrelated_task_name(tmp_path):
         _audit(tmp_path, row_name="qing2lark_zhuanhua")
 
 
-def test_audit_rejects_the_superseded_exec_file(tmp_path):
+@pytest.mark.parametrize("superseded", [831661, 837871])
+def test_audit_rejects_the_superseded_exec_file(tmp_path, superseded):
     with pytest.raises(ValueError, match="is not unique"):
-        _audit(tmp_path, exec_file_id=831661)
+        _audit(tmp_path, exec_file_id=superseded)
 
 
 def test_audit_rejects_an_hour_without_a_successful_backfill(tmp_path):
@@ -157,3 +158,49 @@ def test_audit_rejects_an_hour_without_a_successful_backfill(tmp_path):
 def test_audit_rejects_an_unrelated_stage_log(tmp_path):
     with pytest.raises(ValueError, match="stage is not unique"):
         _audit(tmp_path, stage_name="stage_4123_market2lark.log")
+
+
+def _audit_with_other_execution(tmp_path, monkeypatch, other):
+    history_dir, log_dir = _artifact(tmp_path)
+    path = history_dir / "history.json"
+    history = json.loads(path.read_text(encoding="utf-8"))
+    history["executions"].append(other)
+    path.write_text(json.dumps(history), encoding="utf-8")
+    monkeypatch.setattr(MODULE, "_operator_read", lambda command, *args: {
+        "artifact_dir": str(history_dir if command == "list-execution-history" else log_dir)})
+    return MODULE._upstream_audit(MODULE._period(SLOT.date()), SLOT)
+
+
+def test_audit_accepts_later_started_schedule_with_smaller_id(tmp_path, monkeypatch):
+    # The real 2026-10-16 shape: the 15:40 schedule was queued before the 15:02
+    # validation acquired its ID. Its newer actual start remains authoritative.
+    result = _audit_with_other_execution(tmp_path, monkeypatch, {
+        "id": 173400002, "periodTime": "2026-09-29 12:00:00", "status": 6,
+        "startTime": "2026-09-29 12:02:00", "planRunTime": "2026-09-29 12:02:00"})
+    assert result["execution_id"] == 173400001
+
+
+def test_audit_rejects_newer_actual_start_even_with_smaller_id(tmp_path, monkeypatch):
+    with pytest.raises(ValueError, match="A newer"):
+        _audit_with_other_execution(tmp_path, monkeypatch, {
+            "id": 173400000, "periodTime": "2026-09-29 12:00:00", "status": 3,
+            "startTime": "2026-09-29 13:01:00"})
+
+
+def test_audit_ignores_unstarted_future_queue_that_cannot_replace_base(tmp_path, monkeypatch):
+    result = _audit_with_other_execution(tmp_path, monkeypatch, {
+        "id": 173400002, "periodTime": "2026-09-29 15:00:00", "status": 0,
+        "startTime": None, "planRunTime": "2026-09-29 15:40:00"})
+    assert result["execution_id"] == 173400001
+
+
+def test_audit_blocks_a_newer_dispatched_row_even_before_start_time(tmp_path, monkeypatch):
+    with pytest.raises(ValueError, match="A newer"):
+        _audit_with_other_execution(tmp_path, monkeypatch, {
+            "id": 173400002, "periodTime": "2026-09-29 12:00:00", "status": 0,
+            "startTime": None, "dispatchTime": "2026-09-29 13:01:00"})
+
+
+def test_audit_rejects_missing_execution_chronology(tmp_path, monkeypatch):
+    with pytest.raises(ValueError, match="chronology"):
+        _audit_with_other_execution(tmp_path, monkeypatch, {"id": 173400002, "status": 0})

@@ -31,7 +31,8 @@ from governed_temp_table_event_service import (  # noqa: E402
 
 APPROVER = "ou_approver"
 SOURCE = "ou_bf111effd2d71a52ee40c58c7cb4d105"
-COURSE_SOURCE = "ou_3168c83ffe93b49a192755c8e31e2bc5"
+COURSE_SOURCE = "ou_bf111effd2d71a52ee40c58c7cb4d105"
+CUIHAO_SOURCE = "ou_6ed2164f47fc0634ca45fd3cb02fa384"
 MARKET_SOURCE = "ou_04f543bec3cdd195bbdd53a582f68443"
 CHAT = "oc_e604e064976c022ab4289fc2fb979332"
 MARKET_CHAT = "oc_7b9873ee89b18d11cf60c8768c6eba9e"
@@ -41,7 +42,7 @@ def test_config(runtime_root: Path, **overrides: object) -> dict[str, object]:
     value: dict[str, object] = {
         "mode": "shadow",
         "chat_ids": [CHAT, MARKET_CHAT],
-        "source_sender_ids": [SOURCE, COURSE_SOURCE, MARKET_SOURCE],
+        "source_sender_ids": [SOURCE, COURSE_SOURCE, CUIHAO_SOURCE, MARKET_SOURCE],
         "approver_ids": [APPROVER],
         "bot_open_id": None,
         "bot_names": ["管家"],
@@ -337,11 +338,17 @@ class EventServiceTests(unittest.TestCase):
     def test_processor_accepts_missing_source_senders_under_any_member_policy(
         self,
     ) -> None:
+        import copy
+
         incomplete = test_config(self.runtime_root, source_sender_ids=[SOURCE])
+        any_member_registry = copy.deepcopy(self.registry)
+        any_member_registry["source_sender_policy"] = "any_group_member"
+        for family in any_member_registry["families"]:
+            family["source_sender_policy"] = "any_group_member"
 
         processor = EventProcessor(
             incomplete,
-            self.registry,
+            any_member_registry,
             self.ledger,
             self.replies,
             None,
@@ -371,7 +378,7 @@ class EventServiceTests(unittest.TestCase):
                 self.logger,
             )
 
-    def test_attachment_from_unlisted_member_is_auto_batched(self) -> None:
+    def test_attachment_from_unlisted_member_is_ignored(self) -> None:
         outsider = "ou_random_group_member"
         queued = self.processor.process(
             event(
@@ -381,19 +388,8 @@ class EventServiceTests(unittest.TestCase):
                 message_type="file",
             )
         )
-        with sqlite3.connect(self.ledger.path) as connection:
-            connection.execute(
-                "UPDATE pending_attachments SET queued_epoch = ? WHERE message_id = ?",
-                (time.time() - 10, "om_outsider1"),
-            )
-
-        job_id = self.processor.flush_pending()
-        job = self.ledger.get_job(job_id or "")
-
-        self.assertEqual(queued, "source_message_queued")
-        self.assertIsNotNone(job)
-        self.assertEqual(job["family_ids"], ["course_schedule"])
-        self.assertEqual(job["message_bindings"], {"course_schedule": "om_outsider1"})
+        self.assertEqual(queued, "ignored_type")
+        self.assertEqual(self.processor.flush_pending(), None)
 
     def test_reply_policy_defaults_to_final_known_commands_only(self) -> None:
         config = test_config(self.runtime_root, send_replies=True)
@@ -691,7 +687,7 @@ class EventServiceTests(unittest.TestCase):
         gateway.get_message.return_value = {
             "message_id": "om_coursesource",
             "chat_id": CHAT,
-            "sender": {"id": COURSE_SOURCE, "name": "李怡青"},
+            "sender": {"id": COURSE_SOURCE, "name": "郅玲玉"},
             "content": (
                 '最新到课表 <file key="file_key_course" name="到课表.xlsx" />'
             ),

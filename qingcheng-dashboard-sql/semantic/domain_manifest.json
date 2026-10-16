@@ -97,7 +97,7 @@
     "cross_department_comparison_requires_two_specs": true
   },
   "counts": {
-    "knowledge_files": 187,
+    "knowledge_files": 188,
     "raw_sql_files": 26,
     "by_category": {
       "dashboard_web_profiles": 63,
@@ -107,7 +107,7 @@
       "metrics": 37,
       "raw_sql": 26,
       "reverse_index": 4,
-      "sql_patterns": 20,
+      "sql_patterns": 21,
       "tables": 26,
       "temp_tables": 11,
       "update_log": 1
@@ -149,7 +149,7 @@
   },
   "current_model_registry": {
     "source_path": "semantic/current_model_bindings.json",
-    "source_sha256": "66911c51eb37f48dc43c900d68a4ad1eb195d74774b2bb77c5d75604823ae6cc",
+    "source_sha256": "ef76207187de6c5a12a6a4d365f7cffc31544751639c962199d83e3dff4ecc57",
     "policy": "one_current_model_per_id_and_semantic_slot",
     "canonical_filename_policy": "data_center_qingcheng_<model_id>.sql",
     "model_count": 14,
@@ -166,7 +166,7 @@
         "evidence": [
           {
             "source_path": "knowledge/dashboard_web_profiles/README.md",
-            "source_sha256": "bcacdf839bc082f9dbbd04c36ef90c1b0b672bf7bef010d31c0f069c5648f695"
+            "source_sha256": "9b4793c3d7e16bac04ab27b2dab4578c143b53c4a73b9a5c76afa41851bc9208"
           },
           {
             "source_path": "knowledge/dashboard_web_profiles/edit_metrics/README.md",
@@ -178,7 +178,7 @@
           },
           {
             "source_path": "knowledge/dashboard_web_profiles/qingcheng_process_data_report_web_profile.md",
-            "source_sha256": "598b3f9012caf83e45802c369a4fff422c18ed84857cd3916225bdc9103fd20d"
+            "source_sha256": "fbf55c17a1137bdd3865d92bddc0b55d126c44f5e329e1371110e3bf343e3984"
           }
         ]
       },
@@ -206,7 +206,7 @@
         "evidence": [
           {
             "source_path": "knowledge/dashboard_web_profiles/README.md",
-            "source_sha256": "bcacdf839bc082f9dbbd04c36ef90c1b0b672bf7bef010d31c0f069c5648f695"
+            "source_sha256": "9b4793c3d7e16bac04ab27b2dab4578c143b53c4a73b9a5c76afa41851bc9208"
           },
           {
             "source_path": "knowledge/dashboard_web_profiles/edit_metrics/README.md",
@@ -218,7 +218,7 @@
           },
           {
             "source_path": "knowledge/dashboard_web_profiles/qingcheng_attendance_report_web_profile.md",
-            "source_sha256": "68f1b04fc8087bbffcc2d32352fefcd897ddd95a23543eda51985f5d5e0adae0"
+            "source_sha256": "e6b59589c0efae1eb910b22a23740dfc570bdbffe235a19bec514e68b464514b"
           }
         ]
       },
@@ -282,7 +282,7 @@
         "evidence": [
           {
             "source_path": "knowledge/dashboard_web_profiles/README.md",
-            "source_sha256": "bcacdf839bc082f9dbbd04c36ef90c1b0b672bf7bef010d31c0f069c5648f695"
+            "source_sha256": "9b4793c3d7e16bac04ab27b2dab4578c143b53c4a73b9a5c76afa41851bc9208"
           },
           {
             "source_path": "knowledge/dashboard_web_profiles/edit_metrics/README.md",
@@ -294,7 +294,7 @@
           },
           {
             "source_path": "knowledge/dashboard_web_profiles/qingcheng_all_product_dashboard_web_profile.md",
-            "source_sha256": "a1f86d68b5ab3dac9531b299064711426b7a491b01b4e4af26f421c7d806b720"
+            "source_sha256": "32bbcc623db82c8bf51829a91986d113c871b6f5ea3562f2757b2cc12727afca"
           }
         ]
       },
@@ -304,7 +304,7 @@
         "evidence": [
           {
             "source_path": "knowledge/dashboard_web_profiles/README.md",
-            "source_sha256": "bcacdf839bc082f9dbbd04c36ef90c1b0b672bf7bef010d31c0f069c5648f695"
+            "source_sha256": "9b4793c3d7e16bac04ab27b2dab4578c143b53c4a73b9a5c76afa41851bc9208"
           },
           {
             "source_path": "knowledge/dashboard_web_profiles/edit_metrics/README.md",
@@ -316,7 +316,7 @@
           },
           {
             "source_path": "knowledge/dashboard_web_profiles/qingcheng_full_grade_revenue_dashboard_web_profile.md",
-            "source_sha256": "30ea527f57a5edd45f3da67a49e176c590a44b4c13379edf538a18ec2838a887"
+            "source_sha256": "36337a964318db0d4fdafa5770a597dee01b5673937b7febfe60d6f3aea41c57"
           }
         ]
       },
@@ -326,7 +326,7 @@
         "evidence": [
           {
             "source_path": "knowledge/dashboard_web_profiles/README.md",
-            "source_sha256": "bcacdf839bc082f9dbbd04c36ef90c1b0b672bf7bef010d31c0f069c5648f695"
+            "source_sha256": "9b4793c3d7e16bac04ab27b2dab4578c143b53c4a73b9a5c76afa41851bc9208"
           },
           {
             "source_path": "knowledge/dashboard_web_profiles/edit_metrics/README.md",
@@ -338,7 +338,7 @@
           },
           {
             "source_path": "knowledge/dashboard_web_profiles/qingcheng_team_conversion_completion_web_profile.md",
-            "source_sha256": "2907bd6d24a2e75cacdf5af66dfc6002d2b26815616e135ecb1510833c6c5242"
+            "source_sha256": "731177ccccca421d5f0c6baac4a819943c31f054007bfc40fa3beb80911e787e"
           }
         ]
       },
@@ -348,7 +348,7 @@
         "evidence": [
           {
             "source_path": "knowledge/dashboard_web_profiles/README.md",
-            "source_sha256": "bcacdf839bc082f9dbbd04c36ef90c1b0b672bf7bef010d31c0f069c5648f695"
+            "source_sha256": "9b4793c3d7e16bac04ab27b2dab4578c143b53c4a73b9a5c76afa41851bc9208"
           },
           {
             "source_path": "knowledge/dashboard_web_profiles/edit_metrics/README.md",
@@ -360,7 +360,7 @@
           },
           {
             "source_path": "knowledge/dashboard_web_profiles/qingcheng_personal_conversion_web_profile.md",
-            "source_sha256": "86129c3f9b62a152789ce008880d911527c1acad0c7386f37380ea66ccb74a2c"
+            "source_sha256": "1717910f092f0029863a56a90c6169b3ddee4c04ea1ea7f84b7504dd7a60fa73"
           }
         ]
       },
@@ -388,7 +388,7 @@
         "evidence": [
           {
             "source_path": "knowledge/dashboard_web_profiles/README.md",
-            "source_sha256": "bcacdf839bc082f9dbbd04c36ef90c1b0b672bf7bef010d31c0f069c5648f695"
+            "source_sha256": "9b4793c3d7e16bac04ab27b2dab4578c143b53c4a73b9a5c76afa41851bc9208"
           },
           {
             "source_path": "knowledge/dashboard_web_profiles/edit_metrics/README.md",
@@ -400,7 +400,7 @@
           },
           {
             "source_path": "knowledge/dashboard_web_profiles/qingcheng_dousi_conversion_web_profile.md",
-            "source_sha256": "aaa4bdb15208fe95c390f6ca5df7f999a411d1765379cab867efff0a92e41279"
+            "source_sha256": "25358a6523d877da8260e1b8d3d522ffa63a5a72252caa3e1e9e7c3ff1d4b0f0"
           }
         ]
       },
@@ -410,7 +410,7 @@
         "evidence": [
           {
             "source_path": "knowledge/dashboard_web_profiles/README.md",
-            "source_sha256": "bcacdf839bc082f9dbbd04c36ef90c1b0b672bf7bef010d31c0f069c5648f695"
+            "source_sha256": "9b4793c3d7e16bac04ab27b2dab4578c143b53c4a73b9a5c76afa41851bc9208"
           },
           {
             "source_path": "knowledge/dashboard_web_profiles/edit_metrics/README.md",
@@ -422,7 +422,7 @@
           },
           {
             "source_path": "knowledge/dashboard_web_profiles/qingcheng_conversion_dashboard_web_profile.md",
-            "source_sha256": "32e32ababde86ba9505dfbdfd9f74bc88e3749fbe220fbe951d22c412608d754"
+            "source_sha256": "cc61d8393a9738edeeb43b27fc53573b4606c0148d4d456d615281bf6b5f3d88"
           }
         ]
       },
@@ -432,7 +432,7 @@
         "evidence": [
           {
             "source_path": "knowledge/dashboard_web_profiles/README.md",
-            "source_sha256": "bcacdf839bc082f9dbbd04c36ef90c1b0b672bf7bef010d31c0f069c5648f695"
+            "source_sha256": "9b4793c3d7e16bac04ab27b2dab4578c143b53c4a73b9a5c76afa41851bc9208"
           },
           {
             "source_path": "knowledge/dashboard_web_profiles/edit_metrics/README.md",
@@ -444,7 +444,7 @@
           },
           {
             "source_path": "knowledge/dashboard_web_profiles/qingcheng_completion_broadcast_text_web_profile.md",
-            "source_sha256": "a2266e41ab7123808c4f09a7d14877cfcc36c6857bf608ba5db7d761fe6ccf87"
+            "source_sha256": "7dab9d7a95c19f268d8214a09a67bf20af6cc543ad23aed5f510465f14131220"
           }
         ]
       },
@@ -454,7 +454,7 @@
         "evidence": [
           {
             "source_path": "knowledge/dashboard_web_profiles/README.md",
-            "source_sha256": "bcacdf839bc082f9dbbd04c36ef90c1b0b672bf7bef010d31c0f069c5648f695"
+            "source_sha256": "9b4793c3d7e16bac04ab27b2dab4578c143b53c4a73b9a5c76afa41851bc9208"
           },
           {
             "source_path": "knowledge/dashboard_web_profiles/edit_metrics/README.md",
@@ -466,7 +466,7 @@
           },
           {
             "source_path": "knowledge/dashboard_web_profiles/qingcheng_channel_process_daily_web_profile.md",
-            "source_sha256": "6154d1eb19f9b16cda638a6dcc5c8c72bfb9360fa5115fb48c93d7eaedae0b9f"
+            "source_sha256": "9c0054f93bfa1b685f457af4a2bdaf24a1b1a1b82daf8c73cc4b3533d69678e4"
           }
         ]
       },
@@ -476,11 +476,11 @@
         "evidence": [
           {
             "source_path": "knowledge/dashboard_web_profiles/README.md",
-            "source_sha256": "bcacdf839bc082f9dbbd04c36ef90c1b0b672bf7bef010d31c0f069c5648f695"
+            "source_sha256": "9b4793c3d7e16bac04ab27b2dab4578c143b53c4a73b9a5c76afa41851bc9208"
           },
           {
             "source_path": "knowledge/dashboard_web_profiles/dashboard_3916483456733192193_web_profile.md",
-            "source_sha256": "e6255b502c3bd406176858d9be0f2eba89132e7f94cbfcafb7446480ec533e80"
+            "source_sha256": "66b55d7887006382cf6d0c2995ec5882311f55d7da70dc6ccf25ddc89d26b357"
           },
           {
             "source_path": "knowledge/dashboard_web_profiles/edit_metrics/README.md",
@@ -498,11 +498,11 @@
         "evidence": [
           {
             "source_path": "knowledge/dashboard_web_profiles/README.md",
-            "source_sha256": "bcacdf839bc082f9dbbd04c36ef90c1b0b672bf7bef010d31c0f069c5648f695"
+            "source_sha256": "9b4793c3d7e16bac04ab27b2dab4578c143b53c4a73b9a5c76afa41851bc9208"
           },
           {
             "source_path": "knowledge/dashboard_web_profiles/dashboard_3916517219847778305_web_profile.md",
-            "source_sha256": "dfc7b6fef8ea41beaafdc14a263883779e866e44ad25e255e4c04cb70ecdfbbd"
+            "source_sha256": "a3985522c4ce590892222777c3333e83bd5b407f64aeb3088d0abf6a64a5bd69"
           },
           {
             "source_path": "knowledge/dashboard_web_profiles/edit_metrics/README.md",
@@ -520,11 +520,11 @@
         "evidence": [
           {
             "source_path": "knowledge/dashboard_web_profiles/README.md",
-            "source_sha256": "bcacdf839bc082f9dbbd04c36ef90c1b0b672bf7bef010d31c0f069c5648f695"
+            "source_sha256": "9b4793c3d7e16bac04ab27b2dab4578c143b53c4a73b9a5c76afa41851bc9208"
           },
           {
             "source_path": "knowledge/dashboard_web_profiles/dashboard_3916532003721617409_web_profile.md",
-            "source_sha256": "20ce9c1317510cfd037c6ba833f47e497c883e17a558b73acb452ac949762d8d"
+            "source_sha256": "d4bcfde2d5706215349cfd31699ef551a2118d39d8d75b431ee1bfd0f425e7a0"
           },
           {
             "source_path": "knowledge/dashboard_web_profiles/edit_metrics/README.md",
@@ -542,11 +542,11 @@
         "evidence": [
           {
             "source_path": "knowledge/dashboard_web_profiles/README.md",
-            "source_sha256": "bcacdf839bc082f9dbbd04c36ef90c1b0b672bf7bef010d31c0f069c5648f695"
+            "source_sha256": "9b4793c3d7e16bac04ab27b2dab4578c143b53c4a73b9a5c76afa41851bc9208"
           },
           {
             "source_path": "knowledge/dashboard_web_profiles/dashboard_3916532959832903681_web_profile.md",
-            "source_sha256": "fd556713568ffb9bcaa3787fe4fc945d99b8b8fac4c5b27325b34a883039b99b"
+            "source_sha256": "c17c1fce37e77fc1d06393b62abc8eb088b269e3244df028e769b2e5b1ded1c3"
           },
           {
             "source_path": "knowledge/dashboard_web_profiles/edit_metrics/README.md",
@@ -710,11 +710,11 @@
         "evidence": [
           {
             "source_path": "knowledge/dashboard_web_profiles/README.md",
-            "source_sha256": "bcacdf839bc082f9dbbd04c36ef90c1b0b672bf7bef010d31c0f069c5648f695"
+            "source_sha256": "9b4793c3d7e16bac04ab27b2dab4578c143b53c4a73b9a5c76afa41851bc9208"
           },
           {
             "source_path": "knowledge/dashboard_web_profiles/dashboard_4007415299481022465_web_profile.md",
-            "source_sha256": "5cbea985b8444eb3dae4d6e8f5ba27b3b277ccadd6acd48cd2da93b4d6c99498"
+            "source_sha256": "2bde41be6bc6f4c2d687fc160186c2a1c296166ffa009c792e0ac77d3cf6df07"
           }
         ]
       },
@@ -724,11 +724,11 @@
         "evidence": [
           {
             "source_path": "knowledge/dashboard_web_profiles/README.md",
-            "source_sha256": "bcacdf839bc082f9dbbd04c36ef90c1b0b672bf7bef010d31c0f069c5648f695"
+            "source_sha256": "9b4793c3d7e16bac04ab27b2dab4578c143b53c4a73b9a5c76afa41851bc9208"
           },
           {
             "source_path": "knowledge/dashboard_web_profiles/dashboard_4018019033706541056_web_profile.md",
-            "source_sha256": "50be56ca865999cb200bfa4047ff7ebfad674fa58e8e36ee1b4c2652b2720ea6"
+            "source_sha256": "8ef3e165aa2306b58284af7cb0a9c0c53a2adde52a6dad5d286a1a506a5bf46a"
           }
         ]
       },
@@ -738,11 +738,11 @@
         "evidence": [
           {
             "source_path": "knowledge/dashboard_web_profiles/README.md",
-            "source_sha256": "bcacdf839bc082f9dbbd04c36ef90c1b0b672bf7bef010d31c0f069c5648f695"
+            "source_sha256": "9b4793c3d7e16bac04ab27b2dab4578c143b53c4a73b9a5c76afa41851bc9208"
           },
           {
             "source_path": "knowledge/dashboard_web_profiles/dashboard_4019042032853901313_web_profile.md",
-            "source_sha256": "2de6511648fe4272849fadc514018140ab9d712a9a8da5ad610221c5c7dce3a6"
+            "source_sha256": "00076c55f244c58870f4ef8368955055ad55cc1472ef62742907a0159b4d92e4"
           }
         ]
       },
@@ -752,11 +752,11 @@
         "evidence": [
           {
             "source_path": "knowledge/dashboard_web_profiles/README.md",
-            "source_sha256": "bcacdf839bc082f9dbbd04c36ef90c1b0b672bf7bef010d31c0f069c5648f695"
+            "source_sha256": "9b4793c3d7e16bac04ab27b2dab4578c143b53c4a73b9a5c76afa41851bc9208"
           },
           {
             "source_path": "knowledge/dashboard_web_profiles/dashboard_4020796953570476033_web_profile.md",
-            "source_sha256": "595624dba65c7e1a5380947fc62467c3746076891499641c2b6c537582ffb4f7"
+            "source_sha256": "6206de66e707a4a9d8b956c695403f94074f20ce6deb1fc8f539c033c442f407"
           }
         ]
       },
@@ -766,11 +766,11 @@
         "evidence": [
           {
             "source_path": "knowledge/dashboard_web_profiles/README.md",
-            "source_sha256": "bcacdf839bc082f9dbbd04c36ef90c1b0b672bf7bef010d31c0f069c5648f695"
+            "source_sha256": "9b4793c3d7e16bac04ab27b2dab4578c143b53c4a73b9a5c76afa41851bc9208"
           },
           {
             "source_path": "knowledge/dashboard_web_profiles/dashboard_4093073387444727808_web_profile.md",
-            "source_sha256": "c6de367bf743a295bc2930c085f026bd6b3596dc74a319db6e88302c66aea783"
+            "source_sha256": "4308d0b48981cdfa75ea190f047ff65b4ed77bc4bb2ea14c001d4bfbcf1c9bd0"
           }
         ]
       }
@@ -782,8 +782,8 @@
       {
         "id": "qingcheng:dashboard_web_profiles:README",
         "source_path": "knowledge/dashboard_web_profiles/README.md",
-        "sha256": "bcacdf839bc082f9dbbd04c36ef90c1b0b672bf7bef010d31c0f069c5648f695",
-        "bytes": 3465,
+        "sha256": "9b4793c3d7e16bac04ab27b2dab4578c143b53c4a73b9a5c76afa41851bc9208",
+        "bytes": 3496,
         "title": "Web BI 看板结构快照",
         "table_refs": [],
         "raw_sql_refs": [],
@@ -866,8 +866,8 @@
       {
         "id": "qingcheng:dashboard_web_profiles:dashboard_3916483456733192193_web_profile",
         "source_path": "knowledge/dashboard_web_profiles/dashboard_3916483456733192193_web_profile.md",
-        "sha256": "e6255b502c3bd406176858d9be0f2eba89132e7f94cbfcafb7446480ec533e80",
-        "bytes": 1937,
+        "sha256": "66b55d7887006382cf6d0c2995ec5882311f55d7da70dc6ccf25ddc89d26b357",
+        "bytes": 1984,
         "title": "转化-抖音私信-伙伴 Web BI 结构快照",
         "table_refs": [],
         "raw_sql_refs": [],
@@ -880,8 +880,8 @@
       {
         "id": "qingcheng:dashboard_web_profiles:dashboard_3916517219847778305_web_profile",
         "source_path": "knowledge/dashboard_web_profiles/dashboard_3916517219847778305_web_profile.md",
-        "sha256": "dfc7b6fef8ea41beaafdc14a263883779e866e44ad25e255e4c04cb70ecdfbbd",
-        "bytes": 1937,
+        "sha256": "a3985522c4ce590892222777c3333e83bd5b407f64aeb3088d0abf6a64a5bd69",
+        "bytes": 1984,
         "title": "转化-抖音私信-主管 Web BI 结构快照",
         "table_refs": [],
         "raw_sql_refs": [],
@@ -894,8 +894,8 @@
       {
         "id": "qingcheng:dashboard_web_profiles:dashboard_3916532003721617409_web_profile",
         "source_path": "knowledge/dashboard_web_profiles/dashboard_3916532003721617409_web_profile.md",
-        "sha256": "20ce9c1317510cfd037c6ba833f47e497c883e17a558b73acb452ac949762d8d",
-        "bytes": 1925,
+        "sha256": "d4bcfde2d5706215349cfd31699ef551a2118d39d8d75b431ee1bfd0f425e7a0",
+        "bytes": 1972,
         "title": "转化-私域-主管 Web BI 结构快照",
         "table_refs": [],
         "raw_sql_refs": [],
@@ -908,8 +908,8 @@
       {
         "id": "qingcheng:dashboard_web_profiles:dashboard_3916532959832903681_web_profile",
         "source_path": "knowledge/dashboard_web_profiles/dashboard_3916532959832903681_web_profile.md",
-        "sha256": "fd556713568ffb9bcaa3787fe4fc945d99b8b8fac4c5b27325b34a883039b99b",
-        "bytes": 1925,
+        "sha256": "c17c1fce37e77fc1d06393b62abc8eb088b269e3244df028e769b2e5b1ded1c3",
+        "bytes": 1972,
         "title": "转化-私域-伙伴 Web BI 结构快照",
         "table_refs": [],
         "raw_sql_refs": [],
@@ -1076,8 +1076,8 @@
       {
         "id": "qingcheng:dashboard_web_profiles:dashboard_4007415299481022465_web_profile",
         "source_path": "knowledge/dashboard_web_profiles/dashboard_4007415299481022465_web_profile.md",
-        "sha256": "5cbea985b8444eb3dae4d6e8f5ba27b3b277ccadd6acd48cd2da93b4d6c99498",
-        "bytes": 3128,
+        "sha256": "2bde41be6bc6f4c2d687fc160186c2a1c296166ffa009c792e0ac77d3cf6df07",
+        "bytes": 3196,
         "title": "SEC顾问线索析出及转化结果看板 Web BI 结构快照",
         "table_refs": [],
         "raw_sql_refs": [],
@@ -1090,8 +1090,8 @@
       {
         "id": "qingcheng:dashboard_web_profiles:dashboard_4018019033706541056_web_profile",
         "source_path": "knowledge/dashboard_web_profiles/dashboard_4018019033706541056_web_profile.md",
-        "sha256": "50be56ca865999cb200bfa4047ff7ebfad674fa58e8e36ee1b4c2652b2720ea6",
-        "bytes": 1943,
+        "sha256": "8ef3e165aa2306b58284af7cb0a9c0c53a2adde52a6dad5d286a1a506a5bf46a",
+        "bytes": 1990,
         "title": "TMK渠道线索析出及转化结果看板 Web BI 结构快照",
         "table_refs": [],
         "raw_sql_refs": [],
@@ -1104,8 +1104,8 @@
       {
         "id": "qingcheng:dashboard_web_profiles:dashboard_4019042032853901313_web_profile",
         "source_path": "knowledge/dashboard_web_profiles/dashboard_4019042032853901313_web_profile.md",
-        "sha256": "2de6511648fe4272849fadc514018140ab9d712a9a8da5ad610221c5c7dce3a6",
-        "bytes": 7771,
+        "sha256": "00076c55f244c58870f4ef8368955055ad55cc1472ef62742907a0159b4d92e4",
+        "bytes": 7936,
         "title": "青橙运营侧看板 Web BI 结构快照",
         "table_refs": [],
         "raw_sql_refs": [],
@@ -1118,8 +1118,8 @@
       {
         "id": "qingcheng:dashboard_web_profiles:dashboard_4020796953570476033_web_profile",
         "source_path": "knowledge/dashboard_web_profiles/dashboard_4020796953570476033_web_profile.md",
-        "sha256": "595624dba65c7e1a5380947fc62467c3746076891499641c2b6c537582ffb4f7",
-        "bytes": 4234,
+        "sha256": "6206de66e707a4a9d8b956c695403f94074f20ce6deb1fc8f539c033c442f407",
+        "bytes": 4323,
         "title": "青橙用户退费画像 Web BI 结构快照",
         "table_refs": [],
         "raw_sql_refs": [],
@@ -1132,8 +1132,8 @@
       {
         "id": "qingcheng:dashboard_web_profiles:dashboard_4093073387444727808_web_profile",
         "source_path": "knowledge/dashboard_web_profiles/dashboard_4093073387444727808_web_profile.md",
-        "sha256": "c6de367bf743a295bc2930c085f026bd6b3596dc74a319db6e88302c66aea783",
-        "bytes": 1931,
+        "sha256": "4308d0b48981cdfa75ea190f047ff65b4ed77bc4bb2ea14c001d4bfbcf1c9bd0",
+        "bytes": 1978,
         "title": "转化-本地化-伙伴 Web BI 结构快照",
         "table_refs": [],
         "raw_sql_refs": [],
@@ -1524,8 +1524,8 @@
       {
         "id": "qingcheng:dashboard_web_profiles:qingcheng_all_product_dashboard_web_profile",
         "source_path": "knowledge/dashboard_web_profiles/qingcheng_all_product_dashboard_web_profile.md",
-        "sha256": "a1f86d68b5ab3dac9531b299064711426b7a491b01b4e4af26f421c7d806b720",
-        "bytes": 4475,
+        "sha256": "32bbcc623db82c8bf51829a91986d113c871b6f5ea3562f2757b2cc12727afca",
+        "bytes": 4564,
         "title": "青橙项目部-全域产品数据看板 Web BI 结构快照",
         "table_refs": [],
         "raw_sql_refs": [],
@@ -1538,8 +1538,8 @@
       {
         "id": "qingcheng:dashboard_web_profiles:qingcheng_attendance_report_web_profile",
         "source_path": "knowledge/dashboard_web_profiles/qingcheng_attendance_report_web_profile.md",
-        "sha256": "68f1b04fc8087bbffcc2d32352fefcd897ddd95a23543eda51985f5d5e0adae0",
-        "bytes": 3038,
+        "sha256": "e6b59589c0efae1eb910b22a23740dfc570bdbffe235a19bec514e68b464514b",
+        "bytes": 3106,
         "title": "青橙项目部_行课报表 Web BI 结构快照",
         "table_refs": [],
         "raw_sql_refs": [],
@@ -1552,8 +1552,8 @@
       {
         "id": "qingcheng:dashboard_web_profiles:qingcheng_channel_process_daily_web_profile",
         "source_path": "knowledge/dashboard_web_profiles/qingcheng_channel_process_daily_web_profile.md",
-        "sha256": "6154d1eb19f9b16cda638a6dcc5c8c72bfb9360fa5115fb48c93d7eaedae0b9f",
-        "bytes": 3195,
+        "sha256": "9c0054f93bfa1b685f457af4a2bdaf24a1b1a1b82daf8c73cc4b3533d69678e4",
+        "bytes": 3265,
         "title": "青橙-渠道过程数据-天 Web BI 结构快照",
         "table_refs": [],
         "raw_sql_refs": [],
@@ -1566,8 +1566,8 @@
       {
         "id": "qingcheng:dashboard_web_profiles:qingcheng_completion_broadcast_text_web_profile",
         "source_path": "knowledge/dashboard_web_profiles/qingcheng_completion_broadcast_text_web_profile.md",
-        "sha256": "a2266e41ab7123808c4f09a7d14877cfcc36c6857bf608ba5db7d761fe6ccf87",
-        "bytes": 1538,
+        "sha256": "7dab9d7a95c19f268d8214a09a67bf20af6cc543ad23aed5f510465f14131220",
+        "bytes": 1579,
         "title": "完成度文字播报_青 Web BI 结构快照",
         "table_refs": [],
         "raw_sql_refs": [],
@@ -1580,8 +1580,8 @@
       {
         "id": "qingcheng:dashboard_web_profiles:qingcheng_conversion_dashboard_web_profile",
         "source_path": "knowledge/dashboard_web_profiles/qingcheng_conversion_dashboard_web_profile.md",
-        "sha256": "32e32ababde86ba9505dfbdfd9f74bc88e3749fbe220fbe951d22c412608d754",
-        "bytes": 5059,
+        "sha256": "cc61d8393a9738edeeb43b27fc53573b4606c0148d4d456d615281bf6b5f3d88",
+        "bytes": 5167,
         "title": "转化数据看板 Web BI 结构快照",
         "table_refs": [],
         "raw_sql_refs": [],
@@ -1594,8 +1594,8 @@
       {
         "id": "qingcheng:dashboard_web_profiles:qingcheng_dousi_conversion_web_profile",
         "source_path": "knowledge/dashboard_web_profiles/qingcheng_dousi_conversion_web_profile.md",
-        "sha256": "aaa4bdb15208fe95c390f6ca5df7f999a411d1765379cab867efff0a92e41279",
-        "bytes": 2421,
+        "sha256": "25358a6523d877da8260e1b8d3d522ffa63a5a72252caa3e1e9e7c3ff1d4b0f0",
+        "bytes": 2476,
         "title": "青橙渠道分周期转化 Web BI 结构快照",
         "table_refs": [],
         "raw_sql_refs": [],
@@ -1608,8 +1608,8 @@
       {
         "id": "qingcheng:dashboard_web_profiles:qingcheng_full_grade_revenue_dashboard_web_profile",
         "source_path": "knowledge/dashboard_web_profiles/qingcheng_full_grade_revenue_dashboard_web_profile.md",
-        "sha256": "30ea527f57a5edd45f3da67a49e176c590a44b4c13379edf538a18ec2838a887",
-        "bytes": 4461,
+        "sha256": "36337a964318db0d4fdafa5770a597dee01b5673937b7febfe60d6f3aea41c57",
+        "bytes": 4550,
         "title": "青橙-全年级营收看板 Web BI 结构快照",
         "table_refs": [],
         "raw_sql_refs": [],
@@ -1622,8 +1622,8 @@
       {
         "id": "qingcheng:dashboard_web_profiles:qingcheng_personal_conversion_web_profile",
         "source_path": "knowledge/dashboard_web_profiles/qingcheng_personal_conversion_web_profile.md",
-        "sha256": "86129c3f9b62a152789ce008880d911527c1acad0c7386f37380ea66ccb74a2c",
-        "bytes": 2474,
+        "sha256": "1717910f092f0029863a56a90c6169b3ddee4c04ea1ea7f84b7504dd7a60fa73",
+        "bytes": 2528,
         "title": "个人转化数据-青橙 Web BI 结构快照",
         "table_refs": [],
         "raw_sql_refs": [],
@@ -1636,8 +1636,8 @@
       {
         "id": "qingcheng:dashboard_web_profiles:qingcheng_process_data_report_web_profile",
         "source_path": "knowledge/dashboard_web_profiles/qingcheng_process_data_report_web_profile.md",
-        "sha256": "598b3f9012caf83e45802c369a4fff422c18ed84857cd3916225bdc9103fd20d",
-        "bytes": 4209,
+        "sha256": "fbf55c17a1137bdd3865d92bddc0b55d126c44f5e329e1371110e3bf343e3984",
+        "bytes": 4297,
         "title": "过程数据报表-青橙 Web BI 结构快照",
         "table_refs": [],
         "raw_sql_refs": [],
@@ -1650,8 +1650,8 @@
       {
         "id": "qingcheng:dashboard_web_profiles:qingcheng_team_conversion_completion_web_profile",
         "source_path": "knowledge/dashboard_web_profiles/qingcheng_team_conversion_completion_web_profile.md",
-        "sha256": "2907bd6d24a2e75cacdf5af66dfc6002d2b26815616e135ecb1510833c6c5242",
-        "bytes": 3852,
+        "sha256": "731177ccccca421d5f0c6baac4a819943c31f054007bfc40fa3beb80911e787e",
+        "bytes": 3933,
         "title": "团队转化完成度-青橙 Web BI 结构快照",
         "table_refs": [],
         "raw_sql_refs": [],
@@ -1680,19 +1680,25 @@
       {
         "id": "qingcheng:dashboards:data_center_qingcheng_datasets",
         "source_path": "knowledge/dashboards/data_center_qingcheng_datasets.md",
-        "sha256": "8a9389d9f084e76b8a0ccc628c0ddc5543adf526900035f5dafa5c0bad21c0a9",
-        "bytes": 4129,
+        "sha256": "056d368946530eab885673719c7c8539431510f2759b3f6e477aceac48f5e548",
+        "bytes": 6433,
         "title": "数据中心数据集源 SQL（青橙项目部）",
         "table_refs": [],
         "raw_sql_refs": [
           "data_center_qingcheng_2064.sql",
           "data_center_qingcheng_2244.sql",
           "data_center_qingcheng_2460.sql",
+          "data_center_qingcheng_2576.sql",
           "data_center_qingcheng_2677.sql",
           "data_center_qingcheng_2680.sql",
           "data_center_qingcheng_2740.sql",
           "data_center_qingcheng_2769.sql",
-          "data_center_qingcheng_3180.sql"
+          "data_center_qingcheng_2834.sql",
+          "data_center_qingcheng_3180.sql",
+          "data_center_qingcheng_3226.sql",
+          "data_center_qingcheng_3227.sql",
+          "data_center_qingcheng_3240.sql",
+          "data_center_qingcheng_3264.sql"
         ],
         "status": "documented",
         "aliases": [
@@ -2147,8 +2153,8 @@
       {
         "id": "qingcheng:governance:decision_tree",
         "source_path": "knowledge/decision_tree.md",
-        "sha256": "b0ace23f80e62cd5b2046d00612faa9c45497727365223dbee52f69f5e4f52f8",
-        "bytes": 12073,
+        "sha256": "4119f18973fa49014aa7c4921a3309dbba53c8297be7ff7b4883af136a77d789",
+        "bytes": 12492,
         "title": "用户需求到知识库路由",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -2857,8 +2863,8 @@
       {
         "id": "qingcheng:raw_sql:data_center_qingcheng_2064",
         "source_path": "resources/raw_sql/data_center_qingcheng_2064.sql",
-        "sha256": "f65fbd786a480d8d774ddd2c1f7fecdc1daaf3acfef1d2703ff3e77a6be60051",
-        "bytes": 40940,
+        "sha256": "2c19e58161e9ace142714b5e3896d45f276d17820b149d0d2d832f4668cdd1ec",
+        "bytes": 44494,
         "title": "data_center_qingcheng_2064",
         "table_refs": [
           "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf",
@@ -2867,6 +2873,7 @@
           "dw.dim_cstm_active_user_c_appliction_mb_df",
           "dw.dws_user_active_user_c_appliction_hf",
           "service_dw.app_h_crm_lead_employee_workload_detail_hf",
+          "service_dw.dim_crm_assign_rule_lead_detail_hf",
           "service_dw.dm_crm_lead_stats_detail_hf",
           "service_dw.dws_service_user_learn_detail_hf",
           "temp_table.dingxi01_jiagou_db",
@@ -3455,8 +3462,8 @@
       {
         "id": "qingcheng:reverse_index:join_risk_index",
         "source_path": "knowledge/reverse_index/join_risk_index.md",
-        "sha256": "63cf1b43e09203ce1dc7580cf01406658e37692783e8fbf866b4625933874d2f",
-        "bytes": 76343,
+        "sha256": "dd3e3c3bc1918e9ca1f9ae69023da8428156009f9caa3eb8197918fbba71a5ea",
+        "bytes": 79400,
         "title": "JOIN 与结果异常风险索引",
         "table_refs": [
           "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf",
@@ -3754,6 +3761,23 @@
         ]
       },
       {
+        "id": "qingcheng:sql_patterns:qingcheng_local_merge_attribution_20261016",
+        "source_path": "knowledge/sql_patterns/qingcheng_local_merge_attribution_20261016.md",
+        "sha256": "a0c88adaf579d0a359034559b43e78f0feed2577f684a30adecc7f2a4d81e29f",
+        "bytes": 8335,
+        "title": "青橙本地化 merge 回补与当前分配规则（2026-10-16）",
+        "table_refs": [
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "service_dw.dim_crm_assign_rule_lead_detail_hf"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "qingcheng_local_merge_attribution_20261016",
+          "青橙本地化 merge 回补与当前分配规则（2026-10-16）"
+        ]
+      },
+      {
         "id": "qingcheng:sql_patterns:qingcheng_mixed_cash_transfer_income",
         "source_path": "knowledge/sql_patterns/qingcheng_mixed_cash_transfer_income.md",
         "sha256": "028b881c2f61c24a1e4a38fd772cf53b6ed00d4c7ddf7ac1469adab0981d7718",
@@ -3773,8 +3797,8 @@
       {
         "id": "qingcheng:sql_patterns:qingcheng_monthly_cashflow_excel_replication",
         "source_path": "knowledge/sql_patterns/qingcheng_monthly_cashflow_excel_replication.md",
-        "sha256": "e5fcddcbefdf7c5177ee6ebde5db232cea2df468f82c99bdcf3cc3b4f957b36a",
-        "bytes": 13646,
+        "sha256": "1e134a0aea00708a1c0b99ce023950f39e584405a01c36f7a0aa8b577c31a423",
+        "bytes": 13747,
         "title": "青橙月度流水：按申老师 Excel 复刻",
         "table_refs": [
           "bdg_ba.dwd_crm_crm_order_income_refund_info_hf",
@@ -4574,8 +4598,8 @@
       {
         "id": "qingcheng:update_log:changelog",
         "source_path": "knowledge/update_log/changelog.md",
-        "sha256": "88a8c17605baf3790d39be417826a05e6866e6a0d92c9f4d1206f4b516b7265f",
-        "bytes": 111091,
+        "sha256": "f911ba71455059bca7d30f7a3abf744ad087899ce120e56ec0e34e0ce2b73b7d",
+        "bytes": 112373,
         "title": "更新日志",
         "table_refs": [
           "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf",
@@ -4667,6 +4691,7 @@
         "knowledge/reverse_index/table_to_dashboards.md",
         "knowledge/sql_patterns/qingcheng_channel_grade_mapping.md",
         "knowledge/sql_patterns/qingcheng_lead_origin_trace.md",
+        "knowledge/sql_patterns/qingcheng_local_merge_attribution_20261016.md",
         "knowledge/tables/bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf.md",
         "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
         "knowledge/tables/data_lake_fuwu.dwd_crm_leads_rt.md",
@@ -4951,9 +4976,11 @@
       ],
       "service_dw.dim_crm_assign_rule_lead_detail_hf": [
         "knowledge/01_table_index.md",
+        "knowledge/sql_patterns/qingcheng_local_merge_attribution_20261016.md",
         "knowledge/tables/service_dw.dim_crm_assign_rule_lead_detail_hf.md",
         "knowledge/tables/service_dw.dim_crm_assign_rule_plan_item_info_hf.md",
-        "knowledge/update_log/changelog.md"
+        "knowledge/update_log/changelog.md",
+        "resources/raw_sql/data_center_qingcheng_2064.sql"
       ],
       "service_dw.dim_crm_assign_rule_plan_item_info_hf": [
         "knowledge/01_table_index.md",
@@ -5310,6 +5337,9 @@
         "knowledge/sql_patterns/qingcheng_summer_qici_corrections.md",
         "knowledge/update_log/changelog.md"
       ],
+      "data_center_qingcheng_2576.sql": [
+        "knowledge/dashboards/data_center_qingcheng_datasets.md"
+      ],
       "data_center_qingcheng_2677.sql": [
         "knowledge/01_table_index.md",
         "knowledge/03_range_limit_rules.md",
@@ -5373,6 +5403,7 @@
       ],
       "data_center_qingcheng_2834.sql": [
         "knowledge/01_table_index.md",
+        "knowledge/dashboards/data_center_qingcheng_datasets.md",
         "knowledge/dashboards/qingcheng_conversion_wide_table_market_channel_20260611.md",
         "knowledge/metrics/qingcheng_conversion_wide_table_market_channel_metrics.md",
         "knowledge/metrics/qingcheng_dashboard_metric_formula_linkage.md",
@@ -5389,6 +5420,18 @@
         "knowledge/reverse_index/field_to_metrics.md",
         "knowledge/reverse_index/metric_to_raw_sql.md",
         "knowledge/reverse_index/table_to_dashboards.md"
+      ],
+      "data_center_qingcheng_3226.sql": [
+        "knowledge/dashboards/data_center_qingcheng_datasets.md"
+      ],
+      "data_center_qingcheng_3227.sql": [
+        "knowledge/dashboards/data_center_qingcheng_datasets.md"
+      ],
+      "data_center_qingcheng_3240.sql": [
+        "knowledge/dashboards/data_center_qingcheng_datasets.md"
+      ],
+      "data_center_qingcheng_3264.sql": [
+        "knowledge/dashboards/data_center_qingcheng_datasets.md"
       ],
       "qingcheng_channel_order_detail_raw_20260627.sql": [
         "knowledge/01_table_index.md",
@@ -5519,8 +5562,8 @@
     },
     {
       "source_path": "knowledge/dashboard_web_profiles/README.md",
-      "sha256": "bcacdf839bc082f9dbbd04c36ef90c1b0b672bf7bef010d31c0f069c5648f695",
-      "bytes": 3465,
+      "sha256": "9b4793c3d7e16bac04ab27b2dab4578c143b53c4a73b9a5c76afa41851bc9208",
+      "bytes": 3496,
       "category": "dashboard_web_profiles"
     },
     {
@@ -5555,26 +5598,26 @@
     },
     {
       "source_path": "knowledge/dashboard_web_profiles/dashboard_3916483456733192193_web_profile.md",
-      "sha256": "e6255b502c3bd406176858d9be0f2eba89132e7f94cbfcafb7446480ec533e80",
-      "bytes": 1937,
+      "sha256": "66b55d7887006382cf6d0c2995ec5882311f55d7da70dc6ccf25ddc89d26b357",
+      "bytes": 1984,
       "category": "dashboard_web_profiles"
     },
     {
       "source_path": "knowledge/dashboard_web_profiles/dashboard_3916517219847778305_web_profile.md",
-      "sha256": "dfc7b6fef8ea41beaafdc14a263883779e866e44ad25e255e4c04cb70ecdfbbd",
-      "bytes": 1937,
+      "sha256": "a3985522c4ce590892222777c3333e83bd5b407f64aeb3088d0abf6a64a5bd69",
+      "bytes": 1984,
       "category": "dashboard_web_profiles"
     },
     {
       "source_path": "knowledge/dashboard_web_profiles/dashboard_3916532003721617409_web_profile.md",
-      "sha256": "20ce9c1317510cfd037c6ba833f47e497c883e17a558b73acb452ac949762d8d",
-      "bytes": 1925,
+      "sha256": "d4bcfde2d5706215349cfd31699ef551a2118d39d8d75b431ee1bfd0f425e7a0",
+      "bytes": 1972,
       "category": "dashboard_web_profiles"
     },
     {
       "source_path": "knowledge/dashboard_web_profiles/dashboard_3916532959832903681_web_profile.md",
-      "sha256": "fd556713568ffb9bcaa3787fe4fc945d99b8b8fac4c5b27325b34a883039b99b",
-      "bytes": 1925,
+      "sha256": "c17c1fce37e77fc1d06393b62abc8eb088b269e3244df028e769b2e5b1ded1c3",
+      "bytes": 1972,
       "category": "dashboard_web_profiles"
     },
     {
@@ -5645,32 +5688,32 @@
     },
     {
       "source_path": "knowledge/dashboard_web_profiles/dashboard_4007415299481022465_web_profile.md",
-      "sha256": "5cbea985b8444eb3dae4d6e8f5ba27b3b277ccadd6acd48cd2da93b4d6c99498",
-      "bytes": 3128,
+      "sha256": "2bde41be6bc6f4c2d687fc160186c2a1c296166ffa009c792e0ac77d3cf6df07",
+      "bytes": 3196,
       "category": "dashboard_web_profiles"
     },
     {
       "source_path": "knowledge/dashboard_web_profiles/dashboard_4018019033706541056_web_profile.md",
-      "sha256": "50be56ca865999cb200bfa4047ff7ebfad674fa58e8e36ee1b4c2652b2720ea6",
-      "bytes": 1943,
+      "sha256": "8ef3e165aa2306b58284af7cb0a9c0c53a2adde52a6dad5d286a1a506a5bf46a",
+      "bytes": 1990,
       "category": "dashboard_web_profiles"
     },
     {
       "source_path": "knowledge/dashboard_web_profiles/dashboard_4019042032853901313_web_profile.md",
-      "sha256": "2de6511648fe4272849fadc514018140ab9d712a9a8da5ad610221c5c7dce3a6",
-      "bytes": 7771,
+      "sha256": "00076c55f244c58870f4ef8368955055ad55cc1472ef62742907a0159b4d92e4",
+      "bytes": 7936,
       "category": "dashboard_web_profiles"
     },
     {
       "source_path": "knowledge/dashboard_web_profiles/dashboard_4020796953570476033_web_profile.md",
-      "sha256": "595624dba65c7e1a5380947fc62467c3746076891499641c2b6c537582ffb4f7",
-      "bytes": 4234,
+      "sha256": "6206de66e707a4a9d8b956c695403f94074f20ce6deb1fc8f539c033c442f407",
+      "bytes": 4323,
       "category": "dashboard_web_profiles"
     },
     {
       "source_path": "knowledge/dashboard_web_profiles/dashboard_4093073387444727808_web_profile.md",
-      "sha256": "c6de367bf743a295bc2930c085f026bd6b3596dc74a319db6e88302c66aea783",
-      "bytes": 1931,
+      "sha256": "4308d0b48981cdfa75ea190f047ff65b4ed77bc4bb2ea14c001d4bfbcf1c9bd0",
+      "bytes": 1978,
       "category": "dashboard_web_profiles"
     },
     {
@@ -5837,62 +5880,62 @@
     },
     {
       "source_path": "knowledge/dashboard_web_profiles/qingcheng_all_product_dashboard_web_profile.md",
-      "sha256": "a1f86d68b5ab3dac9531b299064711426b7a491b01b4e4af26f421c7d806b720",
-      "bytes": 4475,
+      "sha256": "32bbcc623db82c8bf51829a91986d113c871b6f5ea3562f2757b2cc12727afca",
+      "bytes": 4564,
       "category": "dashboard_web_profiles"
     },
     {
       "source_path": "knowledge/dashboard_web_profiles/qingcheng_attendance_report_web_profile.md",
-      "sha256": "68f1b04fc8087bbffcc2d32352fefcd897ddd95a23543eda51985f5d5e0adae0",
-      "bytes": 3038,
+      "sha256": "e6b59589c0efae1eb910b22a23740dfc570bdbffe235a19bec514e68b464514b",
+      "bytes": 3106,
       "category": "dashboard_web_profiles"
     },
     {
       "source_path": "knowledge/dashboard_web_profiles/qingcheng_channel_process_daily_web_profile.md",
-      "sha256": "6154d1eb19f9b16cda638a6dcc5c8c72bfb9360fa5115fb48c93d7eaedae0b9f",
-      "bytes": 3195,
+      "sha256": "9c0054f93bfa1b685f457af4a2bdaf24a1b1a1b82daf8c73cc4b3533d69678e4",
+      "bytes": 3265,
       "category": "dashboard_web_profiles"
     },
     {
       "source_path": "knowledge/dashboard_web_profiles/qingcheng_completion_broadcast_text_web_profile.md",
-      "sha256": "a2266e41ab7123808c4f09a7d14877cfcc36c6857bf608ba5db7d761fe6ccf87",
-      "bytes": 1538,
+      "sha256": "7dab9d7a95c19f268d8214a09a67bf20af6cc543ad23aed5f510465f14131220",
+      "bytes": 1579,
       "category": "dashboard_web_profiles"
     },
     {
       "source_path": "knowledge/dashboard_web_profiles/qingcheng_conversion_dashboard_web_profile.md",
-      "sha256": "32e32ababde86ba9505dfbdfd9f74bc88e3749fbe220fbe951d22c412608d754",
-      "bytes": 5059,
+      "sha256": "cc61d8393a9738edeeb43b27fc53573b4606c0148d4d456d615281bf6b5f3d88",
+      "bytes": 5167,
       "category": "dashboard_web_profiles"
     },
     {
       "source_path": "knowledge/dashboard_web_profiles/qingcheng_dousi_conversion_web_profile.md",
-      "sha256": "aaa4bdb15208fe95c390f6ca5df7f999a411d1765379cab867efff0a92e41279",
-      "bytes": 2421,
+      "sha256": "25358a6523d877da8260e1b8d3d522ffa63a5a72252caa3e1e9e7c3ff1d4b0f0",
+      "bytes": 2476,
       "category": "dashboard_web_profiles"
     },
     {
       "source_path": "knowledge/dashboard_web_profiles/qingcheng_full_grade_revenue_dashboard_web_profile.md",
-      "sha256": "30ea527f57a5edd45f3da67a49e176c590a44b4c13379edf538a18ec2838a887",
-      "bytes": 4461,
+      "sha256": "36337a964318db0d4fdafa5770a597dee01b5673937b7febfe60d6f3aea41c57",
+      "bytes": 4550,
       "category": "dashboard_web_profiles"
     },
     {
       "source_path": "knowledge/dashboard_web_profiles/qingcheng_personal_conversion_web_profile.md",
-      "sha256": "86129c3f9b62a152789ce008880d911527c1acad0c7386f37380ea66ccb74a2c",
-      "bytes": 2474,
+      "sha256": "1717910f092f0029863a56a90c6169b3ddee4c04ea1ea7f84b7504dd7a60fa73",
+      "bytes": 2528,
       "category": "dashboard_web_profiles"
     },
     {
       "source_path": "knowledge/dashboard_web_profiles/qingcheng_process_data_report_web_profile.md",
-      "sha256": "598b3f9012caf83e45802c369a4fff422c18ed84857cd3916225bdc9103fd20d",
-      "bytes": 4209,
+      "sha256": "fbf55c17a1137bdd3865d92bddc0b55d126c44f5e329e1371110e3bf343e3984",
+      "bytes": 4297,
       "category": "dashboard_web_profiles"
     },
     {
       "source_path": "knowledge/dashboard_web_profiles/qingcheng_team_conversion_completion_web_profile.md",
-      "sha256": "2907bd6d24a2e75cacdf5af66dfc6002d2b26815616e135ecb1510833c6c5242",
-      "bytes": 3852,
+      "sha256": "731177ccccca421d5f0c6baac4a819943c31f054007bfc40fa3beb80911e787e",
+      "bytes": 3933,
       "category": "dashboard_web_profiles"
     },
     {
@@ -5903,8 +5946,8 @@
     },
     {
       "source_path": "knowledge/dashboards/data_center_qingcheng_datasets.md",
-      "sha256": "8a9389d9f084e76b8a0ccc628c0ddc5543adf526900035f5dafa5c0bad21c0a9",
-      "bytes": 4129,
+      "sha256": "056d368946530eab885673719c7c8539431510f2759b3f6e477aceac48f5e548",
+      "bytes": 6433,
       "category": "dashboards"
     },
     {
@@ -5987,8 +6030,8 @@
     },
     {
       "source_path": "knowledge/decision_tree.md",
-      "sha256": "b0ace23f80e62cd5b2046d00612faa9c45497727365223dbee52f69f5e4f52f8",
-      "bytes": 12073,
+      "sha256": "4119f18973fa49014aa7c4921a3309dbba53c8297be7ff7b4883af136a77d789",
+      "bytes": 12492,
       "category": "governance"
     },
     {
@@ -6245,8 +6288,8 @@
     },
     {
       "source_path": "knowledge/reverse_index/join_risk_index.md",
-      "sha256": "63cf1b43e09203ce1dc7580cf01406658e37692783e8fbf866b4625933874d2f",
-      "bytes": 76343,
+      "sha256": "dd3e3c3bc1918e9ca1f9ae69023da8428156009f9caa3eb8197918fbba71a5ea",
+      "bytes": 79400,
       "category": "reverse_index"
     },
     {
@@ -6322,6 +6365,12 @@
       "category": "sql_patterns"
     },
     {
+      "source_path": "knowledge/sql_patterns/qingcheng_local_merge_attribution_20261016.md",
+      "sha256": "a0c88adaf579d0a359034559b43e78f0feed2577f684a30adecc7f2a4d81e29f",
+      "bytes": 8335,
+      "category": "sql_patterns"
+    },
+    {
       "source_path": "knowledge/sql_patterns/qingcheng_mixed_cash_transfer_income.md",
       "sha256": "028b881c2f61c24a1e4a38fd772cf53b6ed00d4c7ddf7ac1469adab0981d7718",
       "bytes": 4737,
@@ -6329,8 +6378,8 @@
     },
     {
       "source_path": "knowledge/sql_patterns/qingcheng_monthly_cashflow_excel_replication.md",
-      "sha256": "e5fcddcbefdf7c5177ee6ebde5db232cea2df468f82c99bdcf3cc3b4f957b36a",
-      "bytes": 13646,
+      "sha256": "1e134a0aea00708a1c0b99ce023950f39e584405a01c36f7a0aa8b577c31a423",
+      "bytes": 13747,
       "category": "sql_patterns"
     },
     {
@@ -6605,14 +6654,14 @@
     },
     {
       "source_path": "knowledge/update_log/changelog.md",
-      "sha256": "88a8c17605baf3790d39be417826a05e6866e6a0d92c9f4d1206f4b516b7265f",
-      "bytes": 111091,
+      "sha256": "f911ba71455059bca7d30f7a3abf744ad087899ce120e56ec0e34e0ce2b73b7d",
+      "bytes": 112373,
       "category": "update_log"
     },
     {
       "source_path": "resources/raw_sql/data_center_qingcheng_2064.sql",
-      "sha256": "f65fbd786a480d8d774ddd2c1f7fecdc1daaf3acfef1d2703ff3e77a6be60051",
-      "bytes": 40940,
+      "sha256": "2c19e58161e9ace142714b5e3896d45f276d17820b149d0d2d832f4668cdd1ec",
+      "bytes": 44494,
       "category": "raw_sql"
     },
     {

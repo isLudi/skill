@@ -88,9 +88,12 @@ def validate_scope(records, channel, period, *, source_channel=None):
                 raise ValueError("线索缺少必要字段：" + field)
         actual_channel = text(value(row, "渠道"))
         if isinstance(source_channel, dict):
-            if source_channel.get("match_mode") != "casefold_exact":
+            if source_channel.get("match_mode") == "casefold_exact":
+                channel_matches = actual_channel.casefold() == source_channel["value"].casefold()
+            elif source_channel.get("match_mode") == "any_exact":
+                channel_matches = actual_channel in source_channel["values"]
+            else:
                 raise ValueError("未审核的主管明细渠道匹配模式")
-            channel_matches = actual_channel.casefold() == source_channel["value"].casefold()
         else:
             channel_matches = actual_channel == source_channel
         if not channel_matches or text(value(row, "期次")) != period:

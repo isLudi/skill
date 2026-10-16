@@ -15,6 +15,7 @@
 | 青橙与市场顾问跨部门对比 | 两个 Skill 各自的 `semantic/domain_manifest.json` | 两边各自命中的 metrics/dashboard/raw SQL | 构建两份独立 QuerySpec；不得共享指标、范围、临时表、渠道/期次或业务 join，只在兼容聚合粒度合并结果 |
 | 青橙有哪些表、某表能不能用于青橙 | `knowledge/04_qingcheng_project_profile.md` | `knowledge/01_table_index.md`、对应 `knowledge/tables/*.md` 或 `knowledge/temp_tables/*.md` | 不从市场顾问 skill 自动迁移表语义；公共表也要确认青橙范围字段 |
 | 写青橙过程数据 SQL | `knowledge/dashboards/qingcheng_process_data_raw_20260522.md` | `knowledge/metrics/qingcheng_process_data_metrics.md`、`knowledge/joins/table_relationships.md` | 外呼、APP 登录、到课补充会改变粒度，先查 join 风险 |
+| 本地化出现 SEC/规划精品app 顾问、merge 回补或抖音私信影响排查 | `knowledge/sql_patterns/qingcheng_local_merge_attribution_20261016.md` | 最新线上2064及qing2lark_guocheng、分配事件、过程指标知识 | 先折叠再校验本次分配；保留正常历史回补和抖音现行口径，不用顾问/app黑名单或直接迁移有效量 |
 | 写青橙到课 SQL | `knowledge/dashboards/qingcheng_daoke_raw_20260522.md` | `knowledge/metrics/qingcheng_daoke_metrics.md`、`knowledge/temp_tables/temp_table.dingxi01_qing_daoke.md` | 到课表 `qici + qudao + grade + begin_time` 唯一性待确认 |
 | 写青橙转化 SQL、修复转化 SQL、修正暑期期次 | `knowledge/dashboards/qingcheng_conversion_raw_20260626.md` | `knowledge/metrics/qingcheng_conversion_metrics.md`、`knowledge/sql_patterns/qingcheng_channel_grade_mapping.md`、`knowledge/sql_patterns/qingcheng_summer_qici_corrections.md` | 先确认业务日期范围、期次正则、`hour` 偏移和 `bb_dedup ↔ ud` join 粒度 |
 | 写青橙渠道订单明细 SQL / 算绩效模板 SQL | `knowledge/dashboards/qingcheng_channel_order_detail_raw_20260627.md` | `knowledge/metrics/qingcheng_channel_order_detail_metrics.md`、`knowledge/joins/table_relationships.md` | 明细 SQL 必须说明 `ld` 范围限定、订单粒度和模板扩列字段 |

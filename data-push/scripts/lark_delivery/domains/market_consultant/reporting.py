@@ -66,8 +66,13 @@ def validate_context(context, evidence, cfg=None, slot=None, *, enforce_calendar
             if context["chat_id"] != cfg["chat_id"] or context["identity"] != "bot":
                 raise ValueError("configured group or sender mismatch")
             if enforce_calendar:
-                policy.enforce_live_calendar(context["period"], context["report_type"], slot or _clock())
-            if enforce_calendar and context["report_type"] != policy.scheduled_report_type(slot or _clock()):
+                if context.get("delivery_component"):
+                    from .grade9_components import validate_component_calendar
+                    validate_component_calendar(context, cfg, slot or _clock())
+                else:
+                    policy.enforce_live_calendar(context["period"], context["report_type"], slot or _clock())
+            if (enforce_calendar and not context.get("delivery_component")
+                    and context["report_type"] != policy.scheduled_report_type(slot or _clock())):
                 raise ValueError("scheduled report type does not match the weekday policy")
         if context.get("skip_delivery"):
             report = context.get("supervisor_report")

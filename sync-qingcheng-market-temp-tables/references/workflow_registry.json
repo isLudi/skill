@@ -1,8 +1,8 @@
 {
-  "version": 10,
-  "updated_at": "2026-10-08",
+  "version": 12,
+  "updated_at": "2026-10-15",
   "source_sender_policy": "any_group_member",
-  "source_sender_policy_notes": "2026-10-01 起登记群内任意成员发送的登记表格均可预检、识别与上传；发送人门禁放宽为群隔离 + 登记文件名模式 + 多族命中阻断。各家族 source_sender_open_id/name 降级为登记来源人元数据，仅用于审计展示，不再作为硬校验。授权记录：所有者 2026-10-01 指示。",
+  "source_sender_policy_notes": "2026-10-01 起默认按登记群 + 文件名模式 + 多族命中阻断识别来源；course_schedule 另按显式维护人白名单校验。默认家族的 source_sender_open_id/name 仅作审计元数据；course_schedule 的 source_sender_open_ids 为硬校验。2026-10-15 到课表维护人调整为郅玲玉和崔浩，移除已离职的李怡青。",
   "require_source_quality_gates": true,
   "domains": {
     "qingcheng": {
@@ -330,8 +330,13 @@
       "command_aliases": ["开课时间", "开课时间表", "到课", "到课表", "行课时间", "青橙行课"],
       "command_groups": ["attendance"],
       "source_kind": "file_attachment",
-      "source_sender_name": "李怡青",
-      "source_sender_open_id": "ou_3168c83ffe93b49a192755c8e31e2bc5",
+      "source_sender_policy": "registered",
+      "source_sender_name": "郅玲玉",
+      "source_sender_open_id": "ou_bf111effd2d71a52ee40c58c7cb4d105",
+      "source_sender_open_ids": [
+        "ou_bf111effd2d71a52ee40c58c7cb4d105",
+        "ou_6ed2164f47fc0634ca45fd3cb02fa384"
+      ],
       "source_search_query": "",
       "source_filename_patterns": [
         "^青橙行课.*\\.xlsx$",

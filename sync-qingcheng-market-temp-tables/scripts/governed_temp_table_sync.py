@@ -1131,6 +1131,13 @@ def earliest_source_timestamp(source_inputs: list[dict[str, Any]]) -> str:
     ).isoformat(timespec="seconds")
 
 
+def latest_source_timestamp(source_inputs: list[dict[str, Any]]) -> str:
+    """Return the latest source timestamp with its UTC offset preserved."""
+    return max(
+        parse_datetime(str(item["create_time"])) for item in source_inputs
+    ).isoformat(timespec="seconds")
+
+
 def build_selection_spec(
     registry: dict[str, Any],
     family_ids: list[str] | None = None,
@@ -3154,7 +3161,7 @@ def plan_sync(args: argparse.Namespace) -> int:
                 message["source_input_audit"] = source_input_audit
                 quality_message = {
                     **message,
-                    "create_time": earliest_source_timestamp(source_inputs),
+                    "create_time": latest_source_timestamp(source_inputs),
                 }
             else:
                 source_write, source_meta = read_records(

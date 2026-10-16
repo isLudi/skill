@@ -60,11 +60,12 @@
     "nezha_task_id": 67397,
     "task_name": "qing2lark_zhuanhua",
     "owner": "lvshuai01",
-    "published_version": "V6",
-    "version_id": 207547,
-    "source_sha256": "97aed7e48398d6a4321e0b11fab0cff44de67edb8f5f21622e7d1424a0521a39",
+    "published_version": "V7",
+    "version_id": 207706,
+    "source_sha256": "5ed53a45e32dc9e2cfa9e08b88bae3a9103b2e6a68936ec574c501281c2f5db0",
     "audit_mode": "none",
-    "audit_note": "qing2lark_zhuanhua 已绑定最新已发布 V6/version 207547（T-1 至 T-5 分区探针，源码 SHA-256 97aed7e48398d6a4321e0b11fab0cff44de67edb8f5f21622e7d1424a0521a39）；task_id 47775、Nezha 67397 保持不变。第一版调度不做天宫2执行行审计；改用转化表快照新鲜度门禁（freshness_max_age_minutes）兜底。"
+    "audit_note": "qing2lark_zhuanhua 已绑定最新已发布 V7/version 207706、execFileId 837872，删除500/写入1000；源码 SHA-256 5ed53a45e32dc9e2cfa9e08b88bae3a9103b2e6a68936ec574c501281c2f5db0。任务 ID 和调度不变；保留转化表快照新鲜度门禁。",
+    "exec_file_id": 837872
   },
   "freshness_max_age_minutes": 1560,
   "no_data_policy": "always_send_with_fallback_flag",

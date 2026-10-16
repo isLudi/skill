@@ -23,11 +23,12 @@ WEEKDAYS = ("周一", "周二", "周三", "周四", "周五", "周六", "周日"
 DEFAULT_GRADES = ("初一", "初二", "初三", "高一", "高二", "高三")
 
 DISPLAY_NAMES = {
+    "app_grade_9": "APP与B站初三主管顾问协调",
     "supervisor_koc_zhoushuai_warning": "KOC-周帅数学高中双期预警",
     "self_incubated_koc_5": "自孵化KOC-5元纯课",
     "business_koc_math": "商务KOC数学",
     "supervisor_koc_douyin_sync": "KOC与抖音私信",
-    "supervisor_private_app_sync": "集团私域与APP",
+    "supervisor_private_app_sync": "集团私域、APP与人工外呼",
     "supervisor_self_incubated_koc_5_grade_9": "KOC初三",
     "supervisor_yafei_grade_9": "亚飞B站初三",
     "supervisor_yafei_grade_9_advisor": "亚飞B站初三顾问",
@@ -36,7 +37,7 @@ DISPLAY_NAMES = {
 }
 
 SCHEDULE_FILES = {
-    "app_grade_9": None,  # Preview-only; no Windows task is registered.
+    "app_grade_9": "app_grade_9_scheduled_push.json",
     "supervisor_koc_zhoushuai_warning": "supervisor_koc_zhoushuai_warning_scheduled_push.json",
     "self_incubated_koc_5": "scheduled_push.json",
     "business_koc_math": "business_koc_math_scheduled_push.json",
@@ -50,7 +51,7 @@ SCHEDULE_FILES = {
 }
 
 SCRIPT_STEMS = {
-    "app_grade_9": (None, None),
+    "app_grade_9": ("run_app_grade_9_scheduled_push.ps1", "register_app_grade_9_scheduled_push.ps1"),
     "supervisor_koc_zhoushuai_warning": ("channels/market_consultant/supervisor_koc_zhoushuai_warning.py", "register_supervisor_koc_zhoushuai_warning_scheduled_push.ps1"),
     "self_incubated_koc_5": ("run_scheduled_push.ps1", "register_scheduled_push.ps1"),
     "business_koc_math": ("run_business_koc_math_scheduled_push.ps1", "register_business_koc_math_scheduled_push.ps1"),
@@ -130,7 +131,19 @@ def _match_mode(config):
     match = config.get("source", {}).get("channel_match", {})
     if match.get("match_mode") == "contains":
         return "名称包含"
-    return "多个精确值" if len(_channels(config)) > 1 else "精确匹配"
+    return "多个精确值" if len(_raw_channels(config)) > 1 else "精确匹配"
+
+
+def _raw_channels(config):
+    """Describe raw source members even when several produce one logical report."""
+    values = config.get("source", {}).get("channel_match", {}).get("values", {})
+    result = []
+    for channel in _channels(config):
+        source = values.get(channel, channel)
+        for name in (source if isinstance(source, list) else [source]):
+            if name not in result:
+                result.append(name)
+    return result
 
 
 def _grades(report):
@@ -244,9 +257,9 @@ def _operator_record(channel_ref: str, config):
         "业务负责人": config.get("upstream", {}).get("owner", ""),
         "需求背景": "已登记本地数据推送；由data-push现有配置导入。",
         "渠道标准名称": DISPLAY_NAMES.get(channel_id, config.get("channel", channel_id)),
-        "原始渠道示例": "；".join(_channels(config)),
+        "原始渠道示例": "；".join(_raw_channels(config)),
         "渠道匹配方式": _select(_match_mode(config)),
-        "匹配关键词或规范值": match.get("keyword") or " OR ".join(_channels(config)),
+        "匹配关键词或规范值": match.get("keyword") or " OR ".join(_raw_channels(config)),
         "数据源链接": source.get("source_url", ""),
         "原始表名称": source.get("raw_table_name", ""),
         "原始表链接": source.get("raw_source_url", ""),
@@ -285,7 +298,7 @@ def _operator_record(channel_ref: str, config):
         "过程指标提醒方向": _select("最低"),
         "转化指标提醒方向": _select("最低"),
         "并列处理": _select("全部提醒"),
-        "@规则说明": "仅原生@唯一解析且已验证属于目标群的open_id；解析失败或成员不在群时阻断。",
+        "@规则说明": "仅对唯一解析、账号可用且已核实在目标群的人员使用原生@；无法解析、账号歧义、未入群或成员查询失败均保留姓名文字，其他人员正常@。人员解析失败不阻断消息或其他渠道。",
         "过程消息文案模板": "🔥 **【{期次}】{渠道}渠道过程数据播报**",
         "转化消息文案模板": "🔥 **【{期次}】{渠道}渠道转化数据播报**",
         "无符合条件数据时": _select("跳过不发送"),

@@ -5,16 +5,17 @@
 ## 来源身份与附件
 
 - 群：`青橙数据对接`，`oc_e604e064976c022ab4289fc2fb979332`
-- 发布人：李怡青（`liyiqing02`），`ou_3168c83ffe93b49a192755c8e31e2bc5`
+- 维护人：郅玲玉（`ou_bf111effd2d71a52ee40c58c7cb4d105`）和崔浩（`ou_6ed2164f47fc0634ca45fd3cb02fa384`）。李怡青已离职并从白名单移除。
 - 历史验证消息：`om_x100b69478c6c80a0df62926437bfc84`（链接形态，已退役），仅作身份证据保留
 - 本地累计表：`D:\GAOTU\19003_青橙项目部看板维护表格\qing_daoke.xlsx`
+- 本地累计表工作表：`Sheet1`（当前登记目标工作表；源附件仍读取当前活动工作表）
 - 平台临时表：`temp_table.dingxi01_qing_daoke`
 
-2026-10-01 起，李怡青在群内直接发送 `.xlsx` 附件，不再发送 `docs.baijia.com` 在线文档链接。链接取件方式（Playwright 登录百家文档、`QINGCHENG_DOCS_ENV_FILE` 凭据段、在线标题逐字校验）已整体下线；`source_kind` 为 `file_attachment`，取件走 `lark-cli` 附件下载，与市场文件族同链路。
+2026-10-01 起，白名单维护人在群内直接发送 `.xlsx` 附件，不再发送 `docs.baijia.com` 在线文档链接。链接取件方式（Playwright 登录百家文档、`QINGCHENG_DOCS_ENV_FILE` 凭据段、在线标题逐字校验）已整体下线；`source_kind` 为 `file_attachment`，取件走 `lark-cli` 附件下载，与市场文件族同链路。
 
 ## 附件文件名识别
 
-身份锚点为三重：精确群 + 李怡青 open_id + 登记文件名模式（`re.fullmatch`）。登记于 Registry `source_filename_patterns`：
+身份锚点为三重：精确群 + 到课表来源白名单 open_id + 登记文件名模式（`re.fullmatch`）。登记于 Registry `source_filename_patterns`：
 
 - `^青橙行课.*\.xlsx$` —— 官方完整命名系列；
 - `(?i)^.*(?:到课|开课|行课|课表|课程|daoke|kaike|kebiao).*\.xlsx$` —— 行课语义关键词变体，大小写不敏感，含拼音 daoke/kaike/kebiao。

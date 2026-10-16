@@ -8,7 +8,7 @@
 |---|---|---|---|---|
 | 青橙项目部 | 青橙数据对接 | `oc_e604e064976c022ab4289fc2fb979332` | 郅玲玉 | `ou_bf111effd2d71a52ee40c58c7cb4d105` |
 | 市场顾问部 | 市场顾问部临时表上传 | `oc_7b9873ee89b18d11cf60c8768c6eba9e` | 张君言 | `ou_04f543bec3cdd195bbdd53a582f68443` |
-| 青橙行课例外来源 | 青橙数据对接 | 同上 | 李怡青 | `ou_3168c83ffe93b49a192755c8e31e2bc5` |
+| 青橙行课例外来源 | 青橙数据对接 | 同上 | 郅玲玉、崔浩 | `ou_bf111effd2d71a52ee40c58c7cb4d105`、`ou_6ed2164f47fc0634ca45fd3cb02fa384` |
 
 来源人、文件名和内容同时匹配，但群 ID 不匹配时必须拒绝。历史私聊仅用于建立市场映射和阈值，不是生产取件源；市场生产附件只能来自新群。
 
@@ -21,7 +21,7 @@
 | `team_month_goal` | `团队月度目标表.xlsx` / `月度目标表.xlsx` | `...\qing_team_goal_moth.xlsx` | `dingxi01_qing_team_goal` | 源 `month` 切片 |
 | `result_architecture` | `全员结果数据架构.xlsx` | `...\qing_team_jg.xlsx` | `dingxi01_qing_team_jg` | 源 `qici` 切片 |
 | `period_architecture` | 青橙带班架构文件 | `D:\GAOTU\19002_市场顾问部看板维护表格\jiagou_db.xlsx` | `dingxi01_jiagou_db` | `dept_1=青橙项目部` 且源 `qici` |
-| `course_schedule` | 李怡青发布的群内 Excel 附件（文件名含行课语义，见 `course_schedule_source.md`） | `D:\GAOTU\19003_青橙项目部看板维护表格\qing_daoke.xlsx` | `dingxi01_qing_daoke` | 活动页对应 `qici` |
+| `course_schedule` | 郅玲玉或崔浩发送的群内 Excel 附件（文件名含行课语义，见 `course_schedule_source.md`） | `D:\GAOTU\19003_青橙项目部看板维护表格\qing_daoke.xlsx` | `dingxi01_qing_daoke` | 活动页对应 `qici` |
 
 前三类目标表允许在登记文件名前增加一个严格的数字月份前缀：`1月`–`12月`，并兼容 `01月`–`09月`。月份以外的文本前缀、`0月`、`13月`、中文数字月份和其他扩展名仍不匹配。
 

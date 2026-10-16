@@ -26,10 +26,10 @@ def test_batch_pins_the_published_t5_upstream():
     batch = MODULE._batch()
     assert batch["upstream"]["task_id"] == 47775
     assert batch["upstream"]["nezha_task_id"] == 67397
-    assert batch["upstream"]["published_version"] == "V6"
-    assert batch["upstream"]["version_id"] == 207547
+    assert batch["upstream"]["published_version"] == "V7"
+    assert batch["upstream"]["version_id"] == 207706
     assert batch["upstream"]["source_sha256"] == (
-        "97aed7e48398d6a4321e0b11fab0cff44de67edb8f5f21622e7d1424a0521a39"
+        "5ed53a45e32dc9e2cfa9e08b88bae3a9103b2e6a68936ec574c501281c2f5db0"
     )
 
 

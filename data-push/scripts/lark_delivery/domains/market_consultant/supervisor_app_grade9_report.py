@@ -70,11 +70,11 @@ def validate_scope(records, channel, period, *, source_channel=None):
 
 
 def build_report(records, counters, period, report_type, *, min_post_leads=MIN_POST_LEADS,
-                 included_grades=DEFAULT_INCLUDED_GRADES, **unused):
+                 included_grades=DEFAULT_INCLUDED_GRADES, show_totals=True, **unused):
     report = base_report.build_report(records, counters, period, report_type,
                                       min_post_leads=min_post_leads,
                                       included_grades=included_grades, **unused)
-    report.update(show_totals=False, result_reminder_metric="截面单效")
+    report.update(show_totals=bool(show_totals), result_reminder_metric="截面单效")
     return report
 
 
@@ -106,7 +106,7 @@ def write_preview(context, directory):
         '<!doctype html><meta charset="utf-8"><title>APP初三顾问消息预览</title>'
         '<style>body{font-family:Microsoft YaHei,sans-serif;margin:24px;color:#203b72}'
         'img{display:block;max-width:100%;margin:20px 0}pre{white-space:pre-wrap}</style>'
-        '<h1>APP初三顾问消息预览</h1><p>退后线索至少5；隐藏总计行；最低值全部并列提醒。</p>'
+        '<h1>APP初三顾问消息预览</h1><p>退后线索至少5；显示可见顾问合计；最低值全部并列提醒。</p>'
         f'{cards}<pre>{body}</pre>', encoding="utf-8")
     json_path.write_text(json.dumps({
         "channel_key": context["channel_key"], "period": context["period"],

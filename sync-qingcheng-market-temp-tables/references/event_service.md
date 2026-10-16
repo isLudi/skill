@@ -84,7 +84,7 @@ D:\anaconda3\python.exe C:\Users\lvshuai01\.codex\skills\sync-qingcheng-market-t
 必要字段：
 
 - 两个精确 `chat_ids`；
-- 郅玲玉、李怡青、张君言的 `source_sender_ids`；
+- 郅玲玉、崔浩、张君言的 `source_sender_ids`；
 - 吕帅等被明确授权人的 `approver_ids`；
 - 管家机器人的 `bot_open_id` 和 `bot_names`；
 - Python、同步脚本、注册表和两个 runtime 根路径。

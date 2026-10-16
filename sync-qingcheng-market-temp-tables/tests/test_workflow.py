@@ -29,6 +29,7 @@ from governed_temp_table_sync import (  # noqa: E402
     build_selection_spec,
     classify_source_message,
     earliest_source_timestamp,
+    latest_source_timestamp,
     evaluate_source_quality,
     inspect_external_link_integrity,
     list_chat_messages_bot,
@@ -1488,6 +1489,10 @@ class MergeWorkflowTests(unittest.TestCase):
             earliest_source_timestamp(source_inputs),
             "2026-09-23T11:37:00+00:00",
         )
+        self.assertEqual(
+            latest_source_timestamp(source_inputs),
+            "2026-10-08T10:18:00+00:00",
+        )
 
         family = {
             "slice_column": "qici",
@@ -1733,8 +1738,8 @@ class MergeWorkflowTests(unittest.TestCase):
                 "message_id": "om_course",
                 "chat_id": "oc_e604e064976c022ab4289fc2fb979332",
                 "sender": {
-                    "id": "ou_3168c83ffe93b49a192755c8e31e2bc5",
-                    "name": "李怡青",
+                    "id": "ou_bf111effd2d71a52ee40c58c7cb4d105",
+                    "name": "郅玲玉",
                 },
                 "content": (
                     f"最新到课表 <file key=\"file_v3_test\" name=\"{file_name}\"/>"
@@ -1785,8 +1790,8 @@ class MergeWorkflowTests(unittest.TestCase):
                     "message_id": "om_link_only",
                     "chat_id": "oc_e604e064976c022ab4289fc2fb979332",
                     "sender": {
-                        "id": "ou_3168c83ffe93b49a192755c8e31e2bc5",
-                        "name": "李怡青",
+                        "id": "ou_bf111effd2d71a52ee40c58c7cb4d105",
+                        "name": "郅玲玉",
                     },
                     "content": (
                         "辛苦上传上课时间：https://docs.baijia.com/sheet/abcd"
@@ -1796,12 +1801,32 @@ class MergeWorkflowTests(unittest.TestCase):
             "link-only messages must not classify after link-source retirement",
         )
 
+        cuihao = message("到课表.xlsx")
+        cuihao["sender"] = {
+            "id": "ou_6ed2164f47fc0634ca45fd3cb02fa384",
+            "name": "崔浩",
+        }
+        self.assertEqual(
+            classify_source_message(registry, cuihao),
+            "course_schedule",
+            "the added Cuihao source sender must be accepted",
+        )
+
+        former_sender = message("到课表.xlsx")
+        former_sender["sender"] = {
+            "id": "ou_3168c83ffe93b49a192755c8e31e2bc5",
+            "name": "李怡青",
+        }
+        self.assertIsNone(
+            classify_source_message(registry, former_sender),
+            "former LiyiQing sender must be rejected after removal",
+        )
+
         other_member = message("到课表.xlsx")
         other_member["sender"] = {"id": "ou_unregistered", "name": "群内其他成员"}
-        self.assertEqual(
+        self.assertIsNone(
             classify_source_message(registry, other_member),
-            "course_schedule",
-            "any_group_member policy must accept registered filenames from any chat member",
+            "course schedule must reject senders outside its explicit whitelist",
         )
 
         wrong_chat = message("到课表.xlsx")

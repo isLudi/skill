@@ -1,32 +1,48 @@
-# 集团私域与APP主管维度播报
+# 集团私域、APP与人工外呼主管维度播报
 
 ## 固定范围
 
 - 渠道入口：`market_consultant/supervisor_private_app_sync`。
-- 渠道顺序：`集团私域`、`app`。
+- 消息顺序：`集团私域`、`app`、`人工外呼`。人工外呼对应运营申请「自营TMK」，2026-10-14 按用户确认将原始渠道人工外呼与唐山TMK合并为一条人工外呼消息。
 - `app` 是稳定的报告/台账渠道键；源表中的 `app`、`APP`、`App` 等仅大小写不同的精确值合并读取和核对，其他含 APP 的渠道名不纳入。`集团私域` 仍是大小写敏感的精确值。
-- 目标群仅按不可变 ID `oc_b43002a3c802ee5ae2d5b2f10d7d50a2` 绑定；`💪【0911期】APP+私域+图书直播🔥信息同步` 只是核验用显示名，群改名不改变投递目标。
+- 目标群仅按不可变 ID `oc_b43002a3c802ee5ae2d5b2f10d7d50a2` 绑定；当前核验显示名为 `💪【1016期】APP➕自营TMK`，群改名不改变投递目标。
 - 发送身份固定为群内机器人“管家” `ou_f3907e865135732c15a1dfce27828411`。
-- Windows 任务：`Codex-Lark-Supervisor-Private-App-Push`。每天 13:21、17:21、21:21 与第3顺位任务同分钟启动并立即检查，失败后按 `:21/:23/.../:49` 重试；周一至周四只推过程数据，周五至周日推过程与转化数据。
+- Windows 任务：`Codex-Lark-Supervisor-Private-App-Push`。每天 13:21、17:21、21:21 与第3顺位任务同分钟启动并立即检查，失败后按 `:21/:23/.../:49` 重试；周一至周四只推本期过程数据，周五至周日只推本期转化数据。
 - 该任务、状态目录与 `Codex-Lark-Supervisor-KOC-Douyin-Push` 完全独立，不允许互相改写台账或启停状态。
 
 ## 复用的主管报表契约
 
 本渠道直接复用 `supervisor_report.py`，与 KOC+抖音主管播报只有渠道集合、群 ID、状态目录和任务名不同：
 
-- 仅保留高一、高二、高三；图片按 `年级 × 负责人 × 主管` 聚合，每行一个顾问。
+- 仅保留高一、高二、高三；图片按 `年级 × 负责人 × 主管` 聚合，每行展示该负责人、年级下的一名主管的汇总。
 - 文字提醒按 `渠道 × 年级 × 主管` 聚合。主管唯一解析到已激活账号且属于目标群时正常 @；未入群、未解析或成员查询失败时使用姓名文字兜底。
 - 主管聚合后 `退后线索 < 10` 的图片行和提醒候选均隐藏；某渠道没有合格行时返回 `skipped_no_eligible_rows`，不生成或发送空图片。
 - 适用本地多渠道群的统一规则：上游本期双期审计清单证明某登记渠道为0行时，仅跳过该渠道，不阻断同群其他有数据渠道；缺少审计、审计数与Base读数不符、期次或分区不符仍须阻断。全部登记渠道为0行时不发送空消息。
 - 过程表在每个年级内先按未四舍五入的 `5min标记 / 退后线索` 严格降序；同率时按未四舍五入的线索留存率降序，再按负责人名称稳定排序。线索留存率固定色阶为 `<72%` 红、`72%–<75%` 橙、`75%–<80%` 黄、`80%–<88%` 黄绿、`≥88%` 绿。
 - 标题为 `🔥 **【实际期次】渠道名渠道过程数据播报**` 和 `🔥 **【实际期次】渠道名渠道转化数据播报**`。
 
+## 人工外呼接入与隔离（2026-10-12）
+
+- 沿用主管图片的完整过程、转化列和排序；过程按 5min 降序，转化按截面单效降序。文字按每年级主管聚合取对应指标最低值，全部并列都提醒。
+- 人工外呼报告精确读取原始表 `渠道=人工外呼` 或 `渠道=唐山TMK`，报表和台账统一使用人工外呼这个稳定渠道键。APP 继续只合并大小写不同的精确 APP 值，不能用人工外呼或其他含 APP 的名称扩大其范围。
+- 三条逻辑渠道消息在同一任务中分别准备、校验、制图、发送和保存回执。任一逻辑渠道未来没有本期源数据或没有主管达到退后线索 ≥10 时，仅跳过该消息；身份无法解析或人员不在群时保留姓名文字，不阻断消息。发送 bot、目标群、完整数据、版本、快照和幂等校验继续保留。
+- 复用原任务、执行器、状态目录及稳定群 ID；运营表自营TMK申请关联到共享主管任务的技术实施子记录，完整 JSON 快照记录三条逻辑消息及人工外呼对应的两个原始渠道。
+
+## 人工外呼与唐山TMK合并（2026-10-14）
+
+- 最新自营TMK运营申请的原始渠道为「人工外呼；唐山TMK」；`source.channel_match.values["人工外呼"]=["人工外呼","唐山TMK"]` 明确两个大小写敏感的精确原始值，由专属 policy 固定核验。
+- 两个来源按相同期次分别完整读取，确认同一 Base 版本后合并明细；按年级、负责人、主管加总分子和分母，再重新计算比率、截面单效、总计、排序及最低主管提醒。退后线索 ≥10 门槛在合并后判断，不平均两渠道已经计算好的比例。
+- 标题、图片文件名、提醒和幂等回执均只使用人工外呼；唐山TMK保留为源数据血缘，没有独立消息或计划任务。
+- 本期上游审计计数为两来源计数之和；人工外呼有数据、唐山TMK为0，或反过来，都继续准备和投递。两者都为0时只跳过人工外呼消息；合并后没有达到展示门槛的主管时同样跳过。
+- 空来源不要求出现线索；每个来源读取仍须完成，数据不完整、分区不符或版本不同只阻断人工外呼这条消息，不阻断同任务的 APP、集团私域及其他群/期次。人员无法解析或不在群仍用姓名文字。
+- 原 Windows 任务每次启动重新读取受治理配置，下一正常计划批次加载合并规则，不创建重复任务或自动补发历史批次。
+
 ## 本地入口与调度
 
 ```powershell
-& 'D:\anaconda3\python.exe' 'C:\Users\Ludim\.codex\skills\data-push\scripts\channels\market_consultant\supervisor_private_app_sync.py' describe
-& 'D:\anaconda3\python.exe' 'C:\Users\Ludim\.codex\skills\data-push\scripts\channels\market_consultant\supervisor_private_app_sync.py' preview --report-type both
-& 'C:\Users\Ludim\.codex\skills\data-push\scripts\register_supervisor_private_app_sync_scheduled_push.ps1' -ConfirmEnable
+& 'D:\anaconda3\python.exe' 'C:\Users\lvshuai01\.codex\skills\data-push\scripts\channels\market_consultant\supervisor_private_app_sync.py' describe
+& 'D:\anaconda3\python.exe' 'C:\Users\lvshuai01\.codex\skills\data-push\scripts\channels\market_consultant\supervisor_private_app_sync.py' preview --report-type both
+& 'C:\Users\lvshuai01\.codex\skills\data-push\scripts\register_supervisor_private_app_sync_scheduled_push.ps1' -ConfirmEnable
 ```
 
 真实发送前按 `operations.md` 使用同一个稳定 request ID 先执行 `preflight-now`，核验后再执行一次 `send-now --confirm-send`。预览、单次发送与启用调度是三个独立阶段。
