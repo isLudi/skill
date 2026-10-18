@@ -12025,6 +12025,690 @@
       "business_semantics_excluded": true
     },
     {
+      "id": "physical:fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di",
+      "name": "fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di",
+      "domains": [
+        "market_consultant"
+      ],
+      "source_docs": [
+        {
+          "domain": "market_consultant",
+          "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md",
+          "sha256": "d9c5013450d4997497eb5444c66f473a03203d612f441f1c5bf7e3bcd8345c3d"
+        }
+      ],
+      "columns": [
+        {
+          "name": "actual_send_time",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "anchor_code",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "biz_id",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "channel_account",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "channel_subtask_id",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "channel_subtask_status",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "channel_task_id",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "clazz_lesson_number",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "clazz_number",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "course_department_ids",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "course_department_names",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "create_time",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "dt",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "duration",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "expect_send_time",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "fail_reason",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "finish_time",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "msg_content",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "notice_subtask_id",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "notice_task_id",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "notice_timed_task_id",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "order_number",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "outer_channel_task_id",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "plan_id",
+          "types": [
+            "int"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "int",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "plan_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "publish_record_id",
+          "types": [
+            "int"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "int",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "reach_goal",
+          "types": [
+            "int"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "int",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "reach_goal_finish_time",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "reach_goal_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "reach_goal_status",
+          "types": [
+            "int"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "int",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "reach_type",
+          "types": [
+            "int"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "int",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "reach_type_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "receiver_account",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "receiver_id",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "receiver_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "receiver_type",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "scene_code",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "scene_id",
+          "types": [
+            "int"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "int",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "scene_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "send_type",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "sender_account",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "sender_id",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "sender_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "status_detail",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "subclazz_number",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "task_create_time",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "template_content",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "template_id",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "trigger_time",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "update_time",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        },
+        {
+          "name": "voice_url",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md"
+            }
+          ]
+        }
+      ],
+      "partition_candidates": [
+        "dt"
+      ],
+      "conflicts": [],
+      "business_semantics_excluded": true
+    },
+    {
       "id": "physical:finance_dw.app_finance_order_income_refund_info_df",
       "name": "finance_dw.app_finance_order_income_refund_info_df",
       "domains": [
@@ -19925,6 +20609,353 @@
       ],
       "partition_candidates": [
         "dt"
+      ],
+      "conflicts": [],
+      "business_semantics_excluded": true
+    },
+    {
+      "id": "physical:one_dw.dwd_mkt_tmk_call_record_hf",
+      "name": "one_dw.dwd_mkt_tmk_call_record_hf",
+      "domains": [
+        "market_consultant"
+      ],
+      "source_docs": [
+        {
+          "domain": "market_consultant",
+          "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_tmk_call_record_hf.md",
+          "sha256": "5ff29e1b9941361208c277459e89ed1a75ab353f4ec7de26cb7825023d7bff59"
+        }
+      ],
+      "columns": [
+        {
+          "name": "call_duration",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_tmk_call_record_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "call_id",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_tmk_call_record_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "call_phone_number",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_tmk_call_record_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "call_status",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_tmk_call_record_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "call_time",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_tmk_call_record_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "call_type",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_tmk_call_record_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "call_type_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_tmk_call_record_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "call_url",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_tmk_call_record_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "caller_number",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_tmk_call_record_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "create_time",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_tmk_call_record_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "display_number",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_tmk_call_record_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "dt",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_tmk_call_record_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "email_prefix",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_tmk_call_record_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "employee_type",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_tmk_call_record_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "employee_type_name",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_tmk_call_record_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "exten",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_tmk_call_record_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "hour",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_tmk_call_record_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "mark_id",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_tmk_call_record_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "owner_ship",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_tmk_call_record_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "predict_task_id",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_tmk_call_record_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "scene_id",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_tmk_call_record_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "sip_cause",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_tmk_call_record_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "task_id",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_tmk_call_record_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "update_time",
+          "types": [
+            "string"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "string",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_tmk_call_record_hf.md"
+            }
+          ]
+        },
+        {
+          "name": "user_number",
+          "types": [
+            "bigint"
+          ],
+          "provenance": [
+            {
+              "domain": "market_consultant",
+              "type": "bigint",
+              "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_tmk_call_record_hf.md"
+            }
+          ]
+        }
+      ],
+      "partition_candidates": [
+        "dt",
+        "hour"
       ],
       "conflicts": [],
       "business_semantics_excluded": true

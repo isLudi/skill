@@ -9,6 +9,7 @@
 | dw.dim_employee_chain | 员工信息表 | 员工-部门路径-任职时间段粒度，字段来自 Word 文档 | dt | 否 | 已确认 | 已根据 `E:\2000_work\GAOTU\员工信息表.docx` 补全 33 个非分区字段，主键唯一性待确认 |
 | dw.dim_cstm_active_user_c_appliction_mb_df | c端用户全量表应用粒度 | 用户-应用粒度，待确认 | dt | 否 | 已确认 | 字段目录已补全，口径需人工校验 |
 | dw.dws_user_active_user_c_appliction_hf | c端用户活跃表应用粒度_当日小时全量 | 用户-应用-小时粒度，待确认 | dt, hour | 是 | 已确认 | 字段目录已补全，口径需人工校验 |
+| fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di | 触达发送明细宽表 | 通道子任务粒度；`channel_subtask_id` 唯一性待实测 | dt | 否 | 已确认 | 数据地图表 ID 35146，当前返回 50 个普通字段和 1 个分区字段；市场顾问人群、线索挂接、接通及好友指标需另行确认 |
 | finance_dw.app_finance_order_income_refund_info_df | 订单收款退款交易信息表 | 收退款交易明细-日全量快照；精确流水唯一键待 USQL 验证 | dt | 否 | 已确认 | 数据地图已登记 86 个非分区字段和 1 个分区字段；与 GMV Communication 候选桥为用户+归属人，禁止未经唯一化直接明细 Join |
 | finance_dw.app_finance_performance_extend_details_hf | 业绩归属信息扩展表 | 订单/交易明细-小时快照粒度，字段来自 Word 文档，指标口径需结合历史 SQL 校验 | dt, hour | 是 | 已确认 | 已根据 `E:\2000_work\GAOTU\新建 Microsoft Word 文档.docx` 补全 145 个非分区字段 |
 | finance_dw.dwd_finance_order_refund_df | 订单退款明细表 | 待确认；当前 2353 退费原因分析按订单关联该表 | dt | 否 | 已确认 | 已结合数据地图和当前 `resources/raw_sql/data_center_market_2353.sql` 补充字段；主键仍待确认 |
@@ -21,6 +22,7 @@
 | gaotu_hl.ods_mkt_h_channel_group_df | H业务线渠道分类表 | 渠道-渠道大类-适用学部映射粒度；当前快照 `department_name + channel` 唯一性已验证 | dt | 否 | 已确认 | 已从天工数据地图登记 3 个非分区字段和 1 个分区字段；与宽表需先关联派生 `channel_map`，bounded CASE 探针已验证渠道组侧最大匹配行数为 1 |
 | gaotu_hl.ods_mkt_h_channel_rule_df | H业务线渠道映射原文表 | 学部-期次-完整 CASE 文本快照；单分区唯一性待验证 | dt | 否 | 已确认 | 数据地图已登记 3 个非分区字段和 1 个分区字段；当前 SQL 查询权限未开通，仅保存规则文本，不能直接 Join 产出 `channel_map` |
 | one_dw.dwd_mkt_ai_assistant_asr_record_df | 语音通话 ASR 记录 | 解析任务粒度待确认；同录音 URL 可多条 | dt | 否 | 已确认 | 数据地图登记 11 个字段；20260915 分区探针证实 URL 关联存在 1:N 风险 |
+| one_dw.dwd_mkt_tmk_call_record_hf | 先驱通话记录表 | 通话记录小时全量快照粒度；`call_id` 唯一性待实测 | dt, hour | 是 | 已确认 | 数据地图表 ID 22814，23 个普通字段和 2 个分区字段；本表接通=1，与交接稿原始表接通=33需对账后才能替代 |
 | service_dw.app_h_crm_lead_employee_workload_detail_hf | 高中顾问工作量看板 | 顾问-小时粒度，待确认 | dt, hour | 是 | 已确认 | 字段目录已补全，口径需人工校验 |
 | service_dw.app_h_crm_lead_task_process_info_detail_hf | 高中线索服务跟进明细 | 线索-任务-小时粒度，待确认 | dt, hour | 是 | 已确认 | 字段目录已补全，口径需人工校验；禁止再用 `call_answer_lead_count` 作为首 call 任务指标来源 |
 | service_dw.app_user_attribute_label_gaia_wide_df | 盖亚系统用户标签数据宽表 | 用户-标签粒度，待确认 | dt | 否 | 已确认 | 字段目录已补全，口径需人工校验 |
