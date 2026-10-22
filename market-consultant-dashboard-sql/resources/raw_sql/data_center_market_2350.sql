@@ -83,13 +83,21 @@ when rr.rule_name like '%北京直播江苏%' then '北京直播江苏'
 
 
 
+
+WHEN rr.rule_name like '%朱汉祺199%' THEN '朱博士-抖音199'
+
+WHEN rr.rule_name like '%朱汉祺49%' THEN '朱博士-视频号49'
+
 WHEN rr.rule_name like '%图书解密%' THEN '图书解密'
+
 
 
 WHEN rr.rule_name like '%市场私域会话%' THEN '市场私域会话'
 
 
+
 when rr.rule_name like '%线索复用%'  then '线索复用' 
+
 
 
 
@@ -97,7 +105,9 @@ WHEN rr.rule_name like '%朱博士-抖音99%' or rr.rule_name like '%朱博士�
 
 
 
+
 when rr.rule_name like '%朱汉祺ip9元%'  then '朱汉祺ip9元' 
+
 
 
 
@@ -105,7 +115,9 @@ when rr.rule_name like '%APP%' then 'APP'
 
 
 
+
 when rr.rule_name like '%曹忆IP%' or rr.rule_name like '%曹忆ip%'then '曹忆IP'
+
 
 
 
@@ -113,7 +125,9 @@ when rr.rule_name like '%孟亚飞IP%'or rr.rule_name like '%孟亚飞ip%' then 
 
 
 
+
 when rr.rule_name like '%图书KOC%' then '图书KOC'
+
 
 
 
@@ -121,7 +135,9 @@ when rr.rule_name like '%朱汉祺IP%' then '朱汉祺IP'
 
 
 
+
 when rr.rule_name like '%西安图书%' then '西安图书'
+
 
 
 
@@ -130,7 +146,9 @@ when rr.rule_name like '%常规KOC%' then '常规KOC'
 
 
 
+
 when rr.rule_name like '%本地化市场流量%' or rr.rule_name like '%本地化大班学部%' then '本地化市场流量'
+
 
 
 
@@ -138,10 +156,13 @@ WHEN rr.rule_name like '%市场私域低价单%' THEN '市场私域低价单'
 
 
 
+
 when rr.rule_name like '%集团私域%' then '集团私域'
 
 
+
 when rr.rule_name like '%进校%' then '进校0元'
+
 
 
 
@@ -149,7 +170,9 @@ when rr.rule_name like '%春春B站99元%' then '春春B站99元'
 
 
 
+
 when rr.rule_name like '%肖晗ip19元%' or rr.rule_name like '%ip肖晗19元%' then '肖晗ip19元'
+
 
 
 
@@ -158,10 +181,13 @@ when rr.rule_name like '%koc肖晗5元%' then 'koc肖晗5元'
 
 
 
+
 when rr.rule_name like '%KOC-下引5元%' or rr.rule_name like '%福哥私域5元%' then 'KOC-下引5元'
 
 
+
 when rr.rule_name like '%koc自孵化5元%' or rr.rule_name like '%koc广州本地化5元%' or rr.rule_name like '%koc常规5元%'  then 'koc5元' 
+
 
 
 
@@ -169,7 +195,9 @@ when rr.rule_name like '%koc朱汉祺5元%'  then 'koc朱汉祺5元'
 
 
 
+
 when rr.rule_name like '%朱汉祺ip29元%' or rr.rule_name like '%朱汉祺退费0元%' then '朱汉祺ip29元'	
+
 
 
 
@@ -178,7 +206,9 @@ or rr.rule_name like '%朱汉祺koc29元%'	then 'koc29元'
 
 
 
+
 when rr.rule_name like '%B站高中%'  then 'B站' 
+
 
 
 
@@ -186,7 +216,9 @@ when rr.rule_name like '%B站朱汉祺29元%' or rr.rule_name like '%B站周帅1
 
 
 
+
 when rr.rule_name like '%春春ip99元%'  or rr.rule_name like '%春春退费0元%' then '春春ip99元'
+
 
 
 
@@ -194,7 +226,9 @@ when rr.rule_name like '%私域0元%' or rr.rule_name like '%表单高中%' or r
 
 
 
+
 when rr.rule_name like '%私域9元%'  then '私域9元' 
+
 
 
 
@@ -202,7 +236,9 @@ when rr.rule_name like '%拓展koc%' or rr.rule_name like '%拓展ip%' or rr.rul
 
 
 
+
 when rr.rule_name like '%商务书商1元%' or rr.rule_name like '%商务1元%' or rr.rule_name like '%商务进校18元%' or rr.rule_name like '%商务TMK9元%' or rr.rule_name like '%商务%' then '商务'
+
 
 
 
@@ -211,14 +247,18 @@ when rr.rule_name like '%训练营%' or rr.rule_name like '%CRM特殊链接分�
 
 
 
+
 when rr.rule_name like '%信息流0元%' or rr.rule_name like '%0元领课%' then '信息流0元'
+
 
 
 
 when rr.rule_name like '%信息流0转低%' or rr.rule_name like '%周帅0元腾讯%' then '信息流0转低'
 
 
+
 when rr.rule_name like '%信息流%' then '信息流'
+
 
 
 
@@ -226,7 +266,9 @@ when rr.rule_name like '%tmk未加好友%' or rr.rule_name like '%tmk外呼3元%
 
 
 
+
 when rr.rule_name like '%小红书%' then '小红书'
+
 
 
 
@@ -234,7 +276,9 @@ when rr.rule_name like '%原子初三%' or rr.rule_name like '%原子高一%' or
 
 
 
+
 when rr.rule_name like '%汐子ip%' or rr.rule_name like '%ip百度%' or rr.rule_name like '%ip抖音%' or rr.rule_name like '%ip视频号%' or rr.rule_name like '%ip小红书%' or rr.rule_name like '%ip峥峥%' or rr.rule_name like '%ip快手%' or rr.rule_name like '%汤雪健ip%' or rr.rule_name like '%峥峥ip%' or rr.rule_name like '%ip299%'  or rr.rule_name like '%百度%' or rr.rule_name like '%抖音%' or rr.rule_name like '%视频号%' then 'ip'
+
 
 
 
@@ -243,7 +287,9 @@ when rr.rule_name like '%9KM%' then '9KM'
 
 
 
+
 when rr.rule_name like '%物理系统%' or rr.rule_name like '%数理系统%' then '物理系统'
+
 
 
 when rr.rule_name like '%百度星耀数学%' or rr.rule_name like '%数学%' or rr.rule_name like '%百度星耀物理%' or rr.rule_name like '%物理%'then '百度星耀'

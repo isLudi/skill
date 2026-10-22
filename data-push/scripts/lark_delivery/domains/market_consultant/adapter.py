@@ -8,7 +8,7 @@ from .channels import (
     supervisor_private_app_sync, supervisor_self_incubated_koc_5_grade_9,
     supervisor_yafei_grade_9, supervisor_yafei_grade_9_advisor,
     supervisor_zhu_doctor_video49,
-    supervisor_chenruichun, app_grade_9,
+    supervisor_chenruichun, app_grade_9, supervisor_localization_grade_9,
 )
 from .weekend_dual import REPORT_TYPE as WEEKEND_DUAL_REPORT_TYPE, write_preview as write_weekend_dual_preview
 
@@ -25,6 +25,7 @@ POLICIES = {
     "supervisor_zhu_doctor_video49": supervisor_zhu_doctor_video49,
     "supervisor_chenruichun": supervisor_chenruichun,
     "app_grade_9": app_grade_9,
+    "supervisor_localization_grade_9": supervisor_localization_grade_9,
 }
 
 ADVISOR_GRAIN_CHANNELS = frozenset({
@@ -51,6 +52,9 @@ def policy_for(definition):
 
 def report_module_for(definition):
     """Return the report implementation explicitly owned by this channel."""
+    if definition["channel_id"] == "supervisor_localization_grade_9":
+        from . import supervisor_localization_report
+        return supervisor_localization_report
     if definition["channel_id"] in ADVISOR_REPORT_CHANNELS:
         from . import supervisor_video49_report, supervisor_yafei_advisor_report, supervisor_app_grade9_report
         modules = {
@@ -89,6 +93,12 @@ def validate_definition(definition):
                 != policy.WEEKEND_NEXT_PROCESS_MIN_POST_LEADS):
             raise ValueError("KOC初中周末下一期过程数据的主管门槛与已审阅规则不一致")
     report_module = report_module_for(definition)
+    if definition["channel_id"] == "supervisor_localization_grade_9":
+        if (report["minimum_post_leads"] != policy.MIN_POST_LEADS
+                or report.get("show_totals") is not False
+                or report.get("weekend_next_process_enabled", False)
+                or report.get("display_columns") != report_module.DISPLAY_COLUMNS):
+            raise ValueError("本地化初三主管门槛、无总计、日历或展示列与最新申请不一致")
     expected_mention_target = getattr(report_module, "MENTION_TARGET",
                                       "supervisor" if definition["source"]["report_profile"] in SUPERVISOR_PROFILES else "manager")
     if definition["source"].get("mention_target") != expected_mention_target:
@@ -225,6 +235,10 @@ def preview_order(definition, target, state_dir):
 
 
 def send_now(definition, target, request_id, *, preflight=False):
+    if definition["channel_id"] == "supervisor_localization_grade_9":
+        from .localization import send_now as send_localization_now
+        validate_definition(definition)
+        return send_localization_now(definition, target, request_id, preflight=preflight)
     if definition["channel_id"] == "app_grade_9":
         from .app_sequence import send_now as send_sequence_now
         return send_sequence_now(definition, target, request_id, preflight=preflight)

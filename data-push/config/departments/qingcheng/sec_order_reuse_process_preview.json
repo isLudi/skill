@@ -11,7 +11,7 @@
     "table_id": "tblXU4tla3bY36DE",
     "view_id": "vewO4yxS3O",
     "upstream_task_id": 47728,
-    "upstream_task_name": "qing2lark",
+    "upstream_task_name": "qing2lark_guocheng",
     "match": {"一级渠道": "订单复用", "部门": "SEC"},
     "allowed_secondary_channels": ["SEC未加好友", "SEC首期掉海", "SEC招生退费"],
     "process_lead_field": "退前线索"

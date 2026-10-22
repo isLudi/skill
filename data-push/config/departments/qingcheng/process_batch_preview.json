@@ -52,10 +52,10 @@
     "nezha_task_id": 67318,
     "task_name": "qing2lark_guocheng",
     "owner": "lvshuai01",
-    "published_version": "V31",
-    "version_id": 208745,
-    "exec_file_id": 840241,
-    "source_sha256": "9bf5300e48b42c31a6bb7512b02b537ed9a43ba37bb30c4062e34c0d90138604",
+    "published_version": "V37",
+    "version_id": 215564,
+    "exec_file_id": 851129,
+    "source_sha256": "a42f1bf5b88ca77617c364b32876e41135fa45f13dd82b3bb22e2ac6b09d36f7",
     "audit_schema": "market2lark-two-period-audit-v1"
   }
 }

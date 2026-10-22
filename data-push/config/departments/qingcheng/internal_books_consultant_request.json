@@ -4,41 +4,38 @@
     "system": "lark_base",
     "operator_record_id": "recvxsKQ9g0ITU",
     "request_id": "qingcheng/internal_books",
-    "request_status": "草稿",
+    "request_status": "已上线",
     "base_token": "OEJrbiCIaazfSss2R3Lcf1OonCc",
     "table_id": "tbl3iMKvD52jaMF1"
   },
   "routing": {
     "department": "青橙项目部",
     "domain": "qingcheng",
-    "execution_surface": "local",
-    "channel_id": "internal_books"
+    "execution_surface": null,
+    "channel_id": null
   },
   "business": {
     "channel_name": "内部图书",
     "source_channel_examples": "内部图书",
-    "data_source_url": null,
-    "raw_table_name": null,
-    "target_chat_id": "oc_34c7aa744d1bed96c2d97863531f4e7b",
-    "target_chat_name": "青橙-内部图书",
+    "data_source_url": "https://gaotuedu.feishu.cn/base/QOVib6QCXaUvJ2s2PsbcnMmsnGg?table=tblXU4tla3bY36DE&view=vewO4yxS3O",
+    "raw_table_name": "青橙线索原始数据",
+    "target_chat_id": "oc_a8e793c81080ebf5b14dd22bd83a05a1",
+    "target_chat_name": "SEC-超级体验中心",
     "period_rule": "自然周周五期次",
     "process_weekdays": [
       "周二",
       "周三",
-      "周四"
-    ],
-    "result_weekdays": [
+      "周四",
       "周五",
       "周六",
-      "周日",
-      "次周周一"
+      "周日"
     ],
+    "result_weekdays": [],
     "requested_first_send_at": null,
-    "requested_send_windows": "过程：周二至周四 13:50、17:50、21:50；转化：周五/周六/周日/次周周一 13:52、17:52、21:52（保留2分钟错峰）",
+    "requested_send_windows": "12:00、16:00、20:00",
     "dimensions": [
       "期次",
       "渠道",
-      "主管",
       "顾问",
       "年级"
     ],
@@ -48,71 +45,55 @@
       "高三",
       "初三"
     ],
-    "scope_notes": "排除：初二",
-    "preview_data_source": {
-      "system": "data_center",
-      "models": [
-        "2064",
-        "2460"
-      ],
-      "authorization": "用户：使用已更新的数据中心 2064/2460"
-    }
+    "scope_notes": "排除：初二"
   },
   "report": {
     "minimum": {
-      "metric": "有效线索",
+      "metric": "退前线索",
       "operator": ">=",
-      "value": 3
+      "value": 5
     },
     "process_metrics": [
       "好友率",
       "等待时长",
-      "8min",
       "24h首call",
       "沟通率",
       "外呼时长",
       "外呼频次",
-      "总通时",
-      "有效线索"
+      "退前线索"
     ],
     "other_process_metrics": null,
-    "process_display_order": "期次、主管、顾问、年级、有效线索、好友率、等待时长、8min、24h首call、沟通率、外呼时长、外呼频次、总通时",
-    "result_metrics": [
-      "有效线索",
-      "首节到课率",
-      "综合人头转化率",
-      "综合订单转化率",
-      "综合营收",
-      "退费金额",
-      "净收款",
-      "联报率",
-      "综合单效"
-    ],
+    "process_display_order": "期次、主管、顾问、年级、退前线索、好友率、等待时长、24h首call、沟通率、外呼时长、外呼频次",
+    "result_metrics": [],
     "other_result_metrics": null,
-    "result_display_order": "期次、主管、顾问、年级、有效线索、首节到课率、综合人头转化率、综合订单转化率、综合营收、退费金额、净收款、综合单效、联报率",
-    "metric_definitions": null,
-    "layout": "沿用市场顾问部表格格式；按年级分块，每块表头为内部图书-顾问-{期次}｜{年级}，各块单独总计；顾问表头不写年级维度名称",
-    "style_reference": "好友率、24h首call、8min、等待时长使用色阶条；等待时长为红色；其余过程列仅显示数值；总通时、有效线索和主管带班人数取整数；其余指标保留一位小数",
-    "configuration_decisions": [
-      "转化展示顺序和重点提醒均包含综合单效，按这两个明确字段保留此列。",
-      "分年级排名；所有边界并列全部纳入。"
-    ]
+    "result_display_order": null,
+    "metric_definitions": "各项分子先求和，再除以退前线索；外呼时长先由秒换算分钟。退前线索取整数，其他指标一位小数，率类一位小数百分比。",
+    "layout": "高一/高二/高三/初三分年级子表；每表总计，表头为内部图书-顾问-期次。",
+    "style_reference": "SEC浅蓝表格；好友率蓝、24h首call绿、外呼时长黄、外呼频次紫四色条。"
   },
   "reminder": {
-    "process_metric": "8min",
-    "result_metric": "综合单效",
+    "process_metric": "好友率",
+    "result_metric": null,
     "target": "顾问",
     "process_direction": "最低",
-    "result_direction": "最高",
-    "tie_handling": "include_all_boundary_ties",
+    "result_direction": null,
+    "tie_handling": "全部提醒",
     "report_level": "顾问",
     "process_rank": "最后1名",
-    "result_rank": "前3名"
+    "result_rank": "不适用"
   },
   "validation": {
     "complete_for_technical_review": true,
     "missing_business_fields": [],
-    "technical_decisions_required": [],
-    "resolution": "申请编号仅在本地登记；数据源由用户指定 2064/2460。源菜单/SQL Hash、群/bot/人员身份、现有脚本和调度已验证；本次不写远端 Base。"
+    "technical_decisions_required": [
+      "execution_surface",
+      "channel_id",
+      "adapter/report_profile",
+      "source field mapping and metric formulas",
+      "sender identity IDs",
+      "local paths and state directory",
+      "schedule staggering and task name",
+      "upstream version gates"
+    ]
   }
 }

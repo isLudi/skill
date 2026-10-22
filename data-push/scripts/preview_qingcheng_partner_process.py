@@ -16,6 +16,7 @@ from pathlib import Path
 
 from preview_qingcheng_public_pool_process import (
     _aggregate,
+    _matches_channel,
     _read_snapshot,
     _reminder_people,
     _sort_process_rows,
@@ -27,7 +28,7 @@ CONFIG_DIR = SKILL / "config" / "departments" / "qingcheng"
 DEFAULT_CONFIG = CONFIG_DIR / "partner_process_preview.json"
 GRADES = ["高一", "高二", "高三", "初三"]
 DISPLAY_COLUMNS = {"期次", "主管", "顾问", "年级", "带班人数", "有效线索", "好友率", "等待时长",
-                   "8min", "24h首call", "沟通率", "外呼时长", "外呼频次", "总通时",
+                   "8min", "15min", "24h首call", "沟通率", "外呼时长", "外呼频次", "总通时",
                    "退前线索", "线索留存率"}
 
 
@@ -123,7 +124,7 @@ def build(sources: dict[str, Path], operator: Path, output: Path, *,
         request = _request(entry, cfg, by_id)
         match = cfg["source"]["matches"][entry["id"]]
         rows, manifest = _read_snapshot(sources[entry["id"]], {"source": {"match": match}})
-        if any(row["渠道"] != match["渠道"] for row in rows):
+        if any(not _matches_channel(row, match) for row in rows):
             raise ValueError(f"Partner source contains an unreviewed secondary channel: {entry['id']}")
         grouped = _sort_process_rows(
             _aggregate(rows, entry["level"], request, split_grade=entry["split_grade"],

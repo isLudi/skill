@@ -3,61 +3,80 @@ with runtime_clock as ( select format_datetime(now() - interval '24' hour, 'YYYY
     SELECT r.*,
         COALESCE(
 case
-when gcw in ('平台自播') and fp in ('赢战广东中考','高途专版图书','状元帮教辅','高途专版视频书','本地化专版图书') then '广东图书'
+when gcw in ('平台自播') and fp in ('赢战广东中考','高途专版图书','状元帮教辅','高途专版视频书','本地化专版图书','广东专版图书') then '广东图书'
+
 
 
 when gcw in ('平台自播') and fp in ('途铭文化专版图书','途铭文化','博慧星辰文化图书','启迪蔚来','智慧航迹图书','高途浙江初中','高途浙江高中','高途浙江新高一','浙江专版图书教辅') then '浙江图书'
 
 
+
 when gcw in ('平台自播') and fp in ('沪上名校','沪上领航社','简学文化','魔都校友助学馆','沪上领航高中','沪上领航初中') then '上海图书'
+
 
 
 when gcw in ('平台自播') and fp in ('高途江苏中考','高途赢战中考') then '江苏图书'
 
 
+
 when fp='电商退款用户池' and rn like '%赠失%' and rn like '%朱博士%' then '赠课失败-朱汉祺'
+
 
 
 when fp='电商退款用户池' and rn like '%赠失%' and rn like '%春春%' then '赠课失败-陈瑞春'
 
 
+
 when fp='电商退款用户池' and rn like '%赠失%' and rn like '%亚飞%' then '赠课失败-孟亚飞'
+
 
 
 when fp='电商退款用户池' and rn like '%赠失%' and rn like '%星义%' then '赠课失败-赵星义'
 
 
+
 when fp='电商退款用户池' and rn like '%赠失%' and rn like '%郭艺%' then '赠课失败-郭艺'
+
 
 
 when sd='本地化大班学部' or sm in ('鲍大海','杨文卓','喻新桥') then '本地化市场流量'
 
 
+
 when td in ('中价产品项目部','新媒体内容运营部') and rn like '%曹忆%' then '曹忆'
+
 
 
 when rn like '%语数英%' and td = '新媒体内容运营部' then '语数英'
 
 
+
 when td = '直播部' and sku like '%山东专版%' then '北京直播山东'
+
 
 
 when td = '直播部' and sku like '%河南专版%' then '北京直播河南'
 
 
+
 when sku like '%江苏%' and td = '直播部'  then '北京直播江苏'
+
 
 
 when td like '%锋途%' and c2 = '抖音' then '锋途KOC'
 
 
+
 when td='线上商务部' and fp like '%图书订单%' then '图书解密'
+
 
 
 when pp like '%小红书打粉%' then 'EM-小红书合作'
 
 
+
 when td in ('投放部','线上商务部','小红书攻坚组') and c2 ='小红书' then '小红书-闯闯组'
+
 
 
 
@@ -65,58 +84,77 @@ when td in ('新媒体内容运营部') and c2 ='小红书' then '小红书直�
 
 
 
+
 when pid like '%0元领课%'  and td ='投放部'  then '信息流0元'
+
 
 
 when pid like '%周帅0元腾讯%'  and td ='投放部'  then '信息流0转低'
 
 
+
 when pid like '%信息流下引%'  and td ='私域运营部'  then '信息流0转低'
 
 
-when sku like '%数理系统%' and td in ('快乐成长组','直播部','市场效能部') then '物理系统'
+
+when sku like '%数理系统%' and td in ('快乐成长组','直播部','市场效能部','运营部') then '物理系统'
+
 
 
 when tt like '%转介绍%' then '转介绍'
 
 
+
 when aa in ('高途-高中-DYD搜索-QZ49','高途-高中-DYD搜索-XLHD49','高途-高中-DYD搜索-XLHD50','高途-高中-DYD搜索-QZ50') or aa like '%DYD1元搜索%' then '搜索1元'
+
 
 
 when (fp like '%江苏预习%' or  fp like '%江苏专版预习%') and c2 ='抖音' then '西安直播江苏-抖音'
 
 
+
 when fp like '%自然流%' and rn like '%江苏%' and td='图书营销部' and c2 ='抖音' then '西安直播江苏-抖音'
+
 
 
 when (fp like '%江苏预习%' or  fp like '%江苏专版预习%') and c2 ='视频号' then '西安直播江苏-视频号'
 
 
+
 when fp like '%退款%' and td ='图书营销部' then '西安直播-退款订单复用'
+
 
 
 when fp like '%自然流%' and rn like '%江苏%' and td='图书营销部' and c2 ='视频号' then '西安直播江苏-视频号'
 
 
+
 when sku like '%2000题%' and td='图书营销部' then '西安直播2000题'
+
 
 
 when sku like '%五年高考%' and td='图书营销部' then '西安直播五年真题'
 
 
+
 when (rn like '%北京图书%' or sku like '%北京专版%') and td='图书营销部' then '西安直播北京'
+
 
 
 when sku like '%安徽%' and td='图书营销部' then '西安直播安徽'
 
 
+
 when pp like '%全国教考%' and td='图书营销部' then '西安直播全国'
+
 
 
 when fp like '%自然流%' and rn like '%北京%' and td='图书营销部' then '西安直播北京'
 
 
+
 when sku like '%2000题%' and td='直播部' then 'IP直播-2000题'
+
 
 
 when fp like '%星义大大%' or fp like '%星义物理%' then '赵星义'
@@ -137,22 +175,29 @@ when (sm in ('马思雨02','袁银') and rn like '%集团%')
     ), false)
 then '集团私域'
 
+
 when rn like '%途途私域%' or (rn like '%私域%' and fd = 'TT') or rn like '%私域1元%' or (td='私域招生中心' and fp like '%APP%') then '途途私域'
+
 
 
 when td='图书营销部' and (sku like '%孟亚飞99%' or sku like '%亚飞%') and c2 = '百度' then '孟亚飞-2组-百度'
 
 
+
 when td='图书营销部' and (sku like '%孟亚飞99%' or sku like '%亚飞%') and c2 = '抖音' then '孟亚飞-2组-抖音'
+
 
 
 when td = '投放部' and (aa like '%周帅%') then '信息流-周帅'
 
 
+
 when sm in ('韩正卿') then '抖音私信'
 
 
+
 when c1='市场私域' and pp like '%孟亚飞汇总%' then '小红书自然流-绍孜组'
+
 
 
 
@@ -160,94 +205,125 @@ when c1='市场私域' and (v4 in ('郑州学习顾问二部','郑州学习顾�
 
 
 
+
 when td = '私域运营部' and sm in ('陈雷19','崔慧敏01','侯佳林01','郑天琪02','杨彬屹','曹义鹏','王硕阳','于超研','岳一帆02','田起帆','王绍阳','肖佳兴','姚佳03','秦金萍','李冞萤') and (rn like '%koc自孵化下引%' or rn like '%koc下引%' or pid like '%自营%') then '自孵化KOC下引'
+
 
 
 when td = '私域运营部' and sm in ('陈雷19','崔慧敏01','侯佳林01','郑天琪02','杨彬屹','曹义鹏','王硕阳','于超研','岳一帆02','田起帆','王绍阳','肖佳兴','姚佳03','秦金萍','李冞萤') then '进校私域合作'
 
 
+
 when c1='市场私域' and (v4 in ('郑州学习顾问二部','郑州学习顾问七部','郑州训练营') or v5 in ('罗江博团队')) then '市场私域入群'
+
 
 
 when td = '图书营销部' and (rn like '%点睛卷%' or sku like '%押题卷%')  then '押题卷'
 
 
+
 when td = '投放部' and c2 = '小红书' and c1 <> '搜索营销' then '信息流-小红书'
+
 
 
 when td = '线上商务部' and c2 = '小红书' then '小红书'
 
 
+
 when (fp like '%北大汤哥%' or fp like '%海淀名师高阶%' or fp like '%海淀高阶%' or fp like '%高阶英语887%') and sku like '%小艺%'  then '郭艺'
+
 
 
 when  td like '%私域%' and rn like '%私域%' and rn like '%图书%' then '市场私域图书'
 
 
+
 when  td like '%私域%' and rn like '%公域自然流%' then '小红书自然流-绍孜组'
+
 
 
 when  td like '%私域%' and rn like '%品效%'  then '市场私域品效'
 
 
+
 when  td like '%私域%' and pp like '%会话%'  then '市场私域会话'
+
 
 
 when  td like '%私域%' and rn like '%公域学霸%'  then '市场私域公域组'
 
 
+
 when td in ('线上商务部') and sm in ('孙晗01','方俊结01','刘亦鹏02','何木玲','杨梓月','张可意03','任颖迪','曹蕊07','曲默晗') and fp like '%退款%' then 'KOC-退款订单复用'
+
 
 
 when td in ('直播部','新媒体内容运营部','市场一组','私域运营部') and fp ='电商退款用户池'  then 'IP退款订单复用'
 
 
+
 when td in ('直播部','新媒体内容运营部','市场一组','私域运营部') and pp like '%失败%' and fp ='电商退款用户池'  then '赠课失败'
+
 
 
 when td in ('直播部','新媒体内容运营部','市场一组')  and (fp ='初阶化学规划' or fp like '%启迪-初阶老师%')  then '曹忆'
 
 
+
 when (td = '图书营销部' and sku like '%真题%') or (td='直播部' and sku like '%真题%') then '西安图书直播间-直播'
+
 
 
 when (td = '图书营销部' and sku not like '%真题%') or (td='直播部' and sku  like '%秒懂%') or (td='直播部' and sku  like '%图书赠送%') then '西安图书直播间-挂链'
 
 
+
 when td in ('直播部','新媒体内容运营部','市场一组') and (fp like '%海淀高阶名师%' or fp like '%海淀老师高阶%' or fp like '%小艺%' or fp like '%老蒋文化%') then '郭艺'
+
 
 
 when td in ('直播部','新媒体内容运营部','市场一组') and fp like '%电商退款%' and rn like '%郭艺99%' then '郭艺'
 
 
+
 when pp like '%国培教育-0元%' or pp like '%易喆教育-0元%' or pp like '%钟情-0元%' or pp like '%中望达-0元%' or pp like '%晨硕-0元%' or pp like '%彩石-0元入群%'  then '创新商务入群'
+
 
 
 when td='KOC孵化部' and fp like '%电商退款%' and pp like '%失败%' then '自孵化KOC-赠课失败'
 
 
+
 when td='KOC孵化部' and fp like '%电商退款%' and pp like '%退%' then '自孵化KOC-退款订单复用'
+
 
 
 when sm = '方俊结01' and pp like '%赠课后退款%' then 'KOC-赠课后退款'
 
 
+
 when td = '直播部' and (sku like '%春春%' or sku like '%瑞春%' or rn like '%春春%' or rn like '%瑞春%') and c2='百度' then '陈瑞春-百度'
+
 
 
 when td = '直播部' and (sku like '%春春%' or sku like '%瑞春%' or rn like '%春春%' or rn like '%瑞春%') and c2='B站' then '陈瑞春-B站'
 
 
+
 when td = '直播部' and (sku like '%春春%' or sku like '%瑞春%' or rn like '%春春%' or rn like '%瑞春%') and c2='抖音' then '陈瑞春-抖音199'
+
 
 
 when td in ('直播部','新媒体内容运营部') and (sku like '%春春%' or sku like '%瑞春%' or rn like '%春春%' or rn like '%瑞春%') and c2='视频号' then '陈瑞春-视频号49'
 
 
+
 when td = '直播部' and (sku like '%朱博士99%' or rn like '%朱汉祺99%' or rn like '%朱博士%' or fp like '%朱博士%' or sku like '%朱博士%') and c2 = 'B站' then '朱博士-B站'
 
 
+
 when td = '直播部' and (sku like '%朱博士99%' or rn like '%朱汉祺99%' or rn like '%朱博士%' or fp like '%朱博士%' or sku like '%朱博士%') and c2 = '百度' then '朱博士-百度'
+
 
 
 when td = '直播部' and (sku like '%抖音99%' and sku like '%朱博士%') and c2 = '抖音' then '朱博士-抖音99'
@@ -259,63 +335,84 @@ case
 when td = '直播部' and (sku like '%朱博士99%') and c2 = '抖音' then '朱博士-抖音99'
 
 
-when td = '直播部' and (sku like '%朱博士99%' or rn like '%朱汉祺99%' or rn like '%朱博士%' or fp like '%朱博士%' or sku like '%朱博士%') and c2 = '抖音' then '朱博士-抖音199'
+
+when td = '直播部' and (sku like '%朱博士99%' or rn like '%朱汉祺99%' or rn like '%朱博士%' or fp like '%朱博士%' or sku like '%朱博士%' or rn like '%朱汉祺199%') and c2 = '抖音' then '朱博士-抖音199'
 
 
-when td = '直播部' and (sku like '%朱博士99%' or rn like '%朱汉祺99%' or rn like '%朱博士%' or fp like '%朱博士%' or sku like '%朱博士%') and c2 = '视频号' then '朱博士-视频号49'
+
+when td = '直播部' and (sku like '%朱博士99%' or rn like '%朱汉祺99%' or rn like '%朱博士%' or fp like '%朱博士%' or sku like '%朱博士%' or rn like '%朱汉祺49%') and c2 = '视频号' then '朱博士-视频号49'
+
 
 when (td = '直播部' and (sku like '%朱博士%' or sku like '%朱汉祺%') and rn like '%9%' and rn not like '%29%' and sku not like '%急%' and sku not like '%礼盒29%') or (td = '直播部' and sku like '%朱博士9%') then '朱博士9元'
+
 
 
 when aa like '%春春%' and c1 = '信息流' then '信息流-陈瑞春'
 
 
+
 when c1 = '信息流' and c2='B站' and (pid like '%0元物化%') then 'B站信息流-曹忆'
+
 
 
 when c1 = '信息流' and c2='B站' and (pid like '%赵星义%') then 'B站信息流-赵星义'
 
 
+
 when c1 = '信息流' and c2='B站' and (pid like '%亚飞%' or spp like '%亚飞%'   or pid like '%初中-0元%') then 'B站信息流-亚飞'
+
 
 
 when (fp like '%朱博士%' or fp like '%双博士%' or fp like '%教育规划%') and td <> '线上商务部' and pn not like '%多学科拓展%' and rn not like '%张杰%' and sku not like '%马凯鹏IP%' and td='直播部' then '朱博士29'
 
 
+
 when pp like '%朱博士说教育%' and pn not like '%多学科拓展%' and fp not like '%高分讲堂%' and  fp not like '%总裁%' and td='直播部' then '朱博士29'
+
 
 
 when (fp like '%朱博士讲英语%' or fp like '%朱博士英语%' or fp like '%朱汉祺说英语%' or fp like '%朱博士说英语%' or fp like '%教育规划%' or fp like '%双博士英语规划%' or fp like '%朱博士满分英语%' or fp like '%英语教父朱博士%' or (fp like '%中考决胜天团%' and lp1 = '规划系统')) and td = '直播部' and pn not like '%多学科拓展%' and sku not like '%马凯鹏IP%' and td='直播部' then '朱博士29'
 
 
+
 when (fp like '%汤哥%' or fp like '%汤老师%') and pn not like '%多学科拓展%' and td in ('直播部','新媒体内容运营部')  then '汤老师'
+
 
 
 when sm = '陈晓菁04' and cpn not like '%开拓%' and pp not like '%九学%' then '商务低价'
 
 
+
 when (fp like '%孟帝%' or fp like '%孟老师%' or fp like '%中考数学冲刺%' or fp like '%8升9数学%' or fp like '%孟亚飞讲数学%' or fp like '%中考冲刺%' or fp like '%中考满分冲刺%' or fp like '%押题王孟亚飞%' or fp like '%中考数学大通关%' or fp like '%中考数学规划%' or fp like '%亚飞数学%' or fp like '%孟帝数学%' or fp like '%亚飞秒解思维%' or fp like '%亚飞解题%')  and pn not like '%多学科拓展%' and c2 not like '%KOL%' and td='直播部' and c2 = '抖音'  then '孟亚飞-1组-抖音'
+
 
 
 when (fp like '%孟帝%' or fp like '%孟老师%' or fp like '%中考数学冲刺%' or fp like '%8升9数学%' or fp like '%孟亚飞讲数学%' or fp like '%中考冲刺%' or fp like '%中考满分冲刺%' or fp like '%押题王孟亚飞%' or fp like '%中考数学大通关%' or fp like '%中考数学规划%' or fp like '%亚飞数学%' or fp like '%孟帝数学%')  and pn not like '%多学科拓展%' and c2 not like '%KOL%' and td='直播部' and c2 = '视频号'  then '孟亚飞-1组-视频号'
 
 
+
 when (fp like '%孟帝%' or fp like '%孟老师%' or fp like '%中考数学冲刺%' or fp like '%8升9数学%' or fp like '%孟亚飞讲数学%' or fp like '%中考冲刺%' or fp like '%中考满分冲刺%' or fp like '%押题王孟亚飞%' or fp like '%中考数学大通关%' or fp like '%中考数学规划%' or fp like '%亚飞数学%' or fp like '%孟帝数学%')  and pn not like '%多学科拓展%' and c2 not like '%KOL%' and td='直播部' and c2 = 'B站'  then '孟亚飞-1组-B站'
+
 
 
 when (fp like '%孟帝%' or fp like '%孟老师%' or fp like '%中考数学冲刺%' or fp like '%8升9数学%' or fp like '%孟亚飞讲数学%' or fp like '%中考冲刺%' or fp like '%中考满分冲刺%' or fp like '%押题王孟亚飞%' or fp like '%中考数学大通关%' or fp like '%中考数学规划%' or fp like '%亚飞数学%' or fp like '%孟帝数学%')  and pn not like '%多学科拓展%' and c2 not like '%KOL%' and td='直播部' and c2 not like '%百度%'  then '孟亚飞99-1组'
 
 
+
 when (fp like '%孟帝%' or fp like '%孟老师%' or fp like '%中考数学冲刺%' or fp like '%8升9数学%' or fp like '%孟亚飞讲数学%' or fp like '%中考冲刺%' or fp like '%中考满分冲刺%' or fp like '%押题王孟亚飞%' or fp like '%中考数学大通关%' or fp like '%中考数学规划%' or fp like '%亚飞数学%')  and pn not like '%多学科拓展%' and c2 not like '%KOL%' and td='直播部' and c2 = '百度'  then '孟亚飞-1组-百度'
+
 
 
 when pp like '%刘家晋讲图文%' or pp like '%孟帝数学%' and td='直播部' then '孟亚飞9元'
 
 
+
 when fp like '%汐子%' and pn not like '%多学科拓展%' and sku  like '%亚飞%' and td='直播部' and rn like '%99%'  then '孟亚飞99-1组'
 
 
+
 when (fp like '%曹忆%' or fp like '%dudu%' or fp like '%中考决胜天团%' or fp like '%具象思维%' or fp like '%在逃发面馒头%' or fp like '%库洛米%' and lp1 <> '规划系统') and pn not like '%多学科拓展%' and td in ('直播部','新媒体内容运营部') then '曹忆'
+
 
 
 when (fd ='市场部' and c1 <> '站内获客' and c2 <> 'APP')
@@ -332,52 +429,69 @@ when (fd ='市场部' and c1 <> '站内获客' and c2 <> 'APP')
 then '集团私域'
 
 
+
 when fp like '%未加好友%' then '市场私域未加好友'
+
 
 
 when td = '私域运营部' and rn not like '%训练营%' and v5 not in ('罗江博团队') and rn not like '%复用%' and rn not like '%未加好友%' and c2 <> '内部换量' then '市场私域低价单'
 
 
+
 when td = '私域运营部' and rn not like '%训练营%'  and rn not like '%复用%' and rn not like '%未加好友%' and c2 <> '内部换量' and foap = '0.0' then '市场私域低价单'
+
 
 
 when c2 in ('APP','M站','PC') and fp not like '%途途%' then 'APP'
 
 
+
 when c2 in ('小程序') and fp  like '%高途体验课%' then 'APP'
+
 
 
 when cpn like '%唐山TMK%' then '唐山TMK'
 
 
+
 when sm in ('高文羽') and cpn not like '%唐山TMK%' and cpn not like '%郑州%' then '人工外呼'
+
 
 
 when sm = '冯银晨' and c2 = '小红书' then '信息流-小红书'
 
 
+
 when c1 = '信息流' and c2 = 'B站' and td not like '%投放%' and (rn like '%0904期-短期班-新高二-市场私域低价单%' or foap='100' or pid like '%1元%') then 'B站信息流-朱汉祺-1元'
+
 
 
 when c1 = '信息流' and c2 = 'B站' and td not like '%投放%' and pid like '%汤雪%'  then 'B站信息流-汤学健'
 
 
+
 when (c1 = '信息流' and c2 <> 'B站' and td NOT LIKE '%商务%' and pp not like '%初三0元%' and pp not like '%抖音私信%' and pp not like '%高中0元%' and foap not like '%1990%') or (c2 = 'B站' and td like '%投放%') then '信息流'
+
 
 
 when c1 = '信息流' and c2 = 'B站' and td not like '%投放%' and (pid like '%郭艺%') then 'B站信息流-郭艺'
 
 
+
 when c1 = '信息流' and c2 = 'B站' and td not like '%投放%' and (pid like '%朱博士%') then 'B站信息流-朱汉祺'
+
 
 
 when c1 = '信息流' and c2 = 'B站' and td not like '%投放%' and pid like '%肖晗%' then 'B站信息流'
 
 
+
 when c1 = '信息流' and c2 = 'B站' and td not like '%投放%' and (pid like '%马凯鹏%' or aa like '%化学%') then 'B站信息流-马凯鹏'
 
 
+
 when c1 = '信息流'  and c2 = 'B站' and td not like '%投放%' and  (sku like '%陈瑞春%' or rn like '%陈瑞春%') and (aa  like '%语文%' or spp like '%自然流%' or pid like '%春春%') then 'B站信息流-陈瑞春'
+
 
 
 when c1 = '信息流' and c2 = 'B站' and td not like '%投放%' and (foap like '%2990%' or sku like '%帅师%' or sku like '%周帅%') and aa like '%语文%' and  (foap like '%1980%' or foap like '%2980%' or foap like '%2990%') then 'B站信息流-陈瑞春'
@@ -388,9 +502,12 @@ case
 when c1 = '信息流' and c2 = 'B站' and td not like '%投放%' and (foap like '%2990%' or sku like '%帅师%' or sku like '%周帅%') and aa not like '%语文%' then 'B站信息流-周帅'
 
 
+
 when c1 = '信息流' and c2 = 'B站' and td not like '%投放%' and fop like '%1980%' and aa like '%数学%' then 'B站信息流-周帅'
 
+
 when c1 = '短直电商' and c2 = 'B站' and td  like '%商务%' and   (fp like '%春春%' or sku like '%陈瑞春%')  then 'B站信息流-陈瑞春'
+
 
 
 when c1 = '短直电商' and c2 = 'B站' and td  like '%商务%' and  (fp like '%朱博士%')  then 'B站信息流-朱汉祺'
@@ -398,105 +515,139 @@ when c1 = '短直电商' and c2 = 'B站' and td  like '%商务%' and  (fp like '
 --when td = '线上商务部' and c2 = 'B站' and pp like '%朱博士%' then 'B站信息流-朱汉祺'
 
 
+
 when c1 = '信息流' and c2 = 'B站' and td not like '%投放%' and foap not like '%2980%' and foap not like '%2990%' and foap not like '%1980%' then 'B站信息流'
+
 
 
 when fp = '百度搜索引擎' or c1='搜索营销' then '信息流搜索'
 
 
+
 when  fp like '%小红书班课%' then '小红书投放'
+
 
 
 when td = '投放部' and gcw = '短视频信息流' and foap like '%100%' then '信息流'
 
 
+
 when pp like  '%福哥私域0元%'  then 'KOC-下引'
+
 
 
 when pp like  '%福哥私域5元%'  then 'KOC-下引5元'
 
 
+
 when fp = '中考加油' and sku like '%孟帝%' then 'KOC-孟亚飞数学'
+
 
 
 when fp = '中考加油' and sku  like '%帅师%' then 'KOC-周帅数学'
 
 
+
 when  sm in ('孙晗01','方俊结01','刘亦鹏02','何木玲','杨梓月','张可意03','任颖迪','曹蕊07','曲默晗') and (sku like '%孟帝%' or sku like '%dudu%' or sku like '%市场初二%' or rn like '%亚飞%' or sku like '%初二高阳%' or sku like '%高阳初二%' or sku like '%精品初二%' or rn like '%初二%' or sku like '%菁英初三%' or (v2 = '菁英班学部' and lp2='初级' and lct>= '2026-04-15 00:00:00')) then 'KOC-孟亚飞数学'
+
 
 
 when  sm in ('孙晗01','方俊结01','刘亦鹏02','何木玲','杨梓月','张可意03','任颖迪','曹蕊07','曲默晗') and (sku like '%帅师%' or rn like '%周帅%' or sku like '%9月升高三%' or sku like '%新高二%') then 'KOC-周帅数学'
 
 
+
 when  sm in ('孙晗01','方俊结01','刘亦鹏02','何木玲','杨梓月','张可意03','任颖迪','曹蕊07','曲默晗') and (sku like '%肖晗%' or rn like '%肖晗%') then 'KOC-肖晗'
 
 
+
 when  sm in ('孙晗01','方俊结01','刘亦鹏02','何木玲','杨梓月','张可意03','任颖迪','曹蕊07','曲默晗') and pn not like '%多学科拓展%' and sku not like '%朱汉祺%' and sku not like '%朱博士%' and sku not like '%周帅%' and sku not like '%29元%' then 'KOC-5元纯课'
+
 
 
 when  sm in ('孙晗01','方俊结01','刘亦鹏02','何木玲','杨梓月','张可意03','任颖迪','曹蕊07','曲默晗') and sku like '%周帅%' then 'KOC-周帅'
 --when (c2 like '%KOL%' and sm in ('崔文轩','孙培尧')) or (c2 like '%抖音%' and sm in ('徐绮鹤')) and pn not like '%多学科拓展%' then '自孵化KOC'
 
 
+
 when td in ('品牌效能部','KOC孵化部') and c2 in ('抖音','视频号','快手','KOL')  then '自孵化KOC-5元纯课'
+
 
 
 when td in ('品牌效能部','KOC孵化部') and c2 in ('抖音','视频号','快手','KOL') and (sku like '%5元%'or sku like '%11元%' or foap like '%1100%' or foap like '%500%' or foia  like '%1100%' or foia  like '%500%' ) then '自孵化KOC-5元纯课'
 
 
+
 when sm in ('包青青','蔡瑞涵','李文迁','李佳馨44','孙昊17','王洁雅01','王硕北','朱文','贾铭锐','李壮壮04','陈晓菁04','赵艺雅') and c2 like '%社群%' then '进校社群'
+
 
 
 when sm in ('包青青','蔡瑞涵','李文迁','李佳馨44','孙昊17','王洁雅01','王硕北','朱文','贾铭锐','李壮壮04','陈晓菁04','赵艺雅') and (c2 like '%直推%' or (pp like '%良师益友%' or pp like '%弘诚1元%')) then '进校直推'
 
 
+
 when sm in ('包青青','蔡瑞涵','李文迁','李佳馨44','孙昊17','王洁雅01','王硕北','朱文','贾铭锐','李壮壮04','陈晓菁04','赵艺雅') and c2 like '%TMK%' and (pid like '%1元%' or cpn like '%禾顺云%') then '进校TMK1元'
+
 
 
 when sm in ('包青青','蔡瑞涵','李文迁','李佳馨44','孙昊17','王洁雅01','王硕北','朱文','贾铭锐','李壮壮04','陈晓菁04','赵艺雅') and c2 like '%TMK%' and pid like '%9元%' then '进校TMK9元'
 
 
+
 when sm in ('包青青','蔡瑞涵','李文迁','李佳馨44','孙昊17','王洁雅01','王硕北','朱文','贾铭锐','李壮壮04','陈晓菁04','赵艺雅') and c2 like '%书商%' then '进校书商'
+
 
 
 when sm in ('包青青','蔡瑞涵','李文迁','李佳馨44','孙昊17','王洁雅01','王硕北','朱文','贾铭锐','李壮壮04','陈晓菁04','赵艺雅') and c2 like '%综合%' and pp like '%18%' then '进校直播'
 
 
+
 when sm in ('包青青','蔡瑞涵','李文迁','李佳馨44','孙昊17','王洁雅01','王硕北','朱文','贾铭锐','李壮壮04','陈晓菁04','赵艺雅') and c2 like '%直播%' then '进校直播'
+
 
 
 when sm in ('包青青','蔡瑞涵','李文迁','李佳馨44','孙昊17','王洁雅01','王硕北','朱文','贾铭锐','李壮壮04','赵艺雅') and pp not like '%0元%' and fp not like '%家校共育%' and fp not like '%保持热爱%' and fp not like '%青松%' and fp not like '%原子初三%' and fp not like '%南通欣创%' and fp not like '%悟之道%' and fp not like '%济南梦航%' and c3 <> '社群' and pp not like '%善悟%' and pp not like '%人人通%'  and pp not like '%%济南格乐' and fp not like '%晨硕智学%' and fp not like '%兴尧文化%'  and fp not like '%济南映像%' and fp not like '%山东简单%' and fp not like '%争鸣科技%'  then '商务低价'
 
 
 
+
 when fp like '%南通欣创%' or  fp like '%人人通科技%' or fp like '%易而购%' or fp like '%济南梦航%' or fp like '%晨硕智学%' or fp like '%兴尧文化%' or fp like '%济南映像%' or fp like '%山东简单%' or fp like '%争鸣科技%'  then '进校私域合作'
+
 
 
 when (fp like '%家校共育%' or fp like '%保持热爱%' or fp like '%青松%' or fp like '%悟之道%') and pp not like '%0元%'  then '进校私域合作'
 
 
+
 when sm = '李宁24' and pp like '%0转低%' then '进校私域合作'
+
 
 
 when td = '私域运营部' and  foap in ('100.0','900.0','300.0')  then '进校私域合作'
 
 
+
 when td = '私域运营部' and  foap in ('0.0') and sm in ('陈雷19','崔慧敏01','侯佳林01','郑天琪02','杨彬屹','曹义鹏','王硕阳','于超研') then '进校私域合作'
+
 
 
 when td = '私域运营部' and c1='市场私域' and pp not like '%公导私%' and pp not like '%公转私%' and foap = '0.0' and rn not like '%激活%' and rn not like '%咨询%' and rn not like '%训练营%'  and v5 not like '%罗江博%' and v5 not like '%郑州学习顾问二部%' and sm not in ('陈雷19','崔慧敏01','侯佳林01','郑天琪02','杨彬屹','曹义鹏','王硕阳','于超研') then '市场私域低价单'
 
 
+
 when sm in ('耿文超','晋翠翠','赵语诗','王慧敏13','于新茹','梁超01','刘晓20','王玉120','吕佳乐01') and cpn like '%格乐教育%' and c2 like '%直播%' then '创新社群'
+
 
 
 when sm in ('耿文超','晋翠翠','赵语诗','王慧敏13','于新茹','梁超01','刘晓20','王玉120','吕佳乐01') and c2 like '%社群%' then '创新社群'
 
 
+
 when sm in ('耿文超','晋翠翠','赵语诗','王慧敏13','于新茹','梁超01','刘晓20','王玉120','吕佳乐01') and (c2 like '%直推%' or pp like '%直推%') then '创新直推'
 
 
+
 when sm in ('耿文超','晋翠翠','赵语诗','王慧敏13','于新茹','梁超01','刘晓20','王玉120','吕佳乐01') and (c2 like '%书商%' or pp like '%书商%' or pid like '%书商%') then '创新书商'
+
 
 
 when sm in ('耿文超','晋翠翠','赵语诗','王慧敏13','于新茹','梁超01','刘晓20','王玉120','吕佳乐01') and c2 like '%TMK%' and pid like '%1元%' then '创新TMK1元'
@@ -506,20 +657,26 @@ end,
 case
 when sm in ('耿文超','晋翠翠','赵语诗','王慧敏13','于新茹','梁超01','刘晓20','王玉120','吕佳乐01') and c2 like '%TMK%' and pid like '%9元%' then '创新TMK9元'
 
+
 when sm in ('耿文超','晋翠翠','赵语诗','王慧敏13','于新茹','梁超01','刘晓20','王玉120','吕佳乐01') and (c2 like '%直播%' or pid like '%进校%') then '创新直播'
 
 
+
 when sm in ('耿文超','晋翠翠','赵语诗','王慧敏13','于新茹','梁超01','刘晓20','王玉120','吕佳乐01') and c2<>'公众号' and c1 = '商务' and fp <> '高途云集图书专营店-自然流' and fp <> '高途旗舰店—线索—yuxinru' and pp not like '%社群%' and pp not like '%小红书班课%' and pp not like '%外部图书供量%' and cspn not like '%沃德丰店铺线索赠课%' and cspn not like '%智慧城-图书%' and pp not like '%育甲%' and fp not like '%周长磊%'  then '创新商务'
+
 
 
 when sm in ('高曼曼01','杨思怡','宋向函') then '图书KOC达人'
 --when fp like '%市场部-原子合作%' then '原子'
 
 
+
 when fp like '%市场部-微信私域%' or fp like '%市场部-规划报告%' or fp like '%规划报告%' or fp like '%市场部-小红书%' or fp like '%孟浩宇%' then '市场私域低价单'
 
 
+
 when fp like '公导私' then '进校私域合作'
+
 
 
 when ((fp like '%增长组%' or c3 = '公众号' or sd = '微信生态部') and c2 <> 'APP')
@@ -536,94 +693,125 @@ when ((fp like '%增长组%' or c3 = '公众号' or sd = '微信生态部') and 
 then '集团私域'
 
 
+
 when pp like '%星耀%' or pp like '%物理展博%' or  pp like '%物理谢丽荣%' or pp like '%牟恩伯%' or  pp like '%王赞%' or pp like '%张磊老师高中数学%' or pp like '%雯姐高中物理大讲堂%' then '百度星耀'
+
 
 
 when sm = '刘福云' and (sku like '%瑞春%' or sku like '%春春%') then '陈瑞春'
 
 
+
 when td = '直播部' and sku like '%周帅%' and c2 in ('百度','B站')  then '周帅'
+
 
 
 when td = '直播部' and sku like '%孟亚飞%' and rn like '%99%' then '孟亚飞99-1组'
 
 
+
 when td = '直播部' and sku like '%朱汉祺%' then '朱博士99'
+
 
 
 when fp like '%0转低转正%' or c2='产研测试' then '进校私域合作'
 
 
+
 when fp like '%天津智慧双子%'        then '创新社群'
+
 
 
 when td like '%城市定制%' then '点睛卷'
 
 
+
 when pn like '%多学科拓展%' and td like '%私域运营%' then '市场私域入群'
+
 
 
 when pp like '%赠课失败%' and td = '线上商务部' then 'KOC赠课失败'
 
 
+
 when fp like '%自然流%' and sm in ('孙晗01','方俊结01','刘亦鹏02','何木玲','杨梓月','张可意03','任颖迪','曹蕊07','曲默晗') and sku like '%周帅%' then 'KOC-周帅'
+
 
 
 when fp like '%自然流%' and sm in ('孙晗01','方俊结01','刘亦鹏02','何木玲','杨梓月','张可意03','任颖迪','曹蕊07','曲默晗') and sku like '%肖晗%' then 'KOC-肖晗'
 
 
+
 when fp like '%自然流%' and sm in ('孙晗01','方俊结01','刘亦鹏02','何木玲','杨梓月','张可意03','任颖迪','曹蕊07','曲默晗') and sku like '%朱汉祺%'  and foap like '%1100%' then 'KOC-5元朱汉祺'
+
 
 
 when fp like '%自然流%' and sm in ('赵语诗','崔文轩','孙培尧')        then '自孵化KOC-5元纯课'
 
 
+
 when fp like '%自然流%' and (sku like '%朱博士%' or sku like '%朱汉祺%') and rn like '%9%' and rn not like '%29%' and td  in ('直播部','新媒体内容运营部','市场一组') then '朱博士99'
+
 
 
 when fp like '%自然流%' and sku like '%朱博士%' and td  in ('直播部','新媒体内容运营部','市场一组') then '朱博士99'
 
 
+
 when fp like '%自然流%' and sku like '%亚飞%' and rn like '%99%' and td  in ('直播部','新媒体内容运营部','市场一组') then '孟亚飞99-1组'
+
 
 
 when fp like '%自然流%' and sku like '%亚飞%' and td  in ('直播部','新媒体内容运营部','市场一组')  then '孟亚飞9元'
 
 
+
 when fp like '%自然流%' and sku like '%曹忆%' then '曹忆'
+
 
 
 when fp like '%自然流%' and rn like '%朱博士%' and td  in ('直播部','新媒体内容运营部','市场一组') then '朱博士99'
 
 
+
 when fp like '%自然流%' and sm like '%邵万昕%' and td  in ('直播部','新媒体内容运营部','市场一组') then '朱博士99'
+
 
 
 when fp like '%自然流%' and rn like '%亚飞%' and rn like '%99%' then '孟亚飞99-1组'
 
 
+
 when fp like '%自然流%' and rn like '%亚飞%'  then '孟亚飞9元'
+
 
 
 when fp like '%自然流%' and rn like '%郭艺%'  then '郭艺'
 
 
+
 when fp like '%自然流%' and rn like '%汤雪%'  then '汤老师'
+
 
 
 when fp like '%自然流%' and rn like '%曹忆%' then '曹忆'
 
 
+
 when fp like '%途途教室%' or fd like 'TUTU' then '途途APP'
+
 
 
 when sm in ('宋莹莹','辛世如') and c2 in ('视频号') then '信息流-虚拟号挂车'
 
 
+
 when rn like '%训练营%' and rn like '%市场私域%' then '市场私域入群'
 
 
+
 when c1= '信息流' and (pp like '%抖音私信%' or pp like '%初三0元%' or pp like '%高中0元%') then '信息流-抖音私信'
+
 
 
 when rn like '%途途私域%' or (rn like '%私域%' and fd = 'TT') then '途途私域'

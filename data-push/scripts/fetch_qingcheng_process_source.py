@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 import json
 import re
 from pathlib import Path
@@ -17,8 +18,9 @@ TABLE_ID = "tblXU4tla3bY36DE"
 PRIMARY = {"public_pool": "公海", "private": "私域", "douyin_dm": "抖音私信",
            "sec_public": "公域", "sec_order_reuse": "订单复用",
            "special_books": "图书", "special_public_pool": "公海",
-           "partner_books": "图书", "partner_local": "本地化"}
+           "partner_books": "图书", "partner_local": "本地化", "internal_books": "图书"}
 SEC_ORDER_CHANNELS = {"SEC未加好友", "SEC首期掉海", "SEC招生退费"}
+PRIVATE_CHANNELS = ("私域表单", "私域品效", "表单浙江", "表单江苏")
 PAGE_SIZE = 2000
 
 
@@ -33,6 +35,8 @@ def fetch(channel: str, period: str, output: Path) -> dict:
         condition.append(["渠道", "==", "抖音私信"])
     elif channel == "sec_public":
         condition.append(["渠道", "==", "公域学霸"])
+    elif channel == "internal_books":
+        condition.append(["渠道", "==", "内部图书"])
     filtered = json.dumps({"logic": "and", "conditions": condition}, ensure_ascii=True)
     rows = []
     revision = None
@@ -60,6 +64,8 @@ def fetch(channel: str, period: str, output: Path) -> dict:
                 raise ValueError("Douyin secondary channel changed")
             if channel == "sec_public" and row.get("渠道") != "公域学霸":
                 raise ValueError("SEC public secondary channel changed")
+            if channel == "internal_books" and row.get("渠道") != "内部图书":
+                raise ValueError("Internal-books secondary channel changed")
             if channel == "sec_order_reuse" and row.get("渠道") not in SEC_ORDER_CHANNELS:
                 raise ValueError("SEC order-reuse secondary channel changed")
             if channel == "private" and not row.get("渠道"):
@@ -78,11 +84,21 @@ def fetch(channel: str, period: str, output: Path) -> dict:
         raise ValueError("Base pagination exceeded the reviewed bound")
     if not rows or len({row.get("record_id") for row in rows}) != len(rows) or len({row.get("记录键") for row in rows}) != len(rows):
         raise ValueError("Missing or duplicate Qingcheng process source rows")
+    exported_count = len(rows)
+    excluded_channels = Counter()
+    if channel == "private":
+        excluded_channels = Counter(row["渠道"] for row in rows if row["渠道"] not in PRIVATE_CHANNELS)
+        rows = [row for row in rows if row["渠道"] in PRIVATE_CHANNELS]
+        if not rows:
+            raise ValueError("No rows match the reviewed private secondary channels")
     output.write_text("".join(json.dumps(row, ensure_ascii=False) + "\n" for row in rows), encoding="utf-8")
     combined = {"manifest_version": "v1", "format": "ndjson", "base_token": BASE_TOKEN,
                 "table_id": TABLE_ID, "rev": revision, "records_count": len(rows),
                 "page_count": page + 1, "has_more": False, "channel": channel, "period": period,
                 "snapshot": list(snapshot)}
+    if channel == "private":
+        combined.update(export_records_count=exported_count,
+                        excluded_secondary_channel_counts=dict(sorted(excluded_channels.items())))
     output.with_suffix(".manifest.json").write_text(json.dumps(combined, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     return combined
 
@@ -97,6 +113,8 @@ def probe_revision(channel: str, period: str, output: Path) -> int:
         conditions.append(["渠道", "==", "抖音私信"])
     elif channel == "sec_public":
         conditions.append(["渠道", "==", "公域学霸"])
+    elif channel == "internal_books":
+        conditions.append(["渠道", "==", "内部图书"])
     output.parent.mkdir(parents=True, exist_ok=True)
     run_lark(["base", "+record-list", "--base-token", BASE_TOKEN, "--table-id", TABLE_ID,
               "--filter-json", json.dumps({"logic": "and", "conditions": conditions}, ensure_ascii=True),

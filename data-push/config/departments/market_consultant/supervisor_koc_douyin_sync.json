@@ -90,9 +90,9 @@
     "task_id": 47252,
     "nezha_task_id": 66504,
     "schedule_id": 53831,
-    "exec_file_id": 837865,
-    "verified_version_id": 208042,
-    "verified_source_sha256": "ebf2bfd2635d336d1584827a56e41602d2d834671afc71feacb11472be5c958d",
+    "exec_file_id": 842143,
+    "verified_version_id": 208938,
+    "verified_source_sha256": "cb55d1306ec9def6f30e9d738ec5c6807cd37cc9e591290ec5983df7a865267e",
     "log_protocol": "two_period_clear_then_replace_v1_retry",
     "owner": "lvshuai01",
     "channel_mapping_version": "1002"

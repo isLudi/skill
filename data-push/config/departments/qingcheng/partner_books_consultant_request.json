@@ -66,10 +66,11 @@
       "外呼时长",
       "外呼频次",
       "总通时",
-      "有效线索"
+      "有效线索",
+      "15min"
     ],
     "other_process_metrics": null,
-    "process_display_order": "期次、主管、顾问、年级、有效线索、好友率、等待时长、8min、24h首call、沟通率、外呼时长、外呼频次、总通时",
+    "process_display_order": "期次、主管、顾问、年级、有效线索、好友率、等待时长、8min、15min、24h首call、沟通率、外呼时长、外呼频次、总通时",
     "result_metrics": [
       "有效线索",
       "首节到课率",

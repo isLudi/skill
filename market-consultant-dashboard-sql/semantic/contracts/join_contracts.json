@@ -100,7 +100,7 @@
       ],
       "status": "pending_confirmation",
       "source_path": "knowledge/joins/table_relationships.md",
-      "source_sha256": "34d48b0e966fbedd21feba827dd3bcbaf18554573a5c6fcf5d8987609fec2abd",
+      "source_sha256": "0e122493a56cd1d2ca1a75c4715950ceaf820c8b564eae7d3a779cb664b8391e",
       "description": "历史市场转化看板以期次、归一化渠道和年级关联成本目标临时表。",
       "left_table": "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
       "right_table": "temp_table.dingxi01_cost",

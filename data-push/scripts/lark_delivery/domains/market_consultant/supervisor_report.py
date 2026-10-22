@@ -272,11 +272,14 @@ def _retention_fill(value, rate_parser):
     return RETENTION_LOW_COLOR
 
 
-def render_image(report, section, output_path, *, font_loader, center_text, format_value, rate_parser):
+def render_image(report, section, output_path, *, font_loader, center_text, format_value, rate_parser,
+                 columns=None, widths=None, show_totals=True):
     from PIL import Image, ImageDraw
-    columns, widths = COLUMNS[section], WIDTHS[section]
+    columns, widths = columns or COLUMNS[section], widths or WIDTHS[section]
     width = sum(widths)
     band_h, header_h, row_h, total_h, gap = 48, 58, 50, 54, 20
+    if not show_totals:
+        total_h = 0
     if not report["blocks"]:
         height = 180
         image = Image.new("RGB", (width, height), "#ffffff")
@@ -320,8 +323,9 @@ def render_image(report, section, output_path, *, font_loader, center_text, form
             effect_rank = {id(item): effect_values.index(float(item["fields"]["截面单效"]))
                            for item in effect_rows
                            if isinstance(item["fields"].get("截面单效"), (int, float, Decimal))}
-            for index, row in enumerate([*ordered, block["total"]]):
-                y, total = header + header_h + index * row_h, index == len(ordered)
+            image_rows = [*ordered, block["total"]] if show_totals else ordered
+            for index, row in enumerate(image_rows):
+                y, total = header + header_h + index * row_h, show_totals and index == len(ordered)
                 bottom = y + (total_h if total else row_h)
                 draw.rectangle((0, y, width, bottom), fill=navy if total else "#ffffff")
                 for (source, _label, kind), left, right in zip(columns, xs, xs[1:]):

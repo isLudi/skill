@@ -15,9 +15,9 @@ SKILL = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG = SKILL / "config/departments/qingcheng/special_process_preview.json"
 GRADES = ["高一", "高二", "高三", "初三"]
 DISPLAY_COLUMNS = ["期次", "负责人", "年级", "带班人数", "有效线索",
-                   "好友率", "等待时长", "8min", "24h首call",
+                   "好友率", "等待时长", "8min", "15min", "24h首call",
                    "沟通率", "外呼时长", "外呼频次"]
-SOURCE_NUMBERS = ["退后线索", "好友标记", "首call等待时长小时", "8min标记",
+SOURCE_NUMBERS = ["退后线索", "好友标记", "首call等待时长小时", "8min标记", "15min标记",
                   "24h首call标记", "沟通标记", "总通时秒", "外呼次数"]
 
 
@@ -80,6 +80,7 @@ def _aggregate(rows: list[dict], period: str, threshold: int) -> list[dict]:
             "好友率": _ratio(sum(_number(item, "好友标记") for item in items), effective),
             "等待时长": _ratio(sum(_number(item, "首call等待时长小时") for item in items), effective),
             "8min": _ratio(sum(_number(item, "8min标记") for item in items), effective),
+            "15min": _ratio(sum(_number(item, "15min标记") for item in items), effective),
             "24h首call": _ratio(sum(_number(item, "24h首call标记") for item in items), effective),
             "沟通率": _ratio(sum(_number(item, "沟通标记") for item in items), effective),
             "外呼时长": _ratio(sum(_number(item, "总通时秒") for item in items) / 60, effective),

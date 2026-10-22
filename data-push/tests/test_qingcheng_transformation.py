@@ -26,10 +26,11 @@ def test_batch_pins_the_published_t5_upstream():
     batch = MODULE._batch()
     assert batch["upstream"]["task_id"] == 47775
     assert batch["upstream"]["nezha_task_id"] == 67397
-    assert batch["upstream"]["published_version"] == "V7"
-    assert batch["upstream"]["version_id"] == 207706
+    assert batch["upstream"]["published_version"] == "V12"
+    assert batch["upstream"]["version_id"] == 215630
+    assert batch["upstream"]["exec_file_id"] == 851232
     assert batch["upstream"]["source_sha256"] == (
-        "5ed53a45e32dc9e2cfa9e08b88bae3a9103b2e6a68936ec574c501281c2f5db0"
+        "9f48bc48afd7ef5e7a57e5bea4c79be6b0c758f1f40841c901c26f133b391833"
     )
 
 
@@ -77,7 +78,6 @@ def test_conversion_metric_label_is_comprehensive_effect_everywhere():
 def test_batch_passes_its_requested_period_to_every_channel(monkeypatch, tmp_path, period_date):
     calls = []
     batch = MODULE._batch()
-    next(c for c in batch["channels"] if c["id"] == "internal_books")["scheduled"] = True
     monkeypatch.setattr(MODULE, "_batch", lambda: batch)
 
     def fetch(channel, period, output):
@@ -96,14 +96,11 @@ def test_batch_passes_its_requested_period_to_every_channel(monkeypatch, tmp_pat
     monkeypatch.setattr(MODULE, "fetch", fetch)
     monkeypatch.setattr(MODULE, "export_conversion", export)
     monkeypatch.setattr(MODULE, "build", build)
-    def internal_prepare(report_type, period, output):
-        calls.append((("internal_books",), period, ("consultant",)))
-        return {"period":period,"process_snapshot":"20261008 12:00","conversion_snapshot":"20261008 12:00"}
-    monkeypatch.setattr(MODULE.internal_books, "prepare", internal_prepare)
+    monkeypatch.setattr(MODULE.internal_books, "prepare", lambda *args: pytest.fail("Retired internal-books conversion must not run"))
     monkeypatch.setattr(MODULE, "_index", lambda *args: None)
     result = MODULE.run(period_date=period_date, output=tmp_path)
     assert calls == [((channel,), period_date + "期", (level,))
-                     for channel in MODULE.CHANNEL_IDS for level in MODULE._channel_levels(channel)]
+                     for channel in (item["id"] for item in batch["channels"]) for level in MODULE._channel_levels(channel)]
     assert all(group["status"] == "prepared" for item in result["channels"].values()
                for group in item["groups"].values())
 
@@ -123,7 +120,8 @@ def test_restored_supervisor_style_uses_batch_period_instead_of_preview_default(
              (period, "高二", "并列主管乙", 50)]
     process, conversion = [], []
     for i, (row_period, grade, name, income) in enumerate(cases):
-        row = {**channel["match"], "期次": row_period, "年级": grade, "主管": name,
+        row = {**channel["match"], "渠道": channel["match"]["渠道"][i % 2],
+               "期次": row_period, "年级": grade, "主管": name,
                "顾问账号": f"account_{i}", "顾问": f"顾问{i}",
                "分区日期": "20261008", "分区小时": "12"}
         process.append({**row, "record_id": f"process_{i}", "退后线索": 5, "首节到课标记": 0})
@@ -162,3 +160,20 @@ def test_restored_supervisor_style_uses_batch_period_instead_of_preview_default(
     assert old["period"] == "20261002期"
     assert old["results"]["partner_local"]["levels"]["supervisor"]["reminder_grades"] == ["高一"]
     assert "旧期主管" not in old["results"]["partner_local"]["levels"]["supervisor"]["message"]
+
+
+@pytest.mark.parametrize("stale", [
+    {"published_version": "V9", "version_id": 208882},
+    {"exec_file_id": 841566},
+    {"source_sha256": "179a48e689a71ef5a48a49cded28290cf862eb2d912f4beea5c00159565154a5"},
+    {"task_id": 47728},
+    {"nezha_task_id": 67318},
+])
+def test_conversion_upstream_rejects_stale_or_process_binding(monkeypatch, tmp_path, stale):
+    config = json.loads(MODULE.BATCH_CONFIG.read_text(encoding="utf-8"))
+    config["upstream"].update(stale)
+    path = tmp_path / "stale.json"
+    path.write_text(json.dumps(config), encoding="utf-8")
+    monkeypatch.setattr(MODULE, "BATCH_CONFIG", path)
+    with pytest.raises(ValueError, match="Transformation upstream pin differs"):
+        MODULE._batch()

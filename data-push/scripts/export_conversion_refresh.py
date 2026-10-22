@@ -18,6 +18,7 @@ import sys
 from pathlib import Path
 
 from lark_delivery.common.runtime import run_lark
+from fetch_qingcheng_process_source import PRIVATE_CHANNELS
 
 SKILL = Path(__file__).resolve().parents[1]
 WORKSPACE = SKILL.parents[1]
@@ -28,8 +29,7 @@ PAGE_SIZE = 2000
 
 FILTERS = {
     "douyin_dm": {"logic": "and", "conditions": [["渠道", "==", "抖音私信"]]},
-    "private": {"logic": "or", "conditions": [
-        ["渠道", "==", "私域表单"], ["渠道", "==", "私域品效"]]},
+    "private": {"logic": "or", "conditions": [["渠道", "==", name] for name in PRIVATE_CHANNELS]},
     "public_pool": {"logic": "and", "conditions": [["一级渠道", "==", "公海"]]},
     # 伙伴渠道与公海同构：服务端只按一级渠道裁剪，二级渠道（武汉图书/河南本地化）
     # 由 transformation_preview.json 的 match 在本地强校验。

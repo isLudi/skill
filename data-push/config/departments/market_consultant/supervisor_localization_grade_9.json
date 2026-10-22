@@ -1,0 +1,128 @@
+{
+  "schema_version": 1,
+  "domain": "market_consultant",
+  "channel_id": "supervisor_localization_grade_9",
+  "channel": "江苏本地化",
+  "channels": [
+    "江苏本地化",
+    "安徽本地化"
+  ],
+  "adapter": "market-grade-manager-v1",
+  "source": {
+    "source_mode": "lead-detail",
+    "source_url": "https://gaotuedu.feishu.cn/base/PmpybDuXGaudYost6I3cTwChn3d?table=tbljWRvaqKTdrCx4&view=vewO4yxS3O",
+    "raw_source_url": "https://gaotuedu.feishu.cn/base/PmpybDuXGaudYost6I3cTwChn3d?table=tbljWRvaqKTdrCx4&view=vewO4yxS3O",
+    "raw_table_id": "tbljWRvaqKTdrCx4",
+    "raw_table_name": "市场顾问原始数据",
+    "channel_match": {
+      "field": "渠道",
+      "case_sensitive": true,
+      "values": {
+        "江苏本地化": "西安图书直播间-挂链",
+        "安徽本地化": "西安直播安徽"
+      }
+    },
+    "report_profile": "supervisor-detail",
+    "reminder_rule": "channel_grade_source_supervisor_minimum_all_ties",
+    "reminder_population": "raw_leads",
+    "mention_target": "supervisor",
+    "report_type": "auto"
+  },
+  "sender": {
+    "identity": "bot",
+    "name": "管家",
+    "open_id": "ou_f3907e865135732c15a1dfce27828411"
+  },
+  "targets": [
+    {
+      "id": "localization_grade_9",
+      "chat_id": "oc_b5dee8b192c11bb8a131ce40c41d5236",
+      "display_name": "1023期【本地化渠道】沟通群",
+      "enabled": true
+    }
+  ],
+  "report": {
+    "period_rule": "natural_week_friday",
+    "process_weekdays": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "result_weekdays": [
+      4,
+      5,
+      6
+    ],
+    "included_grades": [
+      "初三"
+    ],
+    "excluded_grades": [],
+    "minimum_post_leads": 5,
+    "show_totals": false,
+    "display_columns": {
+      "process": [
+        "期次",
+        "负责人",
+        "主管",
+        "退前线索",
+        "退后线索",
+        "首call率",
+        "48h外呼",
+        "外呼频次",
+        "5min",
+        "好友率",
+        "APP登陆率",
+        "深沟率",
+        "双沟率"
+      ],
+      "result": [
+        "期次",
+        "负责人",
+        "主管",
+        "退后线索",
+        "5min",
+        "双沟率",
+        "首节到课率",
+        "当期单效",
+        "截面单效"
+      ]
+    }
+  },
+  "schedule": {
+    "enabled": true,
+    "first_send_at": "2026-10-21T13:25:00+08:00",
+    "timezone": "Asia/Shanghai",
+    "hours": [
+      13,
+      17,
+      21
+    ],
+    "windows_task_name": "Codex-Lark-Supervisor-Localization-Grade9-Push",
+    "stagger_order": 11,
+    "prepare_minute": 25,
+    "send_minute": 25,
+    "deadline_minute": 50,
+    "retry_minutes": 2
+  },
+  "base_identity": "user",
+  "state_dir": "C:/Users/lvshuai01/.codex/runtime/channel-broadcast-push/supervisor-localization-grade-9",
+  "upstream": {
+    "project_id": 308,
+    "folder": "吕帅",
+    "menu_id": 102754,
+    "task_name": "market2lark",
+    "task_id": 47252,
+    "nezha_task_id": 66504,
+    "schedule_id": 53831,
+    "exec_file_id": 842143,
+    "verified_version_id": 208938,
+    "verified_source_sha256": "cb55d1306ec9def6f30e9d738ec5c6807cd37cc9e591290ec5983df7a865267e",
+    "log_protocol": "two_period_clear_then_replace_v1_retry",
+    "owner": "lvshuai01"
+  },
+  "verification_identity": "bot"
+}

@@ -60,12 +60,12 @@
     "nezha_task_id": 67397,
     "task_name": "qing2lark_zhuanhua",
     "owner": "lvshuai01",
-    "published_version": "V7",
-    "version_id": 207706,
-    "source_sha256": "5ed53a45e32dc9e2cfa9e08b88bae3a9103b2e6a68936ec574c501281c2f5db0",
+    "published_version": "V12",
+    "version_id": 215630,
+    "source_sha256": "9f48bc48afd7ef5e7a57e5bea4c79be6b0c758f1f40841c901c26f133b391833",
     "audit_mode": "none",
-    "audit_note": "qing2lark_zhuanhua 已绑定最新已发布 V7/version 207706、execFileId 837872，删除500/写入1000；源码 SHA-256 5ed53a45e32dc9e2cfa9e08b88bae3a9103b2e6a68936ec574c501281c2f5db0。任务 ID 和调度不变；保留转化表快照新鲜度门禁。",
-    "exec_file_id": 837872
+    "audit_note": "qing2lark_zhuanhua 已绑定最新已发布 V12/version 215630、execFileId 851232，删除500/写入1000；源码 SHA-256 9f48bc48afd7ef5e7a57e5bea4c79be6b0c758f1f40841c901c26f133b391833。任务 ID 和调度不变；保留转化表快照新鲜度门禁。 2026-10-22 同周期数量保护线为70%；验收执行 177821390。 2026-10-22 本地化渠道改名验收执行 177837133，Base 全字段回读一致。",
+    "exec_file_id": 851232
   },
   "freshness_max_age_minutes": 1560,
   "no_data_policy": "always_send_with_fallback_flag",
@@ -121,15 +121,6 @@
         "consultant": "recvwjX409k8f2"
       },
       "note": "本地化主管（已上线）→ 青橙-河南本地化项目，提醒不 @ 主管、按年级点名综合单效；顾问（草稿）→ 🍊青橙河南本地化伙伴。2026-10-01 用户确认预览后启用周常调度。"
-    },
-    {
-      "id": "internal_books",
-      "source_kind": "data_center",
-      "config": "internal_books.json",
-      "scheduled": true,
-      "operator_records": {
-        "consultant": "recvxsKQ9g0ITU"
-      }
     }
   ],
   "dept_schedule": {

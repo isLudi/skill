@@ -79,9 +79,14 @@ def verify_publication(cfg):
 
 
 def run(definition, target, request_id, *, preflight=False, requested_slot=None, allow_expired=False,
-        volume=False):
+        volume=False, only_channels=None):
     cfg = catalog.schedule_config(definition, target)
     schedule.validate_config(cfg)
+    if only_channels is not None:
+        if (volume or not isinstance(only_channels, (list, tuple)) or not only_channels
+                or len(only_channels) != len(set(only_channels))
+                or any(channel not in cfg["channels"] for channel in only_channels)):
+            raise ValueError("One-time channel selection must be a non-empty registered subset")
     if volume and (requested_slot is not None or allow_expired or cfg.get("volume_report", {}).get("stage") != "scheduled"):
         raise ValueError("One-time volume delivery requires the current scheduled volume producer")
     state = Path(cfg["state_dir"])
@@ -89,7 +94,7 @@ def run(definition, target, request_id, *, preflight=False, requested_slot=None,
         if not acquired:
             raise ValueError("Another broadcast instance owns this target")
         with closing(schedule.connect_ledger(state)) as db:
-            channels = ["KOC渠道进量"] if volume else cfg["channels"]
+            channels = ["KOC渠道进量"] if volume else list(only_channels) if only_channels is not None else cfg["channels"]
             keys = ([request_key(cfg, request_id, "volume")] if volume else
                     [channel_request_key(cfg, request_id, channel) for channel in channels])
             priors = [db.execute("SELECT status,message_id FROM deliveries WHERE key=?", (key,)).fetchone() for key in keys]
@@ -136,6 +141,8 @@ def run(definition, target, request_id, *, preflight=False, requested_slot=None,
                     absent = [channel for channel in cfg["channels"] if channel not in selected]
                 from .app_sequence import delegated_channels
                 selected = delegated_channels(cfg, selected)
+                selected = [channel for channel in selected if channel in channels]
+                absent = [channel for channel in absent if channel in channels]
                 for channel in absent:
                     schedule.emit("channel_skipped_no_source_rows", channel=channel, period=current_period)
                 if not selected:

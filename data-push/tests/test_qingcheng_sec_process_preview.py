@@ -1,3 +1,4 @@
+import pytest
 """SEC previews use pre-return leads and raw friend rates for ranking."""
 
 import json
@@ -117,3 +118,19 @@ def test_sec_secondary_supervisors_show_pre_return_leads_and_remind_all_grade_ti
     for profile in config["reports"]:
         request_snapshot = json.loads((secondary.CONFIG.parent / profile["request_file"]).read_text(encoding="utf-8"))
         assert secondary._validate_report(profile, request_snapshot) == secondary.EXPECTED_COLUMNS
+
+
+@pytest.mark.parametrize("field_count", [27, 30, 31, 32, 33, 34])
+def test_sec_audit_enforces_expanded_process_schema(tmp_path, field_count):
+    import json
+    from preview_qingcheng_sec_process import _audit
+    path = tmp_path / "producer.log"
+    path.write_text("process表快照清单：" + json.dumps({
+        "schema_version": "market2lark-two-period-audit-v1", "field_count": field_count,
+        "periods": {"20261016期": {"snapshots": [["20261017", "12"]], "channel_counts": {"公域学霸": 3}}}
+    }, ensure_ascii=False) + "\nSUCCESS: 青橙项目部\nexit_code:  0\n", encoding="utf-8")
+    if field_count == 33:
+        assert _audit(path, "20261016期")["counts"]["sec_public"] == 3
+    else:
+        with pytest.raises(ValueError, match="schema"):
+            _audit(path, "20261016期")

@@ -26,8 +26,8 @@ SPEC.loader.exec_module(MODULE)
 REVIEWED = {
     "project_id": 308, "folder": "吕帅", "menu_id": 103625, "task_id": 47728,
     "nezha_task_id": 67318, "task_name": "qing2lark_guocheng", "owner": "lvshuai01",
-    "published_version": "V31", "version_id": 208745, "exec_file_id": 840241,
-    "source_sha256": "9bf5300e48b42c31a6bb7512b02b537ed9a43ba37bb30c4062e34c0d90138604",
+    "published_version": "V37", "version_id": 215564, "exec_file_id": 851129,
+    "source_sha256": "a42f1bf5b88ca77617c364b32876e41135fa45f13dd82b3bb22e2ac6b09d36f7",
     "audit_schema": "market2lark-two-period-audit-v1",
 }
 BATCH_FILES = ("process_batch_preview.json", "sec_process_batch.json", "special_process_batch.json",
@@ -72,8 +72,8 @@ def test_operator_read_uses_the_configured_identity(monkeypatch):
 
 
 def _artifact(tmp_path, *, row_name="qing2lark", stage_name="stage_4123_qing2lark_guocheng.log",
-              exec_file_id=840241, trigger="EXECUTE", execution_id=173400001, row_count=3,
-              status=6):
+              exec_file_id=851129, trigger="EXECUTE", execution_id=173400001, row_count=3,
+              status=6, field_count=33):
     period = MODULE._period(SLOT.date())
     current_hour = MODULE._expected_upstream_period_time(SLOT)
     history_dir = tmp_path / "history"
@@ -84,7 +84,7 @@ def _artifact(tmp_path, *, row_name="qing2lark", stage_name="stage_4123_qing2lar
         "triggerSource": 0 if trigger == "SCHEDULE" else 1,
         "runConfig": json.dumps({"projectId": 308, "execFileId": exec_file_id, "triggerSourceEnum": trigger}),
     }]}), encoding="utf-8")
-    audit = {"schema_version": "market2lark-two-period-audit-v1", "field_count": 27, "row_count": row_count,
+    audit = {"schema_version": "market2lark-two-period-audit-v1", "field_count": field_count, "row_count": row_count,
              "periods": {period: {"snapshots": [["20260928", "19"]], "row_count": row_count,
                                   "channel_counts": {"顾问未加好友": row_count}}}}
     log_dir = tmp_path / "log"
@@ -142,7 +142,7 @@ def test_audit_rejects_an_unrelated_task_name(tmp_path):
         _audit(tmp_path, row_name="qing2lark_zhuanhua")
 
 
-@pytest.mark.parametrize("superseded", [831661, 837871])
+@pytest.mark.parametrize("superseded", [831661, 837871, 840241, 841333, 841428, 850663])
 def test_audit_rejects_the_superseded_exec_file(tmp_path, superseded):
     with pytest.raises(ValueError, match="is not unique"):
         _audit(tmp_path, exec_file_id=superseded)
@@ -204,3 +204,9 @@ def test_audit_blocks_a_newer_dispatched_row_even_before_start_time(tmp_path, mo
 def test_audit_rejects_missing_execution_chronology(tmp_path, monkeypatch):
     with pytest.raises(ValueError, match="chronology"):
         _audit_with_other_execution(tmp_path, monkeypatch, {"id": 173400002, "status": 0})
+
+
+@pytest.mark.parametrize("field_count", [27, 30, 32])
+def test_audit_rejects_unreviewed_process_field_count(tmp_path, field_count):
+    with pytest.raises(ValueError, match="fields"):
+        _audit(tmp_path, field_count=field_count)

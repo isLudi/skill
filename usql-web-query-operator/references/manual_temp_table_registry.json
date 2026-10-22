@@ -111,12 +111,12 @@
       "validation_rules": [
         {"type": "required_columns", "columns": ["xiaozu_z", "employee_email_prefix", "xiaozu", "employee_email_name", "department", "zaizhi", "qici"]},
         {"type": "lowercase_ascii_prefix", "columns": ["xiaozu_z", "employee_email_prefix"]},
-        {"type": "unique_key", "columns": ["qici", "employee_email_name"], "ignore_blank": true},
+        {"type": "unique_key", "columns": ["dept_1", "qici", "employee_email_prefix"], "ignore_blank": true},
         {"type": "name_variant_consistency", "column": "xiaozu", "prefer": "numeric_suffix"}
       ],
       "notes": [
         "xiaozu_z、employee_email_prefix 开头必须是小写 ASCII 字母。",
-        "employee_email_name 在同一期 qici 内不能重复。",
+        "同一部门 dept_1 内，employee_email_prefix 在同一期 qici 内不能重复；共享表允许同一人员跨部门存在。",
         "xiaozu 需要检查同名无数字后缀和有数字后缀混用，例如 韩玉颖 与 韩玉颖02。"
       ]
     },

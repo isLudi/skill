@@ -73,8 +73,8 @@ def _config(*, validate_channels: bool = True) -> dict:
         raise ValueError("Partner channels or their delivery order differ")
     if cfg["source"]["matches"] != {
             "partner_books": {"一级渠道": "图书", "渠道": "武汉图书"},
-            "partner_local": {"一级渠道": "本地化", "渠道": "河南本地化"},
-            "supervisor_local": {"一级渠道": "本地化", "渠道": "河南本地化"}}:
+            "partner_local": {"一级渠道": "本地化", "渠道": ["河南APP", "河南私域"]},
+            "supervisor_local": {"一级渠道": "本地化", "渠道": ["河南APP", "河南私域"]}}:
         raise ValueError("Partner source routing differs")
     bars = cfg["visual"]["metric_bars"]
     if (set(bars) != {"好友率", "等待时长", "8min", "24h首call"}
@@ -94,8 +94,8 @@ def _config(*, validate_channels: bool = True) -> dict:
 def _validate_entry(entry: dict) -> None:
     expected = {
         "partner_books": ("图书", "顾问", "oc_854e5427ec0f6ef2bf654fee0a759f83", 3, ["武汉图书"]),
-        "partner_local": ("本地化", "顾问", "oc_7e4ac041d00e583b49749b9a0d01a64c", 3, ["河南本地化"]),
-        "supervisor_local": ("本地化", "主管", "oc_be403f4efca7f1adcb0d18a066308627", 5, ["河南本地化"]),
+        "partner_local": ("本地化", "顾问", "oc_7e4ac041d00e583b49749b9a0d01a64c", 3, ["河南APP", "河南私域"]),
+        "supervisor_local": ("本地化", "主管", "oc_be403f4efca7f1adcb0d18a066308627", 5, ["河南APP", "河南私域"]),
     }
     layout = {"partner_books": (False, "8min_minimum"), "partner_local": (False, "8min_minimum"),
               "supervisor_local": (True, "8min_minimum_grade_text")}

@@ -23,6 +23,7 @@ WEEKDAYS = ("周一", "周二", "周三", "周四", "周五", "周六", "周日"
 DEFAULT_GRADES = ("初一", "初二", "初三", "高一", "高二", "高三")
 
 DISPLAY_NAMES = {
+    "supervisor_localization_grade_9": "江苏与安徽本地化初三主管",
     "app_grade_9": "APP与B站初三主管顾问协调",
     "supervisor_koc_zhoushuai_warning": "KOC-周帅数学高中双期预警",
     "self_incubated_koc_5": "自孵化KOC-5元纯课",
@@ -37,6 +38,7 @@ DISPLAY_NAMES = {
 }
 
 SCHEDULE_FILES = {
+    "supervisor_localization_grade_9": "supervisor_localization_grade_9_scheduled_push.json",
     "app_grade_9": "app_grade_9_scheduled_push.json",
     "supervisor_koc_zhoushuai_warning": "supervisor_koc_zhoushuai_warning_scheduled_push.json",
     "self_incubated_koc_5": "scheduled_push.json",
@@ -51,6 +53,7 @@ SCHEDULE_FILES = {
 }
 
 SCRIPT_STEMS = {
+    "supervisor_localization_grade_9": ("run_supervisor_localization_grade_9_scheduled_push.ps1", "register_supervisor_localization_grade_9_scheduled_push.ps1"),
     "app_grade_9": ("run_app_grade_9_scheduled_push.ps1", "register_app_grade_9_scheduled_push.ps1"),
     "supervisor_koc_zhoushuai_warning": ("channels/market_consultant/supervisor_koc_zhoushuai_warning.py", "register_supervisor_koc_zhoushuai_warning_scheduled_push.ps1"),
     "self_incubated_koc_5": ("run_scheduled_push.ps1", "register_scheduled_push.ps1"),
@@ -208,6 +211,8 @@ def _operator_record(channel_ref: str, config):
     target = (config.get("targets") or [{}])[0]
     match = source.get("channel_match", {})
     profile = PROFILE_COLUMNS[source.get("report_profile", "grade-compact")]
+    if channel_id == "supervisor_localization_grade_9":
+        profile = {**profile, **{section: "、".join(report["display_columns"][section]) for section in ("process", "result")}}
     mention = _mention_label(source.get("mention_target"))
     reminder_rank_by_rule = {
         "grade_manager_minimum_all_ties": "最低值",
@@ -286,7 +291,7 @@ def _operator_record(channel_ref: str, config):
         "转化重点提醒指标": _select("单效" if source.get("report_profile") == "supervisor-video49" else "截面单效"),
         "过程数据排序规则": process_sort,
         "转化数据排序规则": result_sort,
-        "展示总计行": True,
+        "展示总计行": report.get("show_totals", True),
         "图片分组与排版": layout,
         "颜色或样式参考": style,
         "过程提醒指标": "SUM(5min标记)/SUM(退后线索)" + reminder_suffix,

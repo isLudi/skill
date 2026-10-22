@@ -500,7 +500,7 @@ limit 20;
 已知风险：
 
 - Web 查询环境正常可用。
-- 渠道归因使用最新 `../sql_patterns/channel_mapping_case_when.md`，完整片段为 `../../resources/raw_sql/market_channel_case_when_1009.sql`。
+- 渠道归因使用最新 `../sql_patterns/channel_mapping_case_when.md`，完整片段为 `../../resources/raw_sql/market_channel_case_when_1016.sql`。
 - 成本和到课 join 断裂先读 `../pitfalls/common_join_failures.md`。
 
 ### AI 外呼组织维度回连探查（2026-10-19）

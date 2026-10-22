@@ -17,7 +17,7 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from fetch_qingcheng_process_source import fetch, probe_revision
+from fetch_qingcheng_process_source import PRIVATE_CHANNELS, fetch, probe_revision
 from preview_qingcheng_public_pool_process import build
 from lark_delivery.common import push_log, resend
 from lark_delivery.common.readback import available as readback_available
@@ -32,7 +32,7 @@ BATCH_CONFIG = CONFIG_DIR / "process_batch_preview.json"
 STATE = WORKSPACE / "runtime/qingcheng-process-batch"
 LEVELS = ("supervisor", "consultant")
 OPERATOR = WORKSPACE / "skills/usql-web-query-operator/scripts/tiangong2_task.py"
-AUDIT_CHANNELS = {"public_pool": ("顾问未加好友",), "private": ("私域表单", "私域品效"),
+AUDIT_CHANNELS = {"public_pool": ("顾问未加好友",), "private": PRIVATE_CHANNELS,
                   "douyin_dm": ("抖音私信",)}
 
 # 执行台账里的 taskName 是执行行建立时的任务名快照。任务在 2026-09-28 由
@@ -98,8 +98,8 @@ def _batch() -> dict:
             upstream["owner"], upstream["published_version"], upstream["version_id"], upstream["exec_file_id"],
             upstream["source_sha256"], upstream["audit_schema"]) != (
             2, "Codex-Lark-Qingcheng-Process-GroupPush", 308, "吕帅", 103625, 47728, 67318,
-            "qing2lark_guocheng", "lvshuai01", "V31", 208745, 840241,
-            "9bf5300e48b42c31a6bb7512b02b537ed9a43ba37bb30c4062e34c0d90138604",
+            "qing2lark_guocheng", "lvshuai01", "V37", 215564, 851129,
+            "a42f1bf5b88ca77617c364b32876e41135fa45f13dd82b3bb22e2ac6b09d36f7",
             "market2lark-two-period-audit-v1"):
         raise ValueError("Qingcheng upstream or Windows task pin differs")
     return batch
@@ -135,10 +135,12 @@ def _fresh(review: dict, period: str, slot: datetime) -> None:
 
 def _operator_read(command: str, *args: str) -> dict:
     upstream = _batch()["upstream"]
+    child_env = os.environ.copy()
+    child_env.update(PYTHONIOENCODING="utf-8", PYTHONUTF8="1")
     result = subprocess.run([sys.executable, str(OPERATOR), command, "--project-id", str(upstream["project_id"]),
                              "--folder", upstream["folder"], "--menu-id", str(upstream["menu_id"]),
                              "--task-name", upstream["task_name"], *args],
-                            cwd=WORKSPACE, capture_output=True, text=True, encoding="utf-8", errors="replace",
+                            cwd=WORKSPACE, env=child_env, capture_output=True, text=True, encoding="utf-8",
                             timeout=120, creationflags=CREATE_NO_WINDOW)
     if result.returncode:
         raise ValueError(f"Tiangong2 {command} read failed: {result.stderr[-600:]}")
@@ -186,7 +188,7 @@ def _upstream_audit(period: str, slot: datetime) -> dict:
             entry_config = json.loads(entry.get("runConfig") or "{}")
         except (TypeError, json.JSONDecodeError):
             continue
-        if (entry_config.get("projectId"), entry_config.get("execFileId")) == (308, 840241):
+        if (entry_config.get("projectId"), entry_config.get("execFileId")) == (308, 851129):
             candidates.append(entry)
     if len(candidates) != 1:
         raise ValueError("Expected upstream-hour successful qing2lark execution is not unique")
@@ -201,7 +203,7 @@ def _upstream_audit(period: str, slot: datetime) -> dict:
     if (latest.get("taskId"), latest.get("periodTime"),
             run_config.get("projectId"), run_config.get("execFileId")) != (
             67318, upstream_period_time,
-            308, 840241):
+            308, 851129):
         raise ValueError("The expected upstream-hour qing2lark execution is not successful or has drifted")
     if run_config.get("triggerSourceEnum") not in ("SCHEDULE", "EXECUTE"):
         raise ValueError("The expected upstream-hour qing2lark execution has an unexpected trigger")
@@ -222,7 +224,7 @@ def _upstream_audit(period: str, slot: datetime) -> dict:
         raise ValueError("Complete process source audit and readback were not found")
     audit = json.loads(audit_lines[0])
     info = audit.get("periods", {}).get(period)
-    if (audit.get("schema_version") != "market2lark-two-period-audit-v1" or audit.get("field_count") != 27
+    if (audit.get("schema_version") != "market2lark-two-period-audit-v1" or audit.get("field_count") != 33
             or info is None or len(info.get("snapshots", [])) != 1 or
             sum(audit["periods"][name]["row_count"] for name in audit["periods"]) != audit["row_count"] or
             any(sum(part["channel_counts"].values()) != part["row_count"] for part in audit["periods"].values()) or

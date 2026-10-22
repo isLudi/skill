@@ -106,4 +106,4 @@ and period_mapping_second_level_department_name in (
 
 ## 8. 待人工确认
 
-是。仍需确认金额单位、`>= 5` 阈值、成本表维护口径、时间偏移口径以及 `xiansuo` 是否只作为聚合指标输出。20260911 期的目标记录有效标记主要落在 merge 字段，20260917 原始期次的目标记录又主要落在普通字段；上游为何按批次切换尚未确认。按 2026-09-16 的生产恢复要求，抖音私信退前、退后均使用普通字段；这会使仅在 merge 字段有效的历史批次显示较低。共享渠道CASE已按20261009规则融合，28个数据集全部取得最新抽数SUCCESS、7个模板验收成功；部门与NULL范围保持本轮实时生产原状，维护入口见 `knowledge/sql_patterns/channel_mapping_case_when.md`，归档片段为 `resources/raw_sql/market_channel_case_when_1009.sql`。
+是。仍需确认金额单位、`>= 5` 阈值、成本表维护口径、时间偏移口径以及 `xiansuo` 是否只作为聚合指标输出。20260911 期的目标记录有效标记主要落在 merge 字段，20260917 原始期次的目标记录又主要落在普通字段；上游为何按批次切换尚未确认。按 2026-09-16 的生产恢复要求，抖音私信退前、退后均使用普通字段；这会使仅在 merge 字段有效的历史批次显示较低。共享渠道CASE已按20261016规则融合，28个数据集全部取得最新抽数SUCCESS、7个模板验收成功；部门与NULL范围保持本轮实时生产原状，维护入口见 `knowledge/sql_patterns/channel_mapping_case_when.md`，归档片段为 `resources/raw_sql/market_channel_case_when_1016.sql`。

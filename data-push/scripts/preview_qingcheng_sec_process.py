@@ -28,7 +28,7 @@ def _audit(path: Path, period: str) -> dict:
     if len(entries) != 1 or not any(line.startswith("SUCCESS: 青橙项目部") for line in lines) or "exit_code:  0" not in lines:
         raise ValueError("Qingcheng process audit is incomplete")
     audit = json.loads(entries[0])
-    if audit.get("schema_version") != "market2lark-two-period-audit-v1" or audit.get("field_count") != 27:
+    if audit.get("schema_version") != "market2lark-two-period-audit-v1" or audit.get("field_count") != 33:
         raise ValueError("Unexpected process audit schema")
     info = audit.get("periods", {}).get(period)
     if not info or len(info["snapshots"]) != 1:

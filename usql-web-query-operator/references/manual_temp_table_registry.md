@@ -18,7 +18,7 @@
 | `ceshiqudao_pingyou.xlsx` | `dingxi01_ceshiqudao_pingyou` | 精确匹配 | 是 | 必填列 |
 | `cost.xlsx` | `dingxi01_cost` | 精确匹配 | 是 | 必填列 |
 | `daoke_1_6_t.xlsx` | `dingxi01_daoke_1_6_t` | 精确匹配 | 是 | 必填列；`qudao`/`grade` 覆盖需要 SQL 侧检查 |
-| `jiagou_db.xlsx` | `dingxi01_jiagou_db` | 精确匹配 | 是 | prefix 小写；`qici + employee_email_name` 不能重复；`xiaozu` 名称变体 |
+| `jiagou_db.xlsx` | `dingxi01_jiagou_db` | 精确匹配 | 是 | prefix 小写；同一 `dept_1` 内 `qici + employee_email_prefix` 不能重复；`xiaozu` 名称变体 |
 | `jiagou_zx.xlsx` | `dingxi01_jiagou_zx` | 精确匹配 | 是 | prefix 小写；`jingli` 不能为空或 `-`；推断缺失经理建议 |
 | `jinliang_goal.xlsx` | `dingxi01_jinliang_goal` | 精确匹配 | 是 | 必填列 |
 | `leads_goal.xlsx` | `dingxi01_goal` candidate | 需要复核 | 否 | 平台没有 `dingxi01_leads_goal`；覆盖前需确认 |

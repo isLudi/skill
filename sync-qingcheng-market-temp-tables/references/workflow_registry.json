@@ -1,8 +1,8 @@
 {
-  "version": 12,
-  "updated_at": "2026-10-15",
+  "version": 13,
+  "updated_at": "2026-10-22",
   "source_sender_policy": "any_group_member",
-  "source_sender_policy_notes": "2026-10-01 起默认按登记群 + 文件名模式 + 多族命中阻断识别来源；course_schedule 另按显式维护人白名单校验。默认家族的 source_sender_open_id/name 仅作审计元数据；course_schedule 的 source_sender_open_ids 为硬校验。2026-10-15 到课表维护人调整为郅玲玉和崔浩，移除已离职的李怡青。",
+  "source_sender_policy_notes": "2026-10-01 起默认按登记群 + 文件名模式 + 多族命中阻断识别来源；course_schedule 另按显式维护人白名单校验。默认家族的 source_sender_open_id/name 仅作审计元数据；course_schedule 的 source_sender_open_ids 为硬校验。2026-10-15 到课表维护人调整为郅玲玉和崔浩，移除已离职的李怡青。2026-10-22 修正共享架构的跨部门重复键校验，并将市场到课表已验证累计行数上限调整为 10000。",
   "require_source_quality_gates": true,
   "domains": {
     "qingcheng": {
@@ -553,7 +553,7 @@
       "source_quality": {
         "policy_version": "1.0.0",
         "max_age_hours": 360,
-        "row_count": {"min": 5000, "max": 9000},
+        "row_count": {"min": 5000, "max": 10000},
         "relative_change": {
           "baseline": "same_slice_or_latest_target",
           "max_ratio": 0.35

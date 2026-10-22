@@ -31,7 +31,7 @@ WORKSPACE = SKILL.parents[1]
 CONFIG = SKILL / "config/departments/qingcheng/special_process_batch.json"
 STATE = WORKSPACE / "runtime/qingcheng-special-process-batch"
 CHANNEL_IDS = ("special_private", "special_books", "special_douyin_dm", "special_public_pool")
-AUDIT_NAMES = (("私域表单", "私域品效"), ("武汉图书",), ("抖音私信",), ("顾问未加好友",))
+AUDIT_NAMES = (("私域表单", "私域品效", "表单浙江", "表单江苏"), ("武汉图书",), ("抖音私信",), ("顾问未加好友",))
 
 
 def _config() -> dict:

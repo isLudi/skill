@@ -66,10 +66,11 @@
       "外呼时长",
       "外呼频次",
       "退前线索",
-      "线索留存率"
+      "线索留存率",
+      "15min"
     ],
     "other_process_metrics": null,
-    "process_display_order": "期次、主管、带班人数、退前线索、有效线索、线索留存率、好友率、等待时长、8min、24h首call、沟通率、外呼时长、外呼频次",
+    "process_display_order": "期次、主管、带班人数、退前线索、有效线索、线索留存率、好友率、等待时长、8min、15min、24h首call、沟通率、外呼时长、外呼频次",
     "result_metrics": [
       "有效线索",
       "首节到课率",

@@ -19,6 +19,20 @@ from usql_web_query.manual_table_registry import ManualTableRegistry  # noqa: E4
 
 
 class ManualTableRegistryTests(unittest.TestCase):
+    def test_shared_architecture_key_is_department_scoped(self) -> None:
+        registry = ManualTableRegistry.load(
+            SKILL_ROOT / "references" / "manual_temp_table_registry.json"
+        )
+        entry = next(item for item in registry.entries() if item.id == "market.jiagou_db")
+        unique_rule = next(
+            rule for rule in entry.raw["validation_rules"] if rule.get("type") == "unique_key"
+        )
+
+        self.assertEqual(
+            unique_rule["columns"],
+            ["dept_1", "qici", "employee_email_prefix"],
+        )
+
     def test_resolve_file_accepts_registered_alias(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)

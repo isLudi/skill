@@ -20,6 +20,7 @@ from collections import defaultdict
 from pathlib import Path
 
 from preview_qingcheng_public_pool_process import (
+    _matches_channel,
     _ratio,
     _table_image,
 )
@@ -424,9 +425,9 @@ def build(process_source: Path, conversion_source: Path, output: Path,
             continue
         match = channel_cfg["match"]
         process_channel = [row for row in process_all
-                           if row.get("期次") == period and all(row.get(k) == v for k, v in match.items())]
+                           if row.get("期次") == period and _matches_channel(row, match)]
         conversion_channel = [row for row in conversion_all
-                              if row.get("期次") == period and all(row.get(k) == v for k, v in match.items())]
+                              if row.get("期次") == period and _matches_channel(row, match)]
         if not conversion_channel and channel_cfg["id"] != "public_pool" and not channel_cfg.get("allow_empty_conversion"):
             # 2026-10-02 always-send policy: channels listed with allow_empty_conversion
             # render an all-zero report + fallback flag instead of failing the batch.

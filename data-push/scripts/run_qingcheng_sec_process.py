@@ -1,10 +1,11 @@
-"""Deliver five independent Qingcheng SEC process reports in one Windows batch."""
+"""Deliver Qingcheng SEC process reports with an isolated internal-books branch."""
 
 from __future__ import annotations
 
 import argparse
 from collections import Counter
 from contextlib import contextmanager
+from copy import deepcopy
 import hashlib
 import html
 import json
@@ -39,7 +40,7 @@ COLUMNS = {"期次", "年级", "主管", "顾问", "带班人数", "退前线索
            "好友率", "等待时长", "24h首call", "沟通率", "外呼时长", "外呼频次", "总通时"}
 
 
-def _config() -> dict:
+def _config(*, validate_reports: bool = True) -> dict:
     cfg = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
     calendar = cfg["business_calendar"]
     if (cfg["schema_version"], cfg["domain"], cfg["execution_surface"], cfg["report_type"],
@@ -70,6 +71,13 @@ def _config() -> dict:
         raise ValueError("SEC process color bars differ")
     if set(cfg["visual"]["integer_fields"]) != {"退前线索", "有效线索", "带班人数", "总通时"}:
         raise ValueError("SEC process integer display fields differ")
+    if validate_reports:
+        for entry in cfg["reports"]:
+            _validate_entry(entry)
+    return cfg
+
+
+def _validate_entry(entry: dict) -> None:
     expected = {
         "sec_no_friend_supervisor": ("sec_order_reuse", "SEC未加好友", "SEC未加好友", "主管", 5, True, "invite_then_text", "oc_a9e3165a2509e9878fae04dc8394f6b0"),
         "sec_first_period_drop_supervisor": ("sec_order_reuse", "SEC首期掉海", "SEC首期掉海", "主管", 5, True, "invite_then_text", "oc_a9e3165a2509e9878fae04dc8394f6b0"),
@@ -77,12 +85,10 @@ def _config() -> dict:
         "sec_order_reuse_consultant": ("sec_order_reuse", None, "订单复用", "顾问", 3, True, "invite_then_text", "oc_a8e793c81080ebf5b14dd22bd83a05a1"),
         "sec_public_supervisor": ("sec_public", None, "公域", "主管", 5, False, "invite_then_text", "oc_a9e3165a2509e9878fae04dc8394f6b0"),
     }
-    for entry in cfg["reports"]:
-        if tuple(entry[field] for field in ("source", "secondary_channel", "channel_name", "level",
-                                            "minimum_leads", "split_grade", "unresolved_mention_action", "chat_id")) != expected[entry["id"]]:
-            raise ValueError(f"SEC report routing differs: {entry['id']}")
-        _request(entry)
-    return cfg
+    if tuple(entry[field] for field in ("source", "secondary_channel", "channel_name", "level",
+                                        "minimum_leads", "split_grade", "unresolved_mention_action", "chat_id")) != expected[entry["id"]]:
+        raise ValueError(f"SEC report routing differs: {entry['id']}")
+    _request(entry)
 
 
 def _request(entry: dict) -> dict:
@@ -163,7 +169,8 @@ def _source_rows(source: str, period: str, slot_dir: Path, audit: dict, cfg: dic
     # complete slice before selecting the report's configured department.
     channel_match = {key: value for key, value in match.items() if key != "部门"}
     rows, manifest = _read_snapshot(path, {"source": {"match": channel_match}})
-    names = ("公域学霸",) if source == "sec_public" else ("SEC未加好友", "SEC首期掉海", "SEC招生退费")
+    names = (("内部图书",) if source == "internal_books" else
+             ("公域学霸",) if source == "sec_public" else ("SEC未加好友", "SEC首期掉海", "SEC招生退费"))
     expected = sum(audit["raw_channel_counts"].get(name, 0) for name in names) if audit else len(rows)
     if manifest["records_count"] != expected or manifest["period"] != period:
         raise ValueError(f"SEC {source} source count or period differs from upstream audit")
@@ -180,10 +187,11 @@ def _source_rows(source: str, period: str, slot_dir: Path, audit: dict, cfg: dic
         _fresh(manifest, slot)
     if any(not isinstance(row.get("部门"), str) or not row["部门"].strip() for row in rows):
         raise ValueError("SEC source contains a missing department")
-    selected = [row for row in rows if row["部门"] == match["部门"]]
-    excluded = Counter(row["部门"] for row in rows if row["部门"] != match["部门"])
+    department = match.get("部门")
+    selected = [row for row in rows if department is None or row["部门"] == department]
+    excluded = Counter(row["部门"] for row in rows if department is not None and row["部门"] != department)
     scope_audit = {
-        "department": match["部门"], "raw_records_count": len(rows),
+        "department": department, "raw_records_count": len(rows),
         "selected_records_count": len(selected), "excluded_records_count": sum(excluded.values()),
         "excluded_department_counts": dict(sorted(excluded.items())),
         "raw_channel_counts": dict(sorted(Counter(row["渠道"] for row in rows).items())),
@@ -423,8 +431,8 @@ def _deliver(entry: dict, review: dict, manifest: dict, cfg: dict, output: Path,
     return {"status": receipt["status"], "message_id": message_id, "receipt": str(receipt_path)}
 
 
-def run(*, now: datetime | None = None, output: Path | None = None) -> dict:
-    cfg = _config()
+def _run_base(*, now: datetime | None = None, output: Path | None = None) -> dict:
+    cfg = _config(validate_reports=False)
     slot = _slot(now or datetime.now(ZoneInfo("Asia/Shanghai")), cfg)
     period = _period(slot.date())
     output = output or STATE / "slots" / slot.strftime("%Y%m%d-%H%M")
@@ -434,8 +442,13 @@ def run(*, now: datetime | None = None, output: Path | None = None) -> dict:
         previous = json.loads(batch_path.read_text(encoding="utf-8"))
         if (previous["period"], previous["slot"]) != (period, slot.isoformat()):
             raise ValueError("SEC batch output path belongs to another business slot")
-    results = {entry["id"]: _receipt_status(output / entry["id"] / "send_receipt.json")
-               for entry in cfg["reports"]}
+    results = {}
+    for entry in cfg["reports"]:
+        try:
+            _validate_entry(entry)
+            results[entry["id"]] = _receipt_status(output / entry["id"] / "send_receipt.json")
+        except Exception as exc:
+            results[entry["id"]] = {"status": "blocked", "error": str(exc)}
     pending = [entry for entry in cfg["reports"] if results[entry["id"]] is None]
     batch = {"period": period, "slot": slot.isoformat(), "reports": results}
     if not pending:
@@ -510,6 +523,89 @@ def run(*, now: datetime | None = None, output: Path | None = None) -> dict:
     return batch
 
 
+def internal_books_definition(cfg: dict) -> tuple[dict, dict]:
+    """Validate the separately owned channel without changing the five SEC reports."""
+    books = json.loads((REQUEST_DIR / "internal_books.json").read_text(encoding="utf-8"))
+    if (books["domain"], books["channel_id"], books["channel"], books["report_type"],
+            books["status"], books["schedule_enabled"], books["source"]["kind"],
+            books["target"]["chat_id"], books["report"]["level"],
+            books["report"]["minimum_metric"], books["report"]["minimum_effective_leads"],
+            books["report"]["split_grade"], books["report"]["grades"],
+            books["integration"]["process"], books["integration"]["transformation"]) != (
+            "qingcheng", "internal_books", "内部图书", "process", "active", True, "base",
+            "oc_a8e793c81080ebf5b14dd22bd83a05a1", "顾问", "退前线索", 5, True, GRADES,
+            "sec_process_batch.json", None):
+        raise ValueError("Internal-books SEC channel identity or scope differs")
+    if (books["business_calendar"] != cfg["business_calendar"]
+            or books["sender"]["identity"] != cfg["sender"]["identity"]
+            or books["sender"]["open_id"] != cfg["sender"]["open_id"]
+            or any(books["source"][key] != cfg["source"][key] for key in ("base_token", "table_id", "view_id"))
+            or books["source"]["match"] != {"一级渠道": "图书", "渠道": "内部图书"}
+            or books["source"]["lead_field"] != "退前线索"
+            or books["source"]["freshness_max_age_minutes"] != 240
+            or books["report"]["transformation_columns"]
+            or books["report"]["process_sort"] != {"metric": "好友率", "direction": "desc", "value": "unrounded"}
+            or books["visual"]["process_bars"] != {
+                f: [spec["min"], spec["max"], spec["color"]] for f, spec in cfg["visual"]["metric_bars"].items()}):
+        raise ValueError("Internal-books source, calendar, or visual configuration differs")
+    entry = {"id": "internal_books_consultant", "source": "internal_books", "secondary_channel": None,
+             "channel_name": "内部图书", "level": "顾问", "minimum_leads": 5, "split_grade": True,
+             "request_file": "internal_books_consultant_request.json", "chat_id": books["target"]["chat_id"],
+             "unresolved_mention_action": "invite_then_text"}
+    request = _request(entry)
+    if (request["report"]["minimum"]["metric"] != "退前线索"
+            or request["report"]["process_display_order"].split("、") != books["report"]["process_columns"]
+            or request["business"]["result_weekdays"] or request["report"]["result_metrics"]):
+        raise ValueError("Internal-books reviewed Base request differs")
+    scoped = deepcopy(cfg)
+    scoped["source"]["sources"]["internal_books"] = {"match": books["source"]["match"]}
+    return entry, scoped
+
+
+def _run_internal_books(cfg: dict, period: str, slot: datetime, output: Path, audit: dict | None = None) -> dict:
+    entry, scoped = internal_books_definition(cfg)
+    report_dir = output / entry["id"]
+    receipt = _receipt_status(report_dir / "send_receipt.json")
+    if receipt:
+        return receipt
+    audit = audit or _upstream_audit(period, slot)
+    if "内部图书" not in audit["raw_channel_counts"]:
+        # Only an audited explicit zero may skip the channel.
+        raise ValueError("Qingcheng audit has no internal-books channel evidence")
+    if audit["raw_channel_counts"]["内部图书"] == 0:
+        return {"status": "skipped_no_source_rows"}
+    rows, manifest = _source_rows("internal_books", period, output, audit, scoped, slot)
+    pin_path = report_dir / "source_version.json"
+    pin = {"period": period, "slot": slot.isoformat(), "rev": manifest["rev"], "snapshot": manifest["snapshot"]}
+    if pin_path.exists() and json.loads(pin_path.read_text(encoding="utf-8")) != pin:
+        raise ValueError("Internal-books source version changed inside the delivery slot")
+    _write_json(pin_path, pin)
+    review = _build_report(entry, rows, manifest, scoped, report_dir)
+    if review is None:
+        return {"status": "skipped_no_eligible_rows"}
+    return _deliver(entry, review, manifest, scoped, report_dir, slot)
+
+
+def run(*, now: datetime | None = None, output: Path | None = None) -> dict:
+    cfg = _config(validate_reports=False)
+    slot = _slot(now or datetime.now(ZoneInfo("Asia/Shanghai")), cfg)
+    period = _period(slot.date())
+    output = output or STATE / "slots" / slot.strftime("%Y%m%d-%H%M")
+    try:
+        batch = _run_base(now=slot, output=output)
+    except Exception as exc:
+        batch = {"period": period, "slot": slot.isoformat(), "reports": {
+            entry["id"]: {"status": "blocked", "error": str(exc)} for entry in cfg["reports"]}}
+    if "internal_books" in cfg.get("additional_reports", []):
+        try:
+            outcome = _run_internal_books(cfg, period, slot, output, batch.get("upstream_audit"))
+        except Exception as exc:
+            outcome = {"status": "blocked", "error": str(exc)}
+        batch["reports"]["internal_books_consultant"] = outcome
+    _write_json(output / "batch.json", batch)
+    return batch
+
+
 def main() -> None:
     ensure_console_streams()  # pythonw.exe has no console streams
     parser = argparse.ArgumentParser(description=__doc__)
@@ -520,8 +616,11 @@ def main() -> None:
         parser.error("Choose exactly one of --check-config or --confirm-send")
     if args.check_config:
         cfg = _config()
+        additional = []
+        if "internal_books" in cfg.get("additional_reports", []):
+            additional.append(internal_books_definition(cfg)[0]["id"])
         print(json.dumps({"status": "valid", "task": cfg["windows_task_name"],
-                          "reports": [entry["id"] for entry in cfg["reports"]]}, ensure_ascii=True))
+                          "reports": [entry["id"] for entry in cfg["reports"]] + additional}, ensure_ascii=True))
         return
     with run_scope(CONFIG_PATH, "sec_process_batch") as scope:
         scope.event("run_started", confirmed=True)

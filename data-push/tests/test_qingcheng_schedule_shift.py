@@ -49,11 +49,10 @@ def test_sec_clock_remains_at_the_reviewed_hours():
         sec._slot(datetime(2026, 10, 8, 13, 50, tzinfo=ZONE), cfg)
 
 
-@pytest.mark.parametrize('audience,expected_count', [('standard', 10), ('dept', 4)])
+@pytest.mark.parametrize('audience,expected_count', [('standard', 9), ('dept', 4)])
 def test_audience_preparation_and_send_failures_are_isolated(monkeypatch, tmp_path, audience, expected_count):
     sent, built, caches = [], [], []
     batch = conversion._batch()
-    next(c for c in batch['channels'] if c['id'] == 'internal_books')['scheduled'] = True
     monkeypatch.setattr(conversion, '_batch', lambda: batch)
     def fetch(channel, period, output):
         return {'rev': 1, 'snapshot': ['20261009', '12']}

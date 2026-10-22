@@ -56,6 +56,12 @@ def _ratio(numerator: float, denominator: float) -> float | None:
     return numerator / denominator if denominator else None
 
 
+def _matches_channel(row: dict, match: dict) -> bool:
+    """Match an exact value or an explicitly configured list of channel values."""
+    return all(row.get(field) in expected if isinstance(expected, list)
+               else row.get(field) == expected for field, expected in match.items())
+
+
 def _read_snapshot(path: Path, config: dict | None = None) -> tuple[list[dict], dict]:
     manifest = json.loads(path.with_suffix(".manifest.json").read_text(encoding="utf-8"))
     if manifest.get("has_more") is not False or manifest.get("records_count") is None:
@@ -68,7 +74,7 @@ def _read_snapshot(path: Path, config: dict | None = None) -> tuple[list[dict], 
     if len({r.get("记录键") for r in rows}) != len(rows):
         raise ValueError("Duplicate or missing business keys")
     match = (config or {"source": {"match": {"一级渠道": "公海", "渠道": "顾问未加好友"}}})["source"]["match"]
-    if not rows or any({field: row.get(field) for field in match} != match for row in rows):
+    if not rows or any(not _matches_channel(row, match) for row in rows):
         raise ValueError("Export contains rows outside the configured Qingcheng channel")
     if len({(r.get("分区日期"), r.get("分区小时")) for r in rows}) != 1:
         raise ValueError("Source rows span multiple warehouse snapshots")
@@ -94,6 +100,8 @@ def _aggregate(rows: list[dict], level: str, request: dict, *, split_grade: bool
     minimum = float(request["report"]["minimum"]["value"])
     show_retention = "线索留存率" in request["report"].get("process_metrics", [])
     show_before_leads = show_retention or "退前线索" in request["report"].get("process_metrics", [])
+    show_15min = ("15min" in request["report"].get("process_metrics", [])
+                  or "15min" in request["report"].get("process_display_order", "").split("、"))
     output = []
     for key, items in groups.items():
         leads = sum(_number(item, lead_field) for item in items)
@@ -113,6 +121,10 @@ def _aggregate(rows: list[dict], level: str, request: dict, *, split_grade: bool
             "总通时": sum(_number(item, "总通时秒") for item in items) / 60,
             "带班人数": len({item["顾问账号"] for item in items}),
         }
+        if show_15min:
+            # Reuse exactly the current report's 8min denominator. The source's
+            # separately named 15min分母 must not silently change report scope.
+            metrics["15min"] = _ratio(sum(_number(item, "15min标记") for item in items), leads)
         if show_before_leads:
             before_leads = sum(_number(item, "退前线索") for item in items)
             metrics["退前线索"] = before_leads
@@ -139,7 +151,7 @@ def _sort_process_rows(rows: list[dict], *, split_grade: bool = False) -> list[d
 def _display(value: float | None, field: str, *, integer_fields: frozenset[str] = frozenset()) -> str:
     if value is None:
         return "—"
-    if field in {"好友率", "8min", "24h首call", "沟通率", "线索留存率"}:
+    if field in {"好友率", "8min", "15min", "24h首call", "沟通率", "线索留存率"}:
         return f"{value:.1%}"
     if field in {"总通时", "有效线索", "带班人数", "退前线索", "退后线索"} | integer_fields:
         return f"{value:,.0f}"
@@ -152,6 +164,11 @@ def _total_row(rows: list[dict]) -> dict:
     if not leads:
         raise ValueError("Cannot total an empty report block")
     ratio_fields = ("好友率", "等待时长", "8min", "24h首call", "沟通率", "外呼时长", "外呼频次")
+    has_15min = ["15min" in row["metrics"] for row in rows]
+    if any(has_15min):
+        if not all(has_15min):
+            raise ValueError("Cannot total inconsistent 15min metric coverage")
+        ratio_fields += ("15min",)
     metrics = {field: sum(row["metrics"][field] * row["metrics"]["有效线索"] for row in rows) / leads for field in ratio_fields}
     metrics.update({
         "有效线索": leads,

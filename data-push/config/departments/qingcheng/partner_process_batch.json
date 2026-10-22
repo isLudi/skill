@@ -39,11 +39,11 @@
       },
       "partner_local": {
         "一级渠道": "本地化",
-        "渠道": "河南本地化"
+        "渠道": ["河南APP", "河南私域"]
       },
       "supervisor_local": {
         "一级渠道": "本地化",
-        "渠道": "河南本地化"
+        "渠道": ["河南APP", "河南私域"]
       }
     }
   },
@@ -60,10 +60,10 @@
     "nezha_task_id": 67318,
     "task_name": "qing2lark_guocheng",
     "owner": "lvshuai01",
-    "published_version": "V31",
-    "version_id": 208745,
-    "exec_file_id": 840241,
-    "source_sha256": "9bf5300e48b42c31a6bb7512b02b537ed9a43ba37bb30c4062e34c0d90138604",
+    "published_version": "V37",
+    "version_id": 215564,
+    "exec_file_id": 851129,
+    "source_sha256": "a42f1bf5b88ca77617c364b32876e41135fa45f13dd82b3bb22e2ac6b09d36f7",
     "audit_schema": "market2lark-two-period-audit-v1"
   },
   "visual": {
@@ -136,7 +136,8 @@
       "process_reminder": "8min_minimum",
       "unresolved_mention_action": "invite_then_text",
       "audit_secondary_channels": [
-        "河南本地化"
+        "河南APP",
+        "河南私域"
       ]
     },
     {
@@ -151,23 +152,9 @@
       "process_reminder": "8min_minimum_grade_text",
       "unresolved_mention_action": "invite_then_text",
       "audit_secondary_channels": [
-        "河南本地化"
+        "河南APP",
+        "河南私域"
       ]
-    },
-    {
-      "id": "internal_books",
-      "source_kind": "data_center",
-      "config": "internal_books.json",
-      "scheduled": true,
-      "name": "内部图书",
-      "level": "顾问",
-      "request_file": "internal_books_consultant_request.json",
-      "target_chat_id": "oc_34c7aa744d1bed96c2d97863531f4e7b",
-      "target_chat_name": "青橙-内部图书",
-      "minimum_effective_leads": 3,
-      "split_grade": true,
-      "process_reminder": "8min_minimum_by_grade",
-      "unresolved_mention_action": "invite_then_text"
     }
   ]
 }

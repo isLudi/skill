@@ -12,8 +12,8 @@
     "lead_field": "退后线索",
     "matches": {
       "partner_books": {"一级渠道": "图书", "渠道": "武汉图书"},
-      "partner_local": {"一级渠道": "本地化", "渠道": "河南本地化"},
-      "supervisor_local": {"一级渠道": "本地化", "渠道": "河南本地化"}
+      "partner_local": {"一级渠道": "本地化", "渠道": ["河南APP", "河南私域"]},
+      "supervisor_local": {"一级渠道": "本地化", "渠道": ["河南APP", "河南私域"]}
     }
   },
   "sender": {"identity": "bot", "name": "管家", "open_id": "ou_f3907e865135732c15a1dfce27828411"},

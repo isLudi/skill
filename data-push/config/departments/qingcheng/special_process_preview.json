@@ -16,25 +16,84 @@
   },
   "target_chat_id": "oc_a95c83e488e0dfcc777d5ffad849d8a4",
   "target_chat_display_name": "⏰渠道专项讨论",
-  "sender": {"identity": "bot", "name": "管家", "open_id": "ou_f3907e865135732c15a1dfce27828411"},
+  "sender": {
+    "identity": "bot",
+    "name": "管家",
+    "open_id": "ou_f3907e865135732c15a1dfce27828411"
+  },
   "image_only": false,
   "text_header": true,
   "show_total": true,
   "split_grade": true,
-  "sort": {"metric": "8min", "direction": "desc", "value": "unrounded"},
+  "sort": {
+    "metric": "8min",
+    "direction": "desc",
+    "value": "unrounded"
+  },
   "visual": {
     "metric_bars": {
-      "好友率": {"min": 0, "max": 1, "color": "#8da7ca"},
-      "等待时长": {"min": 0, "max": 48, "color": "#fc999f"},
-      "8min": {"min": 0, "max": 1, "color": "#f8ca70"},
-      "24h首call": {"min": 0, "max": 1, "color": "#77c09f"}
+      "好友率": {
+        "min": 0,
+        "max": 1,
+        "color": "#8da7ca"
+      },
+      "等待时长": {
+        "min": 0,
+        "max": 48,
+        "color": "#fc999f"
+      },
+      "8min": {
+        "min": 0,
+        "max": 1,
+        "color": "#f8ca70"
+      },
+      "24h首call": {
+        "min": 0,
+        "max": 1,
+        "color": "#77c09f"
+      }
     },
-    "integer_fields": ["带班人数", "有效线索", "总通时"]
+    "integer_fields": [
+      "带班人数",
+      "有效线索",
+      "总通时"
+    ]
   },
   "channels": [
-    {"id": "special_private", "name": "私域", "operator_record_id": "recvwk1kzL4vtb"},
-    {"id": "special_books", "name": "图书", "operator_record_id": "recvwk1l411M24"},
-    {"id": "special_douyin_dm", "name": "抖音私信", "operator_record_id": "recvwk1lwipGZ4"},
-    {"id": "special_public_pool", "name": "公海", "operator_record_id": "recvwk1mMwDv9n"}
+    {
+      "id": "special_private",
+      "name": "私域",
+      "operator_record_id": "recvwk1kzL4vtb"
+    },
+    {
+      "id": "special_books",
+      "name": "图书",
+      "operator_record_id": "recvwk1l411M24"
+    },
+    {
+      "id": "special_douyin_dm",
+      "name": "抖音私信",
+      "operator_record_id": "recvwk1lwipGZ4"
+    },
+    {
+      "id": "special_public_pool",
+      "name": "公海",
+      "operator_record_id": "recvwk1mMwDv9n"
+    }
+  ],
+  "display_columns": [
+    "期次",
+    "负责人",
+    "年级",
+    "带班人数",
+    "有效线索",
+    "好友率",
+    "等待时长",
+    "8min",
+    "15min",
+    "24h首call",
+    "沟通率",
+    "外呼时长",
+    "外呼频次"
   ]
 }

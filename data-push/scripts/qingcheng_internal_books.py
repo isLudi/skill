@@ -38,7 +38,7 @@ def config():
     if (cfg["domain"],cfg["channel_id"],cfg["channel"],cfg["status"],cfg["schedule_enabled"],
             cfg["target"]["chat_id"],cfg["report"]["level"],cfg["report"]["minimum_effective_leads"]) != (
             "qingcheng","internal_books","内部图书","active",True,
-            "oc_34c7aa744d1bed96c2d97863531f4e7b","顾问",3):
+            "oc_a8e793c81080ebf5b14dd22bd83a05a1","顾问",5):
         raise ValueError("Internal-books channel identity or scope differs")
     if cfg["report"]["split_grade"] is not True or cfg["delivery"]["on_mention_gap"] != "invite_then_text":
         raise ValueError("Internal-books grade or mention policy differs")
@@ -151,6 +151,8 @@ def build(config_data, sources, report_type, period, folder):
 
 def prepare(report_type, period, folder):
     cfg = config()
+    if cfg["source"]["kind"] != "data_center":
+        raise ValueError("Internal-books preparation moved to the SEC Base process branch")
     folder.mkdir(parents=True,exist_ok=True)
     sources = fetch(cfg,report_type,period,folder/"source")
     return build(cfg,sources,report_type,period,folder)

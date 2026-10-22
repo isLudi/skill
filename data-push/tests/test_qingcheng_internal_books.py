@@ -77,7 +77,9 @@ def test_conversion_denominator_mismatch_and_finance_mismatch_block():
 @pytest.mark.parametrize("base_failed,internal_failed",[(False,True),(True,False)])
 def test_partner_batch_source_failure_does_not_cross_branches(monkeypatch,tmp_path,base_failed,internal_failed):
     cfg = deepcopy(partner._config())
-    cfg["channels"][-1]["scheduled"] = True
+    # Exercise historical branch isolation explicitly; the deployed channel has
+    # moved to the SEC task and is no longer listed in the partner configuration.
+    cfg["channels"].append({"id": "internal_books", "scheduled": True})
     monkeypatch.setattr(partner,"_config",lambda **kwargs:cfg)
     monkeypatch.setattr(partner,"_slot",lambda *args:SLOT)
     def base(**kwargs):
@@ -114,8 +116,8 @@ def test_invalid_partner_channel_state_does_not_block_siblings(monkeypatch,tmp_p
         if failure == "request" and entry["id"] == "partner_books":
             raise ValueError("one malformed channel request")
     monkeypatch.setattr(partner,"_validate_entry",validate)
-    monkeypatch.setattr(partner,"_upstream_audit",lambda *args:{"raw_channel_counts":{"河南本地化":10,"武汉图书":10}})
-    monkeypatch.setattr(partner,"_source",lambda *args:([{"渠道":"河南本地化"}],{"rev":1,"snapshot":["20261013","10"]}))
+    monkeypatch.setattr(partner,"_upstream_audit",lambda *args:{"raw_channel_counts":{"河南APP":10,"武汉图书":10}})
+    monkeypatch.setattr(partner,"_source",lambda *args:([{"渠道":"河南APP"}],{"rev":1,"snapshot":["20261013","10"]}))
     monkeypatch.setattr(partner,"_expected",lambda *args:1)
     monkeypatch.setattr(partner,"_build",lambda *args:{})
     delivered = []
