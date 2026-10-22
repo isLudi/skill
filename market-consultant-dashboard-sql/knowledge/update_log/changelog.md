@@ -1558,3 +1558,16 @@
 - 覆盖 `knowledge/tables` 中 1 张物理表文档；追加 25 个数据地图字段，回填类型 0 处、字段说明 0 处。
 - 复扫结果为字段缺口 0、类型占位 0、说明占位 0。
 - 未覆盖 `temp_table.*` 临时表文档；临时表字段仍以本地 Excel、SQL 使用场景和人工维护规则为准。
+
+## 2026-10-19 数据地图字段补充
+
+- 使用数据地图 `tableV2/searchTableList`、`normalColumns`、`partitionColumns` 和 `getDdl` 接口刷新物理表字段信息。
+- 覆盖 `knowledge/tables` 中 1 张物理表文档；追加 12 个数据地图字段，回填类型 0 处、字段说明 0 处。
+- 复扫结果为字段缺口 0、类型占位 0、说明占位 0。
+- 未覆盖 `temp_table.*` 临时表文档；临时表字段仍以本地 Excel、SQL 使用场景和人工维护规则为准。
+
+## 2026-10-19 AI 外呼数据集探查与候选通话表登记
+
+- 登记 data_lake_fuwu.dwd_crm_call_tmk_record_rt 的 11 个数据地图字段，并明确交接稿三段名精确未命中、短名回退及缺少 predict_task_id 的边界。
+- 记录策略 4214/4235 的触达时长分布、两级线索挂接基数和业财组织维度覆盖；新增候选数据集探查说明。
+- data_lake_ods.ods_ones_business_agent_ai_add_friend_record_rt 与 data_lake_fuwu.dwd_crm_call_tmk_record_rt 的实际值查询均被平台权限阻断，未生成 Query ID；不将权限异常解释为零值。

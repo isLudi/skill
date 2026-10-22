@@ -16,6 +16,8 @@
 | finance_dw.dim_finance_employee_df | 员工维表 | 员工-日级快照粒度，字段来自 Word 文档 | dt | 否 | 已确认 | 已根据 `E:\2000_work\GAOTU\员工维表.docx` 补全 42 个非分区字段 |
 | gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf | 顾问首call数据分析表 | 用户-顾问账号-首call任务-小时快照粒度，字段来自 Word 文档 | dt, hour | 是 | 已确认 | 已根据 `E:\2000_work\GAOTU\顾问首call数据分析表.docx` 补全 19 个非分区字段；2026-05-22 起作为 `is_f_call` 首 call 任务强制来源 |
 | da.app_dim_jp_channel_case_version_df | 精品班飞书渠道映射版本表 | 日全量规则版本快照；单分区唯一键待验证 | dt | 否 | 已确认 | 数据地图已登记 8 个非分区字段和 1 个分区字段；仅保存完整 CASE 文本和版本元数据，不能直接 Join 产出 `channel_map` |
+| data_lake_ods.ods_ones_business_agent_ai_add_friend_record_rt | 添加好友记录 | 添加好友事件粒度；id 与 task_id + user_id 唯一性待实测 | 无 | 否 | 已确认 | 数据地图表 ID 36507，Iceberg 全量表，12个字段；status=2 为好友成功候选，source_type 与交接稿枚举冲突待对账 |
+| data_lake_fuwu.dwd_crm_call_tmk_record_rt | 先驱通话原始记录候选表 | 通话事件粒度；call_id 唯一性待实测 | 无 | 否 | 待确认 | 数据地图表 ID 34742，Iceberg 全量表，11个字段；交接稿三段名精确未命中，且本表无 predict_task_id，不能作为策略任务桥 |
 | gaotu_hl.dim_mkt_h_lead_channel_df | 市销线索渠道映射表 | 单日快照内 `lead_id` 唯一；跨分区重复 | dt | 否 | 已确认 | 已登记 15 个非分区字段和 1 个分区字段；按单分区 `lead_id` Join 不放大，但市场顾问宽表全量覆盖仅 24.3341%，当前禁止直接替换渠道 CASE |
 | gaotu_hl.dim_mkt_h_period_map_df | H业务线标准期名映射表 | 系统期名到标准期名映射快照粒度；`department + source_period_name` 唯一性已验证 | dt | 否 | 已确认 | 已从天工数据地图登记 10 个非分区字段和 1 个分区字段；与全链路宽表的期次 Join 已验证无 1:N 放大 |
 | gaotu_hl.dim_mkt_h_period_df | H业务线标准期次映射表 | 标准期次日历快照粒度，联合键和唯一性待验证 | dt | 否 | 已确认 | 已从天工数据地图登记 17 个非分区字段和 1 个分区字段；Join 基数待权限审批后验证 |

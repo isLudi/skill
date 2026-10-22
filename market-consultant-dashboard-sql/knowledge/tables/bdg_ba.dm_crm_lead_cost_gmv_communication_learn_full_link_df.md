@@ -502,3 +502,9 @@ limit 20;
 - Web 查询环境正常可用。
 - 渠道归因使用最新 `../sql_patterns/channel_mapping_case_when.md`，完整片段为 `../../resources/raw_sql/market_channel_case_when_1009.sql`。
 - 成本和到课 join 断裂先读 `../pitfalls/common_join_failures.md`。
+
+### AI 外呼组织维度回连探查（2026-10-19）
+
+- 市场顾问范围最新完整快照为 dt=20261018/hour=23，共 1,655,111 行、1,562,921 个去重 lead_id，最大 lead_create_time 为 2026-10-18 22:45:12（Query ID 1645474101）。
+- 将留痕表按候选两级规则选出的 lead_id 回连本表：4214 的 137 条全部命中；4235 在线索选择阶段 4 条未命中，其余 1,299 条全部命中（Query ID 1645496323）。
+- 已命中记录的 channel_name_1/2/3、virtual_leader_email_name、virtual_direct_leader_email_name、employee_email_name 均无空值；4235 有 1 个选中 lead_id 对应多个维度组合，正式聚合前必须按明确截面稳定去重，不能直接明细 Join。

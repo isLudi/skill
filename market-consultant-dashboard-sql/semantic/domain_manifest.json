@@ -95,7 +95,7 @@
     "cross_department_comparison_requires_two_specs": true
   },
   "counts": {
-    "knowledge_files": 154,
+    "knowledge_files": 157,
     "raw_sql_files": 64,
     "by_category": {
       "dashboard_web_profiles": 38,
@@ -106,8 +106,8 @@
       "pitfalls": 4,
       "raw_sql": 64,
       "reverse_index": 4,
-      "sql_patterns": 17,
-      "tables": 34,
+      "sql_patterns": 18,
+      "tables": 36,
       "temp_tables": 10,
       "update_log": 1
     }
@@ -134,7 +134,7 @@
       },
       {
         "source_path": "semantic/contracts/dimension_contracts.json",
-        "sha256": "0f1c59c1fff3508a5fc5035d80a8db72644e37172adfe763dad6c7990b1c28c0"
+        "sha256": "5cd0a32dea1728937624e0deba8ed2d0d1d2b564f49a68c7953d3992f2675325"
       },
       {
         "source_path": "semantic/contracts/join_contracts.json",
@@ -1565,13 +1565,15 @@
       {
         "id": "market_consultant:governance:01_table_index",
         "source_path": "knowledge/01_table_index.md",
-        "sha256": "0d293e00554ba3df23efe17b8cf94e64786f39e68509dd6fb22c4d733a7f7700",
-        "bytes": 12261,
+        "sha256": "e839694f903b48e0472442f3d49fc224c702a006bd58c5d379a7bee74e4b72ea",
+        "bytes": 12901,
         "title": "表索引",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
           "bdg_ba.dws_crm_order_income_refund_period_detail_hf",
           "da.app_dim_jp_channel_case_version_df",
+          "data_lake_fuwu.dwd_crm_call_tmk_record_rt",
+          "data_lake_ods.ods_ones_business_agent_ai_add_friend_record_rt",
           "dw.dim_cstm_active_user_c_appliction_mb_df",
           "dw.dim_employee_chain",
           "dw.dws_user_active_user_c_appliction_hf",
@@ -3522,11 +3524,13 @@
       {
         "id": "market_consultant:reverse_index:join_risk_index",
         "source_path": "knowledge/reverse_index/join_risk_index.md",
-        "sha256": "7a097778edb76eaf3c8a04af097e47abb371ede4597a4e647891f37e193bcf2b",
-        "bytes": 75308,
+        "sha256": "8c45d013ae391ba95b1990e5b0c728de1b2156a19b21de8db3503cc9993a70a1",
+        "bytes": 78822,
         "title": "JOIN 与结果异常风险索引",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "data_lake_fuwu.dwd_crm_call_tmk_record_rt",
+          "data_lake_ods.ods_ones_business_agent_ai_add_friend_record_rt",
           "dw.dim_employee_chain",
           "finance_dw.app_finance_order_income_refund_info_df",
           "finance_dw.app_finance_performance_extend_details_hf",
@@ -3697,6 +3701,27 @@
         "aliases": [
           "aggregation_patterns",
           "聚合模板"
+        ]
+      },
+      {
+        "id": "market_consultant:sql_patterns:ai_call_dashboard_dataset_probe_20261019",
+        "source_path": "knowledge/sql_patterns/ai_call_dashboard_dataset_probe_20261019.md",
+        "sha256": "1fabf1d2083ddbc568b042cf0d8951729d6414514a893dd43ca027157c5e1c5e",
+        "bytes": 6269,
+        "title": "市场顾问 AI 外呼看板数据集探查记录（2026-10-19）",
+        "table_refs": [
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "data_lake_fuwu.dwd_crm_call_tmk_record_rt",
+          "data_lake_ods.ods_ones_business_agent_ai_add_friend_record_rt",
+          "fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di",
+          "one_dw.dwd_mkt_tmk_call_record_hf",
+          "service_dw.dm_crm_trace_lead_full_link_data_hf"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "ai_call_dashboard_dataset_probe_20261019",
+          "市场顾问 AI 外呼看板数据集探查记录（2026-10-19）"
         ]
       },
       {
@@ -4006,8 +4031,8 @@
       {
         "id": "market_consultant:tables:bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
         "source_path": "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
-        "sha256": "99f36304fef071e0c7e700709448f0a9e3bc0573d2a3883113e77b98528af68d",
-        "bytes": 44659,
+        "sha256": "3e45566a19dc08f1ac91c07c250163cb841a01fd4c6fa2245703fbb1739b8fda",
+        "bytes": 45379,
         "title": "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -4056,6 +4081,40 @@
         "table_name": "da.app_dim_jp_channel_case_version_df",
         "aliases": [
           "da.app_dim_jp_channel_case_version_df"
+        ]
+      },
+      {
+        "id": "market_consultant:tables:data_lake_fuwu.dwd_crm_call_tmk_record_rt",
+        "source_path": "knowledge/tables/data_lake_fuwu.dwd_crm_call_tmk_record_rt.md",
+        "sha256": "2c7cf6bf3833727896dcd01e9dd4b088ce7f3d4f84c3408dc7e3331df9e42adc",
+        "bytes": 4621,
+        "title": "data_lake_fuwu.dwd_crm_call_tmk_record_rt",
+        "table_refs": [
+          "data_lake_fuwu.dwd_crm_call_tmk_record_rt",
+          "one_dw.dwd_mkt_tmk_call_record_hf"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "table_name": "data_lake_fuwu.dwd_crm_call_tmk_record_rt",
+        "aliases": [
+          "data_lake_fuwu.dwd_crm_call_tmk_record_rt"
+        ]
+      },
+      {
+        "id": "market_consultant:tables:data_lake_ods.ods_ones_business_agent_ai_add_friend_record_rt",
+        "source_path": "knowledge/tables/data_lake_ods.ods_ones_business_agent_ai_add_friend_record_rt.md",
+        "sha256": "2ab4706bf54d9d1dbec9a9c4c8b5670159eeab5c497b7562e113082a3e3e71d2",
+        "bytes": 5888,
+        "title": "data_lake_ods.ods_ones_business_agent_ai_add_friend_record_rt",
+        "table_refs": [
+          "data_lake_ods.ods_ones_business_agent_ai_add_friend_record_rt",
+          "fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "table_name": "data_lake_ods.ods_ones_business_agent_ai_add_friend_record_rt",
+        "aliases": [
+          "data_lake_ods.ods_ones_business_agent_ai_add_friend_record_rt"
         ]
       },
       {
@@ -4110,10 +4169,11 @@
       {
         "id": "market_consultant:tables:fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di",
         "source_path": "knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md",
-        "sha256": "d9c5013450d4997497eb5444c66f473a03203d612f441f1c5bf7e3bcd8345c3d",
-        "bytes": 9429,
+        "sha256": "2062002966a117f210fa27b5563733d36f2e7b830c4431b76668da26eac01794",
+        "bytes": 9882,
         "title": "fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di",
         "table_refs": [
+          "data_lake_ods.ods_ones_business_agent_ai_add_friend_record_rt",
           "fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di"
         ],
         "raw_sql_refs": [],
@@ -4441,8 +4501,8 @@
       {
         "id": "market_consultant:tables:service_dw.dm_crm_trace_lead_full_link_data_hf",
         "source_path": "knowledge/tables/service_dw.dm_crm_trace_lead_full_link_data_hf.md",
-        "sha256": "17e29ae3f4b8e0c01ed215521e5b6f21d789840c0400de16bf305bbf12149c96",
-        "bytes": 32175,
+        "sha256": "cc0874425c7502a72119f030a41812399bc3b20ad4e1f76a744e0e106a6407a9",
+        "bytes": 33289,
         "title": "service_dw.dm_crm_trace_lead_full_link_data_hf",
         "table_refs": [
           "service_dw.dm_crm_trace_lead_full_link_data_hf"
@@ -4741,13 +4801,15 @@
       {
         "id": "market_consultant:update_log:changelog",
         "source_path": "knowledge/update_log/changelog.md",
-        "sha256": "d25a0b4ff9c8f54928390f149f1f912dbc39357230e4d9b6dabc1a6a87d6009f",
-        "bytes": 193024,
+        "sha256": "12bdc36d40219310ecb1714dae04cd57d1412472e544bee68e842fe7b0fa1a49",
+        "bytes": 194126,
         "title": "更新记录",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
           "bdg_ba.dws_crm_order_income_refund_period_detail_hf",
           "da.app_dim_jp_channel_case_version_df",
+          "data_lake_fuwu.dwd_crm_call_tmk_record_rt",
+          "data_lake_ods.ods_ones_business_agent_ai_add_friend_record_rt",
           "dw.dim_cstm_active_user_c_appliction_mb_df",
           "dw.dim_employee_chain",
           "dw.dws_user_active_user_c_appliction_hf",
@@ -4829,6 +4891,7 @@
         "knowledge/reverse_index/join_risk_index.md",
         "knowledge/reverse_index/metric_to_raw_sql.md",
         "knowledge/reverse_index/table_to_dashboards.md",
+        "knowledge/sql_patterns/ai_call_dashboard_dataset_probe_20261019.md",
         "knowledge/sql_patterns/channel_mapping_case_when.md",
         "knowledge/sql_patterns/dashboard_query_patterns.md",
         "knowledge/sql_patterns/outbound_call_process_export_template.md",
@@ -4896,6 +4959,21 @@
         "knowledge/tables/gaotu_hl.ods_mkt_h_channel_rule_df.md",
         "knowledge/update_log/changelog.md"
       ],
+      "data_lake_fuwu.dwd_crm_call_tmk_record_rt": [
+        "knowledge/01_table_index.md",
+        "knowledge/reverse_index/join_risk_index.md",
+        "knowledge/sql_patterns/ai_call_dashboard_dataset_probe_20261019.md",
+        "knowledge/tables/data_lake_fuwu.dwd_crm_call_tmk_record_rt.md",
+        "knowledge/update_log/changelog.md"
+      ],
+      "data_lake_ods.ods_ones_business_agent_ai_add_friend_record_rt": [
+        "knowledge/01_table_index.md",
+        "knowledge/reverse_index/join_risk_index.md",
+        "knowledge/sql_patterns/ai_call_dashboard_dataset_probe_20261019.md",
+        "knowledge/tables/data_lake_ods.ods_ones_business_agent_ai_add_friend_record_rt.md",
+        "knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md",
+        "knowledge/update_log/changelog.md"
+      ],
       "dw.dim_cstm_active_user_c_appliction_mb_df": [
         "knowledge/01_table_index.md",
         "knowledge/dashboards/outbound_call_process_dashboard.md",
@@ -4957,6 +5035,8 @@
       ],
       "fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di": [
         "knowledge/01_table_index.md",
+        "knowledge/sql_patterns/ai_call_dashboard_dataset_probe_20261019.md",
+        "knowledge/tables/data_lake_ods.ods_ones_business_agent_ai_add_friend_record_rt.md",
         "knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md",
         "knowledge/tables/one_dw.dwd_mkt_tmk_call_record_hf.md"
       ],
@@ -5146,6 +5226,8 @@
       ],
       "one_dw.dwd_mkt_tmk_call_record_hf": [
         "knowledge/01_table_index.md",
+        "knowledge/sql_patterns/ai_call_dashboard_dataset_probe_20261019.md",
+        "knowledge/tables/data_lake_fuwu.dwd_crm_call_tmk_record_rt.md",
         "knowledge/tables/one_dw.dwd_mkt_tmk_call_record_hf.md"
       ],
       "service_dw.app_h_crm_lead_employee_workload_detail_hf": [
@@ -5282,6 +5364,7 @@
         "knowledge/03_range_limit_rules.md",
         "knowledge/joins/common_join_keys.md",
         "knowledge/joins/table_relationships.md",
+        "knowledge/sql_patterns/ai_call_dashboard_dataset_probe_20261019.md",
         "knowledge/tables/service_dw.dm_crm_trace_lead_full_link_data_hf.md"
       ],
       "service_dw.dwd_crm_assign_private_detail_hf": [
@@ -6081,8 +6164,8 @@
     },
     {
       "source_path": "knowledge/01_table_index.md",
-      "sha256": "0d293e00554ba3df23efe17b8cf94e64786f39e68509dd6fb22c4d733a7f7700",
-      "bytes": 12261,
+      "sha256": "e839694f903b48e0472442f3d49fc224c702a006bd58c5d379a7bee74e4b72ea",
+      "bytes": 12901,
       "category": "governance"
     },
     {
@@ -6609,8 +6692,8 @@
     },
     {
       "source_path": "knowledge/reverse_index/join_risk_index.md",
-      "sha256": "7a097778edb76eaf3c8a04af097e47abb371ede4597a4e647891f37e193bcf2b",
-      "bytes": 75308,
+      "sha256": "8c45d013ae391ba95b1990e5b0c728de1b2156a19b21de8db3503cc9993a70a1",
+      "bytes": 78822,
       "category": "reverse_index"
     },
     {
@@ -6629,6 +6712,12 @@
       "source_path": "knowledge/sql_patterns/aggregation_patterns.md",
       "sha256": "daa1d5fc66d7385c112c05732108bc0225915c88a513fa313045b22990f7bd45",
       "bytes": 660,
+      "category": "sql_patterns"
+    },
+    {
+      "source_path": "knowledge/sql_patterns/ai_call_dashboard_dataset_probe_20261019.md",
+      "sha256": "1fabf1d2083ddbc568b042cf0d8951729d6414514a893dd43ca027157c5e1c5e",
+      "bytes": 6269,
       "category": "sql_patterns"
     },
     {
@@ -6741,8 +6830,8 @@
     },
     {
       "source_path": "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
-      "sha256": "99f36304fef071e0c7e700709448f0a9e3bc0573d2a3883113e77b98528af68d",
-      "bytes": 44659,
+      "sha256": "3e45566a19dc08f1ac91c07c250163cb841a01fd4c6fa2245703fbb1739b8fda",
+      "bytes": 45379,
       "category": "tables"
     },
     {
@@ -6755,6 +6844,18 @@
       "source_path": "knowledge/tables/da.app_dim_jp_channel_case_version_df.md",
       "sha256": "1caf9afb6ccb4a7acba7110202e52b97e14a4542ff8c13fe75f2fdfd31e3d748",
       "bytes": 2734,
+      "category": "tables"
+    },
+    {
+      "source_path": "knowledge/tables/data_lake_fuwu.dwd_crm_call_tmk_record_rt.md",
+      "sha256": "2c7cf6bf3833727896dcd01e9dd4b088ce7f3d4f84c3408dc7e3331df9e42adc",
+      "bytes": 4621,
+      "category": "tables"
+    },
+    {
+      "source_path": "knowledge/tables/data_lake_ods.ods_ones_business_agent_ai_add_friend_record_rt.md",
+      "sha256": "2ab4706bf54d9d1dbec9a9c4c8b5670159eeab5c497b7562e113082a3e3e71d2",
+      "bytes": 5888,
       "category": "tables"
     },
     {
@@ -6777,8 +6878,8 @@
     },
     {
       "source_path": "knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md",
-      "sha256": "d9c5013450d4997497eb5444c66f473a03203d612f441f1c5bf7e3bcd8345c3d",
-      "bytes": 9429,
+      "sha256": "2062002966a117f210fa27b5563733d36f2e7b830c4431b76668da26eac01794",
+      "bytes": 9882,
       "category": "tables"
     },
     {
@@ -6891,8 +6992,8 @@
     },
     {
       "source_path": "knowledge/tables/service_dw.dm_crm_trace_lead_full_link_data_hf.md",
-      "sha256": "17e29ae3f4b8e0c01ed215521e5b6f21d789840c0400de16bf305bbf12149c96",
-      "bytes": 32175,
+      "sha256": "cc0874425c7502a72119f030a41812399bc3b20ad4e1f76a744e0e106a6407a9",
+      "bytes": 33289,
       "category": "tables"
     },
     {
@@ -6993,8 +7094,8 @@
     },
     {
       "source_path": "knowledge/update_log/changelog.md",
-      "sha256": "d25a0b4ff9c8f54928390f149f1f912dbc39357230e4d9b6dabc1a6a87d6009f",
-      "bytes": 193024,
+      "sha256": "12bdc36d40219310ecb1714dae04cd57d1412472e544bee68e842fe7b0fa1a49",
+      "bytes": 194126,
       "category": "update_log"
     },
     {
