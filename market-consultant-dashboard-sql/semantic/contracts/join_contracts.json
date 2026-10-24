@@ -125,6 +125,37 @@
         "grade_1 为看板派生年级，不能在未确认映射时静默替换为其他年级字段。",
         "来源说明 grade='0' 行是渠道级默认值；是否允许具体年级未命中时回退到该行仍待确认，不得静默扩大关联。"
       ]
+    },
+    {
+      "id": "market_consultant:join:financial_lead_time_attribution",
+      "name": "2344财务订单线索唯一关联",
+      "aliases": [
+        "2344财务线索关联",
+        "分时间转化财务归因"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/market_lead_time_conversion_finance_metrics.md",
+      "source_sha256": "797f4c2cd8d04fc2c0319dc9c633eeab124507b0f709d98565c8a6bc681a9c44",
+      "description": "仅2344：订单/原始父订单+邮箱前缀的唯一lead_id优先，文档登记的前置订单/班课及唯一用户顾问路径按固定顺序补充。保持每个财务id恰好一行，未匹配记录不丢弃。",
+      "left_table": "finance_dw.app_finance_performance_extend_details_hf",
+      "right_table": "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
+      "key_pairs": [
+        {
+          "left_field": "order_number",
+          "right_field": "order_number"
+        },
+        {
+          "left_field": "email_prefix",
+          "right_field": "performance_employee_email_prefix"
+        }
+      ],
+      "cardinality": "many_to_one_after_right_deduplication",
+      "risks": [
+        "key_pairs仅表示第一优先级，不能省略文档中的唯一性、固定路径顺序和财务id防重复门禁。",
+        "归因流水和宽表只补充维度，所有净收款与实际退款必须继续来自财务price。",
+        "不得按用户取最新一期线索，不得将多lead_id冲突键强行min/max归因。",
+        "渠道未识别时保留其他未知流量并列示运行对账，不声称未知来源已完成识别。"
+      ]
     }
   ]
 }

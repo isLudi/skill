@@ -316,3 +316,7 @@ period_name + channel_map + grade_name + jingli + zhuguan + employee_email_name
 - 多维退费率数据集的人头退费率分母统一使用 `pay_user_head_count`。单科/多科人头退费率是否应改用对应科目分层正价课用户数做分母待人工确认。
 - 金额字段统一 `/100`，推断原始单位为分，需人工确认。
 - `temp_table.shenbaoxin_channel_group` 的字段结构、唯一性和维护来源待人工确认。
+
+## 12. 2344线索分时间转化：财务同源专项
+
+`运营侧数据看板 / 线索分时间转化数据`使用model2344。2026-10-22已独立修复为财务流水同源净收款/实际退款、唯一订单线索关联、逐笔调课归期及同源五桶；最终19个SQL字段和14个展示指标不变。权威口径及关联门禁见[财务同源分时间转化](../metrics/market_lead_time_conversion_finance_metrics.md)，SQL只路由到[当前2344](../../resources/raw_sql/data_center_market_2344.sql)。本节不变更2349、2353及其他模板的退费定义，不能继续用其他退费SQL的“用户最新线索”关系解释2344。

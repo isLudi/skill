@@ -52,7 +52,7 @@
 | 青橙过程数据 raw | `resources/raw_sql/qingcheng_process_data_raw_20260522.sql` | `knowledge/metrics/qingcheng_process_data_metrics.md` | 已入库，部分口径待确认 |
 | 青橙到课 raw | `resources/raw_sql/qingcheng_daoke_raw_20260522.sql` | `knowledge/metrics/qingcheng_daoke_metrics.md` | 已入库，部分口径待确认 |
 | 青橙转化 raw | `resources/raw_sql/data_center_qingcheng_2460.sql` | `knowledge/metrics/qingcheng_conversion_metrics.md` | 已入库；当前 canonical 版本按业务日历优先、`trade_timestamp` 周五逻辑兜底映射结果期次，按 `employee_email_name + qici` 回填团队架构；保留 service 内部转单剔除，并从 20260722 期起隔离补回交易时处于同一青橙顾问保护期的 B 用户课程转移正向支付 |
-| 青橙抖私转化 raw | `resources/raw_sql/data_center_qingcheng_2740.sql` | `knowledge/metrics/qingcheng_dousi_conversion_metrics.md` | 已入库；复用 2460 的 `service_gmv + course_transfer_gmv` 标准订单集，仅增加时间分层；团队架构按 `employee_email_name + qici` 关联 |
+| 青橙渠道分周期转化（历史名青橙抖私转化） | `resources/raw_sql/data_center_qingcheng_2740.sql` | `knowledge/metrics/qingcheng_dousi_conversion_metrics.md` | 当前周一至周日、历史实际窗口；保留2740自身金额范围，不整段套用2460；无法核实期次归非30天；团队架构按员工+期次关联 |
 | 青橙渠道订单明细 raw | `resources/raw_sql/qingcheng_channel_order_detail_raw_20260627.sql` | `knowledge/metrics/qingcheng_channel_order_detail_metrics.md` | 已入库；2026-06-27 模板版新增省/市/城市等级字段，`ld` 范围限定和明细粒度稳定性待确认 |
 | 青橙退费原因分析模板 | `resources/raw_sql/qingcheng_refund_reason_analysis_20260718.sql` | `knowledge/metrics/qingcheng_refund_reason_metrics.md` | 已入库；原因金额分摊、退款类型和 500 元人头阈值已确认；渠道 CASE 和结果期次架构仍按各期 SQL 校验 |
 | 青橙退费率分析（20260710-20260728） | `resources/raw_sql/qingcheng_refund_rate_analysis_20260710_20260728.sql` | `knowledge/metrics/qingcheng_refund_analysis_metrics.md` | 已入库；复用 2460 订单归属，输出退费率分子/分母及 1-6 科 GMV 分桶 |

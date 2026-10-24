@@ -30,10 +30,10 @@
 | `data_lake_fuwu.dwd_crm_leads_rt lead` | `data_lake_fuwu.dwd_crm_leads_rt prelead` | `lead.previous_model_id = prelead.crm_leads_id` | inner/left join | 潜客转正常线索漏斗；`lead.model_type=0`，`prelead.model_type=1` | 2026-07-09 TMK/规划系统意向验证成功，query id `1456961079` |
 | `data_lake_fuwu.dwd_crm_leads_rt lead` | `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf o` | `lead.crm_leads_id = o.lead_id` | left join | 转移后正常线索是否成交、成交年级/科目/主讲、成交金额/退费/净金额 | 使用 service 表课程和业绩范围过滤；2026-07-09 当前样本无成交命中 |
 | `dwd_transfer` | `service_dw.dwd_crm_assign_private_detail_hf p` | `dwd_transfer.transfer_lead_id = p.lead_id` | left join | TMK 转移后首次承接顾问、私海转手历史和当前私海候选 | 一对多；历史保留 `private_sea_id`，首次按 `assign_time, private_sea_id`，当前候选按活跃状态、分配/更新时间和 ID 排序；144 条转移线索命中 123 条，query id `1466178403` |
-| `dd` | `prc` | `lead_id + performance_employee_email_name = employee_email_name + rn = 1` | left join | 判断订单是否属于线索期次 | 已从 SQL 入库 |
+| `dd` | `prc` | `lead_id + performance_employee_email_name = employee_email_name + rn = 1` | left join | 历史订单当期判断路径 | 历史SQL来源；2740自2026-10-22起不再使用，改用完整线索期次与统一运营周期序号 |
 | `bb_dedup` | `ud` | `employee_email_name/name + qici + channel_map_2/qudao + grade_1/grade_0 + virtual_direct_leader_email_name/zhuguan` | full outer join | 合并线索量和业绩指标，并保留年级维度 | 已从 SQL 入库，若同维度仍多行则保留 `rn = 1` |
 | `mm` | `temp_table.dingxi01_qing_team_jg` | `employee_email_name + qici` | left join | 2460 按结果期次补充团队架构 | 已从 SQL 入库；避免最新架构覆盖历史期次 |
-| `bucketed` | `temp_table.dingxi01_qing_team_jg` | `name = employee_email_name + qici` | left join | 2740 按结果期次补充团队架构 | 2026-07-29 已验证；员工单键跨期重复，员工+期次键无重复 |
+| `bucketed` | `temp_table.dingxi01_qing_team_jg` | `name = employee_email_name + qici` | left join | 2740 按结果期次补充团队架构 | 2026-10-22验证3228个键、重复0、最大基数1；员工单键跨期重复，不得退化为员工单键关联 |
 | `finance_dw.app_finance_performance_extend_details_hf dd_0` | `dw.dim_employee_chain org_t` | `name + coalesce(paid_time, trade_time) between begin_time and end_time` | left join 后 where / inner join 过滤 | 确认原始成交时间落在员工属于青橙项目部的任职窗口内，避免历史订单在转岗后退款被误计入青橙 | 已从 SQL 入库，是否应改用 `email_prefix` 待确认 |
 | `rd` | `temp_table.dingxi01_qing_zz` | `name = employee_email_name` | left join | 补充青橙直属主管、大主管和学部 | 已从 SQL 入库 |
 | `finance_dw.dm_finance_order_refund_detail_df ord` | `finance_dw.dim_finance_order_change_df order_change` | `order_number = order_change.order_number` | left join | 补充退款订单调课调班类型；`order_change` 先展开订单号/父订单号/原始订单号/最新子订单号并按订单号聚合 | 已从 SQL 入库 |

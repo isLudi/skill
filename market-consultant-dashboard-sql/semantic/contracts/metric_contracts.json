@@ -527,6 +527,61 @@
       ],
       "calculation_grain": "period_name + consultant_department + channel_map + employee_email_name",
       "notes": "有效线索特殊渠道分支、当前渠道映射和顾问学部字段均需在 QuerySpec 中确认；不复制历史长 CASE。"
+    },
+    {
+      "id": "market_consultant:metric:finance_lead_time_net_receipts",
+      "name": "线索分时间转化财务净收款",
+      "aliases": [
+        "线索分时间转化数据",
+        "2344财务分周期转化",
+        "分时间净收款退款同源"
+      ],
+      "status": "confirmed",
+      "automatic_compile": false,
+      "source_path": "knowledge/metrics/market_lead_time_conversion_finance_metrics.md",
+      "source_sha256": "797f4c2cd8d04fc2c0319dc9c633eeab124507b0f709d98565c8a6bc681a9c44",
+      "description": "仅2344净收款：财务price逐笔归交易期，净收款与五桶同源。保留财务id粒度、未归因流水、原渠道全序及最终19字段；退款使用同文档独立状态指标。",
+      "sql_expression": "sum({base}.price)",
+      "output_alias": "gmv_total",
+      "aggregation": "sum",
+      "candidate_tables": [
+        "finance_dw.app_finance_performance_extend_details_hf"
+      ],
+      "calculation_grain": "financial performance id before aggregation; output qici + channel_1 + jingli + xiaozu + grade_list + name",
+      "allowed_dimensions": [
+        "market_consultant:dimension:employee_email_name"
+      ],
+      "required_scope_fields": [
+        "dt", "hour", "employee_first_level_department_name", "employee_second_level_department_name", "employee_third_level_department_name"
+      ],
+      "notes": "经2026-10-22用户授权修复、固定分区财务对账及线上抽数/看板取值验收。只适用2344，不推广到其他退费数据集；复杂有序渠道及多阶段唯一关联禁止自动编译，修改仍须重新读取线上完整SQL。"
+    },
+    {
+      "id": "market_consultant:metric:finance_lead_time_actual_refund",
+      "name": "线索分时间转化实际退款",
+      "aliases": [
+        "2344实际退款",
+        "分时间转化排除调出退款"
+      ],
+      "status": "confirmed",
+      "automatic_compile": false,
+      "source_path": "knowledge/metrics/market_lead_time_conversion_finance_metrics.md",
+      "source_sha256": "797f4c2cd8d04fc2c0319dc9c633eeab124507b0f709d98565c8a6bc681a9c44",
+      "description": "仅2344：实际退款按全部退款、部分退款状态统计财务price，保持负号并排除调出退款。退款五桶与总退款来自同一唯一财务事实，不用所有负数代替退款。",
+      "sql_expression": "sum(case when {base}.trade_status in ('全部退款','部分退款') then {base}.price else 0 end)",
+      "output_alias": "refund_total",
+      "aggregation": "sum",
+      "candidate_tables": [
+        "finance_dw.app_finance_performance_extend_details_hf"
+      ],
+      "calculation_grain": "financial performance id before aggregation; output qici + channel_1 + jingli + xiaozu + grade_list + name",
+      "allowed_dimensions": [
+        "market_consultant:dimension:employee_email_name"
+      ],
+      "required_scope_fields": [
+        "dt", "hour", "employee_first_level_department_name", "employee_second_level_department_name", "employee_third_level_department_name"
+      ],
+      "notes": "金额单位元，不除以100。只适用2344，正负号、交易类型、交易期次及唯一归因门禁见source_path；本指标不授权自动编译复杂分桶或替换其他退费模型。"
     }
   ]
 }

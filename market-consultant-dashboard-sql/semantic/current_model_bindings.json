@@ -101,10 +101,10 @@
       "model_id": "2344",
       "ordinal": 7,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/市场顾问部/分析--分周期转化",
-      "source_observed_on": "2026-10-19",
-      "sql_bytes": 182965,
-      "sql_lines": 3196,
-      "sql_sha256": "6bcf48592c04b0fc1dbb12dc55c2403da057bb0ef39dad9194f74b21a61ed382",
+      "source_observed_on": "2026-10-22",
+      "sql_bytes": 145772,
+      "sql_lines": 3513,
+      "sql_sha256": "b8a0d3d24395467dddb2dcd3b52438fd0fbe16eaaa7a89d88b92df65a3028fe9",
       "subject_id": "2334"
     },
     {

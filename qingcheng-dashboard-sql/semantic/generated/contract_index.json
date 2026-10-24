@@ -151,7 +151,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/sql_patterns/qingcheng_channel_grade_mapping.md",
-      "source_sha256": "ced3b554b58dc5a4709ce3a9f717dfb9d09951a976c59dbdff5e7f181a541b1c",
+      "source_sha256": "eeec06902ac48775ca98a5a54474563b053dc3121c057835a1bef71feafff298",
       "automatic_compile": true
     },
     {
@@ -165,7 +165,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/sql_patterns/qingcheng_channel_grade_mapping.md",
-      "source_sha256": "ced3b554b58dc5a4709ce3a9f717dfb9d09951a976c59dbdff5e7f181a541b1c",
+      "source_sha256": "eeec06902ac48775ca98a5a54474563b053dc3121c057835a1bef71feafff298",
       "automatic_compile": true
     },
     {
@@ -274,7 +274,7 @@
       ],
       "status": "pending_confirmation",
       "source_path": "knowledge/joins/common_join_keys.md",
-      "source_sha256": "bcdefe96aa9603b5f9025c3e5ff4873a6d0098213b58f6bec7d0dac4cd6732db"
+      "source_sha256": "7ce698a62ca9c6cbe6ab04715a817108939c766d0bed7337f7c7010d740d1817"
     },
     {
       "id": "qingcheng:join:refund_to_order_change",
@@ -287,7 +287,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/joins/common_join_keys.md",
-      "source_sha256": "bcdefe96aa9603b5f9025c3e5ff4873a6d0098213b58f6bec7d0dac4cd6732db"
+      "source_sha256": "7ce698a62ca9c6cbe6ab04715a817108939c766d0bed7337f7c7010d740d1817"
     },
     {
       "id": "qingcheng:join:team_structure_to_period_month",
@@ -300,7 +300,7 @@
       ],
       "status": "pending_confirmation",
       "source_path": "knowledge/joins/common_join_keys.md",
-      "source_sha256": "bcdefe96aa9603b5f9025c3e5ff4873a6d0098213b58f6bec7d0dac4cd6732db"
+      "source_sha256": "7ce698a62ca9c6cbe6ab04715a817108939c766d0bed7337f7c7010d740d1817"
     },
     {
       "id": "qingcheng:join:transferred_lead_to_prelead",
@@ -313,7 +313,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/joins/common_join_keys.md",
-      "source_sha256": "bcdefe96aa9603b5f9025c3e5ff4873a6d0098213b58f6bec7d0dac4cd6732db"
+      "source_sha256": "7ce698a62ca9c6cbe6ab04715a817108939c766d0bed7337f7c7010d740d1817"
     },
     {
       "id": "qingcheng:join:transferred_lead_to_private_assignment_history",
@@ -327,7 +327,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/joins/common_join_keys.md",
-      "source_sha256": "bcdefe96aa9603b5f9025c3e5ff4873a6d0098213b58f6bec7d0dac4cd6732db"
+      "source_sha256": "7ce698a62ca9c6cbe6ab04715a817108939c766d0bed7337f7c7010d740d1817"
     },
     {
       "id": "qingcheng:metric:app_login_flag",

@@ -3,8 +3,8 @@
   "domain": "market_consultant",
   "counts": {
     "dimension": 9,
-    "join": 4,
-    "metric": 15,
+    "join": 5,
+    "metric": 17,
     "scope": 4
   },
   "entries": [
@@ -139,6 +139,18 @@
       "source_sha256": "b573d9a1bd0d5d2343ebff0f2ed4dd4191920385e8ab0f86bfdced112a59fe35"
     },
     {
+      "id": "market_consultant:join:financial_lead_time_attribution",
+      "kind": "join",
+      "name": "2344财务订单线索唯一关联",
+      "aliases": [
+        "2344财务线索关联",
+        "分时间转化财务归因"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/market_lead_time_conversion_finance_metrics.md",
+      "source_sha256": "797f4c2cd8d04fc2c0319dc9c633eeab124507b0f709d98565c8a6bc681a9c44"
+    },
+    {
       "id": "market_consultant:join:first_call_task_to_employee",
       "kind": "join",
       "name": "首 call 任务员工账号桥接",
@@ -263,6 +275,33 @@
       "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
       "source_sha256": "22d45cbace91a10de8cb29a710bde12cb60d5e17528127905494357d7007f67a",
       "automatic_compile": true
+    },
+    {
+      "id": "market_consultant:metric:finance_lead_time_actual_refund",
+      "kind": "metric",
+      "name": "线索分时间转化实际退款",
+      "aliases": [
+        "2344实际退款",
+        "分时间转化排除调出退款"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/market_lead_time_conversion_finance_metrics.md",
+      "source_sha256": "797f4c2cd8d04fc2c0319dc9c633eeab124507b0f709d98565c8a6bc681a9c44",
+      "automatic_compile": false
+    },
+    {
+      "id": "market_consultant:metric:finance_lead_time_net_receipts",
+      "kind": "metric",
+      "name": "线索分时间转化财务净收款",
+      "aliases": [
+        "线索分时间转化数据",
+        "2344财务分周期转化",
+        "分时间净收款退款同源"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/market_lead_time_conversion_finance_metrics.md",
+      "source_sha256": "797f4c2cd8d04fc2c0319dc9c633eeab124507b0f709d98565c8a6bc681a9c44",
+      "automatic_compile": false
     },
     {
       "id": "market_consultant:metric:finance_positive_order_count_dedup",

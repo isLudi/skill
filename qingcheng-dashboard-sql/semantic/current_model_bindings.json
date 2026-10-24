@@ -101,10 +101,10 @@
       "model_id": "2740",
       "ordinal": 7,
       "path": "通用/SQL数据集/H业务线/市场部/市场顾问部/青橙项目部/抖私-转化",
-      "source_observed_on": "2026-10-08",
-      "sql_bytes": 40418,
-      "sql_lines": 803,
-      "sql_sha256": "bdd36eff174e7b318c4726f29c1f8d31b58b73d8d5fb48d4fb1bb81c5ff4993b",
+      "source_observed_on": "2026-10-22",
+      "sql_bytes": 40637,
+      "sql_lines": 1140,
+      "sql_sha256": "c94974bdf7e3fe5aba809e4a565a064214e245acae1ad648cd2f6251bb21db48",
       "subject_id": "2730"
     },
     {
