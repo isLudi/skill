@@ -135,7 +135,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/market_lead_time_conversion_finance_metrics.md",
-      "source_sha256": "797f4c2cd8d04fc2c0319dc9c633eeab124507b0f709d98565c8a6bc681a9c44",
+      "source_sha256": "2d3d3b96e1cdc21633f2854f31dabf70d182d9d618845e854c84a6496a1193d4",
       "description": "仅2344：订单/原始父订单+邮箱前缀的唯一lead_id优先，文档登记的前置订单/班课及唯一用户顾问路径按固定顺序补充。保持每个财务id恰好一行，未匹配记录不丢弃。",
       "left_table": "finance_dw.app_finance_performance_extend_details_hf",
       "right_table": "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",

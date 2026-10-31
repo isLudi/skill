@@ -1,6 +1,6 @@
 # 市场顾问部模板取数源 SQL 清单
 
-维护日期：2026-10-19
+维护日期：2026-11-01
 
 本文件记录从 `模板取数 -> 模板查询 -> 我的模板 -> 我创建的` 中抓取的市场顾问部模板 SQL。所有条目的使用口径均为 **模板取数**，与数据中心数据集源 SQL、Web BI 看板 canonical SQL 分开维护。模板 raw SQL 只保留线上 `published` 版本的 stable canonical 文件，不保留日期副本；后续排查模板取数代码时优先读取本清单和下表中的具体 raw SQL 文件。
 
@@ -19,7 +19,7 @@
 - 2026-07-26 仅原位更新 `AI分析市场顾问部_宽表`（模板 id `9002`）：基于宽表现有字段别名和辅助字段整合 0726 渠道归因，未直接粘贴标准 CASE；保留 `${qici:1}`、`${qici:2}` 两个参数和原 122 个输出字段，并将相同期次半开区间下推至 `lead_raw` 主链。该历史代码已清理，当前线上 SQL 只从上方 stable canonical 入口读取。
 - 2026-08-03 原位更新 `业财用户出单明细`（模板 id `7689`）：仅用历史 `market_channel_case_when_0726_legacy.sql` 的 156 条共享渠道分支替换旧的 196 条 `channel_map` 分支，保留模板身份、申请关系、`${dt}`、暑期期次表达式、来源表和 26 个最终字段。线上 SQL 文本 SHA-256 为 `8704c71c2962a75173e66873e3b9d5388d63e7eb0623bfa7b5ae35ad37a38cfa`；发布后查询 `384631` 为 `SUCCESS`。本条为历史记录，当前线上口径以本节最新 stable 清单为准。
 
-## 当前有效渠道模板清单（2026-10-19：8/8已发布1016并查询成功）
+## 当前有效渠道模板清单（9002 于 2026-11-01 回读；其余沿用 2026-10-19 验收）
 
 | 模板名称 | 模板id | 状态/渠道版本 | 发布后SQL SHA-256 | raw SQL | SQL行数/字节 | 模板参数 | 本次验证 |
 |---|---:|---|---|---|---:|---|---|
@@ -29,7 +29,7 @@
 | AI分析市场顾问部分周期转化数据 | 8866 | published / 1016 | `12580f75958d09a05d431ac702d1c495b786e8a2cb9c514781894adec43d467f` | [template_query_market_period_conversion.sql](../../resources/raw_sql/template_query_market_period_conversion.sql) | 570 / 20202 | 无 | query `411367`，8,867行，50秒，SUCCESS |
 | AI分析市场顾问部多科用户成单数据 | 8882 | published / 1016 | `74da608dcdfddb7b6a23494170b665b0ab7069c100b45818fa1d95438dd11501` | [template_query_market_multi_subject_order_user.sql](../../resources/raw_sql/template_query_market_multi_subject_order_user.sql) | 1000 / 59712 | `${qici:1}`, `${qici:2}` | query `411368`，129行，97秒，SUCCESS |
 | 馒头_订单明细_流水时间 | 8948 | published / 1016 | `ba621ae54d5f6b8359ce3a212fa3a64b0967e91868667817479b1cf76a8c45d4` | [template_query_market_mantou_order_detail_trade_time.sql](../../resources/raw_sql/template_query_market_mantou_order_detail_trade_time.sql) | 1448 / 71064 | `${day:1}`, `${day:2}` | query `411365`，1,447行，80秒，SUCCESS |
-| AI分析市场顾问部_宽表 | 9002 | published / 1016 | `0d23c8cd65cb901fa81547fd187c7e6e260b4b1c0dee29d18c7c4637a34cbda2` | [template_query_market_wide.sql](../../resources/raw_sql/template_query_market_wide.sql) | 824 / 83734 | `${qici:1}`, `${qici:2}` | query `411370`，569行，234秒，SUCCESS |
+| AI分析市场顾问部_宽表 | 9002 | published / 当前回读 | `d255963cf8baf4ac9f704b9a10256709dbd61ef14dd09962c2d1e1c4581bce04` | [template_query_market_wide.sql](../../resources/raw_sql/template_query_market_wide.sql)；[阅读指南](../sql_patterns/template_query_market_wide_reading_guide.md) | 13 / 49916 | `${qici:1}`, `${qici:2}` | 2026-11-01 只读回读并同步 canonical；未执行查询。当前版改用 `gaotu_hl.dim_mkt_h_lead_channel_df`，准确性未重新验证；历史 query `411370` 不作为当前 SQL 验收 |
 | 市场_B转A过程_转化数据 | 10477 | published / 1016 | `7eb952c8d966b66a732421188f1702f1665abf6267488872df2439e9deec09d4` | [template_query_market_b_to_a_process_conversion.sql](../../resources/raw_sql/template_query_market_b_to_a_process_conversion.sql) | 1764 / 120827 | `${period_name1}` | query `411408`，777行，113秒，SUCCESS |
 
 所有模板保留原ID、申请关系、参数及最终字段原位更新；已申请者无需再次申请。部门条件、IN名单和NULL范围保持本次实时生产原状，包含7808在10月18日的线上改动。10477是10月14日上线的既有B转A市场顾问模板，完整盘点后纳入本轮，保留40/40/40/40/33分组、_map_字段及周一期次逻辑。共享与专用CASE分开核对，原有性能优化结构保留。

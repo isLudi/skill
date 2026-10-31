@@ -1638,3 +1638,20 @@
 
 - 按已审阅同步计划原子更新 model_id：`2344`；每个 model_id 只保留稳定 canonical 路径。
 - 写入后已强制重建反向索引和目录，并运行唯一版本审计、域内 integrity 与完整 Text2SQL 栈验证。
+
+## 2026-10-27 模板取数 stable canonical SQL 同步（模板 9002）
+
+- 线上 `published` 模板 `AI分析市场顾问部_宽表`（id `9002`）回读 SQL SHA-256 为 `3e8ce94f0ad12b7acc5a3a4356fb77b9fb186ae3ae2d4c91ea3a1f23792f6bc7`，只保留稳定入口 `resources/raw_sql/template_query_market_wide.sql`。
+- 本次清理日期后缀历史副本 0 个；历史 SQL 文本不进入知识库，也不作为路由入口。
+- 保存后已重建反向索引、共享 catalog、唯一版本审计、域内 integrity 和完整 Text2SQL 栈。
+- 新增 `knowledge/sql_patterns/template_query_market_wide_reading_guide.md`，按 41 个 CTE、8 个业务阶段、13 张物理表、参数和关键粒度提供结构化导航；canonical 继续逐字保留线上发布 SQL，不生成会与线上哈希漂移的第二份格式化副本。
+- 同步前发现 2 个指标契约和 1 个关联契约仍引用该来源文档的旧 SHA-256；核对业务内容未漂移后，仅更新为当前来源哈希并重建生成索引。
+
+## 2026-11-01 模板取数 stable canonical SQL 同步（模板 9002）
+
+- 线上 `published` 模板 `AI分析市场顾问部_宽表`（id `9002`）回读 SQL SHA-256 为 `d255963cf8baf4ac9f704b9a10256709dbd61ef14dd09962c2d1e1c4581bce04`，只保留稳定入口 `resources/raw_sql/template_query_market_wide.sql`。
+- 本次清理日期后缀历史副本 0 个；历史 SQL 文本不进入知识库，也不作为路由入口。
+- 保存后已重建反向索引、共享 catalog、唯一版本审计、域内 integrity 和完整 Text2SQL 栈。
+- 当前版本新增 `lead_channel_dim`，按单日 `dt` 读取 `gaotu_hl.dim_mkt_h_lead_channel_df`，并在 `lead_raw_mapped` 以 `lead_id` 左连接；未命中映射填为“未知”。
+- 现有历史 Join 探针曾发现该维表对市场顾问宽表覆盖率仅 24.3341%，且有未命中有效线索。本次只做 published SQL 回读、canonical 同步和静态仓库验证，未执行模板查询或新覆盖探针；当前实现与历史 Join 结论的差异仍待数据验证，不宣称准确性或性能已验证。
+- 阅读指南和模板清单已更新为 2026-10-29 线上版本（42 个 CTE、14 张物理表）；保留旧模板查询 `411370` 为历史结果，不作为当前 SQL 验收。
