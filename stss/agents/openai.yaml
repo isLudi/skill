@@ -1,7 +1,7 @@
 interface:
-  display_name: "Stop That Shit Slop"
-  short_description: "Remove defensive padding from prose and captions."
+  display_name: "STSS · 中文论文与报告润色"
+  short_description: "Polish Chinese papers and reports; cut defensive prose."
   brand_color: "#D92D20"
-  default_prompt: "Use $stss to remove unnecessary defensive wording while preserving facts and limits the reader needs."
+  default_prompt: "使用 $stss 润色下面的中文论文或报告，保留事实、术语、论证逻辑和必要限定，按读者与文体改善表达，直接输出成稿。"
 policy:
   allow_implicit_invocation: true
