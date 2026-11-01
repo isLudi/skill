@@ -6,7 +6,7 @@ from qingcheng_schedule import resolve_slot
 
 import argparse
 from contextlib import contextmanager
-from datetime import datetime, timedelta
+from datetime import datetime
 import hashlib
 import json
 import os
@@ -304,8 +304,12 @@ def run(*, now: datetime | None = None, output: Path | None = None) -> dict:
         old = json.loads(batch_path.read_text(encoding="utf-8"))
         if (old["period"], old["slot"]) != (period, slot.isoformat()):
             raise ValueError("Special-channel batch folder belongs to another business slot")
-    results = {entry["id"]: _existing(output / entry["id"] / "send_receipt.json")
-               for entry in cfg["channels"]}
+    results = {}
+    for entry in cfg["channels"]:
+        try:
+            results[entry["id"]] = _existing(output / entry["id"] / "send_receipt.json")
+        except Exception as exc:
+            results[entry["id"]] = {"status": "blocked_receipt", "error": str(exc)}
     pending = [entry for entry in cfg["channels"] if results[entry["id"]] is None]
     batch = {"period": period, "slot": slot.isoformat(), "channels": results}
     if not pending:
@@ -322,7 +326,6 @@ def run(*, now: datetime | None = None, output: Path | None = None) -> dict:
         return batch
     batch["upstream_audit"] = audit
     prepared: dict[str, tuple[dict, dict]] = {}
-    versions = set()
     for entry in pending:
         report_id = entry["id"]
         folder = output / report_id
@@ -331,7 +334,15 @@ def run(*, now: datetime | None = None, output: Path | None = None) -> dict:
                 results[report_id] = {"status": "skipped_no_source_rows"}
                 continue
             rows, manifest = _source(entry, period, folder, audit, slot)
-            versions.add((manifest["rev"], tuple(manifest["snapshot"])))
+            pin_path = folder / "source_version.json"
+            legacy_path = output / "source_version.json"
+            previous_pin = pin_path if pin_path.exists() else legacy_path
+            if previous_pin.exists():
+                pin = json.loads(previous_pin.read_text(encoding="utf-8"))
+                if (pin["rev"], tuple(pin["snapshot"])) != (manifest["rev"], tuple(manifest["snapshot"])):
+                    raise ValueError("Special-channel source version changed inside the delivery slot")
+            _write_json(pin_path, {"period": period, "slot": slot.isoformat(),
+                                   "rev": manifest["rev"], "snapshot": list(manifest["snapshot"])})
             review = _build(entry, rows, manifest, cfg, folder)
             if review is None:
                 results[report_id] = {"status": "skipped_no_eligible_rows"}
@@ -341,17 +352,6 @@ def run(*, now: datetime | None = None, output: Path | None = None) -> dict:
         except Exception as exc:
             results[report_id] = {"status": "blocked_prepare", "error": str(exc)}
         _write_json(batch_path, batch)
-    pin_path = output / "source_version.json"
-    pin = json.loads(pin_path.read_text(encoding="utf-8")) if pin_path.exists() else None
-    if len(versions) > 1 or (pin and versions and next(iter(versions)) != (pin["rev"], tuple(pin["snapshot"]))):
-        for report_id in prepared:
-            results[report_id] = {"status": "blocked_source_version"}
-        _write_json(batch_path, batch)
-        return batch
-    if versions and not pin:
-        revision, snapshot = next(iter(versions))
-        _write_json(pin_path, {"period": period, "slot": slot.isoformat(),
-                               "rev": revision, "snapshot": list(snapshot)})
     for entry in pending:
         report_id = entry["id"]
         if report_id not in prepared:
@@ -361,7 +361,11 @@ def run(*, now: datetime | None = None, output: Path | None = None) -> dict:
         try:
             results[report_id] = _deliver(entry, review, manifest, cfg, folder, slot)
         except Exception as exc:
-            results[report_id] = _existing(folder / "send_receipt.json") or {
+            try:
+                settled = _existing(folder / "send_receipt.json")
+            except Exception:
+                settled = None
+            results[report_id] = settled or {
                 "status": "blocked_delivery", "error": str(exc)}
         _write_json(batch_path, batch)
     return batch

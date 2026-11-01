@@ -45,6 +45,12 @@ from .commands.sync_template_sql import cmd_sync_template_sql
 from .commands.sync_datamap_fields import cmd_sync_datamap_fields
 from .commands.template_download import cmd_template_download
 from .commands.upload_temp_table import cmd_upload_temp_table
+from .commands.data_center_schedule import (
+    cmd_plan_data_center_schedule_renewal, cmd_apply_data_center_schedule_renewal,
+)
+from .commands.data_center_period_renewal import (
+    cmd_plan_data_center_period_renewal, cmd_apply_data_center_period_renewal,
+)
 from .config import DEFAULT_QUERY_ENGINE
 from .engine import QUERY_ENGINE_CHOICES
 from .data_center import DEFAULT_MARKET_START_DATASET
@@ -98,6 +104,62 @@ def _add_query_run_arguments(
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
+
+    for recovery_apply in (False, True):
+        recovery = subparsers.add_parser(
+            'apply-data-center-period-renewal' if recovery_apply else 'plan-data-center-period-renewal',
+            help='Apply reviewed forward date/period bounds and expired schedule renewal.' if recovery_apply
+                 else 'Plan strictly forward date/period bounds plus expired schedule renewal.',
+        )
+        if recovery_apply:
+            recovery.add_argument('--plan-file',type=Path,required=True)
+            recovery.add_argument('--expected-plan-sha256',required=True)
+            recovery.add_argument('--confirm-production-write',action='store_true')
+            recovery.add_argument('--refresh-timeout-ms',type=int,default=600_000)
+        else:
+            recovery.add_argument('--domain',choices=['market','qingcheng'],required=True)
+            recovery.add_argument('--dataset-id',required=True)
+            recovery.add_argument('--baseline-file',type=Path,required=True)
+            recovery.add_argument('--sql-file',type=Path,required=True)
+            recovery.add_argument('--schedule-start',default=None)
+            recovery.add_argument('--schedule-end',default=None)
+            recovery.add_argument('--refresh-after-save',action='store_true',help='Bind one post-save refresh and new SUCCESS to this recovery plan.')
+        recovery.add_argument('--output-file',type=Path,default=None)
+        recovery.add_argument('--artifacts-dir',type=Path,default=DATA_CENTER_RUNTIME_DIR/'period-renewal')
+        recovery.add_argument('--state-path',type=Path,default=DEFAULT_STATE)
+        recovery.add_argument('--env-file',type=Path,default=DEFAULT_ENV_FILE)
+        recovery.add_argument('--username',default=os.environ.get('BAIJIA_USERNAME'))
+        recovery.add_argument('--password',default=os.environ.get('BAIJIA_PASSWORD'))
+        recovery.add_argument('--headed',action='store_true')
+        recovery.add_argument('--browser-channel',default=DEFAULT_BROWSER_CHANNEL)
+        recovery.add_argument('--executable-path',default=None)
+        recovery.set_defaults(func=cmd_apply_data_center_period_renewal if recovery_apply else cmd_plan_data_center_period_renewal)
+
+    for renewal_apply in (False, True):
+        renewal = subparsers.add_parser(
+            "apply-data-center-schedule-renewal" if renewal_apply else "plan-data-center-schedule-renewal",
+            help="Renew only the date range of one enabled expired dataset schedule."
+                 if renewal_apply else "Plan a hash-bound date-only renewal of one expired dataset schedule.",
+        )
+        if renewal_apply:
+            renewal.add_argument("--plan-file", type=Path, required=True)
+            renewal.add_argument("--expected-plan-sha256", required=True)
+            renewal.add_argument("--confirm-production-write", action="store_true")
+        else:
+            renewal.add_argument("--domain", choices=["market", "qingcheng"], required=True)
+            renewal.add_argument("--dataset-id", required=True)
+            renewal.add_argument("--schedule-start", default=None)
+            renewal.add_argument("--schedule-end", default=None)
+        renewal.add_argument("--output-file", type=Path, default=None)
+        renewal.add_argument("--artifacts-dir", type=Path, default=DATA_CENTER_RUNTIME_DIR / "schedule-renewal")
+        renewal.add_argument("--state-path", type=Path, default=DEFAULT_STATE)
+        renewal.add_argument("--env-file", type=Path, default=DEFAULT_ENV_FILE)
+        renewal.add_argument("--username", default=os.environ.get("BAIJIA_USERNAME"))
+        renewal.add_argument("--password", default=os.environ.get("BAIJIA_PASSWORD"))
+        renewal.add_argument("--headed", action="store_true")
+        renewal.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL)
+        renewal.add_argument("--executable-path", default=None)
+        renewal.set_defaults(func=cmd_apply_data_center_schedule_renewal if renewal_apply else cmd_plan_data_center_schedule_renewal)
 
     doctor = subparsers.add_parser("doctor", help="Check local Playwright availability.")
     doctor.set_defaults(func=cmd_doctor)

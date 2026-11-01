@@ -1,0 +1,371 @@
+{
+  "schema_version": 1,
+  "domain": "market_consultant",
+  "channel_id": "high_school_supervisor_bundle",
+  "channel": "KOC-周帅数学",
+  "channels": [
+    "KOC-周帅数学",
+    "KOC-孟亚飞数学",
+    "自孵化KOC-5元纯课",
+    "app",
+    "人工外呼"
+  ],
+  "adapter": "market-grade-bundle-v2",
+  "source": {
+    "base_token": "PmpybDuXGaudYost6I3cTwChn3d",
+    "raw_table_id": "tbljWRvaqKTdrCx4",
+    "view_id": "",
+    "field_contract": "release/market2lark_raw_fields.json",
+    "report_profile": "grade-channel-bundle-v2",
+    "max_snapshot_age_hours": 7
+  },
+  "sender": {
+    "identity": "bot",
+    "name": "管家",
+    "open_id": "ou_f3907e865135732c15a1dfce27828411"
+  },
+  "base_identity": "user",
+  "targets": [
+    {
+      "id": "group",
+      "chat_id": "oc_02c06f4930147a91d723c46c71bfe6fc",
+      "display_name": "【高中渠道】核心主管对接群",
+      "enabled": true
+    }
+  ],
+  "report": {
+    "period_rule": "natural_week_friday",
+    "process_weekdays": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "result_weekdays": [
+      4,
+      5,
+      6
+    ],
+    "minimum_post_leads": 5,
+    "show_totals": true,
+    "layout": "grade_then_channel",
+    "artifact_protocol": "market-grade-bundle-artifacts-v2",
+    "total_scope": "visible_rows",
+    "image_style": "compact-original-colors-v1",
+    "show_population_labels": false
+  },
+  "schedule": {
+    "enabled": true,
+    "kind": "grade_bundle_twice_daily",
+    "timezone": "Asia/Shanghai",
+    "hours": [
+      14,
+      19
+    ],
+    "prepare_minute": 0,
+    "send_minute": 0,
+    "deadline_minute": 50,
+    "retry_minutes": 2,
+    "upstream_hours": {
+      "14": 13,
+      "19": 17
+    },
+    "first_send_at": "2026-10-30T14:00:00+08:00",
+    "windows_task_name": "Codex-Lark-Market-HighSchool-Supervisor-Bundle-Push"
+  },
+  "upstream": {
+    "project_id": 308,
+    "folder": "吕帅",
+    "menu_id": 102754,
+    "task_name": "market2lark",
+    "task_id": 47252,
+    "nezha_task_id": 66504,
+    "schedule_id": 53831,
+    "exec_file_id": 865669,
+    "verified_version_id": 223539,
+    "verified_source_sha256": "8a385a3e0edb44599cf2ecb8aa285498491f3abfe3040ef72f17b69b3086b50c",
+    "log_protocol": "two_period_clear_then_replace_v1_retry",
+    "owner": "lvshuai01",
+    "channel_mapping_version": "1023"
+  },
+  "components": [
+    {
+      "id": "draft_20_1",
+      "request_row": 20,
+      "operator_record_id": "reczz28TBlJNCihH",
+      "label": "KOC-周帅数学",
+      "source_values": [
+        "KOC-周帅数学"
+      ],
+      "match": "any_exact",
+      "grades": [
+        "高一",
+        "高二",
+        "高三"
+      ],
+      "grain": "主管",
+      "column_order": {
+        "process": [
+          "期次",
+          "负责人",
+          "主管",
+          "退前线索",
+          "退后线索",
+          "首call率",
+          "48h外呼",
+          "外呼频次",
+          "5min",
+          "好友率",
+          "APP登陆率",
+          "深沟率",
+          "双沟率"
+        ],
+        "result": [
+          "期次",
+          "负责人",
+          "主管",
+          "退后线索",
+          "5min",
+          "双沟率",
+          "首节到课率",
+          "当期单效",
+          "截面单效"
+        ]
+      },
+      "minimum_post_leads": 5,
+      "show_totals": true,
+      "reminders": {
+        "target": "主管",
+        "process_rank": "最低值",
+        "result_rank": "最低值",
+        "ties": "全部提醒",
+        "member_unresolved": "plain_name_fallback",
+        "preview_identity_resolution": "names_only_not_at_verified"
+      }
+    },
+    {
+      "id": "draft_20_2",
+      "request_row": 20,
+      "operator_record_id": "reczz28TBlJNCihH",
+      "label": "KOC-孟亚飞数学",
+      "source_values": [
+        "KOC-孟亚飞数学"
+      ],
+      "match": "any_exact",
+      "grades": [
+        "高一",
+        "高二",
+        "高三"
+      ],
+      "grain": "主管",
+      "column_order": {
+        "process": [
+          "期次",
+          "负责人",
+          "主管",
+          "退前线索",
+          "退后线索",
+          "首call率",
+          "48h外呼",
+          "外呼频次",
+          "5min",
+          "好友率",
+          "APP登陆率",
+          "深沟率",
+          "双沟率"
+        ],
+        "result": [
+          "期次",
+          "负责人",
+          "主管",
+          "退后线索",
+          "5min",
+          "双沟率",
+          "首节到课率",
+          "当期单效",
+          "截面单效"
+        ]
+      },
+      "minimum_post_leads": 5,
+      "show_totals": true,
+      "reminders": {
+        "target": "主管",
+        "process_rank": "最低值",
+        "result_rank": "最低值",
+        "ties": "全部提醒",
+        "member_unresolved": "plain_name_fallback",
+        "preview_identity_resolution": "names_only_not_at_verified"
+      }
+    },
+    {
+      "id": "draft_21_1",
+      "request_row": 21,
+      "operator_record_id": "reczz28TBmd6glQe",
+      "label": "自孵化KOC-5元纯课",
+      "source_values": [
+        "自孵化KOC-5元纯课"
+      ],
+      "match": "any_exact",
+      "grades": [
+        "高一",
+        "高二",
+        "高三"
+      ],
+      "grain": "主管",
+      "column_order": {
+        "process": [
+          "期次",
+          "负责人",
+          "主管",
+          "退前线索",
+          "退后线索",
+          "首call率",
+          "48h外呼",
+          "外呼频次",
+          "5min",
+          "好友率",
+          "APP登陆率",
+          "深沟率",
+          "双沟率"
+        ],
+        "result": [
+          "期次",
+          "负责人",
+          "主管",
+          "退后线索",
+          "5min",
+          "双沟率",
+          "首节到课率",
+          "当期单效",
+          "截面单效"
+        ]
+      },
+      "minimum_post_leads": 5,
+      "show_totals": true,
+      "reminders": {
+        "target": "主管",
+        "process_rank": "最低值",
+        "result_rank": "最低值",
+        "ties": "全部提醒",
+        "member_unresolved": "plain_name_fallback",
+        "preview_identity_resolution": "names_only_not_at_verified"
+      }
+    },
+    {
+      "id": "draft_22_1",
+      "request_row": 22,
+      "operator_record_id": "reczz28TBtePAzWO",
+      "label": "app",
+      "source_values": [
+        "app"
+      ],
+      "match": "casefold_exact",
+      "grades": [
+        "高一",
+        "高二",
+        "高三"
+      ],
+      "grain": "主管",
+      "column_order": {
+        "process": [
+          "期次",
+          "负责人",
+          "主管",
+          "退前线索",
+          "退后线索",
+          "首call率",
+          "48h外呼",
+          "外呼频次",
+          "5min",
+          "好友率",
+          "APP登陆率",
+          "深沟率",
+          "双沟率"
+        ],
+        "result": [
+          "期次",
+          "负责人",
+          "主管",
+          "退后线索",
+          "5min",
+          "双沟率",
+          "首节到课率",
+          "当期单效",
+          "截面单效"
+        ]
+      },
+      "minimum_post_leads": 5,
+      "show_totals": true,
+      "reminders": {
+        "target": "主管",
+        "process_rank": "最低值",
+        "result_rank": "最低值",
+        "ties": "全部提醒",
+        "member_unresolved": "plain_name_fallback",
+        "preview_identity_resolution": "names_only_not_at_verified"
+      }
+    },
+    {
+      "id": "draft_23_1",
+      "request_row": 23,
+      "operator_record_id": "reczz28TBuLArzka",
+      "label": "人工外呼",
+      "source_values": [
+        "人工外呼",
+        "唐山TMK"
+      ],
+      "match": "any_exact",
+      "grades": [
+        "高一",
+        "高二",
+        "高三"
+      ],
+      "grain": "主管",
+      "column_order": {
+        "process": [
+          "期次",
+          "负责人",
+          "主管",
+          "退前线索",
+          "退后线索",
+          "首call率",
+          "48h外呼",
+          "外呼频次",
+          "5min",
+          "好友率",
+          "APP登陆率",
+          "深沟率",
+          "双沟率"
+        ],
+        "result": [
+          "期次",
+          "负责人",
+          "主管",
+          "退后线索",
+          "5min",
+          "双沟率",
+          "首节到课率",
+          "当期单效",
+          "截面单效"
+        ]
+      },
+      "minimum_post_leads": 5,
+      "show_totals": true,
+      "reminders": {
+        "target": "主管",
+        "process_rank": "最低值",
+        "result_rank": "最低值",
+        "ties": "全部提醒",
+        "member_unresolved": "plain_name_fallback",
+        "preview_identity_resolution": "names_only_not_at_verified"
+      }
+    }
+  ],
+  "intake_record_ids": [
+    "reczz28TBlJNCihH",
+    "reczz28TBmd6glQe",
+    "reczz28TBtePAzWO",
+    "reczz28TBuLArzka"
+  ],
+  "state_dir": "C:\\Users\\lvshuai01\\.codex\\runtime\\channel-broadcast-push\\market_consultant\\grade_channel_bundles\\high_school_supervisor_bundle"
+}

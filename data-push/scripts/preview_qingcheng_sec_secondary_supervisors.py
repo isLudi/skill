@@ -5,11 +5,10 @@ from __future__ import annotations
 import argparse
 import html
 import json
-from collections import Counter
 from pathlib import Path
 
 from preview_qingcheng_public_pool_process import _aggregate, _read_snapshot, _table_image
-from preview_qingcheng_sec_process import SEC_BAR_FIELDS, _audit, _reminders, _sort_rows
+from preview_qingcheng_sec_process import SEC_BAR_FIELDS, _audit, _reminders, _sort_rows, _verify_source_audit
 
 
 SKILL = Path(__file__).resolve().parents[1]
@@ -68,17 +67,13 @@ def _validate_report(profile: dict, request: dict) -> list[str]:
 def build(source: Path, output: Path, audit_log: Path, config_path: Path = CONFIG) -> dict:
     config = json.loads(config_path.read_text(encoding="utf-8"))
     bars = _validate_config(config)
-    rows, manifest = _read_snapshot(source, config)
+    raw_config = {"source": {"match": {"一级渠道": "订单复用"}}}
+    rows, manifest = _read_snapshot(source, raw_config)
     if manifest["channel"] != "sec_order_reuse" or manifest["period"] != rows[0]["期次"]:
         raise ValueError("Order-reuse source identity differs")
     audit = _audit(audit_log, manifest["period"])
-    if (manifest["records_count"], manifest["snapshot"]) != (
-            audit["counts"]["sec_order_reuse"], audit["snapshot"]):
-        raise ValueError("Complete Base source differs from upstream audit")
-    actual_counts = Counter(row["渠道"] for row in rows)
-    expected_counts = audit["secondary_counts"]
-    if {name: actual_counts.get(name, 0) for name in expected_counts} != expected_counts or sum(actual_counts.values()) != len(rows):
-        raise ValueError("SEC secondary channel rows differ from verified source scope")
+    _verify_source_audit(rows, manifest, audit, manifest["period"])
+    rows = [row for row in rows if row.get("部门") == "SEC"]
 
     result = {"period": manifest["period"], "snapshot": manifest["snapshot"],
               "source_rev": manifest["rev"], "source_record_count": len(rows),

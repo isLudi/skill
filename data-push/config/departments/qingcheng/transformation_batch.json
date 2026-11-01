@@ -60,12 +60,12 @@
     "nezha_task_id": 67397,
     "task_name": "qing2lark_zhuanhua",
     "owner": "lvshuai01",
-    "published_version": "V12",
-    "version_id": 215630,
-    "source_sha256": "9f48bc48afd7ef5e7a57e5bea4c79be6b0c758f1f40841c901c26f133b391833",
+    "published_version": "V14",
+    "version_id": 219202,
+    "source_sha256": "f8c7c6a089741cfe2565a33a6575e84a4e416bc2c959f02995f43475a9eaaf32",
     "audit_mode": "none",
-    "audit_note": "qing2lark_zhuanhua 已绑定最新已发布 V12/version 215630、execFileId 851232，删除500/写入1000；源码 SHA-256 9f48bc48afd7ef5e7a57e5bea4c79be6b0c758f1f40841c901c26f133b391833。任务 ID 和调度不变；保留转化表快照新鲜度门禁。 2026-10-22 同周期数量保护线为70%；验收执行 177821390。 2026-10-22 本地化渠道改名验收执行 177837133，Base 全字段回读一致。",
-    "exec_file_id": 851232
+    "audit_note": "qing2lark_zhuanhua 已绑定最新已发布 V14/version 219202、execFileId 855788，删除500/写入1000；源码 SHA-256 f8c7c6a089741cfe2565a33a6575e84a4e416bc2c959f02995f43475a9eaaf32。任务 ID 和调度不变；保留转化表快照新鲜度门禁。 2026-10-22 同周期数量保护线为70%；验收执行 177821390。 2026-10-22 本地化渠道改名验收执行 177837133，Base 全字段回读一致。 2026-10-23 本地化新增河南未加好友验收执行 178023277，Base 全字段回读一致。",
+    "exec_file_id": 855788
   },
   "freshness_max_age_minutes": 1560,
   "no_data_policy": "always_send_with_fallback_flag",

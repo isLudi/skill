@@ -54,7 +54,7 @@ def test_audience_preparation_and_send_failures_are_isolated(monkeypatch, tmp_pa
     sent, built, caches = [], [], []
     batch = conversion._batch()
     monkeypatch.setattr(conversion, '_batch', lambda: batch)
-    def fetch(channel, period, output):
+    def fetch(channel, period, output, **kwargs):
         return {'rev': 1, 'snapshot': ['20261009', '12']}
     def refresh(channel, period, output, *, cache_dir):
         caches.append(cache_dir)
@@ -78,7 +78,7 @@ def test_audience_preparation_and_send_failures_are_isolated(monkeypatch, tmp_pa
     monkeypatch.setattr(conversion, 'export_conversion', refresh)
     monkeypatch.setattr(conversion, 'build', build)
     monkeypatch.setattr(conversion, '_index', lambda *args: None)
-    monkeypatch.setattr(conversion, 'probe_revision', lambda *args: 1)
+    monkeypatch.setattr(conversion, 'probe_revision', lambda *args, **kwargs: 1)
     monkeypatch.setattr(conversion, '_probe_conversion_rev', lambda *args: 2)
     monkeypatch.setattr(conversion, '_send_group', send)
     def internal_prepare(report_type, period, output):

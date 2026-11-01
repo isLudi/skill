@@ -285,6 +285,30 @@ class DataCenterReplacementApplyTests(unittest.TestCase):
         first_confirm.click.assert_called_once_with()
         second_confirm.click.assert_called_once_with()
 
+    def test_delayed_dependency_confirmation_uses_remaining_grace_period(self) -> None:
+        page = MagicMock()
+        dialog = MagicMock()
+        no_dialog = MagicMock()
+        confirm = MagicMock()
+        no_dialog.wait_for.side_effect = RuntimeError("no next dialog")
+        locators = []
+        for item in (dialog, no_dialog):
+            locator = MagicMock()
+            locator.last = item
+            locators.append(locator)
+        page.locator.side_effect = locators
+
+        def appears_after_dependency_check(*, state, timeout):
+            if timeout < 800:
+                raise RuntimeError("dependency confirmation has not appeared yet")
+
+        dialog.wait_for.side_effect = appears_after_dependency_check
+        dialog.inner_text.return_value = "修改保存配置后，会影响下游依赖\n确 认"
+        dialog.locator.return_value.filter.return_value.last = confirm
+        confirm.count.return_value = 1
+        self.assertTrue(_click_optional_save_confirmation(page))
+        confirm.click.assert_called_once_with()
+
     def test_save_continues_without_confirmation_modal(self) -> None:
         page = MagicMock()
         dialog = MagicMock()

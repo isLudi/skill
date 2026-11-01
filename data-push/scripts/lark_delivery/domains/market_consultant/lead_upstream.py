@@ -54,8 +54,8 @@ def parse_complete_log(doc, directory, cfg, slot, execution, validate_history, t
     if len(partitions) != 1 or not counts or not final or not distributions:
         raise ValueError("required upstream evidence missing")
     dt, hour, lag = partitions[0]
-    if not 2 <= int(lag) <= 7:
-        raise ValueError("source partition outside approved 2-7 hour lookback")
+    if not 1 <= int(lag) <= 7:
+        raise ValueError("source partition outside approved 1-7 hour lookback")
     source_at = datetime.strptime(dt + "%02d" % int(hour), "%Y%m%d%H").replace(tzinfo=tz)
     if slot - source_at != timedelta(hours=int(lag)):
         raise ValueError("source partition not bound to current slot")

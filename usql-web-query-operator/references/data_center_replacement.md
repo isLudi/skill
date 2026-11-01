@@ -21,6 +21,8 @@
 
 ## 生产链路
 
+若同步任务已启用但过期，先完成[日期区间续期](data_center_schedule_renewal.md)的独立 Plan、Apply 和回读，再重新读取生产完整 SQL 生成替换候选及新计划。替换 Plan 和 Apply 的过期门禁继续保留，不能将续期与 SQL 修改合并为未审阅的保存。
+
 Apply 必须按固定顺序执行：
 
 1. 按 `domain + menu_set_*` 回读数据集，核对名称、路径、`fileValue`、`subjectId`、`dataSourceId`、同步 `taskId` 和当前 SQL Hash。

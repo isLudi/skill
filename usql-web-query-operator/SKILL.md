@@ -29,6 +29,8 @@ description: Execute governed USQL, templates, Data Center and BI operations, ma
 | 手工临时表检查或上传 | [manual_temp_table_registry.md](references/manual_temp_table_registry.md) | `scripts/usql_web_query.py` |
 | 数据地图/Data Center 本地知识同步 | [data_knowledge_sync.md](references/data_knowledge_sync.md) 和 [domain_adapters.md](references/domain_adapters.md) | `scripts/usql_web_query.py` |
 | 远端既有数据集替换 | [data_center_replacement.md](references/data_center_replacement.md) | `scripts/usql_web_query.py` |
+| 已启用但过期的数据集同步周期续期 | [data_center_schedule_renewal.md](references/data_center_schedule_renewal.md) | `scripts/usql_web_query.py` |
+| 同时明确授权收紧时间/期次下限和过期续期，需先实测候选的独立恢复 | [data_center_period_renewal.md](references/data_center_period_renewal.md) | `scripts/usql_web_query.py` |
 | 远端新建数据集与首抽 | [data_center_creation.md](references/data_center_creation.md) | `scripts/usql_web_query.py` |
 | 看板扫描、配置画像、编辑页公式 | [platform_profile.md](references/platform_profile.md) | `scripts/read_dashboard.py` |
 | 既有看板设计、Diff、草稿 Apply、发布 | [dashboard_change_workflow.md](references/dashboard_change_workflow.md) | `scripts/read_dashboard.py` |

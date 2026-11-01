@@ -73,8 +73,8 @@ def _config(*, validate_channels: bool = True) -> dict:
         raise ValueError("Partner channels or their delivery order differ")
     if cfg["source"]["matches"] != {
             "partner_books": {"一级渠道": "图书", "渠道": "武汉图书"},
-            "partner_local": {"一级渠道": "本地化", "渠道": ["河南APP", "河南私域"]},
-            "supervisor_local": {"一级渠道": "本地化", "渠道": ["河南APP", "河南私域"]}}:
+            "partner_local": {"一级渠道": "本地化", "渠道": ["河南APP", "河南私域", "河南未加好友"]},
+            "supervisor_local": {"一级渠道": "本地化", "渠道": ["河南APP", "河南私域", "河南未加好友"]}}:
         raise ValueError("Partner source routing differs")
     bars = cfg["visual"]["metric_bars"]
     if (set(bars) != {"好友率", "等待时长", "8min", "24h首call"}
@@ -94,8 +94,8 @@ def _config(*, validate_channels: bool = True) -> dict:
 def _validate_entry(entry: dict) -> None:
     expected = {
         "partner_books": ("图书", "顾问", "oc_854e5427ec0f6ef2bf654fee0a759f83", 3, ["武汉图书"]),
-        "partner_local": ("本地化", "顾问", "oc_7e4ac041d00e583b49749b9a0d01a64c", 3, ["河南APP", "河南私域"]),
-        "supervisor_local": ("本地化", "主管", "oc_be403f4efca7f1adcb0d18a066308627", 5, ["河南APP", "河南私域"]),
+        "partner_local": ("本地化", "顾问", "oc_7e4ac041d00e583b49749b9a0d01a64c", 3, ["河南APP", "河南私域", "河南未加好友"]),
+        "supervisor_local": ("本地化", "主管", "oc_be403f4efca7f1adcb0d18a066308627", 5, ["河南APP", "河南私域", "河南未加好友"]),
     }
     layout = {"partner_books": (False, "8min_minimum"), "partner_local": (False, "8min_minimum"),
               "supervisor_local": (True, "8min_minimum_grade_text")}
@@ -440,54 +440,29 @@ def _run_base(*, now: datetime | None = None, output: Path | None = None) -> dic
         return batch
     batch["upstream_audit"] = audit
 
-    # Fetch each distinct source once; a source failure only blocks its own channels.
-    source_data: dict[str, tuple[list[dict], dict]] = {}
-    source_errors: dict[str, str] = {}
-    for fetch_key in dict.fromkeys(FETCH_KEY[entry["id"]] for entry in pending):
-        names = sorted({name for entry in pending if FETCH_KEY[entry["id"]] == fetch_key
-                        for name in entry["audit_secondary_channels"]})
-        if sum(audit["raw_channel_counts"].get(name, 0) for name in names) == 0:
-            source_errors[fetch_key] = "zero_source_rows"
-            continue
-        match = next(cfg["source"]["matches"][entry["id"]] for entry in pending
-                     if FETCH_KEY[entry["id"]] == fetch_key)
-        try:
-            source_data[fetch_key] = _source(fetch_key, match, period, output / fetch_key,
-                                             audit, slot, names)
-        except Exception as exc:
-            source_errors[fetch_key] = str(exc)
-
-    # A mismatching source slice blocks only its own consumers. Retain each
-    # slice's slot pin, including the old shared pin when migrating active slots.
-    legacy_pin_path = output / "source_version.json"
-    legacy_pin = json.loads(legacy_pin_path.read_text(encoding="utf-8")) if legacy_pin_path.exists() else None
-    for fetch_key, (_, manifest) in list(source_data.items()):
-        pin_path = output / f"source_version_{fetch_key}.json"
-        pin = json.loads(pin_path.read_text(encoding="utf-8")) if pin_path.exists() else legacy_pin
-        revision, snapshot = manifest["rev"], tuple(manifest["snapshot"])
-        if pin and (pin["rev"],tuple(pin["snapshot"])) != (revision,snapshot):
-            source_errors[fetch_key] = "Partner source version changed inside the same delivery slot"
-            del source_data[fetch_key]
-        elif not pin_path.exists():
-            _write_json(pin_path,{"period":period,"slot":slot.isoformat(),"rev":revision,"snapshot":list(snapshot)})
-
     # Per-channel build and delivery: one channel's failure never affects the others.
     for entry in pending:
         channel_id = entry["id"]
         folder = output / channel_id
         fetch_key = FETCH_KEY[channel_id]
         try:
-            if fetch_key in source_errors:
-                if source_errors[fetch_key] == "zero_source_rows":
-                    results[channel_id] = {"status": "skipped_no_source_rows"}
-                else:
-                    raise ValueError(source_errors[fetch_key])
-            elif _expected(entry, audit) == 0:
+            if _expected(entry, audit) == 0:
                 results[channel_id] = {"status": "skipped_no_source_rows"}
             else:
-                rows = [row for row in source_data[fetch_key][0]
-                        if row["渠道"] in entry["audit_secondary_channels"]]
-                manifest = source_data[fetch_key][1]
+                names = list(entry["audit_secondary_channels"])
+                rows, manifest = _source(fetch_key, cfg["source"]["matches"][channel_id], period,
+                                         folder / "source_data", audit, slot, names)
+                pin_path = folder / "source_version.json"
+                legacy_source = output / f"source_version_{fetch_key}.json"
+                legacy_path = legacy_source if legacy_source.exists() else output / "source_version.json"
+                prior_path = pin_path if pin_path.exists() else legacy_path
+                if prior_path.exists():
+                    pin = json.loads(prior_path.read_text(encoding="utf-8"))
+                    if (pin["rev"], tuple(pin["snapshot"])) != (manifest["rev"], tuple(manifest["snapshot"])):
+                        raise ValueError("Partner source version changed inside the delivery slot")
+                _write_json(pin_path, {"period": period, "slot": slot.isoformat(),
+                                       "rev": manifest["rev"], "snapshot": list(manifest["snapshot"])})
+                rows = [row for row in rows if row["渠道"] in names]
                 review = _build(entry, rows, manifest, cfg, folder)
                 if review is None:
                     results[channel_id] = {"status": "skipped_no_eligible_rows"}

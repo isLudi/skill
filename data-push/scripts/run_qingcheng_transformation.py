@@ -130,8 +130,8 @@ def _batch() -> dict:
     if (upstream["project_id"], upstream["folder"], upstream["task_id"], upstream["task_name"],
             upstream["nezha_task_id"], upstream["menu_id"], upstream["published_version"],
             upstream["version_id"], upstream["exec_file_id"], upstream["source_sha256"], upstream["audit_mode"]) != (
-                308, "吕帅", 47775, "qing2lark_zhuanhua", 67397, 103713, "V12", 215630, 851232,
-                "9f48bc48afd7ef5e7a57e5bea4c79be6b0c758f1f40841c901c26f133b391833", "none"):
+                308, "吕帅", 47775, "qing2lark_zhuanhua", 67397, 103713, "V14", 219202, 855788,
+                "f8c7c6a089741cfe2565a33a6575e84a4e416bc2c959f02995f43475a9eaaf32", "none"):
         raise ValueError("Transformation upstream pin differs")
     return batch
 
@@ -142,6 +142,32 @@ def _period(day: date) -> str:
     if day.weekday() not in offsets:
         raise ValueError("Transformation slots run Fri..Sun and the next Monday only")
     return (day + timedelta(days=offsets[day.weekday()])).strftime("%Y%m%d") + "期"
+
+
+def _conversion_upstream_ready(batch: dict) -> int:
+    """Do not treat a producer's temporary empty replacement window as no data."""
+    upstream = batch["upstream"]
+    cli = SKILL.parent / "usql-web-query-operator/scripts/tiangong2_task.py"
+    command = [sys.executable, str(cli), "list-execution-history", "--project-id", str(upstream["project_id"]),
+               "--folder", upstream["folder"], "--menu-id", str(upstream["menu_id"]),
+               "--task-name", upstream["task_name"], "--limit", "50"]
+    child_env = dict(os.environ, PYTHONUTF8="1", PYTHONIOENCODING="utf-8")
+    result = subprocess.run(command, cwd=WORKSPACE, env=child_env, capture_output=True,
+                            text=True, encoding="utf-8", errors="replace", timeout=120,
+                            creationflags=CREATE_NO_WINDOW)
+    if result.returncode:
+        raise ValueError("Conversion producer readiness could not be verified")
+    response = json.loads(result.stdout)
+    history = json.loads((Path(response["artifact_dir"]) / "history.json").read_text(encoding="utf-8"))
+    begun = [row for row in history["executions"] if row.get("startTime") or row.get("dispatchTime")]
+    if not begun:
+        raise ValueError("Conversion producer has no started execution")
+    latest = max(begun, key=lambda row: (row.get("startTime") or row["dispatchTime"], int(row["id"])))
+    run_config = json.loads(latest.get("runConfig") or "{}")
+    if (latest.get("taskId"), latest.get("status"), run_config.get("execFileId")) != (
+            upstream["nezha_task_id"], 6, upstream["exec_file_id"]):
+        raise ValueError("Conversion producer is running, failed, or differs from the reviewed binding")
+    return int(latest["id"])
 
 
 def _slot(now: datetime, batch: dict, audience: str = "standard") -> datetime:
@@ -290,10 +316,12 @@ def _deliver_groups(batch: dict, batch_result: dict, output: Path, slot: datetim
                     continue
                 if group["status"] != resend.REVERIFY:
                     probe_file = review_dir / f"probe_{level}_process.ndjson"
-                    current_process_rev = retry_transport(lambda: probe_revision(channel, period, probe_file))
+                    options = {"allow_empty": True} if channel == "partner_books" else {}
+                    current_process_rev = retry_transport(lambda: probe_revision(channel, period, probe_file, **options))
                     current_conversion_rev = retry_transport(
                         lambda: _probe_conversion_rev(channel, review_dir / f"probe_{level}_conversion.ndjson"))
-                    if (current_process_rev, current_conversion_rev) != (item["process_rev"], item["conversion_rev"]):
+                    version = item.get("source_versions", {}).get(level, item)
+                    if (current_process_rev, current_conversion_rev) != (version["process_rev"], version["conversion_rev"]):
                         raise ValueError("Raw Base revision changed before delivery")
                 key = _key(channel, level, _config_chat_id(channel, level), period, slot)
                 outcome = _send_group(channel, level, review_dir, key)
@@ -365,23 +393,25 @@ def run(*, period_date: str = "", confirm_send: bool = False, now: datetime | No
                 channel_result["snapshots"] = {"process":review["process_snapshot"],"conversion":review["conversion_snapshot"]}
                 channel_result["groups"]["consultant"] = {"status":"prepared"}
                 continue
-            process_source = channel_dir / "source_process.ndjson"
-            manifest = fetch(channel, period, process_source)
-            channel_result["process_rev"] = manifest["rev"]
-            channel_result["snapshots"]["process"] = " ".join(
-                (manifest["snapshot"][0], manifest["snapshot"][1] + ":00"))
-            conversion_source = channel_dir / "source_conversion.ndjson"
-            conversion_manifest = export_conversion(channel, period, conversion_source,
-                                                    cache_dir=channel_dir / "conversion_pages")
-            channel_result["conversion_rev"] = conversion_manifest["rev"]
-            conversion_rows = [json.loads(line) for line
-                               in conversion_source.read_text(encoding="utf-8").splitlines() if line]
-            # 2026-10-02 用户指令：无论有无收款/人头/报科产出，均按预设窗口推送一次；
-            # 无数据的群由消息中的 fallback 文案标识（build 渲染，deliver 照常发送）。
-            channel_result["conversion_has_output"] = _conversion_output(conversion_rows)
             merged_review = None
             for level in levels:
                 try:
+                    process_source = channel_dir / level / "source_process.ndjson"
+                    options = {"allow_empty": True} if channel == "partner_books" else {}
+                    manifest = fetch(channel, period, process_source, **options)
+                    channel_result["process_rev"] = manifest["rev"]
+                    channel_result["snapshots"]["process"] = " ".join(
+                        (manifest["snapshot"][0], manifest["snapshot"][1] + ":00"))
+                    conversion_source = channel_dir / level / "source_conversion.ndjson"
+                    conversion_manifest = export_conversion(channel, period, conversion_source,
+                                                            cache_dir=channel_dir / level / "conversion_pages")
+                    channel_result["conversion_rev"] = conversion_manifest["rev"]
+                    conversion_rows = [json.loads(line) for line
+                                       in conversion_source.read_text(encoding="utf-8").splitlines() if line]
+                    # 2026-10-02 用户指令：无论有无收款/人头/报科产出，均按预设窗口推送一次；
+                    # 无数据的群由消息中的 fallback 文案标识（build 渲染，deliver 照常发送）。
+                    channel_result["conversion_has_output"] = _conversion_output(conversion_rows)
+                    channel_result.setdefault("source_versions", {})[level] = {"process_rev": manifest["rev"], "conversion_rev": conversion_manifest["rev"]}
                     review = build(process_source, conversion_source, channel_dir,
                                    CONFIG_DIR / entry["config"], channels=(channel,),
                                    period=period, levels=(level,))

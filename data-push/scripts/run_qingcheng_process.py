@@ -98,8 +98,8 @@ def _batch() -> dict:
             upstream["owner"], upstream["published_version"], upstream["version_id"], upstream["exec_file_id"],
             upstream["source_sha256"], upstream["audit_schema"]) != (
             2, "Codex-Lark-Qingcheng-Process-GroupPush", 308, "吕帅", 103625, 47728, 67318,
-            "qing2lark_guocheng", "lvshuai01", "V37", 215564, 851129,
-            "a42f1bf5b88ca77617c364b32876e41135fa45f13dd82b3bb22e2ac6b09d36f7",
+            "qing2lark_guocheng", "lvshuai01", "V39", 219189, 855658,
+            "08ec50a45d1ef038aeb9d199091b260a39a9cc02a73a1f091aaf35ecd4538bb9",
             "market2lark-two-period-audit-v1"):
         raise ValueError("Qingcheng upstream or Windows task pin differs")
     return batch
@@ -188,7 +188,7 @@ def _upstream_audit(period: str, slot: datetime) -> dict:
             entry_config = json.loads(entry.get("runConfig") or "{}")
         except (TypeError, json.JSONDecodeError):
             continue
-        if (entry_config.get("projectId"), entry_config.get("execFileId")) == (308, 851129):
+        if (entry_config.get("projectId"), entry_config.get("execFileId")) == (308, 855658):
             candidates.append(entry)
     if len(candidates) != 1:
         raise ValueError("Expected upstream-hour successful qing2lark execution is not unique")
@@ -203,7 +203,7 @@ def _upstream_audit(period: str, slot: datetime) -> dict:
     if (latest.get("taskId"), latest.get("periodTime"),
             run_config.get("projectId"), run_config.get("execFileId")) != (
             67318, upstream_period_time,
-            308, 851129):
+            308, 855658):
         raise ValueError("The expected upstream-hour qing2lark execution is not successful or has drifted")
     if run_config.get("triggerSourceEnum") not in ("SCHEDULE", "EXECUTE"):
         raise ValueError("The expected upstream-hour qing2lark execution has an unexpected trigger")
@@ -235,6 +235,7 @@ def _upstream_audit(period: str, slot: datetime) -> dict:
         raise ValueError("Invalid process audit snapshot")
     return {"execution_id": latest["id"], "upstream_period_time": upstream_period_time,
             "snapshot": snapshot,
+            "period_row_count": info["row_count"],
             "raw_channel_counts": info["channel_counts"],
             "expected_counts": {channel: sum(info["channel_counts"].get(name, 0) for name in names)
                                 for channel, names in AUDIT_CHANNELS.items()}}
@@ -344,7 +345,9 @@ def _deliver_groups(batch: dict, result: dict, output: Path, slot: datetime) -> 
                     # in-round; a returned revision that differs still fails closed.
                     current_rev = retry_transport(lambda: probe_revision(
                         channel, period, output / channel / f"probe_{level}.ndjson"))
-                    if current_rev != result["channels"][channel]["source_rev"]:
+                    version = result["channels"][channel].get("source_versions", {}).get(level)
+                    expected_rev = version["rev"] if version else result["channels"][channel]["source_rev"]
+                    if current_rev != expected_rev:
                         raise ValueError("Raw Base revision changed before delivery")
                 outcome = _send_group(channel, level, CONFIG_DIR / entry["config"], output / channel / level, period, slot)
             except Exception as exc:
@@ -395,17 +398,6 @@ def run(*, period_date: str = "", confirm_send: bool = False, now: datetime | No
             for level in LEVELS:
                 channel_result["groups"][level] = {"status": "skipped_no_eligible_rows"}
             continue
-        try:
-            manifest = fetch(channel, period, source)
-            channel_result["source_rev"] = manifest["rev"]
-            channel_result["snapshot"] = " ".join((manifest["snapshot"][0], manifest["snapshot"][1] + ":00"))
-            if audit and (manifest["records_count"] != audit["expected_counts"][channel]
-                          or [manifest["snapshot"][0], str(int(manifest["snapshot"][1]))] != [audit["snapshot"][0], str(int(audit["snapshot"][1]))]):
-                raise ValueError("Raw Base slice differs from current upstream audit")
-        except Exception as exc:
-            for level in LEVELS:
-                channel_result["groups"][level] = {"status": "blocked_source", "error": str(exc)}
-            continue
         for level in LEVELS:
             try:
                 if slot:
@@ -419,8 +411,23 @@ def run(*, period_date: str = "", confirm_send: bool = False, now: datetime | No
                         # Prepared and dispatched once already, so the review on disk is
                         # still the reviewed one; only the outcome is open. Re-preparing
                         # would re-fetch a source that has since moved and block the retry.
+                        if verdict != resend.REVERIFY:
+                            saved = json.loads((channel_dir / level / "review.json").read_text(encoding="utf-8"))
+                            channel_result.setdefault("source_versions", {})[level] = {"rev": saved["source_rev"]}
                         channel_result["groups"][level] = {"status": verdict}
                         continue
+                source = channel_dir / level / "source.ndjson"
+                try:
+                    manifest = fetch(channel, period, source)
+                    channel_result["source_rev"] = manifest["rev"]
+                    channel_result["snapshot"] = " ".join((manifest["snapshot"][0], manifest["snapshot"][1] + ":00"))
+                    channel_result.setdefault("source_versions", {})[level] = {"rev": manifest["rev"], "snapshot": manifest["snapshot"]}
+                    if audit and (manifest["records_count"] != audit["expected_counts"][channel]
+                                  or [manifest["snapshot"][0], str(int(manifest["snapshot"][1]))] != [audit["snapshot"][0], str(int(audit["snapshot"][1]))]):
+                        raise ValueError("Raw Base slice differs from current upstream audit")
+                except Exception as exc:
+                    channel_result["groups"][level] = {"status": "blocked_source", "error": str(exc)}
+                    continue
                 review = build(source, CONFIG_DIR / entry["supervisor_request"], CONFIG_DIR / entry["consultant_request"],
                                channel_dir / level, config_path, levels=(level,))
                 if review["period"] != period:

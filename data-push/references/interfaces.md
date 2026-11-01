@@ -73,6 +73,8 @@
 
 当前接口不是任意图表/卡片万能插件。增加第三张图、附件、卡片或非post消息时，先定义新的artifact/消息接口版本、调整上传/回执读回和清理测试，再在新adapter启用；不要塞入未知字段后假装已支持。
 
+市场部门新增的 `market-grade-bundle-v2` 使用独立的有序多图artifact、原生post发送与回读，不经过上述v1双PNG槽位。[年级多渠道协议](departments/market_consultant/grade_channel_bundle.md)列出完整结构、日历、组件隔离、幂等和清理边界。
+
 ## 6. 传输与真实投递
 
 `common/im.py` 保留 `verify_chat、verify_sender_membership、mention_nonmembers、upload_image、send_markdown`；最后两个是外部写入。`verify_sender_membership` 只核验配置的发送 bot，不依赖可选提醒人的成员读取；`common/reminders.py` 处理通讯录解析与姓名兜底。`send_markdown(..., dry_run=True)` 不发送。上传与发送必须同身份；机器人私聊可用范围与群成员是不同约束，失败不能自动改成用户身份。

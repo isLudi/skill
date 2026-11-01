@@ -96,7 +96,7 @@
   },
   "counts": {
     "knowledge_files": 159,
-    "raw_sql_files": 65,
+    "raw_sql_files": 63,
     "by_category": {
       "dashboard_web_profiles": 38,
       "dashboards": 20,
@@ -104,7 +104,7 @@
       "joins": 3,
       "metrics": 18,
       "pitfalls": 4,
-      "raw_sql": 65,
+      "raw_sql": 63,
       "reverse_index": 4,
       "sql_patterns": 19,
       "tables": 36,
@@ -130,25 +130,25 @@
     "source_files": [
       {
         "source_path": "semantic/contracts/metric_contracts.json",
-        "sha256": "f70435debebc10124a6de57068a0481354453733cde2754f95ecbffa93e99c02"
+        "sha256": "2dc8209576851cdfc5b902a7bba559f5346ca72351853ff7ac1167dc017dc92c"
       },
       {
         "source_path": "semantic/contracts/dimension_contracts.json",
-        "sha256": "858ff15686c5029c60a10d9f6ca639bad45245c6677f9bbd704c1130ac41152f"
+        "sha256": "c37866f3a24a7cbae94e2bf6ac1229bb9fb3d7721303e90450609e16fa6edebc"
       },
       {
         "source_path": "semantic/contracts/join_contracts.json",
-        "sha256": "61c6593790c81c7c6df32deba82e5b927f1c67e7e7cc0cffeb41a57a121c1310"
+        "sha256": "84b7044c51098881247df7ae3127e9aa28bb068c47ab76995d94cc3ae0952f21"
       },
       {
         "source_path": "semantic/contracts/scope_contracts.json",
-        "sha256": "86c778230a7dfb00c590da0063f08f0ecebf56db234bbec66931eed1a60aee5a"
+        "sha256": "95fcfe50bc9d9ab6e4b17fdb9fca29409e5aa051416f142263da82d4bdaf8bf2"
       }
     ]
   },
   "current_model_registry": {
     "source_path": "semantic/current_model_bindings.json",
-    "source_sha256": "427352c0f969e250b64fc6a8d7d3fc47bfb980ec100a852489baadea17c11f97",
+    "source_sha256": "fa42207bd9bad632e38e0f698234a80046c3cfbc55a575ffa3a24163b0a9dfe5",
     "policy": "one_current_model_per_id_and_semantic_slot",
     "canonical_filename_policy": "data_center_market_<model_id>.sql",
     "model_count": 36,
@@ -1132,7 +1132,7 @@
       {
         "id": "market_consultant:dashboards:consultant_sales_ranking_evaluation",
         "source_path": "knowledge/dashboards/consultant_sales_ranking_evaluation.md",
-        "sha256": "11fd300c5485ccc89a416d45d908f8b535d6171da0051c2b57e0c208410168ba",
+        "sha256": "c71fb7f9fb8f8f920d496a0fcaaf4d3a5a9cd9a1fa77797a065fd00a27829854",
         "bytes": 14714,
         "title": "顾问销售评优看板",
         "table_refs": [
@@ -1156,8 +1156,8 @@
       {
         "id": "market_consultant:dashboards:data_center_market_datasets",
         "source_path": "knowledge/dashboards/data_center_market_datasets.md",
-        "sha256": "3d05ceed9ac340d3221a8be10a06625a3b5d3e4f49942362de699cba2291d3dd",
-        "bytes": 14791,
+        "sha256": "403377d79e4edc7be31c223af5bf9c251281ab260ebdce11fb8f09dad6378bf8",
+        "bytes": 14792,
         "title": "数据中心数据集源 SQL（市场顾问部）",
         "table_refs": [],
         "raw_sql_refs": [
@@ -1207,7 +1207,7 @@
       {
         "id": "market_consultant:dashboards:h_biz_line_department_conversion",
         "source_path": "knowledge/dashboards/h_biz_line_department_conversion.md",
-        "sha256": "b11369588443b3df7a2bd4ae1a1b2788cee38797febabbdc0a40b132776e6971",
+        "sha256": "8d8fb4c6da5e0d935f79c2c7bdafb01e6121df94cd72af21097c8030094d52f2",
         "bytes": 11129,
         "title": "H业务线二级部门转化看板",
         "table_refs": [
@@ -1220,7 +1220,7 @@
         ],
         "raw_sql_refs": [
           "h_biz_line_department_conversion.sql",
-          "market_channel_case_when_1016.sql"
+          "market_channel_case_when_1030.sql"
         ],
         "status": "documented",
         "aliases": [
@@ -1231,7 +1231,7 @@
       {
         "id": "market_consultant:dashboards:lead_assign_plan_actual_valid_count",
         "source_path": "knowledge/dashboards/lead_assign_plan_actual_valid_count.md",
-        "sha256": "a18e3113303e5bd655c82b824adcfd17b10f5d1e78a8edf50c85bf90df70b86d",
+        "sha256": "b2849956ae44e8f17cbc51cb98a6dc44765cb335b32555791fb5c2f69be9a527",
         "bytes": 6821,
         "title": "线索分配计划与实际有效量看板",
         "table_refs": [
@@ -1243,7 +1243,7 @@
         ],
         "raw_sql_refs": [
           "lead_assign_plan_actual_valid_count.sql",
-          "market_channel_case_when_1016.sql"
+          "market_channel_case_when_1030.sql"
         ],
         "status": "documented",
         "aliases": [
@@ -1336,7 +1336,7 @@
       {
         "id": "market_consultant:dashboards:market_consultant_conversion",
         "source_path": "knowledge/dashboards/market_consultant_conversion.md",
-        "sha256": "7e392b23cdb0e4e142221afcab2d53abf7fd6833cec37cfa53a62006eb2b833a",
+        "sha256": "150bd003c04b0c4b363957bcdce0760b7fe11046bfa687a2c3ad10c82d5e7298",
         "bytes": 13800,
         "title": "市场顾问转化看板",
         "table_refs": [
@@ -1350,7 +1350,7 @@
         ],
         "raw_sql_refs": [
           "data_center_market_2253.sql",
-          "market_channel_case_when_1016.sql"
+          "market_channel_case_when_1030.sql"
         ],
         "status": "documented",
         "aliases": [
@@ -1479,15 +1479,14 @@
       {
         "id": "market_consultant:dashboards:template_query_market_datasets",
         "source_path": "knowledge/dashboards/template_query_market_datasets.md",
-        "sha256": "e986a50809a79b8847b1886cda32286919bbbfa0dc7258936e13d0f799a77199",
-        "bytes": 13838,
+        "sha256": "611961b87e6470fdf3c0daa373bcedfa3fefcc1711f2b42c5009df47931fa35e",
+        "bytes": 13025,
         "title": "市场顾问部模板取数源 SQL 清单",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
           "finance_dw.app_finance_performance_extend_details_hf",
           "finance_dw.dim_finance_employee_df",
           "gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf",
-          "gaotu_hl.dim_mkt_h_lead_channel_df",
           "service_dw.app_h_crm_lead_employee_workload_detail_hf",
           "service_dw.app_h_crm_lead_task_process_info_detail_hf",
           "service_dw.dim_crm_assign_rule_lead_detail_hf",
@@ -1501,10 +1500,8 @@
         ],
         "raw_sql_refs": [
           "lead_assign_plan_actual_valid_count.sql",
-          "template_query_market_b_to_a_process_conversion.sql",
           "template_query_market_employee_org.sql",
           "template_query_market_finance_order_detail.sql",
-          "template_query_market_mantou_order_detail_pay_time.sql",
           "template_query_market_mantou_order_detail_trade_time.sql",
           "template_query_market_multi_subject_order_user.sql",
           "template_query_market_period_conversion.sql",
@@ -1675,7 +1672,7 @@
       {
         "id": "market_consultant:governance:decision_tree",
         "source_path": "knowledge/decision_tree.md",
-        "sha256": "f39a203e3ce375120d9bbbb942aeffe538a0d15e669efc19e2813e9e8f3ea760",
+        "sha256": "ea0f2982be8b489422169053bce1e3aa6692e1a4184279f8f846074879ea76d7",
         "bytes": 14726,
         "title": "用户需求到知识库路由",
         "table_refs": [
@@ -1690,7 +1687,7 @@
           "data_center_market_2349.sql",
           "data_center_market_2688.sql",
           "data_center_market_2890.sql",
-          "market_channel_case_when_1016.sql"
+          "market_channel_case_when_1030.sql"
         ],
         "status": "documented",
         "aliases": [
@@ -1701,8 +1698,8 @@
       {
         "id": "market_consultant:governance:quick_reference",
         "source_path": "knowledge/quick_reference.md",
-        "sha256": "0b5f9f1245cbcb4514262f190fa0c9cf283e26802a7214db8c268a40e3d6f2f7",
-        "bytes": 11193,
+        "sha256": "1a675ddabbae8c0d81d8326f36514335767fea40b2981b6679f5610120b6e533",
+        "bytes": 11240,
         "title": "快速参考卡",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -1719,7 +1716,7 @@
         ],
         "raw_sql_refs": [
           "data_center_market_2688.sql",
-          "market_channel_case_when_1016.sql",
+          "market_channel_case_when_1030.sql",
           "template_query_market_finance_order_detail.sql"
         ],
         "status": "documented",
@@ -1796,7 +1793,7 @@
       {
         "id": "market_consultant:joins:table_relationships",
         "source_path": "knowledge/joins/table_relationships.md",
-        "sha256": "0e122493a56cd1d2ca1a75c4715950ceaf820c8b564eae7d3a779cb664b8391e",
+        "sha256": "97c52aa5b32c33cffdafa043bdf9a06c68b6a0d9796751ec4add6c28717f1f5c",
         "bytes": 41661,
         "title": "表关系",
         "table_refs": [
@@ -1850,7 +1847,7 @@
           "data_center_market_2890.sql",
           "h_biz_line_department_conversion.sql",
           "lead_assign_plan_actual_valid_count.sql",
-          "market_channel_case_when_1016.sql",
+          "market_channel_case_when_1030.sql",
           "market_consultant_lead_conversion_attendance.sql",
           "outbound_call_process_dashboard.sql"
         ],
@@ -2035,8 +2032,8 @@
       {
         "id": "market_consultant:metrics:market_consultant_conversion_metrics",
         "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
-        "sha256": "22d45cbace91a10de8cb29a710bde12cb60d5e17528127905494357d7007f67a",
-        "bytes": 8446,
+        "sha256": "fe195451dda9cd4bee72daaf95a4e620ca5eed997f3e7adebca48fbb87935fcf",
+        "bytes": 8530,
         "title": "市场顾问转化看板指标",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -2047,7 +2044,7 @@
         ],
         "raw_sql_refs": [
           "data_center_market_2253.sql",
-          "market_channel_case_when_1016.sql"
+          "market_channel_case_when_1030.sql"
         ],
         "status": "pending_confirmation",
         "aliases": [
@@ -2152,8 +2149,8 @@
       {
         "id": "market_consultant:metrics:market_lead_time_conversion_finance_metrics",
         "source_path": "knowledge/metrics/market_lead_time_conversion_finance_metrics.md",
-        "sha256": "2d3d3b96e1cdc21633f2854f31dabf70d182d9d618845e854c84a6496a1193d4",
-        "bytes": 6501,
+        "sha256": "a05356eebae9b4b55eca624143a3459d3b11fc2fcdb60dd31cf82302ff8244a6",
+        "bytes": 7024,
         "title": "线索分时间转化数据：财务流水同源口径",
         "table_refs": [
           "finance_dw.app_finance_performance_extend_details_hf"
@@ -2406,8 +2403,8 @@
       {
         "id": "market_consultant:raw_sql:data_center_market_2054",
         "source_path": "resources/raw_sql/data_center_market_2054.sql",
-        "sha256": "44f4dbef933282dca295ed82fb49c380eff0ced83d6856a65b512bc7e4eb4fbf",
-        "bytes": 72309,
+        "sha256": "63d97724cc80144f57d5fde135ca67aef03ed2a0391c9e86722f01be11fcef57",
+        "bytes": 73747,
         "title": "data_center_market_2054",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -2433,8 +2430,8 @@
       {
         "id": "market_consultant:raw_sql:data_center_market_2132",
         "source_path": "resources/raw_sql/data_center_market_2132.sql",
-        "sha256": "b25d0551325346d5e3fe91848525dc227744042d72d5b8fa947063f899d5c5ba",
-        "bytes": 58402,
+        "sha256": "48d3fa6c3cbf993175c5d75c120e19ff3ddd00ffff36aaaf7863f9474926e659",
+        "bytes": 59840,
         "title": "data_center_market_2132",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -2453,8 +2450,8 @@
       {
         "id": "market_consultant:raw_sql:data_center_market_2253",
         "source_path": "resources/raw_sql/data_center_market_2253.sql",
-        "sha256": "68784a137040663922f2b36900f3c59cb59d69a189907a1271bf51772bea2822",
-        "bytes": 57090,
+        "sha256": "f4d5f758511e796a2a257d6f27445232878490fdc0caeddfd0cd7f3903033588",
+        "bytes": 58528,
         "title": "data_center_market_2253",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -2472,8 +2469,8 @@
       {
         "id": "market_consultant:raw_sql:data_center_market_2293",
         "source_path": "resources/raw_sql/data_center_market_2293.sql",
-        "sha256": "f637cb030b0e4e6fa53c71a94f6d5c1cc82a5400381266f8ccee98708e480f1e",
-        "bytes": 87164,
+        "sha256": "4b4b8fc50f3322fd6e42bb8d4e79b6398a94ba201c7af1e1f27af3f434f9472f",
+        "bytes": 88602,
         "title": "data_center_market_2293",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -2515,8 +2512,8 @@
       {
         "id": "market_consultant:raw_sql:data_center_market_2310",
         "source_path": "resources/raw_sql/data_center_market_2310.sql",
-        "sha256": "f3c89e4e21df7833c3da8383a926f4357c0faf89c43c3cf170e8af556730ba6e",
-        "bytes": 55060,
+        "sha256": "97b8500663da866aadfae6c19ada0ebea36d49028c3d26b6321e0c203246cf30",
+        "bytes": 56498,
         "title": "data_center_market_2310",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -2533,8 +2530,8 @@
       {
         "id": "market_consultant:raw_sql:data_center_market_2344",
         "source_path": "resources/raw_sql/data_center_market_2344.sql",
-        "sha256": "b8a0d3d24395467dddb2dcd3b52438fd0fbe16eaaa7a89d88b92df65a3028fe9",
-        "bytes": 145773,
+        "sha256": "1760033001f1f83ebbbce264cdd45a2cc2428b8109f6e15e98ba5725aea287dc",
+        "bytes": 148672,
         "title": "data_center_market_2344",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -2553,8 +2550,8 @@
       {
         "id": "market_consultant:raw_sql:data_center_market_2345",
         "source_path": "resources/raw_sql/data_center_market_2345.sql",
-        "sha256": "09299fa5caedcac67b2103666f00e5c98b7b7de392469393d577387a7e7f43c1",
-        "bytes": 66808,
+        "sha256": "893399e2208e612a4c2df0140f9dc7701876708866079b30a471bfe9758205b7",
+        "bytes": 68246,
         "title": "data_center_market_2345",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -2579,8 +2576,8 @@
       {
         "id": "market_consultant:raw_sql:data_center_market_2349",
         "source_path": "resources/raw_sql/data_center_market_2349.sql",
-        "sha256": "18f31998ad8d3da8e6111c98082733663796f52b5e6790a3f6f55ddabbfd1c74",
-        "bytes": 24752,
+        "sha256": "e625759c45d78fcebdf616a97253dac875cb8d4095d52214e2fe0f6971ed383a",
+        "bytes": 25221,
         "title": "data_center_market_2349",
         "table_refs": [
           "finance_dw.app_finance_performance_extend_details_hf",
@@ -2597,8 +2594,8 @@
       {
         "id": "market_consultant:raw_sql:data_center_market_2350",
         "source_path": "resources/raw_sql/data_center_market_2350.sql",
-        "sha256": "929c81cc6927a20b4b5b52ee84ec2be320910e7461ab1ecd0d1d554ebcb292b1",
-        "bytes": 12887,
+        "sha256": "4fde7190ab342e91c261808622a4cedc35aabc2e16087c0482a5aab78ce59c17",
+        "bytes": 13336,
         "title": "data_center_market_2350",
         "table_refs": [
           "finance_dw.app_finance_performance_extend_details_hf",
@@ -2615,8 +2612,8 @@
       {
         "id": "market_consultant:raw_sql:data_center_market_2353",
         "source_path": "resources/raw_sql/data_center_market_2353.sql",
-        "sha256": "6cfa8ae573c492c7f28d20232745d7d874dacee6b40325904bdffcf3a2b3e078",
-        "bytes": 17082,
+        "sha256": "8a3378b478e5f2a1be199513e5c137d90d7ecd1c09ffb95923c002bd39ccd14b",
+        "bytes": 17531,
         "title": "data_center_market_2353",
         "table_refs": [
           "finance_dw.app_finance_performance_extend_details_hf",
@@ -2650,8 +2647,8 @@
       {
         "id": "market_consultant:raw_sql:data_center_market_2423",
         "source_path": "resources/raw_sql/data_center_market_2423.sql",
-        "sha256": "70e5370d605fc2fe6a38a05723ec14d62838f71b722546dc1cdfa2bc76e803f9",
-        "bytes": 18958,
+        "sha256": "1119aaf719011a48d170c5350a02df527983b1320d2e28ddcf0ce7009a602cf1",
+        "bytes": 19445,
         "title": "data_center_market_2423",
         "table_refs": [
           "finance_dw.app_finance_performance_extend_details_hf",
@@ -2668,8 +2665,8 @@
       {
         "id": "market_consultant:raw_sql:data_center_market_2424",
         "source_path": "resources/raw_sql/data_center_market_2424.sql",
-        "sha256": "bd3c2f88f452c0a3250a74cd0787bfe24db6a52b5975bc9f73744c5ca180dbe9",
-        "bytes": 73074,
+        "sha256": "d195e99d62f7506e01ee2bf33b299e4da0b519f7a5769a785bdd4ccae01fa6cf",
+        "bytes": 75041,
         "title": "data_center_market_2424",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -2687,8 +2684,8 @@
       {
         "id": "market_consultant:raw_sql:data_center_market_2461",
         "source_path": "resources/raw_sql/data_center_market_2461.sql",
-        "sha256": "25c85326a4dfee2ae0a411399a466c6d048ead79dd47c695283b173fc14286c9",
-        "bytes": 65836,
+        "sha256": "a822952f02bbfe97f6aa065b8da1683a6158af5a902878c535422bf07fc8f70b",
+        "bytes": 67274,
         "title": "data_center_market_2461",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -2712,8 +2709,8 @@
       {
         "id": "market_consultant:raw_sql:data_center_market_2623",
         "source_path": "resources/raw_sql/data_center_market_2623.sql",
-        "sha256": "bbe5daa2be7e017d674718fe607a0cc88b4b357833eefd3d24a9c49bf0328bed",
-        "bytes": 64449,
+        "sha256": "4c7ff18fdf1e751e080381a7968fd41ac9a20f87a575672e26ad4fcf5ef212da",
+        "bytes": 65887,
         "title": "data_center_market_2623",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -2753,8 +2750,8 @@
       {
         "id": "market_consultant:raw_sql:data_center_market_2634",
         "source_path": "resources/raw_sql/data_center_market_2634.sql",
-        "sha256": "8516a1d127478a239ddc087029299992c995e869c3988987a6147b99b45ff17a",
-        "bytes": 66473,
+        "sha256": "a8573f8658ae318656fadc3feca7b2dfca0756e0835a47410af1854aa48f351c",
+        "bytes": 68440,
         "title": "data_center_market_2634",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -2805,8 +2802,8 @@
       {
         "id": "market_consultant:raw_sql:data_center_market_2683",
         "source_path": "resources/raw_sql/data_center_market_2683.sql",
-        "sha256": "98dcd0023f2defc8dafa3a620dba753ce6a99041cd21b555f4843a052fbfbc96",
-        "bytes": 69963,
+        "sha256": "d2c70efd78d872ab4bb9d03e9835245111b2aad23a7c7176c1e61351cd5d6c56",
+        "bytes": 71401,
         "title": "data_center_market_2683",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -2830,8 +2827,8 @@
       {
         "id": "market_consultant:raw_sql:data_center_market_2688",
         "source_path": "resources/raw_sql/data_center_market_2688.sql",
-        "sha256": "d1875cbc2b3d70cf72858bcd06dd666003a1b67f265ad785b72d206c1c6fb550",
-        "bytes": 68252,
+        "sha256": "a6c308dd1f0407bc6b95b71a9dff1e0d20921a4392586e3e1f592f3dc93dfdd6",
+        "bytes": 69690,
         "title": "data_center_market_2688",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -2887,8 +2884,8 @@
       {
         "id": "market_consultant:raw_sql:data_center_market_2751",
         "source_path": "resources/raw_sql/data_center_market_2751.sql",
-        "sha256": "a0674440d0c490b65e2bebbc5bd47f7602b0cb4e747a60fa0af65c70fcfa717c",
-        "bytes": 70086,
+        "sha256": "8c9bb09cd0e5284dd144bfa0344cfabf6ac7b598485bc83b7eebe26aff88a77f",
+        "bytes": 71524,
         "title": "data_center_market_2751",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -2907,8 +2904,8 @@
       {
         "id": "market_consultant:raw_sql:data_center_market_2774",
         "source_path": "resources/raw_sql/data_center_market_2774.sql",
-        "sha256": "108895169aa33d93e2247eff09eb43932e43d948c53d2303df84919fcdff55b0",
-        "bytes": 65650,
+        "sha256": "425a92a6f21fd41c65cc5bbaff4c3f1310512a34f0afafaaf14f86223b4c0309",
+        "bytes": 67088,
         "title": "data_center_market_2774",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -2924,11 +2921,12 @@
       {
         "id": "market_consultant:raw_sql:data_center_market_2809",
         "source_path": "resources/raw_sql/data_center_market_2809.sql",
-        "sha256": "2832134d481933086d63a209250886e39ccb933c3b87ba82198b7493dc7d51b5",
-        "bytes": 54552,
+        "sha256": "96dd3100d657dd4b354b7fbe2d9ea965e4f74d273e88d20b9a24a77cb150e7a5",
+        "bytes": 66056,
         "title": "data_center_market_2809",
         "table_refs": [
-          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df"
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "finance_dw.app_finance_performance_extend_details_hf"
         ],
         "raw_sql_refs": [],
         "status": "documented",
@@ -2939,8 +2937,8 @@
       {
         "id": "market_consultant:raw_sql:data_center_market_2812",
         "source_path": "resources/raw_sql/data_center_market_2812.sql",
-        "sha256": "f36a01827c17080aa04f2d1e5d845d0fc8044d191a53535179074145b7d527d4",
-        "bytes": 51978,
+        "sha256": "e62d91b1a396c3529a5910bedf03c82cf17fcc2f9000ab7486cef0699d7438bc",
+        "bytes": 53416,
         "title": "data_center_market_2812",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df"
@@ -2954,8 +2952,8 @@
       {
         "id": "market_consultant:raw_sql:data_center_market_2836",
         "source_path": "resources/raw_sql/data_center_market_2836.sql",
-        "sha256": "7b88c16ad1ccabe95324e5d93bf75e520a793b004796afdbfb6c4d1b20b16657",
-        "bytes": 59324,
+        "sha256": "ea7251af6ccb537e84102602a81ff25f0600b19afca8959f5f4ca17ae0e2bf69",
+        "bytes": 60762,
         "title": "data_center_market_2836",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -2970,8 +2968,8 @@
       {
         "id": "market_consultant:raw_sql:data_center_market_2842",
         "source_path": "resources/raw_sql/data_center_market_2842.sql",
-        "sha256": "2515b855dd8729a07f6170d71a630ae5c4f97aec6e4945b917b07c3f09431c5d",
-        "bytes": 69476,
+        "sha256": "3b63dfdf7f2ad8953484935cd301ed236f647b33876cddfa2a1218d405eae1e7",
+        "bytes": 70914,
         "title": "data_center_market_2842",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -3004,8 +3002,8 @@
       {
         "id": "market_consultant:raw_sql:data_center_market_2883",
         "source_path": "resources/raw_sql/data_center_market_2883.sql",
-        "sha256": "392be8544dbde2b9f449acf22906f10c458f8ab720d78e2882597e39fd242bcf",
-        "bytes": 58587,
+        "sha256": "85e6ea053bc2b336751e342ddb6c78f2a12bbb21c9ae8460da7c6b89643e15df",
+        "bytes": 60025,
         "title": "data_center_market_2883",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -3021,8 +3019,8 @@
       {
         "id": "market_consultant:raw_sql:data_center_market_2885",
         "source_path": "resources/raw_sql/data_center_market_2885.sql",
-        "sha256": "4d0f771168c37a73b1b36c12021f39b89b86bca7706103293d9b63b61a5dfa44",
-        "bytes": 60261,
+        "sha256": "a59d41f9d67cfad0e0778f780bed10078ddae90c651afc18e1ef803e2e075120",
+        "bytes": 61699,
         "title": "data_center_market_2885",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -3038,8 +3036,8 @@
       {
         "id": "market_consultant:raw_sql:data_center_market_2886",
         "source_path": "resources/raw_sql/data_center_market_2886.sql",
-        "sha256": "d9fa2e5646c20a20dc18a447e7ad98f60d9e98f7495ca76029888d2219f28ce4",
-        "bytes": 55013,
+        "sha256": "9ba75281680320921fc6dffe83900c0d79e350e1d70709a9d5351e41b9d2f856",
+        "bytes": 56451,
         "title": "data_center_market_2886",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df"
@@ -3053,8 +3051,8 @@
       {
         "id": "market_consultant:raw_sql:data_center_market_2890",
         "source_path": "resources/raw_sql/data_center_market_2890.sql",
-        "sha256": "cbf49d8af84158507b685eb188a1fcb29c908a0ba4f218ca69e45bfc392605a4",
-        "bytes": 58012,
+        "sha256": "8bbaa6e226c4d9b9000b650bf2212e35d9c49e20bc79f14fc943b7acbcd53555",
+        "bytes": 59450,
         "title": "data_center_market_2890",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df"
@@ -3068,8 +3066,8 @@
       {
         "id": "market_consultant:raw_sql:data_center_market_3039",
         "source_path": "resources/raw_sql/data_center_market_3039.sql",
-        "sha256": "421f2940e2df9a24bffb5a08b25f119c2f37b999e9fc73c46856dd7a4dc0eef9",
-        "bytes": 80237,
+        "sha256": "8bfdc2c19d9b19365646c9b20f1d5866fc63f2df50eea096ee7689b6ca403ea3",
+        "bytes": 81675,
         "title": "data_center_market_3039",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -3156,16 +3154,16 @@
         ]
       },
       {
-        "id": "market_consultant:raw_sql:market_channel_case_when_1016",
-        "source_path": "resources/raw_sql/market_channel_case_when_1016.sql",
-        "sha256": "8f251df1d26021f8645b51735b16bc6fb90692eb83c56d5f88b4286d9610803d",
-        "bytes": 44878,
-        "title": "market_channel_case_when_1016",
+        "id": "market_consultant:raw_sql:market_channel_case_when_1030",
+        "source_path": "resources/raw_sql/market_channel_case_when_1030.sql",
+        "sha256": "15b960a07dbaf421ecbe99d30254790972656da9bf57ea7d60d1753f925b39b7",
+        "bytes": 46309,
+        "title": "market_channel_case_when_1030",
         "table_refs": [],
         "raw_sql_refs": [],
         "status": "documented",
         "aliases": [
-          "market_channel_case_when_1016"
+          "market_channel_case_when_1030"
         ]
       },
       {
@@ -3346,23 +3344,6 @@
         ]
       },
       {
-        "id": "market_consultant:raw_sql:template_query_market_b_to_a_process_conversion",
-        "source_path": "resources/raw_sql/template_query_market_b_to_a_process_conversion.sql",
-        "sha256": "7eb952c8d966b66a732421188f1702f1665abf6267488872df2439e9deec09d4",
-        "bytes": 120827,
-        "title": "template_query_market_b_to_a_process_conversion",
-        "table_refs": [
-          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
-          "service_dw.dwd_crm_assign_private_detail_hf",
-          "service_dw.dws_service_user_learn_detail_hf"
-        ],
-        "raw_sql_refs": [],
-        "status": "documented",
-        "aliases": [
-          "template_query_market_b_to_a_process_conversion"
-        ]
-      },
-      {
         "id": "market_consultant:raw_sql:template_query_market_employee_org",
         "source_path": "resources/raw_sql/template_query_market_employee_org.sql",
         "sha256": "f94c371f7f39e1150bb3f0eea5ff4c1f308156a66b2a18247e9dd7c29c3c617c",
@@ -3381,11 +3362,12 @@
       {
         "id": "market_consultant:raw_sql:template_query_market_finance_order_detail",
         "source_path": "resources/raw_sql/template_query_market_finance_order_detail.sql",
-        "sha256": "f9abc4ec4aa26db0457bbdae76341b851376278297883e2e0de879f7ac230ec0",
-        "bytes": 51011,
+        "sha256": "c0eacb313e26a6f9d020dafa088a8b593580085005c3127e502c051c092a3e64",
+        "bytes": 54436,
         "title": "template_query_market_finance_order_detail",
         "table_refs": [
-          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df"
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf"
         ],
         "raw_sql_refs": [],
         "status": "documented",
@@ -3394,29 +3376,10 @@
         ]
       },
       {
-        "id": "market_consultant:raw_sql:template_query_market_mantou_order_detail_pay_time",
-        "source_path": "resources/raw_sql/template_query_market_mantou_order_detail_pay_time.sql",
-        "sha256": "c1fa0b1b7f21d8054dead250926f96506625ddfbddbce721142c110b0598440f",
-        "bytes": 73161,
-        "title": "template_query_market_mantou_order_detail_pay_time",
-        "table_refs": [
-          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
-          "finance_dw.app_finance_performance_extend_details_hf",
-          "finance_dw.dim_finance_order_change_df",
-          "finance_dw.dm_finance_order_refund_detail_df",
-          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf"
-        ],
-        "raw_sql_refs": [],
-        "status": "documented",
-        "aliases": [
-          "template_query_market_mantou_order_detail_pay_time"
-        ]
-      },
-      {
         "id": "market_consultant:raw_sql:template_query_market_mantou_order_detail_trade_time",
         "source_path": "resources/raw_sql/template_query_market_mantou_order_detail_trade_time.sql",
-        "sha256": "ba621ae54d5f6b8359ce3a212fa3a64b0967e91868667817479b1cf76a8c45d4",
-        "bytes": 71064,
+        "sha256": "bb27ea60087aff92485eec3989ad79ff08a362f4281f5dee52f05a7c8babc1c5",
+        "bytes": 73362,
         "title": "template_query_market_mantou_order_detail_trade_time",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -3434,8 +3397,8 @@
       {
         "id": "market_consultant:raw_sql:template_query_market_multi_subject_order_user",
         "source_path": "resources/raw_sql/template_query_market_multi_subject_order_user.sql",
-        "sha256": "74da608dcdfddb7b6a23494170b665b0ab7069c100b45818fa1d95438dd11501",
-        "bytes": 59712,
+        "sha256": "8523e6d5a43ac53774f20292f0505eb5220179d1c997664784e4c0902ead4af2",
+        "bytes": 61142,
         "title": "template_query_market_multi_subject_order_user",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df"
@@ -3449,8 +3412,8 @@
       {
         "id": "market_consultant:raw_sql:template_query_market_period_conversion",
         "source_path": "resources/raw_sql/template_query_market_period_conversion.sql",
-        "sha256": "12580f75958d09a05d431ac702d1c495b786e8a2cb9c514781894adec43d467f",
-        "bytes": 20202,
+        "sha256": "83e69a8de6361049b0764132b8dd76678672a58839b09cc3d62e436885763217",
+        "bytes": 20695,
         "title": "template_query_market_period_conversion",
         "table_refs": [
           "finance_dw.app_finance_performance_extend_details_hf",
@@ -3495,8 +3458,8 @@
       {
         "id": "market_consultant:raw_sql:template_query_market_wide_analysis",
         "source_path": "resources/raw_sql/template_query_market_wide_analysis.sql",
-        "sha256": "22435ef3153a4d0c2f8ea0df4ae342671742015f0a37d289a81d4c6fef3d4fbf",
-        "bytes": 79841,
+        "sha256": "3ab1da86c565c0b1bf964fea6b0e26fac751c89fe1f7a04f628e24c717cf0de5",
+        "bytes": 81471,
         "title": "template_query_market_wide_analysis",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -3522,7 +3485,7 @@
       {
         "id": "market_consultant:reverse_index:field_to_metrics",
         "source_path": "knowledge/reverse_index/field_to_metrics.md",
-        "sha256": "34a3eaec0a12450f34185977e33235f06ac5f598707ed450b577faf238011355",
+        "sha256": "311627bc3b437f1edd07d60795f47932e39759414e387a39c9655a021c187b99",
         "bytes": 161736,
         "title": "字段到指标反向索引",
         "table_refs": [],
@@ -3542,7 +3505,7 @@
           "data_center_market_2809.sql",
           "h_biz_line_department_conversion.sql",
           "lead_assign_plan_actual_valid_count.sql",
-          "market_channel_case_when_1016.sql",
+          "market_channel_case_when_1030.sql",
           "market_class_order_detail_20260718.sql",
           "market_class_order_registration_type_20260718.sql",
           "market_consultant_lead_conversion_attendance.sql",
@@ -3560,8 +3523,8 @@
       {
         "id": "market_consultant:reverse_index:join_risk_index",
         "source_path": "knowledge/reverse_index/join_risk_index.md",
-        "sha256": "298730039c490c3d8615c422c80ff07760482a87c4e65c3d898ea30bc9033419",
-        "bytes": 83235,
+        "sha256": "abdf0f09b121e2d62625e83d77bc982484d17c1018321cd9ece5f1fc47ad0a84",
+        "bytes": 88525,
         "title": "JOIN 与结果异常风险索引",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -3603,7 +3566,7 @@
       {
         "id": "market_consultant:reverse_index:metric_to_raw_sql",
         "source_path": "knowledge/reverse_index/metric_to_raw_sql.md",
-        "sha256": "be4f109d002501e4da6470deb8e1dda04c4e10da3766bbec5a50d29ef430be43",
+        "sha256": "d0bbf9ffcfabecc2d7ca32f27dc7c28e6189660f06a7ff7b6a872c2ad82f3699",
         "bytes": 6050,
         "title": "指标到 raw SQL 反向索引",
         "table_refs": [
@@ -3646,7 +3609,7 @@
           "data_center_market_2809.sql",
           "h_biz_line_department_conversion.sql",
           "lead_assign_plan_actual_valid_count.sql",
-          "market_channel_case_when_1016.sql",
+          "market_channel_case_when_1030.sql",
           "market_class_order_detail_20260718.sql",
           "market_class_order_registration_type_20260718.sql",
           "market_consultant_lead_conversion_attendance.sql",
@@ -3664,8 +3627,8 @@
       {
         "id": "market_consultant:reverse_index:table_to_dashboards",
         "source_path": "knowledge/reverse_index/table_to_dashboards.md",
-        "sha256": "adf952c4dc8e95bf94137a89820e9bcfb39e03828c460f1982c2bc56d413be0e",
-        "bytes": 22394,
+        "sha256": "134d2b5c229b1527fab45fb10f920680a699bb4293219131f4a932eb327b1fee",
+        "bytes": 21585,
         "title": "表到看板反向索引",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -3675,7 +3638,6 @@
           "finance_dw.app_finance_performance_extend_details_hf",
           "finance_dw.dim_finance_employee_df",
           "gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf",
-          "gaotu_hl.dim_mkt_h_lead_channel_df",
           "service_dw.app_h_crm_lead_employee_workload_detail_hf",
           "service_dw.app_h_crm_lead_task_process_info_detail_hf",
           "service_dw.app_user_attribute_label_gaia_wide_df",
@@ -3712,10 +3674,9 @@
           "h_biz_line_department_conversion.sql",
           "lead_assign_plan_actual_valid_count.sql",
           "market_channel_case_when_0726_legacy.sql",
-          "market_channel_case_when_1016.sql",
+          "market_channel_case_when_1030.sql",
           "market_consultant_lead_conversion_attendance.sql",
           "outbound_call_process_dashboard.sql",
-          "template_query_market_b_to_a_process_conversion.sql",
           "template_query_market_employee_org.sql",
           "template_query_market_finance_order_detail.sql"
         ],
@@ -3765,15 +3726,16 @@
       {
         "id": "market_consultant:sql_patterns:channel_mapping_case_when",
         "source_path": "knowledge/sql_patterns/channel_mapping_case_when.md",
-        "sha256": "4bf913be7da178ed6dc6be2433f9a563449a21068e68a5499cb6d3e68240e82b",
-        "bytes": 46723,
+        "sha256": "1aff4d2cab9a1b2c3e51482a975836973351203a4bdbcf8b2655450dae5af4c1",
+        "bytes": 57162,
         "title": "渠道 CASE 映射口径",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
+          "gaotu_hl.dim_mkt_h_lead_channel_df",
           "temp_table.dingxi01_daoke_1_6_t"
         ],
         "raw_sql_refs": [
-          "market_channel_case_when_1016.sql"
+          "market_channel_case_when_1030.sql"
         ],
         "status": "documented",
         "aliases": [
@@ -3812,7 +3774,7 @@
       {
         "id": "market_consultant:sql_patterns:dashboard_query_patterns",
         "source_path": "knowledge/sql_patterns/dashboard_query_patterns.md",
-        "sha256": "fa2bbe67973f930e9e2e1f537c2289552bc2da94ba66cf944bf1fd995972acbb",
+        "sha256": "7277ab5e9afd333d32b4365f4fc06e2dbf3b505bb4ec83ce3db93901f54e6a6d",
         "bytes": 23226,
         "title": "看板型 SQL 模板",
         "table_refs": [
@@ -3832,7 +3794,7 @@
         "raw_sql_refs": [
           "data_center_market_2293.sql",
           "data_center_market_2683.sql",
-          "market_channel_case_when_1016.sql",
+          "market_channel_case_when_1030.sql",
           "outbound_call_process_dashboard.sql"
         ],
         "status": "pending_confirmation",
@@ -3890,12 +3852,11 @@
       {
         "id": "market_consultant:sql_patterns:mantou_order_detail_pay_time_stage_optimization",
         "source_path": "knowledge/sql_patterns/mantou_order_detail_pay_time_stage_optimization.md",
-        "sha256": "af8f01b8d269174363a05b1173dbf205bab39a04cee672870c3d5d2db9eb684c",
-        "bytes": 4513,
+        "sha256": "488e81b7bff77e90234112965d8b51b7b73be245e0415799aa1517942c1c50d8",
+        "bytes": 4476,
         "title": "馒头订单明细模板渠道归因与执行计划优化",
         "table_refs": [],
         "raw_sql_refs": [
-          "template_query_market_mantou_order_detail_pay_time.sql",
           "template_query_market_mantou_order_detail_trade_time.sql"
         ],
         "status": "documented",
@@ -3937,12 +3898,12 @@
       {
         "id": "market_consultant:sql_patterns:market_template_channel_case_bytecode_optimization",
         "source_path": "knowledge/sql_patterns/market_template_channel_case_bytecode_optimization.md",
-        "sha256": "558215e72c2fcb21f30026d92ed42fef1d9d72cd1b79f6cd2f4f3ca82b9abf5d",
-        "bytes": 11479,
+        "sha256": "7ff6e7249bb6d11b6397b79e29688552b1cbf5f1833af1aaf45a8124aadbc7bf",
+        "bytes": 13498,
         "title": "市场顾问部模板渠道 CASE 编译性能优化",
         "table_refs": [],
         "raw_sql_refs": [
-          "market_channel_case_when_1016.sql",
+          "market_channel_case_when_1030.sql",
           "template_query_market_multi_subject_order_user.sql",
           "template_query_market_wide.sql"
         ],
@@ -4100,7 +4061,7 @@
       {
         "id": "market_consultant:tables:bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
         "source_path": "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
-        "sha256": "b573d9a1bd0d5d2343ebff0f2ed4dd4191920385e8ab0f86bfdced112a59fe35",
+        "sha256": "8b03c39251ae3cef61ef48d481a28366b657ab14c41e797b7b14901f0ffa58e8",
         "bytes": 45379,
         "title": "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
         "table_refs": [
@@ -4110,7 +4071,7 @@
         ],
         "raw_sql_refs": [
           "data_center_market_2253.sql",
-          "market_channel_case_when_1016.sql"
+          "market_channel_case_when_1030.sql"
         ],
         "status": "pending_confirmation",
         "table_name": "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -4395,14 +4356,14 @@
       {
         "id": "market_consultant:tables:gaotu_hl.ods_mkt_h_channel_group_df",
         "source_path": "knowledge/tables/gaotu_hl.ods_mkt_h_channel_group_df.md",
-        "sha256": "e6a01308206708f0f2d9b926d23c0a10599bb904aac20ca9c1b2bbdaa410e6dd",
+        "sha256": "ae2fc8cb0fea995d6982c5b97d664f6886a9b2b85529be875820eb39f5fdd385",
         "bytes": 3284,
         "title": "gaotu_hl.ods_mkt_h_channel_group_df",
         "table_refs": [
           "gaotu_hl.ods_mkt_h_channel_group_df"
         ],
         "raw_sql_refs": [
-          "market_channel_case_when_1016.sql"
+          "market_channel_case_when_1030.sql"
         ],
         "status": "documented",
         "table_name": "gaotu_hl.ods_mkt_h_channel_group_df",
@@ -4515,7 +4476,7 @@
       {
         "id": "market_consultant:tables:service_dw.dim_crm_assign_rule_lead_detail_hf",
         "source_path": "knowledge/tables/service_dw.dim_crm_assign_rule_lead_detail_hf.md",
-        "sha256": "a31f6eb649a1d9a980806d7be7ac5123062596a05e37a722ccc65e135b42afdd",
+        "sha256": "e1c6e089f8d56cbae71aff89351539cbafcfbd652d57d8b8c9473c710629173d",
         "bytes": 5152,
         "title": "service_dw.dim_crm_assign_rule_lead_detail_hf",
         "table_refs": [
@@ -4870,8 +4831,8 @@
       {
         "id": "market_consultant:update_log:changelog",
         "source_path": "knowledge/update_log/changelog.md",
-        "sha256": "a0bbd52666d4cc5fcff3a721e57df52106a47d5f6a0767074af018da283e3105",
-        "bytes": 204103,
+        "sha256": "0ce50ddd906bf7c9b1a944eac9473487c9f7d52614374f13112e5c140e25631c",
+        "bytes": 214940,
         "title": "更新记录",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -4914,12 +4875,9 @@
           "consultant_sales_ranking_evaluation_year_clean.sql",
           "h_biz_line_department_conversion.sql",
           "lead_assign_plan_actual_valid_count.sql",
-          "market_channel_case_when_1016.sql",
           "market_consultant_lead_conversion_attendance.sql",
           "outbound_call_process_dashboard.sql",
-          "template_query_market_b_to_a_process_conversion.sql",
           "template_query_market_finance_order_detail.sql",
-          "template_query_market_mantou_order_detail_pay_time.sql",
           "template_query_market_mantou_order_detail_trade_time.sql",
           "template_query_market_multi_subject_order_user.sql",
           "template_query_market_period_conversion.sql",
@@ -5010,9 +4968,7 @@
         "resources/raw_sql/market_positive_order_detail_finance_jpb_20260718.sql",
         "resources/raw_sql/market_positive_order_detail_finance_market_20260718.sql",
         "resources/raw_sql/outbound_call_process_dashboard.sql",
-        "resources/raw_sql/template_query_market_b_to_a_process_conversion.sql",
         "resources/raw_sql/template_query_market_finance_order_detail.sql",
-        "resources/raw_sql/template_query_market_mantou_order_detail_pay_time.sql",
         "resources/raw_sql/template_query_market_mantou_order_detail_trade_time.sql",
         "resources/raw_sql/template_query_market_multi_subject_order_user.sql",
         "resources/raw_sql/template_query_market_wide.sql",
@@ -5163,6 +5119,7 @@
         "resources/raw_sql/data_center_market_2727.sql",
         "resources/raw_sql/data_center_market_2742.sql",
         "resources/raw_sql/data_center_market_2751.sql",
+        "resources/raw_sql/data_center_market_2809.sql",
         "resources/raw_sql/data_center_market_2842.sql",
         "resources/raw_sql/market_channel_positive_subject_course_example_20260718.sql",
         "resources/raw_sql/market_class_order_detail_20260718.sql",
@@ -5170,7 +5127,6 @@
         "resources/raw_sql/market_jingpin_chusan_subject_share_whole_period_20260718.sql",
         "resources/raw_sql/market_positive_order_detail_finance_jpb_20260718.sql",
         "resources/raw_sql/market_positive_order_detail_finance_market_20260718.sql",
-        "resources/raw_sql/template_query_market_mantou_order_detail_pay_time.sql",
         "resources/raw_sql/template_query_market_mantou_order_detail_trade_time.sql",
         "resources/raw_sql/template_query_market_period_conversion.sql",
         "resources/raw_sql/template_query_market_wide.sql",
@@ -5211,12 +5167,10 @@
       ],
       "finance_dw.dim_finance_order_change_df": [
         "resources/raw_sql/market_jingpin_chusan_subject_share_whole_period_20260718.sql",
-        "resources/raw_sql/template_query_market_mantou_order_detail_pay_time.sql",
         "resources/raw_sql/template_query_market_mantou_order_detail_trade_time.sql"
       ],
       "finance_dw.dm_finance_order_refund_detail_df": [
         "resources/raw_sql/market_jingpin_chusan_subject_share_whole_period_20260718.sql",
-        "resources/raw_sql/template_query_market_mantou_order_detail_pay_time.sql",
         "resources/raw_sql/template_query_market_mantou_order_detail_trade_time.sql"
       ],
       "finance_dw.dwd_finance_order_refund_df": [
@@ -5259,11 +5213,10 @@
       ],
       "gaotu_hl.dim_mkt_h_lead_channel_df": [
         "knowledge/01_table_index.md",
-        "knowledge/dashboards/template_query_market_datasets.md",
         "knowledge/joins/common_join_keys.md",
         "knowledge/joins/table_relationships.md",
         "knowledge/reverse_index/join_risk_index.md",
-        "knowledge/reverse_index/table_to_dashboards.md",
+        "knowledge/sql_patterns/channel_mapping_case_when.md",
         "knowledge/sql_patterns/template_query_market_wide_reading_guide.md",
         "knowledge/tables/gaotu_hl.dim_mkt_h_lead_channel_df.md",
         "knowledge/update_log/changelog.md",
@@ -5486,7 +5439,6 @@
         "resources/raw_sql/data_center_market_3039.sql",
         "resources/raw_sql/market_consultant_lead_conversion_attendance.sql",
         "resources/raw_sql/outbound_call_process_dashboard.sql",
-        "resources/raw_sql/template_query_market_b_to_a_process_conversion.sql",
         "resources/raw_sql/template_query_market_wide.sql",
         "resources/raw_sql/template_query_market_wide_analysis.sql"
       ],
@@ -5516,7 +5468,7 @@
         "resources/raw_sql/market_jingpin_chusan_subject_share_whole_period_20260718.sql",
         "resources/raw_sql/market_positive_order_detail_finance_jpb_20260718.sql",
         "resources/raw_sql/market_positive_order_detail_finance_market_20260718.sql",
-        "resources/raw_sql/template_query_market_mantou_order_detail_pay_time.sql",
+        "resources/raw_sql/template_query_market_finance_order_detail.sql",
         "resources/raw_sql/template_query_market_mantou_order_detail_trade_time.sql",
         "resources/raw_sql/template_query_market_period_conversion.sql",
         "resources/raw_sql/template_query_market_wide.sql"
@@ -5553,7 +5505,6 @@
         "resources/raw_sql/market_channel_attendance_external_schedule_example_20260718.sql",
         "resources/raw_sql/market_consultant_lead_conversion_attendance.sql",
         "resources/raw_sql/outbound_call_process_dashboard.sql",
-        "resources/raw_sql/template_query_market_b_to_a_process_conversion.sql",
         "resources/raw_sql/template_query_market_wide.sql",
         "resources/raw_sql/template_query_market_wide_analysis.sql"
       ],
@@ -6126,7 +6077,7 @@
       "market_channel_case_when_0726_legacy.sql": [
         "knowledge/reverse_index/table_to_dashboards.md"
       ],
-      "market_channel_case_when_1016.sql": [
+      "market_channel_case_when_1030.sql": [
         "knowledge/dashboards/h_biz_line_department_conversion.md",
         "knowledge/dashboards/lead_assign_plan_actual_valid_count.md",
         "knowledge/dashboards/market_consultant_conversion.md",
@@ -6141,8 +6092,7 @@
         "knowledge/sql_patterns/dashboard_query_patterns.md",
         "knowledge/sql_patterns/market_template_channel_case_bytecode_optimization.md",
         "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
-        "knowledge/tables/gaotu_hl.ods_mkt_h_channel_group_df.md",
-        "knowledge/update_log/changelog.md"
+        "knowledge/tables/gaotu_hl.ods_mkt_h_channel_group_df.md"
       ],
       "market_channel_positive_subject_course_example_20260718.sql": [
         "knowledge/sql_patterns/market_channel_positive_subject_course_worked_example.md"
@@ -6205,11 +6155,6 @@
         "knowledge/sql_patterns/dashboard_query_patterns.md",
         "knowledge/update_log/changelog.md"
       ],
-      "template_query_market_b_to_a_process_conversion.sql": [
-        "knowledge/dashboards/template_query_market_datasets.md",
-        "knowledge/reverse_index/table_to_dashboards.md",
-        "knowledge/update_log/changelog.md"
-      ],
       "template_query_market_employee_org.sql": [
         "knowledge/dashboards/template_query_market_datasets.md",
         "knowledge/reverse_index/table_to_dashboards.md"
@@ -6218,11 +6163,6 @@
         "knowledge/dashboards/template_query_market_datasets.md",
         "knowledge/quick_reference.md",
         "knowledge/reverse_index/table_to_dashboards.md",
-        "knowledge/update_log/changelog.md"
-      ],
-      "template_query_market_mantou_order_detail_pay_time.sql": [
-        "knowledge/dashboards/template_query_market_datasets.md",
-        "knowledge/sql_patterns/mantou_order_detail_pay_time_stage_optimization.md",
         "knowledge/update_log/changelog.md"
       ],
       "template_query_market_mantou_order_detail_trade_time.sql": [
@@ -6524,25 +6464,25 @@
     },
     {
       "source_path": "knowledge/dashboards/consultant_sales_ranking_evaluation.md",
-      "sha256": "11fd300c5485ccc89a416d45d908f8b535d6171da0051c2b57e0c208410168ba",
+      "sha256": "c71fb7f9fb8f8f920d496a0fcaaf4d3a5a9cd9a1fa77797a065fd00a27829854",
       "bytes": 14714,
       "category": "dashboards"
     },
     {
       "source_path": "knowledge/dashboards/data_center_market_datasets.md",
-      "sha256": "3d05ceed9ac340d3221a8be10a06625a3b5d3e4f49942362de699cba2291d3dd",
-      "bytes": 14791,
+      "sha256": "403377d79e4edc7be31c223af5bf9c251281ab260ebdce11fb8f09dad6378bf8",
+      "bytes": 14792,
       "category": "dashboards"
     },
     {
       "source_path": "knowledge/dashboards/h_biz_line_department_conversion.md",
-      "sha256": "b11369588443b3df7a2bd4ae1a1b2788cee38797febabbdc0a40b132776e6971",
+      "sha256": "8d8fb4c6da5e0d935f79c2c7bdafb01e6121df94cd72af21097c8030094d52f2",
       "bytes": 11129,
       "category": "dashboards"
     },
     {
       "source_path": "knowledge/dashboards/lead_assign_plan_actual_valid_count.md",
-      "sha256": "a18e3113303e5bd655c82b824adcfd17b10f5d1e78a8edf50c85bf90df70b86d",
+      "sha256": "b2849956ae44e8f17cbc51cb98a6dc44765cb335b32555791fb5c2f69be9a527",
       "bytes": 6821,
       "category": "dashboards"
     },
@@ -6572,7 +6512,7 @@
     },
     {
       "source_path": "knowledge/dashboards/market_consultant_conversion.md",
-      "sha256": "7e392b23cdb0e4e142221afcab2d53abf7fd6833cec37cfa53a62006eb2b833a",
+      "sha256": "150bd003c04b0c4b363957bcdce0760b7fe11046bfa687a2c3ad10c82d5e7298",
       "bytes": 13800,
       "category": "dashboards"
     },
@@ -6614,8 +6554,8 @@
     },
     {
       "source_path": "knowledge/dashboards/template_query_market_datasets.md",
-      "sha256": "e986a50809a79b8847b1886cda32286919bbbfa0dc7258936e13d0f799a77199",
-      "bytes": 13838,
+      "sha256": "611961b87e6470fdf3c0daa373bcedfa3fefcc1711f2b42c5009df47931fa35e",
+      "bytes": 13025,
       "category": "dashboards"
     },
     {
@@ -6626,7 +6566,7 @@
     },
     {
       "source_path": "knowledge/decision_tree.md",
-      "sha256": "f39a203e3ce375120d9bbbb942aeffe538a0d15e669efc19e2813e9e8f3ea760",
+      "sha256": "ea0f2982be8b489422169053bce1e3aa6692e1a4184279f8f846074879ea76d7",
       "bytes": 14726,
       "category": "governance"
     },
@@ -6644,7 +6584,7 @@
     },
     {
       "source_path": "knowledge/joins/table_relationships.md",
-      "sha256": "0e122493a56cd1d2ca1a75c4715950ceaf820c8b564eae7d3a779cb664b8391e",
+      "sha256": "97c52aa5b32c33cffdafa043bdf9a06c68b6a0d9796751ec4add6c28717f1f5c",
       "bytes": 41661,
       "category": "joins"
     },
@@ -6704,8 +6644,8 @@
     },
     {
       "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
-      "sha256": "22d45cbace91a10de8cb29a710bde12cb60d5e17528127905494357d7007f67a",
-      "bytes": 8446,
+      "sha256": "fe195451dda9cd4bee72daaf95a4e620ca5eed997f3e7adebca48fbb87935fcf",
+      "bytes": 8530,
       "category": "metrics"
     },
     {
@@ -6734,8 +6674,8 @@
     },
     {
       "source_path": "knowledge/metrics/market_lead_time_conversion_finance_metrics.md",
-      "sha256": "2d3d3b96e1cdc21633f2854f31dabf70d182d9d618845e854c84a6496a1193d4",
-      "bytes": 6501,
+      "sha256": "a05356eebae9b4b55eca624143a3459d3b11fc2fcdb60dd31cf82302ff8244a6",
+      "bytes": 7024,
       "category": "metrics"
     },
     {
@@ -6782,32 +6722,32 @@
     },
     {
       "source_path": "knowledge/quick_reference.md",
-      "sha256": "0b5f9f1245cbcb4514262f190fa0c9cf283e26802a7214db8c268a40e3d6f2f7",
-      "bytes": 11193,
+      "sha256": "1a675ddabbae8c0d81d8326f36514335767fea40b2981b6679f5610120b6e533",
+      "bytes": 11240,
       "category": "governance"
     },
     {
       "source_path": "knowledge/reverse_index/field_to_metrics.md",
-      "sha256": "34a3eaec0a12450f34185977e33235f06ac5f598707ed450b577faf238011355",
+      "sha256": "311627bc3b437f1edd07d60795f47932e39759414e387a39c9655a021c187b99",
       "bytes": 161736,
       "category": "reverse_index"
     },
     {
       "source_path": "knowledge/reverse_index/join_risk_index.md",
-      "sha256": "298730039c490c3d8615c422c80ff07760482a87c4e65c3d898ea30bc9033419",
-      "bytes": 83235,
+      "sha256": "abdf0f09b121e2d62625e83d77bc982484d17c1018321cd9ece5f1fc47ad0a84",
+      "bytes": 88525,
       "category": "reverse_index"
     },
     {
       "source_path": "knowledge/reverse_index/metric_to_raw_sql.md",
-      "sha256": "be4f109d002501e4da6470deb8e1dda04c4e10da3766bbec5a50d29ef430be43",
+      "sha256": "d0bbf9ffcfabecc2d7ca32f27dc7c28e6189660f06a7ff7b6a872c2ad82f3699",
       "bytes": 6050,
       "category": "reverse_index"
     },
     {
       "source_path": "knowledge/reverse_index/table_to_dashboards.md",
-      "sha256": "adf952c4dc8e95bf94137a89820e9bcfb39e03828c460f1982c2bc56d413be0e",
-      "bytes": 22394,
+      "sha256": "134d2b5c229b1527fab45fb10f920680a699bb4293219131f4a932eb327b1fee",
+      "bytes": 21585,
       "category": "reverse_index"
     },
     {
@@ -6824,8 +6764,8 @@
     },
     {
       "source_path": "knowledge/sql_patterns/channel_mapping_case_when.md",
-      "sha256": "4bf913be7da178ed6dc6be2433f9a563449a21068e68a5499cb6d3e68240e82b",
-      "bytes": 46723,
+      "sha256": "1aff4d2cab9a1b2c3e51482a975836973351203a4bdbcf8b2655450dae5af4c1",
+      "bytes": 57162,
       "category": "sql_patterns"
     },
     {
@@ -6842,7 +6782,7 @@
     },
     {
       "source_path": "knowledge/sql_patterns/dashboard_query_patterns.md",
-      "sha256": "fa2bbe67973f930e9e2e1f537c2289552bc2da94ba66cf944bf1fd995972acbb",
+      "sha256": "7277ab5e9afd333d32b4365f4fc06e2dbf3b505bb4ec83ce3db93901f54e6a6d",
       "bytes": 23226,
       "category": "sql_patterns"
     },
@@ -6866,8 +6806,8 @@
     },
     {
       "source_path": "knowledge/sql_patterns/mantou_order_detail_pay_time_stage_optimization.md",
-      "sha256": "af8f01b8d269174363a05b1173dbf205bab39a04cee672870c3d5d2db9eb684c",
-      "bytes": 4513,
+      "sha256": "488e81b7bff77e90234112965d8b51b7b73be245e0415799aa1517942c1c50d8",
+      "bytes": 4476,
       "category": "sql_patterns"
     },
     {
@@ -6884,8 +6824,8 @@
     },
     {
       "source_path": "knowledge/sql_patterns/market_template_channel_case_bytecode_optimization.md",
-      "sha256": "558215e72c2fcb21f30026d92ed42fef1d9d72cd1b79f6cd2f4f3ca82b9abf5d",
-      "bytes": 11479,
+      "sha256": "7ff6e7249bb6d11b6397b79e29688552b1cbf5f1833af1aaf45a8124aadbc7bf",
+      "bytes": 13498,
       "category": "sql_patterns"
     },
     {
@@ -6938,7 +6878,7 @@
     },
     {
       "source_path": "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
-      "sha256": "b573d9a1bd0d5d2343ebff0f2ed4dd4191920385e8ab0f86bfdced112a59fe35",
+      "sha256": "8b03c39251ae3cef61ef48d481a28366b657ab14c41e797b7b14901f0ffa58e8",
       "bytes": 45379,
       "category": "tables"
     },
@@ -7040,7 +6980,7 @@
     },
     {
       "source_path": "knowledge/tables/gaotu_hl.ods_mkt_h_channel_group_df.md",
-      "sha256": "e6a01308206708f0f2d9b926d23c0a10599bb904aac20ca9c1b2bbdaa410e6dd",
+      "sha256": "ae2fc8cb0fea995d6982c5b97d664f6886a9b2b85529be875820eb39f5fdd385",
       "bytes": 3284,
       "category": "tables"
     },
@@ -7082,7 +7022,7 @@
     },
     {
       "source_path": "knowledge/tables/service_dw.dim_crm_assign_rule_lead_detail_hf.md",
-      "sha256": "a31f6eb649a1d9a980806d7be7ac5123062596a05e37a722ccc65e135b42afdd",
+      "sha256": "e1c6e089f8d56cbae71aff89351539cbafcfbd652d57d8b8c9473c710629173d",
       "bytes": 5152,
       "category": "tables"
     },
@@ -7202,8 +7142,8 @@
     },
     {
       "source_path": "knowledge/update_log/changelog.md",
-      "sha256": "a0bbd52666d4cc5fcff3a721e57df52106a47d5f6a0767074af018da283e3105",
-      "bytes": 204103,
+      "sha256": "0ce50ddd906bf7c9b1a944eac9473487c9f7d52614374f13112e5c140e25631c",
+      "bytes": 214940,
       "category": "update_log"
     },
     {
@@ -7238,26 +7178,26 @@
     },
     {
       "source_path": "resources/raw_sql/data_center_market_2054.sql",
-      "sha256": "44f4dbef933282dca295ed82fb49c380eff0ced83d6856a65b512bc7e4eb4fbf",
-      "bytes": 72309,
+      "sha256": "63d97724cc80144f57d5fde135ca67aef03ed2a0391c9e86722f01be11fcef57",
+      "bytes": 73747,
       "category": "raw_sql"
     },
     {
       "source_path": "resources/raw_sql/data_center_market_2132.sql",
-      "sha256": "b25d0551325346d5e3fe91848525dc227744042d72d5b8fa947063f899d5c5ba",
-      "bytes": 58402,
+      "sha256": "48d3fa6c3cbf993175c5d75c120e19ff3ddd00ffff36aaaf7863f9474926e659",
+      "bytes": 59840,
       "category": "raw_sql"
     },
     {
       "source_path": "resources/raw_sql/data_center_market_2253.sql",
-      "sha256": "68784a137040663922f2b36900f3c59cb59d69a189907a1271bf51772bea2822",
-      "bytes": 57090,
+      "sha256": "f4d5f758511e796a2a257d6f27445232878490fdc0caeddfd0cd7f3903033588",
+      "bytes": 58528,
       "category": "raw_sql"
     },
     {
       "source_path": "resources/raw_sql/data_center_market_2293.sql",
-      "sha256": "f637cb030b0e4e6fa53c71a94f6d5c1cc82a5400381266f8ccee98708e480f1e",
-      "bytes": 87164,
+      "sha256": "4b4b8fc50f3322fd6e42bb8d4e79b6398a94ba201c7af1e1f27af3f434f9472f",
+      "bytes": 88602,
       "category": "raw_sql"
     },
     {
@@ -7268,38 +7208,38 @@
     },
     {
       "source_path": "resources/raw_sql/data_center_market_2310.sql",
-      "sha256": "f3c89e4e21df7833c3da8383a926f4357c0faf89c43c3cf170e8af556730ba6e",
-      "bytes": 55060,
+      "sha256": "97b8500663da866aadfae6c19ada0ebea36d49028c3d26b6321e0c203246cf30",
+      "bytes": 56498,
       "category": "raw_sql"
     },
     {
       "source_path": "resources/raw_sql/data_center_market_2344.sql",
-      "sha256": "b8a0d3d24395467dddb2dcd3b52438fd0fbe16eaaa7a89d88b92df65a3028fe9",
-      "bytes": 145773,
+      "sha256": "1760033001f1f83ebbbce264cdd45a2cc2428b8109f6e15e98ba5725aea287dc",
+      "bytes": 148672,
       "category": "raw_sql"
     },
     {
       "source_path": "resources/raw_sql/data_center_market_2345.sql",
-      "sha256": "09299fa5caedcac67b2103666f00e5c98b7b7de392469393d577387a7e7f43c1",
-      "bytes": 66808,
+      "sha256": "893399e2208e612a4c2df0140f9dc7701876708866079b30a471bfe9758205b7",
+      "bytes": 68246,
       "category": "raw_sql"
     },
     {
       "source_path": "resources/raw_sql/data_center_market_2349.sql",
-      "sha256": "18f31998ad8d3da8e6111c98082733663796f52b5e6790a3f6f55ddabbfd1c74",
-      "bytes": 24752,
+      "sha256": "e625759c45d78fcebdf616a97253dac875cb8d4095d52214e2fe0f6971ed383a",
+      "bytes": 25221,
       "category": "raw_sql"
     },
     {
       "source_path": "resources/raw_sql/data_center_market_2350.sql",
-      "sha256": "929c81cc6927a20b4b5b52ee84ec2be320910e7461ab1ecd0d1d554ebcb292b1",
-      "bytes": 12887,
+      "sha256": "4fde7190ab342e91c261808622a4cedc35aabc2e16087c0482a5aab78ce59c17",
+      "bytes": 13336,
       "category": "raw_sql"
     },
     {
       "source_path": "resources/raw_sql/data_center_market_2353.sql",
-      "sha256": "6cfa8ae573c492c7f28d20232745d7d874dacee6b40325904bdffcf3a2b3e078",
-      "bytes": 17082,
+      "sha256": "8a3378b478e5f2a1be199513e5c137d90d7ecd1c09ffb95923c002bd39ccd14b",
+      "bytes": 17531,
       "category": "raw_sql"
     },
     {
@@ -7310,26 +7250,26 @@
     },
     {
       "source_path": "resources/raw_sql/data_center_market_2423.sql",
-      "sha256": "70e5370d605fc2fe6a38a05723ec14d62838f71b722546dc1cdfa2bc76e803f9",
-      "bytes": 18958,
+      "sha256": "1119aaf719011a48d170c5350a02df527983b1320d2e28ddcf0ce7009a602cf1",
+      "bytes": 19445,
       "category": "raw_sql"
     },
     {
       "source_path": "resources/raw_sql/data_center_market_2424.sql",
-      "sha256": "bd3c2f88f452c0a3250a74cd0787bfe24db6a52b5975bc9f73744c5ca180dbe9",
-      "bytes": 73074,
+      "sha256": "d195e99d62f7506e01ee2bf33b299e4da0b519f7a5769a785bdd4ccae01fa6cf",
+      "bytes": 75041,
       "category": "raw_sql"
     },
     {
       "source_path": "resources/raw_sql/data_center_market_2461.sql",
-      "sha256": "25c85326a4dfee2ae0a411399a466c6d048ead79dd47c695283b173fc14286c9",
-      "bytes": 65836,
+      "sha256": "a822952f02bbfe97f6aa065b8da1683a6158af5a902878c535422bf07fc8f70b",
+      "bytes": 67274,
       "category": "raw_sql"
     },
     {
       "source_path": "resources/raw_sql/data_center_market_2623.sql",
-      "sha256": "bbe5daa2be7e017d674718fe607a0cc88b4b357833eefd3d24a9c49bf0328bed",
-      "bytes": 64449,
+      "sha256": "4c7ff18fdf1e751e080381a7968fd41ac9a20f87a575672e26ad4fcf5ef212da",
+      "bytes": 65887,
       "category": "raw_sql"
     },
     {
@@ -7340,8 +7280,8 @@
     },
     {
       "source_path": "resources/raw_sql/data_center_market_2634.sql",
-      "sha256": "8516a1d127478a239ddc087029299992c995e869c3988987a6147b99b45ff17a",
-      "bytes": 66473,
+      "sha256": "a8573f8658ae318656fadc3feca7b2dfca0756e0835a47410af1854aa48f351c",
+      "bytes": 68440,
       "category": "raw_sql"
     },
     {
@@ -7358,14 +7298,14 @@
     },
     {
       "source_path": "resources/raw_sql/data_center_market_2683.sql",
-      "sha256": "98dcd0023f2defc8dafa3a620dba753ce6a99041cd21b555f4843a052fbfbc96",
-      "bytes": 69963,
+      "sha256": "d2c70efd78d872ab4bb9d03e9835245111b2aad23a7c7176c1e61351cd5d6c56",
+      "bytes": 71401,
       "category": "raw_sql"
     },
     {
       "source_path": "resources/raw_sql/data_center_market_2688.sql",
-      "sha256": "d1875cbc2b3d70cf72858bcd06dd666003a1b67f265ad785b72d206c1c6fb550",
-      "bytes": 68252,
+      "sha256": "a6c308dd1f0407bc6b95b71a9dff1e0d20921a4392586e3e1f592f3dc93dfdd6",
+      "bytes": 69690,
       "category": "raw_sql"
     },
     {
@@ -7382,38 +7322,38 @@
     },
     {
       "source_path": "resources/raw_sql/data_center_market_2751.sql",
-      "sha256": "a0674440d0c490b65e2bebbc5bd47f7602b0cb4e747a60fa0af65c70fcfa717c",
-      "bytes": 70086,
+      "sha256": "8c9bb09cd0e5284dd144bfa0344cfabf6ac7b598485bc83b7eebe26aff88a77f",
+      "bytes": 71524,
       "category": "raw_sql"
     },
     {
       "source_path": "resources/raw_sql/data_center_market_2774.sql",
-      "sha256": "108895169aa33d93e2247eff09eb43932e43d948c53d2303df84919fcdff55b0",
-      "bytes": 65650,
+      "sha256": "425a92a6f21fd41c65cc5bbaff4c3f1310512a34f0afafaaf14f86223b4c0309",
+      "bytes": 67088,
       "category": "raw_sql"
     },
     {
       "source_path": "resources/raw_sql/data_center_market_2809.sql",
-      "sha256": "2832134d481933086d63a209250886e39ccb933c3b87ba82198b7493dc7d51b5",
-      "bytes": 54552,
+      "sha256": "96dd3100d657dd4b354b7fbe2d9ea965e4f74d273e88d20b9a24a77cb150e7a5",
+      "bytes": 66056,
       "category": "raw_sql"
     },
     {
       "source_path": "resources/raw_sql/data_center_market_2812.sql",
-      "sha256": "f36a01827c17080aa04f2d1e5d845d0fc8044d191a53535179074145b7d527d4",
-      "bytes": 51978,
+      "sha256": "e62d91b1a396c3529a5910bedf03c82cf17fcc2f9000ab7486cef0699d7438bc",
+      "bytes": 53416,
       "category": "raw_sql"
     },
     {
       "source_path": "resources/raw_sql/data_center_market_2836.sql",
-      "sha256": "7b88c16ad1ccabe95324e5d93bf75e520a793b004796afdbfb6c4d1b20b16657",
-      "bytes": 59324,
+      "sha256": "ea7251af6ccb537e84102602a81ff25f0600b19afca8959f5f4ca17ae0e2bf69",
+      "bytes": 60762,
       "category": "raw_sql"
     },
     {
       "source_path": "resources/raw_sql/data_center_market_2842.sql",
-      "sha256": "2515b855dd8729a07f6170d71a630ae5c4f97aec6e4945b917b07c3f09431c5d",
-      "bytes": 69476,
+      "sha256": "3b63dfdf7f2ad8953484935cd301ed236f647b33876cddfa2a1218d405eae1e7",
+      "bytes": 70914,
       "category": "raw_sql"
     },
     {
@@ -7424,32 +7364,32 @@
     },
     {
       "source_path": "resources/raw_sql/data_center_market_2883.sql",
-      "sha256": "392be8544dbde2b9f449acf22906f10c458f8ab720d78e2882597e39fd242bcf",
-      "bytes": 58587,
+      "sha256": "85e6ea053bc2b336751e342ddb6c78f2a12bbb21c9ae8460da7c6b89643e15df",
+      "bytes": 60025,
       "category": "raw_sql"
     },
     {
       "source_path": "resources/raw_sql/data_center_market_2885.sql",
-      "sha256": "4d0f771168c37a73b1b36c12021f39b89b86bca7706103293d9b63b61a5dfa44",
-      "bytes": 60261,
+      "sha256": "a59d41f9d67cfad0e0778f780bed10078ddae90c651afc18e1ef803e2e075120",
+      "bytes": 61699,
       "category": "raw_sql"
     },
     {
       "source_path": "resources/raw_sql/data_center_market_2886.sql",
-      "sha256": "d9fa2e5646c20a20dc18a447e7ad98f60d9e98f7495ca76029888d2219f28ce4",
-      "bytes": 55013,
+      "sha256": "9ba75281680320921fc6dffe83900c0d79e350e1d70709a9d5351e41b9d2f856",
+      "bytes": 56451,
       "category": "raw_sql"
     },
     {
       "source_path": "resources/raw_sql/data_center_market_2890.sql",
-      "sha256": "cbf49d8af84158507b685eb188a1fcb29c908a0ba4f218ca69e45bfc392605a4",
-      "bytes": 58012,
+      "sha256": "8bbaa6e226c4d9b9000b650bf2212e35d9c49e20bc79f14fc943b7acbcd53555",
+      "bytes": 59450,
       "category": "raw_sql"
     },
     {
       "source_path": "resources/raw_sql/data_center_market_3039.sql",
-      "sha256": "421f2940e2df9a24bffb5a08b25f119c2f37b999e9fc73c46856dd7a4dc0eef9",
-      "bytes": 80237,
+      "sha256": "8bfdc2c19d9b19365646c9b20f1d5866fc63f2df50eea096ee7689b6ca403ea3",
+      "bytes": 81675,
       "category": "raw_sql"
     },
     {
@@ -7477,9 +7417,9 @@
       "category": "raw_sql"
     },
     {
-      "source_path": "resources/raw_sql/market_channel_case_when_1016.sql",
-      "sha256": "8f251df1d26021f8645b51735b16bc6fb90692eb83c56d5f88b4286d9610803d",
-      "bytes": 44878,
+      "source_path": "resources/raw_sql/market_channel_case_when_1030.sql",
+      "sha256": "15b960a07dbaf421ecbe99d30254790972656da9bf57ea7d60d1753f925b39b7",
+      "bytes": 46309,
       "category": "raw_sql"
     },
     {
@@ -7543,12 +7483,6 @@
       "category": "raw_sql"
     },
     {
-      "source_path": "resources/raw_sql/template_query_market_b_to_a_process_conversion.sql",
-      "sha256": "7eb952c8d966b66a732421188f1702f1665abf6267488872df2439e9deec09d4",
-      "bytes": 120827,
-      "category": "raw_sql"
-    },
-    {
       "source_path": "resources/raw_sql/template_query_market_employee_org.sql",
       "sha256": "f94c371f7f39e1150bb3f0eea5ff4c1f308156a66b2a18247e9dd7c29c3c617c",
       "bytes": 3824,
@@ -7556,32 +7490,26 @@
     },
     {
       "source_path": "resources/raw_sql/template_query_market_finance_order_detail.sql",
-      "sha256": "f9abc4ec4aa26db0457bbdae76341b851376278297883e2e0de879f7ac230ec0",
-      "bytes": 51011,
-      "category": "raw_sql"
-    },
-    {
-      "source_path": "resources/raw_sql/template_query_market_mantou_order_detail_pay_time.sql",
-      "sha256": "c1fa0b1b7f21d8054dead250926f96506625ddfbddbce721142c110b0598440f",
-      "bytes": 73161,
+      "sha256": "c0eacb313e26a6f9d020dafa088a8b593580085005c3127e502c051c092a3e64",
+      "bytes": 54436,
       "category": "raw_sql"
     },
     {
       "source_path": "resources/raw_sql/template_query_market_mantou_order_detail_trade_time.sql",
-      "sha256": "ba621ae54d5f6b8359ce3a212fa3a64b0967e91868667817479b1cf76a8c45d4",
-      "bytes": 71064,
+      "sha256": "bb27ea60087aff92485eec3989ad79ff08a362f4281f5dee52f05a7c8babc1c5",
+      "bytes": 73362,
       "category": "raw_sql"
     },
     {
       "source_path": "resources/raw_sql/template_query_market_multi_subject_order_user.sql",
-      "sha256": "74da608dcdfddb7b6a23494170b665b0ab7069c100b45818fa1d95438dd11501",
-      "bytes": 59712,
+      "sha256": "8523e6d5a43ac53774f20292f0505eb5220179d1c997664784e4c0902ead4af2",
+      "bytes": 61142,
       "category": "raw_sql"
     },
     {
       "source_path": "resources/raw_sql/template_query_market_period_conversion.sql",
-      "sha256": "12580f75958d09a05d431ac702d1c495b786e8a2cb9c514781894adec43d467f",
-      "bytes": 20202,
+      "sha256": "83e69a8de6361049b0764132b8dd76678672a58839b09cc3d62e436885763217",
+      "bytes": 20695,
       "category": "raw_sql"
     },
     {
@@ -7592,8 +7520,8 @@
     },
     {
       "source_path": "resources/raw_sql/template_query_market_wide_analysis.sql",
-      "sha256": "22435ef3153a4d0c2f8ea0df4ae342671742015f0a37d289a81d4c6fef3d4fbf",
-      "bytes": 79841,
+      "sha256": "3ab1da86c565c0b1bf964fea6b0e26fac751c89fe1f7a04f628e24c717cf0de5",
+      "bytes": 81471,
       "category": "raw_sql"
     }
   ]

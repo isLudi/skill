@@ -62,8 +62,7 @@ def _config(*, validate_reports: bool = True) -> dict:
         raise ValueError("The five SEC reports or their delivery order differ")
     if cfg["source"]["sources"] != {
             "sec_public": {"match": {"一级渠道": "公域", "渠道": "公域学霸", "部门": "SEC"}},
-            "sec_order_reuse": {"match": {"一级渠道": "订单复用", "部门": "SEC"},
-                                "allowed_secondary_channels": ["SEC未加好友", "SEC首期掉海", "SEC招生退费"]}}:
+            "sec_order_reuse": {"match": {"一级渠道": "订单复用"}}}:
         raise ValueError("SEC source routing differs")
     bars = cfg["visual"]["metric_bars"]
     if (tuple(bars) != SEC_BAR_FIELDS or len({item["color"] for item in bars.values()}) != 4
@@ -88,6 +87,9 @@ def _validate_entry(entry: dict) -> None:
     if tuple(entry[field] for field in ("source", "secondary_channel", "channel_name", "level",
                                         "minimum_leads", "split_grade", "unresolved_mention_action", "chat_id")) != expected[entry["id"]]:
         raise ValueError(f"SEC report routing differs: {entry['id']}")
+    expected_department = "SEC" if entry["secondary_channel"] else None
+    if entry.get("department") != expected_department:
+        raise ValueError(f"SEC report department differs: {entry['id']}")
     _request(entry)
 
 
@@ -111,6 +113,17 @@ def _request(entry: dict) -> dict:
             or (entry["level"] == "顾问" and "顾问" not in columns)):
         raise ValueError(f"SEC Base display columns differ: {entry['id']}")
     return request
+
+
+def _report_config(entry: dict, cfg: dict) -> dict:
+    """Own the exact source scope per message, including supervisor-only filters."""
+    scoped = deepcopy(cfg)
+    match = scoped["source"]["sources"][entry["source"]]["match"]
+    if entry["secondary_channel"]:
+        match["渠道"] = entry["secondary_channel"]
+    if entry.get("department"):
+        match["部门"] = entry["department"]
+    return scoped
 
 
 def _period(day: date) -> str:
@@ -163,35 +176,36 @@ def _fresh(manifest: dict, slot: datetime) -> None:
 def _source_rows(source: str, period: str, slot_dir: Path, audit: dict, cfg: dict,
                  slot: datetime | None) -> tuple[list[dict], dict]:
     path = slot_dir / source / "source.ndjson"
-    manifest = fetch(source, period, path)
     match = cfg["source"]["sources"][source]["match"]
+    options = ({"secondary_channel": match["渠道"]}
+               if source == "sec_order_reuse" and match.get("渠道") else {})
+    manifest = fetch(source, period, path, **options)
     # Upstream counts cover every department within the channel. Verify that
     # complete slice before selecting the report's configured department.
     channel_match = {key: value for key, value in match.items() if key != "部门"}
     rows, manifest = _read_snapshot(path, {"source": {"match": channel_match}})
-    names = (("内部图书",) if source == "internal_books" else
-             ("公域学霸",) if source == "sec_public" else ("SEC未加好友", "SEC首期掉海", "SEC招生退费"))
+    counts = Counter(row["渠道"] for row in rows)
+    names = ((match["渠道"],) if match.get("渠道") else tuple(counts))
+    if audit and any(name not in audit["raw_channel_counts"] for name in names):
+        raise ValueError(f"SEC {source} source contains a channel missing from the upstream audit")
     expected = sum(audit["raw_channel_counts"].get(name, 0) for name in names) if audit else len(rows)
     if manifest["records_count"] != expected or manifest["period"] != period:
         raise ValueError(f"SEC {source} source count or period differs from upstream audit")
     if audit and [str(value) for value in manifest["snapshot"]] != [str(value) for value in audit["snapshot"]]:
         raise ValueError(f"SEC {source} source snapshot differs from upstream audit")
     if source == "sec_order_reuse":
-        allowed = set(cfg["source"]["sources"][source]["allowed_secondary_channels"])
-        if any(row["渠道"] not in allowed for row in rows):
-            raise ValueError("SEC order-reuse source contains an unreviewed secondary channel")
-        for name in allowed:
+        for name in names:
             if audit and sum(row["渠道"] == name for row in rows) != audit["raw_channel_counts"].get(name, 0):
                 raise ValueError(f"SEC {name} raw source count differs from upstream audit")
     if slot:
         _fresh(manifest, slot)
-    if any(not isinstance(row.get("部门"), str) or not row["部门"].strip() for row in rows):
+    if match.get("部门") and any(not isinstance(row.get("部门"), str) or not row["部门"].strip() for row in rows):
         raise ValueError("SEC source contains a missing department")
     department = match.get("部门")
     selected = [row for row in rows if department is None or row["部门"] == department]
     excluded = Counter(row["部门"] for row in rows if department is not None and row["部门"] != department)
     scope_audit = {
-        "department": department, "raw_records_count": len(rows),
+        "department": department, "source_match": match, "raw_records_count": len(rows),
         "selected_records_count": len(selected), "excluded_records_count": sum(excluded.values()),
         "excluded_department_counts": dict(sorted(excluded.items())),
         "raw_channel_counts": dict(sorted(Counter(row["渠道"] for row in rows).items())),
@@ -202,6 +216,19 @@ def _source_rows(source: str, period: str, slot_dir: Path, audit: dict, cfg: dic
     # Keep records_count tied to source.ndjson; selected rows have their own
     # explicit count rather than changing the raw export's manifest.
     return selected, {**manifest, "scope_audit": scope_audit}
+
+
+def _pin_report_source(entry: dict, manifest: dict, period: str, slot: datetime, output: Path) -> None:
+    path = output / entry["id"] / "source_version.json"
+    pin = {"period": period, "slot": slot.isoformat(), "rev": manifest["rev"],
+           "snapshot": list(manifest["snapshot"])}
+    # Preserve an already-started slot's legacy pin when upgrading in place.
+    prior_path = path if path.exists() else output / "source_version.json"
+    if prior_path.exists():
+        previous = json.loads(prior_path.read_text(encoding="utf-8"))
+        if {key: previous.get(key) for key in pin} != pin:
+            raise ValueError(f"SEC source version changed inside the delivery slot: {entry['id']}")
+    _write_json(path, pin)
 
 
 def _build_report(entry: dict, source_rows: list[dict], manifest: dict, cfg: dict, output: Path) -> dict | None:
@@ -370,8 +397,10 @@ def _deliver(entry: dict, review: dict, manifest: dict, cfg: dict, output: Path,
         return _reverify(entry, cfg, prior, receipt_path)
     # The probe is a precondition read: a transport failure means nothing was learned, so
     # it is retried in-round, while a returned revision that differs still fails closed.
+    options = ({"secondary_channel": entry["secondary_channel"]}
+               if entry["source"] == "sec_order_reuse" and entry.get("secondary_channel") else {})
     current = retry_transport(lambda: probe_revision(
-        entry["source"], review["period"], output / "source_revision_probe.ndjson"))
+        entry["source"], review["period"], output / "source_revision_probe.ndjson", **options))
     if current != manifest["rev"]:
         raise ValueError("SEC Base revision changed before delivery")
     member_ids = _members(entry["chat_id"], cfg["sender"]["open_id"])
@@ -465,59 +494,30 @@ def _run_base(*, now: datetime | None = None, output: Path | None = None) -> dic
         return batch
     batch["upstream_audit"] = audit
 
-    source_data: dict[str, tuple[list[dict], dict]] = {}
-    source_errors: dict[str, str] = {}
-    for source in dict.fromkeys(entry["source"] for entry in pending):
-        names = ("公域学霸",) if source == "sec_public" else ("SEC未加好友", "SEC首期掉海", "SEC招生退费")
-        if sum(audit["raw_channel_counts"].get(name, 0) for name in names) == 0:
-            source_errors[source] = "zero_source_rows"
-            continue
-        try:
-            source_data[source] = _source_rows(source, period, output, audit, cfg, slot)
-            if "scope_audit" in source_data[source][1]:
-                batch.setdefault("source_scope_audits", {})[source] = source_data[source][1]["scope_audit"]
-        except Exception as exc:
-            source_errors[source] = str(exc)
-
-    pin_path = output / "source_version.json"
-    pin = json.loads(pin_path.read_text(encoding="utf-8")) if pin_path.exists() else None
-    observed = {(manifest["rev"], tuple(manifest["snapshot"])) for _, manifest in source_data.values()}
-    if len(observed) > 1:
-        for source in source_data:
-            source_errors[source] = "SEC source slices came from different Base revisions or snapshots"
-        source_data.clear()
-    elif observed:
-        revision, snapshot = next(iter(observed))
-        if pin and (pin["rev"], tuple(pin["snapshot"])) != (revision, snapshot):
-            for source in source_data:
-                source_errors[source] = "SEC source version changed inside the same delivery slot"
-            source_data.clear()
-        elif not pin:
-            _write_json(pin_path, {"period": period, "slot": slot.isoformat(),
-                                   "rev": revision, "snapshot": list(snapshot)})
-
     for entry in pending:
         report_id = entry["id"]
         report_dir = output / report_id
         try:
-            if entry["source"] in source_errors:
-                if source_errors[entry["source"]] == "zero_source_rows":
-                    results[report_id] = {"status": "skipped_no_source_rows"}
-                else:
-                    raise ValueError(source_errors[entry["source"]])
+            scoped = _report_config(entry, cfg)
+            match = scoped["source"]["sources"][entry["source"]]["match"]
+            secondary = match.get("渠道")
+            if secondary and audit["raw_channel_counts"].get(secondary, 0) == 0:
+                results[report_id] = {"status": "skipped_no_source_rows"}
             else:
-                rows, manifest = source_data[entry["source"]]
-                secondary = entry["secondary_channel"]
-                if secondary and audit["raw_channel_counts"].get(secondary, 0) == 0:
-                    results[report_id] = {"status": "skipped_no_source_rows"}
+                rows, manifest = _source_rows(entry["source"], period, report_dir, audit, scoped, slot)
+                _pin_report_source(entry, manifest, period, slot, output)
+                if "scope_audit" in manifest:
+                    batch.setdefault("source_scope_audits", {})[report_id] = manifest["scope_audit"]
+                review = _build_report(entry, rows, manifest, scoped, report_dir)
+                if review is None:
+                    results[report_id] = {"status": "skipped_no_eligible_rows"}
                 else:
-                    review = _build_report(entry, rows, manifest, cfg, report_dir)
-                    if review is None:
-                        results[report_id] = {"status": "skipped_no_eligible_rows"}
-                    else:
-                        results[report_id] = _deliver(entry, review, manifest, cfg, report_dir, slot)
+                    results[report_id] = _deliver(entry, review, manifest, scoped, report_dir, slot)
         except Exception as exc:
-            receipt = _receipt_status(report_dir / "send_receipt.json")
+            try:
+                receipt = _receipt_status(report_dir / "send_receipt.json")
+            except Exception:
+                receipt = None
             results[report_id] = receipt or {"status": "blocked", "error": str(exc)}
         _write_json(batch_path, batch)
     return batch
@@ -570,7 +570,11 @@ def _run_internal_books(cfg: dict, period: str, slot: datetime, output: Path, au
         return receipt
     audit = audit or _upstream_audit(period, slot)
     if "内部图书" not in audit["raw_channel_counts"]:
-        # Only an audited explicit zero may skip the channel.
+        # Producer counts omit empty channels. A complete, reconciled period
+        # proves zero; a partial or unqualified channel map still blocks.
+        total = audit.get("period_row_count")
+        if type(total) is int and total > 0 and total == sum(audit["raw_channel_counts"].values()):
+            return {"status": "skipped_no_source_rows"}
         raise ValueError("Qingcheng audit has no internal-books channel evidence")
     if audit["raw_channel_counts"]["内部图书"] == 0:
         return {"status": "skipped_no_source_rows"}

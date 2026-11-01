@@ -1,4 +1,6 @@
 param([switch]$ConfirmUpdate)
+# This legacy updater owns only the two retained Gaoyang tasks.
+# Grade bundles and daily comparison use their own reviewed registration scripts.
 $ErrorActionPreference = 'Stop'
 $env:PYTHONIOENCODING = 'utf-8'
 $env:PYTHONUTF8 = '1'
@@ -10,13 +12,7 @@ if ((Get-TimeZone).Id -ne 'China Standard Time') { throw 'Task host timezone mus
 
 $pushDefinitions = @(
     @{ Config = 'scheduled_push.json'; Task = 'Codex-Lark-Market-KOC-GroupPush'; Launcher = 'run_scheduled_push.ps1' },
-    @{ Config = 'business_koc_math_scheduled_push.json'; Task = 'Codex-Lark-Business-KOC-Math-Push'; Launcher = 'run_business_koc_math_scheduled_push.ps1' },
-    @{ Config = 'supervisor_koc_douyin_sync_scheduled_push.json'; Task = 'Codex-Lark-Supervisor-KOC-Douyin-Push'; Launcher = 'run_supervisor_koc_douyin_sync_scheduled_push.ps1' },
-    @{ Config = 'supervisor_private_app_sync_scheduled_push.json'; Task = 'Codex-Lark-Supervisor-Private-App-Push'; Launcher = 'run_supervisor_private_app_sync_scheduled_push.ps1' },
-    @{ Config = 'supervisor_self_incubated_koc_5_grade_9_scheduled_push.json'; Task = 'Codex-Lark-Supervisor-KOC-Grade9-Push'; Launcher = 'run_supervisor_self_incubated_koc_5_grade_9_scheduled_push.ps1' },
-    @{ Config = 'supervisor_yafei_grade_9_scheduled_push.json'; Task = 'Codex-Lark-Supervisor-Yafei-Grade9-Push'; Launcher = 'run_supervisor_yafei_grade_9_scheduled_push.ps1' },
-    @{ Config = 'supervisor_zhu_doctor_video49_scheduled_push.json'; Task = 'Codex-Lark-Supervisor-Zhu-Doctor-Video49-Push'; Launcher = 'run_supervisor_zhu_doctor_video49_scheduled_push.ps1' },
-    @{ Config = 'supervisor_chenruichun_scheduled_push.json'; Task = 'Codex-Lark-Supervisor-Chen-Ruichun-Push'; Launcher = 'run_supervisor_chenruichun_scheduled_push.ps1' }
+    @{ Config = 'business_koc_math_scheduled_push.json'; Task = 'Codex-Lark-Business-KOC-Math-Push'; Launcher = 'run_business_koc_math_scheduled_push.ps1' }
 )
 $pushPlan = @()
 foreach ($pushDefinition in $pushDefinitions) {

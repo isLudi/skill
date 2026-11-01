@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 import html
 import json
 from pathlib import Path
@@ -37,7 +38,17 @@ def _audit(path: Path, period: str) -> dict:
             "counts": {channel: sum(info["channel_counts"].get(name, 0) for name in names)
                        for channel, names in AUDIT_CHANNELS.items()},
             "secondary_counts": {name: info["channel_counts"].get(name, 0)
-                                 for name in AUDIT_CHANNELS["sec_order_reuse"]}}
+                                 for name in AUDIT_CHANNELS["sec_order_reuse"]},
+            "raw_channel_counts": info["channel_counts"]}
+
+
+def _verify_source_audit(rows: list[dict], manifest: dict, audit: dict, period: str) -> None:
+    counts = Counter(row["渠道"] for row in rows)
+    if (manifest["period"] != period or manifest["snapshot"] != audit["snapshot"]
+            or manifest["records_count"] != len(rows)
+            or any(name not in audit["raw_channel_counts"]
+                   or count != audit["raw_channel_counts"][name] for name, count in counts.items())):
+        raise ValueError("SEC Base source differs from upstream audit")
 
 
 def _reminder(rows: list[dict], level: str) -> dict:
@@ -89,7 +100,11 @@ def _build_one(source: Path, request_path: Path, config_path: Path, level_slug: 
     split_grade = level == "顾问"
     if (profile["split_grade"], profile["reminder_by_grade"]) != (split_grade, split_grade):
         raise ValueError("SEC consultant grade partition differs")
-    rows, manifest = _read_snapshot(source, config)
+    raw_config = {"source": {"match": {key: value for key, value in config["source"]["match"].items() if key != "部门"}}}
+    rows, manifest = _read_snapshot(source, raw_config)
+    department = config["source"]["match"].get("部门")
+    if department:
+        rows = [row for row in rows if row.get("部门") == department]
     if manifest["channel"] != config["channel_id"]:
         raise ValueError("SEC source channel identity differs")
     allowed_secondary = set(config["source"].get("allowed_secondary_channels", []))
@@ -146,9 +161,9 @@ def build(source_root: Path, output: Path, audit_log: Path, period_date: str) ->
     for channel in AUDIT_CHANNELS:
         source = source_root / channel / "source.ndjson"
         manifest = json.loads(source.with_suffix(".manifest.json").read_text(encoding="utf-8"))
-        if (manifest["records_count"], manifest["snapshot"], manifest["period"]) != (
-                audit["counts"][channel], audit["snapshot"], period):
-            raise ValueError(f"SEC {channel} Base source differs from upstream audit")
+        raw_config = {"source": {"match": {"一级渠道": "订单复用" if channel == "sec_order_reuse" else "公域", **({"渠道": "公域学霸"} if channel == "sec_public" else {})}}}
+        rows, manifest = _read_snapshot(source, raw_config)
+        _verify_source_audit(rows, manifest, audit, period)
         manifests[channel] = manifest
     if len({(manifest["rev"], tuple(manifest["snapshot"])) for manifest in manifests.values()}) != 1:
         raise ValueError("SEC sources do not share a Base revision and snapshot")

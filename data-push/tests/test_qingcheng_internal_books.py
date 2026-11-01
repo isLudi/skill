@@ -140,7 +140,7 @@ def test_conversion_send_failure_does_not_stop_other_channels(monkeypatch,tmp_pa
         return {"status":"sent_verified"}
     monkeypatch.setattr(books,"deliver",lambda *args:send("internal_books"))
     monkeypatch.setattr(conversion,"_send_group",lambda channel,*args:send(channel))
-    monkeypatch.setattr(conversion,"probe_revision",lambda *args:1)
+    monkeypatch.setattr(conversion,"probe_revision",lambda *args,**kwargs:1)
     monkeypatch.setattr(conversion,"_probe_conversion_rev",lambda *args:2)
     conversion._deliver_groups(batch,result,tmp_path,SLOT)
     assert sent == ["internal_books","partner_books"]

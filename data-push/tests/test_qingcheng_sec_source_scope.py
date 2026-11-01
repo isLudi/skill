@@ -28,7 +28,7 @@ def _rows(departments, channel="公域学霸"):
 
 
 def _fetch_stub(monkeypatch, rows, **overrides):
-    def fetch(source, period, path):
+    def fetch(source, period, path, **kwargs):
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text("".join(json.dumps(row, ensure_ascii=False) + "\n" for row in rows), encoding="utf-8")
         manifest = {"records_count": len(rows), "has_more": False, "period": PERIOD,
@@ -90,15 +90,15 @@ def test_outside_department_rows_still_pass_integrity_checks_first(monkeypatch, 
         sec._source_rows("sec_public", PERIOD, tmp_path, audit, sec._config(), SLOT)
 
 
-def test_order_reuse_checks_all_channel_counts_before_department_selection(monkeypatch, tmp_path):
+def test_order_reuse_checks_all_channel_counts_and_retains_all_departments(monkeypatch, tmp_path):
     rows = _rows(["SEC", "一部"], "SEC未加好友")
     rows += [{**row, "record_id": "other", "记录键": "other"}
              for row in _rows(["SEC"], "SEC首期掉海")]
     _fetch_stub(monkeypatch, rows)
     audit = {"snapshot": SNAPSHOT, "raw_channel_counts": {"SEC未加好友": 2, "SEC首期掉海": 1}}
     selected, manifest = sec._source_rows("sec_order_reuse", PERIOD, tmp_path, audit, sec._config(), SLOT)
-    assert len(selected) == 2
-    assert manifest["scope_audit"]["selected_channel_counts"] == {"SEC未加好友": 1, "SEC首期掉海": 1}
+    assert len(selected) == 3
+    assert manifest["scope_audit"]["selected_channel_counts"] == {"SEC未加好友": 2, "SEC首期掉海": 1}
     audit["raw_channel_counts"] = {"SEC未加好友": 1, "SEC首期掉海": 2}
     with pytest.raises(ValueError, match="raw source count"):
         sec._source_rows("sec_order_reuse", PERIOD, tmp_path, audit, sec._config(), SLOT)
@@ -123,7 +123,7 @@ def test_both_public_reports_receive_only_sec_rows_and_record_exclusions(monkeyp
     monkeypatch.setattr(sec, "_deliver", deliver)
     batch = sec.run(now=SLOT, output=tmp_path)
     assert built == delivered == ["sec_public_consultant", "sec_public_supervisor"]
-    assert batch["source_scope_audits"]["sec_public"]["excluded_records_count"] == 1
+    assert batch["source_scope_audits"]["sec_public_consultant"]["excluded_records_count"] == 1
 
 
 def test_zero_sec_rows_skip_without_building_empty_message(monkeypatch, tmp_path):
@@ -138,4 +138,4 @@ def test_zero_sec_rows_skip_without_building_empty_message(monkeypatch, tmp_path
     batch = sec.run(now=SLOT, output=tmp_path)
     for report_id in ("sec_public_consultant", "sec_public_supervisor"):
         assert batch["reports"][report_id]["status"] == "skipped_no_eligible_rows"
-    assert batch["source_scope_audits"]["sec_public"]["selected_records_count"] == 0
+    assert batch["source_scope_audits"]["sec_public_consultant"]["selected_records_count"] == 0

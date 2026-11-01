@@ -499,6 +499,11 @@ class MergeWorkflowTests(unittest.TestCase):
         )
         self.assertEqual(course_family["source_kind"], "file_attachment")
         self.assertTrue(course_family["source_filename_patterns"])
+        self.assertEqual(course_family["source_merge_mode"], "all_source_slices")
+        self.assertEqual(course_family["source_quality"]["row_count"]["max"], 10000)
+        self.assertFalse(
+            any(rule.get("type") == "single_slice" for rule in course_family["validation_rules"])
+        )
         self.assertFalse(
             any(
                 key.startswith(("source_url", "source_env", "source_browser"))

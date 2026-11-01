@@ -1,6 +1,9 @@
 # APP 与 B站初三主管、顾问统一任务
 
-配置：[app_grade_9.json](../../../config/departments/market_consultant/app_grade_9.json)；入口：[app_grade_9.py](../../../scripts/channels/market_consultant/app_grade_9.py)。需求来自渠道配置 Base 的申请 `market_consultant/app_grade_9`，2026-10-10 读取运营记录 `recvxD76bIB8eG`；转化提醒指标由用户确认使用截面单效。
+> 2026-10-29：本专用任务已退役，配置和入口已删除。以下为历史口径与故障记录；活动任务以[现行设置](../market_consultant.md#现行本地推送设置2026-10-29)为准，共用计算模块继续供新任务复用。
+
+
+配置：`app_grade_9.json`（旧专用文件已退役归档）；入口：`app_grade_9.py`（旧专用文件已退役归档）。需求来自渠道配置 Base 的申请 `market_consultant/app_grade_9`，2026-10-10 读取运营记录 `recvxD76bIB8eG`；转化提醒指标由用户确认使用截面单效。
 
 ## 顾问报告
 

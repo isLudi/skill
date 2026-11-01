@@ -110,6 +110,20 @@ def test_internal_books_missing_audit_is_not_assumed_empty(tmp_path):
         sec._run_internal_books(sec._config(), "20261016期", SLOT, tmp_path, {"raw_channel_counts": {}})
 
 
+def test_complete_period_proves_omitted_internal_books_is_empty(monkeypatch, tmp_path):
+    audit = {"period_row_count": 3, "raw_channel_counts": {"SEC未加好友": 3}}
+    monkeypatch.setattr(sec, "_source_rows", lambda *a: pytest.fail("An audited empty channel must not fetch or send"))
+    assert sec._run_internal_books(sec._config(), "20261016期", SLOT, tmp_path, audit) == {
+        "status": "skipped_no_source_rows"}
+
+
+@pytest.mark.parametrize("total", [4, 0, None, True])
+def test_incomplete_period_does_not_prove_internal_books_is_empty(tmp_path, total):
+    audit = {"period_row_count": total, "raw_channel_counts": {"SEC未加好友": 3}}
+    with pytest.raises(ValueError, match="no internal-books channel evidence"):
+        sec._run_internal_books(sec._config(), "20261016期", SLOT, tmp_path, audit)
+
+
 @pytest.mark.parametrize("failure", ["request", "receipt"])
 def test_one_existing_report_parse_error_does_not_block_siblings_or_books(monkeypatch, tmp_path, failure):
     validate = sec._validate_entry

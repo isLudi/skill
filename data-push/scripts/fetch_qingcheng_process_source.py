@@ -19,16 +19,20 @@ PRIMARY = {"public_pool": "公海", "private": "私域", "douyin_dm": "抖音私
            "sec_public": "公域", "sec_order_reuse": "订单复用",
            "special_books": "图书", "special_public_pool": "公海",
            "partner_books": "图书", "partner_local": "本地化", "internal_books": "图书"}
-SEC_ORDER_CHANNELS = {"SEC未加好友", "SEC首期掉海", "SEC招生退费"}
 PRIVATE_CHANNELS = ("私域表单", "私域品效", "表单浙江", "表单江苏")
 PAGE_SIZE = 2000
 
 
-def fetch(channel: str, period: str, output: Path) -> dict:
+def fetch(channel: str, period: str, output: Path, *, secondary_channel: str | None = None,
+          allow_empty: bool = False) -> dict:
     if channel not in PRIMARY or not re.fullmatch(r"20\d{6}期", period):
         raise ValueError("Channel or period is invalid")
     output.parent.mkdir(parents=True, exist_ok=True)
     condition = [["一级渠道", "==", PRIMARY[channel]], ["期次", "==", period]]
+    if secondary_channel is not None:
+        if channel != "sec_order_reuse" or secondary_channel not in {"SEC未加好友", "SEC首期掉海"}:
+            raise ValueError("Unreviewed SEC report secondary channel")
+        condition.append(["渠道", "==", secondary_channel])
     if channel == "public_pool":
         condition.append(["渠道", "==", "顾问未加好友"])
     elif channel == "douyin_dm":
@@ -66,8 +70,10 @@ def fetch(channel: str, period: str, output: Path) -> dict:
                 raise ValueError("SEC public secondary channel changed")
             if channel == "internal_books" and row.get("渠道") != "内部图书":
                 raise ValueError("Internal-books secondary channel changed")
-            if channel == "sec_order_reuse" and row.get("渠道") not in SEC_ORDER_CHANNELS:
-                raise ValueError("SEC order-reuse secondary channel changed")
+            if secondary_channel is not None and row.get("渠道") != secondary_channel:
+                raise ValueError("SEC report secondary channel changed")
+            if channel == "sec_order_reuse" and (not isinstance(row.get("渠道"), str) or not row["渠道"].strip()):
+                raise ValueError("SEC order-reuse secondary channel is missing")
             if channel == "private" and not row.get("渠道"):
                 raise ValueError("Private secondary channel is missing")
             point = (row.get("分区日期"), row.get("分区小时"))
@@ -82,7 +88,26 @@ def fetch(channel: str, period: str, output: Path) -> dict:
         offset += len(page_rows)
     else:
         raise ValueError("Base pagination exceeded the reviewed bound")
-    if not rows or len({row.get("record_id") for row in rows}) != len(rows) or len({row.get("记录键") for row in rows}) != len(rows):
+    empty_scope_verified = False
+    if not rows and allow_empty and channel == "partner_books":
+        # An empty channel still needs a current-period snapshot at the same
+        # Base revision. Never infer freshness from an old period or a clock.
+        witness = output.with_name(output.stem + ".period_snapshot.ndjson")
+        period_filter = json.dumps({"logic": "and", "conditions": [["期次", "==", period]]}, ensure_ascii=True)
+        run_lark(["base", "+record-list", "--base-token", BASE_TOKEN, "--table-id", TABLE_ID,
+                  "--filter-json", period_filter, "--limit", "1", "--format", "ndjson",
+                  "--output", str(witness), "--as", "user", "--overwrite"], cwd=WORKSPACE, timeout=120)
+        proof = json.loads(witness.with_suffix(".manifest.json").read_text(encoding="utf-8"))
+        sample = [json.loads(line) for line in witness.read_text(encoding="utf-8").splitlines() if line]
+        if ((proof.get("base_token"), proof.get("table_id"), proof.get("rev"), proof.get("records_count"))
+                != (BASE_TOKEN, TABLE_ID, revision, 1) or len(sample) != 1 or sample[0].get("期次") != period):
+            raise ValueError("Empty channel snapshot witness is missing or changed revision")
+        snapshot = (sample[0].get("分区日期"), sample[0].get("分区小时"))
+        if (not re.fullmatch(r"20\d{6}", str(snapshot[0]))
+                or not re.fullmatch(r"\d{1,2}", str(snapshot[1])) or not 0 <= int(snapshot[1]) <= 23):
+            raise ValueError("Empty channel snapshot witness is invalid")
+        empty_scope_verified = True
+    if (not rows and not empty_scope_verified) or len({row.get("record_id") for row in rows}) != len(rows) or len({row.get("记录键") for row in rows}) != len(rows):
         raise ValueError("Missing or duplicate Qingcheng process source rows")
     exported_count = len(rows)
     excluded_channels = Counter()
@@ -96,6 +121,10 @@ def fetch(channel: str, period: str, output: Path) -> dict:
                 "table_id": TABLE_ID, "rev": revision, "records_count": len(rows),
                 "page_count": page + 1, "has_more": False, "channel": channel, "period": period,
                 "snapshot": list(snapshot)}
+    if empty_scope_verified:
+        combined["empty_scope_verified"] = True
+    if secondary_channel is not None:
+        combined["secondary_channel"] = secondary_channel
     if channel == "private":
         combined.update(export_records_count=exported_count,
                         excluded_secondary_channel_counts=dict(sorted(excluded_channels.items())))
@@ -103,10 +132,15 @@ def fetch(channel: str, period: str, output: Path) -> dict:
     return combined
 
 
-def probe_revision(channel: str, period: str, output: Path) -> int:
+def probe_revision(channel: str, period: str, output: Path, *, secondary_channel: str | None = None,
+                   allow_empty: bool = False) -> int:
     if channel not in PRIMARY or not re.fullmatch(r"20\d{6}期", period):
         raise ValueError("Channel or period is invalid")
     conditions = [["一级渠道", "==", PRIMARY[channel]], ["期次", "==", period]]
+    if secondary_channel is not None:
+        if channel != "sec_order_reuse" or secondary_channel not in {"SEC未加好友", "SEC首期掉海"}:
+            raise ValueError("Unreviewed SEC report secondary channel")
+        conditions.append(["渠道", "==", secondary_channel])
     if channel == "public_pool":
         conditions.append(["渠道", "==", "顾问未加好友"])
     elif channel == "douyin_dm":
@@ -121,7 +155,10 @@ def probe_revision(channel: str, period: str, output: Path) -> int:
               "--limit", "1", "--format", "ndjson", "--output", str(output),
               "--as", "user", "--overwrite"], cwd=WORKSPACE, timeout=120)
     manifest = json.loads(output.with_suffix(".manifest.json").read_text(encoding="utf-8"))
-    if (manifest.get("base_token"), manifest.get("table_id"), manifest.get("records_count")) != (BASE_TOKEN, TABLE_ID, 1) or not isinstance(manifest.get("rev"), int):
+    count = manifest.get("records_count")
+    verified_empty = allow_empty and channel == "partner_books" and count == 0 and manifest.get("has_more") is False
+    if ((manifest.get("base_token"), manifest.get("table_id")) != (BASE_TOKEN, TABLE_ID)
+            or (count != 1 and not verified_empty) or not isinstance(manifest.get("rev"), int)):
         raise ValueError("Raw Base revision probe failed")
     return manifest["rev"]
 

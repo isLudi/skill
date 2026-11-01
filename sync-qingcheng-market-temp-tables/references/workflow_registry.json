@@ -1,8 +1,8 @@
 {
-  "version": 13,
-  "updated_at": "2026-10-22",
+  "version": 14,
+  "updated_at": "2026-10-29",
   "source_sender_policy": "any_group_member",
-  "source_sender_policy_notes": "2026-10-01 起默认按登记群 + 文件名模式 + 多族命中阻断识别来源；course_schedule 另按显式维护人白名单校验。默认家族的 source_sender_open_id/name 仅作审计元数据；course_schedule 的 source_sender_open_ids 为硬校验。2026-10-15 到课表维护人调整为郅玲玉和崔浩，移除已离职的李怡青。2026-10-22 修正共享架构的跨部门重复键校验，并将市场到课表已验证累计行数上限调整为 10000。",
+  "source_sender_policy_notes": "2026-10-01 起默认按登记群 + 文件名模式 + 多族命中阻断识别来源；course_schedule 另按显式维护人白名单校验。默认家族的 source_sender_open_id/name 仅作审计元数据；course_schedule 的 source_sender_open_ids 为硬校验。2026-10-15 到课表维护人调整为郅玲玉和崔浩，移除已离职的李怡青。2026-10-22 修正共享架构的跨部门重复键校验，并将市场到课表已验证累计行数上限调整为 10000。2026-10-29 青橙行课改为历史累计来源按 qici 切片追加维护，移除过时的 single_slice 门禁并将累计来源上限调整为 10000。",
   "require_source_quality_gates": true,
   "domains": {
     "qingcheng": {
@@ -370,7 +370,7 @@
       "source_quality": {
         "policy_version": "1.0.0",
         "max_age_hours": 240,
-        "row_count": {"min": 20, "max": 500},
+        "row_count": {"min": 20, "max": 10000},
         "relative_change": {
           "baseline": "same_slice_or_latest_target",
           "max_ratio": 0.5
@@ -389,8 +389,7 @@
         {"type": "required_nonblank", "columns": ["qudao", "begin_time", "qici", "dow", "grade", "ke_1"]},
         {"type": "datetime_format", "column": "begin_time", "format": "%Y-%m-%d %H:%M:%S"},
         {"type": "allowed_values", "column": "dow", "values": ["1", "2", "3", "4", "5", "6", "7"]},
-        {"type": "allowed_values", "column": "ke_1", "values": ["1", "2", "3", "4", "5", "6"]},
-        {"type": "single_slice", "column": "qici"}
+        {"type": "allowed_values", "column": "ke_1", "values": ["1", "2", "3", "4", "5", "6"]}
       ]
     },
     {

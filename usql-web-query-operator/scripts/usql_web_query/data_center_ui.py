@@ -72,7 +72,11 @@ def click_optional_save_confirmation(page: Any) -> bool:
         while time.monotonic() < deadline:
             candidate = page.locator('.ant-modal:visible, [role="dialog"]:visible').last
             try:
-                candidate.wait_for(state="visible", timeout=500)
+                # Dependency checks can return after the first 500 ms. Use the
+                # remaining dialog grace period instead of abandoning it early.
+                candidate.wait_for(
+                    state="visible", timeout=max(1, int((deadline - time.monotonic()) * 1000))
+                )
             except Exception:
                 break
             signature = candidate.inner_text().strip()

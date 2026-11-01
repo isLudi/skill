@@ -1,4 +1,4 @@
-"""Both reviewed localization channels contribute once to existing reports."""
+"""All three reviewed localization channels contribute once to existing reports."""
 import json
 import sys
 from pathlib import Path
@@ -9,19 +9,19 @@ sys.path.insert(0, str(SCRIPTS))
 from preview_qingcheng_public_pool_process import _matches_channel, _read_snapshot
 import preview_qingcheng_transformation as conversion
 
-MATCH = {'一级渠道': '本地化', '渠道': ['河南APP', '河南私域']}
+MATCH = {'一级渠道': '本地化', '渠道': ['河南APP', '河南私域', '河南未加好友']}
 
 
-def test_complete_local_snapshot_accepts_both_channels_and_rejects_other_rows(tmp_path):
+def test_complete_local_snapshot_accepts_three_channels_and_rejects_other_rows(tmp_path):
     path = tmp_path / 'local.ndjson'
     rows = [{'record_id': str(i), '记录键': str(i), '期次': '20261023期',
              '分区日期': '20261022', '分区小时': '14', '一级渠道': '本地化', '渠道': channel}
             for i, channel in enumerate(MATCH['渠道'])]
-    path.with_suffix('.manifest.json').write_text(json.dumps({'has_more': False, 'records_count': 2}), encoding='utf-8')
+    path.with_suffix('.manifest.json').write_text(json.dumps({'has_more': False, 'records_count': 3}), encoding='utf-8')
     def read():
         path.write_text('\n'.join(json.dumps(r, ensure_ascii=True) for r in rows), encoding='utf-8')
         return _read_snapshot(path, {'source': {'match': MATCH}})[0]
-    assert len(read()) == 2
+    assert len(read()) == 3
     rows[1]['渠道'] = '其他本地化'
     with pytest.raises(ValueError, match='outside'):
         read()
@@ -38,7 +38,7 @@ def test_local_channels_merge_leads_and_money_without_double_counting_people():
     channel = next(c for c in cfg['channels'] if c['id'] == 'partner_local')
     request = json.loads((SCRIPTS.parent / 'config/departments/qingcheng' / channel['consultant_request']).read_text(encoding='utf-8'))
     process, finance = [], []
-    for i, (name, leads, cash) in enumerate([('河南APP', 2, 100), ('河南私域', 3, 200), ('其他本地化', 99, 999)]):
+    for i, (name, leads, cash) in enumerate([('河南APP', 2, 100), ('河南私域', 3, 200), ('河南未加好友', 5, 500), ('其他本地化', 99, 999)]):
         common = {'一级渠道': '本地化', '渠道': name, '期次': '20261023期', '年级': '初三',
                   '主管': '主管甲', '顾问': '顾问甲', '顾问账号': 'consultant_a'}
         process.append({**common, '退后线索': leads, '首节到课标记': 0})
@@ -49,7 +49,7 @@ def test_local_channels_merge_leads_and_money_without_double_counting_people():
     selected = lambda rows: [r for r in rows if _matches_channel(r, channel['match'])]
     result = conversion._aggregate(selected(process), selected(finance), '顾问', request, channel, period='20261023期')
     assert len(result) == 1
-    assert result[0]['metrics']['有效线索'] == 5
-    assert result[0]['metrics']['综合营收'] == result[0]['metrics']['净收款'] == 300
-    assert result[0]['metrics']['综合单效'] == 60
+    assert result[0]['metrics']['有效线索'] == 10
+    assert result[0]['metrics']['综合营收'] == result[0]['metrics']['净收款'] == 800
+    assert result[0]['metrics']['综合单效'] == 80
     assert result[0]['metrics']['带班人数'] == 1

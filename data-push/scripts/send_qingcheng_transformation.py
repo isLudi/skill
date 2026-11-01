@@ -124,6 +124,9 @@ def main() -> None:
         verdict = resend.decide(_receipt_status(saved), (saved.get("response") or {}).get("message_id"))
         if verdict != resend.RESEND:
             raise ValueError("This idempotency key already has a recorded outcome; re-verify instead of re-sending")
+    if args.send and args.channel == "partner_books":
+        from run_qingcheng_transformation import _batch, _conversion_upstream_ready
+        _conversion_upstream_ready(_batch())
     review = json.loads((args.review_dir / "review.json").read_text(encoding="utf-8"))
     item = review["results"][args.channel]["levels"][args.level]
     if item["level"] != level:

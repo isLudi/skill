@@ -6,7 +6,7 @@
   "channels": [
     "陈瑞春"
   ],
-  "adapter": "market-grade-manager-v1",
+  "adapter": "market-chenruichun-daily-v1",
   "source": {
     "source_mode": "lead-detail",
     "source_url": "https://gaotuedu.feishu.cn/wiki/MrPNwuFvPiiDX0k4jTXcLU8anse?table=tblqvlnqNslL1nWA&view=veweZNrbGI",
@@ -23,7 +23,11 @@
     "reminder_rule": "channel_grade_source_advisor_minimum_all_ties",
     "reminder_population": "raw_leads",
     "mention_target": "consultant",
-    "report_type": "auto"
+    "report_type": "auto",
+    "base_token": "PmpybDuXGaudYost6I3cTwChn3d",
+    "view_id": "",
+    "field_contract": "release/market2lark_raw_fields.json",
+    "max_snapshot_age_hours": 7
   },
   "sender": {
     "identity": "bot",
@@ -34,7 +38,7 @@
     {
       "id": "chenruichun_core",
       "chat_id": "oc_510ee233f666207fbda3a4ec473bf388",
-      "display_name": "💪0925期【春春】大麦「市场顾问部」",
+      "display_name": "💪1030期【春春】大麦「市场顾问部」",
       "enabled": true
     }
   ],
@@ -44,10 +48,7 @@
       0,
       1,
       2,
-      3,
-      4,
-      5,
-      6
+      3
     ],
     "result_weekdays": [
       4,
@@ -60,23 +61,27 @@
       "高三"
     ],
     "excluded_grades": [],
-    "minimum_post_leads": 6
+    "minimum_post_leads": 6,
+    "show_totals": true
   },
   "schedule": {
     "enabled": true,
-    "first_send_at": "2026-09-21T13:27:00+08:00",
+    "kind": "chenruichun_twice_daily",
     "timezone": "Asia/Shanghai",
     "hours": [
-      13,
-      17,
-      21
+      14,
+      19
     ],
-    "windows_task_name": "Codex-Lark-Supervisor-Chen-Ruichun-Push",
-    "stagger_order": 8,
-    "prepare_minute": 23,
-    "send_minute": 23,
+    "prepare_minute": 0,
+    "send_minute": 0,
     "deadline_minute": 50,
-    "retry_minutes": 2
+    "retry_minutes": 2,
+    "upstream_hours": {
+      "14": 13,
+      "19": 17
+    },
+    "first_send_at": "2026-10-30T19:00:00+08:00",
+    "windows_task_name": "Codex-Lark-Supervisor-Chen-Ruichun-Push"
   },
   "base_identity": "user",
   "verification_identity": "bot",
@@ -89,11 +94,18 @@
     "task_id": 47252,
     "nezha_task_id": 66504,
     "schedule_id": 53831,
-    "exec_file_id": 842143,
-    "verified_version_id": 208938,
-    "verified_source_sha256": "cb55d1306ec9def6f30e9d738ec5c6807cd37cc9e591290ec5983df7a865267e",
+    "exec_file_id": 865669,
+    "verified_version_id": 223539,
+    "verified_source_sha256": "8a385a3e0edb44599cf2ecb8aa285498491f3abfe3040ef72f17b69b3086b50c",
     "log_protocol": "two_period_clear_then_replace_v1_retry",
     "owner": "lvshuai01",
-    "channel_mapping_version": "1002"
-  }
+    "channel_mapping_version": "1023"
+  },
+  "components": [
+    {
+      "id": "chenruichun_all",
+      "label": "陈瑞春",
+      "grain": "顾问"
+    }
+  ]
 }

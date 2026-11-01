@@ -26,11 +26,11 @@ def test_batch_pins_the_published_t5_upstream():
     batch = MODULE._batch()
     assert batch["upstream"]["task_id"] == 47775
     assert batch["upstream"]["nezha_task_id"] == 67397
-    assert batch["upstream"]["published_version"] == "V12"
-    assert batch["upstream"]["version_id"] == 215630
-    assert batch["upstream"]["exec_file_id"] == 851232
+    assert batch["upstream"]["published_version"] == "V14"
+    assert batch["upstream"]["version_id"] == 219202
+    assert batch["upstream"]["exec_file_id"] == 855788
     assert batch["upstream"]["source_sha256"] == (
-        "9f48bc48afd7ef5e7a57e5bea4c79be6b0c758f1f40841c901c26f133b391833"
+        "f8c7c6a089741cfe2565a33a6575e84a4e416bc2c959f02995f43475a9eaaf32"
     )
 
 
@@ -80,7 +80,7 @@ def test_batch_passes_its_requested_period_to_every_channel(monkeypatch, tmp_pat
     batch = MODULE._batch()
     monkeypatch.setattr(MODULE, "_batch", lambda: batch)
 
-    def fetch(channel, period, output):
+    def fetch(channel, period, output, **kwargs):
         return {"rev": 1, "snapshot": ["20261008", "12"]}
 
     def export(channel, period, output, *, cache_dir):

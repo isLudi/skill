@@ -214,6 +214,21 @@ runtime 中保存：
 - `sync-qingcheng-market-temp-tables`、`data-push` 运行时和 `data-push/templates/refresh.py` 均回读到同一包内原生 `bin\\lark-cli.exe`；CLI dry-run 与受影响脚本回归通过，`.cmd` / `.bat` shim 仍被拒绝。
 - 本次升级与重启过程中未修改生产配置；任务计划程序 `Codex-Governed-TempTables-LarkEvent` 重新启动后为 `Running`，服务为 `production/event_ready=true`，单一 `im.message.receive_v1` 消费者、`dropped=0`，`online_instance_cnt=0`，两道生产写入门禁与回复开关保持原值。
 
+### 2026-10-22：1.0.98 更新与 shadow 端到端记录（生产恢复门禁未完成）
+
+- 官方更新将 `lark-cli` 从 `1.0.97` 升至 `1.0.98`；`update --check --json` 回读 `already_up_to_date`、`skills_status.in_sync=true`（官方 28 项）。包内原生 exe SHA-256：`0db306d22517dd843b598200057646942cec32b17f3b767ede984b6f167ea429`。
+- 临时表同步、`data-push` 通用运行时及模板刷新解析器均解析到同一包内原生 `bin\\lark-cli.exe`；CLI dry-run、两个生产脚本 `py_compile`、临时表 Skill 77 项单测通过。跨群离线帮助/状态回放未发送消息、未执行 Apply 或 Upload。
+- 独立市场群 shadow 使用筛选后的市场登记副本，仅监听市场顾问部临时表群；`event_ready=true`、一个消费者、`dropped=0`、`online_instance_cnt=0`，Apply、Upload、附件计划均关闭。用户授权的帮助/状态各一条均被消费并由 bot 回帖；回读确认 sender、`reply_to` 与帮助正文，账本为 2 条 `sent`、无任务、无待处理附件。状态回帖因空账本为“当前没有任务记录。”，未覆盖 `|` 字符，故第 7 步的强回归未通过；没有向青橙数据对接群发送消息。
+- shadow 已优雅停止，CLI event bus 随后无活动消费者并回读 `not_running`。正式配置 SHA-256 仍为 `2153c7ff34dbad8c318a89ea764aca13fdd6447fb8ead993e2b9f421167625b7`，未修改；截至该阶段计划任务为 Enabled/Ready，生产监听器尚未重启。六表离线回放及状态 `|` 覆盖当时仍未完成，因此当时保持生产停止。
+
+### 2026-10-22：1.0.98 正式恢复与双群预检验收
+
+- 用户确认市场顾问部当前没有评优架构来源；保留 `market_evaluation_architecture` 登记，供张君言未来上传后继续按现有来源身份和质量门禁预检，本次不要求提供该表。
+- 双群 shadow 使用隔离 runtime，`event_ready=true`、单一消费者、`received=4`、`dropped=0`；Apply、Upload 和附件自动计划关闭。青橙 `result_architecture` 与市场 `market_period_architecture` 各生成一条 `planned`；青橙帮助/状态回帖读回成功，分别覆盖 `< >` 与 `|`。shadow 随后优雅停止，CLI event bus 回读 `not_running`。
+- 生产配置未修改，SHA-256 为 `2153c7ff34dbad8c318a89ea764aca13fdd6447fb8ead993e2b9f421167625b7`。通过 Task Scheduler 启动 `Codex-Governed-TempTables-LarkEvent` 后，任务为 `Running/Enabled`，服务为 `production/event_ready=true`，CLI 为包内原生 `1.0.98`，`online_instance_cnt=0`，单一 `im.message.receive_v1` 消费者、`dropped=0`。
+- 正式监听器分别接收青橙和市场的一条只读预检指令；任务 `tt_20261022202321_714e3919`（`result_architecture`）与 `tt_20261022202324_4eafe950`（`market_period_architecture`）均完成并为 `planned`，机器人回复已读回。未执行 `apply-local` 或生产 Upload；18 个 `Codex-Lark-*Push` 计划任务保持 `Ready/Enabled`，本次未手动触发推送。
+- 本次按用户明确指定的验收目标完成服务重启与双群单表预检；这条记录不替代之后对实际存在来源表的质量门禁，也不代表已上传平台。
+
 ### 1. 冻结生产并记录基线
 
 - 读取管理器状态和 SQLite 账本；存在 `queued`、`planning`、`applying_local` 或 `uploading` 任务时，等待安全结束并人工核验，不得直接升级。

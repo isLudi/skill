@@ -2,13 +2,13 @@
 
 ## lark-cli 运行时绑定
 
-本地渠道和妙搭模板统一解析同一份包内原生 `lark-cli.exe`；Windows 上拒绝 `.cmd` / `.bat` shim。2026-10-08 已核验当前绑定版本为 `1.0.97`，原生 exe SHA-256 为 `69114a4f2ab03e127a6f0bd226a67d934e041023efdfbb62d83b859ace457e7c`，路径为 `C:\Users\lvshuai01\AppData\Local\Programs\nodejs\node_modules\@larksuite\cli\bin\lark-cli.exe`。CLI 升级后先完成版本、原生 exe 哈希和 dry-run 回归。2026-10-08 三个 data-push 运行时解析器均回读到该路径；本次升级未改动发送配置。
+本地渠道和妙搭模板统一解析同一份包内原生 `lark-cli.exe`；Windows 上拒绝 `.cmd` / `.bat` shim。2026-10-22 已核验当前绑定版本为 `1.0.98`，原生 exe SHA-256 为 `0db306d22517dd843b598200057646942cec32b17f3b767ede984b6f167ea429`，路径为 `C:\Users\lvshuai01\AppData\Local\Programs\nodejs\node_modules\@larksuite\cli\bin\lark-cli.exe`。`data-push` 常规运行时与模板刷新解析器均回读到该路径；CLI dry-run 和受影响的 11 项绑定测试通过。本次升级未改动发送配置或 Windows 推送任务。历史 1.0.97 记录见 `sync-qingcheng-market-temp-tables/references/event_service.md`。
 
 **历史记录（不构成当前授权）**：2026-09-10曾记录 Windows 任务 `Codex-Lark-Market-KOC-GroupPush` 的恢复授权。脚本维护、预览和 dry-run 本身不构成任务启停授权；实时状态以 Windows 任务查询为准。
 
 ## 当前范围
 
-任务启动器指向新技能目录下各自的 `scripts/run_*_scheduled_push.ps1`，统一调用共享 `scripts/scheduled_push.py` 及对应的 JSON 配置。它展开登记的目标群列表；各渠道台账和错峰时点彼此独立，运行方式为隐藏窗口、Windows已登录时执行。
+市场顾问部现行范围为[7项本地任务](departments/market_consultant.md#现行本地推送设置2026-10-29)：两个高阳团队、4项年级多渠道群任务及2026-10-30恢复的陈瑞春IP。其余8项旧主管/顾问任务与同期对比继续退役。Windows用户登录后以隐藏方式运行，各群保留独立台账。
 
 - 固定群：`oc_b9dc09ba622ca00059bbc472922a803d`。历史显示名为 `【自营koc】&【高阳团队】`；名称改变不影响定位，不按名称重新搜索。
 - 唯一渠道：`自孵化KOC-5元纯课`。
@@ -18,9 +18,9 @@
 
 ## 时间与期次
 
-北京时间13、17、21点为业务轮次，具体任务只运行自身配置的小时。所有本地播报按全局 `stagger_order` 排序，每分钟同时启动两个任务：第N项使用 `:20+(N-1)//2`，不改变原有群、小时或投递顺序。分区较上一快照未更新、上游未成功或其他可重试门禁失败时，以该任务自己的启动分钟为基准每2分钟重查；只允许落在 `:50` 或更早的网格点，下一次超过 `:50` 就结束，不补历史轮次。
+两个高阳团队继续原13:20、17:20窗口；4项bundle和恢复的陈瑞春IP均每天14:00、19:00独立启动，分别核验13:00、17:00上游SCHEDULE，每2分钟重试至当前槽位:50。已无17:50同期对比任务。陈瑞春保留原顾问图、总计及>5门槛，不套用其他bundle的≥5门槛和紧凑布局；4项bundle于2026-11-01部署原始配色的紧凑图，并为每个渠道模块显示可见人员总计。
 
-当前八项顺序：`:20` 为 `Market-KOC-GroupPush`、`Business-KOC-Math-Push`；`:21` 为 `Supervisor-KOC-Douyin-Push`、`Supervisor-Private-App-Push`；`:22` 为 `Supervisor-KOC-Grade9-Push`、`Supervisor-Yafei-Grade9-Push`；`:23` 为 `Supervisor-Zhu-Doctor-Video49-Push`、`Supervisor-Chen-Ruichun-Push`。这些名称均有 `Codex-Lark-` 前缀；前两项仅13、17点，其余项13、17、21点。共享调度器仍以 `:50` 为统一硬截止；例如 `:23` 任务最后一个有效重试点是 `:49`。
+当前不再有市场旧任务21点播报。原13:21—13:25、17:21—17:25、21:21—21:25等旧主管/顾问轮次已随9项任务退役。任务、群与开关的唯一当前事实源是 `config/channels.json`，只读汇总命令为 `scripts/show_market_push_settings.py`。
 
 - 周一至周四：当期过程数据，一张分年级图片。
 - 周五至周日：仅当期结果数据，一张结果图片；结果列为期次、负责人、（主管）、退后线索、5min、双沟率、首节到课率、当期单效、截面单效。结果行按截面单效严格降序，5min 使用橙色进度条，截面单效按当前可见行由绿到红着色。

@@ -11,15 +11,10 @@
   "channels": {
     "market_consultant/self_incubated_koc_5": "departments/market_consultant/self_incubated_koc_5.json",
     "market_consultant/business_koc_math": "departments/market_consultant/business_koc_math.json",
-    "market_consultant/supervisor_koc_douyin_sync": "departments/market_consultant/supervisor_koc_douyin_sync.json",
-    "market_consultant/supervisor_private_app_sync": "departments/market_consultant/supervisor_private_app_sync.json",
-    "market_consultant/supervisor_self_incubated_koc_5_grade_9": "departments/market_consultant/supervisor_self_incubated_koc_5_grade_9.json",
-    "market_consultant/supervisor_yafei_grade_9": "departments/market_consultant/supervisor_yafei_grade_9.json",
-    "market_consultant/supervisor_yafei_grade_9_advisor": "departments/market_consultant/supervisor_yafei_grade_9_advisor.json",
-    "market_consultant/supervisor_zhu_doctor_video49": "departments/market_consultant/supervisor_zhu_doctor_video49.json",
-    "market_consultant/supervisor_chenruichun": "departments/market_consultant/supervisor_chenruichun.json",
-    "market_consultant/supervisor_koc_zhoushuai_warning": "departments/market_consultant/supervisor_koc_zhoushuai_warning.json",
-    "market_consultant/app_grade_9": "departments/market_consultant/app_grade_9.json",
-    "market_consultant/supervisor_localization_grade_9": "departments/market_consultant/supervisor_localization_grade_9.json"
+    "market_consultant/grade9_supervisor_bundle": "departments/market_consultant/grade9_supervisor_bundle.json",
+    "market_consultant/localization_advisor_bundle": "departments/market_consultant/localization_advisor_bundle.json",
+    "market_consultant/high_school_supervisor_bundle": "departments/market_consultant/high_school_supervisor_bundle.json",
+    "market_consultant/douyin_advisor_bundle": "departments/market_consultant/douyin_advisor_bundle.json",
+    "market_consultant/supervisor_chenruichun": "departments/market_consultant/supervisor_chenruichun.json"
   }
 }

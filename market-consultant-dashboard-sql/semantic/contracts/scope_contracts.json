@@ -12,7 +12,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
-      "source_sha256": "22d45cbace91a10de8cb29a710bde12cb60d5e17528127905494357d7007f67a",
+      "source_sha256": "fe195451dda9cd4bee72daaf95a4e620ca5eed997f3e7adebca48fbb87935fcf",
       "description": "市场顾问转化看板主全链路表的分区与部门范围。",
       "candidate_tables": [
         "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df"

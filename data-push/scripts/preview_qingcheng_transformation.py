@@ -18,11 +18,14 @@ import argparse
 import json
 from collections import defaultdict
 from pathlib import Path
+from decimal import Decimal
+from PIL import Image, ImageDraw
 
 from preview_qingcheng_public_pool_process import (
     _matches_channel,
     _ratio,
     _table_image,
+    _font,
 )
 
 SKILL = Path(__file__).resolve().parents[1]
@@ -386,6 +389,20 @@ def _join_coverage(process_channel: list[dict], conversion_channel: list[dict], 
     }
 
 
+def _empty_report_image(path: Path, channel: str, level: str, period: str, finance: dict) -> None:
+    image = Image.new("RGB", (1500, 320), "#ffffff")
+    draw = ImageDraw.Draw(image)
+    draw.rectangle((0, 0, 1500, 58), fill="#17365d")
+    draw.text((20, 12), f"{channel}-{level}-{period}", font=_font(24, bold=True), fill="#ffffff")
+    draw.text((28, 86), "本期暂无符合有效线索门槛的在带数据，单效、转化率等指标暂无可比分母", font=_font(25), fill="#20314c")
+    draw.text((28, 145), f"本渠道源表转化记录：{finance['records']}条（以下为源表财务合计）", font=_font(23), fill="#20314c")
+    for y,fields in [(198,('收款','退费','净收款')),(250,('当期收款','当期退费','当期净收款'))]:
+        text = "；".join(f"{field}：{Decimal(finance[field]):,.2f}元" for field in fields)
+        draw.text((28, y), text, font=_font(23), fill="#20314c")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    image.save(path)
+
+
 def build(process_source: Path, conversion_source: Path, output: Path,
           config_path: Path = DEFAULT_CONFIG, channels: tuple[str, ...] | None = None,
           *, period: str | None = None, levels: tuple[str, ...] | None = None) -> dict:
@@ -408,6 +425,11 @@ def build(process_source: Path, conversion_source: Path, output: Path,
     # renders all-zero metrics and the fallback line flags it in the message.
     process_dt = {f"{r['分区日期']} {r['分区小时']}:00" for r in process_all}
     conversion_dt = {f"{r['分区日期']} {r['分区小时']}:00" for r in conversion_all}
+    if (not process_all and process_manifest.get("empty_scope_verified") is True
+            and process_manifest.get("channel") == "partner_books"
+            and process_manifest.get("period") == period):
+        snapshot = process_manifest["snapshot"]
+        process_dt = {f"{snapshot[0]} {snapshot[1]}:00"}
     if len(process_dt) != 1 or (conversion_all and len(conversion_dt) != 1):
         raise ValueError("Source rows span multiple warehouse snapshots")
 
@@ -468,9 +490,16 @@ def build(process_source: Path, conversion_source: Path, output: Path,
                     ceiling = max(values) if values else 1.0
                     scale = (0.0, ceiling if ceiling > 0 else 1.0)
                 bar_specs[field] = (*scale, spec["color"])
-            _table_image(rows, columns, png, level, period, channel_cfg["name"],
-                         split_grade=split_grade, bar_specs=bar_specs,
-                         total_fn=_total_transformation, display_fn=_display_transformation)
+            empty_finance = None
+            if not process_all and process_manifest.get("empty_scope_verified") is True:
+                empty_finance = {field: str(sum((Decimal(str(row[field])) for row in conversion_channel), Decimal(0)))
+                                 for field in ('收款','退费','净收款','当期收款','当期退费','当期净收款')}
+                empty_finance['records'] = len(conversion_channel)
+                _empty_report_image(png, channel_cfg["name"], level, period, empty_finance)
+            else:
+                _table_image(rows, columns, png, level, period, channel_cfg["name"],
+                             split_grade=split_grade, bar_specs=bar_specs,
+                             total_fn=_total_transformation, display_fn=_display_transformation)
             if reminder_mode == "none":
                 # 学部级：文字抬头 + 图片，不 @ 人、不生成文字提醒（含 fallback）。
                 top_people = None
@@ -512,6 +541,7 @@ def build(process_source: Path, conversion_source: Path, output: Path,
                 "png": png.name,
                 "message_file": message_file.name,
                 "message": message,
+                "empty_source_finance_summary": empty_finance,
             }
         results[channel_cfg["id"]] = {
             "channel": channel_cfg["name"],

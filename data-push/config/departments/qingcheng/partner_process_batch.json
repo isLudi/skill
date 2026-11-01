@@ -39,11 +39,11 @@
       },
       "partner_local": {
         "一级渠道": "本地化",
-        "渠道": ["河南APP", "河南私域"]
+        "渠道": ["河南APP", "河南私域", "河南未加好友"]
       },
       "supervisor_local": {
         "一级渠道": "本地化",
-        "渠道": ["河南APP", "河南私域"]
+        "渠道": ["河南APP", "河南私域", "河南未加好友"]
       }
     }
   },
@@ -60,10 +60,10 @@
     "nezha_task_id": 67318,
     "task_name": "qing2lark_guocheng",
     "owner": "lvshuai01",
-    "published_version": "V37",
-    "version_id": 215564,
-    "exec_file_id": 851129,
-    "source_sha256": "a42f1bf5b88ca77617c364b32876e41135fa45f13dd82b3bb22e2ac6b09d36f7",
+    "published_version": "V39",
+    "version_id": 219189,
+    "exec_file_id": 855658,
+    "source_sha256": "08ec50a45d1ef038aeb9d199091b260a39a9cc02a73a1f091aaf35ecd4538bb9",
     "audit_schema": "market2lark-two-period-audit-v1"
   },
   "visual": {
@@ -137,7 +137,8 @@
       "unresolved_mention_action": "invite_then_text",
       "audit_secondary_channels": [
         "河南APP",
-        "河南私域"
+        "河南私域",
+        "河南未加好友"
       ]
     },
     {
@@ -153,7 +154,8 @@
       "unresolved_mention_action": "invite_then_text",
       "audit_secondary_channels": [
         "河南APP",
-        "河南私域"
+        "河南私域",
+        "河南未加好友"
       ]
     }
   ]

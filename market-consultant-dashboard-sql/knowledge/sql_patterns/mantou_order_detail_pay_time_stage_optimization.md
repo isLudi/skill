@@ -6,8 +6,8 @@
 - 平台来源：模板取数
 - 模板：`馒头_订单明细_支付时间`（ID `8735`）与 `馒头_订单明细_流水时间`（ID `8948`）
 - 域归属：两个馒头模板永久属于 `market_consultant`，渠道 CASE 或暑期期次盘点时无需再次声明
-- stable raw SQL：[`template_query_market_mantou_order_detail_pay_time.sql`](../../resources/raw_sql/template_query_market_mantou_order_detail_pay_time.sql)、[`template_query_market_mantou_order_detail_trade_time.sql`](../../resources/raw_sql/template_query_market_mantou_order_detail_trade_time.sql)
-- 当前 SQL SHA-256：支付时间 `8c98bc59e61535395be51a77dd78b6a5637ec29ce56fba7a7e32a7104c13fc48`；流水时间 `79e98bd31a718e383adb97b238abd1b9527a1f5a4282b26aa8d136172694c84a`
+- 当前stable SQL仅保留已发布的流水时间8948；支付时间8735已下线，不作为当前SQL入口。流水时间：[`template_query_market_mantou_order_detail_trade_time.sql`](../../resources/raw_sql/template_query_market_mantou_order_detail_trade_time.sql)
+- 当前流水时间SQL SHA-256：`bb27ea60087aff92485eec3989ad79ff08a362f4281f5dee52f05a7c8babc1c5`；下文为历史优化记录，支付时间旧SQL仅在runtime保留备份。
 
 支付时间模板按 `top_paid_time`、流水时间模板按 `trade_time` 派生 `day`，两者都使用半开区间参数：
 
@@ -16,7 +16,7 @@ where day >= ${day:1}
   and day < ${day:2}
 ```
 
-## 2026-08-08 当前渠道融合
+## 2026-08-08 历史渠道融合
 
 - 两个模板都从去重后的同一份全链路线索源计算 0904 共享渠道 CASE，完整保留 183 条规则及原始 first-match 顺序。
 - 为避免超长 CASE 编译和重复扫描，175 条规则按连续顺序拆为 5 组、每组 35 条，通过 `UNION ALL` 和 `min_by(channel, rule_group)` 选择最早命中组，再以无碰撞长度前缀键回连订单主链。

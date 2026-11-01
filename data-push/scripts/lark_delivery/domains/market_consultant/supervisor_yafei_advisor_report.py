@@ -9,7 +9,6 @@ from __future__ import annotations
 
 from fractions import Fraction
 from math import ceil
-from pathlib import Path
 
 from . import supervisor_video49_report as base_report
 
@@ -86,7 +85,7 @@ write_preview = base_report.write_preview
 
 
 def _metric(item):
-    return Fraction(int(item["numerator"]), int(item["denominator"]))
+    return Fraction(item["numerator"]) / Fraction(item["denominator"])
 
 
 def build_report(records, counters, period, report_type, *, min_post_leads=MIN_POST_LEADS,

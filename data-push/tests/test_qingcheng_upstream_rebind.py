@@ -26,8 +26,8 @@ SPEC.loader.exec_module(MODULE)
 REVIEWED = {
     "project_id": 308, "folder": "吕帅", "menu_id": 103625, "task_id": 47728,
     "nezha_task_id": 67318, "task_name": "qing2lark_guocheng", "owner": "lvshuai01",
-    "published_version": "V37", "version_id": 215564, "exec_file_id": 851129,
-    "source_sha256": "a42f1bf5b88ca77617c364b32876e41135fa45f13dd82b3bb22e2ac6b09d36f7",
+    "published_version": "V39", "version_id": 219189, "exec_file_id": 855658,
+    "source_sha256": "08ec50a45d1ef038aeb9d199091b260a39a9cc02a73a1f091aaf35ecd4538bb9",
     "audit_schema": "market2lark-two-period-audit-v1",
 }
 BATCH_FILES = ("process_batch_preview.json", "sec_process_batch.json", "special_process_batch.json",
@@ -72,7 +72,7 @@ def test_operator_read_uses_the_configured_identity(monkeypatch):
 
 
 def _artifact(tmp_path, *, row_name="qing2lark", stage_name="stage_4123_qing2lark_guocheng.log",
-              exec_file_id=851129, trigger="EXECUTE", execution_id=173400001, row_count=3,
+              exec_file_id=855658, trigger="EXECUTE", execution_id=173400001, row_count=3,
               status=6, field_count=33):
     period = MODULE._period(SLOT.date())
     current_hour = MODULE._expected_upstream_period_time(SLOT)
@@ -123,6 +123,7 @@ def test_audit_accepts_both_the_old_and_new_execution_row_name(tmp_path):
     for row_name in ("qing2lark_guocheng", "qing2lark"):
         result = _audit(tmp_path / row_name, row_name=row_name)
         assert result["snapshot"] == ["20260928", "19"]
+        assert result["period_row_count"] == 3
         # AUDIT_CHANNELS maps 顾问未加好友 to public_pool only.
         assert result["expected_counts"] == {"public_pool": 3, "private": 0, "douyin_dm": 0}
 
@@ -142,7 +143,7 @@ def test_audit_rejects_an_unrelated_task_name(tmp_path):
         _audit(tmp_path, row_name="qing2lark_zhuanhua")
 
 
-@pytest.mark.parametrize("superseded", [831661, 837871, 840241, 841333, 841428, 850663])
+@pytest.mark.parametrize("superseded", [831661, 837871, 840241, 841333, 841428, 850663, 851129, 855219])
 def test_audit_rejects_the_superseded_exec_file(tmp_path, superseded):
     with pytest.raises(ValueError, match="is not unique"):
         _audit(tmp_path, exec_file_id=superseded)
