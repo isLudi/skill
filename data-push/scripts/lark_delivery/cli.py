@@ -85,23 +85,36 @@ def main(argv=None, *, bound_channel=None):
         channels = (adapter.channels_for_target(definition, target) if hasattr(adapter, "channels_for_target")
                     else definition.get("channels", [definition["channel"]]))
         previews = []
+        periods = set()
+        failures = []
         for index, channel in enumerate(channels, start=1):
             channel_state = state if len(channels) == 1 else state / f"channel-{index}"
-            context = adapter.prepare(definition, target, channel=channel, report_type=args.report_type,
+            try:
+                context = adapter.prepare(definition, target, channel=channel, report_type=args.report_type,
                                       state_dir=channel_state, period=args.period,
                                       allow_period_override=bool(args.period),
                                       strict_mentions=not args.preview_allow_mention_gaps,
                                       **({"no_mentions": True} if key == "market_consultant/app_grade_9" else {}))
-            artifacts = adapter.write_preview(context)
-            previews.append({"channel": channel,
+                artifacts = adapter.write_preview(context)
+                periods.add(context['period'])
+                previews.append({"channel": channel,
                              "status": "skipped_no_eligible_rows" if context.get("skip_delivery") else "preview_generated",
                              "files": artifacts})
-            if args.command == "dry-run" and not context.get("skip_delivery"):
-                feishu.send_markdown(target["chat_id"], context["markdown"], context["idempotency_key"],
+                if args.command == "dry-run" and not context.get("skip_delivery"):
+                    if hasattr(adapter,'dry_run'):
+                        adapter.dry_run(context)
+                    else:
+                        feishu.send_markdown(target["chat_id"], context["markdown"], context["idempotency_key"],
                                      definition["sender"]["identity"], dry_run=True, timeout=60)
+            except Exception as exc:
+                failures.append(channel)
+                previews.append({'channel':channel,'status':'preview_failed',
+                                 'reason':type(exc).__name__+': '+str(exc)[:300]})
         print(json.dumps({"target_id": target["id"], "chat_id": target["chat_id"],
-                          "period": context["period"], "previews": previews, "message_sent": False},
+                          "period": next(iter(periods),args.period), "previews": previews, "message_sent": False},
                          ensure_ascii=False, indent=2))
+        if failures:
+            raise ValueError('Some channel previews failed; other channels were processed independently')
         return 0
 
     outcomes = run_targets(targets, operation, parallel=args.command in {"preflight", "run"})

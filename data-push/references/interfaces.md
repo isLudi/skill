@@ -75,6 +75,8 @@
 
 市场部门新增的 `market-grade-bundle-v2` 使用独立的有序多图artifact、原生post发送与回读，不经过上述v1双PNG槽位。[年级多渠道协议](departments/market_consultant/grade_channel_bundle.md)列出完整结构、日历、组件隔离、幂等和清理边界。
 
+高中核心主管群于2026-11-06使用 `market-highschool-channel-v1` 与 `market-channel-grade-artifacts-v1`。每次prepare只处理一个逻辑渠道，一张图包含按序年级表和各自总计。每个渠道拥有独立context、预览、bundle消息认领与组件认领，卡片2.0按年级提醒，结尾使用原生彩色Markdown。准备或预览异常不得建立发送认领，实际投递仍按有message_id只回读、无message_id用原键重试的规则恢复。
+
 ## 6. 传输与真实投递
 
 `common/im.py` 保留 `verify_chat、verify_sender_membership、mention_nonmembers、upload_image、send_markdown`；最后两个是外部写入。`verify_sender_membership` 只核验配置的发送 bot，不依赖可选提醒人的成员读取；`common/reminders.py` 处理通讯录解析与姓名兜底。`send_markdown(..., dry_run=True)` 不发送。上传与发送必须同身份；机器人私聊可用范围与群成员是不同约束，失败不能自动改成用户身份。

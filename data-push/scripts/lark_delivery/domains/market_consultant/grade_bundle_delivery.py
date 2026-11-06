@@ -69,12 +69,22 @@ def readback(message_id,context,detail):
     if len(matches) != 1:
         raise ValueError('Bundle message readback missing or ambiguous')
     msg = matches[0]
-    text = json.dumps(msg.get('content',''),ensure_ascii=False)
+    content = msg.get('content','')
+    if isinstance(content,str):
+        try:
+            content = json.loads(content)
+        except (TypeError,ValueError):
+            pass
+    text = json.dumps(content,ensure_ascii=False)
     if (msg.get('chat_id') != context['target']['chat_id'] or msg.get('deleted') is not False
-            or msg.get('msg_type') != 'post' or msg['sender'].get('open_bot_id') != context['definition']['sender']['open_id']
+            or msg.get('msg_type') != context.get('message_type','post') or msg['sender'].get('open_bot_id') != context['definition']['sender']['open_id']
             or context['period'] not in text or any(key not in text for key in detail['image_keys'])):
         raise ValueError('Bundle target/sender/period/images differ from staged message')
-    actual = grade_report.mention_ids(msg.get('content','')) | grade_report.mention_ids({'mentions':msg.get('mentions',[])})
+    extractor = grade_report.mention_ids
+    if context.get('message_type') == 'interactive':
+        from .high_school_channel_card import mention_ids
+        extractor = mention_ids
+    actual = extractor(msg.get('content','')) | extractor({'mentions':msg.get('mentions',[])})
     if actual != set(detail['people']['resolved'].values()):
         raise ValueError('Bundle native reminder ID set differs')
     return {'message_id':message_id,'chat_id':msg['chat_id'],'sender':msg['sender'],
@@ -121,15 +131,20 @@ def send_staged(db,row,time_guard):
     kept,late = reminders.refresh_membership(context['target']['chat_id'],detail['people']['resolved'])
     detail['people']['resolved'] = kept
     detail['people']['fallback_reasons'].update(late.get('fallback_reasons',{}))
-    post = native_post(context,detail['image_keys'],detail['people'])
+    message_type = context.get('message_type','post')
+    if message_type == 'interactive':
+        from .high_school_channel_card import build
+        post = build(context,detail['image_keys'],detail['people'])
+    else:
+        post = native_post(context,detail['image_keys'],detail['people'])
     detail['post'] = post
     update(db,key,'sending','',detail,context)
     source.guard(context)
     time_guard()
-    api(['im','+messages-send','--chat-id',context['target']['chat_id'],'--msg-type','post',
+    api(['im','+messages-send','--chat-id',context['target']['chat_id'],'--msg-type',message_type,
         '--content',json.dumps(post,ensure_ascii=True),'--idempotency-key',key,'--as','bot','--format','json','--dry-run'])
     try:
-        reply = api(['im','+messages-send','--chat-id',context['target']['chat_id'],'--msg-type','post',
+        reply = api(['im','+messages-send','--chat-id',context['target']['chat_id'],'--msg-type',message_type,
             '--content',json.dumps(post,ensure_ascii=True),'--idempotency-key',key,'--as','bot','--format','json'])
         message_id = im._message_id(reply)
         if not message_id:

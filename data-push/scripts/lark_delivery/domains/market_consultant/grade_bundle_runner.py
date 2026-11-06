@@ -21,6 +21,8 @@ CLEAN = {'sent_verified','skipped_no_eligible_rows','skipped_no_source_rows','pr
 
 def round_once(definition,target,db,state,slot,token,time_guard,preflight,log):
     adapter=adapter_for(definition)
+    if hasattr(adapter,'round_once'):
+        return adapter.round_once(definition,target,db,state,slot,token,time_guard,preflight,log)
     delivery.init(db)
     settled, outcomes = set(), {}
     for row in db.execute('SELECT * FROM bundle_messages WHERE slot=?',(token,)).fetchall():

@@ -4,7 +4,7 @@ import html
 import json
 from pathlib import Path
 
-from PIL import Image, ImageDraw
+from PIL import Image
 
 from ...common.images import _center_text, _find_font
 from ...common.values import _format_value, _rate
@@ -29,8 +29,8 @@ def _legacy_render(results, section, period, target_name, directory, outcomes):
     for result in results:
         component, report = result['component'], result['report']
         try:
-            for block in report['blocks']:
-                path = directory / (component['id'] + '-' + str(grade_sort_key(block['grade'])[0]) + '.png')
+            for block_index,block in enumerate(report['blocks']):
+                path = directory / (component['id'] + '-' + str(block_index) + '.png')
                 display_block = deepcopy(block)
                 display_block['grade'] = component['label']
                 cols, widths = columns(component, section)
@@ -51,17 +51,11 @@ def _legacy_render(results, section, period, target_name, directory, outcomes):
     for index, grade in enumerate(grades):
         present = [result for result in results if (result['component']['id'], grade) in panels]
         parts = [Image.open(panels[(result['component']['id'], grade)]).convert('RGB') for result in present]
-        width, title, gap, margin = 2428, 140, 20, 24
-        height = title + sum(part.height for part in parts) + gap * (len(parts)-1) + margin
+        width, gap, margin = 2428, 20, 24
+        height = margin * 2 + sum(part.height for part in parts) + gap * (len(parts)-1)
         canvas = Image.new('RGB', (width, height), '#ffffff')
         try:
-            draw = ImageDraw.Draw(canvas)
-            draw.rectangle((0, 0, width, title-14), fill='#e8eef8')
-            label = '过程' if section == 'process' else '转化'
-            grain = present[0]['component']['grain']
-            draw.text((margin,20), f'{period}  ·  {grade}  ·  {grain}{label}数据', font=_find_font(36,True), fill='#203b72')
-            draw.text((margin,77), target_name, font=_find_font(25), fill='#60718b')
-            y = title
+            y = margin
             for part in parts:
                 canvas.paste(part, (margin,y))
                 y += part.height + gap

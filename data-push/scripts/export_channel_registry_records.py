@@ -182,6 +182,8 @@ def _operator_record(channel_ref: str, config):
     profile = PROFILE_COLUMNS[source.get("report_profile", "grade-compact")]
     if channel_id == "supervisor_localization_grade_9":
         profile = {**profile, **{section: "、".join(report["display_columns"][section]) for section in ("process", "result")}}
+    if report.get('column_order'):
+        profile = {**profile, **{section: '、'.join(report['column_order'][section]) for section in ('process','result')}}
     mention = _mention_label(source.get("mention_target"))
     reminder_rank_by_rule = {
         "grade_manager_minimum_all_ties": "最低值",
@@ -257,7 +259,8 @@ def _operator_record(channel_ref: str, config):
         "转化指标（逐项勾选）": _business_metrics(profile, "result"),
         "转化指标展示顺序（选填）": profile["result"],
         "过程重点提醒指标": _select("5min"),
-        "转化重点提醒指标": _select("单效" if source.get("report_profile") == "supervisor-video49" else "截面单效"),
+        "转化重点提醒指标": _select("截面单效" if "截面单效" in profile['result'].split('、')
+                                   else ("单效" if source.get("report_profile") == "supervisor-video49" else "截面单效")),
         "过程数据排序规则": process_sort,
         "转化数据排序规则": result_sort,
         "展示总计行": report.get("show_totals", True),
@@ -388,7 +391,7 @@ def export(mode: str, link_map):
     records = []
     for channel_ref, relative_path in registry["channels"].items():
         config = _load(CONFIG_ROOT / relative_path)
-        if config.get("adapter") == "market-grade-bundle-v2":
+        if config.get("adapter") in {"market-grade-bundle-v2", "market-highschool-channel-v1"}:
             from lark_delivery.domains.market_consultant.registry_export import records as grouped_records
             records.extend(grouped_records(channel_ref, config, mode, link_map))
             continue

@@ -2,6 +2,8 @@
 from fractions import Fraction
 from math import ceil
 
+from ...common.records import text,value
+from .channels.grade_compact import grade_sort_key
 from . import supervisor_report as supervisor
 from . import supervisor_video49_report as advisor_base
 from . import supervisor_yafei_advisor_report as advisor
@@ -42,8 +44,11 @@ def calculate(rows, evidence, period, section, components):
                 if len(component['source_values']) != 1:
                     raise ValueError('Advisor union has not been reviewed')
                 advisor.validate_scope(selected, component['label'], period, source_channel=component['source_values'][0])
+            grades=component['grades']
+            if component.get('grade_scope')=='all':
+                grades=sorted({text(value(row,'年级')) for row in selected},key=grade_sort_key)
             report = module.build_report(selected, counters, period, section,
-                min_post_leads=component['minimum_post_leads'], included_grades=component['grades'])
+                min_post_leads=component['minimum_post_leads'], included_grades=grades)
             report['show_totals'] = component.get('show_totals', False)
             if not report['blocks']:
                 outcomes[key] = {'status': 'skipped_no_eligible_rows', 'channel': component['label']}

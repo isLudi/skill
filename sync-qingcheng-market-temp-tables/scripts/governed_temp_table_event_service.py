@@ -52,6 +52,10 @@ class ServiceError(RuntimeError):
     pass
 
 
+class ConsumerStoppedError(ServiceError):
+    """The event stream closed while the service was expected to run."""
+
+
 def now_iso() -> str:
     return datetime.now(timezone.utc).astimezone().isoformat(timespec="seconds")
 
@@ -1061,6 +1065,7 @@ class LarkEventConsumer:
         self.process: subprocess.Popen[str] | None = None
         self.stdout_queue: queue.Queue[str | None] = queue.Queue()
         self.stderr_queue: queue.Queue[str | None] = queue.Queue()
+        self.pump_threads: list[threading.Thread] = []
 
     @staticmethod
     def _pump(stream: Any, destination: queue.Queue[str | None]) -> None:
@@ -1097,8 +1102,12 @@ class LarkEventConsumer:
             bufsize=1,
         )
         assert self.process.stdout is not None and self.process.stderr is not None
-        threading.Thread(target=self._pump, args=(self.process.stdout, self.stdout_queue), daemon=True).start()
-        threading.Thread(target=self._pump, args=(self.process.stderr, self.stderr_queue), daemon=True).start()
+        self.pump_threads = [
+            threading.Thread(target=self._pump, args=(self.process.stdout, self.stdout_queue), daemon=True),
+            threading.Thread(target=self._pump, args=(self.process.stderr, self.stderr_queue), daemon=True),
+        ]
+        for thread in self.pump_threads:
+            thread.start()
         deadline = time.monotonic() + self.config["event_ready_timeout_seconds"]
         diagnostics = []
         while time.monotonic() < deadline:
@@ -1129,12 +1138,12 @@ class LarkEventConsumer:
                 line = self.stdout_queue.get(timeout=timeout)
             except queue.Empty:
                 if self.process.poll() is not None:
-                    raise ServiceError(f"lark-event exited unexpectedly with code {self.process.returncode}.")
+                    self._drain_stderr()
+                    raise ConsumerStoppedError(f"lark-event exited unexpectedly with code {self.process.returncode}.")
                 return None
             if line is None:
-                if self.process.poll() is not None:
-                    raise ServiceError(f"lark-event stdout closed with code {self.process.returncode}.")
-                return None
+                self._drain_stderr()
+                raise ConsumerStoppedError(f"lark-event stdout closed with code {self.process.poll()}.")
             if not line.strip():
                 continue
             try:
@@ -1147,19 +1156,38 @@ class LarkEventConsumer:
                 continue
             return value
 
+    def _drain_stderr(self) -> None:
+        while True:
+            try:
+                diagnostic = self.stderr_queue.get_nowait()
+            except queue.Empty:
+                return
+            if diagnostic:
+                self.logger.info("lark-event: %s", diagnostic)
+
     def close(self) -> None:
         if self.process is None:
             return
         if self.process.poll() is None and self.process.stdin is not None:
-            with contextlib.suppress(OSError):
+            with contextlib.suppress(OSError, ValueError):
                 self.process.stdin.close()
         try:
             self.process.wait(timeout=20)
         except subprocess.TimeoutExpired:
             self.logger.warning("lark-event ignored stdin EOF; sending terminate.")
             self.process.terminate()
-            with contextlib.suppress(subprocess.TimeoutExpired):
+            try:
                 self.process.wait(timeout=10)
+            except subprocess.TimeoutExpired as exc:
+                raise ServiceError("lark-event did not exit after termination; refusing a second consumer.") from exc
+        for thread in self.pump_threads:
+            thread.join(timeout=2)
+        self._drain_stderr()
+        for stream in (self.process.stdin, self.process.stdout, self.process.stderr):
+            if stream is not None:
+                with contextlib.suppress(OSError, ValueError):
+                    stream.close()
+        self.pump_threads = []
         self.process = None
 
 
@@ -1729,6 +1757,7 @@ class GovernedTempTableEventService:
         self.consumer: LarkEventConsumer | None = None
         self.worker: JobWorker | None = None
         self.lark_cli_path: str | None = None
+        self.consumer_reconnect_count = 0
 
     def write_status(self, status: str, **extra: Any) -> None:
         value = {
@@ -1745,6 +1774,7 @@ class GovernedTempTableEventService:
             "allow_production_upload": self.config["allow_production_upload"],
             "production_source_policy": self.config.get("production_source_policy", "explicit"),
             "lark_cli_path": self.lark_cli_path,
+            "consumer_reconnect_count": self.consumer_reconnect_count,
             "config_path": self.config["config_path"],
             "updated_at": now_iso(),
             "ledger": self.ledger.summary(),
@@ -1754,6 +1784,53 @@ class GovernedTempTableEventService:
 
     def request_stop(self, *_: Any) -> None:
         self.stop_event.set()
+
+    def _stop_requested(self) -> bool:
+        if self.stop_path.exists():
+            self.stop_event.set()
+        return self.stop_event.is_set()
+
+    def _wait_for_reconnect(self, delay: float) -> bool:
+        deadline = time.monotonic() + delay
+        while not self._stop_requested():
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                return True
+            self.stop_event.wait(min(1.0, remaining))
+        return False
+
+    def _reconnect_consumer(self, reason: ConsumerStoppedError, failures: int) -> bool:
+        """Reconnect only the event stream; keep the existing worker and ledger."""
+        self.write_status(
+            "reconnecting", event_ready=False,
+            error={"type": type(reason).__name__, "message": str(reason)},
+        )
+        delay = min(2.0 ** min(max(failures - 1, 0), 5), 30.0)
+        attempt = 0
+        while self._wait_for_reconnect(delay):
+            attempt += 1
+            try:
+                if self.consumer is not None:
+                    self.consumer.close()
+                    self.consumer = None
+                cli = workflow.resolve_lark_cli()
+                if cli != self.lark_cli_path:
+                    raise ServiceError("Resolved lark-cli path changed; service restart is required.")
+                self.consumer = LarkEventConsumer(self.config, self.logger, cli)
+                self.consumer.start()
+                self.consumer_reconnect_count += 1
+                self.write_status("running", event_ready=True)
+                self.logger.info("Event consumer reconnected after %s attempt(s)", attempt)
+                return True
+            except Exception as exc:
+                self.logger.warning("Event consumer reconnect attempt %s failed: %s", attempt, exc)
+                self.write_status(
+                    "reconnecting", event_ready=False,
+                    error={"type": type(exc).__name__, "message": str(exc)},
+                    reconnect_attempt=attempt,
+                )
+                delay = min(delay * 2, 30.0)
+        return False
 
     def run(self) -> int:
         with ServiceLock(self.lock_path):
@@ -1795,11 +1872,21 @@ class GovernedTempTableEventService:
                     ",".join(self.config["chat_ids"]),
                 )
                 last_status = 0.0
-                while not self.stop_event.is_set():
-                    if self.stop_path.exists():
-                        self.stop_event.set()
-                        break
-                    event = self.consumer.get(timeout=1.0)
+                consumer_started_at = time.monotonic()
+                consecutive_failures = 0
+                while not self._stop_requested():
+                    try:
+                        event = self.consumer.get(timeout=1.0)
+                    except ConsumerStoppedError as exc:
+                        consecutive_failures += 1
+                        self.logger.warning("Event consumer stopped unexpectedly: %s", exc)
+                        if not self._reconnect_consumer(exc, consecutive_failures):
+                            break
+                        consumer_started_at = time.monotonic()
+                        last_status = consumer_started_at
+                        continue
+                    if time.monotonic() - consumer_started_at >= 60:
+                        consecutive_failures = 0
                     if event is not None:
                         result = processor.process(event)
                         self.logger.info(

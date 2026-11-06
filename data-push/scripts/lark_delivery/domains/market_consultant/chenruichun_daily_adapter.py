@@ -15,6 +15,23 @@ KEY='market_consultant/supervisor_chenruichun'
 TARGET='oc_510ee233f666207fbda3a4ec473bf388'
 
 
+def image_columns(definition,section):
+    """Resolve this channel's configured order without mutating shared templates."""
+    default=report.COLUMNS[section]
+    lookup={item[0]:item for item in default}
+    widths={item[0]:width for item,width in zip(default,report.WIDTHS[section])}
+    if section=='result':
+        lookup.update({'当期单效':('当期单效','当期单效','amount'),
+                       '截面单效':('截面单效','截面单效','amount')})
+        widths.update({'当期单效':widths['单效（当期）'],'截面单效':widths['单效']})
+    order=definition['report'].get('column_order',{}).get(section,[item[0] for item in default])
+    if (not isinstance(order,list) or len(order)!=len(set(order))
+            or any(name not in lookup for name in order)
+            or order[:4]!=['期次','负责人','主管','顾问']):
+        raise ValueError('Unreviewed Chen Ruichun image columns')
+    return [lookup[name] for name in order],[widths[name] for name in order]
+
+
 def validate_definition(definition):
     if (definition.get('domain')!='market_consultant' or definition.get('channel_id')!='supervisor_chenruichun'
             or definition.get('adapter')!='market-chenruichun-daily-v1' or definition['channels']!=['陈瑞春']
@@ -38,6 +55,8 @@ def validate_definition(definition):
             or definition['source']['field_contract']!='release/market2lark_raw_fields.json'
             or definition['components']!=[{'id':'chenruichun_all','label':'陈瑞春','grain':'顾问'}]):
         raise ValueError('Chen Ruichun source/component changed')
+    for section in ['process','result']:
+        image_columns(definition,section)
     return definition
 
 
@@ -79,8 +98,9 @@ def prepare(definition,target,*,state_dir=None,report_type='auto',slot=None,peri
             outcomes['chenruichun_all']={'status':'skipped_no_eligible_rows','channel':'陈瑞春'}
         else:
             image=root/'chenruichun.png'
+            columns,widths=image_columns(definition,section)
             geometry=report.render_image(computed,section,image,font_loader=_find_font,center_text=_center_text,
-                                          format_value=_format_value,rate_parser=_rate)
+                                          format_value=_format_value,rate_parser=_rate,columns=columns,widths=widths)
             reminders=[{'channel':'陈瑞春 · '+block['grade'],'grain':'顾问','rank':'minimum_all_ties',
                         'names':block['reminders'][section]}for block in computed['blocks']if block['reminders'][section]]
             artifacts=[{'grade':'高一 / 高二 / 高三','path':str(image),'component_ids':['chenruichun_all'],

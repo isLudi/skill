@@ -50,11 +50,16 @@ def validate_definition(definition):
             or report.get('show_population_labels') is not False):
         raise ValueError('Compact layout requires reviewed visible-row totals without population labels')
     for component in components:
-        if (component['label'] not in definition['channels'] or component['minimum_post_leads'] != 5
+        all_grades=component.get('grade_scope')=='all'
+        if all_grades and (channel_id!='douyin_advisor_bundle' or component['source_values']!=['抖音私信']
+                           or component['grain']!='顾问'):
+            raise ValueError('Unrestricted grades are registered only for Douyin private messages')
+        minimum=3 if all_grades else 5
+        if (component['label'] not in definition['channels'] or component['minimum_post_leads'] != minimum
                 or not isinstance(component.get('show_totals'), bool)
                 or component['show_totals'] is not report['show_totals'] or not component['source_values']
                 or component['match'] not in {'any_exact','casefold_exact'}
-                or component['grain'] not in {'主管','顾问'} or not component['grades']):
+                or component['grain'] not in {'主管','顾问'} or (not component['grades'] and not all_grades)):
             raise ValueError('Unreviewed bundle component scope')
         if component['match'] == 'casefold_exact' and component['source_values'] != ['app']:
             raise ValueError('Casefold matching is limited to APP')

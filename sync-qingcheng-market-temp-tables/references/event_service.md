@@ -130,11 +130,15 @@ $manager = 'C:\Users\lvshuai01\.codex\skills\sync-qingcheng-market-temp-tables\s
 & $manager -Action start
 ```
 
-`stop` 只写停止请求并等待当前任务结束，不强杀进程。`start` 会先验证配置并等待运行状态。
+`stop` 写入持久暂停标记和停止请求，等待当前任务结束，不强杀进程；暂停期间定期恢复触发器不会重启服务。`start` 验证配置并清除暂停标记，优先由匹配配置的 Windows 任务启动，再等待真实进程进入运行状态。
+
+事件消费者意外退出时，服务先将状态标为 `reconnecting`、`event_ready=false`，关闭旧消费者，再按 1 至 30 秒退避重建订阅；原有任务工作线程和账本继续使用，订阅就绪后恢复 `running`。连续快速退出会延长重试间隔，停止请求可中断等待。只有确认旧消费者已退出才允许启动新消费者。
 
 统一启动任务名：
 
 `Codex-Governed-TempTables-LarkEvent`
+
+启动任务保留用户登录触发器，并增加每天运行、每两分钟重复的 `CodexEventRecovery` 触发器；`IgnoreNew` 避免正常运行时启动第二个实例。父进程意外退出后，下一次触发会重新运行服务。服务运行时，重复触发被 `IgnoreNew` 拒绝可能使任务的 `LastTaskResult` 显示 `0x800710E0`；应结合实际进程、`event_ready`、消费者数量和事件丢弃数判断健康状态。更新现有任务使用 `manage_event_service.ps1 -Action ensure-autorestart`，并核对任务身份、动作、设置和触发器；执行前会保存原任务 XML。事件断线期间的消息不保证由飞书补发，恢复后应核对账本并对遗漏的预检命令重新发送。
 
 Windows 启动任务必须使用当前用户的 `Interactive` 登录令牌，服务进程的 `SessionId` 必须大于 0。`Password` / `S4U` 登录会把服务放入 Session 0；该环境下 Excel COM 可启动但可能在 `Workbooks.Open` 拒绝暂存工作簿。管理脚本在 Session 0 启动时直接报错，避免把无公式表的成功预检误判为整条 Excel 重算链路可用。用户注销后交互式任务不会继续运行；重新登录后由登录触发器恢复。
 

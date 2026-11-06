@@ -169,6 +169,95 @@ def load_artifact(path: Path, hash_field: str, expected_hash: str | None = None)
     return value
 
 
+def build_navigation_failure_recovery(
+    plan: dict[str, Any], receipt_path: Path, expected_sha256: str
+) -> dict[str, Any]:
+    """Bind a new no-change plan to a proven pre-import navigation failure."""
+    if not expected_sha256:
+        raise WorkflowError("Recovery requires the expected failed upload receipt hash.")
+    receipt_path = receipt_path.resolve()
+    failed = load_artifact(receipt_path, "receipt_sha256", expected_sha256)
+    if (
+        failed.get("artifact_type") != "GovernedDepartmentTempTableUploadReceipt"
+        or failed.get("status") != "partial_failure"
+        or failed.get("uploads")
+    ):
+        raise WorkflowError("Recovery requires a failed upload receipt with no completed uploads.")
+    failure = failed.get("failure") or {}
+    message = str(failure.get("message") or "")
+    if (
+        failure.get("error_type") != "WorkflowError"
+        or 'waiting for get_by_text("临时表", exact=True).last to be visible' not in message
+        or "Locator.wait_for: Timeout" not in message
+    ):
+        raise WorkflowError("Recovery is limited to the verified pre-import temporary-table navigation failure.")
+    family_id = failure.get("family_id")
+    if failed.get("pending_families") != [family_id] or not family_id:
+        raise WorkflowError("Recovery requires exactly the failed pending family.")
+    old_local = load_artifact(
+        Path(failed["local_receipt_path"]), "receipt_sha256", failed["local_receipt_sha256"]
+    )
+    if old_local.get("status") != "success":
+        raise WorkflowError("Recovery requires the successful original local apply receipt.")
+    old_plan = load_artifact(
+        Path(old_local["plan_path"]), "plan_sha256", old_local["plan_sha256"]
+    )
+    if old_plan.get("status") != "ready" or plan.get("status") != "ready":
+        raise WorkflowError("Recovery requires ready original and fresh plans.")
+    if plan.get("selection", {}).get("family_ids") != [family_id]:
+        raise WorkflowError("Recovery must select exactly the failed family.")
+    old_tables = [item for item in old_plan.get("tables", []) if item.get("family_id") == family_id]
+    new_tables = [item for item in plan.get("tables", []) if item.get("family_id") == family_id]
+    local_tables = [item for item in old_local.get("tables", []) if item.get("family_id") == family_id]
+    if len(old_tables) != 1 or len(new_tables) != 1 or len(local_tables) != 1:
+        raise WorkflowError("Recovery evidence does not identify exactly one matching table.")
+    old, new, applied = old_tables[0], new_tables[0], local_tables[0]
+    if not old.get("diff", {}).get("changed") or new.get("diff", {}).get("changed") or not applied.get("changed"):
+        raise WorkflowError("Recovery requires an original local change and a fresh no-change plan.")
+    failed_slices = old.get("diff", {}).get("source_slices") or []
+    equivalent_slices = new.get("source_selection", {}).get("target_equivalent_slices") or []
+    if not failed_slices or not set(failed_slices).issubset(equivalent_slices):
+        raise WorkflowError("Recovery slices are not still pending against the source baseline.")
+    for key in ("target_path", "platform_temp_table"):
+        if old.get(key) != new.get(key):
+            raise WorkflowError(f"Recovery {key} changed after the failed upload.")
+    for key in ("message_id", "source_sha256"):
+        if not old.get("source_message", {}).get(key) or old["source_message"][key] != new.get("source_message", {}).get(key):
+            raise WorkflowError(f"Recovery source {key} changed after the failed upload.")
+    target_hash = old.get("target_after_sha256")
+    if not target_hash or not (
+        applied.get("target_path") == new.get("target_path")
+        and applied.get("current_sha256") == applied.get("expected_sha256") == target_hash
+        and new.get("target_before_sha256") == new.get("target_after_sha256") == target_hash
+    ):
+        raise WorkflowError("Recovery target does not match the original applied workbook hash.")
+    return {
+        "family_id": family_id,
+        "failed_upload_receipt_path": str(receipt_path),
+        "failed_upload_receipt_sha256": expected_sha256,
+        "original_plan_sha256": old_plan["plan_sha256"],
+        "original_local_receipt_sha256": old_local["receipt_sha256"],
+        "source_message_id": new["source_message"]["message_id"],
+        "source_sha256": new["source_message"]["source_sha256"],
+        "target_sha256": target_hash,
+        "reason": "pre_import_temp_table_navigation_timeout",
+    }
+
+
+def validate_navigation_failure_recovery(plan: dict[str, Any]) -> str | None:
+    recovery = plan.get("upload_recovery")
+    if not recovery:
+        return None
+    verified = build_navigation_failure_recovery(
+        plan,
+        Path(recovery["failed_upload_receipt_path"]),
+        recovery["failed_upload_receipt_sha256"],
+    )
+    if verified != recovery:
+        raise WorkflowError("Upload recovery evidence changed after planning.")
+    return str(verified["family_id"])
+
+
 def load_registry(path: Path) -> dict[str, Any]:
     registry = json.loads(path.read_text(encoding="utf-8"))
     domains = registry.get("domains")
@@ -3395,6 +3484,14 @@ def plan_sync(args: argparse.Namespace) -> int:
         "blockers": blockers,
         "production_upload_authorized": False,
     }
+    recovery_path = getattr(args, "recover_upload_receipt", None)
+    recovery_sha = getattr(args, "expected_recovery_receipt_sha256", None)
+    if bool(recovery_path) != bool(recovery_sha):
+        raise WorkflowError("Recovery requires both receipt path and expected receipt hash.")
+    if recovery_path:
+        plan["upload_recovery"] = build_navigation_failure_recovery(
+            plan, recovery_path, recovery_sha
+        )
     plan_path = run_dir / "sync_plan.json"
     plan_sha = write_artifact(plan_path, plan, "plan_sha256")
     summary = {
@@ -3404,6 +3501,7 @@ def plan_sync(args: argparse.Namespace) -> int:
         "plan_sha256": plan_sha,
         "table_count": len(tables),
         "blockers": blockers,
+        "upload_recovery": plan.get("upload_recovery"),
         "tables": [
             {
                 "family_id": table["family_id"],
@@ -3437,6 +3535,7 @@ def apply_local(args: argparse.Namespace) -> int:
     plan = load_artifact(args.plan.resolve(), "plan_sha256", args.expected_plan_sha256)
     if plan.get("status") != "ready":
         raise WorkflowError("Only a ready plan can be applied locally.")
+    validate_navigation_failure_recovery(plan)
     registry_path = Path(plan["registry_path"])
     if not registry_path.exists() or sha256_file(registry_path) != plan["registry_sha256"]:
         raise WorkflowError("Workflow registry drifted after planning.")
@@ -3647,6 +3746,7 @@ def upload_production(args: argparse.Namespace) -> int:
         raise WorkflowError("Local apply receipt is not successful.")
     plan_path = Path(receipt["plan_path"])
     plan = load_artifact(plan_path, "plan_sha256", receipt["plan_sha256"])
+    recovery_family = validate_navigation_failure_recovery(plan)
     registry_path = Path(plan["registry_path"])
     if sha256_file(registry_path) != plan["registry_sha256"]:
         raise WorkflowError("Workflow registry drifted after planning.")
@@ -3677,7 +3777,7 @@ def upload_production(args: argparse.Namespace) -> int:
     selected_order = selection["family_ids"]
     for family_id in selected_order:
         table = tables_by_id[family_id]
-        if not table["diff"]["changed"]:
+        if not table["diff"]["changed"] and family_id != recovery_family:
             uploads.append(
                 {
                     "family_id": family_id,
@@ -3809,6 +3909,15 @@ def build_parser() -> argparse.ArgumentParser:
         "--message-id",
         action="append",
         help="Bind one selected family to an exact Feishu message: <family_id>=<om_message_id>.",
+    )
+    plan.add_argument(
+        "--recover-upload-receipt",
+        type=Path,
+        help="Bind a no-change plan to one verified pre-import navigation failure receipt.",
+    )
+    plan.add_argument(
+        "--expected-recovery-receipt-sha256",
+        help="Expected canonical SHA-256 of the failed upload receipt.",
     )
     plan.set_defaults(func=plan_sync)
 

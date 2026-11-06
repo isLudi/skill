@@ -2,15 +2,14 @@
   "schema_version": 1,
   "domain": "market_consultant",
   "channel_id": "high_school_supervisor_bundle",
-  "channel": "KOC-周帅数学",
+  "channel": "外部KOC",
   "channels": [
-    "KOC-周帅数学",
-    "KOC-孟亚飞数学",
-    "自孵化KOC-5元纯课",
-    "app",
+    "外部KOC",
+    "自孵化KOC",
+    "APP",
     "人工外呼"
   ],
-  "adapter": "market-grade-bundle-v2",
+  "adapter": "market-highschool-channel-v1",
   "source": {
     "base_token": "PmpybDuXGaudYost6I3cTwChn3d",
     "raw_table_id": "tbljWRvaqKTdrCx4",
@@ -48,11 +47,20 @@
     ],
     "minimum_post_leads": 5,
     "show_totals": true,
-    "layout": "grade_then_channel",
-    "artifact_protocol": "market-grade-bundle-artifacts-v2",
+    "layout": "channel_then_grade",
+    "artifact_protocol": "market-channel-grade-artifacts-v1",
     "total_scope": "visible_rows",
     "image_style": "compact-original-colors-v1",
-    "show_population_labels": false
+    "show_population_labels": false,
+    "message_unit": "logical_channel",
+    "image_unit": "logical_channel_all_grades",
+    "reminder_group": "grade",
+    "message_format": "interactive_card_2",
+    "title_name_source": "base_standard_name_with_explicit_merge_override",
+    "cheer_colors": {
+      "encouragement": "green",
+      "wish": "orange"
+    }
   },
   "schedule": {
     "enabled": true,
@@ -90,65 +98,12 @@
   },
   "components": [
     {
-      "id": "draft_20_1",
+      "id": "external_koc",
       "request_row": 20,
       "operator_record_id": "reczz28TBlJNCihH",
-      "label": "KOC-周帅数学",
+      "label": "外部KOC",
       "source_values": [
-        "KOC-周帅数学"
-      ],
-      "match": "any_exact",
-      "grades": [
-        "高一",
-        "高二",
-        "高三"
-      ],
-      "grain": "主管",
-      "column_order": {
-        "process": [
-          "期次",
-          "负责人",
-          "主管",
-          "退前线索",
-          "退后线索",
-          "首call率",
-          "48h外呼",
-          "外呼频次",
-          "5min",
-          "好友率",
-          "APP登陆率",
-          "深沟率",
-          "双沟率"
-        ],
-        "result": [
-          "期次",
-          "负责人",
-          "主管",
-          "退后线索",
-          "5min",
-          "双沟率",
-          "首节到课率",
-          "当期单效",
-          "截面单效"
-        ]
-      },
-      "minimum_post_leads": 5,
-      "show_totals": true,
-      "reminders": {
-        "target": "主管",
-        "process_rank": "最低值",
-        "result_rank": "最低值",
-        "ties": "全部提醒",
-        "member_unresolved": "plain_name_fallback",
-        "preview_identity_resolution": "names_only_not_at_verified"
-      }
-    },
-    {
-      "id": "draft_20_2",
-      "request_row": 20,
-      "operator_record_id": "reczz28TBlJNCihH",
-      "label": "KOC-孟亚飞数学",
-      "source_values": [
+        "KOC-周帅数学",
         "KOC-孟亚飞数学"
       ],
       "match": "any_exact",
@@ -195,13 +150,18 @@
         "ties": "全部提醒",
         "member_unresolved": "plain_name_fallback",
         "preview_identity_resolution": "names_only_not_at_verified"
-      }
+      },
+      "source_component_ids": [
+        "draft_20_1",
+        "draft_20_2"
+      ],
+      "display_name_source": "explicit_user_merge_name"
     },
     {
       "id": "draft_21_1",
       "request_row": 21,
       "operator_record_id": "reczz28TBmd6glQe",
-      "label": "自孵化KOC-5元纯课",
+      "label": "自孵化KOC",
       "source_values": [
         "自孵化KOC-5元纯课"
       ],
@@ -255,7 +215,7 @@
       "id": "draft_22_1",
       "request_row": 22,
       "operator_record_id": "reczz28TBtePAzWO",
-      "label": "app",
+      "label": "APP",
       "source_values": [
         "app"
       ],

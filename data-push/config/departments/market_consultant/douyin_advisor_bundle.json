@@ -42,13 +42,14 @@
       5,
       6
     ],
-    "minimum_post_leads": 5,
+    "minimum_post_leads": 3,
     "show_totals": true,
     "layout": "grade_then_channel",
     "artifact_protocol": "market-grade-bundle-artifacts-v2",
     "total_scope": "visible_rows",
     "image_style": "compact-original-colors-v1",
-    "show_population_labels": false
+    "show_population_labels": false,
+    "grade_scope": "all"
   },
   "schedule": {
     "enabled": true,
@@ -94,11 +95,7 @@
         "抖音私信"
       ],
       "match": "any_exact",
-      "grades": [
-        "高一",
-        "高二",
-        "高三"
-      ],
+      "grades": [],
       "grain": "顾问",
       "column_order": {
         "process": [
@@ -130,7 +127,7 @@
           "截面单效"
         ]
       },
-      "minimum_post_leads": 5,
+      "minimum_post_leads": 3,
       "show_totals": true,
       "reminders": {
         "target": "不提醒",
@@ -139,7 +136,8 @@
         "ties": "不提醒",
         "member_unresolved": "plain_name_fallback",
         "preview_identity_resolution": "names_only_not_at_verified"
-      }
+      },
+      "grade_scope": "all"
     }
   ],
   "intake_record_ids": [

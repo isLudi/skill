@@ -8,7 +8,7 @@ from ...paths import CONFIG_ROOT, SKILL_ROOT
 
 def records(ref,definition,kind,link_map=None):
     """Pure export only: never writes Base or changes implementation receipts."""
-    if definition['adapter']!='market-grade-bundle-v2':
+    if definition['adapter'] not in {'market-grade-bundle-v2','market-highschool-channel-v1'}:
         raise ValueError('Unsupported grouped registry export')
     scopes=[]
     for record_id in definition['intake_record_ids']:
@@ -20,7 +20,8 @@ def records(ref,definition,kind,link_map=None):
         cfg=catalog.schedule_config(definition,target)
         first=components[0]
         grain=first['grain']
-        grades=first['grades']
+        unrestricted_grades=first.get('grade_scope')=='all'
+        grades=[] if unrestricted_grades else first['grades']
         sources=list(dict.fromkeys(value for c in components for value in c['source_values']))
         dims=['期次','渠道','年级','负责人','主管']+(['顾问'] if grain=='顾问' else [])
         process=first['column_order']['process']
@@ -28,7 +29,8 @@ def records(ref,definition,kind,link_map=None):
         source=definition['source']
         url=source.get('raw_source_url') or f"https://gaotuedu.feishu.cn/base/{source['base_token']}?table={source['raw_table_id']}"
         reminder=first['reminders']
-        name='、'.join(c['label'] for c in components)+grain
+        channel_first = definition['adapter']=='market-highschool-channel-v1'
+        name='、'.join(c['label'] for c in components) + ('' if channel_first else grain)
         if kind=='operator':
             fields={'申请编号':request,'申请部门':['市场顾问部'],'申请状态':['已上线' if cfg['enabled'] else '已暂停'],
                 '渠道标准名称':name,'原始渠道示例':'；'.join(sources),'目标群':[{'id':target['chat_id']}],
@@ -39,14 +41,15 @@ def records(ref,definition,kind,link_map=None):
                 '期望首次上线日期':cfg['first_send_at'],'数据维度':dims,'年级范围':grades,'播报层级':[grain],
                 '提醒对象':[reminder['target']],'过程文字提醒名次':[reminder['process_rank']],
                 '转化文字提醒名次':[reminder['result_rank']],'并列处理':[reminder['ties']],
-                '展示门槛指标':'退后线索','门槛运算符':['>='],'门槛值':5,
+                '展示门槛指标':'退后线索','门槛运算符':['>='],'门槛值':first['minimum_post_leads'],
                 '过程指标（逐项勾选）':[field for field in process if field not in dims],
                 '转化指标（逐项勾选）':[field for field in conversion if field not in dims],
                 '过程指标展示顺序（选填）':'、'.join(process),'转化指标展示顺序（选填）':'、'.join(conversion),
                 '展示总计行':first['show_totals'],
-                '图片分组与排版':('按年级出图，年级内分渠道；原始配色、紧凑列宽、模块总计，不显示右上角人数'
+                '图片分组与排版':('每渠道一条消息，一图按高一、高二、高三分块，分年级总计和提醒'
+                    if channel_first else ('按年级出图，年级内分渠道；原始配色、紧凑列宽、模块总计，不显示右上角人数'
                     if definition['report'].get('image_style')=='compact-original-colors-v1'
-                    else '按年级出图，年级内分渠道'),
+                    else '按年级出图，年级内分渠道')),
                 '运营备注':'受治理配置候选导出，不直接覆盖现有实施回执。'}
         else:
             config_path=CONFIG_ROOT/'departments/market_consultant'/(definition['channel_id']+'.json')
@@ -71,5 +74,8 @@ def records(ref,definition,kind,link_map=None):
             operator_id=(link_map or {}).get(request) or record_id
             if operator_id:
                 fields['关联运营申请']=[{'id':operator_id}]
+        if unrestricted_grades and kind=='operator':
+            fields.pop('年级范围',None)
+            fields['其他范围或排除规则']='不限年级。按抖音私信渠道全量读取，实际年级动态参与计算，顾问展示门槛>=3。'
         result.append(fields)
     return result

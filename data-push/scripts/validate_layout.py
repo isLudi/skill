@@ -107,6 +107,7 @@ def validate(root=SKILL_ROOT):
             if schedule.get("enabled"):
                 if (definition.get("adapter"),schedule.get("kind")) in {
                         ("market-grade-bundle-v2","grade_bundle_twice_daily"),
+                        ("market-highschool-channel-v1","grade_bundle_twice_daily"),
                         ("market-chenruichun-daily-v1","chenruichun_twice_daily")}:
                     bundle_schedules.append((key, schedule))
                 else:

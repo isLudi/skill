@@ -133,8 +133,8 @@ def render(results, section, period, target_name, directory, outcomes):
     for result in results:
         component = result['component']
         try:
-            for block in result['report']['blocks']:
-                path = directory / f"{component['id']}-{grade_sort_key(block['grade'])[0]}.png"
+            for block_index,block in enumerate(result['report']['blocks']):
+                path = directory / f"{component['id']}-{block_index}.png"
                 check = panel(component, block, section, panel_width, sizes, path)
                 checks.append({'component': component['id'], 'grade': block['grade'], **check})
                 panels[component['id'], block['grade']] = path
@@ -147,21 +147,14 @@ def render(results, section, period, target_name, directory, outcomes):
     artifacts = []
     for index, grade in enumerate(grades):
         present = [result for result in results if (result['component']['id'], grade) in panels]
-        width, margin, title, gap = panel_width + 32, 16, 90, 14
+        width, margin, gap = panel_width + 32, 16, 14
         parts = []
         for result in present:
             with Image.open(panels[result['component']['id'], grade]) as image:
                 parts.append(image.convert('RGB'))
-        height = title + sum(part.height for part in parts) + gap * max(0, len(parts)-1) + margin
+        height = margin * 2 + sum(part.height for part in parts) + gap * max(0, len(parts)-1)
         canvas = Image.new('RGB', (width, height), '#ffffff')
-        draw = ImageDraw.Draw(canvas)
-        label = '过程' if section == 'process' else '转化'
-        grain = present[0]['component']['grain']
-        draw.rectangle((0, 0, width, title-10), fill=BAND)
-        draw.text((margin, 18), f'{period} · {grade} · {grain}{label}数据', font=_find_font(25, True), fill=NAVY)
-        draw.text((margin, 59), target_name, font=_find_font(17), fill=MUTED)
-        draw.line((margin, 83, width-margin, 83), fill=GRID)
-        y = title
+        y = margin
         for part in parts:
             canvas.paste(part, (margin, y))
             y += part.height + gap

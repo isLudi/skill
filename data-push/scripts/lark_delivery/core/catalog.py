@@ -297,7 +297,7 @@ def source_defaults(config, target=None):
 
 
 def schedule_config(config, target):
-    if config.get("domain") == "market_consultant" and config.get("adapter") in {"market-grade-bundle-v2", "market-chenruichun-daily-v1"}:
+    if config.get("domain") == "market_consultant" and config.get("adapter") in {"market-grade-bundle-v2", "market-chenruichun-daily-v1", "market-highschool-channel-v1"}:
         from .registry import adapter_for
         return adapter_for(config).schedule_config(config, target)
     state = Path(config["state_dir"])
