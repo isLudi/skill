@@ -16,6 +16,7 @@
 - [财务事实参数 SQL](qingcheng_monthly_cashflow_finance.sql)
 - [归因码查询参数 SQL](qingcheng_monthly_cashflow_stat_lookup.sql)
 - [TT 补充参数 SQL](qingcheng_monthly_cashflow_tt_supplement.sql)
+- [参数查询准备脚本](../../scripts/prepare_monthly_cashflow_queries.py)：只生成本次控制查询；提供已核验行数与 Query ID 后，生成带独立上限的三份明细 SQL，不执行查询、不修改权限。
 - [组装与校验脚本](../../scripts/assemble_monthly_cashflow.py)：强制接收财务事实、归因码和 TT 三份输入，检查期间并合并；只处理 operator 下载文件，不执行 SQL。
 
 SQL 占位符必须由真实分区、日期、已授权部门列表和经控制查询确认足够的导出上限替换。不得直接提交含占位符模板。业务起止日期、部门范围、快照时点都是每次运行参数，不能沿用旧任务授权白名单。
@@ -87,6 +88,18 @@ SQL 占位符必须由真实分区、日期、已授权部门列表和经控制�
 ## 常态化调用
 
 对话可直接说：“按青橙月度流水内置口径拉取某月，包含 TT 补充，输出 Lark Sheet。”沿用本流程处理已经明确的来源和空值规则；当期新范围、异常或用户不同要求再单独处理。
+
+先使用参数准备脚本，避免从历史任务复制快照或权限名单：
+
+```text
+python scripts/prepare_monthly_cashflow_queries.py --start-date YYYY-MM-DD --end-date YYYY-MM-DD --snapshot-dt YYYYMMDD --snapshot-hour HH --scopes <current_scopes.json> --output-dir <runtime_control_dir>
+```
+
+`--scopes` 包含 `goods_first`、`goods_second`、`course_first`、`course_second` 四个非空名称数组，以及当前权限和业务范围的 `scope_evidence`；不要把课程部门直接当商品部门权限。脚本先生成三份精确范围控制 SQL，并额外生成 `tt_department_distribution.sql`。每次还须运行该分布探查，检查已登记 TT 一级范围下的全部二级部门；出现未登记部门或范围变化时停止导出并先核验、更新范围。`tt_control.sql` 只控制已登记明细范围的行数。由 operator 验证完整结果后，再提供 `--verified-counts <counts.json>`、使用新的输出目录生成三份明细 SQL；每源记录 `row_count`、`query_id`、`start_date`、`end_date`、`snapshot_dt`、`snapshot_hour` 和与控制阶段一致的 `scope_sha256`。各源导出上限为其已核验行数加一，下载行数必须等于独立控制数；零行来源仍须保留精确 Query ID 的完成及结果证据。准备成功不把本模板的完整性状态升级为生产 executable。
+
+TT 分组查询出现 `result_unresolved` 时，不解释成零。可用同范围的单行 `count(*)` 控制核实，再用精确明细查询的完成/行数证据确认空结果；只有核实后才创建 26 列表头文件和声明 `--tt-zero-verified`。保留此前未决查询的记录，不用重复点击或改引擎绕过权限。
+
+2026-11-05 按 10 月业务期间核验该参数化流程，使用同一已核实日/小时快照；财务控制、归因码控制和 TT 零行控制的证据 Query ID 分别为 `1672513295`、`1672520391`、`1672519919`；三份精确明细查询为 `1672522709`、`1672523661`、`1672524066`，其中最后一份确认 TT 零行并完成临时模板清理。具体名单、客户流水、金额与行数仍只存本次 runtime。该次快照上的 TT 部门分布也需与固定范围核对；此类部门清单留在 runtime，不归档到 Skill。
 
 三份 operator 下载文件齐备后，使用本机配置的 Python：
 

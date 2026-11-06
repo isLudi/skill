@@ -1,119 +1,68 @@
 ---
 name: stss
-description: Reduce defensive padding in reader-facing prose, and polish Chinese academic and professional writing while preserving meaning and evidence. Use for 中文润色、论文与学位论文、摘要、经济学/管理学/社科研究报告、数据分析与线上教育报告、述职与工作日报, or for defensive wording in proposals, articles and captions. Supports rewrite, polish, draft and audit; academic Chinese-English translation only when requested. Does not determine AI authorship or execute research or code changes.
+description: Polish, rewrite, draft and audit Chinese academic and professional writing; tighten defensive padding in reader-facing prose across languages. Use for 中文润色、文章与论文结构改写、学位论文、摘要、经济学/管理学/社科与问卷研究、能源环境论文、数据分析与行业报告生成、线上教育报告、述职与日报. Select language, paragraph and document guidance by genre, audience and editing depth. Also supports academic translation when requested.
 license: MIT
 ---
 
 # Stop That Shit Slop
 
-别再废话。
+把要说的事情说清楚。让措辞传递准确的信息，让段落推进论证，让整篇文章回答读者关心的问题。
 
-Make the point without writing for an imaginary critic. Preserve limitations that change what the reader understands or decides. 中文润色以准确、连贯、自然和适合读者为目标，保留作者的研究判断与工作事实。
+## 选择任务
 
-## Stay in scope
-
-Reduce defensive wording in reader-facing prose, including captions and introductions. For Chinese polishing requests, also improve syntax, terminology, paragraph flow and the presentation of an existing argument. Do not classify text as AI-written or promise detector scores, plagiarism-check results or publication acceptance. Treat requests about “AI 味” as requests to fix observable writing problems.
-
-Judge sentences by their reader use, including sentences introduced during drafting. A request to describe a project's evolution calls for that history; it does not by itself call for an account of how the article's sources were checked.
-
-Use the material already supplied. Language editing does not authorize new analysis, database queries, research-method changes, remote document edits or publication. Follow an explicit instruction to edit a particular file or document; otherwise return the text in the conversation. Use the matching document skill only when file handling is part of the request.
-
-## Select the mode
-
-- `rewrite`: Remove defensive padding. This remains the default for supplied text without a polishing or drafting request.
-- `polish`: Improve Chinese language and argument presentation. Infer this from “润色”“学术化”“优化报告表述”; default to local edits, preserving structure unless reorganization is needed or requested.
-- `draft`: Turn supplied material into the requested passage, abstract or report. Do not invent missing research or work achievements.
-- `audit`: Identify actionable expression problems and propose the smallest useful fix. Do not rewrite the full text.
-
-Follow an explicit mode. Infer the mode from the request only when none is given.
-
-Select references by the actual text, not by keywords alone:
-
-| Current task | Read when applicable |
+| 模式 | 任务与交付 |
 | --- | --- |
-| Chinese language polishing or drafting | [中文表达](references/chinese-style.md) |
-| Papers, theses, academic abstracts, economics/management/social-science writing, requested academic translation | [学术写作](references/academic-writing.md), plus 中文表达 for Chinese output |
-| Data analysis, management, online education reports, performance reviews, work summaries and daily reports | [报告写作](references/report-writing.md), plus 中文表达 for Chinese output |
-| Ambiguous boundary between defensive padding and a useful limitation | [Original examples](references/examples.md) |
-| Upstream comparison, attribution or future maintenance | [来源与维护](references/sources.md); not needed for ordinary writing |
+| `rewrite` | 精简防御性包装；明确要求文章改写或结构重组时，按指定深度完成重写 |
+| `polish` | 改善措辞、句法、术语与衔接，保持原有语域；用于润色、学术化和表述优化 |
+| `draft` | 将提供的材料组织成完整段落、摘要、文章或报告 |
+| `audit` | 定位表达问题，说明其对读者的影响，并给出可直接采用的修改 |
 
-A scholarly education study uses the academic reference; an operational education analysis uses the report reference. Load both only when the task actually mixes them. Do not load every reference for a short edit.
+采用用户指定模式。未指定时，根据任务动词选择；仅提供一段文字时，默认做精简表达的 `rewrite`。将全文改写、局部润色和审阅意见区分为不同的交付深度。
 
-## Record the claims
+## 按需读取
 
-Before editing, build a private Claim Ledger from the supplied material:
+| 当前需要 | 参考 |
+| --- | --- |
+| 中文措辞、句法、节奏与标点 | [中文表达](references/chinese-style.md) |
+| 论文、学位论文、学术摘要与按需翻译 | [学术写作](references/academic-writing.md) |
+| 数据分析、管理、线上教育报告、述职与日报 | [报告写作](references/report-writing.md) |
+| 区分实证、问卷、理论政策、统计和行业文体 | [文体与表达选择](references/corpus-style-profiles.md) |
+| 重排段落、改写全文、调整章节关系 | [结构改写](references/structural-rewriting.md) |
+| 根据材料生成完整数据或行业报告 | [报告生成](references/report-generation.md) |
+| 判断一句限制是否对读者有用 | [原始案例](references/examples.md) |
+| 维护与来源追踪 | [来源说明](references/sources.md) |
 
-- facts and numbers;
-- named actors and sources;
-- evidence strength;
-- stated uncertainty and scope;
-- what the reader needs to understand or do.
+从当前需求选取相关指导。短句润色使用语言层规则，长文任务再读取结构与文体指导。
 
-Also protect specialized terms, variable definitions, denominators, units, dates, citation bindings, and whether an activity is planned, underway or complete. Do not print the ledger unless the user asks for it. Do not invent facts, sources, numbers, certainty or causality. A summary may omit secondary details to meet the requested length; retain the main finding and its material conditions.
+## 共同编辑约定
 
-Keeping facts accurate does not require printing every editorial note. Keep verification logs and source-checking process in working notes unless the reader needs them. Preserve useful attribution, actual methods, and conditions that affect a claim.
+以当前材料为依据，保持事实、数据、术语、引文归属、研究对象与论证关系准确。让判断强度与证据相称，将必要条件放在对应主张附近。摘要依篇幅保留核心发现及其条件；结构改写追踪独立信息的去向。遇到影响主张的实质冲突时，定位具体疑点，并完成已有依据支持的部分。
 
-Distinguish a language repair from a substantive correction. If supplied evidence clearly contradicts the wording, calibrate the wording to that evidence. If an edit would resolve a substantive ambiguity or suspected contradiction but the needed evidence is unavailable or conflicting, mark only the affected claim `AUTHOR_CHECK` in a brief separate note; do not silently change its direction or strength. Ordinary polishing does not require independently verifying every supplied fact. Continue unaffected editing. Ask only when the missing fact prevents a faithful result.
+## 保真与任务边界
 
-## Test each defensive sentence
+编辑前在内部记录影响主张的事实、数字、来源、对象、证据强度、不确定性、范围与读者用途。完成后核对这些信息、统计口径、样本、分母、单位、日期、变量定义、引文绑定、表图指向以及工作阶段是否仍准确。不得新增无依据事实，不把相关关系改成因果，不把计划或测试写成完成、上线或效果；实质冲突无法依据现有材料解决时，将具体位置标为 `AUTHOR_CHECK`，不静默改变结论。
 
-Apply the Sentence Consumer Test:
+文本编辑本身不授权联网核验、数据库查询、研究分析、远程文档修改或发布；只有用户明确提出相应任务时，才按其适用流程执行。`audit` 只报告可行动的问题和必要的替换建议，不默认重写全文。
 
-1. Who will use this sentence?
-2. What understanding or decision does it change for this reader?
-3. What becomes false or misleading if it is removed?
+参考材料用于学习写作方法。原始文稿和摘录留在本地分析目录；Skill 只保存抽象规则、来源定位和新编示例。
 
-Choose one action:
+## 组织与改写
 
-- `DROP`: It only narrates diligence, anticipates criticism, apologizes, or says what the document does not attempt.
-- `CALIBRATE`: It contains real uncertainty but uses stacked hedges. Keep one precise limitation.
-- `RELOCATE`: The reader needs it beside a particular claim, or only the editor needs it in working notes. Choose the destination by its consumer; moving an unnecessary disclaimer to a footnote does not make it useful.
-- `KEEP`: It changes the meaning, evidence strength, attribution, or a legal, safety, financial, methodological, contractual, or scope decision.
+动笔前辨认读者、用途、核心问题、主要发现和编辑深度。长文可在内部记录各段的命题、证据与作用，形成简洁的 Claim Ledger。
 
-Do not decide from a keyword alone. The same phrase can be waste in one context and necessary in another.
+先明确文章要回答什么，再安排信息次序。段落围绕一个主要任务展开，用已有证据和关系推进。通过具体名词、准确动词、清楚的主语与适当的句序改善表达；将材料之间的逻辑写明。
 
-## Rewrite
+用 Sentence Consumer Test 判断句子的作用。它为读者提供了什么信息？它怎样推进论证、限定结论或帮助读者作出判断？起草和编辑时据此处理，审阅时给出相应建议。
 
-1. Lead with the requested subject, claim, decision, or proposal.
-2. State scope positively: say what the work covers.
-3. Replace stacked hedges with one evidence-matched qualifier.
-4. Remove internal process narration unless the process is requested or material.
-5. Put a necessary limitation beside the claim it limits.
-6. Check the complete artifact, including captions and assistant-added prefaces, against the Claim Ledger and Sentence Consumer Test. Do not reintroduce dropped defenses in the delivery note.
+- 删除（`DROP`）只为防止被质疑、对论证和读者理解都没有实质作用的句子。只重复态度或宣告过程的包装也可删去。
+- 收紧（`CALIBRATE`）叠加的限定，用一个准确的限定表达真实的不确定性。
+- 移动（`RELOCATE`）解释、条件或补充，把它放在最有用的位置。
+- 保留（`KEEP`）承担事实、证据、归因、方法或决策作用的内容，以及影响结论解读的必要限定。
 
-Return only the requested artifact unless the user asks for commentary. If the text is already direct and faithful, return it unchanged.
+自然的成稿可以保留必要的并列、转折、重复和正式术语。以读者能否准确理解为尺度，选择充分的修改。
 
-## Polish or draft
+## 完成稿件
 
-1. Infer the reader, genre, section, editing depth and output format from the request and material. Use the source's register when nothing else is specified.
-2. Identify the central question and each paragraph's purpose. Repair wording and the presentation of relationships already supported by the material; reorganize only within the authorized depth.
-3. Apply the relevant Chinese, academic or report guidance. Remove empty wording without deleting an independent argument, condition, method or result merely to shorten the text.
-4. Check the complete output against the Claim Ledger and Sentence Consumer Test, including titles, summaries, captions and assistant-added text.
+回读核心问题、段落推进和结论是否一致，核对受修改影响的数字、术语、引用与表图关系。按用户指定格式交付完整成稿；审阅任务则给出可行动的问题与替换建议。标签、对照稿或修改说明随本次要求提供。
 
-Default to the finished text. Add a comparison, rationale or audit table only when requested; material `AUTHOR_CHECK` notes remain separate from the finished passage. Honor requested wrappers such as `<修改后内容>` or `<摘要>` exactly, but do not add tags by default. Do not append a change diary, self-praise or an offer to continue.
-
-## Audit
-
-Report only actionable findings. For each finding, give:
-
-- the span or sentence;
-- `DROP`, `CALIBRATE`, `RELOCATE`, or `KEEP`;
-- the reader's interpretation or decision affected;
-- the smallest replacement when one is needed.
-
-Use `NO_DECISION_CONSUMER` when a sentence serves neither reader understanding nor a decision. For Chinese polishing, distinguish confirmed language problems, optional improvements, format preferences and `AUTHOR_CHECK` facts. Keep a useful sentence even if it contains a common transition, parallel construction or technical term. If there are no actionable findings, say so and stop.
-
-## Check the claim diff
-
-Before returning the result, verify:
-
-- no supplied fact, number, source, or actor disappeared without reason;
-- no unsupported fact, number, source, or actor appeared;
-- uncertainty did not become certainty;
-- correlation did not become causation;
-- a requested or meaning-changing limitation remains visible;
-- academic terms, statistical meanings, citations and figure/table references remain aligned;
-- scope, metric definitions, ownership and completion status remain accurate;
-- the final register and format fit the user's request.
-
-Run one claim-preserving pass. Do not add a score, a probability that text is AI-written, a change diary, or repeated self-review.
+正文直接呈现文章内容。将有实际用途的编辑说明与成稿分开，保持交付简洁。

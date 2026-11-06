@@ -1,7 +1,7 @@
 interface:
   display_name: "STSS · 中文论文与报告润色"
-  short_description: "Polish Chinese papers and reports; cut defensive prose."
+  short_description: "Polish, rewrite and draft Chinese papers and reports."
   brand_color: "#D92D20"
-  default_prompt: "使用 $stss 润色下面的中文论文或报告，保留事实、术语、论证逻辑和必要限定，按读者与文体改善表达，直接输出成稿。"
+  default_prompt: "使用 $stss 处理下面的论文或报告，按我的要求润色、结构改写或生成成稿，保留事实、术语、论证关系和结论边界。"
 policy:
   allow_implicit_invocation: true

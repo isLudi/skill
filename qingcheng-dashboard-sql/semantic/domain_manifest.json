@@ -3461,8 +3461,8 @@
       {
         "id": "qingcheng:reverse_index:join_risk_index",
         "source_path": "knowledge/reverse_index/join_risk_index.md",
-        "sha256": "8d9b912afa05253dc5e69835e10647fc700431014a8f1595c28559654a3e1b83",
-        "bytes": 80313,
+        "sha256": "8fd11c593ac75a81eebbf37594edcc6d014fe3992d220a135cec600ac3515204",
+        "bytes": 81962,
         "title": "JOIN 与结果异常风险索引",
         "table_refs": [
           "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf",
@@ -3796,8 +3796,8 @@
       {
         "id": "qingcheng:sql_patterns:qingcheng_monthly_cashflow_excel_replication",
         "source_path": "knowledge/sql_patterns/qingcheng_monthly_cashflow_excel_replication.md",
-        "sha256": "e5fcddcbefdf7c5177ee6ebde5db232cea2df468f82c99bdcf3cc3b4f957b36a",
-        "bytes": 13646,
+        "sha256": "5b6e346c6e5e6d315818be944f05b96cae471d89384184588741bd5674019204",
+        "bytes": 16131,
         "title": "青橙月度流水：按申老师 Excel 复刻",
         "table_refs": [
           "bdg_ba.dwd_crm_crm_order_income_refund_info_hf",
@@ -4597,8 +4597,8 @@
       {
         "id": "qingcheng:update_log:changelog",
         "source_path": "knowledge/update_log/changelog.md",
-        "sha256": "21f40f9373bb0739af8d85817b27198cc475878d5b6ad7127b3110a4449a83ac",
-        "bytes": 114083,
+        "sha256": "5421b05256408a35cd1a07ac0527877f21a934fa4011da995dde20f200f229e9",
+        "bytes": 114888,
         "title": "更新日志",
         "table_refs": [
           "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf",
@@ -6286,8 +6286,8 @@
     },
     {
       "source_path": "knowledge/reverse_index/join_risk_index.md",
-      "sha256": "8d9b912afa05253dc5e69835e10647fc700431014a8f1595c28559654a3e1b83",
-      "bytes": 80313,
+      "sha256": "8fd11c593ac75a81eebbf37594edcc6d014fe3992d220a135cec600ac3515204",
+      "bytes": 81962,
       "category": "reverse_index"
     },
     {
@@ -6376,8 +6376,8 @@
     },
     {
       "source_path": "knowledge/sql_patterns/qingcheng_monthly_cashflow_excel_replication.md",
-      "sha256": "e5fcddcbefdf7c5177ee6ebde5db232cea2df468f82c99bdcf3cc3b4f957b36a",
-      "bytes": 13646,
+      "sha256": "5b6e346c6e5e6d315818be944f05b96cae471d89384184588741bd5674019204",
+      "bytes": 16131,
       "category": "sql_patterns"
     },
     {
@@ -6652,8 +6652,8 @@
     },
     {
       "source_path": "knowledge/update_log/changelog.md",
-      "sha256": "21f40f9373bb0739af8d85817b27198cc475878d5b6ad7127b3110a4449a83ac",
-      "bytes": 114083,
+      "sha256": "5421b05256408a35cd1a07ac0527877f21a934fa4011da995dde20f200f229e9",
+      "bytes": 114888,
       "category": "update_log"
     },
     {
