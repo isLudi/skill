@@ -1,0 +1,173 @@
+{
+  "artifact_type": "DashboardDraftConversionDenominatorSandboxEvidence",
+  "schema_version": "1.0.0",
+  "operation": "change_draft_conversion_ratio_denominators",
+  "sandbox_dashboard_id": "dashboard_4167128062148218881",
+  "sandbox_plan_sha256": "3cef4c445bd9e60f67141603a75c16da9692bc89178c592a0562df4716df2a44",
+  "baseline_profile_sha256": "75b3352da05bec664a0d1561d566a38af71e11fa0b1d8069a40c9ef45e4d6862",
+  "modified_profile_sha256": "bfc1e44de2f873047db7c20705b3dec92c883f6be49508d0f9b70f86d1ceec20",
+  "restored_profile_sha256": "75b3352da05bec664a0d1561d566a38af71e11fa0b1d8069a40c9ef45e4d6862",
+  "fixture_restored_profile_sha256": "e533b9deb3e3063d8569aafb7fd531c249a2040f8432bd4c5768c0ccddee0f12",
+  "formula_count": 3,
+  "share_count": 3,
+  "checked_groups": 4,
+  "zero_denominator_tested": true,
+  "saved_draft_verified": true,
+  "published": false,
+  "requests": [
+    {
+      "payload_sha256": "a400ff1eae0ddf1dd82a4f5b1355297036cbb6a3519079c3636e26cbbc2d79c0",
+      "request_key_paths": [
+        "columnDesc",
+        "columnKey",
+        "columnName",
+        "dataType",
+        "dependency",
+        "dependency[]",
+        "dependency[].needBoundaryValue",
+        "dependency[].orgParamType",
+        "dependency[].paramId",
+        "formula",
+        "globalFilterSpecialConfig",
+        "subjectId"
+      ],
+      "response_status": 200,
+      "url_path": "/uanalysis-intelligence/model/customized/column/saveAndUpdate"
+    },
+    {
+      "payload_sha256": "7b6b3fe53c9250ee4f10c7e1179b7244f6035c75f334a959a80b0632e6660dad",
+      "request_key_paths": [
+        "columnDesc",
+        "columnKey",
+        "columnName",
+        "dataType",
+        "dependency",
+        "dependency[]",
+        "dependency[].needBoundaryValue",
+        "dependency[].orgParamType",
+        "dependency[].paramId",
+        "formula",
+        "globalFilterSpecialConfig",
+        "subjectId"
+      ],
+      "response_status": 200,
+      "url_path": "/uanalysis-intelligence/model/customized/column/saveAndUpdate"
+    },
+    {
+      "payload_sha256": "e3801dcfc25c11bf1d081ba2e1108cfee2c9eb77133827c5c65b1e9e356bc36f",
+      "request_key_paths": [
+        "columnDesc",
+        "columnKey",
+        "columnName",
+        "dataType",
+        "dependency",
+        "dependency[]",
+        "dependency[].needBoundaryValue",
+        "dependency[].orgParamType",
+        "dependency[].paramId",
+        "formula",
+        "globalFilterSpecialConfig",
+        "subjectId"
+      ],
+      "response_status": 200,
+      "url_path": "/uanalysis-intelligence/model/customized/column/saveAndUpdate"
+    },
+    {
+      "payload_sha256": "64eaf95157ccf87774adcc846d7cafe05f8f2ea320b80aad54d1aaebc79e1ac5",
+      "request_key_paths": [
+        "allUnitList",
+        "allUnitList[]",
+        "clientInfo",
+        "clientInfo.clientType",
+        "customHtmlFormat",
+        "dashboardHtmlJson",
+        "dashboardId",
+        "dashboardName",
+        "description",
+        "htmlId",
+        "jsPackages",
+        "saveUnitList",
+        "saveUnitList[]"
+      ],
+      "response_status": 200,
+      "url_path": "/uanalysis-intelligence/config/save/dashboardHtml"
+    },
+    {
+      "payload_sha256": "75ea3d0c3bd2f91d04be0b8d9b42bfa11dee29a95a5a37934bde8f8a23ccb958",
+      "request_key_paths": [
+        "columnDesc",
+        "columnKey",
+        "columnName",
+        "dataType",
+        "dependency",
+        "dependency[]",
+        "dependency[].needBoundaryValue",
+        "dependency[].orgParamType",
+        "dependency[].paramId",
+        "formula",
+        "globalFilterSpecialConfig",
+        "subjectId"
+      ],
+      "response_status": 200,
+      "url_path": "/uanalysis-intelligence/model/customized/column/saveAndUpdate"
+    },
+    {
+      "payload_sha256": "3e56753d20e6818d09103225be6c13581a322e3c171a3b78879da147c9c18b5e",
+      "request_key_paths": [
+        "columnDesc",
+        "columnKey",
+        "columnName",
+        "dataType",
+        "dependency",
+        "dependency[]",
+        "dependency[].needBoundaryValue",
+        "dependency[].orgParamType",
+        "dependency[].paramId",
+        "formula",
+        "globalFilterSpecialConfig",
+        "subjectId"
+      ],
+      "response_status": 200,
+      "url_path": "/uanalysis-intelligence/model/customized/column/saveAndUpdate"
+    },
+    {
+      "payload_sha256": "d5c9fb260abd2873c0e150beabb0a6f50e6df073b615da3880582044deecca76",
+      "request_key_paths": [
+        "columnDesc",
+        "columnKey",
+        "columnName",
+        "dataType",
+        "dependency",
+        "dependency[]",
+        "dependency[].needBoundaryValue",
+        "dependency[].orgParamType",
+        "dependency[].paramId",
+        "formula",
+        "globalFilterSpecialConfig",
+        "subjectId"
+      ],
+      "response_status": 200,
+      "url_path": "/uanalysis-intelligence/model/customized/column/saveAndUpdate"
+    },
+    {
+      "payload_sha256": "f0c84829d15557af6cc38da614f969c1565ad5ee7e2e2a2d7648eb511e9522bc",
+      "request_key_paths": [
+        "allUnitList",
+        "allUnitList[]",
+        "clientInfo",
+        "clientInfo.clientType",
+        "customHtmlFormat",
+        "dashboardHtmlJson",
+        "dashboardId",
+        "dashboardName",
+        "description",
+        "htmlId",
+        "jsPackages",
+        "saveUnitList",
+        "saveUnitList[]"
+      ],
+      "response_status": 200,
+      "url_path": "/uanalysis-intelligence/config/save/dashboardHtml"
+    }
+  ]
+}

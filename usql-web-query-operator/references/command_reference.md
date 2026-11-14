@@ -63,6 +63,10 @@
 | `apply-pivot-append` | Append one reviewed pivot and its local filter to an existing draft and verify the saved result. | `draft_write` | `exact_plan_hash_and_confirmation` | [dashboard_change_workflow.md](dashboard_change_workflow.md) |
 | `plan-period-date-rebind` | Review one period filter and its charts' row dimensions without writes. | `remote_read_only` | `explicit_command` | [dashboard_change_workflow.md](dashboard_change_workflow.md) |
 | `apply-period-date-rebind` | Apply an exact draft rebind or verify and restore an authorized sandbox. | `draft_write` | `exact_plan_hash_and_confirmation` | [dashboard_change_workflow.md](dashboard_change_workflow.md) |
+| `plan-pivot-ratio-draft` | Review an existing pivot's physical-metric ratios and column order. | `remote_read_only` | `explicit_command` | [dashboard_change_workflow.md](dashboard_change_workflow.md) |
+| `apply-pivot-ratio-draft` | Save exact calculated ratio columns to one existing pivot draft. | `sandbox_write` | `sandbox_confirmation` | [dashboard_change_workflow.md](dashboard_change_workflow.md) |
+| `plan-conversion-ratio-draft` | Review isolated draft conversion formula denominators and their exact pivots. | `remote_read_only` | `explicit_command` | [dashboard_change_workflow.md](dashboard_change_workflow.md) |
+| `apply-conversion-ratio-draft` | Update reviewed conversion denominators and save only the isolated draft. | `sandbox_write` | `sandbox_confirmation` | [dashboard_change_workflow.md](dashboard_change_workflow.md) |
 | `edit-public-filters` | Legacy ordinal dry-run inspection only; all write/publish flags are rejected. | `remote_read_only` | `explicit_command` | [platform_profile.md](platform_profile.md) |
 | `profile-folder` | Profile selected dashboards under a folder. | `remote_read_only` | `explicit_command` | [platform_profile.md](platform_profile.md) |
 | `profile-all` | Scan configured folders into runtime; Skill knowledge writes require two explicit maintenance flags. | `local_write_explicit` | `explicit_flags` | [platform_profile.md](platform_profile.md) |

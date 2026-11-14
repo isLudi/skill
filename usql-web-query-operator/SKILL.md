@@ -74,6 +74,8 @@ description: Execute governed USQL, templates, Data Center and BI operations, ma
 - P4B `apply-dashboard-change` 只允许九类 `verified/allowlisted` 既有对象窄修改；另有独立的 `sync-pivot-fields-draft` 专用透视表同步入口，必须通过其精确 manifest Hash 和专属 capability registry 门禁，不扩展通用 ChangePlan Apply。
 - `plan-pivot-append` / `apply-pivot-append` 是独立草稿入口。在同域同模型看板间追加一张透视表，要求现有目标公式等价、一个局部动态筛选器、精确 Plan Hash、已验证 capability 和筛选结果回读。
 - `plan-period-date-rebind` / `apply-period-date-rebind` 只处理市场顾问部同一模型的一个共享期次筛选器和它关联的日期维度。正式草稿写入须有完整画像、精确 Plan Hash、专属 capability、指定期次取值和已发布 schema 回读；沙箱验证必须恢复原始配置。
+- `plan-pivot-ratio-draft` / `apply-pivot-ratio-draft` 只处理市场顾问部一张既有透视表的物理指标比率、目标列和百分比表头。当前只在明确命名的沙箱中验证；没有独立正式草稿证据前，生产 Apply 保持 blocked。使用独立 Plan Hash、owner 身份校验、回读对账和专属 capability；公式数据及写入回执留在 runtime。
+- `plan-conversion-ratio-draft` / `apply-conversion-ratio-draft` 只处理市场顾问部已隔离草稿中现有转化率的达标量分母。当前只在明确命名的沙箱中验证；生产 Apply 保持 blocked，直到另有正式草稿验证证据。必须核对全部共享引用、原占比口径、保存前业务值及发布版公式隔离。
 - P4C 使用独立创建 Saga；失败不自动删除资源，Receipt 必须列出孤立资源和人工清理要求。
 - Data Center 替换和创建分别要求独立只读 Plan、精确 Hash、`--confirm-production-write`、保存后回读、立即执行和新的 `SUCCESS`。
 - `sync-data-center-sql --write` 只写本地业务 Skill，绝不等于远端生产写入。

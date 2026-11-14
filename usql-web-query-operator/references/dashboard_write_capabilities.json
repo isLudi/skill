@@ -1215,6 +1215,11 @@
           "note": "Owner-authorized live market sandbox with six filtered readbacks, full profile comparison and reverse restoration."
         },
         {
+          "source_path": "references/dashboard_period_date_rebind_production_evidence_20261112.json",
+          "source_sha256": "36701ca3ee244f2df52ee234a03338f9a2dcaae7da7eb30110faf94a49409ff7",
+          "note": "Sanitized hashes from a separately authorized formal draft apply; saved_draft_verified=true, published=false, published schema unchanged, six filtered checks."
+        },
+        {
           "source_path": "scripts/read_dashboard/draft_dimension_rebind.py",
           "source_sha256": "ffa48fd1bb25060f85f30ad60be0f1eb7b4bcde3ac587b5cdf04700685892a9b",
           "note": "Same-model text-period and typed date projections preserving unrelated fields."
@@ -1235,7 +1240,104 @@
         "Only existing pivot or line date dimensions on the same model and subject; no formula, dataset, filter target or layout changes.",
         "Only the dedicated exact-hash draft adapter is allowed; publication is separate."
       ]
+    },
+    {
+      "operation": "configure_pivot_ratio_fields_draft",
+      "phase": "draft",
+      "maturity": "sandbox_verified",
+      "write_policy": "sandbox_only",
+      "transaction_class": "compensating_restore",
+      "recovery_policy": "compensating_restore",
+      "readback_coverage": "full",
+      "risk": "high",
+      "adapter": "read_dashboard.commands.pivot_ratio_draft.cmd_pivot_ratio_draft",
+      "write_endpoints": [
+        "config/save/dashboardHtml",
+        "config/update/unit",
+        "model/customized/column/saveAndUpdate"
+      ],
+      "readback_endpoints": [
+        "config/dashBoard",
+        "value/unit/detail",
+        "value/unit",
+        "model/customized/column/list",
+        "model/subject/paramList"
+      ],
+      "limitations": [
+        "One stable existing row pivot in a registered market consultant draft.",
+        "Currently sandbox-only; production Apply remains blocked until separately authorized formal-draft evidence is reviewed.",
+        "Fixed sum ratios over verified physical fields in the same model and subject; exact names, order and appearance.",
+        "Removal is limited to existing calculated percentage fields and changes display references only; formula creation remains subject-scoped and is never reversed by deleting formulas.",
+        "Plan hash, exact owner, complete profile and value readback are required; no publication."
+      ],
+      "evidence": [
+        {
+          "source_path": "references/dashboard_pivot_ratio_evidence_20261114.json",
+          "source_sha256": "9a5864c16b0eb68a77de46a95e3ebf52426e14644aef2734612ffa320b5834d0",
+          "note": "Two exact sandbox receipts prove create, attach, order, removal, styling, live values and profile restoration."
+        },
+        {
+          "source_path": "scripts/read_dashboard/pivot_ratio_fields.py",
+          "source_sha256": "a405dbf22cf94003058d2395af669ae4814b3f5417523865992bd3e34752c828",
+          "note": "Typed physical-metric formula, constrained measure reordering and live percentage field template."
+        },
+        {
+          "source_path": "scripts/read_dashboard/commands/pivot_ratio_draft.py",
+          "source_sha256": "4ce7ae84227ff412fca93c56011c4532f5169889d981c789817113af2189341d",
+          "note": "Bounded draft adapter with owner, hash, same-subject, backup, readback and compensation gates."
+        },
+        {
+          "source_path": "tests/test_pivot_ratio_draft.py",
+          "source_sha256": "4b2a4d1624be203d5d1fa2522cbf1be24552639e3f34b1cf8fe6d3ea29edd88a",
+          "note": "Unit, formula, selection, validation and failure-compensation coverage."
+        }
+      ]
+    },
+    {
+      "operation": "change_draft_conversion_ratio_denominators",
+      "phase": "draft",
+      "maturity": "sandbox_verified",
+      "write_policy": "sandbox_only",
+      "transaction_class": "compensating_restore",
+      "recovery_policy": "compensating_restore",
+      "readback_coverage": "full",
+      "risk": "high",
+      "adapter": "read_dashboard.commands.conversion_ratio_draft.cmd_conversion_ratio_draft",
+      "write_endpoints": [
+        "model/customized/column/saveAndUpdate",
+        "config/save/dashboardHtml"
+      ],
+      "readback_endpoints": [
+        "config/dashBoard",
+        "value/unit/detail",
+        "value/unit",
+        "model/customized/column/list",
+        "model/subject/paramList"
+      ],
+      "limitations": [
+        "Currently sandbox-only; production Apply remains blocked until separately authorized formal-draft evidence is reviewed.",
+        "Only existing draft conversion ratio denominators isolated from published formula IDs.",
+        "All formula consumers must be exact reviewed pivots on the same dashboard subject.",
+        "Numerator, display columns and share denominator preserved. No publish or dataset changes."
+      ],
+      "evidence": [
+        {
+          "source_path": "references/dashboard_conversion_denominator_evidence_20261114.json",
+          "source_sha256": "55e16e4b4c35164f10a1fe548066983ad23c341e6b9d41f21ad1d7b0df5bf745",
+          "note": "Unpublished sandbox prove-and-restore evidence for denominator and dependency changes."
+        },
+        {
+          "source_path": "scripts/read_dashboard/commands/conversion_ratio_draft.py",
+          "source_sha256": "3e21e746b760f930cce624c18917c1b82ed21877e8911616b9b45536af2d4158",
+          "note": "Exact formula, shared scope, publication isolation, and restore."
+        },
+        {
+          "source_path": "tests/test_conversion_ratio_draft.py",
+          "source_sha256": "5c1af8b5252e6526c1703c8a982bfd8238fbd8c06d867ffcb6cb1ea7b5ae8ded",
+          "note": "Coverage for original and revised dependencies, zero denominator, scope and published alias checks."
+        }
+      ]
     }
   ],
-  "registry_sha256": "c03c89819f5eb522c3d58db9b47c6dca7b12496b430ebff2dee2d7948cef8b8a"
+  "registry_sha256": "0c25ffc457190f6a187b693c32435bf1e303bb0f7041f9674d3d6cdde375b460"
 }

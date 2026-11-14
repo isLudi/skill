@@ -60,6 +60,10 @@
         {"name": "apply-pivot-append", "effect": "draft_write", "authorization": "exact_plan_hash_and_confirmation", "reference": "dashboard_change_workflow.md"},
         {"name": "plan-period-date-rebind", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "dashboard_change_workflow.md"},
         {"name": "apply-period-date-rebind", "effect": "draft_write", "authorization": "exact_plan_hash_and_confirmation", "reference": "dashboard_change_workflow.md"},
+        {"name": "plan-pivot-ratio-draft", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "dashboard_change_workflow.md"},
+        {"name": "apply-pivot-ratio-draft", "effect": "sandbox_write", "authorization": "sandbox_confirmation", "reference": "dashboard_change_workflow.md"},
+        {"name": "plan-conversion-ratio-draft", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "dashboard_change_workflow.md"},
+        {"name": "apply-conversion-ratio-draft", "effect": "sandbox_write", "authorization": "sandbox_confirmation", "reference": "dashboard_change_workflow.md"},
         {"name": "edit-public-filters", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "platform_profile.md"},
         {"name": "profile-folder", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "platform_profile.md"},
         {"name": "profile-all", "effect": "local_write_explicit", "authorization": "explicit_flags", "reference": "platform_profile.md"}

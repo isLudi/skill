@@ -1,0 +1,17 @@
+{
+  "artifact_type": "DashboardPeriodDateRebindProductionDraftEvidence",
+  "schema_version": "1.0.0",
+  "verified_at": "2026-11-12",
+  "domain": "market_consultant",
+  "operation": "rebind_period_and_date_dimensions_draft",
+  "plan_sha256": "81a1f00c555d5e1ecb0a68a598013a00c34dd9989c8d142f45ff11775f51a6c0",
+  "plan_artifact_sha256": "41a96c65211d486c2c2e9815a7c51e897922ccaf206acba7cba415f7c17a24fc",
+  "receipt_artifact_sha256": "db89f0e3d2131a1d76b2b2d33574022ed6cbd971608bf7c6e0d54064de8eae3a",
+  "sandbox": false,
+  "saved_draft_verified": true,
+  "published": false,
+  "published_schema_unchanged": true,
+  "filtered_value_checks": 6,
+  "raw_rows_included": false,
+  "personal_identifiers_included": false
+}

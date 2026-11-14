@@ -27,9 +27,9 @@ class DashboardWriteCapabilityRegistryTests(unittest.TestCase):
 
     def test_registry_exposes_verified_p4b_apply_operations(self) -> None:
         summary = registry_summary(self.registry)
-        self.assertEqual(33, summary["capability_count"])
+        self.assertEqual(35, summary["capability_count"])
         self.assertEqual(
-            {"allowlisted": 25, "blocked": 6, "sandbox_only": 1, "separate_confirmation": 1},
+            {"allowlisted": 25, "blocked": 6, "sandbox_only": 3, "separate_confirmation": 1},
             summary["by_write_policy"],
         )
         self.assertEqual(
@@ -62,7 +62,10 @@ class DashboardWriteCapabilityRegistryTests(unittest.TestCase):
             ],
             summary["allowlisted_operations"],
         )
-        self.assertEqual(["rebuild_pivot_unit_by_copy"], summary["sandbox_only_operations"])
+        self.assertEqual(
+            ["change_draft_conversion_ratio_denominators", "configure_pivot_ratio_fields_draft", "rebuild_pivot_unit_by_copy"],
+            summary["sandbox_only_operations"],
+        )
         self.assertEqual(["publish_dashboard"], summary["separate_confirmation_operations"])
         self.assertEqual(
             [

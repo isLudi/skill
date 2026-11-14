@@ -16,11 +16,15 @@ P4A 只建立写能力证据和白名单，不把自然语言请求直接变成�
 
 通用 P4B `apply-dashboard-change` 仍只支持九类既有对象窄修改。`sync_existing_pivot_fields_from_same_model_source` 是独立注册的专用 draft 能力，仅可经 `sync-pivot-fields-draft` 和其独立 manifest/receipt 流程调用，不进入通用 ChangePlan Apply。透视表 `rebuild_pivot_unit_by_copy` 仍为 `sandbox_verified/sandbox_only`，不能进入生产 Apply。这不是开放式写权限：每类生产操作都受窄约束，必须绑定完整 Profile、精确 Hash、目标双读、写后回读、最终全量画像和恢复策略。
 
-Registry 共 33 项，其中 25 项 `verified/allowlisted`、1 项 `sandbox_verified/sandbox_only`、6 项 `blocked`、1 项 `separate_confirmation`。`replace_pivot_measure_fields` 为 `unverified/blocked`，目前只有本地契约与测试证据。P4C 的十三项创建操作使用 `taitan_dashboard_build_v1`、`transaction_class=creation_saga` 和 `recovery_policy=creation_saga_no_auto_delete`。既有局部筛选器仅开放单个 `showName` 标签修改。泛化 `update_component_filter`、既有组件 `bind_dataset`、模板克隆、移动文件夹和权限修改均阻断。详见 `references/dashboard_build_workflow.md`。
+Registry 共 35 项，其中 25 项 `verified/allowlisted`、3 项 `sandbox_verified/sandbox_only`、6 项 `blocked`、1 项 `separate_confirmation`。比例字段配置和转化率分母调整目前只有沙箱证据，因此保持 sandbox-only；不得将沙箱证据自动提升为生产能力。`replace_pivot_measure_fields` 为 `unverified/blocked`，目前只有本地契约与测试证据。P4C 的十三项创建操作使用 `taitan_dashboard_build_v1`、`transaction_class=creation_saga` 和 `recovery_policy=creation_saga_no_auto_delete`。既有局部筛选器仅开放单个 `showName` 标签修改。泛化 `update_component_filter`、既有组件 `bind_dataset`、模板克隆、移动文件夹和权限修改均阻断。详见 `references/dashboard_build_workflow.md`。
 
 `sync_existing_pivot_fields_from_same_model_source` 仅允许一个既有透视表在 draft 中从同模型来源同步已审阅字段、公式引用及受限格式/组件样式。此为独立于通用 P4B `ChangePlan` 的专用能力：入口 `sync-pivot-fields-draft` 必须同时提供 `--confirm-production-write` 和目标清单的规范化 `--manifest-sha256`；执行前重新校验 capability registry、完整目标 Profile Hash、来源/目标单元投影 Hash 和（如涉及样式）来源/目标样式 Hash。写入前保存目标完整备份；写后完整回读并验证稳定 unit ID。失败时补偿恢复；新建公式不会自动删除，失败回执必须列出可能孤立的公式和人工清理要求。只写 draft，不提供发布参数；发布仍须走独立工作流和确认。
 
 `rebind_period_and_date_dimensions_draft` 通过专用 `plan-period-date-rebind` / `apply-period-date-rebind` 执行。市场顾问部实测覆盖共享期次筛选器、透视表和折线图日期字段、三期筛选取值、完整画像及反向恢复。适配器仅写既有草稿，固定同一模型和 subject，保留其余组件、指标公式、布局及发布版本。此能力不扩大通用 P4B operation 白名单。
+
+`configure_pivot_ratio_fields_draft` 通过 `plan-pivot-ratio-draft` / `apply-pivot-ratio-draft` 配置市场顾问部一张既有行透视表。它使用看板 subject 的已验证物理数值字段创建或复用固定比例公式，支持精确列 ID 的插入、移除引用、末尾排序，以及从既有百分比列继承的表头样式。验证覆盖真实沙箱写入、列顺序、三期取值及原 Profile 恢复。当前注册为 `sandbox_verified/sandbox_only`，生产 Apply 明确阻断；正式草稿支持需另行授权并取得独立验证证据。该操作保持其他透视表、筛选器、布局和已发布配置。计算列资源的创建必须按 subject/name/依赖回读，失败或沙箱恢复时列出保留的资源。
+
+`change_draft_conversion_ratio_denominators` 通过 `plan-conversion-ratio-draft` / `apply-conversion-ratio-draft` 修改已验证的草稿转化率分母。修改前核实所有共享该公式的行透视表、同模型物理字段和发布版独立的公式引用。只允许把退后线索总量分母换为对应达标占比的分子，保留原转化分子、公式 ID、各占比以及零分母行为。保存前核对转化率和占比，保存后再次核对完整草稿和发布版。当前注册为 `sandbox_verified/sandbox_only`，生产 Apply 明确阻断。通用 `update_formula` 的约束保持原样。
 
 `replace_pivot_measure_fields` 只接受稳定 component/unit/model 身份、完整且精确的前后有序指标 ID 列表，以及同模型既有正确单元中的完整字段模板。它仅允许新增与重排，不允许删除、重复、跨模型字段、公式/筛选/维度/格式联动；既有字段 payload 原样保留，异常时恢复完整原始 unit。上述行为当前仅由本地测试证明，不能用于正式看板或作为平台写入成功证据。
 

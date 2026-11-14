@@ -54,7 +54,7 @@ Select the smallest sufficient Skill set. Read the selected `SKILL.md` completel
 | Images, PDF, Word, PowerPoint | Inspect images natively; use [pdf](pdf/SKILL.md), [docx](docx/SKILL.md), [pptx](pptx/SKILL.md) for the matching file |
 | Non-USQL browser work or bounded selector diagnosis after operator reproduction | [playwright](playwright/SKILL.md), subject to the available browser tool's controls |
 
-Recognizable Feishu URLs/tokens route to their resource Skill. Permission failures return to `lark-shared` for the minimum needed repair. Generic browser automation must not own USQL credentials/state or replace its governed execution, download, Data Center or BI workflows.
+Recognizable Feishu URLs/tokens route to their resource Skill. Resolve the retired Skill names `lark-vc`, `lark-vc-agent` and `lark-minutes` through [lark-meeting](lark-meeting/SKILL.md). Permission failures return to `lark-shared` for the minimum needed repair. Generic browser automation must not own USQL credentials/state or replace its governed execution, download, Data Center or BI workflows.
 
 ## Business contracts
 

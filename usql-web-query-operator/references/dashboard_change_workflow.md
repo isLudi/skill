@@ -200,6 +200,42 @@ P3B 不再使用“第一个/第二个筛选器”定位。每个可写 operatio
 
 ## 透视表字段同步与沙箱复制重建
 
+### 在已有透视表中配置比例指标
+
+`plan-pivot-ratio-draft` 核对市场顾问部的一张已有行透视表、负责人身份、模型和看板级 subject，生成精确 Plan。输入 JSON 的 `selection` 绑定 `domain`、`dashboard_id`、`dashboard_name`、`owner`、`model_id`、`subject_id`、`component_id`、`unit_id`、`unit_name`、共同 `denominator` 和有序 `ratios`。物理字段用 `field_id` 和 `field_name` 表示，每个比例有 `name` 和 `numerator`。`remove_ids`、`move_to_end_ids` 和 `anchor_id` 控制已有列；`remove_ids` 仅可指向已有计算百分比字段，不能移除物理指标。`header_color` 和 `decimals` 控制新比例的表头及百分比精度。沙箱验证所需的比例样式来自实读的待移除百分比列。仅移除透视表中的列引用。
+
+输入的 `checks` 为同粒度的数据对账控制，每项包含 `label`、`row`、`filters`、`denominator` 和按比例顺序排列的 `numerators`。筛选项填写 `[field_id, filter_id, value]`，全量合计使用空行键及空筛选数组。请求按已经核对的筛选器及行维度执行，核对原始比率、退后线索数，并按原始比率反算分子与独立 SQL 对账。
+
+```powershell
+D:\anaconda3\python.exe scripts\read_dashboard.py plan-pivot-ratio-draft `
+  --domain market_consultant --sandbox --input C:\runtime\selection.json --output C:\runtime\ratio-plan.json `
+  --state-path C:\runtime\owner-state.json
+
+D:\anaconda3\python.exe scripts\read_dashboard.py apply-pivot-ratio-draft `
+  --domain market_consultant --sandbox --headed --input C:\runtime\ratio-plan.json --plan-sha256 <exact-plan-sha256> `
+  --confirm-sandbox-write --output C:\runtime\ratio-receipt.json --state-path C:\runtime\owner-state.json
+```
+
+当前 `configure_pivot_ratio_fields_draft` 为 `sandbox_verified/sandbox_only`。Plan 和 Apply 均必须用明确命名的沙箱，Apply 另加 `--confirm-sandbox-write --headed`；生产 Apply 在 capability registry 门禁处阻断。适配器依据物理指标身份构造固定的 `ifnull(sum(分子)/sum(分母),0)` 计算式，回读同名现有公式的依赖和定义，冲突时停止。写入绑定完整 Profile、精确 Plan Hash、已认证的 owner、写前双读及单看板锁。保存后核对完整草稿、其他组件及发布版，失败时只在精确预期状态下补偿恢复。沙箱验证后恢复原透视表，新建的测试公式留在沙箱 subject，回执列出待复用。不得以沙箱回执自动开放生产 Apply；正式草稿支持需另行授权并完成独立验证。
+
+### 修改草稿转化率的分母
+
+`plan-conversion-ratio-draft` 绑定一个市场顾问部看板及其草稿 subject，确认一至三条转化率的全部共享引用都处于所选行透视表中。输入 `selection` 包含 `domain`、`dashboard_id`、`dashboard_name`、`owner`、`model_id`、`subject_id`、`targets`、`all_leads` 和 `ratios`。每个目标绑定 `component_id` 和 `unit_id`，每个比例提供 `name`、`formula_id`、`share_name`、`share_id`、`converted` 和 `qualified`。物理指标使用 `field_id` 和 `field_name`。现有占比必须等于达标量除以总量，现有转化率必须等于转化量除以总量，才允许将转化率分母换为达标量。
+
+`checks` 每项包含 `unit_id`、`label`、`filters`、`row`、`all_leads` 和按比例顺序排列的 `counts`。每个计数是 `[converted, qualified]`。关联筛选写为 `[field_id, filter_id, value]`，空行键读取合计。保存前按独立汇总核对原始比率、分子、分母和不变的占比，保存后核对完整公式配置和发布版。
+
+```powershell
+D:\anaconda3\python.exe scripts\read_dashboard.py plan-conversion-ratio-draft `
+  --domain market_consultant --sandbox --input C:\runtime\conversion-selection.json --output C:\runtime\conversion-plan.json `
+  --state-path C:\runtime\owner-state.json
+
+D:\anaconda3\python.exe scripts\read_dashboard.py apply-conversion-ratio-draft `
+  --domain market_consultant --sandbox --headed --input C:\runtime\conversion-plan.json --plan-sha256 <exact-plan-sha256> `
+  --confirm-sandbox-write --output C:\runtime\conversion-receipt.json --state-path C:\runtime\owner-state.json
+```
+
+当前 `change_draft_conversion_ratio_denominators` 为 `sandbox_verified/sandbox_only`。沙箱验证要求精确沙箱身份及 `--sandbox --headed --confirm-sandbox-write`，完成后恢复原公式；生产 Apply 在 capability registry 门禁处阻断。发现引用越界、数据不同期或读回失败时停止，并在精确状态下恢复已经修改的公式。不得以沙箱回执自动开放生产 Apply；正式草稿支持需另行授权并完成独立验证。
+
 ### 共享期次筛选器与日期维度重绑
 
 `plan-period-date-rebind` 只读绑定市场顾问部既有看板、同一模型和 subject、一个公共筛选器叶子及其全部目标组件。只允许把一个文本期次字段换成同一模型的文本期次字段，并将目标透视表和折线图各自的一个文本行维度换成同一模型的真实日期字段。保留原组件 ID、布局、指标公式、其他筛选器及该筛选器的动态默认规则。原日期另有局部筛选或筛选器连接未列出的组件时，计划停止。

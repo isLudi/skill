@@ -14,6 +14,7 @@ from .commands.capture_dashboard import cmd_capture_dashboard
 from .commands.capture_dashboard_build_evidence import cmd_capture_dashboard_build_evidence
 from .commands.check_dashboard_values import cmd_check_dashboard_values
 from .commands.capture_write_evidence import cmd_capture_write_evidence
+from .commands.conversion_ratio_draft import cmd_conversion_ratio_draft
 from .commands.apply_dashboard_change import cmd_apply_dashboard_change
 from .commands.apply_dashboard_build import cmd_apply_dashboard_build
 from .commands.append_pivot_draft import SELECTION_KEYS, cmd_append_pivot_draft
@@ -22,6 +23,7 @@ from .commands.edit_public_filters import cmd_edit_public_filters
 from .commands.plan_dashboard_change import cmd_plan_dashboard_change
 from .commands.plan_dashboard_build import cmd_plan_dashboard_build
 from .commands.period_date_rebind import cmd_period_date_rebind
+from .commands.pivot_ratio_draft import cmd_pivot_ratio_draft
 from .commands.profile_all import cmd_profile_all
 from .commands.profile_dashboard import cmd_profile_dashboard
 from .commands.profile_edit_dashboard import cmd_profile_edit_dashboard
@@ -561,6 +563,50 @@ def build_parser() -> argparse.ArgumentParser:
     rebind_apply.add_argument("--plan-sha256", required=True)
     rebind_apply.add_argument("--confirm-sandbox-write", action="store_true")
     rebind_apply.add_argument("--confirm-production-write", action="store_true")
+
+    ratio_plan = subparsers.add_parser(
+        "plan-pivot-ratio-draft", help="Review an existing pivot's physical-metric ratios and column order."
+    )
+    ratio_apply = subparsers.add_parser(
+        "apply-pivot-ratio-draft", help="Save exact calculated ratio columns to one existing pivot draft."
+    )
+    for ratio in (ratio_plan, ratio_apply):
+        ratio.add_argument("--input", type=Path, required=True, help="Selection and controls for planning, exact Plan for Apply.")
+        ratio.add_argument("--output", type=Path, required=True)
+        ratio.add_argument("--domain", choices=["market_consultant"], required=True)
+        ratio.add_argument("--sandbox", action="store_true")
+        ratio.add_argument("--headed", action="store_true")
+        ratio.add_argument("--state-path", type=Path, required=True)
+        ratio.add_argument("--artifacts-dir", type=Path, default=DEFAULT_ARTIFACTS)
+        ratio.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL)
+        ratio.set_defaults(func=cmd_pivot_ratio_draft)
+    ratio_plan.set_defaults(mode="plan")
+    ratio_apply.set_defaults(mode="apply")
+    ratio_apply.add_argument("--plan-sha256", required=True)
+    ratio_apply.add_argument("--confirm-sandbox-write", action="store_true")
+    ratio_apply.add_argument("--confirm-production-write", action="store_true")
+
+    conversion_plan = subparsers.add_parser(
+        "plan-conversion-ratio-draft", help="Review isolated draft conversion formula denominators and their exact pivots."
+    )
+    conversion_apply = subparsers.add_parser(
+        "apply-conversion-ratio-draft", help="Update reviewed conversion denominators and save only the isolated draft."
+    )
+    for conversion in (conversion_plan, conversion_apply):
+        conversion.add_argument("--input", type=Path, required=True)
+        conversion.add_argument("--output", type=Path, required=True)
+        conversion.add_argument("--domain", choices=["market_consultant"], required=True)
+        conversion.add_argument("--sandbox", action="store_true")
+        conversion.add_argument("--headed", action="store_true")
+        conversion.add_argument("--state-path", type=Path, required=True)
+        conversion.add_argument("--artifacts-dir", type=Path, default=DEFAULT_ARTIFACTS)
+        conversion.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL)
+        conversion.set_defaults(func=cmd_conversion_ratio_draft)
+    conversion_plan.set_defaults(mode="plan")
+    conversion_apply.set_defaults(mode="apply")
+    conversion_apply.add_argument("--plan-sha256", required=True)
+    conversion_apply.add_argument("--confirm-sandbox-write", action="store_true")
+    conversion_apply.add_argument("--confirm-production-write", action="store_true")
 
     edit_filters = subparsers.add_parser(
         "edit-public-filters",
