@@ -10172,7 +10172,7 @@
         {
           "domain": "market_consultant",
           "source_path": "market-consultant-dashboard-sql/knowledge/tables/data_lake_fuwu.dwd_crm_call_tmk_record_rt.md",
-          "sha256": "2c7cf6bf3833727896dcd01e9dd4b088ce7f3d4f84c3408dc7e3331df9e42adc"
+          "sha256": "ba9ebe4f6db0816b6ac3fa39cb46dc2ac71e0b14c11ee3a29f0a2829b89febcc"
         }
       ],
       "columns": [
@@ -11016,7 +11016,7 @@
         {
           "domain": "market_consultant",
           "source_path": "market-consultant-dashboard-sql/knowledge/tables/data_lake_ods.ods_ones_business_agent_ai_add_friend_record_rt.md",
-          "sha256": "2ab4706bf54d9d1dbec9a9c4c8b5670159eeab5c497b7562e113082a3e3e71d2"
+          "sha256": "5835b160798ce95eeb1cf2d4e1f89cc91aaf4f18d787bb82b909f69baf1c867f"
         }
       ],
       "columns": [
@@ -12371,7 +12371,7 @@
         {
           "domain": "market_consultant",
           "source_path": "market-consultant-dashboard-sql/knowledge/tables/fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md",
-          "sha256": "2062002966a117f210fa27b5563733d36f2e7b830c4431b76668da26eac01794"
+          "sha256": "437f8609b28d590f86ef3709e28bc9fe1f5917ee4ed17a8123d4697819ce0243"
         }
       ],
       "columns": [
@@ -20960,7 +20960,7 @@
         {
           "domain": "market_consultant",
           "source_path": "market-consultant-dashboard-sql/knowledge/tables/one_dw.dwd_mkt_tmk_call_record_hf.md",
-          "sha256": "5ff29e1b9941361208c277459e89ed1a75ab353f4ec7de26cb7825023d7bff59"
+          "sha256": "131bdda58f676a53d69c196a563dcf96c7d5f9c36fb66991147746c8d02feded"
         }
       ],
       "columns": [

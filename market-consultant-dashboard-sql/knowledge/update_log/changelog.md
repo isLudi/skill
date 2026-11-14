@@ -1751,3 +1751,13 @@
 - 9处专用CASE按用户明确授权融合广东专版和帅师规则名分类，保留独立B站分类、原首条覆盖及旧相对顺序。18共享样例/2592空值重叠组合/63专用样例/33消费者审计通过，所有模板实际查询SUCCESS，最长95秒，无SQL504；不量化未实际统计的渠道人数或金额影响。
 - market2lark发布version_id223539/exec_file865669，源码8a385a3e0edb44599cf2ecb8aa285498491f3abfe3040ef72f17b69b3086b50c；一次立即执行179735667终态SUCCESS，Base独立8页14065行/45字段、rev29090，全字段指纹与日志一致。当前7配置及shared release绑定新版本，36字段投影、7实际Windows任务回读通过，保留调度/启停/群和原SCHEDULE门禁，无手工群发送或额外执行。
 - 使用官方源Hash绑定适配器同步28个Data Center和6个当前模板canonical；刷新1030活跃片段、文档/契约source Hash及索引。保留0726_legacy和旧文字历史，不提升pending合同。续期适配器修复原生日期变更后的预览/保存顺序及INT/NUM等价读回，保留精确类型码、字段、Hash与原过期SQL替换门禁。
+
+## 2026-11-06 AI 好友记录业务枚举
+
+- 根据用户确认补充 [AI 好友记录表](../tables/data_lake_ods.ods_ones_business_agent_ai_add_friend_record_rt.md) 的业务枚举。`source_type=2` 为私海全AI外呼，`source_type=3` 为公海全AI外呼。
+- 记录 `status=3` 为调用加好友接口失败，`status=99` 为已经好友无需添加。该表的业务枚举和数据地图原始字段说明分别登记。
+
+## 2026-11-08 市场顾问 AI 策略名录与原始通话对账
+
+- 登记用户确认启用的策略 `4214/4235/4255/4288`。Query `1690988948` 核实四个编码是触达 `plan_id`，批次关联使用 `outer_channel_task_id` 和接收人双键。
+- 对 [原始通话记录表](../tables/data_lake_fuwu.dwd_crm_call_tmk_record_rt.md) 复查数据地图，确认 11 个普通字段和 0 个分区字段。按 Query `1690945713`、`1691003845` 补录逐通 ID、状态、时间及录音对账。两批 AI 接通的原始时长均为 0，Query `1690989217` 的 80 通正值对照验证原始 `call_type=4` 的秒值。

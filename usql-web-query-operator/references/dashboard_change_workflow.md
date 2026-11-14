@@ -14,6 +14,7 @@
 6. [公共筛选器稳定定位](#公共筛选器稳定定位)
 7. [受支持与阻断的操作](#受支持与阻断的操作)
 8. [透视表字段同步与沙箱复制重建](#透视表字段同步与沙箱复制重建)
+   - [在既有看板底部追加同模型透视表](#在既有看板底部追加同模型透视表)
 9. [故障与恢复](#故障与恢复)
 10. [Legacy 兼容命令](#legacy-兼容命令)
 
@@ -199,6 +200,23 @@ P3B 不再使用“第一个/第二个筛选器”定位。每个可写 operatio
 
 ## 透视表字段同步与沙箱复制重建
 
+### 共享期次筛选器与日期维度重绑
+
+`plan-period-date-rebind` 只读绑定市场顾问部既有看板、同一模型和 subject、一个公共筛选器叶子及其全部目标组件。只允许把一个文本期次字段换成同一模型的文本期次字段，并将目标透视表和折线图各自的一个文本行维度换成同一模型的真实日期字段。保留原组件 ID、布局、指标公式、其他筛选器及该筛选器的动态默认规则。原日期另有局部筛选或筛选器连接未列出的组件时，计划停止。
+
+Selection JSON 包含 `domain`、`dashboard_id`、`dashboard_name`、`owner`、`model_id`、`subject_id`、`relation_id`、`filter_id`、`charts`、`period_from_field_id`、`period_to_field_id`、`date_to_field_id`、`period_label`、`date_label` 和 `verification_periods`。每个 `charts` 项包含 `unit_id`、`unit_type` 和 `from_field_id`。
+
+```powershell
+D:\anaconda3\python.exe scripts\read_dashboard.py plan-period-date-rebind `
+  --domain market_consultant --input C:\runtime\selection.json --output C:\runtime\rebind-plan.json
+
+D:\anaconda3\python.exe scripts\read_dashboard.py apply-period-date-rebind `
+  --domain market_consultant --input C:\runtime\rebind-plan.json `
+  --plan-sha256 <exact-plan-sha256> --confirm-production-write --output C:\runtime\rebind-receipt.json
+```
+
+测试看板须在 Plan 和 Apply 均声明 `--sandbox`，并在 Apply 加 `--headed --confirm-sandbox-write`。该模式执行写入、逐个回读、草稿保存、指定期次取值和恢复基线。正式模式通过 `rebind_period_and_date_dimensions_draft` 专用 capability 门禁，另要求现有域登记和已发布 schema 基线。精确 Hash、写前双读、专属写锁、写后完整画像及反序恢复适用于两种模式。若遇到第三种状态则保留备份与回执，停止自动恢复。Apply 只保存草稿。
+
 独立专用入口 `sync-pivot-fields-draft` 可原位同步一个既有透视表，但不扩展通用 `ChangePlan` 的九类 Apply 操作。它必须以 `--manifest-sha256` 绑定审阅清单，并绑定完整目标 Profile Hash、来源/目标单元投影 Hash、稳定 unit ID 与同模型来源。执行器必须验证 capability registry 中对应操作为 `verified/allowlisted`。该命令禁止复制或替换 unit，不改 dashboard 布局或结构；组件样式仅可按注册表允许的 projection 同步。写前完整备份；写后核对目标 unit 和完整 dashboard schema Hash，并重建完整 draft profile；失败时仅在状态仍符合本次尝试时补偿恢复。新建公式若无法确认或操作失败，回执列出可能孤立资源；不自动删除。该命令没有发布参数。
 
 专用 manifest 必须声明 `artifact_type=DashboardPivotFieldRebindManifest`、`schema_version=1.0.0`、`production_draft_sync=true`、域、目标 dashboard ID/name、`expected_profile_sha256` 和恰好一个 operation。operation 必须绑定 `operation_id`、target/source unit ID、维度 field IDs、`expected_before_sha256` 和 `expected_source_sha256`；若启用组件样式同步，还必须提供来源与目标样式 Hash。来源包含自定义公式时必须完整声明 `source_custom_formulas`，绑定来源公式 Hash；无法识别的来源字段引用会阻断执行。`--manifest-sha256` 是最终 manifest 对象按 UTF-8、键排序、无空白分隔规范化后的 SHA-256，不包含外置参数本身。
@@ -272,6 +290,18 @@ manifest 必须声明 `artifact_type=DashboardPivotFieldRebindManifest`、`schem
 7. receipt 记录 pre/post profile hash、备份路径、新旧 unit 映射、schema 引用验证、filtered value 验证摘要和脱敏请求 shape。
 
 沙箱命令不会发布。若中途失败且 dashboardHtml 已保存，会尝试恢复写前 schema；已经复制出的孤立 unit 可能留在后端，但不会被组件引用。若只是 `touch_before_final=true`，命令会先写入临时字段列表再写回目标字段列表，用于测试缓存失效；但如果旧 unitId 本身绑定了旧任务，通常需要 `rebuild_by_copy=true`。任何生产透视表重绑需求都保持 `blocked_unsupported`，需先重新纳入共享 ChangePlan 治理并完成单独审查，不能复用沙箱 receipt 或 manifest 授权。
+
+### 只同步既有透视表样式
+
+在 `sync-pivot-fields-draft` 清单的同一 operation 内设置 `sync_component_style=true` 和 `sync_unit_fields=false`。绑定来源和目标单元、目标维度 ID、两侧单元投影及样式的精确 Hash。Apply 只保存该组件允许同步的主题与样式属性。字段投影保留期次值及动态规则，跳过平台每次读值时生成的临时取值任务 ID。
+
+### 在既有看板底部追加同模型透视表
+
+`plan-pivot-append` 在已登记的同域看板间生成一张透视表的草稿追加计划。绑定来源看板和单元、目标看板和网格容器、目标现有模型单元、新表标题以及当前动态默认值。当前适配器支持顶层磁吸网格、同一 SQL 应用模型、单个可见的下拉筛选器和最新一项默认值。源表使用的自定义指标须在目标主题中有唯一同名、公式与依赖等价的字段。新表继承来源显示名、顺序和数值格式，表头与行维度使用 `arco_blue` 的蓝色配置。
+
+`apply-pivot-append` 使用 `--plan`、`--plan-sha256` 和 `--confirm-production-write`，并要求提供与计划相同的 `--dashboard-id`、`--expected-dashboard-name` 和 `--domain`。两条命令均通过 `--output` 写运行工件。以各命令的 `--help` 查看参数。
+
+专属 capability 验证后，Apply 复核两侧完整画像、目标草稿和已发布 schema、公式映射及底部布局。分别为局部筛选器和透视表分配新 ID，校验绑定及筛选后结果，再保存草稿。回读要求完整草稿 schema、原有单元、已发布 schema、逐行数据和总计匹配。每份计划有独占尝试日志。保存异常时仅在草稿精确匹配本次投影且原有单元仍匹配时恢复原 schema，回执记录可能遗留的资源。该入口的写入范围限定在草稿。
 
 ## 故障与恢复
 

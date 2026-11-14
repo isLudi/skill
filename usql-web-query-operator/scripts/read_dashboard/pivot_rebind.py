@@ -314,8 +314,8 @@ def assert_filtered_value_response(
 def project_unit_field_state(detail: Mapping[str, Any]) -> dict[str, Any]:
     """Return the complete write-relevant projection of configured pivot fields.
 
-    Volatile unique keys are excluded, but formulas, render modes, number
-    formats, visual styles, and safe pivot display settings are retained.
+    Volatile field keys and filter-value task IDs are excluded. Formulas,
+    selected filter values, number formats, and display settings are retained.
     """
 
     projection: dict[str, Any] = {
@@ -342,6 +342,10 @@ def project_unit_field_state(detail: Mapping[str, Any]) -> dict[str, Any]:
             for field in _fields(detail, group)
             if _field_id(field)
         ]
+    for field in projection["groups"]["unitFilterList"]:
+        field_format = field.get("format")
+        if isinstance(field_format, dict):
+            field_format.pop("preFilterTaskId", None)
     return projection
 
 

@@ -106,7 +106,7 @@ Presto。数据地图登记为 Hive 内表、ORC 格式，存储量约 2.27 TB�
 ## 11. 注意事项
 
 - 数据地图当前完整物理名是 `one_dw.dwd_mkt_tmk_call_record_hf`；交接稿写的是原始层 `dw_noumenon_crm.crm.dwd_crm_call_tmk_record_rt`，两者不是同一个表名。
-- 本表字典的接通枚举为 `call_status=1`，交接稿原始表的接通枚举为 `call_status=33`。只有经实际对账证明语义映射一致后，才能用本表替代原始表；不能把 33 直接套到本表。
+- 本表接通枚举为 `call_status=1`。2026-11-08 对账确认 11 月 5 日及 11 月 7 日受限样本中，该值与原始表 `call_status=33` 双向对应。逐通对账证据见[原始通话表说明](data_lake_fuwu.dwd_crm_call_tmk_record_rt.md)。
 - 小时全量分区可能重复承载同一通话，必须先确定快照选择和 `call_id` 去重规则，否则拨打次数、接通次数和时长都会放大。
 - `call_phone_number`、`call_url`、`caller_number` 属于敏感或可关联个人的信息，知识库不保存样例值或明细结果。
 - 交接稿给出的 AI 加好友率是产出指标；接通率、频次和通话时长属于使用指标。看板可并列展示，但不得改变各自分子、分母和来源。
@@ -118,3 +118,7 @@ Presto。数据地图登记为 Hive 内表、ORC 格式，存储量约 2.27 TB�
 - 平台表信息记录创建时间 `2022-08-18 15:56:12`、更新时间 `2026-09-29 11:40:31`；这些是表元数据时间，不是最新业务事件时间。
 - 本地交接稿 `D:/Feishu/给伙伴_产出逻辑与SQL_看板加好友块_20260813.md` 用于识别 AI 场景、任务桥、好友率以及覆盖/使用/产出边界；表层差异和未验证指标均保留为待确认。
 - 本次只读取数据地图结构和本地交接稿，没有执行 SQL、下载通话明细或修改远端平台。
+
+## 13. AI 逐通原始记录回连（2026-11-08）
+
+启用的策略编码和物理筛选列见[触达策略名录](fairy_data_center.dwd_service_reach_wide_channel_subtask_prod_v2_di.md)。先用触达外部任务 ID 和学员 ID 与本表 `predict_task_id + user_number` 对齐，再以 `try_cast(trim(call_id) AS bigint)` 匹配原始表 `call_id`。原始表的 AI 学员字段在受限样本中为空，学员和策略维度由本表与触达保留。时长缺口和样本证据见[原始通话表逐通核验](data_lake_fuwu.dwd_crm_call_tmk_record_rt.md)。

@@ -16,10 +16,12 @@ from .commands.check_dashboard_values import cmd_check_dashboard_values
 from .commands.capture_write_evidence import cmd_capture_write_evidence
 from .commands.apply_dashboard_change import cmd_apply_dashboard_change
 from .commands.apply_dashboard_build import cmd_apply_dashboard_build
+from .commands.append_pivot_draft import SELECTION_KEYS, cmd_append_pivot_draft
 from .commands.design_dashboard import cmd_design_dashboard
 from .commands.edit_public_filters import cmd_edit_public_filters
 from .commands.plan_dashboard_change import cmd_plan_dashboard_change
 from .commands.plan_dashboard_build import cmd_plan_dashboard_build
+from .commands.period_date_rebind import cmd_period_date_rebind
 from .commands.profile_all import cmd_profile_all
 from .commands.profile_dashboard import cmd_profile_dashboard
 from .commands.profile_edit_dashboard import cmd_profile_edit_dashboard
@@ -501,6 +503,64 @@ def build_parser() -> argparse.ArgumentParser:
     sync_pivot.add_argument("--touch-wait-ms", type=int, default=1_000)
     sync_pivot.add_argument("--debug-artifacts", action="store_true")
     sync_pivot.set_defaults(func=cmd_rebind_pivot_fields_sandbox, confirm_sandbox_write=False)
+
+    append_plan = subparsers.add_parser(
+        "plan-pivot-append",
+        help="Review one same-model pivot, local filter, formula mapping and bottom layout for an existing draft.",
+    )
+    append_apply = subparsers.add_parser(
+        "apply-pivot-append",
+        help="Append one reviewed pivot and its local filter to an existing draft and verify the saved result.",
+    )
+    for append_parser in (append_plan, append_apply):
+        append_parser.add_argument("--dashboard-id", required=True)
+        append_parser.add_argument("--expected-dashboard-name", required=True)
+        append_parser.add_argument("--domain", choices=["market_consultant", "qingcheng"], required=True)
+        append_parser.add_argument("--output", type=Path, required=True)
+        append_parser.add_argument("--headed", action="store_true")
+        append_parser.add_argument("--state-path", type=Path, default=DEFAULT_STATE)
+        append_parser.add_argument("--artifacts-dir", type=Path, default=DEFAULT_ARTIFACTS)
+        append_parser.add_argument("--env-file", type=Path, default=DEFAULT_ENV_FILE)
+        append_parser.add_argument("--username", default=os.environ.get("BAIJIA_USERNAME"))
+        append_parser.add_argument("--password", default=os.environ.get("BAIJIA_PASSWORD"))
+        append_parser.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL)
+        append_parser.add_argument("--executable-path", default=None)
+        append_parser.add_argument("--wait-ms", type=int, default=3_000)
+        append_parser.set_defaults(func=cmd_append_pivot_draft)
+    for key in SELECTION_KEYS:
+        if key not in {"dashboard_id", "expected_dashboard_name"}:
+            append_plan.add_argument("--" + key.replace("_", "-"), required=True)
+    append_apply.add_argument("--plan", type=Path, required=True)
+    append_apply.add_argument("--plan-sha256", required=True)
+    append_apply.add_argument("--confirm-production-write", action="store_true", required=True)
+
+    rebind_plan = subparsers.add_parser(
+        "plan-period-date-rebind", help="Review one period filter and its charts' row dimensions without writes."
+    )
+    rebind_apply = subparsers.add_parser(
+        "apply-period-date-rebind", help="Apply an exact draft rebind or verify and restore an authorized sandbox."
+    )
+    for rebind in (rebind_plan, rebind_apply):
+        rebind.add_argument("--input", type=Path, required=True, help="Selection JSON for planning, exact Plan JSON for Apply.")
+        rebind.add_argument("--output", type=Path, required=True)
+        rebind.add_argument("--domain", choices=["market_consultant"], required=True)
+        rebind.add_argument("--sandbox", action="store_true")
+        rebind.add_argument("--headed", action="store_true")
+        rebind.add_argument("--state-path", type=Path, default=DEFAULT_STATE)
+        rebind.add_argument("--existing-session-only", action="store_true", help="Use the supplied authenticated state without attempting login.")
+        rebind.add_argument("--artifacts-dir", type=Path, default=DEFAULT_ARTIFACTS)
+        rebind.add_argument("--env-file", type=Path, default=DEFAULT_ENV_FILE)
+        rebind.add_argument("--username", default=os.environ.get("BAIJIA_USERNAME"))
+        rebind.add_argument("--password", default=os.environ.get("BAIJIA_PASSWORD"))
+        rebind.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL)
+        rebind.add_argument("--executable-path", default=None)
+        rebind.add_argument("--wait-ms", type=int, default=3_000)
+        rebind.set_defaults(func=cmd_period_date_rebind)
+    rebind_plan.set_defaults(mode="plan")
+    rebind_apply.set_defaults(mode="apply")
+    rebind_apply.add_argument("--plan-sha256", required=True)
+    rebind_apply.add_argument("--confirm-sandbox-write", action="store_true")
+    rebind_apply.add_argument("--confirm-production-write", action="store_true")
 
     edit_filters = subparsers.add_parser(
         "edit-public-filters",

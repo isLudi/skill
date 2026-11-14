@@ -33,7 +33,7 @@ description: Execute governed USQL, templates, Data Center and BI operations, ma
 | 同时明确授权收紧时间/期次下限和过期续期，需先实测候选的独立恢复 | [data_center_period_renewal.md](references/data_center_period_renewal.md) | `scripts/usql_web_query.py` |
 | 远端新建数据集与首抽 | [data_center_creation.md](references/data_center_creation.md) | `scripts/usql_web_query.py` |
 | 看板扫描、配置画像、编辑页公式 | [platform_profile.md](references/platform_profile.md) | `scripts/read_dashboard.py` |
-| 既有看板设计、Diff、草稿 Apply、发布 | [dashboard_change_workflow.md](references/dashboard_change_workflow.md) | `scripts/read_dashboard.py` |
+| 既有看板设计、Diff、草稿 Apply、同模型透视表追加、发布 | [dashboard_change_workflow.md](references/dashboard_change_workflow.md) | `scripts/read_dashboard.py` |
 | P4A/P4B 写能力和沙箱取证 | [dashboard_write_capabilities.md](references/dashboard_write_capabilities.md) | `scripts/read_dashboard.py` |
 | P4C 从零构建看板 | [dashboard_build_workflow.md](references/dashboard_build_workflow.md) | `scripts/read_dashboard.py` |
 | Tiangong2 数据开发项目/文件夹/任务/代码/版本/调度只读探查 | [tiangong2_task_exploration.md](references/tiangong2_task_exploration.md) | `scripts/tiangong2_task.py` |
@@ -72,6 +72,8 @@ description: Execute governed USQL, templates, Data Center and BI operations, ma
 - DashboardProfile、DesignSpec、ChangePlan、BuildPlan、Data Center Plan 和 Receipt 都是证据工件，不是下一阶段授权。
 - 看板 Apply 只写 draft，Publish 必须独立命令和独立确认。
 - P4B `apply-dashboard-change` 只允许九类 `verified/allowlisted` 既有对象窄修改；另有独立的 `sync-pivot-fields-draft` 专用透视表同步入口，必须通过其精确 manifest Hash 和专属 capability registry 门禁，不扩展通用 ChangePlan Apply。
+- `plan-pivot-append` / `apply-pivot-append` 是独立草稿入口。在同域同模型看板间追加一张透视表，要求现有目标公式等价、一个局部动态筛选器、精确 Plan Hash、已验证 capability 和筛选结果回读。
+- `plan-period-date-rebind` / `apply-period-date-rebind` 只处理市场顾问部同一模型的一个共享期次筛选器和它关联的日期维度。正式草稿写入须有完整画像、精确 Plan Hash、专属 capability、指定期次取值和已发布 schema 回读；沙箱验证必须恢复原始配置。
 - P4C 使用独立创建 Saga；失败不自动删除资源，Receipt 必须列出孤立资源和人工清理要求。
 - Data Center 替换和创建分别要求独立只读 Plan、精确 Hash、`--confirm-production-write`、保存后回读、立即执行和新的 `SUCCESS`。
 - `sync-data-center-sql --write` 只写本地业务 Skill，绝不等于远端生产写入。

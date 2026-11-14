@@ -49,6 +49,26 @@ def field(field_id: str, name: str, show_name: str | None = None) -> dict[str, o
 
 
 class PivotRebindTests(unittest.TestCase):
+    def test_unit_projection_ignores_only_the_volatile_filter_task_id(self) -> None:
+        before = {
+            "unitFilterList": [{
+                "fieldId": "1",
+                "format": {
+                    "condition": "in",
+                    "filterValue": ["period1"],
+                    "dynamicsFilter": True,
+                    "preFilterValueList": ["period1", "period2"],
+                    "preFilterTaskId": "task1",
+                },
+            }],
+        }
+        after = copy.deepcopy(before)
+        after["unitFilterList"][0]["format"]["preFilterTaskId"] = "task2"
+        self.assertEqual(project_unit_field_state(before), project_unit_field_state(after))
+        after["unitFilterList"][0]["format"]["filterValue"] = ["period2"]
+        self.assertNotEqual(project_unit_field_state(before), project_unit_field_state(after))
+        self.assertEqual("task1", before["unitFilterList"][0]["format"]["preFilterTaskId"])
+
     def test_complete_profile_retry_is_bounded(self) -> None:
         class Page:
             def __init__(self) -> None:
