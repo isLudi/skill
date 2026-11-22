@@ -1761,3 +1761,9 @@
 
 - 登记用户确认启用的策略 `4214/4235/4255/4288`。Query `1690988948` 核实四个编码是触达 `plan_id`，批次关联使用 `outer_channel_task_id` 和接收人双键。
 - 对 [原始通话记录表](../tables/data_lake_fuwu.dwd_crm_call_tmk_record_rt.md) 复查数据地图，确认 11 个普通字段和 0 个分区字段。按 Query `1690945713`、`1691003845` 补录逐通 ID、状态、时间及录音对账。两批 AI 接通的原始时长均为 0，Query `1690989217` 的 80 通正值对照验证原始 `call_type=4` 的秒值。
+
+## 2026-11-19 模板取数 stable canonical SQL 同步（模板 8948）
+
+- 线上 `published` 模板 `馒头_订单明细_流水时间`（id `8948`）回读 SQL SHA-256 为 `4a49a127b04f06e4a22861538a974035e757f15921d3269fe249318f1e90c6fd`，只保留稳定入口 `resources/raw_sql/template_query_market_mantou_order_detail_trade_time.sql`。
+- 本次清理日期后缀历史副本 0 个；历史 SQL 文本不进入知识库，也不作为路由入口。
+- 保存后已重建反向索引、共享 catalog、唯一版本审计、域内 integrity 和完整 Text2SQL 栈。

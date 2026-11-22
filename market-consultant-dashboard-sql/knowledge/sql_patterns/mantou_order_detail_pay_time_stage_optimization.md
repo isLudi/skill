@@ -7,7 +7,7 @@
 - 模板：`馒头_订单明细_支付时间`（ID `8735`）与 `馒头_订单明细_流水时间`（ID `8948`）
 - 域归属：两个馒头模板永久属于 `market_consultant`，渠道 CASE 或暑期期次盘点时无需再次声明
 - 当前stable SQL仅保留已发布的流水时间8948；支付时间8735已下线，不作为当前SQL入口。流水时间：[`template_query_market_mantou_order_detail_trade_time.sql`](../../resources/raw_sql/template_query_market_mantou_order_detail_trade_time.sql)
-- 当前流水时间SQL SHA-256：`bb27ea60087aff92485eec3989ad79ff08a362f4281f5dee52f05a7c8babc1c5`；下文为历史优化记录，支付时间旧SQL仅在runtime保留备份。
+- 当前流水时间SQL SHA-256：`4a49a127b04f06e4a22861538a974035e757f15921d3269fe249318f1e90c6fd`（2026-11-19 扩展 `re_lc` 取数范围后）；下文为历史优化记录，支付时间旧SQL仅在runtime保留备份。
 
 支付时间模板按 `top_paid_time`、流水时间模板按 `trade_time` 派生 `day`，两者都使用半开区间参数：
 

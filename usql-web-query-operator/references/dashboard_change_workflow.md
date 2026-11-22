@@ -257,6 +257,14 @@ D:\anaconda3\python.exe scripts\read_dashboard.py apply-period-date-rebind `
 
 专用 manifest 必须声明 `artifact_type=DashboardPivotFieldRebindManifest`、`schema_version=1.0.0`、`production_draft_sync=true`、域、目标 dashboard ID/name、`expected_profile_sha256` 和恰好一个 operation。operation 必须绑定 `operation_id`、target/source unit ID、维度 field IDs、`expected_before_sha256` 和 `expected_source_sha256`；若启用组件样式同步，还必须提供来源与目标样式 Hash。来源包含自定义公式时必须完整声明 `source_custom_formulas`，绑定来源公式 Hash；无法识别的来源字段引用会阻断执行。`--manifest-sha256` 是最终 manifest 对象按 UTF-8、键排序、无空白分隔规范化后的 SHA-256，不包含外置参数本身。
 
+原位换列可按结果列顺序提供 `target_measure_format_ids`，每列绑定目标透视表中一个已核对的原指标 ID。适配器核对指标类型并沿用原列的数值格式和列样式，更新表头排序中的对应名称，同时回读新字段和格式。该选项用于一次原位更新，与预热写入和来源整表格式同步互斥。
+
+取值校验支持已配置的图表内期次筛选器。`component_period_filter` 指定 `field_id`、`filter_unit_id` 和单个期次 `value`，由草稿组件实读校验绑定，响应只允许出现指定期次。每个校验选用一种筛选方式，局部筛选校验使用固定的草稿取值请求。
+
+同次指标同步可提供 `metric_note_replacements`，在既有文本组件中替换精确的口径文字。每项绑定 `unit_id`、`before` 和 `after`，仅接受纯文本，并要求正文及编辑暂存正文各唯一命中一次。适配器沿用完整 schema Hash、精确回读及失败恢复，保留表格标记、格式和布局。
+
+保留目标显示配置时同时保留目标行维度排序。`dimension_sort_values` 可按已选维度 ID 精确声明 `asc` 或 `desc`，用于经过审阅的排序设置或恢复。
+
 ```powershell
 D:\anaconda3\python.exe scripts\read_dashboard.py sync-pivot-fields-draft `
   --target-manifest C:\runtime\pivot_sync_manifest.json `

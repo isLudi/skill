@@ -386,17 +386,17 @@
       "evidence": [
         {
           "source_path": "scripts/read_dashboard/commands/rebind_pivot_fields_sandbox.py",
-          "source_sha256": "1bdac2666273de28a3fd4aaf489ff9fb715e78e044f653fb7e9288b34d584d21",
+          "source_sha256": "5f06acbcf8399d1b2724cd32fe6c944351c565096eb9466468bc2c58db8d1165",
           "note": "Copy/rebind remains sandbox-only, requires an explicit sandbox identity and confirmation, and blocks the copy path in production mode before browser launch."
         },
         {
           "source_path": "scripts/read_dashboard/pivot_rebind.py",
-          "source_sha256": "0ddb3eb0944f6f4b07cb5e59e99b00353bb48b5da553815efa8accbf24b6cf74",
+          "source_sha256": "8afd690a964b9a52478c66efb4505396c74265f5e7b77222268833bf0be77dae",
           "note": "Field-list rebuild helper plus optional public-filter-scoped value assertions for sandbox verification."
         },
         {
           "source_path": "tests/test_pivot_rebind.py",
-          "source_sha256": "cf30fd2c002b6d6e3d3e256bb1faeba1135add6ef4ae6e3f21387f28b5ddf572",
+          "source_sha256": "7bbe4fae7a7d145f8d902c1a5b15ff2e90bc02c340190ead780915697c44d766",
           "note": "Unit field rebuild, production-mode rejection, required-measure guards, component reference replacement, and filtered value tests."
         },
         {
@@ -446,17 +446,17 @@
         },
         {
           "source_path": "scripts/read_dashboard/commands/rebind_pivot_fields_sandbox.py",
-          "source_sha256": "1bdac2666273de28a3fd4aaf489ff9fb715e78e044f653fb7e9288b34d584d21",
+          "source_sha256": "5f06acbcf8399d1b2724cd32fe6c944351c565096eb9466468bc2c58db8d1165",
           "note": "Draft-only adapter enforces production confirmation, profile, unit, and component-style hashes, same-model source, target-subject formulas, complete backups, exact full-schema/unit/profile readback, and compensating recovery."
         },
         {
           "source_path": "scripts/read_dashboard/pivot_rebind.py",
-          "source_sha256": "0ddb3eb0944f6f4b07cb5e59e99b00353bb48b5da553815efa8accbf24b6cf74",
+          "source_sha256": "8afd690a964b9a52478c66efb4505396c74265f5e7b77222268833bf0be77dae",
           "note": "Complete write projection retains formulas, number formats, visual styles, safe pivot format, field order, model identity, and stable unit identity."
         },
         {
           "source_path": "tests/test_pivot_rebind.py",
-          "source_sha256": "cf30fd2c002b6d6e3d3e256bb1faeba1135add6ef4ae6e3f21387f28b5ddf572",
+          "source_sha256": "7bbe4fae7a7d145f8d902c1a5b15ff2e90bc02c340190ead780915697c44d766",
           "note": "Draft-mode, copy-rejection, formula catalog/reference, full-schema readback, style-format projection, dimension rename, retry, drift, and recovery tests."
         },
         {
@@ -475,7 +475,8 @@
         "Custom formulas are created or reused only in the target pivot subject after exact source-formula and dependency checks.",
         "Apply can synchronize the allowlisted pivot component visual style while preserving its stable unit identity; the source and target style projections require exact hashes and full draft readback.",
         "Apply never publishes; publishing remains a separate authorization and command.",
-        "Created formula resources are retained and reported if a later failure occurs; automatic formula deletion is forbidden."
+        "Created formula resources are retained and reported if a later failure occurs; automatic formula deletion is forbidden.",
+        "Existing metric-note text may be updated through exact plain-text replacements with full schema readback and compensation."
       ]
     },
     {
@@ -1337,7 +1338,57 @@
           "note": "Coverage for original and revised dependencies, zero denominator, scope and published alias checks."
         }
       ]
+    },
+    {
+      "operation": "switch_qingcheng_receiving_key_draft",
+      "phase": "draft",
+      "maturity": "verified",
+      "write_policy": "allowlisted",
+      "transaction_class": "compensating_restore",
+      "recovery_policy": "compensating_restore",
+      "readback_coverage": "full",
+      "risk": "high",
+      "adapter": "read_dashboard.commands.receiving_key_draft.cmd_receiving_key_draft",
+      "write_endpoints": [
+        "model/customized/column/saveAndUpdate",
+        "config/save/dashboardHtml"
+      ],
+      "readback_endpoints": [
+        "version/dashboard/searchPublishVersionList",
+        "config/dashBoard",
+        "value/unit/detail",
+        "model/customized/column/list",
+        "model/subject/paramList",
+        "data/set/detail"
+      ],
+      "limitations": [
+        "Only the two registered Qingcheng dashboards with 2460 and a successful compatibility extraction.",
+        "One receiving-headcount dependency in the isolated owner draft. All live component and formula references must be read.",
+        "Keep all other formulas, fields, filters, metrics and layout. Separate publish uses a verified apply receipt."
+      ],
+      "evidence": [
+        {
+          "source_path": "references/dashboard_receiving_key_evidence_20261116.json",
+          "source_sha256": "f6de5a0c237f01864b036d0b62d1b332bc3a8a6c4a38c1bd6fa125d08f014af4",
+          "note": "Independent formal draft and active version identity proof for both targets."
+        },
+        {
+          "source_path": "scripts/read_dashboard/dashboard_write_adapters.py",
+          "source_sha256": "d0cf9e557ffa51198ad99eaf53defd8e86cf98224c0e294595aa90b84fe2d4fe",
+          "note": "Existing verified formula and immutable draft-layout write primitives."
+        },
+        {
+          "source_path": "scripts/read_dashboard/commands/receiving_key_draft.py",
+          "source_sha256": "e15358c47fff50174f222e3ebce29ff45683b5a074310f17c7074064c5245cab",
+          "note": "Narrow owner, compatibility, scope, hash, attempt and version readback gates."
+        },
+        {
+          "source_path": "tests/test_receiving_key_draft.py",
+          "source_sha256": "db1c1753c5016631bd9ffd6fce8e7722bbc605383d53dde45a80a8d83126043b",
+          "note": "Exact formula shape, version identity, compensation guards and unrelated draft protection."
+        }
+      ]
     }
   ],
-  "registry_sha256": "0c25ffc457190f6a187b693c32435bf1e303bb0f7041f9674d3d6cdde375b460"
+  "registry_sha256": "ce4e4ea9c5edff6f61be65bf62458b0514e7920d6740a26f540dfe6d2b51f568"
 }

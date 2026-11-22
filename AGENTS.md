@@ -12,6 +12,16 @@ This file is the Git-versioned instruction source for the parent Codex home. Mai
 - Before modifying any business Skill or its SQL, first fetch the current branch's configured upstream from `origin` and compare the local and remote commits. Start the modification only after safely fast-forwarding or reviewing and integrating any divergence. If the worktree is dirty, preserve and restore unrelated changes around the update; never overwrite them or use a force update. Recheck the remote before push so work completed elsewhere is not lost.
 - Never expose passwords, access/refresh tokens, device codes, browser state or secret-bearing files. User-facing verification links and QR codes from an authorized login flow may be shown to that user; credential/session-bearing URLs must not be shown or logged.
 
+## Chinese writing and responses
+
+These rules apply to user-facing explanations, progress updates, final answers and drafted content.
+
+- Write Chinese in natural, concise prose. Address the user's question first, then develop the evidence, explanation and actions as needed.
+- Delete any sentence whose sole purpose is to preempt criticism rather than advance the argument.
+- Make each sentence relevant to the reader's current question. Connect paragraphs through facts, reasoning and task progress.
+- Use clear subjects, specific verbs and natural word order. Vary sentence and paragraph length to match meaning. Use accurate terminology and citation forms.
+- Place facts, conditions and uncertainty that affect a conclusion beside the relevant claim. Match the strength of wording to the evidence.
+
 ## Runtime and text transport
 
 Resolve Python from `executables.python` in the machine-local `<codex-home>\machine.local.json`, and use that executable and its `-m pip`; do not substitute bare Python unless requested. The tracked template and validation contract live under [codex-config](codex-config/README.md). Text is UTF-8, preferably without BOM. Initialize each new PowerShell process before non-ASCII input/output:
@@ -39,14 +49,14 @@ Select the smallest sufficient Skill set. Read the selected `SKILL.md` completel
 
 | Request / artifact | Entry point |
 |---|---|
-| 市场顾问部 semantics, SQL, contracts, dashboard design; registered 馒头_订单明细_支付时间 / 馒头_订单明细_流水时间 | [market-consultant-dashboard-sql](market-consultant-dashboard-sql/SKILL.md) |
-| 青橙项目部 semantics, SQL, contracts and dashboard design | [qingcheng-dashboard-sql](qingcheng-dashboard-sql/SKILL.md) |
-| 精品班学部 semantics, SQL, contracts and read-only analysis; no Dashboard/Data Center write adapter | [jingpin-dashboard-sql](jingpin-dashboard-sql/SKILL.md) |
+| Market Consultant Department (`市场顾问部`) semantics, SQL, contracts and dashboard design; registered `馒头_订单明细_支付时间` / `馒头_订单明细_流水时间` | [market-consultant-dashboard-sql](market-consultant-dashboard-sql/SKILL.md) |
+| Qingcheng Project Department (`青橙项目部`) semantics, SQL, contracts and dashboard design | [qingcheng-dashboard-sql](qingcheng-dashboard-sql/SKILL.md) |
+| Jingpin Department (`精品班学部`) semantics, SQL, contracts and read-only analysis; no Dashboard/Data Center write adapter | [jingpin-dashboard-sql](jingpin-dashboard-sql/SKILL.md) |
 | USQL execution/download/templates, Data Center, BI profiles/changes, Tiangong2 tasks/logs | [usql-web-query-operator](usql-web-query-operator/SKILL.md) |
-| Registered workbooks from 青橙数据对接 / 市场顾问部临时表上传 | [sync-qingcheng-market-temp-tables](sync-qingcheng-market-temp-tables/SKILL.md); this owns source identity, transformations and upload routing |
+| Registered workbooks from chats `青橙数据对接` / `市场顾问部临时表上传` | [sync-qingcheng-market-temp-tables](sync-qingcheng-market-temp-tables/SKILL.md); this owns source identity, transformations and upload routing |
 | Local `.xlsx`, `.xlsm`, `.csv`, `.tsv` input/output | [xlsx](xlsx/SKILL.md); preserve registered upload-file contracts |
-| Explicit query-result delivery as 飞书电子表格 / `lark_sheet` | [query-result-to-lark-sheet](query-result-to-lark-sheet/SKILL.md), then its Lark Skills |
-| 按部门/渠道推送图片和文字到群、本地脚本与Windows调度、妙搭全栈云端推送、Excel按人分发、妙搭静态看板刷新 | [data-push](data-push/SKILL.md); resolve the department, then the local/Miaoda execution surface; keep each department's configs, styles, tasks, apps and ledgers isolated; do not publish, send or enable paused schedules/automations during maintenance |
+| Explicit query-result delivery as Feishu Sheets (`飞书电子表格`) / `lark_sheet` | [query-result-to-lark-sheet](query-result-to-lark-sheet/SKILL.md), then its Lark Skills |
+| Department/channel image and text pushes to chats, local scripts and Windows scheduling, Miaoda cloud workflows, per-person Excel delivery and Miaoda static-dashboard refresh | [data-push](data-push/SKILL.md); resolve the department, then the local/Miaoda execution surface; keep each department's configs, styles, tasks, apps and ledgers isolated; do not publish, send or enable paused schedules/automations during maintenance |
 | Feishu setup, login, identity, scopes or permission repair | [lark-shared](lark-shared/SKILL.md), then the relevant domain Skill |
 | Feishu docs/wiki, Drive, Sheets, Base, Miaoda apps, chat | [lark-doc](lark-doc/SKILL.md) / [lark-wiki](lark-wiki/SKILL.md), [lark-drive](lark-drive/SKILL.md), [lark-sheets](lark-sheets/SKILL.md), [lark-base](lark-base/SKILL.md), [lark-apps](lark-apps/SKILL.md), [lark-im](lark-im/SKILL.md) |
 | Feishu Markdown, events, contacts, reusable wrappers, uncovered native APIs | [lark-markdown](lark-markdown/SKILL.md), [lark-event](lark-event/SKILL.md), [lark-contact](lark-contact/SKILL.md), [lark-skill-maker](lark-skill-maker/SKILL.md), [lark-openapi-explorer](lark-openapi-explorer/SKILL.md) |

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import copy
+import re
 from typing import Any, Iterable, Mapping
 
 from _shared.errors import UsageError
@@ -16,8 +17,9 @@ FIELD_LIST_GROUPS = (
     "unitFilterList",
 )
 
-FIELD_DISPLAY_KEYS = ("showName",)
+FIELD_DISPLAY_KEYS = ("showName", "sortValue")
 FIELD_FORMAT_DISPLAY_KEYS = ("sortValue", "condition")
+MEASURE_NUMBER_FORMAT_KEYS = ("numberType", "numberUnit", "decimalPlaces", "columnVisualStyle")
 PIVOT_SYNC_FORMAT_KEYS = (
     "displaySettingType", "switchGroups", "isDownload", "displayList",
     "switchOrderList", "pageSize", "isOpen", "isTotal",
@@ -118,6 +120,41 @@ def _ordered_unique(values: Iterable[str], label: str) -> list[str]:
     return result
 
 
+def _inherit_measure_formats(
+    unit: dict[str, Any], target_measures: Mapping[str, dict[str, Any]], template_ids: list[str]
+) -> None:
+    measures = _fields(unit, "unitMeasureList")
+    if len(template_ids) != len(measures) or any(item not in target_measures for item in template_ids):
+        raise UsageError("Measure formats require one reviewed target measure ID for each resulting column.")
+
+    renamed: dict[str, str] = {}
+    for measure, template_id in zip(measures, template_ids):
+        template = target_measures[template_id]
+        old_format = template.get("format")
+        new_format = measure.get("format")
+        if not isinstance(old_format, Mapping) or not isinstance(new_format, dict):
+            raise UsageError("Reviewed measure formatting requires both columns to expose formats.")
+        identity = ("dataType", "measureType", "orgParamType", "changeParamType")
+        if old_format.get("dataType") != 1 or any(old_format.get(key) != new_format.get(key) for key in identity):
+            raise UsageError("A measure format template must match the destination measure type.")
+        for key in MEASURE_NUMBER_FORMAT_KEYS:
+            if key in old_format:
+                new_format[key] = copy.deepcopy(old_format[key])
+            else:
+                new_format.pop(key, None)
+        old_name = template.get("showName")
+        new_name = measure.get("showName")
+        if isinstance(old_name, str) and isinstance(new_name, str) and old_name != new_name:
+            renamed[old_name] = new_name
+
+    format_settings = unit.get("format")
+    order = format_settings.get("fieldMeasureNameSortList") if isinstance(format_settings, dict) else None
+    if renamed and isinstance(order, list):
+        format_settings["fieldMeasureNameSortList"] = [
+            renamed.get(item, item) if isinstance(item, str) else item for item in order
+        ]
+
+
 def _cell_value(value: Any) -> Any:
     if isinstance(value, dict):
         for key in ("value", "data", "text", "label", "name", "showValue"):
@@ -208,29 +245,19 @@ def normalize_filtered_value_checks(
         if operation_id:
             covered_operation_ids.add(operation_id)
 
-        public_filter_list = check.get("public_filter_list")
-        if not isinstance(public_filter_list, list) or not public_filter_list:
-            raise UsageError(f"{check_id} requires a non-empty public_filter_list.")
-        if any(not isinstance(item, Mapping) for item in public_filter_list):
-            raise UsageError(f"{check_id} public_filter_list entries must be objects.")
-
-        check_required_filters = check.get("required_public_filters") or required_public_filters
-        if not isinstance(check_required_filters, list) or not check_required_filters:
-            raise UsageError(
-                f"{check_id} requires required_public_filters to prove the value check is scoped "
-                "to a specified period/public filter."
-            )
-        for required_filter in check_required_filters:
-            if not isinstance(required_filter, Mapping):
-                raise UsageError(f"{check_id} required_public_filters entries must be objects.")
-            if not _public_filter_matches_required(public_filter_list, required_filter):
-                raise UsageError(
-                    f"{check_id} public_filter_list does not contain required filter/value {dict(required_filter)}."
-                )
-
         row_match = check.get("row_match")
         if not isinstance(row_match, Mapping) or not row_match:
             raise UsageError(f"{check_id} requires a non-empty row_match.")
+        public_filter_list = check.get("public_filter_list") or []
+        check_required_filters = check.get("required_public_filters") or required_public_filters
+        component_period_filter = check.get("component_period_filter")
+        if component_period_filter is None:
+            _validate_public_filter_check(check_id, public_filter_list, check_required_filters)
+        else:
+            if public_filter_list or check.get("payload_overrides"):
+                raise UsageError(f"{check_id} requires an isolated component period filter.")
+            _validate_component_period_filter(check_id, component_period_filter, row_match)
+
         measure_field_id = str(check.get("measure_field_id") or "").strip()
         if not measure_field_id:
             raise UsageError(f"{check_id} requires measure_field_id.")
@@ -244,6 +271,7 @@ def normalize_filtered_value_checks(
                 "page_size": check.get("page_size"),
                 "public_filter_list": copy.deepcopy(public_filter_list),
                 "required_public_filters": copy.deepcopy(check_required_filters),
+                "component_period_filter": copy.deepcopy(component_period_filter),
                 "row_match": {str(key): str(value) for key, value in row_match.items()},
                 "measure_field_id": measure_field_id,
                 "expected_value": check.get("expected_value"),
@@ -257,6 +285,41 @@ def normalize_filtered_value_checks(
         if missing:
             raise UsageError(f"Production pivot rebind requires a filtered value check for every operation: {missing}")
     return normalized
+
+
+def _validate_public_filter_check(check_id: str, public_filters: Any, required_filters: Any) -> None:
+    if not isinstance(public_filters, list) or not public_filters:
+        raise UsageError(f"{check_id} requires a non-empty public_filter_list or component_period_filter.")
+    if any(not isinstance(item, Mapping) for item in public_filters):
+        raise UsageError(f"{check_id} public_filter_list entries must be objects.")
+    if not isinstance(required_filters, list) or not required_filters:
+        raise UsageError(
+            f"{check_id} requires required_public_filters to prove the value check is scoped "
+            "to a specified period/public filter."
+        )
+    for required_filter in required_filters:
+        if not isinstance(required_filter, Mapping):
+            raise UsageError(f"{check_id} required_public_filters entries must be objects.")
+        if not _public_filter_matches_required(public_filters, required_filter):
+            raise UsageError(
+                f"{check_id} public_filter_list does not contain required filter/value {dict(required_filter)}."
+            )
+
+
+def _validate_component_period_filter(
+    check_id: str, period_filter: Any, row_match: Mapping[str, Any]
+) -> None:
+    if not isinstance(period_filter, Mapping) or set(period_filter) != {"field_id", "filter_unit_id", "value"}:
+        raise UsageError(f"{check_id} requires the exact component filter ID, field ID and period value.")
+    field_id = period_filter["field_id"]
+    filter_id = period_filter["filter_unit_id"]
+    value = period_filter["value"]
+    if (
+        not isinstance(field_id, str) or not field_id.isdigit()
+        or not isinstance(filter_id, str) or not re.fullmatch(r"filter_\d+", filter_id)
+        or not isinstance(value, str) or not value.strip() or row_match.get(field_id) != value
+    ):
+        raise UsageError(f"{check_id} component filter must match the exact expected row and period selection.")
 
 
 def assert_filtered_value_response(
@@ -442,7 +505,9 @@ def rebuild_pivot_unit_fields(
     required_measure_field_ids: Iterable[str] = (),
     preserve_target_display: bool = True,
     dimension_show_names: Mapping[str, str] | None = None,
+    dimension_sort_values: Mapping[str, str] | None = None,
     sync_source_format: bool = False,
+    target_measure_format_ids: Iterable[str] | None = None,
 ) -> dict[str, Any]:
     """Rebuild a target pivot's field lists from a known-good source unit.
 
@@ -487,6 +552,12 @@ def rebuild_pivot_unit_fields(
         field_id = _field_id(field)
         if field_id in show_names:
             field["showName"] = show_names[field_id]
+    sort_values = dict(dimension_sort_values or {})
+    if set(sort_values) - set(dimensions) or any(value not in {"asc", "desc"} for value in sort_values.values()):
+        raise UsageError("Dimension sort overrides require selected dimension IDs and asc/desc values.")
+    for field in rebuilt["unitDimensionList"]:
+        if _field_id(field) in sort_values:
+            field["sortValue"] = sort_values[_field_id(field)]
     rebuilt["unitColumnDimensionList"] = []
 
     if measure_mode == "source_all":
@@ -528,6 +599,12 @@ def rebuild_pivot_unit_fields(
     missing_required = [field_id for field_id in required_measures if field_id not in actual_measure_ids]
     if missing_required:
         raise UsageError(f"Required measure fields are missing after rebuild: {missing_required}")
+
+    format_ids = _ordered_unique(target_measure_format_ids or [], "target_measure_format_ids")
+    if format_ids:
+        if sync_source_format:
+            raise UsageError("Target measure formats cannot be combined with source format synchronization.")
+        _inherit_measure_formats(rebuilt, target_index["unitMeasureList"], format_ids)
 
     if sync_source_format:
         source_format = source_detail.get("format")

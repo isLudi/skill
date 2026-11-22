@@ -337,6 +337,8 @@ def _drag_palette_item_to_target(page, palette_title: str, target, label: str) -
 def _drag_between_locators(page, source, target, label: str) -> None:
     source.wait_for(state="visible", timeout=10_000)
     target.wait_for(state="visible", timeout=10_000)
+    source.scroll_into_view_if_needed(timeout=10_000)
+    target.scroll_into_view_if_needed(timeout=10_000)
     source_box = source.bounding_box()
     target_box = target.bounding_box()
     if not source_box or not target_box:
@@ -358,11 +360,9 @@ def _drag_between_locators(page, source, target, label: str) -> None:
 
 def _drag_field_to_slot(page, field_name: str, slot_name: str) -> None:
     source_text = page.get_by_text(field_name, exact=True)
-    expanded_customized_group = False
     if source_text.count() == 0:
         customized_group = page.get_by_text("自定义指标", exact=True)
         if customized_group.count() == 1:
-            expanded_customized_group = True
             tree_node = customized_group.locator(
                 "xpath=ancestor::*[contains(@class,'ant-tree-treenode')][1]"
             )
@@ -393,11 +393,12 @@ def _drag_field_to_slot(page, field_name: str, slot_name: str) -> None:
     slot_label = slot_labels.nth(0)
     target = slot_label.locator("xpath=following-sibling::div//main")
     _drag_between_locators(page, source, target, f"{field_name}->{slot_name}")
-    if expanded_customized_group and page.get_by_text(field_name, exact=True).count() < 2:
+    selected = target.get_by_text(field_name, exact=True)
+    if selected.count() == 0:
         source.drag_to(target, force=True, timeout=10_000)
         page.wait_for_timeout(1_500)
-    if expanded_customized_group and page.get_by_text(field_name, exact=True).count() < 2:
-        raise UsageError(f"Custom field was not accepted by component slot: {field_name}")
+    if selected.count() != 1:
+        raise UsageError(f"Component slot {slot_name} did not accept {field_name} exactly once.")
 
 
 def _field_name(field: Mapping[str, Any]) -> str:

@@ -33,6 +33,7 @@ description: Execute governed USQL, templates, Data Center and BI operations, ma
 | 同时明确授权收紧时间/期次下限和过期续期，需先实测候选的独立恢复 | [data_center_period_renewal.md](references/data_center_period_renewal.md) | `scripts/usql_web_query.py` |
 | 远端新建数据集与首抽 | [data_center_creation.md](references/data_center_creation.md) | `scripts/usql_web_query.py` |
 | 看板扫描、配置画像、编辑页公式 | [platform_profile.md](references/platform_profile.md) | `scripts/read_dashboard.py` |
+| 青橙转化数据 2460 的共享接量人力兼容字段切换与版本回读 | [dashboard_receiving_key_workflow.md](references/dashboard_receiving_key_workflow.md) | `scripts/read_dashboard.py` |
 | 既有看板设计、Diff、草稿 Apply、同模型透视表追加、发布 | [dashboard_change_workflow.md](references/dashboard_change_workflow.md) | `scripts/read_dashboard.py` |
 | P4A/P4B 写能力和沙箱取证 | [dashboard_write_capabilities.md](references/dashboard_write_capabilities.md) | `scripts/read_dashboard.py` |
 | P4C 从零构建看板 | [dashboard_build_workflow.md](references/dashboard_build_workflow.md) | `scripts/read_dashboard.py` |

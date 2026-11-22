@@ -1479,8 +1479,8 @@
       {
         "id": "market_consultant:dashboards:template_query_market_datasets",
         "source_path": "knowledge/dashboards/template_query_market_datasets.md",
-        "sha256": "611961b87e6470fdf3c0daa373bcedfa3fefcc1711f2b42c5009df47931fa35e",
-        "bytes": 13025,
+        "sha256": "f2940b7723487968cf697ff23a4d08c09d66d235565b77c93a70211f4b1e81c1",
+        "bytes": 13544,
         "title": "市场顾问部模板取数源 SQL 清单",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -3378,8 +3378,8 @@
       {
         "id": "market_consultant:raw_sql:template_query_market_mantou_order_detail_trade_time",
         "source_path": "resources/raw_sql/template_query_market_mantou_order_detail_trade_time.sql",
-        "sha256": "bb27ea60087aff92485eec3989ad79ff08a362f4281f5dee52f05a7c8babc1c5",
-        "bytes": 73362,
+        "sha256": "4a49a127b04f06e4a22861538a974035e757f15921d3269fe249318f1e90c6fd",
+        "bytes": 74221,
         "title": "template_query_market_mantou_order_detail_trade_time",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -3852,8 +3852,8 @@
       {
         "id": "market_consultant:sql_patterns:mantou_order_detail_pay_time_stage_optimization",
         "source_path": "knowledge/sql_patterns/mantou_order_detail_pay_time_stage_optimization.md",
-        "sha256": "488e81b7bff77e90234112965d8b51b7b73be245e0415799aa1517942c1c50d8",
-        "bytes": 4476,
+        "sha256": "2e159f37729c66ae6ea53c068cd8244b759dd353978f594ac91ab5f9a30b66b2",
+        "bytes": 4523,
         "title": "馒头订单明细模板渠道归因与执行计划优化",
         "table_refs": [],
         "raw_sql_refs": [
@@ -4834,8 +4834,8 @@
       {
         "id": "market_consultant:update_log:changelog",
         "source_path": "knowledge/update_log/changelog.md",
-        "sha256": "e3c198a6c2680a21b075d0002825ff7e0ee6d2ae4bae8bdaec1ed6b1214dd059",
-        "bytes": 215988,
+        "sha256": "af88ed3551cff01c0674bc975dc25c5f804a902c5156b49a402cce2de46dd0fc",
+        "bytes": 216562,
         "title": "更新记录",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -6560,8 +6560,8 @@
     },
     {
       "source_path": "knowledge/dashboards/template_query_market_datasets.md",
-      "sha256": "611961b87e6470fdf3c0daa373bcedfa3fefcc1711f2b42c5009df47931fa35e",
-      "bytes": 13025,
+      "sha256": "f2940b7723487968cf697ff23a4d08c09d66d235565b77c93a70211f4b1e81c1",
+      "bytes": 13544,
       "category": "dashboards"
     },
     {
@@ -6812,8 +6812,8 @@
     },
     {
       "source_path": "knowledge/sql_patterns/mantou_order_detail_pay_time_stage_optimization.md",
-      "sha256": "488e81b7bff77e90234112965d8b51b7b73be245e0415799aa1517942c1c50d8",
-      "bytes": 4476,
+      "sha256": "2e159f37729c66ae6ea53c068cd8244b759dd353978f594ac91ab5f9a30b66b2",
+      "bytes": 4523,
       "category": "sql_patterns"
     },
     {
@@ -7148,8 +7148,8 @@
     },
     {
       "source_path": "knowledge/update_log/changelog.md",
-      "sha256": "e3c198a6c2680a21b075d0002825ff7e0ee6d2ae4bae8bdaec1ed6b1214dd059",
-      "bytes": 215988,
+      "sha256": "af88ed3551cff01c0674bc975dc25c5f804a902c5156b49a402cce2de46dd0fc",
+      "bytes": 216562,
       "category": "update_log"
     },
     {
@@ -7502,8 +7502,8 @@
     },
     {
       "source_path": "resources/raw_sql/template_query_market_mantou_order_detail_trade_time.sql",
-      "sha256": "bb27ea60087aff92485eec3989ad79ff08a362f4281f5dee52f05a7c8babc1c5",
-      "bytes": 73362,
+      "sha256": "4a49a127b04f06e4a22861538a974035e757f15921d3269fe249318f1e90c6fd",
+      "bytes": 74221,
       "category": "raw_sql"
     },
     {

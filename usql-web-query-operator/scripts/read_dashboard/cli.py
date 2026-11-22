@@ -32,6 +32,7 @@ from .commands.profile_folder import cmd_profile_folder
 from .commands.publish_dashboard_change import cmd_publish_dashboard_change
 from .commands.publish_dashboard_build import cmd_publish_dashboard_build
 from .commands.rebind_pivot_fields_sandbox import cmd_rebind_pivot_fields_sandbox
+from .commands.receiving_key_draft import BOARDS as RECEIVING_KEY_BOARDS, cmd_receiving_key_draft
 from .commands.scan_folder import cmd_scan_folder
 from .commands.inspect_write_capabilities import cmd_inspect_write_capabilities
 from .commands.verify_sandbox_write_adapters import cmd_verify_sandbox_write_adapters
@@ -607,6 +608,34 @@ def build_parser() -> argparse.ArgumentParser:
     conversion_apply.add_argument("--plan-sha256", required=True)
     conversion_apply.add_argument("--confirm-sandbox-write", action="store_true")
     conversion_apply.add_argument("--confirm-production-write", action="store_true")
+
+    receiving_plan = subparsers.add_parser(
+        "plan-receiving-key-draft", help="Review the exact 2460 receiving-metric change and its active published version."
+    )
+    receiving_apply = subparsers.add_parser(
+        "apply-receiving-key-draft", help="Switch the reviewed 2460 receiving formula in its isolated draft."
+    )
+    receiving_publish = subparsers.add_parser(
+        "publish-receiving-key-draft", help="Publish the verified receiving-key draft and read back the active version."
+    )
+    for command, mode in ((receiving_plan, "plan"), (receiving_apply, "apply"), (receiving_publish, "publish")):
+        command.add_argument("--compatibility-receipt", type=Path, required=True)
+        command.add_argument("--output", type=Path, required=True)
+        command.add_argument("--state-path", type=Path, required=True)
+        command.add_argument("--artifacts-dir", type=Path, default=DEFAULT_ARTIFACTS)
+        command.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL)
+        command.add_argument("--headed", action="store_true")
+        command.set_defaults(mode=mode, func=cmd_receiving_key_draft)
+    receiving_plan.add_argument("--dashboard-id", choices=sorted(RECEIVING_KEY_BOARDS), required=True)
+    receiving_plan.add_argument("--calculation-mode", choices=["compatibility", "restore-stock"], default="compatibility")
+    for command in (receiving_apply, receiving_publish):
+        command.add_argument("--plan", type=Path, required=True)
+        command.add_argument("--plan-sha256", required=True)
+    receiving_apply.add_argument("--confirm-production-write", action="store_true")
+    receiving_publish.add_argument("--apply-receipt", type=Path, required=True)
+    receiving_publish.add_argument("--apply-receipt-sha256", required=True)
+    receiving_publish.add_argument("--version-description", required=True)
+    receiving_publish.add_argument("--confirm-publish", action="store_true")
 
     edit_filters = subparsers.add_parser(
         "edit-public-filters",

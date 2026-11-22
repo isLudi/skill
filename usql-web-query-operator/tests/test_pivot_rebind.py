@@ -31,6 +31,8 @@ from read_dashboard.commands.rebind_pivot_fields_sandbox import (  # noqa: E402
     _restore_schema_if_expected,
     _restore_units,
     _replace_component_unit_id,
+    _run_filtered_value_checks,
+    replace_metric_note_text,
     _verify_exact_schema_readback,
 )
 
@@ -49,6 +51,50 @@ def field(field_id: str, name: str, show_name: str | None = None) -> dict[str, o
 
 
 class PivotRebindTests(unittest.TestCase):
+    def test_metric_notes_replace_both_editor_versions_and_preserve_layout(self) -> None:
+        schema = {"children": [{
+            "componentName": "Text", "id": "node_notes", "layout": {"h": 20},
+            "props": {"settings": {
+                "unitId": "unit_notes", "componentType": "u_text", "richTextFormat": {
+                    "textBoxConfig": {"textContent": "<table><tr><td>Old rule</td></tr></table>",
+                                      "tempTextContent": "<p>Old rule</p>"},
+                },
+            }},
+        }]}
+        changes = [{"unit_id": "unit_notes", "before": "Old rule", "after": "7-day refunds & remainder"}]
+        updated = replace_metric_note_text(schema, changes)
+        expected = copy.deepcopy(schema)
+        box = expected["children"][0]["props"]["settings"]["richTextFormat"]["textBoxConfig"]
+        box.update(textContent="<table><tr><td>7-day refunds &amp; remainder</td></tr></table>",
+                   tempTextContent="<p>7-day refunds &amp; remainder</p>")
+        self.assertEqual(expected, updated)
+        self.assertIn("Old rule", schema["children"][0]["props"]["settings"]["richTextFormat"]["textBoxConfig"]["textContent"])
+        with self.assertRaisesRegex(UsageError, "drifted"):
+            replace_metric_note_text(updated, changes)
+        with self.assertRaisesRegex(UsageError, "plain text"):
+            replace_metric_note_text(schema, [{**changes[0], "after": "<script>bad</script>"}])
+
+    def test_dimension_order_survives_source_sync_and_reviewed_override(self) -> None:
+        dimension = field("123", "qici")
+        dimension["sortValue"] = "desc"
+        target = {"modelId": "2344", "unitDimensionList": [dimension], "unitMeasureList": []}
+        source = copy.deepcopy(target)
+        source["unitDimensionList"][0]["sortValue"] = "asc"
+        rebuilt = rebuild_pivot_unit_fields(
+            target_detail=target, source_detail=source, dimension_field_ids=["123"],
+        )
+        self.assertEqual("desc", rebuilt["unitDimensionList"][0]["sortValue"])
+        overridden = rebuild_pivot_unit_fields(
+            target_detail=source, source_detail=source, dimension_field_ids=["123"],
+            dimension_sort_values={"123": "desc"},
+        )
+        self.assertEqual("desc", overridden["unitDimensionList"][0]["sortValue"])
+        with self.assertRaisesRegex(UsageError, "sort overrides"):
+            rebuild_pivot_unit_fields(
+                target_detail=target, source_detail=source, dimension_field_ids=["123"],
+                dimension_sort_values={"unknown": "desc"},
+            )
+
     def test_unit_projection_ignores_only_the_volatile_filter_task_id(self) -> None:
         before = {
             "unitFilterList": [{
@@ -287,6 +333,41 @@ class PivotRebindTests(unittest.TestCase):
                 target_detail={"modelId": "2064", "unitDimensionList": [], "unitMeasureList": []},
                 source_detail={"modelId": "9999", "unitDimensionList": [], "unitMeasureList": []},
                 dimension_field_ids=["channel_map_1"],
+            )
+
+    def test_replacement_uses_reviewed_target_number_formats_without_copying_formulas(self) -> None:
+        shared = {"dataType": 1, "measureType": "main", "orgParamType": 4, "changeParamType": 4}
+        old = field("old_ratio", "old_ratio", "下期退款占比")
+        old["format"] = {**shared, "numberType": 2, "decimalPlaces": 2,
+                         "columnVisualStyle": {"fontColor": "#123456"}, "condition": "old"}
+        new = field("new_ratio", "new_ratio", "当周退款占比")
+        new["format"] = {**shared, "numberType": 1, "numberUnit": "元", "condition": "new"}
+        target = {
+            "modelId": "2344", "unitMeasureList": [old], "unitDimensionList": [field("period", "qici")],
+            "format": {"fieldMeasureNameSortList": ["下期退款占比"], "pageSize": 100},
+        }
+        source = {"modelId": "2344", "unitMeasureList": [new], "format": {"pageSize": 20}}
+        rebuilt = rebuild_pivot_unit_fields(
+            target_detail=target, source_detail=source, dimension_field_ids=["period"],
+            target_measure_format_ids=["old_ratio"],
+        )
+
+        after = rebuilt["unitMeasureList"][0]
+        self.assertEqual("new_ratio", after["fieldId"])
+        self.assertEqual("当周退款占比", after["showName"])
+        self.assertEqual({**old["format"], "condition": "new"}, after["format"])
+        self.assertEqual({"fieldMeasureNameSortList": ["当周退款占比"], "pageSize": 100}, rebuilt["format"])
+        self.assertEqual(1, new["format"]["numberType"])
+        with self.assertRaisesRegex(UsageError, "one reviewed target measure ID"):
+            rebuild_pivot_unit_fields(
+                target_detail=target, source_detail=source, dimension_field_ids=["period"],
+                target_measure_format_ids=["unknown_ratio"],
+            )
+        new["format"]["orgParamType"] = 1
+        with self.assertRaisesRegex(UsageError, "match the destination measure type"):
+            rebuild_pivot_unit_fields(
+                target_detail=target, source_detail=source, dimension_field_ids=["period"],
+                target_measure_format_ids=["old_ratio"],
             )
 
     def test_missing_required_measure_blocks_rebuild(self) -> None:
@@ -608,6 +689,42 @@ class PivotRebindTests(unittest.TestCase):
         }
         with self.assertRaisesRegex(UsageError, "required filter/value"):
             normalize_filtered_value_checks(wrong_period_manifest, operations, require=True)
+
+    def test_component_period_checks_bind_live_filter_and_resolve_formula_ids(self) -> None:
+        from unittest.mock import patch
+
+        operation = {"operation_id": "refund"}
+        check = {
+            "operation_id": "refund", "row_match": {"123": "20261106期"},
+            "component_period_filter": {"field_id": "123", "filter_unit_id": "filter_456", "value": "20261106期"},
+            "measure_field_id": "customized_source", "expected_value": 0.2,
+        }
+        checks = normalize_filtered_value_checks(
+            {"filtered_value_checks": [check, {**check, "measure_field_id": "999", "expected_value": -200}]},
+            [operation], require=True,
+        )
+        raw = {"unitFilterList": [{
+            "fieldId": "123", "filterUnitId": "filter_456",
+            "format": {"condition": "in", "orgParamType": 2, "isDisplayFilter": 1},
+        }]}
+        row = {"123": "20261106期", "customized_target": "0.2", "999": "-200"}
+        value = {"data": {"unit_refund": {"data": [row]}}}
+        inputs = {"page": object(), "checks": checks, "operation_unit_ids": {"refund": "unit_refund"},
+                  "dashboard_id": "dashboard_refund", "formula_ids": {"customized_source": "customized_target"}}
+        module = "read_dashboard.commands.rebind_pivot_fields_sandbox"
+        with patch(f"{module}.fetch_edit_unit_detail", return_value=raw), patch(
+            f"{module}.post_json", return_value=value,
+        ) as post:
+            results = _run_filtered_value_checks(**inputs)
+            self.assertEqual(["customized_target", "999"], [r["measure_field_id"] for r in results])
+            self.assertEqual(1, post.call_count)
+            payload = post.call_args.args[2]
+            self.assertEqual(["20261106期"], payload["filterList"][0]["filterValue"])
+            self.assertEqual([], payload["publicFilterList"])
+            self.assertEqual("draft", payload["versionId"])
+            value["data"]["unit_refund"]["data"].append({**row, "123": "20261113期"})
+            with self.assertRaisesRegex(UsageError, "outside the selected period"):
+                _run_filtered_value_checks(**inputs)
 
     def test_filtered_value_response_asserts_expected_row_and_measure(self) -> None:
         check = {

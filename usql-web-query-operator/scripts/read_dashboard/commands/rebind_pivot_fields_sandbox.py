@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import copy
+import html
 import json
 import re
 import time
@@ -432,6 +433,47 @@ def _formula_manifest_projection(item: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def replace_metric_note_text(schema: dict[str, Any], changes: list[dict[str, str]]) -> dict[str, Any]:
+    """Replace exact plain-text passages in one existing text component."""
+    result = copy.deepcopy(schema)
+    if not changes:
+        return result
+    if not isinstance(changes, list) or len(changes) > 8:
+        raise UsageError("Metric note changes must be a bounded list of exact text replacements.")
+
+    def text_components(value: Any) -> list[dict[str, Any]]:
+        if isinstance(value, list):
+            return [node for child in value for node in text_components(child)]
+        if not isinstance(value, dict):
+            return []
+        nodes = [value] if value.get("componentName") == "Text" else []
+        return nodes + [node for child in value.values() for node in text_components(child)]
+
+    nodes = text_components(result)
+    for change in changes:
+        if not isinstance(change, dict) or set(change) != {"unit_id", "before", "after"}:
+            raise UsageError("Each metric note replacement must bind its unit ID and exact before/after text.")
+        if any(not isinstance(change[key], str) or not change[key].strip() for key in change):
+            raise UsageError("Metric note replacements require non-empty text.")
+        if any(token in change["before"] + change["after"] for token in ("<", ">", "${")):
+            raise UsageError("Metric note replacements accept plain text only.")
+        matching = [node for node in nodes
+                    if (node.get("props", {}).get("settings") or {}).get("unitId") == change["unit_id"]]
+        if len(matching) != 1:
+            raise UsageError("Metric note component identity is missing or ambiguous.")
+        settings = matching[0]["props"]["settings"]
+        if settings.get("componentType") != "u_text":
+            raise UsageError("Metric notes must belong to an existing text component.")
+        box = (settings.get("richTextFormat") or {}).get("textBoxConfig") or {}
+        old, new = html.escape(change["before"], quote=False), html.escape(change["after"], quote=False)
+        for key in ("textContent", "tempTextContent"):
+            value = box.get(key)
+            if not isinstance(value, str) or value.count(old) != 1:
+                raise UsageError("Metric note text drifted before the reviewed replacement.")
+            box[key] = value.replace(old, new, 1)
+    return result
+
+
 def _remap_formula_references(value: Any, mapped: dict[str, str], source_custom_ids: set[str]) -> Any:
     if isinstance(value, dict):
         result: dict[str, Any] = {}
@@ -585,14 +627,13 @@ def _orphaned_formula_resources(formula_results: list[dict[str, Any]]) -> list[d
     ]
 
 
-def _field_rebound_copy(
+def _rebuild_pivot_for_operation(
     *,
-    copied_detail: dict[str, Any],
     source_detail: dict[str, Any],
     target_detail: dict[str, Any],
     operation: dict[str, Any],
 ) -> dict[str, Any]:
-    target_field_projection = rebuild_pivot_unit_fields(
+    return rebuild_pivot_unit_fields(
         target_detail=target_detail,
         source_detail=source_detail,
         dimension_field_ids=operation["dimension_field_ids"],
@@ -601,7 +642,21 @@ def _field_rebound_copy(
         required_measure_field_ids=operation.get("required_measure_field_ids") or [],
         preserve_target_display=operation.get("preserve_target_display", True) is not False,
         dimension_show_names=operation.get("dimension_show_names") or {},
+        dimension_sort_values=operation.get("dimension_sort_values") or {},
         sync_source_format=operation.get("sync_source_format") is True,
+        target_measure_format_ids=operation.get("target_measure_format_ids"),
+    )
+
+
+def _field_rebound_copy(
+    *,
+    copied_detail: dict[str, Any],
+    source_detail: dict[str, Any],
+    target_detail: dict[str, Any],
+    operation: dict[str, Any],
+) -> dict[str, Any]:
+    target_field_projection = _rebuild_pivot_for_operation(
+        source_detail=source_detail, target_detail=target_detail, operation=operation,
     )
     rebound = copy.deepcopy(copied_detail)
     for group in FIELD_LIST_GROUPS:
@@ -617,8 +672,12 @@ def _run_filtered_value_checks(
     page: Any,
     checks: list[dict[str, Any]],
     operation_unit_ids: dict[str, str],
+    dashboard_id: str,
+    formula_ids: dict[str, str],
 ) -> list[dict[str, Any]]:
     results: list[dict[str, Any]] = []
+    component_readbacks: dict[str, dict[str, Any]] = {}
+    component_values: dict[str, dict[str, Any]] = {}
     for check in checks:
         unit_id = str(check.get("unit_id") or "").strip()
         operation_id = str(check.get("operation_id") or "").strip()
@@ -632,13 +691,44 @@ def _run_filtered_value_checks(
         for key, value in (check.get("payload_overrides") or {}).items():
             payload[key] = copy.deepcopy(value)
 
-        value_payload = post_json(page, UNIT_VALUE_API, payload, timeout_ms=60_000)
+        period_filter = check.get("component_period_filter")
+        if period_filter:
+            if unit_id not in component_readbacks:
+                component_readbacks[unit_id] = fetch_edit_unit_detail(page, unit_id, dashboard_id, "draft")
+            field_id = period_filter["field_id"]
+            filter_id = period_filter["filter_unit_id"]
+            value = period_filter["value"]
+            matching = [
+                item for item in component_readbacks[unit_id].get("unitFilterList") or []
+                if str(item.get("fieldId")) == field_id and item.get("filterUnitId") == filter_id
+            ]
+            if len(matching) != 1:
+                raise UsageError("Component period filter does not match the saved draft.")
+            fmt = matching[0].get("format") or {}
+            if fmt.get("condition") != "in" or fmt.get("orgParamType") != 2 or fmt.get("isDisplayFilter") != 1:
+                raise UsageError("Component period filter is not visible as an exact selectable dimension.")
+            payload.update(isConfig=True, versionId="draft", filterList=[{
+                "paramId": field_id, "fieldId": field_id, "filterUnitId": filter_id,
+                "condition": "in", "filterValue": [value], "orgParamType": 2, "isSelectAll": 0,
+            }])
+            payload_key = canonical_sha256(payload)
+            if payload_key not in component_values:
+                component_values[payload_key] = post_json(page, UNIT_VALUE_API, payload, timeout_ms=60_000)
+            value_payload = component_values[payload_key]
+            rows = (value_payload.get("data", {}).get(unit_id) or {}).get("data") or []
+            if {str(row.get(field_id)) for row in rows} != {value}:
+                raise UsageError("Component period filter returned data outside the selected period.")
+            check = {**check, "measure_field_id": formula_ids.get(check["measure_field_id"], check["measure_field_id"])}
+        else:
+            value_payload = post_json(page, UNIT_VALUE_API, payload, timeout_ms=60_000)
+
         result = assert_filtered_value_response(check=check, unit_id=unit_id, value_payload=value_payload)
         result.update(
             {
                 "operation_id": operation_id or None,
                 "public_filter_sha256": canonical_sha256(check["public_filter_list"]),
                 "required_public_filters": copy.deepcopy(check["required_public_filters"]),
+                "component_period_filter": copy.deepcopy(period_filter),
             }
         )
         results.append(result)
@@ -667,10 +757,24 @@ def _execution_mode(args: Any, manifest: dict[str, Any], registry_path: Path = D
     if manifest.get("dashboard_name") and str(manifest["dashboard_name"]) != expected_name:
         raise UsageError("Manifest dashboard_name does not match --expected-dashboard-name.")
 
+    if production and manifest.get("production_draft_sync") is not True:
+        raise UsageError("Production draft sync requires production_draft_sync=true in the reviewed manifest.")
+    operations = _operation_list(manifest)
+    for operation in operations:
+        if "target_measure_format_ids" not in operation:
+            continue
+        format_ids = operation["target_measure_format_ids"]
+        if (
+            not isinstance(format_ids, list) or not format_ids
+            or any(not isinstance(item, str) or not item for item in format_ids)
+            or operation.get("touch_before_final") is True
+            or operation.get("rebuild_by_copy") is True
+            or operation.get("sync_unit_fields") is False
+            or operation.get("sync_source_format") is True
+        ):
+            raise UsageError("Reviewed target measure formats require a single in-place field update.")
+
     if production:
-        if manifest.get("production_draft_sync") is not True:
-            raise UsageError("Production draft sync requires production_draft_sync=true in the reviewed manifest.")
-        operations = _operation_list(manifest)
         if len(operations) != 1:
             raise UsageError("Production draft sync supports exactly one existing pivot per operation.")
         if any(operation.get("rebuild_by_copy") is True for operation in operations):
@@ -835,7 +939,8 @@ def cmd_rebind_pivot_fields_sandbox(args) -> int:
                 raise UsageError(f"{mode['name']} profile SHA-256 does not match the manifest expected_profile_sha256.")
 
             original_schema = parse_dashboard_html(config)
-            working_schema = copy.deepcopy(original_schema)
+            working_schema = replace_metric_note_text(original_schema, manifest.get("metric_note_replacements") or [])
+            notes_changed = working_schema != original_schema
             for operation in operations:
                 target_unit_id = str(operation["target_unit_id"])
                 source_unit_id = str(operation["source_unit_id"])
@@ -910,6 +1015,10 @@ def cmd_rebind_pivot_fields_sandbox(args) -> int:
                         "observations": [],
                     })
                     continue
+                if operation.get("target_measure_format_ids"):
+                    _rebuild_pivot_for_operation(
+                        target_detail=before_raw, source_detail=source_raw, operation=operation,
+                    )
                 observations: list[dict[str, Any]] = []
 
                 def check_formula_write_baseline() -> None:
@@ -1047,16 +1156,10 @@ def cmd_rebind_pivot_fields_sandbox(args) -> int:
                 else:
                     target_write_before = before_raw if touch_state is None else touch_readback
 
-                rebuilt_raw = rebuild_pivot_unit_fields(
+                rebuilt_raw = _rebuild_pivot_for_operation(
                     target_detail=target_write_before,
                     source_detail=source_for_rebuild,
-                    dimension_field_ids=operation["dimension_field_ids"],
-                    measure_mode=str(operation.get("measure_mode") or "source_all"),
-                    measure_field_ids=operation.get("measure_field_ids"),
-                    required_measure_field_ids=operation.get("required_measure_field_ids") or [],
-                    preserve_target_display=operation.get("preserve_target_display", True) is not False,
-                    dimension_show_names=operation.get("dimension_show_names") or {},
-                    sync_source_format=operation.get("sync_source_format") is True,
+                    operation=operation,
                 )
                 expected_after_state = project_unit_field_state(rebuilt_raw)
                 register_recovery(expected_after_state)
@@ -1083,7 +1186,7 @@ def cmd_rebind_pivot_fields_sandbox(args) -> int:
                     }
                 )
 
-            if copied_unit_results or component_style_results:
+            if copied_unit_results or component_style_results or notes_changed:
                 schema_observations: list[dict[str, Any]] = []
                 if mode["name"] == "production_draft":
                     for target_unit_id, expected_state in expected_current_unit_states.items():
@@ -1178,6 +1281,11 @@ def cmd_rebind_pivot_fields_sandbox(args) -> int:
                 page=page,
                 checks=filtered_value_checks,
                 operation_unit_ids=operation_unit_ids,
+                dashboard_id=sandbox_dashboard_id,
+                formula_ids={
+                    str(item["source_field_id"]): str(item["target_field_id"])
+                    for item in formula_results if item.get("target_field_id")
+                },
             )
             if args.restore_after_apply:
                 recovery["attempted"] = True
