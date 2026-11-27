@@ -1,0 +1,27 @@
+{
+  "artifact_type": "DashboardOutbound2hDraftScopeReview",
+  "schema_version": "1.0.0",
+  "operation": "append_market_outbound_2h_draft",
+  "domain": "market_consultant",
+  "scope": {
+    "dashboard_id": "dashboard_3730722176629411841",
+    "unit_id": "unit_3730781607175761920",
+    "application_model_id": 2054,
+    "subject_id": 207787,
+    "numerator": "first_call_in_2h",
+    "denominator": "valid_lead_count",
+    "column_name": "2h外呼"
+  },
+  "review": [
+    "The user explicitly requested this new numerator and this formal dashboard column.",
+    "A dedicated exact-scope adapter is added; the generic ratio operation remains sandbox_only.",
+    "The established live-tested formula, unit and schema adapters are reused without new remote endpoints.",
+    "The existing 6h, 12h and 24h expressions and dependencies must all confirm the same denominator.",
+    "The new ratio is added after 5min and uses the retained 6h percentage format. No old field may be removed or reordered.",
+    "Owner, domain, model, subject, source field metadata, full draft, published schema and unit hashes are checked.",
+    "Every write is followed by exact readback; failed writes use guarded restoration and retain new formula resources.",
+    "Each apply requires its exact Plan hash and explicit production-draft confirmation; no publish command exists."
+  ],
+  "reused_live_evidence": ["references/dashboard_pivot_ratio_evidence_20261114.json"],
+  "tests": ["tests/test_outbound_2h.py", "tests/test_pivot_ratio_draft.py"]
+}

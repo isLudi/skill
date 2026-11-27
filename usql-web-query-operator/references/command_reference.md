@@ -74,6 +74,8 @@
 | `apply-qingcheng-advisor-rate` | Governed shared adviser breakthrough rate on the registered Qingcheng conversion board. | `draft_write` | `exact_plan_hash_and_confirmation` | [dashboard_write_capabilities.md](dashboard_write_capabilities.md) |
 | `publish-qingcheng-advisor-rate` | Governed shared adviser breakthrough rate on the registered Qingcheng conversion board. | `publish` | `separate_publish_confirmation` | [dashboard_write_capabilities.md](dashboard_write_capabilities.md) |
 | `verify-qingcheng-advisor-rate` | Governed shared adviser breakthrough rate on the registered Qingcheng conversion board. | `remote_read_only` | `explicit_command` | [dashboard_write_capabilities.md](dashboard_write_capabilities.md) |
+| `plan-outbound-2h-draft` | Append the approved Market Consultant 2h outbound ratio to the overall pivot draft; never publishes. | `remote_read_only` | `explicit_command` | [dashboard_change_workflow.md](dashboard_change_workflow.md) |
+| `apply-outbound-2h-draft` | Append the approved Market Consultant 2h outbound ratio to the overall pivot draft; never publishes. | `draft_write` | `exact_plan_hash_and_confirmation` | [dashboard_change_workflow.md](dashboard_change_workflow.md) |
 
 ## `scripts/oes_achievement.py`
 

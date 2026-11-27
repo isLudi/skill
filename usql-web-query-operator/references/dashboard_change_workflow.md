@@ -349,6 +349,22 @@ manifest 必须声明 `artifact_type=DashboardPivotFieldRebindManifest`、`schem
 
 ## 故障与恢复
 
+### 市场顾问总体数据新增2h外呼
+
+`plan-outbound-2h-draft` / `apply-outbound-2h-draft` 是独立正式草稿入口，只允许
+`dashboard_3730722176629411841` 的 `unit_3730781607175761920`，模型2054、草稿subject207787。
+它复用已验证的计算列、单元和草稿保存适配器，不放开通用比率写入能力。
+分子固定为物理字段 `first_call_in_2h`，分母固定为 `valid_lead_count`，并逐个核对现有
+6h、12h、24h计算列的分母与依赖。新列只能插在5min后、6h前，继承6h百分比格式，
+不允许删除、移动原字段，也没有发布入口。Selection和核对用例结构沿用物理指标比率计划；
+正式Apply继续要求完整Profile、owner、Plan Hash、物理字段Hash、已发布版本隔离、逐项值回读和失败恢复。
+该专用Selection的 `header_color` 固定为 `null`，表示完整继承6h列及组件的现有样式；通用比率入口仍要求显式六位色号。
+
+```powershell
+D:\anaconda3\python.exe scripts\read_dashboard.py plan-outbound-2h-draft --domain market_consultant --input selection.json --output plan.json
+D:\anaconda3\python.exe scripts\read_dashboard.py apply-outbound-2h-draft --domain market_consultant --input plan.json --plan-sha256 <exact-hash> --confirm-production-write --output receipt.json
+```
+
 - `domain unresolved/mismatch`：回到对应业务 SQL skill，重新生成域内 QuerySpec、DatasetSpec 和画像。
 - `profile drift`：重新 profile、design 和 diff，不得复用旧 Hash。
 - `blocked_unsupported`：保留 dry-run 结果，等待专门接口验证和 allowlist 扩展。

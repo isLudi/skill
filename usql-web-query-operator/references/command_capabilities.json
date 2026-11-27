@@ -408,6 +408,18 @@
           "effect": "remote_read_only",
           "authorization": "explicit_command",
           "reference": "dashboard_write_capabilities.md"
+        },
+        {
+          "name": "plan-outbound-2h-draft",
+          "effect": "remote_read_only",
+          "authorization": "explicit_command",
+          "reference": "dashboard_change_workflow.md"
+        },
+        {
+          "name": "apply-outbound-2h-draft",
+          "effect": "draft_write",
+          "authorization": "exact_plan_hash_and_confirmation",
+          "reference": "dashboard_change_workflow.md"
         }
       ]
     },

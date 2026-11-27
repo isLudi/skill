@@ -140,7 +140,7 @@ def _template(unit: dict, s: dict, sandbox: bool) -> dict:
     return SANDBOX_TEMPLATE
 
 
-def _live(page, s: dict, artifacts: Path, sandbox: bool, checks: list[dict]) -> LiveDraft:
+def _live(page, s: dict, artifacts: Path, sandbox: bool, checks: list[dict], *, template_field_id: str | None = None, preserve_template_style: bool = False) -> LiveDraft:
     schema = parse_dashboard_html(_config(page, s))
     raw, profile = _profile(page, s, artifacts)
     selected = [c for c in profile["components"] if c["component_id"] == s["component_id"]]
@@ -157,8 +157,20 @@ def _live(page, s: dict, artifacts: Path, sandbox: bool, checks: list[dict]) -> 
     tree = trees[0]["fields"]
     physical = _checked_fields(tree, s)
     _validate_live_filters(profile, s, checks)
-    template = _template(unit, s, sandbox)
-    projected = replace_ratio_fields(unit, s, [f"customized_{1000+i}" for i in range(len(s["ratios"]))], template)
+    if template_field_id is None:
+        template = _template(unit, s, sandbox)
+    else:
+        require(not sandbox and not s["remove_ids"] and not s["move_to_end_ids"],
+                "An explicit production template is limited to append-only ratios.")
+        templates = [f for f in unit["unitMeasureList"] if f["fieldId"] == template_field_id]
+        require(len(templates) == 1, "The reviewed percentage template is missing.")
+        template = templates[0]
+        fmt = template.get("format") or {}
+        require(template_field_id.startswith("customized_") and fmt.get("numberType") == 2
+                and fmt.get("dataType") == 1 and fmt.get("orgParamType") == 4
+                and (preserve_template_style or ((fmt.get("columnVisualStyle") or {}).get("header") or {}).get("bgColor") == s["header_color"]),
+                "The explicit production template must retain its verified percentage style.")
+    projected = replace_ratio_fields(unit, s, [f"customized_{1000+i}" for i in range(len(s["ratios"]))], template, preserve_template_style=preserve_template_style)
     definitions = [formula_definition(r, s["denominator"], s["subject_id"]) for r in s["ratios"]]
     plan = {
         "artifact_type": PLAN_TYPE, "schema_version": "1.0.0", "sandbox": sandbox, "selection": s,
@@ -170,6 +182,9 @@ def _live(page, s: dict, artifacts: Path, sandbox: bool, checks: list[dict]) -> 
         "existing_formulas": {f["columnName"]: _formula_lookup(page, tree, f) for f in definitions},
         "formula_definitions": definitions, "checks": checks,
     }
+    if template_field_id is not None:
+        plan["template_field_id"] = template_field_id
+        plan["preserve_template_style"] = preserve_template_style
     plan["plan_sha256"] = canonical_sha256(plan)
     return LiveDraft(schema, profile, unit, template, plan)
 
@@ -304,7 +319,8 @@ def _mutate(page, live: LiveDraft, artifacts: Path, receipt: dict) -> None:
     try:
         formula_ids = _resolve_formulas(page, live, receipt)
         _expect_before(page, live)
-        target = replace_ratio_fields(live.unit, s, formula_ids, live.template)
+        target = replace_ratio_fields(live.unit, s, formula_ids, live.template,
+                                      preserve_template_style=plan.get("preserve_template_style") is True)
         _write_unit_detail(page, s["dashboard_id"], target, receipt["writes"])
         require(projection(_unit_read(page, s)) == projection(target), "Pivot field/style update did not read back exactly.")
         _write_dashboard_schema(page, s["dashboard_id"], s["dashboard_name"], live.schema, receipt["writes"], plan["schema_sha256"])

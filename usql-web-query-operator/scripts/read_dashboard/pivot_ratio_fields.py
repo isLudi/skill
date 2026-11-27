@@ -18,7 +18,7 @@ def require(condition: Any, message: str) -> None:
         raise UsageError(message)
 
 
-def validate_selection(s: dict, sandbox: bool) -> None:
+def validate_selection(s: dict, sandbox: bool, *, inherit_template_style: bool = False) -> None:
     required = {"domain", "dashboard_id", "dashboard_name", "owner", "model_id", "subject_id",
                 "component_id", "unit_id", "unit_name", "denominator", "ratios", "remove_ids",
                 "move_to_end_ids", "anchor_id", "header_color", "decimals"}
@@ -35,8 +35,10 @@ def validate_selection(s: dict, sandbox: bool) -> None:
     if sandbox:
         require("沙箱" in s["dashboard_name"] and "测试" in s["dashboard_name"],
                 "Sandbox verification needs the exact named test sandbox.")
-    require(isinstance(s["header_color"], str) and re.fullmatch(r"#[0-9a-fA-F]{6}", s["header_color"]),
-            "A six-digit header color is required.")
+    require((inherit_template_style and not sandbox and s["header_color"] is None)
+            or (not inherit_template_style and isinstance(s["header_color"], str)
+                and re.fullmatch(r"#[0-9a-fA-F]{6}", s["header_color"])),
+            "Use an exact six-digit header color, or the dedicated inherited-template mode.")
     require(type(s["decimals"]) is int and s["decimals"] in (0, 1, 2),
             "Percentage precision must be 0, 1 or 2.")
     ratios = s["ratios"]
@@ -118,7 +120,7 @@ def projection(unit: dict) -> dict:
     return result
 
 
-def replace_ratio_fields(unit: dict, s: dict, added_ids: list[str], template: dict) -> dict:
+def replace_ratio_fields(unit: dict, s: dict, added_ids: list[str], template: dict, *, preserve_template_style: bool = False) -> dict:
     before = unit.get("unitMeasureList") or []
     by_id = {f["fieldId"]: f for f in before}
     names = [f["showName"] for f in before]
@@ -154,22 +156,25 @@ def replace_ratio_fields(unit: dict, s: dict, added_ids: list[str], template: di
     kept = [f for f in result["unitMeasureList"] if f["fieldId"] not in removed.union(moved)]
     insertion = [f["fieldId"] for f in kept].index(s["anchor_id"]) + 1
     result["unitMeasureList"] = (
-        kept[:insertion] + [ratio_field(ratio, field_id, s, template) for ratio, field_id in zip(s["ratios"], added_ids, strict=True)]
+        kept[:insertion] + [ratio_field(ratio, field_id, s, template, preserve_template_style=preserve_template_style) for ratio, field_id in zip(s["ratios"], added_ids, strict=True)]
         + kept[insertion:] + [deepcopy(by_id[field_id]) for field_id in moved]
     )
     result["format"]["fieldMeasureNameSortList"] = [f["showName"] for f in result["unitMeasureList"]]
     return result
 
 
-def ratio_field(ratio: dict, field_id: str, selection: dict, template: dict) -> dict:
+def ratio_field(ratio: dict, field_id: str, selection: dict, template: dict, *, preserve_template_style: bool = False) -> dict:
     style = deepcopy(template["format"].get("columnVisualStyle") or {})
-    style.setdefault("header", {})["bgColor"] = selection["header_color"]
+    if not preserve_template_style:
+        style.setdefault("header", {})["bgColor"] = selection["header_color"]
     # Keep only the observed calculated-measure format keys. The template's
     # existing formula identifier and conditional rules never travel.
     fmt = {k: template["format"][k] for k in (
         "measureType", "dataType", "numberType", "isAggregation", "changeParamType", "orgParamType", "filterType"
     )}
-    fmt.update(decimalPlaces=selection["decimals"], columnVisualStyle=style)
+    fmt.update(decimalPlaces=selection["decimals"])
+    if style or not preserve_template_style:
+        fmt["columnVisualStyle"] = style
     return {
         "fieldId": field_id, "fieldType": 1, "showName": ratio["name"], "frontRender": 0, "format": fmt,
         "uniqueKeyWithTimeStamp": f"{field_id}-pivot-ratio",

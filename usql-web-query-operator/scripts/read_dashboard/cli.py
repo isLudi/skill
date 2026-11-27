@@ -16,6 +16,7 @@ from .commands.check_dashboard_values import cmd_check_dashboard_values
 from .commands.capture_write_evidence import cmd_capture_write_evidence
 from .commands.conversion_ratio_draft import cmd_conversion_ratio_draft
 from .commands.advisor_rate import cmd_advisor_rate
+from .commands.outbound_2h import cmd_outbound_2h
 from .commands.apply_dashboard_change import cmd_apply_dashboard_change
 from .commands.apply_dashboard_build import cmd_apply_dashboard_build
 from .commands.append_pivot_draft import SELECTION_KEYS, cmd_append_pivot_draft
@@ -610,6 +611,20 @@ def build_parser() -> argparse.ArgumentParser:
     conversion_apply.add_argument("--plan-sha256", required=True)
     conversion_apply.add_argument("--confirm-sandbox-write", action="store_true")
     conversion_apply.add_argument("--confirm-production-write", action="store_true")
+
+    for outbound_mode in ("plan", "apply"):
+        outbound = subparsers.add_parser(f"{outbound_mode}-outbound-2h-draft", help="Append the approved Market Consultant 2h outbound ratio to the overall pivot draft; never publishes.")
+        outbound.add_argument("--input", type=Path, required=True)
+        outbound.add_argument("--output", type=Path, required=True)
+        outbound.add_argument("--domain", choices=["market_consultant"], required=True)
+        outbound.add_argument("--state-path", type=Path, default=DEFAULT_STATE)
+        outbound.add_argument("--artifacts-dir", type=Path, default=DEFAULT_ARTIFACTS)
+        outbound.add_argument("--headed", action="store_true")
+        outbound.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL)
+        outbound.set_defaults(func=cmd_outbound_2h, mode=outbound_mode)
+        if outbound_mode == "apply":
+            outbound.add_argument("--plan-sha256", required=True)
+            outbound.add_argument("--confirm-production-write", action="store_true")
 
     for rate_mode in ("plan", "apply", "publish", "verify"):
         rate = subparsers.add_parser(f"{rate_mode}-qingcheng-advisor-rate", help="Governed shared adviser breakthrough rate on the registered Qingcheng conversion board.")

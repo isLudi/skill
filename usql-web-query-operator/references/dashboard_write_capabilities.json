@@ -1343,12 +1343,12 @@
         },
         {
           "source_path": "scripts/read_dashboard/pivot_ratio_fields.py",
-          "source_sha256": "a405dbf22cf94003058d2395af669ae4814b3f5417523865992bd3e34752c828",
+          "source_sha256": "15fa6f249805128f1c187559c2337232bb4471391bc9d68c063de9ac66acd11a",
           "note": "Typed physical-metric formula, constrained measure reordering and live percentage field template."
         },
         {
           "source_path": "scripts/read_dashboard/commands/pivot_ratio_draft.py",
-          "source_sha256": "4ce7ae84227ff412fca93c56011c4532f5169889d981c789817113af2189341d",
+          "source_sha256": "e42fb0a00b4314f1d6d0d20d6baaedc8f91daae60e2963340c79893dfc06618b",
           "note": "Bounded draft adapter with owner, hash, same-subject, backup, readback and compensation gates."
         },
         {
@@ -1447,7 +1447,69 @@
         "Generic update_formula and all unrelated capabilities remain unchanged.",
         "Publication requires a separate hash-bound verified ApplyReceipt and explicit confirmation."
       ]
+    },
+    {
+      "operation": "append_market_outbound_2h_draft",
+      "phase": "draft",
+      "maturity": "verified",
+      "write_policy": "allowlisted",
+      "transaction_class": "compensating_restore",
+      "recovery_policy": "compensating_restore",
+      "readback_coverage": "full",
+      "risk": "high",
+      "adapter": "read_dashboard.commands.outbound_2h.cmd_outbound_2h",
+      "write_endpoints": [
+        "model/customized/column/saveAndUpdate",
+        "config/update/unit",
+        "config/save/dashboardHtml"
+      ],
+      "readback_endpoints": [
+        "config/dashBoard",
+        "value/unit/detail",
+        "value/unit",
+        "model/customized/column/list",
+        "model/subject/paramList"
+      ],
+      "evidence": [
+        {
+          "source_path": "references/outbound_2h_draft_scope_review_20261127.json",
+          "source_sha256": "e5160ed7e3e4e01946c8bcdbfc1f6b5c988bbdb7381b6aed3668518b25717094",
+          "note": "Independent exact-scope review for the explicitly requested formal draft; the generic ratio capability remains sandbox-only."
+        },
+        {
+          "source_path": "references/dashboard_pivot_ratio_evidence_20261114.json",
+          "source_sha256": "9a5864c16b0eb68a77de46a95e3ebf52426e14644aef2734612ffa320b5834d0",
+          "note": "Established live endpoint and compensation evidence is reused, without changing its original scope or maturity."
+        },
+        {
+          "source_path": "scripts/read_dashboard/commands/outbound_2h.py",
+          "source_sha256": "354e728d0c8b138e1f115bf347ba9b81b7a09fb36ebec93b7bf90f39c7046a0f",
+          "note": "Exact board, model, subject, physical ratio, anchor, denominator proof and production confirmation gates."
+        },
+        {
+          "source_path": "scripts/read_dashboard/commands/pivot_ratio_draft.py",
+          "source_sha256": "e42fb0a00b4314f1d6d0d20d6baaedc8f91daae60e2963340c79893dfc06618b",
+          "note": "Shared hash-bound formula creation, single-unit update, complete profile and published isolation readback, and guarded recovery."
+        },
+        {
+          "source_path": "tests/test_outbound_2h.py",
+          "source_sha256": "2ed6464cd14fe130c0033096243742365ea29e32909d276b67bebee9cc285955",
+          "note": "Scope, denominator, ordered append-only projection, formula drift, pre-browser confirmation and generic sandbox isolation tests."
+        },
+        {
+          "source_path": "tests/test_pivot_ratio_draft.py",
+          "source_sha256": "4b2a4d1624be203d5d1fa2522cbf1be24552639e3f34b1cf8fe6d3ea29edd88a",
+          "note": "Existing formula conflict, drift, value, zero-denominator and compensation regression coverage."
+        }
+      ],
+      "limitations": [
+        "Only the registered Market Consultant overall outbound pivot, application model 2054 and subject 207787.",
+        "Only the sum of physical first_call_in_2h divided by the existing valid_lead_count; all three existing timely rates must retain that denominator.",
+        "Append exactly one percentage column after 5min and before 6h; preserve every old field and its order and appearance.",
+        "Exact owner, domain, full Profile, source field metadata, Plan hash, published baseline and production-draft confirmation are mandatory.",
+        "Failed writes restore only an exact assessed state. Created formula resources are retained and reported; no deletion or publication."
+      ]
     }
   ],
-  "registry_sha256": "ab38cfb177b5c8c892e8955d9efd924a5864fc7dc0958966b44b97ac51fe480e"
+  "registry_sha256": "4daa6c30da22f16ca2ce0bb2eb652c92b77e0e8a8b504fad091a054008c6ef3a"
 }
