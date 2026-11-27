@@ -49,18 +49,20 @@ def test_sec_clock_remains_at_the_reviewed_hours():
         sec._slot(datetime(2026, 10, 8, 13, 50, tzinfo=ZONE), cfg)
 
 
-@pytest.mark.parametrize('audience,expected_count', [('standard', 9), ('dept', 4)])
+@pytest.mark.parametrize('audience,expected_count', [('standard', 8), ('dept', 3)])
 def test_audience_preparation_and_send_failures_are_isolated(monkeypatch, tmp_path, audience, expected_count):
     sent, built, caches = [], [], []
     batch = conversion._batch()
     monkeypatch.setattr(conversion, '_batch', lambda: batch)
     def fetch(channel, period, output, **kwargs):
-        return {'rev': 1, 'snapshot': ['20261009', '12']}
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text('{}\n', encoding='utf-8')
+        return {'rev': 1, 'snapshot': ['20261009', '12'], 'records_count': 1, 'has_more': False}
     def refresh(channel, period, output, *, cache_dir):
         caches.append(cache_dir)
         output.parent.mkdir(parents=True, exist_ok=True)
         output.write_text('{}\n', encoding='utf-8')
-        return {'rev': 2}
+        return {'rev': 2, 'records_count': 1, 'has_more': False}
     def build(_p, _c, output, _config, *, channels, period, levels):
         channel, level = channels[0], levels[0]
         built.append((channel, level))
@@ -129,7 +131,7 @@ def test_conversion_exports_do_not_share_the_page_files(monkeypatch, tmp_path):
     def lark(args, **_kwargs):
         path = Path(args[args.index('--output') + 1])
         paths.append(path)
-        path.write_text('{}\n', encoding='utf-8')
+        path.write_text(json.dumps({'一级渠道': '公海', '渠道': '0元信息流'})+'\n', encoding='utf-8')
         path.with_suffix('.manifest.json').write_text(json.dumps({'rev': 1, 'has_more': False}), encoding='utf-8')
     monkeypatch.setattr(export, 'run_lark', lark)
     for audience in ('standard', 'dept'):
@@ -141,7 +143,7 @@ def test_conversion_exports_do_not_share_the_page_files(monkeypatch, tmp_path):
 def test_incomplete_conversion_pagination_cannot_claim_a_complete_export(monkeypatch, tmp_path):
     def lark(args, **_kwargs):
         path = Path(args[args.index('--output') + 1])
-        path.write_text('{}\n', encoding='utf-8')
+        path.write_text(json.dumps({'一级渠道': '公海', '渠道': '0元信息流'})+'\n', encoding='utf-8')
         path.with_suffix('.manifest.json').write_text(json.dumps({'rev': 1, 'has_more': True}), encoding='utf-8')
     monkeypatch.setattr(export, 'run_lark', lark)
     output = tmp_path / 'source.ndjson'

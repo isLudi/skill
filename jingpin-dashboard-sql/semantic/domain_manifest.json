@@ -46,6 +46,8 @@
       "temp_table.dingxi01_qing_team_goal",
       "temp_table.dingxi01_qing_team_jg",
       "temp_table.dingxi01_qing_zz",
+      "temp_table.lvshuai01_jiagou_db",
+      "temp_table.lvshuai01_qing_team_jg",
       "temp_table.shenbaoxin_channel_group",
       "temp_table.zhangjunyan01_pingyou_jg"
     ],
@@ -95,6 +97,12 @@
         "qingcheng"
       ],
       "temp_table.dingxi01_qing_zz": [
+        "qingcheng"
+      ],
+      "temp_table.lvshuai01_jiagou_db": [
+        "qingcheng"
+      ],
+      "temp_table.lvshuai01_qing_team_jg": [
         "qingcheng"
       ],
       "temp_table.shenbaoxin_channel_group": [

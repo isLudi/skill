@@ -9,7 +9,7 @@
 - 历史验证消息：`om_x100b69478c6c80a0df62926437bfc84`（链接形态，已退役），仅作身份证据保留
 - 本地累计表：`D:\GAOTU\19003_青橙项目部看板维护表格\qing_daoke.xlsx`
 - 本地累计表工作表：`Sheet1`（当前登记目标工作表；源附件仍读取当前活动工作表）
-- 平台临时表：`temp_table.dingxi01_qing_daoke`
+- 平台临时表：`temp_table.lvshuai01_qing_daoke`
 
 2026-10-01 起，白名单维护人在群内直接发送 `.xlsx` 附件，不再发送 `docs.baijia.com` 在线文档链接。链接取件方式（Playwright 登录百家文档、`QINGCHENG_DOCS_ENV_FILE` 凭据段、在线标题逐字校验）已整体下线；`source_kind` 为 `file_attachment`，取件走 `lark-cli` 附件下载，与市场文件族同链路。
 

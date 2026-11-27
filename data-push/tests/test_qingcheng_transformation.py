@@ -22,16 +22,16 @@ import send_qingcheng_transformation as SEND
 SHANGHAI = ZoneInfo("Asia/Shanghai")
 
 
-def test_batch_pins_the_published_t5_upstream():
+def test_batch_loads_distinct_process_and_conversion_sources():
     batch = MODULE._batch()
-    assert batch["upstream"]["task_id"] == 47775
-    assert batch["upstream"]["nezha_task_id"] == 67397
-    assert batch["upstream"]["published_version"] == "V14"
-    assert batch["upstream"]["version_id"] == 219202
-    assert batch["upstream"]["exec_file_id"] == 855788
-    assert batch["upstream"]["source_sha256"] == (
-        "f8c7c6a089741cfe2565a33a6575e84a4e416bc2c959f02995f43475a9eaaf32"
-    )
+    assert batch["upstream"] == {
+        "process_task_key": "qingcheng.process", "conversion_task_key": "qingcheng.transformation"
+    }
+    sources = batch["upstream_bindings"]
+    assert sources["process"]["table_id"] == batch["source"]["process_table_id"]
+    assert sources["conversion"]["table_id"] == batch["source"]["conversion_table_id"]
+    assert sources["process"]["task_id"] != sources["conversion"]["task_id"]
+    assert sources["conversion"]["audit_mode"] == "none"
 
 
 @pytest.mark.parametrize("day", [9, 10, 11, 12])
@@ -99,10 +99,13 @@ def test_batch_passes_its_requested_period_to_every_channel(monkeypatch, tmp_pat
     monkeypatch.setattr(MODULE.internal_books, "prepare", lambda *args: pytest.fail("Retired internal-books conversion must not run"))
     monkeypatch.setattr(MODULE, "_index", lambda *args: None)
     result = MODULE.run(period_date=period_date, output=tmp_path)
-    assert calls == [((channel,), period_date + "期", (level,))
-                     for channel in (item["id"] for item in batch["channels"]) for level in MODULE._channel_levels(channel)]
-    assert all(group["status"] == "prepared" for item in result["channels"].values()
-               for group in item["groups"].values())
+    assert next(item for item in batch["channels"] if item["id"] == "partner_books")["scheduled"] is False
+    assert not any(channels == ("partner_books",) for channels, _, _ in calls)
+    assert calls == [((item["id"],), period_date + "期", (level,))
+                     for item in batch["channels"] if item["scheduled"]
+                     for level in MODULE._channel_levels(item["id"])]
+    assert all(group["status"] == ("skipped_schedule_disabled" if channel == "partner_books" else "prepared")
+               for channel, item in result["channels"].items() for group in item["groups"].values())
 
 
 @pytest.mark.parametrize("period", ["20261009期", "20261016期"])
@@ -168,12 +171,14 @@ def test_restored_supervisor_style_uses_batch_period_instead_of_preview_default(
     {"source_sha256": "179a48e689a71ef5a48a49cded28290cf862eb2d912f4beea5c00159565154a5"},
     {"task_id": 47728},
     {"nezha_task_id": 67318},
+    {"conversion_task_key": "qingcheng.process"},
+    {"process_task_key": "market_consultant.leads"},
 ])
-def test_conversion_upstream_rejects_stale_or_process_binding(monkeypatch, tmp_path, stale):
+def test_conversion_upstream_rejects_embedded_ids_or_swapped_roles(monkeypatch, tmp_path, stale):
     config = json.loads(MODULE.BATCH_CONFIG.read_text(encoding="utf-8"))
     config["upstream"].update(stale)
     path = tmp_path / "stale.json"
     path.write_text(json.dumps(config), encoding="utf-8")
     monkeypatch.setattr(MODULE, "BATCH_CONFIG", path)
-    with pytest.raises(ValueError, match="Transformation upstream pin differs"):
+    with pytest.raises(ValueError, match="Transformation upstream producer references differ"):
         MODULE._batch()

@@ -29,8 +29,13 @@ def validate_definition(definition):
         raise ValueError('Channel-first message protocol drift')
     expected = {'external_koc':['KOC-周帅数学','KOC-孟亚飞数学'],
                 'draft_21_1':['自孵化KOC-5元纯课'], 'draft_22_1':['app'], 'draft_23_1':['人工外呼','唐山TMK']}
-    if {component['id']:component['source_values'] for component in definition['components']} != expected:
+    merged = {'koc_channel':['KOC-周帅数学','KOC-孟亚飞数学','自孵化KOC-5元纯课'],
+              'draft_22_1':['app'], 'draft_23_1':['人工外呼','唐山TMK']}
+    if {component['id']:component['source_values'] for component in definition['components']} not in [expected, merged]:
         raise ValueError('Unreviewed channel union')
+    from .high_school_daily_policy import validate
+    for component in definition['components']:
+        validate(component)
     return definition
 
 
@@ -60,6 +65,9 @@ def prepare(definition, target, *, state_dir=None, report_type='auto', slot=None
     rows,proof = source.read(definition,target,directory,slot)
     if period is not None and period != proof['period']:
         raise ValueError('The current business period is required')
+    if components[0].get('daily_standards') is not None and report_type == 'auto':
+        from .high_school_daily import prepare as daily_prepare
+        return daily_prepare(definition, target, rows, proof, directory, at, components[0])
     results,outcomes = model.calculate(rows,proof['evidence'],proof['period'],section,components)
     if outcomes[components[0]['id']]['status'] == 'blocked_prepare':
         raise ValueError(outcomes[components[0]['id']]['reason'])

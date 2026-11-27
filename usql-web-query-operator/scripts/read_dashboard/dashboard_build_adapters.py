@@ -33,7 +33,7 @@ from .edit_profile import (
 )
 from .filter_edit import fetch_public_filter_detail
 from .menu import fetch_dashboard_menu
-from .profile import default_unit_value_payload, post_json, summarize_unit_value
+from .profile import default_unit_value_payload, extract_component_units, parse_dashboard_html, post_json, summarize_unit_value
 
 
 UNIT_TYPE_BY_COMPONENT = {
@@ -255,6 +255,42 @@ class TaitanDashboardBuildV1Adapter:
             for item in result[0].get("fields") or []
             if isinstance(item, Mapping) and not _is_customized_field(item)
         ]
+
+    def _dataset_name(self, dataset: Mapping[str, Any]) -> str:
+        """Get display metadata from the plan or its exact source model identity."""
+        config = dataset.get("config") if isinstance(dataset.get("config"), Mapping) else {}
+        explicit = str(config.get("dataset_name") or "").strip()
+        if explicit:
+            return explicit
+        source_id = str(config.get("field_resolution_dashboard_id") or "")
+        model_id = str(dataset.get("application_model_id") or "")
+        subject_id = str(dataset.get("subject_id") or "")
+        if not source_id.startswith("dashboard_") or not model_id or not subject_id:
+            raise UsageError("Dataset name resolution requires the exact source dashboard, model and subject.")
+        cache_key = (source_id, model_id, subject_id)
+        cache = getattr(self, "_dataset_name_cache", {})
+        if cache_key in cache:
+            return cache[cache_key]
+        source = fetch_edit_dashboard_config(self.page, source_id, "draft")
+        names: set[str] = set()
+        for component in extract_component_units(parse_dashboard_html(source)):
+            unit_id = str(component.get("unit_id") or "")
+            if not unit_id or unit_id.startswith("public_filter_relation_"):
+                continue
+            detail = fetch_edit_unit_detail(self.page, unit_id, source_id, "draft")
+            model = detail.get("dashboardModel") or {}
+            live_model = str(model.get("applicationModelId") or detail.get("modelId") or "")
+            live_subject = str(model.get("subjectId") or model.get("id") or "")
+            if (live_model, live_subject) != (model_id, subject_id):
+                continue
+            name = str(detail.get("modelName") or model.get("name") or "").strip()
+            if name:
+                names.add(name)
+        if len(names) != 1:
+            raise UsageError("Dataset source identity does not resolve to one exact model display name.")
+        cache[cache_key] = next(iter(names))
+        self._dataset_name_cache = cache
+        return cache[cache_key]
 
     def verify_target_folder(self, plan: Mapping[str, Any]) -> Mapping[str, Any]:
         self._authenticate_market()
@@ -787,9 +823,7 @@ class TaitanDashboardBuildV1Adapter:
         before_ids = {str(item.get("unit_id") or "") for item in before.get("data_units") or []}
         dataset = _dataset_by_ref(plan, str(component["dataset_ref"]))
         dataset_config = dataset.get("config") if isinstance(dataset.get("config"), Mapping) else {}
-        dataset_name = str(dataset_config.get("dataset_name") or "")
-        if not dataset_name:
-            raise UsageError("Dataset config requires dataset_name for component creation.")
+        dataset_name = self._dataset_name(dataset)
         manifest = {
             "dataset": {
                 "dataset_name": dataset_name,
@@ -997,7 +1031,7 @@ class TaitanDashboardBuildV1Adapter:
                                 component.get("title") or component["component_id"]
                             ),
                             "dataset": {
-                                "dataset_name": str(dataset_config.get("dataset_name") or ""),
+                                "dataset_name": self._dataset_name(dataset),
                                 "application_model_id": dataset["application_model_id"],
                                 "subject_id": dataset["subject_id"],
                                 "model_type": dataset["model_type"],

@@ -165,6 +165,35 @@ class UploadRecoveryTests(unittest.TestCase):
         self.assertEqual(receipt["uploads"][0]["status"], "Success")
         self.assertIsNotNone(receipt["uploads"][0]["import_history_row"])
 
+    def test_explicit_single_family_force_upload_calls_identity_bound_operator(self) -> None:
+        self.plan["force_upload"] = True
+        self.plan["tables"][0]["diff"]["target_rows_after"] = 42
+        plan_path = self.root / "force_plan.json"
+        plan_hash = write_artifact(plan_path, self.plan, "plan_sha256")
+        local = {"status": "success_no_local_changes", "plan_path": str(plan_path), "plan_sha256": plan_hash,
+                 "tables": [{"target_path": str(self.target), "expected_sha256": self.target_sha}]}
+        local_path = self.root / "force_local.json"
+        local_hash = write_artifact(local_path, local, "receipt_sha256")
+        args = SimpleNamespace(confirm_production_upload=True, local_receipt=local_path,
+                               expected_receipt_sha256=local_hash, headed=False, timeout_seconds=600)
+        operator_result = {"ok": True, "status": "Success", "import_history_row": {"状态": "成功"}}
+        with (
+            mock.patch("governed_temp_table_sync.load_registry", return_value={"production_upload_account": "lvshuai01"}),
+            mock.patch("governed_temp_table_sync.assert_source_baseline_state_current"),
+            mock.patch("governed_temp_table_sync.assert_plan_source_bundles_current"),
+            mock.patch("governed_temp_table_sync.assert_plan_source_quality_current"),
+            mock.patch("governed_temp_table_sync.discover_live_messages", return_value=({}, [])),
+            mock.patch("governed_temp_table_sync.select_messages", return_value=({self.family: {"message_id": "om_latest"}}, {}, [])),
+            mock.patch("governed_temp_table_sync.update_source_baseline_state", return_value=None),
+            mock.patch("governed_temp_table_sync.run_json_command", return_value=operator_result) as call,
+            redirect_stdout(io.StringIO()),
+        ):
+            self.assertEqual(upload_production(args), 0)
+        command = call.call_args.args[1]
+        self.assertEqual(command[command.index("--expected-account") + 1], "lvshuai01")
+        self.assertEqual(command[command.index("--expected-file-sha256") + 1], self.target_sha)
+        self.assertEqual(command[command.index("--expected-data-rows") + 1], "42")
+
 
 if __name__ == "__main__":
     unittest.main()

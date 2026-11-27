@@ -8,6 +8,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
 
 @pytest.fixture(autouse=True)
-def offline_process_boundary():
+def offline_process_boundary(monkeypatch, tmp_path):
+    monkeypatch.setenv("CODEX_PUSH_COORDINATOR_ROOT", str(tmp_path / "push-coordinator"))
     with patch("subprocess.run", side_effect=AssertionError("Tests must mock external subprocess/API calls")):
         yield

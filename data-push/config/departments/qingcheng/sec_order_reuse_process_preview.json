@@ -7,28 +7,57 @@
   "status": "preview_only",
   "schedule_enabled": false,
   "source": {
+    "excluded_secondary_channels": ["顾问未加好友", "0元信息流"],
     "base_token": "QOVib6QCXaUvJ2s2PsbcnMmsnGg",
     "table_id": "tblXU4tla3bY36DE",
     "view_id": "vewO4yxS3O",
-    "upstream_task_id": 47728,
-    "upstream_task_name": "qing2lark_guocheng",
-    "match": {"一级渠道": "订单复用"},
+    "upstream_task_key": "qingcheng.process",
+    "match": {
+      "一级渠道": "公海"
+    },
     "process_lead_field": "退前线索"
   },
   "business_calendar": {
     "period_rule": "自然周周五期次",
-    "requested_process_weekdays": ["周二", "周三", "周四", "周五", "周六", "周日"],
-    "requested_send_windows": ["12:00", "16:00", "20:00"],
+    "requested_process_weekdays": [
+      "周二",
+      "周三",
+      "周四",
+      "周五",
+      "周六",
+      "周日"
+    ],
+    "requested_send_windows": [
+      "12:00",
+      "16:00",
+      "20:00"
+    ],
     "timezone": "Asia/Shanghai"
   },
   "visual": {
     "header": "#e6efff",
     "grid": "#c3cfe2",
     "metric_bars": {
-      "好友率": {"min": 0, "max": 1, "color": "#8da7ca"},
-      "24h首call": {"min": 0, "max": 1, "color": "#77c09f"},
-      "外呼时长": {"min": 0, "max": 5, "color": "#f8ca70"},
-      "外呼频次": {"min": 0, "max": 8, "color": "#bea9dd"}
+      "好友率": {
+        "min": 0,
+        "max": 1,
+        "color": "#8da7ca"
+      },
+      "24h首call": {
+        "min": 0,
+        "max": 1,
+        "color": "#77c09f"
+      },
+      "外呼时长": {
+        "min": 0,
+        "max": 5,
+        "color": "#f8ca70"
+      },
+      "外呼频次": {
+        "min": 0,
+        "max": 8,
+        "color": "#bea9dd"
+      }
     },
     "band_title": "渠道-维度-期次",
     "total_row": "sum_detail_then_recalculate_ratios",
@@ -39,16 +68,38 @@
       "request_id": "qingcheng/sec_partner_order_reuse",
       "target_chat_id": "oc_a8e793c81080ebf5b14dd22bd83a05a1",
       "level": "顾问",
-      "allowed_grades": ["高一", "高二", "高三", "初三"],
+      "allowed_grades": [
+        "高一",
+        "高二",
+        "高三",
+        "初三"
+      ],
       "minimum_effective_leads": 3,
-      "process_sort": {"metric": "好友率", "direction": "desc", "value": "unrounded"},
-      "process_bars": ["好友率", "24h首call", "外呼时长", "外呼频次"],
-      "process_reminder": {"metric": "好友率", "direction": "最低", "rank": "最后1名", "tie_handling": "all_tied_minimum"},
+      "process_sort": {
+        "metric": "好友率",
+        "direction": "desc",
+        "value": "unrounded"
+      },
+      "process_bars": [
+        "好友率",
+        "24h首call",
+        "外呼时长",
+        "外呼频次"
+      ],
+      "process_reminder": {
+        "metric": "好友率",
+        "direction": "最低",
+        "rank": "最后1名",
+        "tie_handling": "all_tied_minimum"
+      },
       "split_grade": true,
       "reminder_by_grade": true,
       "unresolved_mention_action": "invite_then_text",
       "show_total": true
     }
   },
-  "open_decisions": ["正式发送身份与原生@群成员核验", "群内试发与定时任务部署"]
+  "open_decisions": [
+    "正式发送身份与原生@群成员核验",
+    "群内试发与定时任务部署"
+  ]
 }

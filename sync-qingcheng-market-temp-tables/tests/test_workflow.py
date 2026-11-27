@@ -481,7 +481,7 @@ class MergeWorkflowTests(unittest.TestCase):
     def test_registered_families_require_complete_source_quality_gates(self) -> None:
         registry = load_registry(SKILL_ROOT / "references" / "workflow_registry.json")
         self.assertTrue(registry["require_source_quality_gates"])
-        self.assertEqual(len(registry["families"]), 12)
+        self.assertEqual(len(registry["families"]), 11)
         self.assertEqual(
             {
                 domain: sum(
@@ -490,7 +490,7 @@ class MergeWorkflowTests(unittest.TestCase):
                 )
                 for domain in registry["domains"]
             },
-            {"qingcheng": 6, "market_consultant": 6},
+            {"qingcheng": 6, "market_consultant": 5},
         )
         course_family = next(
             family
@@ -515,7 +515,11 @@ class MergeWorkflowTests(unittest.TestCase):
         for family in registry["families"]:
             quality = family["source_quality"]
             self.assertGreater(quality["max_age_hours"], 0)
-            self.assertGreaterEqual(quality["row_count"]["max"], quality["row_count"]["min"])
+            if quality["row_count"].get("mode") == "cumulative_baseline":
+                self.assertEqual(family["id"], "market_attendance_schedule")
+                self.assertGreater(quality["row_count"]["min"], 0)
+            else:
+                self.assertGreaterEqual(quality["row_count"]["max"], quality["row_count"]["min"])
             self.assertEqual(
                 quality["relative_change"]["baseline"],
                 "same_slice_or_latest_target",
@@ -528,28 +532,28 @@ class MergeWorkflowTests(unittest.TestCase):
         mappings = inventory["mappings"]
 
         self.assertEqual(inventory["platform_database"], "temp_table")
-        self.assertEqual(inventory["verification"]["query_id"], "1506786567")
-        self.assertEqual(len(mappings), 9)
+        self.assertEqual(inventory["verification"]["method"], "import_history_and_schema")
+        self.assertEqual(inventory["verification"]["account"], "lvshuai01")
+        self.assertEqual(len(mappings), 8)
         self.assertEqual(
             {
                 mapping["local_filename"]: mapping["platform_temp_table"]
                 for mapping in mappings
             },
             {
-                "ceshiqudao_pingyou.xlsx": "dingxi01_ceshiqudao_pingyou",
-                "cost.xlsx": "dingxi01_cost",
-                "daoke_1_6_t.xlsx": "dingxi01_daoke_1_6_t",
-                "jiagou_db.xlsx": "dingxi01_jiagou_db",
-                "jiagou_xinren.xlsx": "dingxi01_jiagou_xinren",
-                "jiagou_zx.xlsx": "dingxi01_jiagou_zx",
-                "jinliang_goal.xlsx": "dingxi01_jinliang_goal",
-                "pingyou_jg.xlsx": "dingxi01_pingyou_jg",
-                "plan_id.xlsx": "dingxi01_plan_id",
+                "ceshiqudao_pingyou.xlsx": "lvshuai01_ceshiqudao_pingyou",
+                "cost.xlsx": "lvshuai01_cost",
+                "daoke_1_6_t.xlsx": "lvshuai01_daoke_1_6_t",
+                "jiagou_db.xlsx": "lvshuai01_jiagou_db",
+                "jiagou_xinren.xlsx": "lvshuai01_jiagou_xinren",
+                "jiagou_zx.xlsx": "lvshuai01_jiagou_zx",
+                "jinliang_goal.xlsx": "lvshuai01_jinliang_goal",
+                "plan_id.xlsx": "lvshuai01_plan_id",
             },
         )
         self.assertEqual(
             sum(mapping["automation_scope"] == "managed" for mapping in mappings),
-            6,
+            5,
         )
         self.assertEqual(
             sum(mapping["automation_scope"] == "mapping_only" for mapping in mappings),
@@ -942,6 +946,31 @@ class MergeWorkflowTests(unittest.TestCase):
         self.assertFalse(diff["changed"])
         self.assertEqual(merged_write, target)
         self.assertEqual(merged_effective, target)
+
+    def test_identical_shared_slice_keeps_original_interleaving_and_formulas(self) -> None:
+        family = {
+            "target_columns": ["qici", "dept_1", "name", "value"],
+            "slice_column": "qici",
+            "slice_order": "asc",
+            "source_merge_mode": "all_source_slices",
+            "target_scope": {"column": "dept_1", "equals": "青橙项目部"},
+        }
+        write = [
+            {"qici": "20261113期", "dept_1": "市场顾问部", "name": "M", "value": 3},
+            {"qici": "20261113期", "dept_1": "青橙项目部", "name": "Q", "value": "=1+1"},
+        ]
+        effective = [dict(write[0]), dict(write[1], value=2)]
+        merged_write, merged_effective, diff = merge_records(
+            family, write, effective, [write[1]], [effective[1]],
+        )
+        self.assertFalse(diff["changed"])
+        self.assertEqual(merged_write, write)
+        self.assertEqual(merged_effective, effective)
+
+        changed_formula = [dict(write[1], value="=2")]
+        unchanged_write, _, diff = merge_records(family, write, effective, changed_formula, [effective[1]])
+        self.assertFalse(diff["changed"])
+        self.assertEqual(unchanged_write, write)
 
     def test_bootstrap_slices_are_one_time_pending_work(self) -> None:
         family = {
@@ -1438,6 +1467,69 @@ class MergeWorkflowTests(unittest.TestCase):
 
         self.assertTrue(any(issue["rule"] == "unique_key" for issue in issues))
 
+    def test_market_cost_short_period_requires_unambiguous_source_date(self) -> None:
+        family = {
+            "id": "market_cost",
+            "source_record_transforms": [{"type": "expand_recent_mmdd_period"}],
+        }
+        for source_date, value, expected in (
+            ("2026-11-14 13:57", "1113期", "20261113期"),
+            ("2026-12-30 13:57", "0102期", "20270102期"),
+            ("2026-11-14 13:57", "20261113期", "20261113期"),
+        ):
+            with self.subTest(value=value, source_date=source_date):
+                output, snapshot, _ = transform_source_records(
+                    family, [{"qici": value}], [], source_create_time=source_date,
+                )
+                self.assertEqual(output[0]["qici"], expected)
+                self.assertEqual(snapshot[0]["qici"], expected)
+        for value in ("0310期", "1332期"):
+            with self.subTest(value=value):
+                with self.assertRaisesRegex(WorkflowError, "Cannot uniquely resolve short cost period"):
+                    transform_source_records(
+                        family, [{"qici": value}], [], source_create_time="2026-11-14 13:57",
+                    )
+
+    def test_market_lead_goal_dated_period_is_normalized_before_key_validation(self) -> None:
+        family = {
+            "id": "market_lead_goal",
+            "source_record_transforms": [{"type": "shorten_dated_period"}],
+            "key_columns": ["qici", "channel_2", "grade"],
+            "validation_rules": [{"type": "slice_format", "column": "qici", "pattern": "^\\d{4}期$"}],
+        }
+        source = [
+            {"qici": "20261127期", "channel_2": "A", "grade": "1"},
+            {"qici": "1127期", "channel_2": "B", "grade": "1"},
+            {"qici": "20240229期", "channel_2": "C", "grade": "1"},
+        ]
+
+        output, snapshot, audit = transform_source_records(family, source, [])
+
+        self.assertEqual([row["qici"] for row in output], ["1127期", "1127期", "0229期"])
+        self.assertEqual(snapshot, output)
+        self.assertEqual(source[0]["qici"], "20261127期")
+        self.assertEqual(audit["transforms"][0]["period_mapping"], {
+            "20261127期": "1127期", "20240229期": "0229期",
+        })
+        self.assertEqual(validate_source_records(family, output), [])
+        duplicate = [output[0], dict(output[0], qici="1127期")]
+        self.assertTrue(any(issue["rule"] == "unique_key" for issue in validate_source_records(family, duplicate)))
+
+    def test_market_lead_goal_rejects_invalid_dates_and_year_collisions(self) -> None:
+        family = {
+            "id": "market_lead_goal",
+            "source_record_transforms": [{"type": "shorten_dated_period"}],
+            "key_columns": ["qici"],
+            "validation_rules": [{"type": "slice_format", "column": "qici", "pattern": "^\\d{4}期$"}],
+        }
+        for value in ("20260229期", "20261301期", "20260001期"):
+            with self.subTest(value=value), self.assertRaisesRegex(WorkflowError, "Invalid dated period"):
+                transform_source_records(family, [{"qici": value}], [])
+        with self.assertRaisesRegex(WorkflowError, "map to the same period"):
+            transform_source_records(family, [{"qici": "20251127期"}, {"qici": "20261127期"}], [])
+        output, _, _ = transform_source_records(family, [{"qici": "2026112期"}], [])
+        self.assertTrue(any(issue["rule"] == "slice_format" for issue in validate_source_records(family, output)))
+
     def test_source_quality_passes_all_four_gate_types(self) -> None:
         family = {
             "id": "quality",
@@ -1523,6 +1615,62 @@ class MergeWorkflowTests(unittest.TestCase):
 
         self.assertEqual(report["status"], "pass")
         self.assertAlmostEqual(report["source_age_hours"], 358.933, places=3)
+
+    def test_cumulative_row_limit_grows_from_accepted_slice_baseline(self) -> None:
+        family = {
+            "id": "market_attendance_schedule",
+            "slice_column": "qici",
+            "target_columns": ["qici", "name"],
+            "source_merge_mode": "changed_source_slices",
+            "source_baseline_id": "market_attendance_schedule",
+            "max_changed_slices": 2,
+            "source_quality": {
+                "policy_version": "1.1.0",
+                "max_age_hours": 48,
+                "row_count": {"min": 2, "mode": "cumulative_baseline"},
+                "relative_change": {"baseline": "same_slice_or_latest_target", "max_ratio": 0.5},
+                "required_column_null_rate": {"qici": 0, "name": 0},
+            },
+        }
+        now = datetime(2026, 11, 12, tzinfo=timezone.utc)
+        target = [{"qici": "20261106期", "name": str(i)} for i in range(2)]
+        added = [{"qici": "20261113期", "name": str(i)} for i in range(3)]
+        baseline = {"message_id": "om_prior", **source_slice_snapshot(family, target)}
+
+        report = evaluate_source_quality(
+            family, {"create_time": now.isoformat()}, target + added, target,
+            relative_source_records=added, source_baseline=baseline, now=now,
+        )
+        self.assertEqual(report["status"], "pass")
+        self.assertEqual(report["row_count"]["baseline_rows"], 2)
+        self.assertEqual(report["row_count"]["latest_baseline_slice"], "20261106期")
+        self.assertEqual(report["row_count"]["max_growth_rows_per_slice"], 3)
+        self.assertEqual(report["row_count"]["max"], 8)
+
+        oversized = evaluate_source_quality(
+            family, {"create_time": now.isoformat()}, target + added + added + added[:1], target,
+            relative_source_records=added, source_baseline=baseline, now=now,
+        )
+        self.assertEqual(oversized["status"], "blocked")
+        self.assertIn("source_row_count", {issue["rule"] for issue in oversized["issues"]})
+
+        newer_baseline = source_slice_snapshot(family, target + added)
+        next_slice = [{"qici": "20261120期", "name": str(i)} for i in range(4)]
+        newer = evaluate_source_quality(
+            family, {"create_time": now.isoformat()}, target + added + next_slice, target + added,
+            relative_source_records=next_slice, source_baseline=newer_baseline, now=now,
+        )
+        self.assertEqual(newer["status"], "pass")
+        self.assertEqual(newer["row_count"]["baseline_rows"], 5)
+        self.assertEqual(newer["row_count"]["max"], 15)
+
+        for invalid in (None, {"slices": {}}, {**baseline, "row_count": 999}):
+            with self.subTest(baseline=invalid):
+                with self.assertRaisesRegex(WorkflowError, "(?i)cumulative row-count baseline"):
+                    evaluate_source_quality(
+                        family, {"create_time": now.isoformat()}, target + added, target,
+                        relative_source_records=added, source_baseline=invalid, now=now,
+                    )
 
     def test_source_quality_blocks_age_rows_relative_change_and_null_rate(self) -> None:
         family = {

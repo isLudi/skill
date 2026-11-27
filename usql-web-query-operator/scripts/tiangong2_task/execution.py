@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import copy
 import os
 import re
 import tempfile
@@ -13,7 +14,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterator
 
-from _shared.config import TIANGONG2_NEZHA_API_BASE
+from _shared.config import TIANGONG2_NEZHA_API_BASE, TIANGONG2_TASK_RUNTIME_DIR
 from _shared.errors import UsageError
 
 from .client import Tiangong2ReadOnlyClient
@@ -28,6 +29,113 @@ RECEIPT_SCHEMA_VERSION = "tiangong2-task-execution-receipt-v1"
 PLAN_OPERATION = "execute_owned_published_tiangong2_task_once"
 EXECUTE_ENDPOINT = "task/executeOnce"
 PERIOD_TIME_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$")
+
+
+def normalized_execution_period_time(value: str) -> str:
+    try:
+        point = datetime.strptime(_validate_period_time(value), "%Y-%m-%d %H:%M:%S")
+    except ValueError as exc:
+        raise UsageError("Invalid Tiangong2 execution period time") from exc
+    return point.replace(minute=0, second=0, microsecond=0).strftime("%Y-%m-%d %H:%M:%S")
+
+
+def _accepted_unresolved_receipt(path: Path) -> tuple[dict[str, Any], dict[str, Any]]:
+    path = path.resolve()
+    runtime = TIANGONG2_TASK_RUNTIME_DIR.resolve()
+    if not path.is_relative_to(runtime):
+        raise UsageError("Execution reconciliation receipt is outside the operator runtime")
+    receipt = json.loads(path.read_text(encoding="utf-8"))
+    plan_path = Path(receipt.get("plan_file", "")).resolve()
+    if not plan_path.is_relative_to(runtime):
+        raise UsageError("Execution reconciliation plan is outside the operator runtime")
+    plan = load_execution_plan(plan_path)
+    response = receipt.get("execute_response") or {}
+    if (
+        receipt.get("schema_version") != RECEIPT_SCHEMA_VERSION
+        or finalize_hash(receipt, "receipt_sha256")["receipt_sha256"] != receipt.get("receipt_sha256")
+        or receipt.get("plan_sha256") != plan["plan_sha256"]
+        or receipt.get("scope") != plan["scope"]
+        or receipt.get("execute_request_sent") is not True
+        or receipt.get("fully_verified") is not False
+        or receipt.get("manual_attention_required") is not True
+        or receipt.get("error") != "Tiangong2 execute-once request was accepted but no exact new execution was read back"
+        or response.get("status") != "success" or response.get("errorCode") not in (None, 0)
+    ):
+        raise UsageError("Execution receipt is not a hash-verified accepted unresolved request")
+    return receipt, plan
+
+
+def reconciled_execution_period_matches(plan: dict[str, Any], execution: dict[str, Any], receipt: dict[str, Any]) -> bool:
+    requested = plan["execution"]["period_time"]
+    if requested == execution.get("periodTime"):
+        return True
+    proof = receipt.get("reconciliation") or {}
+    if receipt.get("read_only_reconciliation") is not True or not proof.get("original_receipt_file"):
+        return False
+    original, original_plan = _accepted_unresolved_receipt(Path(proof["original_receipt_file"]))
+    return (
+        original_plan["plan_sha256"] == plan["plan_sha256"]
+        and original["receipt_sha256"] == proof.get("original_receipt_sha256")
+        and proof.get("requested_period_time") == requested
+        and proof.get("observed_period_time") == execution.get("periodTime")
+        and normalized_execution_period_time(requested) == execution.get("periodTime")
+        and receipt.get("execution_id") == execution.get("id")
+    )
+
+
+def reconcile_accepted_execution(reader: Tiangong2ReadOnlyClient, operations: Tiangong2OperationsReadOnlyClient,
+                                 *, task: ScopedTask, receipt_file: Path) -> dict[str, Any]:
+    """Read-only recovery of a single accepted request; never executes a task."""
+    from zoneinfo import ZoneInfo
+    receipt, plan = _accepted_unresolved_receipt(receipt_file)
+    expected = {"project_id": task.project_id, "menu_id": task.menu_id, "task_id": task.task_id,
+                "nezha_task_id": task.nezha_task_id, "task_name": task.task_name,
+                "folder": task.folder_name, "owner_name": task.owner_name}
+    if any(plan["scope"].get(key) != value for key, value in expected.items()):
+        raise UsageError("Execution reconciliation task scope differs")
+    current = read_publish_state(reader, task)
+    if not current.get("source_matches_latest_published") or any(
+        current.get(key) != plan["baseline"].get(key) for key in (
+            "current_source_sha256", "current_source_comparison_sha256", "task_metadata_sha256",
+            "version_state_sha256", "latest_published_version_id")):
+        raise UsageError("Execution reconciliation source or publication has drifted")
+    started = datetime.fromisoformat(receipt["started_at"])
+    failed = datetime.fromisoformat(receipt["failed_at"])
+    requested = plan["execution"]["period_time"]
+    allowed_periods = {requested, normalized_execution_period_time(requested)}
+    baseline_ids = set(plan["baseline"]["baseline_execution_ids"])
+    history = list_execution_history_bundle(operations, task=task, limit=100, allow_historical_task_names=True)
+    matches = []
+    for row in history.get("executions") or []:
+        if row.get("id") in baseline_ids or row.get("taskId") != task.nezha_task_id or row.get("taskName") != task.task_name:
+            continue
+        config = json.loads(row.get("runConfig") or "{}")
+        if row.get("periodTime") not in allowed_periods or config.get("triggerSourceEnum") != "EXECUTE":
+            continue
+        point = datetime.strptime(row["triggerTime"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=ZoneInfo("Asia/Shanghai"))
+        if not started <= point <= failed:
+            continue
+        if (config.get("projectId") != task.project_id or config.get("triggerSuccessor") is not False
+                or config.get("disabledStages") != [] or config.get("rerunTaskId") is not None
+                or config.get("params", {}) != {} or not config.get("execFileId")):
+            raise UsageError("Execution reconciliation found an incompatible request")
+        matches.append(row)
+    if len(matches) != 1:
+        raise UsageError("Accepted execution reconciliation is missing or ambiguous")
+    observed, _ = redact_structure(matches[0])
+    result = copy.deepcopy(receipt)
+    result.pop("receipt_sha256", None)
+    result.pop("error", None)
+    result.pop("failed_at", None)
+    result.update(ok=True, fully_verified=True, manual_attention_required=False,
+                  status="accepted_execution_reconciled_read_only", execution_id=observed["id"],
+                  read_only_reconciliation=True, terminal_status_verified=False,
+                  completed_at=datetime.now(timezone.utc).isoformat(),
+                  readback={"execution_id": observed["id"], "execution": observed, "fully_verified": True},
+                  reconciliation={"original_receipt_file": str(receipt_file.resolve()),
+                                  "original_receipt_sha256": receipt["receipt_sha256"],
+                                  "requested_period_time": requested, "observed_period_time": observed["periodTime"]})
+    return finalize_hash(result, "receipt_sha256")
 
 
 def _validate_period_time(value: str) -> str:

@@ -8,7 +8,7 @@ the stage log filename carries the task name.
 
 import importlib.util
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 import sys
 from zoneinfo import ZoneInfo
@@ -23,12 +23,13 @@ SPEC = importlib.util.spec_from_file_location("qingcheng_process_rebind", SCRIPT
 MODULE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(MODULE)
 
+PROCESS_REFERENCE = {"task_key": "qingcheng.process"}
 REVIEWED = {
     "project_id": 308, "folder": "吕帅", "menu_id": 103625, "task_id": 47728,
     "nezha_task_id": 67318, "task_name": "qing2lark_guocheng", "owner": "lvshuai01",
-    "published_version": "V39", "version_id": 219189, "exec_file_id": 855658,
-    "source_sha256": "08ec50a45d1ef038aeb9d199091b260a39a9cc02a73a1f091aaf35ecd4538bb9",
-    "audit_schema": "market2lark-two-period-audit-v1",
+    "published_version": "V41", "version_id": 224568, "exec_file_id": 871465,
+    "source_sha256": "49a66d4a4b5d4a937ab79cb1cacef39f3974bcc1a71f9e4f8a294966f52749bf",
+    "audit_schema": "market2lark-two-period-audit-v1", "table_id": "tblXU4tla3bY36DE",
 }
 BATCH_FILES = ("process_batch_preview.json", "sec_process_batch.json", "special_process_batch.json",
                "partner_process_batch.json")
@@ -39,14 +40,24 @@ def upstream(path):
     return json.loads(path.read_text(encoding="utf-8"))["upstream"]
 
 
-def test_every_qingcheng_batch_carries_the_same_reviewed_pin():
+def test_every_qingcheng_process_batch_uses_the_same_producer_key():
     for name in BATCH_FILES:
-        assert upstream(CONFIG_DIR / name) == REVIEWED, name
+        assert upstream(CONFIG_DIR / name) == PROCESS_REFERENCE, name
 
 
-def test_process_runner_pin_matches_the_shipped_configs():
+def test_process_runner_loads_a_new_binding_without_changing_batch_config(monkeypatch):
+    new_binding = {**REVIEWED, "published_version": "V42", "version_id": 225001, "exec_file_id": 872001}
+
+    def load(task_key, *, expected_domain, config_root):
+        assert task_key == "qingcheng.process"
+        assert expected_domain == "qingcheng"
+        assert config_root == CONFIG_DIR.parents[1]
+        return new_binding
+
+    monkeypatch.setattr(MODULE, "load_binding", load)
     batch = MODULE._batch()
-    assert batch["upstream"] == REVIEWED
+    assert batch["upstream"] == PROCESS_REFERENCE
+    assert batch["upstream_binding"] == new_binding
     assert batch["windows_task_name"] == "Codex-Lark-Qingcheng-Process-GroupPush"
 
 
@@ -63,16 +74,17 @@ def test_operator_read_uses_the_configured_identity(monkeypatch):
         return Result()
 
     monkeypatch.setattr(MODULE.subprocess, "run", run)
-    MODULE._operator_read("list-execution-history", "--limit", "50")
+    MODULE._operator_read({**REVIEWED, "menu_id": 104002, "task_name": "qing_process_current"},
+                          "list-execution-history", "--limit", "50")
     argv = captured[0]
-    assert argv[argv.index("--task-name") + 1] == "qing2lark_guocheng"
+    assert argv[argv.index("--task-name") + 1] == "qing_process_current"
     assert argv[argv.index("--folder") + 1] == "吕帅"
-    assert argv[argv.index("--menu-id") + 1] == "103625"
+    assert argv[argv.index("--menu-id") + 1] == "104002"
     assert argv[argv.index("--project-id") + 1] == "308"
 
 
 def _artifact(tmp_path, *, row_name="qing2lark", stage_name="stage_4123_qing2lark_guocheng.log",
-              exec_file_id=855658, trigger="EXECUTE", execution_id=173400001, row_count=3,
+              exec_file_id=871465, trigger="EXECUTE", execution_id=173400001, row_count=3,
               status=6, field_count=33):
     period = MODULE._period(SLOT.date())
     current_hour = MODULE._expected_upstream_period_time(SLOT)
@@ -97,6 +109,7 @@ def _artifact(tmp_path, *, row_name="qing2lark", stage_name="stage_4123_qing2lar
     }), encoding="utf-8")
     (log_dir / stage_name).write_text("\n".join([
         "process表快照清单：{0}".format(json.dumps(audit, ensure_ascii=False)),
+        f"目标多维表格校验通过：table_id={REVIEWED['table_id']}",
         "渠道映射版本：qingcheng-full-link-attribution-v1",
         "最终回读校验通过：{0}条".format(row_count),
         "SUCCESS: 青橙项目部最新两期{0}过程数据已独立覆盖写入并回读通过".format(period),
@@ -105,18 +118,48 @@ def _artifact(tmp_path, *, row_name="qing2lark", stage_name="stage_4123_qing2lar
     return history_dir, log_dir
 
 
-def _audit(tmp_path, **kwargs):
+def test_sec_uses_completed_writer_without_a_fixed_slot_and_waits_for_replacement(monkeypatch, tmp_path):
+    history_dir, log_dir = _artifact(tmp_path)
+    path = history_dir / "history.json"
+    history = json.loads(path.read_text(encoding="utf-8"))
+    current = history["executions"][0]
+    previous_hour = datetime.fromisoformat(current["periodTime"]) - timedelta(hours=2)
+    current.update(periodTime=previous_hour.isoformat(sep=" "), startTime=previous_hour.isoformat(sep=" "),
+                   endTime=(previous_hour + timedelta(minutes=15)).isoformat(sep=" "))
+    queued = {"id": current["id"] + 1, "status": 0, "planRunTime": SLOT.strftime("%Y-%m-%d %H:%M:%S")}
+    history["executions"].append(queued)
+    path.write_text(json.dumps(history), encoding="utf-8")
+    monkeypatch.setattr(MODULE, "_operator_read", lambda _, command, *args: {
+        "artifact_dir": str(history_dir if command == "list-execution-history" else log_dir)})
+    period = MODULE._period(SLOT.date())
+    result = MODULE.latest_completed_process_audit(period, REVIEWED)
+    assert result["execution_id"] == current["id"] and result["upstream_period_time"] == current["periodTime"]
+    assert result["completed_at"].endswith(":15:00+08:00")
+    queued.update(status=1, dispatchTime=queued["planRunTime"])
+    path.write_text(json.dumps(history), encoding="utf-8")
+    with pytest.raises(ValueError, match="Base may be replacing"):
+        MODULE.latest_completed_process_audit(period, REVIEWED)
+
+
+def _audit(tmp_path, *, binding=REVIEWED, **kwargs):
     history_dir, log_dir = _artifact(tmp_path, **kwargs)
 
-    def fake(command, *args):
+    def fake(bound, command, *args):
+        assert bound is binding
         return {"artifact_dir": str(history_dir if command == "list-execution-history" else log_dir)}
 
-    original = MODULE._operator_read
-    MODULE._operator_read = fake
-    try:
-        return MODULE._upstream_audit(MODULE._period(SLOT.date()), SLOT)
-    finally:
-        MODULE._operator_read = original
+    with pytest.MonkeyPatch.context() as monkeypatch:
+        monkeypatch.setattr(MODULE, "_operator_read", fake)
+        return MODULE._upstream_audit(MODULE._period(SLOT.date()), SLOT, binding)
+
+
+def test_audit_requires_the_resolved_release_and_reports_it(tmp_path):
+    new_binding = {**REVIEWED, "published_version": "V42", "version_id": 225001, "exec_file_id": 872001}
+    result = _audit(tmp_path / "new", binding=new_binding, exec_file_id=872001)
+    assert (result["task_key"], result["version_id"], result["exec_file_id"]) == (
+        "qingcheng.process", 225001, 872001)
+    with pytest.raises(ValueError, match="is not unique"):
+        _audit(tmp_path / "previous", binding=new_binding)
 
 
 def test_audit_accepts_both_the_old_and_new_execution_row_name(tmp_path):
@@ -167,9 +210,9 @@ def _audit_with_other_execution(tmp_path, monkeypatch, other):
     history = json.loads(path.read_text(encoding="utf-8"))
     history["executions"].append(other)
     path.write_text(json.dumps(history), encoding="utf-8")
-    monkeypatch.setattr(MODULE, "_operator_read", lambda command, *args: {
+    monkeypatch.setattr(MODULE, "_operator_read", lambda binding, command, *args: {
         "artifact_dir": str(history_dir if command == "list-execution-history" else log_dir)})
-    return MODULE._upstream_audit(MODULE._period(SLOT.date()), SLOT)
+    return MODULE._upstream_audit(MODULE._period(SLOT.date()), SLOT, REVIEWED)
 
 
 def test_audit_accepts_later_started_schedule_with_smaller_id(tmp_path, monkeypatch):
@@ -211,3 +254,12 @@ def test_audit_rejects_missing_execution_chronology(tmp_path, monkeypatch):
 def test_audit_rejects_unreviewed_process_field_count(tmp_path, field_count):
     with pytest.raises(ValueError, match="fields"):
         _audit(tmp_path, field_count=field_count)
+
+
+def test_traffic_dimensions_require_the_reviewed_release_field_count(tmp_path):
+    binding = {**REVIEWED, "audit_field_count": 50}
+    assert _audit(tmp_path / "extended", binding=binding, field_count=50)["version_id"] == binding["version_id"]
+    with pytest.raises(ValueError, match="fields"):
+        _audit(tmp_path / "old", binding=binding, field_count=33)
+    with pytest.raises(ValueError, match="fields"):
+        _audit(tmp_path / "unreviewed", field_count=50)

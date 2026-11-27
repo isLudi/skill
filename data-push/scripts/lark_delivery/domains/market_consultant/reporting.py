@@ -38,7 +38,9 @@ def report_args(cfg, channel, slot=None):
     targets = [target for target in catalog.select_targets(definition) if target["chat_id"] == cfg["chat_id"]]
     if len(targets) != 1 or channel not in definition.get("channels", [definition["channel"]]):
         raise ValueError("Channel/target is not registered")
-    return report_arguments(definition, targets[0], channel=channel, state_dir=cfg["state_dir"], slot=slot or _clock())
+    args = report_arguments(definition, targets[0], channel=channel, state_dir=cfg["state_dir"], slot=slot or _clock())
+    args.shared_snapshot = True
+    return args
 
 
 def validate_context(context, evidence, cfg=None, slot=None, *, enforce_calendar=True):

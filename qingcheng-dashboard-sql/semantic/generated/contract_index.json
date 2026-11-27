@@ -4,7 +4,7 @@
   "counts": {
     "dimension": 19,
     "join": 5,
-    "metric": 28,
+    "metric": 29,
     "scope": 4
   },
   "entries": [
@@ -328,6 +328,20 @@
       "status": "confirmed",
       "source_path": "knowledge/joins/common_join_keys.md",
       "source_sha256": "7ce698a62ca9c6cbe6ab04715a817108939c766d0bed7337f7c7010d740d1817"
+    },
+    {
+      "id": "qingcheng:metric:advisor_breakthrough_rate",
+      "kind": "metric",
+      "name": "青橙顾问破蛋率",
+      "aliases": [
+        "破蛋率",
+        "顾问破蛋率",
+        "营收顾问破蛋率"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/qingcheng_advisor_breakthrough_rate.md",
+      "source_sha256": "9c2c35f84a4f6994bbd560084d2ee564b71c42114ab05bb096c81ecc18e8d2a3",
+      "automatic_compile": false
     },
     {
       "id": "qingcheng:metric:app_login_flag",

@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "domain": "market_consultant",
+  "channel_id": "app_volume",
+  "channel": "APP",
+  "channels": [
+    "APP"
+  ],
+  "adapter": "market-volume-v1",
+  "source": {
+    "base_token": "PmpybDuXGaudYost6I3cTwChn3d",
+    "raw_table_id": "tblGUCxgUTZPjv3c",
+    "raw_table_name": "市场顾问进量原始数据",
+    "raw_source_url": "https://gaotuedu.feishu.cn/base/PmpybDuXGaudYost6I3cTwChn3d?table=tblGUCxgUTZPjv3c",
+    "report_profile": "volume",
+    "report_type": "volume"
+  },
+  "upstream": {
+    "task_key": "market_consultant.volume"
+  },
+  "volume_report": {
+    "upstream": {
+      "task_key": "market_consultant.volume"
+    },
+    "base_token": "PmpybDuXGaudYost6I3cTwChn3d",
+    "volume_table_id": "tblGUCxgUTZPjv3c",
+    "volume_table_name": "市场顾问进量原始数据",
+    "channel_rule": "app_casefold_exact",
+    "period_rule": "latest_available",
+    "include_abnormal": false,
+    "grain": "年级"
+  },
+  "sender": {
+    "identity": "bot",
+    "name": "管家",
+    "open_id": "ou_f3907e865135732c15a1dfce27828411"
+  },
+  "targets": [
+    {
+      "id": "app",
+      "chat_id": "oc_9dc33c5731ce57c03d0589a2ac1d2e99",
+      "display_name": "【APP】&【高阳】市场业务对接",
+      "enabled": true
+    }
+  ],
+  "base_identity": "user",
+  "verification_identity": "bot",
+  "report": {
+    "period_rule": "latest_available",
+    "show_totals": true,
+    "minimum_post_leads": 0
+  },
+  "schedule": {
+    "kind": "volume_daily",
+    "enabled": true,
+    "timezone": "Asia/Shanghai",
+    "hours": [
+      17
+    ],
+    "prepare_minute": 20,
+    "send_minute": 20,
+    "retry_minutes": 2,
+    "deadline_minute": 50,
+    "first_send_at": "2026-11-13T17:20:00+08:00",
+    "windows_task_name": "Codex-Lark-Market-APP-Volume-Push"
+  },
+  "components": [
+    {
+      "id": "app_volume",
+      "label": "APP",
+      "grain": "年级"
+    }
+  ],
+  "state_dir": "C:\\Users\\lvshuai01\\.codex\\runtime\\channel-broadcast-push\\market_consultant\\app_volume"
+}

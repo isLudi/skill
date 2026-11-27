@@ -32,6 +32,7 @@ CANDIDATE_FIELDS = (
     "颜色或样式参考", "过程重点提醒指标", "转化重点提醒指标", "提醒对象",
     "过程指标提醒方向", "转化指标提醒方向", "并列处理",
     "播报层级", "过程文字提醒名次", "转化文字提醒名次",
+    "过程展示总计行", "转化展示总计行",
 )
 
 
@@ -45,6 +46,17 @@ def _list(value: Any) -> list[Any]:
     if value in (None, ""):
         return []
     return list(value) if isinstance(value, list) else [value]
+
+
+def _total_setting(value: Any) -> bool | None:
+    choice = _single(value)
+    if choice in (None, "", "沿用现有配置") or choice == []:
+        return None
+    if choice == "是":
+        return True
+    if choice == "否":
+        return False
+    raise ValueError(f"Unrecognized total-row choice: {choice!r}")
 
 
 def _chat_id(value: Any) -> str:
@@ -125,6 +137,8 @@ def build_candidate(fields: Mapping[str, Any], *, record_id: str) -> dict[str, A
             "result_metrics": result_metrics,
             "other_result_metrics": fields.get("其他转化指标（每行一项）"),
             "result_display_order": fields.get("转化指标展示顺序（选填）"),
+            "process_show_total": _total_setting(fields.get("过程展示总计行")),
+            "result_show_total": _total_setting(fields.get("转化展示总计行")),
             "metric_definitions": fields.get("指标口径补充（每行一项）"),
             "layout": fields.get("图片分组与排版"),
             "style_reference": fields.get("颜色或样式参考"),

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import os
 from pathlib import Path
 from typing import Any
 
@@ -17,6 +18,7 @@ from _shared.config import (
 from _shared.env import read_env_section
 from _shared.errors import UsageError
 from _shared.fs_utils import ensure_runtime
+from _shared.push_request_pacing import before_request, request_options, signal_cooldown
 
 
 @dataclass(frozen=True)
@@ -91,8 +93,10 @@ def _new_context(browser: Any, state_path: Path, *, use_state: bool) -> Any:
 
 
 def _read_identity(context: Any) -> dict[str, Any]:
-    response = context.request.get(f"{TIANGONG2_BASE_API_BASE}/cas/getAuth", timeout=45_000)
+    before_request("GET base/cas/getAuth")
+    response = context.request.get(f"{TIANGONG2_BASE_API_BASE}/cas/getAuth", timeout=45_000, **request_options())
     if not response.ok:
+        signal_cooldown(getattr(response, "status", None))
         return {}
     try:
         body = response.json()
@@ -109,6 +113,13 @@ def _authenticate_context(
     state_path: Path,
     credentials: ScopedCredentials,
 ) -> tuple[dict[str, Any], bool]:
+    if os.environ.get("CODEX_PUSH_GUARDED_PLATFORM") == "1":
+        # A normal page load can fan out many requests outside the API pacing
+        # loop. Background pushes may use an existing verified session only.
+        identity = _read_identity(context)
+        if not identity_matches_username(identity, credentials.username):
+            raise UsageError("The guarded push Tiangong session is expired or has the wrong identity; renew it separately")
+        return identity, False
     page = context.new_page()
     page.goto(TIANGONG2_TASK_URL, wait_until="domcontentloaded", timeout=45_000)
     page.wait_for_timeout(1_500)

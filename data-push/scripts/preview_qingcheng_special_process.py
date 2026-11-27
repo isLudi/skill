@@ -45,6 +45,11 @@ def _config(path: Path) -> dict:
 
 
 def _request(row: dict, entry: dict, cfg: dict) -> tuple[list[str], int]:
+    if entry["id"] == "special_public_pool":
+        row = dict(row)
+        for field in ("渠道标准名称", "原始渠道示例"):
+            if row.get(field) == "公海":
+                row[field] = "公海"
     columns = [part.strip() for part in row["过程指标展示顺序（选填）"].split("、")]
     if (row["record_id"], row["申请编号"], row["渠道标准名称"], row["原始渠道示例"],
             row["目标群"][0]["id"], row["数据维度"], row["年级范围"],

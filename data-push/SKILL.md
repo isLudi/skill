@@ -18,7 +18,7 @@ metadata:
 
 部门文件负责引导到对应渠道、报表及执行面的专项规则。指标定义、筛选范围、排名提醒、图片列与配色、群和时点、源表身份、任务状态及故障历史只写在所属部门或渠道知识库及受治理配置中，不写进本入口。
 
-市场顾问部本地现行清单于2026-11-06更新为7项任务：3项年级分块群播报、1项高中渠道分条播报、两个高阳团队，以及明确恢复的陈瑞春IP每天14:00/19:00顾问播报。其余旧主管/顾问任务及上周同期对比继续退役；不能根据历史说明恢复17:50对比或旧13/17/21点群调度。现行设置统一从[本部门当前设置](references/departments/market_consultant.md#现行本地推送设置2026-10-29)与 `config/channels.json` 读取。
+市场顾问部本地现行清单于2026-11-14登记8项任务，包含2项年级分块群播报、1项高中渠道分条播报、1项抖音私信全部年级合并播报、两个高阳团队、陈瑞春IP顾问播报及APP进量播报。其余旧主管/顾问任务及上周同期对比继续退役；不能根据历史说明恢复17:50对比或旧13/17/21点群调度。现行设置统一从[本部门当前设置](references/departments/market_consultant.md#现行本地推送设置2026-10-29)与 `config/channels.json` 读取。
 
 ## 按任务选择参考
 
@@ -36,7 +36,7 @@ metadata:
 
 ## 配置与执行边界
 
-- **2lark 原生 Base 批次默认值（2026-10-12）**：新开发及维护的 2lark 任务使用独立参数 `DELETE_BATCH_SIZE = 500`、`CREATE_BATCH_SIZE = 1000`，分别用于原生 `records/batch_delete` 与 `records/batch_create`；不要让删除和写入共用一个 `BATCH_SIZE`。这两个值分别是飞书官方[批量删除](https://open.feishu.cn/document/server-docs/docs/bitable-v1/app-table-record/batch_delete)和[批量新增](https://open.feishu.cn/document/server-docs/docs/bitable-v1/app-table-record/batch_create)接口的单次记录上限。所有正常删除和失败回滚删除都按最多 500 条切片，写入按最多 1000 条切片，尾批次取剩余记录。同一数据表串行请求，保留幂等、回执数量核验及完整读回；CLI 或其他封装接口按其自身限额处理。发布后须用一次新执行及完整日志核验对应 Base 写入，并同步所有本机消费者的版本、源码 Hash 和实际执行文件绑定。
+- **2lark 原生 Base 批次默认值（2026-10-12）**：新开发及维护的 2lark 任务使用独立参数 `DELETE_BATCH_SIZE = 500`、`CREATE_BATCH_SIZE = 1000`，分别用于原生 `records/batch_delete` 与 `records/batch_create`；不要让删除和写入共用一个 `BATCH_SIZE`。这两个值分别是飞书官方[批量删除](https://open.feishu.cn/document/server-docs/docs/bitable-v1/app-table-record/batch_delete)和[批量新增](https://open.feishu.cn/document/server-docs/docs/bitable-v1/app-table-record/batch_create)接口的单次记录上限。所有正常删除和失败回滚删除都按最多 500 条切片，写入按最多 1000 条切片，尾批次取剩余记录。同一数据表串行请求，保留幂等、回执数量核验及完整读回；CLI 或其他封装接口按其自身限额处理。发布后用新计划执行、完整 stage 日志和独立 Base 回读核验写入，再按[上游绑定维护](references/operations.md#天宫版本与本地配置联动)一次更新该生产者的本地发布登记。消费者按稳定键读同一份登记。
 - **全局提醒兜底（2026-10-11）**：提醒人不在群、无法唯一解析、账号无效、通讯录查询失败或群成员分页不完整时，保留该人的姓名文字；其他已核验且在群的人员正常使用原生 @。准备、发送前复核和回执校验均不得把这些人员异常作为阻断消息的条件，不要求手工开启开关，不自动邀请入群。所选提醒名单必须由「已核验 @＋姓名文字」完整覆盖。该规则适用于全部部门、渠道及后续新增推送，覆盖旧的「全部提醒人必须能 @」要求和自动邀请流程。机器人身份、目标群 ID、数据源、期次、发送窗口、幂等和实际投递回读继续独立核验。
 - `config/channels.json` 登记本地渠道，部门配置位于 `config/departments/<domain>/<channel_id>.json`，入口位于 `scripts/channels/<domain>/<channel_id>.py`。`config/deployments.json` 登记妙搭部署和 workflow。两个注册表互不继承目标群、发送身份、任务、状态或授权。
 - 聚合、指标、日历、图片、配色、排名和文案归部门 adapter 或部署模块所有；`scripts/lark_delivery/common/` 只承载中性传输能力。任务名、应用、自动化、台账和状态目录必须有明确且唯一的所有者。
@@ -49,17 +49,17 @@ metadata:
 
 ### 青橙本地批次（2026-10-08 调整）
 
-青橙项目部当前启用的本地过程批次：公海/私域/抖音私信六群及伙伴三群为周二至周四 `13:50`、`17:50`、`21:50`；专项四渠道仅 `13:50`。每两分钟重试，窗口持续 50 分钟，跨小时归一化为原始槽位，最晚为 `14:40/18:40/22:40`。SEC 六报告（2026-10-18 并入内部图书顾问，原五报告配置保留）在周二至周日 `12:00/16:00/20:00` 启动、每两分钟重试至 `:50`；内部图书当前规则见所属渠道知识库。
+青橙项目部当前启用的本地过程批次：公海/私域/抖音私信六群及伙伴三群为周二至周四 `13:50`、`17:50`、`21:50`；专项三渠道仅 `13:50`（2026-11-26 取消图书，保留私域、抖音私信、公海）。每两分钟重试，窗口持续 50 分钟，跨小时归一化为原始槽位，最晚为 `14:40/18:40/22:40`。SEC 六报告（2026-10-18 并入内部图书顾问，原五报告配置保留）在周二至周日 `12:00/16:00/20:00` 启动、每两分钟重试至 `:50`；内部图书当前规则见所属渠道知识库。
 
-转化使用同一 `run_qingcheng_transformation.py`，两类独立任务：普通主管/顾问九条报告（2026-10-18 移除内部图书转化）由 `Codex-Lark-Qingcheng-Transformation-GroupPush` 在周五至次周周一每天 `13:52/17:52/21:52` 启动，保留两分钟错峰；专项学部四条报告由 `Codex-Lark-Qingcheng-Special-Transformation-GroupPush` 通过 `--audience dept` 每天仅 `13:50` 启动。取消周一凌晨单档，周一期次仍回溯到上周五。两类任务使用独立锁、源分页目录、批次和回执，每两分钟重试，窗口持续 53 分钟；普通末次有效重试为 `14:44/18:44/22:44`，专项为 `14:42`。配置以 `transformation_batch.json` 的 `business_calendar` / `dept_schedule.business_calendar` 为准，与 Base 配置时点保持一致。各群准备、解析、发送失败独立记录，正常推送不回写配置 Base。
+转化使用同一 `run_qingcheng_transformation.py`，两类独立任务：普通主管/顾问九条报告（2026-10-18 移除内部图书转化）由 `Codex-Lark-Qingcheng-Transformation-GroupPush` 在周五至次周周一每天 `13:52/17:52/21:52` 启动，保留两分钟错峰；专项学部三条报告（2026-11-26 取消图书）由 `Codex-Lark-Qingcheng-Special-Transformation-GroupPush` 通过 `--audience dept` 每天仅 `13:50` 启动。取消周一凌晨单档，周一期次仍回溯到上周五。两类任务使用独立锁、源分页目录、批次和回执，每两分钟重试，窗口持续 53 分钟；普通末次有效重试为 `14:44/18:44/22:44`，专项为 `14:42`。配置以 `transformation_batch.json` 的 `business_calendar` / `dept_schedule.business_calendar` 为准，与 Base 配置时点保持一致。各群准备、解析、发送失败独立记录，正常推送不回写配置 Base。
 
-四个执行器的 `upstream` 必须与当前已验证的 `qing2lark_guocheng` 绑定一致（菜单 `103625`、task `47728`、Nezha `67318`、V36/version `215154`/exec `850663`）；上游任务改版后，先读回最新版本和执行文件，再同步本地批次配置及技术 Base，不能只改任务计划程序。
+四个过程批次引用 `qingcheng.process`。转化按源角色同时引用 `qingcheng.process` 和 `qingcheng.transformation`。物理任务、版本、Hash 与执行文件均集中在 `config/release/`，技术 Base 记录实施与验收状态。上游改版按[运行与验收](references/operations.md#天宫版本与本地配置联动)更新发布登记。
 
 本地化误入SEC/app、merge与抖音私信回补的业务判断读取[青橙归因排查记录](../qingcheng-dashboard-sql/knowledge/sql_patterns/qingcheng_local_merge_attribution_20261016.md)；本地绑定及预排执行ID顺序的门禁见[青橙播报规则](references/departments/qingcheng/local_broadcast_rules.md)。不能按顾问名单/app来源过滤，也不能未经独立口径确认增加抖音merge有效量。
 
-上游审计仍按固定槽位减 20 分钟后向下取整到小时：过程/专项/伙伴的 `13:50/17:50/21:50` 对应 Nezha `13:00/17:00/21:00`（实际约 `13:40/17:40/21:40`），SEC `12:00/16:00/20:00` 对应 `11:00/15:00/19:00`。重试跨小时也使用原始槽位审计；唯一成功执行、最新执行、版本/执行文件和完整 stage 日志门禁不变。
+普通、专项、伙伴过程按固定槽位减 20 分钟后向下取整到小时：`13:50/17:50/21:50` 对应 Nezha `13:00/17:00/21:00`，跨小时重试仍使用原槽位审计。SEC 六条使用当前业务期最近一次写完并全量回读通过的 Base 快照，核对最新生产者执行、完整 stage 和当前期全量分页，同一 Base revision 用于各报告的取数与发送前复核。SEC 发送回执仍按原槽位记账。
 
-天宫2 的 `qing2lark_guocheng`（过程）与 `qing2lark_zhuanhua`（转化）是两条独立上游，不能互换 task、版本或执行文件。调度保持每 2 小时一次的全部 `:40` 时刻（`23:40/01:40/03:40/05:40/07:40/09:40/11:40/13:40/15:40/17:40/19:40/21:40`）；两条任务已按精确 task/Nezha ID 更新并回读。`qing2lark_zhuanhua` 当前绑定 V11/version `214569`、源码 SHA-256 `12cdc31ccc39f6557e68f5df2718c460a9f7ed534138ce49e242c69282ec4be9`，T-1 至 T-5 探针已发布；上游 task ID `47775`、Nezha `67397` 未变化。USQL operator 提供 `plan-task-schedule-update`/`apply-task-schedule-update` 与 `plan-nezha-schedule-update`/`apply-nezha-schedule-update`，调度修改后必须重读版本/执行信息并同步本地配置。
+2026-11-12 生效调度回读显示过程与转化均为每 4 小时一次，在 `01:40/05:40/09:40/13:40/17:40/21:40` 运行。开发页与 Nezha 调度变更分别由 USQL operator 计划和核验，并在变更验收时同步生产者的调度合同。
 
 ## 离线验证
 

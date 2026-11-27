@@ -105,9 +105,7 @@ def cmd_apply_data_center_sql_replacement(args: argparse.Namespace) -> int:
                 return 0
     except Exception as exc:
         progress = dict(executor.progress) if executor is not None else {"phase": "startup"}
-        remote_write = bool(
-            progress.get("remote_sql_saved") or progress.get("refresh_triggered")
-        )
+        remote_write, uncertain_write = _remote_write_state(progress)
         debug_screenshot = None
         if args.debug_artifacts and page is not None:
             debug_screenshot = receipt_path.with_suffix(".png")
@@ -122,7 +120,8 @@ def cmd_apply_data_center_sql_replacement(args: argparse.Namespace) -> int:
                 "failed_at": datetime.now(timezone.utc).isoformat(),
                 "error": str(exc),
                 "remote_write_performed": remote_write,
-                "manual_attention_required": remote_write,
+                "remote_write_may_have_occurred": uncertain_write,
+                "manual_attention_required": remote_write or uncertain_write,
                 "workflow": progress,
                 "fully_verified": False,
                 "debug_screenshot": str(debug_screenshot) if debug_screenshot else None,
@@ -132,6 +131,16 @@ def cmd_apply_data_center_sql_replacement(args: argparse.Namespace) -> int:
         if isinstance(exc, UsageError):
             raise
         raise UsageError(f"Data Center replacement failed: {exc}") from exc
+
+
+def _remote_write_state(progress: dict[str, Any]) -> tuple[bool, bool]:
+    """Distinguish confirmed writes from a save attempt with unknown outcome."""
+    confirmed = bool(progress.get("remote_sql_saved") or progress.get("refresh_triggered"))
+    uncertain = bool(
+        (progress.get("save_request_attempted") or progress.get("refresh_request_attempted"))
+        and not confirmed
+    )
+    return confirmed, uncertain
 
 
 def validate_apply_request(args: argparse.Namespace, plan: Any) -> None:

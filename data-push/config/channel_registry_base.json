@@ -19,6 +19,16 @@
           "name": "运营-指标与提醒",
           "view_id": "vewxW9QTvy"
         }
+      },
+      "total_row_fields": {
+        "process": {
+          "name": "过程展示总计行",
+          "field_id": "fldSkFAdW8"
+        },
+        "transformation": {
+          "name": "转化展示总计行",
+          "field_id": "fldk2cyzcN"
+        }
       }
     },
     "technical": {
@@ -39,6 +49,16 @@
           "name": "技术-机器参数（维护）",
           "view_id": "vewQVBtlUq"
         }
+      },
+      "total_row_fields": {
+        "process": {
+          "name": "运营-过程展示总计行",
+          "field_id": "fldm4425XC"
+        },
+        "transformation": {
+          "name": "运营-转化展示总计行",
+          "field_id": "fldOBdbHZ2"
+        }
       }
     }
   },
@@ -53,10 +73,26 @@
         "department_open_id": null,
         "member_binding_status": "manual_binding_required",
         "requested_members": [
-          {"name": "王兴秀", "account": "wangxingxiu", "open_id": "ou_5b3ebbffd644241c9ae4f5572b313a5d"},
-          {"name": "王绅宇", "account": "wangshenyu01", "open_id": "ou_00ac3530b6be6cc18a5f84ff23968e53"},
-          {"name": "郭靖茹", "account": "guojingru01", "open_id": "ou_2f968f297e51585996531e9d9248f3dc"},
-          {"name": "贾琳涛", "account": "jialintao", "open_id": "ou_f9da2ffc1498c14d2561de26642c664f"}
+          {
+            "name": "王兴秀",
+            "account": "wangxingxiu",
+            "open_id": "ou_5b3ebbffd644241c9ae4f5572b313a5d"
+          },
+          {
+            "name": "王绅宇",
+            "account": "wangshenyu01",
+            "open_id": "ou_00ac3530b6be6cc18a5f84ff23968e53"
+          },
+          {
+            "name": "郭靖茹",
+            "account": "guojingru01",
+            "open_id": "ou_2f968f297e51585996531e9d9248f3dc"
+          },
+          {
+            "name": "贾琳涛",
+            "account": "jialintao",
+            "open_id": "ou_f9da2ffc1498c14d2561de26642c664f"
+          }
         ]
       },
       "qingcheng_operator": {
@@ -66,8 +102,16 @@
         "department_open_id": null,
         "member_binding_status": "manual_binding_required",
         "requested_members": [
-          {"name": "行嵩丽", "account": "xingsongli", "open_id": "ou_d08d3edc55b3975de961ceb7f4f3e55d"},
-          {"name": "郅玲玉", "account": "zhilingyu", "open_id": "ou_bf111effd2d71a52ee40c58c7cb4d105"}
+          {
+            "name": "行嵩丽",
+            "account": "xingsongli",
+            "open_id": "ou_d08d3edc55b3975de961ceb7f4f3e55d"
+          },
+          {
+            "name": "郅玲玉",
+            "account": "zhilingyu",
+            "open_id": "ou_bf111effd2d71a52ee40c58c7cb4d105"
+          }
         ]
       }
     },

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from _shared.push_request_pacing import before_request, request_options, signal_cooldown
+
 from typing import Any
 
 from _shared.config import TIANGONG2_BASE_API_BASE, TIANGONG2_DP_API_BASE
@@ -45,6 +47,7 @@ class Tiangong2ReadOnlyClient:
     @staticmethod
     def _json_body(response: Any, endpoint: str) -> dict[str, Any]:
         if not getattr(response, "ok", False):
+            signal_cooldown(getattr(response, "status", None))
             raise UsageError(f"Tiangong2 read failed: HTTP {getattr(response, 'status', '?')} from {endpoint}")
         body = response.json()
         if not isinstance(body, dict):
@@ -58,17 +61,20 @@ class Tiangong2ReadOnlyClient:
         if endpoint not in BASE_READ_ENDPOINTS:
             raise UsageError(f"Blocked non-allowlisted Tiangong2 base endpoint: {endpoint}")
         self.used_endpoints.add(f"GET base/{endpoint}")
-        response = self._request.get(f"{self._base_api_base}/{endpoint}", timeout=45_000)
+        before_request(f"GET base/{endpoint}")
+        response = self._request.get(f"{self._base_api_base}/{endpoint}", timeout=45_000, **request_options())
         return self._json_body(response, f"base/{endpoint}")
 
     def _post_form_body(self, endpoint: str, payload: dict[str, Any]) -> dict[str, Any]:
         if endpoint not in FORM_READ_ENDPOINTS:
             raise UsageError(f"Blocked non-allowlisted Tiangong2 form endpoint: {endpoint}")
         self.used_endpoints.add(f"POST form/{endpoint}")
+        before_request(f"POST dp/{endpoint}")
         response = self._request.post(
             f"{self._dp_api_base}/{endpoint}",
             form={key: "" if value is None else str(value) for key, value in payload.items()},
             timeout=45_000,
+            **request_options(),
         )
         return self._json_body(response, endpoint)
 
@@ -76,7 +82,8 @@ class Tiangong2ReadOnlyClient:
         if endpoint not in JSON_READ_ENDPOINTS:
             raise UsageError(f"Blocked non-allowlisted Tiangong2 JSON endpoint: {endpoint}")
         self.used_endpoints.add(f"POST json/{endpoint}")
-        response = self._request.post(f"{self._dp_api_base}/{endpoint}", data=payload, timeout=45_000)
+        before_request(f"POST dp/{endpoint}")
+        response = self._request.post(f"{self._dp_api_base}/{endpoint}", data=payload, timeout=45_000, **request_options())
         return self._json_body(response, endpoint)
 
     def get_identity(self) -> dict[str, Any]:

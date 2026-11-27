@@ -1,10 +1,17 @@
 {
   "schema_version": 1,
   "domain": "market_consultant",
-  "release_name": "market2lark_jinliang-208043",
+  "execution_surface": "local",
+  "task_key": "market_consultant.volume",
+  "release_name": "market2lark_jinliang-226079",
   "volume_table_id": "tblGUCxgUTZPjv3c",
-  "bound_execution_id": 175927008,
-  "bound_execution_start": "2026-10-12T14:13:48+08:00",
+  "target_table_id": "tblGUCxgUTZPjv3c",
+  "schedule_interval_hours": 4,
+  "schedule_start_minute": 0,
+  "schedule_anchor_hour": 21,
+  "source_hash_algorithm": "sha256-utf8-ver-getCode",
+  "bound_execution_id": 182249636,
+  "bound_execution_start": "2026-11-14T17:00:15+08:00",
   "upstream": {
     "project_id": 308,
     "folder": "吕帅",
@@ -13,10 +20,35 @@
     "task_id": 46817,
     "nezha_task_id": 65369,
     "schedule_id": 54106,
-    "exec_file_id": 837866,
-    "verified_version_id": 208043,
-    "verified_source_sha256": "60207ce27a933316423acbff3266236cb1c3490d830e4cb3e971ff031d40fe0f",
+    "exec_file_id": 880945,
+    "verified_version_id": 226079,
+    "verified_source_sha256": "3080fb593d7615298eb586bd70ba820244064bbbb58082a1699068999c982499",
     "log_protocol": "volume_two_period_create_then_delete_v1",
     "owner": "lvshuai01"
+  },
+  "release_review": {
+    "reference": "C:\\Users\\lvshuai01\\.codex\\runtime\\temp-table-migration-20261114\\market_release_verification\\volume\\182249636\\base_verification.json",
+    "association": "explicitly_reviewed_mapping",
+    "verified_at": "2026-11-14T09:08:06.582072+00:00",
+    "target_table_id": "tblGUCxgUTZPjv3c",
+    "rows": 73,
+    "business_periods": [
+      "20261113期",
+      "20261120期"
+    ],
+    "stage_logs": [
+      {
+        "stage_id": 183961182,
+        "sha256": "b5d0ca71686dd89a66ff6d893ff672c585c409a500e08f5c5167518fcccc9325"
+      }
+    ],
+    "version_id": 226079,
+    "version_label": "V28",
+    "published_at": "2026-11-14 15:30:22",
+    "source_sha256": "3080fb593d7615298eb586bd70ba820244064bbbb58082a1699068999c982499",
+    "exec_file_id": 880945,
+    "execution_id": 182249636,
+    "execution_period": "2026-11-14T17:00:00+08:00",
+    "execution_start": "2026-11-14T17:00:15+08:00"
   }
 }

@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "domain": "market_consultant",
+  "channel_id": "outbound_volume",
+  "channel": "人工外呼",
+  "channels": ["人工外呼"],
+  "adapter": "market-volume-v1",
+  "source": {
+    "base_token": "PmpybDuXGaudYost6I3cTwChn3d",
+    "raw_table_id": "tblGUCxgUTZPjv3c",
+    "raw_table_name": "市场顾问进量原始数据",
+    "raw_source_url": "https://gaotuedu.feishu.cn/base/PmpybDuXGaudYost6I3cTwChn3d?table=tblGUCxgUTZPjv3c",
+    "report_profile": "volume",
+    "report_type": "volume"
+  },
+  "upstream": {"task_key": "market_consultant.volume"},
+  "volume_report": {
+    "upstream": {"task_key": "market_consultant.volume"},
+    "base_token": "PmpybDuXGaudYost6I3cTwChn3d",
+    "volume_table_id": "tblGUCxgUTZPjv3c",
+    "volume_table_name": "市场顾问进量原始数据",
+    "channel_rule": "outbound_rule_channels",
+    "period_rule": "latest_available",
+    "business_channels": ["人工外呼", "唐山TMK"],
+    "source_values": ["tmk3元", "唐山tmk"],
+    "included_grades": ["高一", "高二", "高三"],
+    "include_abnormal": false,
+    "grain": "年级"
+  },
+  "sender": {"identity": "bot", "name": "管家", "open_id": "ou_f3907e865135732c15a1dfce27828411"},
+  "targets": [{"id": "outbound", "chat_id": "oc_6eb68afaf15aa7ca366a50704868aabc", "display_name": "【自营TMK】&【高阳】", "enabled": true}],
+  "base_identity": "user",
+  "verification_identity": "bot",
+  "report": {"period_rule": "latest_available", "show_totals": true, "minimum_post_leads": 0},
+  "schedule": {
+    "kind": "volume_daily",
+    "enabled": true,
+    "timezone": "Asia/Shanghai",
+    "hours": [17],
+    "prepare_minute": 20,
+    "send_minute": 20,
+    "retry_minutes": 2,
+    "deadline_minute": 50,
+    "first_send_at": "2026-11-15T17:20:00+08:00",
+    "windows_task_name": "Codex-Lark-Market-Outbound-Volume-Push"
+  },
+  "components": [{"id": "outbound_volume", "label": "人工外呼", "grain": "年级", "operator_record_id": "reczz28ZTe65Gk6D"}],
+  "state_dir": "C:\\Users\\lvshuai01\\.codex\\runtime\\channel-broadcast-push\\market_consultant\\outbound_volume"
+}

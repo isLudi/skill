@@ -1,14 +1,24 @@
 # 本机定时群播报
 
+## 本机共享平台检查与限流（2026-11-20）
+
+市场顾问部和青橙项目部的本机推送共用 `lark_delivery/integrations/push_platform.py`。相同生产者、身份、发布绑定及命令参数的天宫历史、完整成功执行日志和已发布版本检查使用跨进程单飞锁及已校验工件复用；不同部门、任务、执行、版本和权限范围不合并。历史及发布状态最多复用自操作开始起 90 秒，成功终态日志按精确执行 ID 最多复用 1 小时；工件不存在、Hash 改变、绑定变化、操作耗时已超过有效期或时间异常时不复用。状态结果不是上游写锁，不能证明检查之后没有立即开始的新执行。
+
+受控子进程自身持有跨进程平台操作锁，天宫只读 API 请求启动间隔按 1.2 秒控制；单次 API 调用关闭自动重试和重定向，后台推送仅验证并使用已存在的隔离登录态，不打开可产生并发请求的天宫页面。登录态失效或身份不符时该轮失败并留待单独恢复；不得绕过协调器直接请求。相同操作失败后 30 秒内合并失败结果；识别到 HTTP 429、503 或限流时全局冷却 120 秒。内部图书的历史 Data Center/USQL 入口也与本机平台操作串行，但其页面内部流量不由天宫 API 的逐请求间隔保证。本机制只覆盖接入的本机推送进程，不控制其他设备、浏览器或独立 Codex 任务。天宫请求启动记录按 UTC 日期追加到 `paths.push_log_root/_platform/`，不记录凭据、查询参数或数据行；日志写入失败不阻断业务。
+
+市场相同的完整 45 字段线索快照、相同过滤条件的线索切片、相同进量生产者快照，以及青橙过程/转化的相同渠道和期次切片，可在本机按来源身份、表、字段、筛选、期次及可用的生产者证据复用短时快照。青橙过程的 `public_pool`/`special_public_pool` 与非空策略相同的 `partner_books`/`special_books` 复用已证明相同的切片，但各自输出清单仍保留原渠道身份。缓存位于 `runtime/data-push-platform-coordinator`，写入前检查分页完成、记录数、版本和内容 Hash；不同来源、筛选或期次不得串用，已有生产者执行证据的完整快照还必须绑定对应执行。每个渠道仍各自核验业务合同，并在发送前重新探测 Base 版本；版本变化必须阻断并重新准备。青橙转化生产者目前登记 `audit_mode=none`，完整分页和版本稳定不等于已证明上游应写数据全部写齐。
+
+青橙已验证发送的群跳过重复来源准备；所有过程群均已验证时跳过整批上游检查，待确认回执只读回、不重发。转化图书在检查天宫前先验证发送机器人在群状态，排队完成后再次核对两个 Base 版本及授权发送截止时间。青橙过程、专项、伙伴和 SEC 也在实际发送前检查原有窗口；排队超出窗口时不补发。空渠道仍按其既有上游证据和重试窗口处理，不把临时空表当作永久无数据。
+
 ## lark-cli 运行时绑定
 
-本地渠道和妙搭模板统一解析同一份包内原生 `lark-cli.exe`；Windows 上拒绝 `.cmd` / `.bat` shim。2026-10-22 已核验当前绑定版本为 `1.0.98`，原生 exe SHA-256 为 `0db306d22517dd843b598200057646942cec32b17f3b767ede984b6f167ea429`，路径为 `C:\Users\lvshuai01\AppData\Local\Programs\nodejs\node_modules\@larksuite\cli\bin\lark-cli.exe`。`data-push` 常规运行时与模板刷新解析器均回读到该路径；CLI dry-run 和受影响的 11 项绑定测试通过。本次升级未改动发送配置或 Windows 推送任务。历史 1.0.97 记录见 `sync-qingcheng-market-temp-tables/references/event_service.md`。
+本地渠道和妙搭模板统一解析同一份包内原生 `lark-cli.exe`；Windows 上拒绝 `.cmd` / `.bat` shim。2026-11-14 已核验绑定版本为 `1.0.100`，原生 exe SHA-256 为 `935f51e02dab23e3266f3fc419f6d140c7c85ae5923712514adb06b7e2548b52`，路径为 `C:\Users\lvshuai01\AppData\Local\Programs\nodejs\node_modules\@larksuite\cli\bin\lark-cli.exe`。`data-push` 常规运行时与模板刷新解析器均回读到该路径并执行出 `1.0.100`；回复元字符 dry-run 和 11 项推送传输相关测试通过。本次升级未改动发送配置或 Windows 推送任务。历史版本记录见 `sync-qingcheng-market-temp-tables/references/event_service.md`。
 
 **历史记录（不构成当前授权）**：2026-09-10曾记录 Windows 任务 `Codex-Lark-Market-KOC-GroupPush` 的恢复授权。脚本维护、预览和 dry-run 本身不构成任务启停授权；实时状态以 Windows 任务查询为准。
 
 ## 当前范围
 
-市场顾问部现行范围为[7项本地任务](departments/market_consultant.md#现行本地推送设置2026-10-29)：两个高阳团队、4项年级多渠道群任务及2026-10-30恢复的陈瑞春IP。其余8项旧主管/顾问任务与同期对比继续退役。Windows用户登录后以隐藏方式运行，各群保留独立台账。
+市场顾问部现行范围登记[8项本地任务](departments/market_consultant.md#现行本地推送设置2026-10-29)，包含两个高阳团队、4项渠道群任务、陈瑞春IP及APP进量播报。Windows用户登录后以隐藏方式运行，各群使用独立台账。旧主管、顾问任务的当前恢复及退役状态以部门清单为准。
 
 - 固定群：`oc_b9dc09ba622ca00059bbc472922a803d`。历史显示名为 `【自营koc】&【高阳团队】`；名称改变不影响定位，不按名称重新搜索。
 - 唯一渠道：`自孵化KOC-5元纯课`。
@@ -17,6 +27,8 @@
 - 年级、10条门槛、9/6列负责人图片、排序、经理最低值和@规则见 [渠道业务规范](departments/market_consultant/self_incubated_koc_5.md)。
 
 ## 时间与期次
+
+APP进量为独立的每天17:20任务，每2分钟重试至17:50，绑定进量生产者。期次、指标与配置见[APP进量播报](departments/market_consultant/app_volume.md)。
 
 两个高阳团队继续原13:20、17:20窗口；4项bundle和恢复的陈瑞春IP均每天14:00、19:00独立启动，分别核验13:00、17:00上游SCHEDULE，每2分钟重试至当前槽位:50。已无17:50同期对比任务。陈瑞春保留原顾问图、总计及>5门槛，不套用其他bundle的≥5门槛和紧凑布局；4项bundle于2026-11-01部署原始配色的紧凑图，并为每个渠道模块显示可见人员总计。
 
@@ -39,13 +51,23 @@ V16与V17均使用 `two_period_clear_then_replace_v1`：先校验旧/新两期�
 
 ### 天宫版本与本地配置联动
 
-每次 `market2lark` 保存、提交或发布导致最新已发布源码、版本 ID、执行文件或日志协议变化时，远端维护不能单独视为完成。必须在下一次已启用的本地触发前完成同一发布收尾：
+两部门本地推送以 `task_key` 引用生产者。发布收尾只更新该生产者的一份 `config/release/` 登记，由所有相关本机入口在运行时读取。Windows 任务、消费者 JSON 和幂等键沿用原有配置。
 
-1. 用Tiangong2只读operator回读当前源码和最新已发布源码Hash、最新发布版本ID，并从一个新的唯一 `SCHEDULE` 成功实例取得实际 `execFileId`。
-2. 拉取该实例的全部stage和分页日志，按当前数据合同核验精确任务/负责人/4h调度、stage与退出码、分区新鲜度、45字段、双期清单、渠道映射、行数/渠道分布、Base目标、创建/删除或清空顺序及最终全量回读。
-3. 同一次本地变更更新所有已登记市场顾问部渠道（2026-09-21 为八个）的 `exec_file_id`、`verified_version_id`、`verified_source_sha256` 及 `config/release/market2lark.json`；解析后值必须完全一致。日志文案或替换顺序变化时，同时新增独立 `log_protocol`、更新 fail-closed parser 和正反例测试，禁止复用旧协议名称掩盖行为变化。
-4. 若进量生产者 `market2lark_jinliang` 同步发布，另行核验其已发布源码 Hash、唯一 `SCHEDULE` 执行文件、完整成功日志和进量 Base 表，再更新 `config/release/market2lark_jinliang.json`。17点进量报告必须同时通过两项上游门禁，且进量表行数和所选最新期次与该次上游写入一致；不得只更新版本标签。
-5. 运行所有兼容配置的 `--show-config` 一致性检查、两项真实脱敏日志 parser 验证、受影响测试、Skill校验和 scoped `git diff --check`。不得通过正式群发验证配置修改。
+1. 从天宫 2 的当前发布读回、实际执行详情、完整 stage、独立 Base 回读核对精确项目、任务、版本、源码原文 Hash 和实际执行文件。生产者维持各自的调度、目标表、分区、字段、期次、行数与写入顺序合同。
+2. 通过 `scripts/manage_push_upstream.py` 核验并登记已审核的版本、执行文件与新计划执行。源码 Hash 变化时同时审批新原文 Hash。平台目前缺直接版本映射，同 Hash 发布仍需这一次受控登记，时间顺序只用于筛选执行。
+3. 四个稳定键为 `market_consultant.leads`、`market_consultant.volume`、`qingcheng.process`、`qingcheng.transformation`。市场进量仍需线索与进量两份当期证据同分区、同双期。青橙转化按过程和转化两个源角色读取原表，图书保留已有实发就绪核验。
+4. 先用 `--show-config` 或 `--check-config` 回读涉及的消费者，再验收各自的首个自然窗口。日志或数据合同变化要同步评审生产者解析器及其正反例。
+
+```text
+python scripts/manage_push_upstream.py verify <task_key> --version-id <version_id> --exec-file-id <execFileId> --execution-id <execution_id>
+python scripts/manage_push_upstream.py adopt <task_key> --version-id <version_id> --exec-file-id <execFileId> --execution-id <execution_id> --review-reference <发布映射与独立Base回读工件>
+```
+
+使用机器配置的 Python。`verify` 核对线上当前发布、实际生效调度、唯一且最新的计划执行及完整 stage。`adopt` 要求明确的审核回执，并对现行登记复查漂移后原子替换和读回。新源码需追加 `--approve-source-sha256 <发布源码原文SHA-256>`。核验可复用已有上游维护的发布、自然执行与 Base 回读工件，后续定时入口直接使用新登记。若平台上实际替换了任务本身，先审定新任务身份、调度和目标表，再迁移同一稳定键对应的登记。
+
+市场线索渠道版本升级同时传入 `--channel-mapping-version <四位版本>`，工具核对当前发布源码中的唯一版本常量及完整成功日志的版本标记，并在同一次登记中写入该字段。
+
+青橙已授权的发布写入可使用 `--execution-receipt <execute-task-once回执>` 登记一次受控 `EXECUTE`。工具核对 operator runtime 内的回执与计划 Hash、精确任务、发布版本和源码、执行 ID 及周期，并核对完整终态日志和最新写入状态。回执绑定禁止下游、额外参数、禁用 stage 和既有执行重跑。独立 Base 全字段回读工件作为 `--review-reference`，登记保留执行回执路径及文件 Hash。常规定时实例继续使用原计划执行核验。
 
 2026-09-21 版本联动：`market2lark` V19 / 206390 / `execFileId=823476` / SHA-256 `2250ef80ac0e92727a7936f2f5aa9fbcbae3634071500bd3cf7f0c2935375d3b`，13:00 计划执行 171961094 完整写入并回读 16359 行；相对 V18 仅修正业务期次周归一。`market2lark_jinliang` V24 / 206391 / `execFileId=823477` / SHA-256 `14369e97ae71acce03ee7bed485392e998732c45b2c2db84964e644740930449`，13:00 计划执行 171961249 完整写入并回读 101 行；相对 V23 修正规则期次归一。两任务的当前源码均与最新已发布源码 Hash 一致。进量新增独立 `volume_two_period_create_then_delete_v1` 门禁；此记录只是只读验收和本地绑定，不代表实际群消息已发送。
 

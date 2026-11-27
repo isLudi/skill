@@ -115,6 +115,12 @@ def validate_registry(registry: dict[str, Any]) -> dict[str, dict[str, str]]:
                 f"Command registry drift for {entrypoint}: missing={missing}, stale={stale}"
             )
         for item in entry["commands"]:
+            if (item.get("parameters") or {}).get("supports_upload_identity_and_hash"):
+                command_parser = _subparser(PARSER_BUILDERS[entrypoint](), item["name"])
+                options = {option for action in command_parser._actions for option in action.option_strings}
+                required_options = {"--expected-account", "--expected-file-sha256", "--expected-data-rows"}
+                if not required_options <= options:
+                    raise ValueError(f"Upload identity/hash options missing for {entrypoint} {item['name']}")
             if item.get("authorization") == "exact_manifest_hash_and_confirmation":
                 parser = PARSER_BUILDERS[entrypoint]()
                 if not all(

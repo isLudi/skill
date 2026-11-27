@@ -2,10 +2,9 @@
   "schema_version": 1,
   "domain": "market_consultant",
   "channel_id": "high_school_supervisor_bundle",
-  "channel": "外部KOC",
+  "channel": "KOC渠道",
   "channels": [
-    "外部KOC",
-    "自孵化KOC",
+    "KOC渠道",
     "APP",
     "人工外呼"
   ],
@@ -82,87 +81,17 @@
     "windows_task_name": "Codex-Lark-Market-HighSchool-Supervisor-Bundle-Push"
   },
   "upstream": {
-    "project_id": 308,
-    "folder": "吕帅",
-    "menu_id": 102754,
-    "task_name": "market2lark",
-    "task_id": 47252,
-    "nezha_task_id": 66504,
-    "schedule_id": 53831,
-    "exec_file_id": 865669,
-    "verified_version_id": 223539,
-    "verified_source_sha256": "8a385a3e0edb44599cf2ecb8aa285498491f3abfe3040ef72f17b69b3086b50c",
-    "log_protocol": "two_period_clear_then_replace_v1_retry",
-    "owner": "lvshuai01",
-    "channel_mapping_version": "1023"
+    "task_key": "market_consultant.leads"
   },
   "components": [
     {
-      "id": "external_koc",
+      "id": "koc_channel",
       "request_row": 20,
       "operator_record_id": "reczz28TBlJNCihH",
-      "label": "外部KOC",
+      "label": "KOC渠道",
       "source_values": [
         "KOC-周帅数学",
-        "KOC-孟亚飞数学"
-      ],
-      "match": "any_exact",
-      "grades": [
-        "高一",
-        "高二",
-        "高三"
-      ],
-      "grain": "主管",
-      "column_order": {
-        "process": [
-          "期次",
-          "负责人",
-          "主管",
-          "退前线索",
-          "退后线索",
-          "首call率",
-          "48h外呼",
-          "外呼频次",
-          "5min",
-          "好友率",
-          "APP登陆率",
-          "深沟率",
-          "双沟率"
-        ],
-        "result": [
-          "期次",
-          "负责人",
-          "主管",
-          "退后线索",
-          "5min",
-          "双沟率",
-          "首节到课率",
-          "当期单效",
-          "截面单效"
-        ]
-      },
-      "minimum_post_leads": 5,
-      "show_totals": true,
-      "reminders": {
-        "target": "主管",
-        "process_rank": "最低值",
-        "result_rank": "最低值",
-        "ties": "全部提醒",
-        "member_unresolved": "plain_name_fallback",
-        "preview_identity_resolution": "names_only_not_at_verified"
-      },
-      "source_component_ids": [
-        "draft_20_1",
-        "draft_20_2"
-      ],
-      "display_name_source": "explicit_user_merge_name"
-    },
-    {
-      "id": "draft_21_1",
-      "request_row": 21,
-      "operator_record_id": "reczz28TBmd6glQe",
-      "label": "自孵化KOC",
-      "source_values": [
+        "KOC-孟亚飞数学",
         "自孵化KOC-5元纯课"
       ],
       "match": "any_exact",
@@ -204,12 +133,60 @@
       "show_totals": true,
       "reminders": {
         "target": "主管",
-        "process_rank": "最低值",
+        "process_rank": "低于每日标准",
         "result_rank": "最低值",
         "ties": "全部提醒",
         "member_unresolved": "plain_name_fallback",
         "preview_identity_resolution": "names_only_not_at_verified"
-      }
+      },
+      "source_component_ids": [
+        "external_koc",
+        "draft_21_1",
+        "draft_20_1",
+        "draft_20_2"
+      ],
+      "display_name_source": "explicit_user_merge_name",
+      "daily_standards": {
+        "version": 2,
+        "targets": {
+          "0": null,
+          "1": null,
+          "2": {
+            "高一": "0.30",
+            "高二": "0.30",
+            "高三": "0.30"
+          },
+          "3": {
+            "高一": "0.10",
+            "高二": "0.09",
+            "高三": "0.10"
+          },
+          "4": null,
+          "5": {
+            "高一": "0.50",
+            "高二": "0.50",
+            "高三": "0.50"
+          },
+          "6": {
+            "高一": "0.60",
+            "高二": "0.60",
+            "高三": "0.60"
+          }
+        },
+        "weekend_next_process": true,
+        "next_process_weekdays": [
+          5,
+          6
+        ],
+        "conversion_reminders": "retain_existing_minimum",
+        "reminder_person_values": false,
+        "explain_no_standard": false,
+        "ab_intent_in_scope": false
+      },
+      "merged_operator_record_ids": [
+        "reczz28TBlJNCihH",
+        "reczz28TBmd6glQe"
+      ]
     },
     {
       "id": "draft_22_1",
@@ -240,7 +217,9 @@
           "好友率",
           "APP登陆率",
           "深沟率",
-          "双沟率"
+          "双沟率",
+          "当期单效",
+          "截面单效"
         ],
         "result": [
           "期次",
@@ -323,7 +302,6 @@
   ],
   "intake_record_ids": [
     "reczz28TBlJNCihH",
-    "reczz28TBmd6glQe",
     "reczz28TBtePAzWO",
     "reczz28TBuLArzka"
   ],

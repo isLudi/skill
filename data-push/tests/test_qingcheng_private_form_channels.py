@@ -87,4 +87,4 @@ def test_operator_read_sets_its_own_utf8_environment(monkeypatch):
             "ok": True, "read_only": True, "remote_mutations": 0, "label": "表单江苏"}), "stderr": ""})()
 
     monkeypatch.setattr(process.subprocess, "run", run)
-    assert process._operator_read("list-execution-history")["label"] == "表单江苏"
+    assert process._operator_read(process._batch()["upstream_binding"], "list-execution-history")["label"] == "表单江苏"

@@ -4,7 +4,7 @@
     "system": "lark_base",
     "operator_record_id": "recvwjW9ZAvRBW",
     "request_id": "qingcheng/partner_books",
-    "request_status": "草稿",
+    "request_status": "已暂停",
     "base_token": "OEJrbiCIaazfSss2R3Lcf1OonCc",
     "table_id": "tbl3iMKvD52jaMF1"
   },
@@ -111,6 +111,7 @@
       "local paths and state directory",
       "schedule staggering and task name",
       "upstream version gates"
-    ]
+    ],
+    "retired_from_local_push": true
   }
 }

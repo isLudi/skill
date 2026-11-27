@@ -7,7 +7,7 @@
 | 群 | 可识别文件族 |
 |---|---|
 | 青橙数据对接 | 6 个 `qingcheng` 文件族 |
-| 市场顾问部临时表上传 | 6 个 `market_consultant` 文件族 |
+| 市场顾问部临时表上传 | 5 个 `market_consultant` 文件族 |
 
 服务同时要求：
 
@@ -39,7 +39,7 @@
 - `mode=production`；
 - `allow_local_apply=true`；
 - `allow_production_upload=true`；
-- 指令发起人或确认人位于 `approver_ids`；
+- 指令发起人或确认人位于全群通用的 `approver_ids`，或位于当前精确群对应的 `approver_ids_by_chat`；
 - Plan、来源质量、来源消息、目标工作簿和来源切片基线均未漂移。
 
 生产命令仍按 `plan → apply-local → upload` 顺序执行。服务配置只是开启门禁，不替代每个任务的哈希和审批检查。
@@ -86,6 +86,7 @@ D:\anaconda3\python.exe C:\Users\lvshuai01\.codex\skills\sync-qingcheng-market-t
 - 两个精确 `chat_ids`；
 - 郅玲玉、崔浩、张君言的 `source_sender_ids`；
 - 吕帅等被明确授权人的 `approver_ids`；
+- 可选的 `approver_ids_by_chat`，将精确群 ID 映射为只在该群有效的审批人 open_id 列表；未登记群、非法 ID、空列表或重复 ID 均拒绝加载。入队确认、直接上传、取消和执行前再次使用当前群权限核验；
 - 管家机器人的 `bot_open_id` 和 `bot_names`；
 - Python、同步脚本、注册表和两个 runtime 根路径。
 
@@ -168,7 +169,7 @@ runtime 中保存：
 
 1. 同步脚本和事件服务 `py_compile`；
 2. Skill 全部单测；
-3. 市场六表离线回放；
+3. 市场五个已登记文件族离线回放；
 4. 两群 shadow 离线事件回放；
 5. 注册表、示例配置、运行配置的群/来源覆盖验证；
 6. UTF-8、乱码、`git diff --check` 和仓库级验证；
@@ -227,11 +228,17 @@ runtime 中保存：
 
 ### 2026-10-22：1.0.98 正式恢复与双群预检验收
 
-- 用户确认市场顾问部当前没有评优架构来源；保留 `market_evaluation_architecture` 登记，供张君言未来上传后继续按现有来源身份和质量门禁预检，本次不要求提供该表。
+- 当时用户确认市场顾问部没有评优架构来源，仍保留该文件族登记。此历史决定已由 2026-11-14 的移除决定取代。
 - 双群 shadow 使用隔离 runtime，`event_ready=true`、单一消费者、`received=4`、`dropped=0`；Apply、Upload 和附件自动计划关闭。青橙 `result_architecture` 与市场 `market_period_architecture` 各生成一条 `planned`；青橙帮助/状态回帖读回成功，分别覆盖 `< >` 与 `|`。shadow 随后优雅停止，CLI event bus 回读 `not_running`。
 - 生产配置未修改，SHA-256 为 `2153c7ff34dbad8c318a89ea764aca13fdd6447fb8ead993e2b9f421167625b7`。通过 Task Scheduler 启动 `Codex-Governed-TempTables-LarkEvent` 后，任务为 `Running/Enabled`，服务为 `production/event_ready=true`，CLI 为包内原生 `1.0.98`，`online_instance_cnt=0`，单一 `im.message.receive_v1` 消费者、`dropped=0`。
 - 正式监听器分别接收青橙和市场的一条只读预检指令；任务 `tt_20261022202321_714e3919`（`result_architecture`）与 `tt_20261022202324_4eafe950`（`market_period_architecture`）均完成并为 `planned`，机器人回复已读回。未执行 `apply-local` 或生产 Upload；18 个 `Codex-Lark-*Push` 计划任务保持 `Ready/Enabled`，本次未手动触发推送。
 - 本次按用户明确指定的验收目标完成服务重启与双群单表预检；这条记录不替代之后对实际存在来源表的质量门禁，也不代表已上传平台。
+
+### 2026-11-14：1.0.100 更新与共享总线恢复
+
+- 官方更新从 `1.0.98` 升至 `1.0.100`，`update --check --json` 为 `already_up_to_date`、28 项官方 Skill `in_sync=true`；包内原生 exe SHA-256 为 `935f51e02dab23e3266f3fc419f6d140c7c85ae5923712514adb06b7e2548b52`。临时表、`data-push`、模板刷新和 OES 本地解析器均回读该原生路径与版本。
+- 升级时按各自机制优雅停止临时表消费者及 Hermes 私聊网关，确认共享总线无活动消费者后停止总线。恢复后 `Codex-Governed-TempTables-LarkEvent` 为 `Running/Enabled`、`production/event_ready=true`，Hermes 私聊网关为 `connected`，watchdog 与恢复任务均已恢复；共享总线各有一个消费者，均 `dropped=0`。两项任务定义和临时表生产配置哈希与升级前一致。
+- 临时表 Skill 86 项单测、推送传输相关 11 项测试及 CLI 多行元字符 dry-run 通过。隔离 shadow 的青橙预检、帮助和状态回复均已回读；正式服务的青橙 `result_architecture` 预检任务 `tt_20261114133456_51a1ee05` 为 `planned` 且回复已回读，市场 `market_lead_goal` 在隔离 runtime 的预检为 `ready`。本次未执行 `apply-local` 或生产 Upload，也未手动触发定时群推送。
 
 ### 1. 冻结生产并记录基线
 
@@ -248,7 +255,7 @@ runtime 中保存：
 ### 3. 优雅停止生产事件服务
 
 - 使用 `manage_event_service.ps1 -Action stop`，由父进程关闭事件消费者；禁止强杀或无条件 `event stop --force`。
-- 确认服务状态为 `stopped`、事件键无遗留消费者并保留停止日志。停止失败或出现孤儿消费者时先排查，不得边运行边替换 CLI。
+- 确认本服务状态为 `stopped` 且旧消费者已退出，并保留停止日志。共享总线可能还有其他已登记服务；替换同一 CLI 前应按各自机制优雅停止相关消费者，确认无活动消费者后再停止总线。停止失败或出现孤儿消费者时先排查，不得强停或边运行边替换 CLI。
 
 ### 4. 统一升级 CLI 与官方 Skills
 
@@ -267,7 +274,7 @@ runtime 中保存：
 ### 6. 只用 shadow 验证新版本启动
 
 - 使用独立 shadow 配置启动，确认实际 CLI 路径和版本正是本次目标版本；不得先用实时生产配置试启动。
-- 核验 `status=running`、`event_ready=true`、单一活动消费者、`dropped=0`，并确认本地 Apply 和生产 Upload 均为 `false`。
+- 核验 `status=running`、`event_ready=true`、该 shadow 实例恰有一个消费者且 `dropped=0`，并确认本地 Apply 和生产 Upload 均为 `false`。共享总线上的其他已登记消费者按父进程分别核验，不以总消费者数为 1 作为条件。
 - 检查 bot 身份、最小 scope 和启动日志；升级验证不得创建业务写入回执。
 
 ### 7. 在登记群执行帮助/状态端到端回复测试
@@ -281,4 +288,4 @@ runtime 中保存：
 
 - 优雅停止 shadow 实例，重新读取实时配置并与第 1 步 SHA-256 比较；配置漂移时阻断恢复。
 - 用逐字节一致的原生产配置启动，回读 `mode`、所有回复开关和两道写入门禁，要求与升级前一致。
-- 最终核验 `status=running`、`event_ready=true`、单一消费者、`dropped=0`、原生 exe 精确路径/版本、日志无启动错误，并保存升级回执。任一条件失败都保持生产停止或退回 shadow，不得宣称升级完成。
+- 最终核验 `status=running`、`event_ready=true`、临时表服务恰有一个消费者且 `dropped=0`、原生 exe 精确路径/版本、日志无启动错误，并保存升级回执。共享总线上的其他已登记消费者也须各自恢复并核验。任一条件失败都保持生产停止或退回 shadow，不得宣称升级完成。

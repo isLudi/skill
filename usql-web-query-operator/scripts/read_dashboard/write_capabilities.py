@@ -219,10 +219,14 @@ def build_probe_artifact(
     after_profile_sha256: str,
     observations: list[dict[str, Any]],
     blocked_requests: list[dict[str, Any]],
+    controlled_formula_probe: bool = False,
+    controlled_write_verified: bool = False,
 ) -> dict[str, Any]:
     changed = before_profile_sha256 != after_profile_sha256
     if blocked_requests:
         status = "blocked_dangerous_request"
+    elif controlled_formula_probe and controlled_write_verified and observations:
+        status = "evidence_captured"
     elif observations and changed:
         status = "evidence_captured"
     elif observations or changed:
@@ -238,6 +242,9 @@ def build_probe_artifact(
         "sandbox_dashboard_name": dashboard_name,
         "sandbox_confirmed": True,
         "capture_boundary": (
+            "One exact hash-bound existing-formula write/read/value-capture/restoration transaction in the explicitly confirmed sandbox. "
+            "No publication, schema changes, field creation, or automatic registry promotion."
+        ) if controlled_formula_probe else (
             "Manual action in an explicitly confirmed sandbox. Unknown requests are observed only; "
             "publish, delete, permission, and auth writes are blocked. Registry promotion is never automatic."
         ),

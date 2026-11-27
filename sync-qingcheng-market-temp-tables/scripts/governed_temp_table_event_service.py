@@ -101,6 +101,7 @@ def load_config(path: Path) -> dict[str, Any]:
         "reply_progress_updates": False,
         "allow_local_apply": False,
         "allow_production_upload": False,
+        "approver_ids_by_chat": {},
         "production_source_policy": "explicit",
         "production_source_message_ids": {},
         "reply_identity": "bot",
@@ -168,6 +169,22 @@ def load_config(path: Path) -> dict[str, Any]:
         )
     if len(merged["chat_ids"]) != len(set(merged["chat_ids"])):
         raise ServiceError("Config field chat_ids contains duplicates.")
+    scoped_approvers = merged["approver_ids_by_chat"]
+    if not isinstance(scoped_approvers, dict) or any(
+        chat_id not in merged["chat_ids"]
+        or not isinstance(approvers, list)
+        or not approvers
+        or any(
+            not isinstance(approver, str)
+            or not re.fullmatch(r"ou_[A-Za-z0-9]+", approver)
+            for approver in approvers
+        )
+        or len(approvers) != len(set(approvers))
+        for chat_id, approvers in scoped_approvers.items()
+    ):
+        raise ServiceError(
+            "Config approver_ids_by_chat must map registered chat ids to non-empty, unique open_id lists."
+        )
     if merged["mode"] not in {"shadow", "production"}:
         raise ServiceError("Config mode must be shadow or production.")
     if merged["reply_identity"] != "bot":
@@ -207,6 +224,14 @@ def load_config(path: Path) -> dict[str, Any]:
             raise ServiceError(f"Configured path does not exist: {key}={merged[key]}")
     merged["config_path"] = str(config_path)
     return merged
+
+
+def is_chat_approver(config: dict[str, Any], sender_id: str | None, chat_id: str | None) -> bool:
+    if not sender_id or chat_id not in config["chat_ids"]:
+        return False
+    return sender_id in config["approver_ids"] or sender_id in config.get(
+        "approver_ids_by_chat", {}
+    ).get(chat_id, [])
 
 
 def validate_registered_sources(
@@ -273,6 +298,12 @@ def assert_production_job_scope(config: dict[str, Any], job: dict[str, Any]) -> 
     family_ids = job["family_ids"]
     if not family_ids or len(set(family_ids)) != len(family_ids):
         raise ServiceError("Production job has an invalid family selection.")
+    registry = workflow.load_registry(Path(config["workflow_registry"]))
+    chat_id = str(job.get("chat_id") or "")
+    if chat_id not in config["chat_ids"] or not set(family_ids).issubset(
+        families_for_chat(registry, chat_id)
+    ):
+        raise ServiceError("Production job contains a family outside its registered chat.")
     if policy == "explicit" and not set(family_ids).issubset(allowed):
         raise ServiceError("Production job contains a family outside the source allowlist.")
     if not job.get("plan_path") or not job.get("plan_sha256"):
@@ -759,6 +790,15 @@ def parse_family_phrase(
     normalized = re.sub(r"[\s,，、]+", "", phrase)
     allowed = list(allowed_family_ids or registry["upload_order"])
     families = workflow.family_map(registry)
+    allowed_domains = {families[family_id]["domain"] for family_id in allowed}
+    excluded = registry.get("excluded_command_aliases") or {}
+    if any(
+        alias.casefold() in normalized.casefold()
+        for domain in allowed_domains
+        for alias in excluded.get(domain, [])
+        if alias
+    ):
+        return None
     if not normalized or normalized in {"最新", "最新临时表", "临时表", "全部", "全部临时表"}:
         return allowed
     if normalized in {"最新目标表", "目标表", "三个目标表", "三张目标表"}:
@@ -1305,8 +1345,8 @@ class SyncExecutor:
                 or not self.config["allow_production_upload"]
             ):
                 raise ServiceError("Production gates are not enabled in the event-service config.")
-            if job.get("authorized_by") not in self.config["approver_ids"]:
-                raise ServiceError("The production job is not bound to a configured approver.")
+            if not is_chat_approver(self.config, job.get("authorized_by"), job.get("chat_id")):
+                raise ServiceError("The production job is not bound to an approver for this chat.")
             assert_production_job_scope(self.config, job)
             self.ledger.update_job(job_id, status="applying_local", stage="apply_local")
             job = self.ledger.get_job(job_id)
@@ -1549,7 +1589,7 @@ class EventProcessor:
             if job is None or job.get("chat_id") != chat_id:
                 self._deny(event, f"未找到任务：{intent.job_id}")
                 return "cancel_missing"
-            if sender_id != job["requester_id"] and sender_id not in self.config["approver_ids"]:
+            if sender_id != job["requester_id"] and not is_chat_approver(self.config, sender_id, chat_id):
                 self._deny(event, "只有任务发起人或审批人可以取消任务。")
                 return "cancel_denied"
             if job["status"] not in {"queued", "planned"}:
@@ -1566,7 +1606,7 @@ class EventProcessor:
             )
             return "cancelled"
         if intent.action == "approve":
-            if sender_id not in self.config["approver_ids"]:
+            if not is_chat_approver(self.config, sender_id, chat_id):
                 self._deny(event, "只有配置中的审批人可以确认生产上传。")
                 return "approve_denied"
             if (
@@ -1633,7 +1673,7 @@ class EventProcessor:
         authorized_by = None
         shadow_note = ""
         if action == "upload":
-            if sender_id not in self.config["approver_ids"]:
+            if not is_chat_approver(self.config, sender_id, chat_id):
                 self._deny(event, "只有配置中的审批人可以发起生产上传；你可以使用“预检”生成计划。")
                 return "upload_denied"
             if (

@@ -107,10 +107,8 @@ end as qici_re,
         FROM
           finance_dw.dm_finance_order_refund_detail_df
         WHERE dt = format_datetime(now() - interval '24' hour, 'YYYYMMdd')
-          -- 2026-11-19：re_lc 原仅取 H业务线三个学部；本次纳入 EM业务线及素养初中学部、素养小学学部，
-          -- 用于补齐 EM 业务线素养学部完全退款订单的调课链路完课课节数。
-          AND course_first_level_department_name in ('H业务线', 'EM业务线')
-		  and course_second_level_department_name in ( '精品班学部','菁英班学部','一对一学部','素养初中学部','素养小学学部')
+          AND course_first_level_department_name = 'H业务线'
+		  and course_second_level_department_name in ( '精品班学部','菁英班学部','一对一学部')
           AND is_full_refund_order = 1------------------是否全部退款
           AND total_refund_amount IS NOT NULL
           AND total_refund_amount <> 0)

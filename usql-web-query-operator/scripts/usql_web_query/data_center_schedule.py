@@ -33,6 +33,16 @@ def schedule_values(schedule: dict[str, Any]) -> dict[str, Any]:
     return {k: v for k, v in schedule.items() if k not in DERIVED_SCHEDULE_KEYS}
 
 
+def _empty_alarm_wire_values(schedule: dict[str, Any]) -> dict[str, Any]:
+    """The native editor emits [] for an omitted no-recipient alarm list.
+
+    Normalize only that observed empty-list spelling. Nonempty recipients,
+    nulls, unknown keys and all other schedule values remain exact.
+    """
+    return {k: v for k, v in schedule.items()
+            if not (k == 'alarmReceiver' and isinstance(v, list) and not v)}
+
+
 def parameter_values(detail: dict[str, Any]) -> list[dict[str, Any]]:
     rows = detail.get('dataParamList')
     if not isinstance(rows, list) or not rows:
@@ -124,7 +134,9 @@ def verify_save_payload(plan: dict[str, Any], payload: dict[str, Any]) -> None:
             raise UsageError('Renewal save identity drift: ' + key)
     if payload.get('menuType') != 'DATA_SET' or sql_sha256(payload.get('executeSql') or '') != plan['sql_sha256']:
         raise UsageError('Renewal may not change dataset type or SQL')
-    if parameter_values(payload) != plan['parameters'] or payload['schedule'] != plan['replacement_schedule']:
+    if (parameter_values(payload) != plan['parameters']
+            or _empty_alarm_wire_values(payload['schedule'])
+            != _empty_alarm_wire_values(plan['replacement_schedule'])):
         raise UsageError('Renewal may only change schedule dateRange')
 
 
@@ -136,7 +148,8 @@ def verify_readback(plan: dict[str, Any], saved: Any) -> dict[str, Any]:
     schedule = saved.detail_payload.get('schedule') or {}
     if schedule.get('isExpire') is not False or not schedule.get('taskId'):
         raise UsageError('Renewed schedule remains expired or has no task identity')
-    if schedule_values(schedule) != plan['replacement_schedule']:
+    if (_empty_alarm_wire_values(schedule_values(schedule))
+            != _empty_alarm_wire_values(plan['replacement_schedule'])):
         raise UsageError('Renewal schedule readback mismatch')
     return {'sql_sha256': plan['sql_sha256'], 'schedule': schedule,
             'fields_unchanged': True, 'fully_verified': True}

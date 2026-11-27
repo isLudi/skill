@@ -1762,8 +1762,53 @@
 - 登记用户确认启用的策略 `4214/4235/4255/4288`。Query `1690988948` 核实四个编码是触达 `plan_id`，批次关联使用 `outer_channel_task_id` 和接收人双键。
 - 对 [原始通话记录表](../tables/data_lake_fuwu.dwd_crm_call_tmk_record_rt.md) 复查数据地图，确认 11 个普通字段和 0 个分区字段。按 Query `1690945713`、`1691003845` 补录逐通 ID、状态、时间及录音对账。两批 AI 接通的原始时长均为 0，Query `1690989217` 的 80 通正值对照验证原始 `call_type=4` 的秒值。
 
-## 2026-11-19 模板取数 stable canonical SQL 同步（模板 8948）
+## 2026-11-14 数据中心 stable canonical SQL 同步
 
-- 线上 `published` 模板 `馒头_订单明细_流水时间`（id `8948`）回读 SQL SHA-256 为 `4a49a127b04f06e4a22861538a974035e757f15921d3269fe249318f1e90c6fd`，只保留稳定入口 `resources/raw_sql/template_query_market_mantou_order_detail_trade_time.sql`。
+- 按已审阅同步计划原子更新 model_id：`2054, 2132, 2253, 2293, 2310, 2344, 2345, 2424, 2461, 2623, 2634, 2683, 2688, 2751, 2774, 2809, 2812, 2836, 2842, 2883, 2885, 2886, 2890, 3039`；每个 model_id 只保留稳定 canonical 路径。
+- 写入后已强制重建反向索引和目录，并运行唯一版本审计、域内 integrity 与完整 Text2SQL 栈验证。
+
+## 2026-11-14 模板取数 stable canonical SQL 同步（模板 7808）
+
+- 线上 `published` 模板 `市场运营专用_多维全链路分析`（id `7808`）回读 SQL SHA-256 为 `e166dd4c8843ed072ddd95010d9cf0701448e34a7aa2510065f5f4719c987465`，只保留稳定入口 `resources/raw_sql/template_query_market_wide_analysis.sql`。
 - 本次清理日期后缀历史副本 0 个；历史 SQL 文本不进入知识库，也不作为路由入口。
 - 保存后已重建反向索引、共享 catalog、唯一版本审计、域内 integrity 和完整 Text2SQL 栈。
+
+## 2026-11-14 模板取数 stable canonical SQL 同步（模板 8948）
+
+- 线上 `published` 模板 `馒头_订单明细_流水时间`（id `8948`）回读 SQL SHA-256 为 `a93b45dd4336922d934a6ee86edae3f53a252393e2e5e779a3255547150144b9`，只保留稳定入口 `resources/raw_sql/template_query_market_mantou_order_detail_trade_time.sql`。
+- 本次清理日期后缀历史副本 0 个；历史 SQL 文本不进入知识库，也不作为路由入口。
+- 保存后已重建反向索引、共享 catalog、唯一版本审计、域内 integrity 和完整 Text2SQL 栈。
+
+## 2026-11-14 模板取数 stable canonical SQL 同步（模板 7689）
+
+- 线上 `published` 模板 `业财用户出单明细`（id `7689`）回读 SQL SHA-256 为 `418db771255f58f6630142a0c25e2e6b65a2237c35c5b259e54b82decc0df548`，只保留稳定入口 `resources/raw_sql/template_query_market_finance_order_detail.sql`。
+- 本次清理日期后缀历史副本 0 个；历史 SQL 文本不进入知识库，也不作为路由入口。
+- 保存后已重建反向索引、共享 catalog、唯一版本审计、域内 integrity 和完整 Text2SQL 栈。
+
+## 2026-11-14 模板取数 stable canonical SQL 同步（模板 9002）
+
+- 线上 `published` 模板 `AI分析市场顾问部_宽表`（id `9002`）回读 SQL SHA-256 为 `dd677a87e9f7d74cabda75279fc10a792ad735b999ddf6b141df8c8e05537f42`，只保留稳定入口 `resources/raw_sql/template_query_market_wide.sql`。
+- 本次清理日期后缀历史副本 0 个；历史 SQL 文本不进入知识库，也不作为路由入口。
+- 保存后已重建反向索引、共享 catalog、唯一版本审计、域内 integrity 和完整 Text2SQL 栈。
+
+## 2026-11-14 模板取数 stable canonical SQL 同步（模板 8866）
+
+- 线上 `published` 模板 `AI分析市场顾问部分周期转化数据`（id `8866`）回读 SQL SHA-256 为 `4c57511cd3f5ecda347aae95539ee62006538def398259dccbcfcfadac4921cd`，只保留稳定入口 `resources/raw_sql/template_query_market_period_conversion.sql`。
+- 本次清理日期后缀历史副本 0 个；历史 SQL 文本不进入知识库，也不作为路由入口。
+- 保存后已重建反向索引、共享 catalog、唯一版本审计、域内 integrity 和完整 Text2SQL 栈。
+
+## 2026-11-14 模板取数 stable canonical SQL 同步（模板 8882）
+
+- 线上 `published` 模板 `AI分析市场顾问部多科用户成单数据`（id `8882`）回读 SQL SHA-256 为 `033763f2c29c80e9af6652445dfef203f21fa42662c016c79de5d7aa3ec5546e`，只保留稳定入口 `resources/raw_sql/template_query_market_multi_subject_order_user.sql`。
+- 本次清理日期后缀历史副本 0 个；历史 SQL 文本不进入知识库，也不作为路由入口。
+- 保存后已重建反向索引、共享 catalog、唯一版本审计、域内 integrity 和完整 Text2SQL 栈。
+
+
+## 2026-11-14，20261113渠道规则与当前消费者验收
+
+- 完整读取飞书52条记录，收尾rev为40，1113原始SHA为a506a4e5ceaeeef9330b5e90e603fae3b53389592d1e1b12c613d37f2ff3cc76。两期均200条WHEN、138个分支标签及含ELSE139个输出，15处条件更新及3处历史保护名单联动，四条历史注释保留。共享融合SHA为494c38681730c9b997fd68a5ecf908c2777218953e7bbd846ee6e786b7f5275a，29样例和12,624组空值及重叠组合验证通过。
+- 从本轮完整实时基线完成24个Data Center SQL条件更新和4个原SQL刷新，28个目标均取得新的最新SUCCESS，目标均处于有效周期。2054维持20260925期起点、2026-09-21源扫描下限和35字段，2344两处202条CASE及19字段按实时定义验收。
+- 三个共享CASE模板7689、7808、8948原ID发布后真实查询成功，三个维表模板8866、8882、9002按当前线上实现查询成功。六条验收查询最大耗时55秒。模板发现使用创建列表、市场搜索及注册ID精确detail联合范围，收尾38条，当前独立用户创建列表11条。10125为独立上层标签分类，8735、10477为OFFLINE。9002旧42CTE说明标记为2026-10-29历史版本并链接最新stable。
+- 专用CASE实际8处完成120项适用性审阅，用户选择现有专用分类，保留既有广东专版和帅师代理。完整字段CASE严格采用本期来源属性条件。
+- market2lark发布version_id 226075、exec_file 879603，源码b11552e3697f8432e179b69abf5b190638bf4f24def7949dedba944961091986，唯一立即执行182214113和自然SCHEDULE执行182220317均终态成功。当前自然执行的Base独立全量回读为14494行、45字段、8页，分期为20261113期10462行、20261120期4032行。manage_push_upstream受控adopt登记market_consultant.leads共享release，7个线索消费者运行时解析新绑定，8个实际Windows任务定义已回读，APP进量使用独立volume生产者。
+- 以官方源Hash适配器同步28个Data Center及6个当前模板canonical，更新1113活跃片段、当前清单、性能记录、契约来源Hash与生成索引。渠道跨看板等价性合同仍为pending_confirmation，0726_legacy及历史文字保留。受控producer工具按1113源码、日志和登记版本一致性执行，相关57项测试通过。

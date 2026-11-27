@@ -3,11 +3,11 @@
 The conversion table (tbl9CcVtXPntqGvP, written by qing2lark_zhuanhua) holds one row
 per in-period lead with user-level 0/1 conversion markers; valid leads, headcount and
 first-lesson attendance come from the process table so denominators stay identical to
-the process report. Metric formulas follow the Qingcheng 2460 conversion dashboard
-front-end definitions (consistent with the market-consultant department):
+the process report. Metric formulas use the Qingcheng business definitions:
 综合单效 = promit(净收款)/有效线索, 当期单效 = p_income(当期收款)/有效线索,
 综合订单转化率 = pay_sub(报科数)/有效线索, 联报率 = pay_sub/pay_user,
-破蛋率 = podan/有效线索, 人效 = promit/带班人数, 平均成交周期 = sc/pay_user.
+破蛋率 = 同范围营收>0的顾问去重人数/顾问去重总人数（2026-11-22确认），
+人效 = promit/带班人数, 平均成交周期 = sc/pay_user.
 This script performs no network calls, registration, upload, scheduling, or
 message sending.
 """
@@ -77,6 +77,21 @@ def _source_of(row: dict) -> str:
     return parts[1]
 
 
+def _advisor_revenue(conversion_rows: list[dict], accounts: frozenset[str]) -> dict[str, Decimal]:
+    """Sum gross revenue per adviser inside the report's existing people scope."""
+    amounts = dict.fromkeys(accounts, Decimal(0))
+    for row in conversion_rows:
+        account = row["顾问账号"]
+        if account in amounts:
+            _number(row, "收款")
+            amounts[account] += Decimal(str(row["收款"]))
+    return amounts
+
+
+def _advisor_podan_rate(revenue: dict[str, Decimal]) -> float | None:
+    return _ratio(sum(amount > 0 for amount in revenue.values()), len(revenue))
+
+
 def _group_key(row: dict, level: str, *, split_grade: bool) -> tuple:
     if level == "学部":
         # 学部级按 负责人(经理)×年级 聚合（Base 申请记录数据维度：期次、渠道、负责人、年级）。
@@ -138,10 +153,12 @@ def _aggregate(process_rows: list[dict], conversion_rows: list[dict], level: str
         period_income = sum(_number(item, "当期收款") for item in conversion_items)
         subjects = sum(_number(item, "报科数") for item in conversion_items)
         accounts = frozenset(item["顾问账号"] for item in items)
-        # 指标口径对齐青橙 2460 转化看板前端公式（与市场顾问部定义一致）：
+        advisor_revenue = _advisor_revenue(conversion_items, accounts)
+        # 破蛋率按2026-11-22确认口径先汇总顾问营收，再按账号计人；
+        # 原始podan/破蛋人数标记是成交用户标记，不再参与该指标。
         # 综合人头转化率=pay_user/线索、综合订单转化率=pay_sub(报科数)/线索、
         # 当期单效=p_income(当期收款)/线索、综合单效=promit(净收款)/线索、
-        # 人效=promit/带班人数、联报率=pay_sub/pay_user、破蛋率=podan/线索、
+        # 人效=promit/带班人数、联报率=pay_sub/pay_user、
         # 平均成交周期=sc/pay_user（分母字段与成交人头标记等价）。
         metrics = {
             "有效线索": leads,
@@ -157,7 +174,7 @@ def _aggregate(process_rows: list[dict], conversion_rows: list[dict], level: str
             "综合单效": _ratio(net, leads),
             "人效": _ratio(net, len(accounts)) if accounts else None,
             "联报率": _ratio(subjects, heads),
-            "破蛋率": _ratio(sum(_number(item, "破蛋人数标记") for item in conversion_items), leads),
+            "破蛋率": _advisor_podan_rate(advisor_revenue),
             "平均成交周期": _ratio(sum(_number(item, "成交周期天数分子") for item in conversion_items),
                                   sum(_number(item, "成交周期成交人数分母") for item in conversion_items)),
         }
@@ -178,6 +195,7 @@ def _aggregate(process_rows: list[dict], conversion_rows: list[dict], level: str
             "年级": grade,
             "metrics": metrics,
             "_accounts": accounts,
+            "_advisor_revenue": advisor_revenue,
         })
     return output
 
@@ -232,7 +250,10 @@ def _total_transformation(rows: list[dict]) -> dict:
     cycle_num = sum(row.get("_cycle_num", 0.0) for row in rows)
     cycle_den = sum(row.get("_cycle_den", 0.0) for row in rows)
     first_lesson = sum(row.get("_first_lesson", 0.0) for row in rows)
-    podan = sum(row.get("_podan", 0.0) for row in rows)
+    advisor_revenue = dict.fromkeys(accounts, Decimal(0))
+    for row in rows:
+        for account, amount in row["_advisor_revenue"].items():
+            advisor_revenue[account] += amount
     metrics = {
         "有效线索": leads,
         "带班人数": len(accounts),
@@ -247,7 +268,7 @@ def _total_transformation(rows: list[dict]) -> dict:
         "综合单效": _ratio(net, leads),
         "人效": _ratio(net, len(accounts)),
         "联报率": _ratio(subjects, heads),
-        "破蛋率": _ratio(podan, leads),
+        "破蛋率": _advisor_podan_rate(advisor_revenue),
         "平均成交周期": _ratio(cycle_num, cycle_den),
     }
     return {"is_total": True, "metrics": metrics}
@@ -275,7 +296,6 @@ def _aggregate_with_extras(process_rows: list[dict], conversion_rows: list[dict]
         out["_first_lesson"] = sum(_number(item, "首节到课标记") for item in items)
         out["_period_income"] = sum(_number(item, "当期收款") for item in conversion_items)
         out["_subjects"] = sum(_number(item, "报科数") for item in conversion_items)
-        out["_podan"] = sum(_number(item, "破蛋人数标记") for item in conversion_items)
         out["_cycle_num"] = sum(_number(item, "成交周期天数分子") for item in conversion_items)
         out["_cycle_den"] = sum(_number(item, "成交周期成交人数分母") for item in conversion_items)
     return rows
@@ -499,7 +519,8 @@ def build(process_source: Path, conversion_source: Path, output: Path,
             else:
                 _table_image(rows, columns, png, level, period, channel_cfg["name"],
                              split_grade=split_grade, bar_specs=bar_specs,
-                             total_fn=_total_transformation, display_fn=_display_transformation)
+                             total_fn=_total_transformation, display_fn=_display_transformation,
+                             show_total=channel_cfg.get("show_total", True))
             if reminder_mode == "none":
                 # 学部级：文字抬头 + 图片，不 @ 人、不生成文字提醒（含 fallback）。
                 top_people = None

@@ -4,7 +4,7 @@ These lock in the 2026-09-28 fix: a single channel's failure must never deny
 the other channels of the same group their message, and a silent skip must
 leave a durable trace instead of vanishing.
 """
-from contextlib import ExitStack
+from contextlib import ExitStack, closing
 from datetime import datetime, timedelta
 import json
 from pathlib import Path
@@ -78,7 +78,7 @@ class ChannelIsolationTests(unittest.TestCase):
                 raise ValueError("期次+lead_id重复，停止汇总")
             return context(args.channel)
 
-        def deliver(item, cfg, slot, db, evidence_arg):
+        def deliver(item, cfg, slot, db, evidence_arg, *, time_guard):
             delivered.append(item["channel"])
             return True
 
@@ -91,6 +91,42 @@ class ChannelIsolationTests(unittest.TestCase):
             # its own — what matters is that it was reached and never blocked.
             self.assertNotIn("blocked_prepare", self.events(directory, healthy))
 
+    def test_approved_binding_change_is_read_on_the_next_attempt(self):
+        rotated = {**self.cfg, "upstream": {
+            **self.cfg["upstream"], "exec_file_id": self.cfg["upstream"]["exec_file_id"] + 1,
+        }}
+        at = SLOT + timedelta(minutes=20)
+
+        def next_check(*args):
+            nonlocal at
+            at += timedelta(minutes=2)
+            return at
+
+        with tempfile.TemporaryDirectory() as directory, ExitStack() as stack:
+            ready = stack.enter_context(patch.object(
+                scheduler, "upstream_ready", side_effect=[ValueError("published execution file changed"), evidence()]))
+            deliver = stack.enter_context(patch.object(scheduler, "deliver", return_value=True))
+            for patcher in (
+                patch.object(scheduler, "now", side_effect=lambda: at),
+                patch.object(scheduler, "current_producer_bindings", side_effect=[self.cfg, rotated]),
+                patch.object(scheduler, "verify_bot"),
+                patch.object(scheduler, "prepare_report", side_effect=lambda args, definition: context(args.channel)),
+                patch.object(scheduler, "validate_context"),
+                patch.object(scheduler, "assert_current_revision"),
+                patch.object(scheduler, "next_check", side_effect=next_check),
+            ):
+                stack.enter_context(patcher)
+            with closing(scheduler.connect_ledger(Path(directory))) as db:
+                self.assertEqual(scheduler.run_slot(self.cfg, False, SLOT, Path(directory), db), 0)
+        self.assertEqual([call.args for call in ready.call_args_list], [(self.cfg, SLOT), (rotated, SLOT)])
+        self.assertEqual(deliver.call_count, 2)
+        for call in deliver.call_args_list:
+            item, cfg, slot = call.args[:3]
+            self.assertEqual(slot, SLOT)
+            self.assertEqual(cfg, rotated)
+            self.assertEqual(scheduler.delivery_key(cfg, slot, item["channel"]),
+                             scheduler.delivery_key(self.cfg, SLOT, item["channel"]))
+
     def test_prepare_runs_once_per_channel_per_attempt(self):
         calls = []
 
@@ -99,7 +135,7 @@ class ChannelIsolationTests(unittest.TestCase):
             return context(args.channel)
 
         with tempfile.TemporaryDirectory() as directory:
-            code = self.run_slot(directory, prepare, deliver=lambda *a: True)
+            code = self.run_slot(directory, prepare, deliver=lambda *args, **kwargs: True)
         self.assertEqual(code, 0)
         self.assertEqual(calls, self.channels)
 
@@ -110,7 +146,7 @@ class ChannelIsolationTests(unittest.TestCase):
         def prepare(args, definition):
             return context(args.channel, rev=111 if args.channel == first else 222)
 
-        def deliver(item, cfg, slot, db, evidence_arg):
+        def deliver(item, cfg, slot, db, evidence_arg, *, time_guard):
             delivered.append(item["channel"])
             return True
 

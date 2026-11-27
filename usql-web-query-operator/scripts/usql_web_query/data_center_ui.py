@@ -191,11 +191,18 @@ def preview_summary(payload: dict[str, Any]) -> dict[str, Any]:
 
 def compact_api_response(payload: dict[str, Any]) -> dict[str, Any]:
     data = payload.get("data")
-    return {
+    summary = {
         "status": payload.get("status"),
         "errorCode": payload.get("errorCode"),
         "data": data if isinstance(data, (str, int, float, bool, type(None))) else None,
     }
+    for key in ("message", "msg", "errorMessage", "error"):
+        value = payload.get(key)
+        if isinstance(value, str) and value.strip():
+            sanitized = re.sub(r"(?is)sql\s*\[.*\]", "sql[omitted]", value)
+            sanitized = re.sub(r"(?i)(token|password|secret)\s*[:=]\s*[^\s,;]+", r"\1=[redacted]", sanitized)
+            summary[key] = sanitized[:1000]
+    return summary
 
 
 def elapsed_ms(started: float) -> int:

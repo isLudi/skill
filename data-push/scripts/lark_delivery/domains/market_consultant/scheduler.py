@@ -9,8 +9,6 @@ from contextvars import ContextVar
 import json
 import os
 from pathlib import Path
-import re
-import subprocess
 import sys
 import time
 from datetime import datetime, timedelta
@@ -27,11 +25,13 @@ from .delivery_gate import reverify_unverified_delivery
 from .delivery_validation import receipt_readback
 from .delivery_ledger import claim, connect_ledger, delivery_key, record_outcome
 from .reporting import assert_current_revision, report_args, validate_context
+from .schedule_contract import validate_config
 from .reminder_fallback import review_before_send
 from .weekend_dual import REPORT_TYPE as WEEKEND_DUAL_REPORT_TYPE
 from .upstream import parse_complete_log, parse_volume_log, read_json, require_shared_periods, validate_history, verify_bot
 from .window import TZ, active_slot, next_check, report_for_slot
 from ...integrations import tiangong_release as rb
+from ...integrations.push_platform import tiangong_read
 from .channels import self_incubated_koc_5 as bp
 from . import volume_report as vr
 from ...paths import SKILL_ROOT, SKILLS_ROOT
@@ -105,47 +105,23 @@ def load_config(path):
     return cfg
 
 
-def validate_config(cfg):
-    catalog.require_registered_schedule(cfg)
-    slot_reports = cfg.get("slot_reports")
-    routed = slot_reports is not None
-    if cfg.get("timezone") != "Asia/Shanghai":
-        raise ValueError("Unreviewed schedule timezone")
-    if routed:
-        if cfg.get("hours") != [13, 17] or slot_reports != {"13": "regular", "17": "volume"}:
-            raise ValueError("Unreviewed two-slot report routing")
-    elif cfg.get("hours") not in ([13, 17], [13, 17, 21]):
-        raise ValueError("Unreviewed legacy schedule")
-    order = cfg.get("stagger_order")
-    start_minute = cfg.get("prepare_minute")
-    if (type(order) is not int or order < 1 or start_minute != 20 + (order - 1) // 2
-            or start_minute > 50
-            or cfg.get("send_minute") != start_minute
-            or cfg.get("deadline_minute") != 50 or cfg.get("retry_minutes") != 2
-            or not re.fullmatch(r"Codex-Lark-[A-Za-z0-9-]+Push", cfg.get("windows_task_name", ""))):
-        raise ValueError("Unreviewed retry window")
-    if cfg.get("report_profile") not in {bp.PROFILE, *SUPERVISOR_PROFILES}:
-        raise ValueError("Unreviewed delivery profile")
-    if not cfg.get("channel_key") and (cfg.get("channels") != [bp.CHANNEL] or cfg.get("chat_id") != bp.CHAT_ID):
-        raise ValueError("Unreviewed delivery scope")
-    if (cfg.get("period_rule") != "natural_week_friday" or cfg.get("process_weekdays") != list(range(7))
-            or cfg.get("result_weekdays") != [4, 5, 6]):
-        raise ValueError("Unreviewed business-week period or weekday policy")
-    volume = cfg.get("volume_report", {})
-    if volume:
-        if (volume.get("stage") not in {"preview_only", "scheduled"}
-                or volume.get("period_rule") != "latest_available" or volume.get("grain") != "年级"
-                or volume.get("channel_rule") not in vr.CHANNEL_RULE_DESCRIPTIONS):
-            raise ValueError("Unreviewed volume-report policy")
-        if volume.get("stage") == "scheduled":
-            producer = volume.get("upstream", {})
-            if (producer.get("task_name") != "market2lark_jinliang"
-                    or producer.get("log_protocol") != "volume_two_period_create_then_delete_v1"
-                    or not re.fullmatch(r"[0-9a-f]{64}", str(producer.get("verified_source_sha256", "")))):
-                raise ValueError("Scheduled volume producer is not release-bound")
-    if routed and volume.get("stage") != "scheduled":
-        raise ValueError("Routed volume report must be scheduled")
-    return cfg
+def current_producer_bindings(cfg, slot):
+    """Resolve only producer metadata again; the active slot and ledger stay fixed."""
+    if not cfg.get("channel_key"):
+        return cfg
+    definition = catalog.load_channel(cfg["channel_key"])
+    current = {**cfg, "upstream": catalog.market_lead_binding(definition)}
+    if report_for_slot(cfg, slot.hour) == "volume":
+        volume = cfg["volume_report"]
+        current["volume_report"] = {
+            **volume, "upstream": catalog.market_volume_binding(definition["volume_report"]),
+        }
+    return current
+
+
+def require_current_producer_bindings(cfg, slot):
+    if current_producer_bindings(cfg, slot) != cfg:
+        raise ValueError("Approved upstream binding changed after preparation")
 
 
 def require_send_window(slot, cfg=None):
@@ -159,9 +135,8 @@ def operator_reply(command, cfg, *extra):
     u = cfg["upstream"]
     argv = [sys.executable, str(OPERATOR), command, "--project-id", str(u["project_id"]),
             "--folder", u["folder"], "--menu-id", str(u["menu_id"]), "--task-name", u["task_name"], *extra]
-    result = subprocess.run(argv, cwd=str(SKILLS.parent), capture_output=True, text=True,
-                            encoding="utf-8", timeout=120,
-                            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+    child_env = dict(os.environ, PYTHONUTF8="1", PYTHONIOENCODING="utf-8")
+    result = tiangong_read(argv, cwd=str(SKILLS.parent), timeout=1200, env=child_env, binding=u)
     if result.returncode:
         # Operator artifacts contain redacted diagnostics; do not leak raw CLI errors.
         raise RuntimeError("upstream read-only operator failed: %s exit=%s" % (command, result.returncode))
@@ -236,14 +211,14 @@ def upstream_ready(cfg, slot):
 
 
 
-def deliver(context, cfg, slot, db, evidence):
+def deliver(context, cfg, slot, db, evidence, *, time_guard=None):
     if context.get("skip_delivery"):
         record_channel(db, slot, context["channel"], "skipped_no_eligible_rows",
                        context.get("skip_reason", ""), period=context["period"])
         return True
     key = delivery_key(cfg, slot, context["channel"], context.get("report_kind", "regular"))
     return _deliver_verified(context, cfg, slot, db, evidence, key=key,
-                             time_guard=lambda: require_send_window(slot, cfg))
+                             time_guard=time_guard or (lambda: require_send_window(slot, cfg)))
 
 
 def _reverify_sent_message(db, key, cfg, context, slot, prior):
@@ -437,11 +412,22 @@ def run_slot(cfg, preflight, slot, state, db):
     deadline = slot + timedelta(minutes=cfg["deadline_minute"])
     is_volume = report_for_slot(cfg, slot.hour) == "volume"
     definition = None if is_volume else catalog.load_channel(cfg.get("channel_key", catalog.DEFAULT_CHANNEL))
+
+    def time_guard():
+        require_send_window(slot, cfg)
+        require_current_producer_bindings(cfg, slot)
+
     while now() < deadline + timedelta(minutes=1):
         while now() < wake:
             time.sleep(min(20, max(0.01, (wake - now()).total_seconds())))
         try:
             attempt += 1
+            refreshed = current_producer_bindings(cfg, slot)
+            if refreshed != cfg:
+                cfg = refreshed
+                cached, pending, selected, absent = [], None, None, []
+                blocked.clear()
+                emit("approved_upstream_binding_reloaded", attempt=attempt, slot=slot.isoformat())
             emit("checking_bot_identity", attempt=attempt, slot=slot.isoformat())
             verify_bot(cfg)
             emit("checking_upstream", attempt=attempt, slot=slot.isoformat())
@@ -570,7 +556,7 @@ def run_slot(cfg, preflight, slot, state, db):
             for context in cached:
                 channel = context["channel"]
                 try:
-                    result = deliver(context, cfg, slot, db, evidence)
+                    result = deliver(context, cfg, slot, db, evidence, time_guard=time_guard)
                 except (Exception, SystemExit) as exc:
                     reason = "%s: %s" % (type(exc).__name__, str(exc)[:200])
                     blocked[channel] = {"status": "blocked_delivery", "reason": reason}

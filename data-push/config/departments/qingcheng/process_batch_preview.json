@@ -45,17 +45,6 @@
   "windows_task_name": "Codex-Lark-Qingcheng-Process-GroupPush",
   "retry_interval_minutes": 2,
   "upstream": {
-    "project_id": 308,
-    "folder": "吕帅",
-    "menu_id": 103625,
-    "task_id": 47728,
-    "nezha_task_id": 67318,
-    "task_name": "qing2lark_guocheng",
-    "owner": "lvshuai01",
-    "published_version": "V39",
-    "version_id": 219189,
-    "exec_file_id": 855658,
-    "source_sha256": "08ec50a45d1ef038aeb9d199091b260a39a9cc02a73a1f091aaf35ecd4538bb9",
-    "audit_schema": "market2lark-two-period-audit-v1"
+    "task_key": "qingcheng.process"
   }
 }

@@ -16,6 +16,8 @@
 
 ## 2. 部门adapter接口
 
+APP进量使用 `market-volume-v1` 和 `market-volume-artifacts-v1`，每个context包含一张年级进量图及独立的volume section。它通过原生post、组件认领及确定幂等键投递，发送前由volume适配器校验单独的进量生产者、Base revision与目标身份。[APP进量协议](departments/market_consultant/app_volume.md)记录数据范围和17:20重试窗口。
+
 `DepartmentAdapter` 是结构化Protocol，模块或对象实现均可。当前由市场部adapter模块实现：
 
 | 方法 | 职责 | 不能做什么 |

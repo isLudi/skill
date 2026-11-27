@@ -39,6 +39,31 @@ def payload_for(plan):
             'executeSql':current().execute_sql,'schedule':copy.deepcopy(plan['replacement_schedule'])}
 
 class RenewalGates(TestCase):
+    def test_native_empty_alarm_list_matches_omitted_no_recipient_baseline(self):
+        cur=current();cur.detail_payload['schedule'].pop('alarmReceiver')
+        plan=plan_for(cur);body=payload_for(plan)
+        body['schedule']['alarmReceiver']=[]
+        verify_save_payload(plan,body)
+        saved=copy.deepcopy(cur)
+        saved.detail_payload['schedule']={**body['schedule'],'taskId':'new','isExpire':False}
+        self.assertTrue(verify_readback(plan,saved)['fully_verified'])
+        for value in (None,'',{},['owner']):
+            changed=copy.deepcopy(body);changed['schedule']['alarmReceiver']=value
+            with self.assertRaises(UsageError):verify_save_payload(plan,changed)
+        for key,value in (('unexpected',[]),('taskId','injected'),('isExpire',False)):
+            changed=copy.deepcopy(body);changed['schedule'][key]=value
+            with self.assertRaises(UsageError):verify_save_payload(plan,changed)
+
+    def test_nonempty_alarm_receivers_cannot_be_dropped_or_emptied(self):
+        plan=plan_for()
+        for value in ([],None):
+            body=payload_for(plan);body['schedule']['alarmReceiver']=value
+            with self.assertRaises(UsageError):verify_save_payload(plan,body)
+            saved=current();saved.detail_payload['schedule']={**body['schedule'],'taskId':'new','isExpire':False}
+            with self.assertRaises(UsageError):verify_readback(plan,saved)
+        body=payload_for(plan);body['schedule'].pop('alarmReceiver')
+        with self.assertRaises(UsageError):verify_save_payload(plan,body)
+
     def test_pristine_editor_does_not_trigger_preview_before_date_change(self):
         from usql_web_query.data_center_schedule import DataCenterScheduleRenewalExecutor
         page=MagicMock();page.locator.return_value.count.return_value=0

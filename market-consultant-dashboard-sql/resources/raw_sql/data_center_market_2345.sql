@@ -313,17 +313,7 @@ when flow_pool_name like '%星义大大%' or flow_pool_name like '%星义物理%
 
 
 
-when (source_manager_name in ('马思雨02','袁银') and rule_name like '%集团%')
- and not coalesce((
-        (third_department_name = '私域运营部' and source_manager_name in ('陈雷19','崔慧敏01','侯佳林01','郑天琪02','杨彬屹','曹义鹏','王硕阳','于超研','岳一帆02','田起帆','王绍阳','肖佳兴','姚佳03','秦金萍','李冞萤'))
-        or (flow_pool_name like '%南通欣创%' or  flow_pool_name like '%人人通科技%' or flow_pool_name like '%易而购%' or flow_pool_name like '%济南梦航%' or flow_pool_name like '%晨硕智学%' or flow_pool_name like '%兴尧文化%' or flow_pool_name like '%济南映像%' or flow_pool_name like '%山东简单%' or flow_pool_name like '%争鸣科技%')
-        or ((flow_pool_name like '%家校共育%' or flow_pool_name like '%保持热爱%' or flow_pool_name like '%青松%' or flow_pool_name like '%悟之道%') and put_plan_name not like '%0元%')
-        or (source_manager_name = '李宁24' and put_plan_name like '%0转低%')
-        or (third_department_name = '私域运营部' and  flow_original_order_activity_price in ('100.0','900.0','300.0'))
-        or (third_department_name = '私域运营部' and  flow_original_order_activity_price in ('0.0') and source_manager_name in ('陈雷19','崔慧敏01','侯佳林01','郑天琪02','杨彬屹','曹义鹏','王硕阳','于超研'))
-        or (flow_pool_name like '公导私')
-        or (flow_pool_name like '%0转低转正%' or channel_name_2='产研测试')
-    ), false)
+when (source_manager_name IN ('马思雨02', '袁银') AND rule_name LIKE '%集团%') AND NOT COALESCE(((third_department_name = '私域运营部' AND source_manager_name IN ('陈雷19', '崔慧敏01', '侯佳林01', '郑天琪02', '杨彬屹', '曹义鹏', '王硕阳', '于超研', '岳一帆02', '田起帆', '王绍阳', '肖佳兴', '姚佳03', '秦金萍', '李冞萤', '李靖伟02')) OR (flow_pool_name LIKE '%南通欣创%' OR flow_pool_name LIKE '%人人通科技%' OR flow_pool_name LIKE '%易而购%' OR flow_pool_name LIKE '%济南梦航%' OR flow_pool_name LIKE '%晨硕智学%' OR flow_pool_name LIKE '%兴尧文化%' OR flow_pool_name LIKE '%济南映像%' OR flow_pool_name LIKE '%山东简单%' OR flow_pool_name LIKE '%争鸣科技%') OR ((flow_pool_name LIKE '%家校共育%' OR flow_pool_name LIKE '%保持热爱%' OR flow_pool_name LIKE '%青松%' OR flow_pool_name LIKE '%悟之道%') AND put_plan_name NOT LIKE '%0元%') OR (source_manager_name = '李宁24' AND put_plan_name LIKE '%0转低%') OR (third_department_name = '私域运营部' AND flow_original_order_activity_price IN ('100.0', '900.0', '300.0')) OR (third_department_name = '私域运营部' AND flow_original_order_activity_price IN ('0.0') AND source_manager_name IN ('陈雷19', '崔慧敏01', '侯佳林01', '郑天琪02', '杨彬屹', '曹义鹏', '王硕阳', '于超研', '李靖伟02')) OR (flow_pool_name LIKE '公导私') OR (flow_pool_name LIKE '%0转低转正%' OR channel_name_2 = '产研测试')), FALSE)
 then '集团私域'
 
 
@@ -360,7 +350,7 @@ when source_manager_name in ('韩正卿') then '抖音私信'
 
 
 
-when channel_name_1='市场私域' and put_plan_name like '%孟亚飞汇总%' then '小红书自然流-绍孜组'
+when channel_name_1='市场私域' and (put_plan_name like '%孟亚飞汇总%'  or rule_name like '%小红书自然流%') then '小红书自然流-绍孜组'
 
 
 
@@ -374,13 +364,13 @@ when channel_name_1='市场私域' and (virtual_fourth_department_name in ('郑�
 
 
 
-when third_department_name = '私域运营部' and source_manager_name in ('陈雷19','崔慧敏01','侯佳林01','郑天琪02','杨彬屹','曹义鹏','王硕阳','于超研','岳一帆02','田起帆','王绍阳','肖佳兴','姚佳03','秦金萍','李冞萤') and (rule_name like '%koc自孵化下引%' or rule_name like '%koc下引%' or page_id_name like '%自营%') then '自孵化KOC下引'
+when third_department_name = '私域运营部' and source_manager_name in ('陈雷19','崔慧敏01','侯佳林01','郑天琪02','杨彬屹','曹义鹏','王硕阳','于超研','岳一帆02','田起帆','王绍阳','肖佳兴','姚佳03','秦金萍','李冞萤','李靖伟02') and (rule_name like '%koc自孵化下引%' or rule_name like '%koc下引%' or page_id_name like '%自营%') then '自孵化KOC下引'
 
 
 
 
 
-when third_department_name = '私域运营部' and source_manager_name in ('陈雷19','崔慧敏01','侯佳林01','郑天琪02','杨彬屹','曹义鹏','王硕阳','于超研','岳一帆02','田起帆','王绍阳','肖佳兴','姚佳03','秦金萍','李冞萤') then '进校私域合作'
+when third_department_name = '私域运营部' and source_manager_name in ('陈雷19','崔慧敏01','侯佳林01','郑天琪02','杨彬屹','曹义鹏','王硕阳','于超研','岳一帆02','田起帆','王绍阳','肖佳兴','姚佳03','秦金萍','李冞萤','李靖伟02') then '进校私域合作'
 
 
 
@@ -687,17 +677,7 @@ when (flow_pool_name like '%曹忆%' or flow_pool_name like '%dudu%' or flow_poo
 
 
 
-when (first_department_name ='市场部' and channel_name_1 <> '站内获客' and channel_name_2 <> 'APP')
- and not coalesce((
-        (third_department_name = '私域运营部' and source_manager_name in ('陈雷19','崔慧敏01','侯佳林01','郑天琪02','杨彬屹','曹义鹏','王硕阳','于超研','岳一帆02','田起帆','王绍阳','肖佳兴','姚佳03','秦金萍','李冞萤'))
-        or (flow_pool_name like '%南通欣创%' or  flow_pool_name like '%人人通科技%' or flow_pool_name like '%易而购%' or flow_pool_name like '%济南梦航%' or flow_pool_name like '%晨硕智学%' or flow_pool_name like '%兴尧文化%' or flow_pool_name like '%济南映像%' or flow_pool_name like '%山东简单%' or flow_pool_name like '%争鸣科技%')
-        or ((flow_pool_name like '%家校共育%' or flow_pool_name like '%保持热爱%' or flow_pool_name like '%青松%' or flow_pool_name like '%悟之道%') and put_plan_name not like '%0元%')
-        or (source_manager_name = '李宁24' and put_plan_name like '%0转低%')
-        or (third_department_name = '私域运营部' and  flow_original_order_activity_price in ('100.0','900.0','300.0'))
-        or (third_department_name = '私域运营部' and  flow_original_order_activity_price in ('0.0') and source_manager_name in ('陈雷19','崔慧敏01','侯佳林01','郑天琪02','杨彬屹','曹义鹏','王硕阳','于超研'))
-        or (flow_pool_name like '公导私')
-        or (flow_pool_name like '%0转低转正%' or channel_name_2='产研测试')
-    ), false)
+when (first_department_name = '市场部' AND channel_name_1 <> '站内获客' AND channel_name_2 <> 'APP') AND NOT COALESCE(((third_department_name = '私域运营部' AND source_manager_name IN ('陈雷19', '崔慧敏01', '侯佳林01', '郑天琪02', '杨彬屹', '曹义鹏', '王硕阳', '于超研', '岳一帆02', '田起帆', '王绍阳', '肖佳兴', '姚佳03', '秦金萍', '李冞萤', '李靖伟02')) OR (flow_pool_name LIKE '%南通欣创%' OR flow_pool_name LIKE '%人人通科技%' OR flow_pool_name LIKE '%易而购%' OR flow_pool_name LIKE '%济南梦航%' OR flow_pool_name LIKE '%晨硕智学%' OR flow_pool_name LIKE '%兴尧文化%' OR flow_pool_name LIKE '%济南映像%' OR flow_pool_name LIKE '%山东简单%' OR flow_pool_name LIKE '%争鸣科技%') OR ((flow_pool_name LIKE '%家校共育%' OR flow_pool_name LIKE '%保持热爱%' OR flow_pool_name LIKE '%青松%' OR flow_pool_name LIKE '%悟之道%') AND put_plan_name NOT LIKE '%0元%') OR (source_manager_name = '李宁24' AND put_plan_name LIKE '%0转低%') OR (third_department_name = '私域运营部' AND flow_original_order_activity_price IN ('100.0', '900.0', '300.0')) OR (third_department_name = '私域运营部' AND flow_original_order_activity_price IN ('0.0') AND source_manager_name IN ('陈雷19', '崔慧敏01', '侯佳林01', '郑天琪02', '杨彬屹', '曹义鹏', '王硕阳', '于超研', '李靖伟02')) OR (flow_pool_name LIKE '公导私') OR (flow_pool_name LIKE '%0转低转正%' OR channel_name_2 = '产研测试')), FALSE)
 then '集团私域'
 
 
@@ -768,7 +748,7 @@ when channel_name_1 = '信息流' and channel_name_2 = 'B站' and third_departme
 
 
 
-when (channel_name_1 = '信息流' and channel_name_2 <> 'B站' and third_department_name NOT LIKE '%商务%' and put_plan_name not like '%初三0元%' and put_plan_name not like '%抖音私信%' and put_plan_name not like '%高中0元%' and flow_original_order_activity_price not like '%1990%') or (channel_name_2 = 'B站' and third_department_name like '%投放%') then '信息流'
+when (channel_name_1 = '信息流' and channel_name_2 <> 'B站' and third_department_name NOT LIKE '%商务%' and third_department_name NOT LIKE '%B站%' and put_plan_name not like '%初三0元%' and put_plan_name not like '%抖音私信%' and put_plan_name not like '%高中0元%' and flow_original_order_activity_price not like '%1990%') or (channel_name_2 = 'B站' and third_department_name like '%投放%') then '信息流'
 
 
 
@@ -825,7 +805,7 @@ when channel_name_1 = '信息流' and channel_name_2 = 'B站' and third_departme
 
 
 
-when channel_name_1 = '短直电商' and channel_name_2 = 'B站' and third_department_name  like '%商务%' and   (flow_pool_name like '%春春%' or sku_id_name like '%陈瑞春%')  then 'B站信息流-陈瑞春'
+when channel_name_1 = '短直电商' and channel_name_2 = 'B站' and (third_department_name  like '%商务%' or third_department_name  like '%B站%') and   (flow_pool_name like '%春春%' or sku_id_name like '%陈瑞春%')  then 'B站信息流-陈瑞春'
 
 
 
@@ -834,7 +814,7 @@ when channel_name_1 = '短直电商' and channel_name_2 = 'B站' and third_depar
 when channel_name_1 = '信息流' and channel_name_2 = 'B站' and third_department_name not like '%投放%' and rule_name like '%陈瑞春%' and flow_original_order_activity_price like '%1980%' then 'B站信息流-陈瑞春'
 
 
-when channel_name_1 = '短直电商' and channel_name_2 = 'B站' and third_department_name  like '%商务%' and  (flow_pool_name like '%朱博士%')  then 'B站信息流-朱汉祺'
+when channel_name_1 = '短直电商' and channel_name_2 = 'B站' and (third_department_name  like '%商务%' or third_department_name  like '%B站%') and  (flow_pool_name like '%朱博士%')  then 'B站信息流-朱汉祺'
 --when third_department_name = '线上商务部' and channel_name_2 = 'B站' and put_plan_name like '%春春%' then 'B站信息流-陈瑞春'
 --when third_department_name = '线上商务部' and channel_name_2 = 'B站' and put_plan_name like '%朱博士%' then 'B站信息流-朱汉祺'
 
@@ -933,49 +913,49 @@ when third_department_name in ('品牌效能部','KOC孵化部') and channel_nam
 
 
 
-when source_manager_name in ('包青青','蔡瑞涵','李文迁','李佳馨44','孙昊17','王洁雅01','王硕北','朱文','贾铭锐','李壮壮04','陈晓菁04','赵艺雅') and channel_name_2 like '%社群%' then '进校社群'
+when source_manager_name in ('包青青','蔡瑞涵','李文迁','李佳馨44','孙昊17','王洁雅01','王硕北','朱文','贾铭锐','李壮壮04','陈晓菁04','赵艺雅','李梦凡01') and (channel_name_2 like '%社群%' or channel_provider_name = '王老师公司') then '进校社群'
 
 
 
 
 
-when source_manager_name in ('包青青','蔡瑞涵','李文迁','李佳馨44','孙昊17','王洁雅01','王硕北','朱文','贾铭锐','李壮壮04','陈晓菁04','赵艺雅') and (channel_name_2 like '%直推%' or (put_plan_name like '%良师益友%' or put_plan_name like '%弘诚1元%')) then '进校直推'
+when source_manager_name in ('包青青','蔡瑞涵','李文迁','李佳馨44','孙昊17','王洁雅01','王硕北','朱文','贾铭锐','李壮壮04','陈晓菁04','赵艺雅','李梦凡01') and (channel_name_2 like '%直推%' or (put_plan_name like '%良师益友%' or put_plan_name like '%弘诚1元%' or channel_provider_name ='深圳市中鹏云创')) then '进校直推'
 
 
 
 
 
-when source_manager_name in ('包青青','蔡瑞涵','李文迁','李佳馨44','孙昊17','王洁雅01','王硕北','朱文','贾铭锐','李壮壮04','陈晓菁04','赵艺雅') and channel_name_2 like '%TMK%' and (page_id_name like '%1元%' or channel_provider_name like '%禾顺云%') then '进校TMK1元'
+when source_manager_name in ('包青青','蔡瑞涵','李文迁','李佳馨44','孙昊17','王洁雅01','王硕北','朱文','贾铭锐','李壮壮04','陈晓菁04','赵艺雅','李梦凡01') and channel_name_2 like '%TMK%' and (page_id_name like '%1元%' or channel_provider_name like '%禾顺云%') then '进校TMK1元'
 
 
 
 
 
-when source_manager_name in ('包青青','蔡瑞涵','李文迁','李佳馨44','孙昊17','王洁雅01','王硕北','朱文','贾铭锐','李壮壮04','陈晓菁04','赵艺雅') and channel_name_2 like '%TMK%' and page_id_name like '%9元%' then '进校TMK9元'
+when source_manager_name in ('包青青','蔡瑞涵','李文迁','李佳馨44','孙昊17','王洁雅01','王硕北','朱文','贾铭锐','李壮壮04','陈晓菁04','赵艺雅','李梦凡01') and channel_name_2 like '%TMK%' and page_id_name like '%9元%' then '进校TMK9元'
 
 
 
 
 
-when source_manager_name in ('包青青','蔡瑞涵','李文迁','李佳馨44','孙昊17','王洁雅01','王硕北','朱文','贾铭锐','李壮壮04','陈晓菁04','赵艺雅') and channel_name_2 like '%书商%' then '进校书商'
+when source_manager_name in ('包青青','蔡瑞涵','李文迁','李佳馨44','孙昊17','王洁雅01','王硕北','朱文','贾铭锐','李壮壮04','陈晓菁04','赵艺雅','李梦凡01') and channel_name_2 like '%书商%' then '进校书商'
 
 
 
 
 
-when source_manager_name in ('包青青','蔡瑞涵','李文迁','李佳馨44','孙昊17','王洁雅01','王硕北','朱文','贾铭锐','李壮壮04','陈晓菁04','赵艺雅') and channel_name_2 like '%综合%' and put_plan_name like '%18%' then '进校直播'
+when source_manager_name in ('包青青','蔡瑞涵','李文迁','李佳馨44','孙昊17','王洁雅01','王硕北','朱文','贾铭锐','李壮壮04','陈晓菁04','赵艺雅','李梦凡01') and channel_name_2 like '%综合%' and put_plan_name like '%18%' then '进校直播'
 
 
 
 
 
-when source_manager_name in ('包青青','蔡瑞涵','李文迁','李佳馨44','孙昊17','王洁雅01','王硕北','朱文','贾铭锐','李壮壮04','陈晓菁04','赵艺雅') and channel_name_2 like '%直播%' then '进校直播'
+when source_manager_name in ('包青青','蔡瑞涵','李文迁','李佳馨44','孙昊17','王洁雅01','王硕北','朱文','贾铭锐','李壮壮04','陈晓菁04','赵艺雅','李梦凡01') and channel_name_2 like '%直播%' then '进校直播'
 
 
 
 
 
-when source_manager_name in ('包青青','蔡瑞涵','李文迁','李佳馨44','孙昊17','王洁雅01','王硕北','朱文','贾铭锐','李壮壮04','赵艺雅') and put_plan_name not like '%0元%' and flow_pool_name not like '%家校共育%' and flow_pool_name not like '%保持热爱%' and flow_pool_name not like '%青松%' and flow_pool_name not like '%原子初三%' and flow_pool_name not like '%南通欣创%' and flow_pool_name not like '%悟之道%' and flow_pool_name not like '%济南梦航%' and channel_name_3 <> '社群' and put_plan_name not like '%善悟%' and put_plan_name not like '%人人通%'  and put_plan_name not like '%%济南格乐' and flow_pool_name not like '%晨硕智学%' and flow_pool_name not like '%兴尧文化%'  and flow_pool_name not like '%济南映像%' and flow_pool_name not like '%山东简单%' and flow_pool_name not like '%争鸣科技%'  then '商务低价'
+when source_manager_name in ('包青青','蔡瑞涵','李文迁','李佳馨44','孙昊17','王洁雅01','王硕北','朱文','贾铭锐','李壮壮04','赵艺雅','李梦凡01') and put_plan_name not like '%0元%' and flow_pool_name not like '%家校共育%' and flow_pool_name not like '%保持热爱%' and flow_pool_name not like '%青松%' and flow_pool_name not like '%原子初三%' and flow_pool_name not like '%南通欣创%' and flow_pool_name not like '%悟之道%' and flow_pool_name not like '%济南梦航%' and channel_name_3 <> '社群' and put_plan_name not like '%善悟%' and put_plan_name not like '%人人通%'  and put_plan_name not like '%%济南格乐' and flow_pool_name not like '%晨硕智学%' and flow_pool_name not like '%兴尧文化%'  and flow_pool_name not like '%济南映像%' and flow_pool_name not like '%山东简单%' and flow_pool_name not like '%争鸣科技%'  then '商务低价'
 
 
 
@@ -1006,7 +986,7 @@ when third_department_name = '私域运营部' and  flow_original_order_activity
 
 
 
-when third_department_name = '私域运营部' and  flow_original_order_activity_price in ('0.0') and source_manager_name in ('陈雷19','崔慧敏01','侯佳林01','郑天琪02','杨彬屹','曹义鹏','王硕阳','于超研') then '进校私域合作'
+when third_department_name = '私域运营部' and  flow_original_order_activity_price in ('0.0') and source_manager_name in ('陈雷19','崔慧敏01','侯佳林01','郑天琪02','杨彬屹','曹义鹏','王硕阳','于超研','李靖伟02') then '进校私域合作'
 
 
 
@@ -1088,17 +1068,7 @@ when flow_pool_name like '公导私' then '进校私域合作'
 
 
 
-when ((flow_pool_name like '%增长组%' or channel_name_3 = '公众号' or second_department_name = '微信生态部') and channel_name_2 <> 'APP')
- and not coalesce((
-        (third_department_name = '私域运营部' and source_manager_name in ('陈雷19','崔慧敏01','侯佳林01','郑天琪02','杨彬屹','曹义鹏','王硕阳','于超研','岳一帆02','田起帆','王绍阳','肖佳兴','姚佳03','秦金萍','李冞萤'))
-        or (flow_pool_name like '%南通欣创%' or  flow_pool_name like '%人人通科技%' or flow_pool_name like '%易而购%' or flow_pool_name like '%济南梦航%' or flow_pool_name like '%晨硕智学%' or flow_pool_name like '%兴尧文化%' or flow_pool_name like '%济南映像%' or flow_pool_name like '%山东简单%' or flow_pool_name like '%争鸣科技%')
-        or ((flow_pool_name like '%家校共育%' or flow_pool_name like '%保持热爱%' or flow_pool_name like '%青松%' or flow_pool_name like '%悟之道%') and put_plan_name not like '%0元%')
-        or (source_manager_name = '李宁24' and put_plan_name like '%0转低%')
-        or (third_department_name = '私域运营部' and  flow_original_order_activity_price in ('100.0','900.0','300.0'))
-        or (third_department_name = '私域运营部' and  flow_original_order_activity_price in ('0.0') and source_manager_name in ('陈雷19','崔慧敏01','侯佳林01','郑天琪02','杨彬屹','曹义鹏','王硕阳','于超研'))
-        or (flow_pool_name like '公导私')
-        or (flow_pool_name like '%0转低转正%' or channel_name_2='产研测试')
-    ), false)
+when ((flow_pool_name LIKE '%增长组%' OR channel_name_3 = '公众号' OR second_department_name = '微信生态部') AND channel_name_2 <> 'APP') AND NOT COALESCE(((third_department_name = '私域运营部' AND source_manager_name IN ('陈雷19', '崔慧敏01', '侯佳林01', '郑天琪02', '杨彬屹', '曹义鹏', '王硕阳', '于超研', '岳一帆02', '田起帆', '王绍阳', '肖佳兴', '姚佳03', '秦金萍', '李冞萤', '李靖伟02')) OR (flow_pool_name LIKE '%南通欣创%' OR flow_pool_name LIKE '%人人通科技%' OR flow_pool_name LIKE '%易而购%' OR flow_pool_name LIKE '%济南梦航%' OR flow_pool_name LIKE '%晨硕智学%' OR flow_pool_name LIKE '%兴尧文化%' OR flow_pool_name LIKE '%济南映像%' OR flow_pool_name LIKE '%山东简单%' OR flow_pool_name LIKE '%争鸣科技%') OR ((flow_pool_name LIKE '%家校共育%' OR flow_pool_name LIKE '%保持热爱%' OR flow_pool_name LIKE '%青松%' OR flow_pool_name LIKE '%悟之道%') AND put_plan_name NOT LIKE '%0元%') OR (source_manager_name = '李宁24' AND put_plan_name LIKE '%0转低%') OR (third_department_name = '私域运营部' AND flow_original_order_activity_price IN ('100.0', '900.0', '300.0')) OR (third_department_name = '私域运营部' AND flow_original_order_activity_price IN ('0.0') AND source_manager_name IN ('陈雷19', '崔慧敏01', '侯佳林01', '郑天琪02', '杨彬屹', '曹义鹏', '王硕阳', '于超研', '李靖伟02')) OR (flow_pool_name LIKE '公导私') OR (flow_pool_name LIKE '%0转低转正%' OR channel_name_2 = '产研测试')), FALSE)
 then '集团私域'
 
 
@@ -1559,10 +1529,72 @@ case when data.first_call_time_diff_hour >= 0 and data.first_call_time_diff_hour
     from data 
 	left join call_c on call_c.user_number = data.user_id and call_c.section_assign_employee_email_prefix = data.employee_email_prefix
 	left join denglu_app on denglu_app.user_number = data.user_id
-	where period_name > '20260306期'
+	where period_name >= '20260925期'
 )
 
 ---------------------------转化
+,
+assignment_source AS (
+  SELECT b.*,
+    CASE WHEN date_diff(
+      'day', try_cast(b.assign_day AS date),
+      cast(try(date_parse(substr(b.period_name, 1, 8), '%Y%m%d')) AS date)
+    ) BETWEEN -9 AND 9 THEN try_cast(b.assign_day AS date) END AS direct_assign_date,
+    max(CASE WHEN b.valid_lead_count <> 0 THEN 1 ELSE 0 END)
+      OVER (PARTITION BY b.period_name, b.channel_map, b.grade_1, b.depart_1, b.depart, b.jingli, b.zhuguan, b.employee_email_name, b.rule_name, b.assign_day) AS report_group_has_valid_lead
+    
+  FROM base b
+),
+assignment_candidates AS (
+  SELECT a.*,
+    min(CASE WHEN a.valid_lead_count > 0 AND a.direct_assign_date IS NOT NULL THEN a.period_name END)
+      OVER (PARTITION BY a.lead_id, a.user_id, a.employee_email_prefix, a.channel_map) AS candidate_period_min,
+    max(CASE WHEN a.valid_lead_count > 0 AND a.direct_assign_date IS NOT NULL THEN a.period_name END)
+      OVER (PARTITION BY a.lead_id, a.user_id, a.employee_email_prefix, a.channel_map) AS candidate_period_max,
+    min(CASE WHEN a.valid_lead_count > 0 THEN a.direct_assign_date END)
+      OVER (PARTITION BY a.lead_id, a.user_id, a.employee_email_prefix, a.channel_map) AS candidate_date_min,
+    max(CASE WHEN a.valid_lead_count > 0 THEN a.direct_assign_date END)
+      OVER (PARTITION BY a.lead_id, a.user_id, a.employee_email_prefix, a.channel_map) AS candidate_date_max
+  FROM assignment_source a
+),
+private_assignment_dates AS (
+  SELECT d.lead_id, d.user_number, d.employee_email_prefix,
+    min(try_cast(substr(d.assign_time, 1, 10) AS date)) AS min_assign_date,
+    max(try_cast(substr(d.assign_time, 1, 10) AS date)) AS max_assign_date
+  FROM service_dw.dwd_crm_assign_private_detail_hf d
+  WHERE d.dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
+    AND d.hour = format_datetime(now() - interval '2' hour, 'HH')
+    AND d.assign_employee_first_level_department_name = 'H业务线'
+    AND d.assign_employee_second_level_department_name = '市场部'
+    AND d.assign_employee_third_level_department_name = '市场顾问部'
+    AND d.lead_id > 0
+    AND try_cast(substr(d.assign_time, 1, 10) AS date) IS NOT NULL
+  GROUP BY d.lead_id, d.user_number, d.employee_email_prefix
+),
+attributed_base AS (
+  SELECT a.*,
+    CASE WHEN a.direct_assign_date IS NOT NULL THEN a.period_name
+         WHEN d.lead_id IS NOT NULL THEN a.candidate_period_min END AS lead_period_name,
+    coalesce(a.direct_assign_date, d.min_assign_date) AS lead_assign_date,
+    CASE WHEN a.direct_assign_date IS NOT NULL THEN '原有分配日'
+         WHEN d.lead_id IS NOT NULL THEN '两源一致补归'
+         ELSE '待归因' END AS lead_assignment_status
+  FROM assignment_candidates a
+  LEFT JOIN private_assignment_dates d
+    ON a.lead_id = d.lead_id AND a.user_id = d.user_number
+    AND a.employee_email_prefix = d.employee_email_prefix
+    AND a.lead_id > 0 AND a.user_id > 0 AND nullif(trim(a.employee_email_prefix), '') IS NOT NULL
+    AND a.direct_assign_date IS NULL
+    AND nullif(trim(a.assign_day), '') IS NULL
+    AND a.report_group_has_valid_lead = 0
+    AND (a.income_amount <> 0 OR a.in_pay_period_refund_amount <> 0 OR a.non_pay_period_refund_amount <> 0
+      OR a.same_lead_period_income_amount <> 0 OR a.same_lead_period_refund_amount <> 0)
+    AND a.candidate_period_min = a.candidate_period_max
+    AND a.candidate_period_min <= a.period_name
+    AND a.candidate_date_min = a.candidate_date_max
+    AND a.candidate_date_min = d.min_assign_date
+    AND d.min_assign_date = d.max_assign_date
+)
 ,zhuanhua as
 (select
     period_name,
@@ -1604,8 +1636,11 @@ case when data.first_call_time_diff_hour >= 0 and data.first_call_time_diff_hour
     sum(same_lead_period_income_amount/100) xb_trade_income,
     sum(same_lead_period_income_amount/100-same_lead_period_refund_amount/100) xb_trade_profit,
     sum(income_amount/100-same_lead_period_income_amount/100) kk_trade_income,
-    sum(non_pay_period_refund_amount/100) pre_refund
-from base
+    sum(non_pay_period_refund_amount/100) pre_refund,
+    lead_period_name,
+    lead_assign_date,
+    lead_assignment_status
+from attributed_base
 group by
     period_name,
     channel_map,
@@ -1616,10 +1651,53 @@ group by
     zhuguan, -- 小组长
    employee_email_name,
  rule_name,
-    assign_day
+    assign_day,
+    lead_period_name,
+    lead_assign_date,
+    lead_assignment_status
 )
 -------------结果指标
-select  zz.*,
+select
+    zz.period_name,
+    zz.channel_map,
+    zz.grade_1,
+    zz.depart_1,
+    zz.depart,
+    zz.jingli,
+    zz.zhuguan,
+    zz.employee_email_name,
+    zz.assign_day,
+    zz.rule_name,
+    zz.lead_count,
+    zz.can_renew_ds_count_a,
+    zz.abnormal_traffic_numerator,
+    zz.abnormal_traffic_denominator,
+    zz.first_call_24h,
+    zz.first_call_48h,
+    zz.friend_lead,
+    zz.shengou_lead,
+    zz.AB_lead,
+    zz.AB_zhuan,
+    zz.long_call_5,
+    zz.app_denglu,
+    zz.daoke_1,
+    zz.daoke_v1,
+    zz.pay_users,
+    zz.pay_users_on_period,
+    zz.pay_users_not_on_period,
+    zz.pay_user_subs,
+    zz.pay_user_subs_on_period,
+    zz.pay_user_subs_not_on_period,
+    zz.pay_user_subs_joint,
+    zz.pay_user_subs_joint_onp,
+    zz.pay_user_subs_joint_nonp,
+    zz.trade_income,
+    zz.trade_refund,
+    zz.trade_profit,
+    zz.xb_trade_income,
+    zz.xb_trade_profit,
+    zz.kk_trade_income,
+    zz.pre_refund,
 case when zz.can_renew_ds_count_a >=5  then zz.can_renew_ds_count_a else 0 end as s_lead,
 case when zz.can_renew_ds_count_a >=5 and zz.trade_income > 0 then 1 else 0 end as podan,---线索量>10且有净营收且带班
 case when zz.can_renew_ds_count_a >=5  then zz.employee_email_name else '未知' end as name1,
@@ -1629,7 +1707,10 @@ coalesce(ct.goal,0) gl_gl,--单例子标
 case when date_diff('day', date_parse(zz.assign_day, '%Y-%m-%d'), date_parse(substr(zz.period_name, 1, 4) || '-' || substr(zz.period_name, 5, 2) || '-' || substr(zz.period_name, 7, 2), '%Y-%m-%d')) between -9 and 9 
 then substr(zz.assign_day, 6, 5)
 else '其他'
-end as assign_day_new
+end as assign_day_new,
+    zz.lead_period_name,
+    zz.lead_assign_date,
+    zz.lead_assignment_status
 from zhuanhua zz
 ----渠道
 left join (select * from temp_table.dingxi01_channel_group) channel_grp on channel_grp.channel=zz.channel_map

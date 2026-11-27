@@ -73,7 +73,7 @@ def _read_snapshot(path: Path, config: dict | None = None) -> tuple[list[dict], 
         raise ValueError("Duplicate or missing Base record IDs")
     if len({r.get("记录键") for r in rows}) != len(rows):
         raise ValueError("Duplicate or missing business keys")
-    match = (config or {"source": {"match": {"一级渠道": "公海", "渠道": "顾问未加好友"}}})["source"]["match"]
+    match = (config or {"source": {"match": {"一级渠道": "公海", "渠道": ["顾问未加好友", "0元信息流"]}}})["source"]["match"]
     if not rows or any(not _matches_channel(row, match) for row in rows):
         raise ValueError("Export contains rows outside the configured Qingcheng channel")
     if len({(r.get("分区日期"), r.get("分区小时")) for r in rows}) != 1:
@@ -189,7 +189,8 @@ def _band_label(channel: str, level: str, period: str) -> str:
 
 def _table_image(rows: list[dict], columns: list[str], path: Path, level: str, period: str, channel: str = "公海", *,
                  split_grade: bool = False, bar_specs: dict[str, tuple[float, float, str]] | None = None,
-                 integer_fields: frozenset[str] = frozenset(), total_fn=None, display_fn=None) -> None:
+                 integer_fields: frozenset[str] = frozenset(), total_fn=None, display_fn=None,
+                 show_total: bool = True) -> None:
     """Render one table image; total_fn/display_fn let sibling report types reuse the layout."""
     if bar_specs is None:
         bar_specs = {field: (*scale, BAR_COLORS[field]) for field, scale in SCALES.items()}
@@ -201,7 +202,7 @@ def _table_image(rows: list[dict], columns: list[str], path: Path, level: str, p
     band_h, header_h, row_h, gap = 50, 62, 56, 18
     grades = list(dict.fromkeys(row["年级"] for row in rows)) if split_grade else [None]
     blocks = [(grade, [row for row in rows if row["年级"] == grade]) for grade in grades] if split_grade else [(None, rows)]
-    height = sum(band_h + header_h + (len(block_rows) + 1) * row_h for _, block_rows in blocks) + gap * max(0, len(blocks) - 1)
+    height = sum(band_h + header_h + (len(block_rows) + int(show_total)) * row_h for _, block_rows in blocks) + gap * max(0, len(blocks) - 1)
     im = Image.new("RGB", (width, height), PAPER)
     d = ImageDraw.Draw(im)
     top = 0
@@ -217,7 +218,8 @@ def _table_image(rows: list[dict], columns: list[str], path: Path, level: str, p
             d.rectangle((x, header, x + col_width, header + header_h), fill=NAVY, outline=GRID)
             _center_text(d, (x, header, x + col_width, header + header_h), col, _font(19, bold=True), HEADER_TEXT)
             x += col_width
-        for index, row in enumerate([*block_rows, total_fn(block_rows)]):
+        displayed_rows = [*block_rows, total_fn(block_rows)] if show_total else block_rows
+        for index, row in enumerate(displayed_rows):
             y = header + header_h + index * row_h
             is_total = row.get("is_total", False)
             x = 0

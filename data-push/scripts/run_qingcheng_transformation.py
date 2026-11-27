@@ -29,13 +29,16 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from fetch_qingcheng_process_source import fetch, probe_revision
-from export_conversion_refresh import FILTERS, BASE_TOKEN, TABLE_ID, export_conversion
+from fetch_qingcheng_process_source import fetch, probe_revision, shared_fetch
+from export_conversion_refresh import FILTERS, BASE_TOKEN, TABLE_ID, export_conversion, shared_export_conversion
 from preview_qingcheng_transformation import build
-from qingcheng_schedule import resolve_slot
+from qingcheng_schedule import delivery_deadline, resolve_slot
 from lark_delivery.common import push_log, resend
 from lark_delivery.common.retry import retry_transport
 from lark_delivery.common.runtime import CREATE_NO_WINDOW, ensure_console_streams, run_lark
+from lark_delivery.integrations.producer_bindings import load_binding
+from lark_delivery.integrations.push_platform import tiangong_read
+from run_qingcheng_process import PROCESS_TASK_KEY, process_binding
 import qingcheng_internal_books as internal_books
 
 
@@ -43,18 +46,18 @@ SKILL = Path(__file__).resolve().parents[1]
 WORKSPACE = SKILL.parents[1]
 CONFIG_DIR = SKILL / "config/departments/qingcheng"
 BATCH_CONFIG = CONFIG_DIR / "transformation_batch.json"
+CONVERSION_TASK_KEY = "qingcheng.transformation"
 STATE = WORKSPACE / "runtime/qingcheng-transformation-batch"
 # 2026-10-02 学部级并入调度：四渠道（公海/私域/抖音私信/图书）dept 维度发
 # ⏰渠道专项讨论（同群）；本地化无 dept 申请，_channel_levels 按 profiles 自动跳过。
 # 2026-10-08：学部独立 13:50 调度；普通主管/顾问保留两分钟错峰。
 LEVELS = ("supervisor", "consultant", "dept")
-CHANNEL_IDS = ["public_pool", "private", "douyin_dm", "partner_books", "partner_local", "internal_books"]
+CHANNEL_IDS = ["public_pool", "private", "douyin_dm", "partner_books", "partner_local", "partner_shandong_live", "internal_books"]
 SEND_SCRIPT = SKILL / "scripts/send_qingcheng_transformation.py"
 
-# 2026-10-01 审定状态：五渠道全部参与周常调度（用户确认预览后授权；图书/本地化
-# 无转化产出时仍按 no_data_policy 跳过）。
+# 2026-11-26 图书渠道退出调度；其他渠道及两个 audience 的日历保持原样。
 EXPECTED_SCHEDULED = {"public_pool": True, "private": True, "douyin_dm": True,
-                      "partner_books": True, "partner_local": True}
+                      "partner_books": False, "partner_local": True, "partner_shandong_live": True}
 
 # “无转化产出”判定字段：任一非 0 即视为有转化产出。2026-10-02 起仅用于
 # 诊断记录（conversion_has_output），不再触发跳过——所有窗口恒推送。
@@ -126,13 +129,16 @@ def _batch() -> dict:
             batch["no_data_policy"]) != (2, "Codex-Lark-Qingcheng-Transformation-GroupPush", 1560,
                                          "always_send_with_fallback_flag"):
         raise ValueError("Transformation task pin or policy differs")
-    upstream = batch["upstream"]
-    if (upstream["project_id"], upstream["folder"], upstream["task_id"], upstream["task_name"],
-            upstream["nezha_task_id"], upstream["menu_id"], upstream["published_version"],
-            upstream["version_id"], upstream["exec_file_id"], upstream["source_sha256"], upstream["audit_mode"]) != (
-                308, "吕帅", 47775, "qing2lark_zhuanhua", 67397, 103713, "V14", 219202, 855788,
-                "f8c7c6a089741cfe2565a33a6575e84a4e416bc2c959f02995f43475a9eaaf32", "none"):
-        raise ValueError("Transformation upstream pin differs")
+    references = batch["upstream"]
+    if references != {"process_task_key": PROCESS_TASK_KEY, "conversion_task_key": CONVERSION_TASK_KEY}:
+        raise ValueError("Transformation upstream producer references differ")
+    process = process_binding({"task_key": references["process_task_key"]})
+    conversion = load_binding(references["conversion_task_key"], expected_domain="qingcheng",
+                              config_root=SKILL / "config")
+    if (process["table_id"], conversion.get("table_id"), conversion.get("audit_mode")) != (
+            batch["source"]["process_table_id"], TABLE_ID, "none") or TABLE_ID != batch["source"]["conversion_table_id"]:
+        raise ValueError("Transformation producer Base tables or audit contract differ")
+    batch["upstream_bindings"] = {"process": process, "conversion": conversion}
     return batch
 
 
@@ -146,15 +152,13 @@ def _period(day: date) -> str:
 
 def _conversion_upstream_ready(batch: dict) -> int:
     """Do not treat a producer's temporary empty replacement window as no data."""
-    upstream = batch["upstream"]
+    upstream = batch["upstream_bindings"]["conversion"]
     cli = SKILL.parent / "usql-web-query-operator/scripts/tiangong2_task.py"
     command = [sys.executable, str(cli), "list-execution-history", "--project-id", str(upstream["project_id"]),
                "--folder", upstream["folder"], "--menu-id", str(upstream["menu_id"]),
                "--task-name", upstream["task_name"], "--limit", "50"]
     child_env = dict(os.environ, PYTHONUTF8="1", PYTHONIOENCODING="utf-8")
-    result = subprocess.run(command, cwd=WORKSPACE, env=child_env, capture_output=True,
-                            text=True, encoding="utf-8", errors="replace", timeout=120,
-                            creationflags=CREATE_NO_WINDOW)
+    result = tiangong_read(command, cwd=WORKSPACE, timeout=1200, env=child_env, binding=upstream)
     if result.returncode:
         raise ValueError("Conversion producer readiness could not be verified")
     response = json.loads(result.stdout)
@@ -253,7 +257,8 @@ def _channel_levels(channel: str, audience: str = "all") -> tuple[str, ...]:
                  and (audience == "all" or (slug == "dept") == (audience == "dept")))
 
 
-def _send_group(channel: str, level: str, review_dir: Path, key: str) -> dict:
+def _send_group(channel: str, level: str, review_dir: Path, key: str,
+                deadline: datetime | None = None, source_versions: dict | None = None) -> dict:
     receipt = review_dir / f"{level}_transformation_send_{key}.json"
     verdict, message_id = _receipt_state(receipt)
     if verdict == resend.DONE:
@@ -265,8 +270,13 @@ def _send_group(channel: str, level: str, review_dir: Path, key: str) -> dict:
     command = [sys.executable, str(SEND_SCRIPT), "--channel", channel, "--level", level,
                "--review-dir", str(review_dir), "--idempotency-key", key,
                "--allow-fallback", mode]
+    if mode == "--send" and deadline is not None:
+        command.extend(["--delivery-deadline", deadline.isoformat()])
+        if source_versions is not None:
+            command.extend(["--expected-process-rev", str(source_versions["process_rev"]),
+                            "--expected-conversion-rev", str(source_versions["conversion_rev"])])
     result = subprocess.run(command, cwd=WORKSPACE, capture_output=True, text=True,
-                            encoding="utf-8", errors="replace", timeout=300, creationflags=CREATE_NO_WINDOW)
+                            encoding="utf-8", errors="replace", timeout=1200, creationflags=CREATE_NO_WINDOW)
     if result.returncode:
         return {"status": "blocked_or_uncertain", "error": (result.stderr or result.stdout)[-1200:].strip(),
                 "receipt": str(receipt) if receipt.exists() else None}
@@ -314,9 +324,10 @@ def _deliver_groups(batch: dict, batch_result: dict, output: Path, slot: datetim
                     item["groups"][level] = outcome
                     _write_json(result_path,batch_result)
                     continue
+                version = None
                 if group["status"] != resend.REVERIFY:
                     probe_file = review_dir / f"probe_{level}_process.ndjson"
-                    options = {"allow_empty": True} if channel == "partner_books" else {}
+                    options = {"allow_empty": True} if channel in {"partner_books", "partner_shandong_live"} else {}
                     current_process_rev = retry_transport(lambda: probe_revision(channel, period, probe_file, **options))
                     current_conversion_rev = retry_transport(
                         lambda: _probe_conversion_rev(channel, review_dir / f"probe_{level}_conversion.ndjson"))
@@ -324,7 +335,11 @@ def _deliver_groups(batch: dict, batch_result: dict, output: Path, slot: datetim
                     if (current_process_rev, current_conversion_rev) != (version["process_rev"], version["conversion_rev"]):
                         raise ValueError("Raw Base revision changed before delivery")
                 key = _key(channel, level, _config_chat_id(channel, level), period, slot)
-                outcome = _send_group(channel, level, review_dir, key)
+                audience = batch_result.get("audience", "standard")
+                calendar = batch.get("dept_schedule", {}).get("business_calendar", {}) if audience == "dept" else batch.get("business_calendar", {})
+                deadline = delivery_deadline(slot, {"retry_window_minutes": calendar.get("retry_window_minutes", 53),
+                                                    "retry_interval_minutes": batch.get("retry_interval_minutes", 2)})
+                outcome = _send_group(channel, level, review_dir, key, deadline, version)
             except Exception as exc:
                 outcome = {"status": "blocked", "error": str(exc)}
             item["groups"][level] = outcome
@@ -377,8 +392,12 @@ def run(*, period_date: str = "", confirm_send: bool = False, now: datetime | No
         channel_result = {"process_rev": None, "conversion_rev": None, "snapshots": {},
                           "review": None, "groups": {}}
         result["channels"][channel] = channel_result
+        if confirm_send and entry.get("first_send_at") and slot < datetime.fromisoformat(entry["first_send_at"]):
+            for level in levels:
+                channel_result["groups"][level] = {"status": "skipped_schedule_disabled", "reason": "Before channel first_send_at"}
+            continue
         if not entry.get("scheduled", True):
-            # 审定门控：图书/本地化在用户确认预览前不参与调度（不取数、不发送）。
+            # Disabled channels retain history but never fetch, prepare or send.
             for level in levels:
                 channel_result["groups"][level] = {"status": "skipped_schedule_disabled"}
             continue
@@ -396,15 +415,31 @@ def run(*, period_date: str = "", confirm_send: bool = False, now: datetime | No
             merged_review = None
             for level in levels:
                 try:
+                    if confirm_send and slot:
+                        key = _key(channel, level, _config_chat_id(channel, level), period, slot)
+                        receipt = channel_dir / f"{level}_transformation_send_{key}.json"
+                        verdict, message_id = _receipt_state(receipt)
+                        if verdict == resend.DONE:
+                            channel_result["groups"][level] = {"status": "sent_verified", "message_id": message_id,
+                                                                "receipt": str(receipt)}
+                            continue
+                        if verdict == resend.REVERIFY:
+                            channel_result["groups"][level] = {"status": resend.REVERIFY}
+                            continue
                     process_source = channel_dir / level / "source_process.ndjson"
-                    options = {"allow_empty": True} if channel == "partner_books" else {}
-                    manifest = fetch(channel, period, process_source, **options)
+                    options = {"allow_empty": True} if channel in {"partner_books", "partner_shandong_live"} else {}
+                    manifest = (shared_fetch(channel, period, process_source, fetcher=fetch, **options)
+                                if confirm_send else fetch(channel, period, process_source, **options))
                     channel_result["process_rev"] = manifest["rev"]
                     channel_result["snapshots"]["process"] = " ".join(
                         (manifest["snapshot"][0], manifest["snapshot"][1] + ":00"))
                     conversion_source = channel_dir / level / "source_conversion.ndjson"
-                    conversion_manifest = export_conversion(channel, period, conversion_source,
-                                                            cache_dir=channel_dir / level / "conversion_pages")
+                    conversion_manifest = (
+                        shared_export_conversion(channel, period, conversion_source,
+                                                 cache_dir=channel_dir / level / "conversion_pages",
+                                                 exporter=export_conversion)
+                        if confirm_send else export_conversion(channel, period, conversion_source,
+                                                               cache_dir=channel_dir / level / "conversion_pages"))
                     channel_result["conversion_rev"] = conversion_manifest["rev"]
                     conversion_rows = [json.loads(line) for line
                                        in conversion_source.read_text(encoding="utf-8").splitlines() if line]

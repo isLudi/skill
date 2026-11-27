@@ -8,6 +8,9 @@ from . import grade_report
 
 
 def title(context):
+    if context.get('daily_sections') is not None:
+        from .high_school_daily_card import title as daily_title
+        return daily_title(context)
     label = '过程' if context['section'] == 'process' else '转化'
     channel = context['results'][0]['component']['label']
     return f"🔥【{context['period']}】【{channel}】主管{label}数据播报"
@@ -28,6 +31,9 @@ def reminder_lines(context, people):
 
 
 def build(context, image_keys, people):
+    if context.get('daily_sections') is not None:
+        from .high_school_daily_card import build as daily_build
+        return daily_build(context, image_keys, people)
     if len(image_keys) != 1 or len(context['artifacts']) != 1:
         raise ValueError('A channel card requires exactly one channel image')
     snapshot = f"截至dt={context['snapshot'][0]}，hour={context['snapshot'][1]}时"
@@ -72,6 +78,9 @@ def write_preview(context):
     if not context['artifacts']:
         path.write_text('<!doctype html><meta charset="utf-8"><p>当前渠道没有达到展示门槛的数据。</p>',encoding='utf-8')
         return {'html':str(path)}
+    if context.get('daily_sections') is not None:
+        from .high_school_daily_card import write_preview as daily_preview
+        return daily_preview(context)
     people = delivery.resolve_people(context)
     card = build(context,['LOCAL_PREVIEW_IMAGE_KEY'],people)
     artifact = context['artifacts'][0]

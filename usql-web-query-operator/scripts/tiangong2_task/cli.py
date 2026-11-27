@@ -513,7 +513,7 @@ def build_parser() -> argparse.ArgumentParser:
     plan_execution.add_argument(
         "--period-time",
         default=None,
-        help="Execution data period in YYYY-MM-DD HH:mm:ss; defaults to current Asia/Shanghai minute.",
+        help="Execution data period in YYYY-MM-DD HH:mm:ss; defaults to current Asia/Shanghai hour.",
     )
     plan_execution.add_argument(
         "--artifacts-dir",
@@ -2058,6 +2058,7 @@ def cmd_plan_task_execution(args: argparse.Namespace) -> int:
     if args.output_file is not None:
         _validate_runtime_output(args.output_file)
     period_time = args.period_time or datetime.now(ZoneInfo("Asia/Shanghai")).replace(
+        minute=0,
         second=0,
         microsecond=0,
     ).strftime("%Y-%m-%d %H:%M:%S")

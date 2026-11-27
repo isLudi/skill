@@ -16,12 +16,12 @@
 
 | family_id | 登记源 | 本地累计工作簿 | 平台临时表 | 合并作用域 |
 |---|---|---|---|---|
-| `personal_period_goal` | `个人期度目标表.xlsx` / `个人期次目标表.xlsx` | `D:\GAOTU\19003_青橙项目部看板维护表格\qing_goal.xlsx` | `dingxi01_qing_goal` | 源 `qici` 切片 |
-| `team_period_goal` | `团队期度目标表.xlsx` / `团队期次目标表.xlsx` | `...\qing_team_goal_qi.xlsx` | `dingxi01_qing_team_g_qi` | 源 `qici` 切片 |
-| `team_month_goal` | `团队月度目标表.xlsx` / `月度目标表.xlsx` | `...\qing_team_goal_moth.xlsx` | `dingxi01_qing_team_goal` | 源 `month` 切片 |
-| `result_architecture` | `全员结果数据架构.xlsx` | `...\qing_team_jg.xlsx` | `dingxi01_qing_team_jg` | 源 `qici` 切片 |
-| `period_architecture` | 青橙带班架构文件 | `D:\GAOTU\19002_市场顾问部看板维护表格\jiagou_db.xlsx` | `dingxi01_jiagou_db` | `dept_1=青橙项目部` 且源 `qici` |
-| `course_schedule` | 郅玲玉或崔浩发送的群内 Excel 附件（文件名含行课语义，见 `course_schedule_source.md`） | `D:\GAOTU\19003_青橙项目部看板维护表格\qing_daoke.xlsx` | `dingxi01_qing_daoke` | 历史累计源按 `qici` 切片追加 |
+| `personal_period_goal` | `个人期度目标表.xlsx` / `个人期次目标表.xlsx` | `D:\GAOTU\19003_青橙项目部看板维护表格\qing_goal.xlsx` | `lvshuai01_qing_goal` | 源 `qici` 切片 |
+| `team_period_goal` | `团队期度目标表.xlsx` / `团队期次目标表.xlsx` | `...\qing_team_goal_qi.xlsx` | `lvshuai01_qing_team_g_qi` | 源 `qici` 切片 |
+| `team_month_goal` | `团队月度目标表.xlsx` / `月度目标表.xlsx` | `...\qing_team_goal_moth.xlsx` | `lvshuai01_qing_team_goal` | 源 `month` 切片 |
+| `result_architecture` | `全员结果数据架构.xlsx` | `...\qing_team_jg.xlsx` | `lvshuai01_qing_team_jg` | 源 `qici` 切片 |
+| `period_architecture` | 青橙带班架构文件 | `D:\GAOTU\19002_市场顾问部看板维护表格\jiagou_db.xlsx` | `lvshuai01_jiagou_db` | `dept_1=青橙项目部` 且源 `qici` |
+| `course_schedule` | 郅玲玉或崔浩发送的群内 Excel 附件（文件名含行课语义，见 `course_schedule_source.md`） | `D:\GAOTU\19003_青橙项目部看板维护表格\qing_daoke.xlsx` | `lvshuai01_qing_daoke` | 历史累计源按 `qici` 切片追加 |
 
 前三类目标表允许在登记文件名前增加一个严格的数字月份前缀：`1月`–`12月`，并兼容 `01月`–`09月`。月份以外的文本前缀、`0月`、`13月`、中文数字月份和其他扩展名仍不匹配。
 
@@ -29,43 +29,41 @@
 
 ## 市场本地工作簿与平台临时表全量映射
 
-2026-07-29 对 `D:\GAOTU\19002_市场顾问部看板维护表格` 直属文件完成盘点：排除两个凭据环境文件后，共有 9 个 `.xlsx`。以下本地文件名和平台表名各自唯一，组成严格一一映射：
+以下 8 个参与本工作流的本地文件与平台表名各自唯一，组成严格一一映射。`pingyou_jg` 已退出群内预检和上传，由张君言直接维护 `zhangjunyan01_pingyou_jg`；本地旧文件不自动映射到该表。
 
 | 本地文件 | 大航海完整表名 | 当前用途 |
 |---|---|---|
-| `ceshiqudao_pingyou.xlsx` | `temp_table.dingxi01_ceshiqudao_pingyou` | 仅登记映射 |
-| `cost.xlsx` | `temp_table.dingxi01_cost` | 自动维护文件族 `market_cost` |
-| `daoke_1_6_t.xlsx` | `temp_table.dingxi01_daoke_1_6_t` | 自动维护文件族 `market_attendance_schedule` |
-| `jiagou_db.xlsx` | `temp_table.dingxi01_jiagou_db` | 自动维护文件族 `market_period_architecture`；与青橙按 `dept_1` 共享 |
-| `jiagou_xinren.xlsx` | `temp_table.dingxi01_jiagou_xinren` | 仅登记映射 |
-| `jiagou_zx.xlsx` | `temp_table.dingxi01_jiagou_zx` | 仅登记映射 |
-| `jinliang_goal.xlsx` | `temp_table.dingxi01_jinliang_goal` | 自动维护文件族 `market_lead_goal` |
-| `pingyou_jg.xlsx` | `temp_table.dingxi01_pingyou_jg` | 自动维护文件族 `market_evaluation_architecture` |
-| `plan_id.xlsx` | `temp_table.dingxi01_plan_id` | 自动维护文件族 `market_plan_id` |
+| `ceshiqudao_pingyou.xlsx` | `temp_table.lvshuai01_ceshiqudao_pingyou` | 仅登记映射 |
+| `cost.xlsx` | `temp_table.lvshuai01_cost` | 自动维护文件族 `market_cost` |
+| `daoke_1_6_t.xlsx` | `temp_table.lvshuai01_daoke_1_6_t` | 自动维护文件族 `market_attendance_schedule` |
+| `jiagou_db.xlsx` | `temp_table.lvshuai01_jiagou_db` | 自动维护文件族 `market_period_architecture`；与青橙按 `dept_1` 共享 |
+| `jiagou_xinren.xlsx` | `temp_table.lvshuai01_jiagou_xinren` | 仅登记映射 |
+| `jiagou_zx.xlsx` | `temp_table.lvshuai01_jiagou_zx` | 仅登记映射 |
+| `jinliang_goal.xlsx` | `temp_table.lvshuai01_jinliang_goal` | 自动维护文件族 `market_lead_goal` |
+| `plan_id.xlsx` | `temp_table.lvshuai01_plan_id` | 自动维护文件族 `market_plan_id` |
 
-平台核验使用九张表的 `WHERE 1=0` 零行解析探针，不读取业务行；查询 ID `1506786567`，状态 `Success`。其中 `jiagou_xinren.xlsx` 当前为 160 行、字段为 `employee_email_prefix`、`employee_email_name`、`new_qici`，与既有线上核验记录一致。
+2026-11-14 新目标已通过 `lvshuai01` 账号导入历史成功记录及新旧字段类型对比核验；旧名称的 2026-07-29 零行探针查询 ID `1506786567` 仅作历史证据。
 
 机器真源是 `workflow_registry.json.local_temp_table_inventories.market_consultant`。加载注册表时必须同时验证：
 
 - 本地文件名不重复；
-- 平台 `dingxi01_*` 名称不重复；
-- 6 个 `managed` 映射与对应文件族的本地路径和平台目标完全一致；
+- 平台 `lvshuai01_*` 名称不重复；
+- 5 个 `managed` 映射与对应文件族的本地路径和平台目标完全一致；
 - 3 个 `mapping_only` 映射没有 `workflow_family_id`，且继续处于延迟自动化列表。
 
 `mapping_only` 只解决身份映射，不构成自动同步或上传授权。若以后要让张君言维护这 3 张表，必须先补齐精确来源文件规则、来源质量阈值、合并策略、验证规则和测试，再把范围改为 `managed`。
 
-## 市场六类自动维护表
+## 市场五类自动维护表
 
-2026-07-29 对张君言历史私聊完成了 240 条消息盘点，其中 94 条为文件消息，识别出以下六个稳定文件族。最新历史附件只用于初始化规则和来源切片哈希。
+2026-07-29 对张君言历史私聊完成了 240 条消息盘点，其中 94 条为文件消息。以下历史附件只用于初始化规则和来源切片哈希。
 
 | family_id | 最新历史证据 | 本地累计工作簿 | 平台临时表 | 合并模式 |
 |---|---|---|---|---|
-| `market_cost` | `cost.xlsx`，2026-07-26，29 行 | `D:\GAOTU\19002_市场顾问部看板维护表格\cost.xlsx` | `dingxi01_cost` | 源 `qici` 切片 upsert |
-| `market_period_architecture` | `daiban_jg_db.xlsx` / `daiban.xlsx`，累计表或当前期次切片 | `...\jiagou_db.xlsx` | `dingxi01_jiagou_db` | 两个文件名均为已登记来源；活动工作表可为 `zhengzhou` 或 `Sheet1`；只处理新增/变更源切片；目标限定 `dept_1=市场顾问部` |
-| `market_attendance_schedule` | `daoke_1_6_t.xlsx`，2026-07-27，6881 行 | `...\daoke_1_6_t.xlsx` | `dingxi01_daoke_1_6_t` | 只处理新增/变更源切片 |
-| `market_lead_goal` | `leads_goal.xlsx`，2026-07-28，19 行 | `...\jinliang_goal.xlsx` | `dingxi01_jinliang_goal` | 源 `qici` 切片 upsert |
-| `market_evaluation_architecture` | `pingyou_jg.xlsx`，2026-07-21，5921 行 | `...\pingyou_jg.xlsx` | `dingxi01_pingyou_jg` | 确定性修订后完整替换 |
-| `market_plan_id` | `plan_id.xlsx`，2026-07-28，96 行 | `...\plan_id.xlsx` | `dingxi01_plan_id` | 只处理新增/变更源切片 |
+| `market_cost` | `cost.xlsx`，2026-07-26，29 行 | `D:\GAOTU\19002_市场顾问部看板维护表格\cost.xlsx` | `lvshuai01_cost` | 源 `qici` 切片 upsert |
+| `market_period_architecture` | `daiban_jg_db.xlsx` / `daiban.xlsx`，累计表或当前期次切片 | `...\jiagou_db.xlsx` | `lvshuai01_jiagou_db` | 两个文件名均为已登记来源；活动工作表可为 `zhengzhou` 或 `Sheet1`；只处理新增/变更源切片；目标限定 `dept_1=市场顾问部` |
+| `market_attendance_schedule` | `daoke_1_6_t.xlsx`，2026-07-27，6881 行 | `...\daoke_1_6_t.xlsx` | `lvshuai01_daoke_1_6_t` | 只处理新增/变更源切片 |
+| `market_lead_goal` | `leads_goal.xlsx`，2026-07-28，19 行 | `...\jinliang_goal.xlsx` | `lvshuai01_jinliang_goal` | 源 `qici` 切片 upsert |
+| `market_plan_id` | `plan_id.xlsx`，2026-07-28，96 行 | `...\plan_id.xlsx` | `lvshuai01_plan_id` | 只处理新增/变更源切片 |
 
 历史样本数量分别为：架构 24、到课 7、成本 14、评优 14、进量目标 13、计划 ID 14。历史消息中存在“年级错了”“渠道改了”“ID 错了”等同文件修订，因此选择必须以消息时间和位置确定最新版，不能按文件名首次命中。
 
@@ -79,7 +77,7 @@
 - `jiagou_db.xlsx` 是跨部门共享载体。青橙和市场分别按 `dept_1` 作用域替换，另一领域所有行必须字节语义等价地保留。
 - 市场带班架构源缺少 `dept_1`，仅允许 `dept_2` 属于已登记市场组织集合的行进入候选，再补 `dept_1=市场顾问部`。
 - 市场到课键为 `qici+qudao+grade+begin_time+dow+ke_1+channel`。
-- 市场评优键为 `qici+employee_email_name`；分配计划键为 `year+qici+group_id`。
+- 分配计划键为 `year+qici+group_id`。
 - 平台上传总是使用验证后的完整本地累计工作簿、`target-mode=reuse`、`import-mode=overwrite`，禁止把单次附件直接按平台 append 上传。
 
 ## 四类来源质量门禁
@@ -94,12 +92,13 @@
 | 青橙行课 | 240 小时 | 20–10000 | 50% |
 | 市场成本 | 360 小时 | 10–200 | 60% |
 | 市场带班架构 | 360 小时 | 100–9000 | 35% |
-| 市场到课 | 360 小时 | 5000–10000 | 35% |
+| 市场到课 | 360 小时 | 下界 5000；上界随累计基线增长 | 35% |
 | 市场进量目标 | 360 小时 | 5–100 | 50% |
-| 市场评优架构 | 480 小时 | 4500–7500 | 25% |
 | 市场计划 ID | 360 小时 | 50–200 | 50% |
 
 相对变化优先使用目标同一切片；新切片使用目标最新切片。必要列空值阈值按文件族登记在注册表，大多数关键字段为 0；青橙个人目标的少数组织层级列允许 2%。任何阈值缺失、来源过期、行数越界、变化超限、必要列空值超限或无可用基线都阻断。
+
+市场到课为完整累计来源：总行数上界等于已接受的来源切片基线总行数，加上最多 3 个变更期次的增长余量；每个期次的余量为基线最新期次行数乘以 1.35 后向上取整。基线缺失、切片行数不完整或总数不一致时阻断；来源不得删除历史切片，新增或变更期次仍须通过原有切片、键、空值及相对变化门禁。基线仅在成功上传后更新，Plan 继续绑定基线文件哈希。
 
 这些阈值是异常阻断线，不是业务目标。已确认的组织扩张或课程规模变化必须先评审并修改注册表和测试，再生成新 Plan；运行时不得临时放宽。
 

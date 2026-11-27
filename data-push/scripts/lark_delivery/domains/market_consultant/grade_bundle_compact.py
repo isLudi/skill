@@ -7,7 +7,7 @@ from PIL import Image, ImageDraw
 from ...common.images import _center_text, _find_font
 from ...common.values import _format_value, _rate
 from .channels.grade_compact import grade_sort_key
-from .grade_bundle_model import columns, renderer
+from .grade_bundle_model import below_5min_target, columns, renderer
 from . import supervisor_report
 from .style import _result_cell_fill
 
@@ -50,7 +50,7 @@ def panel(component, block, section, width, sizes, path):
     xs = [0]
     for size in widths:
         xs.append(xs[-1] + size)
-    ordered = renderer(component).sorted_rows(block, section)
+    ordered = block.get('ordered_rows', renderer(component).sorted_rows(block, section))
     band, header, row_height = 42, 46, 44
     show_total = component.get('show_totals', False)
     image_rows = [*ordered, block['total']] if show_total else ordered
@@ -59,7 +59,7 @@ def panel(component, block, section, width, sizes, path):
     draw = ImageDraw.Draw(image)
     draw.rectangle((0, 0, width, band), fill=BAND)
     draw.text((14, 5), component['label'], font=_find_font(23, True), fill=NAVY)
-    metric = '5min' if section == 'process' else '截面单效'
+    metric = block.get('sort_metric', '5min' if section == 'process' else '截面单效')
     bars = renderer(component).BAR_COLORS
     if component['grain'] == '顾问' and section == 'process':
         bars = {'首call率': '#4f78ae', '5min': '#f5ae23', '双沟率': '#138de2'}
@@ -77,6 +77,10 @@ def panel(component, block, section, width, sizes, path):
         for (source, _, kind), left, right in zip(cols, xs, xs[1:]):
             value = row['fields'].get(source, '')
             text = _format_value(value, kind)
+            below_target = (not total and (source in row.get('below_standard_fields', [])
+                            or (section == 'process' and source == '5min' and below_5min_target(component, row))))
+            if below_target:
+                draw.rectangle((left+1, y+1, right-1, y+row_height-1), fill='#fff0f0')
             if not total and source == '线索留存率':
                 draw.rectangle((left+1, y+1, right-1, y+row_height-1),
                                fill=supervisor_report._retention_fill(value, _rate))
@@ -93,10 +97,12 @@ def panel(component, block, section, width, sizes, path):
                     rate = min(1.0, max(0.0, float(value) / 3.0))
                 if rate is not None and rate > 0:
                     draw.rectangle((left+4, y+7, left+4+int((right-left-8)*min(1, rate)),
-                                    y+row_height-7), fill=bars[source])
+                                    y+row_height-7), fill='#ef8a8a' if below_target else bars[source])
             _center_text(draw, (left+6, y, right-6, y+row_height), text,
-                         _find_font(20, total or source == metric), '#ffffff' if total else '#111827')
-            cells.append({'row': index, 'field': source, 'text': text, 'box': [left, y, right, y+row_height]})
+                         _find_font(20, total or source == metric),
+                         '#ffffff' if total else '#a61b1b' if below_target else '#111827')
+            cells.append({'row': index, 'field': source, 'text': text, 'box': [left, y, right, y+row_height],
+                          'below_target': below_target})
         draw.line((0, y+row_height, width, y+row_height), fill=GRID)
     for index in range(len(image_rows)+1):
         y = band + header + index * row_height

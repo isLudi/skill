@@ -77,17 +77,23 @@ def _legacy_render(results, section, period, target_name, directory, outcomes):
 
 
 def write_preview(context):
+    if context.get('grade9_role') is not None or context.get('grade9_preview_only'):
+        from .grade9_daily_post import write_preview as grade9_preview
+        return grade9_preview(context)
+    from .grade_bundle_model import process_notices
     path = Path(context['directory']) / 'message-preview.html'
     label = '过程' if context['section'] == 'process' else '转化'
     pieces = [f'<h1>🔥【{html.escape(context["period"])}】{html.escape(context["target"]["display_name"])}{label}数据播报</h1>',
               f'<p>截至dt={context["snapshot"][0]}，hour={context["snapshot"][1]}时</p>']
+    pieces.extend(f'<p><b>{html.escape(notice)}</b></p>' for notice in process_notices(context))
     for item in context['artifacts']:
         relative = Path(item['path']).relative_to(path.parent).as_posix()
         pieces.append(f'<h2>{html.escape(item["grade"])}</h2><img src="{relative}">')
         for reminder in item['reminders']:
             metric = '5min率' if context['section'] == 'process' else '截面单效'
+            rank = '较低' if reminder['grain'] == '主管' or reminder.get('rank') == 'minimum_all_ties' else '位于底部10%'
             people = '、'.join(html.escape(name) for name in reminder['names'])
-            pieces.append(f'<p>{html.escape(reminder["channel"])}：{people}，{metric}较低。</p>')
+            pieces.append(f'<p>{html.escape(reminder["channel"])}：{people}，{metric}{rank}。</p>')
     pieces.append('<p>继续加油，<b>【祝本期爆单】</b> 🚀🔥</p>')
     page = '<!doctype html><html lang="zh-CN"><meta charset="utf-8"><style>body{font:16px Microsoft YaHei;background:#f3f6fb;color:#20334d;padding:24px}main{max-width:1480px;margin:auto;background:white;padding:24px;border-radius:14px}img{width:100%}h1{font-size:25px}h2{font-size:20px}</style><main>'+''.join(pieces)+'</main></html>'
     path.write_text(page, encoding='utf-8')

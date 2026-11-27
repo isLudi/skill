@@ -2,7 +2,7 @@
 
 ## Scope
 
-- Current snapshot date: 2026-08-05.
+- Historical snapshot date: 2026-08-05; 破蛋率 was updated and published on 2026-11-22. See [current adviser rate](qingcheng_advisor_breakthrough_rate.md); historical edit snapshots do not describe the current rate.
 - Frontend metric formulas are captured from read-only dashboard edit-page profiles under `knowledge/dashboard_web_profiles/edit_metrics/`.
 - Source SQL files are the latest retained Data Center SQL snapshots under `resources/raw_sql/data_center_qingcheng_*` where a current snapshot exists; otherwise keep the latest canonical retained snapshot.
 - Use this document to connect a BI metric symptom to its frontend formula and the SQL column that feeds it.
@@ -57,7 +57,7 @@
 - Overall subject rate: `sum(pay_sub) / sum(v_lead)`.
 - Past-period revenue: `sum(income) - sum(p_income)`.
 - ROI: `sum(promit) / lead_cost`.
-- Podan rate: `sum(podan) / sum(v_lead)`, where `podan` is already a discounted-net-receipt user count rather than simple `promit > 0`.
+- Advisor breakthrough rate (user-confirmed 2026-11-22): distinct advisers whose summed gross revenue in the selected report scope is positive / all distinct advisers in that same scope. See [the adviser-grain contract and deployment boundary](qingcheng_advisor_breakthrough_rate.md). The former `sum(podan)/sum(v_lead)` counts customers over leads and is deprecated for this display metric; raw `podan` retains its customer-level meaning. Local pushes and all ten conversion-dashboard pivots are updated; independent publication and online formula/value readbacks passed.
 
 ### Personal Completion
 

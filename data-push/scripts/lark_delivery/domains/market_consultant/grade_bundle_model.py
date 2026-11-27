@@ -1,5 +1,6 @@
 """Approved per-channel calculations for grade-first, multi-channel messages."""
 from fractions import Fraction
+from decimal import Decimal
 from math import ceil
 
 from ...common.records import text,value
@@ -34,7 +35,11 @@ def calculate(rows, evidence, period, section, components):
             audit = {}
             selected = merge_duplicate_lead_ids(selected, audit)
             module = supervisor if component['grain'] == '主管' else advisor
+            combined_grades = component.get('grade_grouping') == 'combined'
             _, counters = module.projection(list(selected[0]), section)
+            if section == 'process' and {'当期单效', '截面单效'} & set(component['column_order'][section]):
+                _, financial = module.projection(list(selected[0]), 'result')
+                counters = tuple(dict.fromkeys((*counters, *financial)))
             scope = ({'match_mode': 'casefold_exact', 'value': component['source_values'][0]}
                      if component['match'] == 'casefold_exact' else
                      {'match_mode': 'any_exact', 'values': component['source_values']})
@@ -43,12 +48,14 @@ def calculate(rows, evidence, period, section, components):
             else:
                 if len(component['source_values']) != 1:
                     raise ValueError('Advisor union has not been reviewed')
-                advisor.validate_scope(selected, component['label'], period, source_channel=component['source_values'][0])
+                advisor.validate_scope(selected, component['label'], period,
+                    source_channel=component['source_values'][0], require_grade=not combined_grades)
             grades=component['grades']
             if component.get('grade_scope')=='all':
                 grades=sorted({text(value(row,'年级')) for row in selected},key=grade_sort_key)
             report = module.build_report(selected, counters, period, section,
-                min_post_leads=component['minimum_post_leads'], included_grades=grades)
+                min_post_leads=component['minimum_post_leads'], included_grades=grades,
+                grade_group_label=component['label'] if combined_grades else None)
             report['show_totals'] = component.get('show_totals', False)
             if not report['blocks']:
                 outcomes[key] = {'status': 'skipped_no_eligible_rows', 'channel': component['label']}
@@ -78,6 +85,9 @@ def calculate(rows, evidence, period, section, components):
 def columns(component, section):
     module = supervisor if component['grain'] == '主管' else advisor
     lookup = {item[0]: item for item in module.COLUMNS[section]}
+    if section == 'process':
+        for name in ['当期单效', '截面单效']:
+            lookup[name] = next(item for item in module.COLUMNS['result'] if item[0] == name)
     result = [lookup[name] for name in component['column_order'][section]]
     weights = [155 if name in {'负责人', '主管', '顾问'} else 143 if name == '期次' else 125
                for name, _, _ in result]
@@ -88,3 +98,25 @@ def columns(component, section):
 
 def renderer(component):
     return supervisor if component['grain'] == '主管' else advisor_base
+
+
+def below_5min_target(component, row):
+    target = component.get('process_5min_target')
+    if target is None:
+        return False
+    target = Decimal(str(target))
+    if not target.is_finite() or not 0 < target <= 1:
+        raise ValueError('5min target must be greater than zero and at most one')
+    sums = row['sums']
+    post = Decimal(sums['退后线索'])
+    return post > 0 and Decimal(sums['5min标记']) < target * post
+
+
+def process_notices(context):
+    if context['section'] != 'process':
+        return []
+    visible = {key for artifact in context['artifacts'] for key in artifact.get('component_ids', [])}
+    return [f"📌 {component['label']}5min达标标准：≥{Decimal(str(component['process_5min_target'])) * 100:.2f}%；"
+            '低于标准的人员以浅红底、红色进度条和深红数字标注。'
+            for component in context['definition']['components']
+            if component['id'] in visible and component.get('process_5min_target') is not None]

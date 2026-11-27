@@ -91,7 +91,9 @@ class DataCenterReplacementExecutor:
         edit_button = self.page.locator("button").filter(
             has_text=re.compile(r"编\s*辑")
         ).first
-        edit_button.wait_for(state="visible", timeout=30_000)
+        # A slow async page bundle must finish before the first Edit click.
+        # This remains one bounded readiness wait, never a repeated write.
+        edit_button.wait_for(state="visible", timeout=60_000)
         edit_button.click()
         editor = self.page.locator(".CodeMirror").first
         editor.wait_for(state="visible", timeout=45_000)
@@ -141,31 +143,7 @@ class DataCenterReplacementExecutor:
         self.progress["preview"] = _preview_summary(preview_payload)
         self.progress["timings_ms"]["preview"] = _elapsed_ms(phase_started)
 
-        self.progress["phase"] = "save"
-        phase_started = time.perf_counter()
-        try:
-            with self.page.expect_response(
-                lambda response: _matches_sql_response(
-                    response,
-                    endpoint="/data/set/saveAndUpdate",
-                    expected_sql_sha256=self.plan.replacement_sql_sha256,
-                    expected_dataset_id=dataset.id,
-                ),
-                timeout=60_000,
-            ) as save_info:
-                save_button = self.page.locator("button[type=submit]").first
-                save_button.wait_for(state="visible", timeout=15_000)
-                save_button.click()
-                self.progress["save_confirmation_clicked"] = (
-                    _click_optional_save_confirmation(self.page)
-                )
-        except Exception:
-            self.progress["save_debug"] = _visible_save_debug(self.page)
-            raise
-        save_payload = _require_success_response(save_info.value, phase="save")
-        self.progress["save_response"] = _compact_api_response(save_payload)
-        self.progress["remote_sql_saved"] = True
-        self.progress["timings_ms"]["save"] = _elapsed_ms(phase_started)
+        self._save_if_needed(dataset)
 
         self.progress["phase"] = "post_save_readback"
         phase_started = time.perf_counter()
@@ -209,6 +187,7 @@ class DataCenterReplacementExecutor:
             lambda response: _matches_schedule_trigger(response, schedule_task_id),
             timeout=60_000,
         ) as trigger_info:
+            self.progress["refresh_request_attempted"] = True
             confirm.click()
         trigger_payload = _require_success_response(trigger_info.value, phase="refresh_trigger")
         self.progress["refresh_triggered"] = True
@@ -225,6 +204,41 @@ class DataCenterReplacementExecutor:
         self.progress["fully_verified"] = True
         self.progress["total_elapsed_ms"] = _elapsed_ms(started)
         return dict(self.progress)
+
+    def _save_if_needed(self, dataset: Any) -> None:
+        if not self.plan.content_change:
+            if not self.plan.allow_noop or self.plan.current_sql_sha256 != self.plan.replacement_sql_sha256:
+                raise UsageError("Unchanged SQL requires an explicitly approved exact-hash refresh plan")
+            self.progress["save_skipped_reason"] = "confirmed_exact_hash_noop_refresh"
+            return
+
+        self.progress["phase"] = "save"
+        phase_started = time.perf_counter()
+        try:
+            with self.page.expect_response(
+                lambda response: _matches_sql_response(
+                    response,
+                    endpoint="/data/set/saveAndUpdate",
+                    expected_sql_sha256=self.plan.replacement_sql_sha256,
+                    expected_dataset_id=dataset.id,
+                ),
+                timeout=60_000,
+            ) as save_info:
+                save_button = self.page.locator("button[type=submit]").first
+                save_button.wait_for(state="visible", timeout=15_000)
+                # A click may send the request even if response parsing fails.
+                self.progress["save_request_attempted"] = True
+                save_button.click()
+                self.progress["save_confirmation_clicked"] = (
+                    _click_optional_save_confirmation(self.page)
+                )
+        except Exception:
+            self.progress["save_debug"] = _visible_save_debug(self.page)
+            raise
+        save_payload = _require_success_response(save_info.value, phase="save")
+        self.progress["save_response"] = _compact_api_response(save_payload)
+        self.progress["remote_sql_saved"] = True
+        self.progress["timings_ms"]["save"] = _elapsed_ms(phase_started)
 
     def _verify_dataset_identity(self, dataset: Any) -> None:
         expected = self.plan.dataset

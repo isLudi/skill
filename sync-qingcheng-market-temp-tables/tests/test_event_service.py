@@ -180,12 +180,23 @@ class EventServiceTests(unittest.TestCase):
                 "market_period_architecture",
                 "market_attendance_schedule",
                 "market_lead_goal",
-                "market_evaluation_architecture",
                 "market_plan_id",
             ],
         )
         self.assertEqual(intent.action, "plan")
         self.assertEqual(intent.family_ids, allowed)
+
+    def test_evaluation_architecture_has_no_market_group_entry(self) -> None:
+        allowed = families_for_chat(self.registry, MARKET_CHAT)
+        for command in ("预检评优", "预检评优架构表", "预检pingyou_jg", "预检成本和评优架构表"):
+            with self.subTest(command=command):
+                intent = parse_command(command, self.config, self.registry, allowed)
+                self.assertEqual(intent.action, "unknown")
+        for index, filename in enumerate(("pingyou_jg.xlsx", "1113期评优架构.xlsx")):
+            attachment = event(f"om_evaluation{index}", MARKET_SOURCE,
+                               f'<file key="file_evaluation" name="{filename}"/>', "file")
+            attachment["chat_id"] = MARKET_CHAT
+            self.assertEqual(self.processor.process(attachment), "ignored_type")
 
     def test_market_attachment_routes_only_in_registered_market_chat(
         self,
@@ -307,6 +318,7 @@ class EventServiceTests(unittest.TestCase):
         }
         plan_hash = workflow.write_artifact(plan_path, plan, "plan_sha256")
         job = {
+            "chat_id": CHAT,
             "family_ids": ["personal_period_goal"],
             "plan_path": str(plan_path),
             "plan_sha256": plan_hash,
@@ -324,6 +336,7 @@ class EventServiceTests(unittest.TestCase):
         }
         plan_hash = workflow.write_artifact(plan_path, plan, "plan_sha256")
         job = {
+            "chat_id": CHAT,
             "family_ids": ["personal_period_goal"],
             "plan_path": str(plan_path),
             "plan_sha256": plan_hash,
@@ -547,6 +560,135 @@ class EventServiceTests(unittest.TestCase):
 
         self.assertEqual(result, "upload_denied")
         self.assertEqual(self.ledger.recent_jobs(), [])
+
+    def test_scoped_approver_configuration_rejects_invalid_groups_and_ids(self) -> None:
+        path = self.runtime_root / "scoped-config.json"
+        valid = test_config(self.runtime_root, approver_ids_by_chat={MARKET_CHAT: [MARKET_SOURCE]})
+        path.write_text(json.dumps(valid, ensure_ascii=False), encoding="utf-8")
+        loaded = load_config(path)
+        self.assertEqual(loaded["approver_ids_by_chat"], {MARKET_CHAT: [MARKET_SOURCE]})
+        for scoped in (
+            {"oc_unknown": [MARKET_SOURCE]},
+            {MARKET_CHAT: ["bad-id"]},
+            {MARKET_CHAT: []},
+            {MARKET_CHAT: [MARKET_SOURCE, MARKET_SOURCE]},
+            {MARKET_CHAT: "not-a-list"},
+        ):
+            with self.subTest(scoped=scoped):
+                invalid = test_config(self.runtime_root, approver_ids_by_chat=scoped)
+                path.write_text(json.dumps(invalid, ensure_ascii=False), encoding="utf-8")
+                with self.assertRaisesRegex(ServiceError, "approver_ids_by_chat"):
+                    load_config(path)
+
+    def test_market_scoped_approver_can_precheck_confirm_and_execute(self) -> None:
+        config = test_config(
+            self.runtime_root, mode="production", allow_local_apply=True,
+            allow_production_upload=True, production_source_policy="registered_sources",
+            production_source_message_ids={}, approver_ids_by_chat={MARKET_CHAT: [MARKET_SOURCE]},
+        )
+        replies = FakeReplies()
+        gateway = mock.Mock()
+        gateway.get_message.return_value = {
+            "message_id": "om_marketsource", "chat_id": MARKET_CHAT,
+            "sender": {"id": MARKET_SOURCE, "name": "张君言"},
+            "content": '<file key="file_cost" name="cost.xlsx"/>',
+        }
+        processor = EventProcessor(config, self.registry, self.ledger, replies, None, gateway, self.logger)
+        request = event("om_marketprecheck", MARKET_SOURCE, "@管家 预检此表")
+        request.update({"chat_id": MARKET_CHAT, "reply_to": "om_marketsource"})
+        self.assertEqual(processor.process(request), "job_queued")
+        job = self.ledger.recent_jobs(1)[0]
+        self.assertEqual(job["action"], "plan")
+        self.assertEqual(job["family_ids"], ["market_cost"])
+        self.assertEqual(job["message_bindings"], {"market_cost": "om_marketsource"})
+
+        plan_path = self.runtime_root / "market-plan.json"
+        plan = {"status": "ready", "selected_message_ids": {"market_cost": "om_marketsource"},
+                "tables": [{"family_id": "market_cost"}]}
+        plan_hash = workflow.write_artifact(plan_path, plan, "plan_sha256")
+        self.ledger.update_job(job["job_id"], status="planned", stage="awaiting_approval",
+                               plan_path=str(plan_path), plan_sha256=plan_hash)
+        confirm = event("om_marketconfirm", MARKET_SOURCE, f"@管家 确认上传 {job['job_id']}")
+        confirm["chat_id"] = MARKET_CHAT
+        self.assertEqual(processor.process(confirm), "approved")
+        approved = self.ledger.get_job(job["job_id"])
+        self.assertEqual(approved["authorized_by"], MARKET_SOURCE)
+        self.assertEqual(approved["action"], "upload")
+
+        executor = SyncExecutor(config, self.ledger, replies, self.logger)
+        responses = [
+            {"ok": True, "status": "success", "receipt_path": "C:/runtime/local.json", "receipt_sha256": "localhash"},
+            {"ok": True, "status": "success", "receipt_path": "C:/runtime/upload.json", "receipt_sha256": "uploadhash", "uploads": [{}]},
+        ]
+        with mock.patch.object(executor, "_run", side_effect=responses) as run:
+            executor.execute(job["job_id"])
+        self.assertEqual(run.call_count, 2)
+        self.assertEqual(self.ledger.get_job(job["job_id"])["status"], "success")
+
+    def test_market_scoped_approver_is_denied_other_chat_and_cross_domain_job(self) -> None:
+        config = test_config(
+            self.runtime_root, mode="production", allow_local_apply=True,
+            allow_production_upload=True, production_source_policy="registered_sources",
+            production_source_message_ids={}, approver_ids_by_chat={MARKET_CHAT: [MARKET_SOURCE]},
+        )
+        processor = EventProcessor(config, self.registry, self.ledger, FakeReplies(), None, None, self.logger)
+        direct = event("om_qingupdenied", MARKET_SOURCE, "@管家 上传个人期度目标表")
+        self.assertEqual(processor.process(direct), "upload_denied")
+        qing_job = self.ledger.create_job(
+            request_message_id="om_qingplan", chat_id=CHAT, requester_id=APPROVER,
+            source="test", action="plan", family_ids=["personal_period_goal"],
+        )
+        self.ledger.update_job(qing_job, status="planned", stage="awaiting_approval")
+        confirm = event("om_qingconfirmdenied", MARKET_SOURCE, f"@管家 确认上传 {qing_job}")
+        self.assertEqual(processor.process(confirm), "approve_denied")
+        cancel = event("om_qingcanceldenied", MARKET_SOURCE, f"@管家 取消 {qing_job}")
+        self.assertEqual(processor.process(cancel), "cancel_denied")
+        self.assertEqual(self.ledger.get_job(qing_job)["status"], "planned")
+        forged = {"chat_id": MARKET_CHAT, "family_ids": ["personal_period_goal"]}
+        with self.assertRaisesRegex(ServiceError, "outside its registered chat"):
+            assert_production_job_scope(config, forged)
+
+    def test_market_scoped_approver_can_select_each_registered_market_table(self) -> None:
+        config = test_config(
+            self.runtime_root, mode="production", allow_local_apply=True,
+            allow_production_upload=True, production_source_policy="registered_sources",
+            production_source_message_ids={}, approver_ids_by_chat={MARKET_CHAT: [MARKET_SOURCE]},
+        )
+        processor = EventProcessor(config, self.registry, self.ledger, FakeReplies(), None, None, self.logger)
+        for index, (alias, family) in enumerate((
+            ("成本", "market_cost"),
+            ("带班架构", "market_period_architecture"),
+            ("到课表", "market_attendance_schedule"),
+            ("进量目标", "market_lead_goal"),
+            ("计划ID", "market_plan_id"),
+        )):
+            with self.subTest(family=family):
+                request = event(f"om_marketdirect{index}", MARKET_SOURCE, f"@管家 上传{alias}")
+                request["chat_id"] = MARKET_CHAT
+                self.assertEqual(processor.process(request), "job_queued")
+                job = next(item for item in self.ledger.recent_jobs(10)
+                           if item["request_message_id"] == request["message_id"])
+                self.assertEqual(job["family_ids"], [family])
+                self.assertEqual(job["action"], "upload")
+                self.assertEqual(job["authorized_by"], MARKET_SOURCE)
+
+    def test_executor_rechecks_scoped_approver_before_local_write(self) -> None:
+        config = test_config(
+            self.runtime_root, mode="production", allow_local_apply=True,
+            allow_production_upload=True, production_source_policy="registered_sources",
+            production_source_message_ids={}, approver_ids_by_chat={MARKET_CHAT: [MARKET_SOURCE]},
+        )
+        job_id = self.ledger.create_job(
+            request_message_id="om_qingforged", chat_id=CHAT, requester_id=MARKET_SOURCE,
+            source="test", action="upload", family_ids=["personal_period_goal"],
+            authorized_by=MARKET_SOURCE,
+        )
+        self.ledger.update_job(job_id, plan_path=str(self.runtime_root / "unused.json"), plan_sha256="unused")
+        executor = SyncExecutor(config, self.ledger, FakeReplies(), self.logger)
+        with mock.patch.object(executor, "_run") as run:
+            executor.execute(job_id)
+        run.assert_not_called()
+        self.assertEqual(self.ledger.get_job(job_id)["status"], "failed")
 
     def test_shadow_upload_command_is_downgraded_to_plan(self) -> None:
         result = self.processor.process(event("om_evt2", APPROVER, "@管家 上传最新目标表"))

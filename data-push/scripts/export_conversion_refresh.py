@@ -12,13 +12,15 @@ the local period filter (manifest keeps export_records_count for the raw slice).
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import sys
 from pathlib import Path
 
 from lark_delivery.common.runtime import run_lark
-from fetch_qingcheng_process_source import PRIVATE_CHANNELS
+from lark_delivery.integrations.push_platform import shared_ndjson_snapshot
+from fetch_qingcheng_process_source import PRIVATE_CHANNELS, PUBLIC_POOL_CHANNELS, MERGED_POOL_CHANNELS
 
 SKILL = Path(__file__).resolve().parents[1]
 WORKSPACE = SKILL.parents[1]
@@ -35,7 +37,19 @@ FILTERS = {
     # 由 transformation_preview.json 的 match 在本地强校验。
     "partner_books": {"logic": "and", "conditions": [["一级渠道", "==", "图书"]]},
     "partner_local": {"logic": "and", "conditions": [["一级渠道", "==", "本地化"]]},
+    "partner_shandong_live": {"logic": "and", "conditions": [["一级渠道", "==", "付费"], ["渠道", "==", "山东直播间"]]},
 }
+
+
+def shared_export_conversion(channel: str, period: str, output: Path, *, cache_dir: Path | None = None,
+                             exporter=None) -> dict:
+    if channel not in FILTERS:
+        raise ValueError("Unknown conversion channel")
+    scope = {"domain": "qingcheng", "kind": "conversion", "base_token": BASE_TOKEN, "table_id": TABLE_ID,
+             "identity": "user", "channel": channel, "filter": FILTERS[channel]}
+    evidence = {"period": period, "contract_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest()}
+    return shared_ndjson_snapshot(scope, evidence, output,
+                                  lambda: (exporter or export_conversion)(channel, period, output, cache_dir=cache_dir))
 
 
 def export_conversion(channel: str, period: str, output: Path, *, cache_dir: Path | None = None) -> dict:
@@ -60,6 +74,10 @@ def export_conversion(channel: str, period: str, output: Path, *, cache_dir: Pat
         run_lark(args, cwd=WORKSPACE, timeout=240)
         manifest = json.loads(page_file.with_suffix(".manifest.json").read_text(encoding="utf-8"))
         page_rows = [json.loads(line) for line in page_file.read_text(encoding="utf-8").splitlines() if line]
+        if channel == "public_pool" and any(
+                row.get("一级渠道") != "公海" or row.get("渠道") not in MERGED_POOL_CHANNELS
+                for row in page_rows):
+            raise ValueError("Conversion public-pool scope differs from the reviewed channels")
         rev = manifest.get("rev")
         if not isinstance(rev, int) or (revision is not None and revision != rev):
             raise ValueError(f"revision changed during pagination: {rev!r}")
@@ -73,6 +91,8 @@ def export_conversion(channel: str, period: str, output: Path, *, cache_dir: Pat
     export_count = len(rows)
     if period:
         rows = [row for row in rows if row.get("期次") == period]
+    if channel == "public_pool":
+        rows = [row for row in rows if row.get("渠道") in PUBLIC_POOL_CHANNELS]
     output.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows), encoding="utf-8")
     manifest = {"base_token": BASE_TOKEN, "table_id": TABLE_ID, "rev": revision,
                 "records_count": len(rows), "export_records_count": export_count,

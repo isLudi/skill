@@ -358,6 +358,8 @@ D:\anaconda3\python.exe scripts\tiangong2_task.py execute-task-once `
 
 M 级会话可以替代 `--confirm-execute`；执行 Plan 会按会话激活时的执行 ID 基线计算新增次数，达到预算后拒绝继续执行。
 
+未指定数据周期时，计划使用当前整点，适配平台按小时记录 `periodTime` 的行为。请求已受理而旧计划的分钟周期无法回读时，不再发起执行。内部只读恢复器 `reconcile_accepted_execution` 需要运行目录内原计划和原失败 Receipt 的精确 Hash，并重新核验线上作用域、源码、发布状态及原请求时间范围内唯一新增的 `EXECUTE`。它只允许对应整点，保留项目、执行文件、空参数、无禁用阶段、无重跑及无下游触发检查，另存关联原证据的回执；原失败回执保持原样。歧义、漂移或证据缺失继续阻断。恢复回执不能替代执行终态、完整日志和 Base 验收。
+
 执行前重新验证身份、作用域、源码、元数据、版本和执行历史均未漂移。单用途客户端只可 JSON POST 一次 `nezha/task/executeOnce`；payload 强制为计划 Nezha task ID、计划数据周期、`triggerSuccessor=false`、`params={}`、`disabledStages=[]`。成功 Receipt 还必须只读观察到该数据周期下唯一的新 exec ID；终态和完整日志继续由 `list-execution-history` / `fetch-execution-log` 核验。
 
 ## 明确不授权的操作

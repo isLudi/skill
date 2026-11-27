@@ -54,6 +54,29 @@ def test_one_groups_mention_failure_does_not_block_other_groups(monkeypatch, tmp
     assert result["channels"]["douyin_dm"]["groups"]["supervisor"]["status"] == "sent_verified"
 
 
+def test_binding_change_blocks_prepared_delivery_and_preserves_readback(monkeypatch, tmp_path):
+    batch = MODULE._batch()
+    groups = {"supervisor": {"status": "prepared"}, "consultant": {"status": resend.REVERIFY}}
+    result = {"period": "20261002期", "channels": {"public_pool": {"source_rev": 100, "groups": groups}}}
+    batch["channels"] = batch["channels"][:1]
+    replaced = {**batch["upstream_binding"], "version_id": 225001, "exec_file_id": 872001}
+    monkeypatch.setattr(MODULE, "load_binding", lambda *args, **kwargs: replaced)
+    monkeypatch.setattr(MODULE, "probe_revision", lambda *args: 100)
+    called = []
+
+    def send(channel, level, *_args):
+        called.append((channel, level))
+        return {"status": "sent_verified"}
+
+    monkeypatch.setattr(MODULE, "_send_group", send)
+    MODULE._deliver_groups(batch, result, tmp_path, datetime(2026, 9, 29, 13, 52, tzinfo=ZoneInfo("Asia/Shanghai")))
+    assert called == [("public_pool", "consultant")]
+    assert groups["supervisor"] == {
+        "status": "blocked", "error": "Qingcheng process upstream binding changed before delivery"
+    }
+    assert groups["consultant"]["status"] == "sent_verified"
+
+
 def test_batch_send_is_disabled_when_config_is_preview_only(monkeypatch):
     original = MODULE._batch()
     monkeypatch.setattr(MODULE, "_batch", lambda: {**original, "status": "preview_only", "schedule_enabled": False})
@@ -71,8 +94,11 @@ def test_one_groups_image_failure_does_not_block_other_groups(monkeypatch, tmp_p
     monkeypatch.setattr(MODULE, "_upstream_audit", lambda *_args: {
         "execution_id": 1, "snapshot": ["20260929", "12"],
         "expected_counts": {channel: 1 for channel in MODULE.AUDIT_CHANNELS}})
-    monkeypatch.setattr(MODULE, "fetch", lambda channel, period, output: {
-        "rev": 100, "records_count": 1, "snapshot": ["20260929", "12"]})
+    def fetch(channel, period, output):
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text('{"record_id":"one"}\n', encoding="utf-8")
+        return {"rev": 100, "records_count": 1, "has_more": False, "snapshot": ["20260929", "12"]}
+    monkeypatch.setattr(MODULE, "fetch", fetch)
 
     def build(_source, _supervisor, _consultant, _output, _config, *, levels):
         level = levels[0]

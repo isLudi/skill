@@ -30,9 +30,14 @@ REPORT_COLORS = {"header": "#203b72", "header_text": "#ffffff",
                  "body": "#ffffff", "body_text": "#111827", "grid": "#b8c4d3"}
 RULE_KOC_AND_SELF_INCUBATED = "contains_koc_case_insensitive_and_contains_自孵化"
 RULE_KOC_NOT_SELF_INCUBATED = "contains_koc_case_insensitive_and_not_contains_自孵化"
+RULE_APP = "app_casefold_exact"
+RULE_OUTBOUND = "outbound_rule_channels"
+OUTBOUND_RULE_CHANNELS = ("tmk3元", "唐山tmk")
 CHANNEL_RULE_DESCRIPTIONS = {
     RULE_KOC_AND_SELF_INCUBATED: "渠道名称同时包含自孵化和KOC（KOC不区分大小写）",
     RULE_KOC_NOT_SELF_INCUBATED: "渠道名称包含KOC（不区分大小写）且不包含自孵化",
+    RULE_APP: "渠道名称Unicode规范化后精确等于APP，忽略大小写",
+    RULE_OUTBOUND: "分配规则渠道tmk3元、唐山tmk规范化后精确匹配，忽略大小写",
 }
 
 
@@ -69,6 +74,10 @@ def assignment_rule_channel(rule_name: str) -> str:
 def eligible_channel(channel: str, rule: str = RULE_KOC_AND_SELF_INCUBATED) -> bool:
     """Apply one reviewed dynamic rule without an exact-name whitelist."""
     normalized = normalize_channel(channel)
+    if rule == RULE_APP:
+        return normalized.casefold() == "app"
+    if rule == RULE_OUTBOUND:
+        return normalized.casefold() in OUTBOUND_RULE_CHANNELS
     contains_koc = "koc" in normalized.casefold()
     if rule == RULE_KOC_AND_SELF_INCUBATED:
         return contains_koc and "自孵化" in normalized

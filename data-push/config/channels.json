@@ -9,6 +9,8 @@
     }
   },
   "channels": {
+    "market_consultant/outbound_volume": "departments/market_consultant/outbound_volume.json",
+    "market_consultant/app_volume": "departments/market_consultant/app_volume.json",
     "market_consultant/self_incubated_koc_5": "departments/market_consultant/self_incubated_koc_5.json",
     "market_consultant/business_koc_math": "departments/market_consultant/business_koc_math.json",
     "market_consultant/grade9_supervisor_bundle": "departments/market_consultant/grade9_supervisor_bundle.json",

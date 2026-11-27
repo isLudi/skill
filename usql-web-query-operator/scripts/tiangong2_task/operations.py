@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from _shared.push_request_pacing import before_request, request_options, signal_cooldown
+
 import hashlib
 import json
 import re
@@ -49,6 +51,7 @@ class Tiangong2OperationsReadOnlyClient:
     @staticmethod
     def _json_body(response: Any, endpoint: str) -> dict[str, Any]:
         if not getattr(response, "ok", False):
+            signal_cooldown(getattr(response, "status", None))
             raise UsageError(
                 f"Tiangong2 operations read failed: HTTP {getattr(response, 'status', '?')} from {endpoint}"
             )
@@ -64,10 +67,12 @@ class Tiangong2OperationsReadOnlyClient:
         if endpoint not in NEZHA_GET_ENDPOINTS:
             raise UsageError(f"Blocked non-allowlisted Tiangong2 operations GET endpoint: {endpoint}")
         self.used_endpoints.add(f"GET nezha/{endpoint}")
+        before_request(f"GET nezha/{endpoint}")
         response = self._request.get(
             f"{self._api_base}/{endpoint}",
             params={key: str(value) for key, value in params.items()},
             timeout=45_000,
+            **request_options(),
         )
         return self._json_body(response, f"nezha/{endpoint}")
 
@@ -75,10 +80,12 @@ class Tiangong2OperationsReadOnlyClient:
         if endpoint not in NEZHA_JSON_READ_ENDPOINTS:
             raise UsageError(f"Blocked non-allowlisted Tiangong2 operations POST endpoint: {endpoint}")
         self.used_endpoints.add(f"POST nezha/{endpoint}")
+        before_request(f"POST nezha/{endpoint}")
         response = self._request.post(
             f"{self._api_base}/{endpoint}",
             data=payload,
             timeout=45_000,
+            **request_options(),
         )
         return self._json_body(response, f"nezha/{endpoint}")
 
@@ -86,10 +93,12 @@ class Tiangong2OperationsReadOnlyClient:
         if endpoint not in NEZHA_FORM_READ_ENDPOINTS:
             raise UsageError(f"Blocked non-allowlisted Tiangong2 operations form endpoint: {endpoint}")
         self.used_endpoints.add(f"POST form/nezha/{endpoint}")
+        before_request(f"POST nezha/{endpoint}")
         response = self._request.post(
             f"{self._api_base}/{endpoint}",
             form={key: str(value) for key, value in payload.items()},
             timeout=45_000,
+            **request_options(),
         )
         return self._json_body(response, f"nezha/{endpoint}")
 

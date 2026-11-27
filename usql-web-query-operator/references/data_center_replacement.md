@@ -34,6 +34,8 @@ Apply 必须按固定顺序执行：
 
 Apply 使用单数据集跨进程锁。任一写前身份或 Hash 漂移都会阻断。保存后若刷新失败，不自动回滚 SQL；receipt 必须保留 `remote_sql_saved`、失败阶段和人工检查要求，任务不能报告成功。
 
+仅当 Plan 明确包含 `allow_noop=true` 且当前与目标 SQL Hash 相同时，第 4 步不再重复保存：预览后重新回读线上 SQL 和同步配置，再执行第 5–6 步。此路径可用于已确认保存后的刷新验收；未回读确认的保存结果仍需先调查。保存或刷新请求发出后响应不明时，receipt 标记可能已写入并要求人工核查，不得直接重试。
+
 ## 命令
 
 先生成只读计划：
@@ -60,7 +62,7 @@ SQL 文件必须是 UTF-8 without BOM。Apply 会重新读取 SQL 文件并核�
 
 ## 完成与失败判据
 
-- 成功：预览成功、保存响应成功、详情 SQL Hash 回读一致、立即执行响应成功、新同步记录 `SUCCESS`，五项缺一不可。
+- 成功：预览成功、保存响应成功（明确的同 Hash 刷新计划除外）、详情 SQL Hash 回读一致、立即执行响应成功、新同步记录 `SUCCESS`。
 - 失败：SQL 漂移、身份漂移、预览失败、保存失败、保存 Hash 不一致、新记录失败或超时，任一情况均返回非零。
 - Receipt：成功或失败都写入 `runtime/usql-web-query-operator/data-center/replacement/`；不保存 cookie、密码或完整 SQL。
 - 发布语义：本链路更新数据中心数据集并刷新底层同步，不等同于 BI 看板发布，也不修改业务 Skill 知识库。需要更新本地 canonical SQL 时，另行运行只读/本地写命令 `sync-data-center-sql`。

@@ -11,30 +11,31 @@ description: 受治理地预检、修订、合并并上传青橙项目部与市�
 
 | 领域 | 登记群 | 默认来源人 | 文件族 |
 |---|---|---|---|
-| `qingcheng` | 青橙数据对接 | 郅玲玉；行课表为李怡青 | 个人期度目标、团队期度目标、团队月度目标、全员结果架构、青橙带班架构、青橙行课 |
-| `market_consultant` | 市场顾问部临时表上传 | 张君言 | 成本、市场带班架构、到课课次、进量目标、评优架构、分配计划组 ID |
+| `qingcheng` | 青橙数据对接 | 郅玲玉；行课表为郅玲玉或崔浩 | 个人期度目标、团队期度目标、团队月度目标、全员结果架构、青橙带班架构、青橙行课 |
+| `market_consultant` | 市场顾问部临时表上传 | 张君言 | 成本、市场带班架构、到课课次、进量目标、分配计划组 ID |
 
 来源身份、精确群 ID、列映射、质量阈值、合并模式与上传顺序以 [workflow_registry.json](references/workflow_registry.json) 为机器可执行真源。开始任务前必须读取 [registered_sources.md](references/registered_sources.md)；市场表还必须读取 [market_transformations.md](references/market_transformations.md)。生产服务可以使用 `production_source_policy=registered_sources`，让所有已登记表按每次最新预检自动进入审批和上传流程；来源身份、质量、哈希、目标漂移和审批门禁仍然强制执行。
 
 ## 市场本地表与平台表一一映射
 
-`D:\GAOTU\19002_市场顾问部看板维护表格` 当前 9 个 `.xlsx` 与大航海 `temp_table` 数据库的精确映射如下：
+`D:\GAOTU\19002_市场顾问部看板维护表格` 中参与本工作流的 8 个 `.xlsx` 与大航海 `temp_table` 数据库的精确映射如下：
 
 | 本地工作簿 | 大航海完整表名 | 自动化范围 |
 |---|---|---|
-| `ceshiqudao_pingyou.xlsx` | `temp_table.dingxi01_ceshiqudao_pingyou` | 仅登记映射 |
-| `cost.xlsx` | `temp_table.dingxi01_cost` | 已纳入自动维护 |
-| `daoke_1_6_t.xlsx` | `temp_table.dingxi01_daoke_1_6_t` | 已纳入自动维护 |
-| `jiagou_db.xlsx` | `temp_table.dingxi01_jiagou_db` | 已纳入自动维护 |
-| `jiagou_xinren.xlsx` | `temp_table.dingxi01_jiagou_xinren` | 仅登记映射 |
-| `jiagou_zx.xlsx` | `temp_table.dingxi01_jiagou_zx` | 仅登记映射 |
-| `jinliang_goal.xlsx` | `temp_table.dingxi01_jinliang_goal` | 已纳入自动维护 |
-| `pingyou_jg.xlsx` | `temp_table.dingxi01_pingyou_jg` | 已纳入自动维护 |
-| `plan_id.xlsx` | `temp_table.dingxi01_plan_id` | 已纳入自动维护 |
+| `ceshiqudao_pingyou.xlsx` | `temp_table.lvshuai01_ceshiqudao_pingyou` | 仅登记映射 |
+| `cost.xlsx` | `temp_table.lvshuai01_cost` | 已纳入自动维护 |
+| `daoke_1_6_t.xlsx` | `temp_table.lvshuai01_daoke_1_6_t` | 已纳入自动维护 |
+| `jiagou_db.xlsx` | `temp_table.lvshuai01_jiagou_db` | 已纳入自动维护 |
+| `jiagou_xinren.xlsx` | `temp_table.lvshuai01_jiagou_xinren` | 仅登记映射 |
+| `jiagou_zx.xlsx` | `temp_table.lvshuai01_jiagou_zx` | 仅登记映射 |
+| `jinliang_goal.xlsx` | `temp_table.lvshuai01_jinliang_goal` | 已纳入自动维护 |
+| `plan_id.xlsx` | `temp_table.lvshuai01_plan_id` | 已纳入自动维护 |
 
-机器可执行记录位于 `workflow_registry.json.local_temp_table_inventories.market_consultant`。本地文件名和平台表名分别强制唯一，已纳入自动维护的 6 项还必须与文件族的 `target_workbook`、`platform_temp_table` 双向一致。
+机器可执行记录位于 `workflow_registry.json.local_temp_table_inventories.market_consultant`。本地文件名和平台表名分别强制唯一，已纳入自动维护的 5 项还必须与文件族的 `target_workbook`、`platform_temp_table` 双向一致。
 
-“仅登记映射”只确认表身份，不代表已有新群来源、合并规则、四类质量门禁或上传授权；这 3 项继续匹配 `deferred_filename_patterns`，不得被事件服务自动同步或上传。2026-07-29 的九表零行解析探针均成功，平台查询 ID 为 `1506786567`。
+“仅登记映射”只确认表身份，不代表已有新群来源、合并规则、四类质量门禁或上传授权；这 3 项继续匹配 `deferred_filename_patterns`，不得被事件服务自动同步或上传。2026-11-14 的新目标已按 `lvshuai01` 账号的导入历史及字段类型核验。
+
+`pingyou_jg` 由张君言直接维护 `temp_table.zhangjunyan01_pingyou_jg`，不属于群内预检或上传工作流；默认批次、点名指令和附件识别均不提供入口。本地旧工作簿不自动映射到该表。
 
 ## 不可跨越的边界
 
@@ -53,7 +54,6 @@ description: 受治理地预检、修订、合并并上传青橙项目部与市�
 
 - 共享的 `jiagou_db.xlsx` 必须按 `dept_1` 隔离。青橙只能替换 `青橙项目部`，市场只能替换 `市场顾问部`，另一部门行必须原样保留。
 - 市场累计源中的人工历史修订不得被整表覆盖。市场带班架构、到课课次和 `plan_id` 使用来源切片哈希，只允许新增或已审查的变更期次进入候选。
-- 市场评优表只允许执行已登记的确定性修订：精确去重、邮箱前缀小写、证据可解析的年级填补、`x_qi_count` 重排。无法唯一解释时阻断。
 - 市场到课表的空 `channel` 只能从同粒度现有目标记录唯一回填；缺失或多解时阻断。
 - 青橙行课附件源（2026-10-01 起为群内 Excel 附件，链接取件已下线）需额外遵循 [course_schedule_source.md](references/course_schedule_source.md)；附件文件名必须命中 Registry 的 `source_filename_patterns`（行课语义关键词：到课、开课、行课、课表、课程、daoke 等）。
 

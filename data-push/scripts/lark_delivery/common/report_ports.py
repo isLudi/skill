@@ -1,6 +1,7 @@
 """Concrete read-only Feishu ports; backend injection also supports legacy callers."""
 from . import feishu
 from .values import _unwrap, _json_payload, _iter_dicts, _string
+from ..integrations.push_platform import shared_base_snapshot
 
 
 class FeishuReportPorts:
@@ -17,8 +18,24 @@ class FeishuReportPorts:
         return {_string(item.get("name") or item.get("field_name")) for item in _iter_dicts(data)}
 
     def read_records(self, coordinates, args, fields, *, filter_json, audit):
-        return self.backend._fetch_view_records(coordinates, args, fields, temp_prefix=".grade-leads-",
-                                                filter_json=filter_json, audit=audit)
+        if self.backend is not feishu or not getattr(args, "shared_snapshot", False):
+            return self.backend._fetch_view_records(coordinates, args, fields, temp_prefix=".grade-leads-",
+                                                    filter_json=filter_json, audit=audit)
+
+        def load():
+            snapshot_audit = {}
+            rows = self.backend._fetch_view_records(coordinates, args, fields, temp_prefix=".grade-leads-",
+                                                     filter_json=filter_json, audit=snapshot_audit)
+            return rows, snapshot_audit
+
+        scope = {"domain": "market_consultant", "kind": "lead-slice", "coords": coordinates,
+                 "identity": args.base_as, "fields": list(fields), "filter": filter_json}
+        slot = getattr(args, "slot", None)
+        slot_key = slot.isoformat() if callable(getattr(slot, "isoformat", None)) else str(slot) if slot else None
+        rows, snapshot_audit = shared_base_snapshot(scope, {"slot": slot_key}, load)
+        if audit is not None:
+            audit.update(snapshot_audit)
+        return rows
 
     def search_users(self, queries, args):
         result = {"queries": [], "users": []}

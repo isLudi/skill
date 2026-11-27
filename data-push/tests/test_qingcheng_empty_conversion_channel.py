@@ -93,12 +93,12 @@ def test_only_proven_empty_book_source_can_render_no_data(monkeypatch, tmp_path,
     book = result["results"]["partner_books"]
     assert book["process_rows"] == 0 and book["conversion_rows"] == int(finance)
     assert all(level["rows"] == 0 for level in book["levels"].values())
-    assert preview.FALLBACK_REMINDER in book["levels"]["consultant"]["message"]
+    assert "consultant" not in book["levels"]  # retired group; dept book report remains
     assert book["levels"]["dept"]["reminders"] == []
     assert result["process_snapshot"] == "20261024 12:00"
     assert all((tmp_path / "preview" / level["png"]).is_file() for level in book["levels"].values())
     if finance:
-        assert book['levels']['consultant']['empty_source_finance_summary']['收款'] == '6600'
+        assert book['levels']['dept']['empty_source_finance_summary']['收款'] == '6600'
         assert book['join_coverage']['consultant_level']['orphan_income'] == 6600
 
 
@@ -106,7 +106,8 @@ def test_only_proven_empty_book_source_can_render_no_data(monkeypatch, tmp_path,
 def test_empty_report_cannot_send_during_replacement_or_with_old_binding(monkeypatch,tmp_path,status,old_binding):
     from types import SimpleNamespace
     batch=runner._batch()
-    upstream=batch['upstream']
+    upstream=batch['upstream_bindings']['conversion']
+    upstream.update(version_id=225002, exec_file_id=872002)
     row={'id':123,'taskId':67397,'status':status,'startTime':'2026-10-24 14:01:14',
          'runConfig':json.dumps({'projectId':308,'execFileId':upstream['exec_file_id']-1 if old_binding else upstream['exec_file_id']})}
     # A queued future schedule cannot have changed the Base yet.

@@ -9,7 +9,7 @@ branch remains independent of the partner Base source and upstream audit.
 
 from __future__ import annotations
 
-from qingcheng_schedule import resolve_slot
+from qingcheng_schedule import require_delivery_window, resolve_slot
 
 import argparse
 from contextlib import contextmanager
@@ -21,7 +21,7 @@ import os
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from fetch_qingcheng_process_source import fetch, probe_revision
+from fetch_qingcheng_process_source import fetch, probe_revision, shared_fetch
 from lark_delivery.common import resend
 from lark_delivery.common.im import upload_image, verify_chat
 from lark_delivery.common.readback import available as readback_available
@@ -31,10 +31,11 @@ from preview_qingcheng_public_pool_process import (
     _aggregate,
     _read_snapshot,
     _reminder_people,
+    _reminder_by_grade,
     _sort_process_rows,
     _table_image,
 )
-from run_qingcheng_process import _batch as _qingcheng_batch, _period, _upstream_audit, _write_json, run_scope
+from run_qingcheng_process import _period, _upstream_audit, _write_json, process_binding, require_process_binding_unchanged, run_scope
 from run_qingcheng_sec_process import _members, _resolve
 from send_qingcheng_process import _verify_message
 import qingcheng_internal_books as internal_books
@@ -44,9 +45,9 @@ SKILL = Path(__file__).resolve().parents[1]
 WORKSPACE = SKILL.parents[1]
 CONFIG_PATH = SKILL / "config/departments/qingcheng/partner_process_batch.json"
 STATE = WORKSPACE / "runtime/qingcheng-partner-process-batch"
-CHANNEL_IDS = ("partner_books", "partner_local", "supervisor_local")
-FETCH_KEY = {"partner_books": "partner_books", "partner_local": "partner_local",
-             "supervisor_local": "partner_local"}
+CHANNEL_IDS = ("partner_local", "supervisor_local", "partner_shandong_live")
+FETCH_KEY = {"partner_local": "partner_local", "supervisor_local": "partner_local",
+             "partner_shandong_live": "partner_shandong_live"}
 
 
 def _config(*, validate_channels: bool = True) -> dict:
@@ -67,14 +68,13 @@ def _config(*, validate_channels: bool = True) -> dict:
             {"metric": "8min", "direction": "desc", "value": "unrounded"},
             {"metric": "8min", "direction": "最低", "rank": "最后1名", "tie_handling": "all_tied_minimum"}):
         raise ValueError("Partner process schedule, sender, or Base-write boundary differs")
-    if cfg["upstream"] != _qingcheng_batch()["upstream"]:
-        raise ValueError("Partner qing2lark task pin differs from the active Qingcheng batch")
+    cfg["upstream_binding"] = process_binding(cfg["upstream"])
     if [entry["id"] for entry in cfg["channels"]] not in (list(CHANNEL_IDS), [*CHANNEL_IDS,"internal_books"]):
         raise ValueError("Partner channels or their delivery order differ")
     if cfg["source"]["matches"] != {
-            "partner_books": {"一级渠道": "图书", "渠道": "武汉图书"},
-            "partner_local": {"一级渠道": "本地化", "渠道": ["河南APP", "河南私域", "河南未加好友"]},
-            "supervisor_local": {"一级渠道": "本地化", "渠道": ["河南APP", "河南私域", "河南未加好友"]}}:
+            "partner_local": {"一级渠道": "本地化", "渠道": ["河南APP", "河南私域", "河南未加好友", "安徽APP", "APP"]},
+            "supervisor_local": {"一级渠道": "本地化", "渠道": ["河南APP", "河南私域", "河南未加好友", "安徽APP", "APP"]},
+            "partner_shandong_live": {"一级渠道": "付费", "渠道": "山东直播间"}}:
         raise ValueError("Partner source routing differs")
     bars = cfg["visual"]["metric_bars"]
     if (set(bars) != {"好友率", "等待时长", "8min", "24h首call"}
@@ -93,24 +93,26 @@ def _config(*, validate_channels: bool = True) -> dict:
 
 def _validate_entry(entry: dict) -> None:
     expected = {
-        "partner_books": ("图书", "顾问", "oc_854e5427ec0f6ef2bf654fee0a759f83", 3, ["武汉图书"]),
-        "partner_local": ("本地化", "顾问", "oc_7e4ac041d00e583b49749b9a0d01a64c", 3, ["河南APP", "河南私域", "河南未加好友"]),
-        "supervisor_local": ("本地化", "主管", "oc_be403f4efca7f1adcb0d18a066308627", 5, ["河南APP", "河南私域", "河南未加好友"]),
+        "partner_local": ("本地化", "顾问", "oc_7e4ac041d00e583b49749b9a0d01a64c", 3, ["河南APP", "河南私域", "河南未加好友", "安徽APP", "APP"]),
+        "supervisor_local": ("本地化", "主管", "oc_be403f4efca7f1adcb0d18a066308627", 5, ["河南APP", "河南私域", "河南未加好友", "安徽APP", "APP"]),
+        "partner_shandong_live": ("山东直播间", "顾问", "oc_44a0a613badf0d70cfd574d3aafc0917", 3, ["山东直播间"]),
     }
-    layout = {"partner_books": (False, "8min_minimum"), "partner_local": (False, "8min_minimum"),
-              "supervisor_local": (True, "8min_minimum_grade_text")}
+    layout = {"partner_local": (False, "8min_minimum"), "supervisor_local": (True, "8min_minimum_grade_text"),
+              "partner_shandong_live": (True, "8min_minimum_by_grade")}
     if tuple(entry[field] for field in ("name", "level", "target_chat_id",
                                         "minimum_effective_leads", "audit_secondary_channels")) != expected[entry["id"]]:
         raise ValueError(f"Partner channel routing differs: {entry['id']}")
     if (entry["split_grade"], entry["process_reminder"]) != layout[entry["id"]] \
             or entry["unresolved_mention_action"] != "invite_then_text":
         raise ValueError(f"Partner channel layout or mention gate differs: {entry['id']}")
+    if "show_total" in entry and type(entry["show_total"]) is not bool:
+        raise ValueError("Partner total-row setting must be a boolean")
     _request(entry)
 
 
 def _request(entry: dict) -> dict:
     request = json.loads((CONFIG_PATH.parent / entry["request_file"]).read_text(encoding="utf-8"))
-    if entry["process_reminder"] != "8min_minimum":
+    if entry["process_reminder"] == "8min_minimum_grade_text":
         # supervisor_local: single supervisor carries the channel, so 2026-09-30 the
         # user cancelled the person reminder and @; only a grade-level text hint remains.
         expected_reminder = (entry["level"], "不提醒", "不适用", "不适用", "不提醒")
@@ -177,7 +179,7 @@ def _expected(entry: dict, audit: dict) -> int:
 def _source(fetch_key: str, match: dict, period: str, folder: Path, audit: dict, slot: datetime,
             secondary_names: list[str]) -> tuple[list[dict], dict]:
     path = folder / "source.ndjson"
-    manifest = fetch(fetch_key, period, path)
+    manifest = shared_fetch(fetch_key, period, path, fetcher=fetch)
     rows, manifest = _read_snapshot(path, {"source": {"match": match}})
     expected = sum(audit["raw_channel_counts"].get(name, 0) for name in secondary_names)
     if (manifest["records_count"] != expected or manifest["period"] != period
@@ -213,10 +215,11 @@ def _build(entry: dict, rows: list[dict], manifest: dict, cfg: dict, folder: Pat
     _table_image(grouped, columns, image, entry["level"], manifest["period"], entry["name"],
                  split_grade=split_grade,
                  bar_specs={field: (spec["min"], spec["max"], spec["color"]) for field, spec in bars.items()},
-                 integer_fields=frozenset(cfg["visual"]["integer_fields"]))
+                 integer_fields=frozenset(cfg["visual"]["integer_fields"]), show_total=entry.get("show_total", True))
     lines = [f"## 🔥 **【{manifest['period']}】{entry['name']}渠道{entry['level']}过程数据播报**", "",
              "![过程数据](process.png)"]
     reminder_grades: list[str] = []
+    reminder_by_grade = {}
     if entry["process_reminder"] == "8min_minimum_grade_text":
         # Grade-level text hint, no @: lowest unrounded 8min among grade blocks;
         # every tied grade is listed (including an all-zero tie).
@@ -229,6 +232,11 @@ def _build(entry: dict, rows: list[dict], manifest: dict, cfg: dict, folder: Pat
         reminder_grades = [grade for grade in ("高一", "高二", "高三", "初三")
                            if grade_min.get(grade) == least]
         lines += ["", "- 8min较低年级：" + "、".join(reminder_grades)]
+    elif entry["process_reminder"] == "8min_minimum_by_grade":
+        reminder_by_grade = _reminder_by_grade(entry["level"], grouped)
+        people = list({p.get("account") or p["name"]: p for group in reminder_by_grade.values() for p in group}.values())
+        lines += ["", *[f"- {grade}年级8min较低的{entry['level']}：" + "、".join(p["name"] for p in group)
+                        for grade, group in reminder_by_grade.items() if group]]
     elif entry["process_reminder"] == "none":
         people = []
     else:
@@ -241,6 +249,7 @@ def _build(entry: dict, rows: list[dict], manifest: dict, cfg: dict, folder: Pat
               "snapshot": manifest["snapshot"], "raw_rows": len(rows),
               "eligible_rows": len(grouped), "reminder_people": people,
               "reminder_grades": reminder_grades,
+              "reminder_by_grade": reminder_by_grade,
               "image": image.name, "message": message,
               "unresolved_mention_action": entry["unresolved_mention_action"]}
     _write_json(folder / "review.json", review)
@@ -300,19 +309,21 @@ def _render(review: dict, resolved: dict[str, str], display: dict[str, str], ima
             if message.count(hint) != 1:
                 raise ValueError("Partner reviewed grade hint line differs")
         return message.replace("](process.png)", f"]({image_key})")
-    prefix = f"- 8min较低的{review['level']}："
-    original = prefix + "、".join(person["name"] for person in people)
-    if message.count(original) != 1:
-        raise ValueError("Partner reviewed reminder line differs")
-    parts = []
-    for person in people:
-        key = _person_key(person)
-        if key in resolved:
-            parts.append(f'<at user_id="{resolved[key]}">{html.escape(display[key])}</at>')
-        else:
-            # Optional identity or membership could not be verified: keep the name.
-            parts.append(html.escape(person["name"]))
-    return message.replace(original, prefix + "、".join(parts)).replace("](process.png)", f"]({image_key})")
+    groups = review.get("reminder_by_grade") or {None: people}
+    for grade, group in groups.items():
+        prefix = f"- {grade + '年级' if grade else ''}8min较低的{review['level']}："
+        original = prefix + "、".join(person["name"] for person in group)
+        if message.count(original) != 1:
+            raise ValueError("Partner reviewed reminder line differs")
+        parts = []
+        for person in group:
+            key = _person_key(person)
+            if key in resolved:
+                parts.append(f'<at user_id="{resolved[key]}">{html.escape(display[key])}</at>')
+            else:
+                parts.append(html.escape(person["name"]))
+        message = message.replace(original, prefix + "、".join(parts))
+    return message.replace("](process.png)", f"]({image_key})")
 
 
 def _key(entry: dict, period: str, slot: datetime) -> str:
@@ -336,8 +347,7 @@ def _deliver(entry: dict, review: dict, manifest: dict, cfg: dict, folder: Path,
     if current != manifest["rev"]:
         raise ValueError("Partner source Base revision changed before delivery")
     chat = verify_chat(entry["target_chat_id"], entry["target_chat_name"], "bot", 90)
-    if chat["name_changed"]:
-        raise ValueError(f"Partner group name changed from the reviewed target: {entry['id']}")
+    # The verified immutable chat ID is authoritative; a rename is audit metadata.
     if review["reminder_people"]:
         member_ids = _members(entry["target_chat_id"], cfg["sender"]["open_id"])
         shim_entry = {"unresolved_mention_action": entry["unresolved_mention_action"]}
@@ -361,8 +371,13 @@ def _deliver(entry: dict, review: dict, manifest: dict, cfg: dict, folder: Path,
     dry_run = json.loads(run_lark([*send_args, "--dry-run"], cwd=WORKSPACE, timeout=90))
     if dry_run.get("ok") is not True:
         raise ValueError("Partner message dry-run failed")
+    require_process_binding_unchanged(cfg["upstream_binding"])
+    require_delivery_window(slot, cfg["business_calendar"])
     receipt = {"status": "send_attempt_started", "channel_id": entry["id"],
                "chat_id": entry["target_chat_id"], "sender_open_id": cfg["sender"]["open_id"],
+               "target_chat_name": chat.get("name", entry["target_chat_name"]),
+               "configured_chat_name": entry["target_chat_name"],
+               "target_chat_name_changed": bool(chat.get("name_changed")),
                "period": review["period"], "slot": slot.isoformat(), "source_rev": manifest["rev"],
                "idempotency_key": key, "mention_ids": sorted(resolved.values()),
                "text_fallback_names": sorted({p["name"] for p in review["reminder_people"]
@@ -421,6 +436,9 @@ def _run_base(*, now: datetime | None = None, output: Path | None = None) -> dic
     for entry in cfg["channels"]:
         if results[entry["id"]] is None:
             try:
+                if entry.get("first_send_at") and slot < datetime.fromisoformat(entry["first_send_at"]):
+                    results[entry["id"]] = {"status": "skipped_schedule_disabled", "reason": "Before channel first_send_at"}
+                    continue
                 _validate_entry(entry)
                 pending.append(entry)
             except Exception as exc:
@@ -430,7 +448,7 @@ def _run_base(*, now: datetime | None = None, output: Path | None = None) -> dic
         _write_json(batch_path, batch)
         return batch
     try:
-        audit = _upstream_audit(period, slot)
+        audit = _upstream_audit(period, slot, cfg["upstream_binding"])
         if not isinstance(audit.get("raw_channel_counts"), dict):
             raise ValueError("Qingcheng upstream audit lacks partner channel counts")
     except Exception as exc:

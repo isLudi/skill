@@ -12,6 +12,7 @@ import uuid
 from zoneinfo import ZoneInfo
 
 from lark_delivery.common.runtime import CREATE_NO_WINDOW
+from lark_delivery.integrations.push_platform import guarded_command, platform_operation
 
 ROOT = Path(__file__).resolve().parents[3]
 OPERATOR = ROOT / "skills/usql-web-query-operator/scripts"
@@ -37,6 +38,11 @@ def _python():
 
 def live_sources(config, models, folder):
     """Use the registered operator read adapter; no save/refresh or knowledge write."""
+    with platform_operation():
+        return _live_sources(config, models, folder)
+
+
+def _live_sources(config, models, folder):
     if str(OPERATOR) not in sys.path:
         sys.path.insert(0, str(OPERATOR))
     from _shared.env import load_env_file
@@ -70,6 +76,11 @@ def live_sources(config, models, folder):
 
 
 def _result_rows(query_id):
+    with platform_operation():
+        return _read_result_rows(query_id)
+
+
+def _read_result_rows(query_id):
     from _shared.auth import ensure_authenticated
     from _shared.browser import import_playwright, launch_context
     from _shared.env import load_env_file
@@ -125,8 +136,8 @@ def _recover_outcome(folder, attempt, query_hash):
 
 def _operator_run(command):
     child_env = dict(os.environ,PYTHONIOENCODING="utf-8",PYTHONUTF8="1")
-    return subprocess.run(command,cwd=ROOT,capture_output=True,text=True,encoding="utf-8",
-                          timeout=750,creationflags=CREATE_NO_WINDOW,env=child_env)
+    return subprocess.run(guarded_command(command),cwd=ROOT,capture_output=True,text=True,encoding="utf-8",
+                          timeout=1800,creationflags=CREATE_NO_WINDOW,env=child_env)
 
 
 def _query(model, source_sql, period, folder):

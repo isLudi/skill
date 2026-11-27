@@ -4,6 +4,8 @@
 
 本文档记录本地 Excel 手工表与 SQL取数平台标准临时表名之间的对应关系。机器可读源文件是 `references/manual_temp_table_registry.json`，上传脚本读取 JSON 文件，本 Markdown 供人工阅读。
 
+上传可使用 `--expected-account`、`--expected-file-sha256` 和 `--expected-data-rows` 绑定账号、文件及预期导入行数。上传前校验真实登录账号和文件 Hash；导入历史必须与本次提交时间、源文件及目标表精确匹配，行数不符时报告失败并停止自动重试。
+
 ## 映射策略
 
 - `platform_exact_name`：本地文件名 stem 加上 `dingxi01_` 前缀后，能精确匹配已观察到的平台临时表。

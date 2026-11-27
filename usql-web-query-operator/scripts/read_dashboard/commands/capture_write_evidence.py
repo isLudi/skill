@@ -14,6 +14,7 @@ from _shared.fs_utils import ensure_runtime, safe_artifact_dir
 from ..common import safe_filename, write_json
 from ..dashboard_change import require_complete_profile
 from ..edit_profile import build_edit_url, open_edit_page, profile_edit_dashboard
+from ..formula_probe import execute_formula_probe, load_probe_plan
 from ..write_capabilities import (
     build_probe_artifact,
     is_dangerous_request,
@@ -24,6 +25,11 @@ from ..write_capabilities import (
 
 
 def cmd_capture_write_evidence(args) -> int:
+    probe_plan_path = getattr(args, "formula_probe_plan", None)
+    probe_plan_hash = getattr(args, "formula_probe_plan_sha256", None)
+    if bool(probe_plan_path) != bool(probe_plan_hash):
+        raise UsageError("Controlled formula probes require both a plan file and its exact Hash.")
+    formula_plan = load_probe_plan(probe_plan_path, probe_plan_hash, args) if probe_plan_path else None
     if not 10 <= args.capture_seconds <= 300:
         raise UsageError("--capture-seconds must be between 10 and 300.")
     registry = load_capability_registry(args.registry)
@@ -50,6 +56,7 @@ def cmd_capture_write_evidence(args) -> int:
     )
     observations: list[dict[str, object]] = []
     blocked_requests: list[dict[str, object]] = []
+    controlled_write_verified = False
     started_at = datetime.now(timezone.utc).isoformat()
 
     with sync_playwright() as playwright:
@@ -61,6 +68,10 @@ def cmd_capture_write_evidence(args) -> int:
             args.executable_path,
         )
         page = context.new_page()
+        # A 1600px emulated viewport can exceed a 1280px physical desktop:
+        # the editor's right panel is then drawn outside the clickable window.
+        # This is display-only; it does not change the dashboard schema.
+        page.set_viewport_size({"width": 1100, "height": 650})
         try:
             open_edit_page(page, args, context=context, edit_url=edit_url)
             before_raw = profile_edit_dashboard(
@@ -111,12 +122,19 @@ def cmd_capture_write_evidence(args) -> int:
             page.on("response", observe_response)
             page.route("**/*", safety_route)
             print(
-                f"Perform exactly one manual sandbox action for {args.operation} in the visible dashboard. "
-                f"Capture closes after {args.capture_seconds} seconds. Do not publish, delete, or edit permissions.",
+                ("Running the exact reviewed sandbox formula transaction, value reads and restoration."
+                 if formula_plan else f"Perform exactly one manual sandbox action for {args.operation} in the visible dashboard. "
+                 f"Capture closes after {args.capture_seconds} seconds. Do not publish, delete, or edit permissions."),
                 file=sys.stderr,
                 flush=True,
             )
-            page.wait_for_timeout(args.capture_seconds * 1000)
+            if formula_plan:
+                result = execute_formula_probe(page, formula_plan, before, observations)
+                write_json(result, output_path.with_suffix(".formula-transaction.json"))
+                controlled_write_verified = result.get("restored") is True and bool(result.get("after_formula"))
+                page.wait_for_timeout(1500)
+            else:
+                page.wait_for_timeout(args.capture_seconds * 1000)
             page.unroute("**/*", safety_route)
             page.remove_listener("request", observe_request)
             page.remove_listener("response", observe_response)
@@ -133,6 +151,12 @@ def cmd_capture_write_evidence(args) -> int:
                 domain=args.domain,
             )
             after = require_complete_profile(after_raw, "Post-probe sandbox dashboard profile")
+            if formula_plan:
+                result["whole_profile_restored"] = before["profile_sha256"] == after["profile_sha256"]
+                result["before_profile_sha256"] = before["profile_sha256"]
+                result["after_profile_sha256"] = after["profile_sha256"]
+                controlled_write_verified = controlled_write_verified and result["whole_profile_restored"]
+                write_json(result, output_path.with_suffix(".formula-transaction.json"))
         finally:
             browser.close()
 
@@ -146,10 +170,12 @@ def cmd_capture_write_evidence(args) -> int:
         after_profile_sha256=str(after["profile_sha256"]),
         observations=observations,
         blocked_requests=blocked_requests,
+        controlled_formula_probe=formula_plan is not None,
+        controlled_write_verified=controlled_write_verified,
     )
     write_json(probe, output_path)
     summary = {
-        "ok": probe["status"] == "evidence_captured",
+        "ok": probe["status"] == "evidence_captured" and (formula_plan is None or controlled_write_verified),
         "status": probe["status"],
         "operation": args.operation,
         "domain": args.domain,

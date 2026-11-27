@@ -57,32 +57,33 @@ def test_special_source_fetch_filters_primary_channel_only(monkeypatch, tmp_path
 def test_one_special_channel_failure_does_not_block_other_images(monkeypatch, tmp_path, failed_stage):
     now = datetime(2026, 9, 29, 13, 52, tzinfo=ZoneInfo("Asia/Shanghai"))
     counts = {name: 10 for group in special.AUDIT_NAMES for name in group}
-    monkeypatch.setattr(special, "_upstream_audit", lambda period, slot: {
+    monkeypatch.setattr(special, "_upstream_audit", lambda period, slot, upstream: {
         "snapshot": ["20260929", "12"], "raw_channel_counts": counts})
 
     def source(entry, period, folder, audit, slot):
-        if failed_stage == "source" and entry["id"] == "special_books":
-            raise ValueError("bad book source")
+        if failed_stage == "source" and entry["id"] == "special_private":
+            raise ValueError("bad private source")
         return [{}], {"rev": 42, "snapshot": ["20260929", "12"], "period": period}
 
     def build(entry, rows, manifest, cfg, folder):
-        if failed_stage == "build" and entry["id"] == "special_books":
-            raise ValueError("bad book image")
+        if failed_stage == "build" and entry["id"] == "special_private":
+            raise ValueError("bad private image")
         return {"period": manifest["period"]}
 
     def deliver(entry, review, manifest, cfg, folder, slot):
-        if failed_stage == "delivery" and entry["id"] == "special_books":
-            raise ValueError("bad book delivery")
+        if failed_stage == "delivery" and entry["id"] == "special_private":
+            raise ValueError("bad private delivery")
         return {"status": "sent_verified", "message_id": "om_example"}
 
     monkeypatch.setattr(special, "_source", source)
     monkeypatch.setattr(special, "_build", build)
     monkeypatch.setattr(special, "_deliver", deliver)
     result = special.run(now=now, output=tmp_path)
-    assert result["channels"]["special_books"]["status"] == (
+    assert "special_books" not in result["channels"]
+    assert result["channels"]["special_private"]["status"] == (
         "blocked_delivery" if failed_stage == "delivery" else "blocked_prepare")
     assert [result["channels"][channel]["status"] for channel in special.CHANNEL_IDS
-            if channel != "special_books"] == ["sent_verified"] * 3
+            if channel != "special_private"] == ["sent_verified"] * 2
     assert json.loads((tmp_path / "batch.json").read_text(encoding="utf-8"))["channels"] == result["channels"]
 
 
@@ -108,7 +109,7 @@ def test_unconfirmed_receipt_no_longer_ends_the_round(monkeypatch, tmp_path):
     folder.mkdir()
     (folder / "send_receipt.json").write_text(
         json.dumps({"status": "send_result_uncertain"}), encoding="utf-8")
-    monkeypatch.setattr(special, "_upstream_audit", lambda period, slot: {
+    monkeypatch.setattr(special, "_upstream_audit", lambda period, slot, upstream: {
         "snapshot": ["20260929", "12"], "raw_channel_counts": {}})
     result = special.run(now=now, output=tmp_path)
     # The stale receipt no longer freezes this channel; it is re-driven like the rest.

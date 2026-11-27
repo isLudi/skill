@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "domain": "qingcheng",
+  "execution_surface": "local",
+  "task_key": "qingcheng.transformation",
+  "release_name": "qing2lark_zhuanhua-235941",
+  "target_table_id": "tbl9CcVtXPntqGvP",
+  "schedule_interval_hours": 4,
+  "schedule_start_minute": 40,
+  "schedule_anchor_hour": 21,
+  "source_hash_algorithm": "sha256-utf8-ver-getCode",
+  "bound_execution_id": 184641178,
+  "bound_execution_start": "2026-11-26T21:58:37+08:00",
+  "upstream": {
+    "project_id": 308,
+    "folder": "吕帅",
+    "menu_id": 103713,
+    "task_name": "qing2lark_zhuanhua",
+    "task_id": 47775,
+    "nezha_task_id": 67397,
+    "owner": "lvshuai01",
+    "published_version": "V30",
+    "version_id": 235941,
+    "exec_file_id": 902965,
+    "source_sha256": "c742a86f9a085da54dbaba50530c9bb8260f76735ed25462605bbec1b529f6e3",
+    "audit_mode": "none",
+    "table_id": "tbl9CcVtXPntqGvP",
+    "audit_field_count": 49
+  },
+  "release_review": {
+    "reference": "C:\\Users\\lvshuai01\\.codex\\work\\qingcheng_new_channels_20261126\\base_verification.json",
+    "association": "explicitly_reviewed_mapping",
+    "verified_at": "2026-11-26T14:17:50.952957+00:00",
+    "target_table_id": "tbl9CcVtXPntqGvP",
+    "rows": 26227,
+    "business_periods": [
+      "20261120期",
+      "20261127期"
+    ],
+    "audit_field_count": 49,
+    "stage_logs": [
+      {
+        "stage_id": 186296122,
+        "sha256": "8d2a8e8a3f47a0c4091516b87469c448d71a7634c668aa1c0d7322b3a63e3074"
+      }
+    ],
+    "version_id": 235941,
+    "version_label": "V30",
+    "published_at": "2026-11-26 21:56:53",
+    "source_sha256": "c742a86f9a085da54dbaba50530c9bb8260f76735ed25462605bbec1b529f6e3",
+    "exec_file_id": 902965,
+    "execution_id": 184641178,
+    "execution_period": "2026-11-26T21:00:00+08:00",
+    "execution_start": "2026-11-26T21:58:37+08:00",
+    "controlled_execution_receipt": {
+      "path": "C:\\Users\\lvshuai01\\.codex\\runtime\\usql-web-query-operator\\tiangong2-task\\qingcheng-new-channels-20261126\\qing2lark_zhuanhua\\execute-task-once\\task_execution_receipt_103713_20261126T135822Z_66d99a650afa.json",
+      "sha256": "88c15278543e8fd3ddd28d302be8775c3b7508f3d75851e00af35f8e1002018e"
+    }
+  }
+}

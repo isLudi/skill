@@ -19,7 +19,10 @@ from . import grade_bundle_source as source
 CLEAN = {'sent_verified','skipped_no_eligible_rows','skipped_no_source_rows','prepared'}
 
 
-def round_once(definition,target,db,state,slot,token,time_guard,preflight,log):
+def round_once(definition,target,db,state,slot,token,time_guard,preflight,log,*,grade9_spec=None,grade9_source=None):
+    if definition.get('channel_id') == 'grade9_supervisor_bundle' and definition.get('report',{}).get('grade9_daily_policy') and grade9_spec is None:
+        from .grade9_daily_runner import round_once as grade9_round
+        return grade9_round(definition,target,db,state,slot,token,time_guard,preflight,log,round_once)
     adapter=adapter_for(definition)
     if hasattr(adapter,'round_once'):
         return adapter.round_once(definition,target,db,state,slot,token,time_guard,preflight,log)
@@ -50,12 +53,18 @@ def round_once(definition,target,db,state,slot,token,time_guard,preflight,log):
             if candidate.is_file() and datetime.now(TZ).timestamp()-candidate.stat().st_mtime < 600:
                 cached = json.loads(candidate.read_text(encoding='utf-8'))
                 if (cached['definition_sha256'] == source.fingerprint(definition)
-                        and cached['section'] == scheduled_report_type(datetime.now(TZ))
+                        and cached.get('source', {}).get('upstream_binding_sha256') ==
+                        source.fingerprint(catalog.market_lead_binding(definition))
+                        and cached['section'] == (grade9_spec['section'] if grade9_spec else scheduled_report_type(datetime.now(TZ)))
+                        and (grade9_spec is None or (cached.get('grade9_role') == grade9_spec['role']
+                            and cached.get('report_period') == grade9_spec['period']
+                            and cached.get('grade9_policy_date') == datetime.now(TZ).date().isoformat()))
                         and set(cached['outcomes']) == set(pending)):
                     context = cached
         if context is None:
             folder = state/('prepare-'+datetime.now(TZ).strftime('%Y%m%d-%H%M%S-%f'))
-            context = adapter.prepare(definition,target,state_dir=folder,slot=slot,component_ids=pending)
+            extra = {'grade9_spec':grade9_spec,'grade9_source':grade9_source} if grade9_spec else {}
+            context = adapter.prepare(definition,target,state_dir=folder,slot=slot,component_ids=pending,**extra)
             adapter.write_preview(context)
             source.save(pointer,{'context':str(folder/'context.json')})
         context_path = str(Path(context['directory'])/'context.json')
@@ -67,7 +76,8 @@ def round_once(definition,target,db,state,slot,token,time_guard,preflight,log):
     for component_id,result in outcomes.items():
         log.outcome(component_id,result['status'],result.get('reason',''),message_id=result.get('message_id'))
         log.outcomes[component_id]['message_id'] = result.get('message_id')
-        record_outcome(db,datetime.now(TZ).isoformat(),slot or datetime.now(TZ),component_id,
+        event_name = component_id+'/'+grade9_spec['role'] if grade9_spec else component_id
+        record_outcome(db,datetime.now(TZ).isoformat(),slot or datetime.now(TZ),event_name,
                        result['status'],result.get('reason',''))
     return {'outcomes':outcomes,'context_path':context_path,'preflight':preflight,
             'status':'complete' if all(result['status'] in CLEAN for result in outcomes.values()) else 'needs_attention'}

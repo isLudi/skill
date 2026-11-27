@@ -44,7 +44,7 @@
     ],
     "minimum_post_leads": 3,
     "show_totals": true,
-    "layout": "grade_then_channel",
+    "layout": "channel_then_advisor",
     "artifact_protocol": "market-grade-bundle-artifacts-v2",
     "total_scope": "visible_rows",
     "image_style": "compact-original-colors-v1",
@@ -71,19 +71,7 @@
     "windows_task_name": "Codex-Lark-Market-Douyin-Advisor-Bundle-Push"
   },
   "upstream": {
-    "project_id": 308,
-    "folder": "吕帅",
-    "menu_id": 102754,
-    "task_name": "market2lark",
-    "task_id": 47252,
-    "nezha_task_id": 66504,
-    "schedule_id": 53831,
-    "exec_file_id": 865669,
-    "verified_version_id": 223539,
-    "verified_source_sha256": "8a385a3e0edb44599cf2ecb8aa285498491f3abfe3040ef72f17b69b3086b50c",
-    "log_protocol": "two_period_clear_then_replace_v1_retry",
-    "owner": "lvshuai01",
-    "channel_mapping_version": "1023"
+    "task_key": "market_consultant.leads"
   },
   "components": [
     {
@@ -112,7 +100,8 @@
           "好友率",
           "APP登陆率",
           "深沟率",
-          "双沟率"
+          "双沟率",
+          "截面单效"
         ],
         "result": [
           "期次",
@@ -137,7 +126,9 @@
         "member_unresolved": "plain_name_fallback",
         "preview_identity_resolution": "names_only_not_at_verified"
       },
-      "grade_scope": "all"
+      "grade_scope": "all",
+      "grade_grouping": "combined",
+      "process_5min_target": "0.40"
     }
   ],
   "intake_record_ids": [

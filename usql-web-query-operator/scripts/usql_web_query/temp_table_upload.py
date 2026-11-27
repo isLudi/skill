@@ -6,8 +6,10 @@ import json
 import re
 import time
 from dataclasses import dataclass
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 from _shared.config import QUERY_URL
 from _shared.errors import UsageError
@@ -49,6 +51,9 @@ class TempTableUploadSummary:
     import_history_row: dict[str, str] | None = None
     error_details: dict[str, Any] | None = None
     elapsed_seconds: float | None = None
+    identity: dict[str, Any] | None = None
+    file_sha256: str | None = None
+    target_table_id: str | None = None
 
     def to_json(self) -> str:
         return json.dumps(
@@ -69,6 +74,9 @@ class TempTableUploadSummary:
                 "import_history_row": self.import_history_row,
                 "error_details": self.error_details,
                 "elapsed_seconds": self.elapsed_seconds,
+                "identity": self.identity,
+                "file_sha256": self.file_sha256,
+                "target_table_id": self.target_table_id,
             },
             ensure_ascii=False,
             indent=2,
@@ -297,24 +305,101 @@ def advance_to_mapping(frame: Any, target_table: str) -> None:
         raise UsageError(f"Field mapping page did not include target table: {target_table}")
 
 
+def validate_mapping_fields(
+    frame: Any, target_table: str, *, verified_display_alias: str | None = None
+) -> list[str]:
+    rows = active_modal(frame).locator("tbody tr")
+    fields = []
+    for index in range(rows.count()):
+        cells = rows.nth(index).locator("td")
+        if cells.count() < 5 or not cells.nth(1).inner_text().strip():
+            continue
+        checkbox = cells.nth(0).locator("input[type=checkbox]")
+        if checkbox.count() and not checkbox.first.is_checked():
+            raise UsageError("Temporary-table field mapping has an unselected source column.")
+        actual_target = cells.nth(3).inner_text().strip()
+        permitted = {target_table.casefold()}
+        if verified_display_alias:
+            permitted.add(verified_display_alias.casefold())
+        if actual_target.casefold() not in permitted:
+            raise UsageError(f"Temporary-table field mapping target differs: {actual_target!r} != {target_table!r}")
+        target_cell = cells.nth(4)
+        target_input = target_cell.locator("input[type=text]")
+        value = target_input.first.input_value() if target_input.count() else target_cell.inner_text()
+        fields.append(value.strip())
+    if not fields or any(not value or '"' in value or "'" in value for value in fields):
+        raise UsageError("Temporary-table target field mapping is empty or contains quote characters.")
+    if len(set(value.casefold() for value in fields)) != len(fields):
+        raise UsageError("Temporary-table target field mapping contains duplicate names.")
+    return fields
+
+
+def matching_table_ids(payload: Any, target_table: str) -> set[str]:
+    matches: set[str] = set()
+    if isinstance(payload, dict):
+        name = payload.get("name") or payload.get("tableName")
+        identifier = payload.get("id") or payload.get("tableId")
+        if isinstance(name, str) and name.casefold() == target_table.casefold() and identifier is not None:
+            matches.add(str(identifier))
+        for value in payload.values():
+            matches.update(matching_table_ids(value, target_table))
+    elif isinstance(payload, list):
+        for value in payload:
+            matches.update(matching_table_ids(value, target_table))
+    return matches
+
+
+def install_reuse_request_guard(context: Any, expected_table_id: str, import_mode: str) -> dict[str, Any]:
+    state: dict[str, Any] = {"expected_table_id": expected_table_id, "attempts": 0, "error": None}
+
+    def guard(route: Any, request: Any) -> None:
+        path = urlparse(request.url).path
+        if request.method == "GET" and path.endswith(("/getImportHistory", "/listTables")):
+            route.continue_()
+            return
+        state["attempts"] += 1
+        try:
+            payload = request.post_data_json
+            actual_id = str(payload.get("tableId")) if isinstance(payload, dict) else ""
+            if (
+                state["attempts"] != 1
+                or not path.endswith("/reuseTable")
+                or request.method != "POST"
+                or actual_id != expected_table_id
+                or (import_mode == "overwrite" and payload.get("type") != 1)
+            ):
+                raise UsageError("Reuse import request does not match the verified table ID or mode.")
+        except Exception as exc:  # noqa: BLE001
+            state["error"] = str(exc)
+            route.abort()
+            return
+        route.continue_()
+
+    context.route("**/uanalysis-sql/api/tempTable/**", guard)
+    return state
+
+
 def start_import_and_wait(frame: Any, file_stem: str, target_table: str, timeout_ms: int) -> dict[str, str]:
+    started_at = datetime.now()
     click_modal_button(frame, START_IMPORT_TEXT)
     active_modal(frame).get_by_text(IMPORT_HISTORY_TEXT, exact=False).wait_for(timeout=30_000)
-    return wait_for_import_history(frame, file_stem, target_table, timeout_ms)
+    return wait_for_import_history(frame, file_stem, target_table, timeout_ms, started_at=started_at)
 
 
-def wait_for_import_history(frame: Any, file_stem: str, target_table: str, timeout_ms: int) -> dict[str, str]:
+def wait_for_import_history(
+    frame: Any, file_stem: str, target_table: str, timeout_ms: int, *, started_at: datetime | None = None
+) -> dict[str, str]:
     deadline = time.monotonic() + timeout_ms / 1000
     latest_matching_row: dict[str, str] | None = None
     while time.monotonic() < deadline:
         rows = extract_import_history_rows(frame)
         if rows:
-            latest_matching_row = find_matching_history_row(rows, file_stem, target_table)
+            latest_matching_row = find_matching_history_row(rows, file_stem, target_table, started_at=started_at)
             if latest_matching_row:
                 status = latest_matching_row.get("状态") or latest_matching_row.get("status") or ""
-                if SUCCESS_TEXT in status:
+                if status.strip() == SUCCESS_TEXT:
                     return latest_matching_row
-                if FAILED_TEXT in status:
+                if status.strip() == FAILED_TEXT:
                     raise UsageError(f"Temporary table import failed: {latest_matching_row}")
         frame.wait_for_timeout(2_000)
     raise UsageError(f"Timed out waiting for import success. Last matching row: {latest_matching_row}")
@@ -346,16 +431,24 @@ def extract_import_history_rows(frame: Any) -> list[dict[str, str]]:
     return rows
 
 
-def find_matching_history_row(rows: list[dict[str, str]], file_stem: str, target_table: str) -> dict[str, str] | None:
+def find_matching_history_row(
+    rows: list[dict[str, str]], file_stem: str, target_table: str, *, started_at: datetime | None = None
+) -> dict[str, str] | None:
     for row in rows:
-        joined = "\t".join(row.values())
-        if file_stem in joined and target_table in joined:
-            return row
-    for row in rows:
-        joined = "\t".join(row.values())
-        if file_stem in joined:
-            return row
-    return rows[0] if rows else None
+        target = (row.get("临时表名") or row.get("target_table") or "").strip()
+        source = (row.get("源文件") or row.get("source_file") or "").strip()
+        if target.casefold() != target_table.casefold() or file_stem.casefold() not in source.casefold():
+            continue
+        if started_at is not None:
+            text = (row.get("导入时间") or row.get("import_time") or "").strip()
+            try:
+                imported_at = datetime.strptime(text, "%Y-%m-%d %H:%M:%S")
+            except ValueError:
+                continue
+            if imported_at < started_at - timedelta(seconds=5):
+                continue
+        return row
+    return None
 
 
 def close_import_history(frame: Any) -> None:

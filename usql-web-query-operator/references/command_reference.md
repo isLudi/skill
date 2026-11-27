@@ -67,12 +67,13 @@
 | `apply-pivot-ratio-draft` | Save exact calculated ratio columns to one existing pivot draft. | `sandbox_write` | `sandbox_confirmation` | [dashboard_change_workflow.md](dashboard_change_workflow.md) |
 | `plan-conversion-ratio-draft` | Review isolated draft conversion formula denominators and their exact pivots. | `remote_read_only` | `explicit_command` | [dashboard_change_workflow.md](dashboard_change_workflow.md) |
 | `apply-conversion-ratio-draft` | Update reviewed conversion denominators and save only the isolated draft. | `sandbox_write` | `sandbox_confirmation` | [dashboard_change_workflow.md](dashboard_change_workflow.md) |
-| `plan-receiving-key-draft` | Review the exact 2460 receiving-metric change and its active published version. | `remote_read_only` | `explicit_command` | [dashboard_receiving_key_workflow.md](dashboard_receiving_key_workflow.md) |
-| `apply-receiving-key-draft` | Switch the reviewed 2460 receiving formula in its isolated draft. | `draft_write` | `exact_plan_hash_and_confirmation` | [dashboard_receiving_key_workflow.md](dashboard_receiving_key_workflow.md) |
-| `publish-receiving-key-draft` | Publish the verified receiving-key draft and read back the active version. | `publish` | `separate_publish_confirmation` | [dashboard_receiving_key_workflow.md](dashboard_receiving_key_workflow.md) |
 | `edit-public-filters` | Legacy ordinal dry-run inspection only; all write/publish flags are rejected. | `remote_read_only` | `explicit_command` | [platform_profile.md](platform_profile.md) |
 | `profile-folder` | Profile selected dashboards under a folder. | `remote_read_only` | `explicit_command` | [platform_profile.md](platform_profile.md) |
 | `profile-all` | Scan configured folders into runtime; Skill knowledge writes require two explicit maintenance flags. | `local_write_explicit` | `explicit_flags` | [platform_profile.md](platform_profile.md) |
+| `plan-qingcheng-advisor-rate` | Governed shared adviser breakthrough rate on the registered Qingcheng conversion board. | `remote_read_only` | `explicit_command` | [dashboard_write_capabilities.md](dashboard_write_capabilities.md) |
+| `apply-qingcheng-advisor-rate` | Governed shared adviser breakthrough rate on the registered Qingcheng conversion board. | `draft_write` | `exact_plan_hash_and_confirmation` | [dashboard_write_capabilities.md](dashboard_write_capabilities.md) |
+| `publish-qingcheng-advisor-rate` | Governed shared adviser breakthrough rate on the registered Qingcheng conversion board. | `publish` | `separate_publish_confirmation` | [dashboard_write_capabilities.md](dashboard_write_capabilities.md) |
+| `verify-qingcheng-advisor-rate` | Governed shared adviser breakthrough rate on the registered Qingcheng conversion board. | `remote_read_only` | `explicit_command` | [dashboard_write_capabilities.md](dashboard_write_capabilities.md) |
 
 ## `scripts/oes_achievement.py`
 

@@ -21,8 +21,8 @@ miaoda: domain / miaoda / deployment_id / workflow_id
 
 | | `local` | `miaoda` |
 |---|---|---|
-| `market_consultant` | 六个已登记渠道；Python adapter、Windows 任务、文件/SQLite 状态 | 一个 app 原型 `cloud_data_push`，内含 `supervisor_koc_douyin_sync` workflow；工程 `runtime/cloud-data-push-miaoda` |
-| `qingcheng` | 仅登记部门，无渠道和 adapter | 无部署；首个实现默认使用独立 runtime 工程与独立 app |
+| `market_consultant` | 七项 Windows 群推送，使用线索与进量两条生产者绑定 | 一个 app 原型 `cloud_data_push`，内含 `supervisor_koc_douyin_sync` workflow；工程 `runtime/cloud-data-push-miaoda` |
+| `qingcheng` | 四项过程及两项转化批次，使用过程与转化两条生产者绑定 | 无部署；首个实现默认使用独立 runtime 工程与独立 app |
 
 “已登记原型”只证明本地工程与 app 身份绑定，不代表已有 release、线上变量、自动化、生产目标或发送授权。动态状态始终从对应平台实时读回。
 
@@ -64,6 +64,7 @@ miaoda: domain / miaoda / deployment_id / workflow_id
 |---|---|
 | `config/channels.json` | 本地渠道注册与部门语义入口 |
 | `config/departments/<domain>/<channel_id>.json` | 单一渠道的本地运行配置 |
+| `config/release/` | 本地生产者发布绑定，消费者按同部门 `task_key` 引用 |
 | `scripts/channels/<domain>/<channel_id>.py` | 绑定一个本地渠道的薄入口 |
 | `scripts/lark_delivery/core/` | 显式注册、接口与多目标协调，不含业务指标 |
 | `scripts/lark_delivery/common/` | 中性飞书能力，不导入 domains/legacy |

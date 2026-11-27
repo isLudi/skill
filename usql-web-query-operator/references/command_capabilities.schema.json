@@ -73,6 +73,7 @@
                       "uniqueItems": true
                     },
                     "sql_quality_review_required": {"type": "boolean"},
+                    "supports_upload_identity_and_hash": {"type": "boolean"},
                     "effective_scheduler_readback_required": {"type": "boolean"},
                     "schedule_list_readback_required": {"type": "boolean"},
                     "receipt_bound_schedule_resubmission": {"type": "boolean"}

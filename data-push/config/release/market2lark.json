@@ -1,10 +1,17 @@
 {
   "schema_version": 1,
   "domain": "market_consultant",
-  "release_name": "market2lark-223539",
-  "channel_mapping_version": "1030",
-  "bound_execution_id": 179735667,
-  "bound_execution_start": "2026-11-01T14:43:06+08:00",
+  "execution_surface": "local",
+  "task_key": "market_consultant.leads",
+  "release_name": "market2lark-226083",
+  "channel_mapping_version": "1113",
+  "target_table_id": "tbljWRvaqKTdrCx4",
+  "schedule_interval_hours": 4,
+  "schedule_start_minute": 0,
+  "schedule_anchor_hour": 13,
+  "source_hash_algorithm": "sha256-utf8-ver-getCode",
+  "bound_execution_id": 182249620,
+  "bound_execution_start": "2026-11-14T17:00:15+08:00",
   "upstream": {
     "project_id": 308,
     "folder": "吕帅",
@@ -13,10 +20,36 @@
     "task_id": 47252,
     "nezha_task_id": 66504,
     "schedule_id": 53831,
-    "exec_file_id": 865669,
-    "verified_version_id": 223539,
-    "verified_source_sha256": "8a385a3e0edb44599cf2ecb8aa285498491f3abfe3040ef72f17b69b3086b50c",
+    "exec_file_id": 881030,
+    "verified_version_id": 226083,
+    "verified_source_sha256": "73b31998b3fb8c4204699890941da0d04d96f0c568a016f345640bd51b7bc875",
     "log_protocol": "two_period_clear_then_replace_v1_retry",
     "owner": "lvshuai01"
+  },
+  "release_review": {
+    "reference": "C:\\Users\\lvshuai01\\.codex\\runtime\\temp-table-migration-20261114\\market_release_verification\\leads\\182249620\\base_verification.json",
+    "association": "explicitly_reviewed_mapping",
+    "verified_at": "2026-11-14T09:13:28.993924+00:00",
+    "target_table_id": "tbljWRvaqKTdrCx4",
+    "rows": 15026,
+    "business_periods": [
+      "20261113期",
+      "20261120期"
+    ],
+    "stage_logs": [
+      {
+        "stage_id": 183961127,
+        "sha256": "3d3c8c8dfe97d1b93403ef8b160b9e2fdcc8fffc8e641bb378092b3d8dc0f121"
+      }
+    ],
+    "version_id": 226083,
+    "version_label": "V33",
+    "published_at": "2026-11-14 15:33:55",
+    "source_sha256": "73b31998b3fb8c4204699890941da0d04d96f0c568a016f345640bd51b7bc875",
+    "exec_file_id": 881030,
+    "execution_id": 182249620,
+    "execution_period": "2026-11-14T17:00:00+08:00",
+    "execution_start": "2026-11-14T17:00:15+08:00",
+    "channel_mapping_version": "1113"
   }
 }

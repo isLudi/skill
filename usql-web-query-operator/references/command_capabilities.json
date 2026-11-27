@@ -4,113 +4,622 @@
     {
       "entrypoint": "usql_web_query.py",
       "commands": [
-        {"name": "doctor", "effect": "local_read_only", "authorization": "none", "reference": "sql_query_execution.md"},
-        {"name": "login", "effect": "local_write_explicit", "authorization": "explicit_command", "reference": "sql_query_execution.md"},
-        {"name": "prepare-sql", "effect": "local_write_explicit", "authorization": "explicit_command", "reference": "sql_query_execution.md"},
-        {"name": "run", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "sql_query_execution.md", "parameters": {"default_engine": "presto-lakehouse", "engine_choices": ["presto", "presto-lakehouse", "doris-presto"]}},
-        {"name": "run-with-fallback", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "sql_query_execution.md", "parameters": {"default_engine": "presto-lakehouse", "engine_choices": ["presto", "presto-lakehouse", "doris-presto"], "fallback_engine_choices": ["presto", "presto-lakehouse", "doris-presto"], "empty_result_policy_choices": ["stop", "crosscheck-only"]}},
-        {"name": "upload-temp-table", "effect": "remote_write_explicit", "authorization": "explicit_flags", "reference": "manual_temp_table_registry.md"},
-        {"name": "check-manual-table", "effect": "local_read_only", "authorization": "none", "reference": "manual_temp_table_registry.md"},
-        {"name": "sync-datamap-fields", "effect": "local_write_explicit", "authorization": "explicit_flags", "reference": "data_knowledge_sync.md"},
-        {"name": "sync-data-center-sql", "effect": "local_write_explicit", "authorization": "exact_plan_hash_and_confirmation", "reference": "data_knowledge_sync.md"},
-        {"name": "sync-template-sql", "effect": "local_write_explicit", "authorization": "exact_plan_hash_and_confirmation", "reference": "template_query.md"},
-        {"name": "plan-data-center-sql-replacement", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "data_center_replacement.md"},
-        {"name": "apply-data-center-sql-replacement", "effect": "remote_write_explicit", "authorization": "exact_plan_hash_and_confirmation", "reference": "data_center_replacement.md"},
-        {"name": "plan-data-center-schedule-renewal", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "data_center_schedule_renewal.md"},
-        {"name": "apply-data-center-schedule-renewal", "effect": "remote_write_explicit", "authorization": "exact_plan_hash_and_confirmation", "reference": "data_center_schedule_renewal.md"},
-        {"name": "plan-data-center-period-renewal", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "data_center_period_renewal.md"},
-        {"name": "apply-data-center-period-renewal", "effect": "remote_write_explicit", "authorization": "exact_plan_hash_and_confirmation", "reference": "data_center_period_renewal.md"},
-        {"name": "plan-data-center-dataset-creation", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "data_center_creation.md"},
-        {"name": "apply-data-center-dataset-creation", "effect": "remote_write_explicit", "authorization": "exact_plan_hash_and_confirmation", "reference": "data_center_creation.md"},
-        {"name": "plan-template-creation", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "template_query.md"},
-        {"name": "plan-template-update", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "template_query.md"},
-        {"name": "apply-template-creation", "effect": "remote_write_explicit", "authorization": "exact_plan_hash_and_confirmation", "reference": "template_query.md"},
-        {"name": "apply-template-update", "effect": "remote_write_explicit", "authorization": "exact_plan_hash_and_confirmation", "reference": "template_query.md"},
-        {"name": "publish-template", "effect": "publish", "authorization": "separate_publish_confirmation", "reference": "template_query.md"},
-        {"name": "fetch-template-sql", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "template_query.md"},
-        {"name": "fetch-market-template-sql", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "template_query.md"},
-        {"name": "template-download", "effect": "temporary_remote_write", "authorization": "explicit_command", "reference": "template_query.md"}
+        {
+          "name": "doctor",
+          "effect": "local_read_only",
+          "authorization": "none",
+          "reference": "sql_query_execution.md"
+        },
+        {
+          "name": "login",
+          "effect": "local_write_explicit",
+          "authorization": "explicit_command",
+          "reference": "sql_query_execution.md"
+        },
+        {
+          "name": "prepare-sql",
+          "effect": "local_write_explicit",
+          "authorization": "explicit_command",
+          "reference": "sql_query_execution.md"
+        },
+        {
+          "name": "run",
+          "effect": "remote_read_only",
+          "authorization": "explicit_command",
+          "reference": "sql_query_execution.md",
+          "parameters": {
+            "default_engine": "presto-lakehouse",
+            "engine_choices": [
+              "presto",
+              "presto-lakehouse",
+              "doris-presto"
+            ]
+          }
+        },
+        {
+          "name": "run-with-fallback",
+          "effect": "remote_read_only",
+          "authorization": "explicit_command",
+          "reference": "sql_query_execution.md",
+          "parameters": {
+            "default_engine": "presto-lakehouse",
+            "engine_choices": [
+              "presto",
+              "presto-lakehouse",
+              "doris-presto"
+            ],
+            "fallback_engine_choices": [
+              "presto",
+              "presto-lakehouse",
+              "doris-presto"
+            ],
+            "empty_result_policy_choices": [
+              "stop",
+              "crosscheck-only"
+            ]
+          }
+        },
+        {
+          "name": "upload-temp-table",
+          "effect": "remote_write_explicit",
+          "authorization": "explicit_flags",
+          "reference": "manual_temp_table_registry.md",
+          "parameters": {
+            "supports_upload_identity_and_hash": true
+          }
+        },
+        {
+          "name": "check-manual-table",
+          "effect": "local_read_only",
+          "authorization": "none",
+          "reference": "manual_temp_table_registry.md"
+        },
+        {
+          "name": "sync-datamap-fields",
+          "effect": "local_write_explicit",
+          "authorization": "explicit_flags",
+          "reference": "data_knowledge_sync.md"
+        },
+        {
+          "name": "sync-data-center-sql",
+          "effect": "local_write_explicit",
+          "authorization": "exact_plan_hash_and_confirmation",
+          "reference": "data_knowledge_sync.md"
+        },
+        {
+          "name": "sync-template-sql",
+          "effect": "local_write_explicit",
+          "authorization": "exact_plan_hash_and_confirmation",
+          "reference": "template_query.md"
+        },
+        {
+          "name": "plan-data-center-sql-replacement",
+          "effect": "remote_read_only",
+          "authorization": "explicit_command",
+          "reference": "data_center_replacement.md"
+        },
+        {
+          "name": "apply-data-center-sql-replacement",
+          "effect": "remote_write_explicit",
+          "authorization": "exact_plan_hash_and_confirmation",
+          "reference": "data_center_replacement.md"
+        },
+        {
+          "name": "plan-data-center-schedule-renewal",
+          "effect": "remote_read_only",
+          "authorization": "explicit_command",
+          "reference": "data_center_schedule_renewal.md"
+        },
+        {
+          "name": "apply-data-center-schedule-renewal",
+          "effect": "remote_write_explicit",
+          "authorization": "exact_plan_hash_and_confirmation",
+          "reference": "data_center_schedule_renewal.md"
+        },
+        {
+          "name": "plan-data-center-period-renewal",
+          "effect": "remote_read_only",
+          "authorization": "explicit_command",
+          "reference": "data_center_period_renewal.md"
+        },
+        {
+          "name": "apply-data-center-period-renewal",
+          "effect": "remote_write_explicit",
+          "authorization": "exact_plan_hash_and_confirmation",
+          "reference": "data_center_period_renewal.md"
+        },
+        {
+          "name": "plan-data-center-dataset-creation",
+          "effect": "remote_read_only",
+          "authorization": "explicit_command",
+          "reference": "data_center_creation.md"
+        },
+        {
+          "name": "apply-data-center-dataset-creation",
+          "effect": "remote_write_explicit",
+          "authorization": "exact_plan_hash_and_confirmation",
+          "reference": "data_center_creation.md"
+        },
+        {
+          "name": "plan-template-creation",
+          "effect": "remote_read_only",
+          "authorization": "explicit_command",
+          "reference": "template_query.md"
+        },
+        {
+          "name": "plan-template-update",
+          "effect": "remote_read_only",
+          "authorization": "explicit_command",
+          "reference": "template_query.md"
+        },
+        {
+          "name": "apply-template-creation",
+          "effect": "remote_write_explicit",
+          "authorization": "exact_plan_hash_and_confirmation",
+          "reference": "template_query.md"
+        },
+        {
+          "name": "apply-template-update",
+          "effect": "remote_write_explicit",
+          "authorization": "exact_plan_hash_and_confirmation",
+          "reference": "template_query.md"
+        },
+        {
+          "name": "publish-template",
+          "effect": "publish",
+          "authorization": "separate_publish_confirmation",
+          "reference": "template_query.md"
+        },
+        {
+          "name": "fetch-template-sql",
+          "effect": "remote_read_only",
+          "authorization": "explicit_command",
+          "reference": "template_query.md"
+        },
+        {
+          "name": "fetch-market-template-sql",
+          "effect": "remote_read_only",
+          "authorization": "explicit_command",
+          "reference": "template_query.md"
+        },
+        {
+          "name": "template-download",
+          "effect": "temporary_remote_write",
+          "authorization": "explicit_command",
+          "reference": "template_query.md"
+        }
       ]
     },
     {
       "entrypoint": "read_dashboard.py",
       "commands": [
-        {"name": "scan-folder", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "platform_profile.md"},
-        {"name": "capture-dashboard", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "platform_profile.md"},
-        {"name": "profile-dashboard", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "platform_profile.md"},
-        {"name": "check-dashboard-values", "effect": "local_read_only", "authorization": "none", "reference": "platform_profile.md"},
-        {"name": "profile-edit-dashboard", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "platform_profile.md"},
-        {"name": "profile-edit-folder", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "platform_profile.md"},
-        {"name": "profile-edit-all", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "platform_profile.md"},
-        {"name": "design-dashboard", "effect": "local_read_only", "authorization": "none", "reference": "dashboard_change_workflow.md"},
-        {"name": "plan-dashboard-change", "effect": "local_read_only", "authorization": "none", "reference": "dashboard_change_workflow.md"},
-        {"name": "plan-dashboard-build", "effect": "local_read_only", "authorization": "none", "reference": "dashboard_build_workflow.md"},
-        {"name": "apply-dashboard-change", "effect": "draft_write", "authorization": "exact_plan_hash_and_confirmation", "reference": "dashboard_change_workflow.md"},
-        {"name": "apply-dashboard-build", "effect": "draft_write", "authorization": "exact_plan_hash_and_confirmation", "reference": "dashboard_build_workflow.md"},
-        {"name": "publish-dashboard-change", "effect": "publish", "authorization": "separate_publish_confirmation", "reference": "dashboard_change_workflow.md"},
-        {"name": "publish-dashboard-build", "effect": "publish", "authorization": "separate_publish_confirmation", "reference": "dashboard_build_workflow.md"},
-        {"name": "inspect-write-capabilities", "effect": "local_read_only", "authorization": "none", "reference": "dashboard_write_capabilities.md"},
-        {"name": "capture-write-evidence", "effect": "sandbox_write", "authorization": "sandbox_confirmation", "reference": "dashboard_write_capabilities.md"},
-        {"name": "capture-dashboard-build-evidence", "effect": "sandbox_write", "authorization": "sandbox_confirmation", "reference": "dashboard_build_workflow.md"},
-        {"name": "verify-sandbox-dashboard-build", "effect": "local_read_only", "authorization": "none", "reference": "dashboard_build_workflow.md"},
-        {"name": "verify-sandbox-write-adapters", "effect": "sandbox_write", "authorization": "sandbox_confirmation", "reference": "dashboard_write_capabilities.md"},
-        {"name": "rebind-pivot-fields-sandbox", "effect": "sandbox_write", "authorization": "sandbox_confirmation", "reference": "dashboard_change_workflow.md"},
-        {"name": "sync-pivot-fields-draft", "effect": "draft_write", "authorization": "exact_manifest_hash_and_confirmation", "reference": "dashboard_change_workflow.md"},
-        {"name": "plan-pivot-append", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "dashboard_change_workflow.md"},
-        {"name": "apply-pivot-append", "effect": "draft_write", "authorization": "exact_plan_hash_and_confirmation", "reference": "dashboard_change_workflow.md"},
-        {"name": "plan-period-date-rebind", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "dashboard_change_workflow.md"},
-        {"name": "apply-period-date-rebind", "effect": "draft_write", "authorization": "exact_plan_hash_and_confirmation", "reference": "dashboard_change_workflow.md"},
-        {"name": "plan-pivot-ratio-draft", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "dashboard_change_workflow.md"},
-        {"name": "apply-pivot-ratio-draft", "effect": "sandbox_write", "authorization": "sandbox_confirmation", "reference": "dashboard_change_workflow.md"},
-        {"name": "plan-conversion-ratio-draft", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "dashboard_change_workflow.md"},
-        {"name": "apply-conversion-ratio-draft", "effect": "sandbox_write", "authorization": "sandbox_confirmation", "reference": "dashboard_change_workflow.md"},
-        {"name": "plan-receiving-key-draft", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "dashboard_receiving_key_workflow.md"},
-        {"name": "apply-receiving-key-draft", "effect": "draft_write", "authorization": "exact_plan_hash_and_confirmation", "reference": "dashboard_receiving_key_workflow.md"},
-        {"name": "publish-receiving-key-draft", "effect": "publish", "authorization": "separate_publish_confirmation", "reference": "dashboard_receiving_key_workflow.md"},
-        {"name": "edit-public-filters", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "platform_profile.md"},
-        {"name": "profile-folder", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "platform_profile.md"},
-        {"name": "profile-all", "effect": "local_write_explicit", "authorization": "explicit_flags", "reference": "platform_profile.md"}
+        {
+          "name": "scan-folder",
+          "effect": "remote_read_only",
+          "authorization": "explicit_command",
+          "reference": "platform_profile.md"
+        },
+        {
+          "name": "capture-dashboard",
+          "effect": "remote_read_only",
+          "authorization": "explicit_command",
+          "reference": "platform_profile.md"
+        },
+        {
+          "name": "profile-dashboard",
+          "effect": "remote_read_only",
+          "authorization": "explicit_command",
+          "reference": "platform_profile.md"
+        },
+        {
+          "name": "check-dashboard-values",
+          "effect": "local_read_only",
+          "authorization": "none",
+          "reference": "platform_profile.md"
+        },
+        {
+          "name": "profile-edit-dashboard",
+          "effect": "remote_read_only",
+          "authorization": "explicit_command",
+          "reference": "platform_profile.md"
+        },
+        {
+          "name": "profile-edit-folder",
+          "effect": "remote_read_only",
+          "authorization": "explicit_command",
+          "reference": "platform_profile.md"
+        },
+        {
+          "name": "profile-edit-all",
+          "effect": "remote_read_only",
+          "authorization": "explicit_command",
+          "reference": "platform_profile.md"
+        },
+        {
+          "name": "design-dashboard",
+          "effect": "local_read_only",
+          "authorization": "none",
+          "reference": "dashboard_change_workflow.md"
+        },
+        {
+          "name": "plan-dashboard-change",
+          "effect": "local_read_only",
+          "authorization": "none",
+          "reference": "dashboard_change_workflow.md"
+        },
+        {
+          "name": "plan-dashboard-build",
+          "effect": "local_read_only",
+          "authorization": "none",
+          "reference": "dashboard_build_workflow.md"
+        },
+        {
+          "name": "apply-dashboard-change",
+          "effect": "draft_write",
+          "authorization": "exact_plan_hash_and_confirmation",
+          "reference": "dashboard_change_workflow.md"
+        },
+        {
+          "name": "apply-dashboard-build",
+          "effect": "draft_write",
+          "authorization": "exact_plan_hash_and_confirmation",
+          "reference": "dashboard_build_workflow.md"
+        },
+        {
+          "name": "publish-dashboard-change",
+          "effect": "publish",
+          "authorization": "separate_publish_confirmation",
+          "reference": "dashboard_change_workflow.md"
+        },
+        {
+          "name": "publish-dashboard-build",
+          "effect": "publish",
+          "authorization": "separate_publish_confirmation",
+          "reference": "dashboard_build_workflow.md"
+        },
+        {
+          "name": "inspect-write-capabilities",
+          "effect": "local_read_only",
+          "authorization": "none",
+          "reference": "dashboard_write_capabilities.md"
+        },
+        {
+          "name": "capture-write-evidence",
+          "effect": "sandbox_write",
+          "authorization": "sandbox_confirmation",
+          "reference": "dashboard_write_capabilities.md"
+        },
+        {
+          "name": "capture-dashboard-build-evidence",
+          "effect": "sandbox_write",
+          "authorization": "sandbox_confirmation",
+          "reference": "dashboard_build_workflow.md"
+        },
+        {
+          "name": "verify-sandbox-dashboard-build",
+          "effect": "local_read_only",
+          "authorization": "none",
+          "reference": "dashboard_build_workflow.md"
+        },
+        {
+          "name": "verify-sandbox-write-adapters",
+          "effect": "sandbox_write",
+          "authorization": "sandbox_confirmation",
+          "reference": "dashboard_write_capabilities.md"
+        },
+        {
+          "name": "rebind-pivot-fields-sandbox",
+          "effect": "sandbox_write",
+          "authorization": "sandbox_confirmation",
+          "reference": "dashboard_change_workflow.md"
+        },
+        {
+          "name": "sync-pivot-fields-draft",
+          "effect": "draft_write",
+          "authorization": "exact_manifest_hash_and_confirmation",
+          "reference": "dashboard_change_workflow.md"
+        },
+        {
+          "name": "plan-pivot-append",
+          "effect": "remote_read_only",
+          "authorization": "explicit_command",
+          "reference": "dashboard_change_workflow.md"
+        },
+        {
+          "name": "apply-pivot-append",
+          "effect": "draft_write",
+          "authorization": "exact_plan_hash_and_confirmation",
+          "reference": "dashboard_change_workflow.md"
+        },
+        {
+          "name": "plan-period-date-rebind",
+          "effect": "remote_read_only",
+          "authorization": "explicit_command",
+          "reference": "dashboard_change_workflow.md"
+        },
+        {
+          "name": "apply-period-date-rebind",
+          "effect": "draft_write",
+          "authorization": "exact_plan_hash_and_confirmation",
+          "reference": "dashboard_change_workflow.md"
+        },
+        {
+          "name": "plan-pivot-ratio-draft",
+          "effect": "remote_read_only",
+          "authorization": "explicit_command",
+          "reference": "dashboard_change_workflow.md"
+        },
+        {
+          "name": "apply-pivot-ratio-draft",
+          "effect": "sandbox_write",
+          "authorization": "sandbox_confirmation",
+          "reference": "dashboard_change_workflow.md"
+        },
+        {
+          "name": "plan-conversion-ratio-draft",
+          "effect": "remote_read_only",
+          "authorization": "explicit_command",
+          "reference": "dashboard_change_workflow.md"
+        },
+        {
+          "name": "apply-conversion-ratio-draft",
+          "effect": "sandbox_write",
+          "authorization": "sandbox_confirmation",
+          "reference": "dashboard_change_workflow.md"
+        },
+        {
+          "name": "edit-public-filters",
+          "effect": "remote_read_only",
+          "authorization": "explicit_command",
+          "reference": "platform_profile.md"
+        },
+        {
+          "name": "profile-folder",
+          "effect": "remote_read_only",
+          "authorization": "explicit_command",
+          "reference": "platform_profile.md"
+        },
+        {
+          "name": "profile-all",
+          "effect": "local_write_explicit",
+          "authorization": "explicit_flags",
+          "reference": "platform_profile.md"
+        },
+        {
+          "name": "plan-qingcheng-advisor-rate",
+          "effect": "remote_read_only",
+          "authorization": "explicit_command",
+          "reference": "dashboard_write_capabilities.md"
+        },
+        {
+          "name": "apply-qingcheng-advisor-rate",
+          "effect": "draft_write",
+          "authorization": "exact_plan_hash_and_confirmation",
+          "reference": "dashboard_write_capabilities.md"
+        },
+        {
+          "name": "publish-qingcheng-advisor-rate",
+          "effect": "publish",
+          "authorization": "separate_publish_confirmation",
+          "reference": "dashboard_write_capabilities.md"
+        },
+        {
+          "name": "verify-qingcheng-advisor-rate",
+          "effect": "remote_read_only",
+          "authorization": "explicit_command",
+          "reference": "dashboard_write_capabilities.md"
+        }
       ]
     },
     {
       "entrypoint": "oes_achievement.py",
       "commands": [
-        {"name": "login", "effect": "local_write_explicit", "authorization": "explicit_command", "reference": "oes_achievement_export.md"},
-        {"name": "session-status", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "oes_achievement_export.md"},
-        {"name": "inspect-range", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "oes_achievement_export.md"},
-        {"name": "export", "effect": "remote_write_explicit", "authorization": "explicit_command", "reference": "oes_achievement_export.md"},
-        {"name": "mail-login", "effect": "local_write_explicit", "authorization": "explicit_command", "reference": "oes_achievement_export.md"},
-        {"name": "mail-session-status", "effect": "local_write_explicit", "authorization": "explicit_command", "reference": "oes_achievement_export.md"},
-        {"name": "download-mail", "effect": "local_write_explicit", "authorization": "explicit_command", "reference": "oes_achievement_export.md"},
-        {"name": "export-and-download", "effect": "remote_write_explicit", "authorization": "explicit_command", "reference": "oes_achievement_export.md"},
-        {"name": "base-setup", "effect": "remote_write_explicit", "authorization": "explicit_command", "reference": "oes_achievement_export.md"},
-        {"name": "sync-base", "effect": "remote_write_explicit", "authorization": "explicit_command", "reference": "oes_achievement_export.md"},
-        {"name": "clean-cache", "effect": "local_write_explicit", "authorization": "explicit_command", "reference": "oes_achievement_export.md"}
+        {
+          "name": "login",
+          "effect": "local_write_explicit",
+          "authorization": "explicit_command",
+          "reference": "oes_achievement_export.md"
+        },
+        {
+          "name": "session-status",
+          "effect": "remote_read_only",
+          "authorization": "explicit_command",
+          "reference": "oes_achievement_export.md"
+        },
+        {
+          "name": "inspect-range",
+          "effect": "remote_read_only",
+          "authorization": "explicit_command",
+          "reference": "oes_achievement_export.md"
+        },
+        {
+          "name": "export",
+          "effect": "remote_write_explicit",
+          "authorization": "explicit_command",
+          "reference": "oes_achievement_export.md"
+        },
+        {
+          "name": "mail-login",
+          "effect": "local_write_explicit",
+          "authorization": "explicit_command",
+          "reference": "oes_achievement_export.md"
+        },
+        {
+          "name": "mail-session-status",
+          "effect": "local_write_explicit",
+          "authorization": "explicit_command",
+          "reference": "oes_achievement_export.md"
+        },
+        {
+          "name": "download-mail",
+          "effect": "local_write_explicit",
+          "authorization": "explicit_command",
+          "reference": "oes_achievement_export.md"
+        },
+        {
+          "name": "export-and-download",
+          "effect": "remote_write_explicit",
+          "authorization": "explicit_command",
+          "reference": "oes_achievement_export.md"
+        },
+        {
+          "name": "base-setup",
+          "effect": "remote_write_explicit",
+          "authorization": "explicit_command",
+          "reference": "oes_achievement_export.md"
+        },
+        {
+          "name": "sync-base",
+          "effect": "remote_write_explicit",
+          "authorization": "explicit_command",
+          "reference": "oes_achievement_export.md"
+        },
+        {
+          "name": "clean-cache",
+          "effect": "local_write_explicit",
+          "authorization": "explicit_command",
+          "reference": "oes_achievement_export.md"
+        }
       ]
     },
     {
       "entrypoint": "tiangong2_task.py",
       "commands": [
-        {"name": "list-projects", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "tiangong2_task_exploration.md"},
-        {"name": "explore", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "tiangong2_task_exploration.md"},
-        {"name": "plan-task-schedule-update", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "tiangong2_task_operations.md"},
-        {"name": "apply-task-schedule-update", "effect": "remote_write_explicit", "authorization": "exact_plan_hash_and_confirmation", "reference": "tiangong2_task_operations.md", "parameters": {"effective_scheduler_readback_required": true}},
-        {"name": "plan-nezha-schedule-update", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "tiangong2_task_operations.md"},
-        {"name": "apply-nezha-schedule-update", "effect": "remote_write_explicit", "authorization": "exact_plan_hash_and_confirmation", "reference": "tiangong2_task_operations.md", "parameters": {"schedule_list_readback_required": true}},
-        {"name": "list-execution-history", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "tiangong2_task_operations.md"},
-        {"name": "fetch-execution-log", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "tiangong2_task_operations.md"},
-        {"name": "plan-task-maintenance-session", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "tiangong2_task_operations.md"},
-        {"name": "authorize-task-maintenance-session", "effect": "local_write_explicit", "authorization": "exact_plan_hash_and_confirmation", "reference": "tiangong2_task_operations.md"},
-        {"name": "plan-task-python-patch", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "tiangong2_task_operations.md"},
-        {"name": "apply-task-python-patch", "effect": "remote_write_explicit", "authorization": "maintenance_session_or_exact_phase_confirmation", "reference": "tiangong2_task_operations.md"},
-        {"name": "plan-task-query-update", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "tiangong2_task_operations.md", "parameters": {"sql_quality_review_required": true}},
-        {"name": "apply-task-query-update", "effect": "remote_write_explicit", "authorization": "maintenance_session_or_exact_phase_confirmation", "reference": "tiangong2_task_operations.md"},
-        {"name": "plan-task-submit", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "tiangong2_task_operations.md", "parameters": {"receipt_bound_schedule_resubmission": true}},
-        {"name": "submit-task", "effect": "remote_write_explicit", "authorization": "maintenance_session_or_exact_phase_confirmation", "reference": "tiangong2_task_operations.md", "parameters": {"receipt_bound_schedule_resubmission": true}},
-        {"name": "plan-task-publish", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "tiangong2_task_operations.md"},
-        {"name": "publish-task", "effect": "publish", "authorization": "maintenance_session_or_exact_phase_confirmation", "reference": "tiangong2_task_operations.md"},
-        {"name": "plan-task-execution", "effect": "remote_read_only", "authorization": "explicit_command", "reference": "tiangong2_task_operations.md"},
-        {"name": "execute-task-once", "effect": "remote_write_explicit", "authorization": "maintenance_session_or_exact_phase_confirmation", "reference": "tiangong2_task_operations.md"}
+        {
+          "name": "list-projects",
+          "effect": "remote_read_only",
+          "authorization": "explicit_command",
+          "reference": "tiangong2_task_exploration.md"
+        },
+        {
+          "name": "explore",
+          "effect": "remote_read_only",
+          "authorization": "explicit_command",
+          "reference": "tiangong2_task_exploration.md"
+        },
+        {
+          "name": "plan-task-schedule-update",
+          "effect": "remote_read_only",
+          "authorization": "explicit_command",
+          "reference": "tiangong2_task_operations.md"
+        },
+        {
+          "name": "apply-task-schedule-update",
+          "effect": "remote_write_explicit",
+          "authorization": "exact_plan_hash_and_confirmation",
+          "reference": "tiangong2_task_operations.md",
+          "parameters": {
+            "effective_scheduler_readback_required": true
+          }
+        },
+        {
+          "name": "plan-nezha-schedule-update",
+          "effect": "remote_read_only",
+          "authorization": "explicit_command",
+          "reference": "tiangong2_task_operations.md"
+        },
+        {
+          "name": "apply-nezha-schedule-update",
+          "effect": "remote_write_explicit",
+          "authorization": "exact_plan_hash_and_confirmation",
+          "reference": "tiangong2_task_operations.md",
+          "parameters": {
+            "schedule_list_readback_required": true
+          }
+        },
+        {
+          "name": "list-execution-history",
+          "effect": "remote_read_only",
+          "authorization": "explicit_command",
+          "reference": "tiangong2_task_operations.md"
+        },
+        {
+          "name": "fetch-execution-log",
+          "effect": "remote_read_only",
+          "authorization": "explicit_command",
+          "reference": "tiangong2_task_operations.md"
+        },
+        {
+          "name": "plan-task-maintenance-session",
+          "effect": "remote_read_only",
+          "authorization": "explicit_command",
+          "reference": "tiangong2_task_operations.md"
+        },
+        {
+          "name": "authorize-task-maintenance-session",
+          "effect": "local_write_explicit",
+          "authorization": "exact_plan_hash_and_confirmation",
+          "reference": "tiangong2_task_operations.md"
+        },
+        {
+          "name": "plan-task-python-patch",
+          "effect": "remote_read_only",
+          "authorization": "explicit_command",
+          "reference": "tiangong2_task_operations.md"
+        },
+        {
+          "name": "apply-task-python-patch",
+          "effect": "remote_write_explicit",
+          "authorization": "maintenance_session_or_exact_phase_confirmation",
+          "reference": "tiangong2_task_operations.md"
+        },
+        {
+          "name": "plan-task-query-update",
+          "effect": "remote_read_only",
+          "authorization": "explicit_command",
+          "reference": "tiangong2_task_operations.md",
+          "parameters": {
+            "sql_quality_review_required": true
+          }
+        },
+        {
+          "name": "apply-task-query-update",
+          "effect": "remote_write_explicit",
+          "authorization": "maintenance_session_or_exact_phase_confirmation",
+          "reference": "tiangong2_task_operations.md"
+        },
+        {
+          "name": "plan-task-submit",
+          "effect": "remote_read_only",
+          "authorization": "explicit_command",
+          "reference": "tiangong2_task_operations.md",
+          "parameters": {
+            "receipt_bound_schedule_resubmission": true
+          }
+        },
+        {
+          "name": "submit-task",
+          "effect": "remote_write_explicit",
+          "authorization": "maintenance_session_or_exact_phase_confirmation",
+          "reference": "tiangong2_task_operations.md",
+          "parameters": {
+            "receipt_bound_schedule_resubmission": true
+          }
+        },
+        {
+          "name": "plan-task-publish",
+          "effect": "remote_read_only",
+          "authorization": "explicit_command",
+          "reference": "tiangong2_task_operations.md"
+        },
+        {
+          "name": "publish-task",
+          "effect": "publish",
+          "authorization": "maintenance_session_or_exact_phase_confirmation",
+          "reference": "tiangong2_task_operations.md"
+        },
+        {
+          "name": "plan-task-execution",
+          "effect": "remote_read_only",
+          "authorization": "explicit_command",
+          "reference": "tiangong2_task_operations.md"
+        },
+        {
+          "name": "execute-task-once",
+          "effect": "remote_write_explicit",
+          "authorization": "maintenance_session_or_exact_phase_confirmation",
+          "reference": "tiangong2_task_operations.md"
+        }
       ]
     }
   ]

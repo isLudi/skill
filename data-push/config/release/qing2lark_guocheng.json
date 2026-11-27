@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "domain": "qingcheng",
+  "execution_surface": "local",
+  "task_key": "qingcheng.process",
+  "release_name": "qing2lark_guocheng-235940",
+  "target_table_id": "tblXU4tla3bY36DE",
+  "schedule_interval_hours": 4,
+  "schedule_start_minute": 40,
+  "schedule_anchor_hour": 21,
+  "source_hash_algorithm": "sha256-utf8-ver-getCode",
+  "bound_execution_id": 184641176,
+  "bound_execution_start": "2026-11-26T21:58:00+08:00",
+  "upstream": {
+    "project_id": 308,
+    "folder": "吕帅",
+    "menu_id": 103625,
+    "task_name": "qing2lark_guocheng",
+    "task_id": 47728,
+    "nezha_task_id": 67318,
+    "owner": "lvshuai01",
+    "published_version": "V63",
+    "version_id": 235940,
+    "exec_file_id": 902964,
+    "source_sha256": "25882327a37faf582dd10a9ff68832b20e9e046027e5bc236471b14bcda9d2d1",
+    "audit_schema": "market2lark-two-period-audit-v1",
+    "table_id": "tblXU4tla3bY36DE",
+    "audit_field_count": 51
+  },
+  "release_review": {
+    "reference": "C:\\Users\\lvshuai01\\.codex\\work\\qingcheng_new_channels_20261126\\base_verification.json",
+    "association": "explicitly_reviewed_mapping",
+    "verified_at": "2026-11-26T14:15:06.426443+00:00",
+    "target_table_id": "tblXU4tla3bY36DE",
+    "rows": 25951,
+    "business_periods": [
+      "20261120期",
+      "20261127期"
+    ],
+    "audit_field_count": 51,
+    "stage_logs": [
+      {
+        "stage_id": 186296108,
+        "sha256": "ec84f8eb1d0c4efacf2b312d7bd25763994bbcdc770e95c32e84818daa4d03ca"
+      }
+    ],
+    "version_id": 235940,
+    "version_label": "V63",
+    "published_at": "2026-11-26 21:55:57",
+    "source_sha256": "25882327a37faf582dd10a9ff68832b20e9e046027e5bc236471b14bcda9d2d1",
+    "exec_file_id": 902964,
+    "execution_id": 184641176,
+    "execution_period": "2026-11-26T21:00:00+08:00",
+    "execution_start": "2026-11-26T21:58:00+08:00",
+    "controlled_execution_receipt": {
+      "path": "C:\\Users\\lvshuai01\\.codex\\runtime\\usql-web-query-operator\\tiangong2-task\\qingcheng-new-channels-20261126\\qing2lark_guocheng\\execute-task-once\\task_execution_receipt_103625_20261126T135744Z_ddac5a92e254.json",
+      "sha256": "035604954cdc4562f7d233ead4aed4811db19bc6babcc3d5e657b5632e3b384d"
+    }
+  }
+}

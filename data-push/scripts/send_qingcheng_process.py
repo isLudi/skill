@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import argparse
+from datetime import datetime
 import html
 import json
 import re
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from lark_delivery.common import resend
 from lark_delivery.common.im import upload_image, verify_sender_membership
@@ -115,6 +117,7 @@ def main() -> None:
     parser.add_argument("--image-key", default="")
     parser.add_argument("--idempotency-key", required=True)
     parser.add_argument("--send", action="store_true")
+    parser.add_argument("--delivery-deadline", default="")
     parser.add_argument("--reverify-only", action="store_true",
                         help="re-run the readback of an already-sent message; never sends")
     args = parser.parse_args()
@@ -162,6 +165,10 @@ def main() -> None:
     if not args.send:
         command.append("--dry-run")
     if args.send:
+        if args.delivery_deadline:
+            deadline = datetime.fromisoformat(args.delivery_deadline)
+            if deadline.tzinfo is None or datetime.now(ZoneInfo("Asia/Shanghai")) >= deadline:
+                raise ValueError("Process delivery missed its authorized batch window")
         receipt.write_text(json.dumps({"status": "send_attempt_started", "chat_id": chat_id,
                                        "period": review["period"], "idempotency_key": args.idempotency_key,
                                        "mention_ids": sorted(resolved.values())}, ensure_ascii=False, indent=2), encoding="utf-8")

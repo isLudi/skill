@@ -1068,6 +1068,42 @@
         "dt",
         "hour"
       ]
+    },
+    {
+      "id": "qingcheng:metric:advisor_breakthrough_rate",
+      "name": "青橙顾问破蛋率",
+      "aliases": [
+        "破蛋率",
+        "顾问破蛋率",
+        "营收顾问破蛋率"
+      ],
+      "status": "confirmed",
+      "source_path": "knowledge/metrics/qingcheng_advisor_breakthrough_rate.md",
+      "source_sha256": "9c2c35f84a4f6994bbd560084d2ee564b71c42114ab05bb096c81ecc18e8d2a3",
+      "description": "2026-11-22用户确认：先在同一报表筛选及人员范围内按顾问账号汇总综合营收，以营收>0的顾问去重人数除以顾问去重总人数。包含零营收顾问；不扣退费，不用podan成交用户数或v_lead线索数。汇总重新合并账号营收并去重计人。",
+      "sql_expression": "SUM(CASE WHEN {base}.advisor_revenue > 0 THEN 1 ELSE 0 END) / NULLIF(CAST(COUNT(*) AS DOUBLE), 0)",
+      "output_alias": "advisor_breakthrough_rate",
+      "aggregation": "ratio",
+      "automatic_compile": false,
+      "candidate_tables": [
+        "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
+        "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf"
+      ],
+      "calculation_grain": "one adviser account after report-scope filters and gross-revenue aggregation",
+      "allowed_dimensions": [
+        "qingcheng:dimension:section_consultant",
+        "qingcheng:dimension:result_period_name",
+        "qingcheng:dimension:channel_name_2",
+        "qingcheng:dimension:grade_1",
+        "qingcheng:dimension:dept_2",
+        "qingcheng:dimension:xiaozu"
+      ],
+      "required_scope_fields": [
+        "dt",
+        "hour",
+        "section_assign_employee_first_level_department_name",
+        "section_assign_employee_second_level_department_name"
+      ]
     }
   ]
 }

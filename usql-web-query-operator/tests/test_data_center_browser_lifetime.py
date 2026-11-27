@@ -2,13 +2,43 @@ from argparse import Namespace
 from contextlib import contextmanager
 from pathlib import Path
 import sys
+from types import SimpleNamespace
 
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 from usql_web_query.commands import apply_data_center_sql_replacement as command
-from usql_web_query.data_center_write import _dismiss_preview_error
+from usql_web_query.data_center_write import DataCenterReplacementExecutor, _dismiss_preview_error
 from _shared.errors import UsageError
+
+
+@pytest.mark.parametrize(
+    ("progress", "expected"),
+    [
+        ({"phase": "preview"}, (False, False)),
+        ({"phase": "save", "save_request_attempted": True}, (False, True)),
+        ({"phase": "refresh_trigger", "refresh_request_attempted": True}, (False, True)),
+        ({"save_request_attempted": True, "remote_sql_saved": True}, (True, False)),
+        ({"refresh_triggered": True}, (True, False)),
+    ],
+)
+def test_save_response_failure_is_reported_as_uncertain_write(progress, expected):
+    assert command._remote_write_state(progress) == expected
+
+
+def test_noop_refresh_skips_save_only_for_an_approved_matching_hash():
+    plan = SimpleNamespace(content_change=False, allow_noop=True,
+                           current_sql_sha256="same", replacement_sql_sha256="same")
+    executor = DataCenterReplacementExecutor(page=None, client=None, plan=plan,
+        replacement_sql="select 1", preview_timeout_ms=1, refresh_timeout_ms=1, poll_interval_ms=1)
+    executor._save_if_needed(SimpleNamespace(id="dataset"))
+    assert executor.progress["save_skipped_reason"] == "confirmed_exact_hash_noop_refresh"
+    assert not executor.progress.get("save_request_attempted")
+    for allowed, current, replacement in ((False, "same", "same"), (True, "old", "new")):
+        executor.plan = SimpleNamespace(content_change=False, allow_noop=allowed,
+                                        current_sql_sha256=current, replacement_sql_sha256=replacement)
+        with pytest.raises(UsageError, match="exact-hash refresh"):
+            executor._save_if_needed(SimpleNamespace(id="dataset"))
 
 
 @pytest.mark.parametrize("failure", [False, True])

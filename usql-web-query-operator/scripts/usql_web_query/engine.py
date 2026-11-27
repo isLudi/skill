@@ -46,7 +46,9 @@ def normalize_query_engine(engine: str | None) -> str:
 def get_query_engine_selector(page: Any) -> Any:
     frame = get_sql_frame(page)
     selector = frame.locator(".antd-pro-src-components-editor-index-changeModeBox .ant-select-selector").first
-    selector.wait_for(state="visible", timeout=15_000)
+    # The authenticated shell can arrive well before the SQL iframe's async
+    # bundle. Wait for the actual selector; do not click or submit again.
+    selector.wait_for(state="visible", timeout=60_000)
     return selector
 
 
@@ -91,8 +93,12 @@ def _click_engine_menu_item(page: Any, pattern: str) -> None:
     locator = frame.locator(".ant-cascader-menu-item").filter(
         has_text=re.compile(pattern, flags=re.I)
     ).last
-    if locator.count() == 0:
-        raise UsageError(f"Could not find engine menu item matching {pattern!r}.")
+    # Cascader options load asynchronously after opening the selector. An
+    # immediate count can misreport an existing engine as unavailable.
+    try:
+        locator.wait_for(state="visible", timeout=10_000)
+    except Exception as exc:
+        raise UsageError(f"Could not find engine menu item matching {pattern!r}.") from exc
     locator.click(timeout=5000)
 
 

@@ -193,6 +193,7 @@ def run(definition, target, request_id, *, preflight=False, requested_slot=None,
                 return 0
 
             def guard(context):
+                schedule.require_current_producer_bindings(effective_cfg, slot)
                 require_fresh_request(started, slot, evidence, context, schedule.now(),
                                       allow_expired=allow_expired, volume=volume, cfg=cfg)
                 directory = schedule.operator("list-execution-history", cfg, "--limit", "12")

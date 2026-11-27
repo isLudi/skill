@@ -81,13 +81,14 @@ def projection(field_names, report_type):
     return required, counters
 
 
-def validate_scope(records, channel, period, *, source_channel=None):
+def validate_scope(records, channel, period, *, source_channel=None, require_grade=True):
     scope = source_channel or channel
     if not records:
         raise ValueError(f"{channel}在当期{period}没有数据；不回退到其他期次")
     seen, snapshots = set(), set()
+    required_dimensions = [field for field in DIMENSIONS if require_grade or field != "年级"]
     for row in records:
-        for field in DIMENSIONS:
+        for field in required_dimensions:
             if not text(value(row, field)):
                 raise ValueError("线索缺少必要字段：" + field)
         candidate = text(value(row, "渠道"))
@@ -117,7 +118,7 @@ mention_ids = base_report.mention_ids
 
 
 def build_report(records, counters, period, report_type, *, min_post_leads=MIN_POST_LEADS,
-                 included_grades=DEFAULT_INCLUDED_GRADES, **_unused):
+                 included_grades=DEFAULT_INCLUDED_GRADES, grade_group_label=None, **_unused):
     minimum = Decimal(min_post_leads)
     included_grades = frozenset(included_grades)
     if not included_grades:
@@ -128,7 +129,7 @@ def build_report(records, counters, period, report_type, *, min_post_leads=MIN_P
         supervisor, manager, consultant, grade = (
             text(value(row, field)) for field in ("主管", "经理", "顾问", "年级")
         )
-        if not supervisor or not manager or not consultant or not grade:
+        if not supervisor or not manager or not consultant or (not grade and grade_group_label is None):
             raise ValueError("顾问粒度播报不接受空年级、负责人、主管或顾问")
         if grade not in included_grades:
             excluded_grade_counts[grade] = excluded_grade_counts.get(grade, 0) + 1
@@ -141,8 +142,8 @@ def build_report(records, counters, period, report_type, *, min_post_leads=MIN_P
                       "APP登陆标记", "深沟标记", "双沟标记", "首节到课标记"):
             if field in amounts and amounts[field] not in (0, 1):
                 raise ValueError("原始标记必须为0或1：" + field)
-        group = grades.setdefault(grade, {"sums": _empty(counters), "advisors": {},
-                                          "raw_count": 0})
+        group = grades.setdefault(grade_group_label or grade, {"sums": _empty(counters), "advisors": {},
+                                                              "raw_count": 0})
         _add(group["sums"], amounts)
         advisor_key = (manager, supervisor, consultant)
         _add(group["advisors"].setdefault(advisor_key, _empty(counters)), amounts)

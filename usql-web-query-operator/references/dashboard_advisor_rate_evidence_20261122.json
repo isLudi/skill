@@ -1,0 +1,32 @@
+{
+  "artifact_type": "ReviewedSharedAdvisorRateEvidence",
+  "date": "2026-11-22",
+  "domain": "qingcheng",
+  "sandbox_dashboard_id": "dashboard_4178529962726412289",
+  "isolated_subject_id": 216870,
+  "probe_sha256": "34574d67dd39ee4f407275529bab0fe1eae34e922d42e3ab9549a5661ea234dc",
+  "transaction_sha256": "4c510dd4c12e485c831993a517f292b94bd4523d1ca2ccf5a08e0b89d9a30edb",
+  "source_rows": 1950,
+  "checks": [
+    {
+      "unit_id": "unit_4178537927388397568",
+      "rows_checked": 531,
+      "grand_total": "0.76582",
+      "failures": 0
+    },
+    {
+      "unit_id": "unit_4178538900809306112",
+      "rows_checked": 66,
+      "grand_total": "0.76582",
+      "failures": 0
+    }
+  ],
+  "whole_profile_restored": true,
+  "review": "Reviewed exact ordered dependency binding, write/read/restore and independent per-adviser gross revenue aggregation; approved only the dedicated Qingcheng adapter, not generic update_formula.",
+  "limits": [
+    "The user confirmed nonnegative gross revenue and separate refunds.",
+    "No sandbox auto-promotion.",
+    "Only the exact registered conversion board, all shared consumers and one formula.",
+    "Plan/Apply/Publish remain separate; unchanged schema and units; no messages or schedules."
+  ]
+}

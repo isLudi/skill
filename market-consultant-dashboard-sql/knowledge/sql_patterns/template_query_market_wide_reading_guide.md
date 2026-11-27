@@ -1,19 +1,25 @@
-# AI分析市场顾问部_宽表：SQL 阅读指南
+# AI分析市场顾问部宽表历史SQL阅读指南
 
-## 权威入口与版本
+## 当前版本定位（2026-11-14）
+
+本轮实时published SQL SHA-256为`dd677a87e9f7d74cabda75279fc10a792ad735b999ddf6b141df8c8e05537f42`，查询`422140`返回630行，耗时39秒，终态SUCCESS。当前完整代码和参数从stable入口读取。[最新宽表SQL](../../resources/raw_sql/template_query_market_wide.sql)
+
+下方42CTE、13行及49,917字节的分层阅读说明对应2026-10-29的`d255963cf8baf4ac9f704b9a10256709dbd61ef14dd09962c2d1e1c4581bce04`版本。下方原文中的“当前”均对应这一历史取样时点。当前模板的版本、Hash和查询记录由模板清单登记。[当前模板清单](../dashboards/template_query_market_datasets.md)
+
+## 历史版本元数据（2026-10-29）
 
 - 领域：`market_consultant`，使用口径为模板取数。
 - 线上模板：`AI分析市场顾问部_宽表`，template id `9002`。
-- 当前状态：`published`；线上发布时间与更新时间为 `2026-10-29 17:49:57`。
+- 当时状态：`published`；线上发布时间与更新时间为 `2026-10-29 17:49:57`。
 - 完整 SQL 唯一入口：[template_query_market_wide.sql](../../resources/raw_sql/template_query_market_wide.sql)。
-- 当前 SQL SHA-256：`d255963cf8baf4ac9f704b9a10256709dbd61ef14dd09962c2d1e1c4581bce04`；canonical UTF-8 文件为 13 行、49,917 字节。
+- 历史 SQL SHA-256：`d255963cf8baf4ac9f704b9a10256709dbd61ef14dd09962c2d1e1c4581bce04`；canonical UTF-8 文件为 13 行、49,917 字节。
 - 模板参数：`${qici:1}` 为包含的起始期次，`${qici:2}` 为不包含的结束期次；主链使用半开区间 `qici >= ${qici:1} AND qici < ${qici:2}`。
 
 canonical 文件逐字保存平台当前已发布 SQL，以便后续按模板身份和文本哈希审计。线上原文存在较长的单行 CTE；本指南通过分层导航提高可读性，不生成第二份可能与线上漂移的“格式化 SQL”，也不改变参数、字段、过滤、关联、聚合或输出。后续修改前仍须重新读取线上模板，不能把本指南或历史版本当作编辑基线。
 
-## 查询结构总览
+## 历史版本查询结构总览
 
-SQL 共 42 个 CTE，最终执行 `SELECT * FROM joined`。建议按以下八段阅读：
+2026-10-29历史版本共 42 个 CTE，最终执行 `SELECT * FROM joined`。建议按以下八段阅读：
 
 | 阶段 | CTE | 主要职责 |
 |---|---|---|
@@ -41,7 +47,7 @@ SQL 共 42 个 CTE，最终执行 `SELECT * FROM joined`。建议按以下八段
 
 ## 物理来源表
 
-当前 SQL 直接扫描 14 张物理表：
+该历史版本直接扫描 14 张物理表：
 
 | 业务用途 | 物理表 |
 |---|---|

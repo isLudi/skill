@@ -25,7 +25,7 @@ SNAPSHOT = ["20261023", "13"]
 
 def raw_row(index, channel, department="SEC"):
     return {"record_id": f"rec{index}", "记录键": f"key{index}", "期次": PERIOD,
-            "一级渠道": "订单复用", "渠道": channel, "部门": department,
+            "一级渠道": "公海", "渠道": channel, "部门": department,
             "分区日期": SNAPSHOT[0], "分区小时": SNAPSHOT[1]}
 
 
@@ -48,26 +48,26 @@ def fake_base(monkeypatch, rows):
 
 
 def test_order_reuse_includes_every_secondary_and_department_but_supervisor_is_exact(monkeypatch, tmp_path):
-    rows = [raw_row(1, "SEC未加好友"), raw_row(2, "SEC内部未加好友"), raw_row(3, "新增二级渠道", "一部")]
+    rows = [raw_row(1, "SEC未加好友"), raw_row(2, "SEC内部复用"), raw_row(3, "新增二级渠道", "一部")]
     filters = fake_base(monkeypatch, rows)
     manifest = source.fetch("sec_order_reuse", PERIOD, tmp_path / "all.ndjson")
     assert manifest["records_count"] == 3
-    assert filters[0] == [["一级渠道", "==", "订单复用"], ["期次", "==", PERIOD]]
+    assert filters[0] == [["一级渠道", "==", "公海"], ["期次", "==", PERIOD]]
     source.fetch("sec_order_reuse", PERIOD, tmp_path / "supervisor.ndjson", secondary_channel="SEC未加好友")
     source.probe_revision("sec_order_reuse", PERIOD, tmp_path / "probe.ndjson", secondary_channel="SEC未加好友")
     assert all(["渠道", "==", "SEC未加好友"] in f for f in filters[1:])
 
 
 def test_order_reuse_count_audit_covers_new_secondary_without_department_filter(monkeypatch, tmp_path):
-    rows = [raw_row(1, "SEC未加好友"), raw_row(2, "SEC内部未加好友"), raw_row(3, "新增二级渠道", "一部")]
+    rows = [raw_row(1, "SEC未加好友"), raw_row(2, "SEC内部复用"), raw_row(3, "新增二级渠道", "一部")]
     fake_base(monkeypatch, rows)
-    audit = {"raw_channel_counts": dict(Counter(r["渠道"] for r in rows)), "snapshot": SNAPSHOT}
-    selected, manifest = sec._source_rows("sec_order_reuse", PERIOD, tmp_path, audit, sec._config(), SLOT)
+    audit = {"raw_channel_counts": dict(Counter(r["渠道"] for r in rows)), "snapshot": SNAPSHOT, "base_revision": 42}
+    selected, manifest = sec._source_rows("sec_order_reuse", PERIOD, tmp_path, audit, sec._config())
     assert selected == rows and manifest["scope_audit"]["department"] is None
     assert manifest["scope_audit"]["raw_channel_counts"] == audit["raw_channel_counts"]
-    audit["raw_channel_counts"]["SEC内部未加好友"] += 1
+    audit["raw_channel_counts"]["SEC内部复用"] += 1
     with pytest.raises(ValueError, match="count"):
-        sec._source_rows("sec_order_reuse", PERIOD, tmp_path, audit, sec._config(), SLOT)
+        sec._source_rows("sec_order_reuse", PERIOD, tmp_path, audit, sec._config())
 
 
 @pytest.mark.parametrize("fault", ["source", "build", "delivery", "receipt", "pin"])
@@ -76,9 +76,9 @@ def test_sec_one_report_failure_does_not_block_any_sibling(monkeypatch, tmp_path
     cfg["additional_reports"] = []
     monkeypatch.setattr(sec, "_config", lambda **kwargs: deepcopy(cfg))
     failed = "sec_no_friend_supervisor"
-    monkeypatch.setattr(sec, "_upstream_audit", lambda *a: {"snapshot": SNAPSHOT,
-        "raw_channel_counts": {"公域学霸": 1, "SEC未加好友": 1, "SEC首期掉海": 1, "SEC内部未加好友": 1}})
-    def get_rows(key, period, folder, audit, scoped, slot):
+    monkeypatch.setattr(sec, "_latest_verified_snapshot", lambda *a: {"snapshot": SNAPSHOT,
+        "raw_channel_counts": {"公域学霸": 1, "SEC未加好友": 1, "SEC首期掉海": 1, "SEC内部复用": 1}})
+    def get_rows(key, period, folder, audit, scoped):
         if fault == "source" and folder.name == failed:
             raise ValueError("one source failed")
         return [], {"period": period, "snapshot": SNAPSHOT, "rev": 42}
@@ -179,7 +179,12 @@ def test_partner_messages_with_the_same_source_are_independent(monkeypatch, tmp_
         (folder / ("send_receipt.json" if fault == "receipt" else "source_version.json")).write_text("{", encoding="utf-8")
     batch = partner.run(now=datetime(2026, 10, 22, 13, 50, tzinfo=ZONE), output=tmp_path)
     assert batch["channels"][failed]["status"] != "sent_verified"
-    assert all(v["status"] == "sent_verified" for key, v in batch["channels"].items() if key != failed)
+    for entry in cfg["channels"]:
+        if entry["id"] == failed:
+            continue
+        before_first = entry.get("first_send_at") and datetime(2026, 10, 22, 13, 50, tzinfo=ZONE) < datetime.fromisoformat(entry["first_send_at"])
+        expected = "skipped_schedule_disabled" if before_first else "sent_verified"
+        assert batch["channels"][entry["id"]]["status"] == expected
 
 
 @pytest.mark.parametrize("fault", ["source", "build", "delivery", "receipt"])
@@ -190,7 +195,9 @@ def test_six_group_process_single_message_failure_continues(monkeypatch, tmp_pat
     def fetch(channel, period, path):
         if fault == "source" and (channel, path.parent.name) == ("private", "supervisor"):
             raise ValueError("one source failed")
-        return {"rev": 42, "snapshot": SNAPSHOT, "records_count": 1}
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text('{"record_id":"one"}\n', encoding="utf-8")
+        return {"rev": 42, "snapshot": SNAPSHOT, "records_count": 1, "has_more": False}
     def build(src, sup, con, out, config, *, levels):
         level = levels[0]
         if fault == "build" and (out.parent.name, level) == ("private", "supervisor"):
@@ -223,11 +230,13 @@ def test_both_transformation_tasks_continue_after_single_message_failure(monkeyp
     def fetch(channel, period, path, **kwargs):
         if fault == "source" and (channel, path.parent.name) == (failed_channel, failed_level):
             raise ValueError("one source failed")
-        return {"rev": 42, "snapshot": SNAPSHOT}
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text('{"record_id":"one"}\n', encoding="utf-8")
+        return {"rev": 42, "snapshot": SNAPSHOT, "records_count": 1, "has_more": False}
     def export(channel, period, path, **kwargs):
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text("{}\n", encoding="utf-8")
-        return {"rev": 43}
+        return {"rev": 43, "records_count": 1, "has_more": False}
     def build(src, conv, out, config, *, channels, period, levels):
         channel, level = channels[0], levels[0]
         if fault == "build" and (channel, level) == (failed_channel, failed_level):

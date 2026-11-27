@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import argparse
 from collections import Counter
+import hashlib
 import json
 import re
 from pathlib import Path
 
 from lark_delivery.common.runtime import run_lark
+from lark_delivery.integrations.push_platform import shared_ndjson_snapshot
 
 
 SKILL = Path(__file__).resolve().parents[1]
@@ -16,31 +18,40 @@ WORKSPACE = SKILL.parents[1]
 BASE_TOKEN = "QOVib6QCXaUvJ2s2PsbcnMmsnGg"
 TABLE_ID = "tblXU4tla3bY36DE"
 PRIMARY = {"public_pool": "公海", "private": "私域", "douyin_dm": "抖音私信",
-           "sec_public": "公域", "sec_order_reuse": "订单复用",
+           "sec_public": "公域", "sec_order_reuse": "公海",
            "special_books": "图书", "special_public_pool": "公海",
-           "partner_books": "图书", "partner_local": "本地化", "internal_books": "图书"}
+           "partner_books": "图书", "partner_local": "本地化", "internal_books": "图书",
+           "partner_shandong_live": "付费"}
 PRIVATE_CHANNELS = ("私域表单", "私域品效", "表单浙江", "表单江苏")
+PUBLIC_POOL_CHANNELS = ("顾问未加好友", "0元信息流")
+MERGED_POOL_CHANNELS = (*PUBLIC_POOL_CHANNELS, "SEC未加好友", "SEC首期掉海", "SEC招生退费", "SEC内部复用",
+                        "SEC一对一复用", "SECAI提效复用", "SEC进校复用")
 PAGE_SIZE = 2000
 
 
 def fetch(channel: str, period: str, output: Path, *, secondary_channel: str | None = None,
-          allow_empty: bool = False) -> dict:
+          allow_empty: bool = False, excluded_secondary_channels: tuple[str, ...] = ()) -> dict:
     if channel not in PRIMARY or not re.fullmatch(r"20\d{6}期", period):
         raise ValueError("Channel or period is invalid")
     output.parent.mkdir(parents=True, exist_ok=True)
     condition = [["一级渠道", "==", PRIMARY[channel]], ["期次", "==", period]]
+    if excluded_secondary_channels:
+        if (channel != "sec_order_reuse" or secondary_channel is not None
+                or tuple(excluded_secondary_channels) != PUBLIC_POOL_CHANNELS):
+            raise ValueError("Unreviewed SEC report secondary exclusions")
+        condition.extend(["渠道", "!=", name] for name in excluded_secondary_channels)
     if secondary_channel is not None:
         if channel != "sec_order_reuse" or secondary_channel not in {"SEC未加好友", "SEC首期掉海"}:
             raise ValueError("Unreviewed SEC report secondary channel")
         condition.append(["渠道", "==", secondary_channel])
-    if channel == "public_pool":
-        condition.append(["渠道", "==", "顾问未加好友"])
-    elif channel == "douyin_dm":
+    if channel == "douyin_dm":
         condition.append(["渠道", "==", "抖音私信"])
     elif channel == "sec_public":
         condition.append(["渠道", "==", "公域学霸"])
     elif channel == "internal_books":
         condition.append(["渠道", "==", "内部图书"])
+    elif channel == "partner_shandong_live":
+        condition.append(["渠道", "==", "山东直播间"])
     filtered = json.dumps({"logic": "and", "conditions": condition}, ensure_ascii=True)
     rows = []
     revision = None
@@ -62,7 +73,7 @@ def fetch(channel: str, period: str, output: Path, *, secondary_channel: str | N
         for row in page_rows:
             if row.get("一级渠道") != PRIMARY[channel] or row.get("期次") != period:
                 raise ValueError("Server filter returned another channel or period")
-            if channel == "public_pool" and row.get("渠道") != "顾问未加好友":
+            if channel in {"public_pool", "special_public_pool"} and row.get("渠道") not in MERGED_POOL_CHANNELS:
                 raise ValueError("Public-pool secondary channel changed")
             if channel == "douyin_dm" and row.get("渠道") != "抖音私信":
                 raise ValueError("Douyin secondary channel changed")
@@ -70,8 +81,12 @@ def fetch(channel: str, period: str, output: Path, *, secondary_channel: str | N
                 raise ValueError("SEC public secondary channel changed")
             if channel == "internal_books" and row.get("渠道") != "内部图书":
                 raise ValueError("Internal-books secondary channel changed")
+            if channel == "partner_shandong_live" and row.get("渠道") != "山东直播间":
+                raise ValueError("Shandong-live secondary channel changed")
             if secondary_channel is not None and row.get("渠道") != secondary_channel:
                 raise ValueError("SEC report secondary channel changed")
+            if row.get("渠道") in excluded_secondary_channels:
+                raise ValueError("SEC report source contains an excluded secondary channel")
             if channel == "sec_order_reuse" and (not isinstance(row.get("渠道"), str) or not row["渠道"].strip()):
                 raise ValueError("SEC order-reuse secondary channel is missing")
             if channel == "private" and not row.get("渠道"):
@@ -89,7 +104,7 @@ def fetch(channel: str, period: str, output: Path, *, secondary_channel: str | N
     else:
         raise ValueError("Base pagination exceeded the reviewed bound")
     empty_scope_verified = False
-    if not rows and allow_empty and channel == "partner_books":
+    if not rows and allow_empty and channel in {"partner_books", "partner_shandong_live"}:
         # An empty channel still needs a current-period snapshot at the same
         # Base revision. Never infer freshness from an old period or a clock.
         witness = output.with_name(output.stem + ".period_snapshot.ndjson")
@@ -111,6 +126,11 @@ def fetch(channel: str, period: str, output: Path, *, secondary_channel: str | N
         raise ValueError("Missing or duplicate Qingcheng process source rows")
     exported_count = len(rows)
     excluded_channels = Counter()
+    if channel in {"public_pool", "special_public_pool"}:
+        excluded_channels = Counter(row["渠道"] for row in rows if row["渠道"] not in PUBLIC_POOL_CHANNELS)
+        rows = [row for row in rows if row["渠道"] in PUBLIC_POOL_CHANNELS]
+        if not rows:
+            raise ValueError("No rows match this public-pool report's secondary channels")
     if channel == "private":
         excluded_channels = Counter(row["渠道"] for row in rows if row["渠道"] not in PRIVATE_CHANNELS)
         rows = [row for row in rows if row["渠道"] in PRIVATE_CHANNELS]
@@ -125,30 +145,66 @@ def fetch(channel: str, period: str, output: Path, *, secondary_channel: str | N
         combined["empty_scope_verified"] = True
     if secondary_channel is not None:
         combined["secondary_channel"] = secondary_channel
-    if channel == "private":
+    if excluded_secondary_channels:
+        combined["excluded_secondary_channels"] = list(excluded_secondary_channels)
+    if channel in {"private", "public_pool", "special_public_pool"}:
         combined.update(export_records_count=exported_count,
                         excluded_secondary_channel_counts=dict(sorted(excluded_channels.items())))
     output.with_suffix(".manifest.json").write_text(json.dumps(combined, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     return combined
 
 
+def shared_fetch(channel: str, period: str, output: Path, *, secondary_channel: str | None = None,
+                 allow_empty: bool = False, excluded_secondary_channels: tuple[str, ...] = (), fetcher=None) -> dict:
+    """Coalesce identical scheduled Base slices; the send-time revision gate remains separate."""
+    options = {"secondary_channel": secondary_channel, "allow_empty": allow_empty,
+               "excluded_secondary_channels": tuple(excluded_secondary_channels)}
+    cache_channel = channel
+    if channel in {"public_pool", "special_public_pool"}:
+        cache_channel = "public_pool"
+    elif channel in {"partner_books", "special_books"} and not allow_empty:
+        cache_channel = "partner_books"
+    scope = {"domain": "qingcheng", "kind": "process", "base_token": BASE_TOKEN, "table_id": TABLE_ID,
+             "identity": "user", "channel": cache_channel, "options": options}
+    evidence = {"period": period, "contract_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest()}
+    # Preserve the original call contract for injected fetchers and existing tests.
+    kwargs = {}
+    if secondary_channel is not None:
+        kwargs["secondary_channel"] = secondary_channel
+    if allow_empty:
+        kwargs["allow_empty"] = True
+    if excluded_secondary_channels:
+        kwargs["excluded_secondary_channels"] = tuple(excluded_secondary_channels)
+    manifest = shared_ndjson_snapshot(scope, evidence, output, lambda: (fetcher or fetch)(channel, period, output, **kwargs))
+    if manifest.get("channel") != channel:
+        manifest = {**manifest, "channel": channel}
+        output.with_suffix(".manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
+                                                         encoding="utf-8")
+    return manifest
+
+
 def probe_revision(channel: str, period: str, output: Path, *, secondary_channel: str | None = None,
-                   allow_empty: bool = False) -> int:
+                   allow_empty: bool = False, excluded_secondary_channels: tuple[str, ...] = ()) -> int:
     if channel not in PRIMARY or not re.fullmatch(r"20\d{6}期", period):
         raise ValueError("Channel or period is invalid")
     conditions = [["一级渠道", "==", PRIMARY[channel]], ["期次", "==", period]]
+    if excluded_secondary_channels:
+        if (channel != "sec_order_reuse" or secondary_channel is not None
+                or tuple(excluded_secondary_channels) != PUBLIC_POOL_CHANNELS):
+            raise ValueError("Unreviewed SEC report secondary exclusions")
+        conditions.extend(["渠道", "!=", name] for name in excluded_secondary_channels)
     if secondary_channel is not None:
         if channel != "sec_order_reuse" or secondary_channel not in {"SEC未加好友", "SEC首期掉海"}:
             raise ValueError("Unreviewed SEC report secondary channel")
         conditions.append(["渠道", "==", secondary_channel])
-    if channel == "public_pool":
-        conditions.append(["渠道", "==", "顾问未加好友"])
-    elif channel == "douyin_dm":
+    if channel == "douyin_dm":
         conditions.append(["渠道", "==", "抖音私信"])
     elif channel == "sec_public":
         conditions.append(["渠道", "==", "公域学霸"])
     elif channel == "internal_books":
         conditions.append(["渠道", "==", "内部图书"])
+    elif channel == "partner_shandong_live":
+        conditions.append(["渠道", "==", "山东直播间"])
     output.parent.mkdir(parents=True, exist_ok=True)
     run_lark(["base", "+record-list", "--base-token", BASE_TOKEN, "--table-id", TABLE_ID,
               "--filter-json", json.dumps({"logic": "and", "conditions": conditions}, ensure_ascii=True),
@@ -156,7 +212,7 @@ def probe_revision(channel: str, period: str, output: Path, *, secondary_channel
               "--as", "user", "--overwrite"], cwd=WORKSPACE, timeout=120)
     manifest = json.loads(output.with_suffix(".manifest.json").read_text(encoding="utf-8"))
     count = manifest.get("records_count")
-    verified_empty = allow_empty and channel == "partner_books" and count == 0 and manifest.get("has_more") is False
+    verified_empty = allow_empty and channel in {"partner_books", "partner_shandong_live"} and count == 0 and manifest.get("has_more") is False
     if ((manifest.get("base_token"), manifest.get("table_id")) != (BASE_TOKEN, TABLE_ID)
             or (count != 1 and not verified_empty) or not isinstance(manifest.get("rev"), int)):
         raise ValueError("Raw Base revision probe failed")

@@ -22,9 +22,9 @@
     "process_table_id": "tblXU4tla3bY36DE",
     "conversion_base_token": "QOVib6QCXaUvJ2s2PsbcnMmsnGg",
     "conversion_table_id": "tbl9CcVtXPntqGvP",
-    "conversion_upstream_task_id": 47775,
-    "conversion_upstream_task_name": "qing2lark_zhuanhua",
-    "conversion_upstream_note": "转化上游 qing2lark_zhuanhua（菜单 103713、task 47775、Nezha 67397，最新已发布 V14/version 219202，源码 SHA-256 f8c7c6a089741cfe2565a33a6575e84a4e416bc2c959f02995f43475a9eaaf32）与过程上游 qing2lark_guocheng 相互独立；V6 将源分区探查窗口扩至 T-1 至 T-5，以容忍分区延迟。转化表每行 = 交易期次×线索×用户的收款聚合（Base\"期次\"=收退款发生的期次窗口，\"当期收款\"=线索期次=交易期次即 is_on_period 的收款，老线索当窗付款表现为 收款>0 且 当期收款=0，对应看板\"往期营收\"=income-当期收款）。2026-10-01 usql 逐笔核对（query 1609568397）证实 zhuanhua 写入与上游逐笔一致；抖音私信 20261002期 2 行\"未分配账号\"（¥3,600 收款+¥2,915 退费，均为 finance_only）根因是执行时序竞态：zhuanhua 于 10/1 08 时执行时 qing_team_jg/jiagou_db 的 20261002期 登记尚未写入，财务行仅单级 conversion_org 匹配无回退故落\"未分配账号\"+主管按线索虚拟直属领导（王博43）回退，而线索行有 jiagou→qing_team_jg→current_org→事实表四级回退故显示正常；当日稍后架构表补齐 1002期（张昊62/杜孝忠/三部两表均在）但任务未重跑。重跑 zhuanhua 即可归位（复现 join query 1609641863 已验证当前可命中）。修复建议：调度排至架构表维护之后或加当期架构就绪校验；跨期账号延续映射不适用本例（账号当期在表中）。有效线索、带班人数与首节到课率取自过程表，与过程图同口径；双表按 (期次,主管[,年级][,顾问账号]) 组键 join，join 覆盖率已写入 review.json 的 join_coverage。",
+    "process_upstream_task_key": "qingcheng.process",
+    "conversion_upstream_task_key": "qingcheng.transformation",
+    "conversion_upstream_note": "转化上游与过程上游通过各自的生产者键登记；V6 将源分区探查窗口扩至 T-1 至 T-5，以容忍分区延迟。转化表每行 = 交易期次×线索×用户的收款聚合（Base\"期次\"=收退款发生的期次窗口，\"当期收款\"=线索期次=交易期次即 is_on_period 的收款，老线索当窗付款表现为 收款>0 且 当期收款=0，对应看板\"往期营收\"=income-当期收款）。2026-10-01 usql 逐笔核对（query 1609568397）证实 zhuanhua 写入与上游逐笔一致；抖音私信 20261002期 2 行\"未分配账号\"（¥3,600 收款+¥2,915 退费，均为 finance_only）根因是执行时序竞态：zhuanhua 于 10/1 08 时执行时 qing_team_jg/jiagou_db 的 20261002期 登记尚未写入，财务行仅单级 conversion_org 匹配无回退故落\"未分配账号\"+主管按线索虚拟直属领导（王博43）回退，而线索行有 jiagou→qing_team_jg→current_org→事实表四级回退故显示正常；当日稍后架构表补齐 1002期（张昊62/杜孝忠/三部两表均在）但任务未重跑。重跑 zhuanhua 即可归位（复现 join query 1609641863 已验证当前可命中）。修复建议：调度排至架构表维护之后或加当期架构就绪校验；跨期账号延续映射不适用本例（账号当期在表中）。有效线索、带班人数与首节到课率取自过程表，与过程图同口径；双表按 (期次,主管[,年级][,顾问账号]) 组键 join，join 覆盖率已写入 review.json 的 join_coverage。",
     "period_rule": "自然周周五期次",
     "current_periods_note": "仅作为单独本地预览的默认期次；正式批次按调度时点计算自然周周五期次，并显式传给图片和消息渲染，不受此固定清单限制。",
     "transformation_weekdays": [
@@ -47,7 +47,16 @@
     "total_row": "sum_detail_then_recalculate_ratios",
     "number_format": "带班人数、有效线索、综合营收、退费金额、净收款取整数；比率保留一位小数百分比；单效、人效、平均成交周期保留一位小数；联报率以一位小数数值显示（人均科次，如 1.2、2.0、4.3），不使用百分比"
   },
-  "metric_definitions_note": "全部对齐青橙 2460 转化看板前端公式（与市场顾问部定义一致）：综合人头转化率=sum(成交人头)/有效线索；综合订单转化率=sum(报科数)/有效线索（报科数=2460 pay_sub 科目人次，非订单数）；当期单效=sum(当期收款)/有效线索；综合单效=sum(净收款)/有效线索（净收款=promit=收款-退费）；人效=sum(净收款)/带班人数（2460 分母为接量人力，推送按申请口径用带班人数）；联报率=sum(报科数)/sum(成交人头)；破蛋率=sum(破蛋人数标记)/有效线索；平均成交周期=sum(成交周期天数分子)/sum(成交周期成交人数分母)（分母标记与成交人头等价）。",
+  "metric_definitions_note": "青橙指标：综合人头转化率=sum(成交人头)/有效线索；综合订单转化率=sum(报科数)/有效线索（报科数=2460 pay_sub科目人次）；当期单效=sum(当期收款)/有效线索；综合单效=sum(净收款)/有效线索；人效=sum(净收款)/带班人数；联报率=sum(报科数)/sum(成交人头)；破蛋率=同范围内先按顾问账号汇总营收，再以营收>0的顾问去重人数/顾问去重总人数（2026-11-22用户确认，已替代podan/有效线索；营收使用收款，不扣退费）；平均成交周期=sum(成交周期天数分子)/sum(成交周期成交人数分母)。",
+  "advisor_breakthrough_rate": {
+    "confirmed_on": "2026-11-22",
+    "numerator": "同范围内按顾问账号汇总收款后，营收严格大于0的顾问去重人数",
+    "denominator": "同范围顾问账号去重总人数，沿用本报表现有顾问范围及展示门槛",
+    "revenue_field": "收款",
+    "account_field": "顾问账号",
+    "total_rule": "合并明细范围的顾问账号和各账号营收后重新计人，不相加各年级人数、不平均百分比",
+    "raw_customer_podan_used": false
+  },
   "transformation_bars": {
     "首节到课率": {
       "scale": [
@@ -98,7 +107,10 @@
       "name": "公海",
       "match": {
         "一级渠道": "公海",
-        "渠道": "顾问未加好友"
+        "渠道": [
+          "顾问未加好友",
+          "0元信息流"
+        ]
       },
       "split_grade": true,
       "supervisor_request": "public_pool_supervisor_request.json",
@@ -195,14 +207,8 @@
         "渠道": "武汉图书"
       },
       "split_grade": false,
-      "consultant_request": "partner_books_consultant_request.json",
       "dept_request": "partner_books_dept_request.json",
       "profiles": {
-        "consultant": {
-          "target_chat_id": "oc_854e5427ec0f6ef2bf654fee0a759f83",
-          "level": "顾问",
-          "minimum_effective_leads": 3
-        },
         "dept": {
           "target_chat_id": "oc_a95c83e488e0dfcc777d5ffad849d8a4",
           "level": "学部",
@@ -218,7 +224,13 @@
       "name": "本地化",
       "match": {
         "一级渠道": "本地化",
-        "渠道": ["河南APP", "河南私域", "河南未加好友"]
+        "渠道": [
+          "河南APP",
+          "河南私域",
+          "河南未加好友",
+          "安徽APP",
+          "APP"
+        ]
       },
       "split_grade": {
         "supervisor": true,
@@ -241,6 +253,25 @@
       },
       "note": "2026-10-01 配置：主管=Base recvwjZaMMix5H（已上线）→ 青橙-河南本地化项目，按年级分块（layout 与过程一致），提醒沿用过程样式——不 @ 主管、点名综合单效较高年级（reminder_mode=grade_text：按年级聚合综合单效取最高、并列全列）；顾问=Base recvwjX409k8f2（草稿）→ 🍊青橙河南本地化伙伴，minimum 3、按年级前三名 @。20261002期转化表 305 行（全为河南本地化），收款 ¥11,600/人头 1/报科 4 全部在高三（张卫卫11 净收款 ¥11,600），高一/高二为 0。2026-10-01 20:07 用户指令两群手动推送一次（主管 om_x100b64d09c384ca0de23c98adb28428、顾问 om_x100b64d09d0598a8de2b29067042357，均 verified）。",
       "allow_empty_conversion": true
+    },
+    {
+      "id": "partner_shandong_live",
+      "name": "山东直播间",
+      "match": {
+        "一级渠道": "付费",
+        "渠道": "山东直播间"
+      },
+      "split_grade": true,
+      "show_total": true,
+      "consultant_request": "partner_shandong_live_consultant_request.json",
+      "allow_empty_conversion": true,
+      "profiles": {
+        "consultant": {
+          "target_chat_id": "oc_44a0a613badf0d70cfd574d3aafc0917",
+          "level": "顾问",
+          "minimum_effective_leads": 3
+        }
+      }
     }
   ],
   "open_decisions": [

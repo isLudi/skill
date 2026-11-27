@@ -2,7 +2,9 @@
 
 import json
 import sys
+from datetime import datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import pytest
 
@@ -96,3 +98,63 @@ def test_local_supervisor_configs_agree_for_both_report_types():
     assert request["reminder"]["target"] == "不提醒"
     assert request["reminder"]["process_rank"] == "不提醒"
     assert request["reminder"]["result_rank"] == "第1名"
+
+
+def test_local_partner_group_names_match_batch_preview_and_requests():
+    cfg = PROCESS._config()
+    preview = PARTNER._config(PARTNER.DEFAULT_CONFIG)
+    expected = {"partner_local": "🍊青橙本地化伙伴", "supervisor_local": "青橙-本地化项目"}
+    for channel, name in expected.items():
+        entry = next(item for item in cfg["channels"] if item["id"] == channel)
+        preview_entry = next(item for item in preview["channels"] if item["id"] == channel)
+        request = PROCESS._request(entry)
+        assert entry["target_chat_name"] == preview_entry["target_chat_name"] == name
+        assert request["business"]["target_chat_name"] == name
+        assert entry["target_chat_id"] == preview_entry["target_chat_id"] == request["business"]["target_chat_id"]
+
+
+@pytest.mark.parametrize("channel", ["partner_local", "supervisor_local"])
+def test_partner_delivery_uses_fixed_id_after_group_rename(monkeypatch, tmp_path, channel):
+    cfg = PROCESS._config()
+    cfg["upstream_binding"] = {"test": True}
+    entry = next(item for item in cfg["channels"] if item["id"] == channel)
+    (tmp_path / "process.png").write_bytes(b"test image")
+    review = {
+        "period": "20261120期", "level": entry["level"], "image": "process.png",
+        "message": "![过程数据](process.png)", "reminder_people": [],
+    }
+    calls = []
+    monkeypatch.setattr(PROCESS, "probe_revision", lambda *args: 7)
+    monkeypatch.setattr(PROCESS, "verify_chat", lambda *args: calls.append(args) or {
+        "chat_id": entry["target_chat_id"], "name": "改名后的同一群", "name_changed": True,
+    })
+    monkeypatch.setattr(PROCESS, "upload_image", lambda *args: "img_test")
+    monkeypatch.setattr(PROCESS, "run_lark", lambda *args, **kwargs: json.dumps({"ok": True}))
+    monkeypatch.setattr(PROCESS, "require_process_binding_unchanged", lambda *args: None)
+    monkeypatch.setattr(PROCESS, "require_delivery_window", lambda *args: None)
+    monkeypatch.setattr(PROCESS, "_data", lambda *args, **kwargs: {"message_id": "om_test"})
+    monkeypatch.setattr(PROCESS, "_verify_message", lambda *args: {"ok": True})
+
+    result = PROCESS._deliver(entry, review, {"rev": 7}, cfg, tmp_path,
+                              datetime(2026, 11, 19, 13, 50, tzinfo=ZoneInfo("Asia/Shanghai")))
+
+    assert calls[0][0] == entry["target_chat_id"]
+    assert result["status"] == "sent_verified"
+    receipt = json.loads((tmp_path / "send_receipt.json").read_text(encoding="utf-8"))
+    assert receipt["chat_id"] == entry["target_chat_id"]
+    assert receipt["target_chat_name"] == "改名后的同一群"
+    assert receipt["target_chat_name_changed"] is True
+
+
+def test_partner_delivery_still_blocks_an_invalid_group_id(monkeypatch, tmp_path):
+    cfg = PROCESS._config()
+    entry = next(item for item in cfg["channels"] if item["id"] == "supervisor_local")
+    review = {"period": "20261120期", "reminder_people": []}
+    monkeypatch.setattr(PROCESS, "probe_revision", lambda *args: 7)
+    def reject_chat(*args):
+        raise ValueError("group identity mismatch")
+    monkeypatch.setattr(PROCESS, "verify_chat", reject_chat)
+    with pytest.raises(ValueError, match="group identity mismatch"):
+        PROCESS._deliver(entry, review, {"rev": 7}, cfg, tmp_path,
+                         datetime(2026, 11, 19, 13, 50, tzinfo=ZoneInfo("Asia/Shanghai")))
+    assert not (tmp_path / "send_receipt.json").exists()

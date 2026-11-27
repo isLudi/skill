@@ -22,7 +22,7 @@ def _validate_config(config: dict) -> dict:
             config["status"], config["schedule_enabled"], config["source"]["process_lead_field"]) != (
             "qingcheng", "local", "process", "preview_only", False, "退前线索"):
         raise ValueError("Secondary SEC supervisor configuration is outside local preview scope")
-    if config["source"]["match"] != {"一级渠道": "订单复用", "部门": "SEC"}:
+    if config["source"]["match"] != {"一级渠道": "公海", "部门": "SEC"}:
         raise ValueError("Secondary SEC source match differs")
     reports = config["reports"]
     if {(item["channel_id"], item["channel_name"], item["request_id"]) for item in reports} != {
@@ -67,7 +67,7 @@ def _validate_report(profile: dict, request: dict) -> list[str]:
 def build(source: Path, output: Path, audit_log: Path, config_path: Path = CONFIG) -> dict:
     config = json.loads(config_path.read_text(encoding="utf-8"))
     bars = _validate_config(config)
-    raw_config = {"source": {"match": {"一级渠道": "订单复用"}}}
+    raw_config = {"source": {"match": {"一级渠道": "公海"}}}
     rows, manifest = _read_snapshot(source, raw_config)
     if manifest["channel"] != "sec_order_reuse" or manifest["period"] != rows[0]["期次"]:
         raise ValueError("Order-reuse source identity differs")

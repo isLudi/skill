@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "updated_at": "2026-07-20",
+  "updated_at": "2026-11-14",
   "default_database": "temp_table",
-  "owner_prefix": "dingxi01_",
+  "owner_prefix": "lvshuai01_",
   "roots": {
     "market_consultant": "E:\\1900_work\\GAOTU\\19002_市场顾问部看板维护表格",
     "qingcheng": "E:\\1900_work\\GAOTU\\19003_青橙项目部看板维护表格"
@@ -48,7 +48,7 @@
       "domain": "market_consultant",
       "business_name": "测试渠道品优",
       "local_filename": "ceshiqudao_pingyou.xlsx",
-      "standard_temp_table": "dingxi01_ceshiqudao_pingyou",
+      "standard_temp_table": "lvshuai01_ceshiqudao_pingyou",
       "mapping_status": "platform_exact_name",
       "confidence": "high",
       "auto_target": true,
@@ -58,14 +58,14 @@
       "validation_rules": [
         {"type": "required_columns", "columns": ["qici", "qudao", "name", "gmv", "gmv_goal", "gmv_rate"]}
       ],
-      "notes": ["本地文件名与平台临时表名去掉 dingxi01_ 前缀后一致。"]
+      "notes": ["本地文件名与平台临时表名去掉 lvshuai01_ 前缀后一致。"]
     },
     {
       "id": "market.cost",
       "domain": "market_consultant",
       "business_name": "成本目标",
       "local_filename": "cost.xlsx",
-      "standard_temp_table": "dingxi01_cost",
+      "standard_temp_table": "lvshuai01_cost",
       "mapping_status": "platform_exact_name",
       "confidence": "high",
       "auto_target": true,
@@ -75,14 +75,14 @@
       "validation_rules": [
         {"type": "required_columns", "columns": ["channel", "grade", "cost", "goal", "qici"]}
       ],
-      "notes": ["本地文件名与平台临时表名去掉 dingxi01_ 前缀后一致。"]
+      "notes": ["本地文件名与平台临时表名去掉 lvshuai01_ 前缀后一致。"]
     },
     {
       "id": "market.daoke_1_6_t",
       "domain": "market_consultant",
       "business_name": "到课",
       "local_filename": "daoke_1_6_t.xlsx",
-      "standard_temp_table": "dingxi01_daoke_1_6_t",
+      "standard_temp_table": "lvshuai01_daoke_1_6_t",
       "mapping_status": "platform_exact_name",
       "confidence": "high",
       "auto_target": true,
@@ -101,7 +101,7 @@
       "business_name": "每期带班架构",
       "upload_schedule": "周五晚",
       "local_filename": "jiagou_db.xlsx",
-      "standard_temp_table": "dingxi01_jiagou_db",
+      "standard_temp_table": "lvshuai01_jiagou_db",
       "mapping_status": "platform_exact_name",
       "confidence": "high",
       "auto_target": true,
@@ -125,7 +125,7 @@
       "domain": "market_consultant",
       "business_name": "中心架构",
       "local_filename": "jiagou_zx.xlsx",
-      "standard_temp_table": "dingxi01_jiagou_zx",
+      "standard_temp_table": "lvshuai01_jiagou_zx",
       "mapping_status": "platform_exact_name",
       "confidence": "high",
       "auto_target": true,
@@ -149,7 +149,7 @@
       "domain": "market_consultant",
       "business_name": "进量目标",
       "local_filename": "jinliang_goal.xlsx",
-      "standard_temp_table": "dingxi01_jinliang_goal",
+      "standard_temp_table": "lvshuai01_jinliang_goal",
       "mapping_status": "platform_exact_name",
       "confidence": "high",
       "auto_target": true,
@@ -159,7 +159,7 @@
       "validation_rules": [
         {"type": "required_columns", "columns": ["channel_2", "grade", "goal", "qici"]}
       ],
-      "notes": ["本地文件名与平台临时表名去掉 dingxi01_ 前缀后一致。"]
+      "notes": ["本地文件名与平台临时表名去掉 lvshuai01_ 前缀后一致。"]
     },
     {
       "id": "market.leads_goal",
@@ -184,10 +184,10 @@
       "domain": "market_consultant",
       "business_name": "品优架构",
       "local_filename": "pingyou_jg.xlsx",
-      "standard_temp_table": "dingxi01_pingyou_jg",
-      "mapping_status": "platform_exact_name",
+      "standard_temp_table": null,
+      "mapping_status": "externally_managed_no_local_target",
       "confidence": "high",
-      "auto_target": true,
+      "auto_target": false,
       "sheet": "Sheet4",
       "header_row": true,
       "headers": ["xiaozu_z", "employee_email_prefix", "xiaozu", "employee_email_name", "department", "zaizhi", "qici", "dept", "jingli", "channel", "renchan", "grade", "is_emp", "x_qi_count"],
@@ -197,14 +197,14 @@
         {"type": "one_to_many_mapping", "key_columns": ["employee_email_name"], "value_column": "xiaozu", "message": "检查一个顾问是否对应多个主管/小组。"},
         {"type": "one_to_many_mapping", "key_columns": ["employee_email_name"], "value_column": "xiaozu_z", "message": "检查一个顾问是否对应多个主管字段 xiaozu_z。"}
       ],
-      "notes": ["需重点检查一个顾问是否对应多个主管/小组。"]
+      "notes": ["张君言直接维护 zhangjunyan01_pingyou_jg；本地旧文件与该表不等价，不自动推断上传目标。"]
     },
     {
       "id": "market.plan_id",
       "domain": "market_consultant",
       "business_name": "班型计划 ID",
       "local_filename": "plan_id.xlsx",
-      "standard_temp_table": "dingxi01_plan_id",
+      "standard_temp_table": "lvshuai01_plan_id",
       "mapping_status": "platform_exact_name",
       "confidence": "high",
       "auto_target": true,
@@ -214,7 +214,7 @@
       "validation_rules": [
         {"type": "required_columns", "columns": ["year", "qici", "group_id", "group_name"]}
       ],
-      "notes": ["本地文件名与平台临时表名去掉 dingxi01_ 前缀后一致。"]
+      "notes": ["本地文件名与平台临时表名去掉 lvshuai01_ 前缀后一致。"]
     },
     {
       "id": "qingcheng.daoke_t_one_six_qing",
@@ -223,7 +223,7 @@
       "upload_schedule": "周四",
       "local_filename": "qing_daoke.xlsx",
       "local_filename_aliases": ["daoke_t_one_six_qing.xlsx"],
-      "standard_temp_table": "dingxi01_qing_daoke",
+      "standard_temp_table": "lvshuai01_qing_daoke",
       "mapping_status": "platform_inferred_semantic",
       "confidence": "high",
       "auto_target": true,
@@ -245,7 +245,7 @@
       "domain": "qingcheng",
       "business_name": "期次月份映射",
       "local_filename": "qing_qi_moth.xlsx",
-      "standard_temp_table": "dingxi01_qing_qi_moth",
+      "standard_temp_table": "lvshuai01_qing_qi_moth",
       "mapping_status": "platform_exact_name",
       "confidence": "high",
       "auto_target": true,
@@ -255,7 +255,7 @@
       "validation_rules": [
         {"type": "required_columns", "columns": ["qici", "moth"]}
       ],
-      "notes": ["本地文件名与平台临时表名去掉 dingxi01_ 前缀后一致。"]
+      "notes": ["本地文件名与平台临时表名去掉 lvshuai01_ 前缀后一致。"]
     },
     {
       "id": "qingcheng.qing_qici_goal",
@@ -264,7 +264,7 @@
       "upload_schedule": "周四",
       "local_filename": "qing_goal.xlsx",
       "local_filename_aliases": ["qing_qici_goal.xlsx"],
-      "standard_temp_table": "dingxi01_qing_goal",
+      "standard_temp_table": "lvshuai01_qing_goal",
       "mapping_status": "platform_inferred_semantic",
       "confidence": "high",
       "auto_target": true,
@@ -282,7 +282,7 @@
       "business_name": "团队期次目标表",
       "upload_schedule": "周四",
       "local_filename": "qing_team_goal_qi.xlsx",
-      "standard_temp_table": "dingxi01_qing_team_g_qi",
+      "standard_temp_table": "lvshuai01_qing_team_g_qi",
       "mapping_status": "platform_inferred_abbreviation",
       "confidence": "high",
       "auto_target": true,
@@ -300,7 +300,7 @@
       "business_name": "团队月度目标表",
       "upload_schedule": "周四",
       "local_filename": "qing_team_goal_moth.xlsx",
-      "standard_temp_table": "dingxi01_qing_team_goal",
+      "standard_temp_table": "lvshuai01_qing_team_goal",
       "mapping_status": "platform_inferred_semantic",
       "confidence": "medium",
       "auto_target": true,
@@ -318,7 +318,7 @@
       "business_name": "全员结果数据架构",
       "upload_schedule": "周四",
       "local_filename": "qing_team_jg.xlsx",
-      "standard_temp_table": "dingxi01_qing_team_jg",
+      "standard_temp_table": "lvshuai01_qing_team_jg",
       "mapping_status": "platform_verified_import_history",
       "confidence": "high",
       "auto_target": true,

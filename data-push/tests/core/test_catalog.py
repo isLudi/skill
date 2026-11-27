@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from lark_delivery.core import catalog
 from lark_delivery.core.registry import adapter_for
@@ -27,6 +28,38 @@ class CatalogTests(unittest.TestCase):
         self.assertEqual(catalog.resolve_compat_config(SKILL_ROOT / "config/scheduled_push.json", "schedule"), cfg)
         self.assertEqual(catalog.resolve_compat_config(SKILL_ROOT / "config/push_source.json", "source"),
                          catalog.source_defaults(self.definition, target))
+
+    def test_registered_market_configs_follow_one_approved_producer_binding(self):
+        channels = [ref for ref in catalog.registry()["channels"] if ref.startswith("market_consultant/")]
+        self.assertEqual(len(channels), 9)
+        active = catalog.market_lead_binding(self.definition)
+        revised = {**active, "exec_file_id": active["exec_file_id"] + 1}
+        load_binding = catalog.load_binding
+
+        def load(task_key, **kwargs):
+            return revised.copy() if task_key == catalog.MARKET_LEADS else load_binding(task_key, **kwargs)
+
+        with patch.object(catalog, "load_binding", side_effect=load):
+            for ref in channels:
+                with self.subTest(ref=ref):
+                    definition = catalog.load_channel(ref)
+                    volume_only = definition['adapter'] == 'market-volume-v1'
+                    producer = catalog.MARKET_VOLUME if volume_only else catalog.MARKET_LEADS
+                    self.assertEqual(definition["upstream"], {"task_key": producer})
+                    target = catalog.select_targets(definition)[0]
+                    expected = catalog.market_volume_binding(definition['volume_report']) if volume_only else revised
+                    self.assertEqual(catalog.schedule_config(definition, target)["upstream"], expected)
+                    if "volume_report" in definition:
+                        self.assertEqual(definition["volume_report"]["upstream"], {"task_key": catalog.MARKET_VOLUME})
+
+    def test_market_producer_roles_reject_cross_reference_and_inline_pin(self):
+        for reference in ({"task_key": catalog.MARKET_VOLUME},
+                          {"task_key": catalog.MARKET_LEADS, "exec_file_id": 1}):
+            with self.subTest(reference=reference), self.assertRaisesRegex(ValueError, "producer reference"):
+                catalog.market_lead_binding({**self.definition, "upstream": reference})
+        volume = {**self.definition["volume_report"], "volume_table_id": "other_table"}
+        with self.assertRaisesRegex(ValueError, "Volume table differs"):
+            catalog.market_volume_binding(volume)
 
     def test_qingcheng_has_its_own_domain_but_no_invented_channel(self):
         self.assertEqual(catalog.registry()["domains"]["qingcheng"]["semantic_skill"], "qingcheng-dashboard-sql")

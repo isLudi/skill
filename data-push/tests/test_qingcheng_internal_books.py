@@ -105,15 +105,17 @@ def test_partner_batch_source_failure_does_not_cross_branches(monkeypatch,tmp_pa
 @pytest.mark.parametrize("failure",["request","receipt"])
 def test_invalid_partner_channel_state_does_not_block_siblings(monkeypatch,tmp_path,failure):
     cfg = partner._config()
+    for item in cfg['channels']:
+        item.pop('first_send_at', None)
     monkeypatch.setattr(partner,"_config",lambda **kwargs:cfg)
     monkeypatch.setattr(partner,"_slot",lambda *args:SLOT)
     def existing(path):
-        if failure == "receipt" and path.parent.name == "partner_books":
+        if failure == "receipt" and path.parent.name == "partner_shandong_live":
             raise ValueError("one malformed channel receipt")
         return None
     monkeypatch.setattr(partner,"_existing",existing)
     def validate(entry):
-        if failure == "request" and entry["id"] == "partner_books":
+        if failure == "request" and entry["id"] == "partner_shandong_live":
             raise ValueError("one malformed channel request")
     monkeypatch.setattr(partner,"_validate_entry",validate)
     monkeypatch.setattr(partner,"_upstream_audit",lambda *args:{"raw_channel_counts":{"河南APP":10,"武汉图书":10}})
@@ -123,15 +125,15 @@ def test_invalid_partner_channel_state_does_not_block_siblings(monkeypatch,tmp_p
     delivered = []
     monkeypatch.setattr(partner,"_deliver",lambda entry,*args:delivered.append(entry["id"]) or {"status":"sent_verified"})
     result = partner._run_base(now=SLOT,output=tmp_path)
-    assert result["channels"]["partner_books"]["status"] == "blocked"
+    assert result["channels"]["partner_shandong_live"]["status"] == "blocked"
     assert delivered == ["partner_local","supervisor_local"]
 
 
-@pytest.mark.parametrize("failed_channel",["internal_books","partner_books"])
+@pytest.mark.parametrize("failed_channel",["internal_books","partner_local"])
 def test_conversion_send_failure_does_not_stop_other_channels(monkeypatch,tmp_path,failed_channel):
-    batch = {"channels":[{"id":"internal_books"},{"id":"partner_books"}]}
+    batch = {"channels":[{"id":"internal_books"},{"id":"partner_local"}]}
     result = {"period":"20261009期","channels":{ch:{"review":{},"process_rev":1,"conversion_rev":2,
-        "groups":{"consultant":{"status":"prepared"}}} for ch in ("internal_books","partner_books")}}
+        "groups":{"consultant":{"status":"prepared"}}} for ch in ("internal_books","partner_local")}}
     sent = []
     def send(channel):
         sent.append(channel)
@@ -143,7 +145,7 @@ def test_conversion_send_failure_does_not_stop_other_channels(monkeypatch,tmp_pa
     monkeypatch.setattr(conversion,"probe_revision",lambda *args,**kwargs:1)
     monkeypatch.setattr(conversion,"_probe_conversion_rev",lambda *args:2)
     conversion._deliver_groups(batch,result,tmp_path,SLOT)
-    assert sent == ["internal_books","partner_books"]
+    assert sent == ["internal_books","partner_local"]
     assert result["channels"][failed_channel]["groups"]["consultant"]["status"] == "blocked"
     other = next(ch for ch in sent if ch != failed_channel)
     assert result["channels"][other]["groups"]["consultant"]["status"] == "sent_verified"
@@ -151,13 +153,13 @@ def test_conversion_send_failure_does_not_stop_other_channels(monkeypatch,tmp_pa
 
 
 def test_conversion_prepare_failure_does_not_stop_later_channel(monkeypatch,tmp_path):
-    batch = {"channels":[{"id":"partner_books","scheduled":True},{"id":"internal_books","scheduled":True}]}
+    batch = {"channels":[{"id":"partner_local","scheduled":True},{"id":"internal_books","scheduled":True}]}
     monkeypatch.setattr(conversion,"_batch",lambda:batch)
     monkeypatch.setattr(conversion,"fetch",lambda *args:(_ for _ in ()).throw(ValueError("Base unavailable")))
     monkeypatch.setattr(books,"prepare",lambda *args:{"process_snapshot":"20261010 11:00","conversion_snapshot":"20261010 11:00"})
     monkeypatch.setattr(conversion,"_index",lambda *args:None)
     result = conversion.run(period_date="20261009",output=tmp_path,audience="standard")
-    assert result["channels"]["partner_books"]["groups"]["consultant"]["status"] == "blocked_prepare"
+    assert result["channels"]["partner_local"]["groups"]["consultant"]["status"] == "blocked_prepare"
     assert result["channels"]["internal_books"]["groups"]["consultant"]["status"] == "prepared"
 
 
@@ -205,8 +207,7 @@ def test_operator_chinese_json_with_unset_parent_encoding(monkeypatch):
         assert kwargs["encoding"] == "utf-8"
         return SimpleNamespace(returncode=0,stdout=json.dumps({"period":"20261009期","channel":"内部图书"},ensure_ascii=False))
     monkeypatch.setattr(source.subprocess,"run",run)
-    outcome = source._operator_run([source._python(),"-c",
-        "import json; print(json.dumps({'period':'20261009期','channel':'内部图书'},ensure_ascii=False))"])
+    outcome = source._operator_run([source._python(),str(source.OPERATOR/"usql_web_query.py"),"run"])
     assert outcome.returncode == 0
     assert json.loads(outcome.stdout) == {"period":"20261009期","channel":"内部图书"}
 

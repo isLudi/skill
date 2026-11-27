@@ -5,6 +5,7 @@ import copy
 import errno
 import hashlib
 import json
+import math
 import os
 import posixpath
 import re
@@ -278,6 +279,14 @@ def load_registry(path: Path) -> dict[str, Any]:
         chat_ids.append(chat_id)
     if len(chat_ids) != len(set(chat_ids)):
         raise WorkflowError("Each workflow domain must use a distinct chat id.")
+    excluded_aliases = registry.get("excluded_command_aliases", {})
+    if not isinstance(excluded_aliases, dict) or any(
+        domain_id not in domains
+        or not isinstance(aliases, list)
+        or any(not isinstance(alias, str) or not alias.strip() for alias in aliases)
+        for domain_id, aliases in excluded_aliases.items()
+    ):
+        raise WorkflowError("Workflow registry excluded_command_aliases is invalid.")
     ids = [family["id"] for family in registry.get("families", [])]
     if len(ids) != len(set(ids)):
         raise WorkflowError("Workflow registry contains duplicate family ids.")
@@ -375,11 +384,17 @@ def _validate_local_temp_table_inventories(registry: dict[str, Any]) -> None:
                 f"Local temp-table inventory {domain_id} must use platform_database=temp_table."
             )
         verification = inventory.get("verification") or {}
-        if (
-            verification.get("method") != "zero_row_resolution_probe"
-            or verification.get("status") != "success"
-            or not re.fullmatch(r"\d+", str(verification.get("query_id") or ""))
-        ):
+        legacy_verified = (
+            verification.get("method") == "zero_row_resolution_probe"
+            and bool(re.fullmatch(r"\d+", str(verification.get("query_id") or "")))
+        )
+        migration_verified = (
+            verification.get("method") == "import_history_and_schema"
+            and verification.get("account") == "lvshuai01"
+            and bool(re.fullmatch(r"[0-9a-f]{64}", str(verification.get("evidence_sha256") or "")))
+            and bool(re.fullmatch(r"\d{4}-\d{2}-\d{2}", str(verification.get("verified_at") or "")))
+        )
+        if verification.get("status") != "success" or not (legacy_verified or migration_verified):
             raise WorkflowError(
                 f"Local temp-table inventory {domain_id} lacks successful live verification."
             )
@@ -412,7 +427,7 @@ def _validate_local_temp_table_inventories(registry: dict[str, Any]) -> None:
 
             platform_temp_table = str(mapping.get("platform_temp_table") or "")
             platform_key = platform_temp_table.casefold()
-            if not re.fullmatch(r"dingxi01_[a-z0-9_]+", platform_temp_table):
+            if not re.fullmatch(r"(?:dingxi01|lvshuai01|zhangjunyan01)_[a-z0-9_]+", platform_temp_table):
                 raise WorkflowError(
                     f"Invalid platform temp-table name in {domain_id}: {platform_temp_table}"
                 )
@@ -511,15 +526,29 @@ def _validate_source_quality_config(
     row_count = quality.get("row_count") or {}
     minimum = row_count.get("min")
     maximum = row_count.get("max")
+    row_count_mode = row_count.get("mode", "fixed")
     if (
         not isinstance(minimum, int)
         or isinstance(minimum, bool)
-        or not isinstance(maximum, int)
-        or isinstance(maximum, bool)
         or minimum < 1
-        or maximum < minimum
     ):
         raise WorkflowError(f"Invalid row_count bounds for family {family_id}.")
+    if row_count_mode == "fixed":
+        if not isinstance(maximum, int) or isinstance(maximum, bool) or maximum < minimum:
+            raise WorkflowError(f"Invalid row_count bounds for family {family_id}.")
+    elif row_count_mode == "cumulative_baseline":
+        if (
+            maximum is not None
+            or family.get("source_merge_mode") != "changed_source_slices"
+            or not family.get("source_baseline_id")
+            or family.get("slice_subset_filename_patterns")
+            or not isinstance(family.get("max_changed_slices"), int)
+            or isinstance(family.get("max_changed_slices"), bool)
+            or family["max_changed_slices"] < 1
+        ):
+            raise WorkflowError(f"Invalid cumulative row_count policy for family {family_id}.")
+    else:
+        raise WorkflowError(f"Unsupported row_count mode for family {family_id}: {row_count_mode}")
 
     relative_change = quality.get("relative_change") or {}
     max_ratio = relative_change.get("max_ratio")
@@ -1966,6 +1995,8 @@ def transform_source_records(
     family: dict[str, Any],
     source_records: list[dict[str, Any]],
     target_records: list[dict[str, Any]],
+    *,
+    source_create_time: str | None = None,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], dict[str, Any]]:
     scoped = [
         dict(record)
@@ -2017,6 +2048,51 @@ def transform_source_records(
         elif transform_type == "resequence_market_x_qi_count":
             output, details = _resequence_market_x_qi_count(output)
             audit.append(details)
+        elif transform_type == "expand_recent_mmdd_period":
+            source_date = parse_datetime(str(source_create_time or "")).astimezone().date()
+            converted: dict[str, str] = {}
+            for record in output:
+                value = _text(record.get("qici"))
+                if not re.fullmatch(r"\d{4}期", value):
+                    continue
+                if value not in converted:
+                    month, day = int(value[:2]), int(value[2:4])
+                    candidates = []
+                    for year in (source_date.year - 1, source_date.year, source_date.year + 1):
+                        try:
+                            candidate = datetime(year, month, day).date()
+                        except ValueError:
+                            continue
+                        if abs((candidate - source_date).days) <= 45:
+                            candidates.append(candidate)
+                    if len(candidates) != 1:
+                        raise WorkflowError(f"Cannot uniquely resolve short cost period {value} from source date.")
+                    converted[value] = candidates[0].strftime("%Y%m%d") + "期"
+                record["qici"] = converted[value]
+            snapshot_records = _copy_records(output)
+            audit.append({"type": transform_type, "period_mapping": converted})
+        elif transform_type == "shorten_dated_period":
+            converted: dict[str, str] = {}
+            original_by_short: dict[str, str] = {}
+            for record in output:
+                value = _text(record.get("qici"))
+                if not re.fullmatch(r"\d{8}期", value):
+                    continue
+                try:
+                    datetime(int(value[:4]), int(value[4:6]), int(value[6:8]))
+                except ValueError as exc:
+                    raise WorkflowError(f"Invalid dated period: {value}") from exc
+                short = value[4:8] + "期"
+                previous = original_by_short.get(short)
+                if previous is not None and previous != value:
+                    raise WorkflowError(
+                        f"Dated periods {previous} and {value} map to the same period {short}."
+                    )
+                original_by_short[short] = value
+                converted[value] = short
+                record["qici"] = short
+            snapshot_records = _copy_records(output)
+            audit.append({"type": transform_type, "period_mapping": converted})
         else:
             raise WorkflowError(
                 f"Unsupported source record transform for {family['id']}: "
@@ -2528,6 +2604,50 @@ def scope_matches(record: dict[str, Any], family: dict[str, Any]) -> bool:
     return _text(record.get(scope["column"])) == _text(scope["equals"])
 
 
+def cumulative_source_row_limit(
+    family: dict[str, Any], baseline: dict[str, Any] | None
+) -> dict[str, Any]:
+    """Bound cumulative growth using the last accepted source-slice snapshot."""
+    slices = baseline.get("slices") if isinstance(baseline, dict) else None
+    if not isinstance(slices, dict) or not slices:
+        raise WorkflowError(f"Cumulative row-count baseline is missing for {family['id']}.")
+    for name, item in slices.items():
+        if (
+            not isinstance(name, str)
+            or not name
+            or not isinstance(item, dict)
+            or not isinstance(item.get("row_count"), int)
+            or isinstance(item.get("row_count"), bool)
+            or item["row_count"] < 1
+            or not re.fullmatch(r"[0-9a-f]{64}", str(item.get("sha256") or ""))
+        ):
+            raise WorkflowError(f"Invalid cumulative row-count baseline for {family['id']}.")
+    baseline_rows = sum(item["row_count"] for item in slices.values())
+    if (
+        not isinstance(baseline.get("row_count"), int)
+        or isinstance(baseline.get("row_count"), bool)
+        or baseline["row_count"] != baseline_rows
+    ):
+        raise WorkflowError(f"Inconsistent cumulative row-count baseline for {family['id']}.")
+    latest_slice = sorted(slices, key=slice_sort_key)[-1]
+    latest_rows = slices[latest_slice]["row_count"]
+    growth_per_slice = math.ceil(
+        latest_rows * (1 + float(family["source_quality"]["relative_change"]["max_ratio"]))
+    )
+    max_changed_slices = family["max_changed_slices"]
+    return {
+        "mode": "cumulative_baseline",
+        "max": baseline_rows + max_changed_slices * growth_per_slice,
+        "baseline_id": family["source_baseline_id"],
+        "baseline_message_id": baseline.get("message_id"),
+        "baseline_rows": baseline_rows,
+        "latest_baseline_slice": latest_slice,
+        "latest_baseline_slice_rows": latest_rows,
+        "max_changed_slices": max_changed_slices,
+        "max_growth_rows_per_slice": growth_per_slice,
+    }
+
+
 def evaluate_source_quality(
     family: dict[str, Any],
     message: dict[str, Any],
@@ -2535,6 +2655,7 @@ def evaluate_source_quality(
     target_records: list[dict[str, Any]],
     *,
     relative_source_records: list[dict[str, Any]] | None = None,
+    source_baseline: dict[str, Any] | None = None,
     now: datetime | None = None,
 ) -> dict[str, Any]:
     quality = family.get("source_quality")
@@ -2585,7 +2706,13 @@ def evaluate_source_quality(
 
     row_count = len(source_records)
     row_bounds = quality["row_count"]
-    if not row_bounds["min"] <= row_count <= row_bounds["max"]:
+    row_limit = (
+        cumulative_source_row_limit(family, source_baseline)
+        if row_bounds.get("mode", "fixed") == "cumulative_baseline"
+        else {"max": row_bounds["max"]}
+    )
+    row_count_ok = row_bounds["min"] <= row_count <= row_limit["max"]
+    if not row_count_ok:
         issues.append(
             {
                 "severity": "error",
@@ -2593,7 +2720,7 @@ def evaluate_source_quality(
                 "message": "Source row count is outside the configured bounds.",
                 "row_count": row_count,
                 "min": row_bounds["min"],
-                "max": row_bounds["max"],
+                **row_limit,
             }
         )
 
@@ -2724,8 +2851,8 @@ def evaluate_source_quality(
         "row_count": {
             "actual": row_count,
             "min": row_bounds["min"],
-            "max": row_bounds["max"],
-            "ok": row_bounds["min"] <= row_count <= row_bounds["max"],
+            **row_limit,
+            "ok": row_count_ok,
         },
         "required_columns": required_column_results,
         "relative_change": {
@@ -2853,7 +2980,12 @@ def merge_records(
             output_pairs = [*source_pairs, *preserved_target]
         merged_write.extend(pair[0] for pair in output_pairs)
         merged_effective.extend(pair[1] for pair in output_pairs)
-    changed = not records_equal(merged_effective, target_effective, columns)
+    changed = Counter(normalized_record(row, columns) for row in merged_effective) != Counter(
+        normalized_record(row, columns) for row in target_effective
+    )
+    if not changed:
+        merged_write = _copy_records(target_write)
+        merged_effective = _copy_records(target_effective)
     diff = {
         "changed": changed,
         "slice_column": slice_column,
@@ -3182,6 +3314,9 @@ def plan_sync(args: argparse.Namespace) -> int:
         after=args.after,
         explicit_message_specs=args.message_id,
     )
+    force_upload = bool(getattr(args, "force_upload", False))
+    if force_upload and len(selection["family_ids"]) != 1:
+        raise WorkflowError("A forced upload must be planned for exactly one family.")
     explicit_ids = set(selection.get("explicit_message_ids", {}).values())
     chat, messages = discover_live_messages(
         registry,
@@ -3298,6 +3433,7 @@ def plan_sync(args: argparse.Namespace) -> int:
                         family,
                         source_effective,
                         target_effective,
+                        source_create_time=message["create_time"],
                     )
                 )
                 transformed_write = _copy_records(transformed_effective)
@@ -3357,6 +3493,9 @@ def plan_sync(args: argparse.Namespace) -> int:
                 transformed_effective,
                 target_effective,
                 relative_source_records=selected_effective,
+                source_baseline=source_baselines.get("families", {}).get(
+                    family.get("source_baseline_id")
+                ),
             )
             if (
                 registry.get("require_source_quality_gates")
@@ -3483,9 +3622,12 @@ def plan_sync(args: argparse.Namespace) -> int:
         "tables": tables,
         "blockers": blockers,
         "production_upload_authorized": False,
+        "force_upload": force_upload,
     }
     recovery_path = getattr(args, "recover_upload_receipt", None)
     recovery_sha = getattr(args, "expected_recovery_receipt_sha256", None)
+    if force_upload and (recovery_path or recovery_sha):
+        raise WorkflowError("Forced uploads and failure-recovery plans must be separate.")
     if bool(recovery_path) != bool(recovery_sha):
         raise WorkflowError("Recovery requires both receipt path and expected receipt hash.")
     if recovery_path:
@@ -3544,6 +3686,10 @@ def apply_local(args: argparse.Namespace) -> int:
     assert_plan_source_bundles_current(plan, registry)
     assert_plan_source_quality_current(plan, registry)
     selection = plan.get("selection") or build_selection_spec(registry)
+    if plan.get("force_upload") is not None and not isinstance(plan.get("force_upload"), bool):
+        raise WorkflowError("Invalid forced-upload policy in plan.")
+    if plan.get("force_upload") and len(selection["family_ids"]) != 1:
+        raise WorkflowError("A forced upload must be bound to exactly one family.")
     explicit_ids = set(selection.get("explicit_message_ids", {}).values())
     _, current_messages = discover_live_messages(
         registry,
@@ -3755,6 +3901,10 @@ def upload_production(args: argparse.Namespace) -> int:
     assert_plan_source_bundles_current(plan, registry)
     assert_plan_source_quality_current(plan, registry)
     selection = plan.get("selection") or build_selection_spec(registry)
+    if plan.get("force_upload") is not None and not isinstance(plan.get("force_upload"), bool):
+        raise WorkflowError("Invalid forced-upload policy in plan.")
+    if plan.get("force_upload") and len(selection["family_ids"]) != 1:
+        raise WorkflowError("A forced upload must be bound to exactly one family.")
     explicit_ids = set(selection.get("explicit_message_ids", {}).values())
     _, current_messages = discover_live_messages(
         registry,
@@ -3777,7 +3927,7 @@ def upload_production(args: argparse.Namespace) -> int:
     selected_order = selection["family_ids"]
     for family_id in selected_order:
         table = tables_by_id[family_id]
-        if not table["diff"]["changed"] and family_id != recovery_family:
+        if not table["diff"]["changed"] and family_id != recovery_family and not plan.get("force_upload"):
             uploads.append(
                 {
                     "family_id": family_id,
@@ -3805,6 +3955,11 @@ def upload_production(args: argparse.Namespace) -> int:
             "--import-mode",
             "overwrite",
         ]
+        account = registry.get("production_upload_account")
+        if account:
+            command.extend(["--expected-account", str(account), "--expected-file-sha256",
+                            table["target_after_sha256"], "--expected-data-rows",
+                            str(table["diff"]["target_rows_after"])])
         if args.headed:
             command.append("--headed")
         if not table["allow_baseline_target_errors"]:
@@ -3909,6 +4064,10 @@ def build_parser() -> argparse.ArgumentParser:
         "--message-id",
         action="append",
         help="Bind one selected family to an exact Feishu message: <family_id>=<om_message_id>.",
+    )
+    plan.add_argument(
+        "--force-upload", action="store_true",
+        help="Bind one selected family to an actual upload even when its local data is unchanged.",
     )
     plan.add_argument(
         "--recover-upload-receipt",

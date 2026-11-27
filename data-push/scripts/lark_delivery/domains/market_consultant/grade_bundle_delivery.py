@@ -40,7 +40,16 @@ def resolve_people(context):
 
 
 def native_post(context,image_keys,people):
+    if context.get('grade9_role') is not None or context.get('grade9_preview_only'):
+        from .grade9_daily_post import native_post as grade9_post
+        return grade9_post(context, image_keys, people)
+    from .grade_bundle_model import process_notices
+    if context.get('artifact_protocol') == 'market-volume-artifacts-v1':
+        from .volume_adapter import native_post as volume_post
+        return volume_post(context, image_keys)
     content = [[{'tag':'text','text':f"截至dt={context['snapshot'][0]}，hour={context['snapshot'][1]}时"}]]
+    for notice in process_notices(context):
+        content.append([{'tag':'text','text':notice,'style':['bold']}])
     for artifact,key in zip(context['artifacts'],image_keys):
         content.extend([[{'tag':'text','text':artifact['grade'],'style':['bold']}], [{'tag':'img','image_key':key}]])
         for reminder in artifact['reminders']:
@@ -78,7 +87,8 @@ def readback(message_id,context,detail):
     text = json.dumps(content,ensure_ascii=False)
     if (msg.get('chat_id') != context['target']['chat_id'] or msg.get('deleted') is not False
             or msg.get('msg_type') != context.get('message_type','post') or msg['sender'].get('open_bot_id') != context['definition']['sender']['open_id']
-            or context['period'] not in text or any(key not in text for key in detail['image_keys'])):
+            or any(period not in text for period in context.get('delivery_periods', [context['period']]))
+            or any(key not in text for key in detail['image_keys'])):
         raise ValueError('Bundle target/sender/period/images differ from staged message')
     extractor = grade_report.mention_ids
     if context.get('message_type') == 'interactive':

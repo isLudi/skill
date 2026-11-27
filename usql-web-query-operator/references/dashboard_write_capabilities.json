@@ -29,13 +29,18 @@
         },
         {
           "source_path": "scripts/read_dashboard/dashboard_build_adapters.py",
-          "source_sha256": "99e853d21c61871e804fea761bd20eb24ed191b644d2dc2cad6ccd3a172c1e01",
+          "source_sha256": "38a93279c74cbca9f96a01b088f25ca32171fc8a5bb7cf452dc7301c69f995ce",
           "note": "Production creation-saga adapter with drift, idempotency, complete-profile, draft-value, and no-auto-delete gates."
         },
         {
           "source_path": "tests/test_dashboard_build.py",
           "source_sha256": "45ca84aab13fbaeb7260ddb11e5e4ff03cc8ddd9649da6007dec3d68432bc6b4",
           "note": "Artifact, preflight, failure-injection, resume, adapter, type-aware value, filter-target, and formula-conflict tests."
+        },
+        {
+          "source_path": "tests/test_dashboard_build_dataset_name.py",
+          "source_sha256": "fff49f203ab265f3e4c0d3d62a5d4142842ea72a58c08911324a7556af46e8f1",
+          "note": "Exact source dashboard/model/subject display-name resolution; conflicts and missing identity fail before a component write. No operation or permission expansion."
         }
       ],
       "limitations": [
@@ -128,13 +133,18 @@
         },
         {
           "source_path": "scripts/read_dashboard/dashboard_build_adapters.py",
-          "source_sha256": "99e853d21c61871e804fea761bd20eb24ed191b644d2dc2cad6ccd3a172c1e01",
+          "source_sha256": "38a93279c74cbca9f96a01b088f25ca32171fc8a5bb7cf452dc7301c69f995ce",
           "note": "Production creation-saga adapter with drift, idempotency, complete-profile, draft-value, and no-auto-delete gates."
         },
         {
           "source_path": "tests/test_dashboard_build.py",
           "source_sha256": "45ca84aab13fbaeb7260ddb11e5e4ff03cc8ddd9649da6007dec3d68432bc6b4",
           "note": "Artifact, preflight, failure-injection, resume, adapter, type-aware value, filter-target, and formula-conflict tests."
+        },
+        {
+          "source_path": "tests/test_dashboard_build_dataset_name.py",
+          "source_sha256": "fff49f203ab265f3e4c0d3d62a5d4142842ea72a58c08911324a7556af46e8f1",
+          "note": "Exact source dashboard/model/subject display-name resolution; conflicts and missing identity fail before a component write. No operation or permission expansion."
         }
       ],
       "limitations": [
@@ -220,13 +230,18 @@
         },
         {
           "source_path": "scripts/read_dashboard/dashboard_build_adapters.py",
-          "source_sha256": "99e853d21c61871e804fea761bd20eb24ed191b644d2dc2cad6ccd3a172c1e01",
+          "source_sha256": "38a93279c74cbca9f96a01b088f25ca32171fc8a5bb7cf452dc7301c69f995ce",
           "note": "Production creation-saga adapter with drift, idempotency, complete-profile, draft-value, and no-auto-delete gates."
         },
         {
           "source_path": "tests/test_dashboard_build.py",
           "source_sha256": "45ca84aab13fbaeb7260ddb11e5e4ff03cc8ddd9649da6007dec3d68432bc6b4",
           "note": "Artifact, preflight, failure-injection, resume, adapter, type-aware value, filter-target, and formula-conflict tests."
+        },
+        {
+          "source_path": "tests/test_dashboard_build_dataset_name.py",
+          "source_sha256": "fff49f203ab265f3e4c0d3d62a5d4142842ea72a58c08911324a7556af46e8f1",
+          "note": "Exact source dashboard/model/subject display-name resolution; conflicts and missing identity fail before a component write. No operation or permission expansion."
         }
       ],
       "limitations": [
@@ -263,13 +278,18 @@
         },
         {
           "source_path": "scripts/read_dashboard/dashboard_build_adapters.py",
-          "source_sha256": "99e853d21c61871e804fea761bd20eb24ed191b644d2dc2cad6ccd3a172c1e01",
+          "source_sha256": "38a93279c74cbca9f96a01b088f25ca32171fc8a5bb7cf452dc7301c69f995ce",
           "note": "Production creation-saga adapter with drift, idempotency, complete-profile, draft-value, and no-auto-delete gates."
         },
         {
           "source_path": "tests/test_dashboard_build.py",
           "source_sha256": "45ca84aab13fbaeb7260ddb11e5e4ff03cc8ddd9649da6007dec3d68432bc6b4",
           "note": "Artifact, preflight, failure-injection, resume, adapter, type-aware value, filter-target, and formula-conflict tests."
+        },
+        {
+          "source_path": "tests/test_dashboard_build_dataset_name.py",
+          "source_sha256": "fff49f203ab265f3e4c0d3d62a5d4142842ea72a58c08911324a7556af46e8f1",
+          "note": "Exact source dashboard/model/subject display-name resolution; conflicts and missing identity fail before a component write. No operation or permission expansion."
         }
       ],
       "limitations": [
@@ -306,13 +326,18 @@
         },
         {
           "source_path": "scripts/read_dashboard/dashboard_build_adapters.py",
-          "source_sha256": "99e853d21c61871e804fea761bd20eb24ed191b644d2dc2cad6ccd3a172c1e01",
+          "source_sha256": "38a93279c74cbca9f96a01b088f25ca32171fc8a5bb7cf452dc7301c69f995ce",
           "note": "Production creation-saga adapter with drift, idempotency, complete-profile, draft-value, and no-auto-delete gates."
         },
         {
           "source_path": "tests/test_dashboard_build.py",
           "source_sha256": "45ca84aab13fbaeb7260ddb11e5e4ff03cc8ddd9649da6007dec3d68432bc6b4",
           "note": "Artifact, preflight, failure-injection, resume, adapter, type-aware value, filter-target, and formula-conflict tests."
+        },
+        {
+          "source_path": "tests/test_dashboard_build_dataset_name.py",
+          "source_sha256": "fff49f203ab265f3e4c0d3d62a5d4142842ea72a58c08911324a7556af46e8f1",
+          "note": "Exact source dashboard/model/subject display-name resolution; conflicts and missing identity fail before a component write. No operation or permission expansion."
         }
       ],
       "limitations": [
@@ -347,13 +372,18 @@
         },
         {
           "source_path": "scripts/read_dashboard/dashboard_build_adapters.py",
-          "source_sha256": "99e853d21c61871e804fea761bd20eb24ed191b644d2dc2cad6ccd3a172c1e01",
+          "source_sha256": "38a93279c74cbca9f96a01b088f25ca32171fc8a5bb7cf452dc7301c69f995ce",
           "note": "Production creation-saga adapter with drift, idempotency, complete-profile, draft-value, and no-auto-delete gates."
         },
         {
           "source_path": "tests/test_dashboard_build.py",
           "source_sha256": "45ca84aab13fbaeb7260ddb11e5e4ff03cc8ddd9649da6007dec3d68432bc6b4",
           "note": "Artifact, preflight, failure-injection, resume, adapter, type-aware value, filter-target, and formula-conflict tests."
+        },
+        {
+          "source_path": "tests/test_dashboard_build_dataset_name.py",
+          "source_sha256": "fff49f203ab265f3e4c0d3d62a5d4142842ea72a58c08911324a7556af46e8f1",
+          "note": "Exact source dashboard/model/subject display-name resolution; conflicts and missing identity fail before a component write. No operation or permission expansion."
         }
       ],
       "limitations": [
@@ -475,8 +505,7 @@
         "Custom formulas are created or reused only in the target pivot subject after exact source-formula and dependency checks.",
         "Apply can synchronize the allowlisted pivot component visual style while preserving its stable unit identity; the source and target style projections require exact hashes and full draft readback.",
         "Apply never publishes; publishing remains a separate authorization and command.",
-        "Created formula resources are retained and reported if a later failure occurs; automatic formula deletion is forbidden.",
-        "Existing metric-note text may be updated through exact plain-text replacements with full schema readback and compensation."
+        "Created formula resources are retained and reported if a later failure occurs; automatic formula deletion is forbidden."
       ]
     },
     {
@@ -637,13 +666,18 @@
         },
         {
           "source_path": "scripts/read_dashboard/dashboard_build_adapters.py",
-          "source_sha256": "99e853d21c61871e804fea761bd20eb24ed191b644d2dc2cad6ccd3a172c1e01",
+          "source_sha256": "38a93279c74cbca9f96a01b088f25ca32171fc8a5bb7cf452dc7301c69f995ce",
           "note": "Production creation-saga adapter with drift, idempotency, complete-profile, draft-value, and no-auto-delete gates."
         },
         {
           "source_path": "tests/test_dashboard_build.py",
           "source_sha256": "45ca84aab13fbaeb7260ddb11e5e4ff03cc8ddd9649da6007dec3d68432bc6b4",
           "note": "Artifact, preflight, failure-injection, resume, adapter, type-aware value, filter-target, and formula-conflict tests."
+        },
+        {
+          "source_path": "tests/test_dashboard_build_dataset_name.py",
+          "source_sha256": "fff49f203ab265f3e4c0d3d62a5d4142842ea72a58c08911324a7556af46e8f1",
+          "note": "Exact source dashboard/model/subject display-name resolution; conflicts and missing identity fail before a component write. No operation or permission expansion."
         }
       ],
       "limitations": [
@@ -718,13 +752,18 @@
         },
         {
           "source_path": "scripts/read_dashboard/dashboard_build_adapters.py",
-          "source_sha256": "99e853d21c61871e804fea761bd20eb24ed191b644d2dc2cad6ccd3a172c1e01",
+          "source_sha256": "38a93279c74cbca9f96a01b088f25ca32171fc8a5bb7cf452dc7301c69f995ce",
           "note": "Production creation-saga adapter with drift, idempotency, complete-profile, draft-value, and no-auto-delete gates."
         },
         {
           "source_path": "tests/test_dashboard_build.py",
           "source_sha256": "45ca84aab13fbaeb7260ddb11e5e4ff03cc8ddd9649da6007dec3d68432bc6b4",
           "note": "Artifact, preflight, failure-injection, resume, adapter, type-aware value, filter-target, and formula-conflict tests."
+        },
+        {
+          "source_path": "tests/test_dashboard_build_dataset_name.py",
+          "source_sha256": "fff49f203ab265f3e4c0d3d62a5d4142842ea72a58c08911324a7556af46e8f1",
+          "note": "Exact source dashboard/model/subject display-name resolution; conflicts and missing identity fail before a component write. No operation or permission expansion."
         }
       ],
       "limitations": [
@@ -965,13 +1004,18 @@
         },
         {
           "source_path": "scripts/read_dashboard/dashboard_build_adapters.py",
-          "source_sha256": "99e853d21c61871e804fea761bd20eb24ed191b644d2dc2cad6ccd3a172c1e01",
+          "source_sha256": "38a93279c74cbca9f96a01b088f25ca32171fc8a5bb7cf452dc7301c69f995ce",
           "note": "All-or-none metric-instance adapter with exact field coverage, readback, resume drift gate, and compensation."
         },
         {
           "source_path": "tests/test_dashboard_build.py",
           "source_sha256": "45ca84aab13fbaeb7260ddb11e5e4ff03cc8ddd9649da6007dec3d68432bc6b4",
           "note": "Advanced Saga ordering, fault, orphan, and full metric-name coverage tests."
+        },
+        {
+          "source_path": "tests/test_dashboard_build_dataset_name.py",
+          "source_sha256": "fff49f203ab265f3e4c0d3d62a5d4142842ea72a58c08911324a7556af46e8f1",
+          "note": "Exact source dashboard/model/subject display-name resolution; conflicts and missing identity fail before a component write. No operation or permission expansion."
         }
       ],
       "limitations": [
@@ -1004,13 +1048,18 @@
         },
         {
           "source_path": "scripts/read_dashboard/dashboard_build_adapters.py",
-          "source_sha256": "99e853d21c61871e804fea761bd20eb24ed191b644d2dc2cad6ccd3a172c1e01",
+          "source_sha256": "38a93279c74cbca9f96a01b088f25ca32171fc8a5bb7cf452dc7301c69f995ce",
           "note": "Component-type property allowlists, restricted rich text, exact before/after hashes, full schema compensation, and Profile readback."
         },
         {
           "source_path": "tests/test_dashboard_build.py",
           "source_sha256": "45ca84aab13fbaeb7260ddb11e5e4ff03cc8ddd9649da6007dec3d68432bc6b4",
           "note": "Advanced style Plan/Saga, zero-write preflight, failure, and orphan tests."
+        },
+        {
+          "source_path": "tests/test_dashboard_build_dataset_name.py",
+          "source_sha256": "fff49f203ab265f3e4c0d3d62a5d4142842ea72a58c08911324a7556af46e8f1",
+          "note": "Exact source dashboard/model/subject display-name resolution; conflicts and missing identity fail before a component write. No operation or permission expansion."
         }
       ],
       "limitations": [
@@ -1046,13 +1095,18 @@
         },
         {
           "source_path": "scripts/read_dashboard/dashboard_build_adapters.py",
-          "source_sha256": "99e853d21c61871e804fea761bd20eb24ed191b644d2dc2cad6ccd3a172c1e01",
+          "source_sha256": "38a93279c74cbca9f96a01b088f25ca32171fc8a5bb7cf452dc7301c69f995ce",
           "note": "Composite tab Saga adapter with slot-label, child identity, Counter-based binding, Profile, value, and resume readback."
         },
         {
           "source_path": "tests/test_dashboard_build.py",
           "source_sha256": "45ca84aab13fbaeb7260ddb11e5e4ff03cc8ddd9649da6007dec3d68432bc6b4",
           "note": "Tab child-resource, failure, resume, orphan, and target verification tests."
+        },
+        {
+          "source_path": "tests/test_dashboard_build_dataset_name.py",
+          "source_sha256": "fff49f203ab265f3e4c0d3d62a5d4142842ea72a58c08911324a7556af46e8f1",
+          "note": "Exact source dashboard/model/subject display-name resolution; conflicts and missing identity fail before a component write. No operation or permission expansion."
         }
       ],
       "limitations": [
@@ -1086,13 +1140,18 @@
         },
         {
           "source_path": "scripts/read_dashboard/dashboard_build_adapters.py",
-          "source_sha256": "99e853d21c61871e804fea761bd20eb24ed191b644d2dc2cad6ccd3a172c1e01",
+          "source_sha256": "38a93279c74cbca9f96a01b088f25ca32171fc8a5bb7cf452dc7301c69f995ce",
           "note": "Exact logical slot-to-platform component mapping and complete target Profile verification."
         },
         {
           "source_path": "tests/test_dashboard_build.py",
           "source_sha256": "45ca84aab13fbaeb7260ddb11e5e4ff03cc8ddd9649da6007dec3d68432bc6b4",
           "note": "Slot child-resource and target-state tests."
+        },
+        {
+          "source_path": "tests/test_dashboard_build_dataset_name.py",
+          "source_sha256": "fff49f203ab265f3e4c0d3d62a5d4142842ea72a58c08911324a7556af46e8f1",
+          "note": "Exact source dashboard/model/subject display-name resolution; conflicts and missing identity fail before a component write. No operation or permission expansion."
         }
       ],
       "limitations": [
@@ -1124,13 +1183,18 @@
         },
         {
           "source_path": "scripts/read_dashboard/dashboard_build_adapters.py",
-          "source_sha256": "99e853d21c61871e804fea761bd20eb24ed191b644d2dc2cad6ccd3a172c1e01",
+          "source_sha256": "38a93279c74cbca9f96a01b088f25ca32171fc8a5bb7cf452dc7301c69f995ce",
           "note": "Text identity, layout, restricted content/style, resume, and Profile target adapter."
         },
         {
           "source_path": "tests/test_dashboard_build.py",
           "source_sha256": "45ca84aab13fbaeb7260ddb11e5e4ff03cc8ddd9649da6007dec3d68432bc6b4",
           "note": "Text creation, style, failure, and orphan tests."
+        },
+        {
+          "source_path": "tests/test_dashboard_build_dataset_name.py",
+          "source_sha256": "fff49f203ab265f3e4c0d3d62a5d4142842ea72a58c08911324a7556af46e8f1",
+          "note": "Exact source dashboard/model/subject display-name resolution; conflicts and missing identity fail before a component write. No operation or permission expansion."
         }
       ],
       "limitations": [
@@ -1340,7 +1404,7 @@
       ]
     },
     {
-      "operation": "switch_qingcheng_receiving_key_draft",
+      "operation": "update_qingcheng_shared_advisor_rate",
       "phase": "draft",
       "maturity": "verified",
       "write_policy": "allowlisted",
@@ -1348,47 +1412,42 @@
       "recovery_policy": "compensating_restore",
       "readback_coverage": "full",
       "risk": "high",
-      "adapter": "read_dashboard.commands.receiving_key_draft.cmd_receiving_key_draft",
+      "adapter": "read_dashboard.commands.advisor_rate.cmd_advisor_rate",
       "write_endpoints": [
         "model/customized/column/saveAndUpdate",
+        "config/update/unit",
         "config/save/dashboardHtml"
       ],
       "readback_endpoints": [
-        "version/dashboard/searchPublishVersionList",
         "config/dashBoard",
         "value/unit/detail",
+        "value/unit",
         "model/customized/column/list",
-        "model/subject/paramList",
-        "data/set/detail"
-      ],
-      "limitations": [
-        "Only the two registered Qingcheng dashboards with 2460 and a successful compatibility extraction.",
-        "One receiving-headcount dependency in the isolated owner draft. All live component and formula references must be read.",
-        "Keep all other formulas, fields, filters, metrics and layout. Separate publish uses a verified apply receipt."
+        "model/subject/paramList"
       ],
       "evidence": [
         {
-          "source_path": "references/dashboard_receiving_key_evidence_20261116.json",
-          "source_sha256": "f6de5a0c237f01864b036d0b62d1b332bc3a8a6c4a38c1bd6fa125d08f014af4",
-          "note": "Independent formal draft and active version identity proof for both targets."
+          "source_path": "references/dashboard_advisor_rate_evidence_20261122.json",
+          "source_sha256": "304f17fa721c53b6494088aacfecf16fb13f1ca21db764223911796c67750390",
+          "note": "Reviewed independent live isolated sandbox value and restoration evidence."
         },
         {
-          "source_path": "scripts/read_dashboard/dashboard_write_adapters.py",
-          "source_sha256": "d0cf9e557ffa51198ad99eaf53defd8e86cf98224c0e294595aa90b84fe2d4fe",
-          "note": "Existing verified formula and immutable draft-layout write primitives."
+          "source_path": "scripts/read_dashboard/commands/advisor_rate.py",
+          "source_sha256": "81e9add9faea498a97f92ecc5bed52a640ea7d10f0c35579556376095406f755",
+          "note": "Dedicated exact-domain shared formula adapter, full drift checks, ordered dependencies and recovery."
         },
         {
-          "source_path": "scripts/read_dashboard/commands/receiving_key_draft.py",
-          "source_sha256": "e15358c47fff50174f222e3ebce29ff45683b5a074310f17c7074064c5245cab",
-          "note": "Narrow owner, compatibility, scope, hash, attempt and version readback gates."
-        },
-        {
-          "source_path": "tests/test_receiving_key_draft.py",
-          "source_sha256": "db1c1753c5016631bd9ffd6fce8e7722bbc605383d53dde45a80a8d83126043b",
-          "note": "Exact formula shape, version identity, compensation guards and unrelated draft protection."
+          "source_path": "tests/test_advisor_rate.py",
+          "source_sha256": "c452c0da7064f517d669baa29e08c5145c9d21662c7ab1a55c7783d5b2c898c6",
+          "note": "Cross-domain, dependency-order, value failure, recovery and third-state tests."
         }
+      ],
+      "limitations": [
+        "Only dashboard_3885764906392891392, model2460, draft216472 and its exact existing rate and full consumer set.",
+        "Generic update_formula and all unrelated capabilities remain unchanged.",
+        "Publication requires a separate hash-bound verified ApplyReceipt and explicit confirmation."
       ]
     }
   ],
-  "registry_sha256": "ce4e4ea9c5edff6f61be65bf62458b0514e7920d6740a26f540dfe6d2b51f568"
+  "registry_sha256": "ab38cfb177b5c8c892e8955d9efd924a5864fc7dc0958966b44b97ac51fe480e"
 }

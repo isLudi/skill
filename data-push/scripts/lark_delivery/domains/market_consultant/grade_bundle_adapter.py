@@ -51,6 +51,9 @@ def validate_definition(definition):
         raise ValueError('Compact layout requires reviewed visible-row totals without population labels')
     for component in components:
         all_grades=component.get('grade_scope')=='all'
+        grouping = component.get('grade_grouping', 'separate')
+        if grouping not in {'separate', 'combined'} or (grouping == 'combined' and not all_grades):
+            raise ValueError('Combined grade reporting requires the all-grade scope')
         if all_grades and (channel_id!='douyin_advisor_bundle' or component['source_values']!=['抖音私信']
                            or component['grain']!='顾问'):
             raise ValueError('Unrestricted grades are registered only for Douyin private messages')
@@ -65,6 +68,8 @@ def validate_definition(definition):
             raise ValueError('Casefold matching is limited to APP')
         for kind in ['process','result']:
             model.columns(component,kind)
+    from .grade9_daily_policy import validate as validate_grade9
+    validate_grade9(definition)
     return definition
 
 
@@ -76,7 +81,7 @@ def channels_for_target(definition, target):
 
 
 def prepare(definition, target, *, state_dir=None, report_type='auto', slot=None,
-            period=None, component_ids=None, **_unused):
+            period=None, component_ids=None, grade9_spec=None, grade9_source=None, **_unused):
     validate_definition(definition)
     if target not in definition['targets']:
         raise ValueError('Target is not registered for this bundle')
@@ -86,6 +91,11 @@ def prepare(definition, target, *, state_dir=None, report_type='auto', slot=None
         raise ValueError('A bundle prepares exactly one report section')
     directory = Path(state_dir or definition['state_dir'])
     directory.mkdir(parents=True,exist_ok=True)
+    if definition['report'].get('grade9_daily_policy') is not None and report_type == 'auto':
+        from .grade9_daily_prepare import prepare as prepare_grade9
+        if period is not None:
+            raise ValueError('Daily grade-nine preview uses the current source calendar')
+        return prepare_grade9(definition, target, directory, slot, component_ids, grade9_spec, grade9_source)
     rows,proof = source.read(definition,target,directory,slot)
     if period is not None and period != proof['period']:
         raise ValueError('Bundle period cannot depart from current business calendar')

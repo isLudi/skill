@@ -19,7 +19,7 @@ SLOT = datetime(2026, 10, 9, 12, 0, tzinfo=ZoneInfo("Asia/Shanghai"))
 
 def _rows(departments, channel="公域学霸"):
     return [{"record_id": f"rec{index}", "记录键": f"key{index}",
-             "期次": PERIOD, "一级渠道": "公域" if channel == "公域学霸" else "订单复用",
+             "期次": PERIOD, "一级渠道": "公域" if channel == "公域学霸" else "公海",
              "渠道": channel, "部门": department, "分区日期": SNAPSHOT[0], "分区小时": SNAPSHOT[1],
              "年级": "高一", "主管": "主管甲", "顾问": "顾问甲", "顾问账号": "advisor",
              "退前线索": 1, "退后线索": 1, "好友标记": 1, "首call等待时长小时": 2,
@@ -39,13 +39,13 @@ def _fetch_stub(monkeypatch, rows, **overrides):
 
 
 def _audit(count, channel="公域学霸"):
-    return {"raw_channel_counts": {channel: count}, "snapshot": SNAPSHOT}
+    return {"raw_channel_counts": {channel: count}, "snapshot": SNAPSHOT, "base_revision": 42}
 
 
 def test_mixed_departments_are_verified_then_selected(monkeypatch, tmp_path):
     original = _rows(["SEC"] * 694 + ["一部"] * 27)
     _fetch_stub(monkeypatch, original)
-    rows, manifest = sec._source_rows("sec_public", PERIOD, tmp_path, _audit(721), sec._config(), SLOT)
+    rows, manifest = sec._source_rows("sec_public", PERIOD, tmp_path, _audit(721), sec._config())
     assert len(rows) == 694 and {row["部门"] for row in rows} == {"SEC"}
     assert manifest["records_count"] == 721
     scope = manifest["scope_audit"]
@@ -61,7 +61,7 @@ def test_mixed_departments_are_verified_then_selected(monkeypatch, tmp_path):
 def test_audit_must_match_unfiltered_rows_not_selected_rows(monkeypatch, tmp_path):
     _fetch_stub(monkeypatch, _rows(["SEC"] * 3 + ["一部"]))
     with pytest.raises(ValueError, match="source count"):
-        sec._source_rows("sec_public", PERIOD, tmp_path, _audit(3), sec._config(), SLOT)
+        sec._source_rows("sec_public", PERIOD, tmp_path, _audit(3), sec._config())
     assert not (tmp_path / "sec_public/scope_audit.json").exists()
 
 
@@ -87,7 +87,7 @@ def test_outside_department_rows_still_pass_integrity_checks_first(monkeypatch, 
         audit["snapshot"] = ["20261009", "07"]
     _fetch_stub(monkeypatch, rows, **overrides)
     with pytest.raises(ValueError):
-        sec._source_rows("sec_public", PERIOD, tmp_path, audit, sec._config(), SLOT)
+        sec._source_rows("sec_public", PERIOD, tmp_path, audit, sec._config())
 
 
 def test_order_reuse_checks_all_channel_counts_and_retains_all_departments(monkeypatch, tmp_path):
@@ -95,18 +95,18 @@ def test_order_reuse_checks_all_channel_counts_and_retains_all_departments(monke
     rows += [{**row, "record_id": "other", "记录键": "other"}
              for row in _rows(["SEC"], "SEC首期掉海")]
     _fetch_stub(monkeypatch, rows)
-    audit = {"snapshot": SNAPSHOT, "raw_channel_counts": {"SEC未加好友": 2, "SEC首期掉海": 1}}
-    selected, manifest = sec._source_rows("sec_order_reuse", PERIOD, tmp_path, audit, sec._config(), SLOT)
+    audit = {"snapshot": SNAPSHOT, "base_revision": 42, "raw_channel_counts": {"SEC未加好友": 2, "SEC首期掉海": 1}}
+    selected, manifest = sec._source_rows("sec_order_reuse", PERIOD, tmp_path, audit, sec._config())
     assert len(selected) == 3
     assert manifest["scope_audit"]["selected_channel_counts"] == {"SEC未加好友": 2, "SEC首期掉海": 1}
     audit["raw_channel_counts"] = {"SEC未加好友": 1, "SEC首期掉海": 2}
     with pytest.raises(ValueError, match="raw source count"):
-        sec._source_rows("sec_order_reuse", PERIOD, tmp_path, audit, sec._config(), SLOT)
+        sec._source_rows("sec_order_reuse", PERIOD, tmp_path, audit, sec._config())
 
 
 def test_both_public_reports_receive_only_sec_rows_and_record_exclusions(monkeypatch, tmp_path):
     _fetch_stub(monkeypatch, _rows(["SEC"] * 6 + ["一部"]))
-    monkeypatch.setattr(sec, "_upstream_audit", lambda *_: _audit(7))
+    monkeypatch.setattr(sec, "_latest_verified_snapshot", lambda *_: _audit(7))
     built = []
     delivered = []
 
@@ -128,7 +128,7 @@ def test_both_public_reports_receive_only_sec_rows_and_record_exclusions(monkeyp
 
 def test_zero_sec_rows_skip_without_building_empty_message(monkeypatch, tmp_path):
     _fetch_stub(monkeypatch, _rows(["一部", "二部"]))
-    monkeypatch.setattr(sec, "_upstream_audit", lambda *_: _audit(2))
+    monkeypatch.setattr(sec, "_latest_verified_snapshot", lambda *_: _audit(2))
 
     def forbidden(*_, **__):
         raise AssertionError("An empty SEC slice must not render or send")
@@ -139,3 +139,25 @@ def test_zero_sec_rows_skip_without_building_empty_message(monkeypatch, tmp_path
     for report_id in ("sec_public_consultant", "sec_public_supervisor"):
         assert batch["reports"][report_id]["status"] == "skipped_no_eligible_rows"
     assert batch["source_scope_audits"]["sec_public_consultant"]["selected_records_count"] == 0
+
+
+def test_current_period_snapshot_requires_the_complete_base_revision(monkeypatch, tmp_path):
+    rows = _rows(["SEC", "SEC"])
+    audit = {**_audit(2), "period_row_count": 2, "execution_id": 77}
+    monkeypatch.setattr(sec, "latest_completed_process_audit", lambda *_: audit)
+
+    def read(*_, **kwargs):
+        assert kwargs["filter_json"]["conditions"] == [["期次", "==", PERIOD]]
+        kwargs["audit"].update(rev=42, pages=2, records_count=len(rows), has_more=False)
+        return rows
+
+    monkeypatch.setattr(sec, "_fetch_view_records", read)
+    verified = sec._latest_verified_snapshot(PERIOD, sec._config())
+    assert (verified["base_revision"], verified["base_pages"]) == (42, 2)
+    _fetch_stub(monkeypatch, rows, rev=43)
+    with pytest.raises(ValueError, match="revision differs from the complete period snapshot"):
+        sec._source_rows("sec_public", PERIOD, tmp_path, verified, sec._config())
+    rows.pop()
+    monkeypatch.setenv("CODEX_PUSH_COORDINATOR_ROOT", str(tmp_path / "fresh-coordinator"))
+    with pytest.raises(ValueError, match="does not match the completed writer audit"):
+        sec._latest_verified_snapshot(PERIOD, sec._config())

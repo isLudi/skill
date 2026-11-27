@@ -15,6 +15,7 @@ from .commands.capture_dashboard_build_evidence import cmd_capture_dashboard_bui
 from .commands.check_dashboard_values import cmd_check_dashboard_values
 from .commands.capture_write_evidence import cmd_capture_write_evidence
 from .commands.conversion_ratio_draft import cmd_conversion_ratio_draft
+from .commands.advisor_rate import cmd_advisor_rate
 from .commands.apply_dashboard_change import cmd_apply_dashboard_change
 from .commands.apply_dashboard_build import cmd_apply_dashboard_build
 from .commands.append_pivot_draft import SELECTION_KEYS, cmd_append_pivot_draft
@@ -32,7 +33,6 @@ from .commands.profile_folder import cmd_profile_folder
 from .commands.publish_dashboard_change import cmd_publish_dashboard_change
 from .commands.publish_dashboard_build import cmd_publish_dashboard_build
 from .commands.rebind_pivot_fields_sandbox import cmd_rebind_pivot_fields_sandbox
-from .commands.receiving_key_draft import BOARDS as RECEIVING_KEY_BOARDS, cmd_receiving_key_draft
 from .commands.scan_folder import cmd_scan_folder
 from .commands.inspect_write_capabilities import cmd_inspect_write_capabilities
 from .commands.verify_sandbox_write_adapters import cmd_verify_sandbox_write_adapters
@@ -360,6 +360,8 @@ def build_parser() -> argparse.ArgumentParser:
     capture_write.add_argument("--domain", choices=["market_consultant", "qingcheng"], required=True)
     capture_write.add_argument("--confirm-sandbox-write", action="store_true", required=True)
     capture_write.add_argument("--capture-seconds", type=int, default=45, help="Visible manual capture window, 10..300 seconds.")
+    capture_write.add_argument("--formula-probe-plan", type=Path, default=None, help="Optional hash-bound existing-formula probe in the exact confirmed sandbox; no production authority.")
+    capture_write.add_argument("--formula-probe-plan-sha256", default=None)
     capture_write.add_argument("--html-id", default=None)
     capture_write.add_argument("--registry", type=Path, default=DEFAULT_REGISTRY)
     capture_write.add_argument("--output", type=Path, default=None)
@@ -609,33 +611,23 @@ def build_parser() -> argparse.ArgumentParser:
     conversion_apply.add_argument("--confirm-sandbox-write", action="store_true")
     conversion_apply.add_argument("--confirm-production-write", action="store_true")
 
-    receiving_plan = subparsers.add_parser(
-        "plan-receiving-key-draft", help="Review the exact 2460 receiving-metric change and its active published version."
-    )
-    receiving_apply = subparsers.add_parser(
-        "apply-receiving-key-draft", help="Switch the reviewed 2460 receiving formula in its isolated draft."
-    )
-    receiving_publish = subparsers.add_parser(
-        "publish-receiving-key-draft", help="Publish the verified receiving-key draft and read back the active version."
-    )
-    for command, mode in ((receiving_plan, "plan"), (receiving_apply, "apply"), (receiving_publish, "publish")):
-        command.add_argument("--compatibility-receipt", type=Path, required=True)
-        command.add_argument("--output", type=Path, required=True)
-        command.add_argument("--state-path", type=Path, required=True)
-        command.add_argument("--artifacts-dir", type=Path, default=DEFAULT_ARTIFACTS)
-        command.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL)
-        command.add_argument("--headed", action="store_true")
-        command.set_defaults(mode=mode, func=cmd_receiving_key_draft)
-    receiving_plan.add_argument("--dashboard-id", choices=sorted(RECEIVING_KEY_BOARDS), required=True)
-    receiving_plan.add_argument("--calculation-mode", choices=["compatibility", "restore-stock"], default="compatibility")
-    for command in (receiving_apply, receiving_publish):
-        command.add_argument("--plan", type=Path, required=True)
-        command.add_argument("--plan-sha256", required=True)
-    receiving_apply.add_argument("--confirm-production-write", action="store_true")
-    receiving_publish.add_argument("--apply-receipt", type=Path, required=True)
-    receiving_publish.add_argument("--apply-receipt-sha256", required=True)
-    receiving_publish.add_argument("--version-description", required=True)
-    receiving_publish.add_argument("--confirm-publish", action="store_true")
+    for rate_mode in ("plan", "apply", "publish", "verify"):
+        rate = subparsers.add_parser(f"{rate_mode}-qingcheng-advisor-rate", help="Governed shared adviser breakthrough rate on the registered Qingcheng conversion board.")
+        rate.add_argument("--input", type=Path, required=True)
+        rate.add_argument("--output", type=Path, required=True)
+        rate.add_argument("--state-path", type=Path, default=DEFAULT_STATE)
+        rate.add_argument("--artifacts-dir", type=Path, default=DEFAULT_ARTIFACTS)
+        rate.add_argument("--headed", action="store_true")
+        rate.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL)
+        rate.set_defaults(func=cmd_advisor_rate, mode=rate_mode)
+        if rate_mode != "plan":
+            rate.add_argument("--plan-sha256", required=True)
+            rate.add_argument("--confirm-production-write", action="store_true")
+        if rate_mode in {"publish", "verify"}:
+            rate.add_argument("--apply-receipt", type=Path, required=True)
+            rate.add_argument("--receipt-sha256", required=True)
+            rate.add_argument("--confirm-publish", action="store_true")
+            rate.add_argument("--version-description", required=True)
 
     edit_filters = subparsers.add_parser(
         "edit-public-filters",

@@ -14,6 +14,15 @@ def test_candidate_projection_stays_below_lark_limit():
     assert len(MODULE.CANDIDATE_FIELDS) == len(set(MODULE.CANDIDATE_FIELDS))
 
 
+def test_process_and_result_total_choices_are_independent():
+    fields = {"过程展示总计行": ["是"], "转化展示总计行": ["否"]}
+    candidate = MODULE.build_candidate(fields, record_id="rec_totals")
+    assert candidate["report"]["process_show_total"] is True
+    assert candidate["report"]["result_show_total"] is False
+    assert MODULE.build_candidate({}, record_id="rec_legacy")["report"]["process_show_total"] is None
+    assert MODULE.build_candidate({"转化展示总计行": ["沿用现有配置"]}, record_id="rec_keep")["report"]["result_show_total"] is None
+
+
 def test_build_candidate_normalizes_base_markdown_url():
     candidate = MODULE.build_candidate({
         "申请编号": "market_consultant/url",

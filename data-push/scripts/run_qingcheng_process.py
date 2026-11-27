@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from qingcheng_schedule import resolve_slot
+from qingcheng_schedule import delivery_deadline, resolve_slot
 
 import argparse
 from contextlib import contextmanager
@@ -17,12 +17,14 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from fetch_qingcheng_process_source import PRIVATE_CHANNELS, fetch, probe_revision
+from fetch_qingcheng_process_source import PRIVATE_CHANNELS, PUBLIC_POOL_CHANNELS, TABLE_ID, fetch, probe_revision, shared_fetch
 from preview_qingcheng_public_pool_process import build
 from lark_delivery.common import push_log, resend
 from lark_delivery.common.readback import available as readback_available
 from lark_delivery.common.retry import retry_transport
 from lark_delivery.common.runtime import CREATE_NO_WINDOW, ensure_console_streams
+from lark_delivery.integrations.producer_bindings import load_binding
+from lark_delivery.integrations.push_platform import tiangong_read
 
 
 SKILL = Path(__file__).resolve().parents[1]
@@ -32,20 +34,14 @@ BATCH_CONFIG = CONFIG_DIR / "process_batch_preview.json"
 STATE = WORKSPACE / "runtime/qingcheng-process-batch"
 LEVELS = ("supervisor", "consultant")
 OPERATOR = WORKSPACE / "skills/usql-web-query-operator/scripts/tiangong2_task.py"
-AUDIT_CHANNELS = {"public_pool": ("顾问未加好友",), "private": PRIVATE_CHANNELS,
+AUDIT_CHANNELS = {"public_pool": PUBLIC_POOL_CHANNELS, "private": PRIVATE_CHANNELS,
                   "douyin_dm": ("抖音私信",)}
 
-# 执行台账里的 taskName 是执行行建立时的任务名快照。任务在 2026-09-28 由
-# `qing2lark` 改名为 `qing2lark_guocheng` 后，新建立的执行行报新名，改名之前建立
-# 的行仍报旧名（2026-09-29 00:00 的行已是新名，更早各行仍是旧名）。不可变的 Nezha
-# 任务 ID（67318）才是身份锚点，所以两个名字都接受。
-#
-# stage 日志文件名跟的是平台上的脚本文件，不随任务改名而变：2026-09-29 00:00
-# 那次执行行已报新名，产出的仍是 `stage_175092770_qing2lark.log`（175092770 是脚本
-# 文件 ID）。两个后缀都保留不是冗余——旧后缀正是当前生效的那个，删掉任一都会让
-# 审计选不中唯一的 stage 日志，从而拦停全部青橙推送。
-TASK_NAME_ALIASES = ("qing2lark_guocheng", "qing2lark")
-STAGE_LOG_SUFFIXES = ("_qing2lark.log", "_qing2lark_guocheng.log")
+# 历史执行行及 stage 文件名可能保留平台改名前的任务名。
+# 当前名称来自生产者绑定，历史名称只用于兼容已登记 Nezha 任务的运行日志。
+PROCESS_TASK_KEY = "qingcheng.process"
+PROCESS_AUDIT_SCHEMA = "market2lark-two-period-audit-v1"
+HISTORICAL_TASK_NAMES = ("qing2lark", "qing2lark_guocheng")
 # The local Qingcheng batches start on the hour while qing2lark runs at :40.
 # Nezha's periodTime is normalized to the containing hour, so a 12:00 local
 # batch must audit the 11:40 upstream execution, represented as 11:00.
@@ -83,6 +79,20 @@ def _single_instance():
             msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
 
 
+def process_binding(reference: dict) -> dict:
+    if reference != {"task_key": PROCESS_TASK_KEY}:
+        raise ValueError("Qingcheng process producer reference differs")
+    binding = load_binding(PROCESS_TASK_KEY, expected_domain="qingcheng", config_root=SKILL / "config")
+    if (binding.get("table_id"), binding.get("audit_schema")) != (TABLE_ID, PROCESS_AUDIT_SCHEMA):
+        raise ValueError("Qingcheng process producer Base table or audit contract differs")
+    return binding
+
+
+def require_process_binding_unchanged(binding: dict) -> None:
+    if process_binding({"task_key": PROCESS_TASK_KEY}) != binding:
+        raise ValueError("Qingcheng process upstream binding changed before delivery")
+
+
 def _batch() -> dict:
     batch = json.loads(BATCH_CONFIG.read_text(encoding="utf-8"))
     calendar = batch["business_calendar"]
@@ -92,16 +102,10 @@ def _batch() -> dict:
         raise ValueError("All Qingcheng process channels must be explicit")
     if (calendar["process_weekdays"], calendar["hours"], calendar["minute"], calendar["retry_window_minutes"], calendar["timezone"]) != ([1, 2, 3], [13, 17, 21], 50, 50, "Asia/Shanghai"):
         raise ValueError("Process batch calendar differs from the reviewed slots")
-    upstream = batch["upstream"]
-    if (batch["retry_interval_minutes"], batch["windows_task_name"], upstream["project_id"], upstream["folder"],
-            upstream["menu_id"], upstream["task_id"], upstream["nezha_task_id"], upstream["task_name"],
-            upstream["owner"], upstream["published_version"], upstream["version_id"], upstream["exec_file_id"],
-            upstream["source_sha256"], upstream["audit_schema"]) != (
-            2, "Codex-Lark-Qingcheng-Process-GroupPush", 308, "吕帅", 103625, 47728, 67318,
-            "qing2lark_guocheng", "lvshuai01", "V39", 219189, 855658,
-            "08ec50a45d1ef038aeb9d199091b260a39a9cc02a73a1f091aaf35ecd4538bb9",
-            "market2lark-two-period-audit-v1"):
-        raise ValueError("Qingcheng upstream or Windows task pin differs")
+    if (batch["retry_interval_minutes"], batch["windows_task_name"]) != (
+            2, "Codex-Lark-Qingcheng-Process-GroupPush"):
+        raise ValueError("Qingcheng process Windows task pin differs")
+    batch["upstream_binding"] = process_binding(batch["upstream"])
     return batch
 
 
@@ -133,17 +137,15 @@ def _fresh(review: dict, period: str, slot: datetime) -> None:
         raise ValueError("Raw Base source snapshot is outside the freshness window")
 
 
-def _operator_read(command: str, *args: str) -> dict:
-    upstream = _batch()["upstream"]
+def _operator_read(upstream: dict, command: str, *args: str) -> dict:
     child_env = os.environ.copy()
     child_env.update(PYTHONIOENCODING="utf-8", PYTHONUTF8="1")
-    result = subprocess.run([sys.executable, str(OPERATOR), command, "--project-id", str(upstream["project_id"]),
-                             "--folder", upstream["folder"], "--menu-id", str(upstream["menu_id"]),
-                             "--task-name", upstream["task_name"], *args],
-                            cwd=WORKSPACE, env=child_env, capture_output=True, text=True, encoding="utf-8",
-                            timeout=120, creationflags=CREATE_NO_WINDOW)
+    argv = [sys.executable, str(OPERATOR), command, "--project-id", str(upstream["project_id"]),
+            "--folder", upstream["folder"], "--menu-id", str(upstream["menu_id"]),
+            "--task-name", upstream["task_name"], *args]
+    result = tiangong_read(argv, cwd=WORKSPACE, timeout=1200, env=child_env, binding=upstream)
     if result.returncode:
-        raise ValueError(f"Tiangong2 {command} read failed: {result.stderr[-600:]}")
+        raise ValueError(f"Tiangong2 {command} read failed (exit {result.returncode})")
     payload = json.loads(result.stdout)
     if payload.get("ok") is not True or payload.get("read_only") is not True or payload.get("remote_mutations") != 0:
         raise ValueError(f"Tiangong2 {command} read was not verified")
@@ -171,9 +173,15 @@ def _execution_order(entry: dict) -> tuple[datetime, int]:
         raise ValueError("Qingcheng execution chronology is missing or invalid") from exc
 
 
-def _upstream_audit(period: str, slot: datetime) -> dict:
-    history_result = _operator_read("list-execution-history", "--limit", "50")
+def _process_executions(upstream: dict) -> list[dict]:
+    history_result = _operator_read(upstream, "list-execution-history", "--limit", "50")
     history = json.loads((Path(history_result["artifact_dir"]) / "history.json").read_text(encoding="utf-8"))
+    return history["executions"]
+
+
+def _upstream_audit(period: str, slot: datetime, upstream: dict) -> dict:
+    executions = _process_executions(upstream)
+    execution_binding = (upstream["project_id"], upstream["exec_file_id"])
     upstream_period_time = _expected_upstream_period_time(slot)
     # The upstream runs at :40 before each local on-the-hour batch. Nezha reports
     # that execution's periodTime at the containing hour (for example, 11:40 as
@@ -181,50 +189,71 @@ def _upstream_audit(period: str, slot: datetime) -> dict:
     # to the reviewed exec file, whatever way it was triggered; uniqueness and the
     # newest-execution guard stay enforced.
     candidates = []
-    for entry in history["executions"]:
+    for entry in executions:
         if entry.get("periodTime") != upstream_period_time or entry.get("status") != 6:
             continue
         try:
             entry_config = json.loads(entry.get("runConfig") or "{}")
         except (TypeError, json.JSONDecodeError):
             continue
-        if (entry_config.get("projectId"), entry_config.get("execFileId")) == (308, 855658):
+        if (entry_config.get("projectId"), entry_config.get("execFileId")) == execution_binding:
             candidates.append(entry)
     if len(candidates) != 1:
         raise ValueError("Expected upstream-hour successful qing2lark execution is not unique")
     latest = candidates[0]
-    if latest["id"] != max(history["executions"], key=_execution_order)["id"]:
+    if latest["id"] != max(executions, key=_execution_order)["id"]:
         raise ValueError("A newer qing2lark execution may have replaced the source")
+    return _read_process_audit(period, latest, upstream)
+
+
+def latest_completed_process_audit(period: str, upstream: dict) -> dict:
+    """Prove the latest writer finished before using its current-period Base snapshot."""
+    latest = max(_process_executions(upstream), key=_execution_order, default=None)
+    if (not latest or latest.get("status") != 6 or not latest.get("startTime")
+            or not latest.get("endTime") or not latest.get("periodTime")):
+        raise ValueError("The latest qing2lark writer has no completed success; Base may be replacing")
+    finished = datetime.strptime(latest["endTime"], "%Y-%m-%d %H:%M:%S")
+    if finished < _execution_order(latest)[0]:
+        raise ValueError("The latest qing2lark completion precedes its start")
+    audit = _read_process_audit(period, latest, upstream, require_table=True)
+    return {**audit, "completed_at": finished.replace(tzinfo=ZoneInfo("Asia/Shanghai")).isoformat()}
+
+
+def _read_process_audit(period: str, latest: dict, upstream: dict, *, require_table: bool = False) -> dict:
     run_config = json.loads(latest["runConfig"])
     # 执行行报的是该行建立时的任务名快照：改名后建立的行已报新名，改名前的行仍报
     # 旧名。身份锚点是不可变的 Nezha 任务 ID，所以只要求名字落在兼容集合内。
-    if latest.get("taskName") not in TASK_NAME_ALIASES:
+    task_names = (upstream["task_name"], *HISTORICAL_TASK_NAMES)
+    if latest.get("taskName") not in task_names:
         raise ValueError("The expected upstream-hour execution is not the qing2lark task")
-    if (latest.get("taskId"), latest.get("periodTime"),
-            run_config.get("projectId"), run_config.get("execFileId")) != (
-            67318, upstream_period_time,
-            308, 855658):
+    if (latest.get("taskId"), run_config.get("projectId"), run_config.get("execFileId")) != (
+            upstream["nezha_task_id"], upstream["project_id"], upstream["exec_file_id"]):
         raise ValueError("The expected upstream-hour qing2lark execution is not successful or has drifted")
     if run_config.get("triggerSourceEnum") not in ("SCHEDULE", "EXECUTE"):
         raise ValueError("The expected upstream-hour qing2lark execution has an unexpected trigger")
-    log_result = _operator_read("fetch-execution-log", "--exec-id", str(latest["id"]))
+    log_result = _operator_read(upstream, "fetch-execution-log", "--exec-id", str(latest["id"]))
     log_dir = Path(log_result["artifact_dir"])
     execution = json.loads((log_dir / "execution.json").read_text(encoding="utf-8"))
     if (execution["scope"]["project_id"], execution["scope"]["menu_id"], execution["scope"]["task_id"],
             execution["scope"]["nezha_task_id"], execution["scope"]["execution_id"],
             execution["identity"]["name"], execution["diagnostic"]["classification"]) != (
-            308, 103625, 47728, 67318, latest["id"], "lvshuai01", "execution_success"):
+            upstream["project_id"], upstream["menu_id"], upstream["task_id"], upstream["nezha_task_id"],
+            latest["id"], upstream["owner"], "execution_success"):
         raise ValueError("Tiangong2 execution identity or outcome differs")
-    logs = [path for path in log_dir.glob("stage_*.log") if path.name.endswith(STAGE_LOG_SUFFIXES)]
+    stage_suffixes = tuple(f"_{name}.log" for name in task_names)
+    logs = [path for path in log_dir.glob("stage_*.log") if path.name.endswith(stage_suffixes)]
     if len(logs) != 1:
         raise ValueError("Qingcheng upstream audit stage is not unique")
     lines = logs[0].read_text(encoding="utf-8").splitlines()
+    if require_table and f"目标多维表格校验通过：table_id={upstream['table_id']}" not in lines:
+        raise ValueError("Qingcheng writer did not confirm the configured Base table")
     audit_lines = [line.split("：", 1)[1] for line in lines if line.startswith("process表快照清单：")]
     if len(audit_lines) != 1 or not any(line.startswith("SUCCESS: 青橙项目部") for line in lines) or not any(line.strip() == "exit_code:  0" for line in lines):
         raise ValueError("Complete process source audit and readback were not found")
     audit = json.loads(audit_lines[0])
     info = audit.get("periods", {}).get(period)
-    if (audit.get("schema_version") != "market2lark-two-period-audit-v1" or audit.get("field_count") != 33
+    if (audit.get("schema_version") != upstream["audit_schema"]
+            or audit.get("field_count") != upstream.get("audit_field_count", 33)
             or info is None or len(info.get("snapshots", [])) != 1 or
             sum(audit["periods"][name]["row_count"] for name in audit["periods"]) != audit["row_count"] or
             any(sum(part["channel_counts"].values()) != part["row_count"] for part in audit["periods"].values()) or
@@ -233,7 +262,9 @@ def _upstream_audit(period: str, slot: datetime) -> dict:
     snapshot = info["snapshots"][0]
     if len(snapshot) != 2 or not re.fullmatch(r"20\d{6}", snapshot[0]) or not re.fullmatch(r"\d{1,2}", snapshot[1]):
         raise ValueError("Invalid process audit snapshot")
-    return {"execution_id": latest["id"], "upstream_period_time": upstream_period_time,
+    return {"execution_id": latest["id"], "upstream_period_time": latest["periodTime"],
+            "task_key": PROCESS_TASK_KEY, "version_id": upstream["version_id"],
+            "exec_file_id": upstream["exec_file_id"], "source_sha256": upstream["source_sha256"],
             "snapshot": snapshot,
             "period_row_count": info["row_count"],
             "raw_channel_counts": info["channel_counts"],
@@ -265,7 +296,8 @@ def _receipt_state(receipt: Path) -> tuple[str, str]:
     return resend.decide(saved_status, message_id), message_id
 
 
-def _send_group(channel: str, level: str, config_path: Path, review_dir: Path, period: str, slot: datetime) -> dict:
+def _send_group(channel: str, level: str, config_path: Path, review_dir: Path, period: str, slot: datetime,
+                deadline: datetime | None = None) -> dict:
     config = json.loads(config_path.read_text(encoding="utf-8"))
     chat_id = config["profiles"][level]["target_chat_id"]
     key = _key(channel, level, chat_id, period, slot)
@@ -282,6 +314,8 @@ def _send_group(channel: str, level: str, config_path: Path, review_dir: Path, p
     mode = "--reverify-only" if verdict == resend.REVERIFY else "--send"
     command = [sys.executable, str(script), "--level", level, "--review-dir", str(review_dir),
                "--config", str(config_path), "--idempotency-key", key, mode]
+    if mode == "--send" and deadline is not None:
+        command.extend(["--delivery-deadline", deadline.isoformat()])
     result = subprocess.run(command, cwd=WORKSPACE, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=240, creationflags=CREATE_NO_WINDOW)
     if result.returncode:
         if receipt.exists():
@@ -322,7 +356,7 @@ def _index(output: Path, batch_result: dict) -> None:
             "<style>body{font:16px 'Microsoft YaHei',sans-serif;background:#edf2f8;color:#20314c;padding:24px}"
             "main{max-width:1900px;margin:auto}section{background:white;margin:22px 0;padding:20px;border-radius:12px}"
             "img{max-width:100%;border:1px solid #c3cfe2}pre{white-space:pre-wrap;background:#f2f6fb;padding:14px}</style>"
-            f"<main><h1>青橙公海、私域与抖音私信 · 过程数据本地预览</h1><p>{html.escape(batch_result['period'])}</p>"
+            f"<main><h1>公海、私域与抖音私信 · 过程数据本地预览</h1><p>{html.escape(batch_result['period'])}</p>"
             + "".join(cards) + "</main></html>")
     (output / "index.html").write_text(page, encoding="utf-8")
 
@@ -349,11 +383,31 @@ def _deliver_groups(batch: dict, result: dict, output: Path, slot: datetime) -> 
                     expected_rev = version["rev"] if version else result["channels"][channel]["source_rev"]
                     if current_rev != expected_rev:
                         raise ValueError("Raw Base revision changed before delivery")
-                outcome = _send_group(channel, level, CONFIG_DIR / entry["config"], output / channel / level, period, slot)
+                    require_process_binding_unchanged(batch["upstream_binding"])
+                calendar = {**batch.get("business_calendar", {}),
+                            "retry_window_minutes": batch.get("business_calendar", {}).get("retry_window_minutes", 50),
+                            "retry_interval_minutes": batch.get("retry_interval_minutes", 2)}
+                outcome = _send_group(channel, level, CONFIG_DIR / entry["config"], output / channel / level, period,
+                                      slot, delivery_deadline(slot, calendar))
             except Exception as exc:
                 outcome = {"status": "blocked", "error": str(exc)}
             result["channels"][channel]["groups"][level] = outcome
             _write_json(result_path, result)
+
+
+def _all_groups_already_verified(batch: dict, output: Path, period: str, slot: datetime) -> bool:
+    """No upstream read is needed when every configured delivery is settled."""
+    try:
+        for entry in batch["channels"]:
+            channel = entry["id"]
+            config_path = CONFIG_DIR / entry["config"]
+            for level in LEVELS:
+                receipt = _receipt_path(channel, level, config_path, output / channel / level, period, slot)
+                if _receipt_state(receipt)[0] != resend.DONE:
+                    return False
+        return bool(batch["channels"])
+    except (OSError, ValueError, KeyError, TypeError, json.JSONDecodeError):
+        return False
 
 
 def run(*, period_date: str = "", confirm_send: bool = False, now: datetime | None = None, output: Path | None = None) -> dict:
@@ -375,8 +429,11 @@ def run(*, period_date: str = "", confirm_send: bool = False, now: datetime | No
     previous = json.loads(result_path.read_text(encoding="utf-8")) if result_path.exists() else None
     if previous and (previous["period"], previous["slot"]) != (period, slot.isoformat() if slot else None):
         raise ValueError("Existing batch identity differs from this run")
-    audit = _upstream_audit(period, slot) if slot else None
+    all_verified = bool(slot and _all_groups_already_verified(batch, output, period, slot))
+    audit = _upstream_audit(period, slot, batch["upstream_binding"]) if slot and not all_verified else None
     result = {"period": period, "slot": slot.isoformat() if slot else None, "upstream_audit": audit, "channels": {}}
+    if all_verified:
+        result["upstream_check_skipped"] = "all_groups_already_verified"
     for entry in batch["channels"]:
         channel = entry["id"]
         config_path = CONFIG_DIR / entry["config"]
@@ -418,7 +475,8 @@ def run(*, period_date: str = "", confirm_send: bool = False, now: datetime | No
                         continue
                 source = channel_dir / level / "source.ndjson"
                 try:
-                    manifest = fetch(channel, period, source)
+                    manifest = (shared_fetch(channel, period, source, fetcher=fetch) if slot
+                                else fetch(channel, period, source))
                     channel_result["source_rev"] = manifest["rev"]
                     channel_result["snapshot"] = " ".join((manifest["snapshot"][0], manifest["snapshot"][1] + ":00"))
                     channel_result.setdefault("source_versions", {})[level] = {"rev": manifest["rev"], "snapshot": manifest["snapshot"]}

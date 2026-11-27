@@ -105,6 +105,9 @@ def _build_one(source: Path, request_path: Path, config_path: Path, level_slug: 
     department = config["source"]["match"].get("部门")
     if department:
         rows = [row for row in rows if row.get("部门") == department]
+    excluded_secondary = set(config["source"].get("excluded_secondary_channels", []))
+    if excluded_secondary:
+        rows = [row for row in rows if row["渠道"] not in excluded_secondary]
     if manifest["channel"] != config["channel_id"]:
         raise ValueError("SEC source channel identity differs")
     allowed_secondary = set(config["source"].get("allowed_secondary_channels", []))
@@ -161,7 +164,7 @@ def build(source_root: Path, output: Path, audit_log: Path, period_date: str) ->
     for channel in AUDIT_CHANNELS:
         source = source_root / channel / "source.ndjson"
         manifest = json.loads(source.with_suffix(".manifest.json").read_text(encoding="utf-8"))
-        raw_config = {"source": {"match": {"一级渠道": "订单复用" if channel == "sec_order_reuse" else "公域", **({"渠道": "公域学霸"} if channel == "sec_public" else {})}}}
+        raw_config = {"source": {"match": {"一级渠道": "公海" if channel == "sec_order_reuse" else "公域", **({"渠道": "公域学霸"} if channel == "sec_public" else {})}}}
         rows, manifest = _read_snapshot(source, raw_config)
         _verify_source_audit(rows, manifest, audit, period)
         manifests[channel] = manifest
@@ -183,7 +186,7 @@ def build(source_root: Path, output: Path, audit_log: Path, period_date: str) ->
             "<style>body{font:16px 'Microsoft YaHei',sans-serif;background:#edf2f8;color:#20314c;padding:24px}"
             "main{max-width:1900px;margin:auto}section{background:white;margin:22px 0;padding:20px;border-radius:12px}"
             "img{max-width:100%;border:1px solid #c3cfe2}pre{white-space:pre-wrap;background:#f2f6fb;padding:14px}</style>"
-            f"<main><h1>青橙 SEC · 公域与订单复用过程数据本地预览</h1><p>{html.escape(period)}</p>"
+            f"<main><h1>青橙 SEC · 公域与公海过程数据本地预览</h1><p>{html.escape(period)}</p>"
             + "".join(cards) + "</main></html>")
     (output / "index.html").write_text(page, encoding="utf-8")
     summary = {"period": period, "source_rev": next(iter(manifests.values()))["rev"],

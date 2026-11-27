@@ -18,8 +18,6 @@ P4A 只建立写能力证据和白名单，不把自然语言请求直接变成�
 
 Registry 共 36 项，其中 26 项 `verified/allowlisted`、3 项 `sandbox_verified/sandbox_only`、6 项 `blocked`、1 项 `separate_confirmation`。比例字段配置和转化率分母调整目前只有沙箱证据，因此保持 sandbox-only；不得将沙箱证据自动提升为生产能力。`replace_pivot_measure_fields` 为 `unverified/blocked`，目前只有本地契约与测试证据。P4C 的十三项创建操作使用 `taitan_dashboard_build_v1`、`transaction_class=creation_saga` 和 `recovery_policy=creation_saga_no_auto_delete`。既有局部筛选器仅开放单个 `showName` 标签修改。泛化 `update_component_filter`、既有组件 `bind_dataset`、模板克隆、移动文件夹和权限修改均阻断。详见 `references/dashboard_build_workflow.md`。
 
-`switch_qingcheng_receiving_key_draft` 只切换已验证的 2460 兼容接量人力公式。它读取隔离草稿的所有单位与公式依赖，同时验证正式版本的独立定义。独立 Publish 命令通过有效全量版本列表、版本配置和线上布局读取验证结果。见 [接量人力工作流](dashboard_receiving_key_workflow.md)。
-
 `sync_existing_pivot_fields_from_same_model_source` 仅允许一个既有透视表在 draft 中从同模型来源同步已审阅字段、公式引用及受限格式/组件样式。此为独立于通用 P4B `ChangePlan` 的专用能力：入口 `sync-pivot-fields-draft` 必须同时提供 `--confirm-production-write` 和目标清单的规范化 `--manifest-sha256`；执行前重新校验 capability registry、完整目标 Profile Hash、来源/目标单元投影 Hash 和（如涉及样式）来源/目标样式 Hash。写入前保存目标完整备份；写后完整回读并验证稳定 unit ID。失败时补偿恢复；新建公式不会自动删除，失败回执必须列出可能孤立的公式和人工清理要求。只写 draft，不提供发布参数；发布仍须走独立工作流和确认。
 
 `rebind_period_and_date_dimensions_draft` 通过专用 `plan-period-date-rebind` / `apply-period-date-rebind` 执行。市场顾问部实测覆盖共享期次筛选器、透视表和折线图日期字段、三期筛选取值、完整画像及反向恢复。适配器仅写既有草稿，固定同一模型和 subject，保留其余组件、指标公式、布局及发布版本。此能力不扩大通用 P4B operation 白名单。
@@ -119,3 +117,12 @@ P4C 创建不能用 P4B 的逆序恢复假装事务。使用 `capture-dashboard-
 3. `card/u_pivot/u_bar/u_pie`、subject 级计算列、公共筛选器关系、dashboardHtml、全量指标别名、Page/Pivot/Text/SingleTabs 样式、双插槽关系和富文本均有真实请求证据、完整 Profile/取值回读、故障注入和不可变代码/测试/evidence Hash。
 4. `apply-dashboard-build` 的生产 adapter registry 明确提供实现，且所有所需 operation 同时为 `verified/allowlisted`。
 5. 发布继续使用 `separate_publish`，不得包含在创建 Apply 中。
+
+
+## 青橙顾问破蛋率专用维护
+
+`update_qingcheng_shared_advisor_rate` 由独立 `plan-qingcheng-advisor-rate`、`apply-qingcheng-advisor-rate` 和 `publish-qingcheng-advisor-rate` 三阶段处理。仅绑定已登记青橙转化看板、2460、同一草稿subject、既有破蛋率公式及全部共享透视表。固定公式使用顾问账号键和正营收账号键去重；非负营收由业务确认，退费另列，负营收诊断触发空值并阻止验收。依赖列表必须与公式变量首次出现顺序一致，不能排序或按集合重建。保留所有表格DTO、schema、其他公式、样式、筛选和排序。每一阶段保留精确Hash、完整画像、身份、锁和单次尝试回执；草稿失败且无第三状态时恢复原配置。发布需独立 `--confirm-publish` 及成功ApplyReceipt Hash，发布后读取真正线上单元的公式和数据；不把草稿回读当线上证明。缺少正式版本ID接口时保留fully_verified=false，同时独立记录功能回读。
+
+`capture-write-evidence` 可选 `--formula-probe-plan` 与 `--formula-probe-plan-sha256` 执行一次受控沙箱事务。只允许本次成功BuildPlan/Receipt证明在隔离subject新建的公式，绑定完整Profile和物理字段，写入候选、读取值、恢复原公式并核对全量画像。可按Hash中立刷新同次创建的单元；不得测试继承的正式公式，不得创建、发布、删除或改权限，也不会自动提升生产白名单。发现第三状态停止恢复并保留回执。探测原始值仅存runtime，只有经过单独审阅的脱敏证据进入能力注册。
+
+发布成功但后置回读中断时，`verify-qingcheng-advisor-rate` 只读恢复验证，必须已有成功发布确认；不会重发发布请求。

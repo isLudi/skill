@@ -13,10 +13,12 @@ mentioning people, so the readback expects an empty mention set.
 from __future__ import annotations
 
 import argparse
+from datetime import datetime
 import html
 import json
 import re
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from lark_delivery.common import resend
 from lark_delivery.common.im import upload_image, verify_sender_membership
@@ -77,10 +79,18 @@ def _receipt_status(saved: dict) -> str:
     return "sent_verified" if (saved.get("readback") or {}).get("verified") is True else "sent_unverified"
 
 
+def _require_delivery_deadline(value: str) -> None:
+    if not value:
+        return
+    deadline = datetime.fromisoformat(value)
+    if deadline.tzinfo is None or datetime.now(ZoneInfo("Asia/Shanghai")) >= deadline:
+        raise ValueError("Transformation delivery missed its authorized batch window")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--channel", required=True,
-                        choices=("private", "douyin_dm", "public_pool", "partner_books", "partner_local"))
+                        choices=("private", "douyin_dm", "public_pool", "partner_books", "partner_local", "partner_shandong_live"))
     parser.add_argument("--level", choices=("supervisor", "consultant", "dept"), required=True)
     parser.add_argument("--review-dir", type=Path, required=True)
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
@@ -91,6 +101,9 @@ def main() -> None:
                         help="compatibility flag; reviewed fallback-only messages are always supported")
     parser.add_argument("--reverify-only", action="store_true",
                         help="re-run the readback of an already-sent message; never sends")
+    parser.add_argument("--delivery-deadline", default="")
+    parser.add_argument("--expected-process-rev", type=int)
+    parser.add_argument("--expected-conversion-rev", type=int)
     args = parser.parse_args()
     if not re.fullmatch(r"[A-Za-z0-9_-]{1,50}", args.idempotency_key):
         raise ValueError("Idempotency key must be 1-50 safe characters")
@@ -124,15 +137,17 @@ def main() -> None:
         verdict = resend.decide(_receipt_status(saved), (saved.get("response") or {}).get("message_id"))
         if verdict != resend.RESEND:
             raise ValueError("This idempotency key already has a recorded outcome; re-verify instead of re-sending")
-    if args.send and args.channel == "partner_books":
-        from run_qingcheng_transformation import _batch, _conversion_upstream_ready
-        _conversion_upstream_ready(_batch())
     review = json.loads((args.review_dir / "review.json").read_text(encoding="utf-8"))
     item = review["results"][args.channel]["levels"][args.level]
     if item["level"] != level:
         raise ValueError("Review and transformation configuration differ")
     people = list(item.get("reminder_people") or [])
     verify_sender_membership(chat_id, delivery["sender_open_id"])
+    _require_delivery_deadline(args.delivery_deadline)
+    if args.send and args.channel == "partner_books":
+        from run_qingcheng_transformation import _batch, _conversion_upstream_ready
+        _conversion_upstream_ready(_batch())
+        _require_delivery_deadline(args.delivery_deadline)
     for group in (item.get("reminder_by_grade") or {}).values():
         people.extend(group)
     invite_note = {"invited": [], "pending": [], "error": ""}
@@ -163,6 +178,18 @@ def main() -> None:
     if not args.send:
         command.append("--dry-run")
     if args.send:
+        _require_delivery_deadline(args.delivery_deadline)
+        if args.channel == "partner_books" and args.delivery_deadline:
+            if args.expected_process_rev is None or args.expected_conversion_rev is None:
+                raise ValueError("Scheduled transformation send lacks source revision evidence")
+            from fetch_qingcheng_process_source import probe_revision
+            from run_qingcheng_transformation import _probe_conversion_rev
+            process_rev = probe_revision(args.channel, review["period"], args.review_dir / "send_process_probe.ndjson",
+                                         allow_empty=True)
+            conversion_rev = _probe_conversion_rev(args.channel, args.review_dir / "send_conversion_probe.ndjson")
+            if (process_rev, conversion_rev) != (args.expected_process_rev, args.expected_conversion_rev):
+                raise ValueError("Raw Base revision changed while waiting for the platform")
+            _require_delivery_deadline(args.delivery_deadline)
         receipt.write_text(json.dumps({"status": "send_attempt_started", "chat_id": chat_id,
                                        "channel": args.channel, "period": review["period"],
                                        "idempotency_key": args.idempotency_key,

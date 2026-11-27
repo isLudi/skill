@@ -16,6 +16,8 @@ from pathlib import Path
 import subprocess
 import sys
 
+from lark_delivery.core.catalog import market_lead_binding, market_volume_binding
+
 
 SKILL_ROOT = Path(__file__).resolve().parents[1]
 CONFIG_ROOT = SKILL_ROOT / "config"
@@ -29,12 +31,16 @@ DISPLAY_NAMES = {
 }
 
 SCHEDULE_FILES = {
+    "outbound_volume": "departments/market_consultant/outbound_volume.json",
+    "app_volume": "departments/market_consultant/app_volume.json",
     "supervisor_chenruichun": "departments/market_consultant/supervisor_chenruichun.json",
     "self_incubated_koc_5": "scheduled_push.json",
     "business_koc_math": "business_koc_math_scheduled_push.json",
 }
 
 SCRIPT_STEMS = {
+    "outbound_volume": ("channels/market_consultant/outbound_volume.py", ""),
+    "app_volume": ("channels/market_consultant/app_volume.py", "register_app_volume_push.ps1"),
     "supervisor_chenruichun": ("channels/market_consultant/supervisor_chenruichun.py", "register_chenruichun_daily_push.ps1"),
     "self_incubated_koc_5": ("run_scheduled_push.ps1", "register_scheduled_push.ps1"),
     "business_koc_math": ("run_business_koc_math_scheduled_push.ps1", "register_business_koc_math_scheduled_push.ps1"),
@@ -173,6 +179,9 @@ def _paths(domain: str, channel_id: str):
 
 
 def _operator_record(channel_ref: str, config):
+    if config.get('adapter') == 'market-volume-v1':
+        from lark_delivery.domains.market_consultant.volume_registry import operator_record
+        return operator_record(channel_ref, config)
     domain, channel_id = channel_ref.split("/", 1)
     source = config.get("source", {})
     report = config.get("report", {})
@@ -230,7 +239,7 @@ def _operator_record(channel_ref: str, config):
         "申请编号": channel_ref,
         "申请状态": _select("已上线" if schedule.get("enabled") else "已暂停"),
         "申请部门": _select(department),
-        "业务负责人": config.get("upstream", {}).get("owner", ""),
+        "业务负责人": market_lead_binding(config)["owner"],
         "需求背景": "已登记本地数据推送；由data-push现有配置导入。",
         "渠道标准名称": DISPLAY_NAMES.get(channel_id, config.get("channel", channel_id)),
         "原始渠道示例": "；".join(_raw_channels(config)),
@@ -264,6 +273,8 @@ def _operator_record(channel_ref: str, config):
         "过程数据排序规则": process_sort,
         "转化数据排序规则": result_sort,
         "展示总计行": report.get("show_totals", True),
+        "过程展示总计行": _select("是" if report.get("process_show_totals", report.get("show_totals", True)) else "否"),
+        "转化展示总计行": _select("是" if report.get("result_show_totals", report.get("show_totals", True)) else "否"),
         "图片分组与排版": layout,
         "颜色或样式参考": style,
         "过程提醒指标": "SUM(5min标记)/SUM(退后线索)" + reminder_suffix,
@@ -294,7 +305,12 @@ def _technical_record(channel_ref: str, config):
     schedule = config.get("schedule", {})
     sender = config.get("sender", {})
     target = (config.get("targets") or [{}])[0]
-    upstream = config.get("upstream", {})
+    upstream = (market_volume_binding(config['volume_report']) if config.get('adapter') == 'market-volume-v1'
+                else market_lead_binding(config))
+    if config.get('adapter') == 'market-volume-v1':
+        values = config['volume_report'].get('source_values', [config['channel']])
+        match = {'field':'渠道', 'match_mode':'casefold_exact', 'case_sensitive':False,
+            'values':{config['channel']:values if len(values)>1 else values[0]}}
     config_path = CONFIG_ROOT / "departments" / domain / f"{channel_id}.json"
     task_enabled, task_state = _task_state(schedule.get("windows_task_name", ""))
     now = datetime.now().strftime("%Y-%m-%d %H:%M")

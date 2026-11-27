@@ -19,6 +19,7 @@ from preview_qingcheng_public_pool_process import (
     _matches_channel,
     _read_snapshot,
     _reminder_people,
+    _reminder_by_grade,
     _sort_process_rows,
     _table_image,
 )
@@ -43,10 +44,10 @@ def _config(path: Path) -> dict:
             {"metric": "8min", "direction": "desc", "value": "unrounded"},
             {"metric": "8min", "direction": "最低", "rank": "最后1名", "tie_handling": "all_tied_minimum"}):
         raise ValueError("Partner process preview config differs")
-    if [entry["id"] for entry in cfg["channels"]] != ["partner_books", "partner_local", "supervisor_local"]:
+    if [entry["id"] for entry in cfg["channels"]] != ["partner_local", "supervisor_local", "partner_shandong_live"]:
         raise ValueError("Partner channel list or order differs")
-    layout = {"partner_books": (False, "8min_minimum"), "partner_local": (False, "8min_minimum"),
-              "supervisor_local": (True, "8min_minimum_grade_text")}
+    layout = {"partner_local": (False, "8min_minimum"), "supervisor_local": (True, "8min_minimum_grade_text"),
+              "partner_shandong_live": (True, "8min_minimum_by_grade")}
     for entry in cfg["channels"]:
         if (entry["split_grade"], entry["process_reminder"]) != layout[entry["id"]]:
             raise ValueError(f"Partner channel layout differs: {entry['id']}")
@@ -66,7 +67,7 @@ def _request(entry: dict, cfg: dict, operator_rows: dict[str, dict]) -> dict:
     if row is None:
         raise ValueError(f"Partner operator application is missing: {entry['id']}")
     columns = [part.strip() for part in row["过程指标展示顺序（选填）"].split("、")]
-    if entry["process_reminder"] != "8min_minimum":
+    if entry["process_reminder"] == "8min_minimum_grade_text":
         # supervisor_local: single supervisor carries the channel; 2026-09-30 the user
         # cancelled the person reminder and @; only a grade-level text hint remains.
         expected_operator = (["不提醒"], ["不提醒"], ["最低"])
@@ -99,8 +100,10 @@ def _request(entry: dict, cfg: dict, operator_rows: dict[str, dict]) -> dict:
         raise ValueError(f"Partner display columns differ: {entry['id']}")
     if set(row["过程指标（逐项勾选）"]) != set(columns) - {"期次", "主管", "顾问", "年级"}:
         raise ValueError(f"Partner metric selection differs: {entry['id']}")
-    if row["展示总计行"] is not False:
-        raise ValueError(f"Partner total-row baseline changed: {entry['id']}")
+    choice = row.get("过程展示总计行")
+    if choice in (["是"], ["否"]):
+        if (choice == ["是"]) != entry.get("show_total", True):
+            raise ValueError(f"Partner process total-row choice differs from reviewed config: {entry['id']}")
     return request
 
 
@@ -141,10 +144,11 @@ def build(sources: dict[str, Path], operator: Path, output: Path, *,
             continue
         _table_image(grouped, columns, image, entry["level"], period, entry["name"],
                      split_grade=entry["split_grade"], bar_specs=bar_specs,
-                     integer_fields=integer_fields)
+                     integer_fields=integer_fields, show_total=entry.get("show_total", True))
         lines = [f"## 🔥 **【{period}】{entry['name']}渠道{entry['level']}过程数据播报**", "",
                  "![过程数据](process.png)"]
         reminder_grades: list[str] = []
+        reminder_by_grade = {}
         if entry["process_reminder"] == "8min_minimum_grade_text":
             people = []
             by_grade: dict[str, list[float]] = {}
@@ -155,6 +159,11 @@ def build(sources: dict[str, Path], operator: Path, output: Path, *,
             reminder_grades = [grade for grade in ("高一", "高二", "高三", "初三")
                                if grade_min.get(grade) == least]
             lines += ["", "- 8min较低年级：" + "、".join(reminder_grades)]
+        elif entry["process_reminder"] == "8min_minimum_by_grade":
+            reminder_by_grade = _reminder_by_grade(entry["level"], grouped)
+            people = list({p.get("account") or p["name"]: p for group in reminder_by_grade.values() for p in group}.values())
+            lines += ["", *[f"- {grade}年级8min较低的{entry['level']}：" + "、".join(p["name"] for p in group)
+                            for grade, group in reminder_by_grade.items() if group]]
         elif entry["process_reminder"] == "none":
             people = []
         else:
@@ -167,6 +176,7 @@ def build(sources: dict[str, Path], operator: Path, output: Path, *,
                   "period": period, "source_rev": manifest["rev"], "snapshot": manifest["snapshot"],
                   "raw_rows": len(rows), "eligible_rows": len(grouped),
                   "reminder_people": people, "reminder_grades": reminder_grades,
+                  "reminder_by_grade": reminder_by_grade,
                   "image": image.name, "message": message,
                   "target_chat_id": entry["target_chat_id"],
                   "target_chat_name": entry["target_chat_name"]}
@@ -182,7 +192,7 @@ def build(sources: dict[str, Path], operator: Path, output: Path, *,
             "main{max-width:2100px;margin:auto}section{background:white;margin:22px 0;padding:20px;border-radius:12px}"
             "pre{white-space:pre-wrap;background:#f2f8f3;padding:14px;border-radius:8px;font:16px 'Microsoft YaHei',sans-serif}"
             "img{max-width:100%;border:1px solid #c3cfe2}</style>"
-            "<main><h1>青橙伙伴渠道（图书/本地化）· 过程数据本地预览</h1>"
+            "<main><h1>青橙伙伴渠道（本地化/山东直播间）· 过程数据本地预览</h1>"
             + "".join(cards) + "</main></html>")
     (output / "index.html").write_text(page, encoding="utf-8")
     (output / "batch.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -191,13 +201,13 @@ def build(sources: dict[str, Path], operator: Path, output: Path, *,
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--source-books", type=Path, required=True)
+    parser.add_argument("--source-shandong", type=Path, required=True)
     parser.add_argument("--source-local", type=Path, required=True)
     parser.add_argument("--operator", type=Path, required=True)
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
-    sources = {"partner_books": args.source_books,
+    sources = {"partner_shandong_live": args.source_shandong,
                "partner_local": args.source_local,
                "supervisor_local": args.source_local}
     summary = build(sources, args.operator, args.output, config_path=args.config)

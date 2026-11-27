@@ -1,8 +1,8 @@
-"""Send four independent titled-image reports to Qingcheng's special-channel group."""
+"""Send three independent titled-image reports to Qingcheng's special-channel group."""
 
 from __future__ import annotations
 
-from qingcheng_schedule import resolve_slot
+from qingcheng_schedule import require_delivery_window, resolve_slot
 
 import argparse
 from contextlib import contextmanager
@@ -14,7 +14,7 @@ from pathlib import Path
 import re
 from zoneinfo import ZoneInfo
 
-from fetch_qingcheng_process_source import fetch, probe_revision
+from fetch_qingcheng_process_source import PUBLIC_POOL_CHANNELS, fetch, probe_revision, shared_fetch
 from lark_delivery.common import resend
 from lark_delivery.common.im import upload_image, verify_chat
 from lark_delivery.common.readback import available as readback_available
@@ -22,7 +22,7 @@ from lark_delivery.common.retry import retry_transport
 from lark_delivery.common.runtime import ensure_console_streams, run_lark
 from preview_qingcheng_public_pool_process import _number, _table_image
 from preview_qingcheng_special_process import _aggregate, DISPLAY_COLUMNS, GRADES, SOURCE_NUMBERS
-from run_qingcheng_process import _batch as _qingcheng_batch, _period, _upstream_audit, _write_json, run_scope
+from run_qingcheng_process import _period, _upstream_audit, _write_json, process_binding, require_process_binding_unchanged, run_scope
 from send_qingcheng_process import _verify_message
 
 
@@ -30,8 +30,9 @@ SKILL = Path(__file__).resolve().parents[1]
 WORKSPACE = SKILL.parents[1]
 CONFIG = SKILL / "config/departments/qingcheng/special_process_batch.json"
 STATE = WORKSPACE / "runtime/qingcheng-special-process-batch"
-CHANNEL_IDS = ("special_private", "special_books", "special_douyin_dm", "special_public_pool")
-AUDIT_NAMES = (("私域表单", "私域品效", "表单浙江", "表单江苏"), ("武汉图书",), ("抖音私信",), ("顾问未加好友",))
+# Books retired on 2026-11-26; retain the other channels' identities and order.
+CHANNEL_IDS = ("special_private", "special_douyin_dm", "special_public_pool")
+AUDIT_NAMES = (("私域表单", "私域品效", "表单浙江", "表单江苏"), ("抖音私信",), PUBLIC_POOL_CHANNELS)
 
 
 def _config() -> dict:
@@ -54,18 +55,17 @@ def _config() -> dict:
              "自然周周五期次", [1, 2, 3], [13], 50, 50, 2, "Asia/Shanghai",
             {"metric": "8min", "direction": "desc", "value": "unrounded"}):
         raise ValueError("Special-channel process task configuration differs")
-    if cfg["upstream"] != _qingcheng_batch()["upstream"]:
-        raise ValueError("Special-channel qing2lark upstream pin differs")
+    cfg["upstream_binding"] = process_binding(cfg["upstream"])
     if tuple(entry["id"] for entry in cfg["channels"]) != CHANNEL_IDS:
         raise ValueError("Special-channel delivery order differs")
-    if tuple(entry["name"] for entry in cfg["channels"]) != ("私域", "图书", "抖音私信", "公海"):
+    if tuple(entry["name"] for entry in cfg["channels"]) != ("私域", "抖音私信", "公海"):
         raise ValueError("Special-channel business names differ")
     if cfg["display_columns"] != DISPLAY_COLUMNS:
         raise ValueError("Special-channel image columns differ")
     if tuple(tuple(entry["audit_secondary_channels"]) for entry in cfg["channels"]) != AUDIT_NAMES:
         raise ValueError("Special-channel audit scope differs")
     if tuple(entry["source_key"] for entry in cfg["channels"]) != (
-            "private", "special_books", "douyin_dm", "special_public_pool"):
+            "private", "douyin_dm", "special_public_pool"):
         raise ValueError("Special-channel source routing differs")
     bars = cfg["visual"]["metric_bars"]
     if (set(bars) != {"好友率", "等待时长", "8min", "24h首call"}
@@ -138,7 +138,7 @@ def _expected(entry: dict, audit: dict) -> int:
 
 def _source(entry: dict, period: str, folder: Path, audit: dict, slot: datetime) -> tuple[list[dict], dict]:
     path = folder / "source.ndjson"
-    manifest = fetch(entry["source_key"], period, path)
+    manifest = shared_fetch(entry["source_key"], period, path, fetcher=fetch)
     rows = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line]
     expected = _expected(entry, audit)
     if (manifest["records_count"] != len(rows) or len(rows) != expected
@@ -259,6 +259,8 @@ def _deliver(entry: dict, review: dict, manifest: dict, cfg: dict, folder: Path,
     dry_run = json.loads(run_lark([*send_args, "--dry-run"], cwd=WORKSPACE, timeout=90))
     if dry_run.get("ok") is not True:
         raise ValueError("Special-channel message dry-run failed")
+    require_process_binding_unchanged(cfg["upstream_binding"])
+    require_delivery_window(slot, cfg["business_calendar"])
     receipt = {"status": "send_attempt_started", "report_id": entry["id"],
                "chat_id": cfg["target_chat_id"], "sender_open_id": cfg["sender"]["open_id"],
                "period": review["period"], "slot": slot.isoformat(), "source_rev": manifest["rev"],
@@ -316,7 +318,7 @@ def run(*, now: datetime | None = None, output: Path | None = None) -> dict:
         _write_json(batch_path, batch)
         return batch
     try:
-        audit = _upstream_audit(period, slot)
+        audit = _upstream_audit(period, slot, cfg["upstream_binding"])
         if not isinstance(audit.get("raw_channel_counts"), dict):
             raise ValueError("Current qing2lark audit lacks channel counts")
     except Exception as exc:

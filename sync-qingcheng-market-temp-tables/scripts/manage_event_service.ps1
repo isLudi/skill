@@ -277,6 +277,7 @@ switch ($Action) {
             -RunLevel Limited
         $taskSettings = New-ScheduledTaskSettingsSet `
             -Hidden `
+            -ExecutionTimeLimit ([TimeSpan]::Zero) `
             -MultipleInstances IgnoreNew `
             -RestartCount 3 `
             -RestartInterval (New-TimeSpan -Minutes 2) `

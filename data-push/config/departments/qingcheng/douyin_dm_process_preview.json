@@ -20,8 +20,7 @@
     "base_token": "QOVib6QCXaUvJ2s2PsbcnMmsnGg",
     "table_id": "tblXU4tla3bY36DE",
     "view_id": "vewO4yxS3O",
-    "upstream_task_id": 47728,
-    "upstream_task_name": "qing2lark_guocheng",
+    "upstream_task_key": "qingcheng.process",
     "match": {
       "一级渠道": "抖音私信",
       "渠道": "抖音私信"

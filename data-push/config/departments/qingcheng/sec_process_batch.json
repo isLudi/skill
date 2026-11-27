@@ -30,6 +30,7 @@
     "base_token": "QOVib6QCXaUvJ2s2PsbcnMmsnGg",
     "table_id": "tblXU4tla3bY36DE",
     "view_id": "vewO4yxS3O",
+    "snapshot_policy": "latest_complete_current_period",
     "lead_field": "退前线索",
     "sources": {
       "sec_public": {
@@ -41,7 +42,7 @@
       },
       "sec_order_reuse": {
         "match": {
-          "一级渠道": "订单复用"
+          "一级渠道": "公海"
         }
       }
     }
@@ -121,9 +122,10 @@
     },
     {
       "id": "sec_order_reuse_consultant",
+      "excluded_secondary_channels": ["顾问未加好友", "0元信息流"],
       "source": "sec_order_reuse",
       "secondary_channel": null,
-      "channel_name": "订单复用",
+      "channel_name": "公海",
       "level": "顾问",
       "request_file": "sec_order_reuse_consultant_request.json",
       "chat_id": "oc_a8e793c81080ebf5b14dd22bd83a05a1",
@@ -145,18 +147,7 @@
     }
   ],
   "upstream": {
-    "project_id": 308,
-    "folder": "吕帅",
-    "menu_id": 103625,
-    "task_id": 47728,
-    "nezha_task_id": 67318,
-    "task_name": "qing2lark_guocheng",
-    "owner": "lvshuai01",
-    "published_version": "V39",
-    "version_id": 219189,
-    "exec_file_id": 855658,
-    "source_sha256": "08ec50a45d1ef038aeb9d199091b260a39a9cc02a73a1f091aaf35ecd4538bb9",
-    "audit_schema": "market2lark-two-period-audit-v1"
+    "task_key": "qingcheng.process"
   },
   "configuration_base_writeback": "setup_only",
   "additional_reports": [

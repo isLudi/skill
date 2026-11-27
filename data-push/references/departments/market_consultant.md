@@ -18,25 +18,34 @@
 
 ### 现行本地推送设置（2026-10-29）
 
-**2026-10-30更新：** 当前7项已启用任务：新群播报12条规则对应4个群任务，两个高阳团队保持原样，陈瑞春IP顾问播报恢复为14:00/19:00。上周同期对比继续删除。Base为两个负责人记录、12条新申请和1条恢复的陈瑞春IP申请，共15条运营及15条关联技术记录。
+2026-11-14登记8项本地任务，新群播报14条规则对应4个群任务，两个高阳团队、陈瑞春IP顾问播报及APP进量播报各有独立任务。Base常态登记18条业务申请及其关联技术记录，人工外呼进量另登记为试发后待上线。上周同期对比继续退役。
 
 | 配置键（market_consultant/） | 接收范围 | 北京时间 | 规则 |
 |---|---|---|---|
 | self_incubated_koc_5 | 自营KOC高阳团队 | 13:20、17:20 | 保留原负责人/进量播报 |
 | business_koc_math | 商务KOC高阳团队 | 13:20、17:20 | 保留原双渠道负责人/进量播报 |
-| grade9_supervisor_bundle | 初三主管群 | 14:00、19:00 | 初三一图，图内分江苏、安徽、广东、两KOC渠道 |
-| localization_advisor_bundle | 本地化渠道顾问群 | 14:00、19:00 | 初三一图，图内分江苏、安徽、广东 |
-| high_school_supervisor_bundle | 高中渠道核心主管群 | 14:00、19:00 | 外部KOC、自孵化KOC、APP、人工外呼各一条卡片；每图高一→高二→高三，各年级总计及最低值提醒 |
-| douyin_advisor_bundle | 抖音私信内部群 | 14:00、19:00 | 按实际年级出图，包含学习分享及后续新分类，顾问退后线索≥3，无人员提醒 |
+| grade9_supervisor_bundle | 初三主管群 | 14:00、19:00 | 初三一图，图内分江苏、安徽、广东、山东、两KOC渠道 |
+| localization_advisor_bundle | 本地化渠道顾问群 | 14:00、19:00 | 初三一图，图内分江苏、安徽、广东、山东 |
+| high_school_supervisor_bundle | 高中渠道核心主管群 | 14:00、19:00 | KOC渠道、APP、人工外呼各一条卡片；KOC合并外部与自孵化，只有周六、周日附加下期好友过程图 |
+| douyin_advisor_bundle | 抖音私信内部群 | 14:00、19:00 | 全部年级合并，顾问退后线索≥3；过程增加截面单效，5min＜40.00%标红并说明标准，无人员@提醒 |
 | supervisor_chenruichun | 陈瑞春IP春春沟通群 | 14:00、19:00 | 全部名称包含陈瑞春的渠道合并；高中顾问退后线索>5，过程16列、转化12列，年级总计与最低值并列提醒 |
+| app_volume | APP高阳市场业务对接群 | 17:20 | APP精确匹配并忽略大小写，按年级播报进量及总计，提示完成度最低的一个年级 |
+
+人工外呼进量另登记为一次试发配置 `outbound_volume`，业务来源合并为人工外呼与唐山TMK，目标为自营TMK高阳群。已完成本地预览及单次试发，Base常态状态为待上线，期望时点17:20。参数及实际规则渠道见[人工外呼进量](market_consultant/outbound_volume.md)。
 
 4项bundle周一至周四本期过程、周五至周日本期转化；常规组件退后线索≥5，抖音私信顾问≥3。2026-11-01部署紧凑布局，保留原始配色，不显示右上角人数，每个年级×渠道模块增加可见人员总计行；比率、频次、单效按这些人员的分子分母重算。渠道内过程5min率降序，转化截面单效降序；总计不参与排序和提醒。初三及高中主管提醒最低值；本地化顾问提醒底部10%且临界并列全部保留。各渠道数据、列宽测量、制图失败单独隔离；不同群使用独立进程、锁、状态目录与幂等台账。
+
+2026-11-20外部KOC和自孵化KOC进一步合并为“KOC渠道”，使用[每日标准规则](market_consultant/high_school_koc_daily.md)：周一至周三5min降序、周四双沟率降序，按已设的分年级标准提醒；仅周六、周日增加下期好友率过程图，周五只播本期转化。三种原始来源先合并再计算比率、单效和主管门槛，任一来源有数据即可。未设标准不额外说明，提醒只列姓名或原生@、不附个人数值。KOC与APP、人工外呼分别准备、发送和记回执。
+
+2026-11-22 APP主管过程图增加当期单效、截面单效，仍按5min降序并保留原提醒；[计算、日历与配置记录](market_consultant/app_supervisor_process.md)独立登记，周一至周四过程、周五至周日转化及14:00/19:00保持原规则。
+
+2026-11-23初三主管群启用[分渠道每日标准](market_consultant/grade9_daily_standards.md)：周一、周二只有图片；周三按5min、周四按双沟率比较各渠道标准；周五至周日另发下一期好友过程图，本期与下期独立记账和重试。两路KOC分别展示，广东、山东暂不设标准，人员异常继续使用姓名兜底。
 
 2026-11-06起，本部门全部7项本地群推送均删除整张图片外层的期次、报表类型和群名抬头，图片直接从既有渠道、年级模块或表头开始。覆盖过程、转化、负责人、主管、顾问及进量模板。渠道和年级模块名称、表格字段、原始配色与汇总行继续按各任务配置呈现。抖音私信不限实际年级及学习分享订单的处理见[抖音私信规则与异常](market_consultant/douyin_advisor_bundle.md)。
 
 原同期对比4份报告及其2个目标群配置均已退役：本地专用发送代码、入口、配置和Windows计划任务已删除；Base对应2条运营记录、2条正式技术记录及2条自动建单关联记录已清理。历史消息与回执保留，上游天宫任务和原始数据表不属于本地推送清理范围。
 
-通过 `scripts/show_market_push_settings.py` 读取当前7项配置；通过 `scripts/export_channel_registry_records.py --mode operator/technical` 生成15条Base候选。新4项由 `register_market_grade_bundle_tasks.ps1` 管理；陈瑞春IP由 `register_chenruichun_daily_push.ps1` 管理；`update_scheduled_push_tasks.ps1` 仅维护两个高阳团队。14/19点任务统一核验13/17点上游SCHEDULE与45字段完整指纹，不套用旧错峰。
+通过 `scripts/show_market_push_settings.py` 读取当前注册配置及启用状态；通过 `scripts/export_channel_registry_records.py --mode operator/technical` 生成对应Base候选。新4项由 `register_market_grade_bundle_tasks.ps1` 管理；陈瑞春IP由 `register_chenruichun_daily_push.ps1` 管理；`update_scheduled_push_tasks.ps1` 仅维护两个高阳团队。14/19点任务统一核验13/17点上游SCHEDULE与45字段完整指纹，不套用旧错峰。
 
 2026-10-29曾退役9项旧主管/顾问任务，其中陈瑞春IP于次日按新14/19点日程恢复；其余8项及同期对比继续退役。历史SQLite和执行日志保留。新群设置见[年级多渠道协议](market_consultant/grade_channel_bundle.md)，恢复渠道见[陈瑞春IP](market_consultant/supervisor_chenruichun.md)。
 
@@ -51,6 +60,8 @@
 | 自孵化 KOC 5 元纯课 | [分年级精简与进量播报](market_consultant/self_incubated_koc_5.md) |
 | 商务 KOC 数学 | [双渠道与进量播报](market_consultant/business_koc_math.md) |
 | 初三主管、本地化顾问、高中主管、抖音顾问 | [年级优先的多渠道播报](market_consultant/grade_channel_bundle.md) |
+| 山东本地化主管、顾问 | [原群内分渠道播报](market_consultant/shandong_localization.md) |
+| APP渠道进量 | [每天17:20的年级进量播报](market_consultant/app_volume.md) |
 | 陈瑞春IP恢复 | [顾问维度原口径、14/19点](market_consultant/supervisor_chenruichun.md) |
 
 ## 2026-09-13 跨渠道指标归属故障

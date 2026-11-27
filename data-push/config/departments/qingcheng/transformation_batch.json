@@ -53,19 +53,8 @@
     "conversion_table_id": "tbl9CcVtXPntqGvP"
   },
   "upstream": {
-    "project_id": 308,
-    "folder": "吕帅",
-    "menu_id": 103713,
-    "task_id": 47775,
-    "nezha_task_id": 67397,
-    "task_name": "qing2lark_zhuanhua",
-    "owner": "lvshuai01",
-    "published_version": "V14",
-    "version_id": 219202,
-    "source_sha256": "f8c7c6a089741cfe2565a33a6575e84a4e416bc2c959f02995f43475a9eaaf32",
-    "audit_mode": "none",
-    "audit_note": "qing2lark_zhuanhua 已绑定最新已发布 V14/version 219202、execFileId 855788，删除500/写入1000；源码 SHA-256 f8c7c6a089741cfe2565a33a6575e84a4e416bc2c959f02995f43475a9eaaf32。任务 ID 和调度不变；保留转化表快照新鲜度门禁。 2026-10-22 同周期数量保护线为70%；验收执行 177821390。 2026-10-22 本地化渠道改名验收执行 177837133，Base 全字段回读一致。 2026-10-23 本地化新增河南未加好友验收执行 178023277，Base 全字段回读一致。",
-    "exec_file_id": 855788
+    "process_task_key": "qingcheng.process",
+    "conversion_task_key": "qingcheng.transformation"
   },
   "freshness_max_age_minutes": 1560,
   "no_data_policy": "always_send_with_fallback_flag",
@@ -105,12 +94,11 @@
     {
       "id": "partner_books",
       "config": "transformation_preview.json",
-      "scheduled": true,
+      "scheduled": false,
       "operator_records": {
-        "consultant": "recvwjW9ZAvRBW",
         "dept": "recvwk1l411M24"
       },
-      "note": "图书顾问维度（群 🍊武汉图书koc）+ 学部维度（⏰渠道专项讨论，recvwk1l411M24）。20261002期无转化产出，按无数据规则跳过。"
+      "note": "2026-11-26 用户取消图书渠道播报：专项过程移出运行清单，学部转化关闭调度。仅保留历史配置和回执，不影响其他渠道或 SEC 内部图书。"
     },
     {
       "id": "partner_local",
@@ -121,6 +109,15 @@
         "consultant": "recvwjX409k8f2"
       },
       "note": "本地化主管（已上线）→ 青橙-河南本地化项目，提醒不 @ 主管、按年级点名综合单效；顾问（草稿）→ 🍊青橙河南本地化伙伴。2026-10-01 用户确认预览后启用周常调度。"
+    },
+    {
+      "id": "partner_shandong_live",
+      "config": "transformation_preview.json",
+      "scheduled": true,
+      "first_send_at": "2026-11-20T17:52:00+08:00",
+      "operator_records": {
+        "consultant": "reczz28bBJ7vkU0H"
+      }
     }
   ],
   "dept_schedule": {

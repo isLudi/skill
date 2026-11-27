@@ -67,11 +67,11 @@ def test_consultant_plain_name_fallback_covers_incomplete_contacts(monkeypatch):
 def test_one_sec_report_failure_does_not_block_other_reports(monkeypatch, tmp_path):
     zone = ZoneInfo("Asia/Shanghai")
     now = datetime(2026, 9, 29, 12, 20, tzinfo=zone)
-    monkeypatch.setattr(sec, "_upstream_audit", lambda period, slot: {
+    monkeypatch.setattr(sec, "_latest_verified_snapshot", lambda period, cfg: {
         "snapshot": ["20260929", "10"],
         "raw_channel_counts": {"公域学霸": 10, "SEC未加好友": 10, "SEC首期掉海": 10,
                                "SEC招生退费": 0}})
-    monkeypatch.setattr(sec, "_source_rows", lambda source, period, output, audit, cfg, slot: (
+    monkeypatch.setattr(sec, "_source_rows", lambda source, period, output, audit, cfg: (
         [{"渠道": "SEC未加好友"}], {"rev": 42, "snapshot": ["20260929", "10"], "period": period}))
     monkeypatch.setattr(sec, "_build_report", lambda entry, rows, manifest, cfg, output: {"period": manifest["period"]})
 
@@ -142,7 +142,9 @@ def test_unconfirmed_receipt_is_resent_to_the_send_path(monkeypatch, tmp_path):
     monkeypatch.setattr(sec, "_verify_message",
                         lambda *a, **k: {"message_id": "om_new", "verified": True})
     monkeypatch.setattr(sec, "run_lark", lambda *a, **k: json.dumps({"ok": True}))
-    config = {"sender": {"open_id": "ou_bot"}}
+    config = {"sender": {"open_id": "ou_bot"}, "upstream_binding": sec._config()["upstream_binding"],
+              "business_calendar": sec._config()["business_calendar"]}
+    monkeypatch.setattr(sec, "require_delivery_window", lambda *args: None)
     slot = datetime(2026, 9, 29, 12, 20, tzinfo=ZoneInfo("Asia/Shanghai"))
     entry = {"id": "sec_public_supervisor", "chat_id": "oc_x", "source": "sec_public"}
     review = {"period": "20261002期", "image": "process.png", "reminders": [], "level": "主管"}
@@ -163,6 +165,7 @@ def _send_stubs(monkeypatch, probe):
     monkeypatch.setattr(sec, "_verify_message",
                         lambda *a, **k: {"message_id": "om_new", "verified": True})
     monkeypatch.setattr(sec, "run_lark", lambda *a, **k: json.dumps({"ok": True}))
+    monkeypatch.setattr(sec, "require_delivery_window", lambda *args: None)
 
 
 def _report(tmp_path):
@@ -187,7 +190,8 @@ def test_probe_transport_failure_is_retried_in_round(monkeypatch, tmp_path):
 
     _send_stubs(monkeypatch, probe)
     monkeypatch.setattr(retry.time, "sleep", lambda _s: None)
-    config = {"sender": {"open_id": "ou_bot"}}
+    config = {"sender": {"open_id": "ou_bot"}, "upstream_binding": sec._config()["upstream_binding"],
+              "business_calendar": sec._config()["business_calendar"]}
     slot = datetime(2026, 9, 29, 16, 20, tzinfo=ZoneInfo("Asia/Shanghai"))
     entry = {"id": "sec_public_supervisor", "chat_id": "oc_x", "source": "sec_public"}
     review = {"period": "20261002期", "image": "process.png", "reminders": [], "level": "主管"}
@@ -209,7 +213,7 @@ def test_probe_revision_drift_still_fails_closed(monkeypatch, tmp_path):
     _send_stubs(monkeypatch, probe)
     monkeypatch.setattr(sec, "_data", lambda *a, **k: (_ for _ in ()).throw(
         AssertionError("no send may happen after a drift")))
-    config = {"sender": {"open_id": "ou_bot"}}
+    config = {"sender": {"open_id": "ou_bot"}, "upstream_binding": sec._config()["upstream_binding"]}
     slot = datetime(2026, 9, 29, 16, 20, tzinfo=ZoneInfo("Asia/Shanghai"))
     entry = {"id": "sec_public_supervisor", "chat_id": "oc_x", "source": "sec_public"}
     review = {"period": "20261002期", "image": "process.png", "reminders": [], "level": "主管"}

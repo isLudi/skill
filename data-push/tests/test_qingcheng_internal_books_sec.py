@@ -137,7 +137,7 @@ def test_one_existing_report_parse_error_does_not_block_siblings_or_books(monkey
         return None
     monkeypatch.setattr(sec, "_validate_entry", checked)
     monkeypatch.setattr(sec, "_receipt_status", receipt)
-    monkeypatch.setattr(sec, "_upstream_audit", lambda *a: {"snapshot": ["20261018", "08"], "raw_channel_counts": {
+    monkeypatch.setattr(sec, "_latest_verified_snapshot", lambda *a: {"snapshot": ["20261018", "08"], "raw_channel_counts": {
         "公域学霸": 1, "SEC未加好友": 1, "SEC首期掉海": 1, "SEC招生退费": 1, "内部图书": 1}})
     monkeypatch.setattr(sec, "_source_rows", lambda *a: ([], {"rev": 42, "period": "20261016期", "snapshot": ["20261018", "08"]}))
     monkeypatch.setattr(sec, "_build_report", lambda *a: {"period": "20261016期"})

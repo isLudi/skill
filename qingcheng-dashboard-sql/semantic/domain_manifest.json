@@ -42,6 +42,8 @@
       "temp_table.dingxi01_qing_team_goal",
       "temp_table.dingxi01_qing_team_jg",
       "temp_table.dingxi01_qing_zz",
+      "temp_table.lvshuai01_jiagou_db",
+      "temp_table.lvshuai01_qing_team_jg",
       "temp_table.shenbaoxin_channel_group"
     ],
     "exclusive_temp_tables": [
@@ -51,7 +53,9 @@
       "temp_table.dingxi01_qing_team_g_qi",
       "temp_table.dingxi01_qing_team_goal",
       "temp_table.dingxi01_qing_team_jg",
-      "temp_table.dingxi01_qing_zz"
+      "temp_table.dingxi01_qing_zz",
+      "temp_table.lvshuai01_jiagou_db",
+      "temp_table.lvshuai01_qing_team_jg"
     ],
     "forbidden_temp_tables": [
       "temp_table.dingxi01_ceshiqudao_pingyou",
@@ -97,19 +101,19 @@
     "cross_department_comparison_requires_two_specs": true
   },
   "counts": {
-    "knowledge_files": 188,
+    "knowledge_files": 191,
     "raw_sql_files": 26,
     "by_category": {
       "dashboard_web_profiles": 63,
       "dashboards": 15,
       "governance": 7,
       "joins": 3,
-      "metrics": 37,
+      "metrics": 38,
       "raw_sql": 26,
       "reverse_index": 4,
       "sql_patterns": 21,
       "tables": 26,
-      "temp_tables": 11,
+      "temp_tables": 13,
       "update_log": 1
     }
   },
@@ -119,19 +123,19 @@
     "counts": {
       "dimension": 19,
       "join": 5,
-      "metric": 28,
+      "metric": 29,
       "scope": 4
     },
     "confirmed_counts": {
       "dimension": 19,
       "join": 3,
-      "metric": 27,
+      "metric": 28,
       "scope": 3
     },
     "source_files": [
       {
         "source_path": "semantic/contracts/metric_contracts.json",
-        "sha256": "4ccfdd348b24e08177de055982c5f27c21bcd9820bf6b70f747905762a89ca54"
+        "sha256": "defcd8ba7d9917b845c87b8c153e12fca259944349b8189debcdce6e37c5129d"
       },
       {
         "source_path": "semantic/contracts/dimension_contracts.json",
@@ -149,7 +153,7 @@
   },
   "current_model_registry": {
     "source_path": "semantic/current_model_bindings.json",
-    "source_sha256": "368e537aecfcd651e12e46018e9c8d6e85e4b4e7440c88532434af3d1f2db231",
+    "source_sha256": "e153335e82b66ab3b6b3b0f336ab83fa1eeed44406e1d7a4a32807edfaacdde3",
     "policy": "one_current_model_per_id_and_semantic_slot",
     "canonical_filename_policy": "data_center_qingcheng_<model_id>.sql",
     "model_count": 14,
@@ -1680,7 +1684,7 @@
       {
         "id": "qingcheng:dashboards:data_center_qingcheng_datasets",
         "source_path": "knowledge/dashboards/data_center_qingcheng_datasets.md",
-        "sha256": "5966d55d21f313abd3a7c0d5d428731c200e0907067a59ed8fc8cfabe970f905",
+        "sha256": "5677e4fbdd04f690ba04bd44c5c83aecaa7cd1e7a47e4b0991eb0c7e38d8da9b",
         "bytes": 6434,
         "title": "数据中心数据集源 SQL（青橙项目部）",
         "table_refs": [],
@@ -2312,6 +2316,20 @@
         ]
       },
       {
+        "id": "qingcheng:metrics:qingcheng_advisor_breakthrough_rate",
+        "source_path": "knowledge/metrics/qingcheng_advisor_breakthrough_rate.md",
+        "sha256": "9c2c35f84a4f6994bbd560084d2ee564b71c42114ab05bb096c81ecc18e8d2a3",
+        "bytes": 4565,
+        "title": "青橙顾问破蛋率（2026-11-22确认）",
+        "table_refs": [],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "qingcheng_advisor_breakthrough_rate",
+          "青橙顾问破蛋率（2026-11-22确认）"
+        ]
+      },
+      {
         "id": "qingcheng:metrics:qingcheng_channel_order_detail_metrics",
         "source_path": "knowledge/metrics/qingcheng_channel_order_detail_metrics.md",
         "sha256": "babfe61d442792b16889bc6da25187a2e63caedaa5a1430d3a62987ff525081e",
@@ -2674,8 +2692,8 @@
       {
         "id": "qingcheng:metrics:qingcheng_dashboard_metric_formula_linkage",
         "source_path": "knowledge/metrics/qingcheng_dashboard_metric_formula_linkage.md",
-        "sha256": "96a84fd154f3069cd91e891848f89484be4cdafb9ff17f3b6d9818d2ed2ff622",
-        "bytes": 14734,
+        "sha256": "de2c1a133a7360b835fb73d180194b4a09bbc9171284872e977d79878766c51a",
+        "bytes": 15450,
         "title": "Qingcheng dashboard metric formulas and SQL linkage",
         "table_refs": [],
         "raw_sql_refs": [
@@ -2906,8 +2924,8 @@
       {
         "id": "qingcheng:raw_sql:data_center_qingcheng_2460",
         "source_path": "resources/raw_sql/data_center_qingcheng_2460.sql",
-        "sha256": "b5a77e0dbc931e4257ae53c6e77c97e91fdd4d5e71feacc13d24c530b4f04005",
-        "bytes": 53962,
+        "sha256": "474685308c68a4ac4a2f2d49b9a3895d082cf639733e50644a6448d67b5150b3",
+        "bytes": 70697,
         "title": "data_center_qingcheng_2460",
         "table_refs": [
           "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf",
@@ -2916,11 +2934,12 @@
           "finance_dw.app_finance_performance_extend_details_hf",
           "finance_dw.dim_finance_order_change_df",
           "finance_dw.dm_finance_order_refund_detail_df",
+          "service_dw.dim_crm_assign_rule_lead_detail_hf",
           "service_dw.dm_crm_lead_stats_detail_hf",
           "service_dw.dwd_crm_assign_private_detail_hf",
           "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
-          "temp_table.dingxi01_jiagou_db",
-          "temp_table.dingxi01_qing_team_jg"
+          "temp_table.lvshuai01_jiagou_db",
+          "temp_table.lvshuai01_qing_team_jg"
         ],
         "raw_sql_refs": [],
         "status": "documented",
@@ -3430,8 +3449,8 @@
       {
         "id": "qingcheng:reverse_index:field_to_metrics",
         "source_path": "knowledge/reverse_index/field_to_metrics.md",
-        "sha256": "efba09709f0e2cccb2e0a286e66d14af53efb108219794e3f446ae18099bd0dc",
-        "bytes": 112448,
+        "sha256": "58861943bd046fb244ac609eee9b2b4915f5edd02e8dc338a3e73791eb0ae179",
+        "bytes": 113014,
         "title": "字段到指标反向索引",
         "table_refs": [],
         "raw_sql_refs": [
@@ -3496,8 +3515,8 @@
       {
         "id": "qingcheng:reverse_index:metric_to_raw_sql",
         "source_path": "knowledge/reverse_index/metric_to_raw_sql.md",
-        "sha256": "647a5a6e499eaad32726054d1822861476f3a252766994e8bcced6566fc99bd1",
-        "bytes": 8019,
+        "sha256": "629c902505868a09327692795867e5be2b30c9345e8079f1eddbea53c0762a29",
+        "bytes": 8128,
         "title": "指标到 raw SQL 反向索引",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -4577,6 +4596,42 @@
         ]
       },
       {
+        "id": "qingcheng:temp_tables:temp_table.lvshuai01_jiagou_db",
+        "source_path": "knowledge/temp_tables/temp_table.lvshuai01_jiagou_db.md",
+        "sha256": "8c662d7d5990951053e77222bff2d0f644d1caed158d65da2a705cecc43f0de2",
+        "bytes": 2087,
+        "title": "temp_table.lvshuai01_jiagou_db",
+        "table_refs": [
+          "temp_table.lvshuai01_jiagou_db"
+        ],
+        "raw_sql_refs": [
+          "data_center_qingcheng_2460.sql"
+        ],
+        "status": "documented",
+        "table_name": "temp_table.lvshuai01_jiagou_db",
+        "aliases": [
+          "temp_table.lvshuai01_jiagou_db"
+        ]
+      },
+      {
+        "id": "qingcheng:temp_tables:temp_table.lvshuai01_qing_team_jg",
+        "source_path": "knowledge/temp_tables/temp_table.lvshuai01_qing_team_jg.md",
+        "sha256": "dc4273a25a830fa8c99b91d69c124b37ec87d60fbcc7b3485d2614e0b07f5827",
+        "bytes": 2084,
+        "title": "temp_table.lvshuai01_qing_team_jg",
+        "table_refs": [
+          "temp_table.lvshuai01_qing_team_jg"
+        ],
+        "raw_sql_refs": [
+          "data_center_qingcheng_2460.sql"
+        ],
+        "status": "documented",
+        "table_name": "temp_table.lvshuai01_qing_team_jg",
+        "aliases": [
+          "temp_table.lvshuai01_qing_team_jg"
+        ]
+      },
+      {
         "id": "qingcheng:temp_tables:temp_table.shenbaoxin_channel_group",
         "source_path": "knowledge/temp_tables/temp_table.shenbaoxin_channel_group.md",
         "sha256": "cb61a62e01b6e911edc6523c342303b6759a4797a96bab1c415d2c6975f3ed50",
@@ -4597,8 +4652,8 @@
       {
         "id": "qingcheng:update_log:changelog",
         "source_path": "knowledge/update_log/changelog.md",
-        "sha256": "5421b05256408a35cd1a07ac0527877f21a934fa4011da995dde20f200f229e9",
-        "bytes": 114888,
+        "sha256": "0dbdd054cc44b7e990f8edce50237f5c44fd8a54cb36cce5c631dfa7e3ce57dc",
+        "bytes": 116866,
         "title": "更新日志",
         "table_refs": [
           "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf",
@@ -4978,7 +5033,8 @@
         "knowledge/tables/service_dw.dim_crm_assign_rule_lead_detail_hf.md",
         "knowledge/tables/service_dw.dim_crm_assign_rule_plan_item_info_hf.md",
         "knowledge/update_log/changelog.md",
-        "resources/raw_sql/data_center_qingcheng_2064.sql"
+        "resources/raw_sql/data_center_qingcheng_2064.sql",
+        "resources/raw_sql/data_center_qingcheng_2460.sql"
       ],
       "service_dw.dim_crm_assign_rule_plan_item_info_hf": [
         "knowledge/01_table_index.md",
@@ -5123,7 +5179,6 @@
         "knowledge/update_log/changelog.md",
         "resources/raw_sql/data_center_qingcheng_2064.sql",
         "resources/raw_sql/data_center_qingcheng_2244.sql",
-        "resources/raw_sql/data_center_qingcheng_2460.sql",
         "resources/raw_sql/data_center_qingcheng_2740.sql",
         "resources/raw_sql/data_center_qingcheng_3180.sql",
         "resources/raw_sql/data_center_qingcheng_3226.sql",
@@ -5255,7 +5310,6 @@
         "knowledge/temp_tables/temp_table.dingxi01_qing_team_jg.md",
         "knowledge/temp_tables/temp_table.dingxi01_qing_zz.md",
         "knowledge/update_log/changelog.md",
-        "resources/raw_sql/data_center_qingcheng_2460.sql",
         "resources/raw_sql/data_center_qingcheng_2677.sql",
         "resources/raw_sql/data_center_qingcheng_2680.sql",
         "resources/raw_sql/data_center_qingcheng_2740.sql",
@@ -5285,6 +5339,14 @@
         "knowledge/update_log/changelog.md",
         "resources/raw_sql/data_center_qingcheng_2576.sql",
         "resources/raw_sql/qingcheng_revenue_year_quarter_month_raw_20260522.sql"
+      ],
+      "temp_table.lvshuai01_jiagou_db": [
+        "knowledge/temp_tables/temp_table.lvshuai01_jiagou_db.md",
+        "resources/raw_sql/data_center_qingcheng_2460.sql"
+      ],
+      "temp_table.lvshuai01_qing_team_jg": [
+        "knowledge/temp_tables/temp_table.lvshuai01_qing_team_jg.md",
+        "resources/raw_sql/data_center_qingcheng_2460.sql"
       ],
       "temp_table.shenbaoxin_channel_group": [
         "knowledge/01_table_index.md",
@@ -5333,6 +5395,8 @@
         "knowledge/reverse_index/table_to_dashboards.md",
         "knowledge/sql_patterns/qingcheng_channel_grade_mapping.md",
         "knowledge/sql_patterns/qingcheng_summer_qici_corrections.md",
+        "knowledge/temp_tables/temp_table.lvshuai01_jiagou_db.md",
+        "knowledge/temp_tables/temp_table.lvshuai01_qing_team_jg.md",
         "knowledge/update_log/changelog.md"
       ],
       "data_center_qingcheng_2576.sql": [
@@ -5944,7 +6008,7 @@
     },
     {
       "source_path": "knowledge/dashboards/data_center_qingcheng_datasets.md",
-      "sha256": "5966d55d21f313abd3a7c0d5d428731c200e0907067a59ed8fc8cfabe970f905",
+      "sha256": "5677e4fbdd04f690ba04bd44c5c83aecaa7cd1e7a47e4b0991eb0c7e38d8da9b",
       "bytes": 6434,
       "category": "dashboards"
     },
@@ -6054,6 +6118,12 @@
       "source_path": "knowledge/metrics/_metric_template.md",
       "sha256": "50b438e73399d9ee0fcdbeafaa926588901ce19b6d27f393baef1188e6d1b831",
       "bytes": 576,
+      "category": "metrics"
+    },
+    {
+      "source_path": "knowledge/metrics/qingcheng_advisor_breakthrough_rate.md",
+      "sha256": "9c2c35f84a4f6994bbd560084d2ee564b71c42114ab05bb096c81ecc18e8d2a3",
+      "bytes": 4565,
       "category": "metrics"
     },
     {
@@ -6214,8 +6284,8 @@
     },
     {
       "source_path": "knowledge/metrics/qingcheng_dashboard_metric_formula_linkage.md",
-      "sha256": "96a84fd154f3069cd91e891848f89484be4cdafb9ff17f3b6d9818d2ed2ff622",
-      "bytes": 14734,
+      "sha256": "de2c1a133a7360b835fb73d180194b4a09bbc9171284872e977d79878766c51a",
+      "bytes": 15450,
       "category": "metrics"
     },
     {
@@ -6280,8 +6350,8 @@
     },
     {
       "source_path": "knowledge/reverse_index/field_to_metrics.md",
-      "sha256": "efba09709f0e2cccb2e0a286e66d14af53efb108219794e3f446ae18099bd0dc",
-      "bytes": 112448,
+      "sha256": "58861943bd046fb244ac609eee9b2b4915f5edd02e8dc338a3e73791eb0ae179",
+      "bytes": 113014,
       "category": "reverse_index"
     },
     {
@@ -6292,8 +6362,8 @@
     },
     {
       "source_path": "knowledge/reverse_index/metric_to_raw_sql.md",
-      "sha256": "647a5a6e499eaad32726054d1822861476f3a252766994e8bcced6566fc99bd1",
-      "bytes": 8019,
+      "sha256": "629c902505868a09327692795867e5be2b30c9345e8079f1eddbea53c0762a29",
+      "bytes": 8128,
       "category": "reverse_index"
     },
     {
@@ -6645,6 +6715,18 @@
       "category": "temp_tables"
     },
     {
+      "source_path": "knowledge/temp_tables/temp_table.lvshuai01_jiagou_db.md",
+      "sha256": "8c662d7d5990951053e77222bff2d0f644d1caed158d65da2a705cecc43f0de2",
+      "bytes": 2087,
+      "category": "temp_tables"
+    },
+    {
+      "source_path": "knowledge/temp_tables/temp_table.lvshuai01_qing_team_jg.md",
+      "sha256": "dc4273a25a830fa8c99b91d69c124b37ec87d60fbcc7b3485d2614e0b07f5827",
+      "bytes": 2084,
+      "category": "temp_tables"
+    },
+    {
       "source_path": "knowledge/temp_tables/temp_table.shenbaoxin_channel_group.md",
       "sha256": "cb61a62e01b6e911edc6523c342303b6759a4797a96bab1c415d2c6975f3ed50",
       "bytes": 2282,
@@ -6652,8 +6734,8 @@
     },
     {
       "source_path": "knowledge/update_log/changelog.md",
-      "sha256": "5421b05256408a35cd1a07ac0527877f21a934fa4011da995dde20f200f229e9",
-      "bytes": 114888,
+      "sha256": "0dbdd054cc44b7e990f8edce50237f5c44fd8a54cb36cce5c631dfa7e3ce57dc",
+      "bytes": 116866,
       "category": "update_log"
     },
     {
@@ -6670,8 +6752,8 @@
     },
     {
       "source_path": "resources/raw_sql/data_center_qingcheng_2460.sql",
-      "sha256": "b5a77e0dbc931e4257ae53c6e77c97e91fdd4d5e71feacc13d24c530b4f04005",
-      "bytes": 53962,
+      "sha256": "474685308c68a4ac4a2f2d49b9a3895d082cf639733e50644a6448d67b5150b3",
+      "bytes": 70697,
       "category": "raw_sql"
     },
     {
