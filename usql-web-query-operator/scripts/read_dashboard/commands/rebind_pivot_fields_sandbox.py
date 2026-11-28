@@ -643,8 +643,12 @@ def _rebuild_pivot_for_operation(
         preserve_target_display=operation.get("preserve_target_display", True) is not False,
         dimension_show_names=operation.get("dimension_show_names") or {},
         dimension_sort_values=operation.get("dimension_sort_values") or {},
+        measure_show_names=operation.get("measure_show_names") or {},
         sync_source_format=operation.get("sync_source_format") is True,
         target_measure_format_ids=operation.get("target_measure_format_ids"),
+        append_source_measure_names=operation.get("append_source_measure_names") or [],
+        insert_before_field_id=operation.get("insert_before_field_id"),
+        append_measure_format=operation.get("append_measure_format"),
     )
 
 
@@ -761,6 +765,28 @@ def _execution_mode(args: Any, manifest: dict[str, Any], registry_path: Path = D
         raise UsageError("Production draft sync requires production_draft_sync=true in the reviewed manifest.")
     operations = _operation_list(manifest)
     for operation in operations:
+        append_mode = operation.get("measure_mode") == "append_source"
+        append_options = ("append_source_measure_names", "insert_before_field_id", "append_measure_format")
+        if not append_mode and any(operation.get(key) for key in append_options):
+            raise UsageError("Append options require measure_mode=append_source.")
+        if append_mode and (
+            operation.get("touch_before_final") is True or operation.get("rebuild_by_copy") is True
+            or operation.get("sync_unit_fields") is False or operation.get("sync_component_style") is True
+            or operation.get("sync_source_format") is True or operation.get("target_measure_format_ids")
+            or operation.get("measure_field_ids") or operation.get("dimension_show_names")
+            or operation.get("dimension_sort_values") or operation.get("measure_show_names")
+            or operation.get("preserve_target_display", True) is not True
+        ):
+            raise UsageError("Append-only sync requires one in-place write with unchanged existing fields and style.")
+        measure_names = operation.get("measure_show_names") or {}
+        if measure_names and (
+            not isinstance(measure_names, dict)
+            or operation.get("measure_mode") != "explicit"
+            or not operation.get("target_measure_format_ids")
+            or set(measure_names) - set(operation.get("measure_field_ids") or [])
+            or any(not isinstance(value, str) or not value.strip() for value in measure_names.values())
+        ):
+            raise UsageError("Reviewed measure display names require explicit selected IDs and target formats.")
         if "target_measure_format_ids" not in operation:
             continue
         format_ids = operation["target_measure_format_ids"]
@@ -1015,7 +1041,7 @@ def cmd_rebind_pivot_fields_sandbox(args) -> int:
                         "observations": [],
                     })
                     continue
-                if operation.get("target_measure_format_ids"):
+                if operation.get("target_measure_format_ids") or operation.get("measure_mode") == "append_source":
                     _rebuild_pivot_for_operation(
                         target_detail=before_raw, source_detail=source_raw, operation=operation,
                     )
