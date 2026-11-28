@@ -32,7 +32,7 @@
 2. 订单通过 `lead_id + performance_employee_email_name` 回连线索宽表，取得渠道、年级、主管等归属字段。
 3. service 明细已包含内部调课调班金额时，沿用转化看板规则剔除该行收入、退款和净营收。
 4. 20260722 期起，只有交易时处于同一青橙顾问有效私海保护期的 B 用户课程转移正向支付，才进入隔离的 `course_transfer_gmv` 补数分支。
-5. 团队架构使用 `temp_table.dingxi01_qing_team_jg` 的 `employee_email_name + qici` 关联，避免用最新架构覆盖历史期次。
+5. 团队架构使用 `temp_table.lvshuai01_qing_team_jg` 的 `employee_email_name + qici` 关联，避免用最新架构覆盖历史期次。
 
 ## 3. 数据集一：退费率
 

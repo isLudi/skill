@@ -117,7 +117,7 @@ call_detail.user_number = data.user_id
 
 ## 9. 首节到课指标
 
-首节课判断依赖 `temp_table.dingxi01_qing_daoke` 的 `ke_1 = '1'`。
+首节课判断依赖 `temp_table.lvshuai01_qing_daoke` 的 `ke_1 = '1'`。
 
 | 指标 | SQL 口径 | 说明 | 状态 |
 |---|---|---|---|

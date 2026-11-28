@@ -46,7 +46,7 @@
 | `finance_dw.app_finance_performance_extend_details_hf` | 2349 `dd`, `gmv_z`, `gmv_t`, `refund_base` | 退费金额结构占比财务业绩明细来源，按 `trade_time` 推导 `qici`，按 `real_price_0/name_total_price` 识别退款金额 | 当前用于科目/产品/年级退款金额占比；不再使用旧负数 `refund_total` 作为前端指标 |
 | `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` | 2349 `n_uid` | 通过 `original_order_user_number + performance_employee_email_name` 补充 `lead_id` | 使用多业务线/二级部门长白名单 |
 | `service_dw.dim_crm_assign_rule_lead_detail_hf` | 2349 `rule` | 通过 `lead_id + account_domain` 补充分配规则并派生 `channel_1` | 渠道 CASE 来自历史退费 SQL |
-| `temp_table.dingxi01_jiagou_zx` | 2349 `base` | 通过 `employee_email_name = name` 补充 `jingli`, `xiaozu` | 当前架构表，不含期次 |
+| `temp_table.lvshuai01_jiagou_zx` | 2349 `base` | 通过 `employee_email_name = name` 补充 `jingli`, `xiaozu` | 当前架构表，不含期次 |
 
 ## 4. 范围限定
 

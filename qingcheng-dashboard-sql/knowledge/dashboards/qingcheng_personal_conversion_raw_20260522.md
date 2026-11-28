@@ -18,7 +18,7 @@
 |---|---|
 | 粒度标记 | `data_level`，`qici` / `moth` |
 | 期次 | `qici` |
-| 月份 | `moth`，来自 `temp_table.dingxi01_qing_qi_moth` |
+| 月份 | `moth`，来自 `temp_table.lvshuai01_qing_qi_moth` |
 | 个人 | `name`，来自 `employee_email_name` |
 | 主管 | `leader_employee_email_name` |
 | 大组 | `dazu` |
@@ -39,10 +39,10 @@
 
 | 表名 | 用途 | 口径状态 |
 |---|---|---|
-| `temp_table.dingxi01_qing_team_jg` | 青橙团队架构表，作为个人期次输出骨架 | 已从 SQL 入库，来源/刷新方式待人工确认 |
-| `temp_table.dingxi01_qing_qi_moth` | 期次到月份映射表，按 `qtg.qici` 补充 `moth` | 已从 SQL 入库，来源/刷新方式待人工确认 |
-| `temp_table.dingxi01_qing_goal` | 青橙个人目标表，提供 `qici_goal` 和 `moth_goal` | 已从 SQL 入库，来源/刷新方式待人工确认 |
-| `temp_table.dingxi01_qing_team_jg`（`team_hist`） | 组织链生效时间滞后时，按期次兜底保留已在青橙架构中的人员订单 | 仅用于完成度任职窗口兜底，不替代正式组织链 |
+| `temp_table.lvshuai01_qing_team_jg` | 青橙团队架构表，作为个人期次输出骨架 | 已从 SQL 入库，来源/刷新方式待人工确认 |
+| `temp_table.lvshuai01_qing_qi_moth` | 期次到月份映射表，按 `qtg.qici` 补充 `moth` | 已从 SQL 入库，来源/刷新方式待人工确认 |
+| `temp_table.lvshuai01_qing_goal` | 青橙个人目标表，提供 `qici_goal` 和 `moth_goal` | 已从 SQL 入库，来源/刷新方式待人工确认 |
+| `temp_table.lvshuai01_qing_team_jg`（`team_hist`） | 组织链生效时间滞后时，按期次兜底保留已在青橙架构中的人员订单 | 仅用于完成度任职窗口兜底，不替代正式组织链 |
 
 ## 6. CTE 结构
 
@@ -93,8 +93,8 @@
 | `ord` | `order_change` | `ord.order_number = order_change.order_number` | 补充调课调班/课程转移类型 |
 | `rd` | `re_ke` | `re_ke.qici_re = rd.qici and re_ke.order_number = rd.order_number` | 给交易补充全退时行课节数 |
 | `rd` | `order_change` + 当前 service 行 transfer 标记 | `rd.order_number = order_change.order_number`；service 标记来自 `service_base0` 当前行并随 `service_scope -> rd -> t4` 传递 | 主交易层按明细行识别内部调课调班；`order_change` 规则字段仅在 service 缺失且当前行确为实际退款时补充，避免同订单正常支付行被整体剔除；finance 课程转移金额另按真实明细粒度补充 |
-| `temp_table.dingxi01_qing_team_jg qtg` | `wa` | `qtg.employee_email_name = wa.name and qtg.qici = wa.qici` | 以架构表为主，合并个人期次业绩 |
-| `temp_table.dingxi01_qing_team_jg qtg` | `temp_table.dingxi01_qing_qi_moth qm` | `qm.qici = qtg.qici` | 给个人期次补充月份 |
+| `temp_table.lvshuai01_qing_team_jg qtg` | `wa` | `qtg.employee_email_name = wa.name and qtg.qici = wa.qici` | 以架构表为主，合并个人期次业绩 |
+| `temp_table.lvshuai01_qing_team_jg qtg` | `temp_table.lvshuai01_qing_qi_moth qm` | `qm.qici = qtg.qici` | 给个人期次补充月份 |
 
 ## 10. 与团队完成度【月/期】的差异
 
@@ -127,8 +127,8 @@
 - 历史版本 `gmv_t` 曾按 `name + user_id1` 去重，可能弱化课程/期次维度；2026-06-21 已改为订单/课程粒度，后续生成新 SQL 不得回退。
 - `rd_0` 计算了 `r_sub`，但后续未输出；是否需要净科目抵扣退款科目待确认。
 - `wa.jing_sub` 直接取 `p_sub`，当前 `j_sub` 实际为支付科目求和，不扣减退款科目；“净科目数”命名待确认。
-- `renchan` 以 `temp_table.dingxi01_qing_team_jg` 为主表，未匹配业绩的架构人员会保留并输出 0 指标。
-- `temp_table.dingxi01_qing_team_jg` 是否一人一期唯一待确认；若不唯一，会放大个人业绩。
+- `renchan` 以 `temp_table.lvshuai01_qing_team_jg` 为主表，未匹配业绩的架构人员会保留并输出 0 指标。
+- `temp_table.lvshuai01_qing_team_jg` 是否一人一期唯一待确认；若不唯一，会放大个人业绩。
 - 业务已确认 `H业务线` 按 100% 计入、所有 `非H业务线` 统一按 50% 折算；后续文档和 SQL 不得再回退成“仅小初 50%”。
 - 命中 `dim_finance_order_change_df` 的正常订单绩效必须保留；只能剔除 `trade_type='调课调班'` 的内部变更流水本身。
 - 内部调课调班识别不能只依赖 `dim_finance_order_change_df`；若 service 明细同订单存在 `transfer_in_amount/transfer_out_amount`，也应作为 `trade_type='调课调班'` 流水的补充剔除信号。

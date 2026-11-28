@@ -53,7 +53,7 @@
   - `SEC未加好友`、`SEC首期掉海`、`SEC招生退费` -> `订单复用`
 - `规划系统高一`、`规划系统高二`、`规划系统高三` 输出二级渠道 `SEC未加好友`。
 - 上述三个 `purchase_intention_name` 是跨部门共用值，不能单独作为青橙范围。进入 `tmk_prelead_raw` 前必须同时满足来源虚拟组织 `virtual_third_department_name='学习顾问部'`、`virtual_fourth_department_name='SEC创新部'`。
-- 最终输出还必须按同一期次、同一顾问命中 `temp_table.dingxi01_jiagou_db.dept_2='SEC'`。来源组织门禁与期次架构门禁相互独立，合称“双重限域”。
+- 最终输出还必须按同一期次、同一顾问命中 `temp_table.lvshuai01_jiagou_db.dept_2='SEC'`。来源组织门禁与期次架构门禁相互独立，合称“双重限域”。
 - `tmk_output_transfer_ids` 必须复用同一来源组织门禁；否则其他部门的规划系统潜客会错误排除其转化后的正常线索，即使该潜客本身最终未通过 SEC 架构门禁。
 - 2026-07-15 回归：20260710 期严格 SEC 来源为 10,142 条（高二 5,246、高三 4,896）；历史 144,330 条来源均为 `学习顾问部 / SEC创新部`。当日 968 条规划系统潜客全部来自 `私域运营部 / 筛优组`，严格来源为 0。
 
@@ -154,7 +154,7 @@ f.lead_purchase_intention_level2_category_name
 - `SEC未加好友`、`SEC首期掉海`、`SEC招生退费` 必须放在 `%公海%` 宽泛分支之前，否则会被错误打到一级 `公海`。
 - 转化数据中 `亚飞IP` 同时可能属于 `主讲IP` 和 `IP赠课失败`，因此 `2460` 必须贯穿一级渠道并用 `channel_1 + channel_map_2` 共同 join，不得再只按二级渠道反推一级。
 - 当前映射只作为青橙过程数据口径，不得默认复用到其他部门。
-- 如果 `temp_table.dingxi01_qing_daoke.qudao` 的取值变化，必须同步核对 `channel_map_2`。
+- 如果 `temp_table.lvshuai01_qing_daoke.qudao` 的取值变化，必须同步核对 `channel_map_2`。
 
 ## 6. 到课 raw 版本差异
 

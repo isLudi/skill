@@ -8,7 +8,7 @@
 
 ## 2. 查询目标
 
-沉淀青橙项目部到课 SQL。该 SQL 以青橙有效线索为基础，匹配用户上课明细和 `temp_table.dingxi01_qing_daoke` 课次映射表，输出第 1 至第 6 讲的到课标记和有效到课标记。
+沉淀青橙项目部到课 SQL。该 SQL 以青橙有效线索为基础，匹配用户上课明细和 `temp_table.lvshuai01_qing_daoke` 课次映射表，输出第 1 至第 6 讲的到课标记和有效到课标记。
 
 ## 3. 最终输出粒度
 
@@ -36,8 +36,8 @@
 
 | 表名 | 用途 | 口径状态 |
 |---|---|---|
-| `temp_table.dingxi01_qing_daoke` | 按期次、二级渠道、年级、开课时间标记课次，`ke_1` 字段取值支持 `'1'` 至 `'6'` | 已从 SQL 入库，来源/刷新方式待人工确认 |
-| `temp_table.dingxi01_jiagou_db` | 按期次和员工邮箱前缀补充青橙架构 | 已从 SQL 入库，来源/刷新方式待人工确认 |
+| `temp_table.lvshuai01_qing_daoke` | 按期次、二级渠道、年级、开课时间标记课次，`ke_1` 字段取值支持 `'1'` 至 `'6'` | 已从 SQL 入库，来源/刷新方式待人工确认 |
+| `temp_table.lvshuai01_jiagou_db` | 按期次和员工邮箱前缀补充青橙架构 | 已从 SQL 入库，来源/刷新方式待人工确认 |
 
 ## 6. CTE 结构
 
@@ -70,9 +70,9 @@
 | 左侧 | 右侧 | join key | 用途 |
 |---|---|---|---|
 | `t1` | `t2` | `t1.qici = t2.qici and t1.user_id = t2.user_number` | 将青橙线索用户匹配到上课明细 |
-| `dk` | `temp_table.dingxi01_qing_daoke ke` | `dk.qici = ke.qici and dk.channel_map_2 = ke.qudao and dk.grade_1 = ke.grade and dk.begin_time = ke.begin_time` | 匹配课次编号 |
+| `dk` | `temp_table.lvshuai01_qing_daoke ke` | `dk.qici = ke.qici and dk.channel_map_2 = ke.qudao and dk.grade_1 = ke.grade and dk.begin_time = ke.begin_time` | 匹配课次编号 |
 | `data` | `daoke` | `data.employee_email_prefix = daoke.employee_email_prefix and data.qici = daoke.qici and data.lead_id = daoke.lead_id` | 将到课标记回连到线索 |
-| `data` | `temp_table.dingxi01_jiagou_db jg` | `data.employee_email_prefix = jg.employee_email_prefix and data.qici = jg.qici` | 补充青橙架构 |
+| `data` | `temp_table.lvshuai01_jiagou_db jg` | `data.employee_email_prefix = jg.employee_email_prefix and data.qici = jg.qici` | 补充青橙架构 |
 
 ## 10. 渠道和年级映射
 
@@ -97,7 +97,7 @@
 
 - SQL 中存在 Presto 三参数 `date_add('day', n, expr)`，公司查询平台可能按 Hive 两参数函数解析；后续生成新 SQL 时必须改为 `interval` 写法。
 - `coalesce(data.valid_lead_count,0) lead` 可能存在字符串和数字类型混用；如果 `valid_lead_count` 是字符串，建议改为 `coalesce(cast(data.valid_lead_count as integer), 0)` 或保持字符串后另行转数值。
-- `temp_table.dingxi01_qing_daoke.ke_1` 字段名容易误解为“首节课”，但本 SQL 使用它承载 1-6 讲课次编号。
-- `temp_table.dingxi01_jiagou_db` 在此 SQL 使用 `employee_email_prefix + qici` join；过程数据 raw 中曾使用 `employee_email_name + qici` join，两个 join key 差异需确认。
+- `temp_table.lvshuai01_qing_daoke.ke_1` 字段名容易误解为“首节课”，但本 SQL 使用它承载 1-6 讲课次编号。
+- `temp_table.lvshuai01_jiagou_db` 在此 SQL 使用 `employee_email_prefix + qici` join；过程数据 raw 中曾使用 `employee_email_name + qici` join，两个 join key 差异需确认。
 - 最终输出含 `lead` 维度并 group by `lead`，后续汇总时要确认是否直接 `sum(lead)`。
 

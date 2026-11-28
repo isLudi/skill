@@ -23,7 +23,7 @@
 - `period_mapping_first_level_department_name = 'H业务线'`
 - `valid_lead_count = '1'`
 - `data.qici > '20260410期'`
-- `temp_table.dingxi01_jiagou_db.department is not null`
+- `temp_table.lvshuai01_jiagou_db.department is not null`
 
 ## 4. 基础派生字段
 
@@ -130,7 +130,7 @@
 - `lesson_ranked_1_6` 对每个 `qici + channel_map_1 + grade_1` 内的开课槽位按 `begin_time` 做 `dense_rank`，生成 `auto_ke_1`，仅保留 1-6。
 - `lesson_index` / `lesson_index_add`、`lesson_name` 当前只保留为诊断字段，不驱动主课次。
 
-手工课次来自 `temp_table.dingxi01_daoke_1_6_t`，当前 SQL 关联条件为：
+手工课次来自 `temp_table.lvshuai01_daoke_1_6_t`，当前 SQL 关联条件为：
 
 ```sql
 dk.qici = ke.qici

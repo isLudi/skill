@@ -4,16 +4,16 @@
 
 **症状**：`gl_gl` / `cb_cb` 始终为 0，GMV 目标 = 0。
 
-**根因**：`temp_table.dingxi01_cost.grade = '0'` 为全年级通配标记，不等于看板 `grade_1` 的具体年级值（'高一'、'初二'等）。
+**根因**：`temp_table.lvshuai01_cost.grade = '0'` 为全年级通配标记，不等于看板 `grade_1` 的具体年级值（'高一'、'初二'等）。
 
 **排查**：
-1. `select distinct grade from temp_table.dingxi01_cost where qici > '<期次>'` → 观察是否大量 `grade = '0'`
+1. `select distinct grade from temp_table.lvshuai01_cost where qici > '<期次>'` → 观察是否大量 `grade = '0'`
 2. FULL OUTER JOIN 对比 cost 表 key 与看板 zhuanhua key → 定位断裂字段
 
 **修复**：JOIN 条件加 `or ct.grade = '0'`
 
 ```sql
-left join temp_table.dingxi01_cost ct
+left join temp_table.lvshuai01_cost ct
   on ct.channel = zz.channel_map
   and (ct.grade = zz.grade_1 or ct.grade = '0')
   and zz.period_name = ct.qici
@@ -29,8 +29,8 @@ left join temp_table.dingxi01_cost ct
 
 **优先根因**：
 
-- 最新 `market_consultant_lead_conversion_attendance.sql` 的主课次不再由 `temp_table.dingxi01_daoke_1_6_t` 决定，而是按 `qici + channel_map_1 + grade_1` 下实际 `begin_time` 自动排序；主到课全 0 时，先检查 `learn_candidates` 是否圈到行课、`lesson_slots` 是否被低覆盖过滤、`lesson_ranked_1_6` 是否生成课 1-课 6。
-- 如果只是 `manual_*` 或自动/手工对照字段异常，再检查 `temp_table.dingxi01_daoke_1_6_t` 是否覆盖特定的 `(qudao, grade, begin_time)` 组合。
+- 最新 `market_consultant_lead_conversion_attendance.sql` 的主课次不再由 `temp_table.lvshuai01_daoke_1_6_t` 决定，而是按 `qici + channel_map_1 + grade_1` 下实际 `begin_time` 自动排序；主到课全 0 时，先检查 `learn_candidates` 是否圈到行课、`lesson_slots` 是否被低覆盖过滤、`lesson_ranked_1_6` 是否生成课 1-课 6。
+- 如果只是 `manual_*` 或自动/手工对照字段异常，再检查 `temp_table.lvshuai01_daoke_1_6_t` 是否覆盖特定的 `(qudao, grade, begin_time)` 组合。
 
 **排查**：
 1. 按 `qici + channel_map_1 + grade_1` 检查 `lead_user_period` 的用户数。
@@ -44,7 +44,7 @@ left join temp_table.dingxi01_cost ct
 
 ## 2.1 daoke 表有渠道，但看板渠道消失
 
-**症状**：`temp_table.dingxi01_daoke_1_6_t` 中目标期次已经维护了某个渠道，例如 `孟亚飞IP99元`，但到课看板从某期开始不再出现该渠道，或该渠道 manual 诊断字段全为 0。
+**症状**：`temp_table.lvshuai01_daoke_1_6_t` 中目标期次已经维护了某个渠道，例如 `孟亚飞IP99元`，但到课看板从某期开始不再出现该渠道，或该渠道 manual 诊断字段全为 0。
 
 **优先根因**：超长渠道 CASE 顺序问题。目标 `rule_name` 仍存在，但先被前面的宽泛分支命中，导致 `channel_map_1` 输出成别的渠道。最新主课次会按错误渠道分组排序，manual 诊断也会因 `channel_map_1 = ke.qudao` 断裂。
 
@@ -67,7 +67,7 @@ select
     t.begin_time,
     t.ke_1,
     count(*) as cnt
-from temp_table.dingxi01_daoke_1_6_t t
+from temp_table.lvshuai01_daoke_1_6_t t
 where t.qici in ('<目标期次>')
   and t.qudao like '%<渠道关键词>%'
 group by
@@ -108,7 +108,7 @@ limit 1000;
 
 **排查**：对比顾问的 `virtual_leader_email_name` vs `section_assign_employee_third_level_department_name`。
 
-**修复**：展示主管/经理 → 优先用 `dingxi01_jiagou_db`（按期次维护），`dingxi01_jiagou_zx`（在职架构），替代主表 `virtual_*` 字段。
+**修复**：展示主管/经理 → 优先用 `lvshuai01_jiagou_db`（按期次维护），`lvshuai01_jiagou_zx`（在职架构），替代主表 `virtual_*` 字段。
 
 ---
 
@@ -121,8 +121,8 @@ limit 1000;
 **排查**：
 
 1. 检查 raw SQL 最终层是否出现 `select zz.*`，且又额外输出 `zx.jingli as jingli_11`、`zx.xiaozu` 等字段。
-2. 查询 `temp_table.dingxi01_jiagou_db` 的 `qici + employee_email_name`，确认期次架构。
-3. 查询 `temp_table.dingxi01_jiagou_zx` 的 `employee_email_name`，确认当前在职架构。
+2. 查询 `temp_table.lvshuai01_jiagou_db` 的 `qici + employee_email_name`，确认期次架构。
+3. 查询 `temp_table.lvshuai01_jiagou_zx` 的 `employee_email_name`，确认当前在职架构。
 4. 查询 `finance_dw.dim_finance_employee_df` 的 `leader_employee_email_name` 链路，确认 HR 直属上级链路。
 
 **修复**：
@@ -136,7 +136,7 @@ coalesce(jg.xiaozu, zx.xiaozu, zz.zhuguan) as xiaozu,
 coalesce(jg.jingli, zx.jingli, zz.jingli) as jingli_11
 ```
 
-优先级固定为：期次架构表 `temp_table.dingxi01_jiagou_db` > 当前在职架构表 `temp_table.dingxi01_jiagou_zx` > 事实宽表 `virtual_*` 字段。
+优先级固定为：期次架构表 `temp_table.lvshuai01_jiagou_db` > 当前在职架构表 `temp_table.lvshuai01_jiagou_zx` > 事实宽表 `virtual_*` 字段。
 
 ---
 
@@ -148,22 +148,22 @@ coalesce(jg.jingli, zx.jingli, zz.jingli) as jingli_11
 
 - `base` 层为了补外呼指标，`call_c` 按 `user_number + lead_id + section_assign_employee_email_prefix` 聚合；如果回连主数据只用 `user_id + employee_email_prefix`，同一用户多线索会重复匹配，放大 `data.*` 中已经携带的 `lead_count`、`valid_lead_count`、收款和退款。
 - `f_call0` 如果按 `user_id + account_id + employee_email_name` 聚合，但回连只用 `user_id + employee_email_name`，也会产生重复。
-- `zhuanhua` 已按展示粒度聚合后，最终层如果直接 join 原始 `temp_table.dingxi01_cost` 或 `temp_table.dingxi01_jiagou_db`，这些表 key 不唯一会再次放大所有 `sum` 指标。
+- `zhuanhua` 已按展示粒度聚合后，最终层如果直接 join 原始 `temp_table.lvshuai01_cost` 或 `temp_table.lvshuai01_jiagou_db`，这些表 key 不唯一会再次放大所有 `sum` 指标。
 
 **排查**：
 
 1. 分别比较 `data`、`base`、`zhuanhua`、`final_result` 的 `count(*)`、`sum(lead_count)`、`sum(valid_lead_count)`、`sum(trade_refund)`。
 2. 检查 `call_c` 回连是否带 `lead_id`。
 3. 检查 `f_call0` 是否先聚合到 `user_id + employee_email_name`。
-4. 检查 `dingxi01_cost` 是否按 `qici + channel + grade` 去重，并拆出 `grade = '0'` 通配行。
-5. 检查 `dingxi01_jiagou_db` 是否先按 `qici + department + employee_email_name` 去重。
+4. 检查 `lvshuai01_cost` 是否按 `qici + channel + grade` 去重，并拆出 `grade = '0'` 通配行。
+5. 检查 `lvshuai01_jiagou_db` 是否先按 `qici + department + employee_email_name` 去重。
 
 **修复**：参考 `resources/raw_sql/data_center_market_2293.sql`：
 
 - `call_c` 回连主数据时补充 `and call_c.lead_id = data.lead_id`。
 - `f_call0` 先按 `user_id, employee_email_name` 聚合，不把 `account_id` 留到回连层。
-- `dingxi01_cost` 拆为 `cost_exact` 和 `cost_zero` 去重 CTE，最终用 `coalesce(ce.cost, cz.cost, 0)`。
-- `dingxi01_jiagou_db` 先构造 `jiagou_period`，按 `qici + department + employee_email_name` 去重后再 join。
+- `lvshuai01_cost` 拆为 `cost_exact` 和 `cost_zero` 去重 CTE，最终用 `coalesce(ce.cost, cz.cost, 0)`。
+- `lvshuai01_jiagou_db` 先构造 `jiagou_period`，按 `qici + department + employee_email_name` 去重后再 join。
 
 ---
 
@@ -172,7 +172,7 @@ coalesce(jg.jingli, zx.jingli, zz.jingli) as jingli_11
 如果模型 `2688` 中同一顾问重复出现相同 `x_qi_count`，不要默认判断为 join 放大。先分别检查：
 
 1. `period_name + employee_email_name` 是否重复；重复才优先排查最终 join 基数。
-2. `temp_table.dingxi01_pingyou_jg` 中 `employee_email_name + qici` 是否唯一。
+2. `temp_table.zhangjunyan01_pingyou_jg` 中 `employee_email_name + qici` 是否唯一。
 3. 同一顾问在 `x_qi_count in (1,2,3,4)` 中是否跨期重复；若是，则是手工序号维护问题。
 4. 上传后是否出现 `qici='1'` 或字段错位；本次空 `grade` 行触发过该问题。
 

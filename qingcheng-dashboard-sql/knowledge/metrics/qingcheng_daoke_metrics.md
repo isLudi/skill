@@ -19,7 +19,7 @@ qici + channel_map_1 + channel_map_2 + grade_1 + xiaozu + department + dept_2
 
 ## 3. 课次字段解释
 
-`temp_table.dingxi01_qing_daoke.ke_1` 在此 SQL 中表示课次编号，取值包括 `'1'` 至 `'6'`。字段名虽然叫 `ke_1`，但不是只表示第一讲。
+`temp_table.lvshuai01_qing_daoke.ke_1` 在此 SQL 中表示课次编号，取值包括 `'1'` 至 `'6'`。字段名虽然叫 `ke_1`，但不是只表示第一讲。
 
 ## 4. 到课指标
 

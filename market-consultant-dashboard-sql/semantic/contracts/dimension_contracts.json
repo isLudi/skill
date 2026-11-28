@@ -32,7 +32,7 @@
       ],
       "status": "pending_confirmation",
       "source_path": "knowledge/sql_patterns/channel_mapping_case_when.md",
-      "source_sha256": "d1ab85cc35b3aae97a4fc932d4e085c57a547458649b0a4278c5f78ea33dc2cb",
+      "source_sha256": "1dfe18e03d634d3cfec0e8e31103ffa17c05f1d47f848b21fd0861365ef3a738",
       "description": "由市场顾问20261127期209分支共享CASE派生的展示渠道，145个分支输出值，含ELSE共146个。",
       "field": "channel_map",
       "table": "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",

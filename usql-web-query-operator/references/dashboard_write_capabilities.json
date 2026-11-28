@@ -416,17 +416,17 @@
       "evidence": [
         {
           "source_path": "scripts/read_dashboard/commands/rebind_pivot_fields_sandbox.py",
-          "source_sha256": "5f06acbcf8399d1b2724cd32fe6c944351c565096eb9466468bc2c58db8d1165",
+          "source_sha256": "4a52c023d3b6d514dee2d05ac5b9b3873a4c3d3d66d5b78f63669fed01e1bf1b",
           "note": "Copy/rebind remains sandbox-only, requires an explicit sandbox identity and confirmation, and blocks the copy path in production mode before browser launch."
         },
         {
           "source_path": "scripts/read_dashboard/pivot_rebind.py",
-          "source_sha256": "8afd690a964b9a52478c66efb4505396c74265f5e7b77222268833bf0be77dae",
+          "source_sha256": "6a3506b3624be79a772f7ee721f687eb6cd9203a0be66c1ac6d1eed750ea18cf",
           "note": "Field-list rebuild helper plus optional public-filter-scoped value assertions for sandbox verification."
         },
         {
           "source_path": "tests/test_pivot_rebind.py",
-          "source_sha256": "7bbe4fae7a7d145f8d902c1a5b15ff2e90bc02c340190ead780915697c44d766",
+          "source_sha256": "6e5eaa41c544fb9333827740d994e50a1f3fead5104c61acbb41e272b81002b8",
           "note": "Unit field rebuild, production-mode rejection, required-measure guards, component reference replacement, and filtered value tests."
         },
         {
@@ -471,22 +471,22 @@
         },
         {
           "source_path": "references/pivot_style_sync_draft_evidence_20261016.json",
-          "source_sha256": "eca453dfe39f47117cb765d2e92bc467b6455d39e1be77ed48f8d12dba40634c",
+          "source_sha256": "cf81076f40e6c74d26493045090e727a4059d3578664fe2856c01bd33a34e11c",
           "note": "Redacted production-draft evidence verifies pivot component colors and font sizes, all 36 measure column styles, stable fields and layout, and an unchanged published config."
         },
         {
           "source_path": "scripts/read_dashboard/commands/rebind_pivot_fields_sandbox.py",
-          "source_sha256": "5f06acbcf8399d1b2724cd32fe6c944351c565096eb9466468bc2c58db8d1165",
+          "source_sha256": "4a52c023d3b6d514dee2d05ac5b9b3873a4c3d3d66d5b78f63669fed01e1bf1b",
           "note": "Draft-only adapter enforces production confirmation, profile, unit, and component-style hashes, same-model source, target-subject formulas, complete backups, exact full-schema/unit/profile readback, and compensating recovery."
         },
         {
           "source_path": "scripts/read_dashboard/pivot_rebind.py",
-          "source_sha256": "8afd690a964b9a52478c66efb4505396c74265f5e7b77222268833bf0be77dae",
+          "source_sha256": "6a3506b3624be79a772f7ee721f687eb6cd9203a0be66c1ac6d1eed750ea18cf",
           "note": "Complete write projection retains formulas, number formats, visual styles, safe pivot format, field order, model identity, and stable unit identity."
         },
         {
           "source_path": "tests/test_pivot_rebind.py",
-          "source_sha256": "7bbe4fae7a7d145f8d902c1a5b15ff2e90bc02c340190ead780915697c44d766",
+          "source_sha256": "6e5eaa41c544fb9333827740d994e50a1f3fead5104c61acbb41e272b81002b8",
           "note": "Draft-mode, copy-rejection, formula catalog/reference, full-schema readback, style-format projection, dimension rename, retry, drift, and recovery tests."
         },
         {
@@ -1428,7 +1428,7 @@
       "evidence": [
         {
           "source_path": "references/dashboard_advisor_rate_evidence_20261122.json",
-          "source_sha256": "304f17fa721c53b6494088aacfecf16fb13f1ca21db764223911796c67750390",
+          "source_sha256": "34b9c88145799a7b82e3babb0fe5131bb8d1c8231f9c412ef7f8974d883593e0",
           "note": "Reviewed independent live isolated sandbox value and restoration evidence."
         },
         {
@@ -1511,5 +1511,5 @@
       ]
     }
   ],
-  "registry_sha256": "4daa6c30da22f16ca2ce0bb2eb652c92b77e0e8a8b504fad091a054008c6ef3a"
+  "registry_sha256": "9b76a700ced390e4223dc3de81772ac0e729cb9856dd2cc4339ae201a55869b6"
 }

@@ -42,10 +42,10 @@
 ## 4. 适用表
 
 - `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df`
-- `temp_table.dingxi01_cost`
-- `temp_table.dingxi01_channel_group`
-- `temp_table.dingxi01_jiagou_db`
-- `temp_table.dingxi01_jiagou_zx`
+- `temp_table.lvshuai01_cost`
+- `temp_table.lvshuai01_channel_group`
+- `temp_table.lvshuai01_jiagou_db`
+- `temp_table.lvshuai01_jiagou_zx`
 
 ## 5. 分母/分子口径
 

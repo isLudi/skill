@@ -35,7 +35,7 @@
 
 | 表名 | 用途 | 口径状态 |
 |---|---|---|
-| `temp_table.dingxi01_qing_zz` | 青橙组织架构补充表，按员工姓名补充主管、大主管、学部 | 已从 SQL 入库，来源/刷新方式待人工确认 |
+| `temp_table.lvshuai01_qing_zz` | 青橙组织架构补充表，按员工姓名补充主管、大主管、学部 | 已从 SQL 入库，来源/刷新方式待人工确认 |
 
 ## 6. CTE 结构
 
@@ -72,7 +72,7 @@
 | 左侧 | 右侧 | join key | 用途 |
 |---|---|---|---|
 | `dd_0` | `org_t ot` | `ot.name = dd_0.name`，并过滤 `trade_time` 在 `begin_time` 和 `end_time` 之间 | 确认交易发生时员工属于青橙项目部 |
-| `rd` | `temp_table.dingxi01_qing_zz zz` | `zz.employee_email_name = rd.name` | 补充青橙主管、大主管、学部 |
+| `rd` | `temp_table.lvshuai01_qing_zz zz` | `zz.employee_email_name = rd.name` | 补充青橙主管、大主管、学部 |
 
 ## 10. 交易类型处理
 

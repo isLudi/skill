@@ -185,7 +185,7 @@ ifnull(sum(${refund_section_gmv}) / sum(${net_income_section_gmv}), 0)
 
 `temp_table.zhangjunyan01_pingyou_jg` 只用于用户明确要求“评优/参评名单/评优架构/人产”时。该表含 `qici`，按 `qici + employee_email_name` 关联会限制结果只能落在该临时表已维护期次内。
 
-当用户不要求严格评优参评名单，只需要市场顾问在职架构范围时，可使用 `temp_table.dingxi01_jiagou_zx` 替代，典型模板如下：
+当用户不要求严格评优参评名单，只需要市场顾问在职架构范围时，可使用 `temp_table.lvshuai01_jiagou_zx` 替代，典型模板如下：
 
 ```sql
 jiagou_zx_active as (
@@ -211,7 +211,7 @@ jiagou_zx_active as (
                     t.xiaozu,
                     t.jingli
             ) as rn
-        from temp_table.dingxi01_jiagou_zx t
+        from temp_table.lvshuai01_jiagou_zx t
         where cast(t.zaizhi as varchar) = '1'
           and t.department in ('郑州顾问部', '西安一部', '西安二部')
     ) x
@@ -224,16 +224,16 @@ eligible_consultant_name as (
 )
 ```
 
-使用该替代方案时，必须在 SQL 解释中说明口径从“参评顾问”变为“在职架构顾问”，且 `temp_table.dingxi01_jiagou_zx` 无 `qici`，不能按期次限定名单。
+使用该替代方案时，必须在 SQL 解释中说明口径从“参评顾问”变为“在职架构顾问”，且 `temp_table.lvshuai01_jiagou_zx` 无 `qici`，不能按期次限定名单。
 
 ## 结果缺失与未来期次排查
 
 当用户反馈“某期次/经理/顾问查不到”时，先判断查询驱动表：
 
 - 事实主表驱动：从 `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df` 等事实表出发，再 join 架构表。含义是只展示已有事实数据的人或期次。
-- 名单/架构表驱动：从 `temp_table.dingxi01_jiagou_db`、参评名单或在职名单出发 left join 指标。含义是展示名单，即使指标为 0。
+- 名单/架构表驱动：从 `temp_table.lvshuai01_jiagou_db`、参评名单或在职名单出发 left join 指标。含义是展示名单，即使指标为 0。
 
-不要把“临时架构表已维护目标期次”直接判断为“事实主表应有目标期次”。`temp_table.dingxi01_jiagou_db` 可能提前维护未来期次，事实主表通常只产出当前已发生或已入库期次。若目标期次晚于当前日期或晚于事实主表最大派生期次，应优先归类为数据时效/未来期次未产出。
+不要把“临时架构表已维护目标期次”直接判断为“事实主表应有目标期次”。`temp_table.lvshuai01_jiagou_db` 可能提前维护未来期次，事实主表通常只产出当前已发生或已入库期次。若目标期次晚于当前日期或晚于事实主表最大派生期次，应优先归类为数据时效/未来期次未产出。
 
 排查顺序：
 
@@ -278,7 +278,7 @@ limit 10
 ```sql
 and f.employee_email_prefix in (
     select jg.employee_email_prefix
-    from temp_table.dingxi01_jiagou_db jg
+    from temp_table.lvshuai01_jiagou_db jg
     where jg.qici = '20260522期'
 )
 group by 派生qici
@@ -317,7 +317,7 @@ where f.dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
   ) = '<目标期次>'
   and f.employee_email_prefix in (
       select jg.employee_email_prefix
-      from temp_table.dingxi01_jiagou_db jg
+      from temp_table.lvshuai01_jiagou_db jg
       where jg.qici = '<目标期次>'
         and jg.jingli = '<经理>'
         and cast(jg.zaizhi as varchar) = '1'
@@ -406,7 +406,7 @@ select
     zx.xiaozu,
     zx.jingli as jingli_11
 from zhuanhua zz
-left join temp_table.dingxi01_jiagou_zx zx
+left join temp_table.lvshuai01_jiagou_zx zx
   on zx.employee_email_name = zz.employee_email_name
 ```
 
@@ -416,8 +416,8 @@ left join temp_table.dingxi01_jiagou_zx zx
 
 1. 查 raw SQL 最终层是否 `select zz.*`。
 2. 查输出字段列表中是否同时存在 `jingli` 和 `jingli_11`。
-3. 用 `temp_table.dingxi01_jiagou_db` 按 `qici + employee_email_name` 查期次架构。
-4. 用 `temp_table.dingxi01_jiagou_zx` 按 `employee_email_name` 查当前在职架构，并确认是否按 `employee_email_name` 去重。
+3. 用 `temp_table.lvshuai01_jiagou_db` 按 `qici + employee_email_name` 查期次架构。
+4. 用 `temp_table.lvshuai01_jiagou_zx` 按 `employee_email_name` 查当前在职架构，并确认是否按 `employee_email_name` 去重。
 5. 如仍不一致，再用 `finance_dw.dim_finance_employee_df` 的 `leader_employee_email_name` 递归查 +1/+2 链路。
 
 ### 修复模板
@@ -431,7 +431,7 @@ coalesce(jg.xiaozu, zx.xiaozu, zz.zhuguan) as xiaozu,
 coalesce(jg.jingli, zx.jingli, zz.jingli) as jingli_11
 ```
 
-若使用 `temp_table.dingxi01_jiagou_zx`，建议先构造 `zx_active`：
+若使用 `temp_table.lvshuai01_jiagou_zx`，建议先构造 `zx_active`：
 
 ```sql
 zx_active as (
@@ -456,7 +456,7 @@ zx_active as (
                     zx.xiaozu,
                     zx.jingli
             ) as rn
-        from temp_table.dingxi01_jiagou_zx zx
+        from temp_table.lvshuai01_jiagou_zx zx
         where cast(zx.zaizhi as varchar) = '1'
           and zx.department in ('郑州顾问部', '西安一部', '西安二部')
     ) t
@@ -470,7 +470,7 @@ zx_active as (
 
 - `call_c` 从外呼表聚合后回连 `data` 时，必须同时使用 `user_id + lead_id + employee_email_prefix`；缺少 `lead_id` 会把同一用户多线索互相匹配。
 - `f_call0` 必须先聚合到回连粒度 `user_id + employee_email_name`；不要在输出中保留 `account_id` 后再只按 `user_id + employee_email_name` join。
-- `zhuanhua` 已经聚合到展示粒度后，最终层只能 join 去重后的维表或目标表。`temp_table.dingxi01_cost` 应拆成具体年级 `cost_exact` 和 `grade = '0'` 通配 `cost_zero`；`temp_table.dingxi01_jiagou_db` 应先做 `jiagou_period` 去重。
+- `zhuanhua` 已经聚合到展示粒度后，最终层只能 join 去重后的维表或目标表。`temp_table.lvshuai01_cost` 应拆成具体年级 `cost_exact` 和 `grade = '0'` 通配 `cost_zero`；`temp_table.lvshuai01_jiagou_db` 应先做 `jiagou_period` 去重。
 - 最新修正版参考 `resources/raw_sql/data_center_market_2293.sql`。如果现场看板退款、线索仍高于 2253 转化数据，先确认数据中心是否已经发布该版本。
 
 ## 渠道 CASE 映射
@@ -510,7 +510,7 @@ zx_active as (
 - 首呼时效：主表 `section_assign_time` 与 `first_call_time` 计算小时差，再按 24/48 小时窗口标记。
 - 外呼长通话：`service_dw.app_h_crm_lead_employee_workload_detail_hf` 聚合 `call_duration > 300`，join 时优先确认是否需要带 `lead_id`。
 - 深沟阶段：`service_dw.dwd_crm_assign_private_detail_hf` 按 `private_sea_update_time desc` 取最新阶段，`450/470` 映射深沟/已双沟。
-- 到课：行课表派生 `qici` 后关联 `temp_table.dingxi01_daoke_1_6_t`，`曹忆` 使用第 3 节，其他渠道使用第 1 节。
+- 到课：行课表派生 `qici` 后关联 `temp_table.lvshuai01_daoke_1_6_t`，`曹忆` 使用第 3 节，其他渠道使用第 1 节。
 - 成交科目档位：财务业绩明细按 `qici + user_id + employee_email_name` 统计去重科目数；如最终只按 `qici + user_id` join，必须说明顾问粒度重复风险。
 - 城市渠道维度：2026-05-15 `city_channel.txt` 版本从主全链路表直接输出 `province_name`、`city_name`、`city_level_name`；省市归属和城市等级口径待人工确认。
 - 期次过滤：当前版本使用 `period_name >= ${period_name1}` 且 `period_name < ${period_name2}`，生成可执行 SQL 前必须替换参数；若用户没有给期次范围，使用占位符并在说明中标明待替换。

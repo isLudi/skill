@@ -1,0 +1,64 @@
+{
+  "schema_version": "1.0.0",
+  "domain": "qingcheng",
+  "as_of": "2026-11-28",
+  "mappings": [
+    {
+      "old_table": "temp_table.dingxi01_jiagou_db",
+      "new_table": "temp_table.lvshuai01_jiagou_db",
+      "current_reference_table": "temp_table.lvshuai01_jiagou_db",
+      "production_evidence": [],
+      "live_id": "14050"
+    },
+    {
+      "old_table": "temp_table.dingxi01_qing_daoke",
+      "new_table": "temp_table.lvshuai01_qing_daoke",
+      "current_reference_table": "temp_table.lvshuai01_qing_daoke",
+      "production_evidence": [],
+      "live_id": "16496"
+    },
+    {
+      "old_table": "temp_table.dingxi01_qing_goal",
+      "new_table": "temp_table.lvshuai01_qing_goal",
+      "current_reference_table": "temp_table.lvshuai01_qing_goal",
+      "production_evidence": [],
+      "live_id": "16492"
+    },
+    {
+      "old_table": "temp_table.dingxi01_qing_qi_moth",
+      "new_table": "temp_table.lvshuai01_qing_qi_moth",
+      "current_reference_table": "temp_table.lvshuai01_qing_qi_moth",
+      "production_evidence": [],
+      "live_id": "16499"
+    },
+    {
+      "old_table": "temp_table.dingxi01_qing_team_g_qi",
+      "new_table": "temp_table.lvshuai01_qing_team_g_qi",
+      "current_reference_table": "temp_table.lvshuai01_qing_team_g_qi",
+      "production_evidence": [],
+      "live_id": "16493"
+    },
+    {
+      "old_table": "temp_table.dingxi01_qing_team_goal",
+      "new_table": "temp_table.lvshuai01_qing_team_goal",
+      "current_reference_table": "temp_table.lvshuai01_qing_team_goal",
+      "production_evidence": [],
+      "live_id": "16494"
+    },
+    {
+      "old_table": "temp_table.dingxi01_qing_team_jg",
+      "new_table": "temp_table.lvshuai01_qing_team_jg",
+      "current_reference_table": "temp_table.lvshuai01_qing_team_jg",
+      "production_evidence": [],
+      "live_id": "16495"
+    },
+    {
+      "old_table": "temp_table.dingxi01_qing_zz",
+      "new_table": "temp_table.lvshuai01_qing_zz",
+      "current_reference_table": "temp_table.lvshuai01_qing_zz",
+      "production_evidence": [],
+      "live_id": "16487"
+    }
+  ],
+  "raw_sql_policy": "preserve_exact_historical_or_online_snapshot"
+}

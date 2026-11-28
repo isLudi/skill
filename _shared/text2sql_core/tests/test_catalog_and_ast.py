@@ -188,6 +188,7 @@ class CatalogAndAstTest(unittest.TestCase):
                 core_root=CORE_ROOT,
                 expected_domain=domain,
                 allow_unknown_tables=False,
+                allow_historical_table_names=True,
             )
             errors = [item.to_dict() for item in result.diagnostics if item.severity == "error"]
             self.assertEqual([], errors, (domain, errors[:5]))
@@ -201,6 +202,19 @@ class CatalogAndAstTest(unittest.TestCase):
             expected_domain="market_consultant",
         )
         self.assertIn("CROSS_DOMAIN_TEMP_TABLE", {item.code for item in result.diagnostics})
+
+    def test_historical_names_do_not_implicitly_authorize_new_sql(self) -> None:
+        root = REPO_ROOT / DOMAIN_CONFIG["market_consultant"]["skill"]
+        bundle = CatalogBundle.load(root, CORE_ROOT)
+        aliases = bundle.domain_manifest.get("boundary", {}).get("historical_temp_table_names", {})
+        if not aliases:
+            self.skipTest("No retained owner migration yet")
+        old = next(iter(aliases))
+        args = dict(skill_root=root, core_root=CORE_ROOT, expected_domain="market_consultant")
+        blocked = validate_sql_ast(f"select 1 from {old} limit 1", **args)
+        self.assertTrue(any(d.code == "HISTORICAL_TEMP_TABLE_NAME" and d.severity == "error" for d in blocked.diagnostics))
+        historical = validate_sql_ast(f"select 1 from {old} limit 1", allow_historical_table_names=True, **args)
+        self.assertFalse(any(d.severity == "error" for d in historical.diagnostics))
 
     def test_domain_catalog_rejects_foreign_metric_source(self) -> None:
         from text2sql_core.models import QuerySpec

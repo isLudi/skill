@@ -30,7 +30,7 @@
 - `qici` 以 SQL 内 `biz_qici_calendar` 业务日历优先、历史周五逻辑兜底：当前覆盖 `2026-07-07` 至 `2026-08-23`，避免 `20260717期`、`20260724期` 等旧周五期次进入筛选器。
 - `qici0` 通过 `biz_qici_calendar` 的 `legacy_short_qici -> short_qici` 映射归一，避免暑期业务期次下的当期指标被误判为往期。
 - 线索侧 `bb.qici` 对 `group_period_year + group_period_term` 使用同一份业务日历，保证有效线索量和订单结果在业务期次上对齐。
-- `mm -> temp_table.dingxi01_qing_team_jg` 改为 `employee_email_name + qici` join，不再用最新架构回填历史结果期次。
+- `mm -> temp_table.lvshuai01_qing_team_jg` 改为 `employee_email_name + qici` join，不再用最新架构回填历史结果期次。
 - 营收逻辑统一到 service 主表，并在 service 已带 `transfer_in_amount/transfer_out_amount` 的行上直接剔除内部调课调班金额。
 - 原 `dd -> service_gmv` 分支保持不变；保护期课程转移单独生成 `course_transfer_gmv` 后再 union，避免改变原服务订单的退款、课消和分配时间联表。
 - `lead_map` 和 `normal_bb` 的一级、二级渠道 CASE 同步维护；`IP退费` 三个精确分支位于宽泛 `%青橙IP%` 与 `%招生退费%` 之前。
@@ -69,7 +69,7 @@ qici + channel_map_2/qudao + grade_1/grade_0 + employee_email_name/name + virtua
 
 | 表名 | 用途 | 口径状态 |
 |---|---|---|
-| `temp_table.dingxi01_qing_team_jg` | 按结果期次补充学部、小组、大组和经理 | 已入库；转化看板当前按 `employee_email_name + qici` 使用 |
+| `temp_table.lvshuai01_qing_team_jg` | 按结果期次补充学部、小组、大组和经理 | 已入库；转化看板当前按 `employee_email_name + qici` 使用 |
 
 ## 6. CTE 结构
 
@@ -215,7 +215,7 @@ count(distinct case
 | `finance_dw.app_finance_performance_extend_details_hf` | `now() - 2h` | `now() - 2h` | 保护期课程转移的财务正向支付 |
 | `service_dw.dwd_crm_assign_private_detail_hf` | `now() - 2h` | `now() - 2h` | B 用户交易时点私海保护期 |
 | `finance_dw.dm_finance_order_refund_detail_df` | `now() - 24h` | 无 | 全退链路完课节数 |
-| `temp_table.dingxi01_qing_team_jg` | 无 `dt/hour` | 无 | 当前按结果期次 `qici` join |
+| `temp_table.lvshuai01_qing_team_jg` | 无 `dt/hour` | 无 | 当前按结果期次 `qici` join |
 
 ## 11. 关键 join
 
@@ -228,7 +228,7 @@ count(distinct case
 | `course_transfer_finance` | `dwd_crm_assign_private_detail_hf` | `target_user_number = user_number + employee_email_name`，并校验交易时点保护窗口 | 找到 B 用户在同顾问名下的有效正常线索 |
 | `course_transfer_protected_finance` | `lead_map` | `lead_id + employee_email_name` | 复用当前渠道、年级和主管归因 |
 | `bb_dedup` | `ud` | `employee_email_name + qici + channel_map_2 + grade_1 + virtual_direct_leader_email_name` | 合并例子量和订单结果 |
-| `mm` | `temp_table.dingxi01_qing_team_jg` | `employee_email_name + qici` | 按结果期次补团队架构 |
+| `mm` | `temp_table.lvshuai01_qing_team_jg` | `employee_email_name + qici` | 按结果期次补团队架构 |
 
 ## 12. 输出指标
 

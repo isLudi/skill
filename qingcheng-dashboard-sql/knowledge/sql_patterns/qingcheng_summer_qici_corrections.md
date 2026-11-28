@@ -95,7 +95,7 @@ resources/raw_sql/data_center_qingcheng_2460.sql
 - 线索侧有效线索期次 `bb.qici`
 - 当期判断短期次 `qici0`
 - `mm` 层线索和订单 full outer join 的 `qici` 对齐
-- `temp_table.dingxi01_qing_team_jg` 的 `employee_email_name + qici` 架构回填
+- `temp_table.lvshuai01_qing_team_jg` 的 `employee_email_name + qici` 架构回填
 
 短期可继续维护 SQL 内的 `biz_qici_calendar` CTE，但必须先由业务确认日期范围、业务期次、旧周五期次和短期次映射。
 

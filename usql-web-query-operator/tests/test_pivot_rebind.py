@@ -370,6 +370,101 @@ class PivotRebindTests(unittest.TestCase):
                 target_measure_format_ids=["old_ratio"],
             )
 
+    def test_replacement_deduplicates_server_order_and_limits_measure_labels(self) -> None:
+        shared = {"dataType": 1, "measureType": "main", "orgParamType": 1, "changeParamType": 1}
+        measures = []
+        for key, name, color in [
+            ("gross_current", "Gross current", "blue"),
+            ("net_current", "Old net current", "violet"),
+            ("gross", "Gross", "green"),
+            ("net", "Old net", "violet"),
+        ]:
+            item = field(key, key, name)
+            item["format"] = {**shared, "numberType": 1, "decimalPlaces": 1,
+                              "columnVisualStyle": {"header": {"bgColor": color}}}
+            measures.append(item)
+        target = {"modelId": "model", "unitDimensionList": [], "unitMeasureList": measures,
+                  "format": {"fieldMeasureNameSortList": [m["showName"] for m in measures]}}
+        original = copy.deepcopy(target)
+        kwargs = dict(target_detail=target, source_detail=target, dimension_field_ids=[],
+                      measure_mode="explicit", measure_field_ids=["net_current", "net"],
+                      target_measure_format_ids=["gross_current", "gross"])
+        rebuilt = rebuild_pivot_unit_fields(
+            **kwargs, measure_show_names={"net_current": "Net current", "net": "Net"})
+        self.assertEqual(["Net current", "Net"], rebuilt["format"]["fieldMeasureNameSortList"])
+        self.assertEqual(["Net current", "Net"], [m["showName"] for m in rebuilt["unitMeasureList"]])
+        self.assertEqual(["blue", "green"], [m["format"]["columnVisualStyle"]["header"]["bgColor"]
+                                             for m in rebuilt["unitMeasureList"]])
+        self.assertEqual(original, target)
+        for labels in ({"missing": "Name"}, {"net": ""}, {"net": "  "}):
+            with self.assertRaisesRegex(UsageError, "selected measure IDs"):
+                rebuild_pivot_unit_fields(**kwargs, measure_show_names=labels)
+        with self.assertRaisesRegex(UsageError, "unique display names"):
+            rebuild_pivot_unit_fields(**kwargs, measure_show_names={"net_current": "Net", "net": "Net"})
+        with self.assertRaisesRegex(UsageError, "reviewed target measure formats"):
+            rebuild_pivot_unit_fields(
+                target_detail=target, source_detail=target, dimension_field_ids=[],
+                measure_mode="explicit", measure_field_ids=["net"], measure_show_names={"net": "Net"})
+
+    def test_append_preserves_duplicate_physical_instances_and_existing_filters(self) -> None:
+        share = field("lead", "lead", "Share")
+        share["format"]["percentCalculation"] = True
+        count = field("lead", "lead", "Leads")
+        anchor = field("anchor", "anchor", "Efficiency")
+        target = {"modelId": "model", "unitDimensionList": [field("period", "period")],
+                  "unitMeasureList": [share, count, anchor], "unitFilterList": [field("filter", "filter")],
+                  "unitAideMeasureList": [], "format": {"isOpen": 0,
+                  "fieldMeasureNameSortList": ["Share", "Leads", "Efficiency"]}}
+        new = field("ratio", "ratio", "Ratio")
+        new["fieldType"] = 1
+        new["format"]["dataType"] = 1
+        source = {"modelId": "model", "unitMeasureList": [new]}
+        original = copy.deepcopy(target)
+        rebuilt = rebuild_pivot_unit_fields(
+            target_detail=target, source_detail=source, dimension_field_ids=["period"],
+            measure_mode="append_source", append_source_measure_names=["Ratio"], insert_before_field_id="anchor")
+        self.assertEqual([share, count, new, anchor], rebuilt["unitMeasureList"])
+        self.assertEqual(["Share", "Leads", "Ratio", "Efficiency"], rebuilt["format"]["fieldMeasureNameSortList"])
+        self.assertEqual(original["unitFilterList"], rebuilt["unitFilterList"])
+        self.assertEqual(0, rebuilt["format"]["isOpen"])
+        self.assertEqual(original, target)
+        formatted = rebuild_pivot_unit_fields(
+            target_detail=target, source_detail=source, dimension_field_ids=["period"],
+            measure_mode="append_source", append_source_measure_names=["Ratio"], insert_before_field_id="anchor",
+            append_measure_format={"numberType": 1, "decimalPlaces": 1})
+        self.assertEqual(1, formatted["unitMeasureList"][2]["format"]["decimalPlaces"])
+        self.assertEqual(share, formatted["unitMeasureList"][0])
+        for patch in [
+            {"dimension_field_ids": []}, {"insert_before_field_id": "lead"},
+            {"append_source_measure_names": ["missing"]}, {"sync_source_format": True},
+            {"append_measure_format": {"decimalPlaces": 8}}, {"append_measure_format": {"definition": []}},
+            {"append_measure_format": {"numberType": True}},
+            {"dimension_show_names": {"period": "Renamed"}},
+            {"dimension_sort_values": {"period": "desc"}},
+            {"measure_field_ids": ["lead"]}, {"preserve_target_display": False},
+        ]:
+            kwargs = dict(target_detail=target, source_detail=source, dimension_field_ids=["period"],
+                          measure_mode="append_source", append_source_measure_names=["Ratio"],
+                          insert_before_field_id="anchor")
+            kwargs.update(patch)
+            with self.assertRaises(UsageError):
+                rebuild_pivot_unit_fields(**kwargs)
+
+    def test_append_mode_rejects_conflicting_write_paths_before_browser(self) -> None:
+        operation = {"operation_id": "append", "target_unit_id": "unit_1", "source_unit_id": "unit_2",
+                     "dimension_field_ids": ["period"], "measure_mode": "append_source",
+                     "append_source_measure_names": ["Ratio"], "insert_before_field_id": "anchor"}
+        args = SimpleNamespace(confirm_production_write=True, confirm_sandbox_write=False,
+                               dashboard_id="dashboard_1", expected_dashboard_name="conversion")
+        for patch in ({"touch_before_final": True}, {"rebuild_by_copy": True}, {"sync_unit_fields": False},
+                      {"sync_component_style": True}, {"measure_field_ids": ["other"]}):
+            manifest = {"production_draft_sync": True, "operations": [{**operation, **patch}]}
+            with self.subTest(patch=patch), self.assertRaisesRegex(UsageError, "one in-place write"):
+                _execution_mode(args, manifest)
+        manifest = {"production_draft_sync": True, "operations": [{**operation, "measure_mode": "explicit"}]}
+        with self.assertRaisesRegex(UsageError, "Append options require"):
+            _execution_mode(args, manifest)
+
     def test_missing_required_measure_blocks_rebuild(self) -> None:
         with self.assertRaisesRegex(UsageError, "Required measure fields"):
             rebuild_pivot_unit_fields(

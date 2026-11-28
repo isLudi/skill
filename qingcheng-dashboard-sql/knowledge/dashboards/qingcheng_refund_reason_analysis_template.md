@@ -29,7 +29,7 @@
 4. `refund_reason_txn`：从 `finance_dw.dwd_finance_order_refund_df` 读取订单、退费原因和原因源金额。
 5. `order_reason_alloc`：把订单退款金额按原因源金额比例分摊；无金额时按原因数均分；无原因时归“未获取到退费原因”。
 6. `user_reason_detail`：汇总到用户—原因，并计算涉及订单数。
-7. `reason_detail_with_org`：按结果期次关联 `temp_table.dingxi01_qing_team_jg`，补团队架构。
+7. `reason_detail_with_org`：按结果期次关联 `temp_table.lvshuai01_qing_team_jg`，补团队架构。
 
 ## 4. 退费原因金额分摊
 

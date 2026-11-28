@@ -6,7 +6,7 @@
 |--------|------|------|---------|
 | `section_assign_employee_*` | 期次截面时间点的顾问组织归属 | 截面时点（历史快照） | `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.section_assign_employee_third_level_department_name` |
 | `virtual_*` | 员工最新虚拟架构 | 当前最新快照 | `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.virtual_leader_email_name`、`virtual_third_department_name` |
-| 临时表架构 | 按期次维护的架构映射 | 期次粒度 | `temp_table.dingxi01_jiagou_db`（按期次）、`temp_table.dingxi01_jiagou_zx`（在职，无期次） |
+| 临时表架构 | 按期次维护的架构映射 | 期次粒度 | `temp_table.lvshuai01_jiagou_db`（按期次）、`temp_table.lvshuai01_jiagou_zx`（在职，无期次） |
 
 ## 常见问题
 
@@ -53,7 +53,7 @@ limit 20;
 
 | 场景 | 推荐方案 | 推荐来源 |
 |------|---------|---------|
-| 展示主管/经理维度 | 用 `jiagou_db`（按期次）替代 `virtual_*` | `temp_table.dingxi01_jiagou_db.jingli` |
-| 展示小组长维度 | 用 `jiagou_db`（按期次）或 `jiagou_zx`（在职） | `temp_table.dingxi01_jiagou_db.xiaozu` |
-| 展示在职架构 | 用 `jiagou_zx`（在职专项架构） | `temp_table.dingxi01_jiagou_zx` |
+| 展示主管/经理维度 | 用 `jiagou_db`（按期次）替代 `virtual_*` | `temp_table.lvshuai01_jiagou_db.jingli` |
+| 展示小组长维度 | 用 `jiagou_db`（按期次）或 `jiagou_zx`（在职） | `temp_table.lvshuai01_jiagou_db.xiaozu` |
+| 展示在职架构 | 用 `jiagou_zx`（在职专项架构） | `temp_table.lvshuai01_jiagou_zx` |
 | 仅做范围过滤 | 用 `section_assign_*`（截面时点） | 主表 section_assign_* 字段 |

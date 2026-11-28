@@ -77,7 +77,7 @@ course_transfer_gmv
 
 ## 6. 团队架构
 
-最终结果按以下条件关联 `temp_table.dingxi01_qing_team_jg`：
+最终结果按以下条件关联 `temp_table.lvshuai01_qing_team_jg`：
 
 ```text
 name = employee_email_name

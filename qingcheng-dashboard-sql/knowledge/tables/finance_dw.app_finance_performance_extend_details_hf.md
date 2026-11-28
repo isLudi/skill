@@ -206,8 +206,8 @@ where dt = format_datetime(now() - interval '2' hour, 'YYYYMMdd')
 ## 9. 常用 join key
 
 - `employee_email_name = org_t.name`
-- `employee_email_name = temp_table.dingxi01_qing_zz.employee_email_name`
-- `employee_email_name + qici = temp_table.dingxi01_qing_team_jg.employee_email_name + qici`
+- `employee_email_name = temp_table.lvshuai01_qing_zz.employee_email_name`
+- `employee_email_name + qici = temp_table.lvshuai01_qing_team_jg.employee_email_name + qici`
 - `trade_time between org_t.begin_time and org_t.end_time`
 - 课程转移补数：`order_number = dim_finance_order_change_df.latest_child_order_number`
 

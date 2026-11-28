@@ -150,9 +150,12 @@ def _inherit_measure_formats(
     format_settings = unit.get("format")
     order = format_settings.get("fieldMeasureNameSortList") if isinstance(format_settings, dict) else None
     if renamed and isinstance(order, list):
-        format_settings["fieldMeasureNameSortList"] = [
-            renamed.get(item, item) if isinstance(item, str) else item for item in order
-        ]
+        selected = [field.get("showName") for field in measures]
+        mapped_order = [renamed.get(item, item) for item in order if isinstance(item, str)]
+        format_settings["fieldMeasureNameSortList"] = list(dict.fromkeys(
+            [item for item in mapped_order if item in selected]
+            + [item for item in selected if isinstance(item, str)]
+        ))
 
 
 def _cell_value(value: Any) -> Any:
@@ -506,8 +509,12 @@ def rebuild_pivot_unit_fields(
     preserve_target_display: bool = True,
     dimension_show_names: Mapping[str, str] | None = None,
     dimension_sort_values: Mapping[str, str] | None = None,
+    measure_show_names: Mapping[str, str] | None = None,
     sync_source_format: bool = False,
     target_measure_format_ids: Iterable[str] | None = None,
+    append_source_measure_names: Iterable[str] = (),
+    insert_before_field_id: str | None = None,
+    append_measure_format: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Rebuild a target pivot's field lists from a known-good source unit.
 
@@ -520,6 +527,63 @@ def rebuild_pivot_unit_fields(
     source_model = source_detail.get("modelId")
     if target_model not in (None, "") and source_model not in (None, "") and str(target_model) != str(source_model):
         raise UsageError(f"Source/target model mismatch: {source_model} vs {target_model}")
+
+    if measure_mode == "append_source":
+        # Existing pivots can select the same physical field twice (for example
+        # a count and its percentage calculation). Keep those instances intact.
+        dimensions = _ordered_unique(dimension_field_ids, "dimension_field_ids")
+        if dimensions != [_field_id(f) for f in _fields(target_detail, "unitDimensionList")]:
+            raise UsageError("Append-only sync must retain the complete existing dimension order.")
+        if (
+            sync_source_format or target_measure_format_ids or measure_show_names
+            or dimension_show_names or dimension_sort_values or measure_field_ids
+            or preserve_target_display is not True
+        ):
+            raise UsageError("Append-only sync retains existing field formats and names.")
+        names = _ordered_unique(append_source_measure_names, "append_source_measure_names")
+        if not names or not insert_before_field_id:
+            raise UsageError("Append-only sync requires selected source measures and one insertion anchor.")
+        new_format = dict(append_measure_format or {})
+        if set(new_format) - {"numberType", "decimalPlaces"} or (
+            "numberType" in new_format and (
+                type(new_format["numberType"]) is not int or new_format["numberType"] not in (1, 2)
+            )
+        ) or (
+            "decimalPlaces" in new_format and (
+                type(new_format["decimalPlaces"]) is not int or not 0 <= new_format["decimalPlaces"] <= 6
+            )
+        ):
+            raise UsageError("Appended number formats require numeric/percent type and zero to six decimals.")
+        before = _fields(target_detail, "unitMeasureList")
+        positions = [i for i, f in enumerate(before) if _field_id(f) == insert_before_field_id]
+        if len(positions) != 1:
+            raise UsageError("Append-only insertion anchor must match exactly one existing measure.")
+        existing_ids = {_field_id(f) for f in before}
+        existing_names = {f.get("showName") for f in before}
+        added = []
+        for name in names:
+            matches = [f for f in _fields(source_detail, "unitMeasureList") if f.get("showName") == name]
+            if len(matches) != 1 or name in existing_names or _field_id(matches[0]) in existing_ids:
+                raise UsageError("Appended source measures must have unique unselected names and identities.")
+            entry = copy.deepcopy(matches[0])
+            if new_format:
+                if entry.get("fieldType") != 1 or entry.get("format", {}).get("dataType") != 1:
+                    raise UsageError("Only appended numeric measures can receive a number format.")
+                entry["format"].update(new_format)
+            added.append(entry)
+        if len({_field_id(f) for f in added}) != len(added):
+            raise UsageError("Appended source measure identities must be distinct.")
+        result = copy.deepcopy(dict(target_detail))
+        anchor = positions[0]
+        result["unitMeasureList"][anchor:anchor] = added
+        order = result.get("format", {}).get("fieldMeasureNameSortList")
+        if order != [f.get("showName") for f in before]:
+            raise UsageError("Append-only sync requires an exact current displayed measure order.")
+        result["format"]["fieldMeasureNameSortList"] = [f.get("showName") for f in result["unitMeasureList"]]
+        actual_ids = {_field_id(f) for f in result["unitMeasureList"]}
+        if not set(required_measure_field_ids).issubset(actual_ids):
+            raise UsageError("Required measure fields are missing after append.")
+        return result
 
     dimensions = _ordered_unique(dimension_field_ids, "dimension_field_ids")
     explicit_measures = _ordered_unique(measure_field_ids or [], "measure_field_ids")
@@ -590,6 +654,23 @@ def rebuild_pivot_unit_fields(
         )
         for field_id in _ordered_unique(aide_measure_ids, "unitAideMeasureList")
     ]
+
+    measure_names = dict(measure_show_names or {})
+    if measure_names and not target_measure_format_ids:
+        raise UsageError("Measure display names require reviewed target measure formats.")
+    selected_measure_ids = {_field_id(field) for field in rebuilt["unitMeasureList"]}
+    if set(measure_names) - selected_measure_ids or any(
+        not isinstance(value, str) or not value.strip() for value in measure_names.values()
+    ):
+        raise UsageError("Measure display names require selected measure IDs and non-empty strings.")
+    for field in rebuilt["unitMeasureList"]:
+        field_id = _field_id(field)
+        if field_id in measure_names:
+            field["showName"] = measure_names[field_id].strip()
+    if measure_names:
+        labels = [field.get("showName") for field in rebuilt["unitMeasureList"]]
+        if len(labels) != len(set(labels)):
+            raise UsageError("Reviewed measure labels must retain unique display names.")
 
     actual_measure_ids = {
         _field_id(field)

@@ -1,8 +1,10 @@
 # 新人过程转化 `x_qi_count` 重复与 `pingyou_jg` 上传故障
 
+本页保留 2026-07-21 的历史故障复盘，不是当前上传指引。2026-11-28 回读线上模型 2688（SQL SHA-256：6c4449c949438f10219e396b33e2a1283607c405ab3424c6dbc154ac481fba0a）后确认：当前 ppg 来源为 temp_table.zhangjunyan01_pingyou_jg；lvshuai01_pingyou_jg 数据不完整，不得替代。new_qici 独立来自 lvshuai01_jiagou_xinren。以下历史上传目标、样本规模及旧SQL Hash不再作为当前生产事实或跨维护者覆盖授权。
+
 ## 1. 适用范围
 
-用于排查市场顾问部【新人】前期过程转化数据看板、数据中心模型 `2688`（`新人过程转化数据`）以及 `pingyou_jg.xlsx` / `temp_table.dingxi01_pingyou_jg` 的以下问题：
+用于排查市场顾问部【新人】前期过程转化数据看板、数据中心模型 `2688`（`新人过程转化数据`）以及 `pingyou_jg.xlsx` / `temp_table.zhangjunyan01_pingyou_jg` 的以下问题：
 
 - 同一顾问在多个期次重复出现相同 `x_qi_count`。
 - `x_qi_count` 出现 `3,2` 等非法值。
@@ -20,10 +22,10 @@
 
 ## 3. 为什么确认不是 SQL join 放大
 
-模型 `2688` 的最终层使用：
+历史模型 `2688` 的最终层曾使用（当前同一 ppg 位置已改用 zhangjunyan01 表）：
 
 ```sql
-left join temp_table.dingxi01_pingyou_jg ppg
+left join temp_table.zhangjunyan01_pingyou_jg ppg
   on ppg.employee_email_name = zz.employee_email_name
  and ppg.qici = zz.period_name
 where ppg.x_qi_count not in ('9')
@@ -45,7 +47,7 @@ where ppg.x_qi_count not in ('9')
 
 `x_qi_count` 是顾问新人观察口径的有效承接期次序号，不是累计次数或可求和指标：`1`—`4` 表示前四个有效期次，`9` 表示不进入新人前四期展示。
 
-修复规则固定为：保留原有 `9`；只对原来非 `9` 的行按同一顾问 `qici` 升序编号 `1,2,3,4`，第 5 个及以后改为 `9`。公式、示例和终版 14 字段约束见 `../tables/temp_table.dingxi01_pingyou_jg.md`。
+修复规则固定为：保留原有 `9`；只对原来非 `9` 的行按同一顾问 `qici` 升序编号 `1,2,3,4`，第 5 个及以后改为 `9`。公式、示例和终版 14 字段约束见 `../tables/temp_table.zhangjunyan01_pingyou_jg.md`。
 
 本次按该规则删除 1 条完全重复行并改正 77 个 `x_qi_count` 单元格，终版 5920 行；有效序号重复组和非法值均降为 0。
 
@@ -92,7 +94,7 @@ where ppg.x_qi_count not in ('9')
 1. 先在原始 Excel 统计：完全重复行、`employee_email_name + qici` 重复键、顾问有效 `x_qi_count` 重复组、非法值和必填空值。
 2. 按稳定业务规则修复 `x_qi_count`，粘贴为值，删除临时辅助列；终版不新增字段。
 3. 只保留 `Sheet4`，确认 14 个表头、5920 行、无公式、无空值、邮箱前缀小写。
-4. 上传到登记表 `dingxi01_pingyou_jg`，使用 `overwrite`；回执行数必须等于本地数据行数。
+4. 历史操作曾上传到 zhangjunyan01_pingyou_jg；不要把此步骤复用于当前张俊岩维护表，当前上传目标及授权必须重新核对。
 5. 在线回读行数、期次范围、非法值、两个唯一性检查；任一不符都不得刷新数据中心。
 6. 用模型当前完整 SQL只读验证结果粒度。若最新期次仍缺失，逐一核对 lead/class/org 日期角色的业务日历。
 7. 数据中心替换必须走精确 Hash 计划、完整替换、预览、保存回读和新 `SUCCESS`；随后同步当前 canonical SQL 回知识库。
@@ -100,14 +102,14 @@ where ppg.x_qi_count not in ('9')
 ## 8. 本次闭环证据
 
 - 临时表终态：5920 行，`20260101期` 至 `20260716期`，28 个期次；非法值、顾问期次重复键、顾问有效序号重复键均为 0。
-- 模型 `2688` 当前 SQL SHA-256：`617cc607e7f584d165042a26a66f1d4ea4875390e07c0f62bb2cb97e54ee89ab`。
+- 2026-07-21 旧版本 SQL SHA-256：`617cc607e7f584d165042a26a66f1d4ea4875390e07c0f62bb2cb97e54ee89ab`。
 - 替换预览 task：`1490901230`，成功。
 - 新同步记录：`160164366`，2026-07-21 21:45:26 至 21:45:38，状态 `SUCCESS`。
 - 最终 receipt：`fully_verified=true`。
 
 相关入口：
 
-- `../tables/temp_table.dingxi01_pingyou_jg.md`
+- `../tables/temp_table.zhangjunyan01_pingyou_jg.md`
 - `../metrics/market_consultant_dashboard_metric_formula_linkage.md`
 - `../sql_patterns/market_summer_qici_corrections.md`
 - `../dashboards/data_center_market_datasets.md`

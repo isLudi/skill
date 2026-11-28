@@ -57,7 +57,7 @@
 
 - `finance_dw.app_finance_performance_extend_details_hf`
 - `dw.dim_employee_chain`
-- `temp_table.dingxi01_jiagou_zx`
+- `temp_table.lvshuai01_jiagou_zx`
 
 ## 7. 分母/分子口径
 
@@ -132,7 +132,7 @@ qici >= '20260403期'
 
 - `dw.dim_employee_chain` 字段已根据 `E:\2000_work\GAOTU\员工信息表.docx` 补全；主键唯一性和行权限范围仍需确认。
 - `end_time` 为空时是否应视为当前仍在部门内需确认。
-- `temp_table.dingxi01_jiagou_zx.employee_email_name = rd.name` 仍使用姓名关联，姓名唯一性需确认。
+- `temp_table.lvshuai01_jiagou_zx.employee_email_name = rd.name` 仍使用姓名关联，姓名唯一性需确认。
 - `dept` 派生逻辑目前只识别西安和郑州。
 - `promit`、`pmit` 命名需确认是否为净额/利润口径。
 - 当前排名不允许并列；如业务希望并列，需将 `row_number()` 改为 `rank()` 或 `dense_rank()`。

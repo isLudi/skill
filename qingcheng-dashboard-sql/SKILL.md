@@ -19,6 +19,8 @@ description: Resolve 青橙项目部 metrics and contracts; generate governed SQ
 
 ## 按任务读取
 
+临时表的当前维护名及历史名称映射见 [临时表维护迁移](knowledge/temp_table_maintenance.md)。生成新 SQL 使用已核实新名；历史/线上 SQL 快照保持原文，不把知识迁移当作生产消费者已切换的证明。
+
 先用 `metadata.json` 确认领域，再按问题定位 `semantic/generated/contract_index.json` 中的 ID / 别名。读取命中的 `semantic/contracts/*.json` 及其 `source_path`，核对状态、哈希、范围和粒度。需要候选实体时查 `semantic/domain_manifest.json`；没有命中或发现冲突时，才扩展到 `knowledge/decision_tree.md`、相关反向索引、表或历史 SQL。已有充分证据时停止扩大阅读，不重复遍历整套目录。
 
 | 任务 | 读取内容 |

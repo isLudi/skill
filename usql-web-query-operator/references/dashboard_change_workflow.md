@@ -259,6 +259,10 @@ D:\anaconda3\python.exe scripts\read_dashboard.py apply-period-date-rebind `
 
 原位换列可按结果列顺序提供 `target_measure_format_ids`，每列绑定目标透视表中一个已核对的原指标 ID。适配器核对指标类型并沿用原列的数值格式和列样式，更新表头排序中的对应名称，同时回读新字段和格式。该选项用于一次原位更新，与预热写入和来源整表格式同步互斥。
 
+需要明确改列标题时，`measure_mode=explicit` 可用 `measure_show_names` 按选中指标 ID 声明非空且互不冲突的显示名，并绑定 `target_measure_format_ids`。显示顺序只保留当前选中列，去除服务端重复项，保留目标数值格式和列样式，不改公式。
+
+`measure_mode=append_source` 只从同模型来源按唯一 `append_source_measure_names` 选列，插到唯一 `insert_before_field_id` 之前。目标维度顺序必须完整匹配；既有指标实例（包括同一物理字段的多个实例）、筛选、布局、名称和格式均保留。可用 `append_measure_format` 仅调整新增数值列的整数 `numberType=1|2` 和 `decimalPlaces=0..6`。该模式不接受预热写入、复制重建、原列改名、维度覆盖或整表样式同步，冲突参数在写入前阻断。来源/目标 Hash、公式依赖映射、结果值回读和失败恢复仍沿用该专用 draft 适配器；不增加发布授权，也不晋升其他 sandbox-only 能力。
+
 取值校验支持已配置的图表内期次筛选器。`component_period_filter` 指定 `field_id`、`filter_unit_id` 和单个期次 `value`，由草稿组件实读校验绑定，响应只允许出现指定期次。每个校验选用一种筛选方式，局部筛选校验使用固定的草稿取值请求。
 
 同次指标同步可提供 `metric_note_replacements`，在既有文本组件中替换精确的口径文字。每项绑定 `unit_id`、`before` 和 `after`，仅接受纯文本，并要求正文及编辑暂存正文各唯一命中一次。适配器沿用完整 schema Hash、精确回读及失败恢复，保留表格标记、格式和布局。

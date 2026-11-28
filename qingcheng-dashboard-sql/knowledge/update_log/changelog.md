@@ -28,31 +28,31 @@
 
 - 入库青橙转化 SQL `qingcheng_conversion_raw_20260522.sql`，新增转化看板文档和转化指标文档。
 - 新增订单业绩表文档 `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md`，记录青橙转化的收入、退款、净营收和业绩归属范围。
-- 新增临时表文档 `temp_table.dingxi01_qing_team_jg.md`，记录青橙最新团队架构 join 逻辑。
+- 新增临时表文档 `temp_table.lvshuai01_qing_team_jg.md`，记录青橙最新团队架构 join 逻辑。
 - 更新青橙渠道/年级映射、成本硬编码、转化 join 关系、范围限定规则、表索引和业务域档案。
 
 ## 2026-05-22 20:50:31
 
 - 入库青橙年季月营收 SQL `qingcheng_revenue_year_quarter_month_raw_20260522.sql`，新增营收看板文档和年/季/月营收指标文档。
-- 新增财务业绩表 `finance_dw.app_finance_performance_extend_details_hf.md`、员工组织链表 `dw.dim_employee_chain.md` 和青橙组织临时表 `temp_table.dingxi01_qing_zz.md`。
+- 新增财务业绩表 `finance_dw.app_finance_performance_extend_details_hf.md`、员工组织链表 `dw.dim_employee_chain.md` 和青橙组织临时表 `temp_table.lvshuai01_qing_zz.md`。
 - 更新营收范围口径、join 关系、表索引和业务域档案，明确该 SQL 使用交易发生时员工属于青橙的组织时间窗口过滤。
 
 ## 2026-05-22 22:26:16
 
 - 入库青橙团队完成度【月】SQL `qingcheng_team_completion_month_raw_20260522.sql`，新增月度完成度看板文档和指标文档。
-- 新增退款明细表 `finance_dw.dm_finance_order_refund_detail_df.md`、订单调课调班维表 `finance_dw.dim_finance_order_change_df.md`、期次月份映射表 `temp_table.dingxi01_qing_qi_moth.md` 和团队月目标表 `temp_table.dingxi01_qing_team_goal.md`。
-- 更新团队架构表 `temp_table.dingxi01_qing_team_jg.md` 的适用场景，并补充团队完成度【月】的 join、范围、索引和业务域档案。
+- 新增退款明细表 `finance_dw.dm_finance_order_refund_detail_df.md`、订单调课调班维表 `finance_dw.dim_finance_order_change_df.md`、期次月份映射表 `temp_table.lvshuai01_qing_qi_moth.md` 和团队月目标表 `temp_table.lvshuai01_qing_team_goal.md`。
+- 更新团队架构表 `temp_table.lvshuai01_qing_team_jg.md` 的适用场景，并补充团队完成度【月】的 join、范围、索引和业务域档案。
 
 ## 2026-05-22 22:31:54
 
 - 入库青橙团队完成度【期】SQL `qingcheng_team_completion_period_raw_20260522.sql`，新增期次完成度看板文档和指标文档。
-- 新增期次团队目标表 `temp_table.dingxi01_qing_team_g_qi.md`，并更新 `temp_table.dingxi01_qing_qi_moth.md`、`temp_table.dingxi01_qing_team_jg.md`、`temp_table.dingxi01_qing_team_goal.md` 的适用边界。
+- 新增期次团队目标表 `temp_table.lvshuai01_qing_team_g_qi.md`，并更新 `temp_table.lvshuai01_qing_qi_moth.md`、`temp_table.lvshuai01_qing_team_jg.md`、`temp_table.lvshuai01_qing_team_goal.md` 的适用边界。
 - 更新团队完成度【期】的 join、范围、索引和业务域档案。
 
 ## 2026-05-22 22:39:00
 
 - 入库青橙个人转化 SQL `qingcheng_personal_conversion_raw_20260522.sql`，新增个人转化看板文档和指标文档。
-- 更新 `temp_table.dingxi01_qing_team_jg.md` 和 `temp_table.dingxi01_qing_qi_moth.md`，记录个人转化以团队架构表为人员期次骨架并按期次补充月份。
+- 更新 `temp_table.lvshuai01_qing_team_jg.md` 和 `temp_table.lvshuai01_qing_qi_moth.md`，记录个人转化以团队架构表为人员期次骨架并按期次补充月份。
 - 更新个人转化的 join、范围、索引和业务域档案，明确该 SQL 不接团队目标表。
 
 ## 2026-06-11
@@ -117,7 +117,7 @@
 - 删除旧版青橙转化 raw 文件 `resources/raw_sql/qingcheng_conversion_raw_20260522.sql` 和旧版看板文档 `knowledge/dashboards/qingcheng_conversion_raw_20260522.md`，切换到用户提供的最新版 `qingcheng_conversion_raw_20260614.sql`。
 - 新版转化 raw 同步了渠道和年级映射更新：新增 `私域会话`、补充 `初一` 映射、保留 `if_jieliang` 字段，并更新二级渠道成本硬编码为 `武汉图书=20`、`抖音私信=130`、`进校=70`。
 - 修正 `bb_dedup` 与 `ud` 的对齐逻辑：join key 从 `顾问 + 期次 + 二级渠道` 扩展为 `顾问 + 期次 + 二级渠道 + 年级 + 主管`，用于按年级展示真实例子数，不再吞掉同顾问同渠道跨年级的线索量。
-- 更新 `knowledge/metrics/qingcheng_conversion_metrics.md`、`knowledge/sql_patterns/qingcheng_channel_grade_mapping.md`、`knowledge/joins/common_join_keys.md`、`knowledge/joins/table_relationships.md`、`knowledge/01_table_index.md`、`knowledge/03_range_limit_rules.md`、`knowledge/04_qingcheng_project_profile.md` 和 `knowledge/temp_tables/temp_table.dingxi01_qing_team_jg.md` 以匹配最新版转化口径。
+- 更新 `knowledge/metrics/qingcheng_conversion_metrics.md`、`knowledge/sql_patterns/qingcheng_channel_grade_mapping.md`、`knowledge/joins/common_join_keys.md`、`knowledge/joins/table_relationships.md`、`knowledge/01_table_index.md`、`knowledge/03_range_limit_rules.md`、`knowledge/04_qingcheng_project_profile.md` 和 `knowledge/temp_tables/temp_table.lvshuai01_qing_team_jg.md` 以匹配最新版转化口径。
 - 待人工确认事项：
   - `if_jieliang` 的业务含义。
   - `bb_dedup` 在完全同维度重复时保留 `rn = 1` 是否仍符合业务预期。
@@ -985,3 +985,13 @@
 ## 2026-11-28 临时表维护账号知识更新
 
 按平台 SQL 解析结果核对旧表与现行维护表字段及类型，更新本域表文档、索引和关联契约；历史 SQL 和样本保留原样。结构一致不证明数据一致。
+
+## 2026-11-28 临时表维护账号迁移
+
+- 核实 8 张新表身份，合并重复表文档并把当前知识和契约迁移为 lvshuai01；映射见 `knowledge/temp_table_maintenance.md`。
+- 保留历史 Query、线上/历史 SQL 快照及原有业务边界；未上传、删除或修改任何线上表/数据集。
+
+## 2026-11-28 临时表知识维护
+
+- 按精确源 Hash 审阅修订本地知识文档，刷新契约和生成目录；不改变业务口径。
+- 保留历史 Query、线上/历史 SQL 快照及原有业务边界；未上传、删除或修改任何线上表/数据集。

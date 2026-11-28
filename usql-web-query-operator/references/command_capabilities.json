@@ -5,6 +5,18 @@
       "entrypoint": "usql_web_query.py",
       "commands": [
         {
+          "name": "plan-temp-table-knowledge-migration",
+          "effect": "remote_read_only",
+          "authorization": "explicit_command",
+          "reference": "temp_table_knowledge_migration.md"
+        },
+        {
+          "name": "apply-temp-table-knowledge-migration",
+          "effect": "local_write_explicit",
+          "authorization": "exact_plan_hash_and_confirmation",
+          "reference": "temp_table_knowledge_migration.md"
+        },
+        {
           "name": "doctor",
           "effect": "local_read_only",
           "authorization": "none",

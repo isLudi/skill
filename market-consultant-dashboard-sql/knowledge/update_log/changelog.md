@@ -82,7 +82,7 @@
 - 从 `D:\Feishu\评优.txt` 规范化入库原始 SQL：`resources/raw_sql/consultant_sales_ranking_evaluation.sql`。
 - 新增看板文档：`knowledge/dashboards/consultant_sales_ranking_evaluation.md`。
 - 新增指标集合：`knowledge/metrics/consultant_sales_ranking_evaluation_metrics.md`。
-- 新增表结构文档：`knowledge/tables/finance_dw.app_finance_performance_extend_details_hf.md`、`knowledge/tables/temp_table.dingxi01_pingyou_jg.md`。
+- 新增表结构文档：`knowledge/tables/finance_dw.app_finance_performance_extend_details_hf.md`、`knowledge/tables/temp_table.zhangjunyan01_pingyou_jg.md`。
 - 更新 `knowledge/01_table_index.md`、dashboards/metrics README、`knowledge/joins/common_join_keys.md`、`knowledge/joins/table_relationships.md`、`knowledge/03_range_limit_rules.md`。
 - 标记该 SQL 与市场顾问转化看板同属顾问销售数据计算，但本 SQL 以财务流水和评优临时表为基础，分别按期次、月度、季度、半年聚合排名。
 - 运行 `python scripts/validate_sql_rules.py --sql-file resources/raw_sql/consultant_sales_ranking_evaluation.sql`；校验提示课程部门字段被选出但未单独过滤，已写入看板待确认事项。
@@ -97,10 +97,10 @@
 
 ## 2026-05-02 临时表 Excel 结构复核补充
 
-- 从 `E:\2000_work\GAOTU\看板维护表格\daoke_t_one_six.xlsx` 更新 `knowledge/tables/temp_table.dingxi01_daoke_1_6_t.md`，确认数据行 2862 行、字段 7 个、空行 1 行。
-- 从 `E:\2000_work\GAOTU\看板维护表格\jiagou_xian_zhengzhou.xlsx` 更新 `knowledge/tables/temp_table.dingxi01_jiagou_db.md`，确认数据行 5017 行、字段 10 个、空行 7 行。
-- 从 `E:\2000_work\GAOTU\看板维护表格\jiagou2026_zx.xlsx` 更新 `knowledge/tables/temp_table.dingxi01_jiagou_zx.md`，确认数据行 885 行、字段 7 个。
-- 从 `E:\2000_work\GAOTU\看板维护表格\pingyou_jg.xlsx` 更新 `knowledge/tables/temp_table.dingxi01_pingyou_jg.md`，确认数据行 1220 行、有效字段 14 个，并忽略 1 个空表头列。
+- 从 `E:\2000_work\GAOTU\看板维护表格\daoke_t_one_six.xlsx` 更新 `knowledge/tables/temp_table.lvshuai01_daoke_1_6_t.md`，确认数据行 2862 行、字段 7 个、空行 1 行。
+- 从 `E:\2000_work\GAOTU\看板维护表格\jiagou_xian_zhengzhou.xlsx` 更新 `knowledge/tables/temp_table.lvshuai01_jiagou_db.md`，确认数据行 5017 行、字段 10 个、空行 7 行。
+- 从 `E:\2000_work\GAOTU\看板维护表格\jiagou2026_zx.xlsx` 更新 `knowledge/tables/temp_table.lvshuai01_jiagou_zx.md`，确认数据行 885 行、字段 7 个。
+- 从 `E:\2000_work\GAOTU\看板维护表格\pingyou_jg.xlsx` 更新 `knowledge/tables/temp_table.zhangjunyan01_pingyou_jg.md`，确认数据行 1220 行、有效字段 14 个，并忽略 1 个空表头列。
 - 四张临时表均补充字段样例、Excel 推断类型、强制范围限定字段、常用过滤条件、常用 join key、key 重复检查和去重 join 模板。
 - 更新 `knowledge/01_table_index.md` 中四张临时表的数据规模、字段来源和校验状态。
 
@@ -197,17 +197,17 @@
 - 根据暑期激励看板转化指标联调问题，补充排名、比率、目标、差值类指标的“计算粒度 vs 最终输出粒度”规则：若期次粒度指标输出到日维度结果，必须提示前端聚合风险，并提供期次粒度最终查询或 `*_once` 防重复字段方案。
 - 明确 `temp_table.dingxi01_pingyou_jg` 只在评优/参评名单/评优架构/人产口径下使用；该表含 `qici`，会限制结果落在已维护期次内。
 - 补充 `temp_table.dingxi01_jiagou_zx` 作为在职架构顾问名单替代来源的使用模板，要求限定在职和郑州/西安顾问部范围，并按 `employee_email_name` 去重。
-- 同步更新 `SKILL.md`、`docs/USAGE_PROMPTS.md`、`knowledge/sql_patterns/dashboard_query_patterns.md`、`knowledge/tables/temp_table.dingxi01_pingyou_jg.md`、`knowledge/tables/temp_table.dingxi01_jiagou_zx.md`。
+- 同步更新 `SKILL.md`、`docs/USAGE_PROMPTS.md`、`knowledge/sql_patterns/dashboard_query_patterns.md`、`knowledge/tables/temp_table.zhangjunyan01_pingyou_jg.md`、`knowledge/tables/temp_table.lvshuai01_jiagou_zx.md`。
 
 ## 2026-05-09 线索分配计划与实际有效量 SQL 入库
 
 - 新增原始 SQL：`resources/raw_sql/lead_assign_plan_actual_valid_count.sql`，来源为用户提供的“实际有效数量/计划分配数量”SQL。
 - 新增看板文档：`knowledge/dashboards/lead_assign_plan_actual_valid_count.md`。
 - 新增指标集合：`knowledge/metrics/lead_assign_plan_actual_valid_count_metrics.md`。
-- 新增表结构文档：`knowledge/tables/service_dw.dim_crm_assign_rule_plan_item_info_hf.md`、`knowledge/tables/temp_table.dingxi01_plan_id.md`，记录 SQL 中使用的最小字段和待确认项。
+- 新增表结构文档：`knowledge/tables/service_dw.dim_crm_assign_rule_plan_item_info_hf.md`、`knowledge/tables/temp_table.lvshuai01_plan_id.md`，记录 SQL 中使用的最小字段和待确认项。
 - 更新 `knowledge/01_table_index.md`、`knowledge/dashboards/README.md`、`knowledge/metrics/README.md`。
 - 更新 `knowledge/joins/common_join_keys.md` 与 `knowledge/joins/table_relationships.md`，补充分配规则 `rule_id + plan_id`、`group_id`、实际量 `rule_name + employee_email_name`、架构 `employee_email_name + substr(qici, -5)` 等关联关系。
-- 更新既有表文档 `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md`、`service_dw.dim_crm_assign_rule_lead_detail_hf.md`、`temp_table.dingxi01_jiagou_db.md`，补充该 SQL 的使用注意事项。
+- 更新既有表文档 `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md`、`service_dw.dim_crm_assign_rule_lead_detail_hf.md`、`temp_table.lvshuai01_jiagou_db.md`，补充该 SQL 的使用注意事项。
 - 记录待确认事项：计划 item 表真实 DDL、`temp_table.dingxi01_plan_id` 维护来源和唯一性、`assign_lead_count` 含义、实际量与计划侧小时偏移不一致、规则名拆分格式、期次尾号关联跨年份重复风险。
 - 将用户 SQL 中的 `group by 1,2` 和 `group by 1..12` 改为显式字段/表达式分组，便于作为后续模板复用。
 - 运行 `python scripts/validate_sql_rules.py --sql-file resources/raw_sql/lead_assign_plan_actual_valid_count.sql`；当前脚本对多 CTE 的 `group by` 片段存在串段解析限制，仍提示 `employee_email_name` 未分组，实际 `vd` CTE 已显式按 `rule_name, employee_email_name` 分组。
@@ -217,7 +217,7 @@
 
 - 根据用户提供路径 `E:\2000_work\GAOTU\20002_市场顾问部看板维护表格\plan_id.xlsx` 更新 `temp_table.dingxi01_plan_id` 表知识。
 - 确认 Excel sheet `Sheet1` 字段为 `year`、`qici`、`group_id`、`group_name`，非空数据行 51 行，字段 4 个，当前年份均为 2026。
-- 更新 `knowledge/tables/temp_table.dingxi01_plan_id.md`，补充字段样例、常用过滤、SQL 片段和 key 重复检查。
+- 更新 `knowledge/tables/temp_table.lvshuai01_plan_id.md`，补充字段样例、常用过滤、SQL 片段和 key 重复检查。
 - 更新 `knowledge/01_table_index.md`、`knowledge/joins/common_join_keys.md`、`knowledge/joins/table_relationships.md`、`knowledge/dashboards/lead_assign_plan_actual_valid_count.md` 和 `knowledge/metrics/lead_assign_plan_actual_valid_count_metrics.md`。
 - 记录唯一性：`qici + group_id`、`year + qici + group_id` 唯一；`group_id` 单字段不全局唯一，`15175` 出现在 `0501期`、`0508期`、`0515期`；`group_name` 单字段也不唯一。
 
@@ -269,7 +269,7 @@
 - 增加指定期次事实存在性验证模板，要求显式过滤事实主表派生 `qici`，避免只用目标期次架构名单查询出历史所有期次。
 - 记录 `order by qici asc limit N` 会截断最新期次的误判风险；查最新期次应使用倒序或显式目标期次过滤。
 - 更新 `knowledge/dashboards/outbound_call_process_dashboard.md`，说明外呼过程看板当前为事实主表驱动，未来期次仅在架构表维护但主表无数据时不会展示。
-- 更新 `knowledge/tables/temp_table.dingxi01_jiagou_db.md`，补充该表可能提前维护未来期次，排查时需单独验证事实主表派生期次和指标。
+- 更新 `knowledge/tables/temp_table.lvshuai01_jiagou_db.md`，补充该表可能提前维护未来期次，排查时需单独验证事实主表派生期次和指标。
 - 更新 `SKILL.md`，在加载边界中加入结果缺失排查入口提示。
 
 ## 2026-05-15 流量画像 city_channel SQL 更新
@@ -554,7 +554,7 @@
 - 使用 runtime 修正版覆盖当日的 2293 运营侧个人数据快照；该架构修正后续已由 `resources/raw_sql/data_center_market_2293_20260624.sql` 继承，旧快照去重删除。
 - 修正原因：原最终层 `select zz.*` 会把事实宽表 `zz.jingli` / `zz.zhuguan` 原样输出；BI 透视表绑定 `jingli` 时会使用事实宽表 `virtual_leader_email_name`，导致顾问展示在旧经理或旧主管下。
 - 修正逻辑：新增 `zx_active` 对 `temp_table.dingxi01_jiagou_zx` 做在职和部门过滤并按 `employee_email_name` 去重；最终层显式输出 `jingli`、`zhuguan`、`xiaozu`、`jingli_11`，优先级为 `temp_table.dingxi01_jiagou_db` 期次架构 > `temp_table.dingxi01_jiagou_zx` 当前在职架构 > 事实宽表 `virtual_*` 字段。
-- 更新 `knowledge/dashboards/data_center_market_datasets.md`、`knowledge/tables/temp_table.dingxi01_jiagou_db.md`、`knowledge/tables/temp_table.dingxi01_jiagou_zx.md`、`knowledge/pitfalls/common_join_failures.md`、`knowledge/sql_patterns/dashboard_query_patterns.md`，记录 2293 同类架构错位的排查路径和修复模板。
+- 更新 `knowledge/dashboards/data_center_market_datasets.md`、`knowledge/tables/temp_table.lvshuai01_jiagou_db.md`、`knowledge/tables/temp_table.lvshuai01_jiagou_zx.md`、`knowledge/pitfalls/common_join_failures.md`、`knowledge/sql_patterns/dashboard_query_patterns.md`，记录 2293 同类架构错位的排查路径和修复模板。
 
 ## 2026-06-18 市场顾问渠道 CASE 孟亚飞视频号合并
 
@@ -566,7 +566,7 @@
 
 - 使用用户提供的粘贴 SQL 覆盖 `resources/raw_sql/market_consultant_lead_conversion_attendance.sql`，作为到课数据查询最新 canonical 代码。
 - 与 2026-06-17 数据中心版本相比，SQL 内容差异为孟亚飞 1 组视频号分支从 `孟亚飞-1组-视频号` 合并为 `孟亚飞9元`；到课 CTE、自动/手工课次指标和输出粒度保持一致。
-- 同步更新 `knowledge/dashboards/market_consultant_lead_conversion_attendance.md`、`knowledge/metrics/market_consultant_lead_conversion_attendance_metrics.md`、`knowledge/joins/table_relationships.md`、`knowledge/joins/common_join_keys.md`、`knowledge/tables/temp_table.dingxi01_daoke_1_6_t.md` 和 `knowledge/dashboards/data_center_market_datasets.md`，明确最终输出包含自动课次 `ke_*` / `v_ke_*`、手工课次 `manual_*` / `manual_v_*` 以及自动/手工课次对照计数。
+- 同步更新 `knowledge/dashboards/market_consultant_lead_conversion_attendance.md`、`knowledge/metrics/market_consultant_lead_conversion_attendance_metrics.md`、`knowledge/joins/table_relationships.md`、`knowledge/joins/common_join_keys.md`、`knowledge/tables/temp_table.lvshuai01_daoke_1_6_t.md` 和 `knowledge/dashboards/data_center_market_datasets.md`，明确最终输出包含自动课次 `ke_*` / `v_ke_*`、手工课次 `manual_*` / `manual_v_*` 以及自动/手工课次对照计数。
 
 ## 2026-06-19 市场顾问部模板取数源 SQL 同步
 
@@ -1866,3 +1866,23 @@
 ## 2026-11-28 临时表维护账号知识更新
 
 按平台 SQL 解析结果核对旧表与现行维护表字段及类型，更新本域表文档、索引和关联契约；历史 SQL 和样本保留原样。结构一致不证明数据一致。
+
+## 2026-11-28 临时表维护账号迁移
+
+- 核实 8 张新表身份，合并重复表文档并把当前知识和契约迁移为 lvshuai01；映射见 `knowledge/temp_table_maintenance.md`。
+- 保留历史 Query、线上/历史 SQL 快照及原有业务边界；未上传、删除或修改任何线上表/数据集。
+
+## 2026-11-28 临时表维护账号迁移
+
+- 核实 1 张新表身份，合并重复表文档并把当前知识和契约迁移为 lvshuai01；映射见 `knowledge/temp_table_maintenance.md`。
+- 保留历史 Query、线上/历史 SQL 快照及原有业务边界；未上传、删除或修改任何线上表/数据集。
+
+## 2026-11-28 临时表维护账号迁移
+
+- 核实 1 张新表身份，合并重复表文档并把当前知识和契约迁移为 lvshuai01；映射见 `knowledge/temp_table_maintenance.md`。
+- 保留历史 Query、线上/历史 SQL 快照及原有业务边界；未上传、删除或修改任何线上表/数据集。
+
+## 2026-11-28 临时表知识维护
+
+- 按精确源 Hash 审阅修订本地知识文档，刷新契约和生成目录；不改变业务口径。
+- 保留历史 Query、线上/历史 SQL 快照及原有业务边界；未上传、删除或修改任何线上表/数据集。

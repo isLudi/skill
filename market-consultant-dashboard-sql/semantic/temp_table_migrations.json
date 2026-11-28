@@ -1,0 +1,98 @@
+{
+  "schema_version": "1.0.0",
+  "domain": "market_consultant",
+  "as_of": "2026-11-28",
+  "mappings": [
+    {
+      "old_table": "temp_table.dingxi01_ceshiqudao_pingyou",
+      "new_table": "temp_table.lvshuai01_ceshiqudao_pingyou",
+      "current_reference_table": "temp_table.lvshuai01_ceshiqudao_pingyou",
+      "production_evidence": [],
+      "live_id": "16498"
+    },
+    {
+      "old_table": "temp_table.dingxi01_channel_group",
+      "new_table": "temp_table.lvshuai01_channel_group",
+      "current_reference_table": "temp_table.lvshuai01_channel_group",
+      "production_evidence": [],
+      "live_id": "16486"
+    },
+    {
+      "old_table": "temp_table.dingxi01_cost",
+      "new_table": "temp_table.lvshuai01_cost",
+      "current_reference_table": "temp_table.lvshuai01_cost",
+      "production_evidence": [],
+      "live_id": "16488"
+    },
+    {
+      "old_table": "temp_table.dingxi01_daoke_1_6_t",
+      "new_table": "temp_table.lvshuai01_daoke_1_6_t",
+      "current_reference_table": "temp_table.lvshuai01_daoke_1_6_t",
+      "production_evidence": [],
+      "live_id": "16489"
+    },
+    {
+      "old_table": "temp_table.dingxi01_jiagou_db",
+      "new_table": "temp_table.lvshuai01_jiagou_db",
+      "current_reference_table": "temp_table.lvshuai01_jiagou_db",
+      "production_evidence": [],
+      "live_id": "14050"
+    },
+    {
+      "old_table": "temp_table.dingxi01_jiagou_zx",
+      "new_table": "temp_table.lvshuai01_jiagou_zx",
+      "current_reference_table": "temp_table.lvshuai01_jiagou_zx",
+      "production_evidence": [],
+      "live_id": "14049"
+    },
+    {
+      "old_table": "temp_table.dingxi01_jinliang_goal",
+      "new_table": "temp_table.lvshuai01_jinliang_goal",
+      "current_reference_table": "temp_table.lvshuai01_jinliang_goal",
+      "production_evidence": [],
+      "live_id": "16490"
+    },
+    {
+      "old_table": "temp_table.dingxi01_pingyou_jg",
+      "new_table": "temp_table.lvshuai01_pingyou_jg",
+      "current_reference_table": "temp_table.zhangjunyan01_pingyou_jg",
+      "production_evidence": [
+        {
+          "dataset_id": "menu_set_3822395827668975617",
+          "model_id": "2421",
+          "sql_sha256": "71c0a2b2d5e896656405738bf43422e04bfa75dcffbb10c4de2229b45d8d4785"
+        },
+        {
+          "dataset_id": "menu_set_3862900336085241857",
+          "model_id": "2632",
+          "sql_sha256": "4591599da1b634a8e536c735edcaf932dd805cb5b5d263f945c127dc93c36a4c"
+        },
+        {
+          "dataset_id": "menu_set_3865803192573276160",
+          "model_id": "2643",
+          "sql_sha256": "78eca90c5eebc956d13c51b484ce664cb2fa06f5b2333a09315f5713fc66cca5"
+        },
+        {
+          "dataset_id": "menu_set_3865812647888924673",
+          "model_id": "2644",
+          "sql_sha256": "198f027f6ea8b39d59d355e5335b493c3956ab1d93d74ae36b6f5d58fa88fca5"
+        },
+        {
+          "dataset_id": "menu_set_3874438523397902337",
+          "model_id": "2688",
+          "sql_sha256": "6c4449c949438f10219e396b33e2a1283607c405ab3424c6dbc154ac481fba0a"
+        }
+      ],
+      "live_id": "14059",
+      "document_retired": true
+    },
+    {
+      "old_table": "temp_table.dingxi01_plan_id",
+      "new_table": "temp_table.lvshuai01_plan_id",
+      "current_reference_table": "temp_table.lvshuai01_plan_id",
+      "production_evidence": [],
+      "live_id": "16491"
+    }
+  ],
+  "raw_sql_policy": "preserve_exact_historical_or_online_snapshot"
+}

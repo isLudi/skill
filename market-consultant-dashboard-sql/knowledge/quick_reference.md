@@ -28,8 +28,8 @@
 | `finance_dw.app_finance_performance_extend_details_hf` | 财务业绩、收款、退款、评优 | Web 查询可用 |
 | `temp_table.lvshuai01_jiagou_zx` | 当前在职架构、顾问名单 | 限定 `zaizhi` 和部门，按顾问去重 |
 | `temp_table.lvshuai01_jiagou_db` | 期次架构、小组经理 | 同时限定 `qici` 和目标部门 |
-| `temp_table.zhangjunyan01_pingyou_jg` | 新人承接期次、模型 2688 架构及评优人产 | `x_qi_count` 为 1—4 有效序号、9 为排除；上传前读专项踩坑 |
-| `temp_table.lvshuai01_cost` | 渠道成本、GMV 目标 | 核验 `grade='0'` 默认值的匹配规则及重复风险 |
+| `temp_table.zhangjunyan01_pingyou_jg` | 新人承接期次、模型 2688 架构/人产及评优/参评名单 | `x_qi_count` 为 1—4 有效序号、9 为排除；仅在评优口径启用参评过滤，上传前核验现行维护规则 |
+| `temp_table.lvshuai01_cost` | 渠道成本、GMV 目标 | 核验 `grade='0'` 通配的匹配规则及重复风险 |
 | `temp_table.lvshuai01_daoke_1_6_t` | 到课手工课次映射 | 最新到课 canonical 仅用于 `manual_*` 和自动/手工对照诊断；主课次按实际开课时间自动排序 |
 | `service_dw.dwd_crm_assign_private_detail_hf` | 私海阶段、深沟、双沟 | 市场顾问场景限定到市场部/市场顾问部 |
 | `service_dw.dim_crm_assign_rule_lead_detail_hf` | 分配规则、计划组 | 按 `rule_id + plan_id` 关联 |
