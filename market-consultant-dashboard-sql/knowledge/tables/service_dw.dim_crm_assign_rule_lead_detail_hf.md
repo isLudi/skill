@@ -74,7 +74,7 @@ Presto
 - `lead_id`：线索关联/去重
 - `trace_id`：留痕/线索链路关联
 - `rule_id + plan_id`：关联 `service_dw.dim_crm_assign_rule_plan_item_info_hf` 获取计划 item 顾问配置
-- `group_id`：关联 `temp_table.dingxi01_plan_id` 过滤被维护的分配规则组
+- `group_id`：关联 `temp_table.lvshuai01_plan_id` 过滤被维护的分配规则组
 
 ## 10. 常用 SQL 片段
 
@@ -114,7 +114,7 @@ limit 20;
 ### 退费分析 SQL 使用备注
 
 - 三份退费分析 SQL 通过 `lead_id + account_domain` 关联该表，其中 `account_domain` 对应财务业绩明细的 `email_prefix`。
-- SQL 按 `rule_name` 长 CASE 派生 `channel_1`，该渠道口径来自退费分析历史 SQL，不等同于当前 `market_channel_case_when_1113.sql` 的最新渠道映射。
+- SQL 按 `rule_name` 长 CASE 派生 `channel_1`，该渠道口径来自退费分析历史 SQL，不等同于当前 `market_channel_case_when_1127.sql` 的最新渠道映射。
 - `group_period_term` 从 `rule_name` 前 4 位数字提取，再推导 `friday_period`；规则名前缀格式不符合 MMDD 时会得到 null。
 - 该表在退费分析 SQL 中只限定 `dt/hour`，没有独立部门字段过滤，依赖 `lead_id` 来源范围。
 

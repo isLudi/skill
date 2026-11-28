@@ -38,13 +38,13 @@
 | service_dw.ods_service_ai_ones_business_copilot__call_record_df | AI 途途通话记录表 | 通话事件粒度待确认；`unique_key` 与 `call_id` 唯一性待核 | dt | 否 | 已确认 | 数据地图登记 21 个字段；业务范围需通过线索人群限定，ASR 直连有放大风险 |
 | service_dw.ods_service_ai_ones_business_copilot__ai_call_analysis_result_df | 语音分析结果表 | 分析记录粒度待确认；有效 `call_id` 唯一性仅受限样本验证 | dt | 否 | 已确认 | 数据地图登记 16 个字段；`is_del` 是 bigint，候选关联为同分区 `call_id` |
 | service_dw.dim_crm_assign_rule_plan_item_info_hf | 分配规则计划 item 信息表 | 待确认；根据 SQL 推断为 rule_id + plan_id + employee_email_name 或计划 item 小时快照粒度 | dt, hour | 是 | 已确认 | 根据 `resources/raw_sql/lead_assign_plan_actual_valid_count.sql` 补充最小字段，真实 DDL 待确认 |
-| temp_table.dingxi01_channel_group | 渠道分组映射表 | 渠道映射粒度，待确认。理论上一行对应一个 `channel`。 | 无 | 否 | 已确认 | 保留原整理 |
-| temp_table.dingxi01_ceshiqudao_pingyou | 评优测试渠道指标临时表 | 期次-渠道-姓名候选粒度，唯一性未验证；2644 按姓名聚合后使用 | 未取得分区 DDL；Registry 按稳定表维护 | 否 | 已确认 | 2026-10-09 Query 1622218726 核验六个生产相关字段均为 string；仅登记物理事实，不改动指标或范围 |
 | temp_table.shenbaoxin_channel_group | 渠道分组映射表（申保鑫） | 渠道映射粒度，字段来自 SQL 使用字段推断，待确认 | 无 | 否 | 已确认 | 根据 `resources/raw_sql/h_biz_line_department_conversion.sql` 补充使用字段；2026-06-05 后不再用于到课 raw SQL，真实字段类型和维护来源待确认 |
-| temp_table.dingxi01_cost | 渠道成本目标表 | 渠道-年级-期次粒度，待确认。 | 无 | 否 | 已确认 | 保留原整理 |
-| temp_table.dingxi01_daoke_1_6_t | 到课课次映射表 | 渠道-期次-年级-开课时间-课次粒度。来自 `daoke_t_one_six.xlsx`，数据行 2862 行、字段 7 个，存在 1 条空行；join key 存在重复，使用前建议去重。 | 无 | 否 | 已确认 | 已按 Excel 补全字段、样例和 key 重复检查 |
-| temp_table.dingxi01_jiagou_db | 架构映射表 | 顾问-期次-架构映射粒度。来自 `jiagou_xian_zhengzhou.xlsx`，数据行 5017 行、字段 10 个，存在 7 条空行；join key 存在少量重复。 | 无 | 否 | 已确认 | 已按 Excel 补全字段、样例和 key 重复检查 |
-| temp_table.dingxi01_jiagou_zx | 员工专项架构映射表 | 顾问-专项架构粒度。来自 `jiagou2026_zx.xlsx`，数据行 885 行、字段 7 个；无 qici 字段，跨期使用需确认。 | 无 | 否 | 已确认 | 已按 Excel 补全字段、样例和 key 重复检查 |
-| temp_table.dingxi01_pingyou_jg | 评优架构 / 新人承接期次临时表 | 顾问-期次-架构粒度。当前 `pingyou_jg.xlsx` 仅含 `Sheet4`，数据行 5920 行、字段 14 个；`employee_email_name + qici` 唯一。 | 无 | 否 | 已确认 | 2026-07-21 已验证 `x_qi_count` 仅为 1/2/3/4/9，顾问有效序号不重复，模型 2688 使用本表 |
-| temp_table.zhangjunyan01_pingyou_jg | 评优架构人产临时表 | 顾问-期次-渠道-年级-架构粒度。来自 `pingyou_jg.xlsx`，数据行 1220 行、字段 14 个，存在 1 个空表头列且已忽略。 | 无 | 否 | 已确认 | 已按 Excel 补全字段、样例和 key 重复检查 |
-| temp_table.dingxi01_plan_id | 市场顾问分配计划组 ID 维护表 | 期次-规则组粒度；来自 `plan_id.xlsx`，数据行 51 行、字段 4 个；`qici + group_id` 唯一，`group_id` 单字段跨期重复 | 无 | 否 | 已确认 | 已按 Excel `E:\2000_work\GAOTU\20002_市场顾问部看板维护表格\plan_id.xlsx` 补全字段、样例和 key 重复检查 |
+| temp_table.lvshuai01_daoke_1_6_t | 当前市场到课课次映射表 | 按期次、渠道、年级、开课时间与课次管理；当前唯一性需实测 | 无 | 否 | 生产 SQL 与治理登记已核对 | 登记七个上传列，当前类型、重复与空值未提升为已确认物理契约 |
+| temp_table.lvshuai01_jiagou_db | 当前市场期次带班架构映射表 | 市场登记键为 qici + employee_email_prefix；跨部门共用物理表 | 无 | 否 | 生产 SQL 与治理登记已核对 | 本域限定 dept_1 为市场顾问部；当前类型、唯一性及其他部门语义独立核验 |
+| temp_table.lvshuai01_channel_group | 当前渠道分组关联表 | 现有登记或SQL关联粒度，唯一性待实测 | 结构待核验 | 待确认 | 实时SQL绑定已核对 | 字段来自本域登记或当前SQL引用，类型与新业务合同未自动确认 |
+| temp_table.lvshuai01_cost | 当前市场渠道成本目标表 | 现有登记或SQL关联粒度，唯一性待实测 | 结构待核验 | 待确认 | 实时SQL绑定已核对 | 字段来自本域登记或当前SQL引用，类型与新业务合同未自动确认 |
+| temp_table.lvshuai01_jiagou_zx | 当前员工专项架构关联表 | 现有登记或SQL关联粒度，唯一性待实测 | 结构待核验 | 待确认 | 实时SQL绑定已核对 | 字段来自本域登记或当前SQL引用，类型与新业务合同未自动确认 |
+| temp_table.lvshuai01_plan_id | 当前市场分配计划组ID表 | 现有登记或SQL关联粒度，唯一性待实测 | 结构待核验 | 待确认 | 实时SQL绑定已核对 | 字段来自本域登记或当前SQL引用，类型与新业务合同未自动确认 |
+| temp_table.lvshuai01_jinliang_goal | 当前市场进量目标表 | 现有登记或SQL关联粒度，唯一性待实测 | 结构待核验 | 待确认 | 实时SQL绑定已核对 | 字段来自本域登记或当前SQL引用，类型与新业务合同未自动确认 |
+| temp_table.zhangjunyan01_pingyou_jg | 评优架构及新人承接期次表 | 顾问与期次关联；当前唯一性须核验 | 结构待核验 | 按业务范围 | 平台解析已核对；模型 2688 已使用 | 用户已接受新旧数据差异；14 列输出均为 string，当前期次覆盖须核验 |
+| temp_table.lvshuai01_ceshiqudao_pingyou | 评优测试渠道指标表 | 期次、渠道、姓名候选粒度；唯一性待核验 | 结构待核验 | 按业务范围 | 平台解析已核对 | 6 列输出均为 string；历史模型先按姓名聚合 |

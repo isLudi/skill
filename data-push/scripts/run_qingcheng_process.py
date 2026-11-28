@@ -17,7 +17,9 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from fetch_qingcheng_process_source import PRIVATE_CHANNELS, PUBLIC_POOL_CHANNELS, TABLE_ID, fetch, probe_revision, shared_fetch
+from fetch_qingcheng_process_source import (
+    PRIVATE_CHANNELS, PUBLIC_POOL_CHANNELS, TABLE_ID, fetch, probe_revision, prune_old_slot_dirs, shared_fetch,
+)
 from preview_qingcheng_public_pool_process import build
 from lark_delivery.common import push_log, resend
 from lark_delivery.common.readback import available as readback_available
@@ -425,6 +427,8 @@ def run(*, period_date: str = "", confirm_send: bool = False, now: datetime | No
         period = period_date + "期"
     output = output or (STATE / "slots" / slot.strftime("%Y%m%d-%H%M") if slot else STATE / "previews" / period_date)
     output.mkdir(parents=True, exist_ok=True)
+    if slot and output.parent.name == "slots":
+        prune_old_slot_dirs(output.parent, current_slot_dir=output, now=slot)
     result_path = output / "batch.json"
     previous = json.loads(result_path.read_text(encoding="utf-8")) if result_path.exists() else None
     if previous and (previous["period"], previous["slot"]) != (period, slot.isoformat() if slot else None):

@@ -21,7 +21,7 @@ import os
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from fetch_qingcheng_process_source import fetch, probe_revision, shared_fetch
+from fetch_qingcheng_process_source import fetch, probe_revision, prune_old_slot_dirs, shared_fetch
 from lark_delivery.common import resend
 from lark_delivery.common.im import upload_image, verify_chat
 from lark_delivery.common.readback import available as readback_available
@@ -421,6 +421,8 @@ def _run_base(*, now: datetime | None = None, output: Path | None = None) -> dic
     period = _period(slot.date())
     output = output or STATE / "slots" / slot.strftime("%Y%m%d-%H%M")
     output.mkdir(parents=True, exist_ok=True)
+    if output.parent.name == "slots":
+        prune_old_slot_dirs(output.parent, current_slot_dir=output, now=slot)
     batch_path = output / "batch.json"
     if batch_path.exists():
         previous = json.loads(batch_path.read_text(encoding="utf-8"))

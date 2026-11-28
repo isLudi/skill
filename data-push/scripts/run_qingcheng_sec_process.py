@@ -14,7 +14,7 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from fetch_qingcheng_process_source import fetch, probe_revision, shared_fetch
+from fetch_qingcheng_process_source import fetch, probe_revision, prune_old_slot_dirs, shared_fetch
 from lark_delivery.integrations.push_platform import shared_base_snapshot
 from qingcheng_sec_source import latest_verified_snapshot, prepare_source_rows
 from qingcheng_schedule import require_delivery_window
@@ -445,6 +445,8 @@ def _run_base(*, now: datetime | None = None, output: Path | None = None) -> dic
     period = _period(slot.date())
     output = output or STATE / "slots" / slot.strftime("%Y%m%d-%H%M")
     output.mkdir(parents=True, exist_ok=True)
+    if output.parent.name == "slots":
+        prune_old_slot_dirs(output.parent, current_slot_dir=output, now=slot)
     batch_path = output / "batch.json"
     if batch_path.exists():
         previous = json.loads(batch_path.read_text(encoding="utf-8"))

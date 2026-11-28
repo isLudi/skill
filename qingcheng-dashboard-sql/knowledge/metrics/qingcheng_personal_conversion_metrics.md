@@ -181,3 +181,7 @@ ifnull(sum(${n_H_promit_4}) * 0.5 + (sum(${H_promit_4}) - sum(${Y_promit_4})), 0
 - 该修复只阻止真实 `全部退款` 被错误当作内部退款抵销，避免真实退款不进入 `refund/refund_4`，不会把 finance 金额直接加到 `income_all/refund_all`。
 
 当前本地三份 canonical SQL 哈希为：个人 `2769`=`17a2e00f0afaf569076f7674336f8eb07ab1ee8066fedbd29822e982fba5776c`，团队期 `2680`=`e68e3cfb921838132118f9be5c453543a8ef28c6731a3c7c8c269bc4cf5ea806`，团队月 `2677`=`6029971ea6cbd66b0c935bcfc8de6f0f5ba4de9118f11e92ce4afc0bbfe08b47`。个人回归 `1539820614`、团队期回归 `1539844465`、团队月回归 `1539849576` 均由结果 API 成功回读；本轮未执行 Data Center 远端替换或抽数。
+
+## 2026-11-28 临时表维护账号变更
+
+现行维护表映射：`temp_table.dingxi01_qing_team_jg` → `temp_table.lvshuai01_qing_team_jg`。平台字段核验见本领域表索引。旧模型和旧 SQL 的原始表名保留为历史证据；新旧表输出结构一致不代表数据、历史覆盖或 Join 唯一性一致，使用前仍须核验。

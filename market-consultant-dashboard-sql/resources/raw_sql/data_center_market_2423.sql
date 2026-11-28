@@ -558,7 +558,7 @@ select
     zx.xiaozu,
     zx.jingli
 from rule
-left join temp_table.dingxi01_jiagou_zx zx on zx.employee_email_name = rule.name
+left join temp_table.lvshuai01_jiagou_zx zx on zx.employee_email_name = rule.name
 )
 -------计算总净收
 ,gmv_1 as (

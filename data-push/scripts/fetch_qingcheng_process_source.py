@@ -4,10 +4,13 @@ from __future__ import annotations
 
 import argparse
 from collections import Counter
+from datetime import datetime, timedelta
 import hashlib
 import json
 import re
+import shutil
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from lark_delivery.common.runtime import run_lark
 from lark_delivery.integrations.push_platform import shared_ndjson_snapshot
@@ -27,6 +30,55 @@ PUBLIC_POOL_CHANNELS = ("顾问未加好友", "0元信息流")
 MERGED_POOL_CHANNELS = (*PUBLIC_POOL_CHANNELS, "SEC未加好友", "SEC首期掉海", "SEC招生退费", "SEC内部复用",
                         "SEC一对一复用", "SECAI提效复用", "SEC进校复用")
 PAGE_SIZE = 2000
+SLOT_DIR_RE = re.compile(r"^\d{8}-\d{4}$")
+DEFAULT_SLOT_RETENTION_DAYS = 7
+
+
+def _remove_page_artifacts(page_files: list[Path]) -> None:
+    """Remove intermediate paginated ndjson files and their sidecar manifests after merge."""
+    for page_file in page_files:
+        for candidate in (page_file, page_file.with_suffix(".manifest.json")):
+            try:
+                if candidate.exists():
+                    candidate.unlink()
+            except OSError:
+                pass
+
+
+def prune_old_slot_dirs(
+    slots_dir: Path,
+    *,
+    keep_days: int = DEFAULT_SLOT_RETENTION_DAYS,
+    current_slot_dir: Path | None = None,
+    now: datetime | None = None,
+) -> list[str]:
+    """Best-effort rolling cleanup of YYYYMMDD-HHMM slot directories older than keep_days."""
+    if keep_days <= 0 or not slots_dir.exists() or not slots_dir.is_dir():
+        return []
+    ref = (now or datetime.now(ZoneInfo("Asia/Shanghai"))).replace(tzinfo=None)
+    cutoff = ref - timedelta(days=keep_days)
+    protected = current_slot_dir.resolve() if current_slot_dir is not None else None
+    removed: list[str] = []
+    try:
+        children = list(slots_dir.iterdir())
+    except OSError:
+        return []
+    for child in children:
+        if not SLOT_DIR_RE.fullmatch(child.name):
+            continue
+        try:
+            if child.is_symlink() or not child.is_dir():
+                continue
+            if protected is not None and child.resolve() == protected:
+                continue
+            slot_dt = datetime.strptime(child.name, "%Y%m%d-%H%M")
+        except (OSError, ValueError):
+            continue
+        if slot_dt < cutoff:
+            shutil.rmtree(child, ignore_errors=True)
+            if not child.exists():
+                removed.append(child.name)
+    return sorted(removed)
 
 
 def fetch(channel: str, period: str, output: Path, *, secondary_channel: str | None = None,
@@ -54,11 +106,13 @@ def fetch(channel: str, period: str, output: Path, *, secondary_channel: str | N
         condition.append(["渠道", "==", "山东直播间"])
     filtered = json.dumps({"logic": "and", "conditions": condition}, ensure_ascii=True)
     rows = []
+    page_files: list[Path] = []
     revision = None
     snapshot = None
     offset = 0
     for page in range(50):
         page_file = output.with_name(f"{output.stem}.page{page + 1}.ndjson")
+        page_files.append(page_file)
         args = ["base", "+record-list", "--base-token", BASE_TOKEN, "--table-id", TABLE_ID,
                 "--filter-json", filtered, "--offset", str(offset), "--limit", str(PAGE_SIZE),
                 "--format", "ndjson", "--output", str(page_file), "--as", "user", "--overwrite"]
@@ -151,6 +205,7 @@ def fetch(channel: str, period: str, output: Path, *, secondary_channel: str | N
         combined.update(export_records_count=exported_count,
                         excluded_secondary_channel_counts=dict(sorted(excluded_channels.items())))
     output.with_suffix(".manifest.json").write_text(json.dumps(combined, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    _remove_page_artifacts(page_files)
     return combined
 
 

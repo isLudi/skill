@@ -26,12 +26,11 @@
 |---|---|---|
 | `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df` | 线索、渠道、转化、GMV 全链路 | Web 查询可用；最新分区用 `dt/hour` 汇总排查 |
 | `finance_dw.app_finance_performance_extend_details_hf` | 财务业绩、收款、退款、评优 | Web 查询可用 |
-| `temp_table.dingxi01_jiagou_zx` | 当前在职架构、顾问名单 | 限定 `zaizhi` 和部门，按顾问去重 |
-| `temp_table.dingxi01_jiagou_db` | 期次架构、小组经理 | 同时限定 `qici` 和目标部门 |
-| `temp_table.dingxi01_pingyou_jg` | 新人过程转化承接期次、模型 2688 架构/人产 | `x_qi_count` 为 1—4 有效序号、9 为排除；上传前读专项踩坑 |
-| `temp_table.zhangjunyan01_pingyou_jg` | 评优/参评名单/人产 | 仅在评优口径使用 |
-| `temp_table.dingxi01_cost` | 渠道成本、GMV 目标 | join 时处理 `grade='0'` 通配 |
-| `temp_table.dingxi01_daoke_1_6_t` | 到课手工课次映射 | 最新到课 canonical 仅用于 `manual_*` 和自动/手工对照诊断；主课次按实际开课时间自动排序 |
+| `temp_table.lvshuai01_jiagou_zx` | 当前在职架构、顾问名单 | 限定 `zaizhi` 和部门，按顾问去重 |
+| `temp_table.lvshuai01_jiagou_db` | 期次架构、小组经理 | 同时限定 `qici` 和目标部门 |
+| `temp_table.zhangjunyan01_pingyou_jg` | 新人承接期次、模型 2688 架构及评优人产 | `x_qi_count` 为 1—4 有效序号、9 为排除；上传前读专项踩坑 |
+| `temp_table.lvshuai01_cost` | 渠道成本、GMV 目标 | 核验 `grade='0'` 默认值的匹配规则及重复风险 |
+| `temp_table.lvshuai01_daoke_1_6_t` | 到课手工课次映射 | 最新到课 canonical 仅用于 `manual_*` 和自动/手工对照诊断；主课次按实际开课时间自动排序 |
 | `service_dw.dwd_crm_assign_private_detail_hf` | 私海阶段、深沟、双沟 | 市场顾问场景限定到市场部/市场顾问部 |
 | `service_dw.dim_crm_assign_rule_lead_detail_hf` | 分配规则、计划组 | 按 `rule_id + plan_id` 关联 |
 | `gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf` | 首 call 任务 | 通过 `account_id` 桥接员工维表 |
@@ -65,7 +64,7 @@
 | 渠道内 TOP10 顾问转化/净 GMV 排名 | `knowledge/dashboards/market_channel_top10_consultant_conversion_template.md` | `knowledge/metrics/market_channel_top10_consultant_conversion_metrics.md`；渠道用当前 canonical 映射，学部+渠道使用显式配对 |
 | 渠道专项正价课科目、课程和班课拆分 | `knowledge/sql_patterns/market_channel_positive_subject_course_worked_example.md` | 作为 M6 worked example；渠道、订单类型、版本关键词和课程粒度均为参数，不固化西安直播江苏 |
 | 市场顾问看板指标含义/前端公式/数据集 SQL 联动 | `knowledge/metrics/market_consultant_dashboard_metric_formula_linkage.md` | 再读 `knowledge/dashboard_web_profiles/edit_metrics/` 中对应看板明细和 `resources/raw_sql/data_center_market_<model_id>.sql` |
-| 【新人】前期过程转化、`x_qi_count` 重复、`pingyou_jg` 上传错位或最新期次缺失 | `knowledge/pitfalls/newcomer_x_qi_count_and_pingyou_upload.md` | `knowledge/tables/temp_table.dingxi01_pingyou_jg.md`、`resources/raw_sql/data_center_market_2688.sql`；缺暑期期次再读 `knowledge/sql_patterns/market_summer_qici_corrections.md` |
+| 【新人】前期过程转化、`x_qi_count` 重复、`pingyou_jg` 上传错位或最新期次缺失 | `knowledge/pitfalls/newcomer_x_qi_count_and_pingyou_upload.md` | `knowledge/tables/temp_table.zhangjunyan01_pingyou_jg.md`、`resources/raw_sql/data_center_market_2688.sql`；缺暑期期次再读 `knowledge/sql_patterns/market_summer_qici_corrections.md` |
 | 运营侧暑期期次、`20260717期` 应归 `20260716期`、7 月后期次不按周五 | `knowledge/sql_patterns/market_summer_qici_corrections.md` | 再读 `knowledge/dashboard_web_profiles/operation_side_dashboard_web_profile.md` 和 `knowledge/dashboards/data_center_market_datasets.md` |
 | 退费分析 | `knowledge/metrics/market_channel_conversion_profile_metrics.md` | 唯一入口为 `knowledge/dashboards/market_channel_conversion_profile.md`；按 2349、2890、2353 三个当前模型选择对应字段 |
 | 分配计划实际有效量 | `knowledge/dashboards/lead_assign_plan_actual_valid_count.md` | `knowledge/joins/common_join_keys.md` |
@@ -81,6 +80,6 @@
 - 排查平台“模板取数”中存储的最新 SQL 时，先读 `knowledge/dashboards/template_query_market_datasets.md`，不要默认用数据中心或 Web BI canonical SQL 替代；回答时说明使用口径为“模板取数”。
 - 生成平台模板取数 SQL 时，日期/时间区间必须使用 `字段名 >= ${字段名:1} and 字段名 < ${字段名:2}`，参数名和过滤列名一致，不能加 `cast()`，详见 `knowledge/sql_patterns/template_parameter_rules.md`。
 - `馒头_订单明细_支付时间`（8735）已下线，旧窗口统计优化仅作历史参考，不作为当前SQL入口；历史上不要恢复 `user_stats`、`subject_stats` 和 `lianbao_stats` 同时重复读取重 CTE `cs` 的旧结构。
-- 需要最新渠道归因时，读 `knowledge/sql_patterns/channel_mapping_case_when.md`，完整 CASE 用 `resources/raw_sql/market_channel_case_when_1113.sql`。
+- 需要最新渠道归因时，读 `knowledge/sql_patterns/channel_mapping_case_when.md`，完整 CASE 用 `resources/raw_sql/market_channel_case_when_1127.sql`。
 - 更新最新渠道归因时，模板取数 `业财用户出单明细`（id `7689`）必须同步原位更新、发布、回读和查询验证，并用线上 SQL 哈希刷新 stable 文件 `resources/raw_sql/template_query_market_finance_order_detail.sql`；不能只维护数据中心 SQL。
 - 涉及 Web 查询执行、下载、权限问题时，读 `knowledge/sql_patterns/web_permission_guide.md`。

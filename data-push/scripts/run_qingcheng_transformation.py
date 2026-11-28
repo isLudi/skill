@@ -29,7 +29,7 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from fetch_qingcheng_process_source import fetch, probe_revision, shared_fetch
+from fetch_qingcheng_process_source import fetch, probe_revision, prune_old_slot_dirs, shared_fetch
 from export_conversion_refresh import FILTERS, BASE_TOKEN, TABLE_ID, export_conversion, shared_export_conversion
 from preview_qingcheng_transformation import build
 from qingcheng_schedule import delivery_deadline, resolve_slot
@@ -370,6 +370,8 @@ def run(*, period_date: str = "", confirm_send: bool = False, now: datetime | No
     output = output or (audience_state / "slots" / slot.strftime("%Y%m%d-%H%M")
                         if slot else audience_state / "previews" / preview_name)
     output.mkdir(parents=True, exist_ok=True)
+    if slot and output.parent.name == "slots":
+        prune_old_slot_dirs(output.parent, current_slot_dir=output, now=slot)
     result_path = output / "batch.json"
     previous = json.loads(result_path.read_text(encoding="utf-8")) if result_path.exists() else None
     if previous and (previous["period"], previous["slot"]) != (period, slot.isoformat() if slot else None):

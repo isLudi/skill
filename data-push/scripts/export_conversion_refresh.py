@@ -20,7 +20,9 @@ from pathlib import Path
 
 from lark_delivery.common.runtime import run_lark
 from lark_delivery.integrations.push_platform import shared_ndjson_snapshot
-from fetch_qingcheng_process_source import PRIVATE_CHANNELS, PUBLIC_POOL_CHANNELS, MERGED_POOL_CHANNELS
+from fetch_qingcheng_process_source import (
+    PRIVATE_CHANNELS, PUBLIC_POOL_CHANNELS, MERGED_POOL_CHANNELS, _remove_page_artifacts,
+)
 
 SKILL = Path(__file__).resolve().parents[1]
 WORKSPACE = SKILL.parents[1]
@@ -63,11 +65,13 @@ def export_conversion(channel: str, period: str, output: Path, *, cache_dir: Pat
     page_dir.mkdir(parents=True, exist_ok=True)
     filtered = json.dumps(FILTERS[channel], ensure_ascii=True)
     rows: list[dict] = []
+    page_files: list[Path] = []
     revision: int | None = None
     offset = 0
     page = 0
     for page in range(20):
         page_file = page_dir / f"{channel}.page{page + 1}.ndjson"
+        page_files.append(page_file)
         args = ["base", "+record-list", "--base-token", BASE_TOKEN, "--table-id", TABLE_ID,
                 "--filter-json", filtered, "--offset", str(offset), "--limit", str(PAGE_SIZE),
                 "--format", "ndjson", "--output", str(page_file), "--as", "user", "--overwrite"]
@@ -98,6 +102,7 @@ def export_conversion(channel: str, period: str, output: Path, *, cache_dir: Pat
                 "records_count": len(rows), "export_records_count": export_count,
                 "page_count": page + 1, "has_more": False, "channel": channel, "period": period}
     output.with_suffix(".manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=1), encoding="utf-8")
+    _remove_page_artifacts(page_files)
     return manifest
 
 

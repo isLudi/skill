@@ -1,6 +1,6 @@
 # 市场顾问部模板取数源 SQL 清单
 
-维护日期：2026-11-14
+维护日期：2026-11-28
 
 本文件记录从 `模板取数 -> 模板查询 -> 我的模板 -> 我创建的` 中抓取的市场顾问部模板 SQL。所有条目的使用口径均为 **模板取数**，与数据中心数据集源 SQL、Web BI 看板 canonical SQL 分开维护。模板 raw SQL 只保留线上 `published` 版本的 stable canonical 文件，不保留日期副本；后续排查模板取数代码时优先读取本清单和下表中的具体 raw SQL 文件。
 
@@ -19,20 +19,18 @@
 - 2026-07-26 仅原位更新 `AI分析市场顾问部_宽表`（模板 id `9002`）：基于宽表现有字段别名和辅助字段整合 0726 渠道归因，未直接粘贴标准 CASE；保留 `${qici:1}`、`${qici:2}` 两个参数和原 122 个输出字段，并将相同期次半开区间下推至 `lead_raw` 主链。该历史代码已清理，当前线上 SQL 只从上方 stable canonical 入口读取。
 - 2026-08-03 原位更新 `业财用户出单明细`（模板 id `7689`）：仅用历史 `market_channel_case_when_0726_legacy.sql` 的 156 条共享渠道分支替换旧的 196 条 `channel_map` 分支，保留模板身份、申请关系、`${dt}`、暑期期次表达式、来源表和 26 个最终字段。线上 SQL 文本 SHA-256 为 `8704c71c2962a75173e66873e3b9d5388d63e7eb0623bfa7b5ae35ad37a38cfa`；发布后查询 `384631` 为 `SUCCESS`。本条为历史记录，当前线上口径以本节最新 stable 清单为准。
 
-## 当前有效渠道模板清单（2026-11-14，3个共享CASE模板与3个维表消费者）
+## 当前有效渠道模板清单（2026-11-28，3个共享CASE模板与3个维表消费者）
 
 | 模板名称 | 模板ID | 当前实现 | 线上SQL SHA-256 | stable SQL | 行数/字节 | 参数 | 本轮查询 |
 |---|---:|---|---|---|---:|---|---|
-| 业财用户出单明细 | 7689 | published，1113共享CASE | `418db771255f58f6630142a0c25e2e6b65a2237c35c5b259e54b82decc0df548` | [template_query_market_finance_order_detail.sql](../../resources/raw_sql/template_query_market_finance_order_detail.sql) | 1545/54996 | `${dt}` | `422135`，9,843行，7秒，SUCCESS |
-| 市场运营专用_多维全链路分析 | 7808 | published，1113共享CASE | `e166dd4c8843ed072ddd95010d9cf0701448e34a7aa2510065f5f4719c987465` | [template_query_market_wide_analysis.sql](../../resources/raw_sql/template_query_market_wide_analysis.sql) | 2027/82031 | `${period_name1}`、`${period_name2}` | `422136`，1,673行，55秒，SUCCESS |
-| AI分析市场顾问部分周期转化数据 | 8866 | published，D-1渠道维表 | `4c57511cd3f5ecda347aae95539ee62006538def398259dccbcfcfadac4921cd` | [template_query_market_period_conversion.sql](../../resources/raw_sql/template_query_market_period_conversion.sql) | 251/14447 | 无 | `422137`，10,340行，9秒，SUCCESS |
-| AI分析市场顾问部多科用户成单数据 | 8882 | published，D-1渠道维表 | `033763f2c29c80e9af6652445dfef203f21fa42662c016c79de5d7aa3ec5546e` | [template_query_market_multi_subject_order_user.sql](../../resources/raw_sql/template_query_market_multi_subject_order_user.sql) | 200/8630 | `${qici:1}`、`${qici:2}` | `422138`，144行，4秒，SUCCESS |
-| 馒头_订单明细_流水时间 | 8948 | published，1113共享CASE | `a93b45dd4336922d934a6ee86edae3f53a252393e2e5e779a3255547150144b9` | [template_query_market_mantou_order_detail_trade_time.sql](../../resources/raw_sql/template_query_market_mantou_order_detail_trade_time.sql) | 2215/73922 | `${day:1}`、`${day:2}` | `422139`，342行，14秒，SUCCESS |
-| AI分析市场顾问部_宽表 | 9002 | published，D-1渠道维表 | `dd677a87e9f7d74cabda75279fc10a792ad735b999ddf6b141df8c8e05537f42` | [template_query_market_wide.sql](../../resources/raw_sql/template_query_market_wide.sql) | 246/56266 | `${qici:1}`、`${qici:2}` | `422140`，630行，39秒，SUCCESS |
+| 业财用户出单明细 | 7689 | published，1127共享CASE | `15fe435e0d63411e869c12618f6bfbc6cef4a9cefa083c18905b8b386cbb005d` | [template_query_market_finance_order_detail.sql](../../resources/raw_sql/template_query_market_finance_order_detail.sql) | 1769/56685 | `${dt}` | `428861`，11,775行，108秒，SUCCESS |
+| 市场运营专用_多维全链路分析 | 7808 | published，1127共享CASE | `32380e9ec0ea9e7443cad6a52a0e77bbfd6fdbbeae879e114dbcfbc1b77146dc` | [template_query_market_wide_analysis.sql](../../resources/raw_sql/template_query_market_wide_analysis.sql) | 2251/83725 | `${period_name1}`、`${period_name2}` | `428862`，2,491行，235秒，SUCCESS |
+| AI分析市场顾问部分周期转化数据 | 8866 | published，D-1渠道维表 | `6a2fa0d5cf4837ff953aec6e3744b8d1cdb0638197b4dc90f8c11489e95a1581` | [template_query_market_period_conversion.sql](../../resources/raw_sql/template_query_market_period_conversion.sql) | 251/14448 | 无 | `428863`，11,070行，17秒，SUCCESS |
+| AI分析市场顾问部多科用户成单数据 | 8882 | published，D-1渠道维表 | `033763f2c29c80e9af6652445dfef203f21fa42662c016c79de5d7aa3ec5546e` | [template_query_market_multi_subject_order_user.sql](../../resources/raw_sql/template_query_market_multi_subject_order_user.sql) | 200/8630 | `${qici:1}`、`${qici:2}` | `428864`，117行，8秒，SUCCESS |
+| 馒头_订单明细_流水时间 | 8948 | published，1127共享CASE | `35890e9e21a5b31d6484004ae68459752f1d31ee3cb8fda0838f9316609cd99b` | [template_query_market_mantou_order_detail_trade_time.sql](../../resources/raw_sql/template_query_market_mantou_order_detail_trade_time.sql) | 2441/75910 | `${day:1}`、`${day:2}` | `428865`，352行，20秒，SUCCESS |
+| AI分析市场顾问部_宽表 | 9002 | published，D-1渠道维表 | `dfcaad21fc30d4159d57f6c497021a222490629ccbb732184c0c6e7d05fb91df` | [template_query_market_wide.sql](../../resources/raw_sql/template_query_market_wide.sql) | 246/56268 | `${qici:1}`、`${qici:2}` | `428866`，502行，52秒，SUCCESS |
 
-本轮6条查询链路全部成功，3个共享模板按原ID发布，参数、最终字段与已有申请关系均已回读。共享规则保持五个连续40条单元及原优先级选择方式，8948另保留两处专用fallback。8866、8882、9002以各自实时维表SQL为当前入口，9002的旧42CTE阅读说明已标记其历史版本。[9002版本说明](../sql_patterns/template_query_market_wide_reading_guide.md)
-
-发现范围来自创建列表、市场关键词及注册ID精确detail的联合结果，收尾共38条，当前独立用户创建列表为11条。10125为其他创建者维护的detailed_channel上层分类，按其独立合同管理。8735、10477当前为OFFLINE，历史说明保留在归档章节。
+原ID、参数、最终字段与既有申请关系保持。共享规则保留五组连续优先级，改为42/42/42/42/41；8948的两处专用fallback不变。维表消费者仍按各自实时SQL定义，不恢复旧长CASE。当前联合发现范围为20条，未发现待审新消费者或外部SQL变化。8735、10477继续OFFLINE。
 
 下方表格仅保留历史验证记录；历史 SQL 文本和日期文件均已清理，当前线上口径只从本节 stable 清单路由。
 

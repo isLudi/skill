@@ -195,7 +195,7 @@ class CatalogAndAstTest(unittest.TestCase):
     def test_cross_domain_temporary_table_is_rejected(self) -> None:
         skill_root = REPO_ROOT / DOMAIN_CONFIG["market_consultant"]["skill"]
         result = validate_sql_ast(
-            "select * from temp_table.dingxi01_qing_team_jg",
+            "select * from temp_table.lvshuai01_qing_team_jg",
             skill_root=skill_root,
             core_root=CORE_ROOT,
             expected_domain="market_consultant",

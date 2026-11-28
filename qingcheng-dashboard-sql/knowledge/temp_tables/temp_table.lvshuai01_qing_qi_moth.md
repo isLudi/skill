@@ -1,8 +1,8 @@
-# temp_table.dingxi01_qing_qi_moth
+# temp_table.lvshuai01_qing_qi_moth
 
 ## 1. 临时表用途
 
-青橙期次到月份映射表。当前在 `qingcheng_team_completion_month_raw_20260522.sql` 中按 `qici` 补充 `moth`，用于把期次业绩归到月度目标；在 `qingcheng_personal_conversion_raw_20260522.sql` 中按人员架构期次补充月份。
+青橙期次到月份映射表。历史 SQL 在 `qingcheng_team_completion_month_raw_20260522.sql` 中按 `qici` 补充 `moth`，用于把期次业绩归到月度目标；在 `qingcheng_personal_conversion_raw_20260522.sql` 中按人员架构期次补充月份。
 
 ## 2. 来源和刷新方式
 
@@ -27,8 +27,8 @@ qici
 
 | 字段名 | 类型 | 中文含义 | 备注 |
 |---|---|---|---|
-| `qici` | 待人工确认 | 期次 | join `rd_0.qici` |
-| `moth` | 待人工确认 | 月份 | 疑似 `month` 拼写，保留历史字段名 |
+| `qici` | string | 期次 | join `rd_0.qici` |
+| `moth` | string | 月份 | 疑似 `month` 拼写，保留历史字段名 |
 
 ## 5. 适用看板
 
@@ -57,3 +57,9 @@ qm.qici = qtg.qici
 
 - 表来源、维护人和刷新频率。
 - `moth` 格式，例如 `2026-05`、`5月` 或其他。
+
+## 平台结构与迁移核验
+
+2026-11-28 使用平台 SQL 解析器分别读取新、旧表的 `SELECT *` 输出，字段名、类型和顺序一致。解析器返回字段均为 `string`；这是查询输出结构，不等同于完整 DDL，也不证明两表数据内容、覆盖期次、唯一性或最新上传状态相同。
+
+字段顺序：`qici`、`moth`。

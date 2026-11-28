@@ -30,3 +30,7 @@ output_grain       = qici + channel + org + grade + consultant + uid + refund_re
 ## 5. 状态
 
 退款类型范围 `refund_type in (1, 2)`、原因金额分摊规则和 500 元人头阈值已由业务确认。后续仍需按本文件的订单粒度和金额守恒规则执行，不能因原因维度可执行而省略订单集合限域或重复键检查。
+
+## 2026-11-28 临时表维护账号变更
+
+现行维护表映射：`temp_table.dingxi01_qing_team_jg` → `temp_table.lvshuai01_qing_team_jg`。平台字段核验见本领域表索引。旧模型和旧 SQL 的原始表名保留为历史证据；新旧表输出结构一致不代表数据、历史覆盖或 Join 唯一性一致，使用前仍须核验。

@@ -100,10 +100,10 @@
       ],
       "status": "pending_confirmation",
       "source_path": "knowledge/joins/table_relationships.md",
-      "source_sha256": "705ceb31f6f7b7f1da300e611fb1e9417eab611779a384fccddc514fca17207e",
+      "source_sha256": "f48feb42ecfc716fbe296342860b9148df0a410f2281709e442035b557d1d5fc",
       "description": "历史市场转化看板以期次、归一化渠道和年级关联成本目标临时表。",
       "left_table": "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
-      "right_table": "temp_table.dingxi01_cost",
+      "right_table": "temp_table.lvshuai01_cost",
       "key_pairs": [
         {
           "left_field": "period_name",
@@ -120,7 +120,7 @@
       ],
       "cardinality": "many_to_one_if_right_unique",
       "risks": [
-        "temp_table.dingxi01_cost 的 channel + grade + qici 必须先验证唯一，否则会放大线索和营收。",
+        "temp_table.lvshuai01_cost 的 channel + grade + qici 必须先验证唯一，否则会放大线索和营收。",
         "channel_map 与最新渠道 CASE 的输出必须一致，不能直接使用原始 channel_name 字段替代。",
         "grade_1 为看板派生年级，不能在未确认映射时静默替换为其他年级字段。",
         "来源说明 grade='0' 行是渠道级默认值；是否允许具体年级未命中时回退到该行仍待确认，不得静默扩大关联。"
@@ -135,7 +135,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/market_lead_time_conversion_finance_metrics.md",
-      "source_sha256": "0642e36c5e06fd347af229d8ab347da368709066cc510b53b2900508329aa95f",
+      "source_sha256": "6de5706782afd952e9c39ef16bcf23ae051542402ad3dbdca493c0c3d5f76061",
       "description": "仅2344：订单/原始父订单+邮箱前缀的唯一lead_id优先，文档登记的前置订单/班课及唯一用户顾问路径按固定顺序补充。保持每个财务id恰好一行，未匹配记录不丢弃。",
       "left_table": "finance_dw.app_finance_performance_extend_details_hf",
       "right_table": "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",

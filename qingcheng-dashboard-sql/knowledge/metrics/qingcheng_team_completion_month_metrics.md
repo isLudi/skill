@@ -112,3 +112,7 @@
 团队月版与个人版、团队期版同步收紧 `finance_refund_event_allocated` 的候选事件：只有 `trade_status like '%调出%'` 且 `trade_type like '%调课调班%'` 的负价 finance 明细才进入内部退款池；`全部退款` 视为真实客户退款，不参与内部金额抵销。service 主金额、当前行 transfer 识别、`income_all/refund_all` 和 `ord/re_ke` 退 4/点睛退 2 规则均保持不变。
 
 本地 canonical SQL 哈希为 `6029971ea6cbd66b0c935bcfc8de6f0f5ba4de9118f11e92ce4afc0bbfe08b47`。团队月完整回归 query `1539849576`，结果 API 成功回读，耗时约 `244.72` 秒（低于平台 300 秒硬上限）；本轮未执行 Data Center 远端替换或抽数。
+
+## 2026-11-28 临时表维护账号变更
+
+现行维护表映射：`temp_table.dingxi01_qing_qi_moth` → `temp_table.lvshuai01_qing_qi_moth`；`temp_table.dingxi01_qing_team_goal` → `temp_table.lvshuai01_qing_team_goal`；`temp_table.dingxi01_qing_team_jg` → `temp_table.lvshuai01_qing_team_jg`。平台字段核验见本领域表索引。旧模型和旧 SQL 的原始表名保留为历史证据；新旧表输出结构一致不代表数据、历史覆盖或 Join 唯一性一致，使用前仍须核验。

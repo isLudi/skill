@@ -37,7 +37,7 @@ org_candidates AS (
           PARTITION BY NULLIF(TRIM(CAST(jg.qici AS VARCHAR)), ''), NULLIF(TRIM(CAST(jg.department AS VARCHAR)), ''), NULLIF(TRIM(CAST(jg.employee_email_name AS VARCHAR)), '')
           ORDER BY CASE WHEN NOT NULLIF(TRIM(CAST(jg.xiaozu AS VARCHAR)), '') IS NULL THEN 0 ELSE 1 END, NULLIF(TRIM(CAST(jg.xiaozu AS VARCHAR)), ''), NULLIF(TRIM(CAST(jg.jingli AS VARCHAR)), '')
         ) AS rn
-      FROM temp_table.dingxi01_jiagou_db AS jg
+      FROM temp_table.lvshuai01_jiagou_db AS jg
     ) AS t
     WHERE
       rn = 1
@@ -70,7 +70,7 @@ org_candidates AS (
             ELSE 9
           END, zx.employee_email_prefix, zx.xiaozu, zx.jingli
         ) AS rn
-      FROM temp_table.dingxi01_jiagou_zx AS zx
+      FROM temp_table.lvshuai01_jiagou_zx AS zx
       WHERE
         CAST(zx.zaizhi AS VARCHAR) = '1' AND zx.department IN ('郑州顾问部', '西安一部', '西安二部')
     ) AS t

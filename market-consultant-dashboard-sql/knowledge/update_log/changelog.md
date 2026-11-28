@@ -1812,3 +1812,57 @@
 - 专用CASE实际8处完成120项适用性审阅，用户选择现有专用分类，保留既有广东专版和帅师代理。完整字段CASE严格采用本期来源属性条件。
 - market2lark发布version_id 226075、exec_file 879603，源码b11552e3697f8432e179b69abf5b190638bf4f24def7949dedba944961091986，唯一立即执行182214113和自然SCHEDULE执行182220317均终态成功。当前自然执行的Base独立全量回读为14494行、45字段、8页，分期为20261113期10462行、20261120期4032行。manage_push_upstream受控adopt登记market_consultant.leads共享release，7个线索消费者运行时解析新绑定，8个实际Windows任务定义已回读，APP进量使用独立volume生产者。
 - 以官方源Hash适配器同步28个Data Center及6个当前模板canonical，更新1113活跃片段、当前清单、性能记录、契约来源Hash与生成索引。渠道跨看板等价性合同仍为pending_confirmation，0726_legacy及历史文字保留。受控producer工具按1113源码、日志和登记版本一致性执行，相关57项测试通过。
+
+## 2026-11-28 数据中心 stable canonical SQL 同步
+
+- 按已审阅同步计划原子更新 model_id：`2054`；每个 model_id 只保留稳定 canonical 路径。
+- 写入后已强制重建反向索引和目录，并运行唯一版本审计、域内 integrity 与完整 Text2SQL 栈验证。
+
+## 2026-11-28 模板取数 stable canonical SQL 同步（模板 7689）
+
+- 线上 `published` 模板 `业财用户出单明细`（id `7689`）回读 SQL SHA-256 为 `15fe435e0d63411e869c12618f6bfbc6cef4a9cefa083c18905b8b386cbb005d`，只保留稳定入口 `resources/raw_sql/template_query_market_finance_order_detail.sql`。
+- 本次清理日期后缀历史副本 0 个；历史 SQL 文本不进入知识库，也不作为路由入口。
+- 保存后已重建反向索引、共享 catalog、唯一版本审计、域内 integrity 和完整 Text2SQL 栈。
+
+## 2026-11-28 模板取数 stable canonical SQL 同步（模板 7808）
+
+- 线上 `published` 模板 `市场运营专用_多维全链路分析`（id `7808`）回读 SQL SHA-256 为 `32380e9ec0ea9e7443cad6a52a0e77bbfd6fdbbeae879e114dbcfbc1b77146dc`，只保留稳定入口 `resources/raw_sql/template_query_market_wide_analysis.sql`。
+- 本次清理日期后缀历史副本 0 个；历史 SQL 文本不进入知识库，也不作为路由入口。
+- 保存后已重建反向索引、共享 catalog、唯一版本审计、域内 integrity 和完整 Text2SQL 栈。
+
+## 2026-11-28 模板取数 stable canonical SQL 同步（模板 8866）
+
+- 线上 `published` 模板 `AI分析市场顾问部分周期转化数据`（id `8866`）回读 SQL SHA-256 为 `6a2fa0d5cf4837ff953aec6e3744b8d1cdb0638197b4dc90f8c11489e95a1581`，只保留稳定入口 `resources/raw_sql/template_query_market_period_conversion.sql`。
+- 本次清理日期后缀历史副本 0 个；历史 SQL 文本不进入知识库，也不作为路由入口。
+- 保存后已重建反向索引、共享 catalog、唯一版本审计、域内 integrity 和完整 Text2SQL 栈。
+
+## 2026-11-28 模板取数 stable canonical SQL 同步（模板 8882）
+
+- 线上 `published` 模板 `AI分析市场顾问部多科用户成单数据`（id `8882`）回读 SQL SHA-256 为 `033763f2c29c80e9af6652445dfef203f21fa42662c016c79de5d7aa3ec5546e`，只保留稳定入口 `resources/raw_sql/template_query_market_multi_subject_order_user.sql`。
+- 本次清理日期后缀历史副本 0 个；历史 SQL 文本不进入知识库，也不作为路由入口。
+- 保存后已重建反向索引、共享 catalog、唯一版本审计、域内 integrity 和完整 Text2SQL 栈。
+
+## 2026-11-28 模板取数 stable canonical SQL 同步（模板 8948）
+
+- 线上 `published` 模板 `馒头_订单明细_流水时间`（id `8948`）回读 SQL SHA-256 为 `35890e9e21a5b31d6484004ae68459752f1d31ee3cb8fda0838f9316609cd99b`，只保留稳定入口 `resources/raw_sql/template_query_market_mantou_order_detail_trade_time.sql`。
+- 本次清理日期后缀历史副本 0 个；历史 SQL 文本不进入知识库，也不作为路由入口。
+- 保存后已重建反向索引、共享 catalog、唯一版本审计、域内 integrity 和完整 Text2SQL 栈。
+
+## 2026-11-28 模板取数 stable canonical SQL 同步（模板 9002）
+
+- 线上 `published` 模板 `AI分析市场顾问部_宽表`（id `9002`）回读 SQL SHA-256 为 `dfcaad21fc30d4159d57f6c497021a222490629ccbb732184c0c6e7d05fb91df`，只保留稳定入口 `resources/raw_sql/template_query_market_wide.sql`。
+- 本次清理日期后缀历史副本 0 个；历史 SQL 文本不进入知识库，也不作为路由入口。
+- 保存后已重建反向索引、共享 catalog、唯一版本审计、域内 integrity 和完整 Text2SQL 栈。
+
+
+## 2026-11-28 14:23:03 20261127渠道映射与当前生产消费者验收
+
+- 1127较1113新增9条WHEN并将KOC-下引改名为KOC-下引0元，209条WHEN、145个分支标签、含ELSE146个；原200条条件和共同顺序保留。来源记录reczz28eGSZopxRQ、原始SHA 03e3e53b454f4ca283da85de5a3f6c69fab2b946ded99efc48c36e3803952ef5，共享融合SHA 8c7d56ebedcc931b599f98dceee8440f2a51ed0a1d5a9ee5f5bb707c4ff0d860，收尾rev 47。44个例子与21,048组边界通过，8处专用CASE完成80项评审并保持独立分类。
+- 实时主目录34个数据集，本轮22个共享SQL更新、4个专用SQL刷新、3669维表SQL刷新，27个目标全部取得新的最新SUCCESS。2836先续期90天至2027-02-26再重新取生产SQL；2054保留20260925期、2026-09-21扫描下限与当前36字段（历史35字段加生产原有first_call_in_2h），本轮未增删；2344两处各211条CASE及19字段。CASE外部门、NULL、Join、分区与财务定义保留。
+- 3个共享模板原ID发布后查询成功，3个维表模板按现行实现查询成功，参数及申请关系保留。已通过官方适配器同步27个Data Center及6个模板canonical。历史暑期激励2727/2751/2842本轮不可见，未恢复生产或删除其历史知识。
+- market2lark version 236204、exec_file 909661、源码 289db4f763a0110d82ea3313fc1ea5cdaa5f9558235e13f1bc6ac3491ffed486；唯一立即执行184910621与自然SCHEDULE均终态成功，最新执行184953522的Base独立完整回读15718行、45字段、8页，分期为20261127期12226行、20261204期3492行。受控adopt登记1127，7个线索消费者解析新绑定，9个Windows任务XML及消费者配置保持，独立volume登记保持。
+- 维护当前1127片段、清单、字段与性能说明、契约来源Hash及全域生成catalog。渠道等价性合同仍为pending_confirmation；历史注释、0726_legacy与既有历史记录保留。
+
+## 2026-11-28 临时表维护账号知识更新
+
+按平台 SQL 解析结果核对旧表与现行维护表字段及类型，更新本域表文档、索引和关联契约；历史 SQL 和样本保留原样。结构一致不证明数据一致。

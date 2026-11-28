@@ -115,10 +115,10 @@
 注意：
 
 - `path_name like '高途-H业务线-青橙项目部%'` 会包含青橙项目部下更多层级。
-- 月度团队目标来自 `temp_table.dingxi01_qing_team_goal`，按 `month = moth` 对齐。
-- 期次团队目标来自 `temp_table.dingxi01_qing_team_g_qi`，按 `qici = qici` 对齐。
-- 月份来自 `temp_table.dingxi01_qing_qi_moth.moth`，不是直接从 `trade_time` 自然月截取；期次版保留该字段但最终目标 join 不依赖月份。
-- 个人转化不 join 目标表，而是以 `temp_table.dingxi01_qing_team_jg` 为主表，按 `employee_email_name + qici` 合并个人业绩。
+- 月度团队目标来自 `temp_table.lvshuai01_qing_team_goal`，按 `month = moth` 对齐。
+- 期次团队目标来自 `temp_table.lvshuai01_qing_team_g_qi`，按 `qici = qici` 对齐。
+- 月份来自 `temp_table.lvshuai01_qing_qi_moth.moth`，不是直接从 `trade_time` 自然月截取；期次版保留该字段但最终目标 join 不依赖月份。
+- 个人转化不 join 目标表，而是以 `temp_table.lvshuai01_qing_team_jg` 为主表，按 `employee_email_name + qici` 合并个人业绩。
 
 ## 8. 青橙过程线索使用四类引流课期并保留青橙人力归属
 

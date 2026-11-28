@@ -63,3 +63,7 @@ APP率 = sum(is_app_denglu) / sum(v_lead)
 - 当前 canonical SQL 的 14 天字段已有线上成功抽数证据；Q3 只是调用示例，不改变 contract 状态。
 - `temp_table.dingxi01_qing_daoke` 与 `temp_table.dingxi01_jiagou_db` 的来源/刷新仍有待确认边界；若更换底层课次或架构表，必须回到青橙 Join/临时表文档审阅。
 - 本模板不授权修改数据中心或看板。
+
+## 2026-11-28 临时表维护账号变更
+
+现行维护表映射：`temp_table.dingxi01_jiagou_db` → `temp_table.lvshuai01_jiagou_db`。平台字段核验见本领域表索引。旧模型和旧 SQL 的原始表名保留为历史证据；新旧表输出结构一致不代表数据、历史覆盖或 Join 唯一性一致，使用前仍须核验。

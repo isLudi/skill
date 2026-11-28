@@ -1,8 +1,8 @@
 # AI分析市场顾问部宽表历史SQL阅读指南
 
-## 当前版本定位（2026-11-14）
+## 当前版本定位（2026-11-28）
 
-本轮实时published SQL SHA-256为`dd677a87e9f7d74cabda75279fc10a792ad735b999ddf6b141df8c8e05537f42`，查询`422140`返回630行，耗时39秒，终态SUCCESS。当前完整代码和参数从stable入口读取。[最新宽表SQL](../../resources/raw_sql/template_query_market_wide.sql)
+本轮实时published SQL SHA-256为`dfcaad21fc30d4159d57f6c497021a222490629ccbb732184c0c6e7d05fb91df`，查询`428866`返回502行，耗时52秒，终态SUCCESS。保留现有D-1维表实现；该查询链路成功不等于维表与共享CASE等价。[最新宽表SQL](../../resources/raw_sql/template_query_market_wide.sql)
 
 下方42CTE、13行及49,917字节的分层阅读说明对应2026-10-29的`d255963cf8baf4ac9f704b9a10256709dbd61ef14dd09962c2d1e1c4581bce04`版本。下方原文中的“当前”均对应这一历史取样时点。当前模板的版本、Hash和查询记录由模板清单登记。[当前模板清单](../dashboards/template_query_market_datasets.md)
 

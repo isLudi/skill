@@ -130,3 +130,7 @@ call_detail.user_number = data.user_id
 - “剔除线索量<2”是否应加入最终 `having sum(v_lead) >= 2` 待确认。
 - `valid_lead_count`、`friend_lead_count` 在主表中是字符串还是数值待表结构确认；当前 SQL 同时存在字符串和数值比较。
 - APP 登录按 `user_id = user_number` join 到线索，若一名用户多条线索，汇总 `is_app_denglu` 可能按线索放大；前端聚合需注意。
+
+## 2026-11-28 临时表维护账号变更
+
+现行维护表映射：`temp_table.dingxi01_qing_daoke` → `temp_table.lvshuai01_qing_daoke`。平台字段核验见本领域表索引。旧模型和旧 SQL 的原始表名保留为历史证据；新旧表输出结构一致不代表数据、历史覆盖或 Join 唯一性一致，使用前仍须核验。

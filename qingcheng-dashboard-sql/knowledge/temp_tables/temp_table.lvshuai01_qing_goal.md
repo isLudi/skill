@@ -1,8 +1,8 @@
-# temp_table.dingxi01_qing_goal
+# temp_table.lvshuai01_qing_goal
 
 ## 1. 临时表用途
 
-青橙个人目标表。当前在 `qingcheng_personal_conversion_raw_20260522.sql` 中同时提供：
+青橙个人目标表。历史 SQL 在 `qingcheng_personal_conversion_raw_20260522.sql` 中同时提供：
 
 - 个人期次目标 `qici_goal`
 - 个人月目标 `moth_goal`
@@ -16,7 +16,7 @@
 | 创建来源 | 待人工确认 |
 | 刷新方式 | 待人工确认 |
 | 刷新频率 | 待人工确认 |
-| 有效期 | 表内覆盖多个 `qici` 和 `month`；当前 canonical personal completion 同时按期次和月份读取 |
+| 有效期 | 表内覆盖多个 `qici` 和 `month`；历史 SQL personal completion 同时按期次和月份读取 |
 
 ## 3. 数据粒度
 
@@ -27,7 +27,7 @@ name + qici
 name + month
 ```
 
-当前 SQL 用法：
+历史 SQL 用法：
 
 - `goal_qici`：`group by name, qici`
 - `goal_moth`：`group by month, name`
@@ -36,10 +36,10 @@ name + month
 
 | 字段名 | 类型 | 中文含义 | 备注 |
 |---|---|---|---|
-| `name` | 待人工确认 | 顾问姓名/邮箱名 | join `employee_email_name` |
-| `qici` | 待人工确认 | 期次 | 生成 `qici_goal` |
-| `month` | 待人工确认 | 月份 | 生成 `moth_goal` |
-| `goal` | 待人工确认 | 目标值 | 当前 SQL 转成 `decimal(18,2)` |
+| `name` | string | 顾问姓名/邮箱名 | join `employee_email_name` |
+| `qici` | string | 期次 | 生成 `qici_goal` |
+| `month` | string | 月份 | 生成 `moth_goal` |
+| `goal` | string | 目标值 | 历史 SQL 转成 `decimal(18,2)` |
 
 ## 5. 适用看板
 
@@ -64,7 +64,7 @@ and gm.employee_email_name = r.employee_email_name
 ## 7. 不可复用边界
 
 - 当前只作为青橙个人完成度 / 个人转化目标表使用。
-- 不能默认替代 `temp_table.dingxi01_qing_team_goal` 或 `temp_table.dingxi01_qing_team_g_qi`。
+- 不能默认替代 `temp_table.lvshuai01_qing_team_goal` 或 `temp_table.lvshuai01_qing_team_g_qi`。
 - 如果未来团队完成度也要用到个人目标，需要重新确认字段语义和粒度。
 
 ## 8. 待确认事项
@@ -73,3 +73,11 @@ and gm.employee_email_name = r.employee_email_name
 - `name` 是否稳定等于 `employee_email_name`。
 - `goal` 单位是否与 `promit` / `累计净营收` 完全一致。
 - 同一顾问同一期次、同一顾问同一月份是否唯一；若不唯一，需要在 SQL 中继续聚合去重。
+
+来源维护以临时表上传治理登记及最新回执为准；具体数据新鲜度和质量须重新核验。
+
+## 平台结构与迁移核验
+
+2026-11-28 使用平台 SQL 解析器分别读取新、旧表的 `SELECT *` 输出，字段名、类型和顺序一致。解析器返回字段均为 `string`；这是查询输出结构，不等同于完整 DDL，也不证明两表数据内容、覆盖期次、唯一性或最新上传状态相同。
+
+字段顺序：`month`、`qici`、`xuebu`、`jingli`、`dazu`、`xiaozu`、`name`、`qudao`、`goal`。

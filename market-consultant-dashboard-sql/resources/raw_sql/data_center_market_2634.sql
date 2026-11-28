@@ -594,7 +594,7 @@ select
     zx.xiaozu,
     zx.jingli
 from rule
-left join temp_table.dingxi01_jiagou_zx zx on zx.employee_email_name = rule.name
+left join temp_table.lvshuai01_jiagou_zx zx on zx.employee_email_name = rule.name
 )
 ---------------聚合到人
 ,geren as (select 
@@ -630,8 +630,10 @@ when f.get_customer_way_name in ('平台自播') and f.flow_pool_name in ('赢�
 
 
 
+
 when f.get_customer_way_name in ('平台自播') and f.flow_pool_name in ('途铭文化专版图书','途铭文化','博慧星辰文化图书','启迪蔚来','智慧航迹图书','高途浙江初中','高途浙江高中','高途浙江新高一','浙江专版图书教辅') then '浙江图书'
    
+
 
 
 
@@ -642,13 +644,36 @@ when f.get_customer_way_name in ('平台自播') and f.flow_pool_name in ('沪�
 
 
 
+
 when f.get_customer_way_name in ('平台自播') and f.flow_pool_name in ('高途江苏中考','高途赢战中考') then '江苏图书'
 
 
 
 
 
+
+when f.flow_pool_name='领跑新高中北京专版' then '菁英直播北京'
+
+
+when f.flow_pool_name='高阶教辅资料 星真欣小诗' then '菁英直播山东'
+
+
+when f.second_department_name='菁英班学部' and f.channel_name_1='短直电商' then '菁英自然流'
+--定制学
+
+
+when f.flow_pool_name in ('定制学系统（启迪蔚来）','积微-定制学系统','京赋-星义老师数理化打卡系统','定制学系统-智能分析','定制学系统-数理化','乐学帮-赵老师定制学系统','高途《基础2000题》','高途定制学','数理系统赵老师-启迪') then '物理系统'
+
+
+when f.flow_pool_name='抖音平台自然流' and (f.sku_id_name like '%数理系统%' or f.sku_id_name like '%定制学系统%') then '物理系统'
+--市场部
+
+
+when f.source_put_plan_name='H-市场部-广点通-高中全科-企微' then '信息流加好友'
+
+
 when f.flow_pool_name='电商退款用户池' and f.rule_name like '%赠失%' and f.rule_name like '%朱博士%' then '赠课失败-朱汉祺'
+
 
 
 
@@ -660,7 +685,9 @@ when f.flow_pool_name='电商退款用户池' and f.rule_name like '%赠失%' an
 
 
 
+
 when f.flow_pool_name='电商退款用户池' and f.rule_name like '%赠失%' and f.rule_name like '%亚飞%' then '赠课失败-孟亚飞'
+
 
 
 
@@ -672,7 +699,9 @@ when f.flow_pool_name='电商退款用户池' and f.rule_name like '%赠失%' an
 
 
 
+
 when f.flow_pool_name='电商退款用户池' and f.rule_name like '%赠失%' and f.rule_name like '%郭艺%' then '赠课失败-郭艺'
+
 
 
 
@@ -684,7 +713,9 @@ when f.second_department_name='本地化大班学部' or f.source_manager_name i
 
 
 
+
 when f.third_department_name in ('中价产品项目部','新媒体内容运营部') and f.rule_name like '%曹忆%' then '曹忆'
+
 
 
 
@@ -696,8 +727,10 @@ when f.rule_name like '%语数英%' and f.third_department_name = '新媒体内�
 
 
 
+
 when f.third_department_name = '直播部' and f.sku_id_name like '%山东专版%' then '北京直播山东'
   
+
 
 
 
@@ -708,7 +741,9 @@ when f.third_department_name = '直播部' and f.sku_id_name like '%河南专版
 
 
 
+
 when f.third_department_name = '直播部' and f.sku_id_name like '%浙江首考%' then '浙江首考'
+
 
 
 
@@ -716,11 +751,14 @@ when f.third_department_name = '直播部' and f.sku_id_name like '%广东专版
 
 
 
+
 when f.second_department_name = '市场二部' and f.put_plan_name like '%汤雪健%' then '市场二部-汤雪健'
   
 
 
+
 when f.sku_id_name like '%江苏%' and f.third_department_name = '直播部'  then '北京直播江苏'
+
 
 
 
@@ -732,7 +770,9 @@ when f.third_department_name like '%锋途%' and f.channel_name_2 = '抖音' the
 
 
 
+
 when f.third_department_name='线上商务部' and f.flow_pool_name like '%图书订单%' then '图书解密'
+
 
 
 
@@ -744,7 +784,9 @@ when f.put_plan_name like '%小红书打粉%' then 'EM-小红书合作'
 
 
 
+
 when f.third_department_name in ('投放部','线上商务部','小红书攻坚组') and f.channel_name_2 ='小红书' then '小红书-闯闯组'
+
 
 
 
@@ -758,7 +800,9 @@ when f.third_department_name in ('新媒体内容运营部') and f.channel_name_
 
 
 
+
 when f.page_id_name like '%0元领课%'  and f.third_department_name ='投放部'  then '信息流0元'
+
 
 
 
@@ -770,7 +814,9 @@ when f.page_id_name like '%周帅0元腾讯%'  and f.third_department_name ='投
 
 
 
+
 when f.page_id_name like '%信息流下引%'  and f.third_department_name ='私域运营部'  then '信息流0转低'
+
 
 
 
@@ -782,7 +828,9 @@ when f.sku_id_name like '%数理系统%' and f.third_department_name in ('快乐
 
 
 
+
 when f.trace_type_name like '%转介绍%' then '转介绍'
+
 
 
 
@@ -794,7 +842,9 @@ when f.ad_account_name in ('高途-高中-DYD搜索-QZ49','高途-高中-DYD搜�
 
 
 
+
 when (f.flow_pool_name like '%江苏预习%' or  f.flow_pool_name like '%江苏专版预习%' or f.flow_pool_name like '%江苏百事%') and f.channel_name_2 ='抖音' then '西安直播江苏-抖音'
+
 
 
 
@@ -806,7 +856,9 @@ when f.flow_pool_name like '%自然流%' and f.rule_name like '%江苏%' and f.t
 
 
 
+
 when (f.flow_pool_name like '%江苏预习%' or  f.flow_pool_name like '%江苏专版预习%') and f.channel_name_2 ='视频号' then '西安直播江苏-视频号'
+
 
 
 
@@ -818,7 +870,9 @@ when f.flow_pool_name like '%退款%' and f.third_department_name ='图书营销
 
 
 
+
 when f.flow_pool_name like '%自然流%' and f.rule_name like '%江苏%' and f.third_department_name='图书营销部' and f.channel_name_2 ='视频号' then '西安直播江苏-视频号'
+
 
 
 
@@ -830,7 +884,9 @@ when f.sku_id_name like '%2000题%' and f.third_department_name='图书营销部
 
 
 
+
 when f.sku_id_name like '%五年高考%' and f.third_department_name='图书营销部' then '西安直播五年真题'
+
 
 
 
@@ -842,7 +898,9 @@ when (f.rule_name like '%北京图书%' or f.sku_id_name like '%北京专版%') 
 
 
 
+
 when f.sku_id_name like '%安徽%' and f.third_department_name='图书营销部' then '西安直播安徽'
+
 
 
 
@@ -854,7 +912,9 @@ when f.put_plan_name like '%全国教考%' and f.third_department_name='图书�
 
 
 
+
 when f.flow_pool_name like '%自然流%' and f.rule_name like '%北京%' and f.third_department_name='图书营销部' then '西安直播北京'
+
 
 
 
@@ -866,7 +926,9 @@ when f.sku_id_name like '%2000题%' and f.third_department_name='直播部' then
 
 
 
+
 when f.flow_pool_name like '%星义大大%' or f.flow_pool_name like '%星义物理%' then '赵星义'
+
 
 
 
@@ -878,7 +940,9 @@ when(f.source_manager_name IN ('马思雨02', '袁银') AND f.rule_name LIKE '%�
 
 
 
+
 when f.rule_name like '%途途私域%' or (f.rule_name like '%私域%' and f.first_department_name = 'TT') or f.rule_name like '%私域1元%' or (f.third_department_name='私域招生中心' and f.flow_pool_name like '%APP%') then '途途私域'
+
 
 
 
@@ -890,7 +954,9 @@ when f.third_department_name='图书营销部' and (f.sku_id_name like '%孟亚�
 
 
 
+
 when f.third_department_name='图书营销部' and (f.sku_id_name like '%孟亚飞99%' or f.sku_id_name like '%亚飞%') and f.channel_name_2 = '抖音' then '孟亚飞-2组-抖音'
+
 
 
 
@@ -902,13 +968,16 @@ when f.third_department_name = '投放部' and (f.ad_account_name like '%周帅%
 
 
 
+
 when f.source_manager_name in ('韩正卿') then '抖音私信'
 
 
 
 
 
+
 when f.channel_name_1='市场私域' and (f.put_plan_name like '%孟亚飞汇总%'  or f.rule_name like '%小红书自然流%') then '小红书自然流-绍孜组'
+
 
 
 
@@ -922,7 +991,9 @@ when f.channel_name_1='市场私域' and (f.virtual_fourth_department_name in ('
 
 
 
+
 when f.third_department_name = '私域运营部' and f.source_manager_name in ('陈雷19','崔慧敏01','侯佳林01','郑天琪02','杨彬屹','曹义鹏','王硕阳','于超研','岳一帆02','田起帆','王绍阳','肖佳兴','姚佳03','秦金萍','李冞萤','李靖伟02') and (f.rule_name like '%koc自孵化下引%' or f.rule_name like '%koc下引%' or f.page_id_name like '%自营%') then '自孵化KOC下引'
+
 
 
 
@@ -934,7 +1005,9 @@ when f.third_department_name = '私域运营部' and f.source_manager_name in ('
 
 
 
+
 when f.channel_name_1='市场私域' and (f.virtual_fourth_department_name in ('郑州学习顾问二部','郑州学习顾问七部','郑州训练营') or f.virtual_fifth_department_name in ('罗江博团队')) then '市场私域入群'
+
 
 
 
@@ -946,7 +1019,9 @@ when f.third_department_name = '图书营销部' and (f.rule_name like '%点睛�
 
 
 
+
 when f.third_department_name = '投放部' and f.channel_name_2 = '小红书' and f.channel_name_1 <> '搜索营销' then '信息流-小红书'
+
 
 
 
@@ -958,7 +1033,9 @@ when f.third_department_name = '线上商务部' and f.channel_name_2 = '小红�
 
 
 
+
 when (f.flow_pool_name like '%北大汤哥%' or f.flow_pool_name like '%海淀名师高阶%' or f.flow_pool_name like '%海淀高阶%' or f.flow_pool_name like '%高阶英语887%') and f.sku_id_name like '%小艺%'  then '郭艺'
+
 
 
 
@@ -970,7 +1047,9 @@ when  f.third_department_name like '%私域%' and f.rule_name like '%私域%' an
 
 
 
+
 when  f.third_department_name like '%私域%' and f.rule_name like '%公域自然流%' then '小红书自然流-绍孜组'
+
 
 
 
@@ -982,7 +1061,9 @@ when  f.third_department_name like '%私域%' and f.rule_name like '%品效%'  t
 
 
 
+
 when  f.third_department_name like '%私域%' and f.put_plan_name like '%会话%'  then '市场私域会话'
+
 
 
 
@@ -994,7 +1075,9 @@ when  f.third_department_name like '%私域%' and f.rule_name like '%公域学�
 
 
 
+
 when f.third_department_name in ('线上商务部') and f.source_manager_name in ('孙晗01','方俊结01','刘亦鹏02','何木玲','杨梓月','张可意03','任颖迪','曹蕊07','曲默晗') and f.flow_pool_name like '%退款%' then 'KOC-退款订单复用'
+
 
 
 
@@ -1006,7 +1089,9 @@ when f.third_department_name in ('直播部','新媒体内容运营部','市场�
 
 
 
+
 when f.third_department_name in ('直播部','新媒体内容运营部','市场一组','私域运营部') and f.put_plan_name like '%失败%' and f.flow_pool_name ='电商退款用户池'  then '赠课失败'
+
 
 
 
@@ -1018,7 +1103,9 @@ when f.third_department_name in ('直播部','新媒体内容运营部','市场�
 
 
 
+
 when (f.third_department_name = '图书营销部' and f.sku_id_name like '%真题%') or (f.third_department_name='直播部' and f.sku_id_name like '%真题%') then '西安图书直播间-直播'
+
 
 
 
@@ -1030,7 +1117,9 @@ when (f.third_department_name = '图书营销部' and f.sku_id_name not like '%�
 
 
 
+
 when f.third_department_name in ('直播部','新媒体内容运营部','市场一组') and (f.flow_pool_name like '%海淀高阶名师%' or f.flow_pool_name like '%海淀老师高阶%' or f.flow_pool_name like '%小艺%' or f.flow_pool_name like '%老蒋文化%') then '郭艺'
+
 
 
 
@@ -1042,7 +1131,9 @@ when f.third_department_name in ('直播部','新媒体内容运营部','市场�
 
 
 
+
 when f.put_plan_name like '%国培教育-0元%' or f.put_plan_name like '%易喆教育-0元%' or f.put_plan_name like '%钟情-0元%' or f.put_plan_name like '%中望达-0元%' or f.put_plan_name like '%晨硕-0元%' or f.put_plan_name like '%彩石-0元入群%'  then '创新商务入群'
+
 
 
 
@@ -1054,7 +1145,9 @@ when f.third_department_name='KOC孵化部' and f.flow_pool_name like '%电商�
 
 
 
+
 when f.third_department_name='KOC孵化部' and f.flow_pool_name like '%电商退款%' and f.put_plan_name like '%退%' then '自孵化KOC-退款订单复用'
+
 
 
 
@@ -1066,7 +1159,9 @@ when f.source_manager_name = '方俊结01' and f.put_plan_name like '%赠课后�
 
 
 
+
 when f.third_department_name = '直播部' and (f.sku_id_name like '%春春%' or f.sku_id_name like '%瑞春%' or f.rule_name like '%春春%' or f.rule_name like '%瑞春%') and f.channel_name_2='百度' then '陈瑞春-百度'
+
 
 
 
@@ -1078,7 +1173,9 @@ when f.third_department_name = '直播部' and (f.sku_id_name like '%春春%' or
 
 
 
+
 when f.third_department_name = '直播部' and (f.sku_id_name like '%春春%' or f.sku_id_name like '%瑞春%' or f.rule_name like '%春春%' or f.rule_name like '%瑞春%') and f.channel_name_2='抖音' then '陈瑞春-抖音199'
+
 
 
 
@@ -1090,13 +1187,16 @@ when f.third_department_name in ('直播部','新媒体内容运营部') and (f.
 
 
 
+
 when f.third_department_name = '直播部' and (f.sku_id_name like '%朱博士99%' or f.rule_name like '%朱汉祺99%' or f.rule_name like '%朱博士%' or f.flow_pool_name like '%朱博士%' or f.sku_id_name like '%朱博士%') and f.channel_name_2 = 'B站' then '朱博士-B站'
 
 
 
 
 
+
 when f.third_department_name = '直播部' and (f.sku_id_name like '%朱博士99%' or f.rule_name like '%朱汉祺99%' or f.rule_name like '%朱博士%' or f.flow_pool_name like '%朱博士%' or f.sku_id_name like '%朱博士%') and f.channel_name_2 = '百度' then '朱博士-百度'
+
 
 
 
@@ -1109,7 +1209,9 @@ when f.third_department_name = '直播部' and (f.sku_id_name like '%抖音99%' 
 
 
 
+
 when f.third_department_name = '直播部' and (f.sku_id_name like '%朱博士99%') and f.channel_name_2 = '抖音' then '朱博士-抖音99'
+
 
 
 
@@ -1121,7 +1223,9 @@ when f.third_department_name = '直播部' and (f.sku_id_name like '%朱博士99
 
 
 
+
 when f.third_department_name = '直播部' and (f.sku_id_name like '%朱博士99%' or f.rule_name like '%朱汉祺99%' or f.rule_name like '%朱博士%' or f.flow_pool_name like '%朱博士%' or f.sku_id_name like '%朱博士%' or f.rule_name like '%朱汉祺49%') and f.channel_name_2 = '视频号' then '朱博士-视频号49'
+
 
 
 
@@ -1133,13 +1237,19 @@ when (f.third_department_name = '直播部' and (f.sku_id_name like '%朱博士%
 
 
 
+
 when f.ad_account_name like '%春春%' and f.channel_name_1 = '信息流' then '信息流-陈瑞春'
 
 
 
 
 
+
+when f.channel_name_1 = '信息流' and f.channel_name_2 = 'B站' and f.third_department_name not like '%投放%' and f.ad_account_name like '%私信%' then 'B站信息流-私信'
+
+
 when f.channel_name_1 = '信息流' and f.channel_name_2='B站' and (f.page_id_name like '%0元物化%') then 'B站信息流-曹忆'
+
 
 
 
@@ -1151,7 +1261,9 @@ when f.channel_name_1 = '信息流' and f.channel_name_2='B站' and (f.page_id_n
 
 
 
+
 when f.channel_name_1 = '信息流' and f.channel_name_2='B站' and (f.page_id_name like '%亚飞%' or f.source_put_plan_name like '%亚飞%'   or f.page_id_name like '%初中-0元%') then 'B站信息流-亚飞'
+
 
 
 
@@ -1163,7 +1275,9 @@ when (f.flow_pool_name like '%朱博士%' or f.flow_pool_name like '%双博士%'
 
 
 
+
 when f.put_plan_name like '%朱博士说教育%' and f.period_name not like '%多学科拓展%' and f.flow_pool_name not like '%高分讲堂%' and  f.flow_pool_name not like '%总裁%' and f.third_department_name='直播部' then '朱博士29'
+
 
 
 
@@ -1175,7 +1289,9 @@ when (f.flow_pool_name like '%朱博士讲英语%' or f.flow_pool_name like '%�
 
 
 
+
 when (f.flow_pool_name like '%汤哥%' or f.flow_pool_name like '%汤老师%') and f.period_name not like '%多学科拓展%' and f.third_department_name in ('直播部','新媒体内容运营部')  then '汤老师'
+
 
 
 
@@ -1187,7 +1303,9 @@ when f.source_manager_name = '陈晓菁04' and f.channel_provider_name not like 
 
 
 
+
 when (f.flow_pool_name like '%孟帝%' or f.flow_pool_name like '%孟老师%' or f.flow_pool_name like '%中考数学冲刺%' or f.flow_pool_name like '%8升9数学%' or f.flow_pool_name like '%孟亚飞讲数学%' or f.flow_pool_name like '%中考冲刺%' or f.flow_pool_name like '%中考满分冲刺%' or f.flow_pool_name like '%押题王孟亚飞%' or f.flow_pool_name like '%中考数学大通关%' or f.flow_pool_name like '%中考数学规划%' or f.flow_pool_name like '%亚飞数学%' or f.flow_pool_name like '%孟帝数学%' or f.flow_pool_name like '%亚飞秒解思维%' or f.flow_pool_name like '%亚飞解题%')  and f.period_name not like '%多学科拓展%' and f.channel_name_2 not like '%KOL%' and f.third_department_name='直播部' and f.channel_name_2 = '抖音'  then '孟亚飞-1组-抖音'
+
 
 
 
@@ -1199,7 +1317,9 @@ when (f.flow_pool_name like '%孟帝%' or f.flow_pool_name like '%孟老师%' or
 
 
 
+
 when (f.flow_pool_name like '%孟帝%' or f.flow_pool_name like '%孟老师%' or f.flow_pool_name like '%中考数学冲刺%' or f.flow_pool_name like '%8升9数学%' or f.flow_pool_name like '%孟亚飞讲数学%' or f.flow_pool_name like '%中考冲刺%' or f.flow_pool_name like '%中考满分冲刺%' or f.flow_pool_name like '%押题王孟亚飞%' or f.flow_pool_name like '%中考数学大通关%' or f.flow_pool_name like '%中考数学规划%' or f.flow_pool_name like '%亚飞数学%' or f.flow_pool_name like '%孟帝数学%')  and f.period_name not like '%多学科拓展%' and f.channel_name_2 not like '%KOL%' and f.third_department_name='直播部' and f.channel_name_2 = 'B站'  then '孟亚飞-1组-B站'
+
 
 
 
@@ -1211,7 +1331,9 @@ when (f.flow_pool_name like '%孟帝%' or f.flow_pool_name like '%孟老师%' or
 
 
 
+
 when (f.flow_pool_name like '%孟帝%' or f.flow_pool_name like '%孟老师%' or f.flow_pool_name like '%中考数学冲刺%' or f.flow_pool_name like '%8升9数学%' or f.flow_pool_name like '%孟亚飞讲数学%' or f.flow_pool_name like '%中考冲刺%' or f.flow_pool_name like '%中考满分冲刺%' or f.flow_pool_name like '%押题王孟亚飞%' or f.flow_pool_name like '%中考数学大通关%' or f.flow_pool_name like '%中考数学规划%' or f.flow_pool_name like '%亚飞数学%')  and f.period_name not like '%多学科拓展%' and f.channel_name_2 not like '%KOL%' and f.third_department_name='直播部' and f.channel_name_2 = '百度'  then '孟亚飞-1组-百度'
+
 
 
 
@@ -1223,7 +1345,9 @@ when f.put_plan_name like '%刘家晋讲图文%' or f.put_plan_name like '%孟�
 
 
 
+
 when f.flow_pool_name like '%汐子%' and f.period_name not like '%多学科拓展%' and f.sku_id_name  like '%亚飞%' and f.third_department_name='直播部' and f.rule_name like '%99%'  then '孟亚飞99-1组'
+
 
 
 
@@ -1235,7 +1359,9 @@ when (f.flow_pool_name like '%曹忆%' or f.flow_pool_name like '%dudu%' or f.fl
 
 
 
+
 when(f.first_department_name = '市场部' AND f.channel_name_1 <> '站内获客' AND f.channel_name_2 <> 'APP') AND NOT COALESCE(((f.third_department_name = '私域运营部' AND f.source_manager_name IN ('陈雷19', '崔慧敏01', '侯佳林01', '郑天琪02', '杨彬屹', '曹义鹏', '王硕阳', '于超研', '岳一帆02', '田起帆', '王绍阳', '肖佳兴', '姚佳03', '秦金萍', '李冞萤', '李靖伟02')) OR (f.flow_pool_name LIKE '%南通欣创%' OR f.flow_pool_name LIKE '%人人通科技%' OR f.flow_pool_name LIKE '%易而购%' OR f.flow_pool_name LIKE '%济南梦航%' OR f.flow_pool_name LIKE '%晨硕智学%' OR f.flow_pool_name LIKE '%兴尧文化%' OR f.flow_pool_name LIKE '%济南映像%' OR f.flow_pool_name LIKE '%山东简单%' OR f.flow_pool_name LIKE '%争鸣科技%') OR ((f.flow_pool_name LIKE '%家校共育%' OR f.flow_pool_name LIKE '%保持热爱%' OR f.flow_pool_name LIKE '%青松%' OR f.flow_pool_name LIKE '%悟之道%') AND f.put_plan_name NOT LIKE '%0元%') OR (f.source_manager_name = '李宁24' AND f.put_plan_name LIKE '%0转低%') OR (f.third_department_name = '私域运营部' AND f.flow_original_order_activity_price IN ('100.0', '900.0', '300.0')) OR (f.third_department_name = '私域运营部' AND f.flow_original_order_activity_price IN ('0.0') AND f.source_manager_name IN ('陈雷19', '崔慧敏01', '侯佳林01', '郑天琪02', '杨彬屹', '曹义鹏', '王硕阳', '于超研', '李靖伟02')) OR (f.flow_pool_name LIKE '公导私') OR (f.flow_pool_name LIKE '%0转低转正%' OR f.channel_name_2 = '产研测试')), FALSE)then '集团私域'
+
 
 
 
@@ -1247,11 +1373,14 @@ when f.flow_pool_name like '%未加好友%' then '市场私域未加好友'
 
 
 
+
 when f.put_plan_name like '%首期掉海%' and f.flow_pool_name like '%内部换量%' then '市场私域首期掉海'
 
 
 
+
 when f.third_department_name = '私域运营部' and f.rule_name not like '%训练营%' and f.virtual_fifth_department_name not in ('罗江博团队') and f.rule_name not like '%复用%' and f.rule_name not like '%未加好友%' and f.channel_name_2 <> '内部换量' then '市场私域低价单'
+
 
 
 
@@ -1263,7 +1392,9 @@ when f.third_department_name = '私域运营部' and f.rule_name not like '%训�
 
 
 
+
 when f.channel_name_2 in ('APP','M站','PC') and f.flow_pool_name not like '%途途%' then 'APP'
+
 
 
 
@@ -1275,7 +1406,9 @@ when f.channel_name_2 in ('小程序') and f.flow_pool_name  like '%高途体验
 
 
 
+
 when f.channel_provider_name like '%唐山TMK%' then '唐山TMK'
+
 
 
 
@@ -1287,13 +1420,19 @@ when f.source_manager_name in ('高文羽') and f.channel_provider_name not like
 
 
 
+
 when f.source_manager_name = '冯银晨' and f.channel_name_2 = '小红书' then '信息流-小红书'
 
 
 
 
 
+
+when f.channel_name_1 = '信息流' and f.channel_name_2 = 'B站' and f.third_department_name not like '%投放%' and f.flow_original_order_activity_price not like '%2980%' and f.flow_original_order_activity_price not like '%2990%' and f.flow_original_order_activity_price not like '%1980%' and (f.flow_original_order_activity_price='10' or f.rule_name like '%B站0.1%') then 'B站信息流-0.1元'
+
+
 when f.channel_name_1 = '信息流' and f.channel_name_2 = 'B站' and f.third_department_name not like '%投放%' and (f.rule_name like '%0904期-短期班-新高二-市场私域低价单%' or f.flow_original_order_activity_price='100' or f.page_id_name like '%1元%') then 'B站信息流-朱汉祺-1元'
+
 
 
 
@@ -1305,7 +1444,9 @@ when f.channel_name_1 = '信息流' and f.channel_name_2 = 'B站' and f.third_de
 
 
 
+
 when (f.channel_name_1 = '信息流' and f.channel_name_2 <> 'B站' and f.third_department_name NOT LIKE '%商务%' and f.third_department_name NOT LIKE '%B站%' and f.put_plan_name not like '%初三0元%' and f.put_plan_name not like '%抖音私信%' and f.put_plan_name not like '%高中0元%' and f.flow_original_order_activity_price not like '%1990%') or (f.channel_name_2 = 'B站' and f.third_department_name like '%投放%') then '信息流'
+
 
 
 
@@ -1317,7 +1458,9 @@ when f.channel_name_1 = '信息流' and f.channel_name_2 = 'B站' and f.third_de
 
 
 
+
 when f.channel_name_1 = '信息流' and f.channel_name_2 = 'B站' and f.third_department_name not like '%投放%' and (f.page_id_name like '%朱博士%') then 'B站信息流-朱汉祺'
+
 
 
 
@@ -1326,7 +1469,9 @@ when f.channel_name_1 = '信息流' and f.channel_name_2 = 'B站' and f.third_de
 when f.channel_name_1 = '信息流' and f.channel_name_2 = 'B站' and f.third_department_name not like '%投放%' and f.rule_name like '%朱汉祺%' and f.flow_original_order_activity_price like '%1980%' then 'B站信息流-朱汉祺'
 
 
+
 when f.channel_name_1 = '信息流' and f.channel_name_2 = 'B站' and f.third_department_name not like '%投放%' and f.page_id_name like '%肖晗%' then 'B站信息流'
+
 
 
 
@@ -1338,7 +1483,9 @@ when f.channel_name_1 = '信息流' and f.channel_name_2 = 'B站' and f.third_de
 
 
 
+
 when f.channel_name_1 = '信息流'  and f.channel_name_2 = 'B站' and f.third_department_name not like '%投放%' and  (f.sku_id_name like '%陈瑞春%' or f.rule_name like '%陈瑞春%') and (f.ad_account_name  like '%语文%' or f.source_put_plan_name like '%自然流%' or f.page_id_name like '%春春%') then 'B站信息流-陈瑞春'
+
 
 
 
@@ -1350,7 +1497,9 @@ when f.channel_name_1 = '信息流' and f.channel_name_2 = 'B站' and f.third_de
 
 
 
+
 when f.channel_name_1 = '信息流' and f.channel_name_2 = 'B站' and f.third_department_name not like '%投放%' and (f.flow_original_order_activity_price like '%2990%' or f.sku_id_name like '%帅师%' or f.sku_id_name like '%周帅%') and f.ad_account_name not like '%语文%' then 'B站信息流-周帅'
+
 
 
 
@@ -1362,7 +1511,9 @@ when f.channel_name_1 = '信息流' and f.channel_name_2 = 'B站' and f.third_de
 
 
 
+
 when f.channel_name_1 = '短直电商' and f.channel_name_2 = 'B站' and (f.third_department_name  like '%商务%' or f.third_department_name  like '%B站%') and   (f.flow_pool_name like '%春春%' or f.sku_id_name like '%陈瑞春%')  then 'B站信息流-陈瑞春'
+
 
 
 
@@ -1371,9 +1522,11 @@ when f.channel_name_1 = '短直电商' and f.channel_name_2 = 'B站' and (f.thir
 when f.channel_name_1 = '信息流' and f.channel_name_2 = 'B站' and f.third_department_name not like '%投放%' and f.rule_name like '%陈瑞春%' and f.flow_original_order_activity_price like '%1980%' then 'B站信息流-陈瑞春'
 
 
+
 when f.channel_name_1 = '短直电商' and f.channel_name_2 = 'B站' and (f.third_department_name  like '%商务%' or f.third_department_name  like '%B站%') and  (f.flow_pool_name like '%朱博士%')  then 'B站信息流-朱汉祺'
 --when third_department_name = '线上商务部' and channel_name_2 = 'B站' and put_plan_name like '%春春%' then 'B站信息流-陈瑞春'
 --when third_department_name = '线上商务部' and channel_name_2 = 'B站' and put_plan_name like '%朱博士%' then 'B站信息流-朱汉祺'
+
 
 
 
@@ -1385,7 +1538,9 @@ when f.channel_name_1 = '信息流' and f.channel_name_2 = 'B站' and f.third_de
 
 
 
+
 when f.flow_pool_name = '百度搜索引擎' or f.channel_name_1='搜索营销' then '信息流搜索'
+
 
 
 
@@ -1397,19 +1552,26 @@ when  f.flow_pool_name like '%小红书班课%' then '小红书投放'
 
 
 
+
 when f.third_department_name = '投放部' and f.get_customer_way_name = '短视频信息流' and f.flow_original_order_activity_price like '%100%' then '信息流'
 
 
 
 
 
-when f.put_plan_name like  '%福哥私域0元%'  then 'KOC-下引'
+
+when f.put_plan_name like  '%福哥私域0元%'  then 'KOC-下引0元'
 
 
 
+
+
+
+when f.put_plan_name like  '%福哥私域1元%'  then 'KOC-书商1元'
 
 
 when f.put_plan_name like  '%福哥私域5元%'  then 'KOC-下引5元'
+
 
 
 
@@ -1421,7 +1583,9 @@ when f.flow_pool_name = '中考加油' and f.sku_id_name like '%孟帝%' then 'K
 
 
 
+
 when f.flow_pool_name = '中考加油' and f.sku_id_name  like '%帅师%' then 'KOC-周帅数学'
+
 
 
 
@@ -1433,7 +1597,9 @@ when  f.source_manager_name in ('孙晗01','方俊结01','刘亦鹏02','何木�
 
 
 
+
 when  f.source_manager_name in ('孙晗01','方俊结01','刘亦鹏02','何木玲','杨梓月','张可意03','任颖迪','曹蕊07','曲默晗') and (f.sku_id_name like '%帅师%' or f.rule_name like '%周帅%' or f.sku_id_name like '%9月升高三%' or f.sku_id_name like '%新高二%') then 'KOC-周帅数学'
+
 
 
 
@@ -1445,7 +1611,9 @@ when  f.source_manager_name in ('孙晗01','方俊结01','刘亦鹏02','何木�
 
 
 
+
 when  f.source_manager_name in ('孙晗01','方俊结01','刘亦鹏02','何木玲','杨梓月','张可意03','任颖迪','曹蕊07','曲默晗') and f.period_name not like '%多学科拓展%' and f.sku_id_name not like '%朱汉祺%' and f.sku_id_name not like '%朱博士%' and f.sku_id_name not like '%周帅%' and f.sku_id_name not like '%29元%' then 'KOC-5元纯课'
+
 
 
 
@@ -1458,7 +1626,9 @@ when  f.source_manager_name in ('孙晗01','方俊结01','刘亦鹏02','何木�
 
 
 
+
 when f.third_department_name in ('品牌效能部','KOC孵化部') and f.channel_name_2 in ('抖音','视频号','快手','KOL')  then '自孵化KOC-5元纯课'
+
 
 
 
@@ -1470,7 +1640,9 @@ when f.third_department_name in ('品牌效能部','KOC孵化部') and f.channel
 
 
 
+
 when f.source_manager_name in ('包青青','蔡瑞涵','李文迁','李佳馨44','孙昊17','王洁雅01','王硕北','朱文','贾铭锐','李壮壮04','陈晓菁04','赵艺雅','李梦凡01') and (f.channel_name_2 like '%社群%' or f.channel_provider_name = '王老师公司') then '进校社群'
+
 
 
 
@@ -1482,7 +1654,9 @@ when f.source_manager_name in ('包青青','蔡瑞涵','李文迁','李佳馨44'
 
 
 
+
 when f.source_manager_name in ('包青青','蔡瑞涵','李文迁','李佳馨44','孙昊17','王洁雅01','王硕北','朱文','贾铭锐','李壮壮04','陈晓菁04','赵艺雅','李梦凡01') and f.channel_name_2 like '%TMK%' and (f.page_id_name like '%1元%' or f.channel_provider_name like '%禾顺云%') then '进校TMK1元'
+
 
 
 
@@ -1494,7 +1668,9 @@ when f.source_manager_name in ('包青青','蔡瑞涵','李文迁','李佳馨44'
 
 
 
+
 when f.source_manager_name in ('包青青','蔡瑞涵','李文迁','李佳馨44','孙昊17','王洁雅01','王硕北','朱文','贾铭锐','李壮壮04','陈晓菁04','赵艺雅','李梦凡01') and f.channel_name_2 like '%书商%' then '进校书商'
+
 
 
 
@@ -1506,7 +1682,9 @@ when f.source_manager_name in ('包青青','蔡瑞涵','李文迁','李佳馨44'
 
 
 
+
 when f.source_manager_name in ('包青青','蔡瑞涵','李文迁','李佳馨44','孙昊17','王洁雅01','王硕北','朱文','贾铭锐','李壮壮04','陈晓菁04','赵艺雅','李梦凡01') and f.channel_name_2 like '%直播%' then '进校直播'
+
 
 
 
@@ -1519,7 +1697,9 @@ when f.source_manager_name in ('包青青','蔡瑞涵','李文迁','李佳馨44'
 
 
 
+
 when f.flow_pool_name like '%南通欣创%' or  f.flow_pool_name like '%人人通科技%' or f.flow_pool_name like '%易而购%' or f.flow_pool_name like '%济南梦航%' or f.flow_pool_name like '%晨硕智学%' or f.flow_pool_name like '%兴尧文化%' or f.flow_pool_name like '%济南映像%' or f.flow_pool_name like '%山东简单%' or f.flow_pool_name like '%争鸣科技%'  then '进校私域合作'
+
 
 
 
@@ -1531,7 +1711,9 @@ when (f.flow_pool_name like '%家校共育%' or f.flow_pool_name like '%保持�
 
 
 
+
 when f.source_manager_name = '李宁24' and f.put_plan_name like '%0转低%' then '进校私域合作'
+
 
 
 
@@ -1543,7 +1725,9 @@ when f.third_department_name = '私域运营部' and  f.flow_original_order_acti
 
 
 
+
 when f.third_department_name = '私域运营部' and  f.flow_original_order_activity_price in ('0.0') and f.source_manager_name in ('陈雷19','崔慧敏01','侯佳林01','郑天琪02','杨彬屹','曹义鹏','王硕阳','于超研','李靖伟02') then '进校私域合作'
+
 
 
 
@@ -1555,7 +1739,9 @@ when f.third_department_name = '私域运营部' and f.channel_name_1='市场私
 
 
 
+
 when f.source_manager_name in ('耿文超','晋翠翠','赵语诗','王慧敏13','于新茹','梁超01','刘晓20','王玉120','吕佳乐01') and f.channel_provider_name like '%格乐教育%' and f.channel_name_2 like '%直播%' then '创新社群'
+
 
 
 
@@ -1567,7 +1753,9 @@ when f.source_manager_name in ('耿文超','晋翠翠','赵语诗','王慧敏13'
 
 
 
+
 when f.source_manager_name in ('耿文超','晋翠翠','赵语诗','王慧敏13','于新茹','梁超01','刘晓20','王玉120','吕佳乐01') and (f.channel_name_2 like '%直推%' or f.put_plan_name like '%直推%') then '创新直推'
+
 
 
 
@@ -1579,7 +1767,9 @@ when f.source_manager_name in ('耿文超','晋翠翠','赵语诗','王慧敏13'
 
 
 
+
 when f.source_manager_name in ('耿文超','晋翠翠','赵语诗','王慧敏13','于新茹','梁超01','刘晓20','王玉120','吕佳乐01') and f.channel_name_2 like '%TMK%' and f.page_id_name like '%1元%' then '创新TMK1元'
+
 
 
 
@@ -1591,7 +1781,9 @@ when f.source_manager_name in ('耿文超','晋翠翠','赵语诗','王慧敏13'
 
 
 
+
 when f.source_manager_name in ('耿文超','晋翠翠','赵语诗','王慧敏13','于新茹','梁超01','刘晓20','王玉120','吕佳乐01') and (f.channel_name_2 like '%直播%' or f.page_id_name like '%进校%') then '创新直播'
+
 
 
 
@@ -1603,11 +1795,14 @@ when f.source_manager_name in ('耿文超','晋翠翠','赵语诗','王慧敏13'
 
 
 
+
 when f.source_manager_name in ('高曼曼01','杨思怡','宋向函') and f.sku_id_name like '%帅师%' then '武汉KOC'
+
 
 
 when f.source_manager_name in ('高曼曼01','杨思怡','宋向函') then '图书KOC达人'
 --when flow_pool_name like '%市场部-原子合作%' then '原子'
+
 
 
 
@@ -1619,7 +1814,9 @@ when f.flow_pool_name like '%市场部-微信私域%' or f.flow_pool_name like '
 
 
 
+
 when f.flow_pool_name like '公导私' then '进校私域合作'
+
 
 
 
@@ -1631,7 +1828,9 @@ when((f.flow_pool_name LIKE '%增长组%' OR f.channel_name_3 = '公众号' OR f
 
 
 
+
 when f.put_plan_name like '%星耀%' or f.put_plan_name like '%物理展博%' or  f.put_plan_name like '%物理谢丽荣%' or f.put_plan_name like '%牟恩伯%' or  f.put_plan_name like '%王赞%' or f.put_plan_name like '%张磊老师高中数学%' or f.put_plan_name like '%雯姐高中物理大讲堂%' then '百度星耀'
+
 
 
 
@@ -1643,7 +1842,9 @@ when f.source_manager_name = '刘福云' and (f.sku_id_name like '%瑞春%' or f
 
 
 
+
 when f.third_department_name = '直播部' and f.sku_id_name like '%周帅%' and f.channel_name_2 in ('百度','B站')  then '周帅'
+
 
 
 
@@ -1655,7 +1856,9 @@ when f.third_department_name = '直播部' and f.sku_id_name like '%孟亚飞%' 
 
 
 
+
 when f.third_department_name = '直播部' and f.sku_id_name like '%朱汉祺%' then '朱博士99'
+
 
 
 
@@ -1667,7 +1870,9 @@ when f.flow_pool_name like '%0转低转正%' or f.channel_name_2='产研测试' 
 
 
 
+
 when f.flow_pool_name like '%天津智慧双子%'        then '创新社群'
+
 
 
 
@@ -1679,7 +1884,9 @@ when f.third_department_name like '%城市定制%' then '点睛卷'
 
 
 
+
 when f.period_name like '%多学科拓展%' and f.third_department_name like '%私域运营%' then '市场私域入群'
+
 
 
 
@@ -1691,7 +1898,9 @@ when f.put_plan_name like '%赠课失败%' and f.third_department_name = '线上
 
 
 
+
 when f.flow_pool_name like '%自然流%' and f.source_manager_name in ('孙晗01','方俊结01','刘亦鹏02','何木玲','杨梓月','张可意03','任颖迪','曹蕊07','曲默晗') and f.sku_id_name like '%周帅%' then 'KOC-周帅'
+
 
 
 
@@ -1703,7 +1912,9 @@ when f.flow_pool_name like '%自然流%' and f.source_manager_name in ('孙晗01
 
 
 
+
 when f.flow_pool_name like '%自然流%' and f.source_manager_name in ('孙晗01','方俊结01','刘亦鹏02','何木玲','杨梓月','张可意03','任颖迪','曹蕊07','曲默晗') and f.sku_id_name like '%朱汉祺%'  and f.flow_original_order_activity_price like '%1100%' then 'KOC-5元朱汉祺'
+
 
 
 
@@ -1715,7 +1926,9 @@ when f.flow_pool_name like '%自然流%' and f.source_manager_name in ('赵语�
 
 
 
+
 when f.flow_pool_name like '%自然流%' and (f.sku_id_name like '%朱博士%' or f.sku_id_name like '%朱汉祺%') and f.rule_name like '%9%' and f.rule_name not like '%29%' and f.third_department_name  in ('直播部','新媒体内容运营部','市场一组') then '朱博士99'
+
 
 
 
@@ -1727,7 +1940,9 @@ when f.flow_pool_name like '%自然流%' and f.sku_id_name like '%朱博士%' an
 
 
 
+
 when f.flow_pool_name like '%自然流%' and f.sku_id_name like '%亚飞%' and f.rule_name like '%99%' and f.third_department_name  in ('直播部','新媒体内容运营部','市场一组') then '孟亚飞99-1组'
+
 
 
 
@@ -1739,7 +1954,9 @@ when f.flow_pool_name like '%自然流%' and f.sku_id_name like '%亚飞%' and f
 
 
 
+
 when f.flow_pool_name like '%自然流%' and f.sku_id_name like '%曹忆%' then '曹忆'
+
 
 
 
@@ -1751,7 +1968,9 @@ when f.flow_pool_name like '%自然流%' and f.rule_name like '%朱博士%' and 
 
 
 
+
 when f.flow_pool_name like '%自然流%' and f.source_manager_name like '%邵万昕%' and f.third_department_name  in ('直播部','新媒体内容运营部','市场一组') then '朱博士99'
+
 
 
 
@@ -1763,7 +1982,9 @@ when f.flow_pool_name like '%自然流%' and f.rule_name like '%亚飞%' and f.r
 
 
 
+
 when f.flow_pool_name like '%自然流%' and f.rule_name like '%亚飞%'  then '孟亚飞9元'
+
 
 
 
@@ -1775,7 +1996,9 @@ when f.flow_pool_name like '%自然流%' and f.rule_name like '%郭艺%'  then '
 
 
 
+
 when f.flow_pool_name like '%自然流%' and f.rule_name like '%汤雪%'  then '汤老师'
+
 
 
 
@@ -1787,7 +2010,9 @@ when f.flow_pool_name like '%自然流%' and f.rule_name like '%曹忆%' then '�
 
 
 
+
 when f.flow_pool_name like '%途途教室%' or f.first_department_name like 'TUTU' then '途途APP'
+
 
 
 
@@ -1799,13 +2024,16 @@ when f.source_manager_name in ('宋莹莹','辛世如') and f.channel_name_2 in 
 
 
 
+
 when f.rule_name like '%训练营%' and f.rule_name like '%市场私域%' then '市场私域入群'
 
 
 
 
 
+
 when f.channel_name_1= '信息流' and (f.put_plan_name like '%抖音私信%' or f.put_plan_name like '%初三0元%' or f.put_plan_name like '%高中0元%') then '信息流-抖音私信'
+
 
 
 

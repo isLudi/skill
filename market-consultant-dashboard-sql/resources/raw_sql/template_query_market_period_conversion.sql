@@ -221,7 +221,7 @@ case
     else 3 
 end as week_diff
 from rule
-left join temp_table.dingxi01_jiagou_zx zx on zx.employee_email_name = rule.name
+left join temp_table.lvshuai01_jiagou_zx zx on zx.employee_email_name = rule.name
 )
 ----------------聚合到人
 select 

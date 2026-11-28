@@ -1,4 +1,4 @@
-# temp_table.dingxi01_qing_daoke
+# temp_table.lvshuai01_qing_daoke
 
 ## 1. 临时表用途
 
@@ -32,11 +32,11 @@ qici + qudao + grade + begin_time
 
 | 字段名 | 类型 | 中文含义 | 备注 |
 |---|---|---|---|
-| `qici` | 待人工确认 | 期次 | 与 `dk.qici` join |
-| `qudao` | 待人工确认 | 二级渠道 | 与 `dk.channel_map_2` join |
-| `grade` | 待人工确认 | 年级 | 与 `dk.grade_1` join |
-| `begin_time` | 待人工确认 | 开课时间 | 与 `dk.begin_time` join |
-| `ke_1` | 待人工确认 | 课次编号 | 当前 SQL 使用 `'1'` 至 `'6'`；字段名不等同于“只表示第一讲” |
+| `qici` | string | 期次 | 与 `dk.qici` join |
+| `qudao` | string | 二级渠道 | 与 `dk.channel_map_2` join |
+| `grade` | string | 年级 | 与 `dk.grade_1` join |
+| `begin_time` | string | 开课时间 | 与 `dk.begin_time` join |
+| `ke_1` | string | 课次编号 | 历史 SQL 使用 `'1'` 至 `'6'`；字段名不等同于“只表示第一讲” |
 
 ## 5. 适用看板
 
@@ -65,3 +65,11 @@ and dk.begin_time = ke.begin_time
 - `ke_1` 的类型和值域。
 - 同一 `qici + qudao + grade + begin_time` 是否会多行。
 
+
+来源维护以临时表上传治理登记及最新回执为准；具体数据新鲜度和质量须重新核验。
+
+## 平台结构与迁移核验
+
+2026-11-28 使用平台 SQL 解析器分别读取新、旧表的 `SELECT *` 输出，字段名、类型和顺序一致。解析器返回字段均为 `string`；这是查询输出结构，不等同于完整 DDL，也不证明两表数据内容、覆盖期次、唯一性或最新上传状态相同。
+
+字段顺序：`qudao`、`begin_time`、`qici`、`dow`、`grade`、`ke_1`。

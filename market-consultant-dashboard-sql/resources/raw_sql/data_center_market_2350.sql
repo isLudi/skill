@@ -421,7 +421,7 @@ select rule.*,zx.xiaozu,zx.jingli,
     when date_diff('week', date_parse(substr(friday_period, 1, 8), '%Y%m%d'),date_parse(substr(qici, 1, 8), '%Y%m%d')) in (2,3) then 2
     else 3 end as week_diff
 from rule
-left join temp_table.dingxi01_jiagou_zx zx on zx.employee_email_name = rule.name)
+left join temp_table.lvshuai01_jiagou_zx zx on zx.employee_email_name = rule.name)
 ------------------------ 按渠道、年级等维度统计每个用户购买的科目数量
 ,user_subject as (
     select 

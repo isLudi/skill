@@ -228,7 +228,7 @@
 - 首 call 任务桥接：`gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf` 通过 `account_id` 关联 `finance_dw.dim_finance_employee_df`，再用员工维表的 `employee_email_name + user_id` 关联主数据的 `employee_email_name + user_id`。
 - 渠道分组：`temp_table.shenbaoxin_channel_group` 通过 `channel = channel_map` 补充 `channel_group`（输出别名 `channel_1`）。
 - 粒度：部门级别聚合，无顾问个体维度。`zhuanhua` 按 `period_name + channel_map + rule_name + lead_purchase_intention_level2_category_name + depart_1 + dept_name + depart` 分组。
-- 渠道 CASE 使用 `resources/raw_sql/market_channel_case_when_1113.sql`。
+- 渠道 CASE 使用 `resources/raw_sql/market_channel_case_when_1127.sql`。
 - 主表 `dt/hour` 均使用 `now - 3h`（一致偏移）；首 call 表使用 `now - 2h`。
 - 状态：SQL 口径已入库；`data_base` 使用 `select t1.*`、双层 `select distinct`、首 call 未限定 `task_generate_rule_type = 2`、`valid_lead_count`/`can_renew_ds_count_a` 重复输出、员工维表 `account_id` 去重逻辑、`shenbaoxin_channel_group` 字段存在性、`period_mapping_first_level_department_name is null` 放宽条件需人工确认。
 
@@ -264,7 +264,7 @@
 
 - 主表：`bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df`
 - 可关联表：`gaotu_hl.ods_mkt_h_channel_group_df`
-- 确认 Join path：先用 `resources/raw_sql/market_channel_case_when_1113.sql` 从宽表原始字段派生逻辑字段 `channel_map`，再以 `channel_map = ods.channel` 关联，并限定 `ods.dt` 和 `ods.department_name='all'`。
+- 确认 Join path：先用 `resources/raw_sql/market_channel_case_when_1127.sql` 从宽表原始字段派生逻辑字段 `channel_map`，再以 `channel_map = ods.channel` 关联，并限定 `ods.dt` 和 `ods.department_name='all'`。
 - 不可直接关联：宽表没有物理 `channel_map` 字段；`channel_name_1/2/3` 与渠道组表 `channel` 不是同一稳定键，最新抽样的直接重合分别为 2/9、7/39、0/1。
 - 维表唯一性：`dt='20260812'`、`department_name='all'` 下 143 行、143 个非空 `channel`，`channel` 一行一类；应保留按 `channel` 预聚合作为防御性措施。
 - bounded CASE 覆盖：保持 0808 全部 175 条分支顺序的五段式探针，在宽表 50,000 个物理字段去重组合中，59 个派生渠道值有 56 个命中，49,765 行命中，渠道组侧最大匹配行数为 1。该结果验证 Join 方向和基数，不替代生产数据集完整范围的全量覆盖审计。
@@ -299,3 +299,7 @@
 - 两个分支分别生成金额与事件行后 UNION ALL；不要把 GMV 明细 Join 到正价流水再汇总。
 - App 与 DWS 的宽松交易键 Query ID 1599294111 为 606 个匹配键、8 个 app-only、8 个 DWS-only，不能硬 Join 或替换 DWS 正价事实。
 - 8 月 Query ID 1599327539 与历史模板 70 行、36 列及五项汇总一致；完整周期任务 ID 1599331293 返回 2,708 行。
+
+## 2026-11-28 临时表维护账号变更
+
+现行维护表映射：`temp_table.dingxi01_cost` → `temp_table.lvshuai01_cost`。平台字段核验见本领域表索引。旧模型和旧 SQL 的原始表名保留为历史证据；新旧表输出结构一致不代表数据、历史覆盖或 Join 唯一性一致，使用前仍须核验。

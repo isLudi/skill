@@ -16,7 +16,7 @@
 | 查询引擎 | Presto | 已知 |
 | 核心看板 | 青橙过程数据 raw、青橙到课 raw、青橙转化 raw、青橙年季月营收 raw、青橙团队完成度【月】raw、青橙团队完成度【期】raw、青橙个人转化 raw | 已入库 |
 | 核心事实表 | `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df`；完成度金额主事实 `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` | 已从 SQL 入库；完成度 `income_all/refund_all` 由 service 主事实提供，finance 仅补 service 缺失链路和规则字段 |
-| 核心临时表 | `temp_table.dingxi01_qing_daoke`, `temp_table.dingxi01_jiagou_db`, `temp_table.dingxi01_qing_team_jg`, `temp_table.dingxi01_qing_zz`, `temp_table.dingxi01_qing_qi_moth`, `temp_table.dingxi01_qing_team_goal`, `temp_table.dingxi01_qing_team_g_qi` | 已从 SQL 入库，来源/刷新方式待确认 |
+| 核心临时表 | `temp_table.lvshuai01_qing_daoke`, `temp_table.lvshuai01_jiagou_db`, `temp_table.lvshuai01_qing_team_jg`, `temp_table.lvshuai01_qing_zz`, `temp_table.lvshuai01_qing_qi_moth`, `temp_table.lvshuai01_qing_team_goal`, `temp_table.lvshuai01_qing_team_g_qi` | 已从 SQL 入库，来源/刷新方式待确认 |
 | 核心范围字段 | `section_assign_employee_second_level_department_name`, `virtual_second_department_name` | 已从 SQL 入库 |
 | 核心范围取值 | `青橙项目部` | 已从 SQL 入库 |
 | Web BI 结构快照 | `knowledge/dashboard_web_profiles/README.md` | 仅执行 `profile-all --write-knowledge --confirm-skill-maintenance` 后维护；默认画像只写 runtime，青橙快照只允许写入本 Skill |
@@ -63,7 +63,7 @@
 | 看板结构 | `knowledge/dashboards/qingcheng_daoke_raw_20260522.md` |
 | 指标集合 | `knowledge/metrics/qingcheng_daoke_metrics.md` |
 | 渠道/年级映射 | `knowledge/sql_patterns/qingcheng_channel_grade_mapping.md` |
-| 临时表课次语义 | `knowledge/temp_tables/temp_table.dingxi01_qing_daoke.md` |
+| 临时表课次语义 | `knowledge/temp_tables/temp_table.lvshuai01_qing_daoke.md` |
 | join 关系 | `knowledge/joins/table_relationships.md` |
 
 ## 9. 已入库转化口径
@@ -76,7 +76,7 @@
 | 指标集合 | `knowledge/metrics/qingcheng_conversion_metrics.md` |
 | 订单业绩表 | `knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md` |
 | 课程转移保护期补数 | `knowledge/sql_patterns/qingcheng_protected_course_transfer_conversion.md` |
-| 团队架构临时表 | `knowledge/temp_tables/temp_table.dingxi01_qing_team_jg.md` |
+| 团队架构临时表 | `knowledge/temp_tables/temp_table.lvshuai01_qing_team_jg.md` |
 | 渠道/成本映射 | `knowledge/sql_patterns/qingcheng_channel_grade_mapping.md` |
 | join 关系 | `knowledge/joins/table_relationships.md` |
 
@@ -99,7 +99,7 @@
 | 指标集合 | `knowledge/metrics/qingcheng_revenue_year_quarter_month_metrics.md` |
 | 财务业绩表 | `knowledge/tables/finance_dw.app_finance_performance_extend_details_hf.md` |
 | 员工组织链表 | `knowledge/tables/dw.dim_employee_chain.md` |
-| 青橙组织临时表 | `knowledge/temp_tables/temp_table.dingxi01_qing_zz.md` |
+| 青橙组织临时表 | `knowledge/temp_tables/temp_table.lvshuai01_qing_zz.md` |
 | 范围口径 | `knowledge/03_range_limit_rules.md` |
 | join 关系 | `knowledge/joins/table_relationships.md` |
 
@@ -114,8 +114,8 @@
 | 退款课节表 | `knowledge/tables/finance_dw.dm_finance_order_refund_detail_df.md` |
 | 调课调班维表 | `knowledge/tables/finance_dw.dim_finance_order_change_df.md` |
 | service 订单明细 | `knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md` |
-| 期次月份映射 | `knowledge/temp_tables/temp_table.dingxi01_qing_qi_moth.md` |
-| 团队月目标 | `knowledge/temp_tables/temp_table.dingxi01_qing_team_goal.md` |
+| 期次月份映射 | `knowledge/temp_tables/temp_table.lvshuai01_qing_qi_moth.md` |
+| 团队月目标 | `knowledge/temp_tables/temp_table.lvshuai01_qing_team_goal.md` |
 | 范围口径 | `knowledge/03_range_limit_rules.md` |
 | join 关系 | `knowledge/joins/table_relationships.md` |
 
@@ -127,7 +127,7 @@
 |---|---|
 | 看板结构 | `knowledge/dashboards/qingcheng_team_completion_period_raw_20260522.md` |
 | 指标集合 | `knowledge/metrics/qingcheng_team_completion_period_metrics.md` |
-| 期次团队目标 | `knowledge/temp_tables/temp_table.dingxi01_qing_team_g_qi.md` |
+| 期次团队目标 | `knowledge/temp_tables/temp_table.lvshuai01_qing_team_g_qi.md` |
 | 退款课节表 | `knowledge/tables/finance_dw.dm_finance_order_refund_detail_df.md` |
 | 调课调班维表 | `knowledge/tables/finance_dw.dim_finance_order_change_df.md` |
 | service 订单明细 | `knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md` |
@@ -142,8 +142,8 @@
 |---|---|
 | 看板结构 | `knowledge/dashboards/qingcheng_personal_conversion_raw_20260522.md` |
 | 指标集合 | `knowledge/metrics/qingcheng_personal_conversion_metrics.md` |
-| 个人架构骨架 | `knowledge/temp_tables/temp_table.dingxi01_qing_team_jg.md` |
-| 期次月份映射 | `knowledge/temp_tables/temp_table.dingxi01_qing_qi_moth.md` |
+| 个人架构骨架 | `knowledge/temp_tables/temp_table.lvshuai01_qing_team_jg.md` |
+| 期次月份映射 | `knowledge/temp_tables/temp_table.lvshuai01_qing_qi_moth.md` |
 | 退款课节表 | `knowledge/tables/finance_dw.dm_finance_order_refund_detail_df.md` |
 | 调课调班维表 | `knowledge/tables/finance_dw.dim_finance_order_change_df.md` |
 | service 订单明细 | `knowledge/tables/service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf.md` |
