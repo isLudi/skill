@@ -33,44 +33,46 @@
     ]
   },
   "boundary": {
-    "domain_local_temp_tables": [
-      "temp_table.dingxi01_ceshiqudao_pingyou",
-      "temp_table.dingxi01_channel_group",
-      "temp_table.dingxi01_cost",
-      "temp_table.dingxi01_daoke_1_6_t",
-      "temp_table.dingxi01_jiagou_db",
-      "temp_table.dingxi01_jiagou_zx",
-      "temp_table.dingxi01_pingyou_jg",
-      "temp_table.dingxi01_plan_id",
-      "temp_table.shenbaoxin_channel_group",
-      "temp_table.zhangjunyan01_pingyou_jg"
-    ],
-    "exclusive_temp_tables": [
-      "temp_table.dingxi01_ceshiqudao_pingyou",
-      "temp_table.dingxi01_channel_group",
-      "temp_table.dingxi01_cost",
-      "temp_table.dingxi01_daoke_1_6_t",
-      "temp_table.dingxi01_jiagou_zx",
-      "temp_table.dingxi01_pingyou_jg",
-      "temp_table.dingxi01_plan_id",
-      "temp_table.zhangjunyan01_pingyou_jg"
-    ],
-    "forbidden_temp_tables": [
-      "temp_table.dingxi01_qing_daoke",
-      "temp_table.dingxi01_qing_goal",
-      "temp_table.dingxi01_qing_qi_moth",
-      "temp_table.dingxi01_qing_team_g_qi",
-      "temp_table.dingxi01_qing_team_goal",
-      "temp_table.dingxi01_qing_team_jg",
-      "temp_table.dingxi01_qing_zz",
-      "temp_table.lvshuai01_jiagou_db",
-      "temp_table.lvshuai01_qing_team_jg"
-    ],
-    "same_name_temp_tables_require_domain_evidence": [
-      "temp_table.dingxi01_jiagou_db",
-      "temp_table.shenbaoxin_channel_group"
-    ],
-    "forbidden_temp_table_owners": {
+    "historical_temp_table_names": {
+      "temp_table.dingxi01_ceshiqudao_pingyou": "temp_table.lvshuai01_ceshiqudao_pingyou",
+      "temp_table.dingxi01_channel_group": "temp_table.lvshuai01_channel_group",
+      "temp_table.dingxi01_cost": "temp_table.lvshuai01_cost",
+      "temp_table.dingxi01_daoke_1_6_t": "temp_table.lvshuai01_daoke_1_6_t",
+      "temp_table.dingxi01_jiagou_db": "temp_table.lvshuai01_jiagou_db",
+      "temp_table.dingxi01_jiagou_zx": "temp_table.lvshuai01_jiagou_zx",
+      "temp_table.dingxi01_jinliang_goal": "temp_table.lvshuai01_jinliang_goal",
+      "temp_table.dingxi01_pingyou_jg": "temp_table.zhangjunyan01_pingyou_jg",
+      "temp_table.dingxi01_plan_id": "temp_table.lvshuai01_plan_id"
+    },
+    "historical_temp_table_owners": {
+      "temp_table.dingxi01_ceshiqudao_pingyou": [
+        "market_consultant"
+      ],
+      "temp_table.dingxi01_channel_group": [
+        "market_consultant"
+      ],
+      "temp_table.dingxi01_cost": [
+        "market_consultant"
+      ],
+      "temp_table.dingxi01_daoke_1_6_t": [
+        "market_consultant"
+      ],
+      "temp_table.dingxi01_jiagou_db": [
+        "market_consultant",
+        "qingcheng"
+      ],
+      "temp_table.dingxi01_jiagou_zx": [
+        "market_consultant"
+      ],
+      "temp_table.dingxi01_jinliang_goal": [
+        "market_consultant"
+      ],
+      "temp_table.dingxi01_pingyou_jg": [
+        "market_consultant"
+      ],
+      "temp_table.dingxi01_plan_id": [
+        "market_consultant"
+      ],
       "temp_table.dingxi01_qing_daoke": [
         "qingcheng"
       ],
@@ -91,11 +93,65 @@
       ],
       "temp_table.dingxi01_qing_zz": [
         "qingcheng"
+      ]
+    },
+    "domain_local_temp_tables": [
+      "temp_table.lvshuai01_ceshiqudao_pingyou",
+      "temp_table.lvshuai01_channel_group",
+      "temp_table.lvshuai01_cost",
+      "temp_table.lvshuai01_daoke_1_6_t",
+      "temp_table.lvshuai01_jiagou_db",
+      "temp_table.lvshuai01_jiagou_xinren",
+      "temp_table.lvshuai01_jiagou_zx",
+      "temp_table.lvshuai01_jinliang_goal",
+      "temp_table.lvshuai01_plan_id",
+      "temp_table.shenbaoxin_channel_group",
+      "temp_table.zhangjunyan01_pingyou_jg"
+    ],
+    "exclusive_temp_tables": [
+      "temp_table.lvshuai01_ceshiqudao_pingyou",
+      "temp_table.lvshuai01_channel_group",
+      "temp_table.lvshuai01_cost",
+      "temp_table.lvshuai01_daoke_1_6_t",
+      "temp_table.lvshuai01_jiagou_xinren",
+      "temp_table.lvshuai01_jiagou_zx",
+      "temp_table.lvshuai01_jinliang_goal",
+      "temp_table.lvshuai01_plan_id",
+      "temp_table.zhangjunyan01_pingyou_jg"
+    ],
+    "forbidden_temp_tables": [
+      "temp_table.lvshuai01_qing_daoke",
+      "temp_table.lvshuai01_qing_goal",
+      "temp_table.lvshuai01_qing_qi_moth",
+      "temp_table.lvshuai01_qing_team_g_qi",
+      "temp_table.lvshuai01_qing_team_goal",
+      "temp_table.lvshuai01_qing_team_jg",
+      "temp_table.lvshuai01_qing_zz"
+    ],
+    "same_name_temp_tables_require_domain_evidence": [
+      "temp_table.lvshuai01_jiagou_db",
+      "temp_table.shenbaoxin_channel_group"
+    ],
+    "forbidden_temp_table_owners": {
+      "temp_table.lvshuai01_qing_daoke": [
+        "qingcheng"
       ],
-      "temp_table.lvshuai01_jiagou_db": [
+      "temp_table.lvshuai01_qing_goal": [
+        "qingcheng"
+      ],
+      "temp_table.lvshuai01_qing_qi_moth": [
+        "qingcheng"
+      ],
+      "temp_table.lvshuai01_qing_team_g_qi": [
+        "qingcheng"
+      ],
+      "temp_table.lvshuai01_qing_team_goal": [
         "qingcheng"
       ],
       "temp_table.lvshuai01_qing_team_jg": [
+        "qingcheng"
+      ],
+      "temp_table.lvshuai01_qing_zz": [
         "qingcheng"
       ]
     },
@@ -103,12 +159,12 @@
     "cross_department_comparison_requires_two_specs": true
   },
   "counts": {
-    "knowledge_files": 159,
+    "knowledge_files": 161,
     "raw_sql_files": 63,
     "by_category": {
       "dashboard_web_profiles": 38,
       "dashboards": 20,
-      "governance": 6,
+      "governance": 7,
       "joins": 3,
       "metrics": 18,
       "pitfalls": 4,
@@ -116,7 +172,7 @@
       "reverse_index": 4,
       "sql_patterns": 19,
       "tables": 36,
-      "temp_tables": 10,
+      "temp_tables": 11,
       "update_log": 1
     }
   },
@@ -138,19 +194,19 @@
     "source_files": [
       {
         "source_path": "semantic/contracts/metric_contracts.json",
-        "sha256": "bc38190201ea18cc6c6cf4f606291899d646448de123c30a41006b1b69447c52"
+        "sha256": "ef0e76cd786522f3bac4d98b59cc6851eb4b696d747ecdb13b7baaadd2b12ea1"
       },
       {
         "source_path": "semantic/contracts/dimension_contracts.json",
-        "sha256": "cc94222c307b74a8b919422212d51736cd11db3d82c92a1dd616c3b892762e98"
+        "sha256": "b6d88d85ef0a1ddcfa238800806e6f1ba75211105c6f3e061f2e28fcb96ea9ce"
       },
       {
         "source_path": "semantic/contracts/join_contracts.json",
-        "sha256": "f42e427397d5cc7c969b7736c019d7f5711deb59dada9e6e910691a003b93874"
+        "sha256": "1a56de09812c1e5dfd6dfafff09591c0abe8216e0b11567bfba6c42c482b9e1b"
       },
       {
         "source_path": "semantic/contracts/scope_contracts.json",
-        "sha256": "76db2a0091cda3d94ed0e80387f3d9c79df04c8cab8dfc9c14868bfea61976ce"
+        "sha256": "9ff0c9ff34fccc26141020202980f72e14068423003b46a586a41916b10820c5"
       }
     ]
   },
@@ -1120,13 +1176,13 @@
       {
         "id": "market_consultant:dashboards:consultant_sales_department_tenure",
         "source_path": "knowledge/dashboards/consultant_sales_department_tenure.md",
-        "sha256": "857a3514dfe8cdbd7250dfff991c760f2bc87227dc4cfc8b9b035a799bf1b4a4",
-        "bytes": 8606,
+        "sha256": "538cddb447e78bc1e50c05d3838e4cc187e62ced8462d6883075d6ceb9ce9b8a",
+        "bytes": 8610,
         "title": "顾问部门任职期销售统计",
         "table_refs": [
           "dw.dim_employee_chain",
           "finance_dw.app_finance_performance_extend_details_hf",
-          "temp_table.dingxi01_jiagou_zx"
+          "temp_table.lvshuai01_jiagou_zx"
         ],
         "raw_sql_refs": [
           "data_center_market_2727.sql"
@@ -1140,15 +1196,15 @@
       {
         "id": "market_consultant:dashboards:consultant_sales_ranking_evaluation",
         "source_path": "knowledge/dashboards/consultant_sales_ranking_evaluation.md",
-        "sha256": "e93b230f7cbfd4366de098181949238de387002c93f7e91c1a18e9ab272416d9",
-        "bytes": 14714,
+        "sha256": "763afda73e214e4aecbfbb292db91c0b6eedc884479d8d50e1f829f5819e5c09",
+        "bytes": 14719,
         "title": "顾问销售评优看板",
         "table_refs": [
           "dw.dim_employee_chain",
           "finance_dw.app_finance_performance_extend_details_hf",
           "finance_dw.dim_finance_employee_df",
-          "temp_table.dingxi01_cost",
-          "temp_table.dingxi01_jiagou_zx",
+          "temp_table.lvshuai01_cost",
+          "temp_table.lvshuai01_jiagou_zx",
           "temp_table.zhangjunyan01_pingyou_jg"
         ],
         "raw_sql_refs": [
@@ -1239,15 +1295,15 @@
       {
         "id": "market_consultant:dashboards:lead_assign_plan_actual_valid_count",
         "source_path": "knowledge/dashboards/lead_assign_plan_actual_valid_count.md",
-        "sha256": "2b37b0bc7fb8233f648f4173533bebcb9efbd7e87c00ee61d02dd3c74bcaf609",
-        "bytes": 6821,
+        "sha256": "ffaee24b76123cf2da605e8c625a39e6fc3ff02b3ab1d9eac2383f91d8e0b96f",
+        "bytes": 6829,
         "title": "线索分配计划与实际有效量看板",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
           "service_dw.dim_crm_assign_rule_lead_detail_hf",
           "service_dw.dim_crm_assign_rule_plan_item_info_hf",
-          "temp_table.dingxi01_jiagou_db",
-          "temp_table.dingxi01_plan_id"
+          "temp_table.lvshuai01_jiagou_db",
+          "temp_table.lvshuai01_plan_id"
         ],
         "raw_sql_refs": [
           "lead_assign_plan_actual_valid_count.sql",
@@ -1278,8 +1334,8 @@
       {
         "id": "market_consultant:dashboards:market_channel_conversion_profile",
         "source_path": "knowledge/dashboards/market_channel_conversion_profile.md",
-        "sha256": "d8b2f43354c986ddd7c87893a27107a67ca53dbbd1d1d308c65c1507398329b2",
-        "bytes": 23573,
+        "sha256": "79040e3b44cb123a57beb37e0b0731f2f6d74f7d759fcb18da09c6d9f403b1dc",
+        "bytes": 23574,
         "title": "市场渠道用户画像分析",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -1288,7 +1344,7 @@
           "service_dw.dwd_crm_assign_private_detail_hf",
           "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
           "service_dw.dws_service_user_learn_detail_hf",
-          "temp_table.dingxi01_jiagou_zx",
+          "temp_table.lvshuai01_jiagou_zx",
           "temp_table.shenbaoxin_channel_group"
         ],
         "raw_sql_refs": [
@@ -1344,17 +1400,17 @@
       {
         "id": "market_consultant:dashboards:market_consultant_conversion",
         "source_path": "knowledge/dashboards/market_consultant_conversion.md",
-        "sha256": "ef8c8955480aeef3e347be3d31a64598a9caafe0a256b5b8733c77612971cb33",
-        "bytes": 13800,
+        "sha256": "1881f0f4e2b865d7fc96fbc0b27f1c15c668f635edc49279c74d94ef77df0f81",
+        "bytes": 13813,
         "title": "市场顾问转化看板",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
           "service_dw.dim_crm_assign_rule_lead_detail_hf",
           "service_dw.dm_crm_lead_stats_detail_hf",
-          "temp_table.dingxi01_channel_group",
-          "temp_table.dingxi01_cost",
-          "temp_table.dingxi01_jiagou_db",
-          "temp_table.dingxi01_jiagou_zx"
+          "temp_table.lvshuai01_channel_group",
+          "temp_table.lvshuai01_cost",
+          "temp_table.lvshuai01_jiagou_db",
+          "temp_table.lvshuai01_jiagou_zx"
         ],
         "raw_sql_refs": [
           "data_center_market_2253.sql",
@@ -1369,16 +1425,16 @@
       {
         "id": "market_consultant:dashboards:market_consultant_lead_conversion_attendance",
         "source_path": "knowledge/dashboards/market_consultant_lead_conversion_attendance.md",
-        "sha256": "f320eadd49713bbaa57ddfdfa71d4aac82a55b579666258b438f0e854a6366bc",
-        "bytes": 9862,
+        "sha256": "18d0893a4d0ab7b5176d6eb304f0a6df71277ab5c513767c56c0be489eb56c1e",
+        "bytes": 9867,
         "title": "市场顾问线索转化到课看板",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
           "service_dw.dm_crm_lead_stats_detail_hf",
           "service_dw.dwd_crm_assign_private_detail_hf",
           "service_dw.dws_service_user_learn_detail_hf",
-          "temp_table.dingxi01_daoke_1_6_t",
-          "temp_table.dingxi01_jiagou_db"
+          "temp_table.lvshuai01_daoke_1_6_t",
+          "temp_table.lvshuai01_jiagou_db"
         ],
         "raw_sql_refs": [
           "market_consultant_lead_conversion_attendance.sql"
@@ -1457,8 +1513,8 @@
       {
         "id": "market_consultant:dashboards:outbound_call_process_dashboard",
         "source_path": "knowledge/dashboards/outbound_call_process_dashboard.md",
-        "sha256": "eb82be25a046a46835ab648e7220246395dc798c63c5d42d6ed41e55f0208df3",
-        "bytes": 19450,
+        "sha256": "7a26d8945918047ac98aa94d47b13826080bb717b9529aa6ee71a5167b010d01",
+        "bytes": 19456,
         "title": "外呼过程数据看板",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -1472,8 +1528,8 @@
           "service_dw.dm_crm_lead_stats_detail_hf",
           "service_dw.dwd_crm_assign_private_detail_hf",
           "service_dw.dws_service_user_learn_detail_hf",
-          "temp_table.dingxi01_daoke_1_6_t",
-          "temp_table.dingxi01_jiagou_db"
+          "temp_table.lvshuai01_daoke_1_6_t",
+          "temp_table.lvshuai01_jiagou_db"
         ],
         "raw_sql_refs": [
           "outbound_call_process_dashboard.sql"
@@ -1487,8 +1543,8 @@
       {
         "id": "market_consultant:dashboards:template_query_market_datasets",
         "source_path": "knowledge/dashboards/template_query_market_datasets.md",
-        "sha256": "8506f769720fa3583659ef30d00903f0cf098a34771489b172fc3c93fc435599",
-        "bytes": 13184,
+        "sha256": "b7b293f83e8db219da381ed772053259034dbfb8bae926360c10337792ee381b",
+        "bytes": 13188,
         "title": "市场顾问部模板取数源 SQL 清单",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -1502,9 +1558,10 @@
           "service_dw.dm_crm_lead_stats_detail_hf",
           "service_dw.dwd_crm_assign_private_detail_hf",
           "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
-          "temp_table.dingxi01_jiagou_db",
-          "temp_table.dingxi01_jiagou_zx",
-          "temp_table.dingxi01_plan_id"
+          "temp_table.lvshuai01_jiagou_db",
+          "temp_table.lvshuai01_jiagou_zx",
+          "temp_table.lvshuai01_jinliang_goal",
+          "temp_table.lvshuai01_plan_id"
         ],
         "raw_sql_refs": [
           "lead_assign_plan_actual_valid_count.sql",
@@ -1525,8 +1582,8 @@
       {
         "id": "market_consultant:dashboards:traffic_profile",
         "source_path": "knowledge/dashboards/traffic_profile.md",
-        "sha256": "243a70d2139d1ff38d2a3d77cd03c33071ec266f903350b77299b8f46bea0fb8",
-        "bytes": 12799,
+        "sha256": "da542fe4a504b457334e4c476ae7411c6185129972889bbe667fd0cd6d9210a1",
+        "bytes": 12812,
         "title": "流量画像看板",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -1535,11 +1592,11 @@
           "service_dw.app_h_crm_lead_employee_workload_detail_hf",
           "service_dw.dwd_crm_assign_private_detail_hf",
           "service_dw.dws_service_user_learn_detail_hf",
-          "temp_table.dingxi01_channel_group",
-          "temp_table.dingxi01_cost",
-          "temp_table.dingxi01_daoke_1_6_t",
-          "temp_table.dingxi01_jiagou_db",
-          "temp_table.dingxi01_jiagou_zx"
+          "temp_table.lvshuai01_channel_group",
+          "temp_table.lvshuai01_cost",
+          "temp_table.lvshuai01_daoke_1_6_t",
+          "temp_table.lvshuai01_jiagou_db",
+          "temp_table.lvshuai01_jiagou_zx"
         ],
         "raw_sql_refs": [
           "data_center_market_2683.sql"
@@ -1555,12 +1612,12 @@
       {
         "id": "market_consultant:governance:00_global_rules",
         "source_path": "knowledge/00_global_rules.md",
-        "sha256": "45f9e190ab624713f9abc0391c1d53ba0d1abde425af148a17b8dc806e7d540f",
-        "bytes": 3865,
+        "sha256": "0a519a67f4ce9e58d6ba8295dc82bef2e1c4df3468c9224c4950418e99438f18",
+        "bytes": 3867,
         "title": "全局 SQL 生成规则",
         "table_refs": [
-          "temp_table.dingxi01_cost",
-          "temp_table.dingxi01_daoke_1_6_t"
+          "temp_table.lvshuai01_cost",
+          "temp_table.lvshuai01_daoke_1_6_t"
         ],
         "raw_sql_refs": [],
         "status": "documented",
@@ -1572,8 +1629,8 @@
       {
         "id": "market_consultant:governance:01_table_index",
         "source_path": "knowledge/01_table_index.md",
-        "sha256": "40df24f840ab25348b4baf090c30eb1e0c64e20373bd61820ced1b612799f445",
-        "bytes": 12980,
+        "sha256": "00036b91d7171460a49a66206824a09cd2fa01d75756376ccf7691a1afbaa759",
+        "bytes": 13331,
         "title": "表索引",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -1610,14 +1667,15 @@
           "service_dw.dws_service_wechat_call_detail_df",
           "service_dw.ods_service_ai_ones_business_copilot__ai_call_analysis_result_df",
           "service_dw.ods_service_ai_ones_business_copilot__call_record_df",
-          "temp_table.dingxi01_ceshiqudao_pingyou",
-          "temp_table.dingxi01_channel_group",
-          "temp_table.dingxi01_cost",
-          "temp_table.dingxi01_daoke_1_6_t",
-          "temp_table.dingxi01_jiagou_db",
-          "temp_table.dingxi01_jiagou_zx",
-          "temp_table.dingxi01_pingyou_jg",
-          "temp_table.dingxi01_plan_id",
+          "temp_table.lvshuai01_ceshiqudao_pingyou",
+          "temp_table.lvshuai01_channel_group",
+          "temp_table.lvshuai01_cost",
+          "temp_table.lvshuai01_daoke_1_6_t",
+          "temp_table.lvshuai01_jiagou_db",
+          "temp_table.lvshuai01_jiagou_xinren",
+          "temp_table.lvshuai01_jiagou_zx",
+          "temp_table.lvshuai01_jinliang_goal",
+          "temp_table.lvshuai01_plan_id",
           "temp_table.shenbaoxin_channel_group",
           "temp_table.zhangjunyan01_pingyou_jg"
         ],
@@ -1680,16 +1738,16 @@
       {
         "id": "market_consultant:governance:decision_tree",
         "source_path": "knowledge/decision_tree.md",
-        "sha256": "39a1c1fe928de9bf22acb2147492fe7a5363bbea6a9b4da0df5c70549316739b",
-        "bytes": 14726,
+        "sha256": "72f2067e3b9e174a89976893bda740b9ab462e090d714f9c10d8754b456ff9f4",
+        "bytes": 14733,
         "title": "用户需求到知识库路由",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
           "service_dw.dim_crm_assign_rule_lead_detail_hf",
           "service_dw.dwd_crm_assign_private_detail_hf",
-          "temp_table.dingxi01_daoke_1_6_t",
-          "temp_table.dingxi01_pingyou_jg",
-          "temp_table.dingxi01_plan_id"
+          "temp_table.lvshuai01_daoke_1_6_t",
+          "temp_table.lvshuai01_plan_id",
+          "temp_table.zhangjunyan01_pingyou_jg"
         ],
         "raw_sql_refs": [
           "data_center_market_2349.sql",
@@ -1706,8 +1764,8 @@
       {
         "id": "market_consultant:governance:quick_reference",
         "source_path": "knowledge/quick_reference.md",
-        "sha256": "b1e11c4c7f39b1ac65e644bf65068069755fe922cbbe5daea32aee55f7365878",
-        "bytes": 11240,
+        "sha256": "b3ccd30471e6b85f6dc98f4f26d9b26a0f324a45db1c5bd59a9aba0439cc8c5e",
+        "bytes": 11254,
         "title": "快速参考卡",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -1715,11 +1773,10 @@
           "gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf",
           "service_dw.dim_crm_assign_rule_lead_detail_hf",
           "service_dw.dwd_crm_assign_private_detail_hf",
-          "temp_table.dingxi01_cost",
-          "temp_table.dingxi01_daoke_1_6_t",
-          "temp_table.dingxi01_jiagou_db",
-          "temp_table.dingxi01_jiagou_zx",
-          "temp_table.dingxi01_pingyou_jg",
+          "temp_table.lvshuai01_cost",
+          "temp_table.lvshuai01_daoke_1_6_t",
+          "temp_table.lvshuai01_jiagou_db",
+          "temp_table.lvshuai01_jiagou_zx",
           "temp_table.zhangjunyan01_pingyou_jg"
         ],
         "raw_sql_refs": [
@@ -1731,6 +1788,30 @@
         "aliases": [
           "quick_reference",
           "快速参考卡"
+        ]
+      },
+      {
+        "id": "market_consultant:governance:temp_table_maintenance",
+        "source_path": "knowledge/temp_table_maintenance.md",
+        "sha256": "39be6d0247e4edf8a10de261b9b3faf4086a49ce9a2d866ffb7091a8ecbf5358",
+        "bytes": 2436,
+        "title": "临时表维护迁移",
+        "table_refs": [
+          "temp_table.lvshuai01_ceshiqudao_pingyou",
+          "temp_table.lvshuai01_channel_group",
+          "temp_table.lvshuai01_cost",
+          "temp_table.lvshuai01_daoke_1_6_t",
+          "temp_table.lvshuai01_jiagou_db",
+          "temp_table.lvshuai01_jiagou_zx",
+          "temp_table.lvshuai01_jinliang_goal",
+          "temp_table.lvshuai01_plan_id",
+          "temp_table.zhangjunyan01_pingyou_jg"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "aliases": [
+          "temp_table_maintenance",
+          "临时表维护迁移"
         ]
       }
     ],
@@ -1756,8 +1837,8 @@
       {
         "id": "market_consultant:joins:common_join_keys",
         "source_path": "knowledge/joins/common_join_keys.md",
-        "sha256": "77cf82c1332cab0b1dd4ea93a9c6356ea284e5478896910c2c690760a5266107",
-        "bytes": 13792,
+        "sha256": "efaa146dc2bb46c112fc9211612b2737f56e9f6e5e68aaff7036d0d13e31670b",
+        "bytes": 13822,
         "title": "常用 join key",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -1781,13 +1862,12 @@
           "service_dw.dwd_crm_assign_private_detail_hf",
           "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
           "service_dw.dws_service_user_learn_detail_hf",
-          "temp_table.dingxi01_channel_group",
-          "temp_table.dingxi01_cost",
-          "temp_table.dingxi01_daoke_1_6_t",
-          "temp_table.dingxi01_jiagou_db",
-          "temp_table.dingxi01_jiagou_zx",
-          "temp_table.dingxi01_pingyou_jg",
-          "temp_table.dingxi01_plan_id",
+          "temp_table.lvshuai01_channel_group",
+          "temp_table.lvshuai01_cost",
+          "temp_table.lvshuai01_daoke_1_6_t",
+          "temp_table.lvshuai01_jiagou_db",
+          "temp_table.lvshuai01_jiagou_zx",
+          "temp_table.lvshuai01_plan_id",
           "temp_table.shenbaoxin_channel_group",
           "temp_table.zhangjunyan01_pingyou_jg"
         ],
@@ -1801,8 +1881,8 @@
       {
         "id": "market_consultant:joins:table_relationships",
         "source_path": "knowledge/joins/table_relationships.md",
-        "sha256": "705ceb31f6f7b7f1da300e611fb1e9417eab611779a384fccddc514fca17207e",
-        "bytes": 41661,
+        "sha256": "542137dc8fad27bc6928c8ca94c85da3032db4fefe7bfa5a78b8b97a2791f6ba",
+        "bytes": 41697,
         "title": "表关系",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -1831,13 +1911,12 @@
           "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
           "service_dw.dws_service_user_learn_detail_hf",
           "service_dw.dws_service_wechat_call_detail_df",
-          "temp_table.dingxi01_channel_group",
-          "temp_table.dingxi01_cost",
-          "temp_table.dingxi01_daoke_1_6_t",
-          "temp_table.dingxi01_jiagou_db",
-          "temp_table.dingxi01_jiagou_zx",
-          "temp_table.dingxi01_pingyou_jg",
-          "temp_table.dingxi01_plan_id",
+          "temp_table.lvshuai01_channel_group",
+          "temp_table.lvshuai01_cost",
+          "temp_table.lvshuai01_daoke_1_6_t",
+          "temp_table.lvshuai01_jiagou_db",
+          "temp_table.lvshuai01_jiagou_zx",
+          "temp_table.lvshuai01_plan_id",
           "temp_table.shenbaoxin_channel_group",
           "temp_table.zhangjunyan01_pingyou_jg"
         ],
@@ -1898,13 +1977,13 @@
       {
         "id": "market_consultant:metrics:consultant_sales_department_tenure_metrics",
         "source_path": "knowledge/metrics/consultant_sales_department_tenure_metrics.md",
-        "sha256": "1aff3fd5ddf849e9e4cc906ea472eb7d818e76d48c7f41811b60927e44d58aec",
-        "bytes": 5176,
+        "sha256": "c137f6d3df42b7ac62755c041d2c2d9ee233beb9be0a40db5682803d0f4217d2",
+        "bytes": 5178,
         "title": "顾问部门任职期销售指标",
         "table_refs": [
           "dw.dim_employee_chain",
           "finance_dw.app_finance_performance_extend_details_hf",
-          "temp_table.dingxi01_jiagou_zx"
+          "temp_table.lvshuai01_jiagou_zx"
         ],
         "raw_sql_refs": [
           "data_center_market_2727.sql"
@@ -1957,15 +2036,15 @@
       {
         "id": "market_consultant:metrics:lead_assign_plan_actual_valid_count_metrics",
         "source_path": "knowledge/metrics/lead_assign_plan_actual_valid_count_metrics.md",
-        "sha256": "70d5bc25142d71ad19c4eb098839e6f5401e602b774ba535639c56573b5b6dd9",
-        "bytes": 3961,
+        "sha256": "d7a6ad1767e19fb1a55e76257e6332ed674bb9f7521f90f0d84367d6a620ef23",
+        "bytes": 3967,
         "title": "线索分配计划与实际有效量指标",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
           "service_dw.dim_crm_assign_rule_lead_detail_hf",
           "service_dw.dim_crm_assign_rule_plan_item_info_hf",
-          "temp_table.dingxi01_jiagou_db",
-          "temp_table.dingxi01_plan_id"
+          "temp_table.lvshuai01_jiagou_db",
+          "temp_table.lvshuai01_plan_id"
         ],
         "raw_sql_refs": [
           "lead_assign_plan_actual_valid_count.sql"
@@ -2040,15 +2119,15 @@
       {
         "id": "market_consultant:metrics:market_consultant_conversion_metrics",
         "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
-        "sha256": "8263acf8b580aff668d756d64d4e791a6e6a6e2ea4a446a398ac07e5d7b90cad",
-        "bytes": 8498,
+        "sha256": "2aa76008164ad740ca5a0a62f3c90a31ff98171a07c7e9dda6d5bb3b69376a6a",
+        "bytes": 8502,
         "title": "市场顾问转化看板指标",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
-          "temp_table.dingxi01_channel_group",
-          "temp_table.dingxi01_cost",
-          "temp_table.dingxi01_jiagou_db",
-          "temp_table.dingxi01_jiagou_zx"
+          "temp_table.lvshuai01_channel_group",
+          "temp_table.lvshuai01_cost",
+          "temp_table.lvshuai01_jiagou_db",
+          "temp_table.lvshuai01_jiagou_zx"
         ],
         "raw_sql_refs": [
           "data_center_market_2253.sql",
@@ -2063,11 +2142,11 @@
       {
         "id": "market_consultant:metrics:market_consultant_dashboard_metric_formula_linkage",
         "source_path": "knowledge/metrics/market_consultant_dashboard_metric_formula_linkage.md",
-        "sha256": "e60add828f9e7c57b7361b0f31bb358b50843fae630b3419d725acb9f364f97d",
-        "bytes": 54254,
+        "sha256": "e3de70fc2b4256c0f842637909447623253c4a5b0d9b935a506d4813d7e2025e",
+        "bytes": 54269,
         "title": "Market consultant dashboard metric formula and SQL linkage",
         "table_refs": [
-          "temp_table.dingxi01_pingyou_jg"
+          "temp_table.zhangjunyan01_pingyou_jg"
         ],
         "raw_sql_refs": [
           "consultant_sales_ranking_evaluation_month_clean.sql",
@@ -2108,12 +2187,12 @@
       {
         "id": "market_consultant:metrics:market_consultant_lead_conversion_attendance_metrics",
         "source_path": "knowledge/metrics/market_consultant_lead_conversion_attendance_metrics.md",
-        "sha256": "0f53dd29ec556c4f8acc875fa562dc86770851cb43a333b65be71efa285b44b5",
-        "bytes": 10682,
+        "sha256": "087702569611dcc796b5e20b104e328e18d0bf3cf5c45b2d706c7473a8eabdc8",
+        "bytes": 10684,
         "title": "市场顾问线索转化到课指标",
         "table_refs": [
-          "temp_table.dingxi01_daoke_1_6_t",
-          "temp_table.dingxi01_jiagou_db"
+          "temp_table.lvshuai01_daoke_1_6_t",
+          "temp_table.lvshuai01_jiagou_db"
         ],
         "raw_sql_refs": [
           "market_consultant_lead_conversion_attendance.sql"
@@ -2192,8 +2271,8 @@
       {
         "id": "market_consultant:metrics:outbound_call_process_metrics",
         "source_path": "knowledge/metrics/outbound_call_process_metrics.md",
-        "sha256": "459a7f3e52ed291e96e533f05ad2f669442c0a8affe0c9dfa83738383bd73e5e",
-        "bytes": 10761,
+        "sha256": "cc8bc1f3f9a9fc916f8b7a73c9e4347a54f59722ca5cbb4798b6dc23f92bf457",
+        "bytes": 10763,
         "title": "外呼过程数据看板指标",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -2207,8 +2286,8 @@
           "service_dw.dm_crm_lead_stats_detail_hf",
           "service_dw.dwd_crm_assign_private_detail_hf",
           "service_dw.dws_service_user_learn_detail_hf",
-          "temp_table.dingxi01_daoke_1_6_t",
-          "temp_table.dingxi01_jiagou_db"
+          "temp_table.lvshuai01_daoke_1_6_t",
+          "temp_table.lvshuai01_jiagou_db"
         ],
         "raw_sql_refs": [
           "outbound_call_process_dashboard.sql"
@@ -2222,15 +2301,15 @@
       {
         "id": "market_consultant:metrics:traffic_profile_metrics",
         "source_path": "knowledge/metrics/traffic_profile_metrics.md",
-        "sha256": "32d54253bbe57bd522e5ff01ff406c17366d5c3e686bf355e936c18f0eff271a",
-        "bytes": 8331,
+        "sha256": "91aba09fd4211c8fb310285d77f880e9fb8900a3bcc3af74b70691d027b4cf09",
+        "bytes": 8334,
         "title": "流量画像指标",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
           "dw.dim_cstm_active_user_c_appliction_mb_df",
           "finance_dw.app_finance_performance_extend_details_hf",
-          "temp_table.dingxi01_cost",
-          "temp_table.dingxi01_jiagou_zx"
+          "temp_table.lvshuai01_cost",
+          "temp_table.lvshuai01_jiagou_zx"
         ],
         "raw_sql_refs": [
           "data_center_market_2683.sql"
@@ -2246,16 +2325,16 @@
       {
         "id": "market_consultant:pitfalls:common_join_failures",
         "source_path": "knowledge/pitfalls/common_join_failures.md",
-        "sha256": "f0d0670182c17569dc37ef9b1ee0a40ace0b7cd74ed77a6f0b0c1b8deb86952c",
-        "bytes": 10825,
+        "sha256": "254fff2352b64b6366f39f1395a5b247032db71a8b5514d2a27aeef435a50b4a",
+        "bytes": 10849,
         "title": "常见 JOIN 断裂排查速查表",
         "table_refs": [
           "finance_dw.dim_finance_employee_df",
-          "temp_table.dingxi01_cost",
-          "temp_table.dingxi01_daoke_1_6_t",
-          "temp_table.dingxi01_jiagou_db",
-          "temp_table.dingxi01_jiagou_zx",
-          "temp_table.dingxi01_pingyou_jg"
+          "temp_table.lvshuai01_cost",
+          "temp_table.lvshuai01_daoke_1_6_t",
+          "temp_table.lvshuai01_jiagou_db",
+          "temp_table.lvshuai01_jiagou_zx",
+          "temp_table.zhangjunyan01_pingyou_jg"
         ],
         "raw_sql_refs": [
           "data_center_market_2293.sql"
@@ -2269,14 +2348,14 @@
       {
         "id": "market_consultant:pitfalls:grade_extraction_gotchas",
         "source_path": "knowledge/pitfalls/grade_extraction_gotchas.md",
-        "sha256": "f3c62eb5e40d97b428ad3d573b77e73496c0ce9bc5e115504503875114181544",
-        "bytes": 5505,
+        "sha256": "630359b699970b9fd52608a7cd9b99eac8aea5c29d0dc825c5f6c6f18b1c7efd",
+        "bytes": 5506,
         "title": "grade_1 年级提取常见坑",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
           "service_dw.dim_crm_assign_rule_lead_detail_hf",
           "service_dw.dm_crm_lead_stats_detail_hf",
-          "temp_table.dingxi01_daoke_1_6_t"
+          "temp_table.lvshuai01_daoke_1_6_t"
         ],
         "raw_sql_refs": [
           "data_center_market_2293.sql"
@@ -2290,11 +2369,11 @@
       {
         "id": "market_consultant:pitfalls:newcomer_x_qi_count_and_pingyou_upload",
         "source_path": "knowledge/pitfalls/newcomer_x_qi_count_and_pingyou_upload.md",
-        "sha256": "94fd8df6f0bc083c15f09e5444019256f0afbc711a12becf731b5b9f12f91cbf",
-        "bytes": 7446,
+        "sha256": "7b2f55ce3969cdcca802229a0204c0cb913b06f56f4108a44fe76393cb0ee848",
+        "bytes": 8057,
         "title": "新人过程转化 `x_qi_count` 重复与 `pingyou_jg` 上传故障",
         "table_refs": [
-          "temp_table.dingxi01_pingyou_jg"
+          "temp_table.zhangjunyan01_pingyou_jg"
         ],
         "raw_sql_refs": [
           "data_center_market_2688.sql"
@@ -2308,13 +2387,13 @@
       {
         "id": "market_consultant:pitfalls:virtual_vs_section_architecture",
         "source_path": "knowledge/pitfalls/virtual_vs_section_architecture.md",
-        "sha256": "d78c4e48c0dc06bbf21174037ae8c5c31ca6d4ace682c72a4dde4d4b294dcd70",
-        "bytes": 2869,
+        "sha256": "de5b5eaa3e27973fc98473a48905ad21d5fb9a0f69287c6a245dd6aaef44cd30",
+        "bytes": 2874,
         "title": "虚拟架构（virtual_*）与截面架构（section_assign_*）的区别",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
-          "temp_table.dingxi01_jiagou_db",
-          "temp_table.dingxi01_jiagou_zx"
+          "temp_table.lvshuai01_jiagou_db",
+          "temp_table.lvshuai01_jiagou_zx"
         ],
         "raw_sql_refs": [],
         "status": "documented",
@@ -2381,7 +2460,6 @@
         "title": "consultant_sales_ranking_evaluation_quarter_clean",
         "table_refs": [
           "finance_dw.app_finance_performance_extend_details_hf",
-          "temp_table.dingxi01_jiagou_zx",
           "temp_table.zhangjunyan01_pingyou_jg"
         ],
         "raw_sql_refs": [],
@@ -2398,8 +2476,6 @@
         "title": "consultant_sales_ranking_evaluation_year_clean",
         "table_refs": [
           "finance_dw.app_finance_performance_extend_details_hf",
-          "temp_table.dingxi01_ceshiqudao_pingyou",
-          "temp_table.dingxi01_jiagou_zx",
           "temp_table.zhangjunyan01_pingyou_jg"
         ],
         "raw_sql_refs": [],
@@ -2425,9 +2501,7 @@
           "service_dw.app_user_attribute_label_gaia_wide_df",
           "service_dw.dm_crm_lead_stats_detail_hf",
           "service_dw.dwd_crm_assign_private_detail_hf",
-          "service_dw.dws_service_user_learn_detail_hf",
-          "temp_table.dingxi01_daoke_1_6_t",
-          "temp_table.dingxi01_jiagou_db"
+          "service_dw.dws_service_user_learn_detail_hf"
         ],
         "raw_sql_refs": [],
         "status": "documented",
@@ -2445,9 +2519,7 @@
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
           "service_dw.dm_crm_lead_stats_detail_hf",
           "service_dw.dwd_crm_assign_private_detail_hf",
-          "service_dw.dws_service_user_learn_detail_hf",
-          "temp_table.dingxi01_daoke_1_6_t",
-          "temp_table.dingxi01_jiagou_db"
+          "service_dw.dws_service_user_learn_detail_hf"
         ],
         "raw_sql_refs": [],
         "status": "documented",
@@ -2462,11 +2534,7 @@
         "bytes": 58896,
         "title": "data_center_market_2253",
         "table_refs": [
-          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
-          "temp_table.dingxi01_channel_group",
-          "temp_table.dingxi01_cost",
-          "temp_table.dingxi01_jiagou_db",
-          "temp_table.dingxi01_jiagou_zx"
+          "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df"
         ],
         "raw_sql_refs": [],
         "status": "documented",
@@ -2486,11 +2554,7 @@
           "gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf",
           "service_dw.app_h_crm_lead_employee_workload_detail_hf",
           "service_dw.dwd_crm_assign_private_detail_hf",
-          "service_dw.dws_service_user_learn_detail_hf",
-          "temp_table.dingxi01_cost",
-          "temp_table.dingxi01_daoke_1_6_t",
-          "temp_table.dingxi01_jiagou_db",
-          "temp_table.dingxi01_jiagou_zx"
+          "service_dw.dws_service_user_learn_detail_hf"
         ],
         "raw_sql_refs": [],
         "status": "documented",
@@ -2507,9 +2571,7 @@
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
           "service_dw.dim_crm_assign_rule_lead_detail_hf",
-          "service_dw.dim_crm_assign_rule_plan_item_info_hf",
-          "temp_table.dingxi01_jiagou_db",
-          "temp_table.dingxi01_plan_id"
+          "service_dw.dim_crm_assign_rule_plan_item_info_hf"
         ],
         "raw_sql_refs": [],
         "status": "documented",
@@ -2545,9 +2607,7 @@
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
           "finance_dw.app_finance_performance_extend_details_hf",
           "service_dw.dim_crm_assign_rule_lead_detail_hf",
-          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
-          "temp_table.dingxi01_jiagou_db",
-          "temp_table.dingxi01_jiagou_zx"
+          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf"
         ],
         "raw_sql_refs": [],
         "status": "documented",
@@ -2568,12 +2628,7 @@
           "service_dw.app_h_crm_lead_employee_workload_detail_hf",
           "service_dw.app_user_attribute_label_gaia_wide_df",
           "service_dw.dwd_crm_assign_private_detail_hf",
-          "service_dw.dws_service_user_learn_detail_hf",
-          "temp_table.dingxi01_channel_group",
-          "temp_table.dingxi01_cost",
-          "temp_table.dingxi01_daoke_1_6_t",
-          "temp_table.dingxi01_jiagou_db",
-          "temp_table.dingxi01_jiagou_zx"
+          "service_dw.dws_service_user_learn_detail_hf"
         ],
         "raw_sql_refs": [],
         "status": "documented",
@@ -2590,8 +2645,7 @@
         "table_refs": [
           "finance_dw.app_finance_performance_extend_details_hf",
           "service_dw.dim_crm_assign_rule_lead_detail_hf",
-          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
-          "temp_table.dingxi01_jiagou_zx"
+          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf"
         ],
         "raw_sql_refs": [],
         "status": "documented",
@@ -2608,8 +2662,7 @@
         "table_refs": [
           "finance_dw.app_finance_performance_extend_details_hf",
           "service_dw.dim_crm_assign_rule_lead_detail_hf",
-          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
-          "temp_table.dingxi01_jiagou_zx"
+          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf"
         ],
         "raw_sql_refs": [],
         "status": "documented",
@@ -2627,8 +2680,7 @@
           "finance_dw.app_finance_performance_extend_details_hf",
           "finance_dw.dwd_finance_order_refund_df",
           "service_dw.dim_crm_assign_rule_lead_detail_hf",
-          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
-          "temp_table.dingxi01_jiagou_zx"
+          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf"
         ],
         "raw_sql_refs": [],
         "status": "documented",
@@ -2661,8 +2713,7 @@
         "table_refs": [
           "finance_dw.app_finance_performance_extend_details_hf",
           "service_dw.dim_crm_assign_rule_lead_detail_hf",
-          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
-          "temp_table.dingxi01_jiagou_zx"
+          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf"
         ],
         "raw_sql_refs": [],
         "status": "documented",
@@ -2680,8 +2731,7 @@
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
           "finance_dw.app_finance_performance_extend_details_hf",
           "service_dw.dim_crm_assign_rule_lead_detail_hf",
-          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
-          "temp_table.dingxi01_jiagou_zx"
+          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf"
         ],
         "raw_sql_refs": [],
         "status": "documented",
@@ -2701,12 +2751,7 @@
           "finance_dw.app_finance_performance_extend_details_hf",
           "service_dw.app_h_crm_lead_employee_workload_detail_hf",
           "service_dw.dwd_crm_assign_private_detail_hf",
-          "service_dw.dws_service_user_learn_detail_hf",
-          "temp_table.dingxi01_channel_group",
-          "temp_table.dingxi01_cost",
-          "temp_table.dingxi01_daoke_1_6_t",
-          "temp_table.dingxi01_jiagou_db",
-          "temp_table.dingxi01_jiagou_zx"
+          "service_dw.dws_service_user_learn_detail_hf"
         ],
         "raw_sql_refs": [],
         "status": "documented",
@@ -2726,12 +2771,7 @@
           "dw.dws_user_active_user_c_appliction_hf",
           "service_dw.app_h_crm_lead_employee_workload_detail_hf",
           "service_dw.dwd_crm_assign_private_detail_hf",
-          "service_dw.dws_service_user_learn_detail_hf",
-          "temp_table.dingxi01_channel_group",
-          "temp_table.dingxi01_cost",
-          "temp_table.dingxi01_daoke_1_6_t",
-          "temp_table.dingxi01_jiagou_db",
-          "temp_table.dingxi01_jiagou_zx"
+          "service_dw.dws_service_user_learn_detail_hf"
         ],
         "raw_sql_refs": [],
         "status": "documented",
@@ -2765,8 +2805,7 @@
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
           "finance_dw.app_finance_performance_extend_details_hf",
           "service_dw.dim_crm_assign_rule_lead_detail_hf",
-          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
-          "temp_table.dingxi01_jiagou_zx"
+          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf"
         ],
         "raw_sql_refs": [],
         "status": "documented",
@@ -2798,7 +2837,6 @@
         "title": "data_center_market_2644",
         "table_refs": [
           "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
-          "temp_table.dingxi01_ceshiqudao_pingyou",
           "temp_table.zhangjunyan01_pingyou_jg"
         ],
         "raw_sql_refs": [],
@@ -2819,12 +2857,7 @@
           "finance_dw.app_finance_performance_extend_details_hf",
           "service_dw.app_h_crm_lead_employee_workload_detail_hf",
           "service_dw.dwd_crm_assign_private_detail_hf",
-          "service_dw.dws_service_user_learn_detail_hf",
-          "temp_table.dingxi01_channel_group",
-          "temp_table.dingxi01_cost",
-          "temp_table.dingxi01_daoke_1_6_t",
-          "temp_table.dingxi01_jiagou_db",
-          "temp_table.dingxi01_jiagou_zx"
+          "service_dw.dws_service_user_learn_detail_hf"
         ],
         "raw_sql_refs": [],
         "status": "documented",
@@ -2845,9 +2878,7 @@
           "dw.dws_user_active_user_c_appliction_hf",
           "service_dw.app_h_crm_lead_employee_workload_detail_hf",
           "service_dw.dwd_crm_assign_private_detail_hf",
-          "service_dw.dws_service_user_learn_detail_hf",
-          "temp_table.dingxi01_daoke_1_6_t",
-          "temp_table.dingxi01_pingyou_jg"
+          "service_dw.dws_service_user_learn_detail_hf"
         ],
         "raw_sql_refs": [],
         "status": "documented",
@@ -2863,8 +2894,7 @@
         "title": "data_center_market_2727",
         "table_refs": [
           "dw.dim_employee_chain",
-          "finance_dw.app_finance_performance_extend_details_hf",
-          "temp_table.dingxi01_jiagou_zx"
+          "finance_dw.app_finance_performance_extend_details_hf"
         ],
         "raw_sql_refs": [],
         "status": "documented",
@@ -2880,8 +2910,7 @@
         "title": "data_center_market_2742",
         "table_refs": [
           "dw.dim_employee_chain",
-          "finance_dw.app_finance_performance_extend_details_hf",
-          "temp_table.dingxi01_jiagou_zx"
+          "finance_dw.app_finance_performance_extend_details_hf"
         ],
         "raw_sql_refs": [],
         "status": "documented",
@@ -2898,10 +2927,7 @@
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
           "dw.dim_employee_chain",
-          "finance_dw.app_finance_performance_extend_details_hf",
-          "temp_table.dingxi01_cost",
-          "temp_table.dingxi01_jiagou_zx",
-          "temp_table.dingxi01_pingyou_jg"
+          "finance_dw.app_finance_performance_extend_details_hf"
         ],
         "raw_sql_refs": [],
         "status": "documented",
@@ -2982,9 +3008,7 @@
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
           "dw.dim_employee_chain",
-          "finance_dw.app_finance_performance_extend_details_hf",
-          "temp_table.dingxi01_cost",
-          "temp_table.dingxi01_jiagou_zx"
+          "finance_dw.app_finance_performance_extend_details_hf"
         ],
         "raw_sql_refs": [],
         "status": "documented",
@@ -2998,9 +3022,7 @@
         "sha256": "957794a35477d58016dffee4c594cce79bf8eaa4f41584ad186b8fea478c7521",
         "bytes": 53,
         "title": "data_center_market_2856",
-        "table_refs": [
-          "temp_table.dingxi01_ceshiqudao_pingyou"
-        ],
+        "table_refs": [],
         "raw_sql_refs": [],
         "status": "documented",
         "aliases": [
@@ -3083,11 +3105,7 @@
           "gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf",
           "service_dw.app_h_crm_lead_employee_workload_detail_hf",
           "service_dw.dwd_crm_assign_private_detail_hf",
-          "service_dw.dws_service_user_learn_detail_hf",
-          "temp_table.dingxi01_cost",
-          "temp_table.dingxi01_daoke_1_6_t",
-          "temp_table.dingxi01_jiagou_db",
-          "temp_table.dingxi01_jiagou_zx"
+          "service_dw.dws_service_user_learn_detail_hf"
         ],
         "raw_sql_refs": [],
         "status": "documented",
@@ -3122,9 +3140,7 @@
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
           "service_dw.dim_crm_assign_rule_lead_detail_hf",
-          "service_dw.dim_crm_assign_rule_plan_item_info_hf",
-          "temp_table.dingxi01_jiagou_db",
-          "temp_table.dingxi01_plan_id"
+          "service_dw.dim_crm_assign_rule_plan_item_info_hf"
         ],
         "raw_sql_refs": [],
         "status": "documented",
@@ -3230,9 +3246,7 @@
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
           "service_dw.dm_crm_lead_stats_detail_hf",
           "service_dw.dwd_crm_assign_private_detail_hf",
-          "service_dw.dws_service_user_learn_detail_hf",
-          "temp_table.dingxi01_daoke_1_6_t",
-          "temp_table.dingxi01_jiagou_db"
+          "service_dw.dws_service_user_learn_detail_hf"
         ],
         "raw_sql_refs": [],
         "status": "documented",
@@ -3341,9 +3355,7 @@
           "service_dw.app_user_attribute_label_gaia_wide_df",
           "service_dw.dm_crm_lead_stats_detail_hf",
           "service_dw.dwd_crm_assign_private_detail_hf",
-          "service_dw.dws_service_user_learn_detail_hf",
-          "temp_table.dingxi01_daoke_1_6_t",
-          "temp_table.dingxi01_jiagou_db"
+          "service_dw.dws_service_user_learn_detail_hf"
         ],
         "raw_sql_refs": [],
         "status": "documented",
@@ -3358,8 +3370,7 @@
         "bytes": 3824,
         "title": "template_query_market_employee_org",
         "table_refs": [
-          "finance_dw.dim_finance_employee_df",
-          "temp_table.dingxi01_jiagou_zx"
+          "finance_dw.dim_finance_employee_df"
         ],
         "raw_sql_refs": [],
         "status": "documented",
@@ -3428,8 +3439,7 @@
           "finance_dw.app_finance_performance_extend_details_hf",
           "gaotu_hl.dim_mkt_h_lead_channel_df",
           "service_dw.dim_crm_assign_rule_lead_detail_hf",
-          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
-          "temp_table.dingxi01_jiagou_zx"
+          "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf"
         ],
         "raw_sql_refs": [],
         "status": "documented",
@@ -3457,9 +3467,7 @@
           "service_dw.dm_crm_lead_stats_detail_hf",
           "service_dw.dwd_crm_assign_private_detail_hf",
           "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
-          "service_dw.dws_service_user_learn_detail_hf",
-          "temp_table.dingxi01_jiagou_db",
-          "temp_table.dingxi01_jiagou_zx"
+          "service_dw.dws_service_user_learn_detail_hf"
         ],
         "raw_sql_refs": [],
         "status": "documented",
@@ -3479,12 +3487,7 @@
           "finance_dw.app_finance_performance_extend_details_hf",
           "service_dw.app_h_crm_lead_employee_workload_detail_hf",
           "service_dw.dwd_crm_assign_private_detail_hf",
-          "service_dw.dws_service_user_learn_detail_hf",
-          "temp_table.dingxi01_channel_group",
-          "temp_table.dingxi01_cost",
-          "temp_table.dingxi01_daoke_1_6_t",
-          "temp_table.dingxi01_jiagou_db",
-          "temp_table.dingxi01_jiagou_zx"
+          "service_dw.dws_service_user_learn_detail_hf"
         ],
         "raw_sql_refs": [],
         "status": "documented",
@@ -3535,8 +3538,8 @@
       {
         "id": "market_consultant:reverse_index:join_risk_index",
         "source_path": "knowledge/reverse_index/join_risk_index.md",
-        "sha256": "0ac47d1503aa89503a5e3ede3ca1e9d24b3cdd8321b379915ff61a4f6e677d24",
-        "bytes": 89484,
+        "sha256": "d71b33095be1c0eca37f42410eb0932d13adaead8f444fb42cefe3913823314d",
+        "bytes": 89504,
         "title": "JOIN 与结果异常风险索引",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -3556,13 +3559,12 @@
           "service_dw.dim_crm_assign_rule_plan_item_info_hf",
           "service_dw.dm_crm_lead_stats_detail_hf",
           "service_dw.dws_service_user_learn_detail_hf",
-          "temp_table.dingxi01_channel_group",
-          "temp_table.dingxi01_cost",
-          "temp_table.dingxi01_daoke_1_6_t",
-          "temp_table.dingxi01_jiagou_db",
-          "temp_table.dingxi01_jiagou_zx",
-          "temp_table.dingxi01_pingyou_jg",
-          "temp_table.dingxi01_plan_id",
+          "temp_table.lvshuai01_channel_group",
+          "temp_table.lvshuai01_cost",
+          "temp_table.lvshuai01_daoke_1_6_t",
+          "temp_table.lvshuai01_jiagou_db",
+          "temp_table.lvshuai01_jiagou_zx",
+          "temp_table.lvshuai01_plan_id",
           "temp_table.shenbaoxin_channel_group",
           "temp_table.zhangjunyan01_pingyou_jg"
         ],
@@ -3578,8 +3580,8 @@
       {
         "id": "market_consultant:reverse_index:metric_to_raw_sql",
         "source_path": "knowledge/reverse_index/metric_to_raw_sql.md",
-        "sha256": "eebd997c7ba7d9709128dddef12da0d6a352dcb7b79de40cf16fe5ac235a7cd3",
-        "bytes": 6050,
+        "sha256": "602006d96f78de1f0324ee73556e735c5a16c5263afe454474aaa12b2776bf9b",
+        "bytes": 6065,
         "title": "指标到 raw SQL 反向索引",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -3595,13 +3597,12 @@
           "service_dw.dm_crm_lead_stats_detail_hf",
           "service_dw.dwd_crm_assign_private_detail_hf",
           "service_dw.dws_service_user_learn_detail_hf",
-          "temp_table.dingxi01_channel_group",
-          "temp_table.dingxi01_cost",
-          "temp_table.dingxi01_daoke_1_6_t",
-          "temp_table.dingxi01_jiagou_db",
-          "temp_table.dingxi01_jiagou_zx",
-          "temp_table.dingxi01_pingyou_jg",
-          "temp_table.dingxi01_plan_id",
+          "temp_table.lvshuai01_channel_group",
+          "temp_table.lvshuai01_cost",
+          "temp_table.lvshuai01_daoke_1_6_t",
+          "temp_table.lvshuai01_jiagou_db",
+          "temp_table.lvshuai01_jiagou_zx",
+          "temp_table.lvshuai01_plan_id",
           "temp_table.shenbaoxin_channel_group",
           "temp_table.zhangjunyan01_pingyou_jg"
         ],
@@ -3639,8 +3640,8 @@
       {
         "id": "market_consultant:reverse_index:table_to_dashboards",
         "source_path": "knowledge/reverse_index/table_to_dashboards.md",
-        "sha256": "39905936ffc3a4728ca7ce72694a4e9a723219d7a9b8c04f4faeb7f7ce518b70",
-        "bytes": 21585,
+        "sha256": "e3e43fc24193547fc55c328e32b50bf76dfc66f51775a03f5abc6d59740fdacc",
+        "bytes": 21884,
         "title": "表到看板反向索引",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -3659,13 +3660,13 @@
           "service_dw.dwd_crm_assign_private_detail_hf",
           "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
           "service_dw.dws_service_user_learn_detail_hf",
-          "temp_table.dingxi01_channel_group",
-          "temp_table.dingxi01_cost",
-          "temp_table.dingxi01_daoke_1_6_t",
-          "temp_table.dingxi01_jiagou_db",
-          "temp_table.dingxi01_jiagou_zx",
-          "temp_table.dingxi01_pingyou_jg",
-          "temp_table.dingxi01_plan_id",
+          "temp_table.lvshuai01_channel_group",
+          "temp_table.lvshuai01_cost",
+          "temp_table.lvshuai01_daoke_1_6_t",
+          "temp_table.lvshuai01_jiagou_db",
+          "temp_table.lvshuai01_jiagou_zx",
+          "temp_table.lvshuai01_jinliang_goal",
+          "temp_table.lvshuai01_plan_id",
           "temp_table.shenbaoxin_channel_group",
           "temp_table.zhangjunyan01_pingyou_jg"
         ],
@@ -3675,7 +3676,6 @@
           "consultant_sales_ranking_evaluation_period_clean.sql",
           "consultant_sales_ranking_evaluation_quarter_clean.sql",
           "consultant_sales_ranking_evaluation_year_clean.sql",
-          "data_center_market_2054.sql",
           "data_center_market_2253.sql",
           "data_center_market_2344.sql",
           "data_center_market_2349.sql",
@@ -3690,7 +3690,8 @@
           "market_consultant_lead_conversion_attendance.sql",
           "outbound_call_process_dashboard.sql",
           "template_query_market_employee_org.sql",
-          "template_query_market_finance_order_detail.sql"
+          "template_query_market_finance_order_detail.sql",
+          "template_query_market_mantou_order_detail_trade_time.sql"
         ],
         "status": "documented",
         "aliases": [
@@ -3738,13 +3739,13 @@
       {
         "id": "market_consultant:sql_patterns:channel_mapping_case_when",
         "source_path": "knowledge/sql_patterns/channel_mapping_case_when.md",
-        "sha256": "3298fc274be3745e096ea734bfaa138bd8ab25d661fd1869660e26b471319ee3",
-        "bytes": 61219,
+        "sha256": "61f20ef5b1a9f4a5b65f76b3c96d3fe0d5c95642ab4bd5630ea3445e3ce2796c",
+        "bytes": 61220,
         "title": "渠道 CASE 映射口径",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
           "gaotu_hl.dim_mkt_h_lead_channel_df",
-          "temp_table.dingxi01_daoke_1_6_t"
+          "temp_table.lvshuai01_daoke_1_6_t"
         ],
         "raw_sql_refs": [
           "market_channel_case_when_1113.sql"
@@ -3786,8 +3787,8 @@
       {
         "id": "market_consultant:sql_patterns:dashboard_query_patterns",
         "source_path": "knowledge/sql_patterns/dashboard_query_patterns.md",
-        "sha256": "eac765a36d7ed5d200a15c983fa0f41091b7435dfef249e1b333632903a1bf28",
-        "bytes": 23226,
+        "sha256": "878af8b5e3d7cca716d36b102defec1e95a9f47655e9f25f17d44272e1f8fdc3",
+        "bytes": 23241,
         "title": "看板型 SQL 模板",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -3797,10 +3798,10 @@
           "service_dw.app_h_crm_lead_employee_workload_detail_hf",
           "service_dw.app_h_crm_lead_task_process_info_detail_hf",
           "service_dw.dwd_crm_assign_private_detail_hf",
-          "temp_table.dingxi01_cost",
-          "temp_table.dingxi01_daoke_1_6_t",
-          "temp_table.dingxi01_jiagou_db",
-          "temp_table.dingxi01_jiagou_zx",
+          "temp_table.lvshuai01_cost",
+          "temp_table.lvshuai01_daoke_1_6_t",
+          "temp_table.lvshuai01_jiagou_db",
+          "temp_table.lvshuai01_jiagou_zx",
           "temp_table.zhangjunyan01_pingyou_jg"
         ],
         "raw_sql_refs": [
@@ -3928,8 +3929,8 @@
       {
         "id": "market_consultant:sql_patterns:outbound_call_process_export_template",
         "source_path": "knowledge/sql_patterns/outbound_call_process_export_template.md",
-        "sha256": "a25465414732e2ef096235c4da3dfdcb71697f814cec871baa0649b34ac4eed2",
-        "bytes": 60880,
+        "sha256": "bf3c3b0b35332a15c77060545f06486d1a369cddfa0ae3077bf3bbb9c456356f",
+        "bytes": 60883,
         "title": "外呼过程数据期次导出模板",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -3943,8 +3944,8 @@
           "service_dw.dm_crm_lead_stats_detail_hf",
           "service_dw.dwd_crm_assign_private_detail_hf",
           "service_dw.dws_service_user_learn_detail_hf",
-          "temp_table.dingxi01_daoke_1_6_t",
-          "temp_table.dingxi01_jiagou_db"
+          "temp_table.lvshuai01_daoke_1_6_t",
+          "temp_table.lvshuai01_jiagou_db"
         ],
         "raw_sql_refs": [],
         "status": "documented",
@@ -4491,13 +4492,13 @@
       {
         "id": "market_consultant:tables:service_dw.dim_crm_assign_rule_lead_detail_hf",
         "source_path": "knowledge/tables/service_dw.dim_crm_assign_rule_lead_detail_hf.md",
-        "sha256": "c1d04ae1c717e637b905a78b55f706f34f25fadd9db59bbbc230123a2394f567",
-        "bytes": 5152,
+        "sha256": "b4218400f20fbb3282a9577cf56614980bd32e9f955ca6ac1a3a344d5bb90b93",
+        "bytes": 5153,
         "title": "service_dw.dim_crm_assign_rule_lead_detail_hf",
         "table_refs": [
           "service_dw.dim_crm_assign_rule_lead_detail_hf",
           "service_dw.dim_crm_assign_rule_plan_item_info_hf",
-          "temp_table.dingxi01_plan_id"
+          "temp_table.lvshuai01_plan_id"
         ],
         "raw_sql_refs": [],
         "status": "documented",
@@ -4509,14 +4510,14 @@
       {
         "id": "market_consultant:tables:service_dw.dim_crm_assign_rule_plan_item_info_hf",
         "source_path": "knowledge/tables/service_dw.dim_crm_assign_rule_plan_item_info_hf.md",
-        "sha256": "719455b9e35a4503cb20f08a4d1938beffb6f33d23fc97a51f737dc839c79092",
-        "bytes": 5427,
+        "sha256": "02608e87373e1aecb2e51e6180f13d38dd288dbefc320c2011b47809485cd8e9",
+        "bytes": 5428,
         "title": "service_dw.dim_crm_assign_rule_plan_item_info_hf",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
           "service_dw.dim_crm_assign_rule_lead_detail_hf",
           "service_dw.dim_crm_assign_rule_plan_item_info_hf",
-          "temp_table.dingxi01_jiagou_db"
+          "temp_table.lvshuai01_jiagou_db"
         ],
         "raw_sql_refs": [
           "lead_assign_plan_actual_valid_count.sql"
@@ -4659,149 +4660,162 @@
     ],
     "temp_tables": [
       {
-        "id": "market_consultant:temp_tables:temp_table.dingxi01_ceshiqudao_pingyou",
-        "source_path": "knowledge/tables/temp_table.dingxi01_ceshiqudao_pingyou.md",
-        "sha256": "6c1c524d3f345213cd1c2b28d1cba10581783168a22219d7bc71f65966d1e761",
-        "bytes": 4054,
-        "title": "temp_table.dingxi01_ceshiqudao_pingyou",
+        "id": "market_consultant:temp_tables:temp_table.lvshuai01_ceshiqudao_pingyou",
+        "source_path": "knowledge/tables/temp_table.lvshuai01_ceshiqudao_pingyou.md",
+        "sha256": "e9c4d8d4d83d8f9bbf9a7d98891b433b745ca733dd2d716d78e208fee3221715",
+        "bytes": 4373,
+        "title": "temp_table.lvshuai01_ceshiqudao_pingyou",
         "table_refs": [
-          "temp_table.dingxi01_ceshiqudao_pingyou"
+          "temp_table.lvshuai01_ceshiqudao_pingyou"
         ],
         "raw_sql_refs": [],
         "status": "documented",
-        "table_name": "temp_table.dingxi01_ceshiqudao_pingyou",
+        "table_name": "temp_table.lvshuai01_ceshiqudao_pingyou",
         "aliases": [
-          "temp_table.dingxi01_ceshiqudao_pingyou"
+          "temp_table.lvshuai01_ceshiqudao_pingyou"
         ]
       },
       {
-        "id": "market_consultant:temp_tables:temp_table.dingxi01_channel_group",
-        "source_path": "knowledge/tables/temp_table.dingxi01_channel_group.md",
-        "sha256": "f5925ca1f4704c5a39d66b16d5048803f90651231d9af3233b8fec54fc9a5bd6",
-        "bytes": 2155,
-        "title": "temp_table.dingxi01_channel_group",
+        "id": "market_consultant:temp_tables:temp_table.lvshuai01_channel_group",
+        "source_path": "knowledge/tables/temp_table.lvshuai01_channel_group.md",
+        "sha256": "717c312e1fd0f8ea740e758b45ef8cdb43c42b4c008b715cddc6170335dda333",
+        "bytes": 2475,
+        "title": "temp_table.lvshuai01_channel_group",
         "table_refs": [
-          "temp_table.dingxi01_channel_group"
+          "temp_table.lvshuai01_channel_group"
         ],
         "raw_sql_refs": [
           "data_center_market_2253.sql"
         ],
         "status": "documented",
-        "table_name": "temp_table.dingxi01_channel_group",
+        "table_name": "temp_table.lvshuai01_channel_group",
         "aliases": [
-          "temp_table.dingxi01_channel_group"
+          "temp_table.lvshuai01_channel_group"
         ]
       },
       {
-        "id": "market_consultant:temp_tables:temp_table.dingxi01_cost",
-        "source_path": "knowledge/tables/temp_table.dingxi01_cost.md",
-        "sha256": "9b3a96e26990cbab75d23e194798c2d8e583edbfda4faea36a271fb497ef68da",
-        "bytes": 3627,
-        "title": "temp_table.dingxi01_cost",
+        "id": "market_consultant:temp_tables:temp_table.lvshuai01_cost",
+        "source_path": "knowledge/tables/temp_table.lvshuai01_cost.md",
+        "sha256": "0a82d549227d33a3aad884c6524266e0c8a3eccfa7ac51bafec5b9acbc3c1aef",
+        "bytes": 3947,
+        "title": "temp_table.lvshuai01_cost",
         "table_refs": [
-          "temp_table.dingxi01_cost"
+          "temp_table.lvshuai01_cost"
         ],
         "raw_sql_refs": [
           "data_center_market_2253.sql"
         ],
         "status": "documented",
-        "table_name": "temp_table.dingxi01_cost",
+        "table_name": "temp_table.lvshuai01_cost",
         "aliases": [
-          "temp_table.dingxi01_cost"
+          "temp_table.lvshuai01_cost"
         ]
       },
       {
-        "id": "market_consultant:temp_tables:temp_table.dingxi01_daoke_1_6_t",
-        "source_path": "knowledge/tables/temp_table.dingxi01_daoke_1_6_t.md",
-        "sha256": "e0b82e70c6aa2f503f20502799ffecf5b0b0baa0eb5c7c8f4d2beab478d20654",
-        "bytes": 5875,
-        "title": "temp_table.dingxi01_daoke_1_6_t",
+        "id": "market_consultant:temp_tables:temp_table.lvshuai01_daoke_1_6_t",
+        "source_path": "knowledge/tables/temp_table.lvshuai01_daoke_1_6_t.md",
+        "sha256": "cd180525045a1608626a01fae8793d20e92f31b5e95b63ba58109624d6ed8670",
+        "bytes": 6196,
+        "title": "temp_table.lvshuai01_daoke_1_6_t",
         "table_refs": [
           "service_dw.dws_service_user_learn_detail_hf",
-          "temp_table.dingxi01_daoke_1_6_t"
+          "temp_table.lvshuai01_daoke_1_6_t"
         ],
         "raw_sql_refs": [],
         "status": "documented",
-        "table_name": "temp_table.dingxi01_daoke_1_6_t",
+        "table_name": "temp_table.lvshuai01_daoke_1_6_t",
         "aliases": [
-          "temp_table.dingxi01_daoke_1_6_t"
+          "temp_table.lvshuai01_daoke_1_6_t"
         ]
       },
       {
-        "id": "market_consultant:temp_tables:temp_table.dingxi01_jiagou_db",
-        "source_path": "knowledge/tables/temp_table.dingxi01_jiagou_db.md",
-        "sha256": "53f04eafa6e63a14f6b85aa7e8d8ffa11413df02d330f3f4412b407fe6b14d96",
-        "bytes": 7195,
-        "title": "temp_table.dingxi01_jiagou_db",
+        "id": "market_consultant:temp_tables:temp_table.lvshuai01_jiagou_db",
+        "source_path": "knowledge/tables/temp_table.lvshuai01_jiagou_db.md",
+        "sha256": "e61b10eb32efa6c490981475772f91a3faec4cc5d6a00bc1c3c3adae9e07c30a",
+        "bytes": 7517,
+        "title": "temp_table.lvshuai01_jiagou_db",
         "table_refs": [
-          "temp_table.dingxi01_jiagou_db",
-          "temp_table.dingxi01_jiagou_zx"
+          "temp_table.lvshuai01_jiagou_db",
+          "temp_table.lvshuai01_jiagou_zx"
         ],
         "raw_sql_refs": [
           "data_center_market_2293.sql"
         ],
         "status": "documented",
-        "table_name": "temp_table.dingxi01_jiagou_db",
+        "table_name": "temp_table.lvshuai01_jiagou_db",
         "aliases": [
-          "temp_table.dingxi01_jiagou_db"
+          "temp_table.lvshuai01_jiagou_db"
         ]
       },
       {
-        "id": "market_consultant:temp_tables:temp_table.dingxi01_jiagou_zx",
-        "source_path": "knowledge/tables/temp_table.dingxi01_jiagou_zx.md",
-        "sha256": "c16a2be49d058bd1a3a5efd406dfd5567108d11b413d8fc3a37777d6ed847990",
-        "bytes": 7241,
-        "title": "temp_table.dingxi01_jiagou_zx",
+        "id": "market_consultant:temp_tables:temp_table.lvshuai01_jiagou_xinren",
+        "source_path": "knowledge/tables/temp_table.lvshuai01_jiagou_xinren.md",
+        "sha256": "68eff9e24f777bf3063f2e414c65d29fff0901d5d31e42d7d82a99a779858c62",
+        "bytes": 2336,
+        "title": "temp_table.lvshuai01_jiagou_xinren",
         "table_refs": [
-          "temp_table.dingxi01_jiagou_db",
-          "temp_table.dingxi01_jiagou_zx",
+          "temp_table.lvshuai01_jiagou_xinren"
+        ],
+        "raw_sql_refs": [],
+        "status": "documented",
+        "table_name": "temp_table.lvshuai01_jiagou_xinren",
+        "aliases": [
+          "temp_table.lvshuai01_jiagou_xinren"
+        ]
+      },
+      {
+        "id": "market_consultant:temp_tables:temp_table.lvshuai01_jiagou_zx",
+        "source_path": "knowledge/tables/temp_table.lvshuai01_jiagou_zx.md",
+        "sha256": "a35eda0b9f984c16aa4043d4fd2dfff2cece679fc9df34e38c46ea12c7e3b815",
+        "bytes": 7566,
+        "title": "temp_table.lvshuai01_jiagou_zx",
+        "table_refs": [
+          "temp_table.lvshuai01_jiagou_db",
+          "temp_table.lvshuai01_jiagou_zx",
           "temp_table.zhangjunyan01_pingyou_jg"
         ],
         "raw_sql_refs": [
           "data_center_market_2293.sql"
         ],
         "status": "documented",
-        "table_name": "temp_table.dingxi01_jiagou_zx",
+        "table_name": "temp_table.lvshuai01_jiagou_zx",
         "aliases": [
-          "temp_table.dingxi01_jiagou_zx"
+          "temp_table.lvshuai01_jiagou_zx"
         ]
       },
       {
-        "id": "market_consultant:temp_tables:temp_table.dingxi01_pingyou_jg",
-        "source_path": "knowledge/tables/temp_table.dingxi01_pingyou_jg.md",
-        "sha256": "e605035a5382c484a22cc0d4fb72e92c3bda7b959c11f4ba25b15095570082dc",
-        "bytes": 8408,
-        "title": "temp_table.dingxi01_pingyou_jg",
+        "id": "market_consultant:temp_tables:temp_table.lvshuai01_jinliang_goal",
+        "source_path": "knowledge/tables/temp_table.lvshuai01_jinliang_goal.md",
+        "sha256": "a2faffb77bad33c4bf652035d98574d5c8218502e1f35151c9162723f28de35d",
+        "bytes": 2235,
+        "title": "temp_table.lvshuai01_jinliang_goal",
         "table_refs": [
-          "temp_table.dingxi01_pingyou_jg",
-          "temp_table.zhangjunyan01_pingyou_jg"
+          "temp_table.lvshuai01_jinliang_goal"
         ],
-        "raw_sql_refs": [
-          "data_center_market_2688.sql"
-        ],
+        "raw_sql_refs": [],
         "status": "documented",
-        "table_name": "temp_table.dingxi01_pingyou_jg",
+        "table_name": "temp_table.lvshuai01_jinliang_goal",
         "aliases": [
-          "temp_table.dingxi01_pingyou_jg"
+          "temp_table.lvshuai01_jinliang_goal"
         ]
       },
       {
-        "id": "market_consultant:temp_tables:temp_table.dingxi01_plan_id",
-        "source_path": "knowledge/tables/temp_table.dingxi01_plan_id.md",
-        "sha256": "9b4a7d7e252919b3afcdf1cdb99b4b6be95c11e074ff650578f735cbe3c2b8ab",
-        "bytes": 6048,
-        "title": "temp_table.dingxi01_plan_id",
+        "id": "market_consultant:temp_tables:temp_table.lvshuai01_plan_id",
+        "source_path": "knowledge/tables/temp_table.lvshuai01_plan_id.md",
+        "sha256": "53a19ff6b3523b2a370a0cd89eb4e047e71a9b29d6bfd0f98ab48a12c53e7960",
+        "bytes": 6374,
+        "title": "temp_table.lvshuai01_plan_id",
         "table_refs": [
           "service_dw.dim_crm_assign_rule_lead_detail_hf",
-          "temp_table.dingxi01_plan_id"
+          "temp_table.lvshuai01_plan_id"
         ],
         "raw_sql_refs": [
           "lead_assign_plan_actual_valid_count.sql"
         ],
         "status": "documented",
-        "table_name": "temp_table.dingxi01_plan_id",
+        "table_name": "temp_table.lvshuai01_plan_id",
         "aliases": [
-          "temp_table.dingxi01_plan_id"
+          "temp_table.lvshuai01_plan_id"
         ]
       },
       {
@@ -4826,12 +4840,12 @@
       {
         "id": "market_consultant:temp_tables:temp_table.zhangjunyan01_pingyou_jg",
         "source_path": "knowledge/tables/temp_table.zhangjunyan01_pingyou_jg.md",
-        "sha256": "e4a276662fed9578d5357c00007e2f8a08c2938d36d9a63c782e3324d4134c45",
-        "bytes": 6598,
+        "sha256": "044620d30277c3e83e80aacfd6dde037e0522f580c76b37bb91f3f6791561184",
+        "bytes": 7761,
         "title": "temp_table.zhangjunyan01_pingyou_jg",
         "table_refs": [
-          "temp_table.dingxi01_jiagou_zx",
-          "temp_table.dingxi01_pingyou_jg",
+          "temp_table.lvshuai01_jiagou_xinren",
+          "temp_table.lvshuai01_jiagou_zx",
           "temp_table.zhangjunyan01_pingyou_jg"
         ],
         "raw_sql_refs": [],
@@ -4846,8 +4860,8 @@
       {
         "id": "market_consultant:update_log:changelog",
         "source_path": "knowledge/update_log/changelog.md",
-        "sha256": "c8ccebe0d631394a1e18a52685f408169bc9667fe92c4d5f9d14d7589028c4a5",
-        "bytes": 222131,
+        "sha256": "d6e565715d0d44721d355a1d9e62d9487e80b9164287b764a28828034981d494",
+        "bytes": 223393,
         "title": "更新记录",
         "table_refs": [
           "bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df",
@@ -4872,14 +4886,10 @@
           "service_dw.dim_crm_assign_rule_lead_detail_hf",
           "service_dw.dim_crm_assign_rule_plan_item_info_hf",
           "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
-          "temp_table.dingxi01_ceshiqudao_pingyou",
-          "temp_table.dingxi01_channel_group",
-          "temp_table.dingxi01_cost",
-          "temp_table.dingxi01_daoke_1_6_t",
-          "temp_table.dingxi01_jiagou_db",
-          "temp_table.dingxi01_jiagou_zx",
-          "temp_table.dingxi01_pingyou_jg",
-          "temp_table.dingxi01_plan_id",
+          "temp_table.lvshuai01_daoke_1_6_t",
+          "temp_table.lvshuai01_jiagou_db",
+          "temp_table.lvshuai01_jiagou_zx",
+          "temp_table.lvshuai01_plan_id",
           "temp_table.shenbaoxin_channel_group",
           "temp_table.zhangjunyan01_pingyou_jg"
         ],
@@ -5367,7 +5377,7 @@
         "knowledge/reverse_index/table_to_dashboards.md",
         "knowledge/tables/service_dw.dim_crm_assign_rule_lead_detail_hf.md",
         "knowledge/tables/service_dw.dim_crm_assign_rule_plan_item_info_hf.md",
-        "knowledge/tables/temp_table.dingxi01_plan_id.md",
+        "knowledge/tables/temp_table.lvshuai01_plan_id.md",
         "knowledge/update_log/changelog.md",
         "resources/raw_sql/data_center_market_2307.sql",
         "resources/raw_sql/data_center_market_2344.sql",
@@ -5510,7 +5520,7 @@
         "knowledge/sql_patterns/outbound_call_process_export_template.md",
         "knowledge/sql_patterns/template_query_market_wide_reading_guide.md",
         "knowledge/tables/service_dw.dws_service_user_learn_detail_hf.md",
-        "knowledge/tables/temp_table.dingxi01_daoke_1_6_t.md",
+        "knowledge/tables/temp_table.lvshuai01_daoke_1_6_t.md",
         "resources/raw_sql/data_center_market_2054.sql",
         "resources/raw_sql/data_center_market_2132.sql",
         "resources/raw_sql/data_center_market_2293.sql",
@@ -5545,15 +5555,12 @@
         "knowledge/tables/one_dw.dwd_mkt_ai_assistant_asr_record_df.md",
         "knowledge/tables/service_dw.ods_service_ai_ones_business_copilot__call_record_df.md"
       ],
-      "temp_table.dingxi01_ceshiqudao_pingyou": [
+      "temp_table.lvshuai01_ceshiqudao_pingyou": [
         "knowledge/01_table_index.md",
-        "knowledge/tables/temp_table.dingxi01_ceshiqudao_pingyou.md",
-        "knowledge/update_log/changelog.md",
-        "resources/raw_sql/consultant_sales_ranking_evaluation_year_clean.sql",
-        "resources/raw_sql/data_center_market_2644.sql",
-        "resources/raw_sql/data_center_market_2856.sql"
+        "knowledge/tables/temp_table.lvshuai01_ceshiqudao_pingyou.md",
+        "knowledge/temp_table_maintenance.md"
       ],
-      "temp_table.dingxi01_channel_group": [
+      "temp_table.lvshuai01_channel_group": [
         "knowledge/01_table_index.md",
         "knowledge/dashboards/market_consultant_conversion.md",
         "knowledge/dashboards/traffic_profile.md",
@@ -5563,16 +5570,10 @@
         "knowledge/reverse_index/join_risk_index.md",
         "knowledge/reverse_index/metric_to_raw_sql.md",
         "knowledge/reverse_index/table_to_dashboards.md",
-        "knowledge/tables/temp_table.dingxi01_channel_group.md",
-        "knowledge/update_log/changelog.md",
-        "resources/raw_sql/data_center_market_2253.sql",
-        "resources/raw_sql/data_center_market_2345.sql",
-        "resources/raw_sql/data_center_market_2461.sql",
-        "resources/raw_sql/data_center_market_2623.sql",
-        "resources/raw_sql/data_center_market_2683.sql",
-        "resources/raw_sql/template_query_market_wide_analysis.sql"
+        "knowledge/tables/temp_table.lvshuai01_channel_group.md",
+        "knowledge/temp_table_maintenance.md"
       ],
-      "temp_table.dingxi01_cost": [
+      "temp_table.lvshuai01_cost": [
         "knowledge/00_global_rules.md",
         "knowledge/01_table_index.md",
         "knowledge/dashboards/consultant_sales_ranking_evaluation.md",
@@ -5588,20 +5589,10 @@
         "knowledge/reverse_index/metric_to_raw_sql.md",
         "knowledge/reverse_index/table_to_dashboards.md",
         "knowledge/sql_patterns/dashboard_query_patterns.md",
-        "knowledge/tables/temp_table.dingxi01_cost.md",
-        "knowledge/update_log/changelog.md",
-        "resources/raw_sql/data_center_market_2253.sql",
-        "resources/raw_sql/data_center_market_2293.sql",
-        "resources/raw_sql/data_center_market_2345.sql",
-        "resources/raw_sql/data_center_market_2461.sql",
-        "resources/raw_sql/data_center_market_2623.sql",
-        "resources/raw_sql/data_center_market_2683.sql",
-        "resources/raw_sql/data_center_market_2751.sql",
-        "resources/raw_sql/data_center_market_2842.sql",
-        "resources/raw_sql/data_center_market_3039.sql",
-        "resources/raw_sql/template_query_market_wide_analysis.sql"
+        "knowledge/tables/temp_table.lvshuai01_cost.md",
+        "knowledge/temp_table_maintenance.md"
       ],
-      "temp_table.dingxi01_daoke_1_6_t": [
+      "temp_table.lvshuai01_daoke_1_6_t": [
         "knowledge/00_global_rules.md",
         "knowledge/01_table_index.md",
         "knowledge/dashboards/market_consultant_lead_conversion_attendance.md",
@@ -5621,22 +5612,11 @@
         "knowledge/sql_patterns/channel_mapping_case_when.md",
         "knowledge/sql_patterns/dashboard_query_patterns.md",
         "knowledge/sql_patterns/outbound_call_process_export_template.md",
-        "knowledge/tables/temp_table.dingxi01_daoke_1_6_t.md",
-        "knowledge/update_log/changelog.md",
-        "resources/raw_sql/data_center_market_2054.sql",
-        "resources/raw_sql/data_center_market_2132.sql",
-        "resources/raw_sql/data_center_market_2293.sql",
-        "resources/raw_sql/data_center_market_2345.sql",
-        "resources/raw_sql/data_center_market_2461.sql",
-        "resources/raw_sql/data_center_market_2623.sql",
-        "resources/raw_sql/data_center_market_2683.sql",
-        "resources/raw_sql/data_center_market_2688.sql",
-        "resources/raw_sql/data_center_market_3039.sql",
-        "resources/raw_sql/market_consultant_lead_conversion_attendance.sql",
-        "resources/raw_sql/outbound_call_process_dashboard.sql",
-        "resources/raw_sql/template_query_market_wide_analysis.sql"
+        "knowledge/tables/temp_table.lvshuai01_daoke_1_6_t.md",
+        "knowledge/temp_table_maintenance.md",
+        "knowledge/update_log/changelog.md"
       ],
-      "temp_table.dingxi01_jiagou_db": [
+      "temp_table.lvshuai01_jiagou_db": [
         "knowledge/01_table_index.md",
         "knowledge/dashboards/lead_assign_plan_actual_valid_count.md",
         "knowledge/dashboards/market_consultant_conversion.md",
@@ -5659,27 +5639,17 @@
         "knowledge/sql_patterns/dashboard_query_patterns.md",
         "knowledge/sql_patterns/outbound_call_process_export_template.md",
         "knowledge/tables/service_dw.dim_crm_assign_rule_plan_item_info_hf.md",
-        "knowledge/tables/temp_table.dingxi01_jiagou_db.md",
-        "knowledge/tables/temp_table.dingxi01_jiagou_zx.md",
-        "knowledge/update_log/changelog.md",
-        "resources/raw_sql/data_center_market_2054.sql",
-        "resources/raw_sql/data_center_market_2132.sql",
-        "resources/raw_sql/data_center_market_2253.sql",
-        "resources/raw_sql/data_center_market_2293.sql",
-        "resources/raw_sql/data_center_market_2307.sql",
-        "resources/raw_sql/data_center_market_2344.sql",
-        "resources/raw_sql/data_center_market_2345.sql",
-        "resources/raw_sql/data_center_market_2461.sql",
-        "resources/raw_sql/data_center_market_2623.sql",
-        "resources/raw_sql/data_center_market_2683.sql",
-        "resources/raw_sql/data_center_market_3039.sql",
-        "resources/raw_sql/lead_assign_plan_actual_valid_count.sql",
-        "resources/raw_sql/market_consultant_lead_conversion_attendance.sql",
-        "resources/raw_sql/outbound_call_process_dashboard.sql",
-        "resources/raw_sql/template_query_market_wide.sql",
-        "resources/raw_sql/template_query_market_wide_analysis.sql"
+        "knowledge/tables/temp_table.lvshuai01_jiagou_db.md",
+        "knowledge/tables/temp_table.lvshuai01_jiagou_zx.md",
+        "knowledge/temp_table_maintenance.md",
+        "knowledge/update_log/changelog.md"
       ],
-      "temp_table.dingxi01_jiagou_zx": [
+      "temp_table.lvshuai01_jiagou_xinren": [
+        "knowledge/01_table_index.md",
+        "knowledge/tables/temp_table.lvshuai01_jiagou_xinren.md",
+        "knowledge/tables/temp_table.zhangjunyan01_pingyou_jg.md"
+      ],
+      "temp_table.lvshuai01_jiagou_zx": [
         "knowledge/01_table_index.md",
         "knowledge/dashboards/consultant_sales_department_tenure.md",
         "knowledge/dashboards/consultant_sales_ranking_evaluation.md",
@@ -5699,54 +5669,20 @@
         "knowledge/reverse_index/metric_to_raw_sql.md",
         "knowledge/reverse_index/table_to_dashboards.md",
         "knowledge/sql_patterns/dashboard_query_patterns.md",
-        "knowledge/tables/temp_table.dingxi01_jiagou_db.md",
-        "knowledge/tables/temp_table.dingxi01_jiagou_zx.md",
+        "knowledge/tables/temp_table.lvshuai01_jiagou_db.md",
+        "knowledge/tables/temp_table.lvshuai01_jiagou_zx.md",
         "knowledge/tables/temp_table.zhangjunyan01_pingyou_jg.md",
-        "knowledge/update_log/changelog.md",
-        "resources/raw_sql/consultant_sales_ranking_evaluation_quarter_clean.sql",
-        "resources/raw_sql/consultant_sales_ranking_evaluation_year_clean.sql",
-        "resources/raw_sql/data_center_market_2253.sql",
-        "resources/raw_sql/data_center_market_2293.sql",
-        "resources/raw_sql/data_center_market_2344.sql",
-        "resources/raw_sql/data_center_market_2345.sql",
-        "resources/raw_sql/data_center_market_2349.sql",
-        "resources/raw_sql/data_center_market_2350.sql",
-        "resources/raw_sql/data_center_market_2353.sql",
-        "resources/raw_sql/data_center_market_2423.sql",
-        "resources/raw_sql/data_center_market_2424.sql",
-        "resources/raw_sql/data_center_market_2461.sql",
-        "resources/raw_sql/data_center_market_2623.sql",
-        "resources/raw_sql/data_center_market_2634.sql",
-        "resources/raw_sql/data_center_market_2683.sql",
-        "resources/raw_sql/data_center_market_2727.sql",
-        "resources/raw_sql/data_center_market_2742.sql",
-        "resources/raw_sql/data_center_market_2751.sql",
-        "resources/raw_sql/data_center_market_2842.sql",
-        "resources/raw_sql/data_center_market_3039.sql",
-        "resources/raw_sql/template_query_market_employee_org.sql",
-        "resources/raw_sql/template_query_market_period_conversion.sql",
-        "resources/raw_sql/template_query_market_wide.sql",
-        "resources/raw_sql/template_query_market_wide_analysis.sql"
+        "knowledge/temp_table_maintenance.md",
+        "knowledge/update_log/changelog.md"
       ],
-      "temp_table.dingxi01_pingyou_jg": [
+      "temp_table.lvshuai01_jinliang_goal": [
         "knowledge/01_table_index.md",
-        "knowledge/decision_tree.md",
-        "knowledge/joins/common_join_keys.md",
-        "knowledge/joins/table_relationships.md",
-        "knowledge/metrics/market_consultant_dashboard_metric_formula_linkage.md",
-        "knowledge/pitfalls/common_join_failures.md",
-        "knowledge/pitfalls/newcomer_x_qi_count_and_pingyou_upload.md",
-        "knowledge/quick_reference.md",
-        "knowledge/reverse_index/join_risk_index.md",
-        "knowledge/reverse_index/metric_to_raw_sql.md",
+        "knowledge/dashboards/template_query_market_datasets.md",
         "knowledge/reverse_index/table_to_dashboards.md",
-        "knowledge/tables/temp_table.dingxi01_pingyou_jg.md",
-        "knowledge/tables/temp_table.zhangjunyan01_pingyou_jg.md",
-        "knowledge/update_log/changelog.md",
-        "resources/raw_sql/data_center_market_2688.sql",
-        "resources/raw_sql/data_center_market_2751.sql"
+        "knowledge/tables/temp_table.lvshuai01_jinliang_goal.md",
+        "knowledge/temp_table_maintenance.md"
       ],
-      "temp_table.dingxi01_plan_id": [
+      "temp_table.lvshuai01_plan_id": [
         "knowledge/01_table_index.md",
         "knowledge/dashboards/lead_assign_plan_actual_valid_count.md",
         "knowledge/dashboards/template_query_market_datasets.md",
@@ -5758,10 +5694,9 @@
         "knowledge/reverse_index/metric_to_raw_sql.md",
         "knowledge/reverse_index/table_to_dashboards.md",
         "knowledge/tables/service_dw.dim_crm_assign_rule_lead_detail_hf.md",
-        "knowledge/tables/temp_table.dingxi01_plan_id.md",
-        "knowledge/update_log/changelog.md",
-        "resources/raw_sql/data_center_market_2307.sql",
-        "resources/raw_sql/lead_assign_plan_actual_valid_count.sql"
+        "knowledge/tables/temp_table.lvshuai01_plan_id.md",
+        "knowledge/temp_table_maintenance.md",
+        "knowledge/update_log/changelog.md"
       ],
       "temp_table.shenbaoxin_channel_group": [
         "knowledge/01_table_index.md",
@@ -5784,18 +5719,22 @@
       "temp_table.zhangjunyan01_pingyou_jg": [
         "knowledge/01_table_index.md",
         "knowledge/dashboards/consultant_sales_ranking_evaluation.md",
+        "knowledge/decision_tree.md",
         "knowledge/joins/common_join_keys.md",
         "knowledge/joins/table_relationships.md",
         "knowledge/metrics/consultant_sales_ranking_evaluation_metrics.md",
+        "knowledge/metrics/market_consultant_dashboard_metric_formula_linkage.md",
+        "knowledge/pitfalls/common_join_failures.md",
+        "knowledge/pitfalls/newcomer_x_qi_count_and_pingyou_upload.md",
         "knowledge/quick_reference.md",
         "knowledge/reverse_index/join_risk_index.md",
         "knowledge/reverse_index/metric_to_raw_sql.md",
         "knowledge/reverse_index/table_to_dashboards.md",
         "knowledge/sql_patterns/dashboard_query_patterns.md",
         "knowledge/tables/finance_dw.app_finance_performance_extend_details_hf.md",
-        "knowledge/tables/temp_table.dingxi01_jiagou_zx.md",
-        "knowledge/tables/temp_table.dingxi01_pingyou_jg.md",
+        "knowledge/tables/temp_table.lvshuai01_jiagou_zx.md",
         "knowledge/tables/temp_table.zhangjunyan01_pingyou_jg.md",
+        "knowledge/temp_table_maintenance.md",
         "knowledge/update_log/changelog.md",
         "resources/raw_sql/consultant_sales_ranking_evaluation.sql",
         "resources/raw_sql/consultant_sales_ranking_evaluation_month_clean.sql",
@@ -5851,8 +5790,7 @@
         "knowledge/dashboards/data_center_market_datasets.md",
         "knowledge/metrics/market_consultant_dashboard_metric_formula_linkage.md",
         "knowledge/reverse_index/field_to_metrics.md",
-        "knowledge/reverse_index/metric_to_raw_sql.md",
-        "knowledge/reverse_index/table_to_dashboards.md"
+        "knowledge/reverse_index/metric_to_raw_sql.md"
       ],
       "data_center_market_2132.sql": [
         "knowledge/dashboards/data_center_market_datasets.md",
@@ -5869,8 +5807,8 @@
         "knowledge/reverse_index/metric_to_raw_sql.md",
         "knowledge/reverse_index/table_to_dashboards.md",
         "knowledge/tables/bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df.md",
-        "knowledge/tables/temp_table.dingxi01_channel_group.md",
-        "knowledge/tables/temp_table.dingxi01_cost.md"
+        "knowledge/tables/temp_table.lvshuai01_channel_group.md",
+        "knowledge/tables/temp_table.lvshuai01_cost.md"
       ],
       "data_center_market_2293.sql": [
         "knowledge/dashboards/data_center_market_datasets.md",
@@ -5878,8 +5816,8 @@
         "knowledge/pitfalls/common_join_failures.md",
         "knowledge/pitfalls/grade_extraction_gotchas.md",
         "knowledge/sql_patterns/dashboard_query_patterns.md",
-        "knowledge/tables/temp_table.dingxi01_jiagou_db.md",
-        "knowledge/tables/temp_table.dingxi01_jiagou_zx.md"
+        "knowledge/tables/temp_table.lvshuai01_jiagou_db.md",
+        "knowledge/tables/temp_table.lvshuai01_jiagou_zx.md"
       ],
       "data_center_market_2307.sql": [
         "knowledge/dashboards/data_center_market_datasets.md"
@@ -5979,8 +5917,7 @@
         "knowledge/decision_tree.md",
         "knowledge/metrics/market_consultant_dashboard_metric_formula_linkage.md",
         "knowledge/pitfalls/newcomer_x_qi_count_and_pingyou_upload.md",
-        "knowledge/quick_reference.md",
-        "knowledge/tables/temp_table.dingxi01_pingyou_jg.md"
+        "knowledge/quick_reference.md"
       ],
       "data_center_market_2727.sql": [
         "knowledge/dashboards/README.md",
@@ -6090,7 +6027,7 @@
         "knowledge/reverse_index/metric_to_raw_sql.md",
         "knowledge/reverse_index/table_to_dashboards.md",
         "knowledge/tables/service_dw.dim_crm_assign_rule_plan_item_info_hf.md",
-        "knowledge/tables/temp_table.dingxi01_plan_id.md",
+        "knowledge/tables/temp_table.lvshuai01_plan_id.md",
         "knowledge/update_log/changelog.md"
       ],
       "market_channel_attendance_external_schedule_example_20260718.sql": [
@@ -6189,6 +6126,7 @@
       ],
       "template_query_market_mantou_order_detail_trade_time.sql": [
         "knowledge/dashboards/template_query_market_datasets.md",
+        "knowledge/reverse_index/table_to_dashboards.md",
         "knowledge/sql_patterns/mantou_order_detail_pay_time_stage_optimization.md",
         "knowledge/update_log/changelog.md"
       ],
@@ -6216,14 +6154,14 @@
   "source_inventory": [
     {
       "source_path": "knowledge/00_global_rules.md",
-      "sha256": "45f9e190ab624713f9abc0391c1d53ba0d1abde425af148a17b8dc806e7d540f",
-      "bytes": 3865,
+      "sha256": "0a519a67f4ce9e58d6ba8295dc82bef2e1c4df3468c9224c4950418e99438f18",
+      "bytes": 3867,
       "category": "governance"
     },
     {
       "source_path": "knowledge/01_table_index.md",
-      "sha256": "40df24f840ab25348b4baf090c30eb1e0c64e20373bd61820ced1b612799f445",
-      "bytes": 12980,
+      "sha256": "00036b91d7171460a49a66206824a09cd2fa01d75756376ccf7691a1afbaa759",
+      "bytes": 13331,
       "category": "governance"
     },
     {
@@ -6480,14 +6418,14 @@
     },
     {
       "source_path": "knowledge/dashboards/consultant_sales_department_tenure.md",
-      "sha256": "857a3514dfe8cdbd7250dfff991c760f2bc87227dc4cfc8b9b035a799bf1b4a4",
-      "bytes": 8606,
+      "sha256": "538cddb447e78bc1e50c05d3838e4cc187e62ced8462d6883075d6ceb9ce9b8a",
+      "bytes": 8610,
       "category": "dashboards"
     },
     {
       "source_path": "knowledge/dashboards/consultant_sales_ranking_evaluation.md",
-      "sha256": "e93b230f7cbfd4366de098181949238de387002c93f7e91c1a18e9ab272416d9",
-      "bytes": 14714,
+      "sha256": "763afda73e214e4aecbfbb292db91c0b6eedc884479d8d50e1f829f5819e5c09",
+      "bytes": 14719,
       "category": "dashboards"
     },
     {
@@ -6504,8 +6442,8 @@
     },
     {
       "source_path": "knowledge/dashboards/lead_assign_plan_actual_valid_count.md",
-      "sha256": "2b37b0bc7fb8233f648f4173533bebcb9efbd7e87c00ee61d02dd3c74bcaf609",
-      "bytes": 6821,
+      "sha256": "ffaee24b76123cf2da605e8c625a39e6fc3ff02b3ab1d9eac2383f91d8e0b96f",
+      "bytes": 6829,
       "category": "dashboards"
     },
     {
@@ -6516,8 +6454,8 @@
     },
     {
       "source_path": "knowledge/dashboards/market_channel_conversion_profile.md",
-      "sha256": "d8b2f43354c986ddd7c87893a27107a67ca53dbbd1d1d308c65c1507398329b2",
-      "bytes": 23573,
+      "sha256": "79040e3b44cb123a57beb37e0b0731f2f6d74f7d759fcb18da09c6d9f403b1dc",
+      "bytes": 23574,
       "category": "dashboards"
     },
     {
@@ -6534,14 +6472,14 @@
     },
     {
       "source_path": "knowledge/dashboards/market_consultant_conversion.md",
-      "sha256": "ef8c8955480aeef3e347be3d31a64598a9caafe0a256b5b8733c77612971cb33",
-      "bytes": 13800,
+      "sha256": "1881f0f4e2b865d7fc96fbc0b27f1c15c668f635edc49279c74d94ef77df0f81",
+      "bytes": 13813,
       "category": "dashboards"
     },
     {
       "source_path": "knowledge/dashboards/market_consultant_lead_conversion_attendance.md",
-      "sha256": "f320eadd49713bbaa57ddfdfa71d4aac82a55b579666258b438f0e854a6366bc",
-      "bytes": 9862,
+      "sha256": "18d0893a4d0ab7b5176d6eb304f0a6df71277ab5c513767c56c0be489eb56c1e",
+      "bytes": 9867,
       "category": "dashboards"
     },
     {
@@ -6570,26 +6508,26 @@
     },
     {
       "source_path": "knowledge/dashboards/outbound_call_process_dashboard.md",
-      "sha256": "eb82be25a046a46835ab648e7220246395dc798c63c5d42d6ed41e55f0208df3",
-      "bytes": 19450,
+      "sha256": "7a26d8945918047ac98aa94d47b13826080bb717b9529aa6ee71a5167b010d01",
+      "bytes": 19456,
       "category": "dashboards"
     },
     {
       "source_path": "knowledge/dashboards/template_query_market_datasets.md",
-      "sha256": "8506f769720fa3583659ef30d00903f0cf098a34771489b172fc3c93fc435599",
-      "bytes": 13184,
+      "sha256": "b7b293f83e8db219da381ed772053259034dbfb8bae926360c10337792ee381b",
+      "bytes": 13188,
       "category": "dashboards"
     },
     {
       "source_path": "knowledge/dashboards/traffic_profile.md",
-      "sha256": "243a70d2139d1ff38d2a3d77cd03c33071ec266f903350b77299b8f46bea0fb8",
-      "bytes": 12799,
+      "sha256": "da542fe4a504b457334e4c476ae7411c6185129972889bbe667fd0cd6d9210a1",
+      "bytes": 12812,
       "category": "dashboards"
     },
     {
       "source_path": "knowledge/decision_tree.md",
-      "sha256": "39a1c1fe928de9bf22acb2147492fe7a5363bbea6a9b4da0df5c70549316739b",
-      "bytes": 14726,
+      "sha256": "72f2067e3b9e174a89976893bda740b9ab462e090d714f9c10d8754b456ff9f4",
+      "bytes": 14733,
       "category": "governance"
     },
     {
@@ -6600,14 +6538,14 @@
     },
     {
       "source_path": "knowledge/joins/common_join_keys.md",
-      "sha256": "77cf82c1332cab0b1dd4ea93a9c6356ea284e5478896910c2c690760a5266107",
-      "bytes": 13792,
+      "sha256": "efaa146dc2bb46c112fc9211612b2737f56e9f6e5e68aaff7036d0d13e31670b",
+      "bytes": 13822,
       "category": "joins"
     },
     {
       "source_path": "knowledge/joins/table_relationships.md",
-      "sha256": "705ceb31f6f7b7f1da300e611fb1e9417eab611779a384fccddc514fca17207e",
-      "bytes": 41661,
+      "sha256": "542137dc8fad27bc6928c8ca94c85da3032db4fefe7bfa5a78b8b97a2791f6ba",
+      "bytes": 41697,
       "category": "joins"
     },
     {
@@ -6624,8 +6562,8 @@
     },
     {
       "source_path": "knowledge/metrics/consultant_sales_department_tenure_metrics.md",
-      "sha256": "1aff3fd5ddf849e9e4cc906ea472eb7d818e76d48c7f41811b60927e44d58aec",
-      "bytes": 5176,
+      "sha256": "c137f6d3df42b7ac62755c041d2c2d9ee233beb9be0a40db5682803d0f4217d2",
+      "bytes": 5178,
       "category": "metrics"
     },
     {
@@ -6642,8 +6580,8 @@
     },
     {
       "source_path": "knowledge/metrics/lead_assign_plan_actual_valid_count_metrics.md",
-      "sha256": "70d5bc25142d71ad19c4eb098839e6f5401e602b774ba535639c56573b5b6dd9",
-      "bytes": 3961,
+      "sha256": "d7a6ad1767e19fb1a55e76257e6332ed674bb9f7521f90f0d84367d6a620ef23",
+      "bytes": 3967,
       "category": "metrics"
     },
     {
@@ -6666,20 +6604,20 @@
     },
     {
       "source_path": "knowledge/metrics/market_consultant_conversion_metrics.md",
-      "sha256": "8263acf8b580aff668d756d64d4e791a6e6a6e2ea4a446a398ac07e5d7b90cad",
-      "bytes": 8498,
+      "sha256": "2aa76008164ad740ca5a0a62f3c90a31ff98171a07c7e9dda6d5bb3b69376a6a",
+      "bytes": 8502,
       "category": "metrics"
     },
     {
       "source_path": "knowledge/metrics/market_consultant_dashboard_metric_formula_linkage.md",
-      "sha256": "e60add828f9e7c57b7361b0f31bb358b50843fae630b3419d725acb9f364f97d",
-      "bytes": 54254,
+      "sha256": "e3de70fc2b4256c0f842637909447623253c4a5b0d9b935a506d4813d7e2025e",
+      "bytes": 54269,
       "category": "metrics"
     },
     {
       "source_path": "knowledge/metrics/market_consultant_lead_conversion_attendance_metrics.md",
-      "sha256": "0f53dd29ec556c4f8acc875fa562dc86770851cb43a333b65be71efa285b44b5",
-      "bytes": 10682,
+      "sha256": "087702569611dcc796b5e20b104e328e18d0bf3cf5c45b2d706c7473a8eabdc8",
+      "bytes": 10684,
       "category": "metrics"
     },
     {
@@ -6708,44 +6646,44 @@
     },
     {
       "source_path": "knowledge/metrics/outbound_call_process_metrics.md",
-      "sha256": "459a7f3e52ed291e96e533f05ad2f669442c0a8affe0c9dfa83738383bd73e5e",
-      "bytes": 10761,
+      "sha256": "cc8bc1f3f9a9fc916f8b7a73c9e4347a54f59722ca5cbb4798b6dc23f92bf457",
+      "bytes": 10763,
       "category": "metrics"
     },
     {
       "source_path": "knowledge/metrics/traffic_profile_metrics.md",
-      "sha256": "32d54253bbe57bd522e5ff01ff406c17366d5c3e686bf355e936c18f0eff271a",
-      "bytes": 8331,
+      "sha256": "91aba09fd4211c8fb310285d77f880e9fb8900a3bcc3af74b70691d027b4cf09",
+      "bytes": 8334,
       "category": "metrics"
     },
     {
       "source_path": "knowledge/pitfalls/common_join_failures.md",
-      "sha256": "f0d0670182c17569dc37ef9b1ee0a40ace0b7cd74ed77a6f0b0c1b8deb86952c",
-      "bytes": 10825,
+      "sha256": "254fff2352b64b6366f39f1395a5b247032db71a8b5514d2a27aeef435a50b4a",
+      "bytes": 10849,
       "category": "pitfalls"
     },
     {
       "source_path": "knowledge/pitfalls/grade_extraction_gotchas.md",
-      "sha256": "f3c62eb5e40d97b428ad3d573b77e73496c0ce9bc5e115504503875114181544",
-      "bytes": 5505,
+      "sha256": "630359b699970b9fd52608a7cd9b99eac8aea5c29d0dc825c5f6c6f18b1c7efd",
+      "bytes": 5506,
       "category": "pitfalls"
     },
     {
       "source_path": "knowledge/pitfalls/newcomer_x_qi_count_and_pingyou_upload.md",
-      "sha256": "94fd8df6f0bc083c15f09e5444019256f0afbc711a12becf731b5b9f12f91cbf",
-      "bytes": 7446,
+      "sha256": "7b2f55ce3969cdcca802229a0204c0cb913b06f56f4108a44fe76393cb0ee848",
+      "bytes": 8057,
       "category": "pitfalls"
     },
     {
       "source_path": "knowledge/pitfalls/virtual_vs_section_architecture.md",
-      "sha256": "d78c4e48c0dc06bbf21174037ae8c5c31ca6d4ace682c72a4dde4d4b294dcd70",
-      "bytes": 2869,
+      "sha256": "de5b5eaa3e27973fc98473a48905ad21d5fb9a0f69287c6a245dd6aaef44cd30",
+      "bytes": 2874,
       "category": "pitfalls"
     },
     {
       "source_path": "knowledge/quick_reference.md",
-      "sha256": "b1e11c4c7f39b1ac65e644bf65068069755fe922cbbe5daea32aee55f7365878",
-      "bytes": 11240,
+      "sha256": "b3ccd30471e6b85f6dc98f4f26d9b26a0f324a45db1c5bd59a9aba0439cc8c5e",
+      "bytes": 11254,
       "category": "governance"
     },
     {
@@ -6756,20 +6694,20 @@
     },
     {
       "source_path": "knowledge/reverse_index/join_risk_index.md",
-      "sha256": "0ac47d1503aa89503a5e3ede3ca1e9d24b3cdd8321b379915ff61a4f6e677d24",
-      "bytes": 89484,
+      "sha256": "d71b33095be1c0eca37f42410eb0932d13adaead8f444fb42cefe3913823314d",
+      "bytes": 89504,
       "category": "reverse_index"
     },
     {
       "source_path": "knowledge/reverse_index/metric_to_raw_sql.md",
-      "sha256": "eebd997c7ba7d9709128dddef12da0d6a352dcb7b79de40cf16fe5ac235a7cd3",
-      "bytes": 6050,
+      "sha256": "602006d96f78de1f0324ee73556e735c5a16c5263afe454474aaa12b2776bf9b",
+      "bytes": 6065,
       "category": "reverse_index"
     },
     {
       "source_path": "knowledge/reverse_index/table_to_dashboards.md",
-      "sha256": "39905936ffc3a4728ca7ce72694a4e9a723219d7a9b8c04f4faeb7f7ce518b70",
-      "bytes": 21585,
+      "sha256": "e3e43fc24193547fc55c328e32b50bf76dfc66f51775a03f5abc6d59740fdacc",
+      "bytes": 21884,
       "category": "reverse_index"
     },
     {
@@ -6786,8 +6724,8 @@
     },
     {
       "source_path": "knowledge/sql_patterns/channel_mapping_case_when.md",
-      "sha256": "3298fc274be3745e096ea734bfaa138bd8ab25d661fd1869660e26b471319ee3",
-      "bytes": 61219,
+      "sha256": "61f20ef5b1a9f4a5b65f76b3c96d3fe0d5c95642ab4bd5630ea3445e3ce2796c",
+      "bytes": 61220,
       "category": "sql_patterns"
     },
     {
@@ -6804,8 +6742,8 @@
     },
     {
       "source_path": "knowledge/sql_patterns/dashboard_query_patterns.md",
-      "sha256": "eac765a36d7ed5d200a15c983fa0f41091b7435dfef249e1b333632903a1bf28",
-      "bytes": 23226,
+      "sha256": "878af8b5e3d7cca716d36b102defec1e95a9f47655e9f25f17d44272e1f8fdc3",
+      "bytes": 23241,
       "category": "sql_patterns"
     },
     {
@@ -6852,8 +6790,8 @@
     },
     {
       "source_path": "knowledge/sql_patterns/outbound_call_process_export_template.md",
-      "sha256": "a25465414732e2ef096235c4da3dfdcb71697f814cec871baa0649b34ac4eed2",
-      "bytes": 60880,
+      "sha256": "bf3c3b0b35332a15c77060545f06486d1a369cddfa0ae3077bf3bbb9c456356f",
+      "bytes": 60883,
       "category": "sql_patterns"
     },
     {
@@ -7044,14 +6982,14 @@
     },
     {
       "source_path": "knowledge/tables/service_dw.dim_crm_assign_rule_lead_detail_hf.md",
-      "sha256": "c1d04ae1c717e637b905a78b55f706f34f25fadd9db59bbbc230123a2394f567",
-      "bytes": 5152,
+      "sha256": "b4218400f20fbb3282a9577cf56614980bd32e9f955ca6ac1a3a344d5bb90b93",
+      "bytes": 5153,
       "category": "tables"
     },
     {
       "source_path": "knowledge/tables/service_dw.dim_crm_assign_rule_plan_item_info_hf.md",
-      "sha256": "719455b9e35a4503cb20f08a4d1938beffb6f33d23fc97a51f737dc839c79092",
-      "bytes": 5427,
+      "sha256": "02608e87373e1aecb2e51e6180f13d38dd288dbefc320c2011b47809485cd8e9",
+      "bytes": 5428,
       "category": "tables"
     },
     {
@@ -7103,51 +7041,57 @@
       "category": "tables"
     },
     {
-      "source_path": "knowledge/tables/temp_table.dingxi01_ceshiqudao_pingyou.md",
-      "sha256": "6c1c524d3f345213cd1c2b28d1cba10581783168a22219d7bc71f65966d1e761",
-      "bytes": 4054,
+      "source_path": "knowledge/tables/temp_table.lvshuai01_ceshiqudao_pingyou.md",
+      "sha256": "e9c4d8d4d83d8f9bbf9a7d98891b433b745ca733dd2d716d78e208fee3221715",
+      "bytes": 4373,
       "category": "temp_tables"
     },
     {
-      "source_path": "knowledge/tables/temp_table.dingxi01_channel_group.md",
-      "sha256": "f5925ca1f4704c5a39d66b16d5048803f90651231d9af3233b8fec54fc9a5bd6",
-      "bytes": 2155,
+      "source_path": "knowledge/tables/temp_table.lvshuai01_channel_group.md",
+      "sha256": "717c312e1fd0f8ea740e758b45ef8cdb43c42b4c008b715cddc6170335dda333",
+      "bytes": 2475,
       "category": "temp_tables"
     },
     {
-      "source_path": "knowledge/tables/temp_table.dingxi01_cost.md",
-      "sha256": "9b3a96e26990cbab75d23e194798c2d8e583edbfda4faea36a271fb497ef68da",
-      "bytes": 3627,
+      "source_path": "knowledge/tables/temp_table.lvshuai01_cost.md",
+      "sha256": "0a82d549227d33a3aad884c6524266e0c8a3eccfa7ac51bafec5b9acbc3c1aef",
+      "bytes": 3947,
       "category": "temp_tables"
     },
     {
-      "source_path": "knowledge/tables/temp_table.dingxi01_daoke_1_6_t.md",
-      "sha256": "e0b82e70c6aa2f503f20502799ffecf5b0b0baa0eb5c7c8f4d2beab478d20654",
-      "bytes": 5875,
+      "source_path": "knowledge/tables/temp_table.lvshuai01_daoke_1_6_t.md",
+      "sha256": "cd180525045a1608626a01fae8793d20e92f31b5e95b63ba58109624d6ed8670",
+      "bytes": 6196,
       "category": "temp_tables"
     },
     {
-      "source_path": "knowledge/tables/temp_table.dingxi01_jiagou_db.md",
-      "sha256": "53f04eafa6e63a14f6b85aa7e8d8ffa11413df02d330f3f4412b407fe6b14d96",
-      "bytes": 7195,
+      "source_path": "knowledge/tables/temp_table.lvshuai01_jiagou_db.md",
+      "sha256": "e61b10eb32efa6c490981475772f91a3faec4cc5d6a00bc1c3c3adae9e07c30a",
+      "bytes": 7517,
       "category": "temp_tables"
     },
     {
-      "source_path": "knowledge/tables/temp_table.dingxi01_jiagou_zx.md",
-      "sha256": "c16a2be49d058bd1a3a5efd406dfd5567108d11b413d8fc3a37777d6ed847990",
-      "bytes": 7241,
+      "source_path": "knowledge/tables/temp_table.lvshuai01_jiagou_xinren.md",
+      "sha256": "68eff9e24f777bf3063f2e414c65d29fff0901d5d31e42d7d82a99a779858c62",
+      "bytes": 2336,
       "category": "temp_tables"
     },
     {
-      "source_path": "knowledge/tables/temp_table.dingxi01_pingyou_jg.md",
-      "sha256": "e605035a5382c484a22cc0d4fb72e92c3bda7b959c11f4ba25b15095570082dc",
-      "bytes": 8408,
+      "source_path": "knowledge/tables/temp_table.lvshuai01_jiagou_zx.md",
+      "sha256": "a35eda0b9f984c16aa4043d4fd2dfff2cece679fc9df34e38c46ea12c7e3b815",
+      "bytes": 7566,
       "category": "temp_tables"
     },
     {
-      "source_path": "knowledge/tables/temp_table.dingxi01_plan_id.md",
-      "sha256": "9b4a7d7e252919b3afcdf1cdb99b4b6be95c11e074ff650578f735cbe3c2b8ab",
-      "bytes": 6048,
+      "source_path": "knowledge/tables/temp_table.lvshuai01_jinliang_goal.md",
+      "sha256": "a2faffb77bad33c4bf652035d98574d5c8218502e1f35151c9162723f28de35d",
+      "bytes": 2235,
+      "category": "temp_tables"
+    },
+    {
+      "source_path": "knowledge/tables/temp_table.lvshuai01_plan_id.md",
+      "sha256": "53a19ff6b3523b2a370a0cd89eb4e047e71a9b29d6bfd0f98ab48a12c53e7960",
+      "bytes": 6374,
       "category": "temp_tables"
     },
     {
@@ -7158,14 +7102,20 @@
     },
     {
       "source_path": "knowledge/tables/temp_table.zhangjunyan01_pingyou_jg.md",
-      "sha256": "e4a276662fed9578d5357c00007e2f8a08c2938d36d9a63c782e3324d4134c45",
-      "bytes": 6598,
+      "sha256": "044620d30277c3e83e80aacfd6dde037e0522f580c76b37bb91f3f6791561184",
+      "bytes": 7761,
       "category": "temp_tables"
     },
     {
+      "source_path": "knowledge/temp_table_maintenance.md",
+      "sha256": "39be6d0247e4edf8a10de261b9b3faf4086a49ce9a2d866ffb7091a8ecbf5358",
+      "bytes": 2436,
+      "category": "governance"
+    },
+    {
       "source_path": "knowledge/update_log/changelog.md",
-      "sha256": "c8ccebe0d631394a1e18a52685f408169bc9667fe92c4d5f9d14d7589028c4a5",
-      "bytes": 222131,
+      "sha256": "d6e565715d0d44721d355a1d9e62d9487e80b9164287b764a28828034981d494",
+      "bytes": 223393,
       "category": "update_log"
     },
     {

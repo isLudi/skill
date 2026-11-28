@@ -34,11 +34,11 @@
 | service_dw.app_h_crm_lead_employee_workload_detail_hf | call_c | 外呼通话时长、总外呼次数、接通次数、5 分钟长通话 |
 | service_dw.dws_service_user_learn_detail_hf | t2 | 行课记录，补充到课时长和有效到课 |
 | finance_dw.app_finance_performance_extend_details_hf | dd | 财务业绩明细，按用户-期次统计成交科目数 |
-| temp_table.dingxi01_daoke_1_6_t | ke | 期次-渠道-年级-开课时间到课课次映射 |
-| temp_table.dingxi01_channel_group | channel_grp | 渠道分组映射，当前 SQL join 后未输出字段 |
-| temp_table.dingxi01_cost | ct | 渠道-年级-期次成本和目标 |
-| temp_table.dingxi01_jiagou_db | jg | 期次架构映射，当前 SQL join 后未输出字段 |
-| temp_table.dingxi01_jiagou_zx | zx | 按员工姓名补充小组 |
+| temp_table.lvshuai01_daoke_1_6_t | ke | 期次-渠道-年级-开课时间到课课次映射 |
+| temp_table.lvshuai01_channel_group | channel_grp | 渠道分组映射，当前 SQL join 后未输出字段 |
+| temp_table.lvshuai01_cost | ct | 渠道-年级-期次成本和目标 |
+| temp_table.lvshuai01_jiagou_db | jg | 期次架构映射，当前 SQL join 后未输出字段 |
+| temp_table.lvshuai01_jiagou_zx | zx | 按员工姓名补充小组 |
 
 ## 5. CTE 逻辑
 
@@ -64,11 +64,11 @@
 | base | `user_id` | app_ph | `user_number` | 补充最新 APP 渠道 |
 | base | `period_name`, `user_id` | dd | `qici`, `user_id` | 补充成交科目档位；`dd` 同时按 `employee_email_name` 分组但 join 未使用该字段 |
 | data | `user_id`, `period_name` | service_dw.dws_service_user_learn_detail_hf | `user_number`, 派生 `qici` | 关联用户当期行课记录 |
-| daoke | `period_name`, `channel_map`, `grade_1`, `begin_time` | temp_table.dingxi01_daoke_1_6_t | `qici`, `channel`, `grade`, `begin_time` | 识别第 1 节/第 3 节到课 |
-| zhuanhua | `channel_map` | temp_table.dingxi01_channel_group | `channel` | 渠道分组，当前未输出字段 |
-| zhuanhua | `channel_map`, `grade_1`, `period_name` | temp_table.dingxi01_cost | `channel`, `grade`, `qici` | 补充成本 `cost` 和目标 `goal` |
-| zhuanhua | `period_name`, `depart`, `zhuguan`, `employee_email_name` | temp_table.dingxi01_jiagou_db | `qici`, `department`, `xiaozu`, `employee_email_name` | 架构映射，当前未输出字段 |
-| zhuanhua | `employee_email_name` | temp_table.dingxi01_jiagou_zx | `employee_email_name` | 补充 `xiaozu` |
+| daoke | `period_name`, `channel_map`, `grade_1`, `begin_time` | temp_table.lvshuai01_daoke_1_6_t | `qici`, `channel`, `grade`, `begin_time` | 识别第 1 节/第 3 节到课 |
+| zhuanhua | `channel_map` | temp_table.lvshuai01_channel_group | `channel` | 渠道分组，当前未输出字段 |
+| zhuanhua | `channel_map`, `grade_1`, `period_name` | temp_table.lvshuai01_cost | `channel`, `grade`, `qici` | 补充成本 `cost` 和目标 `goal` |
+| zhuanhua | `period_name`, `depart`, `zhuguan`, `employee_email_name` | temp_table.lvshuai01_jiagou_db | `qici`, `department`, `xiaozu`, `employee_email_name` | 架构映射，当前未输出字段 |
+| zhuanhua | `employee_email_name` | temp_table.lvshuai01_jiagou_zx | `employee_email_name` | 补充 `xiaozu` |
 
 ## 7. 分区和范围限定
 
@@ -211,4 +211,4 @@ and period_name < ${period_name2}
 - `AB_zhuanhua` 中 `conversion_lead_count = '1'` 存在数值/字符串混用风险。
 - `podan` 代码使用 `can_renew_ds_count_a >= 5 and trade_income > 0`，注释写“线索量>10且有净营收且带班”，代码和注释不一致。
 - `channel_grp`、`jg` 被 join 但未输出字段；需确认是否仅为历史遗留。
-- `temp_table.dingxi01_cost`、`temp_table.dingxi01_jiagou_db`、`temp_table.dingxi01_jiagou_zx` 若 join key 不唯一，会放大结果行。
+- `temp_table.lvshuai01_cost`、`temp_table.lvshuai01_jiagou_db`、`temp_table.lvshuai01_jiagou_zx` 若 join key 不唯一，会放大结果行。

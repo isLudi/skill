@@ -310,7 +310,7 @@ then '退款订单复用'
 
 推荐排查顺序：
 
-1. 查目标期次临时表或维表是否已维护目标渠道，例如 `temp_table.dingxi01_daoke_1_6_t` 中的 `qici + qudao + grade + begin_time`。
+1. 查目标期次临时表或维表是否已维护目标渠道，例如 `temp_table.lvshuai01_daoke_1_6_t` 中的 `qici + qudao + grade + begin_time`。
 2. 查主事实表目标期次的 `rule_name`、`flow_pool_name`、`put_plan_name`、`sku_id_name`、`channel_name_1/2`、`third_department_name` 分布。
 3. 用 `case ... end as current_case_result` 模拟现有 CASE 的实际输出；如果目标记录落到别的渠道，优先调整 CASE 顺序，而不是新增重复分支。
 4. 新增或调整规则时，优先使用大小写兼容写法，例如 `lower(rule_name) like '%孟亚飞ip99%'`；不要同时保留后置重复分支，避免读者误以为后置分支可命中。

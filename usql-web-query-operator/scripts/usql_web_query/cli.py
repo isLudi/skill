@@ -45,6 +45,7 @@ from .commands.sync_template_sql import cmd_sync_template_sql
 from .commands.sync_datamap_fields import cmd_sync_datamap_fields
 from .commands.template_download import cmd_template_download
 from .commands.upload_temp_table import cmd_upload_temp_table
+from .commands.temp_table_knowledge import cmd_temp_table_knowledge
 from .commands.data_center_schedule import (
     cmd_plan_data_center_schedule_renewal, cmd_apply_data_center_schedule_renewal,
 )
@@ -666,6 +667,21 @@ def build_parser() -> argparse.ArgumentParser:
     template_download.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL, help="Installed browser channel, e.g. msedge or chrome.")
     template_download.add_argument("--executable-path", default=None, help="Explicit browser executable path; overrides --browser-channel.")
     template_download.set_defaults(func=cmd_template_download)
+
+    for mode in ("plan", "apply"):
+        migration = subparsers.add_parser(
+            f"{mode}-temp-table-knowledge-migration", help="Migrate confirmed temporary-table owner knowledge locally; never changes remote tables or SQL.")
+        migration.add_argument("--input", type=Path, required=True)
+        migration.add_argument("--output", type=Path, required=True)
+        migration.add_argument("--state-path", type=Path, default=DEFAULT_STATE)
+        migration.add_argument("--env-file", type=Path, default=DEFAULT_ENV_FILE)
+        migration.add_argument("--browser-channel", default=DEFAULT_BROWSER_CHANNEL)
+        migration.add_argument("--headed", action="store_true")
+        migration.set_defaults(mode=mode, func=cmd_temp_table_knowledge)
+        if mode == "apply":
+            migration.add_argument("--plan-sha256", required=True)
+            migration.add_argument("--artifacts-dir", type=Path, required=True)
+            migration.add_argument("--confirm-skill-maintenance", action="store_true")
 
     return parser
 

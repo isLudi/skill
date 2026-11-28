@@ -25,15 +25,15 @@
 | service_dw.dwd_crm_assign_private_detail_hf | t | 最新私海阶段来源；当前 raw SQL 派生 `is_shengou`、`is_shuanggou`，结果层未输出 |
 | service_dw.dm_crm_lead_stats_detail_hf | jt | 首呼接通时间差辅助来源；当前 raw SQL 保留派生字段，结果层未输出 |
 | service_dw.dws_service_user_learn_detail_hf | t / learn_raw / learn_candidates | 行课记录，提供 `begin_time`、课程名称、到课时长和有效到课标记；先按用户和期次窗口进入候选，再参与自动课次排序 |
-| temp_table.dingxi01_daoke_1_6_t | ke / ke_manual | 期次-渠道-年级-开课时间手工课次映射，当前仅用于 `manual_*` 和自动/手工对照诊断，不能作为主课次来源 |
-| temp_table.dingxi01_jiagou_db | jg | 期次-员工邮箱前缀架构映射，输出 `xiaozu`、`department`、`jingli` 并过滤空架构 |
+| temp_table.lvshuai01_daoke_1_6_t | ke / ke_manual | 期次-渠道-年级-开课时间手工课次映射，当前仅用于 `manual_*` 和自动/手工对照诊断，不能作为主课次来源 |
+| temp_table.lvshuai01_jiagou_db | jg | 期次-员工邮箱前缀架构映射，输出 `xiaozu`、`department`、`jingli` 并过滤空架构 |
 
 ## 5. CTE 逻辑
 
 | CTE | 作用 |
 |---|---|
 | data | 从主全链路表读取有效线索，派生 `qici`、`channel_map_1`、`grade_1`，并保留顾问和线索字段 |
-| ke_manual | 对 `temp_table.dingxi01_daoke_1_6_t` 按 `qici + qudao + grade + begin_time` 去重，得到手工课次 `manual_ke_1` |
+| ke_manual | 对 `temp_table.lvshuai01_daoke_1_6_t` 按 `qici + qudao + grade + begin_time` 去重，得到手工课次 `manual_ke_1` |
 | learn_raw | 读取行课明细，不再把 `begin_time` 派生期次作为唯一关联依据；保留原始 `begin_time`、课程名称、到课时长和有效到课标记 |
 | lead_user_period | 从 `data` 抽取 `lead_id + user_id + employee_email_prefix + qici + channel_map_1 + grade_1`，并由 `qici` 派生 `qici_date` |
 | learn_candidates | 按用户关联 `lead_user_period` 与 `learn_raw`，用 `qici_date - 3 day` 到 `qici_date + 4 day` 的窗口圈定候选行课，覆盖周二/周三提前开课和周一补充开课；同时把 `begin_time` 规范到分钟粒度 `begin_time_slot` |
@@ -54,7 +54,7 @@
 | lead_user_period | user_id, qici_date 时间窗口 | learn_raw | user_number, begin_date | 以线索期次为准圈定候选行课，不依赖课程名称精确匹配 |
 | learn_candidates | qici, channel_map_1, grade_1, begin_time_slot | lesson_ranked_1_6 | qici, channel_map_1, grade_1, begin_time | 回连自动课次 `auto_ke_1` |
 | daoke | qici, channel_map_1, grade_1, begin_time | ke_manual | qici, qudao, grade, begin_time | 补充手工课次 `manual_ke_1`，仅用于 manual 指标和自动/手工课次对照 |
-| data | employee_email_prefix, qici | temp_table.dingxi01_jiagou_db | employee_email_prefix, qici | 补充小组、部门、经理架构 |
+| data | employee_email_prefix, qici | temp_table.lvshuai01_jiagou_db | employee_email_prefix, qici | 补充小组、部门、经理架构 |
 
 ## 7. 分区和范围限定
 
@@ -139,7 +139,7 @@ and jg.department is not null
 ## 10. 待确认事项
 
 - `valid_lead_count = '1'` 和 `is_valid_live_learn = '1'` 存在数值/字符串比较，字段类型需结合平台结果确认；生成新 SQL 时优先按字段表类型显式处理。
-- 当前手工课次映射使用 `temp_table.dingxi01_daoke_1_6_t.qudao`，不是 `channel`；该表只作为诊断对照，主课次不再依赖手工映射维护。
+- 当前手工课次映射使用 `temp_table.lvshuai01_daoke_1_6_t.qudao`，不是 `channel`；该表只作为诊断对照，主课次不再依赖手工映射维护。
 - 当前最终 `ke_*` / `v_ke_*` 主口径使用按 `qici + channel_map_1 + grade_1 + begin_time_slot` 自动排序得到的 `auto_ke_1`；`manual_*` / `manual_v_*` 只反映临时表手工课次映射口径。
 - 自动课次按开课时间排序，不按课程名精确匹配；课程名样例只用于诊断。若课程表后续出现周一、周二、周三开课，优先检查 `learn_candidates` 的 `qici_date - 3 day` 到 `qici_date + 4 day` 窗口是否覆盖业务实际开课日期。
 - `channel_map_1` CASE 为超长渠道归因规则，`孟亚飞IP99元` 等特例必须放在更泛化的 `孟亚飞9元`、`信息流` 等规则之前；2026-06-18 起 `孟亚飞-1组-视频号` 已合并为 `孟亚飞9元`，以后排查“某渠道从某期开始消失”时，应优先检查 CASE 顺序和 rule_name 新旧名称。

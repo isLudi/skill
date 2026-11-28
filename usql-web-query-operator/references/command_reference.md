@@ -7,6 +7,8 @@
 
 | 命令 | CLI 作用 | 影响类型 | 授权门禁 | 详细说明 |
 |---|---|---|---|---|
+| `plan-temp-table-knowledge-migration` | Migrate confirmed temporary-table owner knowledge locally; never changes remote tables or SQL. | `remote_read_only` | `explicit_command` | [temp_table_knowledge_migration.md](temp_table_knowledge_migration.md) |
+| `apply-temp-table-knowledge-migration` | Migrate confirmed temporary-table owner knowledge locally; never changes remote tables or SQL. | `local_write_explicit` | `exact_plan_hash_and_confirmation` | [temp_table_knowledge_migration.md](temp_table_knowledge_migration.md) |
 | `doctor` | Check local Playwright availability. | `local_read_only` | `none` | [sql_query_execution.md](sql_query_execution.md) |
 | `login` | Authenticate and save browser storage state. | `local_write_explicit` | `explicit_command` | [sql_query_execution.md](sql_query_execution.md) |
 | `prepare-sql` | Write a separate query copy without leading comments; does not execute or rebind QueryPlan. | `local_write_explicit` | `explicit_command` | [sql_query_execution.md](sql_query_execution.md) |

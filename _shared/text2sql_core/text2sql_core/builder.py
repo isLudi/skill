@@ -40,6 +40,28 @@ ENTITY_FOLDERS = {
     "update_log": "update_log",
 }
 RAW_SQL_REFERENCE_RE = re.compile(r"resources/raw_sql/([A-Za-z0-9_.-]+\.sql)")
+
+
+def _temp_migrations(repo_root: Path) -> dict[str, dict[str, str]]:
+    result = {}
+    for domain, config in DOMAIN_CONFIG.items():
+        path = repo_root / config["skill"] / "semantic/temp_table_migrations.json"
+        if not path.exists():
+            continue
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        if payload.get("domain") != domain or payload.get("schema_version") != "1.0.0":
+            raise ValueError("Invalid temporary-table migration registry: " + str(path))
+        aliases = {}
+        for row in payload["mappings"]:
+            old, new = row["old_table"], row["new_table"]
+            if not re.fullmatch(r"temp_table\.dingxi01_[a-z0-9_]+", old) or not re.fullmatch(r"temp_table\.lvshuai01_[a-z0-9_]+", new) or old in aliases:
+                raise ValueError("Invalid or duplicate temporary-table owner mapping")
+            reference = row.get("current_reference_table", new)
+            if not re.fullmatch(r"temp_table\.[a-z0-9_]+", reference):
+                raise ValueError("Invalid current temporary-table reference")
+            aliases[old] = reference
+        result[domain] = aliases
+    return result
 DASHBOARD_IDENTIFIER_RE = re.compile(
     r"(?<![A-Za-z0-9_])(?:dashboard|home)_\d+(?![A-Za-z0-9_])"
 )
@@ -269,6 +291,11 @@ def _build_domain_manifest(
         entities.get("dashboard_web_profiles", []),
     )
     current_model_registry = _build_current_model_registry_summary(skill_root, domain)
+    migrations = _temp_migrations(repo_root)
+    historical_owners: dict[str, list[str]] = defaultdict(list)
+    for owner, aliases in migrations.items():
+        for old in aliases:
+            historical_owners[old].append(owner)
     return {
         "schema_version": SCHEMA_VERSION,
         "domain": {
@@ -296,6 +323,8 @@ def _build_domain_manifest(
             "reverse": sorted(item["source_path"] for item in entities.get("reverse_index", [])),
         },
         "boundary": {
+            "historical_temp_table_names": migrations.get(domain, {}),
+            "historical_temp_table_owners": dict(sorted(historical_owners.items())),
             "domain_local_temp_tables": sorted(own_temps),
             "exclusive_temp_tables": exclusive_own,
             "forbidden_temp_tables": forbidden,

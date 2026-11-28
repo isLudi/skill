@@ -1,5 +1,18 @@
 # temp_table.zhangjunyan01_pingyou_jg
 
+2026-11-28 线上保存 SQL 回读确认：本表为下列生产模型的评优/新人架构来源。用户确认 lvshuai01_pingyou_jg 数据不完整，因此不再把维护账号更名视为两表等价替换。
+
+| 模型 | 数据集 | 当前线上 SQL SHA-256 |
+|---|---|---|
+| 2421 | 评优看板 | `71c0a2b2d5e896656405738bf43422e04bfa75dcffbb10c4de2229b45d8d4785` |
+| 2632 | 月度评优 | `4591599da1b634a8e536c735edcaf932dd805cb5b5d263f945c127dc93c36a4c` |
+| 2643 | 季度评优 | `78eca90c5eebc956d13c51b484ce664cb2fa06f5b2333a09315f5713fc66cca5` |
+| 2644 | 半年度评优 | `198f027f6ea8b39d59d355e5335b493c3956ab1d93d74ae36b6f5d58fa88fca5` |
+| 2688 | 新人过程转化数据 | `6c4449c949438f10219e396b33e2a1283607c405ab3424c6dbc154ac481fba0a` |
+
+模型 2688 当前按 ppg.employee_email_name=zz.employee_email_name、ppg.qici=zz.period_name 左连本表，取得 department、xiaozu、jingli、channel、renchan、dept 和 x_qi_count，并以 ppg.x_qi_count not in ('9') 过滤。new_qici 则独立来自 temp_table.lvshuai01_jiagou_xinren，不能与本表的 x_qi_count 混同。
+以下旧 Excel 扫描及样例属于历史结构证据，不证明本表当前期次覆盖、行数或唯一性；每次分析仍须验证所用范围。
+
 ## 1. 中文名称
 
 评优架构人产临时表
@@ -133,8 +146,8 @@ limit 20;
 - Excel 最后一列表头为空且未发现有效值，本文档未将其纳入字段清单。
 - 仅在用户明确要求“评优/参评名单/评优架构/人产”口径时使用该表过滤顾问名单。该表含 `qici`，按 `qici + employee_email_name` 关联会把结果限制在本表已维护期次内；如果最新期次未维护，会导致最新期次数据被过滤掉。
 - `is_emp` 是“是否参与评优”业务字段：`是` 表示参与评优，`否` 表示不参与评优。不要将其理解为是否在职；在职状态由 `zaizhi` 表示。
-- 如果用户不要求严格评优参评名单，只需要市场顾问在职架构范围，应考虑改用 `temp_table.dingxi01_jiagou_zx` 并说明口径变化。
-- 不要与 `temp_table.dingxi01_pingyou_jg` 混用：模型 `2688`（新人过程转化数据）当前读取 `dingxi01` 表；本表主要服务当前顾问销售评优 SQL。两个表即使都来自同名 Excel，也必须按 canonical SQL 的物理表名分别维护和校验。
+- 如果用户不要求严格评优参评名单，只需要市场顾问在职架构范围，应考虑改用 `temp_table.lvshuai01_jiagou_zx` 并说明口径变化。
+- 当前生产评优及模型 2688 均读取本表；不要使用数据不完整的 temp_table.lvshuai01_pingyou_jg 替代。旧维护人表的消费者记录不能作为当前生产事实。
 
 ## 12. 反向联动速查
 

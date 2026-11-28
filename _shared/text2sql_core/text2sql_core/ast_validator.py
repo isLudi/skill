@@ -30,6 +30,9 @@ def _exclusive_table_owners(bundle: CatalogBundle) -> dict[str, str]:
     for entry in other:
         other_domains = owner_map.get(str(entry), [])
         owners[str(entry).lower()] = ",".join(other_domains) or "other_domain"
+    for name, domains in boundary.get("historical_temp_table_owners", {}).items():
+        if len(domains) == 1:
+            owners[name] = domains[0]
     return owners
 
 
@@ -40,6 +43,7 @@ def validate_sql_ast(
     core_root: Path,
     expected_domain: str,
     allow_unknown_tables: bool = False,
+    allow_historical_table_names: bool = False,
     query_spec: QuerySpec | None = None,
 ) -> ValidationResult:
     result = ValidationResult()
@@ -88,6 +92,7 @@ def validate_sql_ast(
     result.tables = tables
     known_tables = bundle.known_tables()
     owners = _exclusive_table_owners(bundle)
+    historical = bundle.domain_manifest.get("boundary", {}).get("historical_temp_table_names", {})
     for table in physical_nodes:
         name = _qualified_table_name(table)
         if not table.db:
@@ -109,7 +114,12 @@ def validate_sql_ast(
                     table=name,
                 )
             )
-        if name not in known_tables:
+        if name in historical:
+            result.diagnostics.append(Diagnostic(
+                "HISTORICAL_TEMP_TABLE_NAME", "warning" if allow_historical_table_names else "error",
+                f"{name} is historical; new SQL must use {historical[name]}", table=name,
+                compat_blocking=not allow_historical_table_names))
+        elif name not in known_tables:
             result.diagnostics.append(
                 Diagnostic(
                     "UNKNOWN_PHYSICAL_TABLE",

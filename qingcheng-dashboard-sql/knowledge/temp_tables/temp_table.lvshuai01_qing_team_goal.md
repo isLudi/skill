@@ -1,8 +1,10 @@
-# temp_table.dingxi01_qing_team_g_qi
+# temp_table.lvshuai01_qing_team_goal
+
+维护账号迁移：2026-11-28 用户确认同后缀表由 lvshuai01 接续维护；线上新表身份已核实。字段及业务含义沿用已确认结构，历史 SQL、Excel 扫描和 Query 证据不等于新表本次数据验证。当前使用规则见 [临时表维护迁移](../temp_table_maintenance.md)。
 
 ## 1. 临时表用途
 
-青橙团队期次目标表。当前在 `qingcheng_team_completion_period_raw_20260522.sql` 最终层作为主表，提供期次、学部、小组、大组、目标和层级控制字段，并左连期次实际业绩。
+青橙团队月目标表。当前在 `qingcheng_team_completion_month_raw_20260522.sql` 最终层作为主表，提供月份、学部、小组、大组、目标和层级控制字段，并左连实际业绩。
 
 ## 2. 来源和刷新方式
 
@@ -18,7 +20,7 @@
 疑似为：
 
 ```text
-qici + xuebu + xiaozu + dazu
+month + xuebu + xiaozu + dazu
 ```
 
 待人工确认 `emye_c` 是否改变展示粒度。
@@ -27,28 +29,28 @@ qici + xuebu + xiaozu + dazu
 
 | 字段名 | 类型 | 中文含义 | 备注 |
 |---|---|---|---|
-| `qici` | 待人工确认 | 期次 | join `renchan.qici` |
+| `month` | 待人工确认 | 月份 | join `renchan.moth` |
 | `xuebu` | 待人工确认 | 学部 | 最终输出维度 |
 | `xiaozu` | 待人工确认 | 小组/主管邮箱 | join `renchan.leader_employee_email_name` |
 | `dazu` | 待人工确认 | 大组 | 最终输出维度 |
 | `emye_c` | 待人工确认 | 层级/展示控制字段 | `emye_c != '1'` 时展示小组，否则为 `'-'` |
-| `goal` | 待人工确认 | 期次目标 | 与 `promit`/`promit_4` 对比 |
+| `goal` | 待人工确认 | 月目标 | 与 `promit`/`promit_4` 对比 |
 
 ## 5. 适用看板
 
-- `qingcheng_team_completion_period_raw_20260522`
+- `qingcheng_team_completion_month_raw_20260522`
 
 ## 6. join key
 
 ```sql
 qg.xiaozu = rc.leader_employee_email_name
-and qg.qici = rc.qici
+and qg.month = rc.moth
 ```
 
 ## 7. 不可复用边界
 
-- 默认只用于青橙团队完成度【期】。
-- 不得与 `temp_table.dingxi01_qing_team_goal` 月目标表混用。
+- 默认只用于青橙团队完成度【月】。
+- 不得与 `temp_table.lvshuai01_qing_team_g_qi` 期目标表混用。
 - 目标单位必须与实际业绩金额单位一致，未确认前不得直接计算完成率。
 - 如果 `emye_c = '1'` 代表学部/大组层级目标，则小组展示为 `'-'`；具体业务含义待确认。
 
@@ -58,4 +60,3 @@ and qg.qici = rc.qici
 - `goal` 单位。
 - `emye_c` 的枚举和值含义。
 - `xiaozu` 字段是否存主管邮箱，还是小组名称。
-

@@ -471,7 +471,7 @@
         },
         {
           "source_path": "references/pivot_style_sync_draft_evidence_20261016.json",
-          "source_sha256": "eca453dfe39f47117cb765d2e92bc467b6455d39e1be77ed48f8d12dba40634c",
+          "source_sha256": "cf81076f40e6c74d26493045090e727a4059d3578664fe2856c01bd33a34e11c",
           "note": "Redacted production-draft evidence verifies pivot component colors and font sizes, all 36 measure column styles, stable fields and layout, and an unchanged published config."
         },
         {
@@ -1428,7 +1428,7 @@
       "evidence": [
         {
           "source_path": "references/dashboard_advisor_rate_evidence_20261122.json",
-          "source_sha256": "304f17fa721c53b6494088aacfecf16fb13f1ca21db764223911796c67750390",
+          "source_sha256": "34b9c88145799a7b82e3babb0fe5131bb8d1c8231f9c412ef7f8974d883593e0",
           "note": "Reviewed independent live isolated sandbox value and restoration evidence."
         },
         {
@@ -1511,5 +1511,5 @@
       ]
     }
   ],
-  "registry_sha256": "4daa6c30da22f16ca2ce0bb2eb652c92b77e0e8a8b504fad091a054008c6ef3a"
+  "registry_sha256": "ecb7a3f4359e8a4ab3c1bae5d1613c8d71473a4723d1a350cbda8e1e4357d4c3"
 }

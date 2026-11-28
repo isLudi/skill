@@ -1,5 +1,7 @@
 # 表索引
 
+当前表名按维护账号迁移登记使用。下表保留的旧 Excel 样本行数、字段扫描和重复检查属于迁移前历史证据，不证明新表本次数据完整性；评优来源例外以当前线上 SQL 回读为准。
+
 > 物理表字段由 `usql-web-query-operator sync-datamap-fields` 从天工数据地图同步，临时表继续由本 Skill 的 SQL/表格证据维护。库名前缀或业务口径待确认时，生成生产 SQL 前必须人工确认。除状态栏明确标注权限待开通的表外，其余表已在 Web 查询环境（Playwright）中使用。
 
 | 完整表名 | 中文名 | 数据粒度 | 分区字段 | 小时表 | 库名前缀状态 | 字段校验状态 |
@@ -38,13 +40,14 @@
 | service_dw.ods_service_ai_ones_business_copilot__call_record_df | AI 途途通话记录表 | 通话事件粒度待确认；`unique_key` 与 `call_id` 唯一性待核 | dt | 否 | 已确认 | 数据地图登记 21 个字段；业务范围需通过线索人群限定，ASR 直连有放大风险 |
 | service_dw.ods_service_ai_ones_business_copilot__ai_call_analysis_result_df | 语音分析结果表 | 分析记录粒度待确认；有效 `call_id` 唯一性仅受限样本验证 | dt | 否 | 已确认 | 数据地图登记 16 个字段；`is_del` 是 bigint，候选关联为同分区 `call_id` |
 | service_dw.dim_crm_assign_rule_plan_item_info_hf | 分配规则计划 item 信息表 | 待确认；根据 SQL 推断为 rule_id + plan_id + employee_email_name 或计划 item 小时快照粒度 | dt, hour | 是 | 已确认 | 根据 `resources/raw_sql/lead_assign_plan_actual_valid_count.sql` 补充最小字段，真实 DDL 待确认 |
-| temp_table.dingxi01_channel_group | 渠道分组映射表 | 渠道映射粒度，待确认。理论上一行对应一个 `channel`。 | 无 | 否 | 已确认 | 保留原整理 |
-| temp_table.dingxi01_ceshiqudao_pingyou | 评优测试渠道指标临时表 | 期次-渠道-姓名候选粒度，唯一性未验证；2644 按姓名聚合后使用 | 未取得分区 DDL；Registry 按稳定表维护 | 否 | 已确认 | 2026-10-09 Query 1622218726 核验六个生产相关字段均为 string；仅登记物理事实，不改动指标或范围 |
+| temp_table.lvshuai01_channel_group | 渠道分组映射表 | 渠道映射粒度，待确认。理论上一行对应一个 `channel`。 | 无 | 否 | 已确认 | 保留原整理 |
+| temp_table.lvshuai01_ceshiqudao_pingyou | 评优测试渠道指标临时表 | 期次-渠道-姓名候选粒度，唯一性未验证；2644 按姓名聚合后使用 | 未取得分区 DDL；Registry 按稳定表维护 | 否 | 已确认 | 2026-10-09 Query 1622218726 核验六个生产相关字段均为 string；仅登记物理事实，不改动指标或范围 |
 | temp_table.shenbaoxin_channel_group | 渠道分组映射表（申保鑫） | 渠道映射粒度，字段来自 SQL 使用字段推断，待确认 | 无 | 否 | 已确认 | 根据 `resources/raw_sql/h_biz_line_department_conversion.sql` 补充使用字段；2026-06-05 后不再用于到课 raw SQL，真实字段类型和维护来源待确认 |
-| temp_table.dingxi01_cost | 渠道成本目标表 | 渠道-年级-期次粒度，待确认。 | 无 | 否 | 已确认 | 保留原整理 |
-| temp_table.dingxi01_daoke_1_6_t | 到课课次映射表 | 渠道-期次-年级-开课时间-课次粒度。来自 `daoke_t_one_six.xlsx`，数据行 2862 行、字段 7 个，存在 1 条空行；join key 存在重复，使用前建议去重。 | 无 | 否 | 已确认 | 已按 Excel 补全字段、样例和 key 重复检查 |
-| temp_table.dingxi01_jiagou_db | 架构映射表 | 顾问-期次-架构映射粒度。来自 `jiagou_xian_zhengzhou.xlsx`，数据行 5017 行、字段 10 个，存在 7 条空行；join key 存在少量重复。 | 无 | 否 | 已确认 | 已按 Excel 补全字段、样例和 key 重复检查 |
-| temp_table.dingxi01_jiagou_zx | 员工专项架构映射表 | 顾问-专项架构粒度。来自 `jiagou2026_zx.xlsx`，数据行 885 行、字段 7 个；无 qici 字段，跨期使用需确认。 | 无 | 否 | 已确认 | 已按 Excel 补全字段、样例和 key 重复检查 |
-| temp_table.dingxi01_pingyou_jg | 评优架构 / 新人承接期次临时表 | 顾问-期次-架构粒度。当前 `pingyou_jg.xlsx` 仅含 `Sheet4`，数据行 5920 行、字段 14 个；`employee_email_name + qici` 唯一。 | 无 | 否 | 已确认 | 2026-07-21 已验证 `x_qi_count` 仅为 1/2/3/4/9，顾问有效序号不重复，模型 2688 使用本表 |
-| temp_table.zhangjunyan01_pingyou_jg | 评优架构人产临时表 | 顾问-期次-渠道-年级-架构粒度。来自 `pingyou_jg.xlsx`，数据行 1220 行、字段 14 个，存在 1 个空表头列且已忽略。 | 无 | 否 | 已确认 | 已按 Excel 补全字段、样例和 key 重复检查 |
-| temp_table.dingxi01_plan_id | 市场顾问分配计划组 ID 维护表 | 期次-规则组粒度；来自 `plan_id.xlsx`，数据行 51 行、字段 4 个；`qici + group_id` 唯一，`group_id` 单字段跨期重复 | 无 | 否 | 已确认 | 已按 Excel `E:\2000_work\GAOTU\20002_市场顾问部看板维护表格\plan_id.xlsx` 补全字段、样例和 key 重复检查 |
+| temp_table.lvshuai01_cost | 渠道成本目标表 | 渠道-年级-期次粒度，待确认。 | 无 | 否 | 已确认 | 保留原整理 |
+| temp_table.lvshuai01_daoke_1_6_t | 到课课次映射表 | 渠道-期次-年级-开课时间-课次粒度。来自 `daoke_t_one_six.xlsx`，数据行 2862 行、字段 7 个，存在 1 条空行；join key 存在重复，使用前建议去重。 | 无 | 否 | 已确认 | 已按 Excel 补全字段、样例和 key 重复检查 |
+| temp_table.lvshuai01_jiagou_db | 架构映射表 | 顾问-期次-架构映射粒度。来自 `jiagou_xian_zhengzhou.xlsx`，数据行 5017 行、字段 10 个，存在 7 条空行；join key 存在少量重复。 | 无 | 否 | 已确认 | 已按 Excel 补全字段、样例和 key 重复检查 |
+| temp_table.lvshuai01_jiagou_zx | 员工专项架构映射表 | 顾问-专项架构粒度。来自 `jiagou2026_zx.xlsx`，数据行 885 行、字段 7 个；无 qici 字段，跨期使用需确认。 | 无 | 否 | 已确认 | 已按 Excel 补全字段、样例和 key 重复检查 |
+| temp_table.lvshuai01_jiagou_xinren | 新人入组期次 | 2688 按 prefix+账号聚合 max(new_qici)，不等于评优承接序号 x_qi_count。 | 待核实 | 否 | 线上使用关系已核实 | 保留与评优架构的独立来源和 Join |
+| temp_table.zhangjunyan01_pingyou_jg | 当前评优/新人架构来源 | 2026-11-28线上保存SQL确认2421/2632/2643/2644/2688使用；当期覆盖和唯一性仍需范围验证。 | 无 | 否 | 使用关系已核实 | 保留参评、在职及期次关联边界 |
+| temp_table.lvshuai01_plan_id | 市场顾问分配计划组 ID 维护表 | 期次-规则组粒度；来自 `plan_id.xlsx`，数据行 51 行、字段 4 个；`qici + group_id` 唯一，`group_id` 单字段跨期重复 | 无 | 否 | 已确认 | 已按 Excel `E:\2000_work\GAOTU\20002_市场顾问部看板维护表格\plan_id.xlsx` 补全字段、样例和 key 重复检查 |
+| temp_table.lvshuai01_jinliang_goal | 市场进量目标 | 登记键 qici+channel_2+grade；来源与质量门禁以 market_lead_goal 工作流为准。 | 无 | 否 | 维护身份已核实 | 新表结构参考登记上传列，不推断当前数据质量 |

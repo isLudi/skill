@@ -40,8 +40,8 @@
 
 | 表名 | 用途 | 口径状态 |
 |---|---|---|
-| `temp_table.dingxi01_qing_daoke` | 青橙首节课映射表，按期次、二级渠道、年级和开课时间标记 `ke_1` | 已从 SQL 入库，来源/刷新方式待人工确认 |
-| `temp_table.dingxi01_jiagou_db` | 青橙架构映射表，按期次和员工姓名补充 `department`、`dept_2`、`xiaozu` | 已从 SQL 入库，来源/刷新方式待人工确认 |
+| `temp_table.lvshuai01_qing_daoke` | 青橙首节课映射表，按期次、二级渠道、年级和开课时间标记 `ke_1` | 已从 SQL 入库，来源/刷新方式待人工确认 |
+| `temp_table.lvshuai01_jiagou_db` | 青橙架构映射表，按期次和员工姓名补充 `department`、`dept_2`、`xiaozu` | 已从 SQL 入库，来源/刷新方式待人工确认 |
 
 ## 6. CTE 结构
 
@@ -86,12 +86,12 @@
 |---|---|---|---|
 | `d_ap` | `h_ap` | `d_ap.user_number = h_ap.user_number` | 合并天级和小时级登录 |
 | `f` | `jt` | `f.lead_id = jt.lead_id` | 补充首次接通时间差 |
-| `data` | `temp_table.dingxi01_jiagou_db jg` | `data.employee_email_name = jg.employee_email_name and data.qici = jg.qici` | 补充青橙架构 |
+| `data` | `temp_table.lvshuai01_jiagou_db jg` | `data.employee_email_name = jg.employee_email_name and data.qici = jg.qici` | 补充青橙架构 |
 | `data` | `daoke` | `data.employee_email_prefix = daoke.employee_email_prefix and data.qici = daoke.qici and data.lead_id = daoke.lead_id` | 匹配首节到课 |
 | `call_c` | `data` | `call_c.user_number = data.user_id and call_c.section_assign_employee_email_prefix = data.employee_email_prefix` | 匹配外呼指标 |
 | `denglu_app` | `data` | `denglu_app.user_number = data.user_id` | 匹配 APP 登录 |
 | `t1` | `t2` | `t1.qici = t2.qici and t1.user_id = t2.user_number` | 匹配用户上课明细 |
-| `dk` | `temp_table.dingxi01_qing_daoke ke` | `dk.qici = ke.qici and dk.channel_map_2 = ke.qudao and dk.grade_1 = ke.grade and dk.begin_time = ke.begin_time` | 标记首节课 |
+| `dk` | `temp_table.lvshuai01_qing_daoke ke` | `dk.qici = ke.qici and dk.channel_map_2 = ke.qudao and dk.grade_1 = ke.grade and dk.begin_time = ke.begin_time` | 标记首节课 |
 
 ## 10. 渠道和年级映射
 
@@ -135,5 +135,5 @@
 - 主表 `f` 的 `hour` 使用 `now()-interval '3' hour`，其他小时表多为 `now()-interval '2' hour`，小时错位原因待确认。
 - 注释“剔除线索量<2”未在最终 SQL 中体现，是否需要 `having sum(v_lead) >= 2` 待确认。
 - `call_c` 外呼表没有直接青橙部门过滤，依赖与青橙 `data` join 后限定范围；若单独复用外呼表必须补充范围或通过青橙主表驱动。
-- `temp_table.dingxi01_jiagou_db` 名称不含 qing，但本 SQL 用作青橙架构表；是否为青橙专用或多部门复用待确认。
-- `temp_table.dingxi01_qing_daoke` 的刷新来源、有效期和维护负责人待确认。
+- `temp_table.lvshuai01_jiagou_db` 名称不含 qing，但本 SQL 用作青橙架构表；是否为青橙专用或多部门复用待确认。
+- `temp_table.lvshuai01_qing_daoke` 的刷新来源、有效期和维护负责人待确认。

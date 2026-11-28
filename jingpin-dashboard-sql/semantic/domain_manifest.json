@@ -28,31 +28,8 @@
     "reverse": []
   },
   "boundary": {
-    "domain_local_temp_tables": [],
-    "exclusive_temp_tables": [],
-    "forbidden_temp_tables": [
-      "temp_table.dingxi01_ceshiqudao_pingyou",
-      "temp_table.dingxi01_channel_group",
-      "temp_table.dingxi01_cost",
-      "temp_table.dingxi01_daoke_1_6_t",
-      "temp_table.dingxi01_jiagou_db",
-      "temp_table.dingxi01_jiagou_zx",
-      "temp_table.dingxi01_pingyou_jg",
-      "temp_table.dingxi01_plan_id",
-      "temp_table.dingxi01_qing_daoke",
-      "temp_table.dingxi01_qing_goal",
-      "temp_table.dingxi01_qing_qi_moth",
-      "temp_table.dingxi01_qing_team_g_qi",
-      "temp_table.dingxi01_qing_team_goal",
-      "temp_table.dingxi01_qing_team_jg",
-      "temp_table.dingxi01_qing_zz",
-      "temp_table.lvshuai01_jiagou_db",
-      "temp_table.lvshuai01_qing_team_jg",
-      "temp_table.shenbaoxin_channel_group",
-      "temp_table.zhangjunyan01_pingyou_jg"
-    ],
-    "same_name_temp_tables_require_domain_evidence": [],
-    "forbidden_temp_table_owners": {
+    "historical_temp_table_names": {},
+    "historical_temp_table_owners": {
       "temp_table.dingxi01_ceshiqudao_pingyou": [
         "market_consultant"
       ],
@@ -70,6 +47,9 @@
         "qingcheng"
       ],
       "temp_table.dingxi01_jiagou_zx": [
+        "market_consultant"
+      ],
+      "temp_table.dingxi01_jinliang_goal": [
         "market_consultant"
       ],
       "temp_table.dingxi01_pingyou_jg": [
@@ -98,11 +78,79 @@
       ],
       "temp_table.dingxi01_qing_zz": [
         "qingcheng"
+      ]
+    },
+    "domain_local_temp_tables": [],
+    "exclusive_temp_tables": [],
+    "forbidden_temp_tables": [
+      "temp_table.lvshuai01_ceshiqudao_pingyou",
+      "temp_table.lvshuai01_channel_group",
+      "temp_table.lvshuai01_cost",
+      "temp_table.lvshuai01_daoke_1_6_t",
+      "temp_table.lvshuai01_jiagou_db",
+      "temp_table.lvshuai01_jiagou_xinren",
+      "temp_table.lvshuai01_jiagou_zx",
+      "temp_table.lvshuai01_jinliang_goal",
+      "temp_table.lvshuai01_plan_id",
+      "temp_table.lvshuai01_qing_daoke",
+      "temp_table.lvshuai01_qing_goal",
+      "temp_table.lvshuai01_qing_qi_moth",
+      "temp_table.lvshuai01_qing_team_g_qi",
+      "temp_table.lvshuai01_qing_team_goal",
+      "temp_table.lvshuai01_qing_team_jg",
+      "temp_table.lvshuai01_qing_zz",
+      "temp_table.shenbaoxin_channel_group",
+      "temp_table.zhangjunyan01_pingyou_jg"
+    ],
+    "same_name_temp_tables_require_domain_evidence": [],
+    "forbidden_temp_table_owners": {
+      "temp_table.lvshuai01_ceshiqudao_pingyou": [
+        "market_consultant"
+      ],
+      "temp_table.lvshuai01_channel_group": [
+        "market_consultant"
+      ],
+      "temp_table.lvshuai01_cost": [
+        "market_consultant"
+      ],
+      "temp_table.lvshuai01_daoke_1_6_t": [
+        "market_consultant"
       ],
       "temp_table.lvshuai01_jiagou_db": [
+        "market_consultant",
+        "qingcheng"
+      ],
+      "temp_table.lvshuai01_jiagou_xinren": [
+        "market_consultant"
+      ],
+      "temp_table.lvshuai01_jiagou_zx": [
+        "market_consultant"
+      ],
+      "temp_table.lvshuai01_jinliang_goal": [
+        "market_consultant"
+      ],
+      "temp_table.lvshuai01_plan_id": [
+        "market_consultant"
+      ],
+      "temp_table.lvshuai01_qing_daoke": [
+        "qingcheng"
+      ],
+      "temp_table.lvshuai01_qing_goal": [
+        "qingcheng"
+      ],
+      "temp_table.lvshuai01_qing_qi_moth": [
+        "qingcheng"
+      ],
+      "temp_table.lvshuai01_qing_team_g_qi": [
+        "qingcheng"
+      ],
+      "temp_table.lvshuai01_qing_team_goal": [
         "qingcheng"
       ],
       "temp_table.lvshuai01_qing_team_jg": [
+        "qingcheng"
+      ],
+      "temp_table.lvshuai01_qing_zz": [
         "qingcheng"
       ],
       "temp_table.shenbaoxin_channel_group": [

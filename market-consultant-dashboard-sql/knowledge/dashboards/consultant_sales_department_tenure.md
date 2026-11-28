@@ -19,7 +19,7 @@
 - 使用 `email_prefix` 将财务流水与组织链做内连接，替代旧版 `name` 关联。
 - 只保留 `trade_time` 落在该顾问部门任职起止时间内的流水。
 - 正常订单和调课调班分开处理，调课调班按 `name + user_id1` 汇总去重。
-- 关联 `temp_table.dingxi01_jiagou_zx` 补充小组、经理和西安/郑州归属。
+- 关联 `temp_table.lvshuai01_jiagou_zx` 补充小组、经理和西安/郑州归属。
 - 先按 `qici + trade_date + dept + name` 汇总每日净收，再分别计算：
   - `天-部门-期次` 维度排名和追赶上一名差值；
   - `期次-部门` 维度排名和追赶上一名差值。
@@ -32,7 +32,7 @@
 |---|---|---|
 | `dw.dim_employee_chain` | `org_t` 来源表 | 员工组织链，获取顾问在市场顾问部路径下的部门任职起止时间 |
 | `finance_dw.app_finance_performance_extend_details_hf` | `dd_0` 来源表 | 财务业绩扩展明细，提供订单、交易、顾问、课程、金额和期次计算字段 |
-| `temp_table.dingxi01_jiagou_zx` | `zz` | 员工专项架构映射表，补充小组、经理和部门归属 |
+| `temp_table.lvshuai01_jiagou_zx` | `zz` | 员工专项架构映射表，补充小组、经理和部门归属 |
 
 ## 4. CTE 结构
 
@@ -58,7 +58,7 @@
 | 左表/CTE | 右表/CTE | join key | join 类型 | 说明 |
 |---|---|---|---|---|
 | `dd_0` | `org_t ot` | `ot.email_prefix = dd_0.email_prefix` | inner join + where 限制 | 使用邮箱前缀匹配组织链，并通过 `trade_time between begin_time and end_time` 限定在部门任职期内 |
-| `rd` | `temp_table.dingxi01_jiagou_zx zz` | `zz.employee_email_name = rd.name` | left join | 补充 `xiaozu`、`jingli` 和 `department`，再派生 `dept` |
+| `rd` | `temp_table.lvshuai01_jiagou_zx zz` | `zz.employee_email_name = rd.name` | left join | 补充 `xiaozu`、`jingli` 和 `department`，再派生 `dept` |
 | `day_ranked d` | `period_ranked p` | `qici + dept + name` | left join | 将期次-部门排名结果补回到每日结果 |
 
 ## 6. where 条件
@@ -159,7 +159,7 @@ order by period_pmit desc, name
 ## 10. 待确认事项
 
 - `end_time` 对在职员工是否可能为空需确认；若为空，当前 `dd_0.trade_time <= ot.end_time` 会过滤掉该员工流水。
-- `temp_table.dingxi01_jiagou_zx.employee_email_name = rd.name` 仍使用姓名关联，姓名唯一性需确认。
+- `temp_table.lvshuai01_jiagou_zx.employee_email_name = rd.name` 仍使用姓名关联，姓名唯一性需确认。
 - `dept` 仅派生为西安/郑州/未知，若后续有其他城市或部门，需补充 CASE。
 - `promit`、`pmit` 字段名疑似 `profit`/净额拼写变体，保留原 SQL 命名，展示命名需确认。
 - 当前最终结果不输出 `trade_status`、`grade_list`、`subject/sub`，与旧版输出不同；若看板仍需要这些字段，需要在 `base_result` 和排名层补回。

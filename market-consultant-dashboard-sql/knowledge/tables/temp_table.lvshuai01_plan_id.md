@@ -1,4 +1,6 @@
-# temp_table.dingxi01_plan_id
+# temp_table.lvshuai01_plan_id
+
+维护账号迁移：2026-11-28 用户确认同后缀表由 lvshuai01 接续维护；线上新表身份已核实。字段及业务含义沿用已确认结构，历史 SQL、Excel 扫描和 Query 证据不等于新表本次数据验证。当前使用规则见 [临时表维护迁移](../temp_table_maintenance.md)。
 
 ## 1. 中文名称
 
@@ -62,8 +64,8 @@ Presto
 
 | 左表 | 左字段 | 右表 | 右字段 | 说明 |
 |---|---|---|---|---|
-| service_dw.dim_crm_assign_rule_lead_detail_hf | group_id | temp_table.dingxi01_plan_id | group_id | 仅保留临时表维护的规则组；若输出 `qici/group_name`，必须处理 `group_id` 跨期重复 |
-| 规则名派生 | `split_part(rule_name, '-', 1)` | temp_table.dingxi01_plan_id | qici | 可用规则名期次片段与维护表期次对齐，需确认规则名格式 |
+| service_dw.dim_crm_assign_rule_lead_detail_hf | group_id | temp_table.lvshuai01_plan_id | group_id | 仅保留临时表维护的规则组；若输出 `qici/group_name`，必须处理 `group_id` 跨期重复 |
+| 规则名派生 | `split_part(rule_name, '-', 1)` | temp_table.lvshuai01_plan_id | qici | 可用规则名期次片段与维护表期次对齐，需确认规则名格式 |
 
 本次 Excel key 重复检查：
 
@@ -85,7 +87,7 @@ select
     t.qici,
     t.group_id,
     t.group_name
-from temp_table.dingxi01_plan_id t
+from temp_table.lvshuai01_plan_id t
 limit 20;
 ```
 
@@ -97,7 +99,7 @@ select
     t.qici,
     t.group_id,
     t.group_name
-from temp_table.dingxi01_plan_id t
+from temp_table.lvshuai01_plan_id t
 where t.year = 2026
   and t.qici = '<MMDD期>'
 order by t.group_id;
@@ -110,7 +112,7 @@ select
     t.group_id,
     count(*) as cnt,
     array_join(array_agg(t.qici), ',') as qici_list
-from temp_table.dingxi01_plan_id t
+from temp_table.lvshuai01_plan_id t
 group by t.group_id
 having count(*) > 1
 limit 50;
@@ -124,7 +126,7 @@ select
     t.qici,
     t.group_id,
     count(*) as cnt
-from temp_table.dingxi01_plan_id t
+from temp_table.lvshuai01_plan_id t
 group by t.year, t.qici, t.group_id
 having count(*) > 1
 limit 50;
@@ -142,7 +144,7 @@ select
     f.rule_id,
     f.rule_name
 from service_dw.dim_crm_assign_rule_lead_detail_hf f
-join temp_table.dingxi01_plan_id pl
+join temp_table.lvshuai01_plan_id pl
   on pl.group_id = f.group_id
 where f.dt = 'YYYYMMDD'
   and f.hour = 'HH'
@@ -163,7 +165,7 @@ select
     f.rule_id,
     f.rule_name
 from service_dw.dim_crm_assign_rule_lead_detail_hf f
-join temp_table.dingxi01_plan_id pl
+join temp_table.lvshuai01_plan_id pl
   on pl.group_id = f.group_id
  and pl.qici = split_part(f.rule_name, '-', 1)
 where f.dt = 'YYYYMMDD'

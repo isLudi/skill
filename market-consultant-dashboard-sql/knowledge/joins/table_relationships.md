@@ -96,15 +96,15 @@
 - 实际量主表：`bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df`
 - 计划侧主表：`service_dw.dim_crm_assign_rule_lead_detail_hf`
 - 计划 item 表：`service_dw.dim_crm_assign_rule_plan_item_info_hf`
-- 计划组维护表：`temp_table.dingxi01_plan_id`，来源 Excel `E:\2000_work\GAOTU\20002_市场顾问部看板维护表格\plan_id.xlsx`
-- 架构临时表：`temp_table.dingxi01_jiagou_db`
+- 计划组维护表：`temp_table.lvshuai01_plan_id`，来源 Excel `E:\2000_work\GAOTU\20002_市场顾问部看板维护表格\plan_id.xlsx`
+- 架构临时表：`temp_table.lvshuai01_jiagou_db`
 - 实际量范围：`section_assign_employee_first_level_department_name = 'H业务线'`、`section_assign_employee_second_level_department_name = '市场部'`、`period_mapping_first_level_department_name = 'H业务线'`；未限定三级部门和期次映射二级部门，复用时需按业务补充或保留占位。
 - 实际量聚合：按 `rule_name + employee_email_name` 汇总 `sum(lead_count)` 为 `lead`、`sum(valid_lead_count)` 为 `valid_lead`。
 - 计划 item 关联：`service_dw.dim_crm_assign_rule_lead_detail_hf.rule_id = service_dw.dim_crm_assign_rule_plan_item_info_hf.rule_id` 且 `plan_id` 相等，同时限定计划 item `dt/hour` 和 `is_del = '0'`。
-- 计划组过滤：`temp_table.dingxi01_plan_id.group_id = service_dw.dim_crm_assign_rule_lead_detail_hf.group_id`，再用 `pl.group_id is not null` 仅保留已维护规则组。`temp_table.dingxi01_plan_id` 的推荐唯一键是 `qici + group_id`；若输出 `pl.qici` 或 `pl.group_name`，应补充 `pl.qici = split_part(f.rule_name, '-', 1)` 或其他期次条件。
+- 计划组过滤：`temp_table.lvshuai01_plan_id.group_id = service_dw.dim_crm_assign_rule_lead_detail_hf.group_id`，再用 `pl.group_id is not null` 仅保留已维护规则组。`temp_table.lvshuai01_plan_id` 的推荐唯一键是 `qici + group_id`；若输出 `pl.qici` 或 `pl.group_name`，应补充 `pl.qici = split_part(f.rule_name, '-', 1)` 或其他期次条件。
 - 实际与计划合并：`fp.rule_name = vd.rule_name` 且 `fp.employee_email_name = vd.employee_email_name`。
-- 架构补充：`temp_table.dingxi01_jiagou_db.employee_email_name = fp.employee_email_name` 且 `substr(qici, -5) = fp.group_period_name`；该关联只用期次尾号，跨年份可能重复。
-- 状态：新增 SQL 口径已入库；`temp_table.dingxi01_plan_id` 已按 Excel 补全字段和 key 检查；计划 item 表字段结构、`assign_lead_count` 含义、不同小时偏移、规则名拆分格式和架构 join 唯一性仍需人工确认。
+- 架构补充：`temp_table.lvshuai01_jiagou_db.employee_email_name = fp.employee_email_name` 且 `substr(qici, -5) = fp.group_period_name`；该关联只用期次尾号，跨年份可能重复。
+- 状态：新增 SQL 口径已入库；`temp_table.lvshuai01_plan_id` 已按 Excel 补全字段和 key 检查；计划 item 表字段结构、`assign_lead_count` 含义、不同小时偏移、规则名拆分格式和架构 join 唯一性仍需人工确认。
 
 ## 线索与行课数据
 
@@ -125,8 +125,8 @@
 - 外呼工作量：通过 `service_dw.app_h_crm_lead_employee_workload_detail_hf.user_number = data.user_id` 与 `section_assign_employee_email_prefix = data.employee_email_prefix` 关联，补充外呼次数、接通次数、通话时长和长通话。
 - 首 call 任务：必须使用 `gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf`，按 `first_call_status = 3` 统计已完成首 call；该表通过 `account_id` 先关联 `finance_dw.dim_finance_employee_df.account_id`，再用员工维表中的 `employee_email_name` 或 `email_prefix` 与主数据员工字段桥接。旧版 `service_dw.app_h_crm_lead_task_process_info_detail_hf.call_answer_lead_count` 已废弃为首 call 任务来源。
 - APP 登录：`dw.dim_cstm_active_user_c_appliction_mb_df` 与 `dw.dws_user_active_user_c_appliction_hf` 通过 `user_number` 合并日级和小时级登录标记，再用 `user_number = data.user_id` 关联主线索。
-- 架构临时表：`temp_table.dingxi01_jiagou_db` 通过 `qici + employee_email_prefix` 关联。
-- 课次映射：`temp_table.dingxi01_daoke_1_6_t` 通过 `qici + qudao + grade + begin_time` 关联行课记录；新版先在 `daoke` CTE 预聚合 `has_daoke/has_v_daoke`，最终层再通过 `qici + user_id + channel_map_1` 关联并按用户去重计数。
+- 架构临时表：`temp_table.lvshuai01_jiagou_db` 通过 `qici + employee_email_prefix` 关联。
+- 课次映射：`temp_table.lvshuai01_daoke_1_6_t` 通过 `qici + qudao + grade + begin_time` 关联行课记录；新版先在 `daoke` CTE 预聚合 `has_daoke/has_v_daoke`，最终层再通过 `qici + user_id + channel_map_1` 关联并按用户去重计数。
 - 状态：历史 SQL 口径已入库；外呼工作量、首 call 员工维表范围、`sbb` 最新任务跨期影响和临时表 join 唯一性需人工确认。
 
 ## 顾问销售评优看板关系
@@ -145,17 +145,17 @@
 - 来源：`resources/raw_sql/data_center_market_2727.sql`
 - 主表：`finance_dw.app_finance_performance_extend_details_hf`
 - 组织链表：`dw.dim_employee_chain`
-- 架构临时表：`temp_table.dingxi01_jiagou_zx`
+- 架构临时表：`temp_table.lvshuai01_jiagou_zx`
 - 组织链范围：`array_join(slice(split(path_name, '-'), 1, 4), '-') = '高途-H业务线-市场部-市场顾问部'`。
 - 组织链聚合：按 `dep_path + email_prefix + name` 聚合 `min(begin_time)` 和 `max(end_time)`，得到顾问在该部门路径下的任职时间范围。
 - 财务流水范围：`employee_first_level_department_name = 'H业务线'`、`employee_second_level_department_name = '市场部'`、`employee_third_level_department_name = '市场顾问部'`，并按 `trade_time` 推导 `qici >= '20260403期'`。
 - 任职期过滤：新版使用 `org_t.email_prefix = dd_0.email_prefix` 做内连接，再用 `dd_0.trade_time >= org_t.begin_time and dd_0.trade_time <= org_t.end_time`，只保留顾问在该部门期间产生的流水。
-- 架构补充：`temp_table.dingxi01_jiagou_zx.employee_email_name = rd.name`，补充 `xiaozu`、`jingli` 和 `department`，再派生 `dept = 西安/郑州/未知`。该处仍为姓名关联，唯一性需确认。
+- 架构补充：`temp_table.lvshuai01_jiagou_zx.employee_email_name = rd.name`，补充 `xiaozu`、`jingli` 和 `department`，再派生 `dept = 西安/郑州/未知`。该处仍为姓名关联，唯一性需确认。
 - 金额口径：正常订单按明细维度 `sum(price)`；调课调班按 `name + user_id1` 汇总 `price` 并去重；`promit = sum(name_total_price)`，`base_result.pmit = sum(promit)`。
 - 日维度排名：在 `trade_date + dept + qici` 内按 `pmit desc, name` 使用 `row_number()` 排名，并用 `lag(pmit) - pmit` 计算 `day_dept_period_need_pmit_to_previous`。
 - 期次维度排名：先在 `qici + dept + name + xiaozu + jingli` 粒度汇总 `period_pmit`，再在 `qici + dept` 内按 `period_pmit desc, name` 使用 `row_number()` 排名，并用 `lag(period_pmit) - period_pmit` 计算 `period_dept_need_pmit_to_previous`。
 - 固定期次查询统一从当前通用 SQL `resources/raw_sql/data_center_market_2727.sql` 增加显式 `qici` 过滤生成，不再维护独立期次版本。
-- 状态：`dw.dim_employee_chain` 已根据 `E:\2000_work\GAOTU\员工信息表.docx` 补全字段；`end_time` 为空处理、`temp_table.dingxi01_jiagou_zx` 姓名关联唯一性、排名是否允许并列均需人工确认。
+- 状态：`dw.dim_employee_chain` 已根据 `E:\2000_work\GAOTU\员工信息表.docx` 补全字段；`end_time` 为空处理、`temp_table.lvshuai01_jiagou_zx` 姓名关联唯一性、排名是否允许并列均需人工确认。
 
 ## 沟通电话微信明细
 
@@ -167,23 +167,23 @@
 
 ## 稳定临时表
 
-- `temp_table.dingxi01_jiagou_db`：架构映射表，来源 Excel `jiagou_xian_zhengzhou.xlsx`。常用字段包括 `employee_email_prefix`、`qici`、`dept_1`、`dept_2`、`department`、`xiaozu`、`jingli`。常用于按员工邮箱前缀补充期次、部门、小组和经理口径。
-- `temp_table.dingxi01_daoke_1_6_t`：到课课次映射表，来源 Excel `daoke_t_one_six.xlsx`。常用字段包括 `qici`、`qudao`、`grade`、`begin_time`、`ke_1`、`channel`。常用于首节到课或第 1-6 课课次口径。
-- `temp_table.dingxi01_pingyou_jg`：当前 `pingyou_jg.xlsx` 对应的标准临时表；模型 `2688` 按 `employee_email_name + qici` 取得新人过程转化的架构、人产和 `x_qi_count`。2026-07-21 已确认该键唯一，且有效 `x_qi_count` 1—4 在同一顾问内不跨期重复；完整维护规则见 `../tables/temp_table.dingxi01_pingyou_jg.md`。
+- `temp_table.lvshuai01_jiagou_db`：架构映射表，来源 Excel `jiagou_xian_zhengzhou.xlsx`。常用字段包括 `employee_email_prefix`、`qici`、`dept_1`、`dept_2`、`department`、`xiaozu`、`jingli`。常用于按员工邮箱前缀补充期次、部门、小组和经理口径。
+- `temp_table.lvshuai01_daoke_1_6_t`：到课课次映射表，来源 Excel `daoke_t_one_six.xlsx`。常用字段包括 `qici`、`qudao`、`grade`、`begin_time`、`ke_1`、`channel`。常用于首节到课或第 1-6 课课次口径。
+- `temp_table.zhangjunyan01_pingyou_jg`：当前 `pingyou_jg.xlsx` 对应的标准临时表；模型 `2688` 按 `employee_email_name + qici` 取得新人过程转化的架构、人产和 `x_qi_count`。2026-07-21 已确认该键唯一，且有效 `x_qi_count` 1—4 在同一顾问内不跨期重复；完整维护规则见 `../tables/temp_table.zhangjunyan01_pingyou_jg.md`。
 - `temp_table.zhangjunyan01_pingyou_jg`：评优架构人产临时表，来源待确认。常用字段包括 `qici`、`employee_email_name`、`dept`、`jingli`、`xiaozu`、`channel`、`renchan`、`grade`、`zaizhi`、`is_emp`。常用于顾问销售评优、人产 ROI 和排名口径；`is_emp` 是是否参与评优字段，`是` 表示参与，`否` 表示不参与。
 
 ### 临时表关联注意事项
 
 - 两张临时表均无 `dt`、`hour` 分区，查询时必须使用 `qici`、部门、渠道、年级或员工等范围条件。
-- `temp_table.dingxi01_jiagou_db.employee_email_prefix` 可与员工邮箱前缀字段关联；目标表字段名需从看板 SQL 或表结构中确认。
-- `temp_table.dingxi01_daoke_1_6_t` 的 `qudao` 与 `channel` 不是同一字段；`qudao` 更像原始渠道，`channel` 更像展示/归因名称。
+- `temp_table.lvshuai01_jiagou_db.employee_email_prefix` 可与员工邮箱前缀字段关联；目标表字段名需从看板 SQL 或表结构中确认。
+- `temp_table.lvshuai01_daoke_1_6_t` 的 `qudao` 与 `channel` 不是同一字段；`qudao` 更像原始渠道，`channel` 更像展示/归因名称。
 
 ## 市场顾问转化看板新增临时表
 
-- `temp_table.dingxi01_channel_group`：通过 `channel = channel_map` 补充 `channel_group`。
+- `temp_table.lvshuai01_channel_group`：通过 `channel = channel_map` 补充 `channel_group`。
 - `temp_table.shenbaoxin_channel_group`：通过 `channel = channel_map` 关联渠道分组；当前 SQL 仅 join，未输出字段，完整字段结构待确认。
-- `temp_table.dingxi01_cost`：通过 `channel = channel_map`、`grade = grade_1`、`qici = period_name` 补充 `cost` 和 `goal`。2026-09-29 确认：字段为 `qici/channel/grade/cost/goal`，`grade='0'` 行是渠道级默认值；`cost` 是市场部单 lead 成本，`goal` 是部门按目标 ROI 定的单 lead 净收款指标（= cost × 渠道目标 ROI）；来源本地 `cost.xlsx`（丁习01 维护，sync 技能自动维护），飞书 Base「渠道映射规则」的 `04_渠道成本配置`（cb_of_lead）是成本配置的另一权威源但不含 goal。2026-09-29 探查：该表仅维护到 20260918期，20260925期未同步导致看板 GMV 目标为 0。2026-09-30：源工作簿 cost.xlsx 已含 20260925期（67 行，朱博士系/陈瑞春系 goal 统一 550，抖音私信 cost 122），平台表 14:30 尚未落库；openpyxl 读取该工作簿时 grade='0' 会返回数值 0，归一化必须显式判断，不能用 rstrip('.0')（会把 '0' 清空）。
-- `temp_table.dingxi01_jiagou_zx`：通过 `employee_email_name` 补充 `xiaozu` 和 `jingli`。
+- `temp_table.lvshuai01_cost`：通过 `channel = channel_map`、`grade = grade_1`、`qici = period_name` 补充 `cost` 和 `goal`。2026-09-29 确认：字段为 `qici/channel/grade/cost/goal`，`grade='0'` 行是渠道级默认值；`cost` 是市场部单 lead 成本，`goal` 是部门按目标 ROI 定的单 lead 净收款指标（= cost × 渠道目标 ROI）；来源本地 `cost.xlsx`（丁习01 维护，sync 技能自动维护），飞书 Base「渠道映射规则」的 `04_渠道成本配置`（cb_of_lead）是成本配置的另一权威源但不含 goal。2026-09-29 探查：该表仅维护到 20260918期，20260925期未同步导致看板 GMV 目标为 0。2026-09-30：源工作簿 cost.xlsx 已含 20260925期（67 行，朱博士系/陈瑞春系 goal 统一 550，抖音私信 cost 122），平台表 14:30 尚未落库；openpyxl 读取该工作簿时 grade='0' 会返回数值 0，归一化必须显式判断，不能用 rstrip('.0')（会把 '0' 清空）。
+- `temp_table.lvshuai01_jiagou_zx`：通过 `employee_email_name` 补充 `xiaozu` 和 `jingli`。
 - 这些临时表结构来自 SQL 使用字段推断，真实字段类型、维护来源和唯一性需人工确认。
 
 ## 市场顾问线索转化到课看板关系
@@ -196,9 +196,9 @@
 - 到课数据：通过 `lead_user_period.user_id = service_dw.dws_service_user_learn_detail_hf.user_number` 关联，并用 `data.qici` 派生的 `qici_date - 3 day` 到 `qici_date + 4 day` 窗口圈定候选行课；不再把行课表按 `begin_time` 派生的期次作为唯一关联依据。
 - 自动课次：按 `qici + channel_map_1 + grade_1 + begin_time_slot` 聚合真实开课槽位，并在每个 `qici + channel_map_1 + grade_1` 内按 `begin_time` 做 `dense_rank`，生成主口径 `auto_ke_1`。`lesson_index` / `lesson_index_add` 当前仅作诊断字段，不驱动主课次。
 - 到课课次：当前 raw SQL 输出自动课次第 1-6 节到课和第 1-6 节有效到课；普通到课使用 `live_learn_duration > 0`，有效到课使用 `is_valid_live_learn = '1'`。
-- 手工课次映射：`temp_table.dingxi01_daoke_1_6_t` 使用 `qici + qudao + grade + begin_time` 与 `qici + channel_map_1 + grade_1 + begin_time_slot` 关联，补充 `manual_ke_1`，不使用 `channel`；该表只作为 `manual_*` 和自动/手工对照诊断来源，不能作为主课次来源。
+- 手工课次映射：`temp_table.lvshuai01_daoke_1_6_t` 使用 `qici + qudao + grade + begin_time` 与 `qici + channel_map_1 + grade_1 + begin_time_slot` 关联，补充 `manual_ke_1`，不使用 `channel`；该表只作为 `manual_*` 和自动/手工对照诊断来源，不能作为主课次来源。
 - 对照计数：最终层保留 `auto_matched_lesson_row_cnt`、`manual_matched_lesson_row_cnt`、`manual_auto_same_lesson_row_cnt`、`manual_auto_diff_lesson_row_cnt`、`manual_missing_auto_present_row_cnt`、`auto_missing_manual_present_row_cnt`。
-- 架构补充：`temp_table.dingxi01_jiagou_db` 通过 `employee_email_prefix + qici` 关联，输出 `xiaozu`、`department`、`jingli`，并用 `jg.department is not null` 过滤。
+- 架构补充：`temp_table.lvshuai01_jiagou_db` 通过 `employee_email_prefix + qici` 关联，输出 `xiaozu`、`department`、`jingli`，并用 `jg.department is not null` 过滤。
 - 状态：2026-06-30 已用经网页端 Presto 验证的自动课次优化 SQL 覆盖 raw SQL；该版本不再 join 成本目标表或 `temp_table.shenbaoxin_channel_group`，并保持旧最终输出字段。渠道 CASE 顺序仍是核心风险，`孟亚飞IP99元` 等特例必须放在泛化规则之前；`孟亚飞-1组-视频号` 已合并为 `孟亚飞9元`。
 
 ## 流量画像看板关系
@@ -209,12 +209,12 @@
 - APP 登录：`dw.dim_cstm_active_user_c_appliction_mb_df` 按 `user_number` 取最新 `last_event_time`，生成近 7 日 `is_app_denglu`；同表再限定 `appliction_name = 'APP'` 取最新 `last_app_channel`。
 - 私海阶段：通过主表 `user_id = service_dw.dwd_crm_assign_private_detail_hf.user_number` 关联，按 `private_sea_update_time desc` 取最新阶段，`450/470` 映射为深沟/已双沟。
 - 外呼工作量：`service_dw.app_h_crm_lead_employee_workload_detail_hf` 先按 `user_number + lead_id + section_assign_employee_email_prefix` 聚合，再用 `user_number + section_assign_employee_email_prefix` 关联主线索；未带 `lead_id` join，需确认多线索用户是否会重复。
-- 到课数据：通过 `data.user_id = service_dw.dws_service_user_learn_detail_hf.user_number` 和 `data.period_name = 行课派生 qici` 关联，再通过 `period_name + channel_map + grade_1 + begin_time` 关联 `temp_table.dingxi01_daoke_1_6_t`。
+- 到课数据：通过 `data.user_id = service_dw.dws_service_user_learn_detail_hf.user_number` 和 `data.period_name = 行课派生 qici` 关联，再通过 `period_name + channel_map + grade_1 + begin_time` 关联 `temp_table.lvshuai01_daoke_1_6_t`。
 - 到课课次：`channel_map = '曹忆'` 使用 `ke_1 = '3'`；其他渠道使用 `ke_1 = '1'`。普通到课用 `live_learn_duration > 0`，有效到课用 `is_valid_live_learn = '1'`。
 - 成交科目数：`finance_dw.app_finance_performance_extend_details_hf` 按交易时间派生 `qici`，归一化 `course_subject` 后按 `qici + user_id + employee_email_name` 统计 `count(distinct subject)`；最终只用 `qici + user_id` join 主线索，顾问维度未参与 join，需确认重复风险。
-- 成本目标：`temp_table.dingxi01_cost` 通过 `channel = channel_map`、`grade = grade_1`、`qici = period_name` 补充 `cost` 和 `goal`。
-- 渠道分组：`temp_table.dingxi01_channel_group` 通过 `channel = channel_map` 关联，但当前 SQL 未输出字段。
-- 架构补充：`temp_table.dingxi01_jiagou_db` 通过 `qici + department + xiaozu + employee_email_name` 关联但未输出字段；`temp_table.dingxi01_jiagou_zx` 通过 `employee_email_name` 补充 `xiaozu`。
+- 成本目标：`temp_table.lvshuai01_cost` 通过 `channel = channel_map`、`grade = grade_1`、`qici = period_name` 补充 `cost` 和 `goal`。
+- 渠道分组：`temp_table.lvshuai01_channel_group` 通过 `channel = channel_map` 关联，但当前 SQL 未输出字段。
+- 架构补充：`temp_table.lvshuai01_jiagou_db` 通过 `qici + department + xiaozu + employee_email_name` 关联但未输出字段；`temp_table.lvshuai01_jiagou_zx` 通过 `employee_email_name` 补充 `xiaozu`。
 - 省市维度：`province_name`、`city_name`、`city_level_name` 均来自主全链路表，字段存在但归属口径待人工确认。
 - 期次范围：当前版本在 `base` CTE 使用 `period_name >= ${period_name1}` 且 `period_name < ${period_name2}`，执行前必须替换参数。
 - 结果粒度：`period_name + channel_map + grade_1 + depart_1 + depart + jingli + zhuguan + employee_email_name + province_name + city_name + city_level_name + last_app_channel + sub`。
@@ -242,7 +242,7 @@
 - 订单流水处理：2353 退费原因分析使用 `zong_price`；2349 科目/产品/年级金额占比拆为 `gmv_z/gmv_t` 后 `union all`，最终只保留 `name_total_price < 0` 的退款流水并取绝对值作为 `refund_amount`；2890 从全链路主表输出可加和分子分母。
 - lead_id 补充：`service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` 通过 `original_order_user_number + performance_employee_email_name` 关联财务业绩明细的 `user_id1 + name`，并按 `original_order_user_number order by qici desc` 取最新 `lead_id`。
 - 分配规则：`service_dw.dim_crm_assign_rule_lead_detail_hf` 通过 `lead_id + account_domain` 关联，`account_domain` 对应财务表 `email_prefix`，再按 `rule_name` 派生 `channel_1` 和规则期次 `friday_period`。
-- 架构补充：`temp_table.dingxi01_jiagou_zx.employee_email_name = name`，补充 `xiaozu`、`jingli`。该表无 `qici`，跨期历史架构需确认。
+- 架构补充：`temp_table.lvshuai01_jiagou_zx.employee_email_name = name`，补充 `xiaozu`、`jingli`。该表无 `qici`，跨期历史架构需确认。
 - 多科分层：只使用 2890 当前字段 `refund_1_subject_*`、`refund_2_3_subject_*`、`refund_3plus_subject_*` 及对应净收入分母。
 - 科目产品：按 `subject` CASE 标准化科目，并按 `course_second_level_department_name` 映射 `course_name`；当前 2349 使用 `analysis_type` 区分 `subject`、`product`、`grade` 三类图表。
 - 退费原因：`finance_dw.dwd_finance_order_refund_df` 通过 `order_number` 关联财务业绩明细，限定 `dt = now() - 24 hour` 与 `refund_type = '1'` 后输出 `refund_reason`。

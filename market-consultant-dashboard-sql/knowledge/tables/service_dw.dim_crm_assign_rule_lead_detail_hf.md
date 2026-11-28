@@ -74,7 +74,7 @@ Presto
 - `lead_id`：线索关联/去重
 - `trace_id`：留痕/线索链路关联
 - `rule_id + plan_id`：关联 `service_dw.dim_crm_assign_rule_plan_item_info_hf` 获取计划 item 顾问配置
-- `group_id`：关联 `temp_table.dingxi01_plan_id` 过滤被维护的分配规则组
+- `group_id`：关联 `temp_table.lvshuai01_plan_id` 过滤被维护的分配规则组
 
 ## 10. 常用 SQL 片段
 

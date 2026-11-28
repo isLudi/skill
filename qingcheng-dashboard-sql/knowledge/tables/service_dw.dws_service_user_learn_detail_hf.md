@@ -6,7 +6,7 @@
 
 ## 2. 表用途
 
-在青橙过程数据 SQL 中提供上课明细，结合 `temp_table.dingxi01_qing_daoke` 计算首节到课和首节有效到课。
+在青橙过程数据 SQL 中提供上课明细，结合 `temp_table.lvshuai01_qing_daoke` 计算首节到课和首节有效到课。
 
 ## 3. 数据粒度
 

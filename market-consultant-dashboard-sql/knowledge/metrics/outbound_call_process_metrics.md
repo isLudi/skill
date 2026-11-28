@@ -53,8 +53,8 @@
 - `dw.dim_cstm_active_user_c_appliction_mb_df`
 - `dw.dws_user_active_user_c_appliction_hf`
 - `service_dw.app_user_attribute_label_gaia_wide_df`
-- `temp_table.dingxi01_jiagou_db`
-- `temp_table.dingxi01_daoke_1_6_t`
+- `temp_table.lvshuai01_jiagou_db`
+- `temp_table.lvshuai01_daoke_1_6_t`
 
 ## 5. 分母/分子口径
 

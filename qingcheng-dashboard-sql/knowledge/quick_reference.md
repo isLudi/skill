@@ -50,7 +50,7 @@
 | 用户需求 | 先读 | 再读 | 关键风险 |
 |---|---|---|---|
 | 青橙过程数据、有效线索、外呼、APP 登录 | `knowledge/dashboards/qingcheng_process_data_raw_20260522.md` | `knowledge/metrics/qingcheng_process_data_metrics.md`、`knowledge/joins/table_relationships.md` | 外呼和 APP 登录补充可能按用户粒度放大线索 |
-| 青橙到课、第 1-6 讲到课、有效到课 | `knowledge/dashboards/qingcheng_daoke_raw_20260522.md` | `knowledge/metrics/qingcheng_daoke_metrics.md`、`knowledge/temp_tables/temp_table.dingxi01_qing_daoke.md` | 课次映射表唯一性和渠道/年级/开课时间匹配待确认 |
+| 青橙到课、第 1-6 讲到课、有效到课 | `knowledge/dashboards/qingcheng_daoke_raw_20260522.md` | `knowledge/metrics/qingcheng_daoke_metrics.md`、`knowledge/temp_tables/temp_table.lvshuai01_qing_daoke.md` | 课次映射表唯一性和渠道/年级/开课时间匹配待确认 |
 | 青橙转化、青橙订单、净营收、破单、暑期期次、B 用户课程转移保护期 | `knowledge/dashboards/qingcheng_conversion_raw_20260626.md` | `knowledge/metrics/qingcheng_conversion_metrics.md`、`knowledge/sql_patterns/qingcheng_protected_course_transfer_conversion.md`、`knowledge/sql_patterns/qingcheng_channel_grade_mapping.md`、`knowledge/sql_patterns/qingcheng_summer_qici_corrections.md` | 业务日历优先于固定周五；service 内部转单继续剔除；20260722 期起仅将交易时处于同一青橙顾问保护期的 B 用户课程转移正向支付隔离补回 |
 | 青橙渠道分周期转化、青-抖私-转化、7/14/30天分层 | `knowledge/metrics/qingcheng_dousi_conversion_metrics.md` | `knowledge/dashboards/qingcheng_dousi_conversion_raw_20260729.md`、2740自身当前线上SQL、`knowledge/joins/table_relationships.md` | 当前周一至周日、历史实际窗口；无法核实期次归非30天；不可整段套用2460；团队按员工+期次关联，两套五桶必须闭合 |
 | 青橙渠道订单明细 / 算绩效明细模板 | `knowledge/dashboards/qingcheng_channel_order_detail_raw_20260627.md` | `knowledge/metrics/qingcheng_channel_order_detail_metrics.md`、`knowledge/joins/table_relationships.md` | `ld` 子查询范围限定、`lead_id + employee` 唯一性以及地域字段扩列同步待确认 |
@@ -79,9 +79,9 @@
 | `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df` | 青橙线索、渠道、转化主表 | 先确认 `dt/hour`、青橙范围字段和最新分区；若是追溯原始来源，先读 `knowledge/sql_patterns/qingcheng_lead_origin_trace.md` |
 | `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf` | 青橙完成度 `income_all/refund_all` 主金额事实、订单属性和 transfer 信号 | 金额分转元；当前完成度排除试听；内部调课仅影响 legacy/rule 字段 |
 | `finance_dw.app_finance_performance_extend_details_hf` | 课程转移缺失补充、调课链路、退 4/点睛退 2 规则 | 当前完成度 SQL 保留独立明细并按真实输出粒度聚合；用 `order_number + employee_email_name` 抑制 service 已覆盖链路；不直接替代 service 的 `income_all/refund_all` |
-| `temp_table.dingxi01_qing_team_jg` | 青橙团队架构 | 转化 raw / 个人转化使用期次架构；团队完成度月/期是否取最新架构要单独确认 |
-| `temp_table.dingxi01_jiagou_db` | 过程/到课架构补充 | 姓名 key 和邮箱前缀 key 不一致时先查 join 风险 |
-| `temp_table.dingxi01_qing_daoke` | 到课课次映射 | 检查 `qici + qudao + grade + begin_time` 唯一性 |
+| `temp_table.lvshuai01_qing_team_jg` | 青橙团队架构 | 转化 raw / 个人转化使用期次架构；团队完成度月/期是否取最新架构要单独确认 |
+| `temp_table.lvshuai01_jiagou_db` | 过程/到课架构补充 | 姓名 key 和邮箱前缀 key 不一致时先查 join 风险 |
+| `temp_table.lvshuai01_qing_daoke` | 到课课次映射 | 检查 `qici + qudao + grade + begin_time` 唯一性 |
 | `temp_table.shenbaoxin_channel_group` | 青橙转化宽表渠道大类 | 来源、字段结构和 `channel` 唯一性均待确认 |
 
 ## 反向定位入口

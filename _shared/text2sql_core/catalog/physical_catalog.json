@@ -66,7 +66,7 @@
         {
           "domain": "qingcheng",
           "source_path": "qingcheng-dashboard-sql/knowledge/tables/bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf.md",
-          "sha256": "5d3d1b37f5db51e882842ab7491bfe0118cd1d2467a93289ad05d9cfd5c03c1c"
+          "sha256": "af9faf93aee41d4513feaa83a619f0cfdfd0c65111729de36d3e89a472a48f2e"
         }
       ],
       "columns": [
@@ -14541,7 +14541,7 @@
         {
           "domain": "qingcheng",
           "source_path": "qingcheng-dashboard-sql/knowledge/tables/finance_dw.app_finance_performance_extend_details_hf.md",
-          "sha256": "3f7105df9838aa58363e7239a6fefce53cf76ef31c51765574628613f7620dba"
+          "sha256": "cf559575ce8c652d5c59a46b8d5ecf4561d3225be7be1c8c63546cefb3988b89"
         }
       ],
       "columns": [
@@ -26107,7 +26107,7 @@
         {
           "domain": "market_consultant",
           "source_path": "market-consultant-dashboard-sql/knowledge/tables/service_dw.dim_crm_assign_rule_lead_detail_hf.md",
-          "sha256": "c1d04ae1c717e637b905a78b55f706f34f25fadd9db59bbbc230123a2394f567"
+          "sha256": "b4218400f20fbb3282a9577cf56614980bd32e9f955ca6ac1a3a344d5bb90b93"
         },
         {
           "domain": "qingcheng",
@@ -26567,7 +26567,7 @@
         {
           "domain": "market_consultant",
           "source_path": "market-consultant-dashboard-sql/knowledge/tables/service_dw.dim_crm_assign_rule_plan_item_info_hf.md",
-          "sha256": "719455b9e35a4503cb20f08a4d1938beffb6f33d23fc97a51f737dc839c79092"
+          "sha256": "02608e87373e1aecb2e51e6180f13d38dd288dbefc320c2011b47809485cd8e9"
         },
         {
           "domain": "qingcheng",
@@ -38646,7 +38646,7 @@
         {
           "domain": "qingcheng",
           "source_path": "qingcheng-dashboard-sql/knowledge/tables/service_dw.dws_service_user_learn_detail_hf.md",
-          "sha256": "7e9d3825bfef2e46cc513d6cd7a24406ea273649859277fcf311e9167313eae0"
+          "sha256": "4c128f41e6fc2465086bbf659148947f80637f3b079199badaf4c88459e8201d"
         }
       ],
       "columns": [

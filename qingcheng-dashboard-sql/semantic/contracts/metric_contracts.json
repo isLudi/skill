@@ -58,7 +58,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/qingcheng_process_data_metrics.md",
-      "source_sha256": "06150071753aacc75253d9e00e436c0f9eff94726f83205f7967da85f9506b31",
+      "source_sha256": "1bc480d445ea214abff528527e943ee1fd359282a69d4ea9ea89e52d651f29d2",
       "description": "同一线索/用户分组中，第 1 讲存在 live_learn_duration>0 的学习明细即记为 1；汇总前必须先压缩为明细标记。",
       "sql_expression": "MAX(CASE WHEN CAST({base}.ke_1 AS VARCHAR) = '1' AND {base}.live_learn_duration > 0 THEN 1 ELSE 0 END)",
       "output_alias": "daoke1",
@@ -66,7 +66,7 @@
       "automatic_compile": false,
       "candidate_tables": [
         "service_dw.dws_service_user_learn_detail_hf",
-        "temp_table.dingxi01_qing_daoke"
+        "temp_table.lvshuai01_qing_daoke"
       ],
       "calculation_grain": "qici + employee_email_prefix + lead_id + user_id",
       "allowed_dimensions": [
@@ -103,7 +103,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/qingcheng_process_data_metrics.md",
-      "source_sha256": "06150071753aacc75253d9e00e436c0f9eff94726f83205f7967da85f9506b31",
+      "source_sha256": "1bc480d445ea214abff528527e943ee1fd359282a69d4ea9ea89e52d651f29d2",
       "description": "同一线索/用户分组中，第 1 讲存在 is_valid_live_learn=1 的学习明细即记为 1；汇总前必须先压缩为明细标记。",
       "sql_expression": "MAX(CASE WHEN CAST({base}.ke_1 AS VARCHAR) = '1' AND CAST({base}.is_valid_live_learn AS VARCHAR) = '1' THEN 1 ELSE 0 END)",
       "output_alias": "valid_daoke_1",
@@ -111,7 +111,7 @@
       "automatic_compile": false,
       "candidate_tables": [
         "service_dw.dws_service_user_learn_detail_hf",
-        "temp_table.dingxi01_qing_daoke"
+        "temp_table.lvshuai01_qing_daoke"
       ],
       "calculation_grain": "qici + employee_email_prefix + lead_id + user_id",
       "allowed_dimensions": [
@@ -252,7 +252,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/qingcheng_personal_conversion_metrics.md",
-      "source_sha256": "90fcbbd41d304785c8a565954298fc2767420e56129902b3fe4586b51a43fc75",
+      "source_sha256": "ebaa9a3a3cacf25fb19aa560551606693f492d8e2a227042c091aba5e4df79cd",
       "description": "看板已登记公式：非 H 剔除退 4 净收按 50% 折算，加 H 剔除退 4 净收，再扣除 H 一对一剔除退 4 净收。源指标入桶和内部调课调班排除必须先完成。",
       "sql_expression": "COALESCE(SUM({base}.n_H_promit_4) * 0.5 + (SUM({base}.H_promit_4) - SUM({base}.Y_promit_4)), 0)",
       "output_alias": "discounted_output",
@@ -263,7 +263,7 @@
         "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
         "finance_dw.dm_finance_order_refund_detail_df",
         "finance_dw.dim_finance_order_change_df",
-        "temp_table.dingxi01_qing_team_jg"
+        "temp_table.lvshuai01_qing_team_jg"
       ],
       "calculation_grain": "employee + qici before dashboard aggregation",
       "allowed_dimensions": [
@@ -291,16 +291,16 @@
       ],
       "status": "pending_confirmation",
       "source_path": "knowledge/metrics/qingcheng_team_completion_month_metrics.md",
-      "source_sha256": "e1221bd8bbe9962742aba838a7ac910cc5d5b282ed4c193545e5c0a10ff7b09e",
+      "source_sha256": "8ab2e1daa1cd6d74539f4747da748f0c8977c7e034bd556f528433192080e222",
       "description": "候选公式为折算后产出除以目标；目标单位是否与净收一致尚未确认，因此本契约不可用于生产 SQL 编译。",
       "sql_expression": "COALESCE((SUM({base}.n_H_promit_4) * 0.5 + (SUM({base}.H_promit_4) - SUM({base}.Y_promit_4))) / NULLIF(SUM({base}.goal), 0), 0)",
       "output_alias": "team_completion_rate",
       "aggregation": "ratio_of_sums",
       "candidate_tables": [
         "finance_dw.app_finance_performance_extend_details_hf",
-        "temp_table.dingxi01_qing_team_goal",
-        "temp_table.dingxi01_qing_team_jg",
-        "temp_table.dingxi01_qing_qi_moth"
+        "temp_table.lvshuai01_qing_team_goal",
+        "temp_table.lvshuai01_qing_team_jg",
+        "temp_table.lvshuai01_qing_qi_moth"
       ],
       "calculation_grain": "month + xuebu + xiaozu + dazu + goal",
       "allowed_dimensions": [
@@ -336,7 +336,7 @@
       "candidate_tables": [
         "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
         "finance_dw.dwd_finance_order_refund_df",
-        "temp_table.dingxi01_qing_team_jg"
+        "temp_table.lvshuai01_qing_team_jg"
       ],
       "calculation_grain": "qici + order_number + refund_reason, then user + refund_reason",
       "notes": "业务已确认退款类型范围、原因金额分摊规则和 500 元退费正价课人头阈值；仍需执行订单级金额守恒和用户级去重。",
@@ -378,7 +378,7 @@
       "candidate_tables": [
         "data_lake_fuwu.dwd_crm_leads_rt",
         "bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf",
-        "temp_table.dingxi01_jiagou_db"
+        "temp_table.lvshuai01_jiagou_db"
       ],
       "calculation_grain": "transfer_lead_id",
       "allowed_dimensions": [
@@ -416,7 +416,7 @@
       "candidate_tables": [
         "data_lake_fuwu.dwd_crm_leads_rt",
         "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
-        "temp_table.dingxi01_jiagou_db"
+        "temp_table.lvshuai01_jiagou_db"
       ],
       "calculation_grain": "transfer_lead_id",
       "allowed_dimensions": [
@@ -454,7 +454,7 @@
       "candidate_tables": [
         "data_lake_fuwu.dwd_crm_leads_rt",
         "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
-        "temp_table.dingxi01_jiagou_db"
+        "temp_table.lvshuai01_jiagou_db"
       ],
       "calculation_grain": "dashboard grouping over transfer_lead_id rows",
       "allowed_dimensions": [
@@ -490,7 +490,7 @@
       "candidate_tables": [
         "data_lake_fuwu.dwd_crm_leads_rt",
         "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
-        "temp_table.dingxi01_jiagou_db"
+        "temp_table.lvshuai01_jiagou_db"
       ],
       "calculation_grain": "dashboard grouping over transfer_lead_id rows",
       "allowed_dimensions": [
@@ -526,7 +526,7 @@
       "candidate_tables": [
         "data_lake_fuwu.dwd_crm_leads_rt",
         "service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf",
-        "temp_table.dingxi01_jiagou_db"
+        "temp_table.lvshuai01_jiagou_db"
       ],
       "calculation_grain": "dashboard grouping over transfer_lead_id rows",
       "allowed_dimensions": [
@@ -553,7 +553,7 @@
       "status": "confirmed",
       "automatic_compile": false,
       "source_path": "knowledge/metrics/qingcheng_process_data_metrics.md",
-      "source_sha256": "06150071753aacc75253d9e00e436c0f9eff94726f83205f7967da85f9506b31",
+      "source_sha256": "1bc480d445ea214abff528527e943ee1fd359282a69d4ea9ea89e52d651f29d2",
       "description": "有效线索中 friend_lead_count 的加总；保留历史过程导出字段语义。",
       "sql_expression": "SUM(CASE WHEN CAST({base}.valid_lead_count AS VARCHAR) = '1' THEN COALESCE(CAST({base}.friend_lead_count AS BIGINT), 0) ELSE 0 END)",
       "output_alias": "is_friend_lead",
@@ -590,7 +590,7 @@
       "status": "confirmed",
       "automatic_compile": false,
       "source_path": "knowledge/metrics/qingcheng_process_data_metrics.md",
-      "source_sha256": "06150071753aacc75253d9e00e436c0f9eff94726f83205f7967da85f9506b31",
+      "source_sha256": "1bc480d445ea214abff528527e943ee1fd359282a69d4ea9ea89e52d651f29d2",
       "description": "分配时间到首次外呼时间的小时差，按历史过程导出在最终粒度求和；该字段用于兼容旧Excel，分析性统计需另行确认。",
       "sql_expression": "SUM(date_diff('hour', CAST({base}.section_assign_time AS timestamp), CAST({base}.first_call_time AS timestamp)))",
       "output_alias": "first_call_time_diff_hour",
@@ -627,7 +627,7 @@
       "status": "confirmed",
       "automatic_compile": false,
       "source_path": "knowledge/metrics/qingcheng_process_data_metrics.md",
-      "source_sha256": "06150071753aacc75253d9e00e436c0f9eff94726f83205f7967da85f9506b31",
+      "source_sha256": "1bc480d445ea214abff528527e943ee1fd359282a69d4ea9ea89e52d651f29d2",
       "description": "分配后0至24小时完成首call且为有效线索的标记。",
       "sql_expression": "SUM(CASE WHEN {base}.first_call_time_diff_hour BETWEEN 0 AND 24 AND CAST({base}.valid_lead_count AS VARCHAR) = '1' THEN 1 ELSE 0 END)",
       "output_alias": "first_call_in_24h",
@@ -664,7 +664,7 @@
       "status": "confirmed",
       "automatic_compile": false,
       "source_path": "knowledge/metrics/qingcheng_process_data_metrics.md",
-      "source_sha256": "06150071753aacc75253d9e00e436c0f9eff94726f83205f7967da85f9506b31",
+      "source_sha256": "1bc480d445ea214abff528527e943ee1fd359282a69d4ea9ea89e52d651f29d2",
       "description": "分配后0至48小时完成首call且为有效线索的标记。",
       "sql_expression": "SUM(CASE WHEN {base}.first_call_time_diff_hour BETWEEN 0 AND 48 AND CAST({base}.valid_lead_count AS VARCHAR) = '1' THEN 1 ELSE 0 END)",
       "output_alias": "first_call_in_48h",
@@ -702,7 +702,7 @@
       "status": "confirmed",
       "automatic_compile": false,
       "source_path": "knowledge/metrics/qingcheng_process_data_metrics.md",
-      "source_sha256": "06150071753aacc75253d9e00e436c0f9eff94726f83205f7967da85f9506b31",
+      "source_sha256": "1bc480d445ea214abff528527e943ee1fd359282a69d4ea9ea89e52d651f29d2",
       "description": "分配后0至168小时完成首call且为有效线索的标记。",
       "sql_expression": "SUM(CASE WHEN {base}.first_call_time_diff_hour BETWEEN 0 AND 168 AND CAST({base}.valid_lead_count AS VARCHAR) = '1' THEN 1 ELSE 0 END)",
       "output_alias": "first_call_cnt",
@@ -739,7 +739,7 @@
       "status": "confirmed",
       "automatic_compile": false,
       "source_path": "knowledge/metrics/qingcheng_process_data_metrics.md",
-      "source_sha256": "06150071753aacc75253d9e00e436c0f9eff94726f83205f7967da85f9506b31",
+      "source_sha256": "1bc480d445ea214abff528527e943ee1fd359282a69d4ea9ea89e52d651f29d2",
       "description": "不限制168小时，只要求首次外呼发生在分配之后且为有效线索。",
       "sql_expression": "SUM(CASE WHEN {base}.first_call_time_diff_hour >= 0 AND CAST({base}.valid_lead_count AS VARCHAR) = '1' THEN 1 ELSE 0 END)",
       "output_alias": "cumulative_first_call_cnt",
@@ -776,7 +776,7 @@
       "status": "confirmed",
       "automatic_compile": false,
       "source_path": "knowledge/metrics/qingcheng_process_data_metrics.md",
-      "source_sha256": "06150071753aacc75253d9e00e436c0f9eff94726f83205f7967da85f9506b31",
+      "source_sha256": "1bc480d445ea214abff528527e943ee1fd359282a69d4ea9ea89e52d651f29d2",
       "description": "分配后0至24小时首次接通且为有效线索的标记。",
       "sql_expression": "SUM(CASE WHEN {base}.first_call_connected_time_diff_hour_1 BETWEEN 0 AND 24 AND CAST({base}.valid_lead_count AS VARCHAR) = '1' THEN 1 ELSE 0 END)",
       "output_alias": "first_call_connected_in_24h",
@@ -813,7 +813,7 @@
       "status": "confirmed",
       "automatic_compile": false,
       "source_path": "knowledge/metrics/qingcheng_process_data_metrics.md",
-      "source_sha256": "06150071753aacc75253d9e00e436c0f9eff94726f83205f7967da85f9506b31",
+      "source_sha256": "1bc480d445ea214abff528527e943ee1fd359282a69d4ea9ea89e52d651f29d2",
       "description": "分配后0至48小时首次接通且为有效线索的标记。",
       "sql_expression": "SUM(CASE WHEN {base}.first_call_connected_time_diff_hour_1 BETWEEN 0 AND 48 AND CAST({base}.valid_lead_count AS VARCHAR) = '1' THEN 1 ELSE 0 END)",
       "output_alias": "first_call_connected_in_48h",
@@ -851,7 +851,7 @@
       "status": "confirmed",
       "automatic_compile": false,
       "source_path": "knowledge/metrics/qingcheng_process_data_metrics.md",
-      "source_sha256": "06150071753aacc75253d9e00e436c0f9eff94726f83205f7967da85f9506b31",
+      "source_sha256": "1bc480d445ea214abff528527e943ee1fd359282a69d4ea9ea89e52d651f29d2",
       "description": "分配后0至168小时首次接通且为有效线索的标记。",
       "sql_expression": "SUM(CASE WHEN {base}.first_call_connected_time_diff_hour_1 BETWEEN 0 AND 168 AND CAST({base}.valid_lead_count AS VARCHAR) = '1' THEN 1 ELSE 0 END)",
       "output_alias": "first_call_connected_cnt",
@@ -889,7 +889,7 @@
       "status": "confirmed",
       "automatic_compile": false,
       "source_path": "knowledge/metrics/qingcheng_process_data_metrics.md",
-      "source_sha256": "06150071753aacc75253d9e00e436c0f9eff94726f83205f7967da85f9506b31",
+      "source_sha256": "1bc480d445ea214abff528527e943ee1fd359282a69d4ea9ea89e52d651f29d2",
       "description": "外呼通话秒数按线索/顾问聚合后除以60，最终单位为分钟。",
       "sql_expression": "SUM(COALESCE({base}.call_duration, 0) / 60.0)",
       "output_alias": "call_duration",
@@ -926,7 +926,7 @@
       "status": "confirmed",
       "automatic_compile": false,
       "source_path": "knowledge/metrics/qingcheng_process_data_metrics.md",
-      "source_sha256": "06150071753aacc75253d9e00e436c0f9eff94726f83205f7967da85f9506b31",
+      "source_sha256": "1bc480d445ea214abff528527e943ee1fd359282a69d4ea9ea89e52d651f29d2",
       "description": "同一线索/顾问组合内存在单次通话超过480秒则标记1，最终求和。",
       "sql_expression": "SUM(MAX(CASE WHEN {base}.call_duration > 480 THEN 1 ELSE 0 END))",
       "output_alias": "is_long_call",
@@ -963,7 +963,7 @@
       "status": "confirmed",
       "automatic_compile": false,
       "source_path": "knowledge/metrics/qingcheng_process_data_metrics.md",
-      "source_sha256": "06150071753aacc75253d9e00e436c0f9eff94726f83205f7967da85f9506b31",
+      "source_sha256": "1bc480d445ea214abff528527e943ee1fd359282a69d4ea9ea89e52d651f29d2",
       "description": "call_status为0或1的外呼事件数量。",
       "sql_expression": "SUM(CASE WHEN {base}.call_status IN ('1', '0') THEN 1 ELSE 0 END)",
       "output_alias": "zong_call_ci",
@@ -1000,7 +1000,7 @@
       "status": "confirmed",
       "automatic_compile": false,
       "source_path": "knowledge/metrics/qingcheng_process_data_metrics.md",
-      "source_sha256": "06150071753aacc75253d9e00e436c0f9eff94726f83205f7967da85f9506b31",
+      "source_sha256": "1bc480d445ea214abff528527e943ee1fd359282a69d4ea9ea89e52d651f29d2",
       "description": "call_status为1的外呼接通事件数量。",
       "sql_expression": "SUM(CASE WHEN {base}.call_status = '1' THEN 1 ELSE 0 END)",
       "output_alias": "call_status",
@@ -1037,7 +1037,7 @@
       "status": "confirmed",
       "automatic_compile": false,
       "source_path": "knowledge/metrics/qingcheng_process_data_metrics.md",
-      "source_sha256": "06150071753aacc75253d9e00e436c0f9eff94726f83205f7967da85f9506b31",
+      "source_sha256": "1bc480d445ea214abff528527e943ee1fd359282a69d4ea9ea89e52d651f29d2",
       "description": "天级近7日APP/PC登录标记与小时级APP/PC登录标记取OR后，按user_id关联到线索并在过程输出粒度汇总。",
       "sql_expression": "SUM(CASE WHEN COALESCE({base}.is_app_denglu, 0) = 1 THEN 1 ELSE 0 END)",
       "output_alias": "is_app_denglu",
@@ -1079,7 +1079,7 @@
       ],
       "status": "confirmed",
       "source_path": "knowledge/metrics/qingcheng_advisor_breakthrough_rate.md",
-      "source_sha256": "9c2c35f84a4f6994bbd560084d2ee564b71c42114ab05bb096c81ecc18e8d2a3",
+      "source_sha256": "0471747aac3ad43f8eecfdc9fc9c68486faa7c92a3f54264a7618ed2e5da8b72",
       "description": "2026-11-22用户确认：先在同一报表筛选及人员范围内按顾问账号汇总综合营收，以营收>0的顾问去重人数除以顾问去重总人数。包含零营收顾问；不扣退费，不用podan成交用户数或v_lead线索数。汇总重新合并账号营收并去重计人。",
       "sql_expression": "SUM(CASE WHEN {base}.advisor_revenue > 0 THEN 1 ELSE 0 END) / NULLIF(CAST(COUNT(*) AS DOUBLE), 0)",
       "output_alias": "advisor_breakthrough_rate",

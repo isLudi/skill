@@ -1,4 +1,6 @@
-# temp_table.dingxi01_jiagou_db
+# temp_table.lvshuai01_jiagou_db
+
+维护账号迁移：2026-11-28 用户确认同后缀表由 lvshuai01 接续维护；线上新表身份已核实。字段及业务含义沿用已确认结构，历史 SQL、Excel 扫描和 Query 证据不等于新表本次数据验证。当前使用规则见 [临时表维护迁移](../temp_table_maintenance.md)。
 
 ## 1. 中文名称
 
@@ -79,7 +81,7 @@ Presto
 
 ```sql
 select *
-from temp_table.dingxi01_jiagou_db t
+from temp_table.lvshuai01_jiagou_db t
 where t.qici = '20260403期'
 limit 20;
 ```
@@ -90,7 +92,7 @@ limit 20;
 select
     t.qici,
     count(*) as cnt
-from temp_table.dingxi01_jiagou_db t
+from temp_table.lvshuai01_jiagou_db t
 group by t.qici
 order by cnt desc
 limit 50;
@@ -108,7 +110,7 @@ with mapped as (
                 partition by t.qici, t.employee_email_prefix
                 order by t.qici desc
             ) as rn
-        from temp_table.dingxi01_jiagou_db t
+        from temp_table.lvshuai01_jiagou_db t
     ) x
     where x.rn = 1
 )
@@ -132,7 +134,7 @@ limit 20;
 
 ### 运营侧个人数据 2293 使用备注
 
-- `resources/raw_sql/data_center_market_2293.sql` 的最终层用于修正运营侧个人数据的展示架构：优先使用本表按 `qici + department + xiaozu + employee_email_name` 匹配出来的 `jg.jingli`、`jg.xiaozu`，其次才使用 `temp_table.dingxi01_jiagou_zx` 和事实宽表字段。
+- `resources/raw_sql/data_center_market_2293.sql` 的最终层用于修正运营侧个人数据的展示架构：优先使用本表按 `qici + department + xiaozu + employee_email_name` 匹配出来的 `jg.jingli`、`jg.xiaozu`，其次才使用 `temp_table.lvshuai01_jiagou_zx` 和事实宽表字段。
 - 典型错误：事实宽表 `virtual_leader_email_name` / `virtual_direct_leader_email_name` 与期次架构表不一致，BI 透视表又绑定最终输出的 `jingli` 字段，导致主管或经理展示到旧架构下。
 - 修复原则：最终输出层不要 `select zz.*` 后原样暴露 `zz.jingli`、`zz.zhuguan`；应显式输出 `coalesce(jg.jingli, zx.jingli, zz.jingli) as jingli` 和 `coalesce(jg.xiaozu, zx.xiaozu, zz.zhuguan) as zhuguan`。
 - 该 SQL 先构造 `jiagou_period`，按 `qici + department + employee_email_name` 去重后再 join；不要在 `zhuanhua` 聚合后直接 join 本表原始行，否则会同步放大线索、收款和退款等 `sum` 指标。

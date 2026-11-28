@@ -97,9 +97,9 @@
 | s_lead | 达标有效线索数 | `case when can_renew_ds_count_a >= 5 then can_renew_ds_count_a else 0 end` | 阈值待确认 |
 | podan | 破单标记 | `case when can_renew_ds_count_a >= 5 and trade_income > 0 then 1 else 0 end` | 注释与代码不一致 |
 | name1 | 达标顾问名 | `case when can_renew_ds_count_a >= 5 then employee_email_name else '未知' end` | 否 |
-| xiaozu | 小组 | `temp_table.dingxi01_jiagou_zx.xiaozu` | 姓名关联唯一性待确认 |
-| cb_cb | 单例子成本 | `coalesce(temp_table.dingxi01_cost.cost, 0)` | 成本表维护口径待确认 |
-| gl_gl | 单例子目标 | `coalesce(temp_table.dingxi01_cost.goal, 0)` | 目标表维护口径待确认 |
+| xiaozu | 小组 | `temp_table.lvshuai01_jiagou_zx.xiaozu` | 姓名关联唯一性待确认 |
+| cb_cb | 单例子成本 | `coalesce(temp_table.lvshuai01_cost.cost, 0)` | 成本表维护口径待确认 |
+| gl_gl | 单例子目标 | `coalesce(temp_table.lvshuai01_cost.goal, 0)` | 目标表维护口径待确认 |
 
 ## 8. 成交科目档位
 

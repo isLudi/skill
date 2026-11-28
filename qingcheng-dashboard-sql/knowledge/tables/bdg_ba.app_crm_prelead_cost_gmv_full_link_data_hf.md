@@ -161,4 +161,4 @@ limit 1000
 - 本表字段名使用 `lead_id`，没有 `crm_leads_id` 字段；与 `data_lake_fuwu.dwd_crm_leads_rt.crm_leads_id` 关联时需显式说明两侧语义。
 - 用本表直接取 `lead_model_type=0` 作为转移后承接顾问来源，在 2026-07-09 最新小时验证未命中这些转移线索，query id `1456984198`。
 - 若目标是历史转移漏斗，建议以 `data_lake_fuwu.dwd_crm_leads_rt` 的 `previous_model_id` 链路为主，再回补本表字段；不要从本表 `lead_model_type=0` 单独推断转移结果。
-- 2026-07-11 TMK 过程数据探查中，132 条转移线索有 102 个潜客 ID 命中本表，100 条过程字段完整；按 `qici + employee_email_name` 匹配 `temp_table.dingxi01_jiagou_db` 仅 8 条。若过程数据必须保留 TMK 行，可先用临时架构表，未命中时再用 `virtual_third_department_name / virtual_fourth_department_name / virtual_direct_leader_email_name` 兜底，并保留其原始组织名称，不得伪装为青橙一部/三部等既有团队。
+- 2026-07-11 TMK 过程数据探查中，132 条转移线索有 102 个潜客 ID 命中本表，100 条过程字段完整；按 `qici + employee_email_name` 匹配 `temp_table.lvshuai01_jiagou_db` 仅 8 条。若过程数据必须保留 TMK 行，可先用临时架构表，未命中时再用 `virtual_third_department_name / virtual_fourth_department_name / virtual_direct_leader_email_name` 兜底，并保留其原始组织名称，不得伪装为青橙一部/三部等既有团队。

@@ -16,7 +16,7 @@
 ## 3. 关键口径
 
 - 主数据驱动表：`bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df`。
-- 架构范围：`temp_table.dingxi01_jiagou_db` 同步使用 `${period_name1}` / `${period_name2}` 限制 `qici`。
+- 架构范围：`temp_table.lvshuai01_jiagou_db` 同步使用 `${period_name1}` / `${period_name2}` 限制 `qici`。
 - 最终导出范围：`prc` CTE 中用 `data.qici >= ${period_name1}` 且 `data.qici < ${period_name2}` 控制。
 - 首 call 指标继续使用 `gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf + finance_dw.dim_finance_employee_df`，不得回退到旧过程表。
 - 查询平台规则：本模板已使用 `interval` 日期偏移写法，不使用三参数 `date_add('day', n, expr)`。
@@ -94,7 +94,7 @@ jg_market as (
                 partition by jg.qici, jg.employee_email_prefix
                 order by jg.department, jg.xiaozu, jg.jingli
             ) as rn
-        from temp_table.dingxi01_jiagou_db jg
+        from temp_table.lvshuai01_jiagou_db jg
         where jg.qici >= ${period_name1}
           and jg.qici < ${period_name2}
           and jg.dept_1 = '市场顾问部'
@@ -629,7 +629,7 @@ daoke as (
               and is_need_attend = 1
         ) t2 on t1.qici = t2.qici
              and t1.user_id = t2.user_number
-        left join temp_table.dingxi01_daoke_1_6_t ke
+        left join temp_table.lvshuai01_daoke_1_6_t ke
           on t2.qici = ke.qici
          and t1.channel_map_1 = ke.qudao
          and t1.grade_1 = ke.grade

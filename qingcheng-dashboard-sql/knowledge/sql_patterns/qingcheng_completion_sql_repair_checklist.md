@@ -48,7 +48,7 @@ cast(coalesce(original_order_pay_success_timestamp, pay_success_timestamp, trade
 
 ```sql
 select distinct qici, employee_email_name
-from temp_table.dingxi01_qing_team_jg
+from temp_table.lvshuai01_qing_team_jg
 ```
 
 - 用 `original_paid_time` 推导期次后，允许 `team_hist` 命中作为兜底保留条件。

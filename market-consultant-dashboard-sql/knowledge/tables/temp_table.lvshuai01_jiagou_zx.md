@@ -1,4 +1,6 @@
-# temp_table.dingxi01_jiagou_zx
+# temp_table.lvshuai01_jiagou_zx
+
+维护账号迁移：2026-11-28 用户确认同后缀表由 lvshuai01 接续维护；线上新表身份已核实。字段及业务含义沿用已确认结构，历史 SQL、Excel 扫描和 Query 证据不等于新表本次数据验证。当前使用规则见 [临时表维护迁移](../temp_table_maintenance.md)。
 
 ## 1. 中文名称
 
@@ -72,7 +74,7 @@ Presto
 
 ```sql
 select *
-from temp_table.dingxi01_jiagou_zx t
+from temp_table.lvshuai01_jiagou_zx t
 where t.zaizhi = '1'
 limit 20;
 ```
@@ -83,7 +85,7 @@ limit 20;
 select
     t.department,
     count(*) as cnt
-from temp_table.dingxi01_jiagou_zx t
+from temp_table.lvshuai01_jiagou_zx t
 group by t.department
 order by cnt desc
 limit 50;
@@ -101,7 +103,7 @@ with mapped as (
                 partition by t.employee_email_name
                 order by t.employee_email_name desc
             ) as rn
-        from temp_table.dingxi01_jiagou_zx t
+        from temp_table.lvshuai01_jiagou_zx t
     ) x
     where x.rn = 1
 )
@@ -145,7 +147,7 @@ jiagou_zx_active as (
                     t.xiaozu,
                     t.jingli
             ) as rn
-        from temp_table.dingxi01_jiagou_zx t
+        from temp_table.lvshuai01_jiagou_zx t
         where cast(t.zaizhi as varchar) = '1'
           and t.department in ('郑州顾问部', '西安一部', '西安二部')
     ) x
@@ -161,13 +163,13 @@ eligible_consultant_name as (
 ### 流量画像 SQL 使用备注
 
 - `data_center_market_2683.sql` 最终层通过 `zx.employee_email_name = zz.employee_email_name` 补充 `xiaozu`。
-- 该表无 `qici` 字段，流量画像中得到的是当前专项架构口径，不代表某期次历史架构；跨期复盘时需确认是否改用 `temp_table.dingxi01_jiagou_db`。
+- 该表无 `qici` 字段，流量画像中得到的是当前专项架构口径，不代表某期次历史架构；跨期复盘时需确认是否改用 `temp_table.lvshuai01_jiagou_db`。
 
 ### 运营侧个人数据 2293 使用备注
 
-- `resources/raw_sql/data_center_market_2293.sql` 中本表只作为当前在职架构兜底，不能优先替代 `temp_table.dingxi01_jiagou_db` 的期次架构。
+- `resources/raw_sql/data_center_market_2293.sql` 中本表只作为当前在职架构兜底，不能优先替代 `temp_table.lvshuai01_jiagou_db` 的期次架构。
 - 该 SQL 使用 `zx_active` 先按 `employee_email_name` 去重，并限定 `cast(zaizhi as varchar) = '1'`、`department in ('郑州顾问部', '西安一部', '西安二部')`，避免当前架构表重复 key 放大运营侧个人数据。
-- 展示经理/主管字段的优先级为：`temp_table.dingxi01_jiagou_db` 期次架构 > 本表当前在职架构 > 事实宽表 `virtual_*` 字段。
+- 展示经理/主管字段的优先级为：`temp_table.lvshuai01_jiagou_db` 期次架构 > 本表当前在职架构 > 事实宽表 `virtual_*` 字段。
 
 ### 退费分析 SQL 使用备注
 

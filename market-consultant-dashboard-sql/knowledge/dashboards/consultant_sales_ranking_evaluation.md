@@ -23,7 +23,7 @@
 |---|---|---|
 | `finance_dw.app_finance_performance_extend_details_hf` | `dd` 来源表 | 财务业绩扩展明细，提供订单流水、交易状态、交易类型、价格、顾问、交易时间和课程信息 |
 | `temp_table.zhangjunyan01_pingyou_jg` | `pg` | 评优架构人产临时表，提供顾问期次、架构、渠道、人产、年级、在职和是否参与评优；`is_emp='是'` 表示参与评优，`is_emp='否'` 表示不参与评优 |
-| `temp_table.dingxi01_jiagou_zx` | `jiagou_zx_active` | 当前在职架构顾问名单；季度和半年度 clean 脚本用它额外剔除已离职顾问 |
+| `temp_table.lvshuai01_jiagou_zx` | `jiagou_zx_active` | 当前在职架构顾问名单；季度和半年度 clean 脚本用它额外剔除已离职顾问 |
 
 ## 4. SQL 结构
 
@@ -98,7 +98,7 @@ inner join jiagou_zx_active zx
   on zx.employee_email_name = pg.employee_email_name
 ```
 
-`jiagou_zx_active` 取 `temp_table.dingxi01_jiagou_zx` 中 `cast(zaizhi as varchar) = '1'` 且部门为 `郑州顾问部`、`西安一部`、`西安二部` 的顾问，并按 `employee_email_name` 去重。
+`jiagou_zx_active` 取 `temp_table.lvshuai01_jiagou_zx` 中 `cast(zaizhi as varchar) = '1'` 且部门为 `郑州顾问部`、`西安一部`、`西安二部` 的顾问，并按 `employee_email_name` 去重。
 
 ## 8. group by 维度
 
@@ -171,13 +171,13 @@ inner join jiagou_zx_active zx
 | 维度 | 主 SQL (evaluation) | month_clean 变体 |
 |---|---|---|
 | 聚合周期 | 期次/月/季/半年分层聚合 | **自然月份**聚合（多期次合并为一个自然月） |
-| 顾问名单来源 | `temp_table.zhangjunyan01_pingyou_jg` | `temp_table.dingxi01_jiagou_zx`（`zaizhi='1'`，郑州/西安部门优先级去重） |
+| 顾问名单来源 | `temp_table.zhangjunyan01_pingyou_jg` | `temp_table.lvshuai01_jiagou_zx`（`zaizhi='1'`，郑州/西安部门优先级去重） |
 | 组织链过滤 | 无 | `dw.dim_employee_chain` 取 `高途-H业务线-市场部-市场顾问部` 路径，按 `email_prefix` 内连接任职期间流水 |
 | 期次计算 | 硬编码 2026 年特殊日期 + `day_of_week` | 统一 `day_of_week` 公式（无硬编码特殊日期） |
 | 自然月 | 无 | `trade_qici = '20260731期' → '202608'` 特殊处理；其余取 `substr(qici, 1, 6)` |
 | 渠道 CASE | 使用 `channel` 字段（来自评优临时表） | 历史 CASE（pre-0524 版本，不含后续 0524/0612/0723 渠道细分，信息流-抖音私信 位于旧位置） |
 | 转化侧 | 无 | 包含完整的线索→转化→渠道成本→目标完成率链路 |
-| 成本维度 | 无 | `temp_table.dingxi01_cost` 按 `channel` 取 `cost`，计算 `receive_target = leads_count * cost` |
+| 成本维度 | 无 | `temp_table.lvshuai01_cost` 按 `channel` 取 `cost`，计算 `receive_target = leads_count * cost` |
 | 排名指标 | ROI 排名 + 退费排名 | pmit 排名 + 目标完成率排名（双排名体系） |
 | 拓科率 | 无 | `tuoke_rate = pay_user_subs / pay_users` |
 | qici_list | 无 | 自然月内所有期次的去重排序拼接 |
@@ -225,7 +225,7 @@ inner join jiagou_zx_active zx
 - channel_map CASE 版本仍需确认是否同步最新 `market_channel_case_when_1113.sql`；如与转化看板在同一前端展示，会出现渠道口径不一致。
 - `period_mapping_first_level_department_name is null` 和 `period_mapping_second_level_department_name is null` 的放宽条件。
 - `conversion_base` 使用 `select fl.*`（全字段扫描宽表 283 列），违反知识库规则。
-- `temp_table.dingxi01_cost` 中 `cost` 字段为字符串，需 `try_cast` 且 `> 0` 过滤；`trim(channel)` 后 `max(cost)` 取最大唯一值，如存在同一渠道多行不同成本值会丢失信息。
+- `temp_table.lvshuai01_cost` 中 `cost` 字段为字符串，需 `try_cast` 且 `> 0` 过滤；`trim(channel)` 后 `max(cost)` 取最大唯一值，如存在同一渠道多行不同成本值会丢失信息。
 - `jiagou_zx_active` 的部门优先级去重逻辑（郑州>西安一部>西安二部）为非标准顺序，如果顾问同时在多部门兼职取第一条。
 - `finance_dw.dim_finance_employee_df` 未在财务侧使用，财务侧顾问范围完全由 `dw.dim_employee_chain` + `jiagou_zx_active` 控制。
 - `day_of_week` 期次公式的 `trade_dt - interval '1' day` 后 weekday 1=周日对应的 `+3 day` 逻辑需与业务周五对齐的期次口径确认。

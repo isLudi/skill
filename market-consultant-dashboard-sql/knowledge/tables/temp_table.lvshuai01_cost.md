@@ -1,4 +1,6 @@
-# temp_table.dingxi01_cost
+# temp_table.lvshuai01_cost
+
+维护账号迁移：2026-11-28 用户确认同后缀表由 lvshuai01 接续维护；线上新表身份已核实。字段及业务含义沿用已确认结构，历史 SQL、Excel 扫描和 Query 证据不等于新表本次数据验证。当前使用规则见 [临时表维护迁移](../temp_table_maintenance.md)。
 
 ## 1. 中文名称
 
@@ -63,7 +65,7 @@ Presto
 
 ```sql
 select *
-from temp_table.dingxi01_cost t
+from temp_table.lvshuai01_cost t
 where t.qici = '<期次>'
   and t.channel = '<渠道名称>'
   and t.grade = '<年级>'
@@ -79,7 +81,7 @@ select
     t.grade,
     max(t.cost) as cost,
     max(t.goal) as goal
-from temp_table.dingxi01_cost t
+from temp_table.lvshuai01_cost t
 where t.qici = '<期次>'
 group by
     t.qici,

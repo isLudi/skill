@@ -1,4 +1,6 @@
-# temp_table.dingxi01_ceshiqudao_pingyou
+# temp_table.lvshuai01_ceshiqudao_pingyou
+
+维护账号迁移：2026-11-28 用户确认同后缀表由 lvshuai01 接续维护；线上新表身份已核实。字段及业务含义沿用已确认结构，历史 SQL、Excel 扫描和 Query 证据不等于新表本次数据验证。当前使用规则见 [临时表维护迁移](../temp_table_maintenance.md)。
 
 ## 1. 中文名称
 
@@ -58,7 +60,7 @@ Registry 表头含期次、渠道和姓名；`qici + qudao + name` 是否唯一�
 
 ```sql
 select typeof(max(t.gmv)) as gmv_type
-from temp_table.dingxi01_ceshiqudao_pingyou t
+from temp_table.lvshuai01_ceshiqudao_pingyou t
 where t.name = '<具体员工姓名>' and t.qici = '<具体期次>' and 1 = 0
 limit 1
 ```

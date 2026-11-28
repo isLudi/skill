@@ -61,5 +61,5 @@ APP率 = sum(is_app_denglu) / sum(v_lead)
 
 - 历史成品簿有 29 个业务结果行、221 条有效线索，并按部门、年级、主管提供聚合公式。
 - 当前 canonical SQL 的 14 天字段已有线上成功抽数证据；Q3 只是调用示例，不改变 contract 状态。
-- `temp_table.dingxi01_qing_daoke` 与 `temp_table.dingxi01_jiagou_db` 的来源/刷新仍有待确认边界；若更换底层课次或架构表，必须回到青橙 Join/临时表文档审阅。
+- `temp_table.lvshuai01_qing_daoke` 与 `temp_table.lvshuai01_jiagou_db` 的来源/刷新仍有待确认边界；若更换底层课次或架构表，必须回到青橙 Join/临时表文档审阅。
 - 本模板不授权修改数据中心或看板。

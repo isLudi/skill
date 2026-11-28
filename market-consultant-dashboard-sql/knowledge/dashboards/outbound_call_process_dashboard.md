@@ -27,8 +27,8 @@
 | `gaotu_crm_offline_statistics.app_mcrm_first_call_task_hf` | `first_call_task` | 顾问首 call 任务表，统计已完成首 call 任务标记 |
 | `finance_dw.dim_finance_employee_df` | `employee_map` | 通过 `account_id` 将首 call 任务账号转换为顾问 `employee_email_name` |
 | `service_dw.dws_service_user_learn_detail_hf` | `t2` | 行课学习明细，判断到课和有效到课 |
-| `temp_table.dingxi01_jiagou_db` | `jg` | 稳定临时架构表，按期次和员工邮箱前缀补充部门、经理、小组 |
-| `temp_table.dingxi01_daoke_1_6_t` | `ke` | 稳定临时课次映射表，按期次、渠道、年级、上课时间映射第几节课 |
+| `temp_table.lvshuai01_jiagou_db` | `jg` | 稳定临时架构表，按期次和员工邮箱前缀补充部门、经理、小组 |
+| `temp_table.lvshuai01_daoke_1_6_t` | `ke` | 稳定临时课次映射表，按期次、渠道、年级、上课时间映射第几节课 |
 
 ## 4. CTE 结构
 
@@ -55,13 +55,13 @@
 | `bdg_ba... f` | `service_dw.dm_crm_lead_stats_detail_hf jt` | `f.lead_id = jt.lead_id` | left join | 补充首呼接通时间差 |
 | `service_dw.app_user_attribute_label_gaia_wide_df yc` | `bdg_ba... f` | `yc.user_number = f.user_id` | left join | 补充异常流量标签 |
 | `bdg_ba... f` | `service_dw.app_h_crm_lead_task_process_info_detail_hf sbb` | `sbb.assign_employee_email_name = f.employee_email_name` + `sbb.user_id = f.user_id` | left join | 补充双表发送标记，生成 `yi_huishou` |
-| `data` | `temp_table.dingxi01_jiagou_db jg` | `data.employee_email_prefix = jg.employee_email_prefix` + `data.qici = jg.qici` | left join | 补充期次内顾问架构 |
+| `data` | `temp_table.lvshuai01_jiagou_db jg` | `data.employee_email_prefix = jg.employee_email_prefix` + `data.qici = jg.qici` | left join | 补充期次内顾问架构 |
 | `data` | `call_c` | `call_c.user_number = data.user_id` + `call_c.section_assign_employee_email_prefix = data.employee_email_prefix` | left join | 补充外呼次数、接通次数、时长和长通话 |
 | `data` | `denglu_app` | `denglu_app.user_number = data.user_id` | left join | 补充 APP 登录 |
 | `first_call_task` | `employee_map` | `first_call_task.account_id = employee_map.account_id` | left join | 首 call 任务账号转顾问姓名 |
 | `data` | `f_call0` | `f_call0.assign_employee_email_name = data.employee_email_name` + `f_call0.user_id = data.user_id` | left join | 补充首 call 任务数 |
 | `data` | `service_dw.dws_service_user_learn_detail_hf t2` | `t1.qici = t2.qici` + `t1.user_id = t2.user_number` | inner join | 在 `daoke` CTE 中筛选线索用户对应的行课记录 |
-| `daoke 内层` | `temp_table.dingxi01_daoke_1_6_t ke` | `t2.qici = ke.qici` + `t1.channel_map_1 = ke.qudao` + `t1.grade_1 = ke.grade` + `t2.begin_time = ke.begin_time` | left join | 将上课记录映射为第几节课，并只保留第 1/3 节 |
+| `daoke 内层` | `temp_table.lvshuai01_daoke_1_6_t ke` | `t2.qici = ke.qici` + `t1.channel_map_1 = ke.qudao` + `t1.grade_1 = ke.grade` + `t2.begin_time = ke.begin_time` | left join | 将上课记录映射为第几节课，并只保留第 1/3 节 |
 | `prc` | `daoke duf` | `prc.qici = duf.qici` + `prc.user_id = duf.user_id` + `prc.channel_map_1 = duf.channel_map_1` | left join | 最终聚合层计算到课和有效到课人数 |
 
 ## 6. where 条件
@@ -224,7 +224,7 @@ and data.channel_map_1 not in ('未知', '线索复用', '训练营', '进校0�
 - 长通话：单线索单顾问内只要存在 `call_duration > 300` 即计 1。
 - 首节到课：一般渠道看 `ke_1 = '1'`，`曹忆IP99元` 看 `ke_1 = '3'`；新版最终层按用户去重计数。
 - 双表回收：使用 `service_dw.app_h_crm_lead_task_process_info_detail_hf.send_double_table = '是'`，并限制有效线索。
-- 结果缺失排查：当前外呼过程看板是事实主表 `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df` 驱动，`temp_table.dingxi01_jiagou_db` 只用于补充架构。若某未来期次在架构表已维护但主表派生期次无数据，最终看板不会展示该期次。
+- 结果缺失排查：当前外呼过程看板是事实主表 `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df` 驱动，`temp_table.lvshuai01_jiagou_db` 只用于补充架构。若某未来期次在架构表已维护但主表派生期次无数据，最终看板不会展示该期次。
 
 ## 12. 待确认事项
 
@@ -235,7 +235,7 @@ and data.channel_map_1 not in ('未知', '线索复用', '训练营', '进校0�
 - `call_c` 未单独限定部门范围，依赖与 `data` 的用户/顾问关联收敛结果；复用时需确认是否可能带入跨部门外呼。
 - `f_call0` 首 call 任务需在员工维表 `employee_map` 中使用与主查询一致的一级/二级/三级部门范围；查询所有二级部门时不要硬编码为仅市场部。
 - `sbb` 子查询按 `user_id + assign_employee_email_name` 取最新任务过程，但未使用 `qici` join 主表；需确认跨期最新任务是否会影响 `yi_huishou`。
-- `temp_table.dingxi01_jiagou_db` 按 `qici + employee_email_prefix` join，需确认该键在临时表中唯一，避免行放大。
+- `temp_table.lvshuai01_jiagou_db` 按 `qici + employee_email_prefix` join，需确认该键在临时表中唯一，避免行放大。
 - 若业务要求提前展示已维护但事实主表未产出的未来期次架构人员，需要改为架构表驱动 left join 指标，并调整最终 `valid_lead_count > 0` 过滤；该变更属于展示口径调整，需人工确认。
 - 渠道 CASE 为历史看板内嵌规则，完整规则以原始 SQL 为准；后续可拆成独立渠道映射知识或维护表。
 - 所有指标口径来自历史看板 SQL，尚未经过业务口径文档确认。

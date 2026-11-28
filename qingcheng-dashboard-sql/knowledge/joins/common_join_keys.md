@@ -6,7 +6,7 @@
 
 | 左表/CTE | 右表/CTE | join key | join 类型 | 适用场景 | 状态 |
 |---|---|---|---|---|---|
-| `service_scope` | `temp_table.dingxi01_qing_team_jg team_hist` | `employee_email_name + qici` | left join | 组织链滞后时按期次保留员工有效 service 流水 | 先确认员工/期次粒度唯一，不能固定取最新期次 |
+| `service_scope` | `temp_table.lvshuai01_qing_team_jg team_hist` | `employee_email_name + qici` | left join | 组织链滞后时按期次保留员工有效 service 流水 | 先确认员工/期次粒度唯一，不能固定取最新期次 |
 | `course_transfer_finance` | `service_scope` | `order_number + employee_email_name` | anti/left join | 仅补 service 缺失的课程转移链路 | finance 保留独立明细后按真实输出粒度聚合；同订单同顾问已有 service 链路时不补入；补充行不进入 `income_all/refund_all` |
 | `unified_amount` | `order_change` | `order_number` | left join | 识别内部调课调班 | 只影响 legacy/rule 金额；正常 service 金额主事实不被替换 |
 | `rd` | `re_ke` | `order_number + qici` | left join | 补全退 4/点睛退 2 所需完课节数 | 只影响 `refund_4/class_refund_4/promit_4`，不影响 `refund_all` |
@@ -15,41 +15,41 @@
 |---|---|---|---|---|---|
 | `d_ap` | `h_ap` | `user_number` | left join | 合并 APP/PC 天级和小时级登录 | 已从 SQL 入库 |
 | `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df f` | `service_dw.dm_crm_lead_stats_detail_hf jt` | `lead_id` | left join | 补充首次接通时间差 | 已从 SQL 入库 |
-| `data` | `temp_table.dingxi01_jiagou_db jg` | `employee_email_name + qici` | left join | 补充青橙架构 | 已从 SQL 入库，唯一性待确认 |
-| `data` | `temp_table.dingxi01_jiagou_db jg` | `employee_email_prefix + qici` | left join | 到课 raw 补充青橙架构 | 已从 SQL 入库，需确认是否为标准 join key |
+| `data` | `temp_table.lvshuai01_jiagou_db jg` | `employee_email_name + qici` | left join | 补充青橙架构 | 已从 SQL 入库，唯一性待确认 |
+| `data` | `temp_table.lvshuai01_jiagou_db jg` | `employee_email_prefix + qici` | left join | 到课 raw 补充青橙架构 | 已从 SQL 入库，需确认是否为标准 join key |
 | `data` | `daoke` | `employee_email_prefix + qici + lead_id` | left join | 匹配首节到课 | 已从 SQL 入库 |
 | `call_c` | `data` | `user_number = user_id and section_assign_employee_email_prefix = employee_email_prefix` | left join | 匹配外呼指标 | 已从 SQL 入库 |
 | `call_14d` | `data` | `record_source + process_lead_id + user_id + employee_email_prefix`；事件明细侧为 `lead_id + user_number + section_assign_employee_email_prefix` | left join | 匹配分配后 `0-336` 小时的 14 天外呼、8min、外呼时长和频次 | 2026-07-16 生产 model 2064 已验证；必须保留精确 `lead_id`，禁止退化为用户+顾问宽关联 |
 | `denglu_app` | `data` | `user_number = user_id` | left join | 匹配 APP/PC 登录 | 已从 SQL 入库 |
 | `data` 子集 `t1` | `service_dw.dws_service_user_learn_detail_hf t2` | `qici + user_id = user_number` | left join | 匹配上课明细 | 已从 SQL 入库 |
-| `daoke dk` | `temp_table.dingxi01_qing_daoke ke` | `qici + channel_map_2 = qudao + grade_1 = grade + begin_time` | left join | 标记课次，支持第 1 至第 6 讲 | 已从 SQL 入库，唯一性待确认 |
+| `daoke dk` | `temp_table.lvshuai01_qing_daoke ke` | `qici + channel_map_2 = qudao + grade_1 = grade + begin_time` | left join | 标记课次，支持第 1 至第 6 讲 | 已从 SQL 入库，唯一性待确认 |
 | `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf gmv` | `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df ld` | `lead_id + performance_employee_email_name = employee_email_name` | left join | 订单业绩补充青橙渠道、投放计划、分配规则、直属主管和地域字段；青橙渠道订单明细 raw 复用该 join | 已从 SQL 入库，`ld` 唯一性和范围完整性待确认 |
 | `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df f` | `data_lake_fuwu.dwd_crm_leads_rt lrt` | `lead_id = crm_leads_id` | left join | 回查 CRM 原始线索状态、source、模型阶段和 `previous_model_id` | 2026-06-27 小样本验证命中 30/30；`previous_model_id > 0` 自关联命中 30/30 |
 | `bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf p` | `data_lake_fuwu.dwd_crm_leads_rt prelead` | `p.lead_id = prelead.crm_leads_id and p.lead_model_type = 1` | left join | 回补青橙 TMK/规划系统潜客阶段顾问、渠道、年级和过程字段 | 2026-07-09 live 验证；以 `dwd` 转移链路为主过滤时覆盖率高于严格青橙截面过滤 |
-| `tmk_prelead_raw` / `tmk_output_transfer_ids` | `bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf f` | `prelead_id = f.lead_id`，且规划系统意向限定 `virtual_third_department_name='学习顾问部' and virtual_fourth_department_name='SEC创新部'` | inner join + scope gate | 规划系统潜客进入订单复用以及转线索排重 | 2026-07-15 已验证；最终输出另需同一期次顾问命中 `temp_table.dingxi01_jiagou_db.dept_2='SEC'`，两层条件不得互相替代 |
+| `tmk_prelead_raw` / `tmk_output_transfer_ids` | `bdg_ba.app_crm_prelead_cost_gmv_full_link_data_hf f` | `prelead_id = f.lead_id`，且规划系统意向限定 `virtual_third_department_name='学习顾问部' and virtual_fourth_department_name='SEC创新部'` | inner join + scope gate | 规划系统潜客进入订单复用以及转线索排重 | 2026-07-15 已验证；最终输出另需同一期次顾问命中 `temp_table.lvshuai01_jiagou_db.dept_2='SEC'`，两层条件不得互相替代 |
 | `data_lake_fuwu.dwd_crm_leads_rt lead` | `data_lake_fuwu.dwd_crm_leads_rt prelead` | `lead.previous_model_id = prelead.crm_leads_id` | inner/left join | 潜客转正常线索漏斗；`lead.model_type=0`，`prelead.model_type=1` | 2026-07-09 TMK/规划系统意向验证成功，query id `1456961079` |
 | `data_lake_fuwu.dwd_crm_leads_rt lead` | `service_dw.dws_crm_order_lead_attribute_income_refund_stats_detail_hf o` | `lead.crm_leads_id = o.lead_id` | left join | 转移后正常线索是否成交、成交年级/科目/主讲、成交金额/退费/净金额 | 使用 service 表课程和业绩范围过滤；2026-07-09 当前样本无成交命中 |
 | `dwd_transfer` | `service_dw.dwd_crm_assign_private_detail_hf p` | `dwd_transfer.transfer_lead_id = p.lead_id` | left join | TMK 转移后首次承接顾问、私海转手历史和当前私海候选 | 一对多；历史保留 `private_sea_id`，首次按 `assign_time, private_sea_id`，当前候选按活跃状态、分配/更新时间和 ID 排序；144 条转移线索命中 123 条，query id `1466178403` |
 | `dd` | `prc` | `lead_id + performance_employee_email_name = employee_email_name + rn = 1` | left join | 历史订单当期判断路径 | 历史SQL来源；2740自2026-10-22起不再使用，改用完整线索期次与统一运营周期序号 |
 | `bb_dedup` | `ud` | `employee_email_name/name + qici + channel_map_2/qudao + grade_1/grade_0 + virtual_direct_leader_email_name/zhuguan` | full outer join | 合并线索量和业绩指标，并保留年级维度 | 已从 SQL 入库，若同维度仍多行则保留 `rn = 1` |
-| `mm` | `temp_table.dingxi01_qing_team_jg` | `employee_email_name + qici` | left join | 2460 按结果期次补充团队架构 | 已从 SQL 入库；避免最新架构覆盖历史期次 |
-| `bucketed` | `temp_table.dingxi01_qing_team_jg` | `name = employee_email_name + qici` | left join | 2740 按结果期次补充团队架构 | 2026-10-22验证3228个键、重复0、最大基数1；员工单键跨期重复，不得退化为员工单键关联 |
+| `mm` | `temp_table.lvshuai01_qing_team_jg` | `employee_email_name + qici` | left join | 2460 按结果期次补充团队架构 | 已从 SQL 入库；避免最新架构覆盖历史期次 |
+| `bucketed` | `temp_table.lvshuai01_qing_team_jg` | `name = employee_email_name + qici` | left join | 2740 按结果期次补充团队架构 | 2026-10-22验证3228个键、重复0、最大基数1；员工单键跨期重复，不得退化为员工单键关联 |
 | `finance_dw.app_finance_performance_extend_details_hf dd_0` | `dw.dim_employee_chain org_t` | `name + coalesce(paid_time, trade_time) between begin_time and end_time` | left join 后 where / inner join 过滤 | 确认原始成交时间落在员工属于青橙项目部的任职窗口内，避免历史订单在转岗后退款被误计入青橙 | 已从 SQL 入库，是否应改用 `email_prefix` 待确认 |
-| `rd` | `temp_table.dingxi01_qing_zz` | `name = employee_email_name` | left join | 补充青橙直属主管、大主管和学部 | 已从 SQL 入库 |
+| `rd` | `temp_table.lvshuai01_qing_zz` | `name = employee_email_name` | left join | 补充青橙直属主管、大主管和学部 | 已从 SQL 入库 |
 | `finance_dw.dm_finance_order_refund_detail_df ord` | `finance_dw.dim_finance_order_change_df order_change` | `order_number = order_change.order_number` | left join | 补充退款订单调课调班类型；`order_change` 先展开订单号/父订单号/原始订单号/最新子订单号并按订单号聚合 | 已从 SQL 入库 |
 | `gmv_order` | `finance_dw.dwd_finance_order_refund_df r` | `gmv_order.order_number = r.order_number` | inner/left join | 青橙退费订单补退款原因和原因源金额；先用青橙订单集合限域，再按 `order_number + refund_reason` 聚合 | `qingcheng_refund_reason_analysis_20260710_20260728.sql`；原因源金额只作分摊权重；退款类型 `in (1,2)` 已确认 |
-| `share_order` | `temp_table.dingxi01_qing_team_jg jg` | `share_order.qici = jg.qici and share_order.name = jg.employee_email_name` | left join | 退费结构分析按结果期次补充学部、小组、大组和经理；同一订单参考集同时展开年级、产品、科目三类分析 | `qingcheng_refund_structure_share_analysis_20260710_20260728.sql`；架构表期次唯一性待确认 |
+| `share_order` | `temp_table.lvshuai01_qing_team_jg jg` | `share_order.qici = jg.qici and share_order.name = jg.employee_email_name` | left join | 退费结构分析按结果期次补充学部、小组、大组和经理；同一订单参考集同时展开年级、产品、科目三类分析 | `qingcheng_refund_structure_share_analysis_20260710_20260728.sql`；架构表期次唯一性待确认 |
 | `order_reason_alloc` | `refund_reason_by_order` / `refund_reason_order_total` | `order_number` | left join | 将订单退款金额按财务原因源金额分摊；无原因时保留“未获取到退费原因”，并要求订单级金额守恒 | `qingcheng_refund_reason_analysis_20260710_20260728.sql`；分摊规则已确认 |
-| `reason_detail_with_org` | `temp_table.dingxi01_qing_team_jg jg` | `qici + name = qici + employee_email_name` | left join | 为原因金额和退费正价课人头补充历史期次组织；退费人头键包含归属切片，避免跨期串人 | `qingcheng_refund_reason_analysis_20260710_20260728.sql`；未命中架构不应静默改用最新期次 |
+| `reason_detail_with_org` | `temp_table.lvshuai01_qing_team_jg jg` | `qici + name = qici + employee_email_name` | left join | 为原因金额和退费正价课人头补充历史期次组织；退费人头键包含归属切片，避免跨期串人 | `qingcheng_refund_reason_analysis_20260710_20260728.sql`；未命中架构不应静默改用最新期次 |
 | `rd` 主交易层 | `finance_dw.dim_finance_order_change_df order_change` + 当前 service 行 transfer 标记 | `rd.order_number = order_change.order_number`；service transfer 从 `service_base0` 当前明细行随 `service_scope -> rd -> t4` 传递 | left join / 字段传递 | 识别内部调课调班调入/调出，避免误入外部收入/退款桶；覆盖 `biz_type in (2,7)`；finance 订单变更字段只作为 service 行规则补充 | 2026-08-07 起不得按订单级 max 回灌 transfer；finance 独立明细保留后按真实粒度聚合，避免吞行或放大 |
 | `course_transfer_finance` | `service_dw.dwd_crm_assign_private_detail_hf` | `target_user_number = user_number and employee_email_name = employee_email_name`，并校验 `assign_time <= trade_time < close_time/fall_sea_time` | inner join 后窗口去重 | 证明 B 用户在交易时点处于同一青橙顾问保护期；用于 2460 标准订单集及复用该订单集的 2740，自 2026-07-20 起补数 | 已从 SQL 入库；同订单科目按分配时间、更新时间、私海 ID 倒序取 1 条 |
 | `rd` | `re_ke` | `order_number + qici = qici_re` | left join | 给财务交易补充全退时调课链路完课课节数 | 已从 SQL 入库 |
-| `rd_0` | `temp_table.dingxi01_qing_qi_moth` | `qici` | left join | 期次映射月份 | 已从 SQL 入库 |
-| `wa` | `temp_table.dingxi01_qing_team_jg` | `name = employee_email_name` | left join | 补充最新直属主管 | 已从 SQL 入库 |
-| `temp_table.dingxi01_qing_team_goal` | `renchan` | `xiaozu = leader_employee_email_name + month = moth` | left join | 月目标与实际业绩合并 | 已从 SQL 入库 |
-| `temp_table.dingxi01_qing_team_g_qi` | `renchan` | `xiaozu = leader_employee_email_name + qici` | left join | 期次目标与实际业绩合并 | 已从 SQL 入库 |
-| `temp_table.dingxi01_qing_team_jg` | `wa` | `employee_email_name + qici = name + qici` | left join | 个人转化以团队架构为主合并个人业绩 | 已从 SQL 入库，架构唯一性待确认 |
-| `temp_table.dingxi01_qing_team_jg` | `temp_table.dingxi01_qing_qi_moth` | `qici` | left join | 个人转化按架构期次补充月份 | 已从 SQL 入库 |
+| `rd_0` | `temp_table.lvshuai01_qing_qi_moth` | `qici` | left join | 期次映射月份 | 已从 SQL 入库 |
+| `wa` | `temp_table.lvshuai01_qing_team_jg` | `name = employee_email_name` | left join | 补充最新直属主管 | 已从 SQL 入库 |
+| `temp_table.lvshuai01_qing_team_goal` | `renchan` | `xiaozu = leader_employee_email_name + month = moth` | left join | 月目标与实际业绩合并 | 已从 SQL 入库 |
+| `temp_table.lvshuai01_qing_team_g_qi` | `renchan` | `xiaozu = leader_employee_email_name + qici` | left join | 期次目标与实际业绩合并 | 已从 SQL 入库 |
+| `temp_table.lvshuai01_qing_team_jg` | `wa` | `employee_email_name + qici = name + qici` | left join | 个人转化以团队架构为主合并个人业绩 | 已从 SQL 入库，架构唯一性待确认 |
+| `temp_table.lvshuai01_qing_team_jg` | `temp_table.lvshuai01_qing_qi_moth` | `qici` | left join | 个人转化按架构期次补充月份 | 已从 SQL 入库 |
 | `data` (CTE) | `f_call0` (CTE, from service_dw.app_h_crm_lead_task_process_info_detail_hf) | `period_name + assign_employee_email_name = employee_email_name + user_id + lead_id = call_answer_lead_count` | left join | 补充线索是否有 F 类首次外呼 | 已从 SQL 入库，`call_answer_lead_count` 作为 `lead_id` 使用语义待确认 |
 | `zhuanhua` (CTE) | `temp_table.shenbaoxin_channel_group` | `channel = channel_map` | left join | 补充渠道大类 `channel_group` | 已从 SQL 入库，临时表唯一性待确认 |
 | `finance_dw.app_finance_order_income_refund_info_df` | `bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df` | `user_number = user_id and email_prefix = employee_email_prefix` | 候选桥接；先唯一化/预聚合或使用 `exists` | 市场大客户运营部 20260923 物理探针命中 83/85 键、覆盖 604/614 条流水，直接 Join 放大至 1,839 行（3.0447 倍）；仅为跨域物理证据，青橙范围须独立复验 | Query ID `1599192970`；GMV 无 `section_assign_employee_email_prefix`，Query ID `1599194950` |

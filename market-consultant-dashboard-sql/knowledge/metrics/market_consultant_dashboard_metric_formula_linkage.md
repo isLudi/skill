@@ -68,8 +68,8 @@
 ## Model 2688 `x_qi_count` 维护说明
 
 - 看板显示名“承接期次”对应字段 `x_qi_count`，它是维度，不是可求和指标。
-- 模型最终层按 `employee_email_name + period_name/qici` 关联 `temp_table.dingxi01_pingyou_jg`，直接输出该表的 `x_qi_count`，并过滤值 `9`；模型不会自动重排 `1`—`4`。
-- `1`—`4` 表示顾问前四个有效新人承接期次，`9` 表示不进入该新人展示口径。维护公式和上传约束见 [temp_table.dingxi01_pingyou_jg](../tables/temp_table.dingxi01_pingyou_jg.md)。
+- 模型最终层按 `employee_email_name + period_name/qici` 关联 `temp_table.zhangjunyan01_pingyou_jg`，直接输出该表的 `x_qi_count`，并过滤值 `9`；模型不会自动重排 `1`—`4`。
+- `1`—`4` 表示顾问前四个有效新人承接期次，`9` 表示不进入该新人展示口径。维护公式和上传约束见 [temp_table.zhangjunyan01_pingyou_jg](../tables/temp_table.zhangjunyan01_pingyou_jg.md)。
 - 出现重复、非法值、上传字段错位或最新暑期期次缺失时，先按 [专项故障复盘](../pitfalls/newcomer_x_qi_count_and_pingyou_upload.md) 分层判断，不要直接在数据集最终层加 `distinct`。
 
 ## Key conversion metrics

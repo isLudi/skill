@@ -11,7 +11,7 @@
 该 SQL 分三层计算：
 
 1. `rd_0`：用户/员工/期次/课程部门/交易状态/年级粒度，计算收入、全部退款、行课阈值退款、支付科目数和退款科目数。
-2. `renchan`：以 `temp_table.dingxi01_qing_team_jg` 为主表，按个人-期次-主管-大组-经理-学部粒度聚合。
+2. `renchan`：以 `temp_table.lvshuai01_qing_team_jg` 为主表，按个人-期次-主管-大组-经理-学部粒度聚合。
 3. 最终查询：个人期次粒度输出，并带月份 `moth`。
 
 最终粒度：
@@ -78,18 +78,18 @@ qici + moth + name + leader_employee_email_name + dazu + jingli + xuebu
 
 | 字段 | 来源 | 说明 | 状态 |
 |---|---|---|---|
-| `qici` | `temp_table.dingxi01_qing_team_jg.qici` | 架构期次，也是个人输出期次 | 已从 SQL 入库 |
-| `moth` | `temp_table.dingxi01_qing_qi_moth.moth` | 期次映射月份 | 已从 SQL 入库 |
+| `qici` | `temp_table.lvshuai01_qing_team_jg.qici` | 架构期次，也是个人输出期次 | 已从 SQL 入库 |
+| `moth` | `temp_table.lvshuai01_qing_qi_moth.moth` | 期次映射月份 | 已从 SQL 入库 |
 | `name` | `qtg.employee_email_name as name` | 个人姓名/邮箱名 | 已从 SQL 入库 |
-| `leader_employee_email_name` | `temp_table.dingxi01_qing_team_jg` | 直属主管 | 已从 SQL 入库，语义待确认 |
-| `dazu` | `temp_table.dingxi01_qing_team_jg` | 大组 | 已从 SQL 入库，语义待确认 |
-| `jingli` | `temp_table.dingxi01_qing_team_jg` | 经理 | 已从 SQL 入库，语义待确认 |
-| `xuebu` | `temp_table.dingxi01_qing_team_jg` | 学部 | 已从 SQL 入库，语义待确认 |
+| `leader_employee_email_name` | `temp_table.lvshuai01_qing_team_jg` | 直属主管 | 已从 SQL 入库，语义待确认 |
+| `dazu` | `temp_table.lvshuai01_qing_team_jg` | 大组 | 已从 SQL 入库，语义待确认 |
+| `jingli` | `temp_table.lvshuai01_qing_team_jg` | 经理 | 已从 SQL 入库，语义待确认 |
+| `xuebu` | `temp_table.lvshuai01_qing_team_jg` | 学部 | 已从 SQL 入库，语义待确认 |
 
 ## 9. 待确认事项
 
 - `j_sub` 当前没有扣减 `r_sub`，是否应定义为“支付科目数”而非“净科目数”待确认。
-- 个人转化以 `temp_table.dingxi01_qing_team_jg` 为主表，需确认该表是否一人一期唯一。
+- 个人转化以 `temp_table.lvshuai01_qing_team_jg` 为主表，需确认该表是否一人一期唯一。
 - `podan` 在个人粒度下通常等价于个人是否净收大于 0 的 0/1 标记，是否需要保留 `count(distinct ...)` 形式待确认。
 - H 一对一拆分字段名称使用 `Y_` 前缀，当前按 SQL 理解为“一对一”，命名来源待确认。
 - `price` 是否已经是元，当前 SQL 直接使用。

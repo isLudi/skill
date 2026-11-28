@@ -284,7 +284,7 @@ H_promit_4   = 19,800
 团队完成度【月/期】和个人完成度都不能再使用：
 
 ```sql
-where qici = (select max(qici) from temp_table.dingxi01_qing_team_jg)
+where qici = (select max(qici) from temp_table.lvshuai01_qing_team_jg)
 ```
 
 当前稳定规则：

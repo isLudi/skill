@@ -1,4 +1,6 @@
-# temp_table.dingxi01_qing_daoke
+# temp_table.lvshuai01_qing_daoke
+
+维护账号迁移：2026-11-28 用户确认同后缀表由 lvshuai01 接续维护；线上新表身份已核实。字段及业务含义沿用已确认结构，历史 SQL、Excel 扫描和 Query 证据不等于新表本次数据验证。当前使用规则见 [临时表维护迁移](../temp_table_maintenance.md)。
 
 ## 1. 临时表用途
 

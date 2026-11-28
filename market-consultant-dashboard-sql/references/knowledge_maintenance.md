@@ -4,6 +4,8 @@
 
 ## 5. 维护入口
 
+已确认临时表维护账号迁移使用 operator 的 [临时表知识迁移适配器](../../usql-web-query-operator/references/temp_table_knowledge_migration.md)，经线上身份、源 Hash、独占锁和完整验证更新；重复文档必须人工合并，不直接覆盖。
+
 既有生产数据集的修改基线按 [生产数据集 SQL 修改流程](query_governance.md#生产数据集-sql-修改流程) 每次从线上拉取。这里维护的 stable canonical SQL 只是知识快照，不能因为路径稳定或本地校验通过就作为下一次生产修改底稿。任务基线与候选放在独立工作目录；候选不得先写进 canonical 冒充已上线版本。只有线上保存并回读验证后，且知识维护在授权范围内，才通过原有同步流程刷新本地 canonical、契约及索引；取线上基线本身不要求先写知识库。
 
 新增或修改 SQL 时按 [SQL 质量验证](sql_quality.md) 区分文本变化与逻辑变化。来源 Hash、领域归属、受影响契约与生成索引仍须一致；验证命令按 [维护验证](../../references/maintenance-verification.md) 去重。

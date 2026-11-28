@@ -1,4 +1,6 @@
-# temp_table.dingxi01_qing_zz
+# temp_table.lvshuai01_qing_zz
+
+维护账号迁移：2026-11-28 用户确认同后缀表由 lvshuai01 接续维护；线上新表身份已核实。字段及业务含义沿用已确认结构，历史 SQL、Excel 扫描和 Query 证据不等于新表本次数据验证。当前使用规则见 [临时表维护迁移](../temp_table_maintenance.md)。
 
 ## 1. 临时表用途
 
@@ -45,7 +47,7 @@ zz.employee_email_name = rd.name
 ## 7. 不可复用边界
 
 - 默认仅用于青橙年季月营收看板。
-- 不得默认等同于 `temp_table.dingxi01_qing_team_jg` 或 `temp_table.dingxi01_jiagou_db`。
+- 不得默认等同于 `temp_table.lvshuai01_qing_team_jg` 或 `temp_table.lvshuai01_jiagou_db`。
 - 如果需要历史架构归属，必须确认该表是否有期次/日期字段；当前 SQL 未按期次 join。
 
 ## 8. 待确认事项

@@ -27,6 +27,7 @@ description: Execute governed USQL, templates, Data Center and BI operations, ma
 | SQL 执行、错误、小结果下载 | [sql_query_execution.md](references/sql_query_execution.md)；有 QueryPlan 再读 [query_plan_contract.md](references/query_plan_contract.md)；追踪和结果工件见 [text2sql_runtime_artifacts.md](references/text2sql_runtime_artifacts.md) | `scripts/usql_web_query.py` |
 | 模板 SQL、永久参数化模板创建/发布/回读、模板市场、Skill stable canonical 同步、大结果下载 | [template_query.md](references/template_query.md) | `scripts/usql_web_query.py` |
 | 手工临时表检查或上传 | [manual_temp_table_registry.md](references/manual_temp_table_registry.md) | `scripts/usql_web_query.py` |
+| 已确认临时表更换维护账号后的本地知识迁移、重复文档合并 | [temp_table_knowledge_migration.md](references/temp_table_knowledge_migration.md) | `scripts/usql_web_query.py` |
 | 数据地图/Data Center 本地知识同步 | [data_knowledge_sync.md](references/data_knowledge_sync.md) 和 [domain_adapters.md](references/domain_adapters.md) | `scripts/usql_web_query.py` |
 | 远端既有数据集替换 | [data_center_replacement.md](references/data_center_replacement.md) | `scripts/usql_web_query.py` |
 | 已启用但过期的数据集同步周期续期 | [data_center_schedule_renewal.md](references/data_center_schedule_renewal.md) | `scripts/usql_web_query.py` |

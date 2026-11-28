@@ -1,4 +1,6 @@
-# temp_table.dingxi01_qing_goal
+# temp_table.lvshuai01_qing_goal
+
+维护账号迁移：2026-11-28 用户确认同后缀表由 lvshuai01 接续维护；线上新表身份已核实。字段及业务含义沿用已确认结构，历史 SQL、Excel 扫描和 Query 证据不等于新表本次数据验证。当前使用规则见 [临时表维护迁移](../temp_table_maintenance.md)。
 
 ## 1. 临时表用途
 
@@ -64,7 +66,7 @@ and gm.employee_email_name = r.employee_email_name
 ## 7. 不可复用边界
 
 - 当前只作为青橙个人完成度 / 个人转化目标表使用。
-- 不能默认替代 `temp_table.dingxi01_qing_team_goal` 或 `temp_table.dingxi01_qing_team_g_qi`。
+- 不能默认替代 `temp_table.lvshuai01_qing_team_goal` 或 `temp_table.lvshuai01_qing_team_g_qi`。
 - 如果未来团队完成度也要用到个人目标，需要重新确认字段语义和粒度。
 
 ## 8. 待确认事项

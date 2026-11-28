@@ -77,7 +77,7 @@ Presto
 |---|---|---|---|---|
 | service_dw.dim_crm_assign_rule_lead_detail_hf | rule_id, plan_id | service_dw.dim_crm_assign_rule_plan_item_info_hf | rule_id, plan_id | 获取规则计划下的顾问配置 |
 | service_dw.dim_crm_assign_rule_plan_item_info_hf | employee_email_name | bdg_ba.dm_crm_lead_cost_gmv_communication_learn_full_link_df | employee_email_name | 与实际线索量按顾问合并，需同时带 `rule_name` |
-| service_dw.dim_crm_assign_rule_plan_item_info_hf | employee_email_name | temp_table.dingxi01_jiagou_db | employee_email_name | 补充架构，需同时带期次条件 |
+| service_dw.dim_crm_assign_rule_plan_item_info_hf | employee_email_name | temp_table.lvshuai01_jiagou_db | employee_email_name | 补充架构，需同时带期次条件 |
 
 ## 10. 常用 SQL 片段
 
